@@ -1,4 +1,5 @@
 import http from "../01_axios"
+import { apiLogin } from "./urls"
 import STORAGE, { clearStorage, setStorage } from "src/lib/storage"
 import { MOCK_ACCOUNTS } from "src/constants/roles"
 
@@ -8,7 +9,7 @@ const AuthService = {
    */
   login: async body => {
     try {
-      const res = await http.post("/auth/login", body)
+      const res = await http.post(apiLogin, body)
       return res
     } catch {
       // Fallback giả lập nếu backend chưa sẵn sàng

@@ -1,0 +1,15 @@
+.login-page-wrapper {
+  min-height: 100vh;
+  background-color: var(--bg-page, #f8faf9);
+  padding: 48px 16px;
+
+  .login-container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+}

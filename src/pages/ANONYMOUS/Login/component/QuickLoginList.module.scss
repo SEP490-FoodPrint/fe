@@ -1,0 +1,18 @@
+.quickLoginCard {
+  border-radius: var(--radius-lg, 12px) !important;
+  box-shadow: var(--shadow-md, 0 4px 12px rgba(29, 43, 38, 0.08)) !important;
+}
+
+.roleItem {
+  cursor: pointer;
+  padding: 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default, #dce5e0);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(10, 128, 102, 0.12));
+  }
+}
