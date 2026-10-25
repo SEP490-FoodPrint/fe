@@ -1,5 +1,6 @@
 import React, { useContext } from "react"
-import { Button, Result } from "antd"
+import { Box, Typography, Button } from "@mui/material"
+import SearchOffIcon from "@mui/icons-material/SearchOff"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { getDefaultRedirectByOrg } from "src/lib/utils"
@@ -20,18 +21,26 @@ function NotFound() {
   }
 
   return (
-    <div style={{ padding: "60px 20px" }}>
-      <Result
-        status="404"
-        title="404 - Không Tìm Thấy Trang"
-        subTitle="Đường dẫn bạn yêu cầu không tồn tại hoặc đã được di chuyển."
-        extra={
-          <Button type="primary" onClick={handleBack}>
-            Quay lại trang chủ
-          </Button>
-        }
-      />
-    </div>
+    <Box
+      display="flex"
+      flexDirection="column"
+      alignItems="center"
+      justifyContent="center"
+      minHeight="70vh"
+      textAlign="center"
+      px={2}
+    >
+      <SearchOffIcon sx={{ fontSize: 80, color: "warning.main", mb: 2 }} />
+      <Typography variant="h4" fontWeight={700} gutterBottom>
+        404 - Không Tìm Thấy Trang
+      </Typography>
+      <Typography variant="body1" color="text.secondary" maxWidth={500} mb={3}>
+        Đường dẫn bạn yêu cầu không tồn tại hoặc đã được di chuyển.
+      </Typography>
+      <Button variant="contained" color="primary" onClick={handleBack}>
+        Quay lại trang chủ
+      </Button>
+    </Box>
   )
 }
 

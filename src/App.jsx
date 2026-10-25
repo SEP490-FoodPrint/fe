@@ -1,5 +1,4 @@
 import React from "react"
-import { App as AntdApp } from "antd"
 import { BrowserRouter } from "react-router-dom"
 import ErrorBoundary from "./components/Boundary"
 import DefaultAction from "./components/Layout/DefaultAction/DefaultAction"
@@ -11,15 +10,13 @@ function App() {
   return (
     <Providers>
       <GlobalThemeConfig>
-        <AntdApp>
-          <BrowserRouter>
-            <ErrorBoundary>
-              <DefaultAction>
-                <AppRouter />
-              </DefaultAction>
-            </ErrorBoundary>
-          </BrowserRouter>
-        </AntdApp>
+        <BrowserRouter>
+          <ErrorBoundary>
+            <DefaultAction>
+              <AppRouter />
+            </DefaultAction>
+          </ErrorBoundary>
+        </BrowserRouter>
       </GlobalThemeConfig>
     </Providers>
   )

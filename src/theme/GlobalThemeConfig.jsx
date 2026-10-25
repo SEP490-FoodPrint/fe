@@ -1,24 +1,22 @@
-import { ConfigProvider, theme as antdTheme } from "antd"
-import { useContext } from "react"
+import React, { useContext, useMemo } from "react"
+import { ThemeProvider } from "@mui/material/styles"
+import CssBaseline from "@mui/material/CssBaseline"
 import { StoreContext } from "src/contexts"
-import ThemeConfigAntd, { ColorPrimary } from "./ThemeConfigAntd"
+import { getMuiTheme } from "./ThemeConfigMui"
 
 function GlobalThemeConfig({ children }) {
-  const { themeStore } = useContext(StoreContext)
+  const { themeStore } = useContext(StoreContext) || {}
   const isDarkMode = themeStore?.isDarkMode || false
 
+  const theme = useMemo(() => {
+    return getMuiTheme(isDarkMode ? "dark" : "light")
+  }, [isDarkMode])
+
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: isDarkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
-        token: {
-          ...ThemeConfigAntd.token,
-          colorPrimary: ColorPrimary,
-        },
-      }}
-    >
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       {children}
-    </ConfigProvider>
+    </ThemeProvider>
   )
 }
 

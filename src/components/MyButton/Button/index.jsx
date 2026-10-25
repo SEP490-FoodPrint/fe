@@ -1,17 +1,32 @@
-import { Button } from "antd"
+import React from "react"
+import { Button } from "@mui/material"
 import PropTypes from "prop-types"
 import SvgIcon from "src/components/SvgIcon"
-//variant: "outlined", "dashed", "solid", "filled", "text", "link"
-// color: ["default", "primary", "danger", "blue", "purple", "cyan", "green", "magenta", "pink", "red", "orange", "yellow", "volcano", "geekblue", "lime", "gold"];
-const ButtonCustom = ({ children, iconName, antMode = true, ...rest }) => {
+
+const ButtonCustom = ({
+  children,
+  iconName,
+  antMode = true,
+  variant = "contained",
+  color = "primary",
+  sx,
+  ...rest
+}) => {
   return (
-    <Button variant={"solid"} color={"primary"} {...rest}>
+    <Button
+      variant={variant}
+      color={color}
+      sx={{ textTransform: "none", ...sx }}
+      {...rest}
+    >
       <div className="d-flex-center">
-        <SvgIcon
-          antMode={!antMode ? "" : "colorTextLightSolid"}
-          name={iconName}
-          className="mr-8"
-        />
+        {iconName && (
+          <SvgIcon
+            antMode={!antMode ? "" : "colorTextLightSolid"}
+            name={iconName}
+            className="mr-8"
+          />
+        )}
         <span>{children}</span>
       </div>
     </Button>
@@ -20,6 +35,7 @@ const ButtonCustom = ({ children, iconName, antMode = true, ...rest }) => {
 
 ButtonCustom.propTypes = {
   iconName: PropTypes.string,
+  children: PropTypes.node,
 }
 
 ButtonCustom.defaultProps = {

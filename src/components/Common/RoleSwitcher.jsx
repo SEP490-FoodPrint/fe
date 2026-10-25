@@ -1,13 +1,22 @@
 import React, { useContext, useState } from "react"
-import { Button, Drawer, Tag, Space, Card, Typography, Tooltip } from "antd"
-import { SwapOutlined } from "@ant-design/icons"
+import {
+  Button,
+  Drawer,
+  Chip,
+  Card,
+  CardContent,
+  Typography,
+  Tooltip,
+  Box,
+  IconButton,
+} from "@mui/material"
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
+import CloseIcon from "@mui/icons-material/Close"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { MOCK_ACCOUNTS, ROLE_LABELS } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
 import { getDefaultRedirectByOrg } from "src/lib/utils"
-
-const { Text } = Typography
 
 function RoleSwitcher() {
   const [open, setOpen] = useState(false)
@@ -25,7 +34,6 @@ function RoleSwitcher() {
     setIsLoginContext(true)
     setUser(newUser)
     setOpen(false)
-    // Chuyển hướng về trang chủ của portal tương ứng
     navigate(getDefaultRedirectByOrg(newUser.orgType))
   }
 
@@ -33,19 +41,19 @@ function RoleSwitcher() {
     <>
       <Tooltip title="Đổi vai trò nhanh (Test phân quyền)">
         <Button
-          type="primary"
-          shape="round"
-          icon={<SwapOutlined />}
+          variant="contained"
+          color="primary"
+          startIcon={<SwapHorizIcon />}
           onClick={() => setOpen(true)}
-          style={{
+          sx={{
             position: "fixed",
             bottom: 24,
             right: 24,
             zIndex: 9999,
-            boxShadow: "0 4px 12px rgba(22, 119, 255, 0.4)",
-            height: 42,
-            paddingLeft: 16,
-            paddingRight: 16,
+            borderRadius: 8,
+            boxShadow: "0 4px 16px rgba(10, 128, 102, 0.4)",
+            height: 44,
+            px: 2,
           }}
         >
           Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})
@@ -53,45 +61,74 @@ function RoleSwitcher() {
       </Tooltip>
 
       <Drawer
-        title="⚡ Chuyển Đổi Nhanh Giữa 9 Vai Trò"
-        placement="right"
-        width={380}
-        onClose={() => setOpen(false)}
+        anchor="right"
         open={open}
+        onClose={() => setOpen(false)}
+        PaperProps={{
+          sx: { width: 380, p: 3 },
+        }}
       >
-        <p style={{ color: "#666", fontSize: 13, marginBottom: 16 }}>
-          Chọn một vai trò bất kỳ để chuyển đổi tức thì. Menu Sidebar và quyền truy cập sẽ tự động thay đổi theo:
-        </p>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+          <Typography variant="h6" fontWeight={700}>
+            ⚡ Chuyển Đổi Nhanh 9 Vai Trò
+          </Typography>
+          <IconButton size="small" onClick={() => setOpen(false)}>
+            <CloseIcon fontSize="small" />
+          </IconButton>
+        </Box>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <Typography variant="body2" color="text.secondary" mb={2}>
+          Chọn một vai trò bất kỳ để chuyển đổi tức thì. Menu Sidebar và quyền truy cập sẽ tự động thay đổi theo:
+        </Typography>
+
+        <Box display="flex" flexDirection="column" gap={1.5}>
           {MOCK_ACCOUNTS.map((acc) => {
             const isCurrent = acc.role === user?.role
             return (
               <Card
                 key={acc.userId}
-                size="small"
-                hoverable
                 onClick={() => handleSwitch(acc.role)}
-                style={{
+                sx={{
                   cursor: "pointer",
-                  borderColor: isCurrent ? "#1677ff" : "#f0f0f0",
-                  background: isCurrent ? "#e6f4ff" : "#fff",
+                  border: isCurrent ? "2px solid #0A8066" : "1px solid #E8EEEB",
+                  bgcolor: isCurrent ? "#E8F5F1" : "#FFFFFF",
+                  transition: "all 0.2s",
+                  "&:hover": {
+                    borderColor: "#0A8066",
+                    transform: "translateY(-1px)",
+                  },
                 }}
               >
-                <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                  <Text strong>{acc.fullName}</Text>
-                  {isCurrent && <Tag color="blue">Đang chọn</Tag>}
-                </Space>
-                <div style={{ marginTop: 4 }}>
-                  <Tag color={acc.orgType === "SYSTEM" ? "purple" : acc.orgType === "SUPPLIER" ? "green" : "blue"}>
-                    {acc.orgType}
-                  </Tag>
-                  <span style={{ fontSize: 13, color: "#555" }}>{ROLE_LABELS[acc.role]}</span>
-                </div>
+                <CardContent sx={{ p: "12px !important" }}>
+                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                    <Typography fontWeight={600} fontSize="0.95rem">
+                      {acc.fullName}
+                    </Typography>
+                    {isCurrent && (
+                      <Chip
+                        label="Đang chọn"
+                        size="small"
+                        color="primary"
+                        sx={{ height: 22, fontSize: "0.75rem" }}
+                      />
+                    )}
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                    <Chip
+                      label={acc.orgType}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: "0.7rem", fontWeight: 600 }}
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                      {ROLE_LABELS[acc.role]}
+                    </Typography>
+                  </Box>
+                </CardContent>
               </Card>
             )
           })}
-        </div>
+        </Box>
       </Drawer>
     </>
   )

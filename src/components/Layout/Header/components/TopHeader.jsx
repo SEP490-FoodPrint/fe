@@ -1,13 +1,22 @@
-import React, { useContext } from "react"
-import { Avatar, Button, Dropdown, Space, Tag, Typography } from "antd"
-import { LogoutOutlined, UserOutlined } from "@ant-design/icons"
+import React, { useContext, useState } from "react"
+import {
+  Box,
+  Typography,
+  Chip,
+  Avatar,
+  Menu,
+  MenuItem,
+  Divider,
+  IconButton,
+  Tooltip,
+} from "@mui/material"
+import LogoutIcon from "@mui/icons-material/Logout"
+import PersonIcon from "@mui/icons-material/Person"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { ROLE_LABELS } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
 import ROUTER from "src/router/ROUTER"
-
-const { Text } = Typography
 
 function TopHeader() {
   const navigate = useNavigate()
@@ -16,87 +25,131 @@ function TopHeader() {
   const user = userStore?.user
   const setUser = userStore?.setUser
 
+  const [anchorEl, setAnchorEl] = useState(null)
+  const isMenuOpen = Boolean(anchorEl)
+
+  const handleOpenUserMenu = (event) => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleCloseUserMenu = () => {
+    setAnchorEl(null)
+  }
+
   const handleLogout = () => {
+    handleCloseUserMenu()
     AuthService.logout()
     if (setIsLoginContext) setIsLoginContext(false)
     if (setUser) setUser(null)
     navigate(ROUTER.LOGIN, { replace: true })
   }
 
-  const userMenuItems = [
-    {
-      key: "user-info",
-      label: (
-        <div style={{ padding: "4px 8px" }}>
-          <div><b>{user?.fullName}</b></div>
-          <div style={{ fontSize: 12, color: "#888" }}>{user?.orgName}</div>
-        </div>
-      ),
-      disabled: true,
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "logout",
-      label: "Đăng xuất",
-      icon: <LogoutOutlined />,
-      danger: true,
-      onClick: handleLogout,
-    },
-  ]
-
-  let orgColor = "blue"
-  if (user?.orgType === "SYSTEM") orgColor = "purple"
-  if (user?.orgType === "SUPPLIER") orgColor = "green"
-
   return (
-    <header
-      style={{
+    <Box
+      component="header"
+      sx={{
         height: 64,
-        background: "#fff",
-        borderBottom: "1px solid #f0f0f0",
-        padding: "0 24px",
+        bgcolor: "#ffffff",
+        borderBottom: "1px solid var(--border-default, #dce5e0)",
+        px: 3,
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
         position: "sticky",
         top: 0,
-        zIndex: 100,
-        boxShadow: "0 1px 4px rgba(0,21,41,0.08)",
+        zIndex: 1000,
+        boxShadow: "0 1px 4px rgba(29, 43, 38, 0.06)",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <div style={{ fontSize: 20, fontWeight: "bold", color: "#1677ff", cursor: "pointer" }} onClick={() => navigate(ROUTER.DEFAULT)}>
+      <Box display="flex" alignItems="center" gap={2}>
+        <Typography
+          variant="h6"
+          fontWeight={800}
+          color="primary.main"
+          sx={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 0.5 }}
+          onClick={() => navigate(ROUTER.DEFAULT)}
+        >
           🥗 FoodPrint
-        </div>
+        </Typography>
         {user?.orgName && (
-          <Tag color={orgColor} style={{ fontSize: 13, padding: "2px 10px", borderRadius: 12 }}>
-            {user.orgName}
-          </Tag>
+          <Chip
+            label={user.orgName}
+            size="small"
+            color="primary"
+            variant="outlined"
+            sx={{ fontWeight: 600, fontSize: "0.8rem", height: 24 }}
+          />
         )}
-      </div>
+      </Box>
 
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <Box display="flex" alignItems="center" gap={2}>
         {user && (
-          <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" arrow>
-            <Space style={{ cursor: "pointer" }}>
-              <Avatar src={user.avatar} icon={<UserOutlined />} style={{ backgroundColor: "#1677ff" }} />
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", lineHeight: "1.2" }}>
-                <Text strong style={{ fontSize: 14 }}>{user.fullName}</Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+          <>
+            <Box
+              onClick={handleOpenUserMenu}
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1.2,
+                cursor: "pointer",
+                p: "4px 8px",
+                borderRadius: 2,
+                transition: "background 0.2s",
+                "&:hover": { bgcolor: "rgba(0,0,0,0.04)" },
+              }}
+            >
+              <Avatar
+                src={user.avatar}
+                sx={{ width: 34, height: 34, bgcolor: "primary.main", fontSize: "0.9rem" }}
+              >
+                {!user.avatar && <PersonIcon fontSize="small" />}
+              </Avatar>
+              <Box display="flex" flexDirection="column" textAlign="left">
+                <Typography variant="body2" fontWeight={600} lineHeight={1.2}>
+                  {user.fullName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
                   {ROLE_LABELS[user.role]?.split("(")[0]?.trim() || user.role}
-                </Text>
-              </div>
-            </Space>
-          </Dropdown>
+                </Typography>
+              </Box>
+            </Box>
+
+            <Menu
+              anchorEl={anchorEl}
+              open={isMenuOpen}
+              onClose={handleCloseUserMenu}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+              PaperProps={{
+                sx: { width: 220, mt: 1, borderRadius: 2, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" },
+              }}
+            >
+              <Box sx={{ px: 2, py: 1 }}>
+                <Typography variant="subtitle2" fontWeight={700}>
+                  {user.fullName}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {user.orgName || user.orgType}
+                </Typography>
+              </Box>
+              <Divider />
+              <MenuItem onClick={handleLogout} sx={{ color: "error.main", gap: 1 }}>
+                <LogoutIcon fontSize="small" />
+                <Typography variant="body2" fontWeight={600}>
+                  Đăng xuất
+                </Typography>
+              </MenuItem>
+            </Menu>
+          </>
         )}
 
-        <Button icon={<LogoutOutlined />} type="text" onClick={handleLogout} title="Đăng xuất">
-          Thoát
-        </Button>
-      </div>
-    </header>
+        <Tooltip title="Đăng xuất">
+          <IconButton size="small" onClick={handleLogout} sx={{ color: "text.secondary" }}>
+            <LogoutIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    </Box>
   )
 }
 

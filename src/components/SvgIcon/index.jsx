@@ -1,7 +1,9 @@
-import { theme } from "antd"
+import React from "react"
+import { useTheme } from "@mui/material/styles"
 import PropTypes from "prop-types"
 import styled, { css } from "styled-components"
 import listSVGIcon from "./icons"
+
 const SvgIconStyle = styled.span`
   svg path {
     ${props =>
@@ -11,15 +13,24 @@ const SvgIconStyle = styled.span`
       `}
   }
 `
+
 export default function SvgIcon(props) {
-  const { token } = theme.useToken()
+  const theme = useTheme()
   const { name, className, antMode, ...rest } = props
   const iconElement = listSVGIcon[name]
 
   if (!iconElement) return null
+
+  let fillColor = undefined
+  if (antMode === "colorTextLightSolid") {
+    fillColor = "#ffffff"
+  } else if (antMode && theme?.palette?.[antMode]?.main) {
+    fillColor = theme.palette[antMode].main
+  }
+
   return (
     <SvgIconStyle
-      $inputColor={antMode ? token[antMode] : undefined}
+      $inputColor={fillColor}
       className={`d-flex align-item-center justify-content-center ${className}`}
       {...rest}
     >
@@ -32,7 +43,7 @@ SvgIcon.propTypes = {
   name: PropTypes.string,
   className: PropTypes.string,
   onClick: PropTypes.func,
-  antMode: PropTypes.bool,
+  antMode: PropTypes.oneOfType([PropTypes.bool, PropTypes.string]),
 }
 
 SvgIcon.defaultProps = {

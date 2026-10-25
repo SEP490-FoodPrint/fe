@@ -1,13 +1,17 @@
 import React, { useContext, useMemo } from "react"
-import { Layout, Menu } from "antd"
+import {
+  Box,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+} from "@mui/material"
 import { useLocation, useNavigate, Outlet } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { hasPermission } from "src/lib/utils"
 import { MenuItemSchool, MenuItemSupplier, MenuItemSystem } from "src/router/MenuItem"
 import TopHeader from "./Header/components/TopHeader"
 import RoleSwitcher from "src/components/Common/RoleSwitcher"
-
-const { Sider, Content } = Layout
 
 const MainLayout = ({ type }) => {
   const navigate = useNavigate()
@@ -50,47 +54,89 @@ const MainLayout = ({ type }) => {
     return filterTree(rawMenuItems)
   }, [rawMenuItems, user?.role])
 
-  const handleMenuClick = ({ key }) => {
-    navigate(key)
-  }
-
   return (
-    <Layout style={{ minHeight: "100vh" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
       {/* Header cố định */}
       <TopHeader />
 
-      <Layout>
+      <Box sx={{ display: "flex", flex: 1 }}>
         {/* Sidebar Menu lọc theo Role */}
-        <Sider
-          width={260}
-          style={{
-            background: "#fff",
-            borderRight: "1px solid #f0f0f0",
-            overflow: "auto",
+        <Box
+          component="aside"
+          sx={{
+            width: 260,
+            flexShrink: 0,
+            bgcolor: "#ffffff",
+            borderRight: "1px solid var(--border-default, #dce5e0)",
+            overflowY: "auto",
             height: "calc(100vh - 64px)",
             position: "sticky",
             top: 64,
             left: 0,
+            p: 1.5,
           }}
         >
-          <Menu
-            mode="inline"
-            selectedKeys={[location.pathname]}
-            style={{ height: "100%", borderRight: 0, paddingTop: 8 }}
-            items={filteredMenuItems}
-            onClick={handleMenuClick}
-          />
-        </Sider>
+          <List component="nav" disablePadding>
+            {filteredMenuItems.map((item) => {
+              const isSelected = location.pathname === item.key
+              return (
+                <ListItemButton
+                  key={item.key}
+                  selected={isSelected}
+                  onClick={() => navigate(item.key)}
+                  sx={{
+                    borderRadius: 2,
+                    mb: 0.5,
+                    py: 1,
+                    px: 1.5,
+                    color: isSelected ? "primary.main" : "text.primary",
+                    bgcolor: isSelected ? "var(--green-50, #e8f5f1) !important" : "transparent",
+                    "&:hover": {
+                      bgcolor: isSelected ? "var(--green-50, #e8f5f1)" : "rgba(0,0,0,0.04)",
+                    },
+                  }}
+                >
+                  {item.icon && (
+                    <ListItemIcon
+                      sx={{
+                        minWidth: 36,
+                        color: isSelected ? "primary.main" : "text.secondary",
+                      }}
+                    >
+                      {item.icon}
+                    </ListItemIcon>
+                  )}
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontSize: "0.9rem",
+                      fontWeight: isSelected ? 600 : 500,
+                    }}
+                  />
+                </ListItemButton>
+              )
+            })}
+          </List>
+        </Box>
 
         {/* Vùng nội dung màn hình */}
-        <Content style={{ padding: "20px 24px", background: "#f5f7fa", minHeight: 280 }}>
+        <Box
+          component="main"
+          sx={{
+            flex: 1,
+            p: 3,
+            bgcolor: "var(--bg-page, #f8faf9)",
+            minHeight: "calc(100vh - 64px)",
+            overflowX: "hidden",
+          }}
+        >
           <Outlet />
-        </Content>
-      </Layout>
+        </Box>
+      </Box>
 
       {/* Widget đổi role nhanh để test */}
       <RoleSwitcher />
-    </Layout>
+    </Box>
   )
 }
 

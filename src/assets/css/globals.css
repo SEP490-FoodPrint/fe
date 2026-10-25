@@ -1,44 +1,163 @@
-/* @tailwind base;
-@tailwind components;
-@tailwind utilities;
+/*
+ * FOODPRINT GLOBAL STYLES & DESIGN SYSTEM VARIABLES
+ * Brand: #0A8066 (green), #DED3CD (beige)
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap");
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* 1. PRIMITIVE COLORS */
+  --green-50: #e8f5f1;
+  --green-100: #c9e8de;
+  --green-200: #9bd6c5;
+  --green-300: #65bea6;
+  --green-400: #30a387;
+  --green-500: #0a8066; /* Brand primary */
+  --green-600: #08735c;
+  --green-700: #08604d;
+  --green-800: #084c3e;
+  --green-900: #06392f;
+
+  --beige-50: #faf7f5;
+  --beige-100: #f4eeea;
+  --beige-200: #eae1db;
+  --beige-300: #ded3cd; /* Brand secondary */
+  --beige-400: #cabab2;
+  --beige-500: #b4a096;
+  --beige-600: #948078;
+  --beige-700: #75635c;
+  --beige-800: #584b46;
+  --beige-900: #3d3431;
+
+  --neutral-50: #f8faf9;
+  --neutral-100: #f1f5f3;
+  --neutral-200: #e8eeeb;
+  --neutral-300: #dce5e0;
+  --neutral-400: #adbbb3;
+  --neutral-500: #84958b;
+  --neutral-600: #6b7c74;
+  --neutral-700: #52635c;
+  --neutral-800: #34443c;
+  --neutral-900: #1d2b26;
+
+  --white: #ffffff;
+
+  /* RGB channels for opacity/alpha support */
+  --color-primary-rgb: 10, 128, 102;
+  --color-secondary-rgb: 222, 211, 205;
+
+  /* 2. SEMANTIC COLORS */
+  --color-primary: var(--green-500);
+  --color-primary-hover: var(--green-600);
+  --color-primary-active: var(--green-700);
+  --color-primary-soft: var(--green-50);
+  --color-secondary: var(--beige-300);
+  --color-secondary-soft: var(--beige-50);
+
+  --bg-page: var(--neutral-50);
+  --bg-surface: var(--white);
+  --bg-muted: var(--neutral-100);
+  --bg-accent: var(--beige-100);
+  --bg-disabled: var(--neutral-200);
+
+  --text-primary: var(--neutral-900);
+  --text-secondary: var(--neutral-700);
+  --text-muted: var(--neutral-600);
+  --text-on-primary: var(--white);
+  --text-disabled: var(--neutral-600);
+
+  --border-default: var(--neutral-300);
+  --border-strong: var(--neutral-400);
+  --border-focus: var(--green-500);
+
+  /* Status colors */
+  --color-success: #168456;
+  --color-success-bg: #e8f6ef;
+  --color-success-border: #bce6cf;
+  --color-error: #d64545;
+  --color-error-bg: #fdecec;
+  --color-error-border: #f4c3c3;
+  --color-warning: #9b650a;
+  --color-warning-bg: #fff5da;
+  --color-warning-border: #f3dea1;
+  --color-info: #286bbd;
+  --color-info-bg: #eaf3ff;
+  --color-info-border: #c8def8;
+
+  /* 3. TYPOGRAPHY */
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --text-xs: 0.75rem;    /* 12px */
+  --text-sm: 0.875rem;   /* 14px */
+  --text-base: 1rem;     /* 16px */
+  --text-lg: 1.125rem;   /* 18px */
+  --text-xl: 1.25rem;    /* 20px */
+  --text-2xl: 1.5rem;    /* 24px */
+  --text-3xl: 1.875rem;  /* 30px */
+  --text-4xl: 2.25rem;   /* 36px */
+  --text-5xl: 3rem;      /* 48px */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  /* 4. SPACING: 4px grid */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* 5. SHAPE AND ELEVATION */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgb(29 43 38 / 6%);
+  --shadow-md: 0 4px 12px rgb(29 43 38 / 9%);
+  --shadow-lg: 0 12px 28px rgb(29 43 38 / 12%);
+
+  /* 6. LAYOUT AND COMPONENT SIZES */
+  --sidebar-width: 16rem;            /* 256px */
+  --sidebar-collapsed-width: 5rem;   /* 80px */
+  --header-height: 4rem;             /* 64px */
+  --content-max-width: 80rem;
+  --control-height-sm: 2rem;
+  --control-height-md: 2.5rem;
+  --control-height-lg: 3rem;
+
+  /* 7. MOTION & STACKING */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  /* 8. BACKWARD COMPATIBILITY BRIDGE (Cho các component thừa hưởng từ p_hoiVien) */
+  --primary-color: var(--color-primary);
+  --secondary-color: var(--color-secondary);
+  --background-primary: var(--color-primary);
+  --text-color: var(--text-secondary);
+  --text-warning: var(--color-warning);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #0a0a0a;
-  }
-}
-
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: "Inter", Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-* {
+/* Global Reset & Base Elements */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  padding: 0;
-  margin: 0;
 }
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-} */
 
 html,
 body {
@@ -46,11 +165,33 @@ body {
   overflow-x: hidden;
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+html {
+  font-family: var(--font-sans);
 }
-:root {
-  --background-primary: #01b39e;
+
+body {
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
 }
