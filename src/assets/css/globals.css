@@ -127,13 +127,15 @@
   --shadow-lg: 0 12px 28px rgb(29 43 38 / 12%);
 
   /* 6. LAYOUT AND COMPONENT SIZES */
-  --sidebar-width: 16rem;            /* 256px */
-  --sidebar-collapsed-width: 5rem;   /* 80px */
-  --header-height: 4rem;             /* 64px */
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 72px;
+  --header-height: 72px;
   --content-max-width: 80rem;
+  --layout-max-width: 1200px;
   --control-height-sm: 2rem;
   --control-height-md: 2.5rem;
   --control-height-lg: 3rem;
+  --transition-layout: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* 7. MOTION & STACKING */
   --duration-fast: 150ms;
