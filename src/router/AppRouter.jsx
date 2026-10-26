@@ -1,13 +1,12 @@
-import React, { lazy, Suspense, useContext } from "react"
-import { Navigate, useRoutes } from "react-router-dom"
+import React, { lazy, Suspense } from "react"
+import { useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
-import MainLayout from "src/components/Layout"
+import MainLayout, { AuthLayout, PublicLayout } from "src/components/Layout"
 import { ORG_TYPES, ROLES } from "src/constants/roles"
-import { StoreContext } from "src/contexts"
-import { getDefaultRedirectByOrg } from "src/lib/utils"
 import ROUTER from "./ROUTER"
 
 // Lazy load Pages
+const PlatformHome = lazy(() => import("src/pages/ANONYMOUS/PlatformHome"))
 const LoginPage = lazy(() => import("src/pages/ANONYMOUS/Login"))
 const Forbidden = lazy(() => import("src/pages/SUPPORTPAGES/Forbidden"))
 const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
@@ -46,33 +45,35 @@ function LazyWrapper({ children }) {
   )
 }
 
-// Redirect thông minh tại root "/"
-function RootRedirect() {
-  const { loginStore, userStore } = useContext(StoreContext)
-  const isLoginContext = loginStore?.isLoginContext
-  const user = userStore?.user
-
-  if (isLoginContext && user?.orgType) {
-    return <Navigate to={getDefaultRedirectByOrg(user.orgType)} replace />
-  }
-  return <Navigate to={ROUTER.LOGIN} replace />
-}
-
 const routes = [
-  // 1. Root redirect
+  // 1. Trang chủ Nền tảng FoodPrint (Công khai)
   {
-    path: ROUTER.DEFAULT,
-    element: <RootRedirect />,
+    element: <PublicLayout />,
+    children: [
+      {
+        path: ROUTER.DEFAULT,
+        element: (
+          <LazyWrapper>
+            <PlatformHome />
+          </LazyWrapper>
+        ),
+      },
+    ],
   },
 
-  // 2. Trang Đăng nhập (Công khai)
+  // 2. Trang Đăng nhập (Công khai với AuthLayout)
   {
-    path: ROUTER.LOGIN,
-    element: (
-      <LazyWrapper>
-        <LoginPage />
-      </LazyWrapper>
-    ),
+    element: <AuthLayout />,
+    children: [
+      {
+        path: ROUTER.LOGIN,
+        element: (
+          <LazyWrapper>
+            <LoginPage />
+          </LazyWrapper>
+        ),
+      },
+    ],
   },
 
   // 3. Phân hệ SYSTEM (Bảo vệ: Chỉ SYSTEM_ADMIN)
