@@ -5,6 +5,7 @@ import { StoreContext } from "src/contexts"
 import { ROLE_LABELS } from "src/constants/roles"
 import { getDefaultRedirectByOrg } from "src/lib/utils"
 import notice from "src/components/Notice"
+import BrandLogo from "src/components/Common/BrandLogo"
 import LoginForm from "./component/LoginForm"
 import QuickLoginList from "./component/QuickLoginList"
 import "./style.scss"
@@ -36,17 +37,20 @@ function LoginPage() {
     <div className="login-page-wrapper">
       <div className="login-container">
         <div className="login-header">
+          <Box display="flex" justifyContent="center" mb={1.5}>
+            <BrandLogo theme="light" />
+          </Box>
           <Typography
             variant="h4"
             fontWeight={800}
-            color="primary.main"
+            color="text.primary"
             gutterBottom
             sx={{ letterSpacing: "-0.5px" }}
           >
-            🥗 FOODPRINT - QUẢN LÝ SUẤT ĂN HỌC ĐƯỜNG
+            HỆ THỐNG QUẢN LÝ SUẤT ĂN HỌC ĐƯỜNG
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Hệ thống Quản lý và Truy xuất Nguồn gốc Bữa ăn An toàn & Dinh dưỡng
+            Nền tảng Quản lý & Truy xuất Nguồn gốc Bữa ăn An toàn, Dinh dưỡng cho Trường học
           </Typography>
         </div>
 
