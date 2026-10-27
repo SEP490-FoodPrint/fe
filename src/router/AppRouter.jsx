@@ -30,6 +30,7 @@ const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
+const ManagementFeature = lazy(() => import("src/pages/SCHOOL/ManagementFeature"))
 
 function LazyWrapper({ children }) {
   return (
@@ -183,6 +184,18 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MEAL_FEEDBACK, element: <LazyWrapper><MealFeedback /></LazyWrapper> },
+            ],
+          },
+
+          // Các chức năng giám sát dành cho Ban Giám hiệu
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            children: [
+              { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_FOOD_SAFETY, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_TRACEABILITY, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_REPORTS, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_NOTIFICATIONS, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
             ],
           },
         ],

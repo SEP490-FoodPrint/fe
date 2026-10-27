@@ -1,0 +1,55 @@
+.dialogPaper {
+  border-radius: var(--radius-xl) !important;
+  background: var(--bg-surface) !important;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--text-primary);
+  font-size: var(--text-lg) !important;
+  font-weight: var(--font-bold) !important;
+}
+
+.approveIcon,
+.rejectIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-lg);
+}
+
+.approveIcon {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+
+.rejectIcon {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding-top: var(--space-2) !important;
+}
+
+.label {
+  display: block;
+  margin-bottom: var(--space-2) !important;
+  color: var(--text-primary);
+  font-size: var(--text-xs) !important;
+  font-weight: var(--font-semibold) !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase;
+}
+
+.actions {
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6) var(--space-5) !important;
+}

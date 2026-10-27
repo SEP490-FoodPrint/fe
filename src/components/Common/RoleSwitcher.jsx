@@ -29,12 +29,16 @@ function RoleSwitcher() {
 
   if (!isLoginContext) return null
 
-  const handleSwitch = (roleCode) => {
-    const { user: newUser } = AuthService.mockLoginByRole(roleCode)
-    setIsLoginContext(true)
-    setUser(newUser)
-    setOpen(false)
-    navigate(getDefaultRedirectByOrg(newUser.orgType))
+  const handleSwitch = async roleCode => {
+    try {
+      const { user: newUser } = await AuthService.quickLoginByRole(roleCode)
+      setIsLoginContext(true)
+      setUser(newUser)
+      setOpen(false)
+      navigate(getDefaultRedirectByOrg(newUser.orgType))
+    } catch {
+      // Axios interceptor hiển thị thông báo lỗi kết nối/xác thực.
+    }
   }
 
   return (

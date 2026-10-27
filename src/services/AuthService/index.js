@@ -1,5 +1,3 @@
-import http from "../01_axios"
-import { apiLogin } from "./urls"
 import STORAGE, { clearStorage, setStorage } from "src/lib/storage"
 import { MOCK_ACCOUNTS } from "src/constants/roles"
 
@@ -8,25 +6,16 @@ const AuthService = {
    * Gọi API đăng nhập thật
    */
   login: async body => {
-    try {
-      const res = await http.post(apiLogin, body)
-      return res
-    } catch {
-      // Fallback giả lập nếu backend chưa sẵn sàng
-      const found = MOCK_ACCOUNTS.find(
-        acc => acc.username.toLowerCase() === body.username?.toLowerCase(),
-      )
-      if (found) {
-        return {
-          isOk: true,
-          Object: {
-            Token: `mock_jwt_token_${found.role}`,
-            User: found,
-          },
-        }
-      }
-      return { isOk: false, message: "Sai tài khoản hoặc mật khẩu" }
+    const found = MOCK_ACCOUNTS.find(
+      acc => acc.username.toLowerCase() === body.username?.toLowerCase(),
+    )
+    if (found) {
+      const token = `demo_token_${found.role}`
+      setStorage(STORAGE.TOKEN, token)
+      setStorage(STORAGE.USER_INFO, found)
+      return { isOk: true, Object: { Token: token, User: found } }
     }
+    return { isOk: false, message: "Không tìm thấy tài khoản demo" }
   },
 
   /**
@@ -43,6 +32,10 @@ const AuthService = {
       token,
       user: account,
     }
+  },
+
+  quickLoginByRole: async roleCode => {
+    return AuthService.mockLoginByRole(roleCode)
   },
 
   /**

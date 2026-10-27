@@ -1,12 +1,16 @@
 import React from "react"
 import {
+  Bell,
   Building2,
   ChefHat,
+  ChartSpline,
   ClipboardCheck,
   FileText,
   LayoutDashboard,
   MessageSquare,
   Package,
+  QrCode,
+  ShieldCheck,
   ShieldAlert,
   Truck,
   UserCheck,
@@ -78,9 +82,15 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_MENU_APPROVAL,
-    label: "Phê duyệt Thực đơn",
+    label: "Duyệt thực đơn",
     icon: <ClipboardCheck size={18} />,
     roles: [ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_SUPPLIERS,
+    label: "Nhà cung cấp",
+    icon: <Truck size={18} />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
     key: ROUTER.SCHOOL_MENU_PLANNING,
@@ -119,8 +129,32 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_MEAL_FEEDBACK,
-    label: "Ý kiến & Phản ánh Bữa ăn",
+    label: "Quản lý khiếu nại",
     icon: <MessageSquare size={18} />,
     roles: [ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_FOOD_SAFETY,
+    label: "An toàn thực phẩm",
+    icon: <ShieldCheck size={18} />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_TRACEABILITY,
+    label: "Truy xuất nguồn gốc",
+    icon: <QrCode size={18} />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_REPORTS,
+    label: "Báo cáo & thống kê",
+    icon: <ChartSpline size={18} />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_NOTIFICATIONS,
+    label: "Thông báo",
+    icon: <Bell size={18} />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
 ]

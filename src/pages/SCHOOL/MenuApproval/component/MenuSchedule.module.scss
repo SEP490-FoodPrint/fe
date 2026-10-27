@@ -1,0 +1,355 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-primary);
+  font-size: var(--text-xl) !important;
+  font-weight: var(--font-bold) !important;
+}
+
+.sectionTitle svg {
+  color: var(--color-primary);
+}
+
+.sectionSubtitle {
+  margin-top: var(--space-1) !important;
+  color: var(--text-muted);
+  font-size: var(--text-sm) !important;
+}
+
+.alertHint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1);
+  overflow-x: auto;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  scrollbar-width: none;
+}
+
+.tab,
+.activeTab {
+  min-width: max-content !important;
+  padding: var(--space-2) var(--space-4) !important;
+  border-radius: var(--radius-md) !important;
+  font-size: var(--text-sm) !important;
+  text-transform: none !important;
+}
+
+.tab {
+  color: var(--text-secondary) !important;
+}
+
+.activeTab {
+  color: var(--text-on-primary) !important;
+  background: var(--color-primary) !important;
+}
+
+.dayList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dayCard {
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl) !important;
+  background: var(--bg-surface) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-muted);
+}
+
+.dayIdentity,
+.dayMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.dayNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-lg);
+  color: var(--text-on-primary);
+  background: var(--color-primary);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+}
+
+.dayName {
+  color: var(--text-primary);
+  font-size: var(--text-base) !important;
+  font-weight: var(--font-bold) !important;
+}
+
+.dayDate {
+  color: var(--text-muted);
+  font-size: var(--text-xs) !important;
+}
+
+.mealChip {
+  color: var(--color-primary) !important;
+  background: var(--color-primary-soft) !important;
+  font-weight: var(--font-semibold) !important;
+}
+
+.dayBody {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
+  gap: var(--space-5);
+  padding: var(--space-5);
+}
+
+.lunchSection,
+.snackSection {
+  min-width: 0;
+}
+
+.mealHeading,
+.snackHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+}
+
+.mealHeading span,
+.snackHeading span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mealHeading small,
+.snackHeading small {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  font-weight: var(--font-normal);
+}
+
+.foodList,
+.snackList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.foodItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-lg);
+  background: var(--bg-muted);
+  transition: border-color var(--duration-fast) var(--ease-standard);
+}
+
+.foodItem:hover {
+  border-color: var(--border-strong);
+}
+
+.foodItemCompact {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.foodDot {
+  width: var(--space-2);
+  height: var(--space-2);
+  margin-top: var(--space-2);
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  flex: 0 0 auto;
+}
+
+.foodDotAlert {
+  background: var(--color-error);
+}
+
+.foodContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.foodTitleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.foodName {
+  color: var(--text-primary);
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-semibold) !important;
+}
+
+.foodDescription,
+.supplier {
+  margin-top: var(--space-1) !important;
+  color: var(--text-secondary);
+  font-size: var(--text-xs) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+.supplier {
+  color: var(--text-muted);
+  font-weight: var(--font-medium) !important;
+}
+
+.foodTag {
+  flex-shrink: 0;
+  height: 1.5rem !important;
+  font-size: var(--text-xs) !important;
+}
+
+.neutral {
+  color: var(--text-secondary) !important;
+  background: var(--bg-surface) !important;
+}
+
+.success {
+  color: var(--color-success) !important;
+  background: var(--color-success-bg) !important;
+}
+
+.warning {
+  color: var(--color-warning) !important;
+  background: var(--color-warning-bg) !important;
+}
+
+.error {
+  color: var(--color-error) !important;
+  background: var(--color-error-bg) !important;
+}
+
+.extrasGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.extraItem {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  color: var(--color-primary);
+}
+
+.extraItem div {
+  min-width: 0;
+}
+
+.extraItem strong,
+.extraItem span {
+  display: block;
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+}
+
+.extraItem span {
+  margin-top: var(--space-1);
+  color: var(--text-muted);
+}
+
+.snackSection {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-secondary-soft);
+}
+
+.snackHeading {
+  color: var(--beige-800);
+}
+
+@media (max-width: 900px) {
+  .dayBody {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .sectionHeader,
+  .dayHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .alertHint {
+    align-self: stretch;
+  }
+
+  .dayBody {
+    padding: var(--space-4);
+  }
+
+  .extrasGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .foodTitleRow {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+@media print {
+  .tabs,
+  .alertHint {
+    display: none;
+  }
+
+  .dayCard {
+    break-inside: avoid;
+  }
+}

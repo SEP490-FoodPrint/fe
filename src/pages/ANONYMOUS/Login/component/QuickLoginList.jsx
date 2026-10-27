@@ -14,9 +14,13 @@ import AuthService from "src/services/AuthService"
 import styles from "./QuickLoginList.module.scss"
 
 function QuickLoginList({ onLoginSuccess }) {
-  const handleQuickLogin = roleCode => {
-    const { user } = AuthService.mockLoginByRole(roleCode)
-    onLoginSuccess(user)
+  const handleQuickLogin = async roleCode => {
+    try {
+      const { user } = await AuthService.quickLoginByRole(roleCode)
+      onLoginSuccess(user)
+    } catch {
+      // Axios interceptor hiển thị thông báo lỗi kết nối/xác thực.
+    }
   }
 
   return (

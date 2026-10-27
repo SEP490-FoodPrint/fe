@@ -1,0 +1,30 @@
+.menu-approval-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+
+  &--loading {
+    min-height: 70vh;
+  }
+
+  &__skeleton-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(17rem, 1fr);
+    gap: var(--space-5);
+  }
+
+  @media (max-width: 900px) {
+    &__skeleton-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+@media print {
+  .menu-approval-page {
+    max-width: none;
+  }
+}

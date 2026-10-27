@@ -89,7 +89,7 @@ function LoginForm({ onLoginSuccess }) {
             fullWidth
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Mật khẩu bất kỳ"
+            placeholder="Mật khẩu demo bất kỳ"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
