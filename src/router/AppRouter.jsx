@@ -7,6 +7,7 @@ import ROUTER from "./ROUTER"
 
 // Lazy load Pages
 const PlatformHome = lazy(() => import("src/pages/ANONYMOUS/PlatformHome"))
+const SchoolLanding = lazy(() => import("src/pages/ANONYMOUS/SchoolLanding"))
 const LoginPage = lazy(() => import("src/pages/ANONYMOUS/Login"))
 const Forbidden = lazy(() => import("src/pages/SUPPORTPAGES/Forbidden"))
 const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
@@ -61,7 +62,17 @@ const routes = [
     ],
   },
 
-  // 2. Trang Đăng nhập (Công khai với AuthLayout)
+  // 2. Trang Cổng thông tin & Thực đơn Trường học (Công khai)
+  {
+    path: ROUTER.SCHOOL_LANDING,
+    element: (
+      <LazyWrapper>
+        <SchoolLanding />
+      </LazyWrapper>
+    ),
+  },
+
+  // 3. Trang Đăng nhập (Công khai với AuthLayout)
   {
     element: <AuthLayout />,
     children: [

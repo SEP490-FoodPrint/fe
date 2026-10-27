@@ -1,6 +1,5 @@
 import React, { Component } from "react"
 import { Box, Typography, Button } from "@mui/material"
-import errorImg from "src/assets/images/common-icon/errorPage.png"
 
 export default class ErrorBoundary extends Component {
   state = { hasError: false }
