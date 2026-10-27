@@ -100,9 +100,9 @@ function PublicHeader() {
 
             <div className={styles.schoolList}>
               {filteredSchools.slice(0, 5).map(school => (
-                <a
+                <Link
                   key={school.id}
-                  href={`#schools`}
+                  to={`/school/${school.code}`}
                   onClick={() => setIsDropdownOpen(false)}
                   className={styles.schoolItem}
                 >
@@ -120,7 +120,7 @@ function PublicHeader() {
                     </div>
                   </div>
                   <ArrowRight size={14} className={styles.itemArrow} />
-                </a>
+                </Link>
               ))}
             </div>
 

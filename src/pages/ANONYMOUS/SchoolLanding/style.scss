@@ -1,0 +1,16 @@
+.school-landing-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-page);
+  overflow-x: hidden;
+}
+
+.school-landing-main {
+  width: 100%;
+  flex: 1;
+  padding-top: 76px; // Khớp với chiều cao SchoolHeader cố định (76px)
+  display: flex;
+  flex-direction: column;
+}

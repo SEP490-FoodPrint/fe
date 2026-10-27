@@ -2,6 +2,7 @@ const ROUTER = {
   // Public
   DEFAULT: "/",
   LOGIN: "/login",
+  SCHOOL_LANDING: "/school/:schoolCode",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",
