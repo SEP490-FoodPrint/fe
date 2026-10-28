@@ -1,5 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
+import { Link } from "react-router-dom"
 import { ArrowRight, MapPin } from "lucide-react"
 import styles from "./SchoolCard.module.scss"
 
@@ -48,14 +49,14 @@ function SchoolCard({ school }) {
 
       <div className={styles.footerRow}>
         <span className={styles.menuTag}>Thông tin thực đơn</span>
-        <a
-          href={`#school-${school.code}`}
+        <Link
+          to={`/school/${school.code}`}
           className={styles.viewLink}
           title={`Xem trang ${school.name}`}
         >
           <span>Xem trang trường</span>
           <ArrowRight size={14} />
-        </a>
+        </Link>
       </div>
     </div>
   )

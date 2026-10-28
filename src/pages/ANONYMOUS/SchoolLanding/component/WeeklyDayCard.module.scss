@@ -1,0 +1,190 @@
+.card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+  }
+}
+
+.todayCard {
+  border: 2px solid var(--color-primary);
+  background-color: var(--bg-surface);
+  box-shadow: 0 4px 14px rgba(10, 128, 102, 0.12);
+}
+
+.topSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dayHeader {
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dayTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  display: block;
+  line-height: 1.2;
+}
+
+.dateText {
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: block;
+}
+
+.todayText {
+  color: var(--color-primary);
+}
+
+.statusBadge {
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: var(--font-semibold);
+}
+
+.todayBadge {
+  background-color: var(--color-primary);
+  color: var(--white);
+}
+
+.servedBadge {
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+.upcomingBadge {
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.mealBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.blockTitle {
+  font-size: 11px;
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dishList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.dishItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: var(--text-xs);
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.bullet {
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+}
+
+.dishText {
+  flex: 1;
+}
+
+.snackBlock {
+  padding-top: var(--space-2);
+  border-top: 1px dashed var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.snackTitle {
+  font-size: 11px;
+  font-weight: var(--font-bold);
+  color: #175b92;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.snackDesc {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.bottomSection {
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.nutritionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.calories {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.macros {
+  color: var(--text-muted);
+}
+
+.viewDetailLink,
+.todayActionLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  transition: all 0.2s ease;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.viewDetailLink {
+  color: var(--color-primary);
+}
+
+.todayActionLink {
+  color: var(--color-primary);
+  font-weight: var(--font-bold);
+}

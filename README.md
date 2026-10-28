@@ -2,8 +2,6 @@
 
 Hệ thống Quản lý và Truy xuất Nguồn gốc Suất ăn Học đường.
 
-Dự án được khởi tạo theo chuẩn cấu trúc của dự án gốc (`p_hoiVien`), loại bỏ hoàn toàn cơ chế `listTabs` cũ và chuyển sang cơ chế phân quyền dựa trên **Role trực tiếp** (`user.role: string`) kết hợp lưu trữ trong `StoreContext` & `LocalStorage`.
-
 ---
 
 ## 1. Khởi Chạy Dự Án
