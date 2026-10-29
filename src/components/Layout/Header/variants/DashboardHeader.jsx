@@ -1,208 +1,104 @@
-import React, { useContext, useMemo, useState } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import {
-  Avatar,
-  Box,
-  Divider,
-  Menu,
-  MenuItem,
-  Typography,
-} from "@mui/material"
-import {
-  Bell,
-  ChevronDown,
-  ChevronRight,
-  LogOut,
-  Plus,
-  Search,
-  User as UserIcon,
-} from "lucide-react"
+import React, { useContext, useEffect, useState } from "react"
+import PropTypes from "prop-types"
+import { Link } from "react-router-dom"
+import { Avatar, ButtonBase, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material"
+import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined"
+import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
 import { StoreContext } from "src/contexts"
-import { ROLE_LABELS } from "src/constants/roles"
-import {
-  MenuItemSchool,
-  MenuItemSupplier,
-  MenuItemSystem,
-} from "src/router/MenuItem"
-import AuthService from "src/services/AuthService"
-import ROUTER from "src/router/ROUTER"
-import BaseHeader from "../BaseHeader"
+import { ROLE_LABELS, ROLES } from "src/constants/roles"
+import { getDefaultRedirectByOrg } from "src/lib/utils"
+import BrandLogo from "src/components/Common/BrandLogo"
 import styles from "./DashboardHeader.module.scss"
 
-function DashboardHeader() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { loginStore, userStore } = useContext(StoreContext)
-  const setIsLoginContext = loginStore?.setIsLoginContext
+function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigation, navigationButtonRef, onLogout }) {
+  const { userStore } = useContext(StoreContext)
   const user = userStore?.user
-  const setUser = userStore?.setUser
+  const [accountAnchor, setAccountAnchor] = useState(null)
+  const [notificationAnchor, setNotificationAnchor] = useState(null)
+  const words = (user?.fullName || "").trim().split(/\s+/).filter(Boolean)
+  const initials = words.length ? (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : "")).toUpperCase() : "FP"
+  const roleLabel = user?.role === ROLES.SYSTEM_ADMIN ? "Quản trị viên" : ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role
+  const closeAccount = () => setAccountAnchor(null)
 
-  const [anchorEl, setAnchorEl] = useState(null)
-  const isMenuOpen = Boolean(anchorEl)
-
-  const handleOpenUserMenu = event => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleCloseUserMenu = () => {
-    setAnchorEl(null)
-  }
-
-  const handleLogout = () => {
-    handleCloseUserMenu()
-    AuthService.logout()
-    if (setIsLoginContext) setIsLoginContext(false)
-    if (setUser) setUser(null)
-    navigate(ROUTER.LOGIN, { replace: true })
-  }
-
-  // Tự động tìm tên trang hiện tại cho Breadcrumb
-  const currentPageTitle = useMemo(() => {
-    const allItems = [
-      ...MenuItemSchool(),
-      ...MenuItemSupplier(),
-      ...MenuItemSystem(),
-    ]
-    const matched = allItems.find(item => item.key === location.pathname)
-    return matched?.label || "Tổng quan phân hệ"
-  }, [location.pathname])
-
-  // Vùng Trái: Breadcrumbs ngữ cảnh phân cấp
-  const leftSlot = (
-    <nav className={styles.breadcrumbWrap} aria-label="Breadcrumb">
-      <span
-        className={styles.crumbItem}
-        onClick={() => navigate(ROUTER.DEFAULT)}
-      >
-        Trang chủ
-      </span>
-      <ChevronRight size={14} color="var(--text-muted)" />
-      <span className={styles.crumbItem}>Bảng điều khiển</span>
-      <ChevronRight size={14} color="var(--text-muted)" />
-      <span className={styles.crumbCurrent} title={currentPageTitle}>
-        {currentPageTitle}
-      </span>
-    </nav>
-  )
-
-  // Vùng Giữa: Thanh tìm kiếm chuyên nghiệp kèm phím tắt ⌘K
-  const centerSlot = (
-    <div className={styles.searchBox}>
-      <Search size={18} color="var(--text-muted)" />
-      <input
-        type="text"
-        placeholder="Tra cứu thực đơn, lô hàng hoặc số kiểm tra..."
-        aria-label="Search"
-      />
-      <span className={styles.kbdShortcut}>⌘K</span>
-    </div>
-  )
-
-  // Vùng Phải: Thông báo + Nút Quick CTA + Thông tin tài khoản
-  const rightSlot = (
-    <div className={styles.actionWrap}>
-      {/* 1. Nút Thông báo */}
-      <button
-        type="button"
-        className={styles.iconBtn}
-        title="Thông báo mới"
-        aria-label="Notifications"
-      >
-        <Bell size={18} />
-        <span className={styles.badgeDot} />
-      </button>
-
-      {/* 2. Nút Thao tác nhanh (Quick Action CTA) */}
-      <button
-        type="button"
-        className={styles.quickCtaBtn}
-        onClick={() => {}}
-      >
-        <Plus size={16} strokeWidth={2.5} />
-        <span>Thao tác nhanh</span>
-      </button>
-
-      {/* 3. Khối Avatar & Dropdown Menu */}
-      {user && (
-        <>
-          <div
-            className={styles.userProfile}
-            onClick={handleOpenUserMenu}
-            role="button"
-            tabIndex={0}
-          >
-            <Avatar
-              src={user.avatar}
-              sx={{
-                width: 36,
-                height: 36,
-                bgcolor: "var(--color-primary)",
-                color: "var(--white)",
-                fontWeight: 600,
-                fontSize: "0.85rem",
-              }}
-            >
-              {!user.avatar && <UserIcon size={18} />}
-            </Avatar>
-            <div className={styles.userInfo}>
-              <span className={styles.userName}>{user.fullName}</span>
-              <span className={styles.userRole}>
-                {ROLE_LABELS[user.role]?.split("(")[0]?.trim() || user.role}
-              </span>
-            </div>
-            <ChevronDown size={15} color="var(--text-muted)" />
-          </div>
-
-          <Menu
-            anchorEl={anchorEl}
-            open={isMenuOpen}
-            onClose={handleCloseUserMenu}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-            slotProps={{
-              paper: {
-                sx: {
-                  width: 250,
-                  mt: 1.2,
-                  borderRadius: "var(--radius-lg)",
-                  boxShadow: "0 8px 24px rgba(29, 43, 38, 0.12)",
-                  border: "1px solid var(--border-default)",
-                },
-              },
-            }}
-          >
-            <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography variant="subtitle2" fontWeight={700}>
-                {user.fullName}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {user.orgName || user.orgType}
-              </Typography>
-            </Box>
-            <Divider />
-            <MenuItem
-              onClick={handleLogout}
-              sx={{ color: "error.main", gap: 1.5, py: 1.2 }}
-            >
-              <LogOut size={16} />
-              <Typography variant="body2" fontWeight={600}>
-                Đăng xuất
-              </Typography>
-            </MenuItem>
-          </Menu>
-        </>
-      )}
-    </div>
-  )
+  useEffect(() => {
+    if (mobile) setAccountAnchor(null)
+  }, [mobile])
 
   return (
-    <BaseHeader
-      leftSlot={leftSlot}
-      centerSlot={centerSlot}
-      rightSlot={rightSlot}
-      variant="fluid"
-    />
+    <header className={styles.header} aria-label="Thanh tiêu đề">
+      {mobile && <Link to={getDefaultRedirectByOrg(user?.orgType)} className={styles.mobileBrand} aria-label="FoodPrint">
+        <BrandLogo theme="light" variant="dashboard" compact />
+      </Link>}
+      <div className={styles.actions}>
+        <IconButton
+          aria-label="Thông báo"
+          aria-haspopup="menu"
+          aria-expanded={Boolean(notificationAnchor)}
+          aria-controls={notificationAnchor ? "dashboard-notifications" : undefined}
+          className={styles.iconButton}
+          onClick={event => setNotificationAnchor(event.currentTarget)}
+        ><NotificationsNoneOutlinedIcon /></IconButton>
+        {mobile ? <IconButton
+          ref={navigationButtonRef}
+          aria-label="Mở điều hướng"
+          aria-haspopup="dialog"
+          aria-expanded={navigationOpen}
+          aria-controls={navigationOpen ? "dashboard-mobile-navigation" : undefined}
+          onClick={onOpenNavigation}
+          className={styles.iconButton}
+        ><MenuOutlinedIcon /></IconButton> : user && <ButtonBase
+          className={styles.accountButton}
+          onClick={event => setAccountAnchor(event.currentTarget)}
+          aria-label={"Tài khoản " + user.fullName}
+          aria-haspopup="menu"
+          aria-expanded={Boolean(accountAnchor)}
+          aria-controls={accountAnchor ? "dashboard-account-menu" : undefined}
+        >
+          <Avatar className={styles.avatar}>{initials}</Avatar>
+          <span className={styles.userInfo}><span className={styles.userName}>{user.fullName}</span><span className={styles.userRole}>{roleLabel}</span></span>
+          <KeyboardArrowDownIcon className={styles.chevron} />
+        </ButtonBase>}
+      </div>
+      <Menu
+        id="dashboard-account-menu"
+        anchorEl={accountAnchor}
+        open={Boolean(accountAnchor) && !mobile}
+        onClose={closeAccount}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { className: styles.menuPaper }, list: { "aria-label": "Tài khoản" } }}
+      >
+        <MenuItem disabled className={styles.accountDetails}><strong>{user?.fullName}</strong><span>{user?.orgName || roleLabel}</span></MenuItem>
+        <Divider />
+        <MenuItem onClick={() => { closeAccount(); onLogout() }} className={styles.logout}>
+          <ListItemIcon><LogoutOutlinedIcon fontSize="small" /></ListItemIcon>
+          <ListItemText>Đăng xuất</ListItemText>
+        </MenuItem>
+      </Menu>
+      <Menu
+        id="dashboard-notifications"
+        anchorEl={notificationAnchor}
+        open={Boolean(notificationAnchor)}
+        onClose={() => setNotificationAnchor(null)}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
+        slotProps={{ paper: { className: styles.menuPaper }, list: { "aria-label": "Thông báo" } }}
+      >
+        <MenuItem disabled className={styles.notificationTitle}>Thông báo</MenuItem>
+        <MenuItem disabled className={styles.emptyNotification}>Chưa có thông báo</MenuItem>
+      </Menu>
+    </header>
   )
+}
+
+DashboardHeader.propTypes = {
+  mobile: PropTypes.bool,
+  navigationOpen: PropTypes.bool,
+  onOpenNavigation: PropTypes.func,
+  navigationButtonRef: PropTypes.shape({ current: PropTypes.any }),
+  onLogout: PropTypes.func.isRequired,
 }
 
 export default DashboardHeader

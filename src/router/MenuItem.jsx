@@ -1,18 +1,17 @@
 import React from "react"
-import {
-  Building2,
-  ChefHat,
-  ClipboardCheck,
-  FileText,
-  LayoutDashboard,
-  MessageSquare,
-  Package,
-  ShieldAlert,
-  Truck,
-  UserCheck,
-  Utensils,
-  Warehouse,
-} from "lucide-react"
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined"
+import SoupKitchenOutlinedIcon from "@mui/icons-material/SoupKitchenOutlined"
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined"
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined"
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined"
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined"
+import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined"
+import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined"
+import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined"
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -21,15 +20,33 @@ import ROUTER from "./ROUTER"
  */
 export const MenuItemSystem = () => [
   {
-    key: ROUTER.SYSTEM_OVERVIEW,
-    label: "Tổng quan Hệ thống",
-    icon: <LayoutDashboard size={18} />,
+    key: ROUTER.SYSTEM_ORG_APPROVAL,
+    label: "Hồ sơ đăng ký",
+    icon: <ReceiptLongOutlinedIcon />,
     roles: [ROLES.SYSTEM_ADMIN],
   },
   {
-    key: ROUTER.SYSTEM_ORG_APPROVAL,
-    label: "Xét duyệt Tổ chức",
-    icon: <Building2 size={18} />,
+    key: ROUTER.SYSTEM_SCHOOL_LIST,
+    label: "Danh sách trường học",
+    icon: <SchoolOutlinedIcon />,
+    roles: [ROLES.SYSTEM_ADMIN],
+  },
+  {
+    key: ROUTER.SYSTEM_SUPPLIER_LIST,
+    label: "Danh sách nhà cung cấp",
+    icon: <LocalShippingOutlinedIcon />,
+    roles: [ROLES.SYSTEM_ADMIN],
+  },
+  {
+    key: ROUTER.SYSTEM_COMPLAINT_LIST,
+    label: "Danh sách khiếu nại",
+    icon: <ChatBubbleOutlineOutlinedIcon />,
+    roles: [ROLES.SYSTEM_ADMIN],
+  },
+  {
+    key: ROUTER.SYSTEM_CONFIG,
+    label: "Cấu hình hệ thống",
+    icon: <SettingsOutlinedIcon />,
     roles: [ROLES.SYSTEM_ADMIN],
   },
 ]
@@ -41,19 +58,19 @@ export const MenuItemSupplier = () => [
   {
     key: ROUTER.SUPPLIER_OVERVIEW,
     label: "Tổng quan Nhà cung cấp",
-    icon: <LayoutDashboard size={18} />,
+    icon: <DashboardOutlinedIcon />,
     roles: [ROLES.INGREDIENT_SUPPLIER],
   },
   {
     key: ROUTER.SUPPLIER_INGREDIENTS,
     label: "Danh mục Nguyên liệu",
-    icon: <Package size={18} />,
+    icon: <Inventory2OutlinedIcon />,
     roles: [ROLES.INGREDIENT_SUPPLIER],
   },
   {
     key: ROUTER.SUPPLIER_ORDERS,
     label: "Đơn hàng Cung ứng",
-    icon: <Truck size={18} />,
+    icon: <LocalShippingOutlinedIcon />,
     roles: [ROLES.INGREDIENT_SUPPLIER],
   },
 ]
@@ -65,7 +82,7 @@ export const MenuItemSchool = () => [
   {
     key: ROUTER.SCHOOL_OVERVIEW,
     label: "Tổng quan Trường học",
-    icon: <LayoutDashboard size={18} />,
+    icon: <DashboardOutlinedIcon />,
     roles: [
       ROLES.SCHOOL_ADMIN,
       ROLES.SCHOOL_MANAGEMENT_BOARD,
@@ -79,19 +96,19 @@ export const MenuItemSchool = () => [
   {
     key: ROUTER.SCHOOL_MENU_APPROVAL,
     label: "Phê duyệt Thực đơn",
-    icon: <ClipboardCheck size={18} />,
+    icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
     key: ROUTER.SCHOOL_MENU_PLANNING,
     label: "Lập Thực đơn & Giám sát Dị ứng",
-    icon: <FileText size={18} />,
+    icon: <DescriptionOutlinedIcon />,
     roles: [ROLES.SCHOOL_HEALTH_OFFICER],
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Kiểm tra Nguyên liệu",
-    icon: <ShieldAlert size={18} />,
+    icon: <HealthAndSafetyOutlinedIcon />,
     // Màn hình dùng chung cho 3 bộ phận
     roles: [
       ROLES.SCHOOL_HEALTH_OFFICER,
@@ -102,25 +119,25 @@ export const MenuItemSchool = () => [
   {
     key: ROUTER.SCHOOL_KITCHEN_COOKING,
     label: "Chế biến & Lưu mẫu thực phẩm",
-    icon: <ChefHat size={18} />,
+    icon: <SoupKitchenOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
     key: ROUTER.SCHOOL_DAILY_CONFIRM,
     label: "Báo suất ăn & Dị ứng lớp",
-    icon: <UserCheck size={18} />,
+    icon: <HowToRegOutlinedIcon />,
     roles: [ROLES.HOMEROOM_TEACHER],
   },
   {
     key: ROUTER.SCHOOL_WAREHOUSE,
     label: "Quản lý Kho Nguyên liệu",
-    icon: <Warehouse size={18} />,
+    icon: <WarehouseOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {
     key: ROUTER.SCHOOL_MEAL_FEEDBACK,
     label: "Ý kiến & Phản ánh Bữa ăn",
-    icon: <MessageSquare size={18} />,
+    icon: <ChatBubbleOutlineOutlinedIcon />,
     roles: [ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
 ]

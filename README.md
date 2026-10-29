@@ -93,7 +93,7 @@ src/
 ├── pages/
 │   ├── ANONYMOUS/Login/        # Trang đăng nhập kèm quick-switch
 │   ├── SUPPORTPAGES/           # Forbidden 403, NotFound 404, RoleRoute guard
-│   ├── SYSTEM/                 # SystemOverview, OrgApproval (empty stubs)
+│   ├── SYSTEM/                 # OrgApproval (hồ sơ đăng ký), OrgApprovalDetail (xét duyệt hồ sơ)
 │   ├── SUPPLIER/               # SupplierOverview, IngredientCatalog, SupplyOrders (empty stubs)
 │   └── SCHOOL/                 # MenuApproval, MenuPlanning, KitchenCooking, DailyMealConfirm, IngredientInspect, WarehouseManage, MealFeedback
 ├── router/

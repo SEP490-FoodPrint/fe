@@ -2,8 +2,9 @@ import React, { useContext } from "react"
 import { Box, Typography } from "@mui/material"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
-import { ROLE_LABELS } from "src/constants/roles"
+import { ROLE_LABELS, ROLES } from "src/constants/roles"
 import { getDefaultRedirectByOrg } from "src/lib/utils"
+import ROUTER from "src/router/ROUTER"
 import notice from "src/components/Notice"
 import BrandLogo from "src/components/Common/BrandLogo"
 import LoginForm from "./component/LoginForm"
@@ -28,7 +29,9 @@ function LoginPage() {
       isSuccess: true,
     })
 
-    const targetUrl = routerBeforeLogin || getDefaultRedirectByOrg(user.orgType)
+    const targetUrl = user.role === ROLES.SYSTEM_ADMIN
+      ? ROUTER.SYSTEM_ORG_APPROVAL
+      : routerBeforeLogin || getDefaultRedirectByOrg(user.orgType)
     if (setRouterBeforeLogin) setRouterBeforeLogin("")
     navigate(targetUrl, { replace: true })
   }

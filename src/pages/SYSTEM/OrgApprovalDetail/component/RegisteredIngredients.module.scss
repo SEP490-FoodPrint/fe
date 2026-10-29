@@ -1,0 +1,13 @@
+.card:global(.MuiCard-root) { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-6); box-shadow: none; min-width: 0; h2 { margin: 0; font-size: var(--text-base); font-weight: var(--font-semibold); } }
+.caption { margin: 0; color: var(--text-muted); font-size: var(--text-xs); }
+.empty { margin: 0; color: var(--text-muted); font-size: var(--text-sm); }
+.desktop { scrollbar-width: thin; }
+.table:global(.MuiTable-root) { width: 1112px; table-layout: fixed;
+  :global(.MuiTableCell-root) { padding: var(--space-2) var(--space-4); height: calc(var(--space-12) + var(--space-2)); border-color: var(--border-default); font-size: var(--text-sm); }
+  :global(.MuiTableCell-head) { background: var(--bg-page); color: var(--text-muted); font-weight: var(--font-medium); height: calc(var(--space-10) + var(--space-1)); white-space: nowrap; }
+}
+.muted { color: var(--text-muted); }
+.notice { margin: 0; border-radius: var(--radius-md); background: var(--color-secondary-soft); color: var(--text-muted); padding: var(--space-3); font-size: var(--text-sm); }
+.mobile { display: none; }
+.ingredient { display: flex; flex-direction: column; gap: var(--space-3); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-3); font-size: var(--text-sm); h3 { margin: 0; font-size: var(--text-sm); font-weight: var(--font-medium); } p { margin: 0; } dl { margin: 0; } dt { color: var(--text-muted); } dd { margin: var(--space-1) 0 0; } }
+@media (max-width: 600px) { .card:global(.MuiCard-root) { padding: var(--space-4); } .desktop { display: none; } .mobile { display: flex; flex-direction: column; gap: var(--space-3); } }

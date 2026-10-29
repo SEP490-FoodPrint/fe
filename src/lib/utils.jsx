@@ -1,3 +1,5 @@
+import ROUTER from "src/router/ROUTER"
+
 /**
  * Kiểm tra xem user có quyền truy cập vào màn hình/chức năng hay không
  * @param {Array<string>} allowedRoles - Danh sách các role được phép
@@ -23,7 +25,7 @@ export const hasPermission = (allowedRoles, userRole) => {
 export const getDefaultRedirectByOrg = orgType => {
   switch (orgType) {
     case "SYSTEM":
-      return "/system/overview"
+      return ROUTER.SYSTEM_ORG_APPROVAL
     case "SUPPLIER":
       return "/supplier/overview"
     case "SCHOOL":

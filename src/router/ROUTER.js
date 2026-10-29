@@ -6,8 +6,12 @@ const ROUTER = {
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",
-  SYSTEM_OVERVIEW: "/system/overview",
   SYSTEM_ORG_APPROVAL: "/system/organization-approval",
+  SYSTEM_ORG_APPROVAL_DETAIL: "/system/organization-approval/:requestId",
+  SYSTEM_SCHOOL_LIST: "/system/school-list",
+  SYSTEM_SUPPLIER_LIST: "/system/supplier-list",
+  SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
+  SYSTEM_CONFIG: "/system/config",
 
   // Phân hệ SUPPLIER (Dành cho INGREDIENT_SUPPLIER)
   SUPPLIER: "/supplier",

@@ -102,6 +102,7 @@
   --leading-tight: 1.25;
   --leading-normal: 1.5;
   --leading-relaxed: 1.7;
+  --tracking-tight: -0.025rem;
 
   /* 4. SPACING: 4px grid */
   --space-0: 0;
@@ -127,9 +128,13 @@
   --shadow-lg: 0 12px 28px rgb(29 43 38 / 12%);
 
   /* 6. LAYOUT AND COMPONENT SIZES */
-  --sidebar-width: 260px;
-  --sidebar-collapsed-width: 72px;
+  --sidebar-width: 240px;
+  --sidebar-icon-width: 64px;
+  --sidebar-mobile-width: 280px;
   --header-height: 72px;
+  --dashboard-header-height: 80px;
+  --dashboard-header-compact-height: 56px;
+  --overlay-scrim: rgb(0 0 0 / 44%);
   --content-max-width: 80rem;
   --layout-max-width: 1200px;
   --control-height-sm: 2rem;
