@@ -29,6 +29,7 @@ const MenuPlanning = lazy(() => import("src/pages/SCHOOL/MenuPlanning"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
+const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatchSeparate"))
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
@@ -155,6 +156,14 @@ const routes = [
             element: (
               <LazyWrapper>
                 <KitchenCreateBatch />
+              </LazyWrapper>
+            ),
+          },
+          {
+            path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE,
+            element: (
+              <LazyWrapper>
+                <KitchenCreateBatchSeparate />
               </LazyWrapper>
             ),
           },
