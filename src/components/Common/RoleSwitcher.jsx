@@ -16,7 +16,7 @@ import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { MOCK_ACCOUNTS, ROLE_LABELS } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
-import { getDefaultRedirectByOrg } from "src/lib/utils"
+import { getDefaultRedirectByOrg, getDefaultRedirectByUser } from "src/lib/utils"
 
 function RoleSwitcher() {
   const [open, setOpen] = useState(false)
@@ -34,7 +34,7 @@ function RoleSwitcher() {
     setIsLoginContext(true)
     setUser(newUser)
     setOpen(false)
-    navigate(getDefaultRedirectByOrg(newUser.orgType))
+    navigate(getDefaultRedirectByUser(newUser))
   }
 
   return (

@@ -31,3 +31,16 @@ export const getDefaultRedirectByOrg = orgType => {
       return "/school/overview"
   }
 }
+
+/**
+ * Lấy trang điều hướng mặc định dựa theo Role và Org của user
+ * @param {object} user - Object chứa role và orgType
+ * @returns {string} router path
+ */
+export const getDefaultRedirectByUser = user => {
+  if (!user) return "/login"
+  if (user.role === "SCHOOL_KITCHEN_STAFF") {
+    return "/school/kitchen-cooking"
+  }
+  return getDefaultRedirectByOrg(user.orgType)
+}

@@ -1,0 +1,312 @@
+/* KitchenSidebar.module.scss
+ * Màu nền Sidebar: Xanh ngọc Forest Emerald #0A8066 theo quy chuẩn giao diện dự án
+ * Tất cả menu, icon, layout giữ chuẩn 100% theo mẫu Stitch
+ */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 256px;
+  background-color: #0A8066;
+  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  z-index: 30;
+  user-select: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  box-shadow: 2px 0 12px rgba(10, 128, 102, 0.15);
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 4px;
+  }
+}
+
+.topSection {
+  display: flex;
+  flex-direction: column;
+}
+
+.brandHeader {
+  padding: 20px 20px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandIconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+
+  span {
+    font-size: 22px;
+  }
+}
+
+.brandTextBox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brandTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.brandSub {
+  font-size: 11px;
+  font-weight: 600;
+  color: #a7f3d0;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Safety Badge */
+.safetyBadge {
+  margin-top: 4px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+}
+
+.safetyLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+
+  span:first-child {
+    font-size: 16px;
+    color: #6ee7b7;
+  }
+}
+
+.safetyText {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.95);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  strong {
+    color: #ffffff;
+    font-weight: 700;
+  }
+}
+
+.vsattpTag {
+  font-size: 10px;
+  font-weight: 700;
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+/* Navigation Links */
+.navMenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px 16px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.88);
+  text-decoration: none;
+  transition: all 0.18s ease;
+
+  span.material-symbols-outlined {
+    font-size: 20px;
+    color: rgba(255, 255, 255, 0.8);
+    transition: color 0.18s ease;
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+
+    span.material-symbols-outlined {
+      color: #ffffff;
+    }
+  }
+}
+
+.navItemActive {
+  background-color: #ffffff !important;
+  color: #0A8066 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.14);
+
+  span.material-symbols-outlined {
+    color: #0A8066 !important;
+  }
+}
+
+.navItemLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.navBadge {
+  font-size: 11px;
+  font-family: monospace;
+  font-weight: 700;
+  background-color: #fef3c7;
+  color: #92400e;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Footer Section */
+.footerSection {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footerLink {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.82);
+  text-decoration: none;
+  transition: all 0.18s ease;
+
+  span.material-symbols-outlined {
+    font-size: 19px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+
+    span.material-symbols-outlined {
+      color: #ffffff;
+    }
+  }
+}
+
+.userBar {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+.userInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: #0A8066;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  flex-shrink: 0;
+}
+
+.userMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.userName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.userRole {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logoutBtn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+
+  span {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background-color: rgba(239, 68, 68, 0.2);
+    color: #fecaca;
+  }
+}

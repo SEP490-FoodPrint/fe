@@ -87,7 +87,7 @@ const routes = [
     ],
   },
 
-  // 3. Phân hệ SYSTEM (Bảo vệ: Chỉ SYSTEM_ADMIN)
+  // 4. Phân hệ SYSTEM (Bảo vệ: Chỉ SYSTEM_ADMIN)
   {
     element: (
       <LazyWrapper>
@@ -105,7 +105,7 @@ const routes = [
     ],
   },
 
-  // 4. Phân hệ SUPPLIER (Bảo vệ: Chỉ INGREDIENT_SUPPLIER)
+  // 5. Phân hệ SUPPLIER (Bảo vệ: Chỉ INGREDIENT_SUPPLIER)
   {
     element: (
       <LazyWrapper>
@@ -124,7 +124,7 @@ const routes = [
     ],
   },
 
-  // 5. Phân hệ SCHOOL (Bảo vệ: Cổng SCHOOL + phân quyền chi tiết từng Role)
+  // 6. Phân hệ SCHOOL (Bảo vệ: Cổng SCHOOL + phân quyền chi tiết từng Role)
   {
     element: (
       <LazyWrapper>
@@ -132,6 +132,26 @@ const routes = [
       </LazyWrapper>
     ),
     children: [
+      // 6.1. Bếp ăn trường học (Nhân viên Bếp / Bếp trưởng) - Giao diện chuẩn Stitch với Sidebar xanh #0A8066
+      {
+        element: (
+          <RoleRoute
+            allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]}
+          />
+        ),
+        children: [
+          {
+            path: ROUTER.SCHOOL_KITCHEN_COOKING,
+            element: (
+              <LazyWrapper>
+                <KitchenCooking />
+              </LazyWrapper>
+            ),
+          },
+        ],
+      },
+
+      // 6.2. Các phân hệ trường học dùng khung quản trị chung
       {
         element: <MainLayout type="SCHOOL" />,
         children: [
@@ -165,14 +185,6 @@ const routes = [
             ],
           },
 
-          // Quản lý bếp & lưu mẫu: Nhân viên Bếp
-          {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF]} />,
-            children: [
-              { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-            ],
-          },
-
           // Báo suất ăn & dị ứng lớp: Giáo viên chủ nhiệm
           {
             element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER]} />,
@@ -201,7 +213,7 @@ const routes = [
     ],
   },
 
-  // 6. Trang lỗi 403 & 404
+  // 7. Trang lỗi 403 & 404
   {
     path: ROUTER.FORBIDDEN,
     element: <LazyWrapper><Forbidden /></LazyWrapper>,

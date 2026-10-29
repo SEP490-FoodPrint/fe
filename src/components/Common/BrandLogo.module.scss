@@ -1,18 +1,17 @@
 .brandContainer {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
   text-decoration: none;
   user-select: none;
 }
 
-.iconBox {
+.logoBox {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-md);
+  width: 40px;
+  height: 40px;
   flex-shrink: 0;
   transition: transform 0.2s ease;
 
@@ -21,57 +20,54 @@
   }
 }
 
+.logoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  /* Đổ bóng nhẹ giúp các viền màu của logo nổi bật sắc nét trên mọi nền */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
 .textGroup {
   display: flex;
   flex-direction: column;
-  line-height: 1.15;
+  line-height: 1.18;
 }
 
 .brandTitle {
   font-family: var(--font-sans);
-  font-size: var(--text-lg);
+  font-size: 17.5px;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
 
 .brandSubtitle {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
-/* Biến thể Dark Theme: Dùng trên nền Xanh của Sidebar */
+/* Biến thể Dark Theme: Nền Xanh Forest Emerald (#0A8066) của Sidebar */
 .isDark {
-  .iconBox {
-    background-color: var(--white);
-    color: var(--color-primary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  }
-
   .brandTitle {
-    color: var(--white);
+    color: #ffffff;
   }
 
   .brandSubtitle {
-    color: var(--green-200);
+    color: #a7f3d0;
   }
 }
 
-/* Biến thể Light Theme: Dùng trên nền Trắng của Header/Public */
+/* Biến thể Light Theme: Nền Trắng / Xanh nhạt của Header hoặc Landing */
 .isLight {
-  .iconBox {
-    background-color: var(--color-primary);
-    color: var(--white);
-    box-shadow: 0 2px 6px rgba(var(--color-primary-rgb), 0.25);
-  }
-
   .brandTitle {
-    color: var(--text-primary);
+    color: var(--text-primary, #111827);
   }
 
   .brandSubtitle {
-    color: var(--text-muted);
+    color: var(--color-primary, #0a8066);
   }
 }

@@ -1,0 +1,118 @@
+.tableCard {
+  background-color: var(--bg-surface) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: var(--space-6) !important;
+  box-shadow: var(--shadow-sm) !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--neutral-100);
+  margin-bottom: var(--space-2);
+}
+
+.tableTitle {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-base) !important;
+  font-weight: 700 !important;
+  color: var(--text-primary) !important;
+}
+
+.viewAllBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.18s ease;
+
+  &:hover {
+    color: var(--color-primary-hover);
+    transform: translateX(2px);
+  }
+}
+
+.tableResponsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  font-size: var(--text-xs) !important;
+  font-weight: 600 !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--border-default) !important;
+  padding: 10px 8px !important;
+  white-space: nowrap;
+}
+
+.tableRow {
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-page);
+  }
+
+  td {
+    border-bottom: 1px solid var(--neutral-100);
+    padding: 12px 8px;
+    font-size: var(--text-xs);
+  }
+}
+
+.codeCell {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.dishCell {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.portionCell {
+  color: var(--text-secondary);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.statusText {
+  font-weight: 600;
+  font-size: var(--text-xs);
+  white-space: nowrap;
+}
+
+.status_warning {
+  color: #9b650a;
+}
+
+.status_success {
+  color: var(--color-success);
+}
+
+.actionIconBtn {
+  color: var(--text-muted) !important;
+  transition: color 0.15s ease !important;
+
+  &:hover {
+    color: var(--color-primary) !important;
+    background-color: var(--color-primary-soft) !important;
+  }
+}
