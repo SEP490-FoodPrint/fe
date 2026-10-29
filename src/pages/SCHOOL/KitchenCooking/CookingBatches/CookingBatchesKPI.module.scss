@@ -1,0 +1,118 @@
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.kpiCard {
+  background-color: #ffffff;
+  border: 1px solid #e0ede4;
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(10, 128, 102, 0.08);
+    transform: translateY(-1px);
+    border-color: rgba(10, 128, 102, 0.3);
+  }
+}
+
+.kpiContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.kpiLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+}
+
+.kpiValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kpiValue {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1.1;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+}
+
+.valuePrimary {
+  color: #0a8066 !important;
+}
+
+.kpiUnit {
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.kpiBadge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  letter-spacing: 0.02em;
+}
+
+.badge_warning {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.badge_success {
+  background-color: #e6f4f0;
+  color: #0a8066;
+}
+
+.iconBox {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  span {
+    font-size: 22px;
+  }
+}
+
+.icon_primary {
+  background-color: #e6f4f0;
+  color: #0a8066;
+}
+
+.icon_warning {
+  background-color: #fff7ed;
+  color: #ea580c;
+}
+
+.icon_success {
+  background-color: #e6f4f0;
+  color: #0a8066;
+}

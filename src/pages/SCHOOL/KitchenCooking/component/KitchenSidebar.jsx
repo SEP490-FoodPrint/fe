@@ -21,7 +21,7 @@ const NAV_ITEMS = [
   },
   {
     key: "cooking-batches",
-    path: "#batches",
+    path: ROUTER.SCHOOL_KITCHEN_BATCHES,
     label: "Mẻ chế biến",
     icon: "soup_kitchen",
   },

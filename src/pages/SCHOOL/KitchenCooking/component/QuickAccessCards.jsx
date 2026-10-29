@@ -18,7 +18,7 @@ const CARDS_DATA = [
     description: "Lập mẻ, kiểm tra định lượng & quy trình nấu",
     actionLabel: "Xem mẻ chế biến",
     icon: <UtensilsCrossed size={22} />,
-    route: ROUTER.SCHOOL_KITCHEN_COOKING,
+    route: ROUTER.SCHOOL_KITCHEN_BATCHES,
   },
   {
     id: "meal-allocation",

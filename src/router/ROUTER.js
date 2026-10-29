@@ -20,7 +20,8 @@ const ROUTER = {
   SCHOOL_OVERVIEW: "/school/overview",
   SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
   SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
-  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Nhân viên Bếp
+  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Nhân viên Bếp (Dashboard)
+  SCHOOL_KITCHEN_BATCHES: "/school/kitchen-cooking/batches", // Nhân viên Bếp (Mẻ chế biến)
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
