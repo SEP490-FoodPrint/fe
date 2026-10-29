@@ -1,0 +1,235 @@
+.sectionCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span[class*="material-symbols-outlined"] {
+    font-size: 18px;
+    color: #0a8066;
+  }
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.summaryTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0f766e;
+  background-color: #f0fdfa;
+  border: 1px solid #ccfbf1;
+  padding: 3px 8px;
+  border-radius: 6px;
+
+  span[class*="material-symbols-outlined"] {
+    font-size: 14px;
+  }
+}
+
+.batchCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 16px;
+  background: #fafbfc;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #ffffff;
+  }
+}
+
+.batchTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.batchIdentity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.batchIndex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.identityMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.batchTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.batchTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.verifiedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 1px 6px;
+  border-radius: 4px;
+
+  span[class*="material-symbols-outlined"] {
+    font-size: 12px;
+  }
+}
+
+.batchCode {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.portionInfo {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.portionCount {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0a8066;
+}
+
+.portionUnit {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.batchDetailsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: #475569;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  span[class*="material-symbols-outlined"] {
+    font-size: 14px;
+    color: #64748b;
+  }
+
+  strong {
+    color: #0f766e;
+  }
+}
+
+.toggleDetailBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0a8066;
+  cursor: pointer;
+
+  span[class*="material-symbols-outlined"] {
+    font-size: 14px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.collapsibleArea {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.detailBox {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+}
+
+.boxLabel {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.boxVal {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
