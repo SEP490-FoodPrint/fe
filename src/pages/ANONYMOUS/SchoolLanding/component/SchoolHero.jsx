@@ -46,14 +46,14 @@ function SchoolHero({ school }) {
                 </p>
               </div>
 
-              {/* 3 Metadata Pills */}
+              {/* 2 Metadata Pills */}
               <div className={styles.metaGrid}>
                 <div className={styles.metaCard}>
                   <MapPin size={20} className={styles.metaIcon} />
                   <div className={styles.metaContent}>
                     <span className={styles.metaLabel}>Địa chỉ</span>
                     <span className={styles.metaValue}>
-                      {school?.address || "Hà Nội"}
+                      {school?.address}
                     </span>
                   </div>
                 </div>
@@ -63,17 +63,7 @@ function SchoolHero({ school }) {
                   <div className={styles.metaContent}>
                     <span className={styles.metaLabel}>Quy mô bán trú</span>
                     <span className={styles.metaValue}>
-                      {school?.boarding_scale || "1.250 học sinh"}
-                    </span>
-                  </div>
-                </div>
-
-                <div className={styles.metaCard}>
-                  <ShieldCheck size={20} className={styles.metaIcon} />
-                  <div className={styles.metaContent}>
-                    <span className={styles.metaLabel}>Chuẩn an toàn</span>
-                    <span className={styles.metaValue}>
-                      {school?.safety_standard || "Y tế học đường"}
+                      {school?.boarding_scale}
                     </span>
                   </div>
                 </div>
