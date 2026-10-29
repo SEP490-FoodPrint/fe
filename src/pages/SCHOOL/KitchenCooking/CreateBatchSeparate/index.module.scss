@@ -1,6 +1,6 @@
 .dashboardContainer {
   min-height: 100vh;
-  background-color: #f0fcf6;
+  background-color: #f8faf9; /* Standard Mint Bg per UI Guidelines */
   color: #131e1a;
   font-family: var(--font-body, "Inter", sans-serif);
   display: flex;
@@ -21,17 +21,18 @@
 
 .contentCanvas {
   flex: 1;
-  padding-top: 64px; /* Fixed Header */
+  padding-top: 64px; /* Space for Fixed Header */
   padding-left: 24px;
   padding-right: 24px;
-  padding-bottom: 48px;
-  background-color: #f0fcf6;
+  padding-bottom: 24px;
+  background-color: #f8faf9;
 }
 
 .formContainer {
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 32px;
-  padding-bottom: 32px;
+  gap: 14px; /* Reduced gap from 32px to 14px for high density */
+  max-width: 1300px;
+  margin: 0 auto;
 }

@@ -1,0 +1,325 @@
+.compactCard {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #dce5e0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #e4f1ea;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.headerIcon {
+  font-size: 18px;
+  color: #0a8066;
+}
+
+.titleText {
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #131e1a;
+}
+
+.badgeSync {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #00654f;
+  background-color: #eaf7f0;
+  padding: 2px 8px;
+  border-radius: 4px;
+
+  span {
+    font-size: 13px;
+  }
+}
+
+.gridFields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.fieldItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3e4944;
+
+  span:first-child {
+    font-size: 14px;
+    color: #6e7a74;
+  }
+}
+
+.infoIcon {
+  font-size: 14px !important;
+  color: #6e7a74;
+  cursor: help;
+  margin-left: 2px;
+
+  &:hover {
+    color: #0a8066;
+  }
+}
+
+.lockedBox {
+  height: 38px;
+  padding: 0 10px;
+  background-color: #f8faf9;
+  border: 1px solid #e4f1ea;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: not-allowed;
+}
+
+.boxText {
+  font-size: 13px;
+  font-weight: 500;
+  color: #131e1a;
+}
+
+.lockIcon {
+  font-size: 15px;
+  color: #9ba7a1;
+}
+
+.selectBox {
+  position: relative;
+  width: 100%;
+}
+
+.selectInput {
+  width: 100%;
+  height: 38px;
+  padding-left: 10px;
+  padding-right: 28px;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #131e1a;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
+  }
+}
+
+.arrowIcon {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  font-size: 18px;
+  color: #6e7a74;
+}
+
+/* Trigger Box */
+.triggerBox {
+  height: 38px;
+  padding: 0 10px;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #0a8066;
+  }
+}
+
+.triggerActive {
+  border-color: #0a8066;
+  box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
+}
+
+.dishName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00654f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.triggerIcons {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+
+  span {
+    font-size: 18px;
+    color: #6e7a74;
+  }
+}
+
+.clearBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  span {
+    font-size: 15px;
+    color: #6e7a74;
+
+    &:hover {
+      color: #ba1a1a;
+    }
+  }
+}
+
+.flyoutMenu {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.searchRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: #f8faf9;
+  border-bottom: 1px solid #e4f1ea;
+
+  span {
+    font-size: 16px;
+    color: #6e7a74;
+  }
+
+  input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    font-size: 12px;
+    color: #131e1a;
+
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.optionsWrap {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.optionItem {
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #eaf7f0;
+  }
+}
+
+.optionActive {
+  background-color: rgba(10, 128, 102, 0.08);
+}
+
+.optionInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.optionTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.optionDesc {
+  font-size: 10px;
+  color: #6e7a74;
+}
+
+.checkIcon {
+  font-size: 16px;
+  color: #0a8066;
+}
+
+/* Portion Display */
+.portionDisplay {
+  height: 38px;
+  padding: 0 10px;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.portionVal {
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: #0a8066;
+}
+
+.portionUnit {
+  font-size: 12px;
+  color: #6e7a74;
+}

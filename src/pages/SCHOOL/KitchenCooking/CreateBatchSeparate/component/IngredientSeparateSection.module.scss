@@ -1,0 +1,321 @@
+.compactCard {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #dce5e0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed #e4f1ea;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.headerIcon {
+  font-size: 18px;
+  color: #0a8066;
+}
+
+.titleText {
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #131e1a;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ruleBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #00654f;
+  background-color: #eaf7f0;
+  padding: 3px 8px;
+  border-radius: 4px;
+
+  span {
+    font-size: 14px;
+  }
+}
+
+.formulaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #52635c;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  padding: 3px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 14px;
+  }
+
+  &:hover {
+    color: #0a8066;
+    border-color: #0a8066;
+  }
+}
+
+/* Clean Table */
+.tableWrap {
+  overflow-x: auto;
+}
+
+.cleanTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 760px;
+
+  thead tr {
+    border-bottom: 1px solid #dce5e0;
+    color: #6e7a74;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    th {
+      padding: 8px 12px;
+      text-align: left;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #eef3f1;
+    transition: background-color 0.1s ease;
+
+    &:hover {
+      background-color: #f8faf9;
+    }
+
+    td {
+      padding: 10px 12px;
+      color: #131e1a;
+    }
+  }
+}
+
+.thLeft {
+  padding-left: 0 !important;
+}
+
+.thRight {
+  padding-right: 0 !important;
+}
+
+.rowHighlight {
+  background-color: rgba(234, 247, 240, 0.25);
+}
+
+.sublotRow {
+  background-color: rgba(234, 247, 240, 0.15);
+}
+
+.cellTop {
+  vertical-align: top;
+  padding-top: 12px !important;
+}
+
+.cellMiddle {
+  vertical-align: middle;
+}
+
+.textRight {
+  text-align: right;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.itemWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconBoxMeat, .iconBoxEgg, .iconBoxDrink, .iconBoxSpice {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  span {
+    font-size: 16px;
+  }
+}
+
+.iconBoxMeat {
+  background-color: #fdecec;
+  color: #ba1a1a;
+}
+
+.iconBoxEgg {
+  background-color: #fff7d6;
+  color: #9b650a;
+}
+
+.iconBoxDrink {
+  background-color: #eaf3ff;
+  color: #175b92;
+}
+
+.iconBoxSpice {
+  background-color: #eaf7f0;
+  color: #0a8066;
+}
+
+.itemMeta {
+  display: flex;
+  flex-direction: column;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.itemName {
+  font-weight: 600;
+  color: #131e1a;
+  font-size: 13px;
+}
+
+.splitPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #9b650a;
+  background-color: #fff5da;
+  padding: 1px 6px;
+  border-radius: 4px;
+
+  span {
+    font-size: 12px;
+  }
+}
+
+.supplierText {
+  font-size: 11px;
+  color: #6e7a74;
+}
+
+.qtyBox {
+  display: flex;
+  flex-direction: column;
+}
+
+.qtyMain {
+  font-weight: 700;
+  color: #131e1a;
+}
+
+.qtySub {
+  font-size: 10px;
+  color: #6e7a74;
+}
+
+.lotRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lotCode {
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00654f;
+}
+
+.expDate {
+  font-size: 11px;
+  color: #6e7a74;
+}
+
+.takePill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #eaf7f0;
+  font-weight: 700;
+  color: #00654f;
+  font-size: 12px;
+}
+
+.statusSuccess {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #00654f;
+  font-size: 12px;
+  font-weight: 600;
+
+  span {
+    font-size: 15px;
+  }
+}
+
+/* Summary Bar */
+.summaryBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 8px;
+  border-top: 1px solid #eef3f1;
+  font-size: 12px;
+  color: #52635c;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.summaryLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #00654f;
+  font-weight: 600;
+
+  span {
+    font-size: 16px;
+  }
+}
+
+.summaryRight {
+  color: #6e7a74;
+  font-size: 11px;
+}

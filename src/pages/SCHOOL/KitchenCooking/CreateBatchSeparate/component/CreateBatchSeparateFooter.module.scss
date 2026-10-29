@@ -1,0 +1,139 @@
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  color: #3e4944;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #131e1a;
+    border-color: #0a8066;
+  }
+}
+
+.centerNote {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #6e7a74;
+
+  span {
+    font-size: 14px;
+    color: #0a8066;
+  }
+
+  @media (min-width: 768px) {
+    display: inline-flex;
+  }
+}
+
+.btnGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.draftBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #dce5e0;
+  color: #00654f;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 16px;
+  }
+
+  &:hover {
+    background-color: #eaf7f0;
+    border-color: #0a8066;
+  }
+}
+
+.createBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  background-color: #0a8066;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.2);
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background-color: #08604d;
+    box-shadow: 0 2px 6px rgba(10, 128, 102, 0.3);
+  }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 100;
+  background-color: #131e1a;
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  animation: slideUp 0.25s ease-out;
+
+  span {
+    color: #94f5d5;
+    font-size: 18px;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
