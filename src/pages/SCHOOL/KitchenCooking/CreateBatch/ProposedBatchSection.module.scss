@@ -1,0 +1,424 @@
+.sectionContainer {
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+}
+
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.numberBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #e4f1ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00654f;
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.sectionSubtitle {
+  margin: 0;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 12px;
+  color: #6e7a74;
+}
+
+/* Summary Card */
+.summaryCard {
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #eaf7f0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.summaryLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hubIconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background-color: #e4f1ea;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #00654f;
+  flex-shrink: 0;
+
+  span {
+    font-size: 24px;
+  }
+}
+
+.summaryText {
+  margin: 0;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 14px;
+  line-height: 1.4;
+  color: #131e1a;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.summaryRight {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  text-align: right;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.summaryProposedBatch {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 11px;
+  color: #6e7a74;
+  display: block;
+
+  strong {
+    color: #131e1a;
+  }
+}
+
+.summaryTotalPortions {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #00654f;
+}
+
+/* Table */
+.tableResponsive {
+  overflow-x: auto;
+  border-radius: 12px;
+  background-color: #ffffff;
+}
+
+.table {
+  width: 100%;
+  text-align: left;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 14px;
+  border-collapse: collapse;
+  min-width: 800px;
+
+  thead tr {
+    background-color: #eaf7f0;
+    color: #6e7a74;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+
+    th {
+      padding: 12px 16px;
+    }
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #e4f1ea;
+
+    td {
+      padding: 14px 16px;
+    }
+  }
+}
+
+.thLeft {
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+.thRight {
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.trHover {
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(234, 247, 240, 0.5);
+  }
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.batchNameCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.batchTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.batchCode {
+  font-family: monospace;
+  font-size: 11px;
+  color: #00654f;
+  font-weight: 500;
+}
+
+.dishName {
+  font-size: 14px;
+  font-weight: 500;
+  color: #131e1a;
+}
+
+.portionCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.portionMain {
+  font-size: 14px;
+  font-weight: 700;
+  color: #131e1a;
+}
+
+.portionSub {
+  font-size: 11px;
+  color: #6e7a74;
+}
+
+.lotsCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.lotsMain {
+  font-size: 13px;
+  font-weight: 600;
+  color: #00654f;
+}
+
+.lotsSub {
+  font-size: 11px;
+  color: #6e7a74;
+  line-height: 1.3;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background-color: #e4f1ea;
+  color: #00654f;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #00654f;
+}
+
+.detailBtn {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: #00654f;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+
+  span:first-child {
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  span {
+    font-size: 16px;
+  }
+}
+
+/* Detail Box */
+.detailBox {
+  padding: 16px;
+  border-radius: 12px;
+  background-color: #eaf7f0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detailTitle {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 14px;
+  font-weight: 600;
+  color: #131e1a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  span {
+    color: #00654f;
+    font-size: 20px;
+  }
+}
+
+.detailTag {
+  padding: 2px 10px;
+  border-radius: 9999px;
+  background-color: #e4f1ea;
+  color: #00654f;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.cardsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.ingredientCard {
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardName {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 13px;
+  font-weight: 600;
+  color: #131e1a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardAmount {
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 14px;
+  font-weight: 700;
+  color: #00654f;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 11px;
+  color: #6e7a74;
+  padding-top: 4px;
+  border-top: 1px dashed #e4f1ea;
+}
+
+.cardLotRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardLotWeight {
+  font-weight: 500;
+  color: #131e1a;
+}
+
+/* Note Box */
+.noteBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background-color: #e4f1ea;
+  color: #131e1a;
+  font-family: var(--font-body, "Inter", sans-serif);
+  font-size: 13px;
+}
+
+.noteIcon {
+  font-size: 20px;
+  color: #00654f;
+  flex-shrink: 0;
+}
+
+.noteText {
+  line-height: 1.4;
+}

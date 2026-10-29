@@ -1,0 +1,37 @@
+.dashboardContainer {
+  min-height: 100vh;
+  background-color: #f0fcf6;
+  color: #131e1a;
+  font-family: var(--font-body, "Inter", sans-serif);
+  display: flex;
+  position: relative;
+}
+
+.mainWrapper {
+  flex: 1;
+  padding-left: 288px; /* 72 * 4 = 288px for Fixed Sidebar */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+
+  @media (max-width: 1024px) {
+    padding-left: 0;
+  }
+}
+
+.contentCanvas {
+  flex: 1;
+  padding-top: 64px; /* Space for Fixed Header */
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-bottom: 48px;
+  background-color: #f0fcf6;
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 32px;
+  padding-bottom: 32px;
+}
