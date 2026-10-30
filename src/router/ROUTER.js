@@ -1,7 +1,7 @@
 const ROUTER = {
   // Public
   DEFAULT: "/",
-  LOGIN: "/login",
+  LOGIN: "/test-login",
   SCHOOL_LANDING: "/school/:schoolCode",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
@@ -45,6 +45,6 @@ const ROUTER = {
   // Common/Error
   FORBIDDEN: "/403",
   NOT_FOUND: "/404",
-}
+};
 
-export default ROUTER
+export default ROUTER;
