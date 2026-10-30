@@ -7,7 +7,6 @@ import { getDefaultRedirectByOrg } from "src/lib/utils"
 import notice from "src/components/Notice"
 import BrandLogo from "src/components/Common/BrandLogo"
 import LoginForm from "./component/LoginForm"
-import QuickLoginList from "./component/QuickLoginList"
 import "./style.scss"
 
 function LoginPage() {
@@ -57,13 +56,13 @@ function LoginPage() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "400px 1fr" },
+            gridTemplateColumns: "minmax(0, 480px)",
+            justifyContent: "center",
             gap: 3,
             alignItems: "start",
           }}
         >
           <LoginForm onLoginSuccess={handleLoginSuccess} />
-          <QuickLoginList onLoginSuccess={handleLoginSuccess} />
         </Box>
       </div>
     </div>
