@@ -140,136 +140,7 @@
   }
 }
 
-/* 2. Grid Tiêu chuẩn Vận hành & ATTP */
-.executionGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-  }
-}
-
-.execCard {
-  background-color: #ffffff;
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 8px;
-  padding: 10px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.execCardHeader {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px dashed #f3f4f6;
-}
-
-.execIconTime {
-  color: #0284c7;
-  flex-shrink: 0;
-}
-
-.execIconSafety {
-  color: #059669;
-  flex-shrink: 0;
-}
-
-.execCardTitle {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.execCardBody {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-/* Timeline */
-.timeTimeline {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.timePoint {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.timeLabel {
-  font-size: 10.5px;
-  color: var(--text-muted, #6b7280);
-}
-
-.timeValue {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-  font-family: ui-monospace, monospace;
-}
-
-.timeValueHighlight {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0284c7;
-  font-family: ui-monospace, monospace;
-}
-
-.timeArrow {
-  color: #9ca3af;
-  font-size: 13px;
-  padding: 0 4px;
-}
-
-.timeNotice {
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-}
-
-/* ATTP Specs */
-.safetySpecsList {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.specItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.specIcon {
-  color: #059669;
-  flex-shrink: 0;
-}
-
-.specText {
-  font-size: 12px;
-  color: var(--text-secondary, #374151);
-
-  strong {
-    color: var(--color-primary, #0a8066);
-    font-weight: 700;
-  }
-}
-
-.safetyRule {
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-  font-style: italic;
-}
-
-/* 3. Khối liên kết nguồn gốc đa lô */
+/* 2. Khối liên kết nguồn gốc đa lô */
 .lotTraceabilityBox {
   border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 8px;
@@ -359,7 +230,7 @@
   color: var(--color-primary, #0a8066);
 }
 
-/* 4. Ghi nhận chuẩn */
+/* 3. Ghi nhận chuẩn */
 .noteBox {
   display: flex;
   align-items: center;

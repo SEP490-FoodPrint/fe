@@ -1,8 +1,6 @@
 import React, { useState } from "react"
 import {
   CookingPot,
-  Clock,
-  Thermometer,
   ShieldCheck,
   ChevronDown,
   ChevronUp,
@@ -22,10 +20,10 @@ export default function ProposedSeparateBatchSection() {
           <div className={styles.numberBadge}>3</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              3. Phương án tách lô dự kiến &amp; An toàn bếp
+              3. Phương án tách lô dự kiến
             </h2>
             <p className={styles.sectionSubtitle}>
-              Kế hoạch 02 lô nấu độc lập song song, kiểm soát nhiệt độ an toàn thực phẩm
+              Kế hoạch 02 lô nấu độc lập song song theo nguồn gốc nguyên liệu
             </p>
           </div>
         </div>
@@ -70,18 +68,6 @@ export default function ProposedSeparateBatchSection() {
               <span className={styles.portionUnit}>suất ăn</span>
             </div>
             <span className={styles.portionPercent}>58.5% tổng nhu cầu</span>
-          </div>
-
-          {/* Khung giờ & ATTP */}
-          <div className={styles.scheduleRow}>
-            <div className={styles.scheduleItem}>
-              <Clock size={14} className={styles.scheduleIcon} />
-              <span>Nấu: <strong>08:30 – 10:30</strong> (Chảo Á 01)</span>
-            </div>
-            <div className={styles.scheduleItem}>
-              <Thermometer size={14} className={styles.scheduleIconTemp} />
-              <span>Tâm món: <strong>≥ 85°C</strong></span>
-            </div>
           </div>
 
           {/* Tóm tắt nguyên liệu */}
@@ -148,18 +134,6 @@ export default function ProposedSeparateBatchSection() {
               <span className={styles.portionUnit}>suất ăn</span>
             </div>
             <span className={styles.portionPercent}>41.5% tổng nhu cầu</span>
-          </div>
-
-          {/* Khung giờ & ATTP */}
-          <div className={styles.scheduleRow}>
-            <div className={styles.scheduleItem}>
-              <Clock size={14} className={styles.scheduleIcon} />
-              <span>Nấu: <strong>08:45 – 10:35</strong> (Chảo Á 02)</span>
-            </div>
-            <div className={styles.scheduleItem}>
-              <Thermometer size={14} className={styles.scheduleIconTemp} />
-              <span>Tâm món: <strong>≥ 85°C</strong></span>
-            </div>
           </div>
 
           {/* Tóm tắt nguyên liệu */}
