@@ -5,9 +5,9 @@ import styles from "./CookingBatchesKPI.module.scss"
 const KPIS = [
   {
     id: "total",
-    label: "Mẻ trong ca",
+    label: "Lô trong ca",
     value: "08",
-    unit: "mẻ",
+    unit: "lô",
     icon: <CookingPot size={16} />,
     iconTheme: "primary",
   },
@@ -42,7 +42,7 @@ const KPIS = [
 
 function CookingBatchesKPI() {
   return (
-    <div className={styles.kpiGrid} role="region" aria-label="Thống kê mẻ chế biến">
+    <div className={styles.kpiGrid} role="region" aria-label="Thống kê lô chế biến">
       {KPIS.map((kpi) => (
         <div key={kpi.id} className={styles.kpiCard}>
           <div className={`${styles.iconBox} ${styles[`icon_${kpi.iconTheme}`] || ""}`} aria-hidden="true">

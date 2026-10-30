@@ -28,9 +28,9 @@ const ROUTER = {
   // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)
   SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Trang chủ Bếp
   SCHOOL_KITCHEN_MENU: "/school/kitchen-cooking/menu",     // Thực đơn đã lên
-  SCHOOL_KITCHEN_BATCHES: "/school/kitchen-cooking/batches", // Mẻ chế biến
-  SCHOOL_KITCHEN_BATCH_CREATE: "/school/kitchen-cooking/batches/create", // Tạo mẻ nấu chung
-  SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Tạo mẻ nấu riêng
+  SCHOOL_KITCHEN_BATCHES: "/school/kitchen-cooking/batches", // Lô chế biến
+  SCHOOL_KITCHEN_BATCH_CREATE: "/school/kitchen-cooking/batches/create", // Tạo lô nấu chung
+  SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Tạo lô nấu riêng
   SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/kitchen-cooking/meal-allocation", // Phân bổ suất ăn
   SCHOOL_KITCHEN_INGREDIENTS: "/school/kitchen-cooking/ingredients", // Danh sách nguyên liệu
   SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm

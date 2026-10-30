@@ -132,7 +132,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thCode}>Mã mẻ</th>
+              <th className={styles.thCode}>Mã lô</th>
               <th className={styles.thDish}>Món ăn &amp; Ca ăn</th>
               <th className={styles.thMethod}>Phương thức</th>
               <th className={styles.thPlanned}>Kế hoạch</th>
@@ -202,7 +202,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
                 {/* 8. Thao tác */}
                 <td className={styles.tdAction}>
                   <div className={styles.actionGroup}>
-                    <Tooltip title="Xem chi tiết mẻ" arrow>
+                    <Tooltip title="Xem chi tiết lô" arrow>
                       <button
                         type="button"
                         className={styles.iconActionBtn}
@@ -226,8 +226,8 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
                     )}
 
                     {row.actions.includes("edit") && (
-                      <Tooltip title="Chỉnh sửa mẻ" arrow>
-                        <button type="button" className={styles.iconActionBtn} aria-label="Chỉnh sửa mẻ">
+                      <Tooltip title="Chỉnh sửa lô" arrow>
+                        <button type="button" className={styles.iconActionBtn} aria-label="Chỉnh sửa lô">
                           <Edit2 size={16} />
                         </button>
                       </Tooltip>
@@ -241,7 +241,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
       </div>
 
       {/* 2. Mobile View: Thẻ 2 hàng mật độ cao chuẩn UI/UX Pro Max (Hiện trên Mobile < 768px) */}
-      <div className={styles.mobileCardsList} role="list" aria-label="Danh sách mẻ chế biến">
+      <div className={styles.mobileCardsList} role="list" aria-label="Danh sách lô chế biến">
         {filteredData.map((row) => (
           <div
             key={row.id}
@@ -281,7 +281,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
                 <Tooltip title="Xem chi tiết" arrow>
                   <IconButton
                     className={styles.mobileActionBtn}
-                    aria-label={`Xem chi tiết mẻ ${row.dishName}`}
+                    aria-label={`Xem chi tiết lô ${row.dishName}`}
                     onClick={() => navigate(`${ROUTER.SCHOOL_KITCHEN_BATCHES}/${row.id}`)}
                   >
                     <Eye size={16} />
@@ -308,7 +308,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
       <div className={styles.paginationBar}>
         <div className={styles.pageInfo}>
           <span>
-            Hiển thị <strong>{filteredData.length}</strong> mẻ chế biến
+            Hiển thị <strong>{filteredData.length}</strong> lô chế biến
           </span>
           <div className={styles.pageSizeSelect}>
             <span>Xem:</span>

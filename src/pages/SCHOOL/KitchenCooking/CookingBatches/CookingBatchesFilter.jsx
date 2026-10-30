@@ -65,7 +65,7 @@ function CookingBatchesFilter({ onFilterChange, activeQuickFilter, onQuickFilter
               setSearchTerm(e.target.value)
               if (onFilterChange) onFilterChange({ searchTerm: e.target.value, mealType, method, status })
             }}
-            aria-label="Tìm kiếm mẻ chế biến"
+            aria-label="Tìm kiếm lô chế biến"
           />
         </div>
 
@@ -122,7 +122,7 @@ function CookingBatchesFilter({ onFilterChange, activeQuickFilter, onQuickFilter
                 setStatus(e.target.value)
                 if (onFilterChange) onFilterChange({ searchTerm, mealType, method, status: e.target.value })
               }}
-              aria-label="Chọn trạng thái mẻ"
+              aria-label="Chọn trạng thái lô"
             >
               <option value="ALL">Tất cả trạng thái</option>
               <option value="COMPLETED">Đã nấu xong</option>
@@ -146,7 +146,7 @@ function CookingBatchesFilter({ onFilterChange, activeQuickFilter, onQuickFilter
       </div>
 
       {/* 2. Dải Filter Chips cuộn ngang cho Mobile (Touch-friendly 1 tay) */}
-      <div className={styles.chipsRow} role="tablist" aria-label="Bộ lọc nhanh mẻ nấu">
+      <div className={styles.chipsRow} role="tablist" aria-label="Bộ lọc nhanh lô chế biến">
         {QUICK_CHIPS.map((chip) => {
           const isActive = activeChip === chip.id
           return (

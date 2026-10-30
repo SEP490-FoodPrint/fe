@@ -151,7 +151,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_BATCHES,
-    label: "Mẻ chế biến",
+    label: "Lô chế biến",
     icon: <SoupKitchenOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
