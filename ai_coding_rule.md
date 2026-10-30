@@ -203,10 +203,39 @@ Khi tạo mới một tính năng hoặc luồng dữ liệu API:
 
 ---
 
-## 6. Checklist Tự Kiểm Tra (Self-Checklist) Cho AI Trước Khi Bàn Giao
+## 6. Quy Chuẩn Mobile-First & Tiêu Chuẩn UI/UX Pro Max Cho Phân Hệ Bếp Ăn
+
+> [!IMPORTANT]
+> **ĐẶC THÙ BẮT BUỘC ĐỐI VỚI VAI TRÒ NHÂN VIÊN BẾP (`SCHOOL_KITCHEN_STAFF`):**
+> Nhân viên bếp hoàn toàn **không sử dụng máy tính bàn/laptop** trong khu vực chế biến mà **100% sử dụng điện thoại thông minh**. Mọi màn hình thuộc phân hệ Bếp (`src/pages/SCHOOL/Kitchen...`) phải tuân thủ nghiêm ngặt chuẩn **Mobile-First** và thư viện kỹ năng **UI/UX Pro Max** (`.agents/skills/ui-ux-pro-max`).
+
+### 1. Nguyên lý Thiết kế & Mật độ hiển thị (High-Density & Glanceability):
+- **Bao quát công việc trong nháy mắt (Glanceability):** Nhân viên bếp cần nắm trọn các công việc hôm nay (món nấu, số suất, giờ hoàn thành) ngay từ cái nhìn đầu tiên (Above the fold), không bị che khuất bởi các thẻ phình to cồng kềnh.
+- **Định chuẩn Typography vừa vặn:**
+  - Tiêu đề thẻ công việc/món ăn: chuẩn **`13.5px` (SemiBold 600)**. Tuyệt đối không dùng chữ `16px - 18px Bold` làm thẻ bị chật chội và vỡ layout.
+  - Phụ đề thông tin (suất ăn, mốc giờ hoàn thành): chuẩn **`12px` (Regular/Medium, màu `#4B5563` chuẩn tương phản WCAG AA)**.
+  - Chiều cao thẻ vận hành: tối ưu **`58px – 62px`** (giảm >50% so với layout 3 tầng cũ).
+  - Khoảng cách giữa các thẻ: `gap: 8px`.
+
+### 2. Thao tác Icon-First & Vùng bấm cảm ứng an toàn (Touch Target >= 44px):
+- **Tuyệt đối không dùng nút chữ dài:** Không đặt các nút có chữ dài lê thê (*"Xem chi tiết"*, *"Bắt đầu nấu"*, *"Phân bổ suất"*) trên thẻ di động.
+- **Thay thế bằng Icon Action Button trực quan:** Dùng các icon rõ nghĩa từ `lucide-react` (`Play`, `Eye`, `Check`, `ArrowRight`, `Edit`, `Trash2`).
+- **Kích thước visual vs Vùng chạm thực tế:** Nút hiển thị `32x32px` bo góc `8px`, nhưng bắt buộc dùng CSS pseudo-element `::after` mở rộng vùng bấm thực tế lên $\ge 44\times 44\text{px}$ (`inset: -6px; content: ''; position: absolute;`) để người dùng bấm chính xác ngay cả khi tay ướt hoặc đeo găng tay trong bếp.
+
+### 3. Lược bỏ mã kỹ thuật nội bộ (Technical IDs Elimination):
+- Ẩn triệt để các mã database nội bộ (`CB-20261030-01`, `ALLOC-0092`, `DELIV-102`) khỏi màn hình di động của bếp ăn.
+- Thay thế hoàn toàn bằng dữ liệu vận hành sống: Tên món ăn/khối lớp, ca ăn, số lượng suất và thời hạn hoàn thành (ví dụ: *"1.250 suất • Xong trước 10:30"*).
+
+### 4. Xóa bỏ viền lồng viền (No Nested Borders):
+- Trên di động, container ngoài cùng của Section phải để `background: transparent; border: none; padding: 0; box-shadow: none;`. Chỉ có các thẻ con bên trong có viền nhẹ 1px (`#E5E7EB`) và nền trắng.
+
+---
+
+## 7. Checklist Tự Kiểm Tra (Self-Checklist) Cho AI Trước Khi Bàn Giao
 
 Trước khi hoàn thành bất kỳ yêu cầu code màn hình nào, AI phải tự kiểm tra:
 - [ ] **Header/Sidebar:** Có giữ nguyên 100% không? Chỉ code trong phạm vi Page Content?
+- [ ] **Mobile-First cho Bếp:** Nếu là màn hình Nhân viên bếp, đã tối ưu trên mobile (390px), thẻ cao ~60px, dùng icon action có touch target >= 44px, không có mã kỹ thuật thừa, không tràn ngang (`scrollWidth === clientWidth`)?
 - [ ] **Cấu trúc thư mục:** Màn hình có đủ `index.tsx` (hoặc `.jsx`) + `component/`? Không có file con vứt bừa bãi ở root page?
 - [ ] **Tên Module SCSS:** Mọi component con trong `component/` có file `.module.scss` trùng tên 100% không?
 - [ ] **Biến Tokens:** Toàn bộ màu sắc, font chữ, spacing, radius có dùng `var(--...)` từ `globals.css` không? Có mã màu hex/px tùy tiện nào không?
@@ -215,7 +244,7 @@ Trước khi hoàn thành bất kỳ yêu cầu code màn hình nào, AI phải 
 
 ---
 
-## 7. Mẫu Chuẩn Tham Khảo Thực Tế Trong Dự Án
+## 8. Mẫu Chuẩn Tham Khảo Thực Tế Trong Dự Án
 
 - **Cấu trúc Page + Module SCSS:** [src/pages/ANONYMOUS/Login](file:///C:/MERN/FoodPrint/FoodPrintFE/src/pages/ANONYMOUS/Login)
   - `index.jsx`
