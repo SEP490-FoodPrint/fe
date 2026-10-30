@@ -14,8 +14,8 @@ import styles from "./QuickAccessCards.module.scss";
 const CARDS_DATA = [
   {
     id: "cooking-batch",
-    title: "Mẻ chế biến",
-    desc: "Lập mẻ, kiểm tra quy trình nấu",
+    title: "Lô chế biến",
+    desc: "Lập lô chế biến, kiểm tra quy trình nấu",
     icon: <UtensilsCrossed size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_BATCHES,
   },

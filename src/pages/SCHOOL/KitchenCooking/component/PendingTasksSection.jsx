@@ -21,7 +21,7 @@ const TASKS = [
     statusType: "warning",
     icon: <UtensilsCrossed size={15} />,
     actionIcon: <ChevronRight size={18} />,
-    actionLabel: "Xem chi tiết mẻ nấu",
+    actionLabel: "Xem chi tiết lô chế biến",
     route: ROUTER.SCHOOL_KITCHEN_BATCHES,
     isPrimary: false,
   },

@@ -9,7 +9,7 @@ import SampleReminderBanner from "./SampleReminderBanner"
 import styles from "./index.module.scss"
 
 /**
- * CookingBatches - Màn hình Quản lý Lô / Mẻ Chế Biến (Nhân viên Bếp)
+ * CookingBatches - Màn hình Quản lý Lô Chế Biến (Nhân viên Bếp)
  * Chuẩn hóa Mobile-First & UI/UX Pro Max:
  * - Kế thừa MainLayout dùng chung (Sidebar xanh #0A8066 + DashboardHeader)
  * - Header Trang: Tiêu đề + Nút Tạo mẻ mới
@@ -28,7 +28,7 @@ function CookingBatches() {
       {/* 1. Header Trang: Tiêu đề + Badge ca ăn + Nút thao tác Desktop */}
       <div className={styles.pageHeader}>
         <div className={styles.titleWrap}>
-          <h1 className={styles.title}>Quản lý mẻ chế biến</h1>
+          <h1 className={styles.title}>Quản lý lô chế biến</h1>
           <div className={styles.shiftBadge}>
             <span className={styles.pulseDot} />
             <Clock size={13} className={styles.clockIcon} />
@@ -38,7 +38,7 @@ function CookingBatches() {
 
         {/* Action buttons (Desktop) */}
         <div className={styles.actionBtns}>
-          <button type="button" className={styles.exportBtn} title="Xuất báo cáo danh sách mẻ">
+          <button type="button" className={styles.exportBtn} title="Xuất báo cáo danh sách lô chế biến">
             <FileDown size={16} />
             <span>Xuất báo cáo</span>
           </button>
@@ -49,7 +49,7 @@ function CookingBatches() {
             onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)}
           >
             <Plus size={18} />
-            <span>Tạo mẻ nấu mới</span>
+            <span>Tạo lô nấu mới</span>
           </button>
         </div>
       </div>
@@ -78,7 +78,7 @@ function CookingBatches() {
           onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)}
         >
           <Plus size={19} />
-          <span>Tạo mẻ nấu mới</span>
+          <span>Tạo lô nấu mới</span>
         </button>
       </div>
     </div>

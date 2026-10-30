@@ -49,12 +49,12 @@ function RecentCookingBatches() {
     <Card className={styles.tableCard}>
       <div className={styles.cardHeader}>
         <Typography className={styles.tableTitle}>
-          Mẻ chế biến gần đây
+          Lô chế biến gần đây
         </Typography>
         <button
           type="button"
           className={styles.viewAllBtn}
-          aria-label="Xem tất cả mẻ chế biến"
+          aria-label="Xem tất cả lô chế biến"
           onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
         >
           <span>Tất cả</span>
