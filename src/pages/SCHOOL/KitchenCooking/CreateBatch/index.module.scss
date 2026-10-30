@@ -1,0 +1,24 @@
+.createBatchContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+
+  @media (max-width: 768px) {
+    gap: 12px;
+    padding-bottom: 74px; /* Tránh bị che bởi thanh sticky action bar */
+  }
+}
+
+.formContainer {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 20px;
+
+  @media (max-width: 768px) {
+    gap: 14px;
+  }
+}
