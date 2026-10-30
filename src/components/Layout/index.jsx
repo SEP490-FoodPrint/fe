@@ -3,6 +3,7 @@ import PropTypes from "prop-types"
 import { Outlet } from "react-router-dom"
 import { DashboardHeader } from "./Header"
 import Sidebar from "./Sidebar"
+import RoleSwitcher from "src/components/Common/RoleSwitcher"
 import styles from "./MainLayout.module.scss"
 
 const STORAGE_COLLAPSED_KEY = "foodprint_sidebar_collapsed"
@@ -51,6 +52,7 @@ const MainLayout = ({ type }) => {
       </div>
 
       {/* 3. Tiện ích đổi nhanh vai trò để kiểm thử */}
+      <RoleSwitcher />
     </div>
   )
 }

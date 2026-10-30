@@ -1,17 +1,15 @@
 import React, { createContext, useState } from "react"
-import STORAGE, { getStorage } from "src/lib/storage"
+import { MOCK_ACCOUNTS, ROLES } from "src/constants/roles"
 
 export const StoreContext = createContext(null)
 
-const savedToken = getStorage(STORAGE.TOKEN)
-const savedUser = getStorage(STORAGE.USER_INFO)
-const savedSession =
-  typeof savedToken === "string" && savedToken.split(".").length === 3 && savedUser?.id
+const DEFAULT_DEMO_USER =
+  MOCK_ACCOUNTS.find(account => account.role === ROLES.SCHOOL_MANAGEMENT_BOARD) || null
 
 export function StoreProvider({ children }) {
   const [routerBeforeLogin, setRouterBeforeLogin] = useState("")
-  const [isLoginContext, setIsLoginContext] = useState(Boolean(savedSession))
-  const [user, setUser] = useState(savedSession ? savedUser : null)
+  const [isLoginContext, setIsLoginContext] = useState(true)
+  const [user, setUser] = useState(DEFAULT_DEMO_USER)
   const [isDarkMode, setIsDarkMode] = useState(false)
 
   const store = {

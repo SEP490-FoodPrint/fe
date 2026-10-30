@@ -15,7 +15,7 @@ const DefaultAction = ({ children }) => {
     const token = getStorage(STORAGE.TOKEN)
     const userInfo = getStorage(STORAGE.USER_INFO)
 
-    if (typeof token === "string" && token.split(".").length === 3 && userInfo?.id) {
+    if (token && userInfo) {
       if (setIsLoginContext) setIsLoginContext(true)
       if (setUser) setUser(userInfo)
     }
