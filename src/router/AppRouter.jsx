@@ -14,8 +14,8 @@ const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
 const RoleRoute = lazy(() => import("src/pages/SUPPORTPAGES/RoleRoute"))
 
 // SYSTEM pages
-const SystemOverview = lazy(() => import("src/pages/SYSTEM/SystemOverview"))
 const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
+const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
 
 // SUPPLIER pages
 const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
@@ -98,8 +98,8 @@ const routes = [
       {
         element: <MainLayout type="SYSTEM" />,
         children: [
-          { path: ROUTER.SYSTEM_OVERVIEW, element: <LazyWrapper><SystemOverview /></LazyWrapper> },
           { path: ROUTER.SYSTEM_ORG_APPROVAL, element: <LazyWrapper><OrgApproval /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_ORG_APPROVAL_DETAIL, element: <LazyWrapper><OrgApprovalDetail /></LazyWrapper> },
         ],
       },
     ],

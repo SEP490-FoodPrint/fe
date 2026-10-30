@@ -1,65 +1,73 @@
-import React, { useState, useEffect } from "react"
+import React, { useContext, useEffect, useRef, useState } from "react"
 import PropTypes from "prop-types"
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import { useMediaQuery } from "@mui/material"
 import { DashboardHeader } from "./Header"
 import Sidebar from "./Sidebar"
 import RoleSwitcher from "src/components/Common/RoleSwitcher"
+import { StoreContext } from "src/contexts"
+import AuthService from "src/services/AuthService"
+import ROUTER from "src/router/ROUTER"
 import styles from "./MainLayout.module.scss"
 
-const STORAGE_COLLAPSED_KEY = "foodprint_sidebar_collapsed"
-
-/**
- * MainLayout - Khung Bảng điều khiển quản trị (Dashboard Layout)
- * Cấu trúc: Sidebar chạy dọc toàn chiều cao (100vh) bên trái + Header & Content bên phải
- */
 const MainLayout = ({ type }) => {
-  const [collapsed, setCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem(STORAGE_COLLAPSED_KEY) === "true"
-    } catch {
-      return false
-    }
-  })
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { loginStore, userStore } = useContext(StoreContext)
+  const isMobile = useMediaQuery("(max-width:600px)")
+  const isTablet = useMediaQuery("(min-width:601px) and (max-width:1199px)")
+  const [navigationOpen, setNavigationOpen] = useState(false)
+  const navigationButtonRef = useRef(null)
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_COLLAPSED_KEY, String(collapsed))
-    } catch {
-      // Ignore
-    }
-  }, [collapsed])
+    setNavigationOpen(false)
+    document.getElementById("root")?.scrollTo(0, 0)
+  }, [location.pathname, type])
 
-  const handleToggleCollapse = () => {
-    setCollapsed(prev => !prev)
+  useEffect(() => {
+    if (!isMobile) setNavigationOpen(false)
+  }, [isMobile])
+
+  const handleLogout = () => {
+    setNavigationOpen(false)
+    AuthService.logout()
+    loginStore.setIsLoginContext(false)
+    userStore.setUser(null)
+    navigate(ROUTER.LOGIN, { replace: true })
+  }
+
+  const handleOpenNavigation = () => {
+    navigationButtonRef.current?.focus()
+    setNavigationOpen(true)
   }
 
   return (
     <div className={styles.layoutWrapper}>
-      {/* 1. Sidebar Forest Emerald chạy dọc 100vh bên trái */}
       <Sidebar
         type={type}
-        collapsed={collapsed}
-        onToggleCollapse={handleToggleCollapse}
+        iconOnly={isTablet}
+        mobile={isMobile}
+        open={navigationOpen}
+        onClose={() => setNavigationOpen(false)}
       />
-
-      {/* 2. Cột nội dung bên phải: Header Sticky trên cùng + Main Content */}
       <div className={styles.rightContainer}>
-        <DashboardHeader />
-
-        <main className={styles.mainContent}>
+        <DashboardHeader
+          mobile={isMobile}
+          navigationOpen={navigationOpen}
+          onOpenNavigation={handleOpenNavigation}
+          navigationButtonRef={navigationButtonRef}
+          onLogout={handleLogout}
+        />
+        <main id="dashboard-content" className={styles.mainContent}>
           <Outlet />
         </main>
       </div>
-
-      {/* 3. Tiện ích đổi nhanh vai trò để kiểm thử */}
       <RoleSwitcher />
     </div>
   )
 }
 
-MainLayout.propTypes = {
-  type: PropTypes.string,
-}
+MainLayout.propTypes = { type: PropTypes.string }
 
 export { default as PublicLayout } from "./PublicLayout/PublicLayout"
 export { default as AuthLayout } from "./AuthLayout/AuthLayout"

@@ -410,6 +410,26 @@ const getWeeklyMenuMock = async (schoolCode, weekStart, grade) => {
   };
 };
 
+const getDailyMealMenuSafe = async (schoolCode, date) => {
+  try {
+    const res = await getDailyMealMenuApi(schoolCode, date);
+    if (res?.data) return res;
+    return getDailyMealMenuMock(schoolCode);
+  } catch {
+    return getDailyMealMenuMock(schoolCode);
+  }
+};
+
+const getWeeklyMenuSafe = async (schoolCode, weekStart, grade) => {
+  try {
+    const res = await getWeeklyMenuApi(schoolCode, weekStart, grade);
+    if (res?.data) return res;
+    return getWeeklyMenuMock(schoolCode, weekStart, grade);
+  } catch {
+    return getWeeklyMenuMock(schoolCode, weekStart, grade);
+  }
+};
+
 /**
  * 4. Dựa vào biến môi trường để gán hàm tương ứng cho Service (Strategy Switcher)
  */
@@ -418,18 +438,8 @@ const SchoolService = {
   getSchoolDetailByCode: isUseMock
     ? getSchoolDetailByCodeMock
     : getSchoolDetailByCodeApi,
-  getDailyMealMenu: isUseMock ? getDailyMealMenuMock : getDailyMealMenuApi,
-  getWeeklyMenu: isUseMock ? getWeeklyMenuMock : getWeeklyMenuApi,
-
-  // Export các hàm riêng lẻ phục vụ kiểm thử hoặc gọi trực tiếp khi cần
-  getPublicSchoolsApi,
-  getPublicSchoolsMock,
-  getSchoolDetailByCodeApi,
-  getSchoolDetailByCodeMock,
-  getDailyMealMenuApi,
-  getDailyMealMenuMock,
-  getWeeklyMenuApi,
-  getWeeklyMenuMock,
+  getDailyMealMenu: isUseMock ? getDailyMealMenuMock : getDailyMealMenuSafe,
+  getWeeklyMenu: isUseMock ? getWeeklyMenuMock : getWeeklyMenuSafe,
 };
 
 export default SchoolService;

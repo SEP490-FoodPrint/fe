@@ -1,0 +1,25 @@
+.tableContainer { width: 100%; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--text-muted) var(--bg-muted); }
+.table:global(.MuiTable-root) {
+  width: 1616px; table-layout: fixed;
+  :global(.MuiTableCell-root) { padding: var(--space-2) var(--space-4); border-color: var(--border-default); font-size: var(--text-sm); color: var(--text-primary); height: calc(var(--space-12) + var(--space-2)); }
+  :global(.MuiTableCell-head) { background: var(--bg-page); color: var(--text-muted); font-weight: var(--font-medium); height: calc(var(--space-10) + var(--space-1)); white-space: nowrap; }
+  :global(.MuiTableCell-body):last-child { padding-top: var(--space-1); padding-bottom: var(--space-1); }
+  :global(.MuiTableCell-body):first-child { color: var(--text-muted); }
+  :global(.MuiIconButton-root) { min-width: calc(var(--space-10) + var(--space-1)); min-height: calc(var(--space-10) + var(--space-1)); }
+}
+.codeLink:hover { color: var(--color-primary); text-decoration: underline; }
+.scrollHint { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); color: var(--text-muted); font-size: var(--text-xs); }
+.mobileList { display: flex; flex-direction: column; gap: var(--space-4); }
+.resultRange { margin: 0; text-align: right; color: var(--text-muted); font-size: var(--text-xs); }
+.mobileCard {
+  border: 1px solid var(--border-default); border-radius: var(--radius-lg); background: var(--bg-surface); padding: var(--space-4);
+  h2 { font-size: var(--text-base); font-weight: var(--font-semibold); margin: var(--space-3) 0 var(--space-1); }
+  :global(.MuiButton-root) { min-height: calc(var(--space-10) + var(--space-1)); border-color: var(--border-default); }
+}
+.cardTop { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: var(--text-sm); }
+.email { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--text-sm); overflow-wrap: anywhere; :global(.MuiSvgIcon-root) { flex-shrink: 0; color: var(--text-muted); } }
+.cardFields {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; font-size: var(--text-sm);
+  dt { color: var(--text-muted); } dd { margin: var(--space-1) 0 0; overflow-wrap: anywhere; }
+}
+.organization { grid-column: 1 / -1; }

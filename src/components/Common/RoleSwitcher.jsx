@@ -45,18 +45,22 @@ function RoleSwitcher() {
           color="primary"
           startIcon={<SwapHorizIcon />}
           onClick={() => setOpen(true)}
+          aria-label="Đổi vai trò"
           sx={{
             position: "fixed",
             bottom: 24,
             right: 24,
-            zIndex: 9999,
+            zIndex: "var(--z-dropdown)",
             borderRadius: 8,
             boxShadow: "0 4px 16px rgba(10, 128, 102, 0.4)",
             height: 44,
-            px: 2,
+            px: { xs: 0, sm: 2 },
+            minWidth: { xs: 44, sm: "auto" },
+            width: { xs: 44, sm: "auto" },
+            "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1 }, ml: 0 },
           }}
         >
-          Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})</Box>
         </Button>
       </Tooltip>
 
@@ -64,9 +68,7 @@ function RoleSwitcher() {
         anchor="right"
         open={open}
         onClose={() => setOpen(false)}
-        PaperProps={{
-          sx: { width: 380, p: 3 },
-        }}
+        slotProps={{ paper: { sx: { width: "min(380px, 100vw)", p: 3 } } }}
       >
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
           <Typography variant="h6" fontWeight={700}>
