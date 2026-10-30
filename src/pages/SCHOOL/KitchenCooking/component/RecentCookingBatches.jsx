@@ -19,7 +19,7 @@ const COOKING_BATCHES = [
   {
     id: "batch-1",
     dish: "Thịt heo kho nước dừa",
-    timeTag: "Trưa nay • 10:30",
+    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
     portion: "1.250 suất",
     status: "Chờ nấu",
     statusType: "warning",
@@ -27,7 +27,7 @@ const COOKING_BATCHES = [
   {
     id: "batch-2",
     dish: "Canh sườn hầm củ quả",
-    timeTag: "Trưa qua • 10:15",
+    timeTag: "Ca trưa 11:15 (Đã hoàn tất)",
     portion: "1.250 suất",
     status: "Đã nấu",
     statusType: "success",
@@ -35,7 +35,7 @@ const COOKING_BATCHES = [
   {
     id: "batch-3",
     dish: "Trứng chiên thịt băm",
-    timeTag: "Trưa qua • 09:45",
+    timeTag: "Ca trưa 11:15 (Đã hoàn tất)",
     portion: "1.220 suất",
     status: "Đã nấu",
     statusType: "success",
