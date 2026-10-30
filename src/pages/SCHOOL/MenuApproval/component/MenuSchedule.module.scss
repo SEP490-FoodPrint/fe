@@ -57,6 +57,9 @@
 
 .tab,
 .activeTab {
+  display: inline-flex !important;
+  align-items: center;
+  gap: var(--space-2);
   min-width: max-content !important;
   padding: var(--space-2) var(--space-4) !important;
   border-radius: var(--radius-md) !important;
@@ -71,6 +74,41 @@
 .activeTab {
   color: var(--text-on-primary) !important;
   background: var(--color-primary) !important;
+}
+
+.tabStatus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--space-6);
+  height: var(--space-6);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  flex: 0 0 auto;
+}
+
+.statusPending {
+  color: var(--color-warning);
+  border-color: var(--color-warning-border);
+  background: var(--color-warning-bg);
+}
+
+.statusApproved {
+  color: var(--color-success);
+  border-color: var(--color-success-border);
+  background: var(--color-success-bg);
+}
+
+.statusRevision {
+  color: var(--color-error);
+  border-color: var(--color-error-border);
+  background: var(--color-error-bg);
+}
+
+.statusDraft {
+  color: var(--text-muted);
+  border-color: var(--border-default);
+  background: var(--bg-muted);
 }
 
 .dayList {
