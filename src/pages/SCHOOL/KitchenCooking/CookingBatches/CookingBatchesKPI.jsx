@@ -1,51 +1,54 @@
 import React from "react"
+import { CookingPot, Clock, CheckCircle2, FlaskConical } from "lucide-react"
 import styles from "./CookingBatchesKPI.module.scss"
 
 const KPIS = [
   {
     id: "total",
-    label: "Hôm nay",
+    label: "Mẻ trong ca",
     value: "08",
-    unit: "lô trong ca",
-    icon: "restaurant",
+    unit: "mẻ",
+    icon: <CookingPot size={16} />,
     iconTheme: "primary",
   },
   {
     id: "pending",
-    label: "Chờ xác nhận",
-    value: "03",
-    badge: "Cần duyệt",
+    label: "Chờ nấu",
+    value: "02",
+    badge: "Cần nấu",
     badgeType: "warning",
-    icon: "schedule",
+    icon: <Clock size={16} />,
     iconTheme: "warning",
   },
   {
     id: "completed",
-    label: "Hoàn thành",
-    value: "03",
-    badge: "Đã nấu xong",
+    label: "Đã xong",
+    value: "06",
+    badge: "Hoàn tất",
     badgeType: "success",
-    icon: "check_circle",
+    icon: <CheckCircle2 size={16} />,
     iconTheme: "success",
   },
   {
     id: "samples",
     label: "Lưu mẫu 24h",
-    value: "03/03",
-    badge: "100% đạt",
-    badgeType: "success",
-    icon: "science",
+    value: "06/06",
+    badge: "100%",
+    badgeType: "primary",
+    icon: <FlaskConical size={16} />,
     iconTheme: "primary",
   },
 ]
 
 function CookingBatchesKPI() {
   return (
-    <div className={styles.kpiGrid}>
+    <div className={styles.kpiGrid} role="region" aria-label="Thống kê mẻ chế biến">
       {KPIS.map((kpi) => (
         <div key={kpi.id} className={styles.kpiCard}>
+          <div className={`${styles.iconBox} ${styles[`icon_${kpi.iconTheme}`] || ""}`} aria-hidden="true">
+            {kpi.icon}
+          </div>
           <div className={styles.kpiContent}>
-            <span className={styles.kpiLabel}>{kpi.label}</span>
             <div className={styles.kpiValueRow}>
               <span className={`${styles.kpiValue} ${kpi.id === "completed" ? styles.valuePrimary : ""}`}>
                 {kpi.value}
@@ -57,9 +60,7 @@ function CookingBatchesKPI() {
                 </span>
               )}
             </div>
-          </div>
-          <div className={`${styles.iconBox} ${styles[`icon_${kpi.iconTheme}`] || ""}`}>
-            <span className="material-symbols-outlined">{kpi.icon}</span>
+            <span className={styles.kpiLabel}>{kpi.label}</span>
           </div>
         </div>
       ))}

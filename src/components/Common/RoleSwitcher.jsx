@@ -14,7 +14,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 import CloseIcon from "@mui/icons-material/Close"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
-import { MOCK_ACCOUNTS, ROLE_LABELS } from "src/constants/roles"
+import { MOCK_ACCOUNTS, ROLE_LABELS, ROLES } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
 import { getDefaultRedirectByOrg, getDefaultRedirectByUser } from "src/lib/utils"
 
@@ -27,7 +27,9 @@ function RoleSwitcher() {
   const user = userStore?.user
   const setUser = userStore?.setUser
 
-  if (!isLoginContext) return null
+  if (!isLoginContext || user?.role === ROLES.SCHOOL_KITCHEN_STAFF || user?.role === "SCHOOL_KITCHEN_STAFF") {
+    return null
+  }
 
   const handleSwitch = (roleCode) => {
     const { user: newUser } = AuthService.mockLoginByRole(roleCode)
