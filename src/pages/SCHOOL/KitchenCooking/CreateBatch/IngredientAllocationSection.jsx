@@ -99,7 +99,8 @@ export default function IngredientAllocationSection() {
           <div className={styles.numberBadge}>2</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              2. Chọn lô nguyên liệu &amp; Đối soát định lượng
+              <span className={styles.desktopTitle}>2. Chọn lô nguyên liệu &amp; Đối soát định lượng</span>
+              <span className={styles.mobileTitle}>2. Chọn lô nguyên liệu</span>
             </h2>
             <p className={styles.sectionSubtitle}>
               Tự động tính theo định mức công thức món và số suất dự kiến
@@ -109,7 +110,7 @@ export default function IngredientAllocationSection() {
 
         <button type="button" className={styles.formulaBtn} title="Xem định mức công thức đã phê duyệt">
           <BookOpen size={14} />
-          <span>Định mức công thức</span>
+          <span>Định mức</span>
         </button>
       </div>
 
@@ -237,18 +238,21 @@ export default function IngredientAllocationSection() {
               <span className={styles.metaSupplier}>{ing.supplier}</span>
             </div>
 
-            {/* Hàng 3: Danh sách các lô xuất kho con */}
+            {/* Hàng 3: Danh sách các lô xuất kho con (Dạng thẻ 2 dòng chống tràn chữ) */}
             <div className={styles.mobileLotsWrap}>
               {ing.lots.map((lot) => (
-                <div key={lot.code} className={styles.mobileLotPill}>
-                  <div className={styles.lotCodeWrap}>
-                    <span className={styles.pillLotCode}>{lot.code}</span>
-                    <span className={styles.pillExp}>HSD: {lot.exp}</span>
+                <div key={lot.code} className={styles.mobileLotCard}>
+                  <div className={styles.lotCardTop}>
+                    <span className={styles.lotCodeMonospace}>{lot.code}</span>
+                    <span className={styles.lotExpText}>HSD: {lot.exp}</span>
                   </div>
-                  <div className={styles.lotAmounts}>
-                    <span className={styles.pillAvail}>Tồn: {lot.available}</span>
-                    <span className={styles.pillArrow}>→</span>
-                    <span className={styles.pillAlloc}>Lấy: <strong>{lot.allocated}</strong></span>
+                  <div className={styles.lotCardBottom}>
+                    <span className={styles.lotAvailText}>
+                      Tồn: <strong>{lot.available}</strong>
+                    </span>
+                    <span className={styles.lotAllocBadge}>
+                      Lấy: <strong>{lot.allocated}</strong>
+                    </span>
                   </div>
                 </div>
               ))}

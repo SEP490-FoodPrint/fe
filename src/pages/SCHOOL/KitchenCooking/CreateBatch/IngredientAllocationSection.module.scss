@@ -21,7 +21,6 @@
   gap: 10px;
   padding-bottom: 12px;
   border-bottom: 1px solid #f3f4f6;
-  flex-wrap: wrap;
 }
 
 .titleWithBadge {
@@ -51,6 +50,22 @@
   font-weight: 700;
   color: var(--text-primary, #111827);
   line-height: 1.3;
+}
+
+.desktopTitle {
+  display: none;
+
+  @media (min-width: 768px) {
+    display: inline;
+  }
+}
+
+.mobileTitle {
+  display: inline;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
 }
 
 .sectionSubtitle {
@@ -424,52 +439,65 @@
   border-top: 1px dashed #f3f4f6;
 }
 
-.mobileLotPill {
+.mobileLotCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 9px;
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 6px;
+}
+
+.lotCardTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 8px;
-  background-color: #f9fafb;
-  border-radius: 6px;
-  font-size: 11.5px;
+  gap: 8px;
 }
 
-.lotCodeWrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.pillLotCode {
+.lotCodeMonospace {
   font-family: ui-monospace, monospace;
   font-weight: 700;
+  font-size: 11.5px;
   color: var(--color-primary, #0a8066);
+  letter-spacing: 0.02em;
 }
 
-.pillExp {
-  color: var(--text-muted, #6b7280);
-  font-size: 10.5px;
-}
-
-.lotAmounts {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.pillAvail {
+.lotExpText {
   color: var(--text-muted, #6b7280);
   font-size: 11px;
 }
 
-.pillArrow {
-  color: #9ca3af;
+.lotCardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.pillAlloc {
-  color: var(--text-primary, #111827);
+.lotAvailText {
+  color: var(--text-secondary, #4b5563);
+  font-size: 11.5px;
+
   strong {
-    color: var(--color-primary, #0a8066);
+    color: var(--text-primary, #111827);
+    font-weight: 600;
+  }
+}
+
+.lotAllocBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 11px;
+  font-weight: 500;
+
+  strong {
     font-weight: 700;
   }
 }

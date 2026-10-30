@@ -11,7 +11,8 @@ import {
   CheckCircle2,
   Search,
   X,
-  Info
+  Minus,
+  Plus
 } from "lucide-react"
 import styles from "./BasicInfoSection.module.scss"
 
@@ -47,7 +48,7 @@ export default function BasicInfoSection() {
   const [selectedDish, setSelectedDish] = useState(DISH_OPTIONS[0])
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [portions, setPortions] = useState("1.250")
+  const [portions, setPortions] = useState(1250)
 
   const dropdownRef = useRef(null)
 
@@ -83,6 +84,10 @@ export default function BasicInfoSection() {
     setIsDropdownOpen(true)
   }
 
+  const handleAdjustPortions = (delta) => {
+    setPortions((prev) => Math.max(10, prev + delta))
+  }
+
   const DishIcon = selectedDish?.icon || Utensils
 
   return (
@@ -93,7 +98,7 @@ export default function BasicInfoSection() {
           <div>
             <h2 className={styles.sectionTitle}>1. Thông tin cơ bản</h2>
             <p className={styles.sectionSubtitle}>
-              Bắt buộc — Thiết lập ca ăn, món trong thực đơn và số lượng học sinh phục vụ
+              Bắt buộc — Ca ăn, thực đơn và số lượng học sinh phục vụ
             </p>
           </div>
         </div>
@@ -105,10 +110,10 @@ export default function BasicInfoSection() {
         {/* Ngày ăn (Khóa) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label}>Ngày ăn / Ngày chế biến</label>
+            <label className={styles.label}>Ngày ăn / Chế biến</label>
             <span className={styles.lockHint} title="Đồng bộ tự động từ thực đơn">
               <Lock size={12} />
-              <span>Đồng bộ</span>
+              <span>Đã khóa theo thực đơn</span>
             </span>
           </div>
 
@@ -117,14 +122,11 @@ export default function BasicInfoSection() {
               <Calendar size={15} className={styles.calIcon} />
               <div className={styles.dateMeta}>
                 <span className={styles.lockedDate}>26/10/2026</span>
-                <span className={styles.lockedSub}>Thứ Hai • Tuần 46</span>
+                <span className={styles.lockedSub}>• Thứ Hai (Tuần 46)</span>
               </div>
             </div>
-            <span className={styles.lockedBadge}>Đã khóa</span>
+            <span className={styles.lockedBadge}>Khóa</span>
           </div>
-          <span className={styles.helperText}>
-            Tự động theo thực đơn tuần 46 đã được BGH phê duyệt
-          </span>
         </div>
 
         {/* Bữa ăn phục vụ */}
@@ -143,9 +145,6 @@ export default function BasicInfoSection() {
             </select>
             <ChevronDown size={16} className={styles.selectArrow} aria-hidden="true" />
           </div>
-          <span className={styles.helperText}>
-            Khung giờ chuẩn bị cho khối Tiểu học &amp; THCS
-          </span>
         </div>
       </div>
 
@@ -263,28 +262,47 @@ export default function BasicInfoSection() {
               </div>
             </div>
           )}
-          <span className={styles.helperText}>
-            Món ăn được lấy trực tiếp từ thực đơn tuần đã phê duyệt
-          </span>
         </div>
 
-        {/* Số suất dự kiến */}
+        {/* Số suất dự kiến với nút tăng giảm nhanh */}
         <div className={styles.formGroup}>
-          <label className={styles.label}>Số suất dự kiến</label>
-          <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              className={styles.portionInput}
-              value={portions}
-              onChange={(e) => setPortions(e.target.value)}
-              placeholder="Nhập số suất..."
-              aria-label="Số suất dự kiến"
-            />
-            <span className={styles.unitSuffix}>suất ăn</span>
+          <div className={styles.labelRow}>
+            <label className={styles.label}>Số suất dự kiến</label>
+            <span className={styles.rosterHint}>Sĩ số điểm danh: 1.250</span>
           </div>
-          <span className={styles.helperText}>
-            Hệ thống tự động đề xuất dựa trên sĩ số điểm danh báo trước 24h
-          </span>
+
+          <div className={styles.stepperWrapper}>
+            <button
+              type="button"
+              className={styles.stepBtn}
+              onClick={() => handleAdjustPortions(-50)}
+              aria-label="Giảm 50 suất"
+            >
+              <Minus size={15} />
+              <span>50</span>
+            </button>
+
+            <div className={styles.inputInner}>
+              <input
+                type="number"
+                className={styles.portionInput}
+                value={portions}
+                onChange={(e) => setPortions(Number(e.target.value) || 0)}
+                aria-label="Số suất dự kiến"
+              />
+              <span className={styles.unitSuffix}>suất ăn</span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.stepBtn}
+              onClick={() => handleAdjustPortions(50)}
+              aria-label="Tăng 50 suất"
+            >
+              <Plus size={15} />
+              <span>50</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>

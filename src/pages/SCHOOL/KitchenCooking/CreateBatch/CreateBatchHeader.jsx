@@ -1,6 +1,6 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { ChevronLeft, Layers } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./CreateBatchHeader.module.scss"
 
@@ -9,47 +9,53 @@ export default function CreateBatchHeader() {
 
   return (
     <div className={styles.headerBar}>
-      <div className={styles.leftWrap}>
+      {/* Breadcrumb (Hiện trên Desktop >= 768px) */}
+      <div className={styles.breadcrumbDesktop}>
         <button
           type="button"
-          className={styles.backBtn}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-          aria-label="Quay lại danh sách lô chế biến"
+          className={styles.breadcrumbLink}
+          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_COOKING)}
         >
-          <ChevronLeft size={18} />
-          <span className={styles.backText}>Lô chế biến</span>
+          Vận hành bếp
         </button>
-
-        <div className={styles.titleGroup}>
-          <div className={styles.breadcrumbDesktop}>
-            <button
-              type="button"
-              className={styles.breadcrumbLink}
-              onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_COOKING)}
-            >
-              Vận hành bếp
-            </button>
-            <span className={styles.separator}>/</span>
-            <button
-              type="button"
-              className={styles.breadcrumbLink}
-              onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-            >
-              Lô chế biến
-            </button>
-            <span className={styles.separator}>/</span>
-            <span className={styles.current}>Tạo mới</span>
-          </div>
-          <h1 className={styles.heading}>Tạo lô chế biến (Nấu chung)</h1>
-        </div>
+        <span className={styles.separator}>/</span>
+        <button
+          type="button"
+          className={styles.breadcrumbLink}
+          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+        >
+          Lô chế biến
+        </button>
+        <span className={styles.separator}>/</span>
+        <span className={styles.current}>Tạo mới</span>
       </div>
 
-      <div className={styles.modeBadge} title="Chế độ cấu hình vận hành: Cho phép kết hợp nhiều lô nguyên liệu cùng loại">
-        <span className={styles.pulseDot} />
-        <Layers size={13} className={styles.modeIcon} />
-        <span className={styles.modeValue}>
-          Nấu chung (Đa lô nguyên liệu)
-        </span>
+      {/* Title Row: Nút quay lại icon không viền + Tiêu đề + Chip Chế độ trên cùng 1 hàng */}
+      <div className={styles.titleRow}>
+        <div className={styles.titleLeft}>
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+            title="Quay lại danh sách lô"
+            aria-label="Quay lại danh sách lô chế biến"
+          >
+            <ArrowLeft size={20} />
+          </button>
+
+          <h1 className={styles.heading}>Tạo lô chế biến</h1>
+        </div>
+
+        <div
+          className={styles.modeBadge}
+          title="Chế độ cấu hình vận hành: Cho phép kết hợp nhiều lô nguyên liệu cùng loại"
+        >
+          <span className={styles.pulseDot} />
+          <span className={styles.modeMobileText}>Nấu chung</span>
+          <span className={styles.modeDesktopText}>
+            Chế độ: Nấu chung (Đa lô nguyên liệu)
+          </span>
+        </div>
       </div>
     </div>
   )

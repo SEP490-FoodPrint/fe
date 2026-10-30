@@ -18,7 +18,7 @@ export default function CreateBatchFooter() {
   }
 
   const handleCreateBatch = () => {
-    setToastMessage("Khởi tạo lô chế biến CB-20261026-001 thành công!")
+    setToastMessage("Khởi tạo lô chế biến Thịt heo kho nước dừa thành công!")
     setShowSuccessToast(true)
     setTimeout(() => {
       setShowSuccessToast(false)

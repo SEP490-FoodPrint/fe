@@ -63,30 +63,28 @@
   }
 }
 
-/* Thẻ tóm tắt */
+/* 1. Thẻ tóm tắt đề xuất */
 .summaryCard {
+  background-color: #f9fafb;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 10px;
+  padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 12px 14px;
-  border-radius: 10px;
-  background-color: #f9fafb;
-  border: 1px solid var(--border-default, #e5e7eb);
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .summaryLeft {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
-  flex: 1;
 }
 
 .hubIconBox {
-  width: 34px;
-  height: 34px;
+  width: 38px;
+  height: 38px;
   border-radius: 8px;
   background-color: var(--color-primary-soft, #e8f5f1);
   color: var(--color-primary, #0a8066);
@@ -96,421 +94,331 @@
   flex-shrink: 0;
 }
 
+.summaryMainInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.batchTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+.batchMainName {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.statusPill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #15803d;
+}
+
 .summaryText {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--text-secondary, #4b5563);
   line-height: 1.4;
+
+  strong {
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+/* 2. Grid Tiêu chuẩn Vận hành & ATTP */
+.executionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+.execCard {
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.execCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #f3f4f6;
+}
+
+.execIconTime {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.execIconSafety {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.execCardTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.execCardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* Timeline */
+.timeTimeline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timePoint {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.timeLabel {
+  font-size: 10.5px;
+  color: var(--text-muted, #6b7280);
+}
+
+.timeValue {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  font-family: ui-monospace, monospace;
+}
+
+.timeValueHighlight {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0284c7;
+  font-family: ui-monospace, monospace;
+}
+
+.timeArrow {
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 0 4px;
+}
+
+.timeNotice {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+}
+
+/* ATTP Specs */
+.safetySpecsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.specItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.specIcon {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.specText {
+  font-size: 12px;
+  color: var(--text-secondary, #374151);
+
+  strong {
+    color: var(--color-primary, #0a8066);
+    font-weight: 700;
+  }
+}
+
+.safetyRule {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+  font-style: italic;
+}
+
+/* 3. Khối liên kết nguồn gốc đa lô */
+.lotTraceabilityBox {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 8px;
+  background-color: #fafafa;
+  overflow: hidden;
+}
+
+.lotTraceToggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text-primary, #111827);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+.traceToggleLeft {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.traceIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.traceTitle {
+  font-size: 12.5px;
+  color: var(--text-secondary, #374151);
 
   strong {
     color: var(--text-primary, #111827);
   }
 }
 
-.summaryRight {
+.traceToggleRight {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  font-size: 12px;
-  white-space: nowrap;
-
-  @media (max-width: 640px) {
-    align-items: flex-start;
-    width: 100%;
-    padding-top: 8px;
-    border-top: 1px dashed #e5e7eb;
-  }
-}
-
-.summaryProposedBatch {
-  color: var(--color-primary, #0a8066);
-}
-
-.summaryTotalPortions {
-  color: var(--text-secondary, #4b5563);
-}
-
-/* 1. Desktop Table */
-.desktopTableWrap {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 8px;
-
-  @media (max-width: 768px) {
-    display: none !important;
-  }
-}
-
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: left;
-  font-size: 13px;
-
-  thead {
-    background-color: #f9fafb;
-    border-bottom: 1px solid var(--border-default, #e5e7eb);
-
-    th {
-      padding: 10px 12px;
-      font-size: 11.5px;
-      font-weight: 600;
-      color: var(--text-secondary, #4b5563);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      white-space: nowrap;
-    }
-  }
-
-  tbody tr td {
-    padding: 12px;
-    vertical-align: middle;
-  }
-}
-
-.thLeft {
-  text-align: left;
-}
-
-.thRight {
-  text-align: right;
-}
-
-.textCenter {
-  text-align: center;
-}
-
-.batchNameCol {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.batchTitle {
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.batchCode {
-  font-family: ui-monospace, monospace;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--color-primary, #0a8066);
-}
-
-.dishName {
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-}
-
-.portionCol {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.portionMain {
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.portionSub {
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-}
-
-.lotsCol {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.lotsMain {
-  font-weight: 600;
-  color: var(--color-primary, #0a8066);
-}
-
-.lotsSub {
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-}
-
-.statusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 8px;
-  border-radius: 9999px;
-  background-color: #dcfce7;
-  color: #15803d;
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.statusDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background-color: currentColor;
-}
-
-.detailBtn {
-  display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 9px;
-  border-radius: 6px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #ffffff;
-  color: var(--text-secondary, #4b5563);
-  font-size: 12px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-    color: var(--text-primary, #111827);
-  }
-}
-
-/* 2. Mobile Batch Overview */
-.mobileBatchOverview {
-  display: none;
-
-  @media (max-width: 768px) {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border-default, #e5e7eb);
-    background-color: #ffffff;
-  }
-}
-
-.mobOverviewHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.mobTitleBox {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.mobBatchTitle {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.mobBatchCode {
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-primary, #0a8066);
-}
-
-.mobGridMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  padding: 8px 10px;
-  background-color: #f9fafb;
-  border-radius: 6px;
-}
-
-.metaCell {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.metaCellFull {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  padding-top: 4px;
-  border-top: 1px dashed #e5e7eb;
-}
-
-.cellLabel {
   color: var(--text-muted, #6b7280);
+}
+
+.traceHint {
   font-size: 11.5px;
 }
 
-.cellValue {
-  font-weight: 500;
-  color: var(--text-primary, #111827);
-}
-
-.cellValueHighlight {
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-}
-
-.mobToggleDetailBtn {
+.traceLotsList {
+  padding: 8px 12px 10px;
+  border-top: 1px dashed var(--border-default, #e5e7eb);
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
   gap: 6px;
-  height: 36px;
-  border-radius: 6px;
-  border: 1px solid var(--border-default, #e5e7eb);
   background-color: #ffffff;
-  color: var(--text-secondary, #4b5563);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 2px;
-
-  &:active {
-    background-color: #f3f4f6;
-  }
 }
 
-/* Khối chi tiết thành phần con */
-.detailBox {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 8px;
-  background-color: #f9fafb;
-  border: 1px solid var(--border-default, #e5e7eb);
-}
-
-.detailHeader {
+.traceItem {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
-.detailTitleWrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.traceItemName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #4b5563);
+  min-width: 65px;
 }
 
-.layersIcon {
+.traceLotBadge {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft, #e8f5f1);
   color: var(--color-primary, #0a8066);
 }
 
-.detailTitle {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.detailTag {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background-color: #f3f4f6;
-  color: var(--text-secondary, #4b5563);
-}
-
-.cardsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.ingredientCard {
-  background-color: #ffffff;
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 6px;
-  padding: 8px 10px;
+/* 4. Ghi chú điều phối bếp */
+.notesGroup {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
 }
 
-.cardHeader {
+.notesLabel {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-  border-bottom: 1px solid #f3f4f6;
-  padding-bottom: 4px;
-}
-
-.cardName {
+  gap: 5px;
   font-size: 12px;
   font-weight: 600;
-  color: var(--text-primary, #111827);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cardAmount {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-  flex-shrink: 0;
-}
-
-.cardBody {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.cardLotRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 11px;
   color: var(--text-secondary, #4b5563);
 }
 
-.cardLotWeight {
-  font-weight: 600;
+.notesTextarea {
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  padding: 8px 10px;
+  font-size: 12.5px;
   color: var(--text-primary, #111827);
+  background-color: #ffffff;
+  resize: vertical;
+  min-height: 48px;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &::placeholder {
+    color: var(--text-muted, #9ca3af);
+    font-size: 11.5px;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+  }
 }
 
-/* Note Box */
+/* 5. Ghi nhận chuẩn */
 .noteBox {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 9px 12px;
   border-radius: 8px;
-  background-color: #dcfce7;
-  color: #15803d;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
+  background-color: #f0fdf4;
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .noteIcon {
-  flex-shrink: 0;
   color: #16a34a;
+  flex-shrink: 0;
 }
 
 .noteText {
-  flex: 1;
+  font-size: 11.5px;
+  color: #15803d;
+  font-weight: 500;
+  line-height: 1.4;
 }
