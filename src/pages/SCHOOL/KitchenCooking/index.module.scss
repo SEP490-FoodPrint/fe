@@ -5,6 +5,10 @@
   width: 100%;
   max-width: 1440px;
   margin: 0 auto;
+
+  @media (max-width: 640px) {
+    gap: var(--space-4, 16px);
+  }
 }
 
 .titleSection {
@@ -20,6 +24,10 @@
   color: var(--text-primary, #111827);
   letter-spacing: -0.02em;
   margin: 0;
+
+  @media (max-width: 640px) {
+    font-size: 20px;
+  }
 }
 
 .subtitle {
@@ -27,6 +35,10 @@
   color: var(--text-secondary, #4b5563);
   margin: 0;
   line-height: 1.5;
+
+  @media (max-width: 640px) {
+    font-size: 13px;
+  }
 }
 
 .tablesGrid {

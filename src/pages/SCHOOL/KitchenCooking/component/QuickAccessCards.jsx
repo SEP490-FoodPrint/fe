@@ -6,7 +6,7 @@ import {
   ConciergeBell,
   FlaskConical,
   ClipboardCheck,
-  ArrowRight,
+  ChevronRight,
 } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import styles from "./QuickAccessCards.module.scss";
@@ -15,33 +15,29 @@ const CARDS_DATA = [
   {
     id: "cooking-batch",
     title: "Mẻ chế biến",
-    description: "Lập mẻ, kiểm tra định lượng & quy trình nấu",
-    actionLabel: "Xem mẻ chế biến",
-    icon: <UtensilsCrossed size={22} />,
+    desc: "Lập mẻ, kiểm tra quy trình nấu",
+    icon: <UtensilsCrossed size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_BATCHES,
   },
   {
     id: "meal-allocation",
-    title: "Phân bổ suất ăn",
-    description: "Chia khay theo lớp & chuẩn bị bàn giao",
-    actionLabel: "Đi tới phân bổ",
-    icon: <ConciergeBell size={22} />,
+    title: "Phân bổ suất",
+    desc: "Chia khay theo lớp & bàn giao",
+    icon: <ConciergeBell size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
   },
   {
     id: "food-sample",
-    title: "Mẫu lưu thực phẩm",
-    description: "Lưu mẫu 24h & ghi nhận niêm phong",
-    actionLabel: "Quản lý mẫu lưu",
-    icon: <FlaskConical size={22} />,
+    title: "Mẫu lưu 24h",
+    desc: "Ghi nhận niêm phong mẫu lưu",
+    icon: <FlaskConical size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_SAMPLES,
   },
   {
     id: "ingredient-inspect",
-    title: "Đánh giá nguyên liệu",
-    description: "Kiểm thực 3 bước & đánh giá giao nhận",
-    actionLabel: "Xem đánh giá",
-    icon: <ClipboardCheck size={22} />,
+    title: "Đánh giá nhận hàng",
+    desc: "Kiểm thực 3 bước nhập kho",
+    icon: <ClipboardCheck size={20} />,
     route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
   },
 ];
@@ -50,7 +46,7 @@ function QuickAccessCards() {
   const navigate = useNavigate();
 
   return (
-    <section className={styles.cardsGrid} aria-label="Truy cập nhanh">
+    <section className={styles.cardsGrid} aria-label="Truy cập nhanh nghiệp vụ Bếp">
       {CARDS_DATA.map((card) => (
         <Card
           key={card.id}
@@ -58,26 +54,24 @@ function QuickAccessCards() {
           onClick={() => navigate(card.route)}
           role="button"
           tabIndex={0}
+          aria-label={card.title}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               navigate(card.route);
             }
           }}
         >
-          <div className={styles.cardHeader}>
-            <div className={styles.iconBox}>{card.icon}</div>
-            <Typography variant="h6" className={styles.cardTitle}>
-              {card.title}
-            </Typography>
+          <div className={styles.cardMain}>
+            <div className={styles.iconBox} aria-hidden="true">
+              {card.icon}
+            </div>
+            <div className={styles.cardText}>
+              <Typography className={styles.cardTitle}>{card.title}</Typography>
+              <Typography className={styles.cardDesc}>{card.desc}</Typography>
+            </div>
           </div>
-
-          <Typography variant="body2" className={styles.cardDesc}>
-            {card.description}
-          </Typography>
-
-          <div className={styles.cardAction}>
-            <span>{card.actionLabel}</span>
-            <ArrowRight size={16} className={styles.arrowIcon} />
+          <div className={styles.arrowBox} aria-hidden="true">
+            <ChevronRight size={18} />
           </div>
         </Card>
       ))}

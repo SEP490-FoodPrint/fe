@@ -1,109 +1,129 @@
 import React from "react";
-import { Card, Typography, Button } from "@mui/material";
-import { UtensilsCrossed, ConciergeBell, ClipboardCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Card, Typography, IconButton, Tooltip } from "@mui/material";
+import {
+  UtensilsCrossed,
+  ConciergeBell,
+  ClipboardCheck,
+  ChevronRight,
+  Check,
+} from "lucide-react";
+import ROUTER from "src/router/ROUTER";
 import styles from "./PendingTasksSection.module.scss";
 
 const TASKS = [
   {
     id: "task-1",
-    type: "Mẻ chế biến",
+    type: "Mẻ nấu",
     code: "CB-20261026-001",
     title: "Thịt heo kho nước dừa",
     portion: "1.250 suất",
-    statusText: "Chờ xác nhận nấu",
+    statusText: "Chờ nấu",
     statusType: "warning",
     icon: <UtensilsCrossed size={18} />,
-    actionText: "Xem chi tiết",
-    actionVariant: "outlined",
+    actionIcon: <ChevronRight size={20} />,
+    actionLabel: "Xem chi tiết mẻ nấu",
+    route: ROUTER.SCHOOL_KITCHEN_BATCHES,
+    isPrimary: false,
   },
   {
     id: "task-2",
-    type: "Phân bổ suất ăn",
+    type: "Phân bổ",
     code: "ALLOC-20261026-01",
-    title: "Phân bổ suất ăn Khối 6 & Khối 7",
+    title: "Phân bổ Khối 6 & Khối 7",
     portion: "620 suất",
-    statusText: "Chưa phân phối",
+    statusText: "Chưa giao",
     statusType: "info",
     icon: <ConciergeBell size={18} />,
-    actionText: "Xem chi tiết",
-    actionVariant: "outlined",
+    actionIcon: <ChevronRight size={20} />,
+    actionLabel: "Xem phân bổ suất ăn",
+    route: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
+    isPrimary: false,
   },
   {
     id: "task-3",
-    type: "Đánh giá nhận hàng",
+    type: "Kiểm thực",
     code: "DELIV-20261026-089",
-    title: "Thịt ba chỉ tươi & Trứng cút từ HTX Nam Hà",
-    portion: "",
-    statusText: "Chờ kiểm thực bước 1",
+    title: "Thịt ba chỉ & Trứng cút",
+    portion: "HTX Nam Hà",
+    statusText: "Cần kiểm thực",
     statusType: "primary",
     icon: <ClipboardCheck size={18} />,
-    actionText: "Đánh giá",
-    actionVariant: "contained",
+    actionIcon: <Check size={20} />,
+    actionLabel: "Kiểm thực & Đánh giá ngay",
+    route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
+    isPrimary: true,
   },
 ];
 
 function PendingTasksSection() {
+  const navigate = useNavigate();
+
   return (
     <Card className={styles.sectionCard}>
-      {/* Header của Section */}
+      {/* Header tối giản */}
       <div className={styles.sectionHeader}>
         <div className={styles.titleWrap}>
           <Typography className={styles.mainTitle}>
-            Công việc cần xử lý hôm nay
+            Việc cần xử lý hôm nay
           </Typography>
-          <span className={styles.badgeCount}>3 việc cần làm</span>
+          <span className={styles.badgeCount}>3</span>
         </div>
-        <span className={styles.subHint}>
-          Ưu tiên phục vụ bữa trưa học sinh đúng giờ
-        </span>
       </div>
 
-      {/* Danh sách Task */}
-      <div className={styles.taskList}>
+      {/* Danh sách Task dạng Icon Action */}
+      <div className={styles.taskList} role="list">
         {TASKS.map((task) => (
-          <div key={task.id} className={styles.taskItem}>
-            <div className={styles.itemLeft}>
-              <div className={styles.iconCircle}>{task.icon}</div>
-              <div className={styles.taskInfo}>
-                <div className={styles.metaRow}>
-                  <span className={styles.taskType}>{task.type}</span>
-                  <span className={styles.taskCode}>[{task.code}]</span>
-                </div>
+          <div
+            key={task.id}
+            className={styles.taskItem}
+            role="listitem"
+            onClick={() => navigate(task.route)}
+          >
+            {/* Cột trái: Icon loại việc */}
+            <div className={styles.iconCircle} aria-hidden="true">
+              {task.icon}
+            </div>
+
+            {/* Cột giữa: Thông tin cốt lõi ngắn gọn */}
+            <div className={styles.taskInfo}>
+              <div className={styles.nameRow}>
                 <Typography className={styles.taskName}>
-                  {task.title}{" "}
-                  {task.portion && (
-                    <span className={styles.portionText}>({task.portion})</span>
-                  )}
+                  {task.title}
                 </Typography>
+                {task.portion && (
+                  <span className={styles.portionText}>• {task.portion}</span>
+                )}
+              </div>
+              <div className={styles.metaRow}>
+                <span className={styles.taskCode}>{task.code}</span>
+                <span
+                  className={`${styles.statusBadge} ${
+                    styles[`status_${task.statusType}`] || ""
+                  }`}
+                >
+                  <span className={styles.dot} />
+                  <span>{task.statusText}</span>
+                </span>
               </div>
             </div>
 
-            <div className={styles.itemRight}>
-              <div
-                className={`${styles.statusBadge} ${
-                  styles[`status_${task.statusType}`] || ""
-                }`}
-              >
-                <span className={styles.dot} />
-                <span>{task.statusText}</span>
-              </div>
-
-              {task.actionVariant === "contained" ? (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={styles.primaryActionBtn}
+            {/* Cột phải: Icon Action Button (Touch target 44px x 44px) */}
+            <div className={styles.actionWrap}>
+              <Tooltip title={task.actionLabel} arrow>
+                <IconButton
+                  className={`${styles.actionBtn} ${
+                    task.isPrimary ? styles.actionPrimary : styles.actionSecondary
+                  }`}
+                  aria-label={task.actionLabel}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(task.route);
+                  }}
                 >
-                  {task.actionText}
-                </Button>
-              ) : (
-                <Button
-                  variant="outlined"
-                  className={styles.secondaryActionBtn}
-                >
-                  {task.actionText}
-                </Button>
-              )}
+                  {task.actionIcon}
+                </IconButton>
+              </Tooltip>
             </div>
           </div>
         ))}

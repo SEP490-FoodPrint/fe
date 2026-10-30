@@ -8,7 +8,7 @@ import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined"
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
 import { StoreContext } from "src/contexts"
 import { ROLE_LABELS, ROLES } from "src/constants/roles"
-import { getDefaultRedirectByOrg } from "src/lib/utils"
+import { getDefaultRedirectByOrg, getDefaultRedirectByUser } from "src/lib/utils"
 import BrandLogo from "src/components/Common/BrandLogo"
 import styles from "./DashboardHeader.module.scss"
 
@@ -28,9 +28,15 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
 
   return (
     <header className={styles.header} aria-label="Thanh tiêu đề">
-      {mobile && <Link to={getDefaultRedirectByOrg(user?.orgType)} className={styles.mobileBrand} aria-label="FoodPrint">
-        <BrandLogo theme="light" variant="dashboard" compact />
-      </Link>}
+      {mobile && (
+        <Link
+          to={user ? getDefaultRedirectByUser(user) : getDefaultRedirectByOrg(user?.orgType)}
+          className={styles.mobileBrand}
+          aria-label="FoodPrint"
+        >
+          <BrandLogo theme="light" variant="dashboard" compact />
+        </Link>
+      )}
       <div className={styles.actions}>
         <IconButton
           aria-label="Thông báo"
@@ -39,27 +45,38 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
           aria-controls={notificationAnchor ? "dashboard-notifications" : undefined}
           className={styles.iconButton}
           onClick={event => setNotificationAnchor(event.currentTarget)}
-        ><NotificationsNoneOutlinedIcon /></IconButton>
-        {mobile ? <IconButton
-          ref={navigationButtonRef}
-          aria-label="Mở điều hướng"
-          aria-haspopup="dialog"
-          aria-expanded={navigationOpen}
-          aria-controls={navigationOpen ? "dashboard-mobile-navigation" : undefined}
-          onClick={onOpenNavigation}
-          className={styles.iconButton}
-        ><MenuOutlinedIcon /></IconButton> : user && <ButtonBase
-          className={styles.accountButton}
-          onClick={event => setAccountAnchor(event.currentTarget)}
-          aria-label={"Tài khoản " + user.fullName}
-          aria-haspopup="menu"
-          aria-expanded={Boolean(accountAnchor)}
-          aria-controls={accountAnchor ? "dashboard-account-menu" : undefined}
         >
-          <Avatar className={styles.avatar}>{initials}</Avatar>
-          <span className={styles.userInfo}><span className={styles.userName}>{user.fullName}</span><span className={styles.userRole}>{roleLabel}</span></span>
-          <KeyboardArrowDownIcon className={styles.chevron} />
-        </ButtonBase>}
+          <NotificationsNoneOutlinedIcon />
+        </IconButton>
+        {mobile ? (
+          <IconButton
+            ref={navigationButtonRef}
+            aria-label="Mở điều hướng"
+            aria-haspopup="dialog"
+            aria-expanded={navigationOpen}
+            aria-controls={navigationOpen ? "dashboard-mobile-navigation" : undefined}
+            onClick={onOpenNavigation}
+            className={styles.iconButton}
+          >
+            <MenuOutlinedIcon />
+          </IconButton>
+        ) : user && (
+          <ButtonBase
+            className={styles.accountButton}
+            onClick={event => setAccountAnchor(event.currentTarget)}
+            aria-label={"Tài khoản " + user.fullName}
+            aria-haspopup="menu"
+            aria-expanded={Boolean(accountAnchor)}
+            aria-controls={accountAnchor ? "dashboard-account-menu" : undefined}
+          >
+            <Avatar className={styles.avatar}>{initials}</Avatar>
+            <span className={styles.userInfo}>
+              <span className={styles.userName}>{user.fullName}</span>
+              <span className={styles.userRole}>{roleLabel}</span>
+            </span>
+            <KeyboardArrowDownIcon className={styles.chevron} />
+          </ButtonBase>
+        )}
       </div>
       <Menu
         id="dashboard-account-menu"
@@ -70,7 +87,10 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
         transformOrigin={{ vertical: "top", horizontal: "right" }}
         slotProps={{ paper: { className: styles.menuPaper }, list: { "aria-label": "Tài khoản" } }}
       >
-        <MenuItem disabled className={styles.accountDetails}><strong>{user?.fullName}</strong><span>{user?.orgName || roleLabel}</span></MenuItem>
+        <MenuItem disabled className={styles.accountDetails}>
+          <strong>{user?.fullName}</strong>
+          <span>{user?.orgName || roleLabel}</span>
+        </MenuItem>
         <Divider />
         <MenuItem onClick={() => { closeAccount(); onLogout() }} className={styles.logout}>
           <ListItemIcon><LogoutOutlinedIcon fontSize="small" /></ListItemIcon>

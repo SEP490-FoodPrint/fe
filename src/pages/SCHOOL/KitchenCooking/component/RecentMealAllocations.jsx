@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   Typography,
@@ -11,6 +12,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { ArrowRight, Eye } from "lucide-react";
+import ROUTER from "src/router/ROUTER";
 import styles from "./RecentMealAllocations.module.scss";
 
 const ALLOCATIONS = [
@@ -18,39 +20,47 @@ const ALLOCATIONS = [
     code: "PB-20261026-01",
     target: "Khối 6 (Phòng 201-207)",
     portion: "360 suất",
-    status: "Đang phân phối",
+    status: "Đang giao",
     statusType: "info",
   },
   {
     code: "PB-20261025-02",
     target: "Khối 7 (Phòng 301-308)",
     portion: "380 suất",
-    status: "Đã hoàn tất",
+    status: "Đã giao",
     statusType: "success",
   },
   {
     code: "PB-20261025-01",
     target: "Khối 8 (Phòng 401-408)",
     portion: "375 suất",
-    status: "Đã hoàn tất",
+    status: "Đã giao",
     statusType: "success",
   },
 ];
 
 function RecentMealAllocations() {
+  const navigate = useNavigate();
+
   return (
     <Card className={styles.tableCard}>
       <div className={styles.cardHeader}>
         <Typography className={styles.tableTitle}>
           Phân bổ suất ăn gần đây
         </Typography>
-        <button type="button" className={styles.viewAllBtn}>
-          <span>Xem tất cả</span>
+        <button
+          type="button"
+          className={styles.viewAllBtn}
+          aria-label="Xem tất cả phân bổ suất ăn"
+          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION)}
+        >
+          <span>Tất cả</span>
           <ArrowRight size={14} />
         </button>
       </div>
 
-      <div className={styles.tableResponsive}>
+      {/* Desktop Table View (>= 640px) */}
+      <div className={styles.desktopTableView}>
         <Table className={styles.dataTable} size="small">
           <TableHead>
             <TableRow>
@@ -63,7 +73,7 @@ function RecentMealAllocations() {
                 Trạng thái
               </TableCell>
               <TableCell align="center" className={styles.th}>
-                Thao tác
+                Xem
               </TableCell>
             </TableRow>
           </TableHead>
@@ -89,8 +99,13 @@ function RecentMealAllocations() {
                   </span>
                 </TableCell>
                 <TableCell align="center">
-                  <Tooltip title="Xem chi tiết phân bổ" arrow>
-                    <IconButton size="small" className={styles.actionIconBtn}>
+                  <Tooltip title="Xem chi tiết" arrow>
+                    <IconButton
+                      size="small"
+                      className={styles.actionIconBtn}
+                      aria-label={"Xem chi tiết phân bổ " + row.code}
+                      onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION)}
+                    >
                       <Eye size={17} />
                     </IconButton>
                   </Tooltip>
@@ -99,6 +114,47 @@ function RecentMealAllocations() {
             ))}
           </TableBody>
         </Table>
+      </div>
+
+      {/* Mobile Icon-Action List (< 640px) */}
+      <div className={styles.mobileCardList}>
+        {ALLOCATIONS.map((row) => (
+          <div
+            key={row.code}
+            className={styles.mobileCardItem}
+            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION)}
+          >
+            <div className={styles.mobileItemLeft}>
+              <div className={styles.mobileHeaderRow}>
+                <span className={styles.mobileCode}>{row.code}</span>
+                <span
+                  className={`${styles.mobileStatusBadge} ${
+                    row.statusType === "success"
+                      ? styles.status_success
+                      : styles.status_info
+                  }`}
+                >
+                  {row.status}
+                </span>
+              </div>
+              <div className={styles.mobileTargetName}>{row.target}</div>
+              <div className={styles.mobilePortionText}>
+                Số lượng: <strong>{row.portion}</strong>
+              </div>
+            </div>
+
+            <IconButton
+              className={styles.mobileActionBtn}
+              aria-label={"Xem chi tiết " + row.code}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION);
+              }}
+            >
+              <Eye size={18} />
+            </IconButton>
+          </div>
+        ))}
       </div>
     </Card>
   );
