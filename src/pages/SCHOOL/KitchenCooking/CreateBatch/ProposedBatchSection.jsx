@@ -1,4 +1,14 @@
 import React, { useState } from "react"
+import {
+  Layers,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
+  CookingPot,
+  Flame,
+  Clock
+} from "lucide-react"
 import styles from "./ProposedBatchSection.module.scss"
 
 export default function ProposedBatchSection() {
@@ -12,45 +22,45 @@ export default function ProposedBatchSection() {
           <div>
             <h2 className={styles.sectionTitle}>3. Phương án chế biến dự kiến</h2>
             <p className={styles.sectionSubtitle}>
-              Hợp nhất mẻ theo quy định nhưng vẫn duy trì tính toàn vẹn của chuỗi cung ứng
+              Hợp nhất lô nấu theo quy chuẩn, tự động liên kết nguồn gốc đa lô
             </p>
           </div>
         </div>
       </div>
 
-      {/* Thẻ tóm tắt */}
+      {/* Thẻ tóm tắt đề xuất */}
       <div className={styles.summaryCard}>
         <div className={styles.summaryLeft}>
-          <div className={styles.hubIconBox}>
-            <span className="material-symbols-outlined">hub</span>
+          <div className={styles.hubIconBox} aria-hidden="true">
+            <CookingPot size={20} />
           </div>
           <p className={styles.summaryText}>
-            Hợp nhất toàn bộ định lượng vào <strong>01 mẻ chế biến</strong> theo
-            quy định nấu chung của nhà trường, đồng thời bảo toàn định danh từng
+            Hợp nhất toàn bộ định lượng vào <strong>01 lô chế biến</strong> theo
+            quy chuẩn nấu chung của nhà trường, đồng thời bảo toàn mã định danh của từng
             lô nguyên liệu.
           </p>
         </div>
 
         <div className={styles.summaryRight}>
           <span className={styles.summaryProposedBatch}>
-            Tổng mẻ đề xuất: <strong>01 mẻ hợp nhất (Nấu chung)</strong>
+            Tổng lô đề xuất: <strong>01 lô hợp nhất</strong>
           </span>
           <span className={styles.summaryTotalPortions}>
-            Tổng suất: 1.250 suất (100%)
+            Quy mô: <strong>1.250 suất</strong> (100% nhu cầu)
           </span>
         </div>
       </div>
 
-      {/* Bảng phương án mẻ hợp nhất */}
-      <div className={styles.tableResponsive}>
+      {/* 1. Desktop View: Bảng phương án lô hợp nhất (Hiện trên Desktop >= 768px) */}
+      <div className={styles.desktopTableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thLeft}>Tên mẻ / Mã mẻ dự kiến</th>
+              <th className={styles.thLeft}>Tên lô / Mã lô dự kiến</th>
               <th>Món ăn</th>
               <th>Số suất dự kiến</th>
-              <th>Số lô nguyên liệu sử dụng</th>
-              <th>Trạng thái mẻ</th>
+              <th>Lô nguyên liệu sử dụng</th>
+              <th>Trạng thái</th>
               <th className={`${styles.thRight} ${styles.textCenter}`}>Thao tác</th>
             </tr>
           </thead>
@@ -59,36 +69,36 @@ export default function ProposedBatchSection() {
               <td>
                 <div className={styles.batchNameCol}>
                   <span className={styles.batchTitle}>
-                    Mẻ chế biến 01 (Hợp nhất)
+                    Lô chế biến 01 (Hợp nhất)
                   </span>
                   <span className={styles.batchCode}>
-                    Lô dự kiến: CB-20261026-001
+                    Mã dự kiến: CB-20261026-001
                   </span>
                 </div>
               </td>
               <td>
                 <span className={styles.dishName}>
-                  Thịt heo kho cút nước dừa
+                  Thịt heo kho nước dừa
                 </span>
               </td>
               <td>
                 <div className={styles.portionCol}>
                   <span className={styles.portionMain}>1.250 suất</span>
-                  <span className={styles.portionSub}>(100% tổng nhu cầu)</span>
+                  <span className={styles.portionSub}>100% ca trưa</span>
                 </div>
               </td>
               <td>
                 <div className={styles.lotsCol}>
                   <span className={styles.lotsMain}>05 lô nguyên liệu</span>
                   <span className={styles.lotsSub}>
-                    (Gồm 02 lô thịt heo nấu chung + Trứng cút + Nước dừa + Gia vị)
+                    (02 lô thịt heo + Trứng cút + Nước dừa + Gia vị)
                   </span>
                 </div>
               </td>
               <td>
                 <div className={styles.statusBadge}>
                   <span className={styles.statusDot} />
-                  <span>Đạt chuẩn Nấu chung hợp nhất</span>
+                  <span>Nấu chung hợp nhất</span>
                 </div>
               </td>
               <td className={styles.textCenter}>
@@ -96,11 +106,10 @@ export default function ProposedBatchSection() {
                   type="button"
                   className={styles.detailBtn}
                   onClick={() => setIsDetailOpen(!isDetailOpen)}
+                  aria-expanded={isDetailOpen}
                 >
                   <span>Chi tiết</span>
-                  <span className="material-symbols-outlined">
-                    {isDetailOpen ? "expand_less" : "expand_more"}
-                  </span>
+                  {isDetailOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </button>
               </td>
             </tr>
@@ -108,18 +117,57 @@ export default function ProposedBatchSection() {
         </table>
       </div>
 
-      {/* Khối chi tiết cấu thành nguyên liệu cho mẻ hợp nhất */}
+      {/* 2. Mobile View: Thẻ phương án lô chế biến (Hiện trên Mobile < 768px) */}
+      <div className={styles.mobileBatchOverview}>
+        <div className={styles.mobOverviewHeader}>
+          <div className={styles.mobTitleBox}>
+            <span className={styles.mobBatchTitle}>Lô chế biến 01 (Hợp nhất)</span>
+            <span className={styles.mobBatchCode}>Mã: CB-20261026-001</span>
+          </div>
+          <span className={styles.statusBadge}>
+            <span className={styles.statusDot} />
+            <span>Nấu chung</span>
+          </span>
+        </div>
+
+        <div className={styles.mobGridMeta}>
+          <div className={styles.metaCell}>
+            <span className={styles.cellLabel}>Món ăn:</span>
+            <span className={styles.cellValue}>Thịt heo kho nước dừa</span>
+          </div>
+          <div className={styles.metaCell}>
+            <span className={styles.cellLabel}>Số suất:</span>
+            <span className={styles.cellValueHighlight}>1.250 suất (100%)</span>
+          </div>
+          <div className={styles.metaCellFull}>
+            <span className={styles.cellLabel}>Nguyên liệu:</span>
+            <span className={styles.cellValue}>05 lô (02 lô thịt + Trứng cút + Nước dừa + Gia vị)</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={styles.mobToggleDetailBtn}
+          onClick={() => setIsDetailOpen(!isDetailOpen)}
+          aria-expanded={isDetailOpen}
+        >
+          <span>{isDetailOpen ? "Thu gọn thành phần lô" : "Xem chi tiết 4 thành phần con"}</span>
+          {isDetailOpen ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+        </button>
+      </div>
+
+      {/* Khối chi tiết cấu thành nguyên liệu cho lô hợp nhất */}
       {isDetailOpen && (
         <div className={styles.detailBox}>
           <div className={styles.detailHeader}>
-            <span className={styles.detailTitle}>
-              <span className="material-symbols-outlined">layers</span>
-              <span>
-                Chi tiết cấu thành nguyên liệu cho Mẻ hợp nhất (1.250 suất)
+            <div className={styles.detailTitleWrap}>
+              <Layers size={15} className={styles.layersIcon} />
+              <span className={styles.detailTitle}>
+                Cấu thành nguyên liệu lô hợp nhất (1.250 suất)
               </span>
-            </span>
+            </div>
             <span className={styles.detailTag}>
-              Đã ghi nhận riêng rẽ từng mã lô
+              Đã ghi nhận riêng 05 mã lô
             </span>
           </div>
 
@@ -152,7 +200,7 @@ export default function ProposedBatchSection() {
               <div className={styles.cardBody}>
                 <div className={styles.cardLotRow}>
                   <span>• Lô LOT-CUT-224:</span>
-                  <span className={styles.cardLotWeight}>HSD 20/11</span>
+                  <span className={styles.cardLotWeight}>2.500 quả (HSD 20/11)</span>
                 </div>
               </div>
             </div>
@@ -166,7 +214,7 @@ export default function ProposedBatchSection() {
               <div className={styles.cardBody}>
                 <div className={styles.cardLotRow}>
                   <span>• Lô LOT-DUA-018:</span>
-                  <span className={styles.cardLotWeight}>HSD 15/11</span>
+                  <span className={styles.cardLotWeight}>80.0 lít (HSD 15/11)</span>
                 </div>
               </div>
             </div>
@@ -180,7 +228,7 @@ export default function ProposedBatchSection() {
               <div className={styles.cardBody}>
                 <div className={styles.cardLotRow}>
                   <span>• Lô LOT-GVI-045:</span>
-                  <span className={styles.cardLotWeight}>HSD 30/12</span>
+                  <span className={styles.cardLotWeight}>4.2 kg (HSD 30/12)</span>
                 </div>
               </div>
             </div>
@@ -190,12 +238,10 @@ export default function ProposedBatchSection() {
 
       {/* Dòng ghi nhận chuẩn */}
       <div className={styles.noteBox}>
-        <span className={`material-symbols-outlined ${styles.noteIcon}`}>
-          check_circle
-        </span>
+        <CheckCircle2 size={16} className={styles.noteIcon} />
         <span className={styles.noteText}>
           Phương án chế biến hợp lệ. Đã ghi nhận riêng rẽ từng lô nguyên liệu theo
-          đúng chuẩn truy xuất nguồn gốc. Sẵn sàng khởi tạo.
+          chuẩn truy xuất nguồn gốc số hóa. Sẵn sàng khởi tạo.
         </span>
       </div>
     </section>
