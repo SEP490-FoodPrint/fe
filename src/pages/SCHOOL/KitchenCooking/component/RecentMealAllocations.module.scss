@@ -8,8 +8,10 @@
   flex-direction: column !important;
 
   @media (max-width: 640px) {
-    padding: 14px 10px !important;
-    border-radius: 10px !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 }
 
@@ -20,11 +22,18 @@
   padding-bottom: 10px;
   border-bottom: 1px solid var(--neutral-100, #f3f4f6);
   margin-bottom: 6px;
+
+  @media (max-width: 640px) {
+    border-bottom: none;
+    margin-bottom: 2px;
+    padding-left: 2px;
+    padding-right: 2px;
+  }
 }
 
 .tableTitle {
   font-family: var(--font-sans, "Inter", sans-serif) !important;
-  font-size: 15px !important;
+  font-size: 14.5px !important;
   font-weight: 700 !important;
   color: var(--text-primary, #111827) !important;
 
@@ -89,17 +98,16 @@
   }
 }
 
-.codeCell {
-  font-family: monospace;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-  white-space: nowrap;
-  font-size: 11px;
-}
-
 .targetCell {
   font-weight: 600;
   color: var(--text-primary, #111827);
+}
+
+.timeCell {
+  font-weight: 500;
+  color: var(--text-secondary, #4b5563);
+  white-space: nowrap;
+  font-size: 12px;
 }
 
 .portionCell {
@@ -133,75 +141,85 @@
   }
 }
 
-/* Mobile Icon-Action List (< 640px) */
+/* Mobile List (< 640px) 2 hàng nhỏ gọn (High Density & Glanceable) */
 .mobileCardList {
   display: none;
 
   @media (max-width: 640px) {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    margin-top: 4px;
+    gap: 8px;
+    margin-top: 2px;
   }
 }
 
 .mobileCardItem {
   background-color: #ffffff;
-  border-radius: 8px;
-  padding: 10px 6px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  border-bottom: 1px solid #f3f4f6;
-  transition: background-color 0.15s ease;
+  flex-direction: column;
+  gap: 5px;
+  transition: all 0.16s ease;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 
-  &:last-child {
-    border-bottom: none;
-  }
-
   &:hover {
-    background-color: var(--bg-page, #f8faf9);
+    border-color: var(--color-primary, #0A8066);
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.06);
   }
 
   &:active {
-    background-color: #f1f5f9;
+    transform: scale(0.985);
   }
 }
 
-.mobileItemLeft {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  gap: 2px;
-}
-
-.mobileHeaderRow {
+/* Hàng 1: Khối nhận + Trạng thái */
+.topRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.mobileCode {
-  font-family: monospace;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: var(--text-muted, #6b7280);
-  background: #f3f4f6;
-  padding: 1px 5px;
-  border-radius: 4px;
+.titleWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemIcon {
+  color: var(--color-primary, #0A8066);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.targetTitle {
+  font-family: var(--font-sans, "Inter", sans-serif) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary, #111827) !important;
+  line-height: 1.3 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mobileStatusBadge {
   font-size: 10.5px;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 1.5px 7px;
   border-radius: 9999px;
+  line-height: 1.2;
   background-color: #e0f2fe;
   color: #0369a1;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &.status_success {
     background-color: #dcfce7;
@@ -209,35 +227,57 @@
   }
 }
 
-.mobileTargetName {
-  font-size: 13.5px;
+/* Hàng 2: Số lượng • Thời gian + Nút xem 44px */
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.metaInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #4b5563);
+}
+
+.portionText {
   font-weight: 600;
   color: var(--text-primary, #111827);
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.mobilePortionText {
-  font-size: 11.5px;
+.metaDivider {
+  color: var(--text-muted, #9ca3af);
+  font-size: 10px;
+}
+
+.timeText {
   color: var(--text-muted, #6b7280);
-
-  strong {
-    color: var(--text-secondary, #4b5563);
-    font-weight: 600;
-  }
 }
 
-/* Touch Target >= 44px for icon action */
+/* Touch Target chuẩn 44px (visual box 32px, hit box 44px) */
 .mobileActionBtn {
-  width: 44px !important;
-  height: 44px !important;
+  width: 32px !important;
+  height: 32px !important;
   border-radius: 8px !important;
   background-color: #f3f4f6 !important;
   color: var(--text-secondary, #4b5563) !important;
   flex-shrink: 0;
-  transition: transform 0.16s ease, background-color 0.16s ease !important;
+  padding: 0 !important;
+  position: relative;
+  transition: transform 0.16s ease, background-color 0.16s ease, color 0.16s ease !important;
+
+  /* Hit box mở rộng >= 44px */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+  }
 
   &:active {
     transform: scale(0.92) !important;

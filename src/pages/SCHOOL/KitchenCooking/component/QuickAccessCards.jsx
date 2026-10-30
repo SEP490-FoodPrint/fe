@@ -21,7 +21,7 @@ const CARDS_DATA = [
   },
   {
     id: "meal-allocation",
-    title: "Phân bổ suất",
+    title: "Phân bổ suất ăn",
     desc: "Chia khay theo lớp & bàn giao",
     icon: <ConciergeBell size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,

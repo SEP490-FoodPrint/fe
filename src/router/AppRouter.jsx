@@ -37,7 +37,7 @@ function LazyWrapper({ children }) {
     <Suspense
       fallback={
         <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <SpinCustom fullscreen />
+          <SpinCustom />
         </div>
       }
     >

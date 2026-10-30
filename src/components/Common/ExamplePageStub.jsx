@@ -34,14 +34,16 @@ function ExamplePageStub({ title, description, allowedRoles = [] }) {
         }}
       >
         <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems={{ xs: "flex-start", md: "center" }}
-          flexDirection={{ xs: "column", md: "row" }}
-          gap={2}
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: { xs: "flex-start", md: "center" },
+            flexDirection: { xs: "column", md: "row" },
+            gap: 2,
+          }}
         >
           <Box>
-            <Box display="flex" alignItems="center" gap={1} mb={1}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
               <Chip
                 label="FoodPrint Architecture"
                 size="small"
@@ -102,14 +104,14 @@ function ExamplePageStub({ title, description, allowedRoles = [] }) {
               mb: 3,
             }}
           >
-            <Box display="flex" alignItems="center" gap={1}>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <User size={16} color="var(--color-primary)" />
               <Typography variant="body2" color="text.primary">
                 Tài khoản đang đăng nhập: <b>{user?.fullName}</b> (<code>{user?.username}</code>)
               </Typography>
             </Box>
 
-            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
               <ShieldCheck size={16} color="var(--color-primary)" />
               <Typography variant="body2" color="text.primary">
                 Vai trò của bạn:
@@ -126,7 +128,7 @@ function ExamplePageStub({ title, description, allowedRoles = [] }) {
               />
             </Box>
 
-            <Box display="flex" alignItems="center" gap={1} flexWrap="wrap">
+            <Box sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
               <Users size={16} color="var(--color-primary)" />
               <Typography variant="body2" color="text.primary">
                 Các vai trò được phép truy cập màn hình này:

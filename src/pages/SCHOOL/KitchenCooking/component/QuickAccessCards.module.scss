@@ -31,8 +31,8 @@
   -webkit-tap-highlight-color: transparent;
 
   @media (max-width: 640px) {
-    padding: 12px 10px !important;
-    min-height: 72px;
+    padding: 8px 10px !important;
+    min-height: 50px;
     border-radius: 10px !important;
   }
 
@@ -68,7 +68,11 @@
   min-width: 0;
 
   @media (max-width: 640px) {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 8px;
+    width: 100%;
   }
 }
 
@@ -85,8 +89,10 @@
   flex-shrink: 0;
 
   @media (max-width: 640px) {
-    width: 36px;
-    height: 36px;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    margin-bottom: 0;
   }
 }
 
@@ -94,6 +100,10 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
 }
 
 .cardTitle {
@@ -108,7 +118,13 @@
   text-overflow: ellipsis;
 
   @media (max-width: 640px) {
-    font-size: 13px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    word-break: break-word;
   }
 }
 

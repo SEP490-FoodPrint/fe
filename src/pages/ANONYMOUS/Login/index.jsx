@@ -44,7 +44,7 @@ function LoginPage() {
     <div className="login-page-wrapper">
       <div className="login-container">
         <div className="login-header">
-          <Box display="flex" justifyContent="center" mb={1.5}>
+          <Box sx={{ display: "flex", justifyContent: "center", mb: 1.5 }}>
             <BrandLogo theme="light" />
           </Box>
           <Typography

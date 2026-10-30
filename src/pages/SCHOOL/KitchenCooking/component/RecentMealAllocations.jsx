@@ -11,28 +11,31 @@ import {
   Tooltip,
   IconButton,
 } from "@mui/material";
-import { ArrowRight, Eye } from "lucide-react";
+import { ArrowRight, Eye, ConciergeBell } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import styles from "./RecentMealAllocations.module.scss";
 
 const ALLOCATIONS = [
   {
-    code: "PB-20261026-01",
-    target: "Khối 6 (Phòng 201-207)",
+    id: "alloc-1",
+    target: "Khối 6 (Phòng 201–207)",
+    timeTag: "Trưa nay • Giao 10:45",
     portion: "360 suất",
     status: "Đang giao",
     statusType: "info",
   },
   {
-    code: "PB-20261025-02",
-    target: "Khối 7 (Phòng 301-308)",
+    id: "alloc-2",
+    target: "Khối 7 (Phòng 301–308)",
+    timeTag: "Trưa qua • Giao 10:50",
     portion: "380 suất",
     status: "Đã giao",
     statusType: "success",
   },
   {
-    code: "PB-20261025-01",
-    target: "Khối 8 (Phòng 401-408)",
+    id: "alloc-3",
+    target: "Khối 8 (Phòng 401–408)",
+    timeTag: "Trưa qua • Giao 10:55",
     portion: "375 suất",
     status: "Đã giao",
     statusType: "success",
@@ -64,8 +67,8 @@ function RecentMealAllocations() {
         <Table className={styles.dataTable} size="small">
           <TableHead>
             <TableRow>
-              <TableCell className={styles.th}>Mã phân bổ</TableCell>
-              <TableCell className={styles.th}>Lớp nhận</TableCell>
+              <TableCell className={styles.th}>Lớp nhận / Phòng</TableCell>
+              <TableCell className={styles.th}>Bữa ăn / Giờ giao</TableCell>
               <TableCell align="right" className={styles.th}>
                 Số suất
               </TableCell>
@@ -79,11 +82,11 @@ function RecentMealAllocations() {
           </TableHead>
           <TableBody>
             {ALLOCATIONS.map((row) => (
-              <TableRow key={row.code} className={styles.tableRow}>
-                <TableCell className={styles.codeCell}>{row.code}</TableCell>
+              <TableRow key={row.id} className={styles.tableRow}>
                 <TableCell className={styles.targetCell}>
                   {row.target}
                 </TableCell>
+                <TableCell className={styles.timeCell}>{row.timeTag}</TableCell>
                 <TableCell align="right" className={styles.portionCell}>
                   {row.portion}
                 </TableCell>
@@ -103,7 +106,7 @@ function RecentMealAllocations() {
                     <IconButton
                       size="small"
                       className={styles.actionIconBtn}
-                      aria-label={"Xem chi tiết phân bổ " + row.code}
+                      aria-label={"Xem chi tiết phân bổ " + row.target}
                       onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION)}
                     >
                       <Eye size={17} />
@@ -116,43 +119,55 @@ function RecentMealAllocations() {
         </Table>
       </div>
 
-      {/* Mobile Icon-Action List (< 640px) */}
+      {/* Mobile Icon-Action List (< 640px) 2 hàng nhỏ gọn */}
       <div className={styles.mobileCardList}>
         {ALLOCATIONS.map((row) => (
           <div
-            key={row.code}
+            key={row.id}
             className={styles.mobileCardItem}
             onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION)}
           >
-            <div className={styles.mobileItemLeft}>
-              <div className={styles.mobileHeaderRow}>
-                <span className={styles.mobileCode}>{row.code}</span>
-                <span
-                  className={`${styles.mobileStatusBadge} ${
-                    row.statusType === "success"
-                      ? styles.status_success
-                      : styles.status_info
-                  }`}
-                >
-                  {row.status}
+            {/* Hàng 1: Khối lớp + Trạng thái */}
+            <div className={styles.topRow}>
+              <div className={styles.titleWithIcon}>
+                <span className={styles.itemIcon} aria-hidden="true">
+                  <ConciergeBell size={14} />
                 </span>
+                <Typography className={styles.targetTitle}>
+                  {row.target}
+                </Typography>
               </div>
-              <div className={styles.mobileTargetName}>{row.target}</div>
-              <div className={styles.mobilePortionText}>
-                Số lượng: <strong>{row.portion}</strong>
-              </div>
+
+              <span
+                className={`${styles.mobileStatusBadge} ${
+                  row.statusType === "success"
+                    ? styles.status_success
+                    : styles.status_info
+                }`}
+              >
+                {row.status}
+              </span>
             </div>
 
-            <IconButton
-              className={styles.mobileActionBtn}
-              aria-label={"Xem chi tiết " + row.code}
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION);
-              }}
-            >
-              <Eye size={18} />
-            </IconButton>
+            {/* Hàng 2: Số suất • Thời gian + Nút xem chi tiết */}
+            <div className={styles.bottomRow}>
+              <div className={styles.metaInfo}>
+                <span className={styles.portionText}>{row.portion}</span>
+                <span className={styles.metaDivider}>•</span>
+                <span className={styles.timeText}>{row.timeTag}</span>
+              </div>
+
+              <IconButton
+                className={styles.mobileActionBtn}
+                aria-label={"Xem chi tiết " + row.target}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION);
+                }}
+              >
+                <Eye size={16} />
+              </IconButton>
+            </div>
           </div>
         ))}
       </div>

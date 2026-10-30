@@ -6,8 +6,10 @@
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
 
   @media (max-width: 640px) {
-    padding: 14px 10px !important;
-    border-radius: 10px !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
   }
 }
 
@@ -17,6 +19,12 @@
   justify-content: space-between;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--neutral-100, #f3f4f6);
+
+  @media (max-width: 640px) {
+    border-bottom: none;
+    padding-bottom: 6px;
+    padding-left: 2px;
+  }
 }
 
 .titleWrap {
@@ -27,7 +35,7 @@
 
 .mainTitle {
   font-family: var(--font-sans, "Inter", sans-serif) !important;
-  font-size: 15px !important;
+  font-size: 14.5px !important;
   font-weight: 700 !important;
   color: var(--text-primary, #111827) !important;
 
@@ -40,11 +48,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
   border-radius: 9999px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 700;
   background-color: #fef3c7;
   color: #92400e;
@@ -53,72 +61,64 @@
 .taskList {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   margin-top: 8px;
+
+  @media (max-width: 640px) {
+    margin-top: 2px;
+    gap: 8px;
+  }
 }
 
-.taskItem {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 8px;
+/* Thẻ 2 hàng nhỏ gọn, vừa vặn tầm mắt (High Density & Glanceable) */
+.taskCard {
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 10px;
-  transition: background-color 0.16s ease, transform 0.16s ease;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: all 0.16s ease;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 
-  @media (max-width: 640px) {
-    padding: 10px 6px;
-    gap: 10px;
-    border-bottom: 1px solid #f9fafb;
-
-    &:last-child {
-      border-bottom: none;
-    }
-  }
-
   &:hover {
-    background-color: var(--bg-page, #f8faf9);
+    border-color: var(--color-primary, #0A8066);
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.06);
   }
 
   &:active {
-    background-color: #f1f5f9;
+    transform: scale(0.985);
   }
 }
 
-.iconCircle {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background-color: var(--color-primary-soft, #e8f5f1);
+/* Hàng 1: Tên món/việc + Trạng thái */
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.titleWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemIcon {
   color: var(--color-primary, #0A8066);
   display: flex;
   align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-
-  @media (max-width: 640px) {
-    width: 36px;
-    height: 36px;
-  }
 }
 
-.taskInfo {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  gap: 2px;
-}
-
-.nameRow {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  min-width: 0;
-}
-
-.taskName {
+.taskTitle {
+  font-family: var(--font-sans, "Inter", sans-serif) !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
   color: var(--text-primary, #111827) !important;
@@ -126,54 +126,30 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-
-  @media (max-width: 640px) {
-    font-size: 13px !important;
-  }
-}
-
-.portionText {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7280);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.metaRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-}
-
-.taskCode {
-  font-family: monospace;
-  font-weight: 600;
-  color: var(--text-muted, #6b7280);
-  background-color: #f3f4f6;
-  padding: 1px 5px;
-  border-radius: 4px;
-  font-size: 10.5px;
 }
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
+  padding: 1.5px 7px;
+  border-radius: 9999px;
   user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .status_warning {
+  background-color: #fef3c7;
   color: #b45309;
   .dot {
     background-color: #f59e0b;
@@ -181,6 +157,7 @@
 }
 
 .status_info {
+  background-color: #e0f2fe;
   color: #0284c7;
   .dot {
     background-color: #0ea5e9;
@@ -188,22 +165,67 @@
 }
 
 .status_primary {
-  color: #0A8066;
+  background-color: #dcfce7;
+  color: #15803d;
   .dot {
-    background-color: #0A8066;
+    background-color: #16a34a;
   }
+}
+
+/* Hàng 2: Số suất • Hạn giờ + Nút thao tác */
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.metaInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #4b5563);
+}
+
+.portionText {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.metaDivider {
+  color: var(--text-muted, #9ca3af);
+  font-size: 10px;
+}
+
+.timeText {
+  color: var(--text-muted, #6b7280);
 }
 
 .actionWrap {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
-/* Icon Action Buttons: Touch Target >= 44px */
+/* Touch Target chuẩn 44px (visual icon box 28px-32px, hit area 44px) */
 .actionBtn {
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 10px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  position: relative;
   transition: transform 0.16s ease, background-color 0.16s ease !important;
+
+  /* Hit box mở rộng >= 44px */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+  }
 
   &:active {
     transform: scale(0.92) !important;

@@ -17,13 +17,15 @@ export default class ErrorBoundary extends Component {
     if (this.state.hasError) {
       return (
         <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-          minHeight="60vh"
-          textAlign="center"
-          p={3}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "60vh",
+            textAlign: "center",
+            p: 3,
+          }}
         >
           <img
             src={errorImg}
