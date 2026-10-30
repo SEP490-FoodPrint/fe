@@ -18,7 +18,7 @@ const CARDS_DATA = [
     description: "Lập mẻ, kiểm tra định lượng & quy trình nấu",
     actionLabel: "Xem mẻ chế biến",
     icon: <UtensilsCrossed size={22} />,
-    route: ROUTER.SCHOOL_KITCHEN_COOKING,
+    route: ROUTER.SCHOOL_KITCHEN_BATCHES,
   },
   {
     id: "meal-allocation",
@@ -26,7 +26,7 @@ const CARDS_DATA = [
     description: "Chia khay theo lớp & chuẩn bị bàn giao",
     actionLabel: "Đi tới phân bổ",
     icon: <ConciergeBell size={22} />,
-    route: ROUTER.SCHOOL_KITCHEN_COOKING,
+    route: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
   },
   {
     id: "food-sample",
@@ -34,7 +34,7 @@ const CARDS_DATA = [
     description: "Lưu mẫu 24h & ghi nhận niêm phong",
     actionLabel: "Quản lý mẫu lưu",
     icon: <FlaskConical size={22} />,
-    route: ROUTER.SCHOOL_KITCHEN_COOKING,
+    route: ROUTER.SCHOOL_KITCHEN_SAMPLES,
   },
   {
     id: "ingredient-inspect",
@@ -58,17 +58,25 @@ function QuickAccessCards() {
           onClick={() => navigate(card.route)}
           role="button"
           tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              navigate(card.route);
+            }
+          }}
         >
-          <div className={styles.cardTop}>
+          <div className={styles.cardHeader}>
             <div className={styles.iconBox}>{card.icon}</div>
-            <Typography className={styles.cardTitle}>{card.title}</Typography>
-            <Typography className={styles.cardDesc}>
-              {card.description}
+            <Typography variant="h6" className={styles.cardTitle}>
+              {card.title}
             </Typography>
           </div>
 
-          <div className={styles.cardFooter}>
-            <span className={styles.actionText}>{card.actionLabel}</span>
+          <Typography variant="body2" className={styles.cardDesc}>
+            {card.description}
+          </Typography>
+
+          <div className={styles.cardAction}>
+            <span>{card.actionLabel}</span>
             <ArrowRight size={16} className={styles.arrowIcon} />
           </div>
         </Card>

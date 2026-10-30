@@ -1,6 +1,9 @@
 import React from "react"
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined"
 import SoupKitchenOutlinedIcon from "@mui/icons-material/SoupKitchenOutlined"
+import OutdoorGrillOutlinedIcon from "@mui/icons-material/OutdoorGrillOutlined"
+import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined"
+import SanitizerOutlinedIcon from "@mui/icons-material/SanitizerOutlined"
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined"
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
@@ -116,12 +119,39 @@ export const MenuItemSchool = () => [
       ROLES.INGREDIENT_MANAGEMENT,
     ],
   },
+
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN BẾP (SCHOOL_KITCHEN_STAFF) ===
   {
     key: ROUTER.SCHOOL_KITCHEN_COOKING,
-    label: "Chế biến & Lưu mẫu thực phẩm",
+    label: "Vận hành Bếp ăn",
     icon: <SoupKitchenOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_BATCHES,
+    label: "Quản lý Lô chế biến",
+    icon: <OutdoorGrillOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
+    label: "Phân bổ Suất ăn",
+    icon: <GroupsOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_SAMPLES,
+    label: "Lưu mẫu Thực phẩm 24h",
+    icon: <SanitizerOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_HANDOVER,
+    label: "Bàn giao Suất ăn",
+    icon: <LocalShippingOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+
   {
     key: ROUTER.SCHOOL_DAILY_CONFIRM,
     label: "Báo suất ăn & Dị ứng lớp",

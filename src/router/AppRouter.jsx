@@ -132,26 +132,6 @@ const routes = [
       </LazyWrapper>
     ),
     children: [
-      // 6.1. Bếp ăn trường học (Nhân viên Bếp / Bếp trưởng) - Giao diện chuẩn Stitch với Sidebar xanh #0A8066
-      {
-        element: (
-          <RoleRoute
-            allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]}
-          />
-        ),
-        children: [
-          {
-            path: ROUTER.SCHOOL_KITCHEN_COOKING,
-            element: (
-              <LazyWrapper>
-                <KitchenCooking />
-              </LazyWrapper>
-            ),
-          },
-        ],
-      },
-
-      // 6.2. Các phân hệ trường học dùng khung quản trị chung
       {
         element: <MainLayout type="SCHOOL" />,
         children: [
@@ -182,6 +162,14 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT]} />,
             children: [
               { path: ROUTER.SCHOOL_INGREDIENT_INSPECT, element: <LazyWrapper><IngredientInspect /></LazyWrapper> },
+            ],
+          },
+
+          // Vận hành Bếp ăn & Lưu mẫu: Nhân viên Bếp, School Admin
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]} />,
+            children: [
+              { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
             ],
           },
 

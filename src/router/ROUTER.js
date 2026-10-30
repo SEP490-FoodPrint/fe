@@ -24,7 +24,16 @@ const ROUTER = {
   SCHOOL_OVERVIEW: "/school/overview",
   SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
   SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
-  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Nhân viên Bếp
+
+  // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)
+  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Trang chủ Bếp
+  SCHOOL_KITCHEN_BATCHES: "/school/kitchen-cooking/batches", // Quản lý lô/mẻ chế biến
+  SCHOOL_KITCHEN_BATCH_CREATE: "/school/kitchen-cooking/batches/create", // Tạo mẻ nấu chung
+  SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Tạo mẻ nấu riêng
+  SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/kitchen-cooking/meal-allocation", // Phân bổ suất ăn
+  SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Lưu mẫu thực phẩm 24h
+  SCHOOL_KITCHEN_HANDOVER: "/school/kitchen-cooking/handover", // Bàn giao suất ăn
+
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
