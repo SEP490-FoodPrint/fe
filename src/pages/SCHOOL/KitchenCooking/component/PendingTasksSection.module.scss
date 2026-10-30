@@ -1,0 +1,252 @@
+.sectionCard {
+  background-color: var(--bg-surface, #ffffff) !important;
+  border: 1px solid var(--border-default, #e5e7eb) !important;
+  border-radius: var(--radius-lg, 12px) !important;
+  padding: 16px 14px !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04) !important;
+
+  @media (max-width: 640px) {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--neutral-100, #f3f4f6);
+
+  @media (max-width: 640px) {
+    border-bottom: none;
+    padding-bottom: 6px;
+    padding-left: 2px;
+  }
+}
+
+.titleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mainTitle {
+  font-family: var(--font-sans, "Inter", sans-serif) !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  color: var(--text-primary, #111827) !important;
+
+  @media (max-width: 640px) {
+    font-size: 14px !important;
+  }
+}
+
+.badgeCount {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.taskList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+
+  @media (max-width: 640px) {
+    margin-top: 2px;
+    gap: 8px;
+  }
+}
+
+/* Thẻ 2 hàng nhỏ gọn, vừa vặn tầm mắt (High Density & Glanceable) */
+.taskCard {
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: all 0.16s ease;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    border-color: var(--color-primary, #0A8066);
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.06);
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+}
+
+/* Hàng 1: Tên món/việc + Trạng thái */
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.titleWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemIcon {
+  color: var(--color-primary, #0A8066);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.taskTitle {
+  font-family: var(--font-sans, "Inter", sans-serif) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: var(--text-primary, #111827) !important;
+  line-height: 1.3 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1.5px 7px;
+  border-radius: 9999px;
+  user-select: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status_warning {
+  background-color: #fef3c7;
+  color: #b45309;
+  .dot {
+    background-color: #f59e0b;
+  }
+}
+
+.status_info {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  .dot {
+    background-color: #0ea5e9;
+  }
+}
+
+.status_primary {
+  background-color: #dcfce7;
+  color: #15803d;
+  .dot {
+    background-color: #16a34a;
+  }
+}
+
+/* Hàng 2: Số suất • Hạn giờ + Nút thao tác */
+.bottomRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.metaInfo {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #4b5563);
+}
+
+.portionText {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.metaDivider {
+  color: var(--text-muted, #9ca3af);
+  font-size: 10px;
+}
+
+.timeText {
+  color: var(--text-muted, #6b7280);
+}
+
+.actionWrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+/* Touch Target chuẩn 44px (visual icon box 28px-32px, hit area 44px) */
+.actionBtn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  padding: 0 !important;
+  position: relative;
+  transition: transform 0.16s ease, background-color 0.16s ease !important;
+
+  /* Hit box mở rộng >= 44px */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+  }
+
+  &:active {
+    transform: scale(0.92) !important;
+  }
+}
+
+.actionPrimary {
+  background-color: var(--color-primary, #0A8066) !important;
+  color: #ffffff !important;
+
+  &:hover {
+    background-color: var(--color-primary-hover, #086b55) !important;
+  }
+}
+
+.actionSecondary {
+  background-color: #f3f4f6 !important;
+  color: var(--text-secondary, #4b5563) !important;
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1) !important;
+    color: var(--color-primary, #0A8066) !important;
+  }
+}

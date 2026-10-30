@@ -1,8 +1,19 @@
-import React from "react"
+import React, { useContext } from "react"
+import { Navigate } from "react-router-dom"
+import { StoreContext } from "src/contexts"
 import ExamplePageStub from "src/components/Common/ExamplePageStub"
 import { ROLES } from "src/constants/roles"
+import ROUTER from "src/router/ROUTER"
 
 function SchoolOverview() {
+  const { userStore } = useContext(StoreContext)
+  const user = userStore?.user
+
+  // Nếu là Nhân viên bếp -> Điều hướng thẳng vào Bảng điều khiển Bếp theo mẫu Stitch
+  if (user?.role === ROLES.SCHOOL_KITCHEN_STAFF) {
+    return <Navigate to={ROUTER.SCHOOL_KITCHEN_COOKING} replace />
+  }
+
   return (
     <ExamplePageStub
       title="Tổng quan Trường học (School Overview)"

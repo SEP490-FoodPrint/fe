@@ -1,0 +1,38 @@
+.kitchenPageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--layout-max-width, 1440px);
+  margin: 0 auto;
+  width: 100%;
+}
+
+.kitchenPageHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.kitchenPageTitle {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-2xl) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--text-primary) !important;
+}
+
+.kitchenPageSubtitle {
+  font-size: var(--text-sm) !important;
+  color: var(--text-secondary) !important;
+  line-height: 1.5 !important;
+}
+
+.kitchenTablesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-6);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
