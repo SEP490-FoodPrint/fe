@@ -1,10 +1,7 @@
-import React, { useMemo, useState } from "react"
-import PropTypes from "prop-types"
+import React from "react"
 import {
-  FormControl,
-  InputAdornment,
-  MenuItem,
-  Select,
+  Button,
+  Chip,
   Skeleton,
   Table,
   TableBody,
@@ -13,165 +10,105 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TextField,
 } from "@mui/material"
-import { Link2Off, Search, SlidersHorizontal } from "lucide-react"
 import RelationshipStatus from "./RelationshipStatus"
-import styles from "./RelationshipList.module.scss"
 
-const ROWS_PER_PAGE = 6
-const formatDate = value =>
-  value ? new Intl.DateTimeFormat("vi-VN").format(new Date(value)) : "—"
+const formatDate = (value) =>
+  value ? new Date(value).toLocaleDateString("vi-VN") : "—"
 
 function RelationshipList({
   relationships,
   loading,
-  search,
-  status,
-  onSearchChange,
-  onStatusChange,
+  pagination,
+  onPageChange,
+  onOpen,
 }) {
-  const [page, setPage] = useState(0)
-
-  const filtered = useMemo(() => {
-    const keyword = search.trim().toLocaleLowerCase("vi")
-    return relationships.filter(relationship => {
-      const matchesKeyword =
-        !keyword ||
-        [relationship.supplier?.name, relationship.supplier?.taxCode, relationship.supplierId]
-          .filter(Boolean)
-          .some(value => value.toLocaleLowerCase("vi").includes(keyword))
-      return matchesKeyword && (status === "ALL" || relationship.status === status)
-    })
-  }, [relationships, search, status])
-
-  const visible = filtered.slice(
-    page * ROWS_PER_PAGE,
-    page * ROWS_PER_PAGE + ROWS_PER_PAGE,
-  )
-
+  if (loading) return <Skeleton variant="rounded" height={320} />
   return (
-    <section className={styles.panel} aria-label="Danh sách liên kết">
-      <div className={styles.filters}>
-        <TextField
-          value={search}
-          onChange={event => {
-            onSearchChange(event.target.value)
-            setPage(0)
-          }}
-          size="small"
-          placeholder="Tìm theo nhà cung cấp, mã số thuế hoặc ID"
-          className={styles.search}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start"><Search size={18} /></InputAdornment>
-              ),
-            },
-          }}
-        />
-        <FormControl size="small" className={styles.filterControl}>
-          <Select
-            value={status}
-            onChange={event => {
-              onStatusChange(event.target.value)
-              setPage(0)
-            }}
-            startAdornment={<SlidersHorizontal size={16} className={styles.filterIcon} />}
-          >
-            <MenuItem value="ALL">Tất cả trạng thái</MenuItem>
-            <MenuItem value="ACTIVE">Đang liên kết</MenuItem>
-            <MenuItem value="SUSPENDED">Tạm dừng</MenuItem>
-            <MenuItem value="UNLINKED">Đã hủy liên kết</MenuItem>
-          </Select>
-        </FormControl>
-      </div>
-
-      {loading ? (
-        <div className={styles.loading}>
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} variant="rounded" height={56} />
-          ))}
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className={styles.empty}>
-          <Link2Off size={28} />
-          <strong>Không có liên kết phù hợp</strong>
-          <span>Danh sách chỉ hiển thị các liên kết đã được lưu trong hệ thống.</span>
-        </div>
-      ) : (
-        <>
-          <TableContainer className={styles.desktopTable}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nhà cung cấp</TableCell>
-                  <TableCell>Mã số thuế</TableCell>
-                  <TableCell>Ngày thiết lập</TableCell>
-                  <TableCell>Ngày hủy</TableCell>
-                  <TableCell>Trạng thái</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {visible.map(relationship => (
-                  <TableRow key={relationship.id} hover>
-                    <TableCell>
-                      <strong className={styles.primaryText}>
-                        {relationship.supplier?.name || relationship.supplierId}
-                      </strong>
-                    </TableCell>
-                    <TableCell>{relationship.supplier?.taxCode || "—"}</TableCell>
-                    <TableCell>{formatDate(relationship.linkedAt)}</TableCell>
-                    <TableCell>{formatDate(relationship.unlinkedAt)}</TableCell>
-                    <TableCell className={styles.statusCell}>
-                      <RelationshipStatus status={relationship.status} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <div className={styles.mobileList}>
-            {visible.map(relationship => (
-              <article key={relationship.id} className={styles.mobileCard}>
-                <div className={styles.cardHeader}>
-                  <div>
-                    <span>Nhà cung cấp</span>
-                    <strong>{relationship.supplier?.name || relationship.supplierId}</strong>
-                  </div>
-                  <RelationshipStatus status={relationship.status} />
-                </div>
-                <dl>
-                  <div><dt>Mã số thuế</dt><dd>{relationship.supplier?.taxCode || "—"}</dd></div>
-                  <div><dt>Ngày thiết lập</dt><dd>{formatDate(relationship.linkedAt)}</dd></div>
-                </dl>
-              </article>
+    <section className="supplier-results" aria-label="Đối tác của trường">
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Nhà cung cấp</TableCell>
+              <TableCell>Quan hệ hợp tác</TableCell>
+              <TableCell>Điều kiện đặt hàng</TableCell>
+              <TableCell>Hợp đồng</TableCell>
+              <TableCell align="right">Thao tác</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {relationships.map((item) => (
+              <TableRow key={item.id} hover>
+                <TableCell>
+                  <strong>{item.supplier.name}</strong>
+                  <small>MST: {item.supplier.taxCode || "—"}</small>
+                </TableCell>
+                <TableCell>
+                  <RelationshipStatus status={item.status} />
+                  <small>Liên kết: {formatDate(item.linkedAt)}</small>
+                  {item.unlinkedAt && (
+                    <small>Ngừng: {formatDate(item.unlinkedAt)}</small>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={item.eligible ? "success" : "warning"}
+                    label={
+                      item.eligible
+                        ? "Có hợp đồng phù hợp"
+                        : item.status === "ACTIVE"
+                          ? "Cần bổ sung/kiểm tra hồ sơ"
+                          : "Đang ngừng đặt mới"
+                    }
+                  />
+                </TableCell>
+                <TableCell>
+                  {item.contracts.length ? (
+                    item.contracts.map((contract) => (
+                      <small key={contract.id}>
+                        {contract.number || "Hồ sơ nháp"} ·{" "}
+                        {formatDate(contract.endsOn)}
+                      </small>
+                    ))
+                  ) : (
+                    <span>Chưa có hồ sơ hợp đồng</span>
+                  )}
+                </TableCell>
+                <TableCell align="right">
+                  <Button onClick={() => onOpen(item.supplierId, "link")}>
+                    Hồ sơ & lịch sử
+                  </Button>
+                </TableCell>
+              </TableRow>
             ))}
-          </div>
-
-          <TablePagination
-            component="div"
-            count={filtered.length}
-            page={page}
-            rowsPerPage={ROWS_PER_PAGE}
-            rowsPerPageOptions={[ROWS_PER_PAGE]}
-            onPageChange={(_, nextPage) => setPage(nextPage)}
-            labelDisplayedRows={({ from, to, count }) => `${from}–${to} trong ${count}`}
-          />
-        </>
-      )}
+            {!relationships.length && (
+              <TableRow>
+                <TableCell colSpan={5}>
+                  <div className="supplier-empty">
+                    Chưa có đối tác phù hợp với bộ lọc.
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={pagination.total}
+        page={pagination.page - 1}
+        rowsPerPage={pagination.limit}
+        rowsPerPageOptions={[10]}
+        onPageChange={(_, page) => onPageChange(page + 1)}
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}–${to} trong ${count}`
+        }
+      />
     </section>
   )
-}
-
-RelationshipList.propTypes = {
-  relationships: PropTypes.arrayOf(PropTypes.object).isRequired,
-  loading: PropTypes.bool.isRequired,
-  search: PropTypes.string.isRequired,
-  status: PropTypes.string.isRequired,
-  onSearchChange: PropTypes.func.isRequired,
-  onStatusChange: PropTypes.func.isRequired,
 }
 
 export default RelationshipList

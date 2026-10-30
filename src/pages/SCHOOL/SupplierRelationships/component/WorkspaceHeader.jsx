@@ -13,16 +13,16 @@ function WorkspaceHeader({ activeView, onChangeView }) {
         <nav className={styles.breadcrumb} aria-label="Đường dẫn trang">
           <span>Nhà cung cấp</span>
           <span>/</span>
-          <strong>{isRelationships ? "Danh sách liên kết" : "Nhà cung cấp đang liên kết"}</strong>
+          <strong>{isRelationships ? "Đối tác của trường" : "Tất cả nhà cung cấp"}</strong>
         </nav>
         <p className={styles.eyebrow}>Quản lý nhà cung cấp</p>
         <h1 className={styles.title}>
-          {isRelationships ? "Danh sách liên kết" : "Nhà cung cấp đang liên kết"}
+          {isRelationships ? "Đối tác của trường" : "Tìm nhà cung cấp"}
         </h1>
         <p className={styles.subtitle}>
           {isRelationships
-            ? "Theo dõi các mối liên kết đã được lưu trong hệ thống."
-            : "Tra cứu hồ sơ nhà cung cấp trong phạm vi được phân quyền."}
+            ? "Theo dõi hợp đồng, điều kiện cung cấp và lịch sử hợp tác của trường."
+            : "Tra cứu nhà cung cấp toàn hệ thống, kiểm tra hồ sơ và thiết lập hợp tác."}
         </p>
       </div>
 
@@ -32,14 +32,14 @@ function WorkspaceHeader({ activeView, onChangeView }) {
           startIcon={<Building2 size={17} />}
           onClick={() => onChangeView("suppliers")}
         >
-          Nhà cung cấp
+          Tất cả nhà cung cấp
         </Button>
         <Button
           variant={isRelationships ? "contained" : "text"}
           startIcon={<Link2 size={17} />}
           onClick={() => onChangeView("relationships")}
         >
-          Liên kết hiện có
+          Đối tác của trường
         </Button>
       </div>
     </header>

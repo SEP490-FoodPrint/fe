@@ -1,60 +1,48 @@
 import http from "../01_axios"
-import { apiGetSupplierRelationships, apiGetSuppliers } from "./urls"
 
-const PAGE_LIMIT = 100
-
-const getCollection = async endpoint => {
-  const items = []
-  let page = 1
-  let hasNext = false
-
-  do {
-    const response = await http.get(endpoint, {
-      params: { page, limit: PAGE_LIMIT },
+const SupplierRelationshipService = {
+  listSuppliers: (params, signal) =>
+    http.get("/supplier-directory", { params, signal }),
+  listPartners: (params, signal) =>
+    http.get("/supplier-partnerships", { params, signal }),
+  getDetail: (supplierId) => http.get(`/supplier-directory/${supplierId}`),
+  getLocations: (parentId, signal) =>
+    http.get("/supplier-locations", {
+      params: parentId ? { parentId } : {},
+      signal,
+    }),
+  getFilters: () => http.get("/supplier-directory-filters"),
+  saveDraft: (body, id) =>
+    id
+      ? http.put(`/supplier-contracts/${id}`, body)
+      : http.post("/supplier-contracts", body),
+  upload: (id, kind, file) => {
+    const body = new FormData()
+    body.append("kind", kind)
+    body.append("file", file)
+    return http.post(`/supplier-contracts/${id}/documents`, body)
+  },
+  removeDocument: (id) => http.delete(`/supplier-contract-documents/${id}`),
+  download: async (file) => {
+    const blob = await http.get(`/supplier-contract-documents/${file.id}`, {
+      responseType: "blob",
     })
-    items.push(...(response?.data?.items || []))
-    hasNext = Boolean(response?.data?.pagination?.hasNext)
-    page += 1
-  } while (hasNext)
-
-  return items
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement("a")
+    anchor.href = url
+    anchor.download = file.fileName
+    anchor.click()
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+  },
+  activate: (id, revision) =>
+    http.post(`/supplier-contracts/${id}/activate`, {
+      revision,
+      verified: true,
+    }),
+  closeContract: (id, reason) =>
+    http.post(`/supplier-contracts/${id}/close`, { reason }),
+  changeRelationship: (id, action, reason) =>
+    http.post(`/supplier-partnerships/${id}/${action}`, { reason }),
 }
-
-const currentRelationship = relationships =>
-  [...relationships].sort((left, right) => {
-    const leftCurrent = ["ACTIVE", "SUSPENDED"].includes(left.status) ? 1 : 0
-    const rightCurrent = ["ACTIVE", "SUSPENDED"].includes(right.status) ? 1 : 0
-    if (leftCurrent !== rightCurrent) return rightCurrent - leftCurrent
-    return new Date(right.linkedAt) - new Date(left.linkedAt)
-  })[0] || null
-
-const getSuppliers = async () => {
-  const [suppliers, relationships] = await Promise.all([
-    getCollection(apiGetSuppliers),
-    getCollection(apiGetSupplierRelationships),
-  ])
-
-  return suppliers.map(supplier => ({
-    ...supplier,
-    relationship: currentRelationship(
-      relationships.filter(item => item.supplierId === supplier.id),
-    ),
-  }))
-}
-
-const getRelationships = async () => {
-  const [relationships, suppliers] = await Promise.all([
-    getCollection(apiGetSupplierRelationships),
-    getCollection(apiGetSuppliers),
-  ])
-  const suppliersById = new Map(suppliers.map(supplier => [supplier.id, supplier]))
-
-  return relationships.map(relationship => ({
-    ...relationship,
-    supplier: suppliersById.get(relationship.supplierId) || null,
-  }))
-}
-
-const SupplierRelationshipService = { getSuppliers, getRelationships }
 
 export default SupplierRelationshipService

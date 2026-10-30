@@ -1,9 +1,7 @@
-import React, { useMemo, useState } from "react"
-import PropTypes from "prop-types"
+import React from "react"
 import {
   Button,
   Chip,
-  InputAdornment,
   Skeleton,
   Table,
   TableBody,
@@ -12,159 +10,111 @@ import {
   TableHead,
   TablePagination,
   TableRow,
-  TextField,
 } from "@mui/material"
-import { RotateCcw, Search } from "lucide-react"
 import RelationshipStatus from "./RelationshipStatus"
-import styles from "./SupplierList.module.scss"
-
-const ROWS_PER_PAGE = 6
 
 function SupplierList({
   suppliers,
   loading,
-  search,
-  onSearchChange,
-  onClearFilters,
+  pagination,
+  onPageChange,
+  onOpen,
+  canManage,
 }) {
-  const [page, setPage] = useState(0)
-
-  const filteredSuppliers = useMemo(() => {
-    const keyword = search.trim().toLocaleLowerCase("vi")
-    return suppliers.filter(supplier => {
-      const matchesKeyword =
-        !keyword ||
-        [supplier.name, supplier.taxCode, supplier.id]
-          .filter(Boolean)
-          .some(value => value.toLocaleLowerCase("vi").includes(keyword))
-      return matchesKeyword
-    })
-  }, [search, suppliers])
-
-  const visibleSuppliers = filteredSuppliers.slice(
-    page * ROWS_PER_PAGE,
-    page * ROWS_PER_PAGE + ROWS_PER_PAGE,
-  )
-  const hasFilters = Boolean(search)
-
+  if (loading) return <Skeleton variant="rounded" height={320} />
   return (
-    <section className={styles.panel} aria-label="Danh sách nhà cung cấp">
-      <div className={styles.filters}>
-        <TextField
-          value={search}
-          onChange={event => {
-            onSearchChange(event.target.value)
-            setPage(0)
-          }}
-          size="small"
-          placeholder="Tìm theo tên, mã số thuế hoặc ID"
-          className={styles.search}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start"><Search size={18} /></InputAdornment>
-              ),
-            },
-          }}
-        />
-        <Button
-          variant="text"
-          startIcon={<RotateCcw size={16} />}
-          disabled={!hasFilters}
-          onClick={() => {
-            onClearFilters()
-            setPage(0)
-          }}
-          className={styles.clearButton}
-        >
-          Xóa bộ lọc
-        </Button>
-      </div>
-
-      {loading ? (
-        <div className={styles.loading} aria-label="Đang tải danh sách">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <Skeleton key={index} variant="rounded" height={56} />
-          ))}
-        </div>
-      ) : filteredSuppliers.length === 0 ? (
-        <div className={styles.empty}>
-          <Search size={28} />
-          <strong>Không có nhà cung cấp phù hợp</strong>
-          <span>Dữ liệu được đọc trực tiếp từ danh sách nhà cung cấp của hệ thống.</span>
-        </div>
-      ) : (
-        <>
-          <TableContainer className={styles.desktopTable}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Nhà cung cấp</TableCell>
-                  <TableCell>Mã số thuế</TableCell>
-                  <TableCell>Trạng thái hồ sơ</TableCell>
-                  <TableCell>Liên kết với trường</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {visibleSuppliers.map(supplier => (
-                  <TableRow key={supplier.id} hover>
-                    <TableCell>
-                      <strong className={styles.supplierName}>{supplier.name}</strong>
-                      <span className={styles.identifier}>{supplier.id}</span>
-                    </TableCell>
-                    <TableCell>{supplier.taxCode || "—"}</TableCell>
-                    <TableCell>
-                      <Chip
-                        size="small"
-                        color={supplier.status === "ACTIVE" ? "success" : "default"}
-                        label={supplier.status === "ACTIVE" ? "Đang hoạt động" : "Không hoạt động"}
-                        variant="outlined"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <RelationshipStatus status={supplier.relationship?.status} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-
-          <div className={styles.mobileList}>
-            {visibleSuppliers.map(supplier => (
-              <article key={supplier.id} className={styles.mobileCard}>
-                <div className={styles.cardHeader}>
-                  <div>
-                    <strong>{supplier.name}</strong>
-                    <span>MST: {supplier.taxCode || "—"}</span>
+    <section className="supplier-results" aria-label="Tất cả nhà cung cấp">
+      <TableContainer>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Nhà cung cấp</TableCell>
+              <TableCell>Trụ sở / Nhóm hàng</TableCell>
+              <TableCell>Trạng thái</TableCell>
+              <TableCell align="right">Thao tác</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {suppliers.map((supplier) => (
+              <TableRow key={supplier.id} hover>
+                <TableCell>
+                  <strong>{supplier.name}</strong>
+                  <small>MST: {supplier.taxCode || "Chưa cập nhật"}</small>
+                  <small>{supplier.phone || supplier.email || ""}</small>
+                </TableCell>
+                <TableCell>
+                  <span>
+                    {[supplier.location?.name, supplier.location?.parent?.name]
+                      .filter(Boolean)
+                      .join(", ") || "Chưa cập nhật địa bàn"}
+                  </span>
+                  <small>{supplier.address || "Chưa cập nhật địa chỉ"}</small>
+                  <small>
+                    {supplier.ingredients
+                      .map((item) => item.category)
+                      .filter(Boolean)
+                      .join(" · ") || "Chưa cập nhật nhóm hàng"}
+                  </small>
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    size="small"
+                    variant="outlined"
+                    color={supplier.status === "ACTIVE" ? "success" : "default"}
+                    label={
+                      supplier.status === "ACTIVE"
+                        ? "Đang hoạt động"
+                        : "Ngừng hoạt động"
+                    }
+                  />
+                  <div style={{ marginTop: 8 }}>
+                    <RelationshipStatus
+                      status={supplier.relationship?.status}
+                    />
                   </div>
-                  <RelationshipStatus status={supplier.relationship?.status} />
-                </div>
-              </article>
+                </TableCell>
+                <TableCell align="right">
+                  <div className="supplier-row-actions">
+                    <Button onClick={() => onOpen(supplier.id, "view")}>
+                      Xem hồ sơ
+                    </Button>
+                    {canManage && supplier.status === "ACTIVE" && (
+                      <Button
+                        variant="outlined"
+                        onClick={() => onOpen(supplier.id, "link")}
+                      >
+                        {supplier.relationship ? "Hợp đồng" : "Liên kết"}
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
             ))}
-          </div>
-
-          <TablePagination
-            component="div"
-            count={filteredSuppliers.length}
-            page={page}
-            rowsPerPage={ROWS_PER_PAGE}
-            rowsPerPageOptions={[ROWS_PER_PAGE]}
-            onPageChange={(_, nextPage) => setPage(nextPage)}
-            labelDisplayedRows={({ from, to, count }) => `${from}–${to} trong ${count}`}
-          />
-        </>
-      )}
+            {!suppliers.length && (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <div className="supplier-empty">
+                    Không có nhà cung cấp phù hợp. Thử bỏ bớt bộ lọc.
+                  </div>
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </TableContainer>
+      <TablePagination
+        component="div"
+        count={pagination.total}
+        page={pagination.page - 1}
+        rowsPerPage={pagination.limit}
+        rowsPerPageOptions={[10]}
+        onPageChange={(_, page) => onPageChange(page + 1)}
+        labelDisplayedRows={({ from, to, count }) =>
+          `${from}–${to} trong ${count}`
+        }
+      />
     </section>
   )
-}
-
-SupplierList.propTypes = {
-  suppliers: PropTypes.arrayOf(PropTypes.object).isRequired,
-  loading: PropTypes.bool.isRequired,
-  search: PropTypes.string.isRequired,
-  onSearchChange: PropTypes.func.isRequired,
-  onClearFilters: PropTypes.func.isRequired,
 }
 
 export default SupplierList
