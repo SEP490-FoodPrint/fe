@@ -45,6 +45,7 @@ instance.interceptors.response.use(
     return response
   },
   error => {
+    if (error.config?.url === "/auth/login") return Promise.reject(error)
     if (error.response?.status === 401) {
       notice({ msg: "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn", isSuccess: false })
       deleteStorage(STORAGE.TOKEN)
