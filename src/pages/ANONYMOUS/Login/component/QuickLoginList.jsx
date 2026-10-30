@@ -23,7 +23,7 @@ function QuickLoginList({ onLoginSuccess }) {
     <Card className={styles.quickLoginCard}>
       <CardHeader
         title={
-          <Box display="flex" alignItems="center" gap={1.5}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Typography variant="h6" fontWeight={700}>
               ⚡ Đăng nhập Nhanh để Test Phân Quyền
             </Typography>
@@ -49,9 +49,9 @@ function QuickLoginList({ onLoginSuccess }) {
                 onClick={() => handleQuickLogin(acc.role)}
                 className={styles.roleItem}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Chip
                         label={acc.orgType}
                         size="small"

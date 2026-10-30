@@ -5,6 +5,12 @@ export const ORG_TYPES = {
   SUPPLIER: "SUPPLIER",
 }
 
+export const ORG_LABELS = {
+  [ORG_TYPES.SYSTEM]: "Quản trị hệ thống",
+  [ORG_TYPES.SCHOOL]: "Nhà trường",
+  [ORG_TYPES.SUPPLIER]: "Nhà cung cấp",
+}
+
 // 9 Vai trò nghiệp vụ của hệ thống FoodPrint (1 account = 1 role)
 export const ROLES = {
   // Nhóm SYSTEM
