@@ -14,7 +14,7 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 import CloseIcon from "@mui/icons-material/Close"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
-import { MOCK_ACCOUNTS, ROLE_LABELS } from "src/constants/roles"
+import { MOCK_ACCOUNTS, ROLE_LABELS, ROLES } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
 import { getDefaultRedirectByOrg, getDefaultRedirectByUser } from "src/lib/utils"
 
@@ -27,7 +27,9 @@ function RoleSwitcher() {
   const user = userStore?.user
   const setUser = userStore?.setUser
 
-  if (!isLoginContext) return null
+  if (!isLoginContext || user?.role === ROLES.SCHOOL_KITCHEN_STAFF || user?.role === "SCHOOL_KITCHEN_STAFF") {
+    return null
+  }
 
   const handleSwitch = (roleCode) => {
     const { user: newUser } = AuthService.mockLoginByRole(roleCode)
@@ -45,18 +47,24 @@ function RoleSwitcher() {
           color="primary"
           startIcon={<SwapHorizIcon />}
           onClick={() => setOpen(true)}
+          aria-label="Đổi vai trò"
           sx={{
             position: "fixed",
             bottom: 24,
             right: 24,
-            zIndex: 9999,
+            zIndex: "var(--z-dropdown)",
             borderRadius: 8,
             boxShadow: "0 4px 16px rgba(10, 128, 102, 0.4)",
             height: 44,
-            px: 2,
+            px: { xs: 0, sm: 2 },
+            minWidth: { xs: 44, sm: "auto" },
+            width: { xs: 44, sm: "auto" },
+            "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1 }, ml: 0 },
           }}
         >
-          Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})
+          </Box>
         </Button>
       </Tooltip>
 
@@ -64,11 +72,9 @@ function RoleSwitcher() {
         anchor="right"
         open={open}
         onClose={() => setOpen(false)}
-        PaperProps={{
-          sx: { width: 380, p: 3 },
-        }}
+        slotProps={{ paper: { sx: { width: "min(380px, 100vw)", p: 3 } } }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
           <Typography variant="h6" fontWeight={700}>
             ⚡ Chuyển Đổi Nhanh 9 Vai Trò
           </Typography>
@@ -81,7 +87,7 @@ function RoleSwitcher() {
           Chọn một vai trò bất kỳ để chuyển đổi tức thì. Menu Sidebar và quyền truy cập sẽ tự động thay đổi theo:
         </Typography>
 
-        <Box display="flex" flexDirection="column" gap={1.5}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {MOCK_ACCOUNTS.map((acc) => {
             const isCurrent = acc.role === user?.role
             return (
@@ -100,7 +106,7 @@ function RoleSwitcher() {
                 }}
               >
                 <CardContent sx={{ p: "12px !important" }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
                     <Typography fontWeight={600} fontSize="0.95rem">
                       {acc.fullName}
                     </Typography>
@@ -113,7 +119,7 @@ function RoleSwitcher() {
                       />
                     )}
                   </Box>
-                  <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
                     <Chip
                       label={acc.orgType}
                       size="small"

@@ -1,79 +1,86 @@
-import React from "react"
+import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { Plus, FileDown, Clock } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
-import KitchenSidebar from "../component/KitchenSidebar"
-import KitchenHeader from "../component/KitchenHeader"
-import KitchenFooter from "../component/KitchenFooter"
 import CookingBatchesKPI from "./CookingBatchesKPI"
 import CookingBatchesFilter from "./CookingBatchesFilter"
 import CookingBatchesTable from "./CookingBatchesTable"
 import SampleReminderBanner from "./SampleReminderBanner"
-import RoleSwitcher from "src/components/Common/RoleSwitcher"
 import styles from "./index.module.scss"
 
 /**
- * CookingBatches - Màn hình Quản lý Lô / Mẻ Chế Biến (Nhân viên Bếp)
- * Chuẩn hóa 100% theo bản thiết kế Google Stitch:
- * - Left Sidebar xanh ngọc #0A8066 với Logo chính thức
- * - Top Header xanh nhạt #EDF7F0 dính cố định
- * - 4 Thẻ KPI thống kê tiến độ nấu & lưu mẫu
- * - Dải bộ lọc dàn ngang (Tìm kiếm, Ngày, Bữa ăn, Phương thức, Trạng thái)
- * - Bảng dữ liệu mẻ chế biến kèm phân tách Nấu chung vs Nấu riêng (dị ứng)
- * - Khối nhắc nhở quy chuẩn lưu mẫu thực phẩm 24h
- * - Footer nghiệp vụ
+ * CookingBatches - Màn hình Quản lý Lô Chế Biến (Nhân viên Bếp)
+ * Chuẩn hóa Mobile-First & UI/UX Pro Max:
+ * - Kế thừa MainLayout dùng chung (Sidebar xanh #0A8066 + DashboardHeader)
+ * - Header Trang: Tiêu đề + Nút Tạo mẻ mới
+ * - 4 Ô KPI dạng ngói compact 2 cột trên mobile
+ * - Dải Filter Chips vuốt ngang mượt mà
+ * - Bảng thích ứng: Desktop giữ bảng, Mobile chuyển thành Thẻ 2 hàng mật độ cao (~60px)
+ * - Nút Tạo mẻ ghim đáy màn hình (Sticky Bottom CTA) cho ngón tay cái thao tác 1 tay
  */
 function CookingBatches() {
+  const navigate = useNavigate()
+  const [filterChip, setFilterChip] = useState("ALL")
+  const [searchTerm, setSearchTerm] = useState("")
+
   return (
-    <div className={styles.pageShell}>
-      {/* 1. Left Sidebar Xanh #0A8066 */}
-      <KitchenSidebar />
-
-      {/* 2. Main Canvas bên phải (ml-64 = 256px) */}
-      <div className={styles.mainCanvas}>
-        <KitchenHeader />
-
-        <main className={styles.mainContent}>
-          {/* Header Trang: Tiêu đề + Hành động */}
-          <div className={styles.pageHeader}>
-            <div className={styles.titleWrap}>
-              <h1 className={styles.title}>Danh sách lô chế biến</h1>
-              <div className={styles.shiftBadge}>
-                <span className={styles.pulseDot} />
-                <span>Ca trưa • Hôm nay</span>
-              </div>
-            </div>
-
-            <div className={styles.actionBtns}>
-              <button type="button" className={styles.exportBtn}>
-                <span className="material-symbols-outlined">file_download</span>
-                <span>Xuất báo cáo</span>
-              </button>
-
-              <button type="button" className={styles.createBtn}>
-                <span className="material-symbols-outlined">add</span>
-                <span>Tạo mẻ mới</span>
-              </button>
-            </div>
+    <div className={styles.batchesContainer}>
+      {/* 1. Header Trang: Tiêu đề + Badge ca ăn + Nút thao tác Desktop */}
+      <div className={styles.pageHeader}>
+        <div className={styles.titleWrap}>
+          <h1 className={styles.title}>Quản lý lô chế biến</h1>
+          <div className={styles.shiftBadge}>
+            <span className={styles.pulseDot} />
+            <Clock size={13} className={styles.clockIcon} />
+            <span>Ca trưa (11:15)</span>
           </div>
+        </div>
 
-          {/* 4 Thẻ KPI Thống Kê */}
-          <CookingBatchesKPI />
+        {/* Action buttons (Desktop) */}
+        <div className={styles.actionBtns}>
+          <button type="button" className={styles.exportBtn} title="Xuất báo cáo danh sách lô chế biến">
+            <FileDown size={16} />
+            <span>Xuất báo cáo</span>
+          </button>
 
-          {/* Dải Bộ Lọc */}
-          <CookingBatchesFilter />
-
-          {/* Bảng Dữ Liệu Lô Chế Biến */}
-          <CookingBatchesTable />
-
-          {/* Khối Nhắc Quy Chuẩn Lưu Mẫu */}
-          <SampleReminderBanner />
-        </main>
-
-        <KitchenFooter />
+          <button
+            type="button"
+            className={styles.createBtn}
+            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)}
+          >
+            <Plus size={18} />
+            <span>Tạo lô nấu mới</span>
+          </button>
+        </div>
       </div>
 
-      {/* Nút đổi vai trò nổi để test */}
-      <RoleSwitcher />
+      {/* 2. Nhắc nhở lưu mẫu thanh mảnh */}
+      <SampleReminderBanner />
+
+      {/* 3. 4 Ô KPI Mật độ cao (2 cột compact trên mobile) */}
+      <CookingBatchesKPI />
+
+      {/* 4. Dải Bộ Lọc (Search box + Filter Chips cuộn ngang) */}
+      <CookingBatchesFilter
+        activeQuickFilter={filterChip}
+        onQuickFilterChange={(chipId) => setFilterChip(chipId)}
+        onFilterChange={({ searchTerm: term }) => setSearchTerm(term)}
+      />
+
+      {/* 5. Bảng / Thẻ Dữ Liệu Lô Chế Biến */}
+      <CookingBatchesTable filterChip={filterChip} searchTerm={searchTerm} />
+
+      {/* 6. Nút Tạo mẻ ghim đáy màn hình cho Mobile (Thumb-friendly Sticky CTA) */}
+      <div className={styles.mobileStickyBar}>
+        <button
+          type="button"
+          className={styles.mobileCreateBtn}
+          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)}
+        >
+          <Plus size={19} />
+          <span>Tạo lô nấu mới</span>
+        </button>
+      </div>
     </div>
   )
 }

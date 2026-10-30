@@ -1,23 +1,36 @@
-import React from "react"
+import React, { useState } from "react"
+import { ShieldCheck, ChevronRight, X } from "lucide-react"
 import styles from "./SampleReminderBanner.module.scss"
 
 function SampleReminderBanner() {
+  const [closed, setClosed] = useState(false)
+
+  if (closed) return null
+
   return (
-    <div className={styles.banner}>
-      <div className={styles.left}>
-        <div className={styles.iconBox}>
-          <span className="material-symbols-outlined">shield</span>
-        </div>
-        <p className={styles.text}>
-          <strong className={styles.boldText}>Quy chuẩn lưu mẫu thực phẩm 24h:</strong> Mẫu lưu tối
-          thiểu 100g trong hộp tiệt trùng sau khi hoàn thành mẻ.
+    <div className={styles.slimTipBar} role="note" aria-label="Quy chuẩn lưu mẫu thực phẩm">
+      <div className={styles.tipLeft}>
+        <ShieldCheck size={16} className={styles.tipIcon} aria-hidden="true" />
+        <p className={styles.tipText}>
+          <strong className={styles.boldText}>Lưu mẫu 24h:</strong> Tối thiểu 100g/món trong hộp tiệt trùng sau khi nấu xong.
         </p>
       </div>
 
-      <a href="#sample-book" className={styles.link}>
-        <span>Sổ lưu mẫu</span>
-        <span className="material-symbols-outlined">arrow_forward</span>
-      </a>
+      <div className={styles.tipRight}>
+        <a href="#sample-log" className={styles.tipLink}>
+          <span>Sổ lưu mẫu</span>
+          <ChevronRight size={14} />
+        </a>
+        <button
+          type="button"
+          className={styles.closeBtn}
+          onClick={() => setClosed(true)}
+          aria-label="Đóng nhắc nhở"
+          title="Đóng nhắc nhở"
+        >
+          <X size={14} />
+        </button>
+      </div>
     </div>
   )
 }

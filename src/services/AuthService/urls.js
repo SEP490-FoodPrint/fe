@@ -3,4 +3,5 @@
  */
 export const apiLogin = "/auth/login"
 export const apiLogout = "/auth/logout"
-export const apiGetProfile = "/auth/profile"
+export const apiRefresh = "/auth/refresh"
+export const apiGetProfile = "/auth/me"

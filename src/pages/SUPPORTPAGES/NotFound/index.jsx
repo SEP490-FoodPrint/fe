@@ -22,13 +22,15 @@ function NotFound() {
 
   return (
     <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      minHeight="70vh"
-      textAlign="center"
-      px={2}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "70vh",
+        textAlign: "center",
+        px: 2,
+      }}
     >
       <SearchOffIcon sx={{ fontSize: 80, color: "warning.main", mb: 2 }} />
       <Typography variant="h4" fontWeight={700} gutterBottom>
