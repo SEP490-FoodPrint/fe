@@ -19,7 +19,7 @@ const ALLOCATIONS = [
   {
     id: "alloc-1",
     target: "Khối 6 (Phòng 201–207)",
-    timeTag: "Trưa nay • Giao 10:45",
+    timeTag: "Giờ ăn 11:15 (Giao trước 11:00)",
     portion: "360 suất",
     status: "Đang giao",
     statusType: "info",
@@ -27,7 +27,7 @@ const ALLOCATIONS = [
   {
     id: "alloc-2",
     target: "Khối 7 (Phòng 301–308)",
-    timeTag: "Trưa qua • Giao 10:50",
+    timeTag: "Ca trưa 11:15 (Đã bàn giao)",
     portion: "380 suất",
     status: "Đã giao",
     statusType: "success",
@@ -35,7 +35,7 @@ const ALLOCATIONS = [
   {
     id: "alloc-3",
     target: "Khối 8 (Phòng 401–408)",
-    timeTag: "Trưa qua • Giao 10:55",
+    timeTag: "Ca trưa 11:15 (Đã bàn giao)",
     portion: "375 suất",
     status: "Đã giao",
     statusType: "success",

@@ -15,7 +15,7 @@ const TASKS = [
   {
     id: "task-1",
     title: "Thịt heo kho nước dừa",
-    timeTag: "Xong trước 10:30",
+    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
     portion: "1.250 suất",
     statusText: "Chờ nấu",
     statusType: "warning",
@@ -28,7 +28,7 @@ const TASKS = [
   {
     id: "task-2",
     title: "Phân bổ Khối 6 & Khối 7",
-    timeTag: "Giao lúc 10:45",
+    timeTag: "Giờ ăn 11:15 (Giao trước 11:00)",
     portion: "620 suất",
     statusText: "Chưa giao",
     statusType: "info",
@@ -41,7 +41,7 @@ const TASKS = [
   {
     id: "task-3",
     title: "Thịt ba chỉ & Trứng cút",
-    timeTag: "Nhập sáng nay",
+    timeTag: "Ca trưa 11:15 (Duyệt trước 08:30)",
     portion: "HTX Nam Hà",
     statusText: "Cần kiểm thực",
     statusType: "primary",
