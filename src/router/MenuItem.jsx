@@ -15,6 +15,11 @@ import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined"
 import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined"
 import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined"
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined"
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined"
+import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlined"
+import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
+import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
+import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -90,7 +95,6 @@ export const MenuItemSchool = () => [
       ROLES.SCHOOL_ADMIN,
       ROLES.SCHOOL_MANAGEMENT_BOARD,
       ROLES.SCHOOL_HEALTH_OFFICER,
-      ROLES.SCHOOL_KITCHEN_STAFF,
       ROLES.HOMEROOM_TEACHER,
       ROLES.PARENTS_COMMITTEE,
       ROLES.INGREDIENT_MANAGEMENT,
@@ -112,7 +116,7 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Kiểm tra Nguyên liệu",
     icon: <HealthAndSafetyOutlinedIcon />,
-    // Màn hình dùng chung cho 3 bộ phận
+    // Màn hình dùng cho Y tế, Phụ huynh, Kho
     roles: [
       ROLES.SCHOOL_HEALTH_OFFICER,
       ROLES.PARENTS_COMMITTEE,
@@ -120,35 +124,54 @@ export const MenuItemSchool = () => [
     ],
   },
 
-  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN BẾP (SCHOOL_KITCHEN_STAFF) ===
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN BẾP (SCHOOL_KITCHEN_STAFF) - 8 MỤC GỐC ===
   {
     key: ROUTER.SCHOOL_KITCHEN_COOKING,
-    label: "Vận hành Bếp ăn",
-    icon: <SoupKitchenOutlinedIcon />,
+    label: "Trang chủ",
+    icon: <HomeOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_MENU,
+    label: "Thực đơn đã lên",
+    icon: <RestaurantMenuOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_BATCHES,
-    label: "Quản lý Lô chế biến",
-    icon: <OutdoorGrillOutlinedIcon />,
+    label: "Mẻ chế biến",
+    icon: <SoupKitchenOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
-    label: "Phân bổ Suất ăn",
-    icon: <GroupsOutlinedIcon />,
+    label: "Phân bổ suất ăn",
+    icon: <RoomServiceOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_INGREDIENTS,
+    label: "Danh sách nguyên liệu",
+    icon: <Inventory2OutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_SAMPLES,
-    label: "Lưu mẫu Thực phẩm 24h",
-    icon: <SanitizerOutlinedIcon />,
+    label: "Mẫu lưu thực phẩm",
+    icon: <ScienceOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
-    key: ROUTER.SCHOOL_KITCHEN_HANDOVER,
-    label: "Bàn giao Suất ăn",
-    icon: <LocalShippingOutlinedIcon />,
+    key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
+    label: "Đánh giá nguyên liệu",
+    icon: <FactCheckOutlinedIcon />,
+    badge: "1",
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_TRACEABILITY,
+    label: "Truy xuất nguồn gốc",
+    icon: <QrCodeScannerOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
 

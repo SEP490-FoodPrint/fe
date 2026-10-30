@@ -135,7 +135,7 @@ const routes = [
       {
         element: <MainLayout type="SCHOOL" />,
         children: [
-          // Tổng quan trường học: Cả 7 roles đều được vào
+          // Tổng quan trường học
           {
             path: ROUTER.SCHOOL_OVERVIEW,
             element: <LazyWrapper><SchoolOverview /></LazyWrapper>,
@@ -157,19 +157,28 @@ const routes = [
             ],
           },
 
-          // Kiểm tra nguyên liệu đầu vào: Y tế, Ban Phụ huynh, Kho
+          // Kiểm tra nguyên liệu đầu vào: Y tế, Ban Phụ huynh, Kho, Nhân viên Bếp (Đánh giá nguyên liệu)
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT, ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_INGREDIENT_INSPECT, element: <LazyWrapper><IngredientInspect /></LazyWrapper> },
             ],
           },
 
-          // Vận hành Bếp ăn & Lưu mẫu: Nhân viên Bếp, School Admin
+          // Vận hành Bếp ăn: Nhân viên Bếp, School Admin (Các trang chuyên biệt của Bếp)
           {
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]} />,
             children: [
               { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_BATCHES, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_INGREDIENTS, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
             ],
           },
 
