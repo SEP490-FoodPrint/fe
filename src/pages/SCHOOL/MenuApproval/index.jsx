@@ -11,7 +11,7 @@ import MenuSummary from "./component/MenuSummary"
 import "./style.scss"
 
 function MenuApproval() {
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const menuId = searchParams.get("menuId")
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -23,20 +23,37 @@ function MenuApproval() {
   const submitLock = useRef(false)
 
   useEffect(() => {
-    if (!menuId) {
-      setMenu(null)
-      setError("Chưa chọn thực đơn cần phê duyệt.")
-      setLoading(false)
-      return undefined
-    }
-
     let mounted = true
 
     const loadMenu = async () => {
       setLoading(true)
       setError("")
       try {
-        const response = await MenuService.getApprovalDetail(menuId)
+        let selectedMenuId = menuId
+
+        if (!selectedMenuId) {
+          const menus = await MenuService.getMenus()
+          const selectedMenu =
+            menus.find(item => item.status === "PENDING_APPROVAL") ||
+            menus.find(item => item.status === "REVISION_REQUIRED") ||
+            menus.find(item => item.status !== "DRAFT") ||
+            menus[0]
+
+          if (!selectedMenu) {
+            if (mounted) {
+              setMenu(null)
+              setError("Chưa có thực đơn để hiển thị.")
+            }
+            return
+          }
+
+          selectedMenuId = selectedMenu.id
+          if (mounted) {
+            setSearchParams({ menuId: selectedMenuId }, { replace: true })
+          }
+        }
+
+        const response = await MenuService.getApprovalDetail(selectedMenuId)
         if (mounted) setMenu(response?.data || response)
       } catch (requestError) {
         if (mounted) {
@@ -54,7 +71,7 @@ function MenuApproval() {
     return () => {
       mounted = false
     }
-  }, [menuId])
+  }, [menuId, setSearchParams])
 
   const visibleDays = useMemo(() => {
     if (!menu?.days) return []
