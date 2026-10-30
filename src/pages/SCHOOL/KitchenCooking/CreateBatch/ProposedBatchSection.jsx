@@ -1,9 +1,6 @@
 import React, { useState } from "react"
 import {
   CookingPot,
-  Clock,
-  Thermometer,
-  ShieldCheck,
   Layers,
   ChevronDown,
   ChevronUp,
@@ -20,9 +17,9 @@ export default function ProposedBatchSection() {
         <div className={styles.titleWithBadge}>
           <div className={styles.numberBadge}>3</div>
           <div>
-            <h2 className={styles.sectionTitle}>3. Phương án chế biến &amp; An toàn bếp</h2>
+            <h2 className={styles.sectionTitle}>3. Phương án chế biến dự kiến</h2>
             <p className={styles.sectionSubtitle}>
-              Kế hoạch thời gian, kiểm soát nhiệt độ an toàn thực phẩm và liên kết truy xuất
+              Hợp nhất lô nấu theo quy chuẩn, tự động liên kết nguồn gốc đa lô
             </p>
           </div>
         </div>
@@ -42,56 +39,6 @@ export default function ProposedBatchSection() {
             <p className={styles.summaryText}>
               Bữa trưa học đường (11:15) • Quy mô: <strong>1.250 suất</strong> (100% nhu cầu điểm danh)
             </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid Tiêu chuẩn Vận hành & ATTP */}
-      <div className={styles.executionGrid}>
-        {/* Card 1: Khung giờ chế biến */}
-        <div className={styles.execCard}>
-          <div className={styles.execCardHeader}>
-            <Clock size={16} className={styles.execIconTime} />
-            <span className={styles.execCardTitle}>Khung giờ chế biến</span>
-          </div>
-          <div className={styles.execCardBody}>
-            <div className={styles.timeTimeline}>
-              <div className={styles.timePoint}>
-                <span className={styles.timeLabel}>Bắt đầu nấu</span>
-                <span className={styles.timeValue}>08:30</span>
-              </div>
-              <span className={styles.timeArrow}>→</span>
-              <div className={styles.timePoint}>
-                <span className={styles.timeLabel}>Hoàn tất món</span>
-                <span className={styles.timeValueHighlight}>10:30</span>
-              </div>
-            </div>
-            <span className={styles.timeNotice}>Sẵn sàng chia suất trước giờ ăn 45 phút (11:15)</span>
-          </div>
-        </div>
-
-        {/* Card 2: Tiêu chuẩn an toàn thực phẩm (ATTP) */}
-        <div className={styles.execCard}>
-          <div className={styles.execCardHeader}>
-            <ShieldCheck size={16} className={styles.execIconSafety} />
-            <span className={styles.execCardTitle}>Kiểm soát an toàn (ATTP)</span>
-          </div>
-          <div className={styles.execCardBody}>
-            <div className={styles.safetySpecsList}>
-              <div className={styles.specItem}>
-                <Thermometer size={14} className={styles.specIcon} />
-                <span className={styles.specText}>
-                  Nhiệt độ sôi tâm món: <strong>≥ 85°C</strong>
-                </span>
-              </div>
-              <div className={styles.specItem}>
-                <CheckCircle2 size={14} className={styles.specIcon} />
-                <span className={styles.specText}>
-                  Lưu mẫu thực phẩm 24h: <strong>100g niêm phong</strong>
-                </span>
-              </div>
-            </div>
-            <span className={styles.safetyRule}>Tuân thủ quy chuẩn bếp ăn bán trú học đường</span>
           </div>
         </div>
       </div>
