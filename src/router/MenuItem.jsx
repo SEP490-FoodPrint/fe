@@ -59,19 +59,31 @@ export const MenuItemSupplier = () => [
     key: ROUTER.SUPPLIER_OVERVIEW,
     label: "Tổng quan Nhà cung cấp",
     icon: <DashboardOutlinedIcon />,
-    roles: [ROLES.INGREDIENT_SUPPLIER],
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
   },
   {
     key: ROUTER.SUPPLIER_INGREDIENTS,
     label: "Danh mục Nguyên liệu",
     icon: <Inventory2OutlinedIcon />,
-    roles: [ROLES.INGREDIENT_SUPPLIER],
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
   },
   {
     key: ROUTER.SUPPLIER_ORDERS,
     label: "Đơn hàng Cung ứng",
     icon: <LocalShippingOutlinedIcon />,
-    roles: [ROLES.INGREDIENT_SUPPLIER],
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
   },
 ]
 

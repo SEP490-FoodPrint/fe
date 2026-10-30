@@ -25,15 +25,16 @@ function LoginForm({ onLoginSuccess }) {
   const handleSubmit = async e => {
     e.preventDefault()
     if (!username.trim()) {
-      setErrorText("Vui lòng nhập tên đăng nhập")
+      setErrorText("Vui lòng nhập tên đăng nhập hoặc email")
       return
     }
     setErrorText("")
     try {
       setLoading(true)
       const res = await AuthService.login({ username, password })
-      if (res?.isOk) {
-        onLoginSuccess(res.Object.User)
+      const user = res?.data?.user || res?.Object?.User
+      if (user) {
+        onLoginSuccess(user)
       } else {
         setErrorText(res?.message || "Đăng nhập thất bại")
       }
@@ -56,7 +57,7 @@ function LoginForm({ onLoginSuccess }) {
       />
       <CardContent>
         <Alert severity="info" sx={{ mb: 3, fontSize: "0.85rem" }}>
-          Bạn có thể đăng nhập bằng tài khoản hoặc click nhanh 1 trong 9 vai trò bên phải để test quyền.
+          Đăng nhập bằng tài khoản Cloud (Mật khẩu mặc định: <b>123456</b>) hoặc click nhanh danh sách vai trò bên phải để test phân quyền.
         </Alert>
 
         {errorText && (
@@ -67,12 +68,12 @@ function LoginForm({ onLoginSuccess }) {
 
         <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           <TextField
-            label="Tên đăng nhập"
+            label="Tên đăng nhập / Email"
             variant="outlined"
             fullWidth
             value={username}
             onChange={e => setUsername(e.target.value)}
-            placeholder="Ví dụ: school_teacher"
+            placeholder="Ví dụ: sysadmin, fp_demo_bgh, fp_demo_teacher..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -89,7 +90,7 @@ function LoginForm({ onLoginSuccess }) {
             fullWidth
             value={password}
             onChange={e => setPassword(e.target.value)}
-            placeholder="Mật khẩu bất kỳ"
+            placeholder="Nhập 123456"
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
