@@ -73,7 +73,7 @@ function DecisionDialog({
         </Alert>
         <div>
           <Typography component="label" className={styles.label} htmlFor="decision-notes">
-            {isReject ? "Lý do yêu cầu điều chỉnh *" : "Ý kiến chỉ đạo lưu văn bản"}
+            {isReject ? "Lý do yêu cầu điều chỉnh *" : "Ghi chú phê duyệt"}
           </Typography>
           <TextField
             id="decision-notes"

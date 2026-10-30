@@ -3,10 +3,7 @@ import PropTypes from "prop-types"
 import { Card, Typography } from "@mui/material"
 import {
   CalendarDays,
-  CheckCircle2,
   ClipboardList,
-  GraduationCap,
-  ShieldAlert,
   Truck,
   Users,
   UtensilsCrossed,
@@ -39,9 +36,6 @@ function MenuSummary({ menu }) {
             <Typography component="p" className={styles.eyebrow}>Hồ sơ thẩm định</Typography>
             <Typography component="h2" className={styles.title}>{menu.title}</Typography>
           </div>
-          <span className={styles.supplyBadge}>
-            <CheckCircle2 size={15} /> Chuỗi cung ứng khép kín
-          </span>
         </div>
 
         <div className={styles.summaryList}>
@@ -69,38 +63,6 @@ function MenuSummary({ menu }) {
         </div>
       </Card>
 
-      <Card className={styles.complianceCard} elevation={0}>
-        <div className={styles.complianceHeading}>
-          <span className={styles.headingIcon}><GraduationCap size={20} /></span>
-          <div>
-            <Typography component="h2" className={styles.sideTitle}>
-              Tình trạng hồ sơ & Giám sát
-            </Typography>
-            <Typography className={styles.sideSubtitle}>Bộ tiêu chí quản trị BGH</Typography>
-          </div>
-        </div>
-
-        <div className={styles.complianceList}>
-          {menu.compliance.map(item => (
-            <div className={styles.complianceItem} key={item.id}>
-              <span className={`${styles.stateIcon} ${styles[item.tone]}`}>
-                {item.tone === "warning" ? <ShieldAlert size={18} /> : <CheckCircle2 size={18} />}
-              </span>
-              <div>
-                <Typography component="p" className={styles.complianceTitle}>
-                  {item.title}
-                </Typography>
-                <Typography component="p" className={styles.complianceDetail}>
-                  {item.detail}
-                </Typography>
-              </div>
-            </div>
-          ))}
-        </div>
-        <Typography className={styles.submittedAt}>
-          Gửi đề xuất: <strong>{menu.submittedAt}</strong>
-        </Typography>
-      </Card>
     </section>
   )
 }

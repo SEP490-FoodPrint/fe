@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Skeleton } from "@mui/material"
+import { useSearchParams } from "react-router-dom"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
 import DecisionDialog from "./component/DecisionDialog"
@@ -9,9 +10,9 @@ import MenuSchedule from "./component/MenuSchedule"
 import MenuSummary from "./component/MenuSummary"
 import "./style.scss"
 
-const MENU_ID = "43000000-0000-4000-8000-000000000001"
-
 function MenuApproval() {
+  const [searchParams] = useSearchParams()
+  const menuId = searchParams.get("menuId")
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -22,13 +23,20 @@ function MenuApproval() {
   const submitLock = useRef(false)
 
   useEffect(() => {
+    if (!menuId) {
+      setMenu(null)
+      setError("Chưa chọn thực đơn cần phê duyệt.")
+      setLoading(false)
+      return undefined
+    }
+
     let mounted = true
 
     const loadMenu = async () => {
       setLoading(true)
       setError("")
       try {
-        const response = await MenuService.getApprovalDetail(MENU_ID)
+        const response = await MenuService.getApprovalDetail(menuId)
         if (mounted) setMenu(response?.data || response)
       } catch (requestError) {
         if (mounted) {
@@ -46,7 +54,7 @@ function MenuApproval() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [menuId])
 
   const visibleDays = useMemo(() => {
     if (!menu?.days) return []

@@ -3,7 +3,6 @@ import PropTypes from "prop-types"
 import { Alert, Button, Card, Chip, TextField, Typography } from "@mui/material"
 import {
   CheckCircle2,
-  FileCheck2,
   RotateCcw,
   ShieldCheck,
   Signature,
@@ -49,24 +48,13 @@ function MenuReview({
           <Typography className={styles.note}>“{review.note}”</Typography>
         </div>
 
-        <Typography className={styles.documentLabel}>Hồ sơ pháp lý đính kèm</Typography>
-        {!review.documents.length && <Typography className={styles.subtitle}>Chưa có tài liệu đính kèm.</Typography>}
-        <div className={styles.documents}>
-          {review.documents.map(document => (
-            <div className={styles.document} key={document}>
-              <FileCheck2 size={17} />
-              <span>{document}</span>
-              <CheckCircle2 size={16} />
-            </div>
-          ))}
-        </div>
       </Card>
 
       <Card className={styles.card} elevation={0}>
         <div className={styles.cardHeader}>
           <span className={`${styles.headerIcon} ${styles.primaryIcon}`}><Signature size={20} /></span>
           <div>
-            <Typography component="h2" className={styles.title}>Ý kiến chỉ đạo của Ban Giám hiệu</Typography>
+            <Typography component="h2" className={styles.title}>Ghi chú phê duyệt của Ban Giám hiệu</Typography>
             <Typography className={styles.subtitle}>Phạm vi: {scopeLabel}</Typography>
           </div>
         </div>
@@ -78,7 +66,7 @@ function MenuReview({
           value={isPending ? directive : approval.note || ""}
           disabled={!isPending || submitting}
           onChange={event => onDirectiveChange(event.target.value)}
-          placeholder="Nhập ý kiến chỉ đạo về dị nguyên, nhiệt độ món ăn, lưu mẫu hoặc quy trình phục vụ..."
+          placeholder="Nhập ghi chú về dị nguyên, nhiệt độ món ăn, lưu mẫu hoặc quy trình phục vụ..."
           className={styles.directiveInput}
         />
 

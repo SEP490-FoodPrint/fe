@@ -1,9 +1,7 @@
 import React, { useMemo, useState } from "react"
 import PropTypes from "prop-types"
 import {
-  Button,
   FormControl,
-  IconButton,
   InputAdornment,
   MenuItem,
   Select,
@@ -16,13 +14,12 @@ import {
   TablePagination,
   TableRow,
   TextField,
-  Tooltip,
 } from "@mui/material"
-import { Eye, Link2Off, Search, SlidersHorizontal } from "lucide-react"
+import { Link2Off, Search, SlidersHorizontal } from "lucide-react"
 import RelationshipStatus from "./RelationshipStatus"
 import styles from "./RelationshipList.module.scss"
 
-const ROWS_PER_PAGE = 4
+const ROWS_PER_PAGE = 6
 const formatDate = value =>
   value ? new Intl.DateTimeFormat("vi-VN").format(new Date(value)) : "—"
 
@@ -33,7 +30,6 @@ function RelationshipList({
   status,
   onSearchChange,
   onStatusChange,
-  onViewDetail,
 }) {
   const [page, setPage] = useState(0)
 
@@ -42,12 +38,7 @@ function RelationshipList({
     return relationships.filter(relationship => {
       const matchesKeyword =
         !keyword ||
-        [
-          relationship.school?.name,
-          relationship.school?.code,
-          relationship.supplier?.name,
-          relationship.supplier?.taxCode,
-        ]
+        [relationship.supplier?.name, relationship.supplier?.taxCode, relationship.supplierId]
           .filter(Boolean)
           .some(value => value.toLocaleLowerCase("vi").includes(keyword))
       return matchesKeyword && (status === "ALL" || relationship.status === status)
@@ -69,7 +60,7 @@ function RelationshipList({
             setPage(0)
           }}
           size="small"
-          placeholder="Tìm theo trường học, nhà cung cấp hoặc mã số thuế"
+          placeholder="Tìm theo nhà cung cấp, mã số thuế hoặc ID"
           className={styles.search}
           slotProps={{
             input: {
@@ -106,7 +97,7 @@ function RelationshipList({
         <div className={styles.empty}>
           <Link2Off size={28} />
           <strong>Không có liên kết phù hợp</strong>
-          <span>Chưa có dữ liệu hoặc không có kết quả cho bộ lọc hiện tại.</span>
+          <span>Danh sách chỉ hiển thị các liên kết đã được lưu trong hệ thống.</span>
         </div>
       ) : (
         <>
@@ -114,40 +105,26 @@ function RelationshipList({
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Nhà trường</TableCell>
                   <TableCell>Nhà cung cấp</TableCell>
                   <TableCell>Mã số thuế</TableCell>
                   <TableCell>Ngày thiết lập</TableCell>
+                  <TableCell>Ngày hủy</TableCell>
                   <TableCell>Trạng thái</TableCell>
-                  <TableCell align="right">Thao tác</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {visible.map(relationship => (
                   <TableRow key={relationship.id} hover>
                     <TableCell>
-                      <strong className={styles.primaryText}>{relationship.school.name}</strong>
-                      <span className={styles.secondaryText}>{relationship.school.code || "—"}</span>
+                      <strong className={styles.primaryText}>
+                        {relationship.supplier?.name || relationship.supplierId}
+                      </strong>
                     </TableCell>
-                    <TableCell>
-                      <strong className={styles.primaryText}>{relationship.supplier.name}</strong>
-                    </TableCell>
-                    <TableCell>{relationship.supplier.taxCode || "—"}</TableCell>
+                    <TableCell>{relationship.supplier?.taxCode || "—"}</TableCell>
                     <TableCell>{formatDate(relationship.linkedAt)}</TableCell>
+                    <TableCell>{formatDate(relationship.unlinkedAt)}</TableCell>
                     <TableCell className={styles.statusCell}>
                       <RelationshipStatus status={relationship.status} />
-                    </TableCell>
-                    <TableCell align="right">
-                      <Tooltip title="Xem chi tiết" arrow>
-                        <IconButton
-                          size="small"
-                          color="primary"
-                          aria-label={`Xem chi tiết liên kết với ${relationship.supplier.name}`}
-                          onClick={() => onViewDetail(relationship.id)}
-                        >
-                          <Eye size={18} />
-                        </IconButton>
-                      </Tooltip>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -161,23 +138,14 @@ function RelationshipList({
                 <div className={styles.cardHeader}>
                   <div>
                     <span>Nhà cung cấp</span>
-                    <strong>{relationship.supplier.name}</strong>
+                    <strong>{relationship.supplier?.name || relationship.supplierId}</strong>
                   </div>
                   <RelationshipStatus status={relationship.status} />
                 </div>
                 <dl>
-                  <div><dt>Nhà trường</dt><dd>{relationship.school.name}</dd></div>
-                  <div><dt>Mã số thuế</dt><dd>{relationship.supplier.taxCode || "—"}</dd></div>
+                  <div><dt>Mã số thuế</dt><dd>{relationship.supplier?.taxCode || "—"}</dd></div>
                   <div><dt>Ngày thiết lập</dt><dd>{formatDate(relationship.linkedAt)}</dd></div>
                 </dl>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<Eye size={17} />}
-                  onClick={() => onViewDetail(relationship.id)}
-                >
-                  Xem chi tiết
-                </Button>
               </article>
             ))}
           </div>
@@ -204,7 +172,6 @@ RelationshipList.propTypes = {
   status: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
   onStatusChange: PropTypes.func.isRequired,
-  onViewDetail: PropTypes.func.isRequired,
 }
 
 export default RelationshipList

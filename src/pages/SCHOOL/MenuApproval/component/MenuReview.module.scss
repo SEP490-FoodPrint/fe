@@ -110,36 +110,6 @@
   line-height: var(--leading-relaxed) !important;
 }
 
-.documentLabel {
-  color: var(--text-muted);
-  font-size: var(--text-xs) !important;
-  font-weight: var(--font-semibold) !important;
-  letter-spacing: 0.04em !important;
-  text-transform: uppercase;
-}
-
-.documents {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--space-2);
-}
-
-.document {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-lg);
-  color: var(--color-primary);
-}
-
-.document span {
-  flex: 1;
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
-}
-
 .directiveInput {
   :global(.MuiOutlinedInput-root) {
     border-radius: var(--radius-lg);
@@ -204,9 +174,5 @@
   .approvedBadge,
   .reviewedAt {
     display: none;
-  }
-
-  .documents {
-    grid-template-columns: 1fr;
   }
 }

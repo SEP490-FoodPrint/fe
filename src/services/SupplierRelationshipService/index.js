@@ -1,94 +1,60 @@
-import {
-  currentSchool,
-  mockRelationships,
-  mockSuppliers,
-} from "./mockData"
+import http from "../01_axios"
+import { apiGetSupplierRelationships, apiGetSuppliers } from "./urls"
 
-const delay = (value, timeout = 280) =>
-  new Promise(resolve => {
-    window.setTimeout(() => resolve(structuredClone(value)), timeout)
-  })
+const PAGE_LIMIT = 100
 
-let relationships = structuredClone(mockRelationships)
+const getCollection = async endpoint => {
+  const items = []
+  let page = 1
+  let hasNext = false
 
-const relationshipForSupplier = supplierId =>
-  relationships
-    .filter(item => item.supplierId === supplierId)
-    .sort((left, right) => new Date(right.linkedAt) - new Date(left.linkedAt))[0] || null
+  do {
+    const response = await http.get(endpoint, {
+      params: { page, limit: PAGE_LIMIT },
+    })
+    items.push(...(response?.data?.items || []))
+    hasNext = Boolean(response?.data?.pagination?.hasNext)
+    page += 1
+  } while (hasNext)
 
-const enrichRelationship = relationship => ({
-  ...relationship,
-  school: currentSchool,
-  supplier: mockSuppliers.find(item => item.id === relationship.supplierId),
-})
+  return items
+}
 
-const getSuppliers = async () =>
-  delay(
-    mockSuppliers.map(supplier => ({
-      ...supplier,
-      relationship: relationshipForSupplier(supplier.id),
-    })),
-  )
+const currentRelationship = relationships =>
+  [...relationships].sort((left, right) => {
+    const leftCurrent = ["ACTIVE", "SUSPENDED"].includes(left.status) ? 1 : 0
+    const rightCurrent = ["ACTIVE", "SUSPENDED"].includes(right.status) ? 1 : 0
+    if (leftCurrent !== rightCurrent) return rightCurrent - leftCurrent
+    return new Date(right.linkedAt) - new Date(left.linkedAt)
+  })[0] || null
 
-const getSupplier = async supplierId => {
-  const supplier = mockSuppliers.find(item => item.id === supplierId)
-  if (!supplier) throw new Error("Không tìm thấy nhà cung cấp.")
-  return delay({
+const getSuppliers = async () => {
+  const [suppliers, relationships] = await Promise.all([
+    getCollection(apiGetSuppliers),
+    getCollection(apiGetSupplierRelationships),
+  ])
+
+  return suppliers.map(supplier => ({
     ...supplier,
-    relationship: relationshipForSupplier(supplier.id),
-  })
+    relationship: currentRelationship(
+      relationships.filter(item => item.supplierId === supplier.id),
+    ),
+  }))
 }
 
-const getRelationships = async () =>
-  delay(relationships.map(enrichRelationship))
+const getRelationships = async () => {
+  const [relationships, suppliers] = await Promise.all([
+    getCollection(apiGetSupplierRelationships),
+    getCollection(apiGetSuppliers),
+  ])
+  const suppliersById = new Map(suppliers.map(supplier => [supplier.id, supplier]))
 
-const getRelationship = async relationshipId => {
-  const relationship = relationships.find(item => item.id === relationshipId)
-  if (!relationship) throw new Error("Không tìm thấy liên kết.")
-  return delay(enrichRelationship(relationship))
+  return relationships.map(relationship => ({
+    ...relationship,
+    supplier: suppliersById.get(relationship.supplierId) || null,
+  }))
 }
 
-const linkSupplier = async supplierId => {
-  const current = relationshipForSupplier(supplierId)
-  if (current && ["ACTIVE", "SUSPENDED"].includes(current.status)) {
-    return delay(enrichRelationship(current), 420)
-  }
-
-  const relationship = {
-    id: crypto.randomUUID(),
-    schoolId: currentSchool.id,
-    supplierId,
-    status: "ACTIVE",
-    linkedAt: new Date().toISOString(),
-    unlinkedAt: null,
-    linkNote: null,
-  }
-  relationships = [relationship, ...relationships]
-  return delay(enrichRelationship(relationship), 520)
-}
-
-const unlinkRelationship = async relationshipId => {
-  relationships = relationships.map(item =>
-    item.id === relationshipId
-      ? { ...item, status: "UNLINKED", unlinkedAt: new Date().toISOString() }
-      : item,
-  )
-  return getRelationship(relationshipId)
-}
-
-const resetMockData = () => {
-  relationships = structuredClone(mockRelationships)
-}
-
-const SupplierRelationshipService = {
-  getSuppliers,
-  getSupplier,
-  getRelationships,
-  getRelationship,
-  linkSupplier,
-  unlinkRelationship,
-  resetMockData,
-  currentSchool,
-}
+const SupplierRelationshipService = { getSuppliers, getRelationships }
 
 export default SupplierRelationshipService
