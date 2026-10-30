@@ -109,7 +109,14 @@ const routes = [
   {
     element: (
       <LazyWrapper>
-        <RoleRoute allowedOrg={ORG_TYPES.SUPPLIER} allowedRoles={[ROLES.INGREDIENT_SUPPLIER]} />
+        <RoleRoute
+          allowedOrg={ORG_TYPES.SUPPLIER}
+          allowedRoles={[
+            ROLES.INGREDIENT_SUPPLIER_ADMIN,
+            ROLES.INGREDIENT_SUPPLIER_STAFF,
+            ROLES.INGREDIENT_SUPPLIER,
+          ]}
+        />
       </LazyWrapper>
     ),
     children: [
