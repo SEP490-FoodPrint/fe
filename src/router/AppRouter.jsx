@@ -14,8 +14,8 @@ const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
 const RoleRoute = lazy(() => import("src/pages/SUPPORTPAGES/RoleRoute"))
 
 // SYSTEM pages
-const SystemOverview = lazy(() => import("src/pages/SYSTEM/SystemOverview"))
 const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
+const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
 
 // SUPPLIER pages
 const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
@@ -40,7 +40,7 @@ function LazyWrapper({ children }) {
     <Suspense
       fallback={
         <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <SpinCustom fullscreen />
+          <SpinCustom />
         </div>
       }
     >
@@ -101,8 +101,8 @@ const routes = [
       {
         element: <MainLayout type="SYSTEM" />,
         children: [
-          { path: ROUTER.SYSTEM_OVERVIEW, element: <LazyWrapper><SystemOverview /></LazyWrapper> },
           { path: ROUTER.SYSTEM_ORG_APPROVAL, element: <LazyWrapper><OrgApproval /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_ORG_APPROVAL_DETAIL, element: <LazyWrapper><OrgApprovalDetail /></LazyWrapper> },
         ],
       },
     ],
@@ -112,7 +112,14 @@ const routes = [
   {
     element: (
       <LazyWrapper>
-        <RoleRoute allowedOrg={ORG_TYPES.SUPPLIER} allowedRoles={[ROLES.INGREDIENT_SUPPLIER]} />
+        <RoleRoute
+          allowedOrg={ORG_TYPES.SUPPLIER}
+          allowedRoles={[
+            ROLES.INGREDIENT_SUPPLIER_ADMIN,
+            ROLES.INGREDIENT_SUPPLIER_STAFF,
+            ROLES.INGREDIENT_SUPPLIER,
+          ]}
+        />
       </LazyWrapper>
     ),
     children: [
@@ -135,54 +142,10 @@ const routes = [
       </LazyWrapper>
     ),
     children: [
-      // 6.1. Bếp ăn trường học (Nhân viên Bếp / Bếp trưởng) - Giao diện chuẩn Stitch với Sidebar xanh #0A8066
-      {
-        element: (
-          <RoleRoute
-            allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]}
-          />
-        ),
-        children: [
-          {
-            path: ROUTER.SCHOOL_KITCHEN_COOKING,
-            element: (
-              <LazyWrapper>
-                <KitchenCooking />
-              </LazyWrapper>
-            ),
-          },
-          {
-            path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH,
-            element: (
-              <LazyWrapper>
-                <KitchenCreateBatch />
-              </LazyWrapper>
-            ),
-          },
-          {
-            path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE,
-            element: (
-              <LazyWrapper>
-                <KitchenCreateBatchSeparate />
-              </LazyWrapper>
-            ),
-          },
-          {
-            path: ROUTER.SCHOOL_KITCHEN_BATCHES,
-            element: (
-              <LazyWrapper>
-                <KitchenBatches />
-              </LazyWrapper>
-            ),
-          },
-        ],
-      },
-
-      // 6.2. Các phân hệ trường học dùng khung quản trị chung
       {
         element: <MainLayout type="SCHOOL" />,
         children: [
-          // Tổng quan trường học: Cả 7 roles đều được vào
+          // Tổng quan trường học
           {
             path: ROUTER.SCHOOL_OVERVIEW,
             element: <LazyWrapper><SchoolOverview /></LazyWrapper>,
@@ -204,11 +167,30 @@ const routes = [
             ],
           },
 
-          // Kiểm tra nguyên liệu đầu vào: Y tế, Ban Phụ huynh, Kho
+          // Kiểm tra nguyên liệu đầu vào: Y tế, Ban Phụ huynh, Kho, Nhân viên Bếp (Đánh giá nguyên liệu)
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT, ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_INGREDIENT_INSPECT, element: <LazyWrapper><IngredientInspect /></LazyWrapper> },
+            ],
+          },
+
+          // Vận hành Bếp ăn: Nhân viên Bếp, School Admin (Các trang chuyên biệt của Bếp)
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]} />,
+            children: [
+              { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_BATCHES, element: <LazyWrapper><KitchenBatches /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE, element: <LazyWrapper><KitchenCreateBatch /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH, element: <LazyWrapper><KitchenCreateBatch /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE, element: <LazyWrapper><KitchenCreateBatchSeparate /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE, element: <LazyWrapper><KitchenCreateBatchSeparate /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_INGREDIENTS, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
             ],
           },
 

@@ -1,32 +1,23 @@
 .headerBar {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding-top: 8px;
+  gap: 4px;
+  width: 100%;
+}
+
+/* 1. Breadcrumb chỉ hiện trên Desktop (>= 768px) */
+.breadcrumbDesktop {
+  display: none;
 
   @media (min-width: 768px) {
-    flex-direction: row;
+    display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-muted, #6b7280);
+    margin-bottom: 2px;
   }
-}
-
-.titleGroup {
-  display: flex;
-  flex-direction: column;
-}
-
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6e7a74;
-  margin-bottom: 4px;
 }
 
 .breadcrumbLink {
@@ -34,54 +25,112 @@
   border: none;
   padding: 0;
   font: inherit;
-  color: #6e7a74;
+  color: var(--text-muted, #6b7280);
   cursor: pointer;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 
   &:hover {
-    color: #0a8066;
+    color: var(--color-primary, #0a8066);
   }
 }
 
 .separator {
-  color: #bdc9c3;
+  color: #d1d5db;
 }
 
 .current {
-  color: #131e1a;
-  font-weight: 700;
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+/* 2. Title Row: Nút quay lại + Tiêu đề + Mode Badge trên 1 hàng phẳng */
+.titleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.titleLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Nút quay lại icon không viền (chuẩn ghost icon, touch target >= 44px) */
+.backBtn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none !important;
+  background-color: transparent !important;
+  color: var(--text-primary, #111827);
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.15s ease;
+
+  /* Hit box mở rộng >= 44px */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:active {
+    background-color: rgba(0, 0, 0, 0.08) !important;
+    transform: scale(0.92);
+  }
 }
 
 .heading {
   margin: 0;
-  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
-  font-size: 28px;
-  line-height: 36px;
-  font-weight: 600;
-  letter-spacing: -0.015em;
-  color: #131e1a;
-}
-
-.modeBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-radius: 12px;
-  background-color: #deebe5;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  align-self: flex-start;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  white-space: nowrap;
 
   @media (min-width: 768px) {
-    align-self: auto;
+    font-size: 22px;
   }
 }
 
+/* Chip Chế độ vận hành (nhỏ gọn, đồng bộ với badge Ca trưa ở Màn 2) */
+.modeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3.5px 9px;
+  border-radius: 9999px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .pulseDot {
-  width: 10px;
-  height: 10px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background-color: #0a8066;
+  background-color: var(--color-primary, #0a8066);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   flex-shrink: 0;
 }
@@ -92,28 +141,23 @@
     transform: scale(1);
   }
   50% {
-    opacity: 0.5;
-    transform: scale(1.15);
+    opacity: 0.4;
+    transform: scale(1.3);
   }
 }
 
-.modeText {
-  display: flex;
-  flex-direction: column;
+.modeMobileText {
+  display: inline;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
 }
 
-.modeCategory {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6e7a74;
-}
+.modeDesktopText {
+  display: none;
 
-.modeValue {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 14px;
-  font-weight: 600;
-  color: #0a8066;
+  @media (min-width: 768px) {
+    display: inline;
+  }
 }

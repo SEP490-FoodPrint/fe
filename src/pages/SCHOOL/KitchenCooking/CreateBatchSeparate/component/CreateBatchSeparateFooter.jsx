@@ -1,69 +1,102 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { ArrowLeft, CheckCircle2, FileText, PlusCircle } from "lucide-react"
+import ROUTER from "src/router/ROUTER"
 import styles from "./CreateBatchSeparateFooter.module.scss"
 
 export default function CreateBatchSeparateFooter() {
   const navigate = useNavigate()
-  const [showToast, setShowToast] = useState(false)
-  const [toastMsg, setToastMsg] = useState("")
+  const [showSuccessToast, setShowSuccessToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState("")
 
-  const handleDraft = () => {
-    setToastMsg("Đã lưu nháp phương án 02 mẻ chế biến nấu riêng (DRAFT)")
-    setShowToast(true)
-    setTimeout(() => setShowToast(false), 2500)
+  const handleSaveDraft = () => {
+    setToastMessage("Đã lưu phương án 02 lô chế biến nấu riêng ở trạng thái DRAFT.")
+    setShowSuccessToast(true)
+    setTimeout(() => {
+      setShowSuccessToast(false)
+    }, 2500)
   }
 
-  const handleCreate = () => {
-    setToastMsg("Khởi tạo thành công 02 mẻ chế biến: CB-20261026-001 & CB-20261026-002!")
-    setShowToast(true)
+  const handleCreateBatch = () => {
+    setToastMessage("Khởi tạo thành công 02 lô chế biến Thịt heo kho nước dừa!")
+    setShowSuccessToast(true)
     setTimeout(() => {
-      setShowToast(false)
-      navigate("/school/kitchen-cooking/batches")
-    }, 1500)
+      setShowSuccessToast(false)
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)
+    }, 1200)
   }
 
   return (
     <>
-      <div className={styles.actionBar}>
+      {/* 1. Desktop Footer Bar (Hiện trên Desktop >= 768px) */}
+      <div className={styles.desktopFooterBar}>
         <button
           type="button"
           className={styles.backBtn}
-          onClick={() => navigate("/school/kitchen-cooking/batches")}
+          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+          aria-label="Quay lại danh sách lô"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
-          <span>Quay lại</span>
+          <ArrowLeft size={16} />
+          <span>Quay lại danh sách</span>
         </button>
 
-        <div className={styles.centerNote}>
-          <span className="material-symbols-outlined">info</span>
-          <span>Hai mẻ chế biến sẽ được tạo ở trạng thái Chưa xác nhận (DRAFT)</span>
-        </div>
+        <div className={styles.actionGroup}>
+          <span className={styles.footerNote}>
+            Hệ thống sẽ tạo 02 lô chế biến mới độc lập ở trạng thái Chờ nấu.
+          </span>
 
-        <div className={styles.btnGroup}>
+          <div className={styles.buttonsWrap}>
+            <button
+              type="button"
+              className={styles.draftBtn}
+              onClick={handleSaveDraft}
+            >
+              <FileText size={16} />
+              <span>Lưu phương án</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.createBtn}
+              onClick={handleCreateBatch}
+            >
+              <PlusCircle size={17} />
+              <span>Tạo 02 lô chế biến</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Mobile Sticky Bottom Bar (Ghim cố định đáy màn hình < 768px cho ngón cái) */}
+      <div className={styles.mobileStickyBar}>
+        <div className={styles.mobileBarInner}>
           <button
             type="button"
-            className={styles.draftBtn}
-            onClick={handleDraft}
+            className={styles.mobDraftBtn}
+            onClick={handleSaveDraft}
+            aria-label="Lưu phương án dạng nháp"
           >
-            <span className="material-symbols-outlined">bookmark_border</span>
-            <span>Lưu phương án</span>
+            <FileText size={16} />
+            <span>Lưu nháp</span>
           </button>
 
           <button
             type="button"
-            className={styles.createBtn}
-            onClick={handleCreate}
+            className={styles.mobCreateBtn}
+            onClick={handleCreateBatch}
+            aria-label="Khởi tạo 02 lô chế biến mới"
           >
-            <span className="material-symbols-outlined">soup_kitchen</span>
-            <span>Khởi tạo 02 mẻ</span>
+            <PlusCircle size={18} />
+            <span>Tạo 02 lô chế biến</span>
           </button>
         </div>
       </div>
 
-      {showToast && (
-        <div className={styles.toast}>
-          <span className="material-symbols-outlined">check_circle</span>
-          <span>{toastMsg}</span>
+      {/* Success Toast Notification */}
+      {showSuccessToast && (
+        <div className={styles.toast} role="status" aria-live="polite">
+          <CheckCircle2 size={18} className={styles.toastIcon} />
+          <span>{toastMessage}</span>
         </div>
       )}
     </>

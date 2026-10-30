@@ -1,5 +1,7 @@
 import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { ArrowLeft, CheckCircle2, FileText, PlusCircle } from "lucide-react"
+import ROUTER from "src/router/ROUTER"
 import styles from "./CreateBatchFooter.module.scss"
 
 export default function CreateBatchFooter() {
@@ -12,33 +14,35 @@ export default function CreateBatchFooter() {
     setShowSuccessToast(true)
     setTimeout(() => {
       setShowSuccessToast(false)
-    }, 3000)
+    }, 2500)
   }
 
   const handleCreateBatch = () => {
-    setToastMessage("Khởi tạo lô chế biến CB-20261026-001 thành công!")
+    setToastMessage("Khởi tạo lô chế biến Thịt heo kho nước dừa thành công!")
     setShowSuccessToast(true)
     setTimeout(() => {
       setShowSuccessToast(false)
-      navigate("/school/kitchen-cooking/batches")
-    }, 1500)
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)
+    }, 1200)
   }
 
   return (
     <>
-      <div className={styles.footerBar}>
+      {/* 1. Desktop Footer Bar (Hiện trên Desktop >= 768px) */}
+      <div className={styles.desktopFooterBar}>
         <button
           type="button"
           className={styles.backBtn}
-          onClick={() => navigate("/school/kitchen-cooking/batches")}
+          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+          aria-label="Quay lại danh sách lô"
         >
-          <span className="material-symbols-outlined">arrow_back</span>
+          <ArrowLeft size={16} />
           <span>Quay lại danh sách</span>
         </button>
 
         <div className={styles.actionGroup}>
           <span className={styles.footerNote}>
-            Khi lưu, hệ thống sẽ tạo 01 lô chế biến ở trạng thái Chưa xác nhận.
+            Hệ thống sẽ tạo 01 lô chế biến mới ở trạng thái Chờ nấu.
           </span>
 
           <div className={styles.buttonsWrap}>
@@ -47,7 +51,8 @@ export default function CreateBatchFooter() {
               className={styles.draftBtn}
               onClick={handleSaveDraft}
             >
-              Lưu phương án chế biến
+              <FileText size={16} />
+              <span>Lưu phương án</span>
             </button>
 
             <button
@@ -55,17 +60,42 @@ export default function CreateBatchFooter() {
               className={styles.createBtn}
               onClick={handleCreateBatch}
             >
-              <span className="material-symbols-outlined">add_task</span>
+              <PlusCircle size={17} />
               <span>Tạo lô chế biến</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Success Toast */}
+      {/* 2. Mobile Sticky Bottom Bar (Ghim cố định đáy màn hình < 768px cho ngón cái) */}
+      <div className={styles.mobileStickyBar}>
+        <div className={styles.mobileBarInner}>
+          <button
+            type="button"
+            className={styles.mobDraftBtn}
+            onClick={handleSaveDraft}
+            aria-label="Lưu phương án chế biến dạng nháp"
+          >
+            <FileText size={16} />
+            <span>Lưu nháp</span>
+          </button>
+
+          <button
+            type="button"
+            className={styles.mobCreateBtn}
+            onClick={handleCreateBatch}
+            aria-label="Khởi tạo lô chế biến mới"
+          >
+            <PlusCircle size={18} />
+            <span>Tạo lô chế biến</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Success Toast Notification */}
       {showSuccessToast && (
-        <div className={styles.toast}>
-          <span className="material-symbols-outlined">check_circle</span>
+        <div className={styles.toast} role="status" aria-live="polite">
+          <CheckCircle2 size={18} className={styles.toastIcon} />
           <span>{toastMessage}</span>
         </div>
       )}

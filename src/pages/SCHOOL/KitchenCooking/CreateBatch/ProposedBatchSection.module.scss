@@ -1,424 +1,383 @@
 .sectionContainer {
   background-color: #ffffff;
+  border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  padding: 24px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 14px;
+
+  @media (max-width: 768px) {
+    padding: 14px;
+    gap: 12px;
+  }
 }
 
 .sectionHeader {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .titleWithBadge {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .numberBadge {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background-color: #e4f1ea;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 13px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00654f;
-  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
-  font-weight: 700;
-  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .sectionTitle {
   margin: 0;
-  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
-  font-size: 18px;
-  line-height: 26px;
-  font-weight: 600;
-  color: #131e1a;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  line-height: 1.3;
 }
 
 .sectionSubtitle {
-  margin: 0;
-  font-family: var(--font-body, "Inter", sans-serif);
+  margin: 2px 0 0 0;
   font-size: 12px;
-  color: #6e7a74;
+  color: var(--text-muted, #6b7280);
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
-/* Summary Card */
+/* 1. Thẻ tóm tắt đề xuất */
 .summaryCard {
-  padding: 16px;
-  border-radius: 12px;
-  background-color: #eaf7f0;
+  background-color: #f9fafb;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 10px;
+  padding: 12px 14px;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
 }
 
 .summaryLeft {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .hubIconBox {
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 8px;
-  background-color: #e4f1ea;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #00654f;
   flex-shrink: 0;
+}
 
-  span {
-    font-size: 24px;
+.summaryMainInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.batchTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
+}
+
+.batchMainName {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.statusPill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #15803d;
 }
 
 .summaryText {
   margin: 0;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 14px;
+  font-size: 12px;
+  color: var(--text-secondary, #4b5563);
   line-height: 1.4;
-  color: #131e1a;
 
   strong {
-    font-weight: 600;
+    color: var(--color-primary, #0a8066);
   }
 }
 
-.summaryRight {
-  padding: 6px 14px;
+/* 2. Grid Tiêu chuẩn Vận hành & ATTP */
+.executionGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+
+.execCard {
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  text-align: right;
-  flex-shrink: 0;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
+  gap: 8px;
 }
 
-.summaryProposedBatch {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 11px;
-  color: #6e7a74;
-  display: block;
-
-  strong {
-    color: #131e1a;
-  }
-}
-
-.summaryTotalPortions {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 14px;
-  font-weight: 700;
-  color: #00654f;
-}
-
-/* Table */
-.tableResponsive {
-  overflow-x: auto;
-  border-radius: 12px;
-  background-color: #ffffff;
-}
-
-.table {
-  width: 100%;
-  text-align: left;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 14px;
-  border-collapse: collapse;
-  min-width: 800px;
-
-  thead tr {
-    background-color: #eaf7f0;
-    color: #6e7a74;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-
-    th {
-      padding: 12px 16px;
-    }
-  }
-
-  tbody tr {
-    border-bottom: 1px solid #e4f1ea;
-
-    td {
-      padding: 14px 16px;
-    }
-  }
-}
-
-.thLeft {
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
-}
-
-.thRight {
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
-}
-
-.trHover {
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: rgba(234, 247, 240, 0.5);
-  }
-}
-
-.textCenter {
-  text-align: center;
-}
-
-.batchNameCol {
+.execCardHeader {
   display: flex;
-  flex-direction: column;
-}
-
-.batchTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #131e1a;
-}
-
-.batchCode {
-  font-family: monospace;
-  font-size: 11px;
-  color: #00654f;
-  font-weight: 500;
-}
-
-.dishName {
-  font-size: 14px;
-  font-weight: 500;
-  color: #131e1a;
-}
-
-.portionCol {
-  display: flex;
-  flex-direction: column;
-}
-
-.portionMain {
-  font-size: 14px;
-  font-weight: 700;
-  color: #131e1a;
-}
-
-.portionSub {
-  font-size: 11px;
-  color: #6e7a74;
-}
-
-.lotsCol {
-  display: flex;
-  flex-direction: column;
-}
-
-.lotsMain {
-  font-size: 13px;
-  font-weight: 600;
-  color: #00654f;
-}
-
-.lotsSub {
-  font-size: 11px;
-  color: #6e7a74;
-  line-height: 1.3;
-}
-
-.statusBadge {
-  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background-color: #e4f1ea;
-  color: #00654f;
-  font-size: 11px;
-  font-weight: 600;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed #f3f4f6;
 }
 
-.statusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #00654f;
+.execIconTime {
+  color: #0284c7;
+  flex-shrink: 0;
 }
 
-.detailBtn {
-  background: none;
-  border: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 12px;
-  font-weight: 600;
-  color: #00654f;
-  cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  transition: all 0.2s ease;
-
-  span:first-child {
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  span {
-    font-size: 16px;
-  }
+.execIconSafety {
+  color: #059669;
+  flex-shrink: 0;
 }
 
-/* Detail Box */
-.detailBox {
-  padding: 16px;
-  border-radius: 12px;
-  background-color: #eaf7f0;
+.execCardTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.execCardBody {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 6px;
 }
 
-.detailHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.detailTitle {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 14px;
-  font-weight: 600;
-  color: #131e1a;
+/* Timeline */
+.timeTimeline {
   display: flex;
   align-items: center;
   gap: 8px;
-
-  span {
-    color: #00654f;
-    font-size: 20px;
-  }
 }
 
-.detailTag {
-  padding: 2px 10px;
-  border-radius: 9999px;
-  background-color: #e4f1ea;
-  color: #00654f;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.cardsGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.ingredientCard {
-  padding: 12px;
-  border-radius: 8px;
-  background-color: #ffffff;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+.timePoint {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 1px;
 }
 
-.cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.timeLabel {
+  font-size: 10.5px;
+  color: var(--text-muted, #6b7280);
 }
 
-.cardName {
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  color: #131e1a;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cardAmount {
-  font-family: var(--font-body, "Inter", sans-serif);
+.timeValue {
   font-size: 14px;
   font-weight: 700;
-  color: #00654f;
+  color: var(--text-primary, #111827);
+  font-family: ui-monospace, monospace;
 }
 
-.cardBody {
+.timeValueHighlight {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0284c7;
+  font-family: ui-monospace, monospace;
+}
+
+.timeArrow {
+  color: #9ca3af;
+  font-size: 13px;
+  padding: 0 4px;
+}
+
+.timeNotice {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+}
+
+/* ATTP Specs */
+.safetySpecsList {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 11px;
-  color: #6e7a74;
-  padding-top: 4px;
-  border-top: 1px dashed #e4f1ea;
 }
 
-.cardLotRow {
+.specItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.specIcon {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.specText {
+  font-size: 12px;
+  color: var(--text-secondary, #374151);
+
+  strong {
+    color: var(--color-primary, #0a8066);
+    font-weight: 700;
+  }
+}
+
+.safetyRule {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+  font-style: italic;
+}
+
+/* 3. Khối liên kết nguồn gốc đa lô */
+.lotTraceabilityBox {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 8px;
+  background-color: #fafafa;
+  overflow: hidden;
+}
+
+.lotTraceToggle {
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 12.5px;
+  color: var(--text-primary, #111827);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
 }
 
-.cardLotWeight {
-  font-weight: 500;
-  color: #131e1a;
+.traceToggleLeft {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
-/* Note Box */
+.traceIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.traceTitle {
+  font-size: 12.5px;
+  color: var(--text-secondary, #374151);
+
+  strong {
+    color: var(--text-primary, #111827);
+  }
+}
+
+.traceToggleRight {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted, #6b7280);
+}
+
+.traceHint {
+  font-size: 11.5px;
+}
+
+.traceLotsList {
+  padding: 8px 12px 10px;
+  border-top: 1px dashed var(--border-default, #e5e7eb);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background-color: #ffffff;
+}
+
+.traceItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.traceItemName {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-secondary, #4b5563);
+  min-width: 65px;
+}
+
+.traceLotBadge {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+}
+
+/* 4. Ghi nhận chuẩn */
 .noteBox {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
+  gap: 8px;
+  padding: 9px 12px;
   border-radius: 8px;
-  background-color: #e4f1ea;
-  color: #131e1a;
-  font-family: var(--font-body, "Inter", sans-serif);
-  font-size: 13px;
+  background-color: #f0fdf4;
+  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
 .noteIcon {
-  font-size: 20px;
-  color: #00654f;
+  color: #16a34a;
   flex-shrink: 0;
 }
 
 .noteText {
+  font-size: 11.5px;
+  color: #15803d;
+  font-weight: 500;
   line-height: 1.4;
 }

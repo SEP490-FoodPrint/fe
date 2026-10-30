@@ -5,29 +5,11 @@ import { ArrowRight, MapPin } from "lucide-react"
 import styles from "./SchoolCard.module.scss"
 
 function SchoolCard({ school }) {
-  const getAvatarClass = color => {
-    switch (color) {
-      case "amber":
-        return styles.avatarAmber
-      case "teal":
-        return styles.avatarTeal
-      case "blue":
-        return styles.avatarBlue
-      case "purple":
-        return styles.avatarPurple
-      case "emerald":
-      default:
-        return styles.avatarEmerald
-    }
-  }
-
-  const avatarColorClass = getAvatarClass(school.badge_color)
-
   return (
     <div className={styles.card}>
       <div>
         <div className={styles.topRow}>
-          <div className={`${styles.avatarBox} ${avatarColorClass}`}>
+          <div className={`${styles.avatarBox} ${styles.avatarEmerald}`}>
             {school.short_name || school.code?.slice(0, 2) || "TH"}
           </div>
 

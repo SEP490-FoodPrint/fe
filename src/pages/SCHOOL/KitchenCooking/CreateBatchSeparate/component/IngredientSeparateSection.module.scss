@@ -1,151 +1,184 @@
-.compactCard {
+.sectionContainer {
   background-color: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #dce5e0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  padding: 14px 18px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 12px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+
+  @media (max-width: 768px) {
+    padding: 14px;
+    gap: 12px;
+  }
 }
 
-.cardHeader {
+.sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed #e4f1ea;
-  flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-.headerTitle {
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.numberBadge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  line-height: 1.3;
+}
+
+.sectionSubtitle {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: var(--text-muted, #6b7280);
+  line-height: 1.3;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+/* Banner quy chuẩn */
+.policyBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: #fffbeb;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.policyIcon {
+  color: #d97706;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.policyContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.policyMeta {
   display: flex;
   align-items: center;
   gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
 }
 
-.headerIcon {
-  font-size: 18px;
-  color: #0a8066;
-}
-
-.titleText {
-  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
-  font-size: 14px;
+.policyTitle {
   font-weight: 700;
-  color: #131e1a;
+  color: #b45309;
 }
 
-.headerActions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.bullet {
+  color: #9ca3af;
+  font-size: 10px;
 }
 
-.ruleBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #00654f;
-  background-color: #eaf7f0;
-  padding: 3px 8px;
-  border-radius: 4px;
+.mealTime {
+  color: var(--text-secondary, #4b5563);
+  font-weight: 500;
+}
 
-  span {
-    font-size: 14px;
+.policyDesc {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--text-secondary, #4b5563);
+  line-height: 1.4;
+
+  @media (max-width: 640px) {
+    display: none;
   }
 }
 
-.formulaBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #52635c;
-  background-color: #ffffff;
-  border: 1px solid #dce5e0;
-  padding: 3px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  span {
-    font-size: 14px;
-  }
-
-  &:hover {
-    color: #0a8066;
-    border-color: #0a8066;
-  }
-}
-
-/* Clean Table */
-.tableWrap {
+/* 1. Desktop Table */
+.desktopTableWrap {
+  width: 100%;
   overflow-x: auto;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 8px;
+
+  @media (max-width: 768px) {
+    display: none !important;
+  }
 }
 
-.cleanTable {
+.table {
   width: 100%;
   border-collapse: collapse;
+  text-align: left;
   font-size: 13px;
-  min-width: 760px;
 
-  thead tr {
-    border-bottom: 1px solid #dce5e0;
-    color: #6e7a74;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+  thead {
+    background-color: #f9fafb;
+    border-bottom: 1px solid var(--border-default, #e5e7eb);
 
     th {
-      padding: 8px 12px;
-      text-align: left;
+      padding: 10px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--text-secondary, #4b5563);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
     }
   }
 
   tbody tr {
-    border-bottom: 1px solid #eef3f1;
-    transition: background-color 0.1s ease;
+    border-bottom: 1px solid #f3f4f6;
+    transition: background-color 0.15s ease;
 
     &:hover {
-      background-color: #f8faf9;
+      background-color: #f9fafb;
+    }
+
+    &:last-child {
+      border-bottom: none;
     }
 
     td {
       padding: 10px 12px;
-      color: #131e1a;
+      vertical-align: middle;
     }
   }
 }
 
 .thLeft {
-  padding-left: 0 !important;
+  text-align: left;
 }
 
 .thRight {
-  padding-right: 0 !important;
-}
-
-.rowHighlight {
-  background-color: rgba(234, 247, 240, 0.25);
-}
-
-.sublotRow {
-  background-color: rgba(234, 247, 240, 0.15);
-}
-
-.cellTop {
-  vertical-align: top;
-  padding-top: 12px !important;
-}
-
-.cellMiddle {
-  vertical-align: middle;
+  text-align: right;
 }
 
 .textRight {
@@ -156,166 +189,330 @@
   text-align: center;
 }
 
-.itemWithIcon {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+.alignTop {
+  vertical-align: top !important;
+  border-right: 1px solid #f3f4f6;
 }
 
-.iconBoxMeat, .iconBoxEgg, .iconBoxDrink, .iconBoxSpice {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  span {
-    font-size: 16px;
-  }
+.alignMiddle {
+  vertical-align: middle !important;
+  border-left: 1px solid #f3f4f6;
 }
 
-.iconBoxMeat {
-  background-color: #fdecec;
-  color: #ba1a1a;
-}
-
-.iconBoxEgg {
-  background-color: #fff7d6;
-  color: #9b650a;
-}
-
-.iconBoxDrink {
-  background-color: #eaf3ff;
-  color: #175b92;
-}
-
-.iconBoxSpice {
-  background-color: #eaf7f0;
-  color: #0a8066;
-}
-
-.itemMeta {
+.ingredientInfo {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.nameRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.itemName {
+.ingredientName {
   font-weight: 600;
-  color: #131e1a;
-  font-size: 13px;
+  color: var(--text-primary, #111827);
 }
 
-.splitPill {
+.supplierName {
+  font-size: 11.5px;
+  color: var(--text-muted, #6b7280);
+}
+
+.tagSplit {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
-  font-size: 10px;
-  font-weight: 700;
-  color: #9b650a;
-  background-color: #fff5da;
+  gap: 3px;
   padding: 1px 6px;
   border-radius: 4px;
-
-  span {
-    font-size: 12px;
-  }
+  background-color: #fef3c7;
+  color: #b45309;
+  font-size: 10.5px;
+  font-weight: 600;
+  width: fit-content;
+  margin-top: 3px;
 }
 
-.supplierText {
-  font-size: 11px;
-  color: #6e7a74;
-}
-
-.qtyBox {
+.totalRequired {
   display: flex;
   flex-direction: column;
+  gap: 1px;
 }
 
-.qtyMain {
+.requiredAmount {
   font-weight: 700;
-  color: #131e1a;
+  color: var(--text-primary, #111827);
 }
 
-.qtySub {
-  font-size: 10px;
-  color: #6e7a74;
+.portionNote {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
 }
 
-.lotRow {
+.compactTd {
+  padding: 8px 12px !important;
+}
+
+.lotInfo {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .lotCode {
-  font-family: monospace;
+  font-family: ui-monospace, monospace;
   font-size: 12px;
   font-weight: 600;
-  color: #00654f;
+  color: var(--color-primary, #0a8066);
 }
 
-.expDate {
+.lotExp {
   font-size: 11px;
-  color: #6e7a74;
+  color: var(--text-muted, #6b7280);
 }
 
-.takePill {
+.takeBadge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.targetBatchPill {
   display: inline-block;
   padding: 2px 8px;
-  border-radius: 4px;
-  background-color: #eaf7f0;
-  font-weight: 700;
-  color: #00654f;
-  font-size: 12px;
+  border-radius: 9999px;
+  background-color: #f3f4f6;
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+  font-size: 11.5px;
 }
 
 .statusSuccess {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  color: #00654f;
-  font-size: 12px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
+}
 
-  span {
-    font-size: 15px;
+/* 2. Mobile Cards List */
+.mobileCardsList {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
   }
 }
 
-/* Summary Bar */
+.mobileIngCard {
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.mobileCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ingTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.mobileIngName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tagSplitSmall {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: #fef3c7;
+  color: #b45309;
+  font-size: 10px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mobileStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.checkIconSmall {
+  color: #16a34a;
+}
+
+.mobileMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #4b5563);
+}
+
+.metaHighlight {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  flex-shrink: 0;
+}
+
+.metaDot {
+  color: #9ca3af;
+  font-size: 10px;
+}
+
+.metaSupplier {
+  color: var(--text-muted, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobileLotsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 2px;
+  padding-top: 6px;
+  border-top: 1px dashed #f3f4f6;
+}
+
+.mobileLotCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 9px;
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 6px;
+}
+
+.lotCardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lotCodeMonospace {
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  font-size: 11.5px;
+  color: var(--color-primary, #0a8066);
+  letter-spacing: 0.02em;
+}
+
+.lotExpText {
+  color: var(--text-muted, #6b7280);
+  font-size: 11px;
+}
+
+.lotCardBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.lotAvailText {
+  color: var(--text-secondary, #4b5563);
+  font-size: 11.5px;
+
+  strong {
+    color: var(--text-primary, #111827);
+    font-weight: 600;
+  }
+}
+
+.lotBottomRight {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.lotTargetPill {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.lotAllocBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 1px 7px;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 11px;
+  font-weight: 500;
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+/* Dòng tổng kết */
 .summaryBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 8px;
-  border-top: 1px solid #eef3f1;
-  font-size: 12px;
-  color: #52635c;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  border: 1px solid var(--border-default, #e5e7eb);
+  font-size: 12.5px;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
-.summaryLeft {
+.summaryStatus {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: #00654f;
   font-weight: 600;
-
-  span {
-    font-size: 16px;
-  }
+  color: #15803d;
 }
 
-.summaryRight {
-  color: #6e7a74;
-  font-size: 11px;
+.summaryMeta {
+  color: var(--text-secondary, #4b5563);
+  font-size: 12px;
 }

@@ -1,54 +1,80 @@
-import React, { useContext, useEffect, useRef, useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowRight,
   ChevronDown,
   LayoutDashboard,
   LogIn,
   Search,
-} from "lucide-react"
-import { StoreContext } from "src/contexts"
-import { getDefaultRedirectByOrg } from "src/lib/utils"
-import ROUTER from "src/router/ROUTER"
-import BrandLogo from "src/components/Common/BrandLogo"
-import { MOCK_SCHOOLS } from "src/services/SchoolService"
-import BaseHeader from "../BaseHeader"
-import styles from "./PublicHeader.module.scss"
+} from "lucide-react";
+import { StoreContext } from "src/contexts";
+import { getDefaultRedirectByOrg } from "src/lib/utils";
+import ROUTER from "src/router/ROUTER";
+import BrandLogo from "src/components/Common/BrandLogo";
+import SchoolService from "src/services/SchoolService";
+import BaseHeader from "../BaseHeader";
+import styles from "./PublicHeader.module.scss";
 
 function PublicHeader() {
-  const location = useLocation()
-  const { loginStore, userStore } = useContext(StoreContext)
-  const isLoginContext = loginStore?.isLoginContext
-  const user = userStore?.user
+  const location = useLocation();
+  const { loginStore, userStore } = useContext(StoreContext);
+  const isLoginContext = loginStore?.isLoginContext;
+  const user = userStore?.user;
 
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [dropdownSearch, setDropdownSearch] = useState("")
-  const dropdownRef = useRef(null)
+  const [schools, setSchools] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [dropdownSearch, setDropdownSearch] = useState("");
+  const dropdownRef = useRef(null);
+
+  // Nạp danh sách trường học từ API /schools/public
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSchools = async () => {
+      try {
+        const res = await SchoolService.getPublicSchools();
+        if (isMounted && res?.data) {
+          setSchools(Array.isArray(res.data) ? res.data : []);
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách trường ở header:", err);
+      }
+    };
+    fetchSchools();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Đóng dropdown khi click ra ngoài
   useEffect(() => {
-    const handleClickOutside = event => {
+    const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
+        setIsDropdownOpen(false);
       }
-    }
-    document.addEventListener("mousedown", handleClickOutside)
+    };
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [])
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
-  const filteredSchools = MOCK_SCHOOLS.filter(
-    s =>
-      s.name.toLowerCase().includes(dropdownSearch.toLowerCase()) ||
-      s.district.toLowerCase().includes(dropdownSearch.toLowerCase()),
-  )
+  const filteredSchools = useMemo(() => {
+    const query = dropdownSearch.toLowerCase().trim();
+    if (!query) return schools;
+    return schools.filter(
+      (s) =>
+        s.name?.toLowerCase().includes(query) ||
+        s.district?.toLowerCase().includes(query) ||
+        s.address?.toLowerCase().includes(query) ||
+        s.code?.toLowerCase().includes(query),
+    );
+  }, [schools, dropdownSearch]);
 
   const leftSlot = (
     <Link to={ROUTER.DEFAULT} style={{ textDecoration: "none" }}>
       <BrandLogo theme="light" />
     </Link>
-  )
+  );
 
   const centerSlot = (
     <nav className={styles.navBar} aria-label="Main navigation">
@@ -68,7 +94,7 @@ function PublicHeader() {
         <button
           type="button"
           className={`${styles.dropdownBtn} ${isDropdownOpen ? styles.isOpen : ""}`}
-          onClick={() => setIsDropdownOpen(prev => !prev)}
+          onClick={() => setIsDropdownOpen((prev) => !prev)}
         >
           <span>Khám phá trường học</span>
           <ChevronDown
@@ -84,7 +110,6 @@ function PublicHeader() {
           <div className={styles.dropdownPanel}>
             <div className={styles.panelHeader}>
               <span className={styles.panelTitle}>Tìm kiếm trường học</span>
-              <span className={styles.panelBadge}>Hà Nội & Lân cận</span>
             </div>
 
             <div className={styles.panelSearch}>
@@ -93,13 +118,13 @@ function PublicHeader() {
                 type="text"
                 placeholder="Nhập tên trường hoặc quận..."
                 value={dropdownSearch}
-                onChange={e => setDropdownSearch(e.target.value)}
+                onChange={(e) => setDropdownSearch(e.target.value)}
                 autoFocus
               />
             </div>
 
             <div className={styles.schoolList}>
-              {filteredSchools.slice(0, 5).map(school => (
+              {filteredSchools.slice(0, 5).map((school) => (
                 <Link
                   key={school.id}
                   to={`/school/${school.code}`}
@@ -108,14 +133,16 @@ function PublicHeader() {
                 >
                   <div className={styles.itemLeft}>
                     <div className={styles.itemAvatar}>
-                      {school.short_name || school.code?.slice(0, 2)}
+                      {school.short_name || school.code?.slice(0, 2) || "TH"}
                     </div>
                     <div className={styles.itemInfo}>
                       <span className={styles.itemSchoolName}>
                         {school.name}
                       </span>
                       <span className={styles.itemAddress}>
-                        {school.district}, {school.city}
+                        {school.district
+                          ? `${school.district}, ${school.city || "Hà Nội"}`
+                          : school.address || "Hà Nội"}
                       </span>
                     </div>
                   </div>
@@ -142,7 +169,7 @@ function PublicHeader() {
         Cách hoạt động
       </a>
     </nav>
-  )
+  );
 
   const rightSlot = (
     <div className={styles.actionsWrap}>
@@ -167,7 +194,7 @@ function PublicHeader() {
         </>
       )}
     </div>
-  )
+  );
 
   return (
     <BaseHeader
@@ -176,7 +203,7 @@ function PublicHeader() {
       rightSlot={rightSlot}
       variant="contained"
     />
-  )
+  );
 }
 
-export default PublicHeader
+export default PublicHeader;

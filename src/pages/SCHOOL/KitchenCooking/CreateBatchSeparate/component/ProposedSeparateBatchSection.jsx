@@ -1,4 +1,14 @@
 import React, { useState } from "react"
+import {
+  CookingPot,
+  Clock,
+  Thermometer,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  CheckCircle2,
+  Utensils
+} from "lucide-react"
 import styles from "./ProposedSeparateBatchSection.module.scss"
 
 export default function ProposedSeparateBatchSection() {
@@ -6,81 +16,105 @@ export default function ProposedSeparateBatchSection() {
   const [showDetail2, setShowDetail2] = useState(false)
 
   return (
-    <section className={styles.compactCard}>
-      <div className={styles.cardHeader}>
-        <div className={styles.headerTitle}>
-          <span className={`material-symbols-outlined ${styles.headerIcon}`}>
-            hub
-          </span>
-          <span className={styles.titleText}>Phương án tách mẻ dự kiến</span>
-        </div>
-
-        <div className={styles.summaryBadge}>
-          <span className="material-symbols-outlined">check_circle</span>
-          <span>Đề xuất: 02 mẻ độc lập (1.250 suất — 100%)</span>
+    <section className={styles.sectionContainer}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.titleWithBadge}>
+          <div className={styles.numberBadge}>3</div>
+          <div>
+            <h2 className={styles.sectionTitle}>
+              3. Phương án tách lô dự kiến &amp; An toàn bếp
+            </h2>
+            <p className={styles.sectionSubtitle}>
+              Kế hoạch 02 lô nấu độc lập song song, kiểm soát nhiệt độ an toàn thực phẩm
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 2 Thẻ Mẻ Song Song Cực Gọn & Đẹp */}
+      {/* Thẻ tóm tắt đề xuất */}
+      <div className={styles.summaryCard}>
+        <div className={styles.summaryLeft}>
+          <div className={styles.hubIconBox} aria-hidden="true">
+            <CookingPot size={22} />
+          </div>
+          <div className={styles.summaryMainInfo}>
+            <div className={styles.batchTitleRow}>
+              <span className={styles.batchMainName}>Đề xuất: 02 lô chế biến độc lập</span>
+              <span className={styles.statusPill}>Nấu riêng 1:1</span>
+            </div>
+            <p className={styles.summaryText}>
+              Bữa trưa học đường (11:15) • Quy mô: <strong>1.250 suất</strong> (100% nhu cầu điểm danh) • Tách biệt theo 02 nguồn gốc thịt heo
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* 2 Thẻ Lô Chế Biến Song Song */}
       <div className={styles.batchesGrid}>
-        {/* Mẻ 1 */}
+        {/* Lô 1 */}
         <div className={styles.batchCard}>
-          <div className={styles.batchTop}>
-            <div className={styles.badgeIndex}>
-              <span>01</span>
+          <div className={styles.cardHeader}>
+            <div className={styles.headerLeft}>
+              <div className={styles.batchIndexBadge}>01</div>
+              <div className={styles.batchTitles}>
+                <span className={styles.batchName}>Lô nấu riêng 1</span>
+                <span className={styles.dishName}>Thịt heo kho nước dừa</span>
+              </div>
             </div>
-            <div className={styles.batchMeta}>
-              <span className={styles.batchTitle}>Mẻ chế biến 1</span>
-              <span className={styles.batchCode}>CB-20261026-001</span>
-            </div>
-            <span className={styles.verifiedPill}>
-              <span className="material-symbols-outlined">verified</span>
-              <span>Đạt chuẩn</span>
-            </span>
+            <span className={styles.lotOriginTag}>LOT-HEO-892</span>
           </div>
 
-          <div className={styles.portionRow}>
+          <div className={styles.portionBox}>
             <div className={styles.portionMain}>
-              <span className={styles.num}>731</span>
-              <span className={styles.unit}>suất ăn</span>
+              <span className={styles.portionNum}>731</span>
+              <span className={styles.portionUnit}>suất ăn</span>
             </div>
             <span className={styles.portionPercent}>58.5% tổng nhu cầu</span>
           </div>
 
-          <div className={styles.ingredientList}>
-            <div className={styles.ingItem}>
-              <span className="material-symbols-outlined">restaurant</span>
-              <span>
-                Thịt heo: <strong className={styles.lotText}>LOT-HEO-892</strong> (50.0 kg)
-              </span>
+          {/* Khung giờ & ATTP */}
+          <div className={styles.scheduleRow}>
+            <div className={styles.scheduleItem}>
+              <Clock size={14} className={styles.scheduleIcon} />
+              <span>Nấu: <strong>08:30 – 10:30</strong> (Chảo Á 01)</span>
             </div>
-            <div className={styles.ingItem}>
-              <span className="material-symbols-outlined">egg</span>
-              <span>Trứng cút (1.462 quả) • Nước dừa (46.8L) • Gia vị</span>
+            <div className={styles.scheduleItem}>
+              <Thermometer size={14} className={styles.scheduleIconTemp} />
+              <span>Tâm món: <strong>≥ 85°C</strong></span>
             </div>
           </div>
 
-          <div className={styles.cardBottom}>
-            <button
-              type="button"
-              className={styles.toggleDetailBtn}
-              onClick={() => setShowDetail1(!showDetail1)}
-            >
-              <span>{showDetail1 ? "Thu gọn định lượng" : "Chi tiết định lượng"}</span>
-              <span className="material-symbols-outlined">
-                {showDetail1 ? "expand_less" : "expand_more"}
-              </span>
-            </button>
+          {/* Tóm tắt nguyên liệu */}
+          <div className={styles.ingredientSummary}>
+            <div className={styles.ingSummaryItem}>
+              <Utensils size={13} className={styles.ingIcon} />
+              <span>Thịt heo HTX Nam Hà: <strong>50.0 kg</strong> (100% Lô 892)</span>
+            </div>
+            <div className={styles.ingSummaryItem}>
+              <ShieldCheck size={13} className={styles.ingIcon} />
+              <span>Trứng cút (1.462 quả) • Nước dừa (46.8L) • Gia vị (2.46 kg)</span>
+            </div>
           </div>
+
+          {/* Nút xem chi tiết định lượng */}
+          <button
+            type="button"
+            className={styles.toggleDetailBtn}
+            onClick={() => setShowDetail1(!showDetail1)}
+            aria-expanded={showDetail1}
+          >
+            <span>{showDetail1 ? "Thu gọn định lượng" : "Chi tiết định lượng lô 1"}</span>
+            {showDetail1 ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
 
           {showDetail1 && (
             <div className={styles.detailBox}>
               <div className={styles.detailRow}>
-                <span>Thịt ba chỉ:</span>
+                <span>Thịt ba chỉ heo (LOT-HEO-892):</span>
                 <strong>50.0 kg</strong>
               </div>
               <div className={styles.detailRow}>
-                <span>Trứng cút sạch:</span>
+                <span>Trứng cút tươi sạch:</span>
                 <strong>1.462 quả</strong>
               </div>
               <div className={styles.detailRow}>
@@ -88,71 +122,77 @@ export default function ProposedSeparateBatchSection() {
                 <strong>46.8 lít</strong>
               </div>
               <div className={styles.detailRow}>
-                <span>Gia vị an toàn:</span>
+                <span>Gia vị kho an toàn:</span>
                 <strong>2.46 kg</strong>
               </div>
             </div>
           )}
         </div>
 
-        {/* Mẻ 2 */}
+        {/* Lô 2 */}
         <div className={styles.batchCard}>
-          <div className={styles.batchTop}>
-            <div className={styles.badgeIndex}>
-              <span>02</span>
+          <div className={styles.cardHeader}>
+            <div className={styles.headerLeft}>
+              <div className={styles.batchIndexBadge}>02</div>
+              <div className={styles.batchTitles}>
+                <span className={styles.batchName}>Lô nấu riêng 2</span>
+                <span className={styles.dishName}>Thịt heo kho nước dừa</span>
+              </div>
             </div>
-            <div className={styles.batchMeta}>
-              <span className={styles.batchTitle}>Mẻ chế biến 2</span>
-              <span className={styles.batchCode}>CB-20261026-002</span>
-            </div>
-            <span className={styles.verifiedPill}>
-              <span className="material-symbols-outlined">verified</span>
-              <span>Đạt chuẩn</span>
-            </span>
+            <span className={styles.lotOriginTag}>LOT-HEO-893</span>
           </div>
 
-          <div className={styles.portionRow}>
+          <div className={styles.portionBox}>
             <div className={styles.portionMain}>
-              <span className={styles.num}>519</span>
-              <span className={styles.unit}>suất ăn</span>
+              <span className={styles.portionNum}>519</span>
+              <span className={styles.portionUnit}>suất ăn</span>
             </div>
             <span className={styles.portionPercent}>41.5% tổng nhu cầu</span>
           </div>
 
-          <div className={styles.ingredientList}>
-            <div className={styles.ingItem}>
-              <span className="material-symbols-outlined">restaurant</span>
-              <span>
-                Thịt heo: <strong className={styles.lotText}>LOT-HEO-893</strong> (35.5 kg)
-              </span>
+          {/* Khung giờ & ATTP */}
+          <div className={styles.scheduleRow}>
+            <div className={styles.scheduleItem}>
+              <Clock size={14} className={styles.scheduleIcon} />
+              <span>Nấu: <strong>08:45 – 10:35</strong> (Chảo Á 02)</span>
             </div>
-            <div className={styles.ingItem}>
-              <span className="material-symbols-outlined">egg</span>
-              <span>Trứng cút (1.038 quả) • Nước dừa (33.2L) • Gia vị</span>
+            <div className={styles.scheduleItem}>
+              <Thermometer size={14} className={styles.scheduleIconTemp} />
+              <span>Tâm món: <strong>≥ 85°C</strong></span>
             </div>
           </div>
 
-          <div className={styles.cardBottom}>
-            <button
-              type="button"
-              className={styles.toggleDetailBtn}
-              onClick={() => setShowDetail2(!showDetail2)}
-            >
-              <span>{showDetail2 ? "Thu gọn định lượng" : "Chi tiết định lượng"}</span>
-              <span className="material-symbols-outlined">
-                {showDetail2 ? "expand_less" : "expand_more"}
-              </span>
-            </button>
+          {/* Tóm tắt nguyên liệu */}
+          <div className={styles.ingredientSummary}>
+            <div className={styles.ingSummaryItem}>
+              <Utensils size={13} className={styles.ingIcon} />
+              <span>Thịt heo HTX Nam Hà: <strong>35.5 kg</strong> (100% Lô 893)</span>
+            </div>
+            <div className={styles.ingSummaryItem}>
+              <ShieldCheck size={13} className={styles.ingIcon} />
+              <span>Trứng cút (1.038 quả) • Nước dừa (33.2L) • Gia vị (1.74 kg)</span>
+            </div>
           </div>
+
+          {/* Nút xem chi tiết định lượng */}
+          <button
+            type="button"
+            className={styles.toggleDetailBtn}
+            onClick={() => setShowDetail2(!showDetail2)}
+            aria-expanded={showDetail2}
+          >
+            <span>{showDetail2 ? "Thu gọn định lượng" : "Chi tiết định lượng lô 2"}</span>
+            {showDetail2 ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
 
           {showDetail2 && (
             <div className={styles.detailBox}>
               <div className={styles.detailRow}>
-                <span>Thịt ba chỉ:</span>
+                <span>Thịt ba chỉ heo (LOT-HEO-893):</span>
                 <strong>35.5 kg</strong>
               </div>
               <div className={styles.detailRow}>
-                <span>Trứng cút sạch:</span>
+                <span>Trứng cút tươi sạch:</span>
                 <strong>1.038 quả</strong>
               </div>
               <div className={styles.detailRow}>
@@ -160,12 +200,20 @@ export default function ProposedSeparateBatchSection() {
                 <strong>33.2 lít</strong>
               </div>
               <div className={styles.detailRow}>
-                <span>Gia vị an toàn:</span>
+                <span>Gia vị kho an toàn:</span>
                 <strong>1.74 kg</strong>
               </div>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Dòng ghi nhận chuẩn */}
+      <div className={styles.noteBox}>
+        <CheckCircle2 size={16} className={styles.noteIcon} />
+        <span className={styles.noteText}>
+          Phương án chế biến 02 lô hợp lệ. Bảo đảm kiểm soát an toàn thực phẩm và truy xuất nguồn gốc số hóa riêng biệt 1:1. Sẵn sàng tạo lô.
+        </span>
       </div>
     </section>
   )

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useState } from "react"
 import {
   Box,
   Button,
@@ -6,6 +6,7 @@ import {
   CardContent,
   CardHeader,
   Chip,
+  CircularProgress,
   Typography,
 } from "@mui/material"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
@@ -14,25 +15,50 @@ import AuthService from "src/services/AuthService"
 import styles from "./QuickLoginList.module.scss"
 
 function QuickLoginList({ onLoginSuccess }) {
-  const handleQuickLogin = roleCode => {
-    const { user } = AuthService.mockLoginByRole(roleCode)
-    onLoginSuccess(user)
+  const [loadingUser, setLoadingUser] = useState(null)
+
+  const handleQuickLogin = async acc => {
+    try {
+      setLoadingUser(acc.username)
+      const res = await AuthService.login({
+        username: acc.username,
+        password: "123456",
+      })
+      const user = res?.data?.user || res?.Object?.User
+      if (user) {
+        onLoginSuccess(user)
+        return
+      }
+      // Fallback nếu có lỗi
+      const { user: mockUser } = AuthService.mockLoginByRole(acc.role)
+      onLoginSuccess(mockUser)
+    } catch {
+      const { user: mockUser } = AuthService.mockLoginByRole(acc.role)
+      onLoginSuccess(mockUser)
+    } finally {
+      setLoadingUser(null)
+    }
   }
 
   return (
     <Card className={styles.quickLoginCard}>
       <CardHeader
         title={
-          <Box display="flex" alignItems="center" gap={1.5}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Typography variant="h6" fontWeight={700}>
               ⚡ Đăng nhập Nhanh để Test Phân Quyền
             </Typography>
-            <Chip label="1 Account = 1 Role" size="small" color="warning" sx={{ fontWeight: 600 }} />
+            <Chip
+              label="10 Tài khoản Demo"
+              size="small"
+              color="warning"
+              sx={{ fontWeight: 600 }}
+            />
           </Box>
         }
         subheader={
           <Typography variant="body2" color="text.secondary" mt={0.5}>
-            Click vào bất kỳ tài khoản nào bên dưới để hệ thống tự động gán role và chuyển hướng:
+            Click vào tài khoản demo bên dưới để tự động cấp Cookie, gán Role và điều hướng:
           </Typography>
         }
       />
@@ -42,16 +68,20 @@ function QuickLoginList({ onLoginSuccess }) {
             let orgColor = "primary"
             if (acc.orgType === "SYSTEM") orgColor = "secondary"
             if (acc.orgType === "SUPPLIER") orgColor = "success"
+            if (acc.orgType === "AUTHORITY") orgColor = "info"
+
+            const isLoading = loadingUser === acc.username
 
             return (
               <Box
                 key={acc.userId}
-                onClick={() => handleQuickLogin(acc.role)}
+                onClick={() => !isLoading && handleQuickLogin(acc)}
                 className={styles.roleItem}
+                sx={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "wait" : "pointer" }}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Chip
                         label={acc.orgType}
                         size="small"
@@ -61,17 +91,27 @@ function QuickLoginList({ onLoginSuccess }) {
                       <Typography fontWeight={600} fontSize="0.95rem">
                         {acc.fullName}
                       </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        ({acc.username})
+                      </Typography>
                     </Box>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: "block" }}>
-                      Vai trò: <b style={{ color: "var(--color-primary, #0A8066)" }}>{ROLE_LABELS[acc.role]}</b>
+                      Vai trò: <b style={{ color: "var(--color-primary, #0A8066)" }}>{ROLE_LABELS[acc.role] || acc.role}</b>
                     </Typography>
                   </Box>
                   <Button
                     size="small"
-                    endIcon={<ArrowForwardIcon fontSize="small" />}
+                    disabled={isLoading}
+                    endIcon={
+                      isLoading ? (
+                        <CircularProgress size={14} color="inherit" />
+                      ) : (
+                        <ArrowForwardIcon fontSize="small" />
+                      )
+                    }
                     sx={{ textTransform: "none", fontWeight: 600 }}
                   >
-                    Vào thử
+                    {isLoading ? "Đang vào..." : "Vào thử"}
                   </Button>
                 </Box>
               </Box>

@@ -1,4 +1,19 @@
 import React, { useState, useRef, useEffect } from "react"
+import {
+  Lock,
+  Calendar,
+  ChevronDown,
+  ChevronUp,
+  Beef,
+  Soup,
+  Utensils,
+  Apple,
+  CheckCircle2,
+  Search,
+  X,
+  Minus,
+  Plus
+} from "lucide-react"
 import styles from "./BasicInfoSection.module.scss"
 
 const DISH_OPTIONS = [
@@ -6,25 +21,25 @@ const DISH_OPTIONS = [
     id: "dish-1",
     name: "Thịt heo kho nước dừa",
     type: "Món mặn chính • Giàu đạm, canxi",
-    icon: "skillet",
+    icon: Beef,
   },
   {
     id: "dish-2",
     name: "Canh sườn hầm củ quả thập cẩm",
     type: "Món canh dinh dưỡng",
-    icon: "soup_kitchen",
+    icon: Soup,
   },
   {
     id: "dish-3",
     name: "Đậu hũ non sốt thịt băm cà chua",
     type: "Món phụ / xào",
-    icon: "restaurant",
+    icon: Utensils,
   },
   {
     id: "dish-4",
     name: "Thanh long ruột đỏ Bình Thuận",
     type: "Món tráng miệng",
-    icon: "nutrition",
+    icon: Apple,
   },
 ]
 
@@ -33,7 +48,7 @@ export default function BasicInfoSection() {
   const [selectedDish, setSelectedDish] = useState(DISH_OPTIONS[0])
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  const [portions, setPortions] = useState("1.250")
+  const [portions, setPortions] = useState(1250)
 
   const dropdownRef = useRef(null)
 
@@ -69,6 +84,12 @@ export default function BasicInfoSection() {
     setIsDropdownOpen(true)
   }
 
+  const handleAdjustPortions = (delta) => {
+    setPortions((prev) => Math.max(10, prev + delta))
+  }
+
+  const DishIcon = selectedDish?.icon || Utensils
+
   return (
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
@@ -77,7 +98,7 @@ export default function BasicInfoSection() {
           <div>
             <h2 className={styles.sectionTitle}>1. Thông tin cơ bản</h2>
             <p className={styles.sectionSubtitle}>
-              Bắt buộc nhập — Thiết lập ca ăn, thực đơn và số lượng học sinh phục vụ
+              Bắt buộc — Ca ăn, thực đơn và số lượng học sinh phục vụ
             </p>
           </div>
         </div>
@@ -88,25 +109,24 @@ export default function BasicInfoSection() {
       <div className={styles.gridRow}>
         {/* Ngày ăn (Khóa) */}
         <div className={styles.formGroup}>
-          <label className={styles.label}>
-            <span>Ngày ăn / Ngày chế biến</span>
-            <span
-              className={`material-symbols-outlined ${styles.lockIcon}`}
-              title="Đồng bộ tự động từ thực đơn"
-            >
-              lock
+          <div className={styles.labelRow}>
+            <label className={styles.label}>Ngày ăn / Chế biến</label>
+            <span className={styles.lockHint} title="Đồng bộ tự động từ thực đơn">
+              <Lock size={12} />
+              <span>Đã khóa theo thực đơn</span>
             </span>
-          </label>
+          </div>
+
           <div className={styles.lockedField}>
             <div className={styles.lockedValue}>
-              <span className="material-symbols-outlined">calendar_today</span>
-              <span className={styles.lockedText}>26/10/2026 (Thứ Hai — Tuần 46)</span>
+              <Calendar size={15} className={styles.calIcon} />
+              <div className={styles.dateMeta}>
+                <span className={styles.lockedDate}>26/10/2026</span>
+                <span className={styles.lockedSub}>• Thứ Hai (Tuần 46)</span>
+              </div>
             </div>
-            <span className={styles.lockedBadge}>Đã khóa</span>
+            <span className={styles.lockedBadge}>Khóa</span>
           </div>
-          <span className={styles.helperText}>
-            Đồng bộ tự động từ thực đơn đã duyệt tuần 46
-          </span>
         </div>
 
         {/* Bữa ăn phục vụ */}
@@ -117,18 +137,14 @@ export default function BasicInfoSection() {
               className={styles.selectInput}
               value={selectedMeal}
               onChange={(e) => setSelectedMeal(e.target.value)}
+              aria-label="Chọn bữa ăn phục vụ"
             >
               <option value="lunch">Bữa trưa học đường (10:45 – 11:45)</option>
               <option value="afternoon">Bữa phụ chiều (14:30 – 15:00)</option>
               <option value="breakfast">Bữa sáng bán trú (06:45 – 07:30)</option>
             </select>
-            <span className={`material-symbols-outlined ${styles.selectIcon}`}>
-              expand_more
-            </span>
+            <ChevronDown size={16} className={styles.selectArrow} aria-hidden="true" />
           </div>
-          <span className={styles.helperText}>
-            Khung giờ chuẩn bị cho khối Tiểu học &amp; THCS
-          </span>
         </div>
       </div>
 
@@ -142,11 +158,15 @@ export default function BasicInfoSection() {
               isDropdownOpen ? styles.dropdownOpen : ""
             }`}
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            role="button"
+            tabIndex={0}
+            aria-label="Chọn món cần chế biến"
+            aria-expanded={isDropdownOpen}
           >
             <div className={styles.selectedContent}>
-              <span className={`material-symbols-outlined ${styles.dishIcon}`}>
-                {selectedDish ? selectedDish.icon : "restaurant_menu"}
-              </span>
+              <div className={styles.dishIconBox}>
+                <DishIcon size={16} />
+              </div>
               <span className={styles.dishName}>
                 {selectedDish ? selectedDish.name : "Chọn món cần chế biến..."}
               </span>
@@ -159,13 +179,16 @@ export default function BasicInfoSection() {
                   className={styles.clearBtn}
                   onClick={handleClearSelection}
                   title="Xóa lựa chọn"
+                  aria-label="Xóa món đã chọn"
                 >
-                  <span className="material-symbols-outlined">close</span>
+                  <X size={14} />
                 </button>
               )}
-              <span className={`material-symbols-outlined ${styles.arrowIcon}`}>
-                {isDropdownOpen ? "expand_less" : "expand_more"}
-              </span>
+              {isDropdownOpen ? (
+                <ChevronUp size={16} className={styles.arrowIcon} />
+              ) : (
+                <ChevronDown size={16} className={styles.arrowIcon} />
+              )}
             </div>
           </div>
 
@@ -173,20 +196,21 @@ export default function BasicInfoSection() {
           {isDropdownOpen && (
             <div className={styles.dropdownPopup}>
               <div className={styles.searchBox}>
-                <span className="material-symbols-outlined">search</span>
+                <Search size={15} className={styles.searchIcon} />
                 <input
                   type="text"
                   className={styles.searchInput}
-                  placeholder="Tìm tên món trong thực đơn... (Esc)"
+                  placeholder="Tìm tên món trong thực đơn..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
                 />
               </div>
 
-              <div className={styles.itemsList}>
+              <div className={styles.itemsList} role="listbox">
                 {filteredDishes.map((dish) => {
                   const isSelected = selectedDish?.id === dish.id
+                  const ItemIcon = dish.icon
                   return (
                     <div
                       key={dish.id}
@@ -198,15 +222,17 @@ export default function BasicInfoSection() {
                         setIsDropdownOpen(false)
                         setSearchQuery("")
                       }}
+                      role="option"
+                      aria-selected={isSelected}
                     >
                       <div className={styles.itemInfo}>
-                        <span
-                          className={`material-symbols-outlined ${
-                            isSelected ? styles.selectedIcon : styles.itemIcon
-                          }`}
-                        >
-                          {isSelected ? "check_circle" : dish.icon}
-                        </span>
+                        <div className={`${styles.iconWrap} ${isSelected ? styles.iconWrapActive : ""}`}>
+                          {isSelected ? (
+                            <CheckCircle2 size={16} className={styles.checkIcon} />
+                          ) : (
+                            <ItemIcon size={16} />
+                          )}
+                        </div>
                         <div className={styles.textContainer}>
                           <span
                             className={
@@ -238,21 +264,45 @@ export default function BasicInfoSection() {
           )}
         </div>
 
-        {/* Số suất dự kiến */}
+        {/* Số suất dự kiến với nút tăng giảm nhanh */}
         <div className={styles.formGroup}>
-          <label className={styles.label}>Số suất dự kiến</label>
-          <div className={styles.inputWrapper}>
-            <input
-              type="text"
-              className={styles.portionInput}
-              value={portions}
-              onChange={(e) => setPortions(e.target.value)}
-            />
-            <span className={styles.unitSuffix}>suất ăn</span>
+          <div className={styles.labelRow}>
+            <label className={styles.label}>Số suất dự kiến</label>
+            <span className={styles.rosterHint}>Sĩ số điểm danh: 1.250</span>
           </div>
-          <span className={styles.helperText}>
-            Hệ thống tự động đề xuất dựa trên sĩ số điểm danh báo trước 24h
-          </span>
+
+          <div className={styles.stepperWrapper}>
+            <button
+              type="button"
+              className={styles.stepBtn}
+              onClick={() => handleAdjustPortions(-50)}
+              aria-label="Giảm 50 suất"
+            >
+              <Minus size={15} />
+              <span>50</span>
+            </button>
+
+            <div className={styles.inputInner}>
+              <input
+                type="number"
+                className={styles.portionInput}
+                value={portions}
+                onChange={(e) => setPortions(Number(e.target.value) || 0)}
+                aria-label="Số suất dự kiến"
+              />
+              <span className={styles.unitSuffix}>suất ăn</span>
+            </div>
+
+            <button
+              type="button"
+              className={styles.stepBtn}
+              onClick={() => handleAdjustPortions(50)}
+              aria-label="Tăng 50 suất"
+            >
+              <Plus size={15} />
+              <span>50</span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
