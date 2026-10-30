@@ -7,14 +7,12 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
-  FileText
+  CheckCircle2
 } from "lucide-react"
 import styles from "./ProposedBatchSection.module.scss"
 
 export default function ProposedBatchSection() {
   const [isLotsDetailOpen, setIsLotsDetailOpen] = useState(false)
-  const [chefNotes, setChefNotes] = useState("")
 
   return (
     <section className={styles.sectionContainer}>
@@ -139,21 +137,6 @@ export default function ProposedBatchSection() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Ghi chú bếp trưởng / Bếp chính */}
-      <div className={styles.notesGroup}>
-        <label className={styles.notesLabel}>
-          <FileText size={13} />
-          <span>Ghi chú điều phối bếp (Tùy chọn)</span>
-        </label>
-        <textarea
-          className={styles.notesTextarea}
-          placeholder="Ví dụ: Chia 2 chảo nghiêng công nghiệp, nêm nhạt phù hợp lứa tuổi tiểu học, kiểm tra màu cánh gián tự nhiên..."
-          value={chefNotes}
-          onChange={(e) => setChefNotes(e.target.value)}
-          rows={2}
-        />
       </div>
 
       {/* Dòng ghi nhận chuẩn */}

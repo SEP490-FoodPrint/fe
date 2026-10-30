@@ -4,8 +4,7 @@ import {
   CheckCircle2,
   PackageCheck,
   Calendar,
-  Layers,
-  BookOpen
+  Layers
 } from "lucide-react"
 import styles from "./IngredientAllocationSection.module.scss"
 
@@ -107,11 +106,6 @@ export default function IngredientAllocationSection() {
             </p>
           </div>
         </div>
-
-        <button type="button" className={styles.formulaBtn} title="Xem định mức công thức đã phê duyệt">
-          <BookOpen size={14} />
-          <span>Định mức</span>
-        </button>
       </div>
 
       {/* Banner quy chuẩn nấu chung của nhà trường */}

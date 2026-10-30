@@ -359,48 +359,7 @@
   color: var(--color-primary, #0a8066);
 }
 
-/* 4. Ghi chú điều phối bếp */
-.notesGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.notesLabel {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary, #4b5563);
-}
-
-.notesTextarea {
-  width: 100%;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  padding: 8px 10px;
-  font-size: 12.5px;
-  color: var(--text-primary, #111827);
-  background-color: #ffffff;
-  resize: vertical;
-  min-height: 48px;
-  font-family: inherit;
-  transition: all 0.15s ease;
-
-  &::placeholder {
-    color: var(--text-muted, #9ca3af);
-    font-size: 11.5px;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
-  }
-}
-
-/* 5. Ghi nhận chuẩn */
+/* 4. Ghi nhận chuẩn */
 .noteBox {
   display: flex;
   align-items: center;
