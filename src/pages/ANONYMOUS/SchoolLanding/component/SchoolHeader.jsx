@@ -12,7 +12,7 @@ import {
 import { StoreContext } from "src/contexts";
 import { getDefaultRedirectByOrg } from "src/lib/utils";
 import ROUTER from "src/router/ROUTER";
-import { MOCK_SCHOOLS } from "src/services/SchoolService";
+import SchoolService from "src/services/SchoolService";
 import styles from "./SchoolHeader.module.scss";
 
 function SchoolHeader({ school }) {
@@ -20,8 +20,28 @@ function SchoolHeader({ school }) {
   const isLoginContext = loginStore?.isLoginContext;
   const user = userStore?.user;
 
+  const [schools, setSchools] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+
+  // Nạp danh sách trường học từ API /schools/public
+  useEffect(() => {
+    let isMounted = true;
+    const fetchSchools = async () => {
+      try {
+        const res = await SchoolService.getPublicSchools();
+        if (isMounted && res?.data) {
+          setSchools(Array.isArray(res.data) ? res.data : []);
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách trường ở school header:", err);
+      }
+    };
+    fetchSchools();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -97,7 +117,7 @@ function SchoolHeader({ school }) {
                   <span>Danh sách trường liên kết</span>
                 </div>
                 <div className={styles.dropdownList}>
-                  {MOCK_SCHOOLS.map((item) => (
+                  {schools.map((item) => (
                     <Link
                       key={item.id}
                       to={`/school/${item.code}`}
@@ -105,12 +125,14 @@ function SchoolHeader({ school }) {
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <span className={styles.optionCode}>
-                        {item.short_name}
+                        {item.short_name || item.code?.slice(0, 2) || "TH"}
                       </span>
                       <div className={styles.optionDetails}>
                         <span className={styles.optionName}>{item.name}</span>
                         <span className={styles.optionDistrict}>
-                          {item.district}
+                          {item.district
+                            ? `${item.district}, ${item.city || "Hà Nội"}`
+                            : item.address || "Hà Nội"}
                         </span>
                       </div>
                     </Link>

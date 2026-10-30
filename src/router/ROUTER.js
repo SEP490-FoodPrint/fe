@@ -1,7 +1,7 @@
 const ROUTER = {
   // Public
   DEFAULT: "/",
-  LOGIN: "/login",
+  LOGIN: "/test-login",
   SCHOOL_LANDING: "/school/:schoolCode",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
@@ -22,17 +22,17 @@ const ROUTER = {
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
   SCHOOL: "/school",
   SCHOOL_OVERVIEW: "/school/overview",
-  SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
-  SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
-  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Nhân viên Bếp
+  SCHOOL_MENU_APPROVAL: "/school/menu-approval", // BGH, School Admin
+  SCHOOL_MENU_PLANNING: "/school/menu-planning", // Ban Y tế
+  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking", // Nhân viên Bếp
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho
-  SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
-  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
+  SCHOOL_WAREHOUSE: "/school/warehouse-management", // Kho / Nguyên liệu
+  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback", // Phụ huynh, GVCN
 
   // Common/Error
   FORBIDDEN: "/403",
   NOT_FOUND: "/404",
-}
+};
 
-export default ROUTER
+export default ROUTER;
