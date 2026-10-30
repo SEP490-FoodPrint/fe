@@ -16,6 +16,8 @@
 > **TUYỆT ĐỐI KHÔNG CAN THIỆP VÀO HEADER VÀ SIDEBAR NẾU KHÔNG CÓ YÊU CẦU CỤ THỂ!**
 
 1. **Khung giao diện cố định:** Toàn bộ hệ thống quản trị FoodPrint sử dụng `MainLayout` quản lý tập trung Header và Sidebar theo phân hệ (`SYSTEM`, `SCHOOL`, `SUPPLIER`).
+   - **Chuẩn Sidebar hiện hành theo Figma:** Nền trắng `var(--bg-surface)`; menu active nền `var(--color-primary-soft)`, chữ/icon `var(--color-primary)`; menu thường dùng `var(--text-muted)`, hover nền `var(--bg-muted)` và chữ `var(--text-primary)`.
+   - **Responsive của App Shell:** Desktop từ 1200px dùng Sidebar 240px/Header 80px; tablet 601–1199px dùng thanh icon 64px/Header 56px; mobile đến 600px dùng Drawer 280px/Header 56px. Sidebar dùng `BrandLogo theme="light" variant="dashboard"`, không có nút thu gọn thủ công hoặc footer tài khoản. Chi tiết tại `docs/registration-screens.md` và mục 4 của `../FOODPRINT_UI_GUIDELINES.md`.
 2. **Phạm vi code của màn hình:** 
    - Khi được yêu cầu tạo hoặc chỉnh sửa một màn hình bất kỳ: **Chỉ được phép code và styling bên trong vùng Content của màn hình đó** (nơi render qua `<Outlet />`).
    - Tuyệt đối **không thay đổi cấu trúc, không can thiệp CSS/SCSS** của Header (`TopHeader`) hay Sidebar (`aside`) của MainLayout, trừ khi người dùng có chỉ đạo đích danh yêu cầu sửa Header/Sidebar.
@@ -234,7 +236,7 @@ Khi tạo mới một tính năng hoặc luồng dữ liệu API:
 ## 7. Checklist Tự Kiểm Tra (Self-Checklist) Cho AI Trước Khi Bàn Giao
 
 Trước khi hoàn thành bất kỳ yêu cầu code màn hình nào, AI phải tự kiểm tra:
-- [ ] **Header/Sidebar:** Có giữ nguyên 100% không? Chỉ code trong phạm vi Page Content?
+- [ ] **Header/Sidebar:** Có giữ Sidebar trắng, menu active nền xanh nhạt/chữ xanh và responsive của App Shell hiện tại không? Chỉ code trong phạm vi Page Content?
 - [ ] **Mobile-First cho Bếp:** Nếu là màn hình Nhân viên bếp, đã tối ưu trên mobile (390px), thẻ cao ~60px, dùng icon action có touch target >= 44px, không có mã kỹ thuật thừa, không tràn ngang (`scrollWidth === clientWidth`)?
 - [ ] **Cấu trúc thư mục:** Màn hình có đủ `index.tsx` (hoặc `.jsx`) + `component/`? Không có file con vứt bừa bãi ở root page?
 - [ ] **Tên Module SCSS:** Mọi component con trong `component/` có file `.module.scss` trùng tên 100% không?
