@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Button, Card, TextField, Typography } from "@mui/material"
+import { Alert, Button, Card, Chip, TextField, Typography } from "@mui/material"
 import {
   CheckCircle2,
   FileCheck2,
@@ -16,12 +16,14 @@ function MenuReview({
   approval,
   directive,
   status,
+  canDecide,
+  scopeLabel,
   onDirectiveChange,
   onApprove,
   onReject,
   submitting,
 }) {
-  const isPending = status === "PENDING_APPROVAL"
+  const isPending = canDecide
 
   return (
     <section className={styles.grid} aria-label="Thẩm định và phê duyệt">
@@ -32,14 +34,12 @@ function MenuReview({
             <Typography component="h2" className={styles.title}>Thẩm định Y tế & VSATTP</Typography>
             <Typography className={styles.subtitle}>Bộ phận Y tế học đường</Typography>
           </div>
-          <span className={styles.approvedBadge}>
-            <CheckCircle2 size={15} /> {review.status}
-          </span>
+          <Chip size="small" label={review.status} color={review.isApproved ? "success" : "warning"} variant="outlined" />
         </div>
 
         <div className={styles.reviewBox}>
           <div className={styles.reviewerRow}>
-            <span className={styles.avatar}>LH</span>
+            <span className={styles.avatar}>{review.reviewer.split(" ").slice(-2).map(word => word[0]).join("")}</span>
             <div>
               <Typography className={styles.reviewer}>{review.reviewer}</Typography>
               <Typography className={styles.role}>{review.role}</Typography>
@@ -50,6 +50,7 @@ function MenuReview({
         </div>
 
         <Typography className={styles.documentLabel}>Hồ sơ pháp lý đính kèm</Typography>
+        {!review.documents.length && <Typography className={styles.subtitle}>Chưa có tài liệu đính kèm.</Typography>}
         <div className={styles.documents}>
           {review.documents.map(document => (
             <div className={styles.document} key={document}>
@@ -66,7 +67,7 @@ function MenuReview({
           <span className={`${styles.headerIcon} ${styles.primaryIcon}`}><Signature size={20} /></span>
           <div>
             <Typography component="h2" className={styles.title}>Ý kiến chỉ đạo của Ban Giám hiệu</Typography>
-            <Typography className={styles.subtitle}>Ghi chú được lưu trong biên bản điện tử</Typography>
+            <Typography className={styles.subtitle}>Phạm vi: {scopeLabel}</Typography>
           </div>
         </div>
 
@@ -74,7 +75,7 @@ function MenuReview({
           multiline
           minRows={5}
           fullWidth
-          value={directive}
+          value={isPending ? directive : approval.note || ""}
           disabled={!isPending || submitting}
           onChange={event => onDirectiveChange(event.target.value)}
           placeholder="Nhập ý kiến chỉ đạo về dị nguyên, nhiệt độ món ăn, lưu mẫu hoặc quy trình phục vụ..."
@@ -102,16 +103,17 @@ function MenuReview({
               onClick={onApprove}
               disabled={submitting}
             >
-              {submitting ? "Đang xử lý..." : "Phê duyệt ngay"}
+              {submitting ? "Đang xử lý..." : `Phê duyệt ${scopeLabel}`}
             </Button>
           </div>
         ) : (
-          <div className={`${styles.finalState} ${status === "APPROVED" ? styles.finalApproved : styles.finalRevision}`}>
-            {status === "APPROVED" ? <CheckCircle2 size={18} /> : <RotateCcw size={18} />}
+          <Alert severity={status === "APPROVED" ? "success" : status === "REVISION_REQUIRED" ? "warning" : "info"}>
             {status === "APPROVED"
-              ? "Hồ sơ đã được Ban Giám hiệu phê duyệt"
-              : "Hồ sơ đã được chuyển về để điều chỉnh"}
-          </div>
+              ? `Đã phê duyệt ${scopeLabel}`
+              : status === "REVISION_REQUIRED"
+                ? `Có yêu cầu điều chỉnh trong phạm vi ${scopeLabel}`
+                : "Thực đơn chưa sẵn sàng để duyệt"}
+          </Alert>
         )}
       </Card>
     </section>
@@ -123,6 +125,8 @@ MenuReview.propTypes = {
   approval: PropTypes.object.isRequired,
   directive: PropTypes.string.isRequired,
   status: PropTypes.string.isRequired,
+  canDecide: PropTypes.bool.isRequired,
+  scopeLabel: PropTypes.string.isRequired,
   onDirectiveChange: PropTypes.func.isRequired,
   onApprove: PropTypes.func.isRequired,
   onReject: PropTypes.func.isRequired,

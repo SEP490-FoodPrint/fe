@@ -31,13 +31,14 @@ const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
 const ManagementFeature = lazy(() => import("src/pages/SCHOOL/ManagementFeature"))
+const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 
 function LazyWrapper({ children }) {
   return (
     <Suspense
       fallback={
         <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <SpinCustom fullscreen />
+          <SpinCustom />
         </div>
       }
     >
@@ -191,7 +192,7 @@ const routes = [
           {
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
-              { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><SupplierRelationships /></LazyWrapper> },
               { path: ROUTER.SCHOOL_FOOD_SAFETY, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
               { path: ROUTER.SCHOOL_TRACEABILITY, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },
               { path: ROUTER.SCHOOL_REPORTS, element: <LazyWrapper><ManagementFeature /></LazyWrapper> },

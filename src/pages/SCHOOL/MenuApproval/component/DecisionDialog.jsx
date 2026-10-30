@@ -19,6 +19,8 @@ function DecisionDialog({
   open,
   submitting,
   initialNotes,
+  scopeLabel,
+  pendingCount,
   onClose,
   onApprove,
   onReject,
@@ -35,9 +37,14 @@ function DecisionDialog({
   }, [initialNotes, open, type])
 
   const handleSubmit = () => {
+    if (submitting || !["approve", "reject"].includes(type)) return
     const normalizedValue = value.trim()
     if (isReject && !normalizedValue) {
       setError("Vui lòng nhập lý do cụ thể để Tổ Bếp tiếp thu và điều chỉnh.")
+      return
+    }
+    if (normalizedValue.length > 2000) {
+      setError("Nội dung không được vượt quá 2000 ký tự.")
       return
     }
     if (isReject) onReject(normalizedValue)
@@ -56,13 +63,13 @@ function DecisionDialog({
         <span className={isReject ? styles.rejectIcon : styles.approveIcon}>
           {isReject ? <RotateCcw size={21} /> : <CheckCircle2 size={21} />}
         </span>
-        {isReject ? "Yêu cầu điều chỉnh thực đơn" : "Phê duyệt thực đơn tuần"}
+        {isReject ? "Yêu cầu điều chỉnh" : "Phê duyệt"} — {scopeLabel}
       </DialogTitle>
       <DialogContent className={styles.content}>
         <Alert severity={isReject ? "warning" : "info"}>
           {isReject
-            ? "Hồ sơ sẽ được chuyển về Tổ Dinh dưỡng và Bếp trưởng để chỉnh sửa."
-            : `Thực đơn ${menu.code} đã có thẩm định y tế hợp lệ và sẵn sàng ký duyệt.`}
+            ? `Yêu cầu chỉnh sửa ${pendingCount} ngày còn chờ trong phạm vi ${scopeLabel} của ${menu.title}.`
+            : `Xác nhận duyệt ${pendingCount} ngày còn chờ trong phạm vi ${scopeLabel} của ${menu.title}.`}
         </Alert>
         <div>
           <Typography component="label" className={styles.label} htmlFor="decision-notes">
@@ -115,6 +122,8 @@ DecisionDialog.propTypes = {
   open: PropTypes.bool.isRequired,
   submitting: PropTypes.bool.isRequired,
   initialNotes: PropTypes.string,
+  scopeLabel: PropTypes.string.isRequired,
+  pendingCount: PropTypes.number.isRequired,
   onClose: PropTypes.func.isRequired,
   onApprove: PropTypes.func.isRequired,
   onReject: PropTypes.func.isRequired,

@@ -24,7 +24,7 @@ const SUMMARY_LABELS = {
   audience: "Khối lớp áp dụng",
   servingPeriod: "Thời gian phục vụ",
   proposer: "Đơn vị đề xuất",
-  supplier: "Nhà cung cấp chính",
+  supplier: "Nhà cung cấp nguyên liệu",
 }
 
 function MenuSummary({ menu }) {
@@ -57,9 +57,11 @@ function MenuSummary({ menu }) {
                   <Typography component="p" className={styles.itemValue}>
                     {menu.summary[key]}
                   </Typography>
-                  <Typography component="p" className={styles.itemDetail}>
-                    {menu.summary[`${key}Detail`]}
-                  </Typography>
+                  {key !== "supplier" && menu.summary[`${key}Detail`] && (
+                    <Typography component="p" className={styles.itemDetail}>
+                      {menu.summary[`${key}Detail`]}
+                    </Typography>
+                  )}
                 </div>
               </div>
             )

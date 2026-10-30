@@ -21,16 +21,15 @@ const STATUS_CONFIG = {
     className: styles.statusApproved,
     icon: <CheckCircle2 size={14} />,
   },
-  REVISION_REQUESTED: {
+  REVISION_REQUIRED: {
     label: "Yêu cầu điều chỉnh",
     className: styles.statusRejected,
     icon: <RotateCcw size={14} />,
   },
 }
 
-function MenuApprovalHeader({ menu, onApprove, onReject, onPrint }) {
-  const status = STATUS_CONFIG[menu.status] || STATUS_CONFIG.PENDING_APPROVAL
-  const isPending = menu.status === "PENDING_APPROVAL"
+function MenuApprovalHeader({ menu, onApprove, onReject, onPrint, canDecide, scopeLabel, submitting }) {
+  const status = STATUS_CONFIG[menu.status] || { label: "Chưa gửi duyệt", className: styles.statusPending }
 
   return (
     <section className={styles.wrapper} aria-labelledby="menu-approval-title">
@@ -58,7 +57,7 @@ function MenuApprovalHeader({ menu, onApprove, onReject, onPrint }) {
               {status.label}
             </span>
           </div>
-          <Typography className={styles.description}>{menu.description}</Typography>
+          <Typography className={styles.description}>Phạm vi xử lý: {scopeLabel}. Chỉ các ngày còn chờ duyệt được xử lý.</Typography>
         </div>
 
         <div className={styles.actions}>
@@ -70,17 +69,18 @@ function MenuApprovalHeader({ menu, onApprove, onReject, onPrint }) {
           >
             In / Xuất PDF
           </Button>
-          {isPending && (
+          {canDecide && (
             <>
-              <Button variant="text" color="error" onClick={onReject}>
+              <Button variant="text" color="error" onClick={onReject} disabled={submitting}>
                 Yêu cầu chỉnh sửa
               </Button>
               <Button
                 variant="contained"
                 startIcon={<CheckCircle2 size={17} />}
                 onClick={onApprove}
+                disabled={submitting}
               >
-                Phê duyệt thực đơn
+                Phê duyệt {scopeLabel}
               </Button>
             </>
           )}
@@ -95,6 +95,9 @@ MenuApprovalHeader.propTypes = {
   onApprove: PropTypes.func.isRequired,
   onReject: PropTypes.func.isRequired,
   onPrint: PropTypes.func.isRequired,
+  canDecide: PropTypes.bool.isRequired,
+  scopeLabel: PropTypes.string.isRequired,
+  submitting: PropTypes.bool.isRequired,
 }
 
 export default MenuApprovalHeader

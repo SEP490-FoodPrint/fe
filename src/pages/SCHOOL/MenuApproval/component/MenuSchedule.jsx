@@ -11,6 +11,13 @@ import {
 } from "lucide-react"
 import styles from "./MenuSchedule.module.scss"
 
+const dayStatuses = {
+  PENDING_APPROVAL: { label: "Chờ duyệt", color: "warning" },
+  APPROVED: { label: "Đã duyệt", color: "success" },
+  REVISION_REQUIRED: { label: "Yêu cầu điều chỉnh", color: "error" },
+  DRAFT: { label: "Bản nháp", color: "default" },
+}
+
 function FoodItem({ item, compact = false }) {
   const isAlert = item.tone === "error"
   return (
@@ -53,7 +60,8 @@ function DailyMenuCard({ day }) {
           </div>
         </div>
         <div className={styles.dayMeta}>
-          <Chip label={`${day.portions.toLocaleString("vi-VN")} suất`} size="small" />
+          <Chip label={dayStatuses[day.status]?.label || "Chưa xác định"} color={dayStatuses[day.status]?.color || "default"} size="small" variant="outlined" />
+          <Chip label={`${(Number(day.portions) || 0).toLocaleString("vi-VN")} suất`} size="small" />
           <Chip label="Bữa trưa + Bữa xế" size="small" className={styles.mealChip} />
         </div>
       </header>
@@ -62,7 +70,7 @@ function DailyMenuCard({ day }) {
         <section className={styles.lunchSection} aria-label={`Bữa trưa ${day.shortLabel}`}>
           <div className={styles.mealHeading}>
             <span><Utensils size={17} /> Bữa trưa chính</span>
-            <small>10:30 - 11:30 · 5 món</small>
+            <small>{day.lunch.length} món</small>
           </div>
           <div className={styles.foodList}>
             {regularLunch.map(item => <FoodItem item={item} key={item.name} />)}
@@ -94,7 +102,7 @@ function DailyMenuCard({ day }) {
   )
 }
 
-function MenuSchedule({ days, visibleDays, activeDay, onDayChange }) {
+function MenuSchedule({ days, visibleDays, activeDay, onDayChange, disabled }) {
   return (
     <section className={styles.wrapper} aria-labelledby="menu-schedule-title">
       <div className={styles.sectionHeader}>
@@ -103,11 +111,11 @@ function MenuSchedule({ days, visibleDays, activeDay, onDayChange }) {
             <CalendarRange size={21} /> Chi tiết thực đơn từng ngày
           </Typography>
           <Typography className={styles.sectionSubtitle}>
-            Kiểm tra thành phần món ăn, nhà cung cấp và cảnh báo dị nguyên trước khi duyệt.
+            Chọn Cả tuần để xử lý các ngày còn chờ; chọn từng thứ để chỉ xử lý ngày đó.
           </Typography>
         </div>
         <div className={styles.alertHint}>
-          <CircleAlert size={16} /> Có 3 cảnh báo dị nguyên cần lưu ý
+          <CircleAlert size={16} /> {days.filter(day => day.status === "APPROVED").length}/{days.length} ngày đã duyệt
         </div>
       </div>
 
@@ -117,6 +125,7 @@ function MenuSchedule({ days, visibleDays, activeDay, onDayChange }) {
           aria-selected={activeDay === "all"}
           className={activeDay === "all" ? styles.activeTab : styles.tab}
           onClick={() => onDayChange("all")}
+          disabled={disabled}
         >
           Cả tuần
         </Button>
@@ -126,9 +135,10 @@ function MenuSchedule({ days, visibleDays, activeDay, onDayChange }) {
             aria-selected={activeDay === day.id}
             className={activeDay === day.id ? styles.activeTab : styles.tab}
             onClick={() => onDayChange(day.id)}
+            disabled={disabled}
             key={day.id}
           >
-            {day.shortLabel}
+            {day.shortLabel} · {dayStatuses[day.status]?.label || "Chưa xác định"}
           </Button>
         ))}
       </div>
@@ -147,6 +157,7 @@ MenuSchedule.propTypes = {
   visibleDays: PropTypes.array.isRequired,
   activeDay: PropTypes.string.isRequired,
   onDayChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
 }
 
 export default MenuSchedule

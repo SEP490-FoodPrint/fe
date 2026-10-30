@@ -1,0 +1,23 @@
+.supplier-relationships-page {
+  display: flex;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.supplier-relationships-page .MuiButton-root {
+  min-height: var(--control-height-md);
+}
+
+.supplier-relationships-page .MuiOutlinedInput-root {
+  min-height: var(--control-height-md);
+  background: var(--bg-surface);
+}
+
+@media (max-width: 600px) {
+  .supplier-relationships-page {
+    gap: var(--space-4);
+  }
+}
