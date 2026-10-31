@@ -69,9 +69,9 @@ export default function BatchInfoCard({ batchData }) {
           </div>
         </div>
 
-        {/* 5. Số suất dự kiến */}
+        {/* 5. Số suất */}
         <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Số suất dự kiến</span>
+          <span className={styles.fieldLabel}>Số suất</span>
           <div className={styles.portionWrap}>
             <span className={styles.portionNumber}>{batchData.plannedPortions.toLocaleString("vi-VN")}</span>
             <span className={styles.portionUnit}>suất (Khớp sĩ số báo ăn bán trú)</span>

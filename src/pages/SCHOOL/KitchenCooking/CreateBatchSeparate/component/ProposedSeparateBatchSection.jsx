@@ -20,7 +20,7 @@ export default function ProposedSeparateBatchSection() {
           <div className={styles.numberBadge}>3</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              3. Phương án tách lô dự kiến
+              3. Phương án tách lô chế biến
             </h2>
             <p className={styles.sectionSubtitle}>
               Kế hoạch 02 lô nấu độc lập song song theo nguồn gốc nguyên liệu

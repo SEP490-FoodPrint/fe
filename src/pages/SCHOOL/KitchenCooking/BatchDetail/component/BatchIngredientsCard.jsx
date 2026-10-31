@@ -1,5 +1,5 @@
 import React from "react"
-import { Layers, PackageCheck, Info, CheckCircle2 } from "lucide-react"
+import { Layers, PackageCheck, Info } from "lucide-react"
 import styles from "./BatchIngredientsCard.module.scss"
 
 export default function BatchIngredientsCard({ ingredients = [] }) {
@@ -26,8 +26,7 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
             <tr>
               <th className={styles.thName}>Tên nguyên liệu</th>
               <th className={styles.thLot}>Mã lô nguyên liệu</th>
-              <th className={styles.thPlanned}>Lượng dự kiến</th>
-              <th className={styles.thActual}>Lượng thực dùng</th>
+              <th className={styles.thQty}>Số lượng</th>
               <th className={styles.thUnit}>Đơn vị</th>
               <th className={styles.thExpiry}>Hạn sử dụng (HSD)</th>
             </tr>
@@ -51,20 +50,9 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
                   </div>
                 </td>
 
-                {/* Lượng dự kiến */}
-                <td className={styles.tdPlanned}>
+                {/* Số lượng */}
+                <td className={styles.tdQty}>
                   <span className={styles.numBold}>{item.plannedQty}</span>
-                </td>
-
-                {/* Lượng thực dùng */}
-                <td className={styles.tdActual}>
-                  {item.actualQty ? (
-                    <span className={styles.numActual}>{item.actualQty}</span>
-                  ) : (
-                    <span className={styles.dashText} title="Sẽ cập nhật sau khi nấu">
-                      — (Chưa ghi nhận)
-                    </span>
-                  )}
                 </td>
 
                 {/* Đơn vị */}
@@ -102,20 +90,11 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
               </div>
             </div>
 
-            <div className={styles.mobileItemGrid}>
-              <div className={styles.mobileGridCol}>
-                <span className={styles.mobileLabel}>Dự kiến:</span>
-                <span className={styles.mobileValBold}>
-                  {item.plannedQty} {item.unit}
-                </span>
-              </div>
-
-              <div className={styles.mobileGridCol}>
-                <span className={styles.mobileLabel}>Thực dùng:</span>
-                <span className={styles.mobileValMuted}>
-                  {item.actualQty ? `${item.actualQty} ${item.unit}` : "—"}
-                </span>
-              </div>
+            <div className={styles.mobileItemMid}>
+              <span className={styles.mobileLabel}>Số lượng xuất kho:</span>
+              <span className={styles.mobileValBold}>
+                {item.plannedQty} {item.unit}
+              </span>
             </div>
 
             <div className={styles.mobileItemBottom}>
@@ -132,10 +111,9 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
       <div className={styles.footerNote}>
         <Info size={15} className={styles.infoIcon} />
         <span>
-          Lượng thực dùng sẽ được bếp trưởng cân đo và cập nhật chính xác sau khi hoàn tất quy trình chế biến thực tế.
+          Nguyên liệu xuất kho theo đúng định mức dinh dưỡng và quy chuẩn an toàn đã được phê duyệt.
         </span>
       </div>
     </section>
   )
 }
-

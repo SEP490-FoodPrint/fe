@@ -269,7 +269,7 @@ export default function BasicInfoSeparateSection() {
         {/* Số suất dự kiến với nút tăng giảm nhanh */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label}>Số suất dự kiến</label>
+            <label className={styles.label}>Số suất ăn</label>
             <span className={styles.rosterHint}>Sĩ số điểm danh: 1.250</span>
           </div>
 
@@ -290,7 +290,7 @@ export default function BasicInfoSeparateSection() {
                 className={styles.portionInput}
                 value={portions}
                 onChange={(e) => setPortions(Number(e.target.value) || 0)}
-                aria-label="Số suất dự kiến"
+                aria-label="Số suất ăn"
               />
               <span className={styles.unitSuffix}>suất ăn</span>
             </div>

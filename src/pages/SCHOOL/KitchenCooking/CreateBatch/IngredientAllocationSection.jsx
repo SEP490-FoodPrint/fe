@@ -102,7 +102,7 @@ export default function IngredientAllocationSection() {
               <span className={styles.mobileTitle}>2. Chọn lô nguyên liệu</span>
             </h2>
             <p className={styles.sectionSubtitle}>
-              Tự động tính theo định mức công thức món và số suất dự kiến
+              Tự động tính theo định mức công thức món và số suất ăn
             </p>
           </div>
         </div>

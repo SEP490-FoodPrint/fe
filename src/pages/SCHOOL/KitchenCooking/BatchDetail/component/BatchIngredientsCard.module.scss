@@ -82,8 +82,7 @@
 
 .thName,
 .thLot,
-.thPlanned,
-.thActual,
+.thQty,
 .thUnit,
 .thExpiry {
   padding: 10px 12px;
@@ -115,14 +114,9 @@
   min-width: 160px;
 }
 
-.thPlanned {
+.thQty {
   text-align: right;
   min-width: 110px;
-}
-
-.thActual {
-  text-align: center;
-  min-width: 130px;
 }
 
 .thUnit {
@@ -149,19 +143,17 @@
 
 .tdName,
 .tdLot,
-.tdPlanned,
-.tdActual,
+.tdQty,
 .tdUnit,
 .tdExpiry {
   padding: 12px;
   vertical-align: middle;
 }
 
-.tdPlanned {
+.tdQty {
   text-align: right;
 }
 
-.tdActual,
 .tdUnit {
   text-align: center;
 }
@@ -216,18 +208,6 @@
 .numBold {
   font-weight: 700;
   color: var(--text-primary, #111827);
-  white-space: nowrap;
-}
-
-.numActual {
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-  white-space: nowrap;
-}
-
-.dashText {
-  font-size: 12px;
-  color: #9ca3af;
   white-space: nowrap;
 }
 
@@ -313,19 +293,13 @@
   min-width: 0;
 }
 
-.mobileItemGrid {
+.mobileItemMid {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 6px 0;
   border-top: 1px dashed #e5e7eb;
   border-bottom: 1px dashed #e5e7eb;
-}
-
-.mobileGridCol {
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 .mobileLabel {
@@ -336,12 +310,7 @@
 .mobileValBold {
   font-size: 13px;
   font-weight: 700;
-  color: #111827;
-}
-
-.mobileValMuted {
-  font-size: 12.5px;
-  color: #9ca3af;
+  color: var(--color-primary, #0a8066);
 }
 
 .mobileItemBottom {
