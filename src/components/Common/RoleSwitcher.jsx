@@ -12,7 +12,8 @@ import {
 } from "@mui/material"
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 import CloseIcon from "@mui/icons-material/Close"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
+import ROUTER from "src/router/ROUTER"
 import { StoreContext } from "src/contexts"
 import { MOCK_ACCOUNTS, ROLE_LABELS, ROLES } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
@@ -22,13 +23,24 @@ import { USE_MOCK_API } from "src/lib/config"
 function RoleSwitcher() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { loginStore, userStore } = useContext(StoreContext)
   const isLoginContext = loginStore?.isLoginContext
   const setIsLoginContext = loginStore?.setIsLoginContext
   const user = userStore?.user
   const setUser = userStore?.setUser
 
-  if (!USE_MOCK_API || !isLoginContext || user?.role === ROLES.SCHOOL_KITCHEN_STAFF) {
+  // Ẩn nút đổi vai trò khi:
+  // 1. Không dùng Mock API
+  // 2. Chưa đăng nhập
+  // 3. Nhân viên bếp (đã có trang riêng)
+  // 4. Đang ở trang Quản trị tài khoản trường học (/school/administration)
+  if (
+    !USE_MOCK_API ||
+    !isLoginContext ||
+    user?.role === ROLES.SCHOOL_KITCHEN_STAFF ||
+    location.pathname.startsWith(ROUTER.SCHOOL_ADMINISTRATION)
+  ) {
     return null
   }
 

@@ -115,7 +115,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_ADMINISTRATION,
-    label: "Quản trị Nhà trường",
+    label: "Quản lý Tài khoản",
     icon: <AdminPanelSettingsOutlinedIcon />,
     roles: [ROLES.SCHOOL_ADMIN],
   },

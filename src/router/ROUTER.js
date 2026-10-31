@@ -31,6 +31,8 @@ const ROUTER = {
   SCHOOL: "/school",
   SCHOOL_OVERVIEW: "/school/overview",
   SCHOOL_ADMINISTRATION: "/school/administration",
+  SCHOOL_ACCOUNT_CREATE: "/school/administration/accounts/create",
+  SCHOOL_ACCOUNT_EDIT: "/school/administration/accounts/:id/edit",
   SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
   SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
   // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)

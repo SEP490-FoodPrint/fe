@@ -1,0 +1,70 @@
+.accountsPageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
+}
+
+/* Toast Thông báo */
+.toastNotification {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 1500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  animation: slideInRight 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
+
+  @media (max-width: 600px) {
+    top: 16px;
+    left: 16px;
+    right: 16px;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.toast_success {
+  background-color: var(--color-success-bg, #e8f6ef);
+  color: var(--color-success, #168456);
+  border: 1px solid var(--color-success-border, #bce6cf);
+}
+
+.toast_warning {
+  background-color: var(--color-warning-bg, #fef3c7);
+  color: var(--color-warning, #9b650a);
+  border: 1px solid #fde68a;
+}
+
+.toast_info {
+  background-color: #e0f2fe;
+  color: #0284c7;
+  border: 1px solid #bae6fd;
+}
+
+.toastIcon {
+  flex-shrink: 0;
+}
