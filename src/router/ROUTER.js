@@ -5,10 +5,12 @@ const ROUTER = {
   TEST_LOGIN: "/test-login",
   REGISTER: "/register",
   PROFILE: "/profile",
+  CHANGE_PASSWORD: "/change-password",
   ACTIVATE_ACCOUNT: "/activate-account",
   REGISTRATION_PROFILE: "/register/profile",
   REGISTRATION_STATUS: "/register/status",
   FORGOT_PASSWORD: "/forgot-password",
+  PASSWORD_RECOVERY_CODE: "/forgot-password/verify",
   RESET_PASSWORD: "/reset-password",
   SCHOOL_LANDING: "/school/:schoolCode",
 

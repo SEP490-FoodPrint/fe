@@ -1,4 +1,4 @@
-import React, { useContext } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import { useLocation, useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { ROLES } from "src/constants/roles"
@@ -12,6 +12,8 @@ export default function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { loginStore, userStore, routerBeforeStore, signupStore } = useContext(StoreContext)
+  const [feedback] = useState(() => loginStore.loginFeedback || location.state)
+  useEffect(() => { loginStore.setLoginFeedback(null) }, [loginStore.setLoginFeedback])
   const onSuccess = user => {
     loginStore.setIsLoginContext(true)
     userStore.setUser(user)
@@ -23,7 +25,7 @@ export default function LoginPage() {
     navigate(target || ROUTER.DEFAULT, { replace: true, state: target === ROUTER.DEFAULT && needsRegistrationCompletion(user) ? { promptRegistration: true } : null })
   }
   return <>
-    <LoginForm initialIdentifier={location.state?.identifier || ""} onLoginSuccess={onSuccess} />
+    <LoginForm initialIdentifier={feedback?.identifier || ""} passwordUpdated={feedback?.passwordUpdated === true} onLoginSuccess={onSuccess} />
     {USE_MOCK_API && <QuickLoginList onLoginSuccess={onSuccess} />}
   </>
 }

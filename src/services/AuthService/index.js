@@ -1,6 +1,7 @@
 import http from "../01_axios"
 import { apiGetProfile, apiLogin, apiLogout, apiOnboarding, apiSendActivationCode, apiSignup, apiUpdatePersonalProfile, apiVerifyActivationCode } from "./urls"
 import { onboardingBody } from "./onboarding"
+import { apiChangePassword, apiForgotPassword, apiResetPassword, apiVerifyCurrentPassword, apiVerifyPasswordResetCode } from "./urls"
 import STORAGE, { deleteStorage, getStorage, setStorage } from "src/lib/storage"
 import { MOCK_ACCOUNTS, ROLES } from "src/constants/roles"
 import { USE_MOCK_API } from "src/lib/config"
@@ -59,6 +60,31 @@ const AuthService = {
     const response = await http.patch(apiUpdatePersonalProfile, { fullName: fullName.trim(), phone: phone.trim() || null }, { notifyOnError: false })
     if (!response?.success) throw new Error(response?.message || "Không thể cập nhật profile.")
     return normalizeUser(response.data)
+  },
+  verifyCurrentPassword: async currentPassword => {
+    const response = await http.post(apiVerifyCurrentPassword, { currentPassword }, { notifyOnError: false })
+    if (!response?.success || response.data?.verified !== true) throw new Error(response?.message || "Không thể xác nhận mật khẩu hiện tại.")
+  },
+  changePassword: async ({ currentPassword, newPassword }) => {
+    const response = await http.post(apiChangePassword, { currentPassword, newPassword }, { notifyOnError: false })
+    if (!response?.success) throw new Error(response?.message || "Không thể đổi mật khẩu.")
+    clearSavedSession()
+  },
+  requestPasswordReset: async email => {
+    const response = await http.post(apiForgotPassword, { email: email.trim().toLowerCase() }, { skipRefresh: true, skipAuthRedirect: true, notifyOnError: false })
+    if (!response?.success) throw new Error(response?.message || "Chưa thể gửi mã đặt lại mật khẩu.")
+    return response.data
+  },
+  verifyPasswordResetCode: async ({ email, code }) => {
+    const response = await http.post(apiVerifyPasswordResetCode, { email: email.trim().toLowerCase(), code: code.trim() }, { skipRefresh: true, skipAuthRedirect: true, notifyOnError: false })
+    const grant = response?.data
+    if (!response?.success || !/^[A-Za-z0-9_-]{43}$/.test(grant?.resetToken || "") || !Number.isFinite(grant.expiresIn) || grant.expiresIn <= 0) throw new Error(response?.message || "Không thể xác minh mã đặt lại mật khẩu. Vui lòng lấy mã mới.")
+    return grant
+  },
+  resetPassword: async ({ resetToken, newPassword }) => {
+    const response = await http.post(apiResetPassword, { resetToken, newPassword }, { skipRefresh: true, skipAuthRedirect: true, notifyOnError: false })
+    if (!response?.success) throw new Error(response?.message || "Không thể đặt lại mật khẩu.")
+    clearSavedSession()
   },
   getPersonalProfile: async ({ signal } = {}) => {
     const response = await http.get(apiUpdatePersonalProfile, { signal, notifyOnError: false })

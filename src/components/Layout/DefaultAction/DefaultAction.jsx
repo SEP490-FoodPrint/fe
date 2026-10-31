@@ -17,7 +17,7 @@ const DefaultAction = ({ children }) => {
   const [error, setError] = useState("")
   const [retry, setRetry] = useState(0)
   const location = useLocation()
-  const publicAuth = [ROUTER.DEFAULT, ROUTER.LOGIN, ROUTER.TEST_LOGIN, ROUTER.REGISTER, ROUTER.FORGOT_PASSWORD, ROUTER.RESET_PASSWORD, ROUTER.ACTIVATE_ACCOUNT].includes(location.pathname)
+  const publicAuth = [ROUTER.DEFAULT, ROUTER.LOGIN, ROUTER.TEST_LOGIN, ROUTER.REGISTER, ROUTER.FORGOT_PASSWORD, ROUTER.PASSWORD_RECOVERY_CODE, ROUTER.RESET_PASSWORD, ROUTER.ACTIVATE_ACCOUNT].includes(location.pathname)
 
   useEffect(() => {
     if (isLoginContext) { setReady(true); return }

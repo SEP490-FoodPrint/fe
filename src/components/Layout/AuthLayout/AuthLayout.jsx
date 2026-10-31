@@ -6,7 +6,7 @@ import styles from "./AuthLayout.module.scss"
 
 function AuthLayout() {
   const location = useLocation()
-  const compactFooter = [ROUTER.FORGOT_PASSWORD, ROUTER.RESET_PASSWORD].includes(location.pathname)
+  const compactFooter = [ROUTER.FORGOT_PASSWORD, ROUTER.PASSWORD_RECOVERY_CODE, ROUTER.RESET_PASSWORD].includes(location.pathname)
   return (
     <div className={styles.layoutWrapper}>
       <main className={styles.authContent}>

@@ -1,17 +1,16 @@
 import React, { useContext, useEffect, useRef, useState } from "react"
-import { Alert, Button, CircularProgress } from "@mui/material"
+import { Button } from "@mui/material"
 import { Link, useLocation, useNavigate } from "react-router-dom"
-import MailOutlineIcon from "@mui/icons-material/MailOutlineOutlined"
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined"
 import AuthCard, { AuthHeading, AuthStatusIcon } from "src/components/Auth/AuthCard"
 import AuthField from "src/components/Auth/AuthField"
-import FormErrors from "src/components/Auth/FormErrors"
+import EmailCodeForm from "src/components/Auth/EmailCodeForm"
+import useCountdown from "src/lib/useCountdown"
 import AuthService from "src/services/AuthService"
 import { StoreContext } from "src/contexts"
 import { clearSignupSession, readSignupSession, saveSignupSession } from "src/lib/signupSession"
 import { validEmail } from "src/lib/authValidation"
 import ROUTER from "src/router/ROUTER"
-import styles from "./ActivationForm.module.scss"
 import form from "src/components/Auth/AuthForm.module.scss"
 
 const failureMessage = (error, action) => [404, 405].includes(error.response?.status)
@@ -27,7 +26,7 @@ export default function ActivationForm() {
   const [code, setCode] = useState("")
   const [password, setPassword] = useState("")
   const [verifiedEmail, setVerifiedEmail] = useState(pending?.emailVerified ? pending.email : "")
-  const [remaining, setRemaining] = useState(0)
+  const remaining = useCountdown(pending?.resendAt)
   const [errors, setErrors] = useState({})
   const [message, setMessage] = useState("")
   const [notice, setNotice] = useState("")
@@ -61,15 +60,6 @@ export default function ActivationForm() {
     // One automatic delivery attempt per signup email, including React StrictMode.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pending?.email])
-
-  useEffect(() => {
-    const until = pending?.resendAt || 0
-    const seconds = () => Math.max(0, Math.ceil((until - Date.now()) / 1000))
-    setRemaining(seconds())
-    if (!seconds()) return
-    const timer = setInterval(() => { const next = seconds(); setRemaining(next); if (!next) clearInterval(timer) }, 1000)
-    return () => clearInterval(timer)
-  }, [pending?.resendAt])
 
   useEffect(() => {
     if (!success) return
@@ -132,17 +122,16 @@ export default function ActivationForm() {
     <Button variant="contained" className={form.primary} onClick={home}>Về trang chủ</Button>
   </AuthCard>
 
-  return <AuthCard component="form" noValidate onSubmit={verify} aria-busy={verifying}>
-    <AuthStatusIcon><MailOutlineIcon /></AuthStatusIcon>
-    <AuthHeading eyebrow="Bước 2 / 4 · Kích hoạt email" title="Kiểm tra email của bạn" description={pending?.codeSent ? "Nhập mã được gửi đến email đăng ký để xác nhận tài khoản." : "Nhập mã xác nhận từ email để tiếp tục."} />
-    {pending?.email ? <p className={styles.email}>{pending.email}</p> : <AuthField id="activation-email" label="Email đã đăng ký" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} error={errors["activation-email"]} placeholder="Nhập địa chỉ email đã đăng ký" />}
-    <FormErrors errors={errors} message={message} />
-    {verified ? <Alert severity="success" role="status">Email đã được xác nhận. Tiếp tục để vào trang chủ.</Alert> : <AuthField id="activation-code" label="Mã xác nhận" required placeholder="Nhập mã 6 chữ số trong email" autoComplete="one-time-code" value={code} onChange={event => setCode(event.target.value.replace(/\D/g, "").slice(0, 6))} error={errors["activation-code"]} inputProps={{ maxLength: 12, inputMode: "numeric", autoCapitalize: "none", spellCheck: false }} />}
-    {!memoryPassword && <AuthField id="activation-password" label="Mật khẩu tài khoản" type="password" required autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} error={errors["activation-password"]} placeholder="Nhập mật khẩu bạn đã đăng ký" hint="Nhập mật khẩu để đăng nhập sau khi xác nhận email." />}
-    {notice && <Alert severity="success" role="status">{notice}</Alert>}
-    <Button type="submit" variant="contained" className={form.primary} disabled={verifying || sending}>{verifying ? <CircularProgress size={22} color="inherit" aria-label="Đang xác nhận" /> : "Xác nhận tài khoản"}</Button>
-    {!verified && <Button type="button" className={form.link} onClick={resend} disabled={sending || verifying || remaining > 0}>{sending ? "Đang gửi mã…" : remaining > 0 ? `Gửi lại mã sau ${remaining}s` : "Chưa nhận được email? Gửi lại mã"}</Button>}
-    <p className={styles.note}>Kiểm tra cả hộp thư đến và thư rác.</p>
-    <Button component={Link} to={ROUTER.REGISTER} className={form.link}>Quay lại đăng ký</Button>
-  </AuthCard>
+  return <EmailCodeForm
+    eyebrow="Bước 2 / 4 · Kích hoạt email"
+    description={pending?.codeSent ? "Nhập mã được gửi đến email đăng ký để xác nhận tài khoản." : "Nhập mã xác nhận từ email để tiếp tục."}
+    email={pending?.email}
+    emailField={<AuthField id="activation-email" label="Email đã đăng ký" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} error={errors["activation-email"]} placeholder="Nhập địa chỉ email đã đăng ký" disabled={sending || verifying} />}
+    code={code} onCodeChange={setCode} errors={errors} message={message} notice={notice}
+    sending={sending} verifying={verifying} remaining={remaining} verified={verified}
+    onSubmit={verify} onResend={resend} submitLabel="Xác nhận tài khoản"
+    footer={<Button component={Link} to={ROUTER.REGISTER} className={form.link} disabled={sending || verifying}>Quay lại đăng ký</Button>}
+  >
+    {!memoryPassword && <AuthField id="activation-password" label="Mật khẩu tài khoản" type="password" required autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} error={errors["activation-password"]} placeholder="Nhập mật khẩu bạn đã đăng ký" hint="Nhập mật khẩu để đăng nhập sau khi xác nhận email." disabled={sending || verifying} />}
+  </EmailCodeForm>
 }

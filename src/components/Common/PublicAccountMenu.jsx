@@ -14,7 +14,7 @@ import ROUTER from "src/router/ROUTER"
 import styles from "./PublicAccountMenu.module.scss"
 
 export default function PublicAccountMenu() {
-  const { userStore, loginStore, signupStore } = useContext(StoreContext)
+  const { userStore, loginStore, signupStore, passwordRecoveryStore } = useContext(StoreContext)
   const navigate = useNavigate()
   const user = userStore.user
   const [anchor, setAnchor] = useState(null)
@@ -29,6 +29,7 @@ export default function PublicAccountMenu() {
       await AuthService.logout()
       clearSignupSession()
       signupStore.setSignupCredentials(null)
+      passwordRecoveryStore.setPasswordRecovery(null)
       loginStore.setIsLoginContext(false)
       userStore.setUser(null)
       close()
