@@ -3,7 +3,7 @@ import { apiGetProfile, apiLogin, apiLogout, apiOnboarding, apiSendActivationCod
 import { onboardingBody } from "./onboarding"
 import { apiChangePassword, apiForgotPassword, apiResetPassword, apiVerifyCurrentPassword, apiVerifyPasswordResetCode } from "./urls"
 import STORAGE, { deleteStorage, getStorage, setStorage } from "src/lib/storage"
-import { MOCK_ACCOUNTS, ROLES } from "src/constants/roles"
+import { ROLES } from "src/constants/roles"
 import { USE_MOCK_API } from "src/lib/config"
 
 const normalizeUser = user => {
@@ -26,11 +26,6 @@ const AuthService = {
    * Gọi API đăng nhập thật
    */
   login: async ({ identifier, password }) => {
-    if (USE_MOCK_API) {
-      const account = MOCK_ACCOUNTS.find(acc => acc.username.toLowerCase() === identifier.trim().toLowerCase())
-      if (!account) throw new Error("Không tìm thấy tài khoản minh họa.")
-      return AuthService.mockLoginByRole(account.role)
-    }
     const response = await http.post(apiLogin, { identifier: identifier.trim(), password }, {
       skipRefresh: true, skipAuthRedirect: true, notifyOnError: false,
     })

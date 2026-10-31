@@ -7,60 +7,54 @@ import {
   apiGetWeeklyMenu,
 } from "./urls";
 
-// 1. Kiểm tra cờ môi trường (mặc định là false, chỉ bật mock khi VITE_USE_MOCK === "true")
-const isUseMock = import.meta.env.VITE_USE_MOCK === "true";
-
 /**
- * 2. Hàm gọi API thật (Hàm thường)
+ * 1. Hàm gọi API danh sách trường học công khai
+ * Tự động bóc tách envelope phân trang { items, pagination } để res.data là mảng trường học,
+ * đồng thời giữ lại res.pagination cho component nếu cần.
+ * Tuyệt đối không fallback sang mock để lỗi Backend được hiển thị minh bạch.
  */
 const getPublicSchoolsApi = async (params = {}) => {
   const res = await http.get(apiGetPublicSchools, { params, skipAuthRedirect: true });
+  if (res?.data && !Array.isArray(res.data) && Array.isArray(res.data.items)) {
+    return {
+      ...res,
+      data: res.data.items,
+      pagination: res.data.pagination,
+      items: res.data.items,
+    };
+  }
   return res;
 };
 
+/**
+ * 2. Chi tiết trường học theo mã code
+ */
 const getSchoolDetailByCodeApi = async (code) => {
   const res = await http.get(apiGetSchoolDetailByCode(code), { skipAuthRedirect: true });
   return res;
 };
 
+/**
+ * 3. Thực đơn ngày của trường học
+ */
 const getDailyMealMenuApi = async (schoolCode, date) => {
   const res = await http.get(apiGetDailyMealMenu(schoolCode, date), { skipAuthRedirect: true });
   return res;
 };
 
+/**
+ * 4. Thực đơn tuần của trường học
+ */
 const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
   const res = await http.get(apiGetWeeklyMenu(schoolCode, weekStart, grade), { skipAuthRedirect: true });
   return res;
 };
 
-const getDailyMealMenuSafe = async (schoolCode, date) => {
-  try {
-    const res = await getDailyMealMenuApi(schoolCode, date);
-    if (res?.data) return res;
-    return getDailyMealMenuMock(schoolCode);
-  } catch {
-    return getDailyMealMenuMock(schoolCode);
-  }
-};
-
-const getWeeklyMenuSafe = async (schoolCode, weekStart, grade) => {
-  try {
-    const res = await getWeeklyMenuApi(schoolCode, weekStart, grade);
-    if (res?.data) return res;
-    return getWeeklyMenuMock(schoolCode, weekStart, grade);
-  } catch {
-    return getWeeklyMenuMock(schoolCode, weekStart, grade);
-  }
-};
-
-/**
- * 4. Dựa vào biến môi trường để gán hàm tương ứng cho Service (Strategy Switcher)
- */
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getSchoolDetailByCode: getSchoolDetailByCodeApi,
-  getDailyMealMenu: getDailyMealMenuSafe,
-  getWeeklyMenu: getWeeklyMenuSafe,
+  getDailyMealMenu: getDailyMealMenuApi,
+  getWeeklyMenu: getWeeklyMenuApi,
 };
 
 export default SchoolService;

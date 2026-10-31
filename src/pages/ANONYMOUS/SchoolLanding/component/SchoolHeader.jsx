@@ -28,8 +28,11 @@ function SchoolHeader({ school }) {
     const fetchSchools = async () => {
       try {
         const res = await SchoolService.getPublicSchools();
-        if (isMounted && res?.data) {
-          setSchools(Array.isArray(res.data) ? res.data : []);
+        if (isMounted) {
+          const schoolList = Array.isArray(res?.data)
+            ? res.data
+            : (Array.isArray(res?.data?.items) ? res.data.items : []);
+          setSchools(schoolList);
         }
       } catch (err) {
         console.error("Lỗi khi tải danh sách trường ở school header:", err);

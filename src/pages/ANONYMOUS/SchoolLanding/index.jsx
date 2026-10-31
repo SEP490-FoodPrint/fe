@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import SchoolService, { MOCK_SCHOOLS } from "src/services/SchoolService";
+import SchoolService from "src/services/SchoolService";
 import SchoolHeader from "./component/SchoolHeader";
 import SchoolHero from "./component/SchoolHero";
 import QuickStatsStrip from "./component/QuickStatsStrip";

@@ -17,11 +17,14 @@ function PlatformHome() {
     const fetchSchools = async () => {
       try {
         const res = await SchoolService.getPublicSchools()
-        if (isMounted && res?.data) {
-          setSchools(res.data)
+        if (isMounted) {
+          const schoolList = Array.isArray(res?.data)
+            ? res.data
+            : (Array.isArray(res?.data?.items) ? res.data.items : [])
+          setSchools(schoolList)
         }
-      } catch {
-        // Handled in SchoolService fallback
+      } catch (err) {
+        console.error("Lỗi khi tải danh sách trường tại PlatformHome:", err)
       }
     }
 
@@ -34,12 +37,13 @@ function PlatformHome() {
 
   // Tìm kiếm trường học tức thì theo tên, địa chỉ, quận hoặc mã
   const filteredSchools = useMemo(() => {
+    if (!Array.isArray(schools)) return []
     if (!searchQuery.trim()) return schools
 
     const query = searchQuery.toLowerCase().trim()
     return schools.filter(
       item =>
-        item.name.toLowerCase().includes(query) ||
+        item.name?.toLowerCase().includes(query) ||
         item.address?.toLowerCase().includes(query) ||
         item.district?.toLowerCase().includes(query) ||
         item.code?.toLowerCase().includes(query),
@@ -58,13 +62,13 @@ function PlatformHome() {
         onSearchChange={setSearchQuery}
       />
 
-      {/* 3. Phần Giá trị Cốt lõi của FoodPrint */}
+      {/* 3. Phần Tính năng Nổi bật */}
       <AboutFeatures />
 
-      {/* 4. Phần 3 bước quy trình hoạt động */}
+      {/* 4. Quy trình Vận hành 4 bước */}
       <HowItWorks />
 
-      {/* 5. Khối CTA Kêu gọi tham gia */}
+      {/* 5. Khối Kêu gọi Đăng ký Onboarding */}
       <RegisterCta />
     </div>
   )
