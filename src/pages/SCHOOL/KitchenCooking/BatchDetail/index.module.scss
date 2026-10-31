@@ -1,0 +1,49 @@
+.batchDetailPage {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 12px 14px 80px; // Thêm 80px padding đáy cho mobile sticky bar
+
+  @media (min-width: 768px) {
+    gap: 20px;
+    padding: 20px 24px 40px;
+  }
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: flex-start;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 8fr 4fr;
+    gap: 20px;
+  }
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+
+  @media (min-width: 768px) {
+    gap: 20px;
+  }
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+
+  @media (min-width: 768px) {
+    gap: 20px;
+  }
+}
+

@@ -1,0 +1,274 @@
+/* 1. Desktop Actions Card */
+.actionsCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.headerIcon {
+  color: var(--color-primary, #0a8066);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+}
+
+.btnStack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btnPrimary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(10, 128, 102, 0.2);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #086a55;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(10, 128, 102, 0.25);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.btnSecondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+    color: #111827;
+  }
+}
+
+.btnDanger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 16px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background-color: #ffffff;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #fef2f2;
+    border-color: #f87171;
+  }
+}
+
+.btnDisabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+  background-color: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.securityNote {
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.shieldIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.securityText {
+  margin: 0;
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+/* 2. Mobile Sticky Bottom Bar (Ẩn trên Desktop >= 768px) */
+.mobileStickyBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background-color: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.06);
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobileBarInner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.mobilePrimaryBtn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(10, 128, 102, 0.25);
+  transition: all 0.15s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.mobileMenuAnchor {
+  position: relative;
+}
+
+.mobileMoreBtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+  color: #374151;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  &:active {
+    background-color: #f3f4f6;
+  }
+}
+
+.mobileDropdownMenu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 160px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  padding: 4px;
+  z-index: 50;
+}
+
+.mobileMenuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background-color: #f3f4f6;
+  }
+}
+
+.itemDanger {
+  color: #dc2626;
+
+  &:hover {
+    background-color: #fef2f2;
+  }
+}
+
+.mobileCompletedBar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 44px;
+  border-radius: 8px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #16a34a;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.doneIcon {
+  color: #16a34a;
+}
+
