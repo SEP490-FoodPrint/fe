@@ -50,7 +50,7 @@ export default function EditBatchHeader({
         </span>
       </nav>
 
-      {/* 2. Main Title Row: Chỉ 1 nút Back duy nhất chuẩn mực bên cạnh tiêu đề */}
+      {/* 2. Main Title Row: Tinh gọn, không nhồi nhét badges */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -66,29 +66,18 @@ export default function EditBatchHeader({
           <div className={styles.headingWrap}>
             <div className={styles.titleLine}>
               <h1 className={styles.heading}>
-                {isCombineLots ? "Chỉnh sửa lô nấu chung" : "Chỉnh sửa lô chế biến"}
+                {isCombineLots ? "Chỉnh sửa lô nấu chung" : "Chỉnh sửa lô riêng"}
               </h1>
               <span className={styles.codeBadge}>{batchCode}</span>
               <span className={styles.statusDraftBadge}>
                 <span className={styles.pulseDot} />
                 Chưa xác nhận
               </span>
-              {isCombineLots ? (
-                <span className={styles.ruleBadgeCombine}>
-                  <Combine size={13} />
-                  Quy tắc: Nấu chung đa lô
-                </span>
-              ) : (
-                <span className={styles.ruleBadge}>
-                  <GitFork size={13} />
-                  Quy tắc: Nấu riêng 1:1
-                </span>
-              )}
             </div>
             <p className={styles.subTitle}>
               {isCombineLots
-                ? "Rà soát phương án phối trộn nguyên liệu giữa các lô nguồn gốc cho mẻ chế biến theo quy tắc Nấu chung trước khi phê duyệt."
-                : "Rà soát phương án phân bổ nguyên liệu và thay thế nguồn lô hợp chuẩn theo quy tắc Nấu riêng trước khi phê duyệt."}
+                ? "Rà soát và điều chỉnh tỷ lệ phối trộn nguyên liệu mẻ nấu chung trước khi phê duyệt."
+                : "Rà soát nguyên liệu và thay thế nguồn lô hợp chuẩn cho mẻ nấu riêng trước khi phê duyệt."}
             </p>
           </div>
         </div>
@@ -100,7 +89,7 @@ export default function EditBatchHeader({
               type="button"
               className={`${styles.switchBtn} ${isCombineLots ? styles.switchBtnActive : ""}`}
               onClick={() => onToggleRule("COMBINE_LOTS")}
-              title="Xem giao diện Nấu chung đa lô"
+              title="Chế độ Nấu chung đa lô"
             >
               <Combine size={13} />
               <span>Nấu chung</span>
@@ -109,7 +98,7 @@ export default function EditBatchHeader({
               type="button"
               className={`${styles.switchBtn} ${!isCombineLots ? styles.switchBtnActive : ""}`}
               onClick={() => onToggleRule("SEPARATE_BY_LOT")}
-              title="Xem giao diện Nấu riêng 1:1"
+              title="Chế độ Nấu riêng 1:1"
             >
               <GitFork size={13} />
               <span>Nấu riêng</span>
