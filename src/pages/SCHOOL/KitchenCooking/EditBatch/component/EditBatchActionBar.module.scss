@@ -1,0 +1,119 @@
+.actionBarContainer {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 14px 18px;
+  border: 1px solid #d9e5df;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    height: 72px;
+    padding: 0 20px;
+  }
+}
+
+.auditInfo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6e7a74;
+}
+
+.historyIcon {
+  color: #6e7a74;
+  flex-shrink: 0;
+}
+
+.auditText {
+  line-height: 1.4;
+
+  strong {
+    color: #131e1a;
+  }
+}
+
+.btnGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+
+  @media (min-width: 768px) {
+    width: auto;
+  }
+}
+
+.cancelBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid #d9e5df;
+  background: #eaf7f0;
+  color: #131e1a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+
+  @media (min-width: 768px) {
+    flex: initial;
+  }
+
+  &:hover:not(:disabled) {
+    background: #deebe5;
+    border-color: #bdc9c3;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 8px;
+  border: none;
+  background: #00654f;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 4px rgba(0, 101, 79, 0.25);
+  flex: 1.2;
+
+  @media (min-width: 768px) {
+    flex: initial;
+  }
+
+  &:hover:not(:disabled) {
+    background: #004d3c;
+    box-shadow: 0 4px 8px rgba(0, 101, 79, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+

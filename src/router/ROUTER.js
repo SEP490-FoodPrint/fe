@@ -33,6 +33,7 @@ const ROUTER = {
   SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Tạo lô nấu riêng
   SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Alias Tạo lô nấu riêng
   SCHOOL_KITCHEN_BATCH_DETAIL: "/school/kitchen-cooking/batches/:id", // Chi tiết lô chế biến
+  SCHOOL_KITCHEN_BATCH_EDIT: "/school/kitchen-cooking/batches/:id/edit", // Chỉnh sửa lô chế biến
   SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/kitchen-cooking/meal-allocation", // Phân bổ suất ăn
   SCHOOL_KITCHEN_INGREDIENTS: "/school/kitchen-cooking/ingredients", // Danh sách nguyên liệu
   SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm

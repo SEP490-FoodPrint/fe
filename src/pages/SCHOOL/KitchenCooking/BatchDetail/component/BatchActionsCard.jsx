@@ -15,6 +15,7 @@ import styles from "./BatchActionsCard.module.scss"
 
 export default function BatchActionsCard({
   status = "DRAFT",
+  batchCode = "CB-20261023-01A",
   onOpenConfirmModal,
   onOpenDeleteModal,
   onOpenCompleteModal
@@ -75,7 +76,7 @@ export default function BatchActionsCard({
             type="button"
             className={`${styles.btnSecondary} ${!isDraft ? styles.btnDisabled : ""}`}
             disabled={!isDraft}
-            onClick={() => isDraft && alert("Tính năng chỉnh sửa phương án đang được mở")}
+            onClick={() => isDraft && navigate(`/school/kitchen-cooking/batches/${batchCode}/edit`)}
             title={!isDraft ? "Không thể chỉnh sửa sau khi đã duyệt phương án" : "Chỉnh sửa phương án"}
           >
             <Edit3 size={16} />
@@ -135,7 +136,7 @@ export default function BatchActionsCard({
                       className={styles.mobileMenuItem}
                       onClick={() => {
                         setMobileMenuOpen(false)
-                        alert("Mở tính năng chỉnh sửa phương án")
+                        navigate(`/school/kitchen-cooking/batches/${batchCode}/edit`)
                       }}
                     >
                       <Edit3 size={16} />

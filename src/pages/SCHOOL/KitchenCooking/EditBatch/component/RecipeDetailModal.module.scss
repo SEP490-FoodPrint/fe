@@ -1,0 +1,264 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(19, 30, 26, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 14px;
+  max-width: 660px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #d9e5df;
+  overflow: hidden;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #d9e5df;
+}
+
+.headerTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #eaf7f0;
+  color: #00654f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #131e1a;
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-size: 12px;
+  color: #6e7a74;
+  margin: 2px 0 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #6e7a74;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #eaf7f0;
+    color: #131e1a;
+  }
+}
+
+.statsBanner {
+  background: #eaf7f0;
+  margin: 14px 20px 4px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(4, 1fr);
+    align-items: center;
+  }
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.statLabel {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6e7a74;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.statValue {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #00654f;
+}
+
+.statDivider {
+  display: none;
+}
+
+.tableWrapper {
+  padding: 12px 20px;
+  overflow-x: auto;
+}
+
+.recipeTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+
+  thead tr {
+    background: #e4f1ea;
+    color: #6e7a74;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #d9e5df;
+  }
+
+  th, td {
+    padding: 10px 12px;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #eaf7f0;
+
+    &:hover {
+      background: #f8faf9;
+    }
+  }
+}
+
+.itemName {
+  font-weight: 600;
+  color: #131e1a;
+  font-size: 13px;
+}
+
+.itemRole {
+  font-size: 11px;
+  color: #6e7a74;
+}
+
+.textRight {
+  text-align: right;
+}
+
+.quotaCell {
+  color: #3e4944;
+  font-weight: 500;
+}
+
+.totalQtyCell {
+  color: #00654f;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.standardCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #3e4944;
+}
+
+.shieldIcon {
+  color: #00654f;
+}
+
+.complianceNote {
+  background: rgba(234, 247, 240, 0.6);
+  margin: 4px 20px 14px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: 1px solid #d9e5df;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  color: #3e4944;
+  line-height: 1.4;
+}
+
+.complianceIcon {
+  color: #00654f;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 14px 20px;
+  border-top: 1px solid #d9e5df;
+  background: #f8faf9;
+}
+
+.btnClose {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: 1px solid #d9e5df;
+  background: #ffffff;
+  color: #00654f;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #eaf7f0;
+  }
+}
+

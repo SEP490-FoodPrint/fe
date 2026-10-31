@@ -1,0 +1,231 @@
+.sectionCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid #d9e5df;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    padding: 20px;
+  }
+}
+
+.policyStrip {
+  background: #eaf7f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: #3e4944;
+  border: 1px solid rgba(189, 201, 195, 0.4);
+}
+
+.policyLeft {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.policyIcon {
+  color: #00654f;
+  flex-shrink: 0;
+}
+
+.policyLabel {
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.policyTag {
+  background: #00654f;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+}
+
+.dotSeparator {
+  color: #bdc9c3;
+}
+
+.policyMeta {
+  strong {
+    color: #131e1a;
+  }
+}
+
+.policyRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #00654f;
+  font-weight: 500;
+  background: rgba(148, 245, 213, 0.3);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.lockIcon {
+  color: #00654f;
+}
+
+.gridCards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+}
+
+.infoCard {
+  background: #eaf7f0;
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  border: 1px solid rgba(189, 201, 195, 0.3);
+}
+
+.cardLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6e7a74;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cardValueWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.codeValue {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #00654f;
+  letter-spacing: -0.01em;
+}
+
+.dishIcon {
+  color: #00654f;
+}
+
+.dishValue {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #131e1a;
+}
+
+.calendarIcon {
+  color: #00654f;
+}
+
+.calendarValue {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: #131e1a;
+}
+
+.cardHint {
+  font-size: 11px;
+  color: #6e7a74;
+  line-height: 1.4;
+}
+
+/* Portion card đặc biệt - Tự động tính, không nhập tay */
+.portionCard {
+  background: #e4f1ea;
+  border-color: rgba(10, 128, 102, 0.25);
+}
+
+.portionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.portionLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #00654f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.portionTag {
+  background: #94f5d5;
+  color: #00513f;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 9999px;
+}
+
+.portionValueRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.portionDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.portionNum {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #00654f;
+  line-height: 1;
+}
+
+.portionUnit {
+  font-size: 13px;
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.portionLockedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  color: #00654f;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 6px;
+  border: 1px solid #d9e5df;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+}
+

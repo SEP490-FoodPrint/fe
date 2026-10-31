@@ -1,0 +1,312 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(19, 30, 26, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: #ffffff;
+  border-radius: 14px;
+  max-width: 620px;
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border: 1px solid #d9e5df;
+  overflow: hidden;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #d9e5df;
+}
+
+.headerTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #eaf7f0;
+  color: #00654f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.modalTitle {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #131e1a;
+  margin: 0;
+}
+
+.modalSubtitle {
+  font-size: 12px;
+  color: #6e7a74;
+  margin: 2px 0 0;
+
+  strong {
+    color: #131e1a;
+  }
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #6e7a74;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #eaf7f0;
+    color: #131e1a;
+  }
+}
+
+.ruleNotice {
+  background: rgba(234, 247, 240, 0.8);
+  border-left: 3px solid #00654f;
+  margin: 12px 20px 4px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: #3e4944;
+}
+
+.noticeIcon {
+  color: #00654f;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.noticeText {
+  line-height: 1.4;
+
+  strong {
+    color: #00654f;
+  }
+}
+
+.lotsList {
+  padding: 12px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 380px;
+}
+
+.lotCard {
+  border: 1px solid #d9e5df;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  background: #ffffff;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #eaf7f0;
+    border-color: #bdc9c3;
+  }
+}
+
+.lotCardSelected {
+  border-color: #00654f;
+  background: rgba(234, 247, 240, 0.5);
+  box-shadow: 0 0 0 1px #00654f;
+
+  &:hover {
+    background: rgba(234, 247, 240, 0.7);
+  }
+}
+
+.lotRadio {
+  padding-top: 2px;
+}
+
+.radioCircle {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: 2px solid #bdc9c3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  transition: all 0.15s ease;
+}
+
+.radioActive {
+  border-color: #00654f;
+  background: #00654f;
+}
+
+.checkIcon {
+  color: #ffffff;
+}
+
+.lotInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.lotNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lotName {
+  font-weight: 700;
+  font-size: 14px;
+  color: #131e1a;
+}
+
+.lotCodeBadge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  background: #e4f1ea;
+  color: #00654f;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.currentBadge {
+  font-size: 10px;
+  font-weight: 700;
+  background: #deebe5;
+  color: #00513f;
+  padding: 1px 6px;
+  border-radius: 9999px;
+}
+
+.lotSupplier {
+  font-size: 12px;
+  color: #6e7a74;
+}
+
+.lotMetaGrid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 11px;
+  color: #3e4944;
+  margin-top: 4px;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  strong {
+    color: #00654f;
+  }
+}
+
+.metaIcon {
+  color: #00654f;
+}
+
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid #d9e5df;
+  background: #f8faf9;
+}
+
+.btnCancel {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: 8px;
+  border: 1px solid #d9e5df;
+  background: #ffffff;
+  color: #131e1a;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #eaf7f0;
+  }
+}
+
+.btnConfirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 8px;
+  border: none;
+  background: #00654f;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #004d3c;
+  }
+}
+

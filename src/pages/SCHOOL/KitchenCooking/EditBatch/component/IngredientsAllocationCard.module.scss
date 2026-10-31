@@ -1,0 +1,606 @@
+.sectionCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border: 1px solid #d9e5df;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  @media (min-width: 768px) {
+    padding: 20px;
+  }
+}
+
+.headerRow {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBox {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #0a8066;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(10, 128, 102, 0.2);
+}
+
+.sectionTitle {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #131e1a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.sectionSubtitle {
+  font-size: 13px;
+  color: #6e7a74;
+  margin: 2px 0 0;
+  line-height: 1.4;
+}
+
+.recipeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  background: #eaf7f0;
+  color: #00654f;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background: #deebe5;
+    color: #004d3c;
+  }
+}
+
+/* TABLE STYLING */
+.tableResponsive {
+  display: none;
+  overflow-x: auto;
+  border-radius: 8px;
+  background: #eaf7f0;
+  border: 1px solid #d9e5df;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+}
+
+.materialsTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+
+  thead tr {
+    background: #e4f1ea;
+    color: #6e7a74;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    border-bottom: 1px solid #d9e5df;
+  }
+
+  th {
+    padding: 12px 14px;
+  }
+}
+
+.thName {
+  min-width: 220px;
+}
+
+.thCert {
+  min-width: 180px;
+}
+
+.thExpiry {
+  min-width: 110px;
+  text-align: center;
+}
+
+.thStock {
+  min-width: 130px;
+  text-align: right;
+}
+
+.thQuantity {
+  min-width: 130px;
+  text-align: right;
+}
+
+.thAction {
+  min-width: 100px;
+  text-align: center;
+}
+
+.groupHeaderRow td {
+  background: rgba(222, 235, 229, 0.6);
+  padding: 10px 14px;
+  border-top: 1px solid #d9e5df;
+  border-bottom: 1px solid #d9e5df;
+}
+
+.groupHeaderContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.groupLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.mainDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #00654f;
+}
+
+.subDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #175b92;
+}
+
+.groupTitle {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #131e1a;
+  letter-spacing: 0.03em;
+}
+
+.groupQuota {
+  font-size: 12px;
+  color: #6e7a74;
+
+  strong {
+    color: #131e1a;
+  }
+}
+
+.groupRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chosenBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #131e1a;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.chosenIcon {
+  color: #00654f;
+}
+
+.chosenPercent {
+  color: #00654f;
+  font-weight: 700;
+  font-size: 11px;
+}
+
+.singleLotBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffffff;
+  color: #00654f;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.dataRow {
+  background: #ffffff;
+  border-bottom: 1px solid rgba(217, 229, 223, 0.6);
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #eaf7f0;
+  }
+
+  td {
+    padding: 12px 14px;
+    vertical-align: middle;
+  }
+}
+
+.itemInfo {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.indexBox {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(148, 245, 213, 0.5);
+  color: #00654f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.indexSub {
+  background: #e4f1ea;
+  color: #6e7a74;
+}
+
+.itemMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.itemName {
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.lotCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  background: #e4f1ea;
+  color: #3e4944;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.supplierText {
+  font-size: 12px;
+  color: #6e7a74;
+}
+
+.certMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.certBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #00654f;
+}
+
+.certSub {
+  font-size: 11px;
+  color: #6e7a74;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.textRight {
+  text-align: right;
+}
+
+.expiryDate {
+  font-weight: 600;
+  color: #131e1a;
+  font-size: 13px;
+}
+
+.expiryRemaining {
+  font-size: 11px;
+  color: #00654f;
+  font-weight: 600;
+}
+
+.stockQuantity {
+  font-weight: 600;
+  color: #131e1a;
+  font-size: 14px;
+}
+
+.stockLocation {
+  font-size: 11px;
+  color: #6e7a74;
+}
+
+/* Số lượng chuẩn đơn trị (không ô input) */
+.lockedQuantityBox {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  justify-content: flex-end;
+  background: #eaf7f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+}
+
+.quantityNum {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #00654f;
+}
+
+.quantityUnit {
+  font-size: 12px;
+  font-weight: 600;
+  color: #131e1a;
+}
+
+.quantityFormulaHint {
+  font-size: 10px;
+  color: #6e7a74;
+  margin-top: 2px;
+}
+
+.swapBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #d9e5df;
+  background: #ffffff;
+  color: #3e4944;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #eaf7f0;
+    color: #00654f;
+    border-color: #00654f;
+  }
+}
+
+/* MOBILE CARDS VIEW */
+.mobileCardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobileGroupBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #131e1a;
+  text-transform: uppercase;
+  padding: 6px 0 2px;
+}
+
+.mobileCard {
+  background: #ffffff;
+  border: 1px solid #d9e5df;
+  border-radius: 10px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobileCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobileItemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #131e1a;
+  margin-bottom: 2px;
+}
+
+.mobileQtyBadge {
+  background: #eaf7f0;
+  color: #00654f;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  white-space: nowrap;
+}
+
+.mobileDetailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  background: #eaf7f0;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.mobileLabel {
+  color: #6e7a74;
+  font-size: 11px;
+}
+
+.mobileVal {
+  color: #131e1a;
+  font-weight: 500;
+}
+
+.mobileCardFooter {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.swapBtnMobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #d9e5df;
+  background: #ffffff;
+  color: #00654f;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:active {
+    background: #eaf7f0;
+  }
+}
+
+/* POLICY NOTICES */
+.policyCardsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  padding-top: 4px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.policyNoticeCard {
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+  background: rgba(234, 247, 240, 0.7);
+  border: 1px solid #d9e5df;
+}
+
+.noticeIconBoxBlue {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #3974ad;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.noticeIconBoxGreen {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #0a8066;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.noticeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.noticeTitleBlue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #175b92;
+  margin: 0;
+}
+
+.noticeTitleGreen {
+  font-size: 13px;
+  font-weight: 700;
+  color: #00654f;
+  margin: 0;
+}
+
+.noticeText {
+  font-size: 12px;
+  color: #3e4944;
+  margin: 0;
+  line-height: 1.5;
+
+  strong {
+    color: #131e1a;
+  }
+}
+
+.inlineCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  background: #e4f1ea;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
