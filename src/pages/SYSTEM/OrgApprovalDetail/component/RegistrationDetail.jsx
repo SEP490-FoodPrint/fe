@@ -27,16 +27,17 @@ export default function RegistrationDetail() {
 
   useEffect(() => {
     let active = true
+    const controller = new AbortController()
     setLoading(true)
     setError("")
     setDialog(null)
     window.scrollTo(0, 0)
-    RegistrationService.getRequest(requestId).then(response => {
+    RegistrationService.getRequest(requestId, { signal: controller.signal }).then(response => {
       if (active) { setRequest(response.data); setIsMock(Boolean(response.isMock)) }
     }).catch(err => {
       if (active) setError(err.message || "Không thể tải hồ sơ đăng ký.")
     }).finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+    return () => { active = false; controller.abort() }
   }, [requestId, retry])
 
   if (loading) return <div className={styles.loading} role="status"><CircularProgress size={28} /><p>Đang tải chi tiết hồ sơ…</p></div>
@@ -58,7 +59,7 @@ export default function RegistrationDetail() {
     field("Họ và tên", applicant.full_name), field("Tên đăng nhập", applicant.username),
     field("Email", applicant.email), field("Số điện thoại", applicant.phone),
     field("Trạng thái tài khoản", <span className={applicant.status === "ACTIVE" ? styles.active : ""}>{({ ACTIVE: "Hoạt động", INACTIVE: "Ngừng hoạt động", PENDING: "Chờ xác minh", SUSPENDED: "Tạm khóa" })[applicant.status] || applicant.status || "Chưa cung cấp"}</span>),
-    field("Xác minh email lúc", applicant.email_verified_at ? formatRequestDate(applicant.email_verified_at, true) : "Chưa xác minh"),
+    field("Xác minh email lúc", applicant.email_verified_at ? formatRequestDate(applicant.email_verified_at, true) : "Chưa có thông tin"),
   ]
   const profileFields = [field(isSupplier ? "Tên nhà cung cấp" : "Tên trường học", organizationName(request)),
     field(isSupplier ? "Mã số thuế" : "Mã trường", isSupplier ? profile.tax_code : profile.code),
@@ -80,7 +81,8 @@ export default function RegistrationDetail() {
         <h2 id="review-title">Xét duyệt hồ sơ</h2>
         {request.status === "PENDING" ? <>
           <p className={styles.description}>Hồ sơ hiện đang chờ xét duyệt.</p>
-          <div className={styles.actions}><Button variant="contained" onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
+          <div className={styles.actions}><Button variant="contained" disabled={!isMock} onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} disabled={!isMock} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
+          {!isMock && <p className={styles.description}>Chức năng xét duyệt hiện chưa khả dụng.</p>}
         </> : <>
           <RequestStatus status={request.status} />
           <RequestFields fields={[field("Người xét duyệt", request.reviewer?.full_name || "Chưa có"), field("Ngày xét duyệt", formatRequestDate(request.reviewed_at, true))]} />
@@ -94,7 +96,7 @@ export default function RegistrationDetail() {
       </div>
       <Card component="section" variant="outlined" className={styles.card} aria-labelledby="organization-info-title"><h2 id="organization-info-title">Thông tin {isSupplier ? "nhà cung cấp" : "trường học"} đăng ký</h2><p className={styles.caption}>Thông tin do người đăng ký cung cấp.</p><RequestFields fields={profileFields} /></Card>
       <SupportingDocuments documents={request.supporting_documents || []} organization={organizationName(request)} />
-      {isSupplier && <RegisteredIngredients ingredients={profile.ingredients || []} />}
+      {isSupplier && <RegisteredIngredients ingredients={Array.isArray(profile.ingredients) ? profile.ingredients.filter(item => item && typeof item === "object") : []} />}
       {isMock && <p className={styles.note}>Dữ liệu và minh chứng minh họa cho giao diện.</p>}
       <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={updated => { setRequest(updated); setDialog("RESULT") }} />
     </section>

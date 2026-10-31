@@ -1,0 +1,183 @@
+.timelineCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.headerIcon {
+  color: var(--color-primary, #0a8066);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+}
+
+.timelineList {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-left: 24px;
+
+  /* Line kết nối dọc */
+  &::before {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 10px;
+    bottom: 12px;
+    width: 2px;
+    background-color: #e5e7eb;
+  }
+}
+
+.timelineItem {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+}
+
+/* Node marker tròn */
+.nodeMarker {
+  position: absolute;
+  left: -24px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  border: 2px solid #d1d5db;
+  z-index: 1;
+  transition: all 0.2s ease;
+}
+
+.innerDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: transparent;
+}
+
+.checkIcon {
+  color: #ffffff;
+}
+
+.itemContent {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.stepTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.stepDesc {
+  margin: 0;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* 1. Trạng thái Đang hoạt động (Amber cho bước 1, Teal cho bước 2) */
+.itemCurrent {
+  .nodeMarker {
+    border-color: #e9a23b;
+    background-color: #fef6e7;
+    box-shadow: 0 0 0 3px #fef3c7;
+
+    .innerDot {
+      background-color: #e9a23b;
+    }
+  }
+
+  .stepTitle {
+    font-weight: 700;
+    color: #111827;
+  }
+}
+
+.currentBadge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #fef6e7;
+  color: #b26b00;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.currentBadgeConfirmed {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.currentBadgeCompleted {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #ecfdf5;
+  color: #047857;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+/* 2. Trạng thái Đã xong (Done) */
+.itemDone {
+  .nodeMarker {
+    border-color: #10b981;
+    background-color: #10b981;
+  }
+
+  .stepTitle {
+    color: #059669;
+    font-weight: 600;
+  }
+}
+
+/* 3. Trạng thái Chờ (Pending) */
+.itemPending {
+  opacity: 0.65;
+
+  .nodeMarker {
+    border-color: #cbd5e1;
+    background-color: #f8fafc;
+  }
+
+  .stepTitle {
+    color: #64748b;
+  }
+}
+

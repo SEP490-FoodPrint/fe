@@ -4,21 +4,19 @@ import { Link } from "react-router-dom";
 import {
   ArrowLeft,
   ChevronDown,
-  LayoutDashboard,
   LogIn,
   School,
   Sun,
 } from "lucide-react";
 import { StoreContext } from "src/contexts";
-import { getDefaultRedirectByOrg } from "src/lib/utils";
+import PublicAccountMenu from "src/components/Common/PublicAccountMenu";
 import ROUTER from "src/router/ROUTER";
 import SchoolService from "src/services/SchoolService";
 import styles from "./SchoolHeader.module.scss";
 
 function SchoolHeader({ school }) {
-  const { loginStore, userStore } = useContext(StoreContext);
+  const { loginStore } = useContext(StoreContext);
   const isLoginContext = loginStore?.isLoginContext;
-  const user = userStore?.user;
 
   const [schools, setSchools] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -143,13 +141,7 @@ function SchoolHeader({ school }) {
           </div>
 
           {isLoginContext ? (
-            <Link
-              to={getDefaultRedirectByOrg(user?.orgType)}
-              className={styles.dashboardBtn}
-            >
-              <LayoutDashboard size={15} />
-              <span>Bảng điều khiển</span>
-            </Link>
+            <PublicAccountMenu />
           ) : (
             <Link to={ROUTER.LOGIN} className={styles.loginBtn}>
               <LogIn size={15} />

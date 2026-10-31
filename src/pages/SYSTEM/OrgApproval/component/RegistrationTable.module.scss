@@ -7,6 +7,7 @@
   :global(.MuiTableCell-body):first-child { color: var(--text-muted); }
   :global(.MuiIconButton-root) { min-width: calc(var(--space-10) + var(--space-1)); min-height: calc(var(--space-10) + var(--space-1)); }
 }
+.codeLink { overflow-wrap: anywhere; }
 .codeLink:hover { color: var(--color-primary); text-decoration: underline; }
 .scrollHint { display: flex; align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-5); color: var(--text-muted); font-size: var(--text-xs); }
 .mobileList { display: flex; flex-direction: column; gap: var(--space-4); }
@@ -17,6 +18,7 @@
   :global(.MuiButton-root) { min-height: calc(var(--space-10) + var(--space-1)); border-color: var(--border-default); }
 }
 .cardTop { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); font-size: var(--text-sm); }
+.cardTop > span:first-child { min-width: 0; overflow-wrap: anywhere; }
 .email { display: flex; align-items: center; gap: var(--space-2); margin: 0; font-size: var(--text-sm); overflow-wrap: anywhere; :global(.MuiSvgIcon-root) { flex-shrink: 0; color: var(--text-muted); } }
 .cardFields {
   display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin: var(--space-3) 0; font-size: var(--text-sm);

@@ -1,0 +1,337 @@
+.ingredientsCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  @media (min-width: 768px) {
+    padding: 22px;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+  }
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* 1. Desktop Table View */
+.desktopTableWrap {
+  display: none;
+  overflow-x: auto;
+
+  @media (min-width: 640px) {
+    display: block;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+}
+
+.thName,
+.thLot,
+.thQty,
+.thUnit,
+.thExpiry {
+  padding: 10px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  white-space: nowrap;
+
+  &:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+
+  &:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+  }
+}
+
+.thName {
+  min-width: 180px;
+}
+
+.thLot {
+  min-width: 160px;
+}
+
+.thQty {
+  text-align: right;
+  min-width: 110px;
+}
+
+.thUnit {
+  text-align: center;
+  min-width: 70px;
+}
+
+.thExpiry {
+  min-width: 170px;
+}
+
+.row {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #fafbfc;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.tdName,
+.tdLot,
+.tdQty,
+.tdUnit,
+.tdExpiry {
+  padding: 12px;
+  vertical-align: middle;
+}
+
+.tdQty {
+  text-align: right;
+}
+
+.tdUnit {
+  text-align: center;
+}
+
+.nameWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.nameText {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.lotWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lotCode {
+  font-family: monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.lotQualityBadge {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.numBold {
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  white-space: nowrap;
+}
+
+.unitText {
+  font-size: 12.5px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.expiryWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.expiryDate {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.expiryNotePill {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.note_warning {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.note_info {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.note_default {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+/* 2. Mobile Card List */
+.mobileCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  @media (min-width: 640px) {
+    display: none;
+  }
+}
+
+.mobileItemCard {
+  padding: 12px;
+  border-radius: 10px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobileItemTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobileItemName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111827;
+  min-width: 0;
+}
+
+.mobileItemMid {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-top: 1px dashed #e5e7eb;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.mobileLabel {
+  font-size: 11.5px;
+  color: #6b7280;
+}
+
+.mobileValBold {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary, #0a8066);
+}
+
+.mobileItemBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+/* Footer note */
+.footerNote {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+.infoIcon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}

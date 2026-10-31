@@ -1,120 +1,50 @@
-import React, { useState } from "react"
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  InputAdornment,
-  TextField,
-  Typography,
-} from "@mui/material"
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined"
-import PersonOutlinedIcon from "@mui/icons-material/PersonOutlined"
+import React, { useRef, useState } from "react"
+import { Alert, Button, CircularProgress } from "@mui/material"
+import { Link } from "react-router-dom"
 import AuthService from "src/services/AuthService"
-import styles from "./LoginForm.module.scss"
+import AuthCard, { AuthHeading } from "src/components/Auth/AuthCard"
+import AuthField from "src/components/Auth/AuthField"
+import FormErrors from "src/components/Auth/FormErrors"
+import ROUTER from "src/router/ROUTER"
+import styles from "src/components/Auth/AuthForm.module.scss"
+import layout from "./LoginForm.module.scss"
 
-function LoginForm({ onLoginSuccess }) {
-  const [loading, setLoading] = useState(false)
-  const [username, setUsername] = useState("")
+export default function LoginForm({ onLoginSuccess, initialIdentifier = "", passwordUpdated = false }) {
+  const [identifier, setIdentifier] = useState(initialIdentifier)
   const [password, setPassword] = useState("")
-  const [errorText, setErrorText] = useState("")
+  const [errors, setErrors] = useState({})
+  const [message, setMessage] = useState("")
+  const [loading, setLoading] = useState(false)
+  const submitting = useRef(false)
 
-  const handleSubmit = async e => {
-    e.preventDefault()
-    if (!username.trim()) {
-      setErrorText("Vui lòng nhập tên đăng nhập hoặc email")
-      return
-    }
-    setErrorText("")
+  const submit = async event => {
+    event.preventDefault()
+    if (submitting.current) return
+    const next = {}
+    if (!identifier.trim()) next.identifier = "Vui lòng nhập tên đăng nhập hoặc email."
+    if (!password) next.password = "Vui lòng nhập mật khẩu."
+    setErrors(next)
+    setMessage("")
+    if (Object.keys(next).length) return
+    submitting.current = true
+    setLoading(true)
     try {
-      setLoading(true)
-      const res = await AuthService.login({ username, password })
-      const user = res?.data?.user || res?.Object?.User
-      if (user) {
-        onLoginSuccess(user)
-      } else {
-        setErrorText(res?.message || "Đăng nhập thất bại")
-      }
-    } catch {
-      setErrorText("Lỗi kết nối máy chủ")
-    } finally {
-      setLoading(false)
-    }
+      const { user } = await AuthService.login({ identifier, password })
+      onLoginSuccess(user)
+    } catch (error) { setMessage(error.message || "Đăng nhập thất bại. Vui lòng thử lại.") }
+    finally { submitting.current = false; setLoading(false) }
   }
 
-  return (
-    <Card className={styles.loginCard}>
-      <CardHeader
-        title={
-          <Typography variant="h6" fontWeight={700}>
-            Đăng nhập tài khoản
-          </Typography>
-        }
-        sx={{ pb: 1 }}
-      />
-      <CardContent>
-        <Alert severity="info" sx={{ mb: 3, fontSize: "0.85rem" }}>
-          Đăng nhập bằng tài khoản Cloud (Mật khẩu mặc định: <b>123456</b>) hoặc click nhanh danh sách vai trò bên phải để test phân quyền.
-        </Alert>
-
-        {errorText && (
-          <Alert severity="error" sx={{ mb: 2, fontSize: "0.85rem" }}>
-            {errorText}
-          </Alert>
-        )}
-
-        <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <TextField
-            label="Tên đăng nhập / Email"
-            variant="outlined"
-            fullWidth
-            value={username}
-            onChange={e => setUsername(e.target.value)}
-            placeholder="Ví dụ: sysadmin, fp_demo_bgh, fp_demo_teacher..."
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <PersonOutlinedIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <TextField
-            label="Mật khẩu"
-            type="password"
-            variant="outlined"
-            fullWidth
-            value={password}
-            onChange={e => setPassword(e.target.value)}
-            placeholder="Nhập 123456"
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <LockOutlinedIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            disabled={loading}
-            className={styles.submitBtn}
-          >
-            {loading ? <CircularProgress size={24} color="inherit" /> : "Đăng nhập"}
-          </Button>
-        </Box>
-      </CardContent>
-    </Card>
-  )
+  return <AuthCard component="form" onSubmit={submit} noValidate aria-label="Đăng nhập FoodPrint" aria-busy={loading}>
+    <AuthHeading eyebrow="Chào mừng trở lại" title="Đăng nhập FoodPrint" description="Một tài khoản, kết nối cùng bữa ăn học đường an toàn." />
+    {passwordUpdated && <Alert severity="success" role="status">Mật khẩu đã được cập nhật. Vui lòng đăng nhập bằng mật khẩu mới.</Alert>}
+    <FormErrors errors={errors} message={message} />
+    <div className={layout.credentials}>
+      <AuthField id="identifier" label="Tên đăng nhập hoặc email" required autoComplete="username" value={identifier} onChange={event => setIdentifier(event.target.value)} placeholder="Nhập tên đăng nhập hoặc email" error={errors.identifier} inputProps={{ maxLength: 320, autoCapitalize: "none", spellCheck: false }} />
+      <AuthField id="password" label="Mật khẩu" required type="password" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Nhập mật khẩu" error={errors.password} />
+    </div>
+    <div className={styles.forgot}><Button component={Link} to={ROUTER.FORGOT_PASSWORD} className={styles.link}>Quên mật khẩu?</Button></div>
+    <Button type="submit" variant="contained" disabled={loading} className={styles.primary}>{loading ? <CircularProgress size={22} color="inherit" aria-label="Đang đăng nhập" /> : "Đăng nhập"}</Button>
+    <Button component={Link} to={ROUTER.REGISTER} className={styles.link}>Chưa có tài khoản? Đăng ký đơn vị</Button>
+  </AuthCard>
 }
-
-export default LoginForm

@@ -33,3 +33,27 @@ export const getDefaultRedirectByOrg = orgType => {
       return "/school/overview"
   }
 }
+
+/**
+ * Lấy trang điều hướng mặc định dựa theo Role và Org của user
+ * @param {object} user - Object chứa role và orgType
+ * @returns {string} router path
+ */
+export const getDefaultRedirectByUser = user => {
+  if (!user) return ROUTER.LOGIN
+  if (user.role === "SCHOOL_KITCHEN_STAFF") {
+    return ROUTER.SCHOOL_KITCHEN_COOKING
+  }
+  return getDefaultRedirectByOrg(user.orgType)
+}
+
+export const getAuthRedirect = user => {
+  if (user?.role === "SYSTEM_ADMIN") return ROUTER.SYSTEM_ORG_APPROVAL
+  if (user?.onboardingRequired || user?.status === "UNVERIFIED") return ROUTER.DEFAULT
+  return getDefaultRedirectByUser(user)
+}
+
+export const needsRegistrationCompletion = user => Boolean(user && ["SCHOOL", "SUPPLIER"].includes(user.orgType) && user.onboardingRequired && (!user.registrationRequest || user.registrationRequest.status === "REJECTED"))
+
+export const getRegistrationDestination = user => user?.role === "SYSTEM_ADMIN" ? ROUTER.SYSTEM_ORG_APPROVAL
+  : user?.registrationRequest ? ROUTER.REGISTRATION_STATUS : ROUTER.REGISTRATION_PROFILE

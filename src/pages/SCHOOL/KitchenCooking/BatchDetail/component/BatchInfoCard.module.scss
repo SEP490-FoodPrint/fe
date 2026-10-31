@@ -1,0 +1,339 @@
+.infoCard {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  padding: 18px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: border-color 0.15s ease;
+
+  @media (min-width: 768px) {
+    padding: 22px 24px;
+  }
+}
+
+/* 1. Header Card */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.iconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: #eaf7f0;
+  color: var(--color-primary, #0a8066);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.2px;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+  }
+}
+
+.cardSub {
+  display: block;
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.safetyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* 2. Hero Món ăn & Nhận diện mẻ */
+.heroDishBox {
+  background-color: #fafcfb;
+  border: 1px solid #e6f4ef;
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.heroLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.heroMetaRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.heroCategoryBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.batchCodePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid rgba(10, 128, 102, 0.25);
+  color: var(--color-primary, #0a8066);
+}
+
+.hashIcon {
+  color: #0a8066;
+  opacity: 0.8;
+}
+
+.batchCodeText {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dishNameTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+
+  @media (min-width: 768px) {
+    font-size: 20px;
+  }
+}
+
+.heroPortionBox {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 14px;
+  background: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+
+  @media (min-width: 640px) {
+    align-items: flex-end;
+  }
+}
+
+@media (max-width: 640px) {
+  .heroDishBox {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .heroPortionBox {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 8px 14px;
+  }
+}
+
+.portionLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.portionValueRow {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.portionBigNumber {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-primary, #0a8066);
+  letter-spacing: -0.5px;
+  line-height: 1;
+
+  @media (min-width: 768px) {
+    font-size: 24px;
+  }
+}
+
+.portionUnit {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+/* 3. Lưới thông số vận hành (Clean 4 Columns) */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 12px;
+
+  @media (min-width: 900px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+  }
+}
+
+.metricItem {
+  background: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #e2e8f0;
+    background-color: #fafbfc;
+  }
+}
+
+.metricLabelRow {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.metricIcon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.metricLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.metricValue {
+  font-size: 13.5px;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  strong {
+    font-weight: 700;
+    color: #0f172a;
+  }
+}
+
+.metricSeparator {
+  color: #cbd5e1;
+  font-weight: 700;
+}
+
+.metricSubTime {
+  color: #475569;
+  font-weight: 600;
+}
+
+.methodTag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.roleTag {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* 4. Footer Dấu vết thời gian tinh tế */
+.cardFooterBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  margin-top: 14px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 11.5px;
+  color: #94a3b8;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.timestampWrap {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  strong {
+    color: #475569;
+    font-weight: 600;
+  }
+}
+
+.clockIcon {
+  color: #94a3b8;
+}
+
+.originHint {
+  color: #64748b;
+  font-style: italic;
+}

@@ -12,30 +12,43 @@ import {
 } from "@mui/material"
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 import CloseIcon from "@mui/icons-material/Close"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
+import ROUTER from "src/router/ROUTER"
 import { StoreContext } from "src/contexts"
-import {  ROLE_LABELS } from "src/constants/roles"
+import {  ROLE_LABELS, ROLES } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
-import { getDefaultRedirectByOrg } from "src/lib/utils"
 import { MOCK_ACCOUNTS } from "src/services/SchoolService/mockData"
 
 function RoleSwitcher() {
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
   const { loginStore, userStore } = useContext(StoreContext)
   const isLoginContext = loginStore?.isLoginContext
   const setIsLoginContext = loginStore?.setIsLoginContext
   const user = userStore?.user
   const setUser = userStore?.setUser
 
-  if (!isLoginContext) return null
+  // Ẩn nút đổi vai trò khi:
+  // 1. Không dùng Mock API
+  // 2. Chưa đăng nhập
+  // 3. Nhân viên bếp (đã có trang riêng)
+  // 4. Đang ở trang Quản trị tài khoản trường học (/school/administration)
+  if (
+    !USE_MOCK_API ||
+    !isLoginContext ||
+    user?.role === ROLES.SCHOOL_KITCHEN_STAFF ||
+    location.pathname.startsWith(ROUTER.SCHOOL_ADMINISTRATION)
+  ) {
+    return null
+  }
 
   const handleSwitch = (roleCode) => {
     const { user: newUser } = AuthService.mockLoginByRole(roleCode)
     setIsLoginContext(true)
     setUser(newUser)
     setOpen(false)
-    navigate(getDefaultRedirectByOrg(newUser.orgType))
+    navigate(getDefaultRedirectByUser(newUser))
   }
 
   return (
@@ -61,7 +74,9 @@ function RoleSwitcher() {
             "& .MuiButton-startIcon": { mr: { xs: 0, sm: 1 }, ml: 0 },
           }}
         >
-          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})</Box>
+          <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+            Đổi Vai Trò ({ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role})
+          </Box>
         </Button>
       </Tooltip>
 
@@ -71,7 +86,7 @@ function RoleSwitcher() {
         onClose={() => setOpen(false)}
         slotProps={{ paper: { sx: { width: "min(380px, 100vw)", p: 3 } } }}
       >
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
           <Typography variant="h6" fontWeight={700}>
             ⚡ Chuyển Đổi Nhanh 9 Vai Trò
           </Typography>
@@ -84,7 +99,7 @@ function RoleSwitcher() {
           Chọn một vai trò bất kỳ để chuyển đổi tức thì. Menu Sidebar và quyền truy cập sẽ tự động thay đổi theo:
         </Typography>
 
-        <Box display="flex" flexDirection="column" gap={1.5}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {MOCK_ACCOUNTS.map((acc) => {
             const isCurrent = acc.role === user?.role
             return (
@@ -103,7 +118,7 @@ function RoleSwitcher() {
                 }}
               >
                 <CardContent sx={{ p: "12px !important" }}>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" mb={0.5}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 0.5 }}>
                     <Typography fontWeight={600} fontSize="0.95rem">
                       {acc.fullName}
                     </Typography>
@@ -116,7 +131,7 @@ function RoleSwitcher() {
                       />
                     )}
                   </Box>
-                  <Box display="flex" alignItems="center" gap={1} mt={0.5}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
                     <Chip
                       label={acc.orgType}
                       size="small"

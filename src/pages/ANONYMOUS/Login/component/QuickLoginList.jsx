@@ -21,11 +21,10 @@ function QuickLoginList({ onLoginSuccess }) {
   const handleQuickLogin = async acc => {
     try {
       setLoadingUser(acc.username)
-      const res = await AuthService.login({
-        username: acc.username,
+      const { user } = await AuthService.login({
+        identifier: acc.username,
         password: "123456",
       })
-      const user = res?.data?.user || res?.Object?.User
       if (user) {
         onLoginSuccess(user)
         return
@@ -45,12 +44,12 @@ function QuickLoginList({ onLoginSuccess }) {
     <Card className={styles.quickLoginCard}>
       <CardHeader
         title={
-          <Box display="flex" alignItems="center" gap={1.5}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
             <Typography variant="h6" fontWeight={700}>
               ⚡ Đăng nhập Nhanh để Test Phân Quyền
             </Typography>
             <Chip
-              label="10 Tài khoản Demo"
+              label="11 Tài khoản Demo"
               size="small"
               color="warning"
               sx={{ fontWeight: 600 }}
@@ -80,9 +79,9 @@ function QuickLoginList({ onLoginSuccess }) {
                 className={styles.roleItem}
                 sx={{ opacity: isLoading ? 0.7 : 1, cursor: isLoading ? "wait" : "pointer" }}
               >
-                <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                       <Chip
                         label={acc.orgType}
                         size="small"

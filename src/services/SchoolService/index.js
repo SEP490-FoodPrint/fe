@@ -19,22 +19,22 @@ const isUseMock = import.meta.env.VITE_USE_MOCK === "true";
  * 2. Hàm gọi API thật (Hàm thường)
  */
 const getPublicSchoolsApi = async (params = {}) => {
-  const res = await http.get(apiGetPublicSchools, { params });
+  const res = await http.get(apiGetPublicSchools, { params, skipAuthRedirect: true });
   return res;
 };
 
 const getSchoolDetailByCodeApi = async (code) => {
-  const res = await http.get(apiGetSchoolDetailByCode(code));
+  const res = await http.get(apiGetSchoolDetailByCode(code), { skipAuthRedirect: true });
   return res;
 };
 
 const getDailyMealMenuApi = async (schoolCode, date) => {
-  const res = await http.get(apiGetDailyMealMenu(schoolCode, date));
+  const res = await http.get(apiGetDailyMealMenu(schoolCode, date), { skipAuthRedirect: true });
   return res;
 };
 
 const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
-  const res = await http.get(apiGetWeeklyMenu(schoolCode, weekStart, grade));
+  const res = await http.get(apiGetWeeklyMenu(schoolCode, weekStart, grade), { skipAuthRedirect: true });
   return res;
 };
 

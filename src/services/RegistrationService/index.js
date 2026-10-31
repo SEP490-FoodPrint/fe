@@ -1,11 +1,12 @@
 import http from "../01_axios"
-import STORAGE, { getStorage, setStorage } from "src/lib/storage"
+import { getStorage, setStorage } from "src/lib/storage"
+import { USE_MOCK_API } from "src/lib/config"
 import { normalizeRequestSearch, organizationName, requestCode, requestDateKey } from "src/lib/registration"
 import { MOCK_REGISTRATION_REQUESTS } from "./mockData"
-import { apiGetRegistrationRequests, apiGetRegistrationRequest, apiReviewRegistrationRequest } from "./urls"
+import { apiGetRegistrationRequests, apiGetRegistrationRequest, apiSearchRegistrationRequests, apiGetRegistrationDocument } from "./urls"
+import { registrationList, registrationQuery, registrationRequest } from "./adapter"
 
 const REVIEW_STORAGE = "foodprint_registration_reviews_v1"
-const useMock = () => import.meta.env.VITE_USE_MOCK === "true" || /^mock_/.test(getStorage(STORAGE.TOKEN) || "")
 const getMockRequests = () => {
   const stored = getStorage(REVIEW_STORAGE)
   const reviews = stored && typeof stored === "object" ? stored : {}
@@ -16,13 +17,12 @@ function checkResponse(response) {
   return response
 }
 
-const getRequests = async ({ search = "", type = "", status = "", from = "", to = "", page = 1, pageSize = 5 } = {}) => {
-  if (!useMock()) {
-    const response = checkResponse(await http.get(apiGetRegistrationRequests, {
-      params: { search, request_type: type, status, submitted_from: from, submitted_to: to, page, page_size: pageSize },
+const getRequests = async ({ search = "", type = "", status = "", from = "", to = "", page = 1, pageSize = 5 } = {}, { signal } = {}) => {
+  if (!USE_MOCK_API) {
+    const response = checkResponse(await http.get(search.trim() ? apiSearchRegistrationRequests : apiGetRegistrationRequests, {
+      params: registrationQuery({ search, type, status, from, to, page, pageSize }), signal, notifyOnError: false,
     }))
-    if (!Array.isArray(response?.data) || !Number.isFinite(response.total)) throw new Error("Dữ liệu danh sách hồ sơ không hợp lệ.")
-    return response
+    return registrationList(response)
   }
   const requests = getMockRequests()
   const query = normalizeRequestSearch(search)
@@ -35,27 +35,41 @@ const getRequests = async ({ search = "", type = "", status = "", from = "", to 
   const currentPage = Math.max(1, Math.min(page, Math.ceil(filtered.length / pageSize) || 1))
   return {
     data: filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize), total: filtered.length,
-    page: currentPage, isMock: true,
-    summary: { total: requests.length, pending: requests.filter(request => request.status === "PENDING").length },
+    page: currentPage, pageSize, isMock: true,
   }
 }
-const getRequest = async id => {
-  if (!useMock()) {
-    const response = checkResponse(await http.get(apiGetRegistrationRequest(id)))
-    if (!response?.data?.id) throw new Error("Dữ liệu chi tiết hồ sơ không hợp lệ.")
-    return response
+const getSummary = async ({ signal } = {}) => {
+  if (USE_MOCK_API) {
+    const requests = getMockRequests()
+    return { total: requests.length, pending: requests.filter(request => request.status === "PENDING").length }
+  }
+  // No statistics endpoint yet; use the server's pagination counts, without downloading every record.
+  const all = await getRequests({ pageSize: 1 }, { signal })
+  // The newer basic list only exposes hasNext, without counts or status filters.
+  if (all.total === null) return {}
+  const pending = await getRequests({ status: "PENDING", pageSize: 1 }, { signal })
+  return { total: all.total, pending: pending.total }
+}
+const getRequest = async (id, { signal } = {}) => {
+  if (!USE_MOCK_API) {
+    const response = checkResponse(await http.get(apiGetRegistrationRequest(id), { signal, notifyOnError: false }))
+    return { data: registrationRequest(response.data), isMock: false }
   }
   const request = getMockRequests().find(item => item.id === id)
   if (!request) throw new Error("Không tìm thấy hồ sơ đăng ký.")
   return { data: request, isMock: true }
 }
+const getDocument = async (requestId, documentId, { signal } = {}) => {
+  const response = checkResponse(await http.get(apiGetRegistrationDocument(requestId, documentId), { signal, notifyOnError: false }))
+  const data = response?.data
+  let url
+  try { url = new URL(data?.url) } catch { throw new Error("Không nhận được đường dẫn xem tài liệu hợp lệ.") }
+  if (url.protocol !== "https:" || url.username || url.password || !Number.isInteger(data.expiresIn) || data.expiresIn <= 0) throw new Error("Không nhận được đường dẫn xem tài liệu hợp lệ.")
+  return { url: url.href, expiresIn: data.expiresIn }
+}
 const reviewRequest = async (id, body, reviewer) => {
   if (!["APPROVED", "REJECTED"].includes(body.status)) throw new Error("Quyết định xét duyệt không hợp lệ.")
-  if (!useMock()) {
-    const response = checkResponse(await http.patch(apiReviewRegistrationRequest(id), body))
-    if (!response?.data?.id || response.data.status !== body.status) throw new Error("Chưa xác nhận được quyết định xét duyệt. Vui lòng tải lại hồ sơ.")
-    return response
-  }
+  if (!USE_MOCK_API) throw new Error("Chức năng xét duyệt chưa khả dụng.")
   const { data: current } = await getRequest(id)
   if (current.status !== "PENDING") throw new Error("Hồ sơ đã được xét duyệt. Vui lòng tải lại trang.")
   const now = new Date().toISOString()
@@ -69,4 +83,4 @@ const reviewRequest = async (id, body, reviewer) => {
   return { data: { ...current, ...review }, isMock: true }
 }
 
-export default { getRequests, getRequest, reviewRequest }
+export default { getRequests, getSummary, getRequest, getDocument, reviewRequest }

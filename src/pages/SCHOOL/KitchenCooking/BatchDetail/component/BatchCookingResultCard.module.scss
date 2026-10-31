@@ -1,0 +1,201 @@
+.resultCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  @media (min-width: 768px) {
+    padding: 22px;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+  }
+}
+
+/* Status Banner */
+.statusBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.bannerDraft {
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+
+  .bannerIconBox {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+
+  .bannerTitle {
+    color: #b45309;
+  }
+}
+
+.bannerConfirmed {
+  background-color: #eff6ff;
+  border: 1px solid #dbeafe;
+
+  .bannerIconBox {
+    background-color: #dbeafe;
+    color: #2563eb;
+  }
+
+  .bannerTitle {
+    color: #1d4ed8;
+  }
+}
+
+.bannerCompleted {
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+
+  .bannerIconBox {
+    background-color: #dcfce7;
+    color: #16a34a;
+  }
+
+  .bannerTitle {
+    color: #15803d;
+  }
+}
+
+.bannerIconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bannerContent {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.bannerTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.bannerDesc {
+  margin: 0;
+  font-size: 12.5px;
+  color: #4b5563;
+  line-height: 1.45;
+}
+
+/* 4 KPI đối chiếu */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+}
+
+.kpiBox {
+  padding: 12px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpiLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6b7280;
+}
+
+.kpiValueBold {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.primaryVal {
+  color: var(--color-primary, #0a8066);
+}
+
+.successVal {
+  color: #16a34a;
+}
+
+.warningVal {
+  color: #d97706;
+}
+
+.draftVal {
+  color: #4b5563;
+}
+
+.mutedVal {
+  color: #cbd5e1;
+}
+
+.kpiTimeText {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111827;
+  margin-top: 4px;
+}
+
+.kpiSub {
+  font-size: 11px;
+  color: #9ca3af;
+}

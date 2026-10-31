@@ -5,7 +5,7 @@ import { Drawer, IconButton, Tooltip, useMediaQuery } from "@mui/material"
 import CloseIcon from "@mui/icons-material/Close"
 import { StoreContext } from "src/contexts"
 import { ORG_LABELS } from "src/constants/roles"
-import { hasPermission, getDefaultRedirectByOrg } from "src/lib/utils"
+import { hasPermission, getDefaultRedirectByUser, getDefaultRedirectByOrg } from "src/lib/utils"
 import { MenuItemSchool, MenuItemSupplier, MenuItemSystem } from "src/router/MenuItem"
 import BrandLogo from "src/components/Common/BrandLogo"
 import styles from "./Sidebar.module.scss"
@@ -24,30 +24,40 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
 
   const content = (
     <aside className={[styles.sidebar, iconOnly && styles.iconOnly, mobile && styles.isMobile].filter(Boolean).join(" ")} aria-label={portalLabel}>
-      {mobile ? <>
-        <div className={styles.drawerHeading}>
-          <span>FoodPrint</span>
-          <IconButton onClick={onClose} aria-label="Đóng điều hướng" autoFocus><CloseIcon /></IconButton>
-        </div>
-        <p className={styles.portalLabel}>{portalLabel}</p>
-      </> : <Link to={getDefaultRedirectByOrg(orgType)} className={styles.brandLink} aria-label={"FoodPrint — " + portalLabel}>
-        <BrandLogo theme="light" variant="dashboard" iconOnly={iconOnly} subtitle={portalLabel} />
-      </Link>}
+      {mobile ? (
+        <>
+          <div className={styles.drawerHeading}>
+            <span>FoodPrint</span>
+            <IconButton onClick={onClose} aria-label="Đóng điều hướng" autoFocus><CloseIcon /></IconButton>
+          </div>
+          <p className={styles.portalLabel}>{portalLabel}</p>
+        </>
+      ) : (
+        <Link to={user ? getDefaultRedirectByUser(user) : getDefaultRedirectByOrg(orgType)} className={styles.brandLink} aria-label={"FoodPrint — " + portalLabel}>
+          <BrandLogo theme="light" variant="dashboard" iconOnly={iconOnly} subtitle={portalLabel} />
+        </Link>
+      )}
       <nav className={styles.navList} aria-label="Menu chức năng">
         {menuItems.map(item => {
+          const tooltipTitle = item.label + (item.badge ? ` (${item.badge})` : "")
           const link = (
             <NavLink
               key={item.key}
               to={item.key}
               onClick={mobile ? onClose : undefined}
-              aria-label={item.label}
+              aria-label={tooltipTitle}
               className={({ isActive }) => [styles.navItem, isActive && styles.isActive].filter(Boolean).join(" ")}
             >
               <span className={styles.navIcon}>{item.icon}</span>
               {!iconOnly && <span className={styles.navLabel}>{item.label}</span>}
+              {!iconOnly && item.badge && <span className={styles.navBadge}>{item.badge}</span>}
             </NavLink>
           )
-          return iconOnly ? <Tooltip key={item.key} title={item.label} placement="right" arrow><span className={styles.tooltipLink}>{link}</span></Tooltip> : link
+          return iconOnly ? (
+            <Tooltip key={item.key} title={tooltipTitle} placement="right" arrow>
+              <span className={styles.tooltipLink}>{link}</span>
+            </Tooltip>
+          ) : link
         })}
       </nav>
     </aside>

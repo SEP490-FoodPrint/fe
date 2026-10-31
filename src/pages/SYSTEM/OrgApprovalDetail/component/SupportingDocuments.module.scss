@@ -13,3 +13,5 @@
 .documentCard { border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: var(--space-3); display: flex; flex-direction: column; gap: var(--space-3); h3 { margin: 0; font-size: var(--text-sm); font-weight: var(--font-medium); } :global(.MuiButton-root) { min-height: calc(var(--space-10) + var(--space-1)); border-color: var(--border-default); } }
 .dateFields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-3); margin: 0; font-size: var(--text-sm); dt { color: var(--text-muted); } dd { margin: var(--space-1) 0 0; } }
 @media (max-width: 600px) { .card:global(.MuiCard-root) { padding: var(--space-4); } .desktop { display: none; } .mobile { display: flex; flex-direction: column; gap: var(--space-3); } }
+
+.filename { margin: 0; color: var(--text-secondary); font-size: var(--text-xs); overflow-wrap: anywhere; }

@@ -1,0 +1,7 @@
+.trigger:global(.MuiButton-root) { display: inline-flex; align-items: center; gap: var(--space-2); min-height: var(--control-height-lg); padding: var(--space-1) var(--space-2); border: 1px solid var(--border-default); border-radius: var(--radius-full); color: var(--text-primary); text-transform: none; font-family: var(--font-sans); &:hover { background: var(--bg-muted); } }
+.avatar:global(.MuiAvatar-root) { width: calc(var(--space-8) + var(--space-1)); height: calc(var(--space-8) + var(--space-1)); background: var(--color-primary-soft); color: var(--color-primary); font-size: var(--text-sm); font-weight: var(--font-semibold); }
+.name { max-width: var(--auth-recovery-link-width); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: var(--text-sm); font-weight: var(--font-semibold); }
+.chevron:global(.MuiSvgIcon-root) { width: var(--space-5); height: var(--space-5); color: var(--text-secondary); }
+.menu { min-width: calc(var(--space-16) * 3); :global(.MuiMenuItem-root) { min-height: var(--control-height-lg); gap: var(--space-2); font-family: var(--font-sans); font-size: var(--text-sm); } :global(.MuiListItemIcon-root) { color: var(--text-secondary); min-width: var(--space-6); } }
+.logout:global(.MuiMenuItem-root) { border-top: 1px solid var(--border-default); margin-top: var(--space-1); color: var(--color-error); :global(.MuiListItemIcon-root) { color: inherit; } }
+@media (max-width: 600px) { .name { max-width: var(--space-16); } .trigger:global(.MuiButton-root) { gap: var(--space-1); padding-right: var(--space-1); } }

@@ -3,17 +3,16 @@ import { Link, useLocation } from "react-router-dom";
 import {
   ArrowRight,
   ChevronDown,
-  LayoutDashboard,
   LogIn,
   Search,
 } from "lucide-react";
 import { StoreContext } from "src/contexts";
-import { getDefaultRedirectByOrg } from "src/lib/utils";
 import ROUTER from "src/router/ROUTER";
 import BrandLogo from "src/components/Common/BrandLogo";
 import SchoolService from "src/services/SchoolService";
 import BaseHeader from "../BaseHeader";
 import styles from "./PublicHeader.module.scss";
+import PublicAccountMenu from "src/components/Common/PublicAccountMenu";
 
 function PublicHeader() {
   const location = useLocation();
@@ -85,7 +84,7 @@ function PublicHeader() {
         Trang chủ
       </Link>
 
-      <a href="#about" className={styles.navItem}>
+      <a href={`${ROUTER.DEFAULT}#about`} className={styles.navItem}>
         Giới thiệu
       </a>
 
@@ -153,7 +152,7 @@ function PublicHeader() {
 
             <div className={styles.panelFooter}>
               <a
-                href="#schools"
+                href={`${ROUTER.DEFAULT}#schools`}
                 onClick={() => setIsDropdownOpen(false)}
                 className={styles.viewAllLink}
               >
@@ -165,7 +164,7 @@ function PublicHeader() {
         )}
       </div>
 
-      <a href="#how-it-works" className={styles.navItem}>
+      <a href={`${ROUTER.DEFAULT}#how-it-works`} className={styles.navItem}>
         Cách hoạt động
       </a>
     </nav>
@@ -174,13 +173,7 @@ function PublicHeader() {
   const rightSlot = (
     <div className={styles.actionsWrap}>
       {isLoginContext && user ? (
-        <Link
-          to={getDefaultRedirectByOrg(user.orgType)}
-          className={styles.dashboardBtn}
-        >
-          <LayoutDashboard size={16} />
-          <span>Vào Bảng điều khiển</span>
-        </Link>
+        <PublicAccountMenu />
       ) : (
         <>
           <Link to={ROUTER.LOGIN} className={styles.loginBtn}>
@@ -188,7 +181,7 @@ function PublicHeader() {
             <span>Đăng nhập</span>
           </Link>
 
-          <Link to={ROUTER.LOGIN} className={styles.registerBtn}>
+          <Link to={ROUTER.REGISTER} className={styles.registerBtn}>
             <span>Đăng ký tham gia</span>
           </Link>
         </>

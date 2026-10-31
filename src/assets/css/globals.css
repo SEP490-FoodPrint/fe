@@ -140,6 +140,11 @@
   --control-height-sm: 2rem;
   --control-height-md: 2.5rem;
   --control-height-lg: 3rem;
+  --auth-card-width: 30rem;
+  --auth-registration-width: 39rem;
+  --auth-profile-width: 45rem;
+  --auth-brand-width: 19.375rem;
+  --auth-recovery-link-width: 10rem;
   --transition-layout: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* 7. MOTION & STACKING */
@@ -201,4 +206,24 @@ a {
 :focus-visible {
   outline: 2px solid var(--border-focus);
   outline-offset: 2px;
+}
+
+
+/* Google Material Symbols Outlined Support */
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
 }
