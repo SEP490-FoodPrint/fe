@@ -36,7 +36,7 @@ export default function BatchDetailHeader({ batchData }) {
 
   return (
     <div className={styles.headerBar}>
-      {/* Title Row: Nút quay lại + Tiêu đề + Mã lô + Badge trạng thái + Nút Desktop */}
+      {/* Title Row: Nút quay lại + Tiêu đề + Badge trạng thái + Nút Desktop */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -52,7 +52,6 @@ export default function BatchDetailHeader({ batchData }) {
           <div className={styles.headingWrap}>
             <div className={styles.titleLine}>
               <h1 className={styles.heading}>Chi tiết lô chế biến</h1>
-              <span className={styles.codeBadge}>{batchData.code}</span>
               {getStatusBadge()}
             </div>
             <p className={styles.subTitle}>
