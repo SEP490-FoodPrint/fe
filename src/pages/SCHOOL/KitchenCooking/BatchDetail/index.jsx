@@ -161,6 +161,8 @@ export default function KitchenBatchDetail() {
           {/* Thẻ 3 Cột Phải: Thao tác nghiệp vụ */}
           <BatchActionsCard
             status={batchData.status}
+            batchCode={batchData.code}
+            dishName={batchData.dishName}
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
             onOpenCompleteModal={handleCompleteBatch}

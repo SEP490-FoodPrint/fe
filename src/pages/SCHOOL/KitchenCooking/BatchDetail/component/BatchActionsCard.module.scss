@@ -117,6 +117,56 @@
   transform: none !important;
 }
 
+/* Khối Thao tác Lưu mẫu (Sau khi Hoàn thành chế biến) */
+.sampleActionBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.sampleSubtext {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: #4b5563;
+  text-align: center;
+  padding: 0 4px;
+}
+
+.codeHighlight {
+  color: var(--color-primary, #0a8066);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-weight: 700;
+}
+
+.btnPrintSecondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 8px;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  background-color: #eaf7f0;
+  color: var(--color-primary, #0a8066);
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #def0e7;
+    border-color: #0a8066;
+    color: #086a55;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
 .securityNote {
   margin-top: 14px;
   padding: 10px 12px;
@@ -189,6 +239,32 @@
   }
 }
 
+.mobileCompletedActionWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.mobilePrintIconBtn {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid rgba(10, 128, 102, 0.25);
+  background-color: #eaf7f0;
+  color: var(--color-primary, #0a8066);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  &:active {
+    background-color: #def0e7;
+  }
+}
+
 .mobileMenuAnchor {
   position: relative;
 }
@@ -252,23 +328,3 @@
     background-color: #fef2f2;
   }
 }
-
-.mobileCompletedBar {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  height: 44px;
-  border-radius: 8px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #16a34a;
-  font-size: 13.5px;
-  font-weight: 600;
-}
-
-.doneIcon {
-  color: #16a34a;
-}
-

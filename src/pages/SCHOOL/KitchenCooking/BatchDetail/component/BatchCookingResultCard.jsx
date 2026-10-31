@@ -42,7 +42,7 @@ export default function BatchCookingResultCard({ batchData }) {
           <div className={styles.bannerContent}>
             <h3 className={styles.bannerTitle}>Đã xác nhận phương án — Đang chế biến</h3>
             <p className={styles.bannerDesc}>
-              Bếp đang tiến hành chế biến theo phương án đã phê duyệt. Sau khi hoàn tất ra khay và lưu mẫu, bấm "Ghi nhận nấu xong &amp; Lưu mẫu".
+              Bếp đang tiến hành chế biến theo phương án đã phê duyệt. Sau khi hoàn tất ra khay và lưu mẫu, bấm "Ghi nhận hoàn thành chế biến".
             </p>
           </div>
         </div>
@@ -54,9 +54,9 @@ export default function BatchCookingResultCard({ batchData }) {
             <CheckCircle2 size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến &amp; Lưu mẫu</h3>
+            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến — Chờ lưu mẫu</h3>
             <p className={styles.bannerDesc}>
-              Món ăn đã ra khay theo đúng sĩ số chốt và đã lưu mẫu kiểm thực 24h theo đúng quy chuẩn an toàn thực phẩm.
+              Món ăn đã ra khay theo đúng sĩ số chốt và sẵn sàng chuyển tiếp ghi nhận lưu mẫu thực phẩm 24h.
             </p>
           </div>
         </div>
