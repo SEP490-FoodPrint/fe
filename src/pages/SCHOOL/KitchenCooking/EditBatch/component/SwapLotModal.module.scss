@@ -1,7 +1,7 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(19, 30, 26, 0.55);
+  background: rgba(17, 24, 39, 0.45);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 999;
@@ -9,35 +9,31 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-  animation: fadeIn 0.2s ease;
+  animation: fadeIn 0.15s ease;
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 .modalContent {
-  background: #ffffff;
-  border-radius: 14px;
-  max-width: 620px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  max-width: 600px;
   width: 100%;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-  border: 1px solid #d9e5df;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
   overflow: hidden;
-  animation: slideUp 0.2s ease;
+  animation: slideUp 0.15s ease;
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(12px);
+    transform: translateY(10px);
     opacity: 0;
   }
   to {
@@ -51,7 +47,7 @@
   align-items: flex-start;
   justify-content: space-between;
   padding: 16px 20px;
-  border-bottom: 1px solid #d9e5df;
+  border-bottom: 1px solid #f3f4f6;
 }
 
 .headerTitleWrap {
@@ -61,11 +57,11 @@
 }
 
 .iconBox {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #eaf7f0;
-  color: #00654f;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #e8f5f1;
+  color: #0a8066;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -74,26 +70,26 @@
 
 .modalTitle {
   font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: #131e1a;
+  color: #111827;
   margin: 0;
 }
 
 .modalSubtitle {
   font-size: 12px;
-  color: #6e7a74;
+  color: #6b7280;
   margin: 2px 0 0;
 
   strong {
-    color: #131e1a;
+    color: #111827;
   }
 }
 
 .closeBtn {
   background: none;
   border: none;
-  color: #6e7a74;
+  color: #9ca3af;
   cursor: pointer;
   padding: 6px;
   border-radius: 6px;
@@ -103,14 +99,14 @@
   transition: all 0.15s ease;
 
   &:hover {
-    background: #eaf7f0;
-    color: #131e1a;
+    background-color: #f3f4f6;
+    color: #111827;
   }
 }
 
 .ruleNotice {
-  background: rgba(234, 247, 240, 0.8);
-  border-left: 3px solid #00654f;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
   margin: 12px 20px 4px;
   padding: 10px 14px;
   border-radius: 6px;
@@ -118,20 +114,20 @@
   align-items: flex-start;
   gap: 8px;
   font-size: 12px;
-  color: #3e4944;
+  color: #166534;
 }
 
 .noticeIcon {
-  color: #00654f;
+  color: #16a34a;
   flex-shrink: 0;
   margin-top: 1px;
 }
 
 .noticeText {
-  line-height: 1.4;
+  line-height: 1.45;
 
   strong {
-    color: #00654f;
+    color: #14532d;
   }
 }
 
@@ -145,29 +141,29 @@
 }
 
 .lotCard {
-  border: 1px solid #d9e5df;
-  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   padding: 12px 14px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
   cursor: pointer;
-  background: #ffffff;
+  background-color: #ffffff;
   transition: all 0.15s ease;
 
   &:hover {
-    background: #eaf7f0;
-    border-color: #bdc9c3;
+    background-color: #f9fafb;
+    border-color: #d1d5db;
   }
 }
 
 .lotCardSelected {
-  border-color: #00654f;
-  background: rgba(234, 247, 240, 0.5);
-  box-shadow: 0 0 0 1px #00654f;
+  border-color: #0a8066;
+  background-color: #f0fdf4;
+  box-shadow: 0 0 0 1px #0a8066;
 
   &:hover {
-    background: rgba(234, 247, 240, 0.7);
+    background-color: #dcfce7;
   }
 }
 
@@ -176,20 +172,20 @@
 }
 
 .radioCircle {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border-radius: 9999px;
-  border: 2px solid #bdc9c3;
+  border: 2px solid #d1d5db;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
+  background-color: #ffffff;
   transition: all 0.15s ease;
 }
 
 .radioActive {
-  border-color: #00654f;
-  background: #00654f;
+  border-color: #0a8066;
+  background-color: #0a8066;
 }
 
 .checkIcon {
@@ -199,7 +195,7 @@
 .lotInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
 }
 
@@ -212,32 +208,33 @@
 
 .lotName {
   font-weight: 700;
-  font-size: 14px;
-  color: #131e1a;
+  font-size: 13.5px;
+  color: #111827;
 }
 
 .lotCodeBadge {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
-  background: #e4f1ea;
-  color: #00654f;
-  padding: 1px 6px;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 1px 5px;
   border-radius: 4px;
+  border: 1px solid #e5e7eb;
   font-weight: 600;
 }
 
 .currentBadge {
   font-size: 10px;
-  font-weight: 700;
-  background: #deebe5;
-  color: #00513f;
+  font-weight: 600;
+  background-color: #e8f5f1;
+  color: #0a8066;
   padding: 1px 6px;
   border-radius: 9999px;
 }
 
 .lotSupplier {
   font-size: 12px;
-  color: #6e7a74;
+  color: #6b7280;
 }
 
 .lotMetaGrid {
@@ -245,8 +242,8 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  font-size: 11px;
-  color: #3e4944;
+  font-size: 11.5px;
+  color: #4b5563;
   margin-top: 4px;
 }
 
@@ -256,12 +253,12 @@
   gap: 4px;
 
   strong {
-    color: #00654f;
+    color: #111827;
   }
 }
 
 .metaIcon {
-  color: #00654f;
+  color: #0a8066;
 }
 
 .modalFooter {
@@ -270,23 +267,23 @@
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
-  border-top: 1px solid #d9e5df;
-  background: #f8faf9;
+  border-top: 1px solid #f3f4f6;
+  background-color: #f9fafb;
 }
 
 .btnCancel {
-  height: 38px;
-  padding: 0 16px;
-  border-radius: 8px;
-  border: 1px solid #d9e5df;
-  background: #ffffff;
-  color: #131e1a;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #374151;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 
   &:hover {
-    background: #eaf7f0;
+    background-color: #f3f4f6;
   }
 }
 
@@ -294,11 +291,11 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 38px;
-  padding: 0 18px;
-  border-radius: 8px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 6px;
   border: none;
-  background: #00654f;
+  background-color: #0a8066;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
@@ -306,7 +303,6 @@
   transition: all 0.15s ease;
 
   &:hover {
-    background: #004d3c;
+    background-color: #086853;
   }
 }
-

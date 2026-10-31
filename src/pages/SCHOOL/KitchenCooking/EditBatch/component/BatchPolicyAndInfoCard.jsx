@@ -1,16 +1,38 @@
 import React from "react"
-import { ShieldCheck, Lock, CookingPot, Calendar, Users, CheckCircle2 } from "lucide-react"
+import {
+  CookingPot,
+  ShieldCheck,
+  Calendar,
+  Lock,
+  CheckCircle2,
+  Utensils,
+  Layers
+} from "lucide-react"
 import styles from "./BatchPolicyAndInfoCard.module.scss"
 
 export default function BatchPolicyAndInfoCard({ batchData }) {
   return (
-    <section className={styles.sectionCard}>
-      {/* 1. Policy Strip */}
+    <section className={styles.infoCard}>
+      {/* 1. Header Thẻ */}
+      <div className={styles.cardHeader}>
+        <div className={styles.headerLeft}>
+          <div className={styles.iconBox}>
+            <CookingPot size={18} />
+          </div>
+          <h2 className={styles.cardTitle}>Thông tin phương án chế biến</h2>
+        </div>
+        <div className={styles.safetyBadge}>
+          <ShieldCheck size={14} />
+          <span>Quy tắc: Nấu riêng theo lô nguyên liệu</span>
+        </div>
+      </div>
+
+      {/* 2. Policy Strip Tinh Gọn */}
       <div className={styles.policyStrip}>
         <div className={styles.policyLeft}>
-          <ShieldCheck size={18} className={styles.policyIcon} />
-          <span className={styles.policyLabel}>Quy định chế biến:</span>
-          <span className={styles.policyTag}>NẤU RIÊNG THEO LÔ NGUYÊN LIỆU</span>
+          <ShieldCheck size={15} className={styles.policyIcon} />
+          <span className={styles.policyLabel}>Quy chuẩn BGH:</span>
+          <span className={styles.policyTag}>NẤU RIÊNG 1:1</span>
           <span className={styles.dotSeparator}>•</span>
           <span className={styles.policyMeta}>
             Cơ sở: <strong>{batchData.school || "Bếp THCS Đoàn Thị Điểm"}</strong>
@@ -22,66 +44,55 @@ export default function BatchPolicyAndInfoCard({ batchData }) {
         </div>
 
         <div className={styles.policyRight}>
-          <Lock size={15} className={styles.lockIcon} />
-          <span>Phương án khóa cố định theo biên bản kiểm soát bếp</span>
+          <Lock size={13} className={styles.lockIcon} />
+          <span>Khóa cố định theo biên bản kiểm soát bếp</span>
         </div>
       </div>
 
-      {/* 2. 4 Info Cards Grid */}
-      <div className={styles.gridCards}>
-        {/* Card 1: Mã lô chế biến */}
-        <div className={styles.infoCard}>
-          <span className={styles.cardLabel}>Mã lô chế biến</span>
-          <div className={styles.cardValueWrapper}>
-            <span className={styles.codeValue}>{batchData.code || "CB-20261023-01A"}</span>
-          </div>
-          <span className={styles.cardHint}>Cố định - Lô 01 trong phương án 2 lô</span>
+      {/* 3. Grid Thông tin chi tiết */}
+      <div className={styles.infoGrid}>
+        {/* Item 1: Mã lô */}
+        <div className={styles.infoItem}>
+          <span className={styles.fieldLabel}>Mã lô chế biến</span>
+          <span className={styles.fieldValueMono}>{batchData.code || "CB-20261023-01A"}</span>
+          <span className={styles.subText}>Cố định - Lô 01 trong phương án 2 lô độc lập</span>
         </div>
 
-        {/* Card 2: Món ăn & Ca */}
-        <div className={styles.infoCard}>
-          <span className={styles.cardLabel}>Món ăn &amp; Ca phục vụ</span>
-          <div className={styles.cardValueWrapper}>
-            <CookingPot size={20} className={styles.dishIcon} />
-            <span className={styles.dishValue}>{batchData.dishName || "Thịt gà kho"}</span>
+        {/* Item 2: Món ăn & Ca phục vụ */}
+        <div className={styles.infoItem}>
+          <span className={styles.fieldLabel}>Món ăn &amp; Ca phục vụ</span>
+          <div className={styles.dishValueWrap}>
+            <span className={styles.dishName}>{batchData.dishName || "Thịt gà kho"}</span>
+            <span className={styles.dishCategoryPill}>Món chính</span>
           </div>
-          <span className={styles.cardHint}>Bữa trưa • 11:15 (Món mặn giàu protein)</span>
+          <span className={styles.subText}>Bữa trưa • Giờ phục vụ: 11:15</span>
         </div>
 
-        {/* Card 3: Ngày thực đơn */}
-        <div className={styles.infoCard}>
-          <span className={styles.cardLabel}>Ngày thực đơn</span>
-          <div className={styles.cardValueWrapper}>
-            <Calendar size={18} className={styles.calendarIcon} />
-            <span className={styles.calendarValue}>{batchData.date || "23/10/2026"}</span>
+        {/* Item 3: Ngày thực đơn */}
+        <div className={styles.infoItem}>
+          <span className={styles.fieldLabel}>Ngày thực đơn</span>
+          <div className={styles.valueWithIcon}>
+            <Calendar size={15} className={styles.itemIcon} />
+            <span className={styles.fieldValueBold}>{batchData.date || "23/10/2026"}</span>
+            <span className={styles.subText}>(Tuần 43 - Học kỳ I)</span>
           </div>
-          <span className={styles.cardHint}>Tuần 43 • Học kỳ I (Ban giám hiệu duyệt)</span>
+          <span className={styles.subText}>Thực đơn đã được BGH phê duyệt</span>
         </div>
 
-        {/* Card 4: Số suất chế biến (Khóa cố định theo Phương án A) */}
-        <div className={`${styles.infoCard} ${styles.portionCard}`}>
-          <div className={styles.portionHeader}>
-            <span className={styles.portionLabel}>Số suất chế biến</span>
-            <span className={styles.portionTag}>Ăn bán trú</span>
+        {/* Item 4: Số suất chế biến (Khóa tự động theo GVCN) */}
+        <div className={styles.infoItem}>
+          <span className={styles.fieldLabel}>Số suất chế biến</span>
+          <div className={styles.portionWrap}>
+            <span className={styles.portionNumber}>{(batchData.portions || 60).toLocaleString("vi-VN")}</span>
+            <span className={styles.portionUnit}>suất</span>
+            <span className={styles.lockedPill} title="Tự động tính toán theo báo ăn lớp từ GVCN">
+              <CheckCircle2 size={12} />
+              Đã chốt báo ăn
+            </span>
           </div>
-
-          <div className={styles.portionValueRow}>
-            <div className={styles.portionDisplay}>
-              <span className={styles.portionNum}>{batchData.portions || 60}</span>
-              <span className={styles.portionUnit}>suất</span>
-            </div>
-            <div className={styles.portionLockedBadge} title="Tự động tính theo báo ăn từ GVCN">
-              <CheckCircle2 size={13} />
-              <span>Đã chốt báo ăn</span>
-            </div>
-          </div>
-
-          <span className={styles.cardHint}>
-            Phân bổ: Khối 6, 7 (Lô 01: 60 / tổng 100 suất)
-          </span>
+          <span className={styles.subText}>Phân bổ: Khối 6, 7 (Lô 01: 60 / tổng 100 suất bán trú)</span>
         </div>
       </div>
     </section>
   )
 }
-

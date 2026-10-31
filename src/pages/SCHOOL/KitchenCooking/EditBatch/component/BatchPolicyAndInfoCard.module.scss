@@ -1,231 +1,243 @@
-.sectionCard {
-  background: #ffffff;
+.infoCard {
+  background-color: #ffffff;
   border-radius: 12px;
+  border: 1px solid #e5e7eb;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  border: 1px solid #d9e5df;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 
   @media (min-width: 768px) {
-    padding: 20px;
+    padding: 22px;
   }
 }
 
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+  }
+}
+
+.safetyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #e8f5f1;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  color: #0a8066;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+/* Policy Strip */
 .policyStrip {
-  background: #eaf7f0;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
   border-radius: 8px;
   padding: 10px 14px;
+  margin-bottom: 20px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   font-size: 12px;
-  color: #3e4944;
-  border: 1px solid rgba(189, 201, 195, 0.4);
+  color: #166534;
 }
 
 .policyLeft {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .policyIcon {
-  color: #00654f;
+  color: #16a34a;
   flex-shrink: 0;
 }
 
 .policyLabel {
   font-weight: 600;
-  color: #131e1a;
 }
 
 .policyTag {
-  background: #00654f;
+  background-color: #0a8066;
   color: #ffffff;
   font-size: 10px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 4px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .dotSeparator {
-  color: #bdc9c3;
+  color: #86efac;
 }
 
 .policyMeta {
   strong {
-    color: #131e1a;
+    color: #14532d;
   }
 }
 
 .policyRight {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 11px;
-  color: #00654f;
+  color: #15803d;
   font-weight: 500;
-  background: rgba(148, 245, 213, 0.3);
-  padding: 3px 8px;
-  border-radius: 6px;
 }
 
 .lockIcon {
-  color: #00654f;
+  color: #16a34a;
 }
 
-.gridCards {
+/* Grid thông tin chi tiết */
+.infoGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
+  gap: 16px 24px;
 
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
   }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-  }
 }
 
-.infoCard {
-  background: #eaf7f0;
-  border-radius: 10px;
-  padding: 14px;
+.infoItem {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 6px;
-  border: 1px solid rgba(189, 201, 195, 0.3);
+  gap: 3px;
 }
 
-.cardLabel {
+.fieldLabel {
   font-size: 11px;
   font-weight: 600;
-  color: #6e7a74;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  color: #6b7280;
 }
 
-.cardValueWrapper {
+.fieldValueMono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a8066;
+}
+
+.fieldValueBold {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.dishValueWrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 32px;
+  flex-wrap: wrap;
 }
 
-.codeValue {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 18px;
+.dishName {
+  font-size: 15px;
   font-weight: 700;
-  color: #00654f;
-  letter-spacing: -0.01em;
+  color: #111827;
 }
 
-.dishIcon {
-  color: #00654f;
-}
-
-.dishValue {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: #131e1a;
-}
-
-.calendarIcon {
-  color: #00654f;
-}
-
-.calendarValue {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: #131e1a;
-}
-
-.cardHint {
+.dishCategoryPill {
   font-size: 11px;
-  color: #6e7a74;
-  line-height: 1.4;
-}
-
-/* Portion card đặc biệt - Tự động tính, không nhập tay */
-.portionCard {
-  background: #e4f1ea;
-  border-color: rgba(10, 128, 102, 0.25);
-}
-
-.portionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.portionLabel {
-  font-size: 11px;
-  font-weight: 700;
-  color: #00654f;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.portionTag {
-  background: #94f5d5;
-  color: #00513f;
-  font-size: 10px;
   font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 9999px;
+  background-color: #f3f4f6;
+  color: #4b5563;
+  padding: 1px 7px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
 }
 
-.portionValueRow {
+.valueWithIcon {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  min-height: 32px;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.portionDisplay {
+.itemIcon {
+  color: #0a8066;
+}
+
+.portionWrap {
   display: flex;
-  align-items: baseline;
-  gap: 4px;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.portionNum {
+.portionNumber {
   font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #00654f;
+  color: #0a8066;
   line-height: 1;
 }
 
 .portionUnit {
   font-size: 13px;
   font-weight: 600;
-  color: #131e1a;
+  color: #374151;
 }
 
-.portionLockedBadge {
+.lockedPill {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #ffffff;
-  color: #00654f;
-  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  font-size: 11px;
   font-weight: 600;
-  padding: 3px 7px;
-  border-radius: 6px;
-  border: 1px solid #d9e5df;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(10, 128, 102, 0.2);
 }
 
+.subText {
+  font-size: 12px;
+  color: #6b7280;
+  line-height: 1.4;
+}

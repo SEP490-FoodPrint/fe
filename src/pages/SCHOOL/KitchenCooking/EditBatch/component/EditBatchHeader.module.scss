@@ -1,30 +1,31 @@
-.headerContainer {
+.headerBar {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   width: 100%;
 }
 
-.breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  font-size: 12px;
-  color: #6e7a74;
+/* 1. Breadcrumb chỉ hiện trên Desktop (>= 768px) */
+.breadcrumbDesktop {
+  display: none;
 
-  @media (max-width: 640px) {
-    display: none;
+  @media (min-width: 768px) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 4px;
   }
 }
 
-.breadcrumbItem {
+.breadcrumbLink {
   background: none;
   border: none;
   padding: 0;
-  color: #6e7a74;
-  font-size: 12px;
-  font-family: inherit;
+  font: inherit;
+  color: #6b7280;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -32,165 +33,158 @@
   transition: color 0.15s ease;
 
   &:hover {
-    color: #00654f;
+    color: #0a8066;
   }
 }
 
 .codeTag {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 10px;
-  background: #e4f1ea;
-  color: #131e1a;
-  padding: 1px 6px;
+  font-size: 11px;
+  background: #f3f4f6;
+  color: #374151;
+  padding: 1px 5px;
   border-radius: 4px;
+  border: 1px solid #e5e7eb;
 }
 
 .separator {
-  color: #bdc9c3;
-  user-select: none;
+  color: #d1d5db;
 }
 
-.breadcrumbActive {
+.current {
+  color: #111827;
   font-weight: 600;
-  color: #00654f;
 }
 
+/* 2. Title Row */
 .titleRow {
   display: flex;
-  flex-direction: column;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
+}
+
+.titleLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 
   @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
+    gap: 12px;
   }
 }
 
-.titleGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.backBtn {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: none !important;
+  background-color: transparent !important;
+  color: #111827;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  position: relative;
+  transition: all 0.15s ease;
+  margin-top: -2px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    color: #0a8066;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
-.titleWithBadges {
+.headingWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.titleLine {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.backButtonMobile {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  border: 1px solid #d9e5df;
-  background: #ffffff;
-  color: #131e1a;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background: #eaf7f0;
-    color: #00654f;
-  }
-
-  @media (min-width: 768px) {
-    display: none;
-  }
-}
-
-.title {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #131e1a;
+.heading {
   margin: 0;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
   letter-spacing: -0.015em;
+  line-height: 1.25;
 
   @media (min-width: 768px) {
-    font-size: 26px;
+    font-size: 24px;
   }
 }
 
 .codeBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: #deebe5;
-  color: #131e1a;
-  padding: 3px 8px;
-  border-radius: 6px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight: 700;
   font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  padding: 2px 7px;
+  border-radius: 6px;
 }
 
-.codeBadgeIcon {
-  color: #00654f;
-}
-
-.codeBadgeText {
-  letter-spacing: 0.02em;
-}
-
-.statusBadge {
+.statusDraftBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(236, 224, 218, 0.7);
-  color: #6b635e;
-  padding: 3px 10px;
+  padding: 3px 9px;
   border-radius: 9999px;
   font-size: 11px;
   font-weight: 600;
+  background-color: #fef3c7;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+  color: #92400e;
 }
 
 .pulseDot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 9999px;
-  background: #e9a23b;
-  animation: pulse 1.8s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(233, 162, 59, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 6px rgba(233, 162, 59, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(233, 162, 59, 0);
-  }
+  background-color: #f59e0b;
 }
 
 .ruleBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #94f5d5;
-  color: #00513f;
-  padding: 3px 10px;
+  padding: 3px 9px;
   border-radius: 9999px;
   font-size: 11px;
   font-weight: 600;
+  background-color: #e8f5f1;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  color: #0a8066;
 }
 
-.description {
-  font-size: 13px;
-  color: #3e4944;
+.subTitle {
   margin: 0;
-  line-height: 1.5;
-  max-width: 820px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.45;
 }
 
-.actionGroup {
+/* Nút Desktop */
+.headerActionsDesktop {
   display: none;
 
   @media (min-width: 768px) {
@@ -201,25 +195,24 @@
   }
 }
 
-.backButton {
+.backToDetailBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 40px;
-  padding: 0 16px;
-  background: #ffffff;
-  color: #131e1a;
-  border: 1px solid #d9e5df;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
   border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #374151;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 
   &:hover {
-    background: #eaf7f0;
-    color: #00654f;
-    border-color: #bdc9c3;
+    background-color: #f9fafb;
+    border-color: #d1d5db;
+    color: #111827;
   }
 }
-

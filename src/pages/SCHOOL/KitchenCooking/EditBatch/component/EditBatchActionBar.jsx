@@ -13,7 +13,7 @@ export default function EditBatchActionBar({
     <div className={styles.actionBarContainer}>
       {/* 1. Left Audit Trail */}
       <div className={styles.auditInfo}>
-        <History size={17} className={styles.historyIcon} />
+        <History size={16} className={styles.historyIcon} />
         <span className={styles.auditText}>
           Lần sửa đổi gần nhất: <strong>{lastEdited}</strong> bởi <strong>{lastEditor}</strong>
         </span>
@@ -27,7 +27,7 @@ export default function EditBatchActionBar({
           onClick={onCancel}
           disabled={isSubmitting}
         >
-          <X size={17} />
+          <X size={16} />
           <span>Hủy thay đổi</span>
         </button>
 
@@ -37,11 +37,10 @@ export default function EditBatchActionBar({
           onClick={onSave}
           disabled={isSubmitting}
         >
-          <Save size={17} />
+          <Save size={16} />
           <span>{isSubmitting ? "Đang lưu..." : "Cập nhật lô chế biến"}</span>
         </button>
       </div>
     </div>
   )
 }
-

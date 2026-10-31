@@ -1,118 +1,128 @@
-.sectionCard {
-  background: #ffffff;
+.ingredientsCard {
+  background-color: #ffffff;
   border-radius: 12px;
+  border: 1px solid #e5e7eb;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  border: 1px solid #d9e5df;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 
   @media (min-width: 768px) {
-    padding: 20px;
+    padding: 22px;
   }
 }
 
-.headerRow {
+.cardHeader {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: space-between;
-  gap: 12px;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-  }
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-wrap: wrap;
 }
 
 .headerLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .iconBox {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: #0a8066;
-  color: #ffffff;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #e8f5f1;
+  color: #0a8066;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(10, 128, 102, 0.2);
 }
 
-.sectionTitle {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 18px;
-  font-weight: 700;
-  color: #131e1a;
+.cardTitle {
   margin: 0;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
   letter-spacing: -0.01em;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+  }
 }
 
-.sectionSubtitle {
-  font-size: 13px;
-  color: #6e7a74;
-  margin: 2px 0 0;
-  line-height: 1.4;
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  font-size: 11.5px;
+  font-weight: 600;
 }
 
 .recipeBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 36px;
-  padding: 0 14px;
-  background: #eaf7f0;
-  color: #00654f;
-  border: 1px solid rgba(10, 128, 102, 0.2);
-  border-radius: 8px;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  background-color: #ffffff;
+  color: #0a8066;
+  border: 1px solid rgba(10, 128, 102, 0.3);
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
-  white-space: nowrap;
 
   &:hover {
-    background: #deebe5;
-    color: #004d3c;
+    background-color: #e8f5f1;
+    border-color: #0a8066;
   }
 }
 
-/* TABLE STYLING */
-.tableResponsive {
+/* 1. Desktop Table View */
+.desktopTableWrap {
   display: none;
   overflow-x: auto;
-  border-radius: 8px;
-  background: #eaf7f0;
-  border: 1px solid #d9e5df;
 
   @media (min-width: 768px) {
     display: block;
   }
 }
 
-.materialsTable {
+.table {
   width: 100%;
   border-collapse: collapse;
-  text-align: left;
   font-size: 13px;
+  text-align: left;
 
-  thead tr {
-    background: #e4f1ea;
-    color: #6e7a74;
+  thead tr th {
+    padding: 10px 12px;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    border-bottom: 1px solid #d9e5df;
-  }
+    color: #6b7280;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
 
-  th {
-    padding: 12px 14px;
+    &:first-child {
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+    }
+
+    &:last-child {
+      border-top-right-radius: 6px;
+      border-bottom-right-radius: 6px;
+      text-align: center;
+    }
   }
 }
 
@@ -121,164 +131,126 @@
 }
 
 .thCert {
-  min-width: 180px;
+  min-width: 190px;
 }
 
 .thExpiry {
-  min-width: 110px;
-  text-align: center;
+  min-width: 120px;
 }
 
 .thStock {
   min-width: 130px;
-  text-align: right;
 }
 
-.thQuantity {
-  min-width: 130px;
-  text-align: right;
+.thQty {
+  min-width: 120px;
 }
 
 .thAction {
-  min-width: 100px;
-  text-align: center;
+  min-width: 90px;
 }
 
-.groupHeaderRow td {
-  background: rgba(222, 235, 229, 0.6);
-  padding: 10px 14px;
-  border-top: 1px solid #d9e5df;
-  border-bottom: 1px solid #d9e5df;
+/* Group Row */
+.groupRow td {
+  padding: 10px 12px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.groupHeaderContent {
+.groupContent {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   flex-wrap: wrap;
-  gap: 8px;
 }
 
 .groupLeft {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .mainDot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 9999px;
-  background: #00654f;
+  background-color: #0a8066;
 }
 
 .subDot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 9999px;
-  background: #175b92;
+  background-color: #2563eb;
 }
 
 .groupTitle {
-  font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
+  color: #1f2937;
   text-transform: uppercase;
-  color: #131e1a;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
 }
 
 .groupQuota {
   font-size: 12px;
-  color: #6e7a74;
+  color: #6b7280;
 
   strong {
-    color: #131e1a;
+    color: #111827;
   }
 }
 
 .groupRight {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .chosenBadge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #ffffff;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 12px;
+  gap: 4px;
+  font-size: 11.5px;
   font-weight: 600;
-  color: #131e1a;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
+  color: #166534;
+  background-color: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 4px;
 
-.chosenIcon {
-  color: #00654f;
-}
-
-.chosenPercent {
-  color: #00654f;
-  font-weight: 700;
-  font-size: 11px;
+  strong {
+    color: #14532d;
+  }
 }
 
 .singleLotBadge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #ffffff;
-  color: #00654f;
   font-size: 11px;
   font-weight: 600;
-  padding: 3px 8px;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  color: #0a8066;
+  background-color: #ffffff;
+  border: 1px solid #d1fae5;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-.dataRow {
-  background: #ffffff;
-  border-bottom: 1px solid rgba(217, 229, 223, 0.6);
-  transition: background 0.15s ease;
+/* Data Row */
+.row {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
 
   &:hover {
-    background: #eaf7f0;
+    background-color: #f9fafb;
   }
 
   td {
-    padding: 12px 14px;
+    padding: 12px;
     vertical-align: middle;
   }
-}
-
-.itemInfo {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.indexBox {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background: rgba(148, 245, 213, 0.5);
-  color: #00654f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.indexSub {
-  background: #e4f1ea;
-  color: #6e7a74;
 }
 
 .itemMeta {
@@ -296,28 +268,29 @@
 
 .itemName {
   font-weight: 600;
-  color: #131e1a;
+  color: #111827;
 }
 
 .lotCode {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
-  background: #e4f1ea;
-  color: #3e4944;
-  padding: 1px 6px;
-  border-radius: 4px;
   font-weight: 600;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
 }
 
 .supplierText {
-  font-size: 12px;
-  color: #6e7a74;
+  font-size: 11.5px;
+  color: #6b7280;
 }
 
 .certMeta {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .certBadge {
@@ -326,100 +299,92 @@
   gap: 4px;
   font-size: 12px;
   font-weight: 600;
-  color: #00654f;
+  color: #0a8066;
 }
 
 .certSub {
   font-size: 11px;
-  color: #6e7a74;
-}
-
-.textCenter {
-  text-align: center;
-}
-
-.textRight {
-  text-align: right;
+  color: #6b7280;
 }
 
 .expiryDate {
   font-weight: 600;
-  color: #131e1a;
+  color: #111827;
   font-size: 13px;
 }
 
 .expiryRemaining {
   font-size: 11px;
-  color: #00654f;
-  font-weight: 600;
+  color: #0a8066;
+  font-weight: 500;
+  margin-left: 4px;
 }
 
-.stockQuantity {
+.stockNum {
   font-weight: 600;
-  color: #131e1a;
-  font-size: 14px;
+  color: #111827;
+  display: block;
 }
 
 .stockLocation {
   font-size: 11px;
-  color: #6e7a74;
+  color: #6b7280;
 }
 
-/* Số lượng chuẩn đơn trị (không ô input) */
-.lockedQuantityBox {
+.qtyBox {
   display: inline-flex;
   align-items: baseline;
-  gap: 4px;
-  justify-content: flex-end;
-  background: #eaf7f0;
-  padding: 4px 10px;
+  gap: 3px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 2px 8px;
   border-radius: 6px;
-  border: 1px solid rgba(10, 128, 102, 0.2);
 }
 
-.quantityNum {
+.numBold {
   font-family: 'Be Vietnam Pro', sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: #00654f;
+  color: #15803d;
 }
 
-.quantityUnit {
+.unitText {
   font-size: 12px;
   font-weight: 600;
-  color: #131e1a;
+  color: #166534;
 }
 
-.quantityFormulaHint {
+.formulaHint {
+  display: block;
   font-size: 10px;
-  color: #6e7a74;
+  color: #6b7280;
   margin-top: 2px;
 }
 
 .swapBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 32px;
+  justify-content: center;
+  gap: 4px;
+  height: 30px;
   padding: 0 10px;
   border-radius: 6px;
-  border: 1px solid #d9e5df;
-  background: #ffffff;
-  color: #3e4944;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #0a8066;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 
   &:hover {
-    background: #eaf7f0;
-    color: #00654f;
-    border-color: #00654f;
+    background-color: #e8f5f1;
+    border-color: #0a8066;
   }
 }
 
-/* MOBILE CARDS VIEW */
-.mobileCardsList {
+/* 2. Mobile Card List */
+.mobileCardList {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -435,15 +400,15 @@
   gap: 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #131e1a;
+  color: #111827;
   text-transform: uppercase;
   padding: 6px 0 2px;
 }
 
 .mobileCard {
-  background: #ffffff;
-  border: 1px solid #d9e5df;
-  border-radius: 10px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
   padding: 12px;
   display: flex;
   flex-direction: column;
@@ -460,17 +425,17 @@
 .mobileItemName {
   font-size: 14px;
   font-weight: 600;
-  color: #131e1a;
+  color: #111827;
   margin-bottom: 2px;
 }
 
-.mobileQtyBadge {
-  background: #eaf7f0;
-  color: #00654f;
-  padding: 3px 8px;
+.mobileQtyPill {
+  background-color: #f0fdf4;
+  color: #15803d;
+  padding: 2px 8px;
   border-radius: 6px;
-  font-size: 13px;
-  border: 1px solid rgba(10, 128, 102, 0.2);
+  font-size: 12px;
+  border: 1px solid #bbf7d0;
   white-space: nowrap;
 }
 
@@ -478,25 +443,21 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  font-size: 12px;
-  background: #eaf7f0;
+  font-size: 11.5px;
+  background-color: #f9fafb;
   padding: 8px;
   border-radius: 6px;
 }
 
 .mobileLabel {
-  color: #6e7a74;
-  font-size: 11px;
+  color: #6b7280;
+  font-size: 10.5px;
+  display: block;
 }
 
 .mobileVal {
-  color: #131e1a;
+  color: #111827;
   font-weight: 500;
-}
-
-.mobileCardFooter {
-  display: flex;
-  justify-content: flex-end;
 }
 
 .swapBtnMobile {
@@ -506,101 +467,90 @@
   gap: 6px;
   min-height: 44px;
   width: 100%;
-  border-radius: 8px;
-  border: 1px solid #d9e5df;
-  background: #ffffff;
-  color: #00654f;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #0a8066;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 
   &:active {
-    background: #eaf7f0;
+    background-color: #e8f5f1;
   }
 }
 
-/* POLICY NOTICES */
-.policyCardsGrid {
+/* 3. Notice Boxes (Vibe đồng bộ Màn 5) */
+.noticeGrid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 12px;
-  padding-top: 4px;
+  margin-top: 18px;
 
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
-.policyNoticeCard {
-  border-radius: 10px;
+.noticeBoxBlue {
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
   padding: 12px 14px;
   display: flex;
   gap: 10px;
-  background: rgba(234, 247, 240, 0.7);
-  border: 1px solid #d9e5df;
 }
 
-.noticeIconBoxBlue {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #3974ad;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.noticeIconBlue {
+  color: #2563eb;
   flex-shrink: 0;
-}
-
-.noticeIconBoxGreen {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: #0a8066;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.noticeContent {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  min-width: 0;
+  margin-top: 1px;
 }
 
 .noticeTitleBlue {
-  font-size: 13px;
+  margin: 0 0 3px;
+  font-size: 12.5px;
   font-weight: 700;
-  color: #175b92;
-  margin: 0;
+  color: #1e40af;
+}
+
+.noticeBoxGreen {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.noticeIconGreen {
+  color: #16a34a;
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .noticeTitleGreen {
-  font-size: 13px;
+  margin: 0 0 3px;
+  font-size: 12.5px;
   font-weight: 700;
-  color: #00654f;
-  margin: 0;
+  color: #166534;
 }
 
-.noticeText {
-  font-size: 12px;
-  color: #3e4944;
+.noticeDesc {
   margin: 0;
-  line-height: 1.5;
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.45;
 
   strong {
-    color: #131e1a;
+    color: #111827;
   }
 }
 
 .inlineCode {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
-  background: #e4f1ea;
+  background-color: #e5e7eb;
   padding: 1px 4px;
   border-radius: 3px;
 }
-
