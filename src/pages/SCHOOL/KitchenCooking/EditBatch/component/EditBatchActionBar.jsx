@@ -7,7 +7,8 @@ export default function EditBatchActionBar({
   lastEditor = "Bếp trưởng Nguyễn Văn Vận",
   onCancel,
   onSave,
-  isSubmitting = false
+  isSubmitting = false,
+  isSaveDisabled = false
 }) {
   return (
     <div className={styles.actionBarContainer}>
@@ -35,7 +36,12 @@ export default function EditBatchActionBar({
           type="button"
           className={styles.saveBtn}
           onClick={onSave}
-          disabled={isSubmitting}
+          disabled={isSubmitting || isSaveDisabled}
+          title={
+            isSaveDisabled
+              ? "Vui lòng cân đối đủ định mức 10.0 kg và không vượt tồn kho"
+              : "Lưu thay đổi phương án"
+          }
         >
           <Save size={16} />
           <span>{isSubmitting ? "Đang lưu..." : "Cập nhật lô chế biến"}</span>

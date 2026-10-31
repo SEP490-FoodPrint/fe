@@ -1,11 +1,16 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, GitFork } from "lucide-react"
+import { ArrowLeft, GitFork, Combine } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./EditBatchHeader.module.scss"
 
-export default function EditBatchHeader({ batchCode = "CB-20261023-01A" }) {
+export default function EditBatchHeader({
+  batchCode = "CB-20261023-01",
+  rule = "COMBINE_LOTS",
+  onToggleRule
+}) {
   const navigate = useNavigate()
+  const isCombineLots = rule === "COMBINE_LOTS"
 
   const handleBackToDetail = () => {
     navigate(`/school/kitchen-cooking/batches/${batchCode}`)
@@ -40,10 +45,12 @@ export default function EditBatchHeader({ batchCode = "CB-20261023-01A" }) {
           <span className={styles.codeTag}>{batchCode}</span>
         </button>
         <span className={styles.separator}>/</span>
-        <span className={styles.current}>Chỉnh sửa phương án</span>
+        <span className={styles.current}>
+          {isCombineLots ? "Chỉnh sửa lô nấu chung" : "Chỉnh sửa lô riêng"}
+        </span>
       </nav>
 
-      {/* 2. Main Title Row: Chỉ 1 nút Back duy nhất chuẩn mực bên cạnh tiêu đề */}
+      {/* 2. Main Title Row: Tinh gọn, không nhồi nhét badges */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -58,22 +65,46 @@ export default function EditBatchHeader({ batchCode = "CB-20261023-01A" }) {
 
           <div className={styles.headingWrap}>
             <div className={styles.titleLine}>
-              <h1 className={styles.heading}>Chỉnh sửa lô chế biến</h1>
+              <h1 className={styles.heading}>
+                {isCombineLots ? "Chỉnh sửa lô nấu chung" : "Chỉnh sửa lô riêng"}
+              </h1>
               <span className={styles.codeBadge}>{batchCode}</span>
               <span className={styles.statusDraftBadge}>
                 <span className={styles.pulseDot} />
                 Chưa xác nhận
               </span>
-              <span className={styles.ruleBadge}>
-                <GitFork size={13} />
-                Quy tắc: Nấu riêng 1:1
-              </span>
             </div>
             <p className={styles.subTitle}>
-              Rà soát phương án phân bổ nguyên liệu và thay thế nguồn lô hợp chuẩn theo quy tắc Nấu riêng trước khi phê duyệt.
+              {isCombineLots
+                ? "Rà soát và điều chỉnh tỷ lệ phối trộn nguyên liệu mẻ nấu chung trước khi phê duyệt."
+                : "Rà soát nguyên liệu và thay thế nguồn lô hợp chuẩn cho mẻ nấu riêng trước khi phê duyệt."}
             </p>
           </div>
         </div>
+
+        {/* Chuyển đổi nhanh chế độ kiểm tra phương án */}
+        {onToggleRule && (
+          <div className={styles.ruleSwitchWrap}>
+            <button
+              type="button"
+              className={`${styles.switchBtn} ${isCombineLots ? styles.switchBtnActive : ""}`}
+              onClick={() => onToggleRule("COMBINE_LOTS")}
+              title="Chế độ Nấu chung đa lô"
+            >
+              <Combine size={13} />
+              <span>Nấu chung</span>
+            </button>
+            <button
+              type="button"
+              className={`${styles.switchBtn} ${!isCombineLots ? styles.switchBtnActive : ""}`}
+              onClick={() => onToggleRule("SEPARATE_BY_LOT")}
+              title="Chế độ Nấu riêng 1:1"
+            >
+              <GitFork size={13} />
+              <span>Nấu riêng</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )
