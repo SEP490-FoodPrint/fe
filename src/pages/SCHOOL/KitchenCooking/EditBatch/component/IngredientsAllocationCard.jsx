@@ -460,24 +460,15 @@ export default function IngredientsAllocationCard({
         ))}
       </div>
 
-      {/* 4. Dải ghi chú nghiệp vụ siêu gọn gàng (Thay thế hoàn toàn 2 Card to đùng gây rối) */}
-      <div className={styles.subtleTipBar}>
-        {isCombineLots ? (
-          <>
-            <Combine size={14} className={styles.tipIcon} />
-            <span>
-              Mẻ nấu chung phối trộn giữa các lô để đủ định lượng <strong>{totalMainNeeded.toFixed(1)} kg</strong>. Hệ thống bảo toàn mã QR định danh đa nguồn gốc khi phụ huynh tra cứu.
-            </span>
-          </>
-        ) : (
-          <>
-            <ShieldCheck size={14} className={styles.tipIcon} />
-            <span>
-              Mẻ nấu riêng xuất từ 01 lô nguồn gốc duy nhất nhằm đảm bảo tính toàn vẹn tem nhãn QR 1:1 cho từng suất ăn.
-            </span>
-          </>
-        )}
-      </div>
+      {/* 4. Dải ghi chú nghiệp vụ mẻ phối trộn */}
+      {isCombineLots && (
+        <div className={styles.subtleTipBar}>
+          <Combine size={14} className={styles.tipIcon} />
+          <span>
+            Mẻ nấu chung phối trộn giữa các lô để đủ định lượng <strong>{totalMainNeeded.toFixed(1)} kg</strong>. Hệ thống bảo toàn mã QR định danh đa nguồn gốc khi phụ huynh tra cứu.
+          </span>
+        </div>
+      )}
     </section>
   )
 }
