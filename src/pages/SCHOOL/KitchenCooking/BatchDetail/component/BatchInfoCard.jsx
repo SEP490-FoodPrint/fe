@@ -7,111 +7,117 @@ import {
   Utensils,
   Layers,
   User,
-  Info
+  Hash,
+  Sparkles
 } from "lucide-react"
 import styles from "./BatchInfoCard.module.scss"
 
-export default function BatchInfoCard({ batchData }) {
+export default function BatchInfoCard({ batchData = {} }) {
+  const portions = (batchData.portions || 1250).toLocaleString("vi-VN")
+  const methodLabel =
+    batchData.method === "SEPARATE" ? "Nấu riêng 1:1 theo lô" : "Nấu chung đa lô"
+
   return (
     <section className={styles.infoCard}>
-      {/* Header Thẻ */}
+      {/* 1. Header Card */}
       <div className={styles.cardHeader}>
         <div className={styles.headerLeft}>
           <div className={styles.iconBox}>
             <CookingPot size={18} />
           </div>
-          <h2 className={styles.cardTitle}>Thông tin lô chế biến</h2>
+          <div>
+            <h2 className={styles.cardTitle}>Thông tin lô chế biến</h2>
+            <span className={styles.cardSub}>Hồ sơ mẻ nấu và thông số định lượng bán trú</span>
+          </div>
         </div>
         <div className={styles.safetyBadge}>
           <ShieldCheck size={14} />
-          <span>Bếp chuẩn an toàn 3 bước</span>
+          <span>Kiểm thực 3 bước ATTP</span>
         </div>
       </div>
 
-      {/* Grid thông tin chi tiết */}
-      <div className={styles.infoGrid}>
-        {/* 1. Mã lô */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Mã lô chế biến</span>
-          <span className={styles.fieldValueMono}>{batchData.code}</span>
-        </div>
-
-        {/* 2. Món ăn */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Món ăn</span>
-          <div className={styles.dishValueWrap}>
-            <span className={styles.dishName}>{batchData.dishName}</span>
-            <span className={styles.dishCategoryPill}>{batchData.dishCategory}</span>
-          </div>
-        </div>
-
-        {/* 3. Ngày thực đơn */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Ngày thực đơn</span>
-          <div className={styles.valueWithIcon}>
-            <Calendar size={15} className={styles.itemIcon} />
-            <span className={styles.fieldValueBold}>{batchData.menuDate}</span>
-            <span className={styles.subText}>(Tuần 45 - Học kỳ I)</span>
-          </div>
-        </div>
-
-        {/* 4. Bữa ăn & Giờ phục vụ */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Bữa ăn &amp; Giờ phục vụ</span>
-          <div className={styles.mealTimeWrap}>
-            <span className={styles.mealPill}>
-              <Utensils size={13} />
-              {batchData.mealType}
+      {/* 2. Hero Món ăn & Nhận diện mẻ (Khối nổi bật chính) */}
+      <div className={styles.heroDishBox}>
+        <div className={styles.heroLeft}>
+          <div className={styles.heroMetaRow}>
+            <span className={styles.heroCategoryBadge}>
+              {batchData.dishCategory || "Món mặn chính"}
             </span>
-            <span className={styles.servingTime}>
-              Giờ phục vụ: <strong>{batchData.servingTime}</strong>
-            </span>
-          </div>
-        </div>
-
-        {/* 5. Số suất */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Số suất</span>
-          <div className={styles.portionWrap}>
-            <span className={styles.portionNumber}>{(batchData.portions || 1250).toLocaleString("vi-VN")}</span>
-            <span className={styles.portionUnit}>suất (Khớp sĩ số báo ăn bán trú)</span>
-          </div>
-        </div>
-
-        {/* 6. Phương thức chế biến */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Phương thức chế biến</span>
-          <div className={styles.methodWrap}>
-            <span className={styles.fieldValueBold}>
-              {batchData.method === "SEPARATE" ? "Nấu riêng theo lô nguyên liệu" : "Nấu chung đa lô"}
-            </span>
-            <div
-              className={styles.methodTooltipBox}
-              title="Cấu hình nhà trường: Áp dụng tỷ lệ nguyên liệu xuất kho theo từng lô độc lập để tối ưu khả năng truy xuất nguồn gốc."
-            >
-              <Layers size={12} />
-              <span>Cấu hình nhà trường</span>
+            <div className={styles.batchCodePill} title="Mã lô chế biến">
+              <Hash size={12} className={styles.hashIcon} />
+              <span className={styles.batchCodeText}>{batchData.code || "CB-20241110-001"}</span>
             </div>
           </div>
+          <h3 className={styles.dishNameTitle}>{batchData.dishName || "Thịt heo kho cút nước dừa"}</h3>
         </div>
 
-        {/* 7. Người tạo lô */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Người tạo lô</span>
-          <div className={styles.userWrap}>
-            <div className={styles.userAvatar}>VV</div>
-            <span className={styles.userName}>{batchData.createdBy}</span>
-            <span className={styles.subText}>(Bếp trưởng cơ sở / USR-092)</span>
+        <div className={styles.heroPortionBox}>
+          <span className={styles.portionLabel}>Quy mô chế biến</span>
+          <div className={styles.portionValueRow}>
+            <span className={styles.portionBigNumber}>{portions}</span>
+            <span className={styles.portionUnit}>suất ăn</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Lưới thông số vận hành (Clean 4 Columns) */}
+      <div className={styles.metricsGrid}>
+        {/* Metric 1: Bữa ăn & Giờ phục vụ */}
+        <div className={styles.metricItem}>
+          <div className={styles.metricLabelRow}>
+            <Utensils size={13} className={styles.metricIcon} />
+            <span className={styles.metricLabel}>Bữa ăn</span>
+          </div>
+          <div className={styles.metricValue}>
+            <strong>{batchData.mealType || "Bữa trưa"}</strong>
+            <span className={styles.metricSeparator}>•</span>
+            <span className={styles.metricSubTime}>{batchData.servingTime || "11:15"}</span>
           </div>
         </div>
 
-        {/* 8. Thời điểm tạo */}
-        <div className={styles.infoItem}>
-          <span className={styles.fieldLabel}>Thời điểm tạo</span>
-          <div className={styles.valueWithIcon}>
-            <Clock size={15} className={styles.itemIcon} />
-            <span className={styles.fieldValueBold}>{batchData.createdAt}</span>
+        {/* Metric 2: Ngày thực đơn */}
+        <div className={styles.metricItem}>
+          <div className={styles.metricLabelRow}>
+            <Calendar size={13} className={styles.metricIcon} />
+            <span className={styles.metricLabel}>Ngày thực đơn</span>
           </div>
+          <div className={styles.metricValue}>
+            <strong>{batchData.menuDate || "10/11/2024"}</strong>
+          </div>
+        </div>
+
+        {/* Metric 3: Phương thức chế biến */}
+        <div className={styles.metricItem}>
+          <div className={styles.metricLabelRow}>
+            <Layers size={13} className={styles.metricIcon} />
+            <span className={styles.metricLabel}>Quy cách nấu</span>
+          </div>
+          <div className={styles.metricValue}>
+            <span className={styles.methodTag}>{methodLabel}</span>
+          </div>
+        </div>
+
+        {/* Metric 4: Người tạo lô */}
+        <div className={styles.metricItem}>
+          <div className={styles.metricLabelRow}>
+            <User size={13} className={styles.metricIcon} />
+            <span className={styles.metricLabel}>Người tạo lô</span>
+          </div>
+          <div className={styles.metricValue}>
+            <strong>{batchData.createdBy || "Nguyễn Văn Vận"}</strong>
+            <span className={styles.roleTag}>Bếp trưởng</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Footer Dấu vết thời gian tinh tế */}
+      <div className={styles.cardFooterBar}>
+        <div className={styles.timestampWrap}>
+          <Clock size={12} className={styles.clockIcon} />
+          <span>Thời điểm khởi tạo lô: <strong>{batchData.createdAt || "10/11/2024 07:15"}</strong></span>
+        </div>
+        <div className={styles.originHint}>
+          Khớp sĩ số báo ăn học sinh từ GVCN
         </div>
       </div>
     </section>

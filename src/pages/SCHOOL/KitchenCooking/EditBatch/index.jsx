@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom"
 import EditBatchHeader from "./component/EditBatchHeader"
 import BatchPolicyAndInfoCard from "./component/BatchPolicyAndInfoCard"
 import IngredientsAllocationCard from "./component/IngredientsAllocationCard"
-import BatchValidationAuditCard from "./component/BatchValidationAuditCard"
 import EditBatchActionBar from "./component/EditBatchActionBar"
 import SwapLotModal from "./component/SwapLotModal"
 import AddLotModal from "./component/AddLotModal"
@@ -378,7 +377,6 @@ export default function EditBatch() {
 
   const currentMainLots = isCombineLots ? combineMainLots : [separateMain]
   const currentSub = isCombineLots ? combineSubIngredients : separateSub
-  const totalLotsCount = currentMainLots.length + currentSub.length
 
   // Validation tính toán cho Nấu chung
   const totalMainAllocated = combineMainLots.reduce(
@@ -423,17 +421,7 @@ export default function EditBatch() {
           onQuantityChange={handleQuantityChange}
         />
 
-        {/* KHU VỰC 3: KIỂM TRA PHƯƠNG ÁN & ĐỐI SOÁT DỮ LIỆU KHO */}
-        <BatchValidationAuditCard
-          totalLots={totalLotsCount}
-          isCombineLots={isCombineLots}
-          isValid={isValid}
-          totalAllocated={totalMainAllocated}
-          hasStockOverflow={hasStockOverflow}
-          diffAmount={diffAmount}
-        />
-
-        {/* KHU VỰC 4: THANH TÁC VỤ CỐ ĐỊNH CHÂN TRANG */}
+        {/* KHU VỰC 3: THANH TÁC VỤ CỐ ĐỊNH CHÂN TRANG */}
         <EditBatchActionBar
           lastEdited="Hôm nay 06:40"
           lastEditor="Bếp trưởng Nguyễn Văn Vận"

@@ -5,58 +5,7 @@
   width: 100%;
 }
 
-/* 1. Breadcrumb chỉ hiện trên Desktop (>= 768px) */
-.breadcrumbDesktop {
-  display: none;
-
-  @media (min-width: 768px) {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #6b7280;
-    margin-bottom: 2px;
-  }
-}
-
-.breadcrumbLink {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: #6b7280;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: #0a8066;
-  }
-}
-
-.codeTag {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  background: #f3f4f6;
-  color: #374151;
-  padding: 1px 5px;
-  border-radius: 4px;
-  border: 1px solid #e5e7eb;
-}
-
-.separator {
-  color: #d1d5db;
-}
-
-.current {
-  color: #111827;
-  font-weight: 600;
-}
-
-/* 2. Title Row */
+/* Title Row */
 .titleRow {
   display: flex;
   align-items: flex-start;

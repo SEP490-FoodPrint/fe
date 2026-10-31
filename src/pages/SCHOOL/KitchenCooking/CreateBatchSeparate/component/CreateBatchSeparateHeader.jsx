@@ -9,27 +9,6 @@ export default function CreateBatchSeparateHeader() {
 
   return (
     <div className={styles.headerBar}>
-      {/* Breadcrumb (Hiện trên Desktop >= 768px) */}
-      <div className={styles.breadcrumbDesktop}>
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_COOKING)}
-        >
-          Vận hành bếp
-        </button>
-        <span className={styles.separator}>/</span>
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-        >
-          Lô chế biến
-        </button>
-        <span className={styles.separator}>/</span>
-        <span className={styles.current}>Tạo mới (Nấu riêng)</span>
-      </div>
-
       {/* Title Row: Nút quay lại icon không viền + Tiêu đề + Chip Chế độ trên cùng 1 hàng */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>

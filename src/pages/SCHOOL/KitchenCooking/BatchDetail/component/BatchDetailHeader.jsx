@@ -1,6 +1,6 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, ArrowUpRight } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./BatchDetailHeader.module.scss"
 
@@ -36,28 +36,7 @@ export default function BatchDetailHeader({ batchData }) {
 
   return (
     <div className={styles.headerBar}>
-      {/* 1. Breadcrumb Hierarchy (Hiện trên Desktop >= 768px) */}
-      <nav className={styles.breadcrumbDesktop} aria-label="Breadcrumb">
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_COOKING)}
-        >
-          Vận hành bếp
-        </button>
-        <span className={styles.separator}>/</span>
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-        >
-          Lô chế biến
-        </button>
-        <span className={styles.separator}>/</span>
-        <span className={styles.current}>{batchData.code}</span>
-      </nav>
-
-      {/* 2. Title Row: Nút quay lại + Tiêu đề + Mã lô + Badge trạng thái + Nút Desktop */}
+      {/* Title Row: Nút quay lại + Tiêu đề + Badge trạng thái + Nút Desktop */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -73,7 +52,6 @@ export default function BatchDetailHeader({ batchData }) {
           <div className={styles.headingWrap}>
             <div className={styles.titleLine}>
               <h1 className={styles.heading}>Chi tiết lô chế biến</h1>
-              <span className={styles.codeBadge}>{batchData.code}</span>
               {getStatusBadge()}
             </div>
             <p className={styles.subTitle}>
@@ -97,4 +75,3 @@ export default function BatchDetailHeader({ batchData }) {
     </div>
   )
 }
-

@@ -8,17 +8,20 @@ import {
   Shield,
   CookingPot,
   MoreVertical,
-  Check,
-  AlertTriangle
+  FlaskConical,
+  Printer
 } from "lucide-react"
+import ROUTER from "src/router/ROUTER"
 import styles from "./BatchActionsCard.module.scss"
 
 export default function BatchActionsCard({
   status = "DRAFT",
   batchCode = "CB-20261023-01A",
+  dishName = "Thịt heo kho cút nước dừa",
   onOpenConfirmModal,
   onOpenDeleteModal,
-  onOpenCompleteModal
+  onOpenCompleteModal,
+  onOpenPrintModal
 }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -26,6 +29,22 @@ export default function BatchActionsCard({
   const isDraft = status === "DRAFT"
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
+
+  const handleGoToSample = () => {
+    navigate(
+      `${ROUTER.SCHOOL_KITCHEN_SAMPLES}?batchCode=${batchCode}&dishName=${encodeURIComponent(
+        dishName || ""
+      )}`
+    )
+  }
+
+  const handlePrint = () => {
+    if (onOpenPrintModal) {
+      onOpenPrintModal()
+    } else {
+      window.print()
+    }
+  }
 
   return (
     <>
@@ -37,7 +56,7 @@ export default function BatchActionsCard({
         </div>
 
         <div className={styles.btnStack}>
-          {/* Nút 1: Xác nhận phương án / Ghi nhận hoàn thành */}
+          {/* Nút 1: Xác nhận phương án (chỉ khi Draft) */}
           {isDraft && (
             <button
               type="button"
@@ -49,6 +68,7 @@ export default function BatchActionsCard({
             </button>
           )}
 
+          {/* Nút 2: Ghi nhận hoàn thành chế biến (khi đã xác nhận) */}
           {isConfirmed && (
             <button
               type="button"
@@ -56,51 +76,66 @@ export default function BatchActionsCard({
               onClick={onOpenCompleteModal}
             >
               <CookingPot size={17} />
-              <span>Ghi nhận nấu xong &amp; Lưu mẫu</span>
+              <span>Ghi nhận hoàn thành chế biến</span>
             </button>
           )}
 
+          {/* Nút 3: Tiếp tục hiển thị ghi nhận mẫu lưu & In phiếu (khi đã hoàn thành chế biến) */}
           {isCompleted && (
-            <button
-              type="button"
-              className={styles.btnDisabled}
-              disabled
-            >
-              <Check size={17} />
-              <span>Đã hoàn tất quy trình</span>
-            </button>
+            <div className={styles.sampleActionBlock}>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={handleGoToSample}
+              >
+                <FlaskConical size={18} />
+                <span>Ghi nhận mẫu lưu</span>
+              </button>
+
+              <button
+                type="button"
+                className={styles.btnPrintSecondary}
+                onClick={handlePrint}
+              >
+                <Printer size={16} />
+                <span>In sổ kiểm thực 3 bước</span>
+              </button>
+            </div>
           )}
 
-          {/* Nút 2: Chỉnh sửa lô chế biến */}
-          <button
-            type="button"
-            className={`${styles.btnSecondary} ${!isDraft ? styles.btnDisabled : ""}`}
-            disabled={!isDraft}
-            onClick={() => isDraft && navigate(`/school/kitchen-cooking/batches/${batchCode}/edit`)}
-            title={!isDraft ? "Không thể chỉnh sửa sau khi đã duyệt phương án" : "Chỉnh sửa phương án"}
-          >
-            <Edit3 size={16} />
-            <span>Chỉnh sửa lô chế biến</span>
-          </button>
+          {/* Các nút chỉnh sửa / xóa (chỉ khi Draft) */}
+          {isDraft && (
+            <>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() => navigate(`/school/kitchen-cooking/batches/${batchCode}/edit`)}
+                title="Chỉnh sửa phương án"
+              >
+                <Edit3 size={16} />
+                <span>Chỉnh sửa lô chế biến</span>
+              </button>
 
-          {/* Nút 3: Xóa lô chế biến */}
-          <button
-            type="button"
-            className={`${styles.btnDanger} ${!isDraft ? styles.btnDisabled : ""}`}
-            disabled={!isDraft}
-            onClick={() => isDraft && onOpenDeleteModal()}
-            title={!isDraft ? "Không thể xóa sau khi đã duyệt phương án" : "Xóa lô chế biến"}
-          >
-            <Trash2 size={16} />
-            <span>Xóa lô chế biến</span>
-          </button>
+              <button
+                type="button"
+                className={styles.btnDanger}
+                onClick={() => onOpenDeleteModal()}
+                title="Xóa lô chế biến"
+              >
+                <Trash2 size={16} />
+                <span>Xóa lô chế biến</span>
+              </button>
+            </>
+          )}
         </div>
 
         {/* Chú thích an toàn FoodPrint */}
         <div className={styles.securityNote}>
           <Shield size={16} className={styles.shieldIcon} />
           <p className={styles.securityText}>
-            Lô chế biến chỉ có thể chỉnh sửa hoặc xóa khi chưa được xác nhận phương án. Khi đã xác nhận, dữ liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc.
+            {isCompleted
+              ? "Lô chế biến đã hoàn tất ra khay. Bếp và cán bộ y tế tiến hành kiểm thực 3 bước theo đúng QĐ 1246/QĐ-BYT để hoàn tất hồ sơ pháp lý."
+              : "Lô chế biến chỉ có thể chỉnh sửa hoặc xóa khi chưa được xác nhận phương án. Khi đã xác nhận, dữ liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc."}
           </p>
         </div>
       </section>
@@ -166,14 +201,29 @@ export default function BatchActionsCard({
               onClick={onOpenCompleteModal}
             >
               <CookingPot size={18} />
-              <span>Ghi nhận nấu xong &amp; Lưu mẫu</span>
+              <span>Ghi nhận hoàn thành chế biến</span>
             </button>
           )}
 
           {isCompleted && (
-            <div className={styles.mobileCompletedBar}>
-              <CheckCircle2 size={18} className={styles.doneIcon} />
-              <span>Lô chế biến đã hoàn tất</span>
+            <div className={styles.mobileCompletedActionWrap}>
+              <button
+                type="button"
+                className={styles.mobilePrimaryBtn}
+                onClick={handleGoToSample}
+              >
+                <FlaskConical size={18} />
+                <span>Ghi nhận mẫu lưu</span>
+              </button>
+              <button
+                type="button"
+                className={styles.mobilePrintIconBtn}
+                onClick={handlePrint}
+                title="In phiếu kiểm thực & Lô mẻ"
+                aria-label="In phiếu kiểm thực"
+              >
+                <Printer size={18} />
+              </button>
             </div>
           )}
         </div>
@@ -181,4 +231,3 @@ export default function BatchActionsCard({
     </>
   )
 }
-
