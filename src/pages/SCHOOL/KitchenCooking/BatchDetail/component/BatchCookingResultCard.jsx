@@ -1,5 +1,5 @@
 import React from "react"
-import { ClipboardCheck, Hourglass, CheckCircle2, AlertCircle, Timer } from "lucide-react"
+import { ClipboardCheck, Hourglass, CheckCircle2, Timer } from "lucide-react"
 import styles from "./BatchCookingResultCard.module.scss"
 
 export default function BatchCookingResultCard({ batchData }) {
@@ -26,9 +26,9 @@ export default function BatchCookingResultCard({ batchData }) {
             <Hourglass size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3 className={styles.bannerTitle}>Chưa tiến hành chế biến</h3>
+            <h3 className={styles.bannerTitle}>Phương án tự động — Chờ bếp xác nhận</h3>
             <p className={styles.bannerDesc}>
-              Lô chế biến đang ở bước lập phương án. Số suất thực tế và thời điểm hoàn thành sẽ được ghi nhận sau khi lô được phê duyệt và nấu xong tại bếp.
+              Hệ thống đã tự động tính toán số suất và lượng nguyên liệu cần dùng từ thực đơn đã duyệt và sĩ số báo ăn của GVCN. Nhân viên bếp chỉ cần xem xét và bấm "Xác nhận phương án".
             </p>
           </div>
         </div>
@@ -40,9 +40,9 @@ export default function BatchCookingResultCard({ batchData }) {
             <Timer size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3 className={styles.bannerTitle}>Đã duyệt phương án - Sẵn sàng nấu</h3>
+            <h3 className={styles.bannerTitle}>Đã xác nhận phương án — Đang chế biến</h3>
             <p className={styles.bannerDesc}>
-              Định lượng và lô nguyên liệu đã được khóa. Nhân viên bếp thực hiện nấu và tiến hành cân đo ra khay để cập nhật số suất thực tế.
+              Bếp đang tiến hành chế biến theo đúng định mức công thức đã phê duyệt. Sau khi hoàn tất ra khay và lưu mẫu, bấm "Ghi nhận nấu xong &amp; Lưu mẫu".
             </p>
           </div>
         </div>
@@ -54,57 +54,58 @@ export default function BatchCookingResultCard({ batchData }) {
             <CheckCircle2 size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến</h3>
+            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến &amp; Lưu mẫu</h3>
             <p className={styles.bannerDesc}>
-              Món ăn đã ra khay đủ số lượng, nhiệt độ tâm món đạt chuẩn an toàn thực phẩm và đã lưu mẫu kiểm thực 24h.
+              Món ăn đã ra khay đúng định mức số suất theo sĩ số chốt và đã lưu mẫu kiểm thực 24h theo đúng quy chuẩn an toàn thực phẩm.
             </p>
           </div>
         </div>
       )}
 
-      {/* Đối chiếu chỉ số số suất (Grid 2x2 Mobile / 4 Cols Desktop) */}
+      {/* Chỉ số vận hành (Grid 2x2 Mobile / 4 Cols Desktop - Mỗi chỉ số 1 giá trị duy nhất) */}
       <div className={styles.kpiGrid}>
-        {/* KPI 1 */}
+        {/* KPI 1: Số suất chế biến */}
         <div className={styles.kpiBox}>
-          <span className={styles.kpiLabel}>Số suất dự kiến</span>
-          <span className={styles.kpiValueBold}>{batchData.plannedPortions.toLocaleString("vi-VN")}</span>
-          <span className={styles.kpiSub}>suất định lượng</span>
+          <span className={styles.kpiLabel}>Số suất chế biến</span>
+          <span className={`${styles.kpiValueBold} ${styles.primaryVal}`}>
+            {(batchData.portions || 1250).toLocaleString("vi-VN")}
+          </span>
+          <span className={styles.kpiSub}>suất (Khớp sĩ số GVCN)</span>
         </div>
 
-        {/* KPI 2 */}
+        {/* KPI 2: Chế độ chế biến */}
         <div className={styles.kpiBox}>
-          <span className={styles.kpiLabel}>Số suất thực tế</span>
-          <span className={`${styles.kpiValueBold} ${!batchData.actualPortions ? styles.mutedVal : styles.primaryVal}`}>
-            {batchData.actualPortions ? batchData.actualPortions.toLocaleString("vi-VN") : "—"}
+          <span className={styles.kpiLabel}>Chế độ chế biến</span>
+          <span className={styles.kpiValueBold}>
+            {batchData.method === "SEPARATE" ? "Nấu riêng 1:1" : "Nấu chung"}
           </span>
-          <span className={styles.kpiSub}>
-            {batchData.actualPortions ? "suất thành phẩm" : "Chưa ghi nhận"}
-          </span>
+          <span className={styles.kpiSub}>Cấu hình BGH</span>
         </div>
 
-        {/* KPI 3 */}
+        {/* KPI 3: Trạng thái quy trình */}
         <div className={styles.kpiBox}>
-          <span className={styles.kpiLabel}>Chênh lệch</span>
-          <span className={`${styles.kpiValueBold} ${!batchData.variance ? styles.mutedVal : ""}`}>
-            {batchData.variance || "—"}
+          <span className={styles.kpiLabel}>Trạng thái quy trình</span>
+          <span
+            className={`${styles.kpiValueBold} ${
+              isCompleted ? styles.successVal : isConfirmed ? styles.warningVal : styles.draftVal
+            }`}
+          >
+            {isCompleted ? "Đã nấu xong" : isConfirmed ? "Đang chế biến" : "Chờ xác nhận"}
           </span>
-          <span className={styles.kpiSub}>
-            {batchData.variance ? "Hao hụt sơ chế" : "Chờ đối soát"}
-          </span>
+          <span className={styles.kpiSub}>Kiểm thực bếp</span>
         </div>
 
-        {/* KPI 4 */}
+        {/* KPI 4: Thời điểm hoàn thành */}
         <div className={styles.kpiBox}>
           <span className={styles.kpiLabel}>Thời điểm hoàn thành</span>
           <span className={`${styles.kpiTimeText} ${!batchData.completedAt ? styles.mutedVal : ""}`}>
             {batchData.completedAt || "—"}
           </span>
           <span className={styles.kpiSub}>
-            {batchData.completedAt ? "Hoàn tất ra khay" : "Chưa ghi nhận"}
+            {batchData.completedAt ? "Đã lưu mẫu 24h" : "Chưa hoàn tất"}
           </span>
         </div>
       </div>
     </section>
   )
 }
-

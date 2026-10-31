@@ -21,9 +21,7 @@ const INITIAL_BATCH_DATA = {
   menuDate: "10/11/2024",
   mealType: "Bữa trưa",
   servingTime: "11:15",
-  plannedPortions: 1250,
-  actualPortions: null,
-  variance: null,
+  portions: 1250,
   method: "SEPARATE", // SEPARATE | COMMON
   createdBy: "Nguyễn Văn Vận",
   createdAt: "10/11/2024 07:15",
@@ -35,8 +33,7 @@ const INITIAL_INGREDIENTS = [
     id: 1,
     name: "Thịt ba chỉ heo tươi",
     lotCode: "LOT-HEO-892",
-    plannedQty: "50.0",
-    actualQty: null,
+    quantity: "50.0",
     unit: "kg",
     expiryDate: "12/11/2024",
     expiryNote: "Còn 2 ngày",
@@ -46,8 +43,7 @@ const INITIAL_INGREDIENTS = [
     id: 2,
     name: "Trứng cút tươi sạch",
     lotCode: "LOT-CUT-224",
-    plannedQty: "1.462",
-    actualQty: null,
+    quantity: "1.462",
     unit: "quả",
     expiryDate: "25/11/2024",
     expiryNote: "Còn 15 ngày",
@@ -57,8 +53,7 @@ const INITIAL_INGREDIENTS = [
     id: 3,
     name: "Nước dừa xiêm nguyên chất",
     lotCode: "LOT-DUA-018",
-    plannedQty: "46.8",
-    actualQty: null,
+    quantity: "46.8",
     unit: "lít",
     expiryDate: "12/11/2024",
     expiryNote: "Bảo quản lạnh",
@@ -68,8 +63,7 @@ const INITIAL_INGREDIENTS = [
     id: 4,
     name: "Gia vị kho tổng hợp tiêu chuẩn",
     lotCode: "LOT-GVI-045",
-    plannedQty: "2.46",
-    actualQty: null,
+    quantity: "2.46",
     unit: "kg",
     expiryDate: "30/12/2024",
     expiryNote: "Đóng gói niêm phong",
@@ -120,16 +114,9 @@ export default function KitchenBatchDetail() {
     setBatchData((prev) => ({
       ...prev,
       status: "COMPLETED",
-      actualPortions: 1248,
-      variance: "-2 suất (0.16%)",
       completedAt: "10:25"
     }))
-    setIngredients((prev) =>
-      prev.map((ing) => ({
-        ...ing,
-        actualQty: ing.plannedQty
-      }))
-    )
+    
     setAuditData((prev) => ({
       ...prev,
       completedBy: "Trần Thị Mai (Tổ trưởng ra khay)",

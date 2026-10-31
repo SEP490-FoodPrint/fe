@@ -73,7 +73,7 @@ export default function BatchInfoCard({ batchData }) {
         <div className={styles.infoItem}>
           <span className={styles.fieldLabel}>Số suất</span>
           <div className={styles.portionWrap}>
-            <span className={styles.portionNumber}>{batchData.plannedPortions.toLocaleString("vi-VN")}</span>
+            <span className={styles.portionNumber}>{(batchData.portions || 1250).toLocaleString("vi-VN")}</span>
             <span className={styles.portionUnit}>suất (Khớp sĩ số báo ăn bán trú)</span>
           </div>
         </div>

@@ -24,8 +24,7 @@ const BATCHES_DATA = [
     timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
     method: "COMMON",
     methodLabel: "Nấu chung",
-    plannedPortion: "120 suất",
-    actualPortion: "120 suất",
+    portion: "120 suất",
     sampleCode: "SMP-001 • Đã lưu",
     hasSample: true,
     status: "COMPLETED",
@@ -41,8 +40,7 @@ const BATCHES_DATA = [
     timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
     method: "COMMON",
     methodLabel: "Nấu chung",
-    plannedPortion: "120 suất",
-    actualPortion: "118 suất",
+    portion: "120 suất",
     sampleCode: "SMP-002 • Đã lưu",
     hasSample: true,
     status: "COMPLETED",
@@ -58,8 +56,7 @@ const BATCHES_DATA = [
     timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
     method: "COMMON",
     methodLabel: "Nấu chung",
-    plannedPortion: "450 suất",
-    actualPortion: "450 suất",
+    portion: "450 suất",
     sampleCode: "—",
     hasSample: false,
     status: "COMPLETED",
@@ -75,8 +72,7 @@ const BATCHES_DATA = [
     timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
     method: "ALLERGY",
     methodLabel: "Nấu riêng",
-    plannedPortion: "30 suất",
-    actualPortion: "—",
+    portion: "30 suất",
     sampleCode: "—",
     hasSample: false,
     status: "CONFIRMED",
@@ -92,8 +88,7 @@ const BATCHES_DATA = [
     timeTag: "Giờ ăn 14:15 (Xong trước 13:45)",
     method: "ALLERGY",
     methodLabel: "Nấu riêng",
-    plannedPortion: "80 suất",
-    actualPortion: "—",
+    portion: "80 suất",
     sampleCode: "—",
     hasSample: false,
     status: "DRAFT",
@@ -135,8 +130,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
               <th className={styles.thCode}>Mã lô</th>
               <th className={styles.thDish}>Món ăn &amp; Ca ăn</th>
               <th className={styles.thMethod}>Phương thức</th>
-              <th className={styles.thPlanned}>Kế hoạch</th>
-              <th className={styles.thActual}>Thực tế</th>
+              <th className={styles.thPortion}>Số suất</th>
               <th className={styles.thSample}>Mẫu lưu</th>
               <th className={styles.thStatus}>Trạng thái</th>
               <th className={styles.thAction}>Thao tác</th>
@@ -168,16 +162,9 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
                   </span>
                 </td>
 
-                {/* 4. Kế hoạch */}
-                <td className={styles.tdPlanned}>{row.plannedPortion}</td>
-
-                {/* 5. Thực tế */}
-                <td className={styles.tdActual}>
-                  {row.actualPortion === "—" ? (
-                    <span className={styles.dash}>—</span>
-                  ) : (
-                    <span className={styles.actualBold}>{row.actualPortion}</span>
-                  )}
+                {/* 4. Số suất */}
+                <td className={styles.tdPortion}>
+                  <span className={styles.portionBold}>{row.portion}</span>
                 </td>
 
                 {/* 6. Mẫu lưu */}
@@ -272,7 +259,7 @@ function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
             {/* Hàng 2: Số suất • Mốc giờ ăn & Hạn chót + Icon Action */}
             <div className={styles.mobileBottomRow}>
               <div className={styles.mobileMetaWrap}>
-                <span className={styles.portionHighlight}>{row.plannedPortion}</span>
+                <span className={styles.portionHighlight}>{row.portion}</span>
                 <span className={styles.metaDot}>•</span>
                 <span className={styles.timeScheduleText}>{row.timeTag}</span>
               </div>

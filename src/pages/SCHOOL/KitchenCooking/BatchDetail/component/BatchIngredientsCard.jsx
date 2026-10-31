@@ -52,7 +52,7 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
 
                 {/* Số lượng */}
                 <td className={styles.tdQty}>
-                  <span className={styles.numBold}>{item.plannedQty}</span>
+                  <span className={styles.numBold}>{(item.quantity || item.plannedQty)}</span>
                 </td>
 
                 {/* Đơn vị */}
@@ -93,7 +93,7 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
             <div className={styles.mobileItemMid}>
               <span className={styles.mobileLabel}>Số lượng xuất kho:</span>
               <span className={styles.mobileValBold}>
-                {item.plannedQty} {item.unit}
+                {(item.quantity || item.plannedQty)} {item.unit}
               </span>
             </div>
 

@@ -23,7 +23,7 @@ export default function ProposedSeparateBatchSection() {
               3. Phương án tách lô chế biến
             </h2>
             <p className={styles.sectionSubtitle}>
-              Kế hoạch 02 lô nấu độc lập song song theo nguồn gốc nguyên liệu
+              Phương án 02 lô nấu độc lập song song theo nguồn gốc nguyên liệu
             </p>
           </div>
         </div>

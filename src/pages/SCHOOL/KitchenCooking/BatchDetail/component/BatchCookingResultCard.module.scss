@@ -172,6 +172,18 @@
   color: var(--color-primary, #0a8066);
 }
 
+.successVal {
+  color: #16a34a;
+}
+
+.warningVal {
+  color: #d97706;
+}
+
+.draftVal {
+  color: #4b5563;
+}
+
 .mutedVal {
   color: #cbd5e1;
 }
@@ -187,4 +199,3 @@
   font-size: 11px;
   color: #9ca3af;
 }
-

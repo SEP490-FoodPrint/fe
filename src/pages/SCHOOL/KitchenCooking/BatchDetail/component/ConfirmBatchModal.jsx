@@ -43,7 +43,7 @@ export default function ConfirmBatchModal({
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>Số suất định lượng:</span>
               <span className={styles.briefValuePrimary}>
-                {batchData.plannedPortions.toLocaleString("vi-VN")} suất
+                {(batchData.portions || 1250).toLocaleString("vi-VN")} suất
               </span>
             </div>
             <div className={styles.briefRow}>
