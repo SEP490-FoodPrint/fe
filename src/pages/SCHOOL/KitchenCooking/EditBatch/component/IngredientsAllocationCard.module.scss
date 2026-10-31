@@ -65,25 +65,17 @@
   font-weight: 600;
 }
 
-.recipeBtn {
+.modeSummaryPill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 12px;
-  background-color: #ffffff;
-  color: #0a8066;
-  border: 1px solid rgba(10, 128, 102, 0.3);
-  border-radius: 6px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 11.5px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #e8f5f1;
-    border-color: #0a8066;
-  }
 }
 
 /* 1. Desktop Table View */
@@ -194,10 +186,64 @@
   letter-spacing: 0.02em;
 }
 
+.groupSubInfo {
+  font-size: 11.5px;
+  color: #6b7280;
+  font-weight: 400;
+
+  strong {
+    color: #111827;
+  }
+}
+
 .groupRight {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.allocatedPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #ffffff;
+  border: 1px solid #bbf7d0;
+  padding: 3px 9px;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+
+  strong {
+    color: #111827;
+  }
+}
+
+.allocatedPercent {
+  font-size: 11px;
+  color: #0a8066;
+  font-weight: 700;
+}
+
+.addLotBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #ffffff;
+  border: 1px solid #0a8066;
+  padding: 3px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #0a8066;
+    color: #ffffff;
+  }
 }
 
 .singleLotBadge {
@@ -241,6 +287,19 @@
   flex-wrap: wrap;
 }
 
+.lotIndexBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 .itemName {
   font-weight: 600;
   color: #111827;
@@ -262,12 +321,6 @@
   color: #6b7280;
 }
 
-.certMeta {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
 .certBadge {
   display: inline-flex;
   align-items: center;
@@ -275,11 +328,6 @@
   font-size: 12px;
   font-weight: 600;
   color: #0a8066;
-}
-
-.certSub {
-  font-size: 11px;
-  color: #6b7280;
 }
 
 .expiryDate {
@@ -299,11 +347,6 @@
   font-weight: 600;
   color: #111827;
   display: block;
-}
-
-.stockLocation {
-  font-size: 11px;
-  color: #6b7280;
 }
 
 .qtyBox {
@@ -338,6 +381,13 @@
   white-space: nowrap;
 }
 
+.actionBtnGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
 .swapBtn {
   display: inline-flex;
   align-items: center;
@@ -357,6 +407,25 @@
   &:hover {
     background-color: #e8f5f1;
     border-color: #0a8066;
+  }
+}
+
+.removeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background-color: #ffffff;
+  color: #dc2626;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #fef2f2;
+    border-color: #dc2626;
   }
 }
 
@@ -382,6 +451,21 @@
   padding: 6px 0 2px;
 }
 
+.addLotBtnMobile {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #ffffff;
+  border: 1px solid #0a8066;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: auto;
+  cursor: pointer;
+}
+
 .mobileCard {
   background-color: #ffffff;
   border: 1px solid #e5e7eb;
@@ -404,6 +488,11 @@
   font-weight: 600;
   color: #111827;
   margin-bottom: 2px;
+}
+
+.mobileIdx {
+  color: #0a8066;
+  font-weight: 700;
 }
 
 .mobileQtyPill {
@@ -447,13 +536,19 @@
   font-weight: 500;
 }
 
+.mobileActionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .swapBtnMobile {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  min-height: 44px;
-  width: 100%;
+  min-height: 40px;
+  flex: 1;
   border-radius: 6px;
   border: 1px solid #e5e7eb;
   background-color: #ffffff;
@@ -467,7 +562,23 @@
   }
 }
 
-/* 3. Dải Ghi Chú An Toàn Tinh Gọn Duy Nhất */
+.removeBtnMobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid #fca5a5;
+  background-color: #fef2f2;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 3. Dải Ghi Chú An Toàn Tinh Gọn Nấu Riêng */
 .singleNoticeBar {
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
@@ -491,5 +602,91 @@
 
   strong {
     color: #14532d;
+  }
+}
+
+/* 4. Thẻ Quy Chuẩn Nấu Chung (2 Cards) */
+.combineCardsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 16px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.noticeCardBlue {
+  background-color: #f0f7ff;
+  border: 1px solid #bae0fd;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.noticeCardIconBoxBlue {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: #e0f0fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.noticeCardTitleBlue {
+  margin: 0 0 2px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0369a1;
+}
+
+.noticeCardGreen {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.noticeCardIconBoxGreen {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.noticeCardTitleGreen {
+  margin: 0 0 2px 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.noticeCardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.noticeCardDesc {
+  margin: 0;
+  font-size: 12px;
+  color: #4b5563;
+  line-height: 1.45;
+
+  strong {
+    color: #111827;
   }
 }

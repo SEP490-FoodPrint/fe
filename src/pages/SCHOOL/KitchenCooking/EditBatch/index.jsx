@@ -1,15 +1,106 @@
 import React, { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import ROUTER from "src/router/ROUTER"
 import EditBatchHeader from "./component/EditBatchHeader"
 import BatchPolicyAndInfoCard from "./component/BatchPolicyAndInfoCard"
 import IngredientsAllocationCard from "./component/IngredientsAllocationCard"
 import BatchValidationAuditCard from "./component/BatchValidationAuditCard"
 import EditBatchActionBar from "./component/EditBatchActionBar"
 import SwapLotModal from "./component/SwapLotModal"
+import AddLotModal from "./component/AddLotModal"
 import styles from "./index.module.scss"
 
-const INITIAL_BATCH = {
+/* ========================================================
+   DỮ LIỆU MẪU CHUẨN PHƯƠNG ÁN A (HỆ THỐNG TỰ TÍNH TOÁN)
+   ======================================================== */
+
+// 1. Dữ liệu mẻ Nấu chung (COMBINE_LOTS: 100 suất, 2 lô gà phối trộn)
+const COMBINE_BATCH = {
+  code: "CB-20261023-01",
+  dishName: "Thịt gà kho",
+  mealSession: "Bữa trưa — 11:15",
+  date: "23/10/2026",
+  school: "Bếp THCS Đoàn Thị Điểm",
+  portions: 100,
+  rule: "COMBINE_LOTS",
+  status: "UNCONFIRMED"
+}
+
+const COMBINE_MAIN_LOTS_INITIAL = [
+  {
+    id: 101,
+    lotIndex: 1,
+    name: "Thịt gà ta làm sạch",
+    lotName: "Lô thịt gà A",
+    lotCode: "LOT-GA-01A",
+    supplier: "HTX Nông nghiệp Sạch Ba Vì",
+    cert: "VietGAP 3981/HTXBV",
+    certNote: "Kiểm định thú y đạt chuẩn",
+    expiryDate: "25/10/2026",
+    expiryRemaining: "Còn 2 ngày",
+    stock: 18.0,
+    unit: "kg",
+    quantity: 6.0,
+    quotaPerPortion: "60g / suất"
+  },
+  {
+    id: 102,
+    lotIndex: 2,
+    name: "Thịt gà ta làm sạch",
+    lotName: "Lô thịt gà B",
+    lotCode: "LOT-GA-01B",
+    supplier: "Nông sản Sóc Sơn",
+    cert: "VietGAP 2041/NSSS",
+    certNote: "Chứng nhận VietGAP",
+    expiryDate: "26/10/2026",
+    expiryRemaining: "Còn 3 ngày",
+    stock: 12.0,
+    unit: "kg",
+    quantity: 4.0,
+    quotaPerPortion: "40g / suất"
+  }
+]
+
+const COMBINE_SUB_INGREDIENTS_INITIAL = [
+  {
+    id: 2,
+    name: "Gừng tươi củ nhỏ",
+    lotCode: "LOT-GUNG-102",
+    supplier: "Nông trại Hải Dương",
+    cert: "Chứng nhận Rau an toàn Hải Dương",
+    expiryDate: "30/10/2026",
+    stock: 5.0,
+    unit: "kg",
+    quantity: 0.5,
+    quotaPerPortion: "5g / suất"
+  },
+  {
+    id: 3,
+    name: "Hành tím sạch",
+    lotCode: "LOT-HANH-088",
+    supplier: "VinaFresh",
+    cert: "Chuỗi cung ứng thực phẩm an toàn",
+    expiryDate: "15/11/2026",
+    stock: 8.5,
+    unit: "kg",
+    quantity: 0.35,
+    quotaPerPortion: "3.5g / suất"
+  },
+  {
+    id: 4,
+    name: "Gia vị kho tổng hợp",
+    lotCode: "LOT-GVI-045",
+    supplier: "Masan Consumer",
+    cert: "ISO 22000 & HACCP Codex",
+    expiryDate: "30/12/2026",
+    stock: 20.0,
+    unit: "kg",
+    quantity: 0.8,
+    quotaPerPortion: "8g / suất"
+  }
+]
+
+// 2. Dữ liệu mẻ Nấu riêng (SEPARATE_BY_LOT: 60 suất, 1 lô độc lập)
+const SEPARATE_BATCH = {
   code: "CB-20261023-01A",
   dishName: "Thịt gà kho",
   mealSession: "Bữa trưa — 11:15",
@@ -20,7 +111,7 @@ const INITIAL_BATCH = {
   status: "UNCONFIRMED"
 }
 
-const INITIAL_MAIN_INGREDIENT = {
+const SEPARATE_MAIN_INITIAL = {
   id: 1,
   name: "Thịt gà ta làm sạch",
   lotName: "Lô thịt gà A",
@@ -32,12 +123,11 @@ const INITIAL_MAIN_INGREDIENT = {
   expiryRemaining: "Còn 2 ngày",
   stock: 18.0,
   unit: "kg",
-  warehouse: "Kho lạnh B1 (Dư +12.0 kg)",
   quantity: 6.0,
   quotaPerPortion: "100g / suất"
 }
 
-const INITIAL_SUB_INGREDIENTS = [
+const SEPARATE_SUB_INITIAL = [
   {
     id: 2,
     name: "Gừng tươi củ nhỏ",
@@ -47,7 +137,6 @@ const INITIAL_SUB_INGREDIENTS = [
     expiryDate: "30/10/2026",
     stock: 5.0,
     unit: "kg",
-    warehouse: "Kho rau củ",
     quantity: 0.3,
     quotaPerPortion: "5g / suất"
   },
@@ -60,7 +149,6 @@ const INITIAL_SUB_INGREDIENTS = [
     expiryDate: "15/11/2026",
     stock: 8.5,
     unit: "kg",
-    warehouse: "Kho khô",
     quantity: 0.2,
     quotaPerPortion: "3.3g / suất"
   },
@@ -73,7 +161,6 @@ const INITIAL_SUB_INGREDIENTS = [
     expiryDate: "30/12/2026",
     stock: 20.0,
     unit: "kg",
-    warehouse: "Kho bao bì kín",
     quantity: 0.5,
     quotaPerPortion: "8.3g / suất"
   }
@@ -83,18 +170,48 @@ export default function EditBatch() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [batchData, setBatchData] = useState({
-    ...INITIAL_BATCH,
-    code: id || INITIAL_BATCH.code
-  })
+  // Xác định chế độ mặc định từ route param (nếu có hậu tố 'A'/'B' thì là Nấu riêng, ngược lại mặc định Nấu chung)
+  const isInitialSeparate = id && (id.endsWith("A") || id.endsWith("B"))
 
-  const [mainIngredient, setMainIngredient] = useState(INITIAL_MAIN_INGREDIENT)
-  const [subIngredients, setSubIngredients] = useState(INITIAL_SUB_INGREDIENTS)
+  const [rule, setRule] = useState(isInitialSeparate ? "SEPARATE_BY_LOT" : "COMBINE_LOTS")
+  const isCombineLots = rule === "COMBINE_LOTS"
+
+  // Batch info state
+  const [batchData, setBatchData] = useState(
+    isInitialSeparate
+      ? { ...SEPARATE_BATCH, code: id || SEPARATE_BATCH.code }
+      : { ...COMBINE_BATCH, code: id || COMBINE_BATCH.code }
+  )
+
+  // Nấu chung state
+  const [combineMainLots, setCombineMainLots] = useState(COMBINE_MAIN_LOTS_INITIAL)
+  const [combineSubIngredients, setCombineSubIngredients] = useState(COMBINE_SUB_INGREDIENTS_INITIAL)
+
+  // Nấu riêng state
+  const [separateMain, setSeparateMain] = useState(SEPARATE_MAIN_INITIAL)
+  const [separateSub, setSeparateSub] = useState(SEPARATE_SUB_INITIAL)
 
   // Modals state
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false)
   const [targetSwapItem, setTargetSwapItem] = useState(null)
+  const [isAddLotModalOpen, setIsAddLotModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Toggle giữa Nấu chung & Nấu riêng
+  const handleToggleRule = (newRule) => {
+    setRule(newRule)
+    if (newRule === "COMBINE_LOTS") {
+      setBatchData({
+        ...COMBINE_BATCH,
+        code: id && !id.endsWith("A") ? id : "CB-20261023-01"
+      })
+    } else {
+      setBatchData({
+        ...SEPARATE_BATCH,
+        code: id && id.endsWith("A") ? id : "CB-20261023-01A"
+      })
+    }
+  }
 
   // Mở modal thay lô
   const handleOpenSwapModal = (item) => {
@@ -102,39 +219,121 @@ export default function EditBatch() {
     setIsSwapModalOpen(true)
   }
 
+  // Mở modal thêm lô phối trộn
+  const handleOpenAddLotModal = () => {
+    setIsAddLotModalOpen(true)
+  }
+
   // Xác nhận đổi lô nguyên liệu
   const handleConfirmSwap = (oldItem, newLot) => {
-    if (oldItem.id === mainIngredient.id) {
-      setMainIngredient((prev) => ({
-        ...prev,
-        lotName: newLot.lotName,
-        lotCode: newLot.lotCode,
-        supplier: newLot.supplier,
-        cert: newLot.cert,
-        certNote: newLot.certNote,
-        expiryDate: newLot.expiryDate,
-        expiryRemaining: newLot.expiryRemaining,
-        stock: newLot.stock,
-        warehouse: newLot.warehouse
-      }))
-    } else {
-      setSubIngredients((prev) =>
-        prev.map((sub) => {
-          if (sub.id === oldItem.id) {
-            return {
-              ...sub,
-              lotCode: newLot.lotCode,
-              supplier: newLot.supplier,
-              cert: newLot.cert,
-              expiryDate: newLot.expiryDate,
-              stock: newLot.stock,
-              warehouse: newLot.warehouse
+    if (isCombineLots) {
+      // Đổi lô trong danh sách lô phối trộn của món chính
+      if (combineMainLots.some((lot) => lot.id === oldItem.id)) {
+        setCombineMainLots((prev) =>
+          prev.map((lot) => {
+            if (lot.id === oldItem.id) {
+              return {
+                ...lot,
+                lotName: newLot.lotName || lot.lotName,
+                lotCode: newLot.lotCode,
+                supplier: newLot.supplier,
+                cert: newLot.cert,
+                certNote: newLot.certNote || lot.certNote,
+                expiryDate: newLot.expiryDate,
+                expiryRemaining: newLot.expiryRemaining || "Còn hiệu lực",
+                stock: newLot.stock
+              }
             }
-          }
-          return sub
-        })
-      )
+            return lot
+          })
+        )
+      } else {
+        // Đổi lô phụ liệu trong nấu chung
+        setCombineSubIngredients((prev) =>
+          prev.map((sub) => {
+            if (sub.id === oldItem.id) {
+              return {
+                ...sub,
+                lotCode: newLot.lotCode,
+                supplier: newLot.supplier,
+                cert: newLot.cert,
+                expiryDate: newLot.expiryDate,
+                stock: newLot.stock
+              }
+            }
+            return sub
+          })
+        )
+      }
+    } else {
+      // Đổi lô trong nấu riêng 1:1
+      if (oldItem.id === separateMain.id) {
+        setSeparateMain((prev) => ({
+          ...prev,
+          lotName: newLot.lotName || prev.lotName,
+          lotCode: newLot.lotCode,
+          supplier: newLot.supplier,
+          cert: newLot.cert,
+          certNote: newLot.certNote || prev.certNote,
+          expiryDate: newLot.expiryDate,
+          expiryRemaining: newLot.expiryRemaining || "Còn hiệu lực",
+          stock: newLot.stock
+        }))
+      } else {
+        setSeparateSub((prev) =>
+          prev.map((sub) => {
+            if (sub.id === oldItem.id) {
+              return {
+                ...sub,
+                lotCode: newLot.lotCode,
+                supplier: newLot.supplier,
+                cert: newLot.cert,
+                expiryDate: newLot.expiryDate,
+                stock: newLot.stock
+              }
+            }
+            return sub
+          })
+        )
+      }
     }
+  }
+
+  // Xác nhận thêm lô phối trộn mới (cho Nấu chung)
+  const handleConfirmAddLot = (newLotCandidate) => {
+    const newLotId = Date.now()
+    const nextIndex = combineMainLots.length + 1
+    const addedLot = {
+      id: newLotId,
+      lotIndex: nextIndex,
+      name: "Thịt gà ta làm sạch",
+      lotName: newLotCandidate.lotName,
+      lotCode: newLotCandidate.lotCode,
+      supplier: newLotCandidate.supplier,
+      cert: newLotCandidate.cert,
+      certNote: "Đạt chuẩn VietGAP",
+      expiryDate: newLotCandidate.expiryDate,
+      expiryRemaining: newLotCandidate.expiryRemaining || "Còn hiệu lực",
+      stock: newLotCandidate.stock,
+      unit: newLotCandidate.unit || "kg",
+      quantity: newLotCandidate.defaultQty || 2.0,
+      quotaPerPortion: "20g / suất"
+    }
+
+    setCombineMainLots((prev) => [...prev, addedLot])
+  }
+
+  // Xóa lô phối trộn
+  const handleRemoveLot = (target) => {
+    const targetId = typeof target === "object" ? target?.id : target
+    if (combineMainLots.length <= 1) return
+    setCombineMainLots((prev) => {
+      const filtered = prev.filter((lot) => lot.id !== targetId)
+      return filtered.map((lot, idx) => ({
+        ...lot,
+        lotIndex: idx + 1
+      }))
+    })
   }
 
   // Hủy thay đổi -> quay lại chi tiết
@@ -151,26 +350,39 @@ export default function EditBatch() {
     }, 400)
   }
 
+  const currentMainLots = isCombineLots ? combineMainLots : [separateMain]
+  const currentSub = isCombineLots ? combineSubIngredients : separateSub
+  const totalLotsCount = currentMainLots.length + currentSub.length
+
   return (
     <div className={styles.editBatchPage}>
-      {/* 1. Header Bar with Breadcrumb */}
-      <EditBatchHeader batchCode={batchData.code} />
+      {/* 1. Header Bar with Breadcrumb & Rule Switcher */}
+      <EditBatchHeader
+        batchCode={batchData.code}
+        rule={batchData.rule}
+        onToggleRule={handleToggleRule}
+      />
 
       {/* 2. Main Work Surface Container */}
       <div className={styles.mainContent}>
         {/* KHU VỰC 1: THÔNG TIN PHƯƠNG ÁN CHẾ BIẾN */}
         <BatchPolicyAndInfoCard batchData={batchData} />
 
-        {/* KHU VỰC 2: NGUYÊN LIỆU SỬ DỤNG */}
+        {/* KHU VỰC 2: NGUYÊN LIỆU SỬ DỤNG (Nấu chung hoặc Nấu riêng) */}
         <IngredientsAllocationCard
-          mainIngredient={mainIngredient}
-          subIngredients={subIngredients}
+          isCombineLots={isCombineLots}
+          mainIngredient={separateMain}
+          mainLots={combineMainLots}
+          subIngredients={currentSub}
           onOpenSwapModal={handleOpenSwapModal}
+          onOpenAddLotModal={handleOpenAddLotModal}
+          onRemoveLot={handleRemoveLot}
         />
 
         {/* KHU VỰC 3: KIỂM TRA PHƯƠNG ÁN & ĐỐI SOÁT DỮ LIỆU KHO */}
         <BatchValidationAuditCard
-          totalLots={1 + subIngredients.length}
+          totalLots={totalLotsCount}
+          isCombineLots={isCombineLots}
         />
 
         {/* KHU VỰC 4: THANH TÁC VỤ CỐ ĐỊNH CHÂN TRANG */}
@@ -189,6 +401,13 @@ export default function EditBatch() {
         onClose={() => setIsSwapModalOpen(false)}
         targetItem={targetSwapItem}
         onConfirmSwap={handleConfirmSwap}
+      />
+
+      <AddLotModal
+        isOpen={isAddLotModalOpen}
+        onClose={() => setIsAddLotModalOpen(false)}
+        onConfirmAdd={handleConfirmAddLot}
+        currentLotCodes={combineMainLots.map((l) => l.lotCode)}
       />
     </div>
   )

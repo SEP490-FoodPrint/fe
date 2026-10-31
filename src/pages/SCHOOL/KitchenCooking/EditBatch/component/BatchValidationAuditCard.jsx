@@ -10,7 +10,9 @@ import {
 } from "lucide-react"
 import styles from "./BatchValidationAuditCard.module.scss"
 
-export default function BatchValidationAuditCard({ totalLots = 4 }) {
+export default function BatchValidationAuditCard({ totalLots = 5, isCombineLots = false }) {
+  const lotCountDisplay = totalLots < 10 ? `0${totalLots}` : `${totalLots}`
+
   return (
     <section className={styles.auditCard}>
       {/* 1. Header Thẻ */}
@@ -37,12 +39,16 @@ export default function BatchValidationAuditCard({ totalLots = 4 }) {
             <Boxes size={16} className={styles.kpiIcon} />
           </div>
           <div className={styles.kpiValueRow}>
-            <span className={styles.kpiNum}>0{totalLots}</span>
+            <span className={styles.kpiNum}>{lotCountDisplay}</span>
             <span className={styles.kpiUnit}>lô hợp chuẩn</span>
           </div>
           <div className={styles.kpiStatusGreen}>
             <CheckCheck size={13} />
-            <span>Mỗi nguyên liệu 01 lô độc lập</span>
+            <span>
+              {isCombineLots
+                ? "Các lô phối trộn đạt chuẩn kiểm định"
+                : "Mỗi nguyên liệu 01 lô độc lập"}
+            </span>
           </div>
         </div>
 
@@ -69,9 +75,15 @@ export default function BatchValidationAuditCard({ totalLots = 4 }) {
             <QrCode size={16} className={styles.kpiIcon} />
           </div>
           <div className={styles.kpiValueRow}>
-            <span className={styles.kpiNumSuccess}>Chuẩn QR 1:1</span>
+            <span className={styles.kpiNumSuccess}>
+              {isCombineLots ? "QR Đa nguồn" : "Chuẩn QR 1:1"}
+            </span>
           </div>
-          <span className={styles.kpiSub}>Bảo toàn tem nhãn từng khay ăn</span>
+          <span className={styles.kpiSub}>
+            {isCombineLots
+              ? "Lưu vết toàn bộ các lô phối trộn"
+              : "Bảo toàn tem nhãn từng khay ăn"}
+          </span>
         </div>
 
         {/* Box 4: Kết quả kiểm tra */}
@@ -85,7 +97,9 @@ export default function BatchValidationAuditCard({ totalLots = 4 }) {
           </div>
           <div className={styles.kpiStatusSuccess}>
             <CheckCircle2 size={13} />
-            <span>Sẵn sàng lưu &amp; phê duyệt</span>
+            <span>
+              {isCombineLots ? "Đáp ứng quy chuẩn Nấu chung" : "Sẵn sàng lưu & phê duyệt"}
+            </span>
           </div>
         </div>
       </div>

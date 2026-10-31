@@ -3,14 +3,14 @@ import {
   CookingPot,
   Calendar,
   CheckCircle2,
-  Utensils,
-  Layers,
   Building2,
   Lock
 } from "lucide-react"
 import styles from "./BatchPolicyAndInfoCard.module.scss"
 
 export default function BatchPolicyAndInfoCard({ batchData }) {
+  const isCombineLots = batchData?.rule === "COMBINE_LOTS"
+
   return (
     <section className={styles.infoCard}>
       {/* 1. Header Thẻ: Tiêu đề + Cơ sở */}
@@ -53,27 +53,39 @@ export default function BatchPolicyAndInfoCard({ batchData }) {
         <div className={styles.infoItem}>
           <span className={styles.fieldLabel}>Số suất chế biến</span>
           <div className={styles.portionWrap}>
-            <span className={styles.portionNumber}>{(batchData.portions || 60).toLocaleString("vi-VN")}</span>
+            <span className={styles.portionNumber}>
+              {(batchData.portions || (isCombineLots ? 100 : 60)).toLocaleString("vi-VN")}
+            </span>
             <span className={styles.portionUnit}>suất</span>
             <span className={styles.lockedPill} title="Tự động tính theo báo ăn lớp từ GVCN">
               <CheckCircle2 size={12} />
               Đã chốt báo ăn
             </span>
           </div>
-          <span className={styles.subText}>Phân bổ: Khối 6, 7 (Lô 01: 60/100 suất)</span>
+          <span className={styles.subText}>
+            {isCombineLots
+              ? "Căn cứ báo ăn: 100 suất toàn trường (01 mẻ tập trung)"
+              : "Phân bổ: Khối 6, 7 (Lô 01: 60/100 suất)"}
+          </span>
         </div>
 
         {/* Cột 4: Chế độ chế biến */}
         <div className={styles.infoItem}>
           <span className={styles.fieldLabel}>Chế độ chế biến</span>
           <div className={styles.methodWrap}>
-            <span className={styles.methodName}>Nấu riêng 1:1</span>
+            <span className={styles.methodName}>
+              {isCombineLots ? "Nấu chung đa lô" : "Nấu riêng 1:1"}
+            </span>
             <span className={styles.methodLockTag}>
               <Lock size={11} />
               Khóa theo BGH
             </span>
           </div>
-          <span className={styles.subText}>Tách lô độc lập theo nguồn nguyên liệu</span>
+          <span className={styles.subText}>
+            {isCombineLots
+              ? "Phối trộn nhiều lô nguyên liệu trong 1 mẻ"
+              : "Tách lô độc lập theo nguồn nguyên liệu"}
+          </span>
         </div>
       </div>
     </section>
