@@ -1,6 +1,6 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { ArrowLeft, Tag, GitFork } from "lucide-react"
+import { ArrowLeft, GitFork } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./EditBatchHeader.module.scss"
 
@@ -43,7 +43,7 @@ export default function EditBatchHeader({ batchCode = "CB-20261023-01A" }) {
         <span className={styles.current}>Chỉnh sửa phương án</span>
       </nav>
 
-      {/* 2. Main Title Row */}
+      {/* 2. Main Title Row: Chỉ 1 nút Back duy nhất chuẩn mực bên cạnh tiêu đề */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -73,18 +73,6 @@ export default function EditBatchHeader({ batchCode = "CB-20261023-01A" }) {
               Rà soát phương án phân bổ nguyên liệu và thay thế nguồn lô hợp chuẩn theo quy tắc Nấu riêng trước khi phê duyệt.
             </p>
           </div>
-        </div>
-
-        {/* Nút Desktop bên phải */}
-        <div className={styles.headerActionsDesktop}>
-          <button
-            type="button"
-            className={styles.backToDetailBtn}
-            onClick={handleBackToDetail}
-          >
-            <ArrowLeft size={16} />
-            <span>Quay lại chi tiết</span>
-          </button>
         </div>
       </div>
     </div>

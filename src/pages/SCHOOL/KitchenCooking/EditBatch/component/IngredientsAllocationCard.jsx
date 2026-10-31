@@ -2,7 +2,6 @@ import React from "react"
 import {
   Layers,
   Calculator,
-  CheckCircle2,
   Lock,
   ArrowLeftRight,
   ShieldCheck,
@@ -29,7 +28,7 @@ export default function IngredientsAllocationCard({
             <Layers size={18} />
           </div>
           <div>
-            <h2 className={styles.cardTitle}>Nguyên liệu sử dụng theo định lượng</h2>
+            <h2 className={styles.cardTitle}>Nguyên liệu sử dụng</h2>
           </div>
           <div className={styles.countBadge}>
             <PackageCheck size={14} />
@@ -57,7 +56,7 @@ export default function IngredientsAllocationCard({
               <th className={styles.thCert}>Chứng chỉ &amp; Nhà cung ứng</th>
               <th className={styles.thExpiry}>Hạn sử dụng (HSD)</th>
               <th className={styles.thStock}>Tồn kho khả dụng</th>
-              <th className={styles.thQty}>Số lượng sử dụng</th>
+              <th className={styles.thQty}>Số lượng</th>
               <th className={styles.thAction}>Thao tác</th>
             </tr>
           </thead>
@@ -68,20 +67,13 @@ export default function IngredientsAllocationCard({
                 <div className={styles.groupContent}>
                   <div className={styles.groupLeft}>
                     <span className={styles.mainDot} />
-                    <span className={styles.groupTitle}>Nhóm chính: {mainIngredient.name}</span>
-                    <span className={styles.groupQuota}>
-                      (Định mức: 100g/suất • Nhu cầu Lô 01: <strong>{mainIngredient.quantity} {mainIngredient.unit}</strong>)
-                    </span>
+                    <span className={styles.groupTitle}>Nguyên liệu chính: {mainIngredient.name}</span>
                   </div>
 
                   <div className={styles.groupRight}>
-                    <span className={styles.chosenBadge}>
-                      <CheckCircle2 size={13} />
-                      Đã chọn: <strong>{mainIngredient.quantity}</strong> / {mainIngredient.quantity} {mainIngredient.unit} (Đủ 100%)
-                    </span>
                     <span className={styles.singleLotBadge}>
                       <Lock size={12} />
-                      01 lô duy nhất
+                      01 lô duy nhất (Quy chuẩn nấu riêng)
                     </span>
                   </div>
                 </div>
@@ -121,7 +113,6 @@ export default function IngredientsAllocationCard({
                   <span className={styles.numBold}>{mainIngredient.quantity}</span>
                   <span className={styles.unitText}>{mainIngredient.unit}</span>
                 </div>
-                <span className={styles.formulaHint}>Chuẩn công thức</span>
               </td>
               <td className={styles.tdAction}>
                 <button
@@ -142,10 +133,7 @@ export default function IngredientsAllocationCard({
                 <div className={styles.groupContent}>
                   <div className={styles.groupLeft}>
                     <span className={styles.subDot} />
-                    <span className={styles.groupTitle}>Nhóm phụ liệu, rau gia vị &amp; hương liệu</span>
-                    <span className={styles.groupQuota}>
-                      ({subIngredients.length} thành phần phụ trợ đáp ứng quy chuẩn cho 60 suất)
-                    </span>
+                    <span className={styles.groupTitle}>Phụ liệu &amp; Gia vị</span>
                   </div>
                 </div>
               </td>
@@ -203,7 +191,7 @@ export default function IngredientsAllocationCard({
       <div className={styles.mobileCardList}>
         <div className={styles.mobileGroupBadge}>
           <span className={styles.mainDot} />
-          <span>Nhóm chính: {mainIngredient.name} (60 suất)</span>
+          <span>Nguyên liệu chính: {mainIngredient.name}</span>
         </div>
 
         <div className={styles.mobileCard}>
@@ -248,7 +236,7 @@ export default function IngredientsAllocationCard({
 
         <div className={styles.mobileGroupBadge}>
           <span className={styles.subDot} />
-          <span>Nhóm phụ liệu &amp; gia vị</span>
+          <span>Phụ liệu &amp; Gia vị</span>
         </div>
 
         {subIngredients.map((item) => (

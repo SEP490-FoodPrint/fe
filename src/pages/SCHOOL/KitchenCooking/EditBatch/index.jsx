@@ -42,7 +42,7 @@ const INITIAL_SUB_INGREDIENTS = [
     id: 2,
     name: "Gừng tươi củ nhỏ",
     lotCode: "LOT-GUNG-102",
-    supplier: "Nông trại Hải Dương • Định mức 5g/suất",
+    supplier: "Nông trại Hải Dương",
     cert: "Chứng nhận Rau an toàn Hải Dương",
     expiryDate: "30/10/2026",
     stock: 5.0,
@@ -54,7 +54,7 @@ const INITIAL_SUB_INGREDIENTS = [
     id: 3,
     name: "Hành tím sạch",
     lotCode: "LOT-HANH-088",
-    supplier: "VinaFresh • Định mức ~3.3g/suất",
+    supplier: "VinaFresh",
     cert: "Chuỗi cung ứng thực phẩm an toàn",
     expiryDate: "15/11/2026",
     stock: 8.5,
@@ -66,7 +66,7 @@ const INITIAL_SUB_INGREDIENTS = [
     id: 4,
     name: "Gia vị kho tổng hợp",
     lotCode: "LOT-GVI-045",
-    supplier: "Masan Consumer • Nước mắm truyền thống, tiêu đen",
+    supplier: "Masan Consumer",
     cert: "ISO 22000 & HACCP Codex",
     expiryDate: "30/12/2026",
     stock: 20.0,
@@ -145,7 +145,6 @@ export default function EditBatch() {
     setIsSubmitting(true)
     setTimeout(() => {
       setIsSubmitting(false)
-      // Thông báo và chuyển hướng
       navigate(`/school/kitchen-cooking/batches/${batchData.code}`)
     }, 400)
   }
@@ -160,7 +159,7 @@ export default function EditBatch() {
         {/* KHU VỰC 1: THÔNG TIN PHƯƠNG ÁN CHẾ BIẾN */}
         <BatchPolicyAndInfoCard batchData={batchData} />
 
-        {/* KHU VỰC 2: NGUYÊN LIỆU SỬ DỤNG THEO ĐỊNH LƯỢNG */}
+        {/* KHU VỰC 2: NGUYÊN LIỆU SỬ DỤNG */}
         <IngredientsAllocationCard
           mainIngredient={mainIngredient}
           subIngredients={subIngredients}
@@ -200,4 +199,3 @@ export default function EditBatch() {
     </div>
   )
 }
-
