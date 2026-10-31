@@ -14,9 +14,10 @@ import SwapHorizIcon from "@mui/icons-material/SwapHoriz"
 import CloseIcon from "@mui/icons-material/Close"
 import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
-import { MOCK_ACCOUNTS, ROLE_LABELS } from "src/constants/roles"
+import {  ROLE_LABELS } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
 import { getDefaultRedirectByOrg } from "src/lib/utils"
+import { MOCK_ACCOUNTS } from "src/services/SchoolService/mockData"
 
 function RoleSwitcher() {
   const [open, setOpen] = useState(false)

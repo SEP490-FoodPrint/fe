@@ -1,7 +1,7 @@
 import http from "../01_axios"
+import { MOCK_ACCOUNTS } from "../SchoolService/mockData"
 import { apiLogin, apiLogout, apiRefresh, apiGetProfile } from "./urls"
 import STORAGE, { clearStorage, setStorage } from "src/lib/storage"
-import { MOCK_ACCOUNTS } from "src/constants/roles"
 
 const AuthService = {
   /**
@@ -22,25 +22,6 @@ const AuthService = {
       }
       return res
     } catch (err) {
-      // Fallback giả lập nếu backend chưa sẵn sàng hoặc kết nối lỗi
-      const inputUsername = (body.username || body.identifier || "").toLowerCase()
-      const found = MOCK_ACCOUNTS.find(
-        acc => acc.username.toLowerCase() === inputUsername,
-      )
-      if (found && !import.meta.env.PROD) {
-        return {
-          isOk: true,
-          success: true,
-          Object: {
-            Token: `mock_jwt_token_${found.role}`,
-            User: found,
-          },
-          data: {
-            accessToken: `mock_jwt_token_${found.role}`,
-            user: found,
-          },
-        }
-      }
       const message =
         err?.response?.data?.message ||
         err?.message ||

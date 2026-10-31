@@ -10,9 +10,10 @@ import {
   Typography,
 } from "@mui/material"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
-import { MOCK_ACCOUNTS, ROLE_LABELS } from "src/constants/roles"
+import {  ROLE_LABELS } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
 import styles from "./QuickLoginList.module.scss"
+import { MOCK_ACCOUNTS } from "src/services/SchoolService/mockData"
 
 function QuickLoginList({ onLoginSuccess }) {
   const [loadingUser, setLoadingUser] = useState(null)
