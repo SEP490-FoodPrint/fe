@@ -1,3 +1,15 @@
+export const MAX_PROFILE_DOCUMENTS = 20
+
+export function appendDocumentFiles(current, incoming) {
+  const keys = new Set(current.map(file => JSON.stringify([file.name, file.size, file.type, file.lastModified])))
+  return [...current, ...incoming.filter(file => {
+    const key = JSON.stringify([file.name, file.size, file.type, file.lastModified])
+    if (keys.has(key)) return false
+    keys.add(key)
+    return true
+  })]
+}
+
 export const usedCertification = row => Boolean(row.certificationType.trim() || row.certificateNo.trim() || row.issuedDate || row.expiryDate || row.files?.length || row.existingDocuments?.length)
 
 export function onboardingBody({ requestType, values, certifications = [], documents = [], existingDocuments = [], editing = false, expectedUpdatedAt }) {
@@ -12,11 +24,12 @@ export function onboardingBody({ requestType, values, certifications = [], docum
     }),
   }
   if (editing) {
-    profile.retainedDocuments = requestType === "SCHOOL" ? (documents.length ? [] : existingDocuments).map(document => ({ id: document.id, field: "legalDocument" }))
-      : rows.flatMap((row, index) => (row.files?.length ? [] : row.existingDocuments || []).map(document => ({ id: document.id, field: `certificate_${index}` })))
+    profile.retainedDocuments = requestType === "SCHOOL" ? existingDocuments.map(document => ({ id: document.id, field: "legalDocument" }))
+      : rows.flatMap((row, index) => (row.existingDocuments || []).map(document => ({ id: document.id, field: `certificate_${index}` })))
     if (expectedUpdatedAt) profile.expectedUpdatedAt = expectedUpdatedAt
   }
   const files = requestType === "SCHOOL" ? documents.map(file => ["legalDocument", file]) : rows.flatMap((row, index) => (row.files || []).map(file => [`certificate_${index}`, file]))
+  if (files.length + (profile.retainedDocuments?.length || 0) > MAX_PROFILE_DOCUMENTS) throw new Error(`Hồ sơ chỉ nhận tối đa ${MAX_PROFILE_DOCUMENTS} tệp, gồm cả tệp giữ lại.`)
   if (!files.length) return profile
   const body = new FormData()
   body.set("profile", JSON.stringify(profile))

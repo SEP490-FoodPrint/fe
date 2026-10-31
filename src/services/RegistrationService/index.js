@@ -3,7 +3,7 @@ import { getStorage, setStorage } from "src/lib/storage"
 import { USE_MOCK_API } from "src/lib/config"
 import { normalizeRequestSearch, organizationName, requestCode, requestDateKey } from "src/lib/registration"
 import { MOCK_REGISTRATION_REQUESTS } from "./mockData"
-import { apiGetRegistrationRequests, apiGetRegistrationRequest, apiSearchRegistrationRequests } from "./urls"
+import { apiGetRegistrationRequests, apiGetRegistrationRequest, apiSearchRegistrationRequests, apiGetRegistrationDocument } from "./urls"
 import { registrationList, registrationQuery, registrationRequest } from "./adapter"
 
 const REVIEW_STORAGE = "foodprint_registration_reviews_v1"
@@ -59,6 +59,14 @@ const getRequest = async (id, { signal } = {}) => {
   if (!request) throw new Error("Không tìm thấy hồ sơ đăng ký.")
   return { data: request, isMock: true }
 }
+const getDocument = async (requestId, documentId, { signal } = {}) => {
+  const response = checkResponse(await http.get(apiGetRegistrationDocument(requestId, documentId), { signal, notifyOnError: false }))
+  const data = response?.data
+  let url
+  try { url = new URL(data?.url) } catch { throw new Error("Không nhận được đường dẫn xem tài liệu hợp lệ.") }
+  if (url.protocol !== "https:" || url.username || url.password || !Number.isInteger(data.expiresIn) || data.expiresIn <= 0) throw new Error("Không nhận được đường dẫn xem tài liệu hợp lệ.")
+  return { url: url.href, expiresIn: data.expiresIn }
+}
 const reviewRequest = async (id, body, reviewer) => {
   if (!["APPROVED", "REJECTED"].includes(body.status)) throw new Error("Quyết định xét duyệt không hợp lệ.")
   if (!USE_MOCK_API) throw new Error("Chức năng xét duyệt chưa khả dụng.")
@@ -75,4 +83,4 @@ const reviewRequest = async (id, body, reviewer) => {
   return { data: { ...current, ...review }, isMock: true }
 }
 
-export default { getRequests, getSummary, getRequest, reviewRequest }
+export default { getRequests, getSummary, getRequest, getDocument, reviewRequest }

@@ -4,7 +4,7 @@ import { AxiosError } from "axios"
 import { createServer } from "vite"
 import { registrationList, registrationQuery, registrationRequest } from "../src/services/RegistrationService/adapter.js"
 import { newPasswordErrors, signupErrors, validCurrentPassword, validPassword } from "../src/lib/authValidation.js"
-import { onboardingBody } from "../src/services/AuthService/onboarding.js"
+import { onboardingBody, appendDocumentFiles } from "../src/services/AuthService/onboarding.js"
 import { ROLES } from "../src/constants/roles.js"
 
 const id = "00000000-0000-4000-8000-000000000101"
@@ -84,6 +84,16 @@ test("search uses its own endpoint and combines filters with server pagination",
   assert.equal(requests[1].url, "/registration-requests")
 })
 
+test("registration list maps the same applicant contact fields as detail", async () => {
+  respond = () => success({ items: [{ ...row, applicantUser: { ...row.applicantUser, username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", emailVerifiedAt: "2026-10-30T07:00:00.000Z" } }], pagination: { page: 1, limit: 5, hasNext: false } })
+  const result = await RegistrationService.getRequests({ page: 1, pageSize: 5 })
+  assert.equal(requests[0].url, "/registration-requests")
+  assert.deepEqual(result.data[0].applicant, { id: principal.id, full_name: "Nguyễn Văn A", username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", email_verified_at: "2026-10-30T07:00:00.000Z" })
+  assert.equal(result.total, null)
+  assert.equal(result.pageSize, 5)
+  assert.equal(result.hasNext, false)
+})
+
 test("summary uses unfiltered server counts and fetches at most one row per count", async () => {
   respond = config => list([], config.params.status === "PENDING" ? 12 : 80, 1, 1)
   assert.deepEqual(await RegistrationService.getSummary(), { total: 80, pending: 12 })
@@ -94,15 +104,19 @@ test("summary uses unfiltered server counts and fetches at most one row per coun
 test("detail maps applicant/reviewer and preserves JSON payloads", async () => {
   const profile = { organizationName: "Trường học A", customField: { value: 1 } }
   const documents = [{ name: "Chứng nhận", url: "https://example.test/file.pdf" }]
-  respond = () => success({ ...row, profileData: profile, supportingDocuments: documents, applicantUser: { ...row.applicantUser, email: "applicant@example.test" }, reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, rejectionReason: "Lý do" })
+  respond = () => success({ ...row, profileData: profile, supportingDocuments: documents, applicantUser: { ...row.applicantUser, username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", emailVerifiedAt: "2026-10-30T07:00:00.000Z" }, reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, rejectionReason: "Lý do" })
   const result = await RegistrationService.getRequest(id)
   assert.equal(requests[0].url, `/registration-requests/${id}`)
-  assert.equal(result.data.applicant.email, "applicant@example.test")
+  assert.deepEqual(result.data.applicant, { id: principal.id, full_name: "Nguyễn Văn A", username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", email_verified_at: "2026-10-30T07:00:00.000Z" })
   assert.equal(result.data.reviewer.full_name, "Người duyệt")
   assert.deepEqual(result.data.profile_data, profile)
   assert.deepEqual(result.data.supporting_documents, documents)
   assert.equal(result.data.rejection_reason, "Lý do")
   assert.deepEqual(registrationRequest({ ...row, profileData: null, supportingDocuments: {} }).supporting_documents, [])
+  const optional = registrationRequest({ ...row, applicantUser: { ...row.applicantUser, phone: null, emailVerifiedAt: null }, reviewedByUser: null })
+  assert.equal(optional.applicant.phone, null)
+  assert.equal(optional.applicant.email_verified_at, null)
+  assert.equal(optional.reviewer, null)
 })
 
 test("403/404/503 are surfaced to the page without falling back to demo data", async () => {
@@ -362,14 +376,14 @@ test("editing keeps stored files by ID and remaps retained certificate indexes a
   assert.deepEqual(removed.retainedDocuments, [])
 })
 
-test("replacement files replace only their matching retained file; first submissions keep the original contract", () => {
+test("new files are appended alongside retained files; first submissions keep the original contract", () => {
   const values = { name: "School" }
   const file = new File(["%PDF-1.7"], "new.pdf", { type: "application/pdf" })
   const existingDocuments = [{ id: "stored-school", publicId: "DO_NOT_SEND" }]
   const kept = onboardingBody({ requestType: "SCHOOL", values, editing: true, existingDocuments })
   assert.deepEqual(kept.retainedDocuments, [{ id: "stored-school", field: "legalDocument" }])
   const replaced = onboardingBody({ requestType: "SCHOOL", values, editing: true, existingDocuments, documents: [file] })
-  assert.deepEqual(JSON.parse(replaced.get("profile")).retainedDocuments, [])
+  assert.deepEqual(JSON.parse(replaced.get("profile")).retainedDocuments, [{ id: "stored-school", field: "legalDocument" }])
   assert.equal(replaced.get("legalDocument").name, "new.pdf")
   assert.equal(onboardingBody({ requestType: "SCHOOL", values }).retainedDocuments, undefined)
 })
@@ -436,4 +450,72 @@ test("new password confirmation blocks weak, mismatched and oversized passwords 
   assert.equal(validCurrentPassword("old"), true)
   assert.equal(validCurrentPassword(""), false)
   assert.equal(validCurrentPassword("🙂".repeat(19)), false)
+})
+
+test("registration document metadata uses the private documents contract and keeps every file in a certificate group", async () => {
+  respond = () => success({ ...row, requestType: "SUPPLIER", profileData: { certifications: [{ certificationType: "ATTP", certificateNo: "ATTP-001", issuedDate: "2026-01-01", expiryDate: null }] }, documents: [
+    { id: "first", field: "certificate_0", format: "pdf", fileName: "first.pdf", bytes: 120 },
+    { id: "second", field: "certificate_0", format: "png", fileName: "second.png", bytes: 140 },
+  ] })
+  const result = await RegistrationService.getRequest(id)
+  assert.equal(requests.length, 1)
+  assert.equal(result.data.supporting_documents.length, 2)
+  assert.deepEqual(result.data.supporting_documents.map(document => [document.id, document.request_id, document.number, document.file_name, document.mime_type]), [
+    ["first", id, "ATTP-001", "first.pdf", "application/pdf"],
+    ["second", id, "ATTP-001", "second.png", "image/png"],
+  ])
+  assert(result.data.supporting_documents.every(document => document.url === undefined && document.publicId === undefined))
+  const school = registrationRequest({ ...row, documents: [{ id: "legal", field: "legalDocument", format: "jpg", fileName: "school.jpg", bytes: 10 }] })
+  assert.equal(school.supporting_documents[0].name, "Tài liệu pháp lý nhà trường")
+})
+
+test("document preview resolves an authenticated fresh URL and surfaces denied, missing or unsafe links", async () => {
+  respond = () => success({ url: "https://documents.example.test/private.pdf?signature=test", expiresIn: 60 })
+  const link = await RegistrationService.getDocument(id, "file-id")
+  assert.equal(requests[0].url, `/registration-requests/${id}/documents/file-id`)
+  assert.equal(requests[0].withCredentials, true)
+  assert.equal(requests[0].headers.Authorization, undefined)
+  assert.equal(link.expiresIn, 60)
+  for (const url of ["javascript:alert(1)", "http://insecure.example.test/file.pdf", "https://user:password@example.test/file.pdf"]) {
+    respond = () => success({ url, expiresIn: 60 })
+    await assert.rejects(RegistrationService.getDocument(id, "file-id"), /hợp lệ/)
+  }
+  for (const status of [403, 404, 503]) {
+    respond = config => { throw new AxiosError("Failed", "ERR_BAD_RESPONSE", config, null, { status, data: { message: `Document error ${status}` } }) }
+    await assert.rejects(RegistrationService.getDocument(id, "file-id"), new RegExp(`Document error ${status}`))
+  }
+  const controller = new AbortController(); controller.abort()
+  await assert.rejects(RegistrationService.getDocument(id, "file-id", { signal: controller.signal }), error => error.code === "ERR_CANCELED")
+})
+
+test("multiple school/certificate files append alongside retained files without sending storage metadata", async () => {
+  const values = { name: "School" }
+  const files = [new File(["%PDF-1.7"], "one.pdf", { type: "application/pdf" }), new File(["%PDF-1.7"], "two.pdf", { type: "application/pdf" })]
+  const existingDocuments = [{ id: "old-one", publicId: "DO_NOT_SEND" }, { id: "old-two" }]
+  const body = onboardingBody({ requestType: "SCHOOL", values, documents: files, existingDocuments, editing: true })
+  assert.deepEqual(body.getAll("legalDocument").map(file => file.name), ["one.pdf", "two.pdf"])
+  assert.deepEqual(JSON.parse(body.get("profile")).retainedDocuments, [{ id: "old-one", field: "legalDocument" }, { id: "old-two", field: "legalDocument" }])
+  assert(!body.get("profile").includes("DO_NOT_SEND"))
+  const supplier = onboardingBody({ requestType: "SUPPLIER", values, editing: true, certifications: [{ certificationType: "ATTP", certificateNo: "001", files, existingDocuments }] })
+  assert.equal(supplier.getAll("certificate_0").length, 2)
+  assert.equal(JSON.parse(supplier.get("profile")).retainedDocuments.length, 2)
+  respond = () => success({ ...row, status: "PENDING" })
+  await AuthService.submitOnboarding({ requestType: "SCHOOL", values, documents: files, existingDocuments, editing: true })
+  assert.equal(requests.at(-1).timeout, 120000)
+  assert.equal(requests.at(-1).data.getAll("legalDocument").length, 2)
+})
+
+test("document selection appends across picks, deduplicates and does not mutate previous selections", () => {
+  const first = new File(["first"], "one.pdf", { type: "application/pdf", lastModified: 123 })
+  const same = new File(["first"], "one.pdf", { type: "application/pdf", lastModified: 123 })
+  const second = new File(["second"], "two.pdf", { type: "application/pdf", lastModified: 456 })
+  const previous = [first]
+  assert.deepEqual(appendDocumentFiles(previous, [same, second, second]), [first, second])
+  assert.deepEqual(previous, [first])
+})
+
+test("onboarding limits count both retained files and new selections before a request is sent", () => {
+  const files = Array.from({ length: 20 }, (_, index) => new File(["%PDF-1.7"], `${index}.pdf`, { type: "application/pdf" }))
+  assert.equal(onboardingBody({ requestType: "SCHOOL", values: { name: "School" }, documents: files }).getAll("legalDocument").length, 20)
+  assert.throws(() => onboardingBody({ requestType: "SCHOOL", values: { name: "School" }, documents: files, editing: true, existingDocuments: [{ id: "old" }] }), /20 tệp/)
 })

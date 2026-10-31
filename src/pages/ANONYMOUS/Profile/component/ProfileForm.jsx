@@ -66,7 +66,7 @@ export default function ProfileForm({ user, onUpdated }) {
       <div className={styles.fields}>
         <AuthField id="profile-full-name" label="Họ và tên" disabled={fetching || loading} required autoComplete="name" value={values.fullName} onChange={event => { setValues(previous => ({ ...previous, fullName: event.target.value })); setSaved(false) }} error={errors["profile-full-name"]} inputProps={{ maxLength: 255 }} />
         <AuthField id="profile-phone" label="Số điện thoại" disabled={fetching || loading} type="tel" autoComplete="tel" value={values.phone} onChange={event => { setValues(previous => ({ ...previous, phone: event.target.value })); setSaved(false) }} error={errors["profile-phone"]} inputProps={{ maxLength: 30 }} placeholder="Nhập số điện thoại" />
-        <AuthField id="profile-username" label="Tên đăng nhập" value={user.username || ""} inputProps={{ readOnly: true }} />
+        <AuthField id="profile-username" label="Tên đăng nhập" value={user.username || ""} disabled inputProps={{ readOnly: true }} hint="Tên đăng nhập không thể thay đổi." />
         <AuthField id="profile-email" label="Email tài khoản" type="email" value={user.email || ""} placeholder="Chưa có thông tin" inputProps={{ readOnly: true }} />
       </div>
       <div className={styles.actions}><Button type="button" variant="outlined" onClick={reset} disabled={loading || fetching || !dirty}>Hủy thay đổi</Button><Button type="submit" variant="contained" disabled={loading || fetching || Boolean(loadError) || !dirty}>{loading ? <CircularProgress color="inherit" size={22} aria-label="Đang lưu profile" /> : "Lưu thay đổi"}</Button></div>

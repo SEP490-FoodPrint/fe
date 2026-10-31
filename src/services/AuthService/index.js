@@ -98,7 +98,8 @@ const AuthService = {
     return response.data
   },
   submitOnboarding: async values => {
-    const response = await http.post(apiOnboarding, onboardingBody(values), { notifyOnError: false })
+    const body = onboardingBody(values)
+    const response = await http.post(apiOnboarding, body, { notifyOnError: false, ...(body instanceof FormData ? { timeout: 120000 } : {}) })
     if (!response?.success || !response.data?.id || response.data.status !== "PENDING") throw new Error(response?.message || "Chưa xác nhận được hồ sơ. Vui lòng kiểm tra lại trạng thái trước khi gửi lại.")
     return response.data
   },
