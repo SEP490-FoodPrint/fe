@@ -14,7 +14,7 @@ Thiết kế: [Figma · Đăng nhập & Đăng ký](https://www.figma.com/design
 
 SYSTEM_ADMIN vẫn đăng nhập vào danh sách hồ sơ đăng ký. Tài khoản đang hoàn thiện hồ sơ đăng nhập về trang chủ, không tự chuyển vào form đơn vị. Route nghiệp vụ tiếp tục chặn tài khoản UNVERIFIED.
 
-Profile, bảng hồ sơ và form hoàn thiện/chỉnh sửa dùng chung `AccountLayout` với header công khai và sidebar chỉ gồm Profile, Hồ sơ đăng ký. Mục đang mở được đánh dấu bằng `aria-current`. Desktop hiện sidebar bên trái; mobile/tablet hẹp dùng nút mở Drawer, hỗ trợ bàn phím/Escape và đóng sau khi chọn mục.
+Profile, bảng hồ sơ và form hoàn thiện/chỉnh sửa dùng chung `AccountLayout` với header công khai và sidebar gồm Profile, Hồ sơ đăng ký, Đổi mật khẩu. Mục đang mở được đánh dấu bằng `aria-current`. Desktop hiện sidebar bên trái; mobile/tablet hẹp dùng nút mở Drawer, hỗ trợ bàn phím/Escape và đóng sau khi chọn mục.
 
 ## Màn hình
 
@@ -28,14 +28,16 @@ Profile, bảng hồ sơ và form hoàn thiện/chỉnh sửa dùng chung `Accou
 | `/profile` | Profile cá nhân: sửa họ tên/số điện thoại; username/email chỉ đọc theo API hiện tại |
 | `/register/profile` | Form hồ sơ đơn vị riêng, chưa tự nộp khi sửa Profile |
 | `/register/status` | Bảng một hàng hồ sơ lấy từ GET onboarding, trạng thái PENDING/APPROVED/REJECTED và nút sửa |
-| `/forgot-password` | Giao diện khôi phục mật khẩu, chưa gửi email vì chưa có API tương ứng |
-| `/reset-password?token=...` | Giao diện mật khẩu mới; thiếu token hiển thị liên kết không hợp lệ |
+| `/change-password` | Có sidebar; xác nhận mật khẩu hiện tại qua API trước khi mở hai ô mật khẩu mới/xác nhận |
+| `/forgot-password` | Nhập email đã đăng ký để gửi mã khôi phục, response không tiết lộ email tồn tại |
+| `/forgot-password/verify` | Tái sử dụng EmailCodeForm của xác minh đăng ký; nhập mã 6 chữ số, gửi lại/cooldown |
+| `/reset-password` | Chỉ mở sau khi xác minh mã; hai ô mật khẩu mới/xác nhận và nút cập nhật |
 
 ## Hợp đồng API
 
 Đối chiếu `be/src/modules/auth/auth.routes.ts`, các controller/service xác minh email và profile, `be/docs/AUTH_SESSIONS.md`, `be/docs/ONBOARDING.md`. Endpoint nằm trong `src/services/AuthService/urls.js`; UI chỉ gọi service.
 
-- `POST /auth/signup`: username, fullName, email, password, requestType và phone tùy chọn. Không gửi confirmPassword, role/status/ID tổ chức. Xử lý 201/409, giữ các trường khi signup lỗi. Username 3–120 ký tự; password tối thiểu 15 ký tự Unicode, tối đa 72 byte UTF-8.
+- `POST /auth/signup`: username, fullName, email, password, requestType và phone tùy chọn. Không gửi confirmPassword, role/status/ID tổ chức. Xử lý 201/409, giữ các trường khi signup lỗi. Username 3–120 ký tự; password tối thiểu 8 ký tự Unicode, có chữ hoa, chữ thường, chữ số và ký tự đặc biệt, tối đa 72 byte UTF-8 (đồng bộ quy tắc hiện tại của backend).
 - `POST /auth/email-verification/request`: `{ email }`, trả `data.expiresIn`, `data.resendAfter`. Backend giới hạn gửi lại 60 giây; mã có hạn 600 giây. Nếu signup đã tạo tài khoản nhưng gửi mail thất bại, màn xác minh cho phép gửi lại, không tạo tài khoản trùng.
 - `POST /auth/email-verification/verify`: `{ email, code }` với code là chuỗi 6 chữ số, giữ số 0 ở đầu. Thành công trả `{ emailVerified: true, accountStatus: "UNVERIFIED" }`; không tự tạo School/Supplier hoặc hồ sơ xét duyệt.
 - `POST /auth/login`: identifier/password; response user/expiresIn và cookie HttpOnly. Không lưu access/refresh token trong frontend storage.
@@ -45,10 +47,18 @@ Profile, bảng hồ sơ và form hoàn thiện/chỉnh sửa dùng chung `Accou
 - `POST /auth/logout`: thu hồi phiên backend.
 - `GET/POST /auth/onboarding`: tạo hồ sơ, sửa khi PENDING hoặc gửi lại khi REJECTED; nộp JSON nếu không có tệp, hoặc FormData gồm profile và legalDocument/certificate_0, certificate_1… nếu có tệp. Bỏ hàng chứng nhận hoàn toàn trống trước khi đánh index tệp. Chỉ chuyển PENDING khi API xác nhận. Tài khoản vẫn UNVERIFIED cho tới khi được duyệt.
 
+- `POST /auth/change-password/verify`: chỉ gửi `{ currentPassword }`; backend xác minh tài khoản từ cookie và trả `{ verified: true }`. Không thay mật khẩu, tạo/thu hồi phiên hoặc phát token ở bước này. Chỉ mở hai ô mật khẩu mới sau response đã xác nhận.
+- `POST /auth/change-password`: `{ currentPassword, newPassword }`, không gửi ô xác nhận, userId/email. Backend vẫn kiểm tra lại mật khẩu cũ khi lưu. Mật khẩu cũ chỉ giữ trong state của form, xóa khi quay lại, rời trang hoặc thành công. Sai mật khẩu cũ giữ ở bước 1; nếu mật khẩu đã đổi ở nơi khác trước khi lưu, yêu cầu xác nhận lại.
+- `POST /auth/forgot-password`: `{ email }` đã trim/lowercase; dùng cùng endpoint khi gửi lại và tôn trọng `resendAfter`/`Retry-After`.
+- `POST /auth/forgot-password/verify`: `{ email, code }`, code là chuỗi giữ số 0 đầu. Mã đúng trả `{ resetToken, expiresIn }`; không dùng API kích hoạt đăng ký cho mục đích khôi phục.
+- `POST /auth/reset-password`: `{ resetToken, newPassword }`. Grant chỉ ở React context và tự xóa khi hết hạn; không đưa vào URL/history, localStorage/sessionStorage hoặc log. Tải lại/nhập trực tiếp URL/phiên hết hạn thì quay về bước email. Token dùng một lần; nếu request thất bại hoặc kết quả không rõ, giao diện yêu cầu mã mới để tiếp tục (429 trước xử lý cho phép thử lại theo cooldown).
+
+Sau đổi/reset thành công, backend thu hồi phiên cũ và xóa cookie; frontend xóa context đăng nhập và dữ liệu xác minh tạm, chuyển về đăng nhập kèm thông báo thành công. Không tự đăng nhập bằng mật khẩu mới. Các mật khẩu được gửi nguyên trạng, không trim; frontend kiểm tra khớp ô xác nhận và cùng quy tắc mật khẩu với backend.
+
 Request ghi dùng `X-CSRF-Protection: 1`; tất cả request dùng cookie credentials. Chạy frontend tại `http://localhost:3001`, API `http://localhost:5000/api` theo CORS/cookie cùng site hiện tại. Backend cần cấu hình mail provider và hạ tầng của riêng nó; frontend không gửi mail trực tiếp hoặc chứa API key mail.
 
 SessionStorage chỉ giữ thông tin luồng xác minh (email/username/loại đơn vị, thông tin cooldown và trạng thái bước), không giữ mật khẩu, mã OTP hoặc token. Dữ liệu chưa gửi trong form hồ sơ nằm tại trình duyệt. Khi sửa/gửi lại, frontend gửi `retainedDocuments: [{ id, field }]` cho các tệp đã tải lên cần giữ và `expectedUpdatedAt` lấy từ GET để phát hiện bản sửa cũ (409). Khi xóa chứng nhận, index tệp được đánh lại đúng hàng; tệp thay thế mới không gửi kèm ID giữ lại cùng trường. Backend xác minh ID thuộc chính hồ sơ và chỉ dọn tệp bị bỏ sau commit. Không cần chọn lại tệp khi chỉ sửa thông tin.
 
 ## Kiểm tra
 
-Chạy `npm run test:registration` và `npm run build`. Các test service thay HTTP adapter, không ghi database hoặc gửi mail thật. Kiểm tra trình duyệt dùng response theo hợp đồng backend cho các bước signup, mã sai/đúng, tạo phiên, đóng/đồng ý popup, ba mục menu, sidebar/Drawer, bảng một hàng, điền sẵn/sửa/hủy hồ sơ, giữ tệp đã tải lên, lưu/lỗi Profile và nộp hồ sơ đơn vị; kiểm tra cả desktop/tablet/mobile. Gửi email và lưu dữ liệu thật cần backend/hạ tầng đang chạy và cấu hình đúng.
+Chạy `npm run test:registration` và `npm run build`. Các test service thay HTTP adapter, không ghi database hoặc gửi mail thật. Kiểm tra trình duyệt dùng response theo hợp đồng backend cho các bước signup, mã sai/đúng, tạo phiên, đóng/đồng ý popup, ba mục menu, sidebar/Drawer, bảng một hàng, điền sẵn/sửa/hủy hồ sơ, giữ tệp đã tải lên, lưu/lỗi Profile và nộp hồ sơ đơn vị; kiểm tra cả desktop/tablet/mobile. Kiểm thử thêm đổi mật khẩu cũ sai/đúng, giới hạn thử, mật khẩu mới yếu/không khớp, email/mã sai/đúng, gửi lại/429, grant hết hạn/tải lại và đăng nhập lại sau đổi thành công. Gửi email và lưu dữ liệu thật cần backend/hạ tầng đang chạy và cấu hình đúng.

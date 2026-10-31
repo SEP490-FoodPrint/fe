@@ -5,7 +5,7 @@ import AuthCard, { AuthHeading } from "src/components/Auth/AuthCard"
 import AuthField from "src/components/Auth/AuthField"
 import FormErrors from "src/components/Auth/FormErrors"
 import AuthService from "src/services/AuthService"
-import { signupErrors } from "src/lib/authValidation"
+import { PASSWORD_HINT, signupErrors } from "src/lib/authValidation"
 import { saveSignupSession } from "src/lib/signupSession"
 import { StoreContext } from "src/contexts"
 import ROUTER from "src/router/ROUTER"
@@ -66,7 +66,7 @@ export default function RegisterForm() {
       {fields.map(({ id, maxLength, ...field }) => <AuthField key={id} id={id} {...field} required={id !== "phone"} value={values[id]} onChange={event => setValues(previous => ({ ...previous, [id]: event.target.value }))} error={errors[id]} inputProps={{ maxLength, ...(["username", "email"].includes(id) ? { autoCapitalize: "none", spellCheck: false } : {}) }} />)}
     </div>
     <p className={form.hint}>Tên đăng nhập: 3–120 ký tự, bắt đầu bằng chữ hoặc số; dùng chữ, số và dấu . _ -</p>
-    <p className={form.hint}>Mật khẩu: ít nhất 15 ký tự, tối đa 72 byte UTF-8.</p>
+    <p className={form.hint}>{PASSWORD_HINT}</p>
     <p className={form.hint}>* Trường bắt buộc. Số điện thoại người đại diện không bắt buộc.</p>
     <Button type="submit" variant="contained" className={form.primary} disabled={loading}>{loading ? <CircularProgress size={22} color="inherit" aria-label="Đang tạo tài khoản" /> : "Tạo tài khoản"}</Button>
     <Button component={Link} to={ROUTER.LOGIN} className={form.link}>Đã có tài khoản? Đăng nhập</Button>

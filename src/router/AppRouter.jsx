@@ -9,6 +9,7 @@ import ROUTER from "./ROUTER"
 // Lazy load Pages
 const PlatformHome = lazy(() => import("src/pages/ANONYMOUS/PlatformHome"))
 const ProfilePage = lazy(() => import("src/pages/ANONYMOUS/Profile"))
+const ChangePassword = lazy(() => import("src/pages/ANONYMOUS/ChangePassword"))
 const SchoolLanding = lazy(() => import("src/pages/ANONYMOUS/SchoolLanding"))
 const LoginPage = lazy(() => import("src/pages/ANONYMOUS/Login"))
 const RegisterPage = lazy(() => import("src/pages/ANONYMOUS/Register"))
@@ -78,6 +79,7 @@ const routes = [
     element: <AccountLayout />,
     children: [
       { path: ROUTER.PROFILE, element: <LazyWrapper><ProfilePage /></LazyWrapper> },
+      { path: ROUTER.CHANGE_PASSWORD, element: <LazyWrapper><ChangePassword /></LazyWrapper> },
       { path: ROUTER.REGISTRATION_PROFILE, element: <LazyWrapper><RegistrationProfile /></LazyWrapper> },
       { path: ROUTER.REGISTRATION_STATUS, element: <LazyWrapper><RegistrationStatus /></LazyWrapper> },
     ],
@@ -109,6 +111,7 @@ const routes = [
       { path: ROUTER.TEST_LOGIN, element: <LazyWrapper><LoginPage /></LazyWrapper> },
       { path: ROUTER.ACTIVATE_ACCOUNT, element: <LazyWrapper><AccountActivation /></LazyWrapper> },
       { path: ROUTER.FORGOT_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
+      { path: ROUTER.PASSWORD_RECOVERY_CODE, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
       { path: ROUTER.RESET_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
     ],
   },

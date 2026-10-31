@@ -3,7 +3,7 @@ import { after, before, beforeEach, test } from "node:test"
 import { AxiosError } from "axios"
 import { createServer } from "vite"
 import { registrationList, registrationQuery, registrationRequest } from "../src/services/RegistrationService/adapter.js"
-import { signupErrors, validPassword } from "../src/lib/authValidation.js"
+import { newPasswordErrors, signupErrors, validCurrentPassword, validPassword } from "../src/lib/authValidation.js"
 import { onboardingBody } from "../src/services/AuthService/onboarding.js"
 import { ROLES } from "../src/constants/roles.js"
 
@@ -203,11 +203,13 @@ test("logout revokes the backend session with CSRF and clears legacy browser sto
 })
 
 test("signup password rules count Unicode characters and enforce the UTF-8 byte limit", () => {
-  assert.equal(validPassword("a".repeat(14)), false)
-  assert.equal(validPassword("a".repeat(15)), true)
-  assert.equal(validPassword("🙂".repeat(18)), true)
-  assert.equal(validPassword("🙂".repeat(19)), false)
-  const values = { username: "school_admin", fullName: "Nguyễn A", email: "a@example.test", phone: "", password: "long-test-password", confirmPassword: "mismatch" }
+  assert.equal(validPassword("Food123!"), true)
+  assert.equal(validPassword("ĐồĂn123!"), true)
+  assert.equal(validPassword("Food123 "), false)
+  assert.equal(validPassword("food123!"), false)
+  assert.equal(validPassword("🙂".repeat(17) + "Aa1!"), true)
+  assert.equal(validPassword("🙂".repeat(18) + "Aa1!"), false)
+  const values = { username: "school_admin", fullName: "Nguyễn A", email: "a@example.test", phone: "", password: "Food123!", confirmPassword: "mismatch" }
   assert.deepEqual(Object.keys(signupErrors(values)), ["confirmPassword"])
   assert.deepEqual(signupErrors({ ...values, confirmPassword: values.password }), {})
 })
@@ -374,4 +376,64 @@ test("replacement files replace only their matching retained file; first submiss
 
 test("rejected applications open the summary and are edited through the pencil action", () => {
   assert.equal(navigation.getRegistrationDestination({ orgType: "SCHOOL", registrationRequest: { status: "REJECTED" } }), "/register/status")
+})
+
+
+test("password change validates the old password separately before submitting only old/new passwords", async () => {
+  respond = () => success({ verified: true })
+  await AuthService.verifyCurrentPassword(" legacy password ")
+  assert.equal(requests[0].url, "/auth/change-password/verify")
+  assert.deepEqual(JSON.parse(requests[0].data), { currentPassword: " legacy password " })
+  assert.equal(requests[0].withCredentials, true)
+  assert.equal(requests[0].headers["X-CSRF-Protection"], "1")
+  respond = () => success(null)
+  await AuthService.changePassword({ currentPassword: " legacy password ", newPassword: " Food123! ", confirmPassword: "DO_NOT_SEND", userId: "DO_NOT_SEND" })
+  assert.equal(requests[1].url, "/auth/change-password")
+  assert.deepEqual(JSON.parse(requests[1].data), { currentPassword: " legacy password ", newPassword: " Food123! " })
+})
+
+test("wrong current passwords and unconfirmed responses never open a successful verification", async () => {
+  respond = config => { throw new AxiosError("Bad password", "ERR_BAD_REQUEST", config, null, { status: 400, data: { message: "Mật khẩu hiện tại không đúng" } }) }
+  await assert.rejects(AuthService.verifyCurrentPassword("wrong"), /không đúng/)
+  assert.equal(requests.length, 1)
+  respond = () => success({ verified: false })
+  await assert.rejects(AuthService.verifyCurrentPassword("wrong"))
+})
+
+test("recovery requests use separate endpoints, normalize email and preserve leading zero OTPs without a login/refresh", async () => {
+  respond = () => success({ expiresIn: 600, resendAfter: 60 })
+  assert.equal((await AuthService.requestPasswordReset(" Person@Example.test ")).resendAfter, 60)
+  assert.equal(requests[0].url, "/auth/forgot-password")
+  assert.deepEqual(JSON.parse(requests[0].data), { email: "person@example.test" })
+  respond = () => success({ resetToken: "a".repeat(43), expiresIn: 300 })
+  const grant = await AuthService.verifyPasswordResetCode({ email: " Person@Example.test ", code: "012345" })
+  assert.equal(requests[1].url, "/auth/forgot-password/verify")
+  assert.deepEqual(JSON.parse(requests[1].data), { email: "person@example.test", code: "012345" })
+  respond = () => success(null)
+  await AuthService.resetPassword({ resetToken: grant.resetToken, newPassword: " Food123! ", email: "DO_NOT_SEND", confirmPassword: "DO_NOT_SEND" })
+  assert.equal(requests[2].url, "/auth/reset-password")
+  assert.deepEqual(JSON.parse(requests[2].data), { resetToken: grant.resetToken, newPassword: " Food123! " })
+  assert(requests.every(config => config.skipRefresh && config.skipAuthRedirect && config.withCredentials))
+  assert.equal(memory.size, 0)
+})
+
+test("recovery rejects missing/invalid grants, wrong codes and reports cooldowns without retrying OTPs", async () => {
+  for (const grant of [null, { resetToken: "invalid", expiresIn: 300 }, { resetToken: "a".repeat(43), expiresIn: 0 }]) {
+    respond = () => success(grant)
+    await assert.rejects(AuthService.verifyPasswordResetCode({ email: "person@example.test", code: "012345" }))
+  }
+  respond = config => { throw new AxiosError("Expired code", "ERR_BAD_REQUEST", config, null, { status: 400, data: { message: "Mã đã hết hạn" } }) }
+  await assert.rejects(AuthService.verifyPasswordResetCode({ email: "person@example.test", code: "000000" }), /hết hạn/)
+  respond = config => { throw new AxiosError("Slow down", "ERR_BAD_REQUEST", config, null, { status: 429, data: { message: "Thử lại sau" }, headers: { "retry-after": "60" } }) }
+  await assert.rejects(AuthService.requestPasswordReset("person@example.test"), error => error.response.headers["retry-after"] === "60")
+  assert.equal(requests.length, 5)
+})
+
+test("new password confirmation blocks weak, mismatched and oversized passwords while accepting legacy current passwords", () => {
+  assert.deepEqual(newPasswordErrors("Food123!", "Food123!"), {})
+  assert.equal(Object.keys(newPasswordErrors("Food123!", "Different123!")).join(","), "confirmPassword")
+  assert(newPasswordErrors("weak", "weak").password)
+  assert.equal(validCurrentPassword("old"), true)
+  assert.equal(validCurrentPassword(""), false)
+  assert.equal(validCurrentPassword("🙂".repeat(19)), false)
 })
