@@ -33,7 +33,8 @@ const INITIAL_MAIN_INGREDIENT = {
   stock: 18.0,
   unit: "kg",
   warehouse: "Kho lạnh B1 (Dư +12.0 kg)",
-  quantity: 6.0
+  quantity: 6.0,
+  quotaPerPortion: "100g / suất"
 }
 
 const INITIAL_SUB_INGREDIENTS = [
@@ -47,7 +48,8 @@ const INITIAL_SUB_INGREDIENTS = [
     stock: 5.0,
     unit: "kg",
     warehouse: "Kho rau củ",
-    quantity: 0.3
+    quantity: 0.3,
+    quotaPerPortion: "5g / suất"
   },
   {
     id: 3,
@@ -59,7 +61,8 @@ const INITIAL_SUB_INGREDIENTS = [
     stock: 8.5,
     unit: "kg",
     warehouse: "Kho khô",
-    quantity: 0.2
+    quantity: 0.2,
+    quotaPerPortion: "3.3g / suất"
   },
   {
     id: 4,
@@ -71,7 +74,8 @@ const INITIAL_SUB_INGREDIENTS = [
     stock: 20.0,
     unit: "kg",
     warehouse: "Kho bao bì kín",
-    quantity: 0.5
+    quantity: 0.5,
+    quotaPerPortion: "8.3g / suất"
   }
 ]
 

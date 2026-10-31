@@ -95,6 +95,9 @@ export default function IngredientsAllocationCard({
                   <span className={styles.numBold}>{mainIngredient.quantity}</span>
                   <span className={styles.unitText}>{mainIngredient.unit}</span>
                 </div>
+                {mainIngredient.quotaPerPortion && (
+                  <span className={styles.quotaSubText}>({mainIngredient.quotaPerPortion})</span>
+                )}
               </td>
               <td className={styles.tdAction}>
                 <button
@@ -150,6 +153,9 @@ export default function IngredientsAllocationCard({
                     <span className={styles.numBold}>{item.quantity}</span>
                     <span className={styles.unitText}>{item.unit}</span>
                   </div>
+                  {item.quotaPerPortion && (
+                    <span className={styles.quotaSubText}>({item.quotaPerPortion})</span>
+                  )}
                 </td>
                 <td className={styles.tdAction}>
                   <button
@@ -182,7 +188,12 @@ export default function IngredientsAllocationCard({
               <div className={styles.lotCode}>{mainIngredient.lotCode}</div>
             </div>
             <div className={styles.mobileQtyPill}>
-              <strong>{mainIngredient.quantity}</strong> {mainIngredient.unit}
+              <div>
+                <strong>{mainIngredient.quantity}</strong> {mainIngredient.unit}
+              </div>
+              {mainIngredient.quotaPerPortion && (
+                <span className={styles.quotaSubMobile}>({mainIngredient.quotaPerPortion})</span>
+              )}
             </div>
           </div>
 
@@ -228,7 +239,12 @@ export default function IngredientsAllocationCard({
                 <div className={styles.lotCode}>{item.lotCode}</div>
               </div>
               <div className={styles.mobileQtyPill}>
-                <strong>{item.quantity}</strong> {item.unit}
+                <div>
+                  <strong>{item.quantity}</strong> {item.unit}
+                </div>
+                {item.quotaPerPortion && (
+                  <span className={styles.quotaSubMobile}>({item.quotaPerPortion})</span>
+                )}
               </div>
             </div>
 

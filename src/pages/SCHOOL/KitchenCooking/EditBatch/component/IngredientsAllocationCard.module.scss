@@ -329,6 +329,15 @@
   color: #166534;
 }
 
+.quotaSubText {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
 .swapBtn {
   display: inline-flex;
   align-items: center;
@@ -398,13 +407,23 @@
 }
 
 .mobileQtyPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
   background-color: #f0fdf4;
   color: #15803d;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 6px;
   font-size: 12px;
   border: 1px solid #bbf7d0;
   white-space: nowrap;
+}
+
+.quotaSubMobile {
+  font-size: 10.5px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 2px;
 }
 
 .mobileDetailsGrid {
