@@ -36,7 +36,6 @@ export default function BatchPolicyAndInfoCard({ batchData }) {
             <span className={styles.dishName}>{batchData.dishName || "Thịt gà kho"}</span>
             <span className={styles.dishCategoryPill}>Món chính</span>
           </div>
-          <span className={styles.subText}>Món mặn giàu đạm cho học sinh</span>
         </div>
 
         {/* Cột 2: Ngày & Ca phục vụ */}
@@ -48,7 +47,6 @@ export default function BatchPolicyAndInfoCard({ batchData }) {
             <span className={styles.subText}>•</span>
             <span className={styles.mealSessionText}>{batchData.mealSession || "Bữa trưa (11:15)"}</span>
           </div>
-          <span className={styles.subText}>Tuần 43 - Học kỳ I (BGH duyệt)</span>
         </div>
 
         {/* Cột 3: Số suất chế biến (Khóa tự động theo GVCN) */}

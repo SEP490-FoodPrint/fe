@@ -90,13 +90,10 @@ export default function IngredientsAllocationCard({
                 </div>
               </td>
               <td className={styles.tdCert}>
-                <div className={styles.certMeta}>
-                  <span className={styles.certBadge}>
-                    <ShieldCheck size={13} />
-                    {mainIngredient.cert}
-                  </span>
-                  <span className={styles.certSub}>{mainIngredient.certNote}</span>
-                </div>
+                <span className={styles.certBadge}>
+                  <ShieldCheck size={13} />
+                  {mainIngredient.cert}
+                </span>
               </td>
               <td className={styles.tdExpiry}>
                 <span className={styles.expiryDate}>{mainIngredient.expiryDate}</span>
@@ -104,7 +101,6 @@ export default function IngredientsAllocationCard({
               </td>
               <td className={styles.tdStock}>
                 <span className={styles.stockNum}>{mainIngredient.stock} {mainIngredient.unit}</span>
-                <span className={styles.stockLocation}>{mainIngredient.warehouse}</span>
               </td>
               <td className={styles.tdQty}>
                 <div className={styles.qtyBox}>
@@ -160,7 +156,6 @@ export default function IngredientsAllocationCard({
                 </td>
                 <td className={styles.tdStock}>
                   <span className={styles.stockNum}>{item.stock} {item.unit}</span>
-                  <span className={styles.stockLocation}>{item.warehouse}</span>
                 </td>
                 <td className={styles.tdQty}>
                   <div className={styles.qtyBox}>

@@ -184,7 +184,7 @@ export default function SwapLotModal({ isOpen, onClose, targetItem, onConfirmSwa
 
                     <div className={styles.metaItem}>
                       <Warehouse size={14} className={styles.metaIcon} />
-                      <span>Tồn: <strong>{lot.stock} {lot.unit}</strong> ({lot.warehouse})</span>
+                      <span>Tồn: <strong>{lot.stock} {lot.unit}</strong></span>
                     </div>
                   </div>
                 </div>
