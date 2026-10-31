@@ -1,0 +1,271 @@
+.tableWrapper {
+  width: 100%;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+}
+
+.tableContainer {
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.accountTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 780px;
+
+  thead tr {
+    background-color: #f8faf9;
+    border-bottom: 1px solid var(--border-default, #dce5e0);
+  }
+
+  th {
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary, #52635c);
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+}
+
+.thCode {
+  width: 130px;
+}
+
+.thName {
+  min-width: 240px;
+}
+
+.thDept {
+  width: 210px;
+}
+
+.thStatus {
+  width: 150px;
+}
+
+.thActions {
+  width: 120px;
+  text-align: right;
+  padding-right: 20px !important;
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--neutral-100, #f1f5f3);
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background-color: #f8faf9;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  td {
+    padding: 12px 16px;
+    vertical-align: middle;
+  }
+}
+
+.tdCode {
+  font-weight: 600;
+}
+
+.codeBadge {
+  display: inline-block;
+  background-color: #f1f5f3;
+  color: var(--text-primary, #1d2b26);
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.userNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1d2b26);
+  line-height: 1.3;
+}
+
+.userPosition {
+  font-size: 11.5px;
+  color: var(--text-muted, #6b7c74);
+  font-weight: 500;
+}
+
+.userContactRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.contactItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-muted, #6b7c74);
+}
+
+.contactIcon {
+  color: var(--text-muted, #84958b);
+  flex-shrink: 0;
+}
+
+.deptBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.deptIcon {
+  display: flex;
+  align-items: center;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* 2 Nút Icon Hành động: CHỈ CÓ ICON, KHÔNG CHỮ */
+.actionButtonGroup {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.actionIconBtn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border-default, #dce5e0);
+  background-color: #ffffff;
+  color: var(--color-primary, #0a8066);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1);
+    border-color: var(--color-primary, #0a8066);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(10, 128, 102, 0.15);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.actionIconLock {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+  color: #b45309;
+
+  &:hover {
+    background-color: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+    box-shadow: 0 2px 6px rgba(217, 119, 6, 0.18);
+  }
+}
+
+.actionIconUnlock {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #16a34a;
+
+  &:hover {
+    background-color: #dcfce7;
+    border-color: #86efac;
+    color: #15803d;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.18);
+  }
+}
+
+/* Empty State */
+.emptyContainer {
+  background-color: #ffffff;
+  border: 1px dashed var(--border-default, #dce5e0);
+  border-radius: 10px;
+  padding: 48px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.emptyIconBox {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background-color: var(--neutral-100, #f1f5f3);
+  color: var(--text-muted, #84958b);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary, #1d2b26);
+  margin: 0 0 6px;
+}
+
+.emptyDesc {
+  font-size: 13.5px;
+  color: var(--text-muted, #6b7c74);
+  max-width: 440px;
+  margin: 0;
+  line-height: 1.5;
+}
