@@ -1,16 +1,18 @@
 import React, { useState } from "react"
 import {
-  CookingPot,
   X,
   Thermometer,
   CheckCircle2,
   AlertTriangle,
-  ShieldCheck,
-  Sparkles,
-  ClipboardCheck,
-  Utensils
+  Minus,
+  Plus,
+  ChevronDown,
+  ChevronUp,
+  FileText
 } from "lucide-react"
 import styles from "./CompleteBatchInspectionModal.module.scss"
+
+const QUICK_TEMPS = [68, 70, 72, 75]
 
 export default function CompleteBatchInspectionModal({
   isOpen,
@@ -22,15 +24,24 @@ export default function CompleteBatchInspectionModal({
   const [sensoryPass, setSensoryPass] = useState(true)
   const [hygieneStaff, setHygieneStaff] = useState(true)
   const [hygieneTools, setHygieneTools] = useState(true)
-  const [hygieneArea, setHygieneArea] = useState(true)
   const [containersPass, setContainersPass] = useState(true)
+
+  const [showNote, setShowNote] = useState(false)
   const [inspectionNote, setInspectionNote] = useState(
     "Đun nấu chín sôi kỹ > 100°C. Món ăn màu sắc tự nhiên, thơm ngon đặc trưng, đạt điều kiện ra khay phục vụ học sinh."
   )
 
   if (!isOpen) return null
 
-  const isTempPass = Number(servingTemp) >= 65
+  const tempVal = Number(servingTemp) || 0
+  const isTempPass = tempVal >= 65
+
+  const adjustTemp = (delta) => {
+    setServingTemp((prev) => {
+      const next = Math.round((Number(prev) + delta) * 10) / 10
+      return Math.max(30, Math.min(120, next))
+    })
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -40,7 +51,7 @@ export default function CompleteBatchInspectionModal({
     const dateStr = batchData.menuDate || "10/11/2024"
 
     const inspectionRecord = {
-      servingTemperature: Number(servingTemp),
+      servingTemperature: tempVal,
       isTempPass,
       sensoryPass,
       sensoryNote: sensoryPass
@@ -48,7 +59,7 @@ export default function CompleteBatchInspectionModal({
         : "Không đạt yêu cầu cảm quan",
       hygieneStaff,
       hygieneTools,
-      hygieneArea,
+      hygieneArea: true, // Tiêu chuẩn mặc định khu vực
       containersPass,
       inspectedBy: "Nguyễn Văn Vận (Bếp chính)",
       inspectedTime: timeStr,
@@ -62,18 +73,16 @@ export default function CompleteBatchInspectionModal({
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+        {/* Mobile drag handle */}
+        <div className={styles.mobileHandle} />
+
         {/* Header Modal */}
         <div className={styles.modalHeader}>
-          <div className={styles.headerLeft}>
-            <div className={styles.iconCircle}>
-              <ClipboardCheck size={22} />
-            </div>
-            <div>
-              <h3 className={styles.modalTitle}>Nghiệm thu kiểm thực mẻ nấu</h3>
-              <p className={styles.modalSub}>
-                Kiểm thực Bước 2 &amp; 3 (Quyết định số 1246/QĐ-BYT) trước khi hoàn tất ra khay
-              </p>
-            </div>
+          <div>
+            <h3 className={styles.modalTitle}>Nghiệm thu kiểm thực mẻ nấu</h3>
+            <p className={styles.modalSub}>
+              {batchData.dishName || "Thịt heo kho cút nước dừa"} • {batchData.code || "CB-20241110-001"}
+            </p>
           </div>
           <button
             type="button"
@@ -85,126 +94,128 @@ export default function CompleteBatchInspectionModal({
           </button>
         </div>
 
-        {/* Nội dung form nghiệm thu */}
+        {/* Nội dung form */}
         <form onSubmit={handleSubmit} className={styles.modalBody}>
-          {/* Thông tin mẻ tóm tắt */}
-          <div className={styles.batchInfoBanner}>
-            <div className={styles.bannerItem}>
-              <span className={styles.bannerLabel}>Món ăn:</span>
-              <strong className={styles.bannerVal}>{batchData.dishName || "Thịt heo kho cút nước dừa"}</strong>
-            </div>
-            <div className={styles.bannerItem}>
-              <span className={styles.bannerLabel}>Mã lô:</span>
-              <strong className={styles.bannerValCode}>{batchData.code || "CB-20241110-001"}</strong>
-            </div>
-            <div className={styles.bannerItem}>
-              <span className={styles.bannerLabel}>Số suất:</span>
-              <strong className={styles.bannerVal}>{(batchData.portions || 1250).toLocaleString("vi-VN")} suất</strong>
-            </div>
-          </div>
-
-          <div className={styles.formScrollArea}>
-            {/* Mục 1: Nhiệt độ chia suất ra khay */}
-            <div className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <Thermometer size={18} className={styles.sectionIcon} />
-                <h4 className={styles.sectionTitle}>1. Nhiệt độ chia suất ra khay (Bước 3)</h4>
+          <div className={styles.bodyContent}>
+            {/* KHỐI 1: NHIỆT ĐỘ RA KHAY (TRỌNG TÂM) */}
+            <div className={styles.tempHeroCard}>
+              <div className={styles.heroTop}>
+                <div className={styles.heroLabelWrap}>
+                  <Thermometer size={17} className={styles.heroIcon} />
+                  <span className={styles.heroLabel}>Nhiệt độ chia suất ra khay:</span>
+                </div>
+                <div className={isTempPass ? styles.badgePass : styles.badgeWarn}>
+                  {isTempPass ? (
+                    <>
+                      <CheckCircle2 size={13} />
+                      <span>Đạt (&gt; 65°C)</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle size={13} />
+                      <span>Cảnh báo (&lt; 65°C)</span>
+                    </>
+                  )}
+                </div>
               </div>
 
-              <div className={styles.tempInputWrap}>
-                <div className={styles.inputGroup}>
-                  <label htmlFor="servingTempInput" className={styles.inputLabel}>
-                    Nhiệt độ đo thực tế tại bếp (°C):
-                  </label>
-                  <div className={styles.tempInputBox}>
+              {/* Stepper + Input */}
+              <div className={styles.tempControlRow}>
+                <div className={styles.stepperWrap}>
+                  <button
+                    type="button"
+                    className={styles.stepBtn}
+                    onClick={() => adjustTemp(-1)}
+                    aria-label="Giảm 1 độ"
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <div className={styles.tempInputWrap}>
                     <input
-                      id="servingTempInput"
                       type="number"
                       step="0.5"
                       min="30"
                       max="120"
                       value={servingTemp}
                       onChange={(e) => setServingTemp(e.target.value)}
-                      className={styles.numberInput}
+                      className={styles.tempInput}
+                      id="servingTempInput"
                       required
                     />
-                    <span className={styles.tempUnit}>°C</span>
+                    <span className={styles.tempDeg}>°C</span>
                   </div>
+                  <button
+                    type="button"
+                    className={styles.stepBtn}
+                    onClick={() => adjustTemp(1)}
+                    aria-label="Tăng 1 độ"
+                  >
+                    <Plus size={16} />
+                  </button>
                 </div>
 
-                <div className={styles.tempBadgeBox}>
-                  {isTempPass ? (
-                    <div className={styles.badgeSuccess}>
-                      <CheckCircle2 size={16} />
-                      <span>Đạt chuẩn ATTP (Quy chuẩn Bộ Y tế: &gt; 65°C)</span>
-                    </div>
-                  ) : (
-                    <div className={styles.badgeWarning}>
-                      <AlertTriangle size={16} />
-                      <span>Cảnh báo: Dưới 65°C - Cần hâm nóng trước khi chia suất!</span>
-                    </div>
-                  )}
+                {/* Quick chip presets */}
+                <div className={styles.quickChips}>
+                  {QUICK_TEMPS.map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`${styles.chipBtn} ${tempVal === t ? styles.chipActive : ""}`}
+                      onClick={() => setServingTemp(t)}
+                    >
+                      {t}°C
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Mục 2: Đánh giá cảm quan thành phẩm */}
-            <div className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <Sparkles size={18} className={styles.sectionIcon} />
-                <h4 className={styles.sectionTitle}>2. Đánh giá cảm quan thức ăn chín</h4>
-              </div>
+            {/* KHỐI 2: 4 TIÊU CHÍ ATTP CỐT LÕI (DANH SÁCH GỌN GÀNG) */}
+            <div className={styles.criteriaCard}>
+              <span className={styles.cardHeaderSmall}>Tiêu chí kiểm thực mẻ nấu (QĐ 1246/QĐ-BYT):</span>
 
-              <div className={styles.toggleRow}>
-                <div>
-                  <div className={styles.toggleTitle}>Màu sắc, mùi vị, độ chín kỹ:</div>
-                  <div className={styles.toggleDesc}>
-                    Món ăn có màu sắc đặc trưng, thơm ngon, chín kỹ đồng đều, không có mùi lạ hay dị vật.
+              <div className={styles.criteriaList}>
+                {/* 1. Cảm quan */}
+                <div className={styles.criteriaRow}>
+                  <div className={styles.criteriaInfo}>
+                    <span className={styles.criteriaTitle}>1. Cảm quan món ăn chín</span>
+                    <span className={styles.criteriaMeta}>Màu sắc tự nhiên, mùi vị thơm ngon, chín kỹ</span>
                   </div>
-                </div>
-                <div className={styles.btnToggleGroup}>
-                  <button
-                    type="button"
-                    className={`${styles.toggleBtn} ${sensoryPass ? styles.toggleActiveSuccess : ""}`}
-                    onClick={() => setSensoryPass(true)}
-                  >
-                    ✓ Đạt
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.toggleBtn} ${!sensoryPass ? styles.toggleActiveDanger : ""}`}
-                    onClick={() => setSensoryPass(false)}
-                  >
-                    Không đạt
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mục 3: Điều kiện vệ sinh chế biến (Bước 2) */}
-            <div className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <ShieldCheck size={18} className={styles.sectionIcon} />
-                <h4 className={styles.sectionTitle}>3. Điều kiện vệ sinh khu vực chế biến (Bước 2)</h4>
-              </div>
-
-              <div className={styles.checkItemList}>
-                <div className={styles.checkItemRow}>
-                  <div>
-                    <span className={styles.itemTitle}>Người tham gia chế biến:</span>
-                    <p className={styles.itemDesc}>Trang phục bảo hộ sạch, đeo khẩu trang, mũ trùm tóc, găng tay thực phẩm.</p>
-                  </div>
-                  <div className={styles.btnToggleGroup}>
+                  <div className={styles.pillToggle}>
                     <button
                       type="button"
-                      className={`${styles.toggleBtnSmall} ${hygieneStaff ? styles.toggleActiveSuccess : ""}`}
+                      className={`${styles.pillBtn} ${sensoryPass ? styles.pillPass : ""}`}
+                      onClick={() => setSensoryPass(true)}
+                    >
+                      Đạt
+                    </button>
+                    <button
+                      type="button"
+                      className={`${styles.pillBtn} ${!sensoryPass ? styles.pillFail : ""}`}
+                      onClick={() => setSensoryPass(false)}
+                    >
+                      K.Đạt
+                    </button>
+                  </div>
+                </div>
+
+                {/* 2. Vệ sinh & Bảo hộ */}
+                <div className={styles.criteriaRow}>
+                  <div className={styles.criteriaInfo}>
+                    <span className={styles.criteriaTitle}>2. Bảo hộ người nấu</span>
+                    <span className={styles.criteriaMeta}>Đầy đủ găng tay, tạp dề, khẩu trang, mũ</span>
+                  </div>
+                  <div className={styles.pillToggle}>
+                    <button
+                      type="button"
+                      className={`${styles.pillBtn} ${hygieneStaff ? styles.pillPass : ""}`}
                       onClick={() => setHygieneStaff(true)}
                     >
                       Đạt
                     </button>
                     <button
                       type="button"
-                      className={`${styles.toggleBtnSmall} ${!hygieneStaff ? styles.toggleActiveDanger : ""}`}
+                      className={`${styles.pillBtn} ${!hygieneStaff ? styles.pillFail : ""}`}
                       onClick={() => setHygieneStaff(false)}
                     >
                       K.Đạt
@@ -212,22 +223,23 @@ export default function CompleteBatchInspectionModal({
                   </div>
                 </div>
 
-                <div className={styles.checkItemRow}>
-                  <div>
-                    <span className={styles.itemTitle}>Trang thiết bị, dụng cụ chế biến:</span>
-                    <p className={styles.itemDesc}>Dụng cụ Inox 304 đã tiệt trùng, dao thớt sống/chín phân màu tách biệt.</p>
+                {/* 3. Dụng cụ Inox */}
+                <div className={styles.criteriaRow}>
+                  <div className={styles.criteriaInfo}>
+                    <span className={styles.criteriaTitle}>3. Dụng cụ &amp; Thiết bị bếp</span>
+                    <span className={styles.criteriaMeta}>Inox 304 tiệt trùng, thớt sống/chín riêng</span>
                   </div>
-                  <div className={styles.btnToggleGroup}>
+                  <div className={styles.pillToggle}>
                     <button
                       type="button"
-                      className={`${styles.toggleBtnSmall} ${hygieneTools ? styles.toggleActiveSuccess : ""}`}
+                      className={`${styles.pillBtn} ${hygieneTools ? styles.pillPass : ""}`}
                       onClick={() => setHygieneTools(true)}
                     >
                       Đạt
                     </button>
                     <button
                       type="button"
-                      className={`${styles.toggleBtnSmall} ${!hygieneTools ? styles.toggleActiveDanger : ""}`}
+                      className={`${styles.pillBtn} ${!hygieneTools ? styles.pillFail : ""}`}
                       onClick={() => setHygieneTools(false)}
                     >
                       K.Đạt
@@ -235,23 +247,24 @@ export default function CompleteBatchInspectionModal({
                   </div>
                 </div>
 
-                <div className={styles.checkItemRow}>
-                  <div>
-                    <span className={styles.itemTitle}>Khu vực chế biến và phụ trợ:</span>
-                    <p className={styles.itemDesc}>Sàn bếp khô ráo sạch sẽ, cống thoát nước có lưới chắn, thùng rác có nắp đậy.</p>
+                {/* 4. Khay chia có nắp đậy */}
+                <div className={styles.criteriaRow}>
+                  <div className={styles.criteriaInfo}>
+                    <span className={styles.criteriaTitle}>4. Dụng cụ chia suất</span>
+                    <span className={styles.criteriaMeta}>Khay chia ngăn có nắp đậy giữ nhiệt kín</span>
                   </div>
-                  <div className={styles.btnToggleGroup}>
+                  <div className={styles.pillToggle}>
                     <button
                       type="button"
-                      className={`${styles.toggleBtnSmall} ${hygieneArea ? styles.toggleActiveSuccess : ""}`}
-                      onClick={() => setHygieneArea(true)}
+                      className={`${styles.pillBtn} ${containersPass ? styles.pillPass : ""}`}
+                      onClick={() => setContainersPass(true)}
                     >
                       Đạt
                     </button>
                     <button
                       type="button"
-                      className={`${styles.toggleBtnSmall} ${!hygieneArea ? styles.toggleActiveDanger : ""}`}
-                      onClick={() => setHygieneArea(false)}
+                      className={`${styles.pillBtn} ${!containersPass ? styles.pillFail : ""}`}
+                      onClick={() => setContainersPass(false)}
                     >
                       K.Đạt
                     </button>
@@ -260,73 +273,44 @@ export default function CompleteBatchInspectionModal({
               </div>
             </div>
 
-            {/* Mục 4: Dụng cụ chia suất & che đậy (Bước 3) */}
-            <div className={styles.sectionCard}>
-              <div className={styles.sectionHeader}>
-                <Utensils size={18} className={styles.sectionIcon} />
-                <h4 className={styles.sectionTitle}>4. Dụng cụ chia, chứa đựng và che đậy (Bước 3)</h4>
-              </div>
-
-              <div className={styles.toggleRow}>
-                <div>
-                  <div className={styles.toggleTitle}>Khay chia suất &amp; xe đẩy bảo quản:</div>
-                  <div className={styles.toggleDesc}>
-                    Khay inox chia ngăn tiệt trùng, có nắp đậy giữ nhiệt kín chống bụi bẩn và côn trùng.
-                  </div>
+            {/* KHỐI 3: GHI CHÚ THÊM (THU GỌN - CHỈ MỞ KHI CẦN) */}
+            <div className={styles.noteSection}>
+              <button
+                type="button"
+                className={styles.noteToggleBtn}
+                onClick={() => setShowNote(!showNote)}
+              >
+                <div className={styles.noteToggleLeft}>
+                  <FileText size={14} />
+                  <span>{showNote ? "Ẩn ghi chú nghiệm thu" : "+ Ghi chú hoặc biện pháp xử lý"}</span>
                 </div>
-                <div className={styles.btnToggleGroup}>
-                  <button
-                    type="button"
-                    className={`${styles.toggleBtn} ${containersPass ? styles.toggleActiveSuccess : ""}`}
-                    onClick={() => setContainersPass(true)}
-                  >
-                    ✓ Đạt
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.toggleBtn} ${!containersPass ? styles.toggleActiveDanger : ""}`}
-                    onClick={() => setContainersPass(false)}
-                  >
-                    Không đạt
-                  </button>
-                </div>
-              </div>
-            </div>
+                {showNote ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+              </button>
 
-            {/* Mục 5: Ghi chú xử lý */}
-            <div className={styles.sectionCard}>
-              <label htmlFor="noteArea" className={styles.inputLabel}>
-                5. Biện pháp xử lý &amp; Ghi chú nghiệm thu:
-              </label>
-              <textarea
-                id="noteArea"
-                rows={2}
-                value={inspectionNote}
-                onChange={(e) => setInspectionNote(e.target.value)}
-                className={styles.textareaInput}
-                placeholder="Nhập ghi chú hoặc biện pháp xử lý nếu có..."
-              />
+              {showNote && (
+                <textarea
+                  rows={2}
+                  value={inspectionNote}
+                  onChange={(e) => setInspectionNote(e.target.value)}
+                  className={styles.noteTextarea}
+                  placeholder="Nhập ghi chú thêm nếu có..."
+                />
+              )}
             </div>
           </div>
 
           {/* Footer Form */}
           <div className={styles.modalFooter}>
-            <div className={styles.inspectorInfo}>
-              <span>Người nghiệm thu: <strong>Nguyễn Văn Vận (Bếp chính)</strong></span>
-            </div>
-            <div className={styles.actionBtns}>
-              <button type="button" className={styles.btnCancel} onClick={onClose}>
-                Hủy bỏ
-              </button>
-              <button type="submit" className={styles.btnSubmit}>
-                <CheckCircle2 size={17} />
-                <span>Lưu nghiệm thu &amp; Hoàn tất mẻ nấu</span>
-              </button>
-            </div>
+            <button type="button" className={styles.btnCancel} onClick={onClose}>
+              Hủy
+            </button>
+            <button type="submit" className={styles.btnSubmit}>
+              <CheckCircle2 size={16} />
+              <span>Xác nhận hoàn thành</span>
+            </button>
           </div>
         </form>
       </div>
     </div>
   )
 }
-
