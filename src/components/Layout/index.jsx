@@ -9,6 +9,7 @@ import { StoreContext } from "src/contexts"
 import AuthService from "src/services/AuthService"
 import ROUTER from "src/router/ROUTER"
 import styles from "./MainLayout.module.scss"
+import notice from "src/components/Notice"
 
 const MainLayout = ({ type }) => {
   const location = useLocation()
@@ -28,9 +29,10 @@ const MainLayout = ({ type }) => {
     if (!isMobile) setNavigationOpen(false)
   }, [isMobile])
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setNavigationOpen(false)
-    AuthService.logout()
+    try { await AuthService.logout() }
+    catch (error) { notice({ msg: error.message || "Không thể xác nhận đăng xuất. Vui lòng thử lại.", isSuccess: false }); return }
     loginStore.setIsLoginContext(false)
     userStore.setUser(null)
     navigate(ROUTER.LOGIN, { replace: true })

@@ -1,0 +1,22 @@
+.field { display: flex; flex-direction: column; gap: var(--space-2); min-width: 0; label { font-size: var(--text-sm); line-height: var(--space-5); font-weight: var(--font-medium); color: var(--text-primary); } }
+.input {
+  :global(.MuiOutlinedInput-root) { min-height: var(--control-height-md); border-radius: var(--radius-md); color: var(--text-primary); font-family: var(--font-sans); font-size: var(--text-sm); line-height: var(--space-5); padding-right: var(--space-2); }
+  :global(.MuiOutlinedInput-notchedOutline) { border-color: var(--neutral-500); }
+  :global(.MuiOutlinedInput-input) { padding: var(--space-2) var(--space-3); height: var(--space-5); }
+  :global(.MuiOutlinedInput-input)::placeholder { color: var(--text-secondary); opacity: 1; }
+  :global(.MuiInputAdornment-root) { margin-left: 0; }
+  :global(.MuiFormHelperText-root) { margin: var(--space-1) 0 0; font-size: var(--text-xs); line-height: var(--text-lg); }
+  :global(.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline) { border-color: var(--border-focus); }
+}
+.visibility:global(.MuiIconButton-root) { width: var(--space-8); height: var(--space-8); margin: 0; color: var(--text-secondary); :global(.MuiSvgIcon-root) { font-size: var(--space-6); } }
+.control { position: relative; }
+.date :global(input::-webkit-calendar-picker-indicator) { display: none; }
+.emptyDate :global(input:not(:focus)) { color: transparent; }
+.datePlaceholder { position: absolute; z-index: 1; top: var(--space-2); left: var(--space-3); pointer-events: none; font-size: var(--text-sm); line-height: var(--space-6); color: var(--text-secondary); }
+.control:focus-within .datePlaceholder { display: none; }
+@media (max-width: 600px) {
+  .input :global(.MuiOutlinedInput-root) { min-height: var(--control-height-lg); font-size: var(--text-base); padding-right: 0; }
+  .input :global(.MuiOutlinedInput-input) { height: var(--space-6); padding: var(--space-3); }
+  .visibility:global(.MuiIconButton-root) { width: calc(var(--space-10) + var(--space-1)); height: calc(var(--space-10) + var(--space-1)); }
+  .datePlaceholder { top: var(--space-3); font-size: var(--text-base); }
+}

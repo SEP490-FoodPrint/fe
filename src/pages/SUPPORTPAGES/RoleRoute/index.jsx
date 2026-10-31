@@ -1,7 +1,7 @@
 import React, { useContext } from "react"
 import { Navigate, Outlet } from "react-router-dom"
 import { StoreContext } from "src/contexts"
-import { hasPermission } from "src/lib/utils"
+import { getAuthRedirect, hasPermission } from "src/lib/utils"
 import ROUTER from "src/router/ROUTER"
 import Forbidden from "../Forbidden"
 
@@ -19,6 +19,8 @@ function RoleRoute({ allowedRoles = [], allowedOrg }) {
   if (!isLoginContext) {
     return <Navigate to={ROUTER.LOGIN} replace />
   }
+
+  if (user?.onboardingRequired || user?.status === "UNVERIFIED") return <Navigate to={getAuthRedirect(user)} replace />
 
   // 2. Kiểm tra Cổng tổ chức (Portal Isolation)
   if (allowedOrg && user?.orgType !== allowedOrg) {

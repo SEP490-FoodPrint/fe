@@ -2,13 +2,20 @@ import React, { lazy, Suspense } from "react"
 import { useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
 import MainLayout, { AuthLayout, PublicLayout } from "src/components/Layout"
+import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
 import { ORG_TYPES, ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
 // Lazy load Pages
 const PlatformHome = lazy(() => import("src/pages/ANONYMOUS/PlatformHome"))
+const ProfilePage = lazy(() => import("src/pages/ANONYMOUS/Profile"))
 const SchoolLanding = lazy(() => import("src/pages/ANONYMOUS/SchoolLanding"))
 const LoginPage = lazy(() => import("src/pages/ANONYMOUS/Login"))
+const RegisterPage = lazy(() => import("src/pages/ANONYMOUS/Register"))
+const RegistrationProfile = lazy(() => import("src/pages/ANONYMOUS/RegistrationProfile"))
+const RegistrationStatus = lazy(() => import("src/pages/ANONYMOUS/RegistrationStatus"))
+const AccountActivation = lazy(() => import("src/pages/ANONYMOUS/AccountActivation"))
+const ForgotPassword = lazy(() => import("src/pages/ANONYMOUS/ForgotPassword"))
 const Forbidden = lazy(() => import("src/pages/SUPPORTPAGES/Forbidden"))
 const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
 const RoleRoute = lazy(() => import("src/pages/SUPPORTPAGES/RoleRoute"))
@@ -67,6 +74,15 @@ const routes = [
     ],
   },
 
+  {
+    element: <AccountLayout />,
+    children: [
+      { path: ROUTER.PROFILE, element: <LazyWrapper><ProfilePage /></LazyWrapper> },
+      { path: ROUTER.REGISTRATION_PROFILE, element: <LazyWrapper><RegistrationProfile /></LazyWrapper> },
+      { path: ROUTER.REGISTRATION_STATUS, element: <LazyWrapper><RegistrationStatus /></LazyWrapper> },
+    ],
+  },
+
   // 2. Trang Cổng thông tin & Thực đơn Trường học (Công khai)
   {
     path: ROUTER.SCHOOL_LANDING,
@@ -89,6 +105,11 @@ const routes = [
           </LazyWrapper>
         ),
       },
+      { path: ROUTER.REGISTER, element: <LazyWrapper><RegisterPage /></LazyWrapper> },
+      { path: ROUTER.TEST_LOGIN, element: <LazyWrapper><LoginPage /></LazyWrapper> },
+      { path: ROUTER.ACTIVATE_ACCOUNT, element: <LazyWrapper><AccountActivation /></LazyWrapper> },
+      { path: ROUTER.FORGOT_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
+      { path: ROUTER.RESET_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
     ],
   },
 

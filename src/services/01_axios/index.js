@@ -1,7 +1,10 @@
 import axios from "axios"
 import notice from "src/components/Notice"
-import STORAGE, { deleteStorage, getStorage } from "src/lib/storage"
+import STORAGE, { deleteStorage } from "src/lib/storage"
 import ROUTER from "src/router/ROUTER"
+import { apiRefresh } from "../AuthService/urls"
+
+let refreshPromise = null
 
 const instance = axios.create({
   timeout: 30000,
@@ -11,89 +14,53 @@ const instance = axios.create({
   withCredentials: true,
 })
 
-// Request interceptor: tự động đính kèm Bearer token từ localStorage
+// Browser authentication uses HttpOnly cookies managed by the backend.
 instance.interceptors.request.use(
   config => {
     const BASE_URL = import.meta.env.VITE_API_ROOT || ""
     config.baseURL = BASE_URL
 
-    const token = getStorage(STORAGE.TOKEN)
-    if (token) {
-      config.headers = {
-        ...config.headers,
-        Authorization: `Bearer ${token}`,
-      }
-    }
+    if (!["get", "head", "options"].includes(config.method?.toLowerCase())) config.headers.set("X-CSRF-Protection", "1")
     return config
   },
   error => Promise.reject(error),
 )
 
-// Response interceptor: xử lý mã lỗi 401, 403 kèm silent refresh
+// Response interceptor: xử lý mã lỗi 401, 403, 500
 instance.interceptors.response.use(
   response => {
-    const resData = response.data
-    return resData
+    return response.data
   },
   async error => {
-    const originalRequest = error.config
-
-    // Bỏ qua các endpoint auth nội bộ (không lặp refresh hay redirect)
-    const isAuthRoute = originalRequest?.url?.includes("/auth/")
-    const currentPath = window.location.pathname
-    const isLoginPage =
-      currentPath.includes("login") || currentPath === ROUTER.LOGIN
-    const isProtectedPath =
-      currentPath.startsWith("/system") ||
-      currentPath.startsWith("/supplier") ||
-      (currentPath.startsWith("/school") && !currentPath.includes("/school/FP_"))
-
-    // Khi 401 trên các API nghiệp vụ thông thường, thử silent refresh trước
-    if (error.response?.status === 401 && !isAuthRoute && !originalRequest?._retry) {
-      originalRequest._retry = true
+    if (axios.isCancel(error)) return Promise.reject(error)
+    if (error.response?.status === 401 && !error.config?.skipRefresh && !error.config?._retried) {
+      error.config._retried = true
       try {
-        const BASE_URL = import.meta.env.VITE_API_ROOT || ""
-        await axios.post(
-          `${BASE_URL}/auth/refresh`,
-          {},
-          { withCredentials: true },
-        )
-        // Refresh thành công, gửi lại request ban đầu
-        return instance(originalRequest)
-      } catch (refreshErr) {
-        deleteStorage(STORAGE.TOKEN)
-        deleteStorage(STORAGE.USER_INFO)
-
-        // Chỉ hiển thị thông báo và redirect nếu đang ở trang được bảo vệ
-        if (!isLoginPage && isProtectedPath) {
-          notice({
-            msg: "Phiên làm việc đã hết hạn. Vui lòng đăng nhập lại.",
-            isSuccess: false,
-          })
-          window.location.replace(ROUTER.LOGIN)
-        }
-        return Promise.reject(refreshErr)
+        // Refresh tokens rotate on use; concurrent 401s must share one refresh.
+        if (!refreshPromise) refreshPromise = instance.post(apiRefresh, null, {
+          skipRefresh: true, skipAuthRedirect: true, notifyOnError: false,
+        }).finally(() => { refreshPromise = null })
+        await refreshPromise
+        return instance.request(error.config)
+      } catch (refreshError) {
+        // Preserve a temporary backend failure instead of discarding a recoverable session.
+        if (![401, 403].includes(refreshError.response?.status)) return Promise.reject(refreshError)
       }
     }
-
-    if (error.response?.status === 401 && !isAuthRoute) {
+    error.message = error.response?.data?.message || (error.response
+      ? "Không thể xử lý yêu cầu. Vui lòng thử lại."
+      : "Không thể kết nối máy chủ. Vui lòng thử lại.")
+    if (error.response?.status === 401 && !error.config?.skipAuthRedirect) {
+      notice({ msg: "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn", isSuccess: false })
       deleteStorage(STORAGE.TOKEN)
       deleteStorage(STORAGE.USER_INFO)
-
-      if (!isLoginPage && isProtectedPath) {
-        notice({
-          msg: "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn",
-          isSuccess: false,
-        })
-        window.location.replace(ROUTER.LOGIN)
-      }
-    } else if (error.response?.status === 403) {
+      window.location.replace(ROUTER.LOGIN)
+    } else if (error.config?.notifyOnError !== false) {
       notice({
-        msg: "Bạn không có quyền thực hiện thao tác này (403)",
+        msg: error.message,
         isSuccess: false,
       })
     }
-
     return Promise.reject(error)
   },
 )

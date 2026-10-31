@@ -1,7 +1,15 @@
 const ROUTER = {
   // Public
   DEFAULT: "/",
-  LOGIN: "/test-login",
+  LOGIN: "/login",
+  TEST_LOGIN: "/test-login",
+  REGISTER: "/register",
+  PROFILE: "/profile",
+  ACTIVATE_ACCOUNT: "/activate-account",
+  REGISTRATION_PROFILE: "/register/profile",
+  REGISTRATION_STATUS: "/register/status",
+  FORGOT_PASSWORD: "/forgot-password",
+  RESET_PASSWORD: "/reset-password",
   SCHOOL_LANDING: "/school/:schoolCode",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)

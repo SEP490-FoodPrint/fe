@@ -40,9 +40,20 @@ export const getDefaultRedirectByOrg = orgType => {
  * @returns {string} router path
  */
 export const getDefaultRedirectByUser = user => {
-  if (!user) return "/login"
+  if (!user) return ROUTER.LOGIN
   if (user.role === "SCHOOL_KITCHEN_STAFF") {
-    return "/school/kitchen-cooking"
+    return ROUTER.SCHOOL_KITCHEN_COOKING
   }
   return getDefaultRedirectByOrg(user.orgType)
 }
+
+export const getAuthRedirect = user => {
+  if (user?.role === "SYSTEM_ADMIN") return ROUTER.SYSTEM_ORG_APPROVAL
+  if (user?.onboardingRequired || user?.status === "UNVERIFIED") return ROUTER.DEFAULT
+  return getDefaultRedirectByUser(user)
+}
+
+export const needsRegistrationCompletion = user => Boolean(user && ["SCHOOL", "SUPPLIER"].includes(user.orgType) && user.onboardingRequired && (!user.registrationRequest || user.registrationRequest.status === "REJECTED"))
+
+export const getRegistrationDestination = user => user?.role === "SYSTEM_ADMIN" ? ROUTER.SYSTEM_ORG_APPROVAL
+  : user?.registrationRequest ? ROUTER.REGISTRATION_STATUS : ROUTER.REGISTRATION_PROFILE

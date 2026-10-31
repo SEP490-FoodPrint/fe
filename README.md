@@ -19,11 +19,15 @@ npm run build
 
 Truy cập: [http://localhost:3001](http://localhost:3001)
 
+Cấu hình `.env` từ `.env.example`: `VITE_API_ROOT=http://localhost:5000/api`, `VITE_USE_MOCK=false` để dùng API thật. Đăng nhập bằng tên tài khoản/email và mật khẩu backend. SYSTEM_ADMIN tự chuyển vào **Hồ sơ đăng ký**. Chi tiết hợp đồng và giới hạn hiện tại: [SA-05 / SA-06](docs/registration-screens.md). Kiểm tra tích hợp service bằng `npm run test:registration`.
+
+Đăng nhập/đăng ký đã dựng theo Figma, dùng cookie HttpOnly, CSRF và refresh phiên. Các tab đăng ký nằm ở `/register?type=SCHOOL` và `/register?type=SUPPLIER`. Xem [luồng xác thực và các API còn thiếu](docs/auth-screens.md).
+
 ---
 
 ## 2. Danh Sách 9 Vai Trò & Tài Khoản Test Nhanh (1 Account = 1 Role)
 
-Tại trang Đăng nhập (`/login`), hệ thống có sẵn danh sách click 1 chạm để đăng nhập nhanh vào bất kỳ vai trò nào:
+Chỉ khi `VITE_USE_MOCK=true`, trang Đăng nhập (`/login`) có danh sách click 1 chạm để đăng nhập demo. Các tài khoản bên dưới không phải tài khoản backend:
 
 | Nhóm Tổ Chức (`orgType`) | Tên Vai Trò (`role`) | Tài khoản Test | Họ và tên |
 | :--- | :--- | :--- | :--- |
@@ -55,7 +59,7 @@ Tại trang Đăng nhập (`/login`), hệ thống có sẵn danh sách click 1 
 
 ## 4. Công Cụ Hỗ Trợ Dev: Role Switcher Widget
 
-Ở góc dưới bên phải màn hình (khi đã đăng nhập), có một nút nổi **"Đổi Vai Trò"**. Bạn có thể click vào bất kỳ lúc nào để chuyển đổi qua lại giữa 9 role nhằm kiểm tra ngay lập tức:
+Chỉ trong chế độ demo (`VITE_USE_MOCK=true`), góc dưới bên phải màn hình có nút nổi **"Đổi Vai Trò"** để kiểm tra:
 - Menu Sidebar thay đổi theo role mới.
 - Quyền truy cập các trang được kiểm tra ngay lập tức mà không cần đăng xuất ra đăng nhập lại.
 
@@ -101,7 +105,7 @@ src/
 │   ├── MenuItem.jsx            # Cấu hình MenuItem có gắn roles: [...]
 │   └── AppRouter.jsx           # AppRouter bọc qua RoleRoute
 ├── services/
-│   ├── 01_axios/               # Axios instance tự đính kèm Bearer token
+│   ├── 01_axios/               # Cookie credentials, CSRF và refresh phiên
 │   └── AuthService/            # Xử lý login, mockLoginByRole, logout
 └── theme/                      # Ant Design ConfigProvider
 ```

@@ -33,8 +33,8 @@ export default function RegistrationFilters({ filters, onChange, onReset, hasFil
       <div className={styles.filters}>
         <div className={`${styles.field} ${styles.search}`}>
           <label htmlFor="registration-search">Tìm kiếm</label>
-          <TextField id="registration-search" value={filters.search} onChange={event => onChange("search", event.target.value)} placeholder="Tìm theo mã hồ sơ hoặc người đăng ký" size="small" fullWidth
-            slotProps={{ input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} />
+          <TextField id="registration-search" value={filters.search} onChange={event => onChange("search", event.target.value)} placeholder="Nhập UUID đầy đủ hoặc tên người đăng ký" size="small" fullWidth
+            slotProps={{ htmlInput: { maxLength: 255 }, input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} />
         </div>
         {[{ key: "type", label: "Loại hồ sơ", values: REQUEST_TYPES }, { key: "status", label: "Trạng thái", values: REQUEST_STATUSES }].map(({ key, label, values }) => (
           <div className={styles.field} key={key}>
