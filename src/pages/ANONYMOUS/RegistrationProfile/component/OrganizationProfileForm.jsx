@@ -86,6 +86,8 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
     const fileError = "Chọn PDF, PNG hoặc JPEG, có dữ liệu và không quá 5 MiB/tệp."
     if (invalidFile(documents)) next["school-documents"] = fileError
     certifications.forEach(row => { if (invalidFile(row.files)) next[`${row.id}-file`] = fileError })
+    const fileCount = supplier ? certifications.reduce((total, row) => total + row.files.length + row.existingDocuments.length, 0) : documents.length + existingDocuments.length
+    if (fileCount > 20) next[supplier ? `${certifications[0].id}-file` : "school-documents"] = "Hồ sơ chỉ nhận tối đa 20 tệp, gồm cả tệp giữ lại."
     setErrors(next)
     setMessage("")
     if (Object.keys(next).length) return
@@ -102,7 +104,7 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
   return <AuthCard size="profile" component="form" noValidate onSubmit={submit} aria-busy={loading} aria-label={supplier ? "Hồ sơ nhà cung cấp" : "Hồ sơ nhà trường"}>
     <AuthHeading eyebrow="Hồ sơ đăng ký" title={editing ? (supplier ? "Chỉnh sửa hồ sơ nhà cung cấp" : "Chỉnh sửa hồ sơ nhà trường") : (supplier ? "Hoàn thiện hồ sơ nhà cung cấp" : "Hoàn thiện hồ sơ nhà trường")} description="Kiểm tra thông tin trước khi gửi hồ sơ xét duyệt." />
     <FormErrors errors={errors} message={message} />
-    {editing && <p className={form.hint}>Các tệp đã tải lên được giữ lại. Chọn tệp mới để thay thế hoặc bấm dấu × cạnh tệp để bỏ khỏi hồ sơ.</p>}
+    {editing && <p className={form.hint}>Các tệp đã tải lên được giữ lại. Chọn thêm nhiều tệp mới hoặc bấm dấu × cạnh từng tệp để bỏ khỏi hồ sơ.</p>}
     <fieldset className={styles.fields} disabled={loading}>
     <div className={form.grid}>
       <div className={form.full}><AuthField id="name" label={supplier ? "Tên nhà cung cấp" : "Tên trường"} required placeholder={supplier ? "Nhập tên nhà cung cấp" : "Nhập tên trường"} value={values.name} onChange={change("name")} error={errors.name} autoComplete="organization" inputProps={{ maxLength: 255 }} /></div>
