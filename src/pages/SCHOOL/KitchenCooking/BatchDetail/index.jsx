@@ -27,9 +27,7 @@ const INITIAL_BATCH_DATA = {
   method: "SEPARATE", // SEPARATE | COMMON
   createdBy: "Nguyễn Văn Vận",
   createdAt: "10/11/2024 07:15",
-  completedAt: null,
-  technicalNote:
-    "Kho lửa nhỏ trong 45 phút, kiểm tra nhiệt độ tâm món đạt tối thiểu 75°C trước khi ra khay. Giữ mẫu lưu 150g vào lọ thủy tinh tiệt trùng lúc 10:15."
+  completedAt: null
 }
 
 const INITIAL_INGREDIENTS = [

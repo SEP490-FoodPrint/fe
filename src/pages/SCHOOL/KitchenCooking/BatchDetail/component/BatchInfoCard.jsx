@@ -7,8 +7,7 @@ import {
   Utensils,
   Layers,
   User,
-  Info,
-  FileText
+  Info
 } from "lucide-react"
 import styles from "./BatchInfoCard.module.scss"
 
@@ -115,18 +114,6 @@ export default function BatchInfoCard({ batchData }) {
           </div>
         </div>
       </div>
-
-      {/* Ghi chú kỹ thuật & An toàn thực phẩm */}
-      {batchData.technicalNote && (
-        <div className={styles.technicalNoteBox}>
-          <FileText size={18} className={styles.noteIcon} />
-          <div className={styles.noteContent}>
-            <span className={styles.noteTitle}>Ghi chú kỹ thuật &amp; An toàn thực phẩm</span>
-            <p className={styles.noteText}>{batchData.technicalNote}</p>
-          </div>
-        </div>
-      )}
     </section>
   )
 }
-
