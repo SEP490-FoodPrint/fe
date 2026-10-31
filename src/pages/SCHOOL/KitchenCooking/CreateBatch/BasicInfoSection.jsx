@@ -10,9 +10,7 @@ import {
   Apple,
   CheckCircle2,
   Search,
-  X,
-  Minus,
-  Plus
+  X
 } from "lucide-react"
 import styles from "./BasicInfoSection.module.scss"
 
@@ -82,10 +80,6 @@ export default function BasicInfoSection() {
     e.stopPropagation()
     setSelectedDish(null)
     setIsDropdownOpen(true)
-  }
-
-  const handleAdjustPortions = (delta) => {
-    setPortions((prev) => Math.max(10, prev + delta))
   }
 
   const DishIcon = selectedDish?.icon || Utensils
@@ -264,44 +258,23 @@ export default function BasicInfoSection() {
           )}
         </div>
 
-        {/* Số suất dự kiến với nút tăng giảm nhanh */}
+        {/* Số suất cần chế biến (Tự động tính từ sĩ số chốt của GVCN) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label}>Số suất dự kiến</label>
-            <span className={styles.rosterHint}>Sĩ số điểm danh: 1.250</span>
+            <label className={styles.label}>Số suất chế biến</label>
+            <span className={styles.lockHint} title="Tự động tính từ sĩ số báo ăn của GVCN">
+              <Lock size={12} />
+              <span>Tự động tính theo báo ăn</span>
+            </span>
           </div>
 
-          <div className={styles.stepperWrapper}>
-            <button
-              type="button"
-              className={styles.stepBtn}
-              onClick={() => handleAdjustPortions(-50)}
-              aria-label="Giảm 50 suất"
-            >
-              <Minus size={15} />
-              <span>50</span>
-            </button>
-
-            <div className={styles.inputInner}>
-              <input
-                type="number"
-                className={styles.portionInput}
-                value={portions}
-                onChange={(e) => setPortions(Number(e.target.value) || 0)}
-                aria-label="Số suất dự kiến"
-              />
-              <span className={styles.unitSuffix}>suất ăn</span>
+          <div className={styles.lockedField}>
+            <div className={styles.lockedValue}>
+              <CheckCircle2 size={16} className={styles.calIcon} />
+              <span className={styles.lockedDate}>{portions.toLocaleString("vi-VN")} suất</span>
+              <span className={styles.lockedSub}>(Khớp 100% sĩ số chốt)</span>
             </div>
-
-            <button
-              type="button"
-              className={styles.stepBtn}
-              onClick={() => handleAdjustPortions(50)}
-              aria-label="Tăng 50 suất"
-            >
-              <Plus size={15} />
-              <span>50</span>
-            </button>
+            <span className={styles.lockedBadge}>Đã chốt báo ăn</span>
           </div>
         </div>
       </div>

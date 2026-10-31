@@ -1,0 +1,74 @@
+.auditCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.headerIcon {
+  color: var(--color-primary, #0a8066);
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+}
+
+.auditList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.auditItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f8fafc;
+
+  &:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+  }
+}
+
+.auditLabel {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.auditValueBold {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.auditValue {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.auditValueMuted {
+  font-size: 12px;
+  font-style: italic;
+  color: #94a3b8;
+}
+

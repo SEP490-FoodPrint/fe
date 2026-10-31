@@ -17,7 +17,7 @@ export default function ProposedBatchSection() {
         <div className={styles.titleWithBadge}>
           <div className={styles.numberBadge}>3</div>
           <div>
-            <h2 className={styles.sectionTitle}>3. Phương án chế biến dự kiến</h2>
+            <h2 className={styles.sectionTitle}>3. Phương án chế biến</h2>
             <p className={styles.sectionSubtitle}>
               Hợp nhất lô nấu theo quy chuẩn, tự động liên kết nguồn gốc đa lô
             </p>
