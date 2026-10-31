@@ -2,16 +2,15 @@ import React from "react"
 import {
   ClipboardCheck,
   CheckCircle2,
-  Users,
   Boxes,
   Warehouse,
   ShieldCheck,
   CheckCheck,
-  LockOpen
+  QrCode
 } from "lucide-react"
 import styles from "./BatchValidationAuditCard.module.scss"
 
-export default function BatchValidationAuditCard({ portions = 60, totalLots = 4 }) {
+export default function BatchValidationAuditCard({ totalLots = 4 }) {
   return (
     <section className={styles.auditCard}>
       {/* 1. Header Thẻ */}
@@ -20,7 +19,7 @@ export default function BatchValidationAuditCard({ portions = 60, totalLots = 4 
           <div className={styles.iconBox}>
             <ClipboardCheck size={18} />
           </div>
-          <h2 className={styles.cardTitle}>Kiểm tra phương án &amp; Đối soát dữ liệu kho</h2>
+          <h2 className={styles.cardTitle}>Đối soát tính hợp lệ kho trước khi cập nhật</h2>
         </div>
 
         <div className={styles.validBadge}>
@@ -29,22 +28,9 @@ export default function BatchValidationAuditCard({ portions = 60, totalLots = 4 
         </div>
       </div>
 
-      {/* 2. 4 Thẻ Chỉ Số Vận Hành (Đồng bộ phong cách Màn 5) */}
+      {/* 2. 4 Thẻ KPI Kiểm Tra Kho Logic, Không Trùng Lặp */}
       <div className={styles.kpiGrid}>
-        {/* Box 1: Số suất Lô 01 */}
-        <div className={styles.kpiBox}>
-          <div className={styles.kpiTop}>
-            <span className={styles.kpiLabel}>Số suất Lô 01</span>
-            <Users size={16} className={styles.kpiIcon} />
-          </div>
-          <div className={styles.kpiValueRow}>
-            <span className={styles.kpiNum}>{portions}</span>
-            <span className={styles.kpiUnit}>suất</span>
-          </div>
-          <span className={styles.kpiSub}>Phân bổ: Học sinh Khối 6, 7</span>
-        </div>
-
-        {/* Box 2: Lô nguyên liệu */}
+        {/* Box 1: Lô nguyên liệu */}
         <div className={styles.kpiBox}>
           <div className={styles.kpiTop}>
             <span className={styles.kpiLabel}>Lô nguyên liệu</span>
@@ -56,14 +42,14 @@ export default function BatchValidationAuditCard({ portions = 60, totalLots = 4 
           </div>
           <div className={styles.kpiStatusGreen}>
             <CheckCheck size={13} />
-            <span>Không pha trộn lô</span>
+            <span>Mỗi nguyên liệu 01 lô độc lập</span>
           </div>
         </div>
 
-        {/* Box 3: Kho khả dụng */}
+        {/* Box 2: Tồn kho khả dụng */}
         <div className={styles.kpiBox}>
           <div className={styles.kpiTop}>
-            <span className={styles.kpiLabel}>Kho khả dụng</span>
+            <span className={styles.kpiLabel}>Tồn kho khả dụng</span>
             <Warehouse size={16} className={styles.kpiIcon} />
           </div>
           <div className={styles.kpiValueRow}>
@@ -71,15 +57,27 @@ export default function BatchValidationAuditCard({ portions = 60, totalLots = 4 
             <span className={styles.kpiUnit}>Đủ tồn</span>
           </div>
           <div className={styles.kpiStatusGreen}>
-            <LockOpen size={13} />
-            <span>Sẵn sàng xuất kho</span>
+            <CheckCircle2 size={13} />
+            <span>Không vượt tồn kho từng lô</span>
           </div>
+        </div>
+
+        {/* Box 3: Truy xuất nguồn gốc */}
+        <div className={styles.kpiBox}>
+          <div className={styles.kpiTop}>
+            <span className={styles.kpiLabel}>Truy xuất nguồn gốc</span>
+            <QrCode size={16} className={styles.kpiIcon} />
+          </div>
+          <div className={styles.kpiValueRow}>
+            <span className={styles.kpiNumSuccess}>Chuẩn QR 1:1</span>
+          </div>
+          <span className={styles.kpiSub}>Bảo toàn tem nhãn từng khay ăn</span>
         </div>
 
         {/* Box 4: Kết quả kiểm tra */}
         <div className={`${styles.kpiBox} ${styles.kpiBoxSuccess}`}>
           <div className={styles.kpiTop}>
-            <span className={styles.kpiLabelSuccess}>Kết quả kiểm tra</span>
+            <span className={styles.kpiLabelSuccess}>Kết quả đối soát</span>
             <ShieldCheck size={16} className={styles.kpiIconSuccess} />
           </div>
           <div className={styles.kpiValueRow}>
@@ -87,7 +85,7 @@ export default function BatchValidationAuditCard({ portions = 60, totalLots = 4 
           </div>
           <div className={styles.kpiStatusSuccess}>
             <CheckCircle2 size={13} />
-            <span>Cho phép phê duyệt</span>
+            <span>Sẵn sàng lưu &amp; phê duyệt</span>
           </div>
         </div>
       </div>

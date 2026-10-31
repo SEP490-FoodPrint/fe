@@ -6,7 +6,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 
   @media (min-width: 768px) {
-    padding: 22px;
+    padding: 20px 22px;
   }
 }
 
@@ -52,92 +52,32 @@
   }
 }
 
-.safetyBadge {
+.schoolBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 4px 10px;
   border-radius: 6px;
-  background-color: #e8f5f1;
-  border: 1px solid rgba(10, 128, 102, 0.2);
-  color: #0a8066;
-  font-size: 11.5px;
-  font-weight: 600;
-}
-
-/* Policy Strip */
-.policyStrip {
-  background-color: #f0fdf4;
-  border: 1px solid #dcfce7;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-bottom: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  background-color: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #374151;
   font-size: 12px;
-  color: #166534;
-}
-
-.policyLeft {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.policyIcon {
-  color: #16a34a;
-  flex-shrink: 0;
-}
-
-.policyLabel {
-  font-weight: 600;
-}
-
-.policyTag {
-  background-color: #0a8066;
-  color: #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-  letter-spacing: 0.03em;
-}
-
-.dotSeparator {
-  color: #86efac;
-}
-
-.policyMeta {
-  strong {
-    color: #14532d;
-  }
-}
-
-.policyRight {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  color: #15803d;
   font-weight: 500;
 }
 
-.lockIcon {
-  color: #16a34a;
-}
-
-/* Grid thông tin chi tiết */
+/* Grid 4 Thông Tin Đều Đẹp Trên 1 Hàng Desktop */
 .infoGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px 24px;
+  gap: 16px;
 
   @media (min-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
   }
 }
 
@@ -153,13 +93,6 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: #6b7280;
-}
-
-.fieldValueMono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 15px;
-  font-weight: 700;
-  color: #0a8066;
 }
 
 .fieldValueBold {
@@ -202,10 +135,16 @@
   color: #0a8066;
 }
 
+.mealSessionText {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #111827;
+}
+
 .portionWrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -234,6 +173,32 @@
   font-size: 11px;
   font-weight: 600;
   border: 1px solid rgba(10, 128, 102, 0.2);
+}
+
+.methodWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.methodName {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0a8066;
+}
+
+.methodLockTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 1px 6px;
+  border-radius: 4px;
 }
 
 .subText {

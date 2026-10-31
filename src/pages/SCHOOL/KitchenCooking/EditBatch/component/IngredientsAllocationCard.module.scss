@@ -6,7 +6,7 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 
   @media (min-width: 768px) {
-    padding: 22px;
+    padding: 20px 22px;
   }
 }
 
@@ -448,77 +448,29 @@
   }
 }
 
-/* 3. Notice Boxes (Vibe đồng bộ Màn 5) */
-.noticeGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-  margin-top: 18px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.noticeBoxBlue {
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
-  padding: 12px 14px;
-  display: flex;
-  gap: 10px;
-}
-
-.noticeIconBlue {
-  color: #2563eb;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.noticeTitleBlue {
-  margin: 0 0 3px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #1e40af;
-}
-
-.noticeBoxGreen {
+/* 3. Dải Ghi Chú An Toàn Tinh Gọn Duy Nhất */
+.singleNoticeBar {
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 10px 14px;
+  margin-top: 16px;
   display: flex;
+  align-items: center;
   gap: 10px;
 }
 
-.noticeIconGreen {
+.noticeIcon {
   color: #16a34a;
   flex-shrink: 0;
-  margin-top: 1px;
 }
 
-.noticeTitleGreen {
-  margin: 0 0 3px;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #166534;
-}
-
-.noticeDesc {
-  margin: 0;
+.noticeText {
   font-size: 12px;
-  color: #374151;
+  color: #166534;
   line-height: 1.45;
 
   strong {
-    color: #111827;
+    color: #14532d;
   }
-}
-
-.inlineCode {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11px;
-  background-color: #e5e7eb;
-  padding: 1px 4px;
-  border-radius: 3px;
 }

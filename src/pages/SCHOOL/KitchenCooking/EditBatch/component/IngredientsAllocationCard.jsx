@@ -5,8 +5,6 @@ import {
   Lock,
   ArrowLeftRight,
   ShieldCheck,
-  Split,
-  QrCode,
   PackageCheck
 } from "lucide-react"
 import styles from "./IngredientsAllocationCard.module.scss"
@@ -28,11 +26,11 @@ export default function IngredientsAllocationCard({
             <Layers size={18} />
           </div>
           <div>
-            <h2 className={styles.cardTitle}>Nguyên liệu sử dụng</h2>
+            <h2 className={styles.cardTitle}>Nguyên liệu sử dụng theo định lượng</h2>
           </div>
           <div className={styles.countBadge}>
             <PackageCheck size={14} />
-            <span>{totalCount} nguyên liệu (quy chuẩn Nấu riêng)</span>
+            <span>{totalCount} nguyên liệu</span>
           </div>
         </div>
 
@@ -61,7 +59,7 @@ export default function IngredientsAllocationCard({
             </tr>
           </thead>
           <tbody>
-            {/* NHÓM 1: MÓN CHÍNH - THỊT GÀ TA */}
+            {/* NHÓM 1: NGUYÊN LIỆU CHÍNH */}
             <tr className={styles.groupRow}>
               <td colSpan="6">
                 <div className={styles.groupContent}>
@@ -73,7 +71,7 @@ export default function IngredientsAllocationCard({
                   <div className={styles.groupRight}>
                     <span className={styles.singleLotBadge}>
                       <Lock size={12} />
-                      01 lô duy nhất (Quy chuẩn nấu riêng)
+                      01 lô độc lập
                     </span>
                   </div>
                 </div>
@@ -274,31 +272,12 @@ export default function IngredientsAllocationCard({
         ))}
       </div>
 
-      {/* 4. Hai Thẻ Ghi Chú Phương Án & ATTP (Style Banner Tinh Tế) */}
-      <div className={styles.noticeGrid}>
-        <div className={styles.noticeBoxBlue}>
-          <div className={styles.noticeIconBlue}>
-            <Split size={18} />
-          </div>
-          <div className={styles.noticeContent}>
-            <h3 className={styles.noticeTitleBlue}>Đặc thù phương án Nấu riêng:</h3>
-            <p className={styles.noticeDesc}>
-              Lô 01 — <strong>60 suất</strong> độc lập | Lô 02 — <strong>40 suất</strong> (Lô gà B <span className={styles.inlineCode}>[LOT-GA-01B]</span> — Tham chiếu). Tuyệt đối không pha trộn 2 lô thịt gà vào cùng 1 nồi nấu.
-            </p>
-          </div>
-        </div>
-
-        <div className={styles.noticeBoxGreen}>
-          <div className={styles.noticeIconGreen}>
-            <QrCode size={18} />
-          </div>
-          <div className={styles.noticeContent}>
-            <h3 className={styles.noticeTitleGreen}>Quy tắc ATTP &amp; Truy xuất nguồn gốc:</h3>
-            <p className={styles.noticeDesc}>
-              Toàn bộ thịt gà trong lô này được chế biến từ <strong>01 lô duy nhất (Lô A)</strong>, bảo toàn tính toàn vẹn của mã QR truy xuất nguồn gốc cho từng khay ăn của học sinh.
-            </p>
-          </div>
-        </div>
+      {/* 4. Dải Ghi Chú An Toàn Tinh Gọn Duy Nhất (Không Trùng Lặp) */}
+      <div className={styles.singleNoticeBar}>
+        <ShieldCheck size={16} className={styles.noticeIcon} />
+        <span className={styles.noticeText}>
+          <strong>Quy chuẩn Nấu riêng &amp; Truy xuất nguồn gốc:</strong> Mỗi nguyên liệu chỉ sử dụng 01 lô duy nhất (Lô A), bảo toàn tính toàn vẹn của mã QR truy xuất nguồn gốc khi phụ huynh quét kiểm tra khay ăn học sinh.
+        </span>
       </div>
     </section>
   )

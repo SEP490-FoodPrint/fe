@@ -169,7 +169,6 @@ export default function EditBatch() {
 
         {/* KHU VỰC 3: KIỂM TRA PHƯƠNG ÁN & ĐỐI SOÁT DỮ LIỆU KHO */}
         <BatchValidationAuditCard
-          portions={batchData.portions}
           totalLots={1 + subIngredients.length}
         />
 
