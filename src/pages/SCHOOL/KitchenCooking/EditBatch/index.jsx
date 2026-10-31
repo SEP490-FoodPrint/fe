@@ -7,7 +7,6 @@ import IngredientsAllocationCard from "./component/IngredientsAllocationCard"
 import BatchValidationAuditCard from "./component/BatchValidationAuditCard"
 import EditBatchActionBar from "./component/EditBatchActionBar"
 import SwapLotModal from "./component/SwapLotModal"
-import RecipeDetailModal from "./component/RecipeDetailModal"
 import styles from "./index.module.scss"
 
 const INITIAL_BATCH = {
@@ -91,7 +90,6 @@ export default function EditBatch() {
   // Modals state
   const [isSwapModalOpen, setIsSwapModalOpen] = useState(false)
   const [targetSwapItem, setTargetSwapItem] = useState(null)
-  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Mở modal thay lô
@@ -163,7 +161,6 @@ export default function EditBatch() {
         <IngredientsAllocationCard
           mainIngredient={mainIngredient}
           subIngredients={subIngredients}
-          onOpenRecipeModal={() => setIsRecipeModalOpen(true)}
           onOpenSwapModal={handleOpenSwapModal}
         />
 
@@ -188,12 +185,6 @@ export default function EditBatch() {
         onClose={() => setIsSwapModalOpen(false)}
         targetItem={targetSwapItem}
         onConfirmSwap={handleConfirmSwap}
-      />
-
-      <RecipeDetailModal
-        isOpen={isRecipeModalOpen}
-        onClose={() => setIsRecipeModalOpen(false)}
-        portions={batchData.portions}
       />
     </div>
   )

@@ -1,7 +1,6 @@
 import React from "react"
 import {
   Layers,
-  Calculator,
   Lock,
   ArrowLeftRight,
   ShieldCheck,
@@ -12,7 +11,6 @@ import styles from "./IngredientsAllocationCard.module.scss"
 export default function IngredientsAllocationCard({
   mainIngredient,
   subIngredients,
-  onOpenRecipeModal,
   onOpenSwapModal
 }) {
   const totalCount = 1 + subIngredients.length
@@ -26,23 +24,13 @@ export default function IngredientsAllocationCard({
             <Layers size={18} />
           </div>
           <div>
-            <h2 className={styles.cardTitle}>Nguyên liệu sử dụng theo định lượng</h2>
+            <h2 className={styles.cardTitle}>Danh sách nguyên liệu chế biến</h2>
           </div>
           <div className={styles.countBadge}>
             <PackageCheck size={14} />
             <span>{totalCount} nguyên liệu</span>
           </div>
         </div>
-
-        <button
-          type="button"
-          className={styles.recipeBtn}
-          onClick={onOpenRecipeModal}
-          title="Xem chi tiết định lượng công thức chuẩn"
-        >
-          <Calculator size={15} />
-          <span>Xem định lượng công thức</span>
-        </button>
       </div>
 
       {/* 2. Desktop Table View */}

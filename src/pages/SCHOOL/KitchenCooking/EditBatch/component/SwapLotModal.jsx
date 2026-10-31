@@ -140,7 +140,7 @@ export default function SwapLotModal({ isOpen, onClose, targetItem, onConfirmSwa
         <div className={styles.ruleNotice}>
           <AlertCircle size={16} className={styles.noticeIcon} />
           <span className={styles.noticeText}>
-            Quy định Nấu riêng yêu cầu <strong>01 lô duy nhất</strong> cho mỗi nguyên liệu. Lô thay thế phải có tồn kho khả dụng ≥ lượng định mức cần dùng.
+            Quy định Nấu riêng yêu cầu <strong>01 lô duy nhất</strong> cho mỗi nguyên liệu. Lô thay thế phải có tồn kho khả dụng ≥ số lượng cần dùng.
           </span>
         </div>
 

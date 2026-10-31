@@ -90,7 +90,7 @@ export default function ProposedBatchSection() {
       <div className={styles.noteBox}>
         <CheckCircle2 size={16} className={styles.noteIcon} />
         <span className={styles.noteText}>
-          Phương án chế biến hợp lệ. Đầy đủ định lượng và liên kết truy xuất nguồn gốc số hóa. Sẵn sàng tạo lô.
+          Phương án chế biến hợp lệ. Đầy đủ nguyên liệu và liên kết truy xuất nguồn gốc số hóa. Sẵn sàng tạo lô.
         </span>
       </div>
     </section>

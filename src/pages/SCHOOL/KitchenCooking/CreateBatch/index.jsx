@@ -12,7 +12,7 @@ import styles from "./index.module.scss"
  * - Kế thừa MainLayout dùng chung (Sidebar xanh Forest Emerald #0A8066 + DashboardHeader)
  * - Header Bar: Breadcrumb + Action Mode Tag
  * - Phần 1: Thông tin cơ bản (Ngày ăn, Bữa ăn, Chọn món ăn, Số suất dự kiến)
- * - Phần 2: Chọn lô nguyên liệu & Đối soát định lượng
+ * - Phần 2: Chọn lô nguyên liệu & Đối soát số lượng
  * - Phần 3: Phương án chế biến dự kiến
  * - Chân trang tác vụ: Nút quay lại, Lưu nháp (DRAFT), Khởi tạo lô chế biến
  */
@@ -26,7 +26,7 @@ export default function CreateBatch() {
         {/* PHẦN 1: THÔNG TIN CƠ BẢN */}
         <BasicInfoSection />
 
-        {/* PHẦN 2: CHỌN LÔ NGUYÊN LIỆU & ĐỐI SOÁT ĐỊNH LƯỢNG */}
+        {/* PHẦN 2: CHỌN LÔ NGUYÊN LIỆU & ĐỐI SOÁT SỐ LƯỢNG */}
         <IngredientAllocationSection />
 
         {/* PHẦN 3: PHƯƠNG ÁN CHẾ BIẾN DỰ KIẾN */}

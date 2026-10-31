@@ -24,7 +24,7 @@ const DISH_OPTIONS = [
   {
     id: "dish-2",
     name: "Canh sườn hầm củ quả thập cẩm",
-    type: "Món canh dinh dưỡng",
+    type: "Món canh",
     icon: Soup,
   },
   {

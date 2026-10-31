@@ -77,7 +77,7 @@ export default function BatchDetailHeader({ batchData }) {
               {getStatusBadge()}
             </div>
             <p className={styles.subTitle}>
-              Xem và kiểm tra phương án định mức trước khi tiến hành chế biến tại bếp.
+              Xem và kiểm tra phương án trước khi tiến hành chế biến tại bếp.
             </p>
           </div>
         </div>
