@@ -24,6 +24,7 @@ const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
+const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
 const MenuApproval = lazy(() => import("src/pages/SCHOOL/MenuApproval"))
 const MenuPlanning = lazy(() => import("src/pages/SCHOOL/MenuPlanning"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
@@ -150,6 +151,13 @@ const routes = [
           {
             path: ROUTER.SCHOOL_OVERVIEW,
             element: <LazyWrapper><SchoolOverview /></LazyWrapper>,
+          },
+
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN]} />,
+            children: [
+              { path: ROUTER.SCHOOL_ADMINISTRATION, element: <LazyWrapper><SchoolAdministration /></LazyWrapper> },
+            ],
           },
 
           // Duyệt thực đơn: Ban Giám Hiệu, School Admin

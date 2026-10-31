@@ -22,6 +22,7 @@ const ROUTER = {
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
   SCHOOL: "/school",
   SCHOOL_OVERVIEW: "/school/overview",
+  SCHOOL_ADMINISTRATION: "/school/administration",
   SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
   SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
   // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)

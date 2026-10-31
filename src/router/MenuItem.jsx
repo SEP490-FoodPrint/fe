@@ -20,6 +20,7 @@ import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlin
 import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
 import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -111,6 +112,12 @@ export const MenuItemSchool = () => [
       ROLES.PARENTS_COMMITTEE,
       ROLES.INGREDIENT_MANAGEMENT,
     ],
+  },
+  {
+    key: ROUTER.SCHOOL_ADMINISTRATION,
+    label: "Quản trị Nhà trường",
+    icon: <AdminPanelSettingsOutlinedIcon />,
+    roles: [ROLES.SCHOOL_ADMIN],
   },
   {
     key: ROUTER.SCHOOL_MENU_APPROVAL,
