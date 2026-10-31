@@ -1,0 +1,495 @@
+.ingredientsCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  @media (min-width: 768px) {
+    padding: 20px 22px;
+  }
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.iconBox {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  margin: 0;
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.01em;
+
+  @media (min-width: 768px) {
+    font-size: 17px;
+  }
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.recipeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  background-color: #ffffff;
+  color: #0a8066;
+  border: 1px solid rgba(10, 128, 102, 0.3);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #e8f5f1;
+    border-color: #0a8066;
+  }
+}
+
+/* 1. Desktop Table View */
+.desktopTableWrap {
+  display: none;
+  overflow-x: auto;
+
+  @media (min-width: 768px) {
+    display: block;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  text-align: left;
+
+  thead tr th {
+    padding: 10px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #6b7280;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+
+    &:first-child {
+      border-top-left-radius: 6px;
+      border-bottom-left-radius: 6px;
+    }
+
+    &:last-child {
+      border-top-right-radius: 6px;
+      border-bottom-right-radius: 6px;
+      text-align: center;
+    }
+  }
+}
+
+.thName {
+  min-width: 220px;
+}
+
+.thCert {
+  min-width: 190px;
+}
+
+.thExpiry {
+  min-width: 120px;
+}
+
+.thStock {
+  min-width: 130px;
+}
+
+.thQty {
+  min-width: 110px;
+}
+
+.thAction {
+  min-width: 90px;
+}
+
+/* Group Row */
+.groupRow td {
+  padding: 10px 12px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.groupContent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.groupLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mainDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #0a8066;
+}
+
+.subDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background-color: #2563eb;
+}
+
+.groupTitle {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1f2937;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.groupRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.singleLotBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #e8f5f1;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+/* Data Row */
+.row {
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f9fafb;
+  }
+
+  td {
+    padding: 12px;
+    vertical-align: middle;
+  }
+}
+
+.itemMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.itemName {
+  font-weight: 600;
+  color: #111827;
+}
+
+.lotCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #f3f4f6;
+  color: #374151;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.supplierText {
+  font-size: 11.5px;
+  color: #6b7280;
+}
+
+.certMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.certBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
+}
+
+.certSub {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.expiryDate {
+  font-weight: 600;
+  color: #111827;
+  font-size: 13px;
+}
+
+.expiryRemaining {
+  font-size: 11px;
+  color: #0a8066;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.stockNum {
+  font-weight: 600;
+  color: #111827;
+  display: block;
+}
+
+.stockLocation {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.qtyBox {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 3px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.numBold {
+  font-family: 'Be Vietnam Pro', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.unitText {
+  font-size: 12px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.quotaSubText {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 3px;
+  white-space: nowrap;
+}
+
+.swapBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #0a8066;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #e8f5f1;
+    border-color: #0a8066;
+  }
+}
+
+/* 2. Mobile Card List */
+.mobileCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  @media (min-width: 768px) {
+    display: none;
+  }
+}
+
+.mobileGroupBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111827;
+  text-transform: uppercase;
+  padding: 6px 0 2px;
+}
+
+.mobileCard {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobileCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mobileItemName {
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 2px;
+}
+
+.mobileQtyPill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background-color: #f0fdf4;
+  color: #15803d;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  border: 1px solid #bbf7d0;
+  white-space: nowrap;
+}
+
+.quotaSubMobile {
+  font-size: 10.5px;
+  color: #6b7280;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.mobileDetailsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 11.5px;
+  background-color: #f9fafb;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.mobileLabel {
+  color: #6b7280;
+  font-size: 10.5px;
+  display: block;
+}
+
+.mobileVal {
+  color: #111827;
+  font-weight: 500;
+}
+
+.swapBtnMobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #0a8066;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:active {
+    background-color: #e8f5f1;
+  }
+}
+
+/* 3. Dải Ghi Chú An Toàn Tinh Gọn Duy Nhất */
+.singleNoticeBar {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.noticeIcon {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.noticeText {
+  font-size: 12px;
+  color: #166534;
+  line-height: 1.45;
+
+  strong {
+    color: #14532d;
+  }
+}

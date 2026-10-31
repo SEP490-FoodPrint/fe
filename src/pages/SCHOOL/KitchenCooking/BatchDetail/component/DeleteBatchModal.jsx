@@ -35,7 +35,7 @@ export default function DeleteBatchModal({
             Bạn có chắc chắn muốn xóa lô chế biến <strong className={styles.codeText}>{batchCode}</strong> khỏi kế hoạch ngày hôm nay không?
           </p>
           <div className={styles.alertNote}>
-            <span>Tất cả thông tin định mức nguyên liệu liên kết với lô này sẽ bị hủy bỏ.</span>
+            <span>Tất cả thông tin phân bổ nguyên liệu liên kết với lô này sẽ bị hủy bỏ.</span>
           </div>
         </div>
 

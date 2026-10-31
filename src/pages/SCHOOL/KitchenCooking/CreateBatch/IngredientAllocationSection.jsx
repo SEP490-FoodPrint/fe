@@ -98,7 +98,7 @@ export default function IngredientAllocationSection() {
           <div className={styles.numberBadge}>2</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              <span className={styles.desktopTitle}>2. Chọn lô nguyên liệu &amp; Đối soát định lượng</span>
+              <span className={styles.desktopTitle}>2. Chọn lô nguyên liệu &amp; Đối soát số lượng</span>
               <span className={styles.mobileTitle}>2. Chọn lô nguyên liệu</span>
             </h2>
             <p className={styles.sectionSubtitle}>
@@ -132,7 +132,7 @@ export default function IngredientAllocationSection() {
           <thead>
             <tr>
               <th className={styles.thLeft}>Nguyên liệu &amp; Nhà cung cấp</th>
-              <th>Định lượng cần</th>
+              <th>Số lượng cần</th>
               <th>Mã lô (HSD)</th>
               <th className={styles.textRight}>Tồn khả dụng</th>
               <th className={styles.textRight}>Dự kiến lấy</th>
@@ -259,7 +259,7 @@ export default function IngredientAllocationSection() {
       <div className={styles.summaryBar}>
         <div className={styles.summaryStatus}>
           <PackageCheck size={16} />
-          <span>Đã chọn đủ nguyên liệu (100% định lượng)</span>
+          <span>Đã chọn đủ nguyên liệu (100% nhu cầu)</span>
         </div>
         <div className={styles.summaryMeta}>
           Tổng cộng: <strong>04 nhóm nguyên liệu</strong> từ{" "}

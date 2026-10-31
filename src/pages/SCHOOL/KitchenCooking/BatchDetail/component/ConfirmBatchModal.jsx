@@ -21,7 +21,7 @@ export default function ConfirmBatchModal({
             </div>
             <div>
               <h3 className={styles.modalTitle}>Xác nhận phương án chế biến</h3>
-              <p className={styles.modalSub}>Khóa định lượng và chuyển trạng thái sẵn sàng nấu</p>
+              <p className={styles.modalSub}>Chốt phương án và chuyển trạng thái sẵn sàng nấu</p>
             </div>
           </div>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
@@ -41,7 +41,7 @@ export default function ConfirmBatchModal({
               <span className={styles.briefValueMono}>{batchData.code}</span>
             </div>
             <div className={styles.briefRow}>
-              <span className={styles.briefLabel}>Số suất định lượng:</span>
+              <span className={styles.briefLabel}>Số suất chế biến:</span>
               <span className={styles.briefValuePrimary}>
                 {(batchData.portions || 1250).toLocaleString("vi-VN")} suất
               </span>
@@ -55,7 +55,7 @@ export default function ConfirmBatchModal({
           <div className={styles.warningBox}>
             <ShieldCheck size={18} className={styles.warningIcon} />
             <p className={styles.warningText}>
-              Sau khi xác nhận, định mức và danh mục lô nguyên liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc FoodPrint. Bạn có chắc chắn muốn duyệt phương án này?
+              Sau khi xác nhận, phương án và danh mục lô nguyên liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc FoodPrint. Bạn có chắc chắn muốn duyệt phương án này?
             </p>
           </div>
         </div>

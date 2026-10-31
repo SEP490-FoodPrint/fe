@@ -33,7 +33,7 @@ export default function BatchTimelineCard({ status = "DRAFT" }) {
               {isDraft && <span className={styles.currentBadge}>Hiện tại</span>}
             </div>
             <p className={styles.stepDesc}>
-              Phương án lô nấu đã lập xong, đang đợi kiểm tra định mức và lô nguyên liệu.
+              Phương án lô nấu đã lập xong, đang đợi rà soát lô nguyên liệu.
             </p>
           </div>
         </div>
@@ -58,7 +58,7 @@ export default function BatchTimelineCard({ status = "DRAFT" }) {
               {isConfirmed && <span className={styles.currentBadgeConfirmed}>Hiện tại</span>}
             </div>
             <p className={styles.stepDesc}>
-              Bếp trưởng duyệt khóa định lượng và cho phép xuất kho nấu lô chế biến.
+              Bếp trưởng duyệt phương án và cho phép xuất kho nấu lô chế biến.
             </p>
           </div>
         </div>

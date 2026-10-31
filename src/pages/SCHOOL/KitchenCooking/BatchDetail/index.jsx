@@ -152,7 +152,8 @@ export default function KitchenBatchDetail() {
         {/* CỘT PHẢI (~30% / 4 Cols Desktop) */}
         <div className={styles.rightCol}>
           {/* Thẻ 1 Cột Phải: Tiến trình chế biến */}
-          <BatchTimelineCard status={batchData.status} />
+          <BatchTimelineCard status={batchData.status}
+            batchCode={batchData.code} />
 
           {/* Thẻ 2 Cột Phải: Theo dõi kiểm toán */}
           <BatchAuditCard auditData={auditData} />

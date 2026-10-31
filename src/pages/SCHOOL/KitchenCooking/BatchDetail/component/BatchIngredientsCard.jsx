@@ -111,7 +111,7 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
       <div className={styles.footerNote}>
         <Info size={15} className={styles.infoIcon} />
         <span>
-          Nguyên liệu xuất kho theo đúng định mức dinh dưỡng và quy chuẩn an toàn đã được phê duyệt.
+          Nguyên liệu xuất kho theo phương án chế biến và quy chuẩn an toàn đã được phê duyệt.
         </span>
       </div>
     </section>
