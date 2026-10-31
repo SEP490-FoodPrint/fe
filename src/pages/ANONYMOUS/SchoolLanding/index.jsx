@@ -35,10 +35,7 @@ function SchoolLanding() {
         ]);
 
         if (isMounted) {
-          const schoolData =
-            schoolRes?.data ||
-            MOCK_SCHOOLS.find((s) => s.code.toUpperCase() === activeCode) ||
-            MOCK_SCHOOLS[0];
+          const schoolData = schoolRes?.data;
 
           setSchool(schoolData);
           setDailyMeal(dailyRes?.data || null);

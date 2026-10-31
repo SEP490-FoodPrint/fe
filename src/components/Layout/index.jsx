@@ -4,7 +4,6 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom"
 import { useMediaQuery } from "@mui/material"
 import { DashboardHeader } from "./Header"
 import Sidebar from "./Sidebar"
-import RoleSwitcher from "src/components/Common/RoleSwitcher"
 import { StoreContext } from "src/contexts"
 import AuthService from "src/services/AuthService"
 import ROUTER from "src/router/ROUTER"
@@ -64,7 +63,6 @@ const MainLayout = ({ type }) => {
           <Outlet />
         </main>
       </div>
-      <RoleSwitcher />
     </div>
   )
 }

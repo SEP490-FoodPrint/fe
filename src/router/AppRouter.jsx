@@ -109,7 +109,6 @@ const routes = [
         ),
       },
       { path: ROUTER.REGISTER, element: <LazyWrapper><RegisterPage /></LazyWrapper> },
-      { path: ROUTER.TEST_LOGIN, element: <LazyWrapper><LoginPage /></LazyWrapper> },
       { path: ROUTER.ACTIVATE_ACCOUNT, element: <LazyWrapper><AccountActivation /></LazyWrapper> },
       { path: ROUTER.FORGOT_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
       { path: ROUTER.PASSWORD_RECOVERY_CODE, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
