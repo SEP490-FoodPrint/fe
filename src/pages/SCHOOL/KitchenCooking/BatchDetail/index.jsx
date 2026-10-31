@@ -10,6 +10,7 @@ import BatchAuditCard from "./component/BatchAuditCard"
 import BatchActionsCard from "./component/BatchActionsCard"
 import ConfirmBatchModal from "./component/ConfirmBatchModal"
 import DeleteBatchModal from "./component/DeleteBatchModal"
+import InspectionSheetModal from "./component/InspectionSheetModal"
 import styles from "./index.module.scss"
 
 const INITIAL_BATCH_DATA = {
@@ -94,6 +95,7 @@ export default function KitchenBatchDetail() {
   // Modal states
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
 
   // Xử lý xác nhận phương án
   const handleConfirmBatch = () => {
@@ -166,6 +168,7 @@ export default function KitchenBatchDetail() {
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
             onOpenCompleteModal={handleCompleteBatch}
+            onOpenPrintModal={() => setIsPrintModalOpen(true)}
           />
         </div>
       </div>
@@ -184,7 +187,14 @@ export default function KitchenBatchDetail() {
         onConfirm={handleDeleteBatch}
         batchCode={batchData.code}
       />
+
+      <InspectionSheetModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        batchData={batchData}
+        ingredients={ingredients}
+        auditData={auditData}
+      />
     </div>
   )
 }
-

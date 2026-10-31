@@ -20,7 +20,8 @@ export default function BatchActionsCard({
   dishName = "Thịt heo kho cút nước dừa",
   onOpenConfirmModal,
   onOpenDeleteModal,
-  onOpenCompleteModal
+  onOpenCompleteModal,
+  onOpenPrintModal
 }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -38,7 +39,11 @@ export default function BatchActionsCard({
   }
 
   const handlePrint = () => {
-    window.print()
+    if (onOpenPrintModal) {
+      onOpenPrintModal()
+    } else {
+      window.print()
+    }
   }
 
   return (
@@ -87,18 +92,13 @@ export default function BatchActionsCard({
                 <span>Ghi nhận mẫu lưu</span>
               </button>
 
-              <p className={styles.sampleSubtext}>
-                Chuyển tiếp sang biểu mẫu ghi nhận mẫu lưu thực phẩm, tự động liên kết mã lô{" "}
-                <strong className={styles.codeHighlight}>{batchCode}</strong> và món ăn.
-              </p>
-
               <button
                 type="button"
                 className={styles.btnPrintSecondary}
                 onClick={handlePrint}
               >
                 <Printer size={16} />
-                <span>In phiếu kiểm thực &amp; Lô mẻ</span>
+                <span>In sổ kiểm thực 3 bước</span>
               </button>
             </div>
           )}
@@ -134,7 +134,7 @@ export default function BatchActionsCard({
           <Shield size={16} className={styles.shieldIcon} />
           <p className={styles.securityText}>
             {isCompleted
-              ? "Lô chế biến đã hoàn tất ra khay. Tiến hành lưu mẫu thực phẩm 24h và in phiếu kiểm thực 3 bước để hoàn tất hồ sơ."
+              ? "Lô chế biến đã hoàn tất ra khay. Bếp và cán bộ y tế tiến hành kiểm thực 3 bước theo đúng QĐ 1246/QĐ-BYT để hoàn tất hồ sơ pháp lý."
               : "Lô chế biến chỉ có thể chỉnh sửa hoặc xóa khi chưa được xác nhận phương án. Khi đã xác nhận, dữ liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc."}
           </p>
         </div>
