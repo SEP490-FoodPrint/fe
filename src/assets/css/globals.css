@@ -140,6 +140,11 @@
   --control-height-sm: 2rem;
   --control-height-md: 2.5rem;
   --control-height-lg: 3rem;
+  --auth-card-width: 30rem;
+  --auth-registration-width: 39rem;
+  --auth-profile-width: 45rem;
+  --auth-brand-width: 19.375rem;
+  --auth-recovery-link-width: 10rem;
   --transition-layout: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
   /* 7. MOTION & STACKING */

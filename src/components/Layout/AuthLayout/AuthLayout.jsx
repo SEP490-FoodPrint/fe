@@ -1,17 +1,18 @@
 import React from "react"
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
+import ROUTER from "src/router/ROUTER"
 import { AuthHeader } from "../Header"
 import styles from "./AuthLayout.module.scss"
 
 function AuthLayout() {
+  const location = useLocation()
+  const compactFooter = [ROUTER.FORGOT_PASSWORD, ROUTER.RESET_PASSWORD].includes(location.pathname)
   return (
     <div className={styles.layoutWrapper}>
-      <AuthHeader />
-
       <main className={styles.authContent}>
-        <div className={styles.authCardContainer}>
-          <Outlet />
-        </div>
+        <AuthHeader />
+        <Outlet />
+        <p className={`${styles.footer} ${compactFooter ? styles.compactFooter : ""}`}>FoodPrint · Nền tảng quản lý và truy xuất nguồn gốc bữa ăn học đường</p>
       </main>
     </div>
   )

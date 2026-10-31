@@ -22,12 +22,12 @@ function RegisterCta() {
           </p>
 
           <div className={styles.btnGroup}>
-            <Link to={ROUTER.LOGIN} className={styles.schoolBtn}>
+            <Link to={`${ROUTER.REGISTER}?type=SCHOOL`} className={styles.schoolBtn}>
               <School size={18} />
               <span>Đăng ký trường học</span>
             </Link>
 
-            <Link to={ROUTER.LOGIN} className={styles.supplierBtn}>
+            <Link to={`${ROUTER.REGISTER}?type=SUPPLIER`} className={styles.supplierBtn}>
               <Building2 size={18} />
               <span>Đăng ký nhà cung cấp</span>
             </Link>

@@ -1,24 +1,16 @@
-.layoutWrapper {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  background-color: var(--bg-page);
-  position: relative;
-  overflow-x: hidden;
-}
-
+.layoutWrapper { min-height: 100svh; background: var(--bg-page); }
 .authContent {
-  flex: 1;
+  min-height: 100svh;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: var(--space-8) var(--space-4);
-  width: 100%;
+  gap: var(--space-6);
+  padding: var(--space-8);
 }
-
-.authCardContainer {
-  width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
+.footer { margin: 0; max-width: 100%; font-size: var(--text-xs); color: var(--text-secondary); line-height: var(--text-lg); text-align: center; }
+.compactFooter { width: calc(var(--auth-card-width) - var(--space-12)); }
+@media (max-width: 600px) {
+  .authContent { gap: var(--space-4); padding: var(--space-6) var(--space-4); }
 }

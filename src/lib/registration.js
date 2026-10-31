@@ -1,8 +1,8 @@
 export const REQUEST_TYPES = { SCHOOL: "Trường học", SUPPLIER: "Nhà cung cấp" }
 export const REQUEST_STATUSES = { PENDING: "Chờ duyệt", APPROVED: "Đã duyệt", REJECTED: "Từ chối" }
 
-export const requestCode = id => `HS-${String(id || "").replaceAll("-", "").slice(0, 6).toUpperCase()}`
-export const organizationName = request => request?.profile_data?.name || "Chưa cung cấp"
+export const requestCode = id => String(id || "—")
+export const organizationName = request => request?.profile_data?.name || request?.profile_data?.organizationName || "Chưa cung cấp"
 
 export function formatRequestDate(value, withTime = false) {
   if (!value) return "—"

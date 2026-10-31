@@ -16,7 +16,8 @@ import { useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { MOCK_ACCOUNTS, ROLE_LABELS, ROLES } from "src/constants/roles"
 import AuthService from "src/services/AuthService"
-import { getDefaultRedirectByOrg, getDefaultRedirectByUser } from "src/lib/utils"
+import { getDefaultRedirectByUser } from "src/lib/utils"
+import { USE_MOCK_API } from "src/lib/config"
 
 function RoleSwitcher() {
   const [open, setOpen] = useState(false)
@@ -27,7 +28,7 @@ function RoleSwitcher() {
   const user = userStore?.user
   const setUser = userStore?.setUser
 
-  if (!isLoginContext || user?.role === ROLES.SCHOOL_KITCHEN_STAFF || user?.role === "SCHOOL_KITCHEN_STAFF") {
+  if (!USE_MOCK_API || !isLoginContext || user?.role === ROLES.SCHOOL_KITCHEN_STAFF) {
     return null
   }
 

@@ -20,11 +20,10 @@ function QuickLoginList({ onLoginSuccess }) {
   const handleQuickLogin = async acc => {
     try {
       setLoadingUser(acc.username)
-      const res = await AuthService.login({
-        username: acc.username,
+      const { user } = await AuthService.login({
+        identifier: acc.username,
         password: "123456",
       })
-      const user = res?.data?.user || res?.Object?.User
       if (user) {
         onLoginSuccess(user)
         return
