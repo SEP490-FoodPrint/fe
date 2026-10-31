@@ -5,45 +5,7 @@
   width: 100%;
 }
 
-/* 1. Breadcrumb chỉ hiện trên Desktop (>= 768px) */
-.breadcrumbDesktop {
-  display: none;
-
-  @media (min-width: 768px) {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 11.5px;
-    font-weight: 500;
-    color: var(--text-muted, #6b7280);
-    margin-bottom: 2px;
-  }
-}
-
-.breadcrumbLink {
-  background: none;
-  border: none;
-  padding: 0;
-  font: inherit;
-  color: var(--text-muted, #6b7280);
-  cursor: pointer;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: var(--color-primary, #0a8066);
-  }
-}
-
-.separator {
-  color: #d1d5db;
-}
-
-.current {
-  color: var(--text-primary, #111827);
-  font-weight: 600;
-}
-
-/* 2. Title Row: Nút quay lại + Tiêu đề + Mode Badge trên 1 hàng phẳng */
+/* Title Row: Nút quay lại + Tiêu đề + Mode Badge trên 1 hàng phẳng */
 .titleRow {
   display: flex;
   align-items: center;

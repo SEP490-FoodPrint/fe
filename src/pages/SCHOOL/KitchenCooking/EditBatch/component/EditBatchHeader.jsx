@@ -1,7 +1,6 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowLeft, GitFork, Combine } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
 import styles from "./EditBatchHeader.module.scss"
 
 export default function EditBatchHeader({
@@ -18,39 +17,7 @@ export default function EditBatchHeader({
 
   return (
     <div className={styles.headerBar}>
-      {/* 1. Breadcrumb navigation (Desktop >= 768px) */}
-      <nav className={styles.breadcrumbDesktop} aria-label="Breadcrumb">
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_COOKING)}
-        >
-          Vận hành bếp
-        </button>
-        <span className={styles.separator}>/</span>
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-        >
-          Lô chế biến
-        </button>
-        <span className={styles.separator}>/</span>
-        <button
-          type="button"
-          className={styles.breadcrumbLink}
-          onClick={handleBackToDetail}
-        >
-          <span>Chi tiết lô</span>
-          <span className={styles.codeTag}>{batchCode}</span>
-        </button>
-        <span className={styles.separator}>/</span>
-        <span className={styles.current}>
-          {isCombineLots ? "Chỉnh sửa lô nấu chung" : "Chỉnh sửa lô riêng"}
-        </span>
-      </nav>
-
-      {/* 2. Main Title Row: Tinh gọn, không nhồi nhét badges */}
+      {/* Title Row: Nút quay lại + Tiêu đề + Mã lô + Trạng thái + Chế độ */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
