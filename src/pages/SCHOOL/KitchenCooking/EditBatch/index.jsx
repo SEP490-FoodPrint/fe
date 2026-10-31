@@ -10,10 +10,10 @@ import AddLotModal from "./component/AddLotModal"
 import styles from "./index.module.scss"
 
 /* ========================================================
-   DỮ LIỆU MẪU CHUẨN PHƯƠNG ÁN A (HỆ THỐNG TỰ TÍNH TOÁN)
+   DỮ LIỆU MẪU CHUẨN PHƯƠNG ÁN A & B (HỆ THỐNG TỰ TÍNH TOÁN)
    ======================================================== */
 
-// 1. Dữ liệu mẻ Nấu chung (COMBINE_LOTS: 100 suất, 2 lô gà phối trộn)
+// 1. Dữ liệu mẻ Nấu chung (COMBINE_LOTS: 100 suất, 2 lô gà phối trộn theo chuẩn FEFO)
 const COMBINE_BATCH = {
   code: "CB-20261023-01",
   dishName: "Thịt gà kho",
@@ -25,6 +25,8 @@ const COMBINE_BATCH = {
   status: "UNCONFIRMED"
 }
 
+// Logic FEFO: Lô A cận hạn (25/10) nhưng tồn chỉ còn đúng 6.0 kg,
+// nên hệ thống vét sạch 6.0 kg của Lô A và tự động lấy tiếp 4.0 kg từ Lô B (tồn 12.0 kg)
 const COMBINE_MAIN_LOTS_INITIAL = [
   {
     id: 101,
@@ -37,7 +39,7 @@ const COMBINE_MAIN_LOTS_INITIAL = [
     certNote: "Kiểm định thú y đạt chuẩn",
     expiryDate: "25/10/2026",
     expiryRemaining: "Còn 2 ngày",
-    stock: 18.0,
+    stock: 6.0,
     unit: "kg",
     quantity: 6.0,
     quotaPerPortion: "60g / suất"
@@ -99,7 +101,7 @@ const COMBINE_SUB_INGREDIENTS_INITIAL = [
   }
 ]
 
-// 2. Dữ liệu mẻ Nấu riêng (SEPARATE_BY_LOT: 60 suất, 1 lô độc lập)
+// 2. Dữ liệu mẻ Nấu riêng (SEPARATE_BY_LOT: 60 suất, 1 lô độc lập - Khóa số lượng)
 const SEPARATE_BATCH = {
   code: "CB-20261023-01A",
   dishName: "Thịt gà kho",
@@ -213,6 +215,28 @@ export default function EditBatch() {
     }
   }
 
+  // Điều chỉnh số lượng từng lô phối trộn (Phương án 2)
+  const handleQuantityChange = (lotId, rawValue) => {
+    setCombineMainLots((prev) =>
+      prev.map((lot) => {
+        if (lot.id === lotId) {
+          const numericVal = rawValue === "" ? "" : parseFloat(rawValue)
+          const safePortions = batchData.portions || 100
+          const quotaStr =
+            numericVal !== "" && !isNaN(numericVal) && safePortions > 0
+              ? `${Math.round((numericVal * 1000) / safePortions)}g / suất`
+              : ""
+          return {
+            ...lot,
+            quantity: rawValue,
+            quotaPerPortion: quotaStr
+          }
+        }
+        return lot
+      })
+    )
+  }
+
   // Mở modal thay lô
   const handleOpenSwapModal = (item) => {
     setTargetSwapItem(item)
@@ -227,7 +251,6 @@ export default function EditBatch() {
   // Xác nhận đổi lô nguyên liệu
   const handleConfirmSwap = (oldItem, newLot) => {
     if (isCombineLots) {
-      // Đổi lô trong danh sách lô phối trộn của món chính
       if (combineMainLots.some((lot) => lot.id === oldItem.id)) {
         setCombineMainLots((prev) =>
           prev.map((lot) => {
@@ -248,7 +271,6 @@ export default function EditBatch() {
           })
         )
       } else {
-        // Đổi lô phụ liệu trong nấu chung
         setCombineSubIngredients((prev) =>
           prev.map((sub) => {
             if (sub.id === oldItem.id) {
@@ -266,7 +288,6 @@ export default function EditBatch() {
         )
       }
     } else {
-      // Đổi lô trong nấu riêng 1:1
       if (oldItem.id === separateMain.id) {
         setSeparateMain((prev) => ({
           ...prev,
@@ -303,6 +324,11 @@ export default function EditBatch() {
   const handleConfirmAddLot = (newLotCandidate) => {
     const newLotId = Date.now()
     const nextIndex = combineMainLots.length + 1
+    const defaultQty = newLotCandidate.defaultQty || 2.0
+    const safePortions = batchData.portions || 100
+    const quotaStr =
+      safePortions > 0 ? `${Math.round((defaultQty * 1000) / safePortions)}g / suất` : "20g / suất"
+
     const addedLot = {
       id: newLotId,
       lotIndex: nextIndex,
@@ -316,8 +342,8 @@ export default function EditBatch() {
       expiryRemaining: newLotCandidate.expiryRemaining || "Còn hiệu lực",
       stock: newLotCandidate.stock,
       unit: newLotCandidate.unit || "kg",
-      quantity: newLotCandidate.defaultQty || 2.0,
-      quotaPerPortion: "20g / suất"
+      quantity: defaultQty,
+      quotaPerPortion: quotaStr
     }
 
     setCombineMainLots((prev) => [...prev, addedLot])
@@ -354,6 +380,23 @@ export default function EditBatch() {
   const currentSub = isCombineLots ? combineSubIngredients : separateSub
   const totalLotsCount = currentMainLots.length + currentSub.length
 
+  // Validation tính toán cho Nấu chung
+  const totalMainAllocated = combineMainLots.reduce(
+    (acc, lot) => acc + (parseFloat(lot.quantity) || 0),
+    0
+  )
+  const diffAmount = Number((totalMainAllocated - 10.0).toFixed(2))
+  const isSumMatch = Math.abs(diffAmount) < 0.01
+  const hasStockOverflow = combineMainLots.some(
+    (lot) => (parseFloat(lot.quantity) || 0) > lot.stock
+  )
+  const hasInvalidQuantity = combineMainLots.some(
+    (lot) => (parseFloat(lot.quantity) || 0) <= 0 || isNaN(parseFloat(lot.quantity))
+  )
+  const isValid = isCombineLots
+    ? isSumMatch && !hasStockOverflow && !hasInvalidQuantity
+    : true
+
   return (
     <div className={styles.editBatchPage}>
       {/* 1. Header Bar with Breadcrumb & Rule Switcher */}
@@ -377,12 +420,17 @@ export default function EditBatch() {
           onOpenSwapModal={handleOpenSwapModal}
           onOpenAddLotModal={handleOpenAddLotModal}
           onRemoveLot={handleRemoveLot}
+          onQuantityChange={handleQuantityChange}
         />
 
         {/* KHU VỰC 3: KIỂM TRA PHƯƠNG ÁN & ĐỐI SOÁT DỮ LIỆU KHO */}
         <BatchValidationAuditCard
           totalLots={totalLotsCount}
           isCombineLots={isCombineLots}
+          isValid={isValid}
+          totalAllocated={totalMainAllocated}
+          hasStockOverflow={hasStockOverflow}
+          diffAmount={diffAmount}
         />
 
         {/* KHU VỰC 4: THANH TÁC VỤ CỐ ĐỊNH CHÂN TRANG */}
@@ -392,6 +440,7 @@ export default function EditBatch() {
           onCancel={handleCancel}
           onSave={handleSave}
           isSubmitting={isSubmitting}
+          isSaveDisabled={!isValid}
         />
       </div>
 

@@ -6,11 +6,20 @@ import {
   Warehouse,
   ShieldCheck,
   CheckCheck,
-  QrCode
+  QrCode,
+  AlertCircle,
+  AlertTriangle
 } from "lucide-react"
 import styles from "./BatchValidationAuditCard.module.scss"
 
-export default function BatchValidationAuditCard({ totalLots = 5, isCombineLots = false }) {
+export default function BatchValidationAuditCard({
+  totalLots = 5,
+  isCombineLots = false,
+  isValid = true,
+  totalAllocated = 10.0,
+  hasStockOverflow = false,
+  diffAmount = 0
+}) {
   const lotCountDisplay = totalLots < 10 ? `0${totalLots}` : `${totalLots}`
 
   return (
@@ -24,10 +33,22 @@ export default function BatchValidationAuditCard({ totalLots = 5, isCombineLots 
           <h2 className={styles.cardTitle}>Đối soát tính hợp lệ kho trước khi cập nhật</h2>
         </div>
 
-        <div className={styles.validBadge}>
-          <CheckCircle2 size={14} />
-          <span>Phương án hợp lệ 100%</span>
-        </div>
+        {isValid ? (
+          <div className={styles.validBadge}>
+            <CheckCircle2 size={14} />
+            <span>Phương án hợp lệ 100%</span>
+          </div>
+        ) : hasStockOverflow ? (
+          <div className={styles.invalidBadge}>
+            <AlertTriangle size={14} />
+            <span>Cảnh báo: Vượt tồn kho khả dụng</span>
+          </div>
+        ) : (
+          <div className={styles.warningBadge}>
+            <AlertCircle size={14} />
+            <span>Chưa đủ định mức ({totalAllocated.toFixed(1)} / 10.0 kg)</span>
+          </div>
+        )}
       </div>
 
       {/* 2. 4 Thẻ KPI Kiểm Tra Kho Logic, Không Trùng Lặp */}
@@ -52,19 +73,77 @@ export default function BatchValidationAuditCard({ totalLots = 5, isCombineLots 
           </div>
         </div>
 
-        {/* Box 2: Tồn kho khả dụng */}
-        <div className={styles.kpiBox}>
+        {/* Box 2: Tồn kho & Định mức */}
+        <div
+          className={`${styles.kpiBox} ${
+            hasStockOverflow
+              ? styles.kpiBoxError
+              : !isValid
+              ? styles.kpiBoxWarning
+              : ""
+          }`}
+        >
           <div className={styles.kpiTop}>
-            <span className={styles.kpiLabel}>Tồn kho khả dụng</span>
-            <Warehouse size={16} className={styles.kpiIcon} />
+            <span
+              className={
+                hasStockOverflow
+                  ? styles.kpiLabelError
+                  : !isValid
+                  ? styles.kpiLabelWarning
+                  : styles.kpiLabel
+              }
+            >
+              {isCombineLots ? "Định mức & Tồn kho" : "Tồn kho khả dụng"}
+            </span>
+            <Warehouse
+              size={16}
+              className={
+                hasStockOverflow
+                  ? styles.kpiIconError
+                  : !isValid
+                  ? styles.kpiIconWarning
+                  : styles.kpiIcon
+              }
+            />
           </div>
           <div className={styles.kpiValueRow}>
-            <span className={styles.kpiNum}>100%</span>
-            <span className={styles.kpiUnit}>Đủ tồn</span>
+            {hasStockOverflow ? (
+              <>
+                <span className={styles.kpiNumError}>Vượt tồn</span>
+              </>
+            ) : isCombineLots && diffAmount !== 0 ? (
+              <>
+                <span className={styles.kpiNumWarning}>{totalAllocated.toFixed(1)}</span>
+                <span className={styles.kpiUnit}>/ 10.0 kg</span>
+              </>
+            ) : (
+              <>
+                <span className={styles.kpiNum}>100%</span>
+                <span className={styles.kpiUnit}>Đủ tồn</span>
+              </>
+            )}
           </div>
-          <div className={styles.kpiStatusGreen}>
-            <CheckCircle2 size={13} />
-            <span>Không vượt tồn kho từng lô</span>
+          <div>
+            {hasStockOverflow ? (
+              <div className={styles.kpiStatusError}>
+                <AlertTriangle size={13} />
+                <span>Số lượng vượt quá tồn trong kho</span>
+              </div>
+            ) : isCombineLots && diffAmount !== 0 ? (
+              <div className={styles.kpiStatusWarning}>
+                <AlertCircle size={13} />
+                <span>
+                  {diffAmount < 0
+                    ? `Còn thiếu ${Math.abs(diffAmount).toFixed(1)} kg`
+                    : `Dư thừa +${diffAmount.toFixed(1)} kg`}
+                </span>
+              </div>
+            ) : (
+              <div className={styles.kpiStatusGreen}>
+                <CheckCircle2 size={13} />
+                <span>Không vượt tồn kho từng lô</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -87,19 +166,71 @@ export default function BatchValidationAuditCard({ totalLots = 5, isCombineLots 
         </div>
 
         {/* Box 4: Kết quả kiểm tra */}
-        <div className={`${styles.kpiBox} ${styles.kpiBoxSuccess}`}>
+        <div
+          className={`${styles.kpiBox} ${
+            isValid
+              ? styles.kpiBoxSuccess
+              : hasStockOverflow
+              ? styles.kpiBoxError
+              : styles.kpiBoxWarning
+          }`}
+        >
           <div className={styles.kpiTop}>
-            <span className={styles.kpiLabelSuccess}>Kết quả đối soát</span>
-            <ShieldCheck size={16} className={styles.kpiIconSuccess} />
+            <span
+              className={
+                isValid
+                  ? styles.kpiLabelSuccess
+                  : hasStockOverflow
+                  ? styles.kpiLabelError
+                  : styles.kpiLabelWarning
+              }
+            >
+              Kết quả đối soát
+            </span>
+            <ShieldCheck
+              size={16}
+              className={
+                isValid
+                  ? styles.kpiIconSuccess
+                  : hasStockOverflow
+                  ? styles.kpiIconError
+                  : styles.kpiIconWarning
+              }
+            />
           </div>
           <div className={styles.kpiValueRow}>
-            <span className={styles.kpiNumSuccess}>Hợp lệ 100%</span>
-          </div>
-          <div className={styles.kpiStatusSuccess}>
-            <CheckCircle2 size={13} />
-            <span>
-              {isCombineLots ? "Đáp ứng quy chuẩn Nấu chung" : "Sẵn sàng lưu & phê duyệt"}
+            <span
+              className={
+                isValid
+                  ? styles.kpiNumSuccess
+                  : hasStockOverflow
+                  ? styles.kpiNumError
+                  : styles.kpiNumWarning
+              }
+            >
+              {isValid ? "Hợp lệ 100%" : "Cần cân đối"}
             </span>
+          </div>
+          <div>
+            {isValid ? (
+              <div className={styles.kpiStatusSuccess}>
+                <CheckCircle2 size={13} />
+                <span>
+                  {isCombineLots
+                    ? "Đáp ứng quy chuẩn Nấu chung"
+                    : "Sẵn sàng lưu & phê duyệt"}
+                </span>
+              </div>
+            ) : (
+              <div
+                className={
+                  hasStockOverflow ? styles.kpiStatusError : styles.kpiStatusWarning
+                }
+              >
+                <AlertCircle size={13} />
+                <span>Kiểm tra lại số lượng hoặc tồn kho</span>
+              </div>
+            )}
           </div>
         </div>
       </div>

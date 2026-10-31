@@ -8,6 +8,8 @@ import {
   PlusCircle,
   Trash2,
   CheckCircle2,
+  AlertCircle,
+  AlertTriangle,
   QrCode,
   Combine
 } from "lucide-react"
@@ -20,7 +22,8 @@ export default function IngredientsAllocationCard({
   subIngredients = [],
   onOpenSwapModal,
   onOpenAddLotModal,
-  onRemoveLot
+  onRemoveLot,
+  onQuantityChange
 }) {
   const effectiveMainLots = isCombineLots ? mainLots : [mainIngredient]
   const totalCount = effectiveMainLots.length + subIngredients.length
@@ -30,6 +33,10 @@ export default function IngredientsAllocationCard({
     0
   )
   const totalMainNeeded = isCombineLots ? 10.0 : (mainIngredient?.quantity || 6.0)
+  const diff = Number((totalMainAllocated - totalMainNeeded).toFixed(2))
+  const isMatch = Math.abs(diff) < 0.01
+  const isMissing = diff < -0.01
+  const isExcess = diff > 0.01
 
   return (
     <section className={styles.ingredientsCard}>
@@ -58,7 +65,7 @@ export default function IngredientsAllocationCard({
 
       {/* 2. Desktop Table View */}
       <div className={styles.desktopTableWrap}>
-        <table className={styles.table}>
+        <table className={styles.ingredientsTable}>
           <thead>
             <tr>
               <th className={styles.thName}>Tên nguyên liệu &amp; Nguồn lô</th>
@@ -70,10 +77,10 @@ export default function IngredientsAllocationCard({
             </tr>
           </thead>
           <tbody>
-            {/* NHÓM 1: NGUYÊN LIỆU CHÍNH */}
+            {/* NHÓM 1: MÓN CHÍNH - PHỐI TRỘN ĐA LÔ HOẶC ĐƠN LÔ */}
             <tr className={styles.groupRow}>
-              <td colSpan="6">
-                <div className={styles.groupContent}>
+              <td colSpan={6} className={styles.groupTd}>
+                <div className={styles.groupHeaderBar}>
                   <div className={styles.groupLeft}>
                     <span className={styles.mainDot} />
                     <span className={styles.groupTitle}>
@@ -87,13 +94,34 @@ export default function IngredientsAllocationCard({
                   <div className={styles.groupRight}>
                     {isCombineLots ? (
                       <>
-                        <div className={styles.allocatedPill}>
-                          <CheckCircle2 size={13} />
-                          <span>
-                            Đã chọn: <strong>{totalMainAllocated.toFixed(1)}</strong> / {totalMainNeeded.toFixed(1)} kg
-                          </span>
-                          <span className={styles.allocatedPercent}>(Đủ 100%)</span>
-                        </div>
+                        {isMatch && (
+                          <div className={styles.allocatedPill}>
+                            <CheckCircle2 size={13} />
+                            <span>
+                              Đã chọn: <strong>{totalMainAllocated.toFixed(1)}</strong> / {totalMainNeeded.toFixed(1)} kg
+                            </span>
+                            <span className={styles.allocatedPercent}>(Đủ 100%)</span>
+                          </div>
+                        )}
+                        {isMissing && (
+                          <div className={styles.allocatedPillWarning}>
+                            <AlertCircle size={13} />
+                            <span>
+                              Đã chọn: <strong>{totalMainAllocated.toFixed(1)}</strong> / {totalMainNeeded.toFixed(1)} kg
+                            </span>
+                            <span className={styles.allocatedPercentWarning}>(Thiếu {Math.abs(diff).toFixed(1)} kg)</span>
+                          </div>
+                        )}
+                        {isExcess && (
+                          <div className={styles.allocatedPillError}>
+                            <AlertTriangle size={13} />
+                            <span>
+                              Đã chọn: <strong>{totalMainAllocated.toFixed(1)}</strong> / {totalMainNeeded.toFixed(1)} kg
+                            </span>
+                            <span className={styles.allocatedPercentError}>(Vượt +{diff.toFixed(1)} kg)</span>
+                          </div>
+                        )}
+
                         <button
                           type="button"
                           className={styles.addLotBtn}
@@ -146,12 +174,38 @@ export default function IngredientsAllocationCard({
                   <span className={styles.stockNum}>{lot.stock} {lot.unit}</span>
                 </td>
                 <td className={styles.tdQty}>
-                  <div className={styles.qtyBox}>
-                    <span className={styles.numBold}>{lot.quantity}</span>
-                    <span className={styles.unitText}>{lot.unit}</span>
-                  </div>
-                  {lot.quotaPerPortion && (
-                    <span className={styles.quotaSubText}>({lot.quotaPerPortion})</span>
+                  {isCombineLots ? (
+                    <div className={styles.editableQtyWrapper}>
+                      <div className={`${styles.qtyInputBox} ${parseFloat(lot.quantity) > lot.stock ? styles.qtyInputBoxError : ""}`}>
+                        <input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max={lot.stock}
+                          value={lot.quantity}
+                          onChange={(e) => onQuantityChange && onQuantityChange(lot.id, e.target.value)}
+                          className={`${styles.qtyInput} ${parseFloat(lot.quantity) > lot.stock ? styles.qtyInputError : ""}`}
+                          aria-label={`Số lượng cho ${lot.lotName || lot.name}`}
+                        />
+                        <span className={styles.unitText}>{lot.unit}</span>
+                      </div>
+                      {lot.quotaPerPortion && (
+                        <span className={styles.quotaSubText}>({lot.quotaPerPortion})</span>
+                      )}
+                      {parseFloat(lot.quantity) > lot.stock && (
+                        <span className={styles.errorSubText}>Vượt tồn ({lot.stock} {lot.unit})</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className={styles.staticQtyWrapper}>
+                      <div className={styles.qtyBox}>
+                        <span className={styles.numBold}>{lot.quantity}</span>
+                        <span className={styles.unitText}>{lot.unit}</span>
+                      </div>
+                      {lot.quotaPerPortion && (
+                        <span className={styles.quotaSubText}>({lot.quotaPerPortion})</span>
+                      )}
+                    </div>
                   )}
                 </td>
                 <td className={styles.tdAction}>
@@ -183,8 +237,8 @@ export default function IngredientsAllocationCard({
 
             {/* NHÓM 2: PHỤ LIỆU, RAU GIA VỊ */}
             <tr className={styles.groupRow}>
-              <td colSpan="6">
-                <div className={styles.groupContent}>
+              <td colSpan={6} className={styles.groupTd}>
+                <div className={styles.groupHeaderBar}>
                   <div className={styles.groupLeft}>
                     <span className={styles.subDot} />
                     <span className={styles.groupTitle}>Phụ liệu &amp; Gia vị</span>
@@ -193,7 +247,6 @@ export default function IngredientsAllocationCard({
               </td>
             </tr>
 
-            {/* CÁC NGUYÊN LIỆU PHỤ */}
             {subIngredients.map((item) => (
               <tr key={item.id} className={styles.row}>
                 <td className={styles.tdName}>
@@ -271,11 +324,30 @@ export default function IngredientsAllocationCard({
                 <div className={styles.lotCode}>{lot.lotCode}</div>
               </div>
               <div className={styles.mobileQtyPill}>
-                <div>
-                  <strong>{lot.quantity}</strong> {lot.unit}
-                </div>
+                {isCombineLots ? (
+                  <div className={styles.mobileQtyInputWrap}>
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      max={lot.stock}
+                      value={lot.quantity}
+                      onChange={(e) => onQuantityChange && onQuantityChange(lot.id, e.target.value)}
+                      className={styles.mobileQtyInput}
+                      aria-label={`Số lượng cho ${lot.lotName || lot.name}`}
+                    />
+                    <span className={styles.unitText}>{lot.unit}</span>
+                  </div>
+                ) : (
+                  <div>
+                    <strong>{lot.quantity}</strong> {lot.unit}
+                  </div>
+                )}
                 {lot.quotaPerPortion && (
                   <span className={styles.quotaSubMobile}>({lot.quotaPerPortion})</span>
+                )}
+                {isCombineLots && parseFloat(lot.quantity) > lot.stock && (
+                  <span className={styles.mobileStockError}>Vượt tồn ({lot.stock} {lot.unit})</span>
                 )}
               </div>
             </div>
@@ -347,6 +419,14 @@ export default function IngredientsAllocationCard({
 
             <div className={styles.mobileDetailsGrid}>
               <div>
+                <span className={styles.mobileLabel}>Nhà cung cấp:</span>
+                <div className={styles.mobileVal}>{item.supplier}</div>
+              </div>
+              <div>
+                <span className={styles.mobileLabel}>Chứng nhận:</span>
+                <div className={styles.mobileVal}>{item.cert}</div>
+              </div>
+              <div>
                 <span className={styles.mobileLabel}>Hạn dùng:</span>
                 <div className={styles.mobileVal}>{item.expiryDate}</div>
               </div>
@@ -356,52 +436,48 @@ export default function IngredientsAllocationCard({
               </div>
             </div>
 
-            <button
-              type="button"
-              className={styles.swapBtnMobile}
-              onClick={() => onOpenSwapModal(item)}
-            >
-              <ArrowLeftRight size={14} />
-              <span>Thay lô</span>
-            </button>
+            <div className={styles.mobileActionRow}>
+              <button
+                type="button"
+                className={styles.swapBtnMobile}
+                onClick={() => onOpenSwapModal(item)}
+              >
+                <ArrowLeftRight size={14} />
+                <span>Thay lô</span>
+              </button>
+            </div>
           </div>
         ))}
       </div>
 
-      {/* 4. Thẻ Thông Báo / Quy Chuẩn An Toàn */}
+      {/* 4. Thông tin quy chuẩn an toàn thực phẩm & Truy xuất nguồn gốc */}
       {isCombineLots ? (
         <div className={styles.combineCardsGrid}>
-          {/* Card 1: Đặc thù Nấu chung */}
           <div className={styles.noticeCardBlue}>
-            <div className={styles.noticeCardIconBoxBlue}>
-              <Combine size={18} />
-            </div>
-            <div className={styles.noticeCardContent}>
+            <div className={styles.noticeCardHeader}>
+              <Combine size={16} className={styles.noticeCardIconBlue} />
               <h3 className={styles.noticeCardTitleBlue}>Đặc thù phương án Nấu chung:</h3>
-              <p className={styles.noticeCardDesc}>
-                Toàn bộ 100 suất ăn được thực hiện trong <strong>01 mẻ chế biến tập trung</strong>. Cho phép linh hoạt phối trộn giữa <strong>Lô A (6.0 kg)</strong> và <strong>Lô B (4.0 kg)</strong> để đảm bảo đủ 10.0 kg thịt gà cho toàn trường.
-              </p>
             </div>
+            <p className={styles.noticeCardDescBlue}>
+              Toàn bộ 100 suất ăn được thực hiện trong <strong>01 mẻ chế biến tập trung</strong>. Cho phép linh hoạt phối trộn giữa <strong>Lô A ({effectiveMainLots[0]?.quantity || 6} kg)</strong> và <strong>Lô B ({effectiveMainLots[1]?.quantity || 4} kg)</strong> để đảm bảo đủ 10.0 kg thịt gà cho toàn trường.
+            </p>
           </div>
 
-          {/* Card 2: Quy chuẩn ATTP & Truy xuất nguồn gốc */}
           <div className={styles.noticeCardGreen}>
-            <div className={styles.noticeCardIconBoxGreen}>
-              <QrCode size={18} />
-            </div>
-            <div className={styles.noticeCardContent}>
+            <div className={styles.noticeCardHeader}>
+              <QrCode size={16} className={styles.noticeCardIconGreen} />
               <h3 className={styles.noticeCardTitleGreen}>Quy tắc ATTP &amp; Truy xuất nguồn gốc:</h3>
-              <p className={styles.noticeCardDesc}>
-                Hệ thống lưu vết mã QR đa nguồn gốc cho tất cả các lô nguyên liệu phối trộn. Phụ huynh và thanh tra có thể quét mã QR để tra cứu minh bạch chứng từ xuất xứ của cả <strong>Lô A</strong> và <strong>Lô B</strong>.
-              </p>
             </div>
+            <p className={styles.noticeCardDescGreen}>
+              Hệ thống lưu vết mã QR đa nguồn gốc cho tất cả các lô nguyên liệu phối trộn. Phụ huynh và thanh tra có thể quét mã QR để tra cứu minh bạch chứng từ xuất xứ của cả <strong>Lô A</strong> và <strong>Lô B</strong>.
+            </p>
           </div>
         </div>
       ) : (
         <div className={styles.singleNoticeBar}>
-          <ShieldCheck size={16} className={styles.noticeIcon} />
+          <ShieldCheck size={18} className={styles.noticeIcon} />
           <span className={styles.noticeText}>
-            <strong>Quy chuẩn Nấu riêng &amp; Truy xuất nguồn gốc:</strong> Mỗi nguyên liệu chỉ sử dụng 01 lô duy nhất (Lô A), bảo toàn tính toàn vẹn của mã QR truy xuất nguồn gốc khi phụ huynh quét kiểm tra khay ăn học sinh.
+            <strong>Quy chuẩn Nấu riêng 1:1:</strong> Toàn bộ nguyên liệu của mẻ này được xuất trực tiếp từ 01 lô nguồn gốc duy nhất nhằm đảm bảo tính toàn vẹn tem nhãn truy xuất nguồn gốc cho từng khay ăn.
           </span>
         </div>
       )}
