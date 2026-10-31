@@ -75,6 +75,16 @@ export const MOCK_ACCOUNTS = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Principal",
   },
   {
+    userId: "fp_demo_school_admin",
+    username: "fp_demo_school_admin",
+    fullName: "Quản trị viên Trường Demo",
+    orgType: ORG_TYPES.SCHOOL,
+    orgId: "sch_cau_giay_01",
+    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    role: ROLES.SCHOOL_ADMINISTRATION,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=SchoolAdmin",
+  },
+  {
     userId: "fp_demo_health",
     username: "fp_demo_health",
     fullName: "Nhân viên y tế Demo",

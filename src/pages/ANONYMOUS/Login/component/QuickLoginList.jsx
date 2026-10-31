@@ -49,7 +49,7 @@ function QuickLoginList({ onLoginSuccess }) {
               ⚡ Đăng nhập Nhanh để Test Phân Quyền
             </Typography>
             <Chip
-              label="10 Tài khoản Demo"
+              label="11 Tài khoản Demo"
               size="small"
               color="warning"
               sx={{ fontWeight: 600 }}
