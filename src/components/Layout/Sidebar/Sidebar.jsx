@@ -7,6 +7,7 @@ import { StoreContext } from "src/contexts"
 import { ORG_LABELS } from "src/constants/roles"
 import { hasPermission, getDefaultRedirectByUser, getDefaultRedirectByOrg } from "src/lib/utils"
 import { MenuItemSchool, MenuItemSupplier, MenuItemSystem } from "src/router/MenuItem"
+import ROUTER from "src/router/ROUTER"
 import BrandLogo from "src/components/Common/BrandLogo"
 import styles from "./Sidebar.module.scss"
 
@@ -44,6 +45,7 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
             <NavLink
               key={item.key}
               to={item.key}
+              end={item.end !== undefined ? item.end : (item.key === ROUTER.SCHOOL_KITCHEN_COOKING || item.key === ROUTER.SCHOOL_OVERVIEW || item.key === ROUTER.SUPPLIER_OVERVIEW)}
               onClick={mobile ? onClose : undefined}
               aria-label={tooltipTitle}
               className={({ isActive }) => [styles.navItem, isActive && styles.isActive].filter(Boolean).join(" ")}
