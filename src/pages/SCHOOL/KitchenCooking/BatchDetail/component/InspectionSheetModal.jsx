@@ -25,6 +25,20 @@ export default function InspectionSheetModal({
   const mealType = `${batchData.mealType || "Bữa trưa"} (Giờ phục vụ: ${batchData.servingTime || "11:15"})`
   const portions = (batchData.portions || 1250).toLocaleString("vi-VN")
 
+  // Dữ liệu nghiệm thu kiểm thực thực tế (Phương án B: JSONB)
+  const inspection = batchData.inspectionData || {}
+  const servingTemperature = inspection.servingTemperature ? `${inspection.servingTemperature}°C` : "> 65°C"
+  const isTempPass = inspection.isTempPass !== undefined ? inspection.isTempPass : true
+  const sensoryPass = inspection.sensoryPass !== undefined ? inspection.sensoryPass : true
+  const hygieneStaff = inspection.hygieneStaff !== undefined ? inspection.hygieneStaff : true
+  const hygieneTools = inspection.hygieneTools !== undefined ? inspection.hygieneTools : true
+  const hygieneArea = inspection.hygieneArea !== undefined ? inspection.hygieneArea : true
+  const containersPass = inspection.containersPass !== undefined ? inspection.containersPass : true
+  const step2Note = inspection.note || "Đun nấu chín sôi kỹ > 100°C. Màu sắc cánh gián tự nhiên, thơm ngon đặc trưng, đạt điều kiện ra khay."
+  const step3Note = inspection.sensoryNote
+    ? `Món ăn ${inspection.sensoryNote.toLowerCase()}, nhiệt độ chia suất: ${servingTemperature}. Đạt tiêu chuẩn an toàn cho phép chia suất phục vụ.`
+    : "Món ăn nóng sốt, thơm ngon, hương vị đậm đà vừa miệng học sinh. Đạt tiêu chuẩn an toàn cho phép chia suất phục vụ."
+
   // Phân loại nguyên liệu cho Mẫu số 1:
   // I. Tươi sống, đông lạnh: Thịt ba chỉ heo, trứng cút
   const freshIngredients = [
@@ -426,23 +440,25 @@ export default function InspectionSheetModal({
                           <td className={styles.textCenter}>08:30<br />{checkDate}</td>
                           <td className={styles.textCenter}>10:25<br />{checkDate}</td>
                           <td className={styles.textCenter}>
-                            <span className={styles.tagPass}>Đạt</span>
+                            <span className={hygieneStaff ? styles.tagPass : styles.tagFail}>{hygieneStaff ? "Đạt" : "K.Đạt"}</span>
                             <div className={styles.subNote}>Bảo hộ, găng tay, mũ đủ</div>
                           </td>
                           <td className={styles.textCenter}>
-                            <span className={styles.tagPass}>Đạt</span>
+                            <span className={hygieneTools ? styles.tagPass : styles.tagFail}>{hygieneTools ? "Đạt" : "K.Đạt"}</span>
                             <div className={styles.subNote}>Inox 304 tiệt trùng</div>
                           </td>
                           <td className={styles.textCenter}>
-                            <span className={styles.tagPass}>Đạt</span>
+                            <span className={hygieneArea ? styles.tagPass : styles.tagFail}>{hygieneArea ? "Đạt" : "K.Đạt"}</span>
                             <div className={styles.subNote}>Sàn khô, cống thoát tốt</div>
                           </td>
                           <td className={styles.textCenter}>
-                            <span className={styles.checkIcon}>✓</span>
+                            {sensoryPass && <span className={styles.checkIcon}>✓</span>}
                           </td>
-                          <td className={styles.textCenter}></td>
+                          <td className={styles.textCenter}>
+                            {!sensoryPass && <span className={styles.checkIcon}>X</span>}
+                          </td>
                           <td className={styles.smallText}>
-                            Đun nấu chín sôi kỹ &gt; 100°C. Màu sắc cánh gián tự nhiên, thơm ngon đặc trưng, đạt điều kiện ra khay.
+                            {step2Note}
                           </td>
                         </tr>
                       </tbody>
@@ -533,17 +549,21 @@ export default function InspectionSheetModal({
                           <td className={styles.textCenter}>10:50<br />{checkDate}</td>
                           <td className={styles.textCenter}>11:15<br />{checkDate}</td>
                           <td className={styles.textCenter}>
-                            <span className={styles.checkIcon}>✓</span>
+                            {containersPass && <span className={styles.checkIcon}>✓</span>}
                             <div className={styles.subNote}>Khay inox 304, có nắp đậy giữ nhiệt</div>
                           </td>
-                          <td className={styles.textCenter}></td>
                           <td className={styles.textCenter}>
-                            <span className={styles.checkIcon}>✓</span>
-                            <div className={styles.subNote}>Nhiệt độ &gt; 65°C</div>
+                            {!containersPass && <span className={styles.checkIcon}>X</span>}
                           </td>
-                          <td className={styles.textCenter}></td>
+                          <td className={styles.textCenter}>
+                            {(sensoryPass && isTempPass) && <span className={styles.checkIcon}>✓</span>}
+                            <div className={styles.subNote}>Nhiệt độ: {servingTemperature}</div>
+                          </td>
+                          <td className={styles.textCenter}>
+                            {(!sensoryPass || !isTempPass) && <span className={styles.checkIcon}>X</span>}
+                          </td>
                           <td className={styles.smallText}>
-                            Món ăn nóng sốt, thơm ngon, hương vị đậm đà vừa miệng học sinh. Đạt tiêu chuẩn an toàn cho phép chia suất phục vụ.
+                            {step3Note}
                           </td>
                         </tr>
                       </tbody>

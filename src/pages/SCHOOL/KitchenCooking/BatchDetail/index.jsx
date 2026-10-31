@@ -11,6 +11,7 @@ import BatchActionsCard from "./component/BatchActionsCard"
 import ConfirmBatchModal from "./component/ConfirmBatchModal"
 import DeleteBatchModal from "./component/DeleteBatchModal"
 import InspectionSheetModal from "./component/InspectionSheetModal"
+import CompleteBatchInspectionModal from "./component/CompleteBatchInspectionModal"
 import styles from "./index.module.scss"
 
 const INITIAL_BATCH_DATA = {
@@ -26,7 +27,8 @@ const INITIAL_BATCH_DATA = {
   method: "SEPARATE", // SEPARATE | COMMON
   createdBy: "Nguyễn Văn Vận",
   createdAt: "10/11/2024 07:15",
-  completedAt: null
+  completedAt: null,
+  inspectionData: null
 }
 
 const INITIAL_INGREDIENTS = [
@@ -95,6 +97,7 @@ export default function KitchenBatchDetail() {
   // Modal states
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
 
   // Xử lý xác nhận phương án
@@ -111,18 +114,25 @@ export default function KitchenBatchDetail() {
     }))
   }
 
-  // Xử lý ghi nhận nấu xong & lưu mẫu
-  const handleCompleteBatch = () => {
+  // Xử lý mở popup nghiệm thu kiểm thực khi bấm hoàn thành
+  const handleOpenCompleteModal = () => {
+    setIsCompleteModalOpen(true)
+  }
+
+  // Xử lý lưu kết quả nghiệm thu kiểm thực 3 bước (Phương án B: JSONB)
+  const handleConfirmInspection = (inspectionRecord) => {
+    setIsCompleteModalOpen(false)
     setBatchData((prev) => ({
       ...prev,
       status: "COMPLETED",
-      completedAt: "10:25"
+      completedAt: inspectionRecord.inspectedTime || "10:25",
+      inspectionData: inspectionRecord
     }))
     
     setAuditData((prev) => ({
       ...prev,
-      completedBy: "Trần Thị Mai (Tổ trưởng ra khay)",
-      completedAt: "10/11/2024 10:25"
+      completedBy: inspectionRecord.inspectedBy || "Nguyễn Văn Vận (Bếp chính)",
+      completedAt: inspectionRecord.inspectedAt || "10/11/2024 10:25"
     }))
   }
 
@@ -167,7 +177,7 @@ export default function KitchenBatchDetail() {
             dishName={batchData.dishName}
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
-            onOpenCompleteModal={handleCompleteBatch}
+            onOpenCompleteModal={handleOpenCompleteModal}
             onOpenPrintModal={() => setIsPrintModalOpen(true)}
           />
         </div>
@@ -186,6 +196,13 @@ export default function KitchenBatchDetail() {
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDeleteBatch}
         batchCode={batchData.code}
+      />
+
+      <CompleteBatchInspectionModal
+        isOpen={isCompleteModalOpen}
+        onClose={() => setIsCompleteModalOpen(false)}
+        onConfirm={handleConfirmInspection}
+        batchData={batchData}
       />
 
       <InspectionSheetModal

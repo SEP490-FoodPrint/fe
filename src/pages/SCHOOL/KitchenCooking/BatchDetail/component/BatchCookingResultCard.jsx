@@ -2,10 +2,11 @@ import React from "react"
 import { ClipboardCheck, Hourglass, CheckCircle2, Timer } from "lucide-react"
 import styles from "./BatchCookingResultCard.module.scss"
 
-export default function BatchCookingResultCard({ batchData }) {
+export default function BatchCookingResultCard({ batchData = {} }) {
   const isDraft = batchData.status === "DRAFT"
   const isConfirmed = batchData.status === "CONFIRMED"
   const isCompleted = batchData.status === "COMPLETED"
+  const inspection = batchData.inspectionData
 
   return (
     <section className={styles.resultCard}>
@@ -42,7 +43,7 @@ export default function BatchCookingResultCard({ batchData }) {
           <div className={styles.bannerContent}>
             <h3 className={styles.bannerTitle}>Đã xác nhận phương án — Đang chế biến</h3>
             <p className={styles.bannerDesc}>
-              Bếp đang tiến hành chế biến theo phương án đã phê duyệt. Sau khi hoàn tất ra khay và lưu mẫu, bấm "Ghi nhận hoàn thành chế biến".
+              Bếp đang tiến hành chế biến theo phương án đã phê duyệt. Sau khi hoàn tất nấu và kiểm tra nhiệt độ ra khay, bấm "Ghi nhận hoàn thành chế biến".
             </p>
           </div>
         </div>
@@ -54,9 +55,17 @@ export default function BatchCookingResultCard({ batchData }) {
             <CheckCircle2 size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến — Chờ lưu mẫu</h3>
+            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến &amp; Nghiệm thu kiểm thực</h3>
             <p className={styles.bannerDesc}>
-              Món ăn đã ra khay theo đúng sĩ số chốt và sẵn sàng chuyển tiếp ghi nhận lưu mẫu thực phẩm 24h.
+              {inspection ? (
+                <>
+                  Món ăn đã ra khay lúc {batchData.completedAt || "10:25"}. Nhiệt độ chia suất:{" "}
+                  <strong>{inspection.servingTemperature}°C</strong> (
+                  {inspection.isTempPass ? "✓ Đạt chuẩn > 65°C" : "Cảnh báo nhiệt độ"}). Sẵn sàng in sổ kiểm thực 3 bước theo đúng QĐ 1246/QĐ-BYT.
+                </>
+              ) : (
+                "Món ăn đã ra khay theo đúng sĩ số chốt và sẵn sàng in sổ kiểm thực 3 bước."
+              )}
             </p>
           </div>
         </div>
@@ -90,7 +99,7 @@ export default function BatchCookingResultCard({ batchData }) {
               isCompleted ? styles.successVal : isConfirmed ? styles.warningVal : styles.draftVal
             }`}
           >
-            {isCompleted ? "Đã nấu xong" : isConfirmed ? "Đang chế biến" : "Chờ xác nhận"}
+            {isCompleted ? "Đã nghiệm thu" : isConfirmed ? "Đang chế biến" : "Chờ xác nhận"}
           </span>
           <span className={styles.kpiSub}>Kiểm thực bếp</span>
         </div>
@@ -102,7 +111,7 @@ export default function BatchCookingResultCard({ batchData }) {
             {batchData.completedAt || "—"}
           </span>
           <span className={styles.kpiSub}>
-            {batchData.completedAt ? "Đã lưu mẫu 24h" : "Chưa hoàn tất"}
+            {inspection ? `Nhiệt độ: ${inspection.servingTemperature}°C` : batchData.completedAt ? "Đã ra khay" : "Chưa hoàn tất"}
           </span>
         </div>
       </div>
