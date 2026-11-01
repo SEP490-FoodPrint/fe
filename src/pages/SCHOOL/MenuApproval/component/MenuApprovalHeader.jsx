@@ -60,7 +60,6 @@ function MenuApprovalHeader({
             <span>/</span>
             <strong>Phê duyệt thực đơn</strong>
           </nav>
-          <p className={styles.eyebrow}>Thẩm định bán trú</p>
           <h1 id="menu-approval-title" className={styles.title}>Phê duyệt thực đơn</h1>
           <p className={styles.subtitle}>
             Xem thực đơn tuần do Y tế gửi, phê duyệt hoặc yêu cầu chỉnh sửa cả tuần.
@@ -89,9 +88,7 @@ function MenuApprovalHeader({
           <span className={`${styles.status} ${status.className}`}>
             {status.icon}
             {status.label}
-          </span>
-          <span className={styles.scope}>Phê duyệt hoặc yêu cầu chỉnh sửa áp dụng cho cả tuần.</span>
-        </div>
+          </span>        </div>
 
         <div className={styles.actions}>
           <Button
