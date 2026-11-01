@@ -275,6 +275,7 @@ function SupplierRelationships() {
           )}
         </TextField>
         <Button
+          className="supplier-clear-filters"
           onClick={() => {
             setSearch("")
             setParams(

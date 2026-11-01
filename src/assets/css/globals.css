@@ -128,6 +128,12 @@
 
   /* 6. LAYOUT AND COMPONENT SIZES */
   --sidebar-width: 260px;
+  --sidebar-icon-width: 64px;
+  --sidebar-mobile-width: 280px;
+  --dashboard-header-height: 80px;
+  --dashboard-header-compact-height: 56px;
+  --overlay-scrim: rgb(0 0 0 / 44%);
+  --tracking-tight: -0.025rem;
   --sidebar-collapsed-width: 72px;
   --header-height: 72px;
   --content-max-width: 80rem;

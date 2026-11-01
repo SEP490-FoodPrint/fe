@@ -31,3 +31,9 @@ export const getDefaultRedirectByOrg = orgType => {
       return "/school/overview"
   }
 }
+
+export const getDefaultRedirectByUser = user => {
+  if (!user) return "/login"
+  if (user.role === "SCHOOL_KITCHEN_STAFF") return "/school/kitchen-cooking"
+  return getDefaultRedirectByOrg(user.orgType)
+}

@@ -32,7 +32,7 @@ function SupplierList({
               <TableCell>Nhà cung cấp</TableCell>
               <TableCell>Trụ sở / Nhóm hàng</TableCell>
               <TableCell>Trạng thái</TableCell>
-              <TableCell align="right">Thao tác</TableCell>
+              <TableCell align="center">Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -40,7 +40,7 @@ function SupplierList({
               <TableRow key={supplier.id} hover>
                 <TableCell>
                   <strong>{displayName(supplier.name)}</strong>
-                  <small>MST: {supplier.taxCode || "Chưa cập nhật"}</small>
+                  <small>MST: {displayName(supplier.taxCode) || "Chưa cập nhật"}</small>
                   <small>{supplier.phone || supplier.email || ""}</small>
                 </TableCell>
                 <TableCell>
@@ -74,7 +74,7 @@ function SupplierList({
                     />
                   </div>
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="center">
                   <div className="supplier-row-actions">
                     <Button onClick={() => onOpen(supplier.id, "view")}>
                       Xem hồ sơ

@@ -246,7 +246,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
               <h2>{displayName(data?.supplier.name) || "Hồ sơ nhà cung cấp"}</h2>
               <small>
                 {data?.supplier.taxCode
-                  ? `MST: ${data.supplier.taxCode}`
+                  ? `MST: ${displayName(data.supplier.taxCode)}`
                   : "Kiểm tra hồ sơ trước khi hợp tác"}
               </small>
             </div>
@@ -330,9 +330,9 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       {data.supplier.supplierCertifications.length ? (
                         data.supplier.supplierCertifications.map((cert) => (
                           <article className="supplier-evidence" key={cert.id}>
-                            <strong>{cert.certificationType}</strong>
+                            <strong>{displayName(cert.certificationType)}</strong>
                             <p>
-                              {cert.certificateNo} · Hết hạn:{" "}
+                              {displayName(cert.certificateNo)} · Hết hạn:{" "}
                               {dateText(cert.expiryDate)}
                             </p>
                             <Chip
@@ -368,7 +368,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                         {data.supplier.ingredients.map((item) => (
                           <Chip
                             key={item.id}
-                            label={`${item.name} · ${item.defaultUnit}`}
+                            label={`${displayName(item.name)} · ${item.defaultUnit}`}
                             variant="outlined"
                           />
                         ))}
@@ -382,7 +382,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       {data.supplier.sourceFacilities.length ? (
                         data.supplier.sourceFacilities.map((item) => (
                           <p key={item.id}>
-                            <strong>{item.name}</strong>
+                            <strong>{displayName(item.name)}</strong>
                             <br />
                             {item.address}
                           </p>
@@ -492,7 +492,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                         <MenuItem value="new">Hồ sơ mới</MenuItem>
                         {data.contracts.map((item) => (
                           <MenuItem key={item.id} value={item.id}>
-                            {item.number || "Chưa đặt số"} ·{" "}
+                            {displayName(item.number) || "Chưa đặt số"} ·{" "}
                             {contractLabels[item.status]}
                           </MenuItem>
                         ))}
@@ -542,7 +542,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           <TextField
                             size="small"
                             label="Số hợp đồng / phụ lục"
-                            value={form.number}
+                            value={canEdit ? form.number : displayName(form.number)}
                             disabled={!canEdit}
                             onChange={(event) =>
                               setField("number", event.target.value)
@@ -612,7 +612,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                     }
                                   />
                                 }
-                                label={`${item.name} (${item.defaultUnit})`}
+                                label={`${displayName(item.name)} (${item.defaultUnit})`}
                               />
                             ))}
                           </div>
@@ -622,7 +622,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             minRows={2}
                             size="small"
                             label="Ghi chú phạm vi / điều kiện cung cấp"
-                            value={form.scopeNote}
+                            value={canEdit ? form.scopeNote : displayName(form.scopeNote)}
                             disabled={!canEdit}
                             onChange={(event) =>
                               setField("scopeNote", event.target.value)
@@ -669,7 +669,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 {data.supplier.supplierCertifications.map(
                                   (cert) => (
                                     <MenuItem key={cert.id} value={cert.id}>
-                                      {cert.certificateNo} · Hết hạn{" "}
+                                      {displayName(cert.certificateNo)} · Hết hạn{" "}
                                       {dateText(cert.expiryDate)}
                                     </MenuItem>
                                   ),
@@ -679,7 +679,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                               <TextField
                                 size="small"
                                 label="Căn cứ hồ sơ áp dụng / miễn cấp"
-                                value={form.exemptionNote}
+                                value={canEdit ? form.exemptionNote : displayName(form.exemptionNote)}
                                 disabled={!canEdit}
                                 onChange={(event) =>
                                   setField("exemptionNote", event.target.value)
@@ -750,7 +750,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             {contract?.documents?.map((file) => (
                               <div key={file.id}>
                                 <div>
-                                  <strong>{file.fileName}</strong>
+                                  <strong>{displayName(file.fileName)}</strong>
                                   <small>
                                     {documentLabels[file.kind]} ·{" "}
                                     {Math.ceil(file.size / 1024)} KB ·{" "}
@@ -758,7 +758,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                   </small>
                                 </div>
                                 <IconButton
-                                  aria-label={`Tải về ${file.fileName}`}
+                                  aria-label={`Tải về ${displayName(file.fileName)}`}
                                   disabled={busy}
                                   onClick={() =>
                                     run(() => Service.download(file))
@@ -768,7 +768,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 </IconButton>
                                 {data.canManage && draft && (
                                   <IconButton
-                                    aria-label={`Xóa ${file.fileName}`}
+                                    aria-label={`Xóa ${displayName(file.fileName)}`}
                                     color="error"
                                     disabled={busy || dirty}
                                     onClick={() =>
@@ -886,9 +886,9 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           <strong>
                             {actionLabels[item.action] || item.action}
                           </strong>
-                          <p>{item.reason}</p>
+                          <p>{displayName(item.reason)}</p>
                           <small>
-                            {item.actorName} ·{" "}
+                            {displayName(item.actorName)} ·{" "}
                             {new Date(item.createdAt).toLocaleString("vi-VN")}
                           </small>
                         </article>

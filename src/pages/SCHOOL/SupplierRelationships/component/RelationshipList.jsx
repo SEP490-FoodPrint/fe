@@ -35,7 +35,7 @@ function RelationshipList({
               <TableCell>Quan hệ hợp tác</TableCell>
               <TableCell>Điều kiện đặt hàng</TableCell>
               <TableCell>Hợp đồng</TableCell>
-              <TableCell align="right">Thao tác</TableCell>
+              <TableCell align="center">Thao tác</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -43,7 +43,7 @@ function RelationshipList({
               <TableRow key={item.id} hover>
                 <TableCell>
                   <strong>{displayName(item.supplier.name)}</strong>
-                  <small>MST: {item.supplier.taxCode || "—"}</small>
+                  <small>MST: {displayName(item.supplier.taxCode) || "—"}</small>
                 </TableCell>
                 <TableCell>
                   <RelationshipStatus status={item.status} />
@@ -70,7 +70,7 @@ function RelationshipList({
                   {item.contracts.length ? (
                     item.contracts.map((contract) => (
                       <small key={contract.id}>
-                        {contract.number || "Hồ sơ nháp"} ·{" "}
+                        {displayName(contract.number) || "Hồ sơ nháp"} ·{" "}
                         {formatDate(contract.endsOn)}
                       </small>
                     ))
@@ -78,7 +78,7 @@ function RelationshipList({
                     <span>Chưa có hồ sơ hợp đồng</span>
                   )}
                 </TableCell>
-                <TableCell align="right">
+                <TableCell align="center">
                   <Button onClick={() => onOpen(item.supplierId, "link")}>
                     Hồ sơ & lịch sử
                   </Button>
