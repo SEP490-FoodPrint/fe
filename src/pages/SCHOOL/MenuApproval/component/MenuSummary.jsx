@@ -40,7 +40,6 @@ function MenuSummary({ menu }) {
         <div className={styles.cardHeading}>
           <span className={styles.headingIcon}><ClipboardList size={21} /></span>
           <div>
-            <Typography component="p" className={styles.eyebrow}>Hồ sơ thẩm định</Typography>
             <Typography component="h2" className={styles.title}>{menu.title}</Typography>
             {menu.submittedAt && (
               <Typography className={styles.submittedAt}>

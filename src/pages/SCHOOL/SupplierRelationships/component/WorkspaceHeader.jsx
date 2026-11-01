@@ -15,7 +15,6 @@ function WorkspaceHeader({ activeView, onChangeView }) {
           <span>/</span>
           <strong>{isRelationships ? "Đối tác của trường" : "Tất cả nhà cung cấp"}</strong>
         </nav>
-        <p className={styles.eyebrow}>Quản lý nhà cung cấp</p>
         <h1 className={styles.title}>
           {isRelationships ? "Đối tác của trường" : "Tìm nhà cung cấp"}
         </h1>
