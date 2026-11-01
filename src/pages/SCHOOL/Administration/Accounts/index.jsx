@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useState, useMemo, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
 import { CheckCircle2, AlertCircle, Info } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import AccountHeader from "./component/AccountHeader"
@@ -9,7 +9,8 @@ import AccountTable from "./component/AccountTable"
 import AccountPagination from "./component/AccountPagination"
 import ConfirmDialog from "./component/ConfirmDialog"
 import {
-    INITIAL_MOCK_ACCOUNTS,
+    getStoredAccounts,
+    saveStoredAccounts,
     getDepartmentKPIStats,
 } from "./mockAccountsData"
 import styles from "./index.module.scss"
@@ -18,9 +19,20 @@ const PAGE_SIZE = 10
 
 function Accounts() {
     const navigate = useNavigate()
+    const location = useLocation()
 
-    // 1. Quản lý danh sách tài khoản (Mock data)
-    const [accounts, setAccounts] = useState(INITIAL_MOCK_ACCOUNTS)
+    // 1. Quản lý danh sách tài khoản (đọc từ localStorage để đồng bộ với màn hình Tạo mới)
+    const [accounts, setAccounts] = useState(() => getStoredAccounts())
+
+    // Khi quay lại từ trang khác (hoặc vừa tạo xong), làm mới danh sách
+    useEffect(() => {
+        setAccounts(getStoredAccounts())
+        if (location.state?.toastMessage) {
+            showToast(location.state.toastMessage, location.state.toastType || "success")
+            // Xóa state để không hiện lại khi refresh
+            window.history.replaceState({}, document.title)
+        }
+    }, [location.state])
 
     // 2. Bộ lọc & Tìm kiếm
     const [searchTerm, setSearchTerm] = useState("")
@@ -138,19 +150,20 @@ function Accounts() {
 
     // Xác nhận Khóa / Mở khóa từ ConfirmDialog
     const handleConfirmToggleStatus = (account, type) => {
+        let updated
         if (type === "LOCK") {
-            setAccounts((prev) =>
-                prev.map((acc) =>
-                    acc.id === account.id ? { ...acc, status: "LOCKED" } : acc
-                )
+            updated = accounts.map((acc) =>
+                acc.id === account.id ? { ...acc, status: "LOCKED" } : acc
             )
+            setAccounts(updated)
+            saveStoredAccounts(updated)
             showToast(`Đã tạm khóa tài khoản "${account.fullName}" (${account.code})!`, "warning")
         } else if (type === "UNLOCK") {
-            setAccounts((prev) =>
-                prev.map((acc) =>
-                    acc.id === account.id ? { ...acc, status: "ACTIVE" } : acc
-                )
+            updated = accounts.map((acc) =>
+                acc.id === account.id ? { ...acc, status: "ACTIVE" } : acc
             )
+            setAccounts(updated)
+            saveStoredAccounts(updated)
             showToast(`Đã mở khóa tài khoản "${account.fullName}" thành công!`, "success")
         }
     }

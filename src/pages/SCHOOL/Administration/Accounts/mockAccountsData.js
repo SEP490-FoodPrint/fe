@@ -567,6 +567,137 @@ export function getDepartmentKPIStats(accounts = INITIAL_MOCK_ACCOUNTS) {
 }
 
 /**
+ * Mật khẩu khởi tạo mặc định cho tất cả tài khoản tạo mới của trường
+ */
+export const DEFAULT_INITIAL_PASSWORD = "FoodPrint@2026"
+
+const STORAGE_KEY = "foodprint_school_accounts_storage_v1"
+
+/**
+ * Lấy danh sách tài khoản từ localStorage hoặc trả về INITIAL_MOCK_ACCOUNTS
+ */
+export function getStoredAccounts() {
+  if (typeof window === "undefined") return INITIAL_MOCK_ACCOUNTS
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MOCK_ACCOUNTS))
+      return INITIAL_MOCK_ACCOUNTS
+    }
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_MOCK_ACCOUNTS
+  } catch (error) {
+    console.error("Lỗi khi đọc accounts từ localStorage:", error)
+    return INITIAL_MOCK_ACCOUNTS
+  }
+}
+
+/**
+ * Lưu danh sách tài khoản vào localStorage
+ */
+export function saveStoredAccounts(accounts) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(accounts))
+  } catch (error) {
+    console.error("Lỗi khi lưu accounts vào localStorage:", error)
+  }
+}
+
+/**
+ * Thêm một tài khoản mới vào đầu danh sách và lưu vào localStorage
+ */
+export function addNewAccount(newAccount) {
+  const current = getStoredAccounts()
+  const updated = [newAccount, ...current]
+  saveStoredAccounts(updated)
+  return updated
+}
+
+/**
+ * Lấy thông tin tài khoản theo ID hoặc theo Mã
+ */
+export function getAccountById(id) {
+  const accounts = getStoredAccounts()
+  return accounts.find((a) => a.id === id || a.code === id) || null
+}
+
+/**
+ * Cập nhật thông tin tài khoản và lưu vào localStorage
+ */
+export function updateStoredAccount(id, updatedFields) {
+  const accounts = getStoredAccounts()
+  let updatedAccount = null
+  const updatedList = accounts.map((acc) => {
+    if (acc.id === id || acc.code === id) {
+      updatedAccount = {
+        ...acc,
+        ...updatedFields,
+        updatedAt: new Date().toISOString(),
+      }
+      return updatedAccount
+    }
+    return acc
+  })
+  saveStoredAccounts(updatedList)
+  return updatedAccount
+}
+
+/**
+ * Tự động sinh mã nhân viên kế tiếp dựa trên phòng ban được chọn
+ * Ví dụ: BGH -> TK-BGH-004, Y_TE -> TK-YT-006, BEP -> TK-BP-006, ...
+ */
+export function generateNextAccountCode(departmentId, customList = null) {
+  const deptConfig = DEPARTMENT_CONFIGS.find((d) => d.id === departmentId)
+  const prefix = deptConfig?.codePrefix || "TK-NV"
+  const accounts = customList || getStoredAccounts()
+
+  // Tìm các mã có định dạng [PREFIX]-[sốnàođó]
+  let maxNumber = 0
+  const regex = new RegExp(`^${prefix}-(\\d+)$`)
+
+  accounts.forEach((acc) => {
+    if (acc.code) {
+      const match = acc.code.match(regex)
+      if (match && match[1]) {
+        const num = parseInt(match[1], 10)
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num
+        }
+      }
+    }
+  })
+
+  const nextNumber = maxNumber + 1
+  const paddedNumber = String(nextNumber).padStart(3, "0")
+  return `${prefix}-${paddedNumber}`
+}
+
+/**
+ * Gợi ý email chuẩn của trường từ họ và tên tiếng Việt
+ * Ví dụ: "Nguyễn Văn An" -> "an.nguyenvan@foodprint.edu.vn"
+ */
+export function suggestEmailFromName(fullName) {
+  if (!fullName || !fullName.trim()) return ""
+  // Loại bỏ dấu tiếng Việt
+  const cleanName = fullName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/g, "d")
+    .replace(/Đ/g, "D")
+    .trim()
+    .toLowerCase()
+
+  const parts = cleanName.split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return ""
+  if (parts.length === 1) return `${parts[0]}@foodprint.edu.vn`
+
+  const lastName = parts[parts.length - 1]
+  const otherParts = parts.slice(0, parts.length - 1).join("")
+  return `${lastName}.${otherParts}@foodprint.edu.vn`
+}
+
+/**
  * Lấy thông tin cấu hình của phòng ban theo ID
  */
 export function getDepartmentConfig(departmentId) {

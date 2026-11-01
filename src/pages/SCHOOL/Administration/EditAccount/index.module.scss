@@ -1,0 +1,62 @@
+.pageContainer {
+  width: 100%;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 16px 24px 48px;
+  font-family: var(--font-sans, "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+  color: var(--text-primary, #1d2b26);
+  box-sizing: border-box;
+
+  @media (max-width: 768px) {
+    padding: 12px 14px 32px;
+  }
+}
+
+.notFoundBox {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid var(--border-default, #dce5e0);
+  padding: 48px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.notFoundIcon {
+  color: #e11d48;
+}
+
+.notFoundTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+}
+
+.notFoundDesc {
+  font-size: 14px;
+  color: var(--text-secondary, #52635c);
+  margin: 0;
+}
+
+.backToListBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #086b55;
+  }
+}

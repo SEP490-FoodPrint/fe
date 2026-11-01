@@ -33,6 +33,8 @@ const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
 const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
+const SchoolAccountCreate = lazy(() => import("src/pages/SCHOOL/Administration/CreateAccount"))
+const SchoolAccountEdit = lazy(() => import("src/pages/SCHOOL/Administration/EditAccount"))
 const MenuApproval = lazy(() => import("src/pages/SCHOOL/MenuApproval"))
 const MenuPlanning = lazy(() => import("src/pages/SCHOOL/MenuPlanning"))
 const CreateMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/CreateMenu"))
@@ -186,6 +188,8 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN]} />,
             children: [
               { path: ROUTER.SCHOOL_ADMINISTRATION, element: <LazyWrapper><SchoolAdministration /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ACCOUNT_CREATE, element: <LazyWrapper><SchoolAccountCreate /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ACCOUNT_EDIT, element: <LazyWrapper><SchoolAccountEdit /></LazyWrapper> },
             ],
           },
 
