@@ -29,19 +29,25 @@ const SUMMARY_LABELS = {
 
 function MenuSummary({ menu }) {
   const summaryItems = ["audience", "servingPeriod", "proposer", "supplier"]
+  const hasCompliance = Boolean(menu.compliance?.length)
 
   return (
-    <section className={styles.grid} aria-label="Tổng quan hồ sơ thực đơn">
+    <section
+      className={`${styles.grid} ${hasCompliance ? "" : styles.single}`}
+      aria-label="Tổng quan hồ sơ thực đơn"
+    >
       <Card className={styles.primaryCard} elevation={0}>
         <div className={styles.cardHeading}>
           <span className={styles.headingIcon}><ClipboardList size={21} /></span>
           <div>
             <Typography component="p" className={styles.eyebrow}>Hồ sơ thẩm định</Typography>
             <Typography component="h2" className={styles.title}>{menu.title}</Typography>
+            {menu.submittedAt && (
+              <Typography className={styles.submittedAt}>
+                Gửi đề xuất: <strong>{menu.submittedAt}</strong>
+              </Typography>
+            )}
           </div>
-          <span className={styles.supplyBadge}>
-            <CheckCircle2 size={15} /> Chuỗi cung ứng khép kín
-          </span>
         </div>
 
         <div className={styles.summaryList}>
@@ -69,6 +75,7 @@ function MenuSummary({ menu }) {
         </div>
       </Card>
 
+      {hasCompliance && (
       <Card className={styles.complianceCard} elevation={0}>
         <div className={styles.complianceHeading}>
           <span className={styles.headingIcon}><GraduationCap size={20} /></span>
@@ -97,10 +104,8 @@ function MenuSummary({ menu }) {
             </div>
           ))}
         </div>
-        <Typography className={styles.submittedAt}>
-          Gửi đề xuất: <strong>{menu.submittedAt}</strong>
-        </Typography>
       </Card>
+      )}
     </section>
   )
 }
