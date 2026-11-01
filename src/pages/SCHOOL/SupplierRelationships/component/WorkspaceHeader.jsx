@@ -18,11 +18,6 @@ function WorkspaceHeader({ activeView, onChangeView }) {
         <h1 className={styles.title}>
           {isRelationships ? "Đối tác của trường" : "Tìm nhà cung cấp"}
         </h1>
-        <p className={styles.subtitle}>
-          {isRelationships
-            ? "Theo dõi hợp đồng, điều kiện cung cấp và lịch sử hợp tác của trường."
-            : "Tra cứu nhà cung cấp toàn hệ thống, kiểm tra hồ sơ và thiết lập hợp tác."}
-        </p>
       </div>
 
       <div className={styles.switcher} role="group" aria-label="Chọn danh sách hiển thị">
