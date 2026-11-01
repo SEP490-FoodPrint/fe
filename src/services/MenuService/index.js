@@ -1,5 +1,5 @@
-import http from "../01_axios"
-import { USE_MOCK_API } from "src/lib/config"
+import http from "../01_axios";
+import { USE_MOCK_API } from "src/lib/config";
 import {
   apiMenus,
   apiMenuDetail,
@@ -7,14 +7,19 @@ import {
   apiReviewMenu,
   apiAllergyCheck,
   apiIngredientOptions,
-  apiPortionGroups
-} from "./urls"
+  apiPortionGroups,
+} from "./urls";
 import {
   adaptWeeklyMenuToCardList,
   adaptBackendMenuDetailToView,
-  adaptFormToBackendWrite
-} from "./adapter"
-import { MOCK_MENU_LIST, getMenuById } from "src/pages/SCHOOL/MenuPlanning/mockMenuListData"
+  adaptFormToBackendWrite,
+  getSchoolWeekScheduleFromDate,
+  parseDateVNToISO,
+} from "./adapter";
+import {
+  MOCK_MENU_LIST,
+  getMenuById,
+} from "src/pages/SCHOOL/MenuPlanning/mockMenuListData";
 
 /**
  * MenuService: Kết nối Frontend với Backend API (/api/v1/menus)
@@ -31,8 +36,8 @@ const MenuService = {
         success: true,
         data: MOCK_MENU_LIST,
         total: MOCK_MENU_LIST.length,
-        isMock: true
-      }
+        isMock: true,
+      };
     }
 
     try {
@@ -40,16 +45,22 @@ const MenuService = {
         params: {
           limit: params.limit || 50,
           page: params.page || 1,
-          status: params.status && params.status !== "all" && params.status !== "needsAction" ? params.status : undefined
+          status:
+            params.status &&
+            params.status !== "all" &&
+            params.status !== "needsAction"
+              ? params.status
+              : undefined,
         },
-        notifyOnError: false
-      })
+        notifyOnError: false,
+      });
 
-      const rawItems = response?.data?.items || response?.items || response?.data || []
+      const rawItems =
+        response?.data?.items || response?.items || response?.data || [];
 
       if (Array.isArray(rawItems) && rawItems.length > 0) {
         // Biến đổi các WeeklyMenu từ DB thành danh sách thẻ ca ăn cho Table
-        const cardList = rawItems.flatMap(adaptWeeklyMenuToCardList)
+        const cardList = rawItems.flatMap(adaptWeeklyMenuToCardList);
 
         // Nếu DB có thực đơn tuần nhưng chưa có món, ghép cùng danh sách mẫu để bảng phong phú
         if (cardList.length === 0) {
@@ -58,8 +69,8 @@ const MenuService = {
             success: true,
             data: MOCK_MENU_LIST,
             total: MOCK_MENU_LIST.length,
-            isMock: true
-          }
+            isMock: true,
+          };
         }
 
         return {
@@ -67,8 +78,8 @@ const MenuService = {
           success: true,
           data: cardList,
           total: cardList.length,
-          isMock: false
-        }
+          isMock: false,
+        };
       }
 
       // Nếu API rỗng, fallback sang Mock
@@ -77,71 +88,80 @@ const MenuService = {
         success: true,
         data: MOCK_MENU_LIST,
         total: MOCK_MENU_LIST.length,
-        isMock: true
-      }
+        isMock: true,
+      };
     } catch (err) {
-      console.warn("⚠️ Không thể kết nối API /api/v1/menus, tự động chuyển chế độ Mock Data:", err.message)
+      console.warn(
+        "⚠️ Không thể kết nối API /api/v1/menus, tự động chuyển chế độ Mock Data:",
+        err.message,
+      );
       return {
         isOk: true,
         success: true,
         data: MOCK_MENU_LIST,
         total: MOCK_MENU_LIST.length,
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
   /**
    * Lấy chi tiết 1 thực đơn theo ID (ID có thể là WeeklyMenuId hoặc compound id)
    */
-  getMenuDetail: async id => {
+  getMenuDetail: async (id) => {
     if (USE_MOCK_API) {
-      const mock = getMenuById(id)
+      const mock = getMenuById(id);
       return {
         isOk: true,
         success: true,
         data: mock,
-        isMock: true
-      }
+        isMock: true,
+      };
     }
 
     try {
       // Phân tách nếu là compound ID: weeklyMenuId_menuDayId_mealType
-      let weeklyId = id
-      let targetDayId = null
-      let targetMealType = "LUNCH"
+      let weeklyId = id;
+      let targetDayId = null;
+      let targetMealType = "LUNCH";
 
       if (typeof id === "string" && id.includes("_")) {
-        const parts = id.split("_")
-        weeklyId = parts[0]
-        targetDayId = parts[1]
-        targetMealType = parts[2] || "LUNCH"
+        const parts = id.split("_");
+        weeklyId = parts[0];
+        targetDayId = parts[1];
+        targetMealType = parts[2] || "LUNCH";
       }
 
       // Nếu ID là mock id (ví dụ m-01), tìm trong mock trước
       if (typeof weeklyId === "string" && weeklyId.startsWith("m-")) {
-        const mock = getMenuById(weeklyId)
+        const mock = getMenuById(weeklyId);
         if (mock) {
           return {
             isOk: true,
             success: true,
             data: mock,
-            isMock: true
-          }
+            isMock: true,
+          };
         }
       }
 
-      const response = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false })
-      const rawMenu = response?.data || response
+      const response = await http.get(apiMenuDetail(weeklyId), {
+        notifyOnError: false,
+      });
+      const rawMenu = response?.data || response;
 
       if (rawMenu && rawMenu.id) {
-        const viewData = adaptBackendMenuDetailToView(rawMenu, targetDayId, targetMealType)
+        const viewData = adaptBackendMenuDetailToView(
+          rawMenu,
+          targetDayId,
+          targetMealType,
+        );
         return {
           isOk: true,
           success: true,
           data: viewData,
-          isMock: false
-        }
+          isMock: false,
+        };
       }
 
       // Fallback
@@ -149,17 +169,91 @@ const MenuService = {
         isOk: true,
         success: true,
         data: getMenuById(id),
-        isMock: true
-      }
+        isMock: true,
+      };
     } catch (err) {
-      console.warn(`⚠️ Không thể lấy chi tiết thực đơn ${id} từ backend, dùng mock fallback:`, err.message)
+      console.warn(
+        `⚠️ Không thể lấy chi tiết thực đơn ${id} từ backend, dùng mock fallback:`,
+        err.message,
+      );
       return {
         isOk: true,
         success: true,
         data: getMenuById(id),
-        isMock: true
+        isMock: true,
+      };
+    }
+  },
+
+  /**
+   * Lấy lịch thực đơn học đường theo tuần (Thứ 2 đến Thứ 6)
+   */
+  getWeekSchedule: async (date) => {
+    const isoDate =
+      typeof date === "string" && date.includes("/")
+        ? parseDateVNToISO(date)
+        : date || new Date().toISOString().slice(0, 10);
+
+    if (!USE_MOCK_API) {
+      try {
+        const response = await http.get(`${apiMenus}/week-schedule`, {
+          params: { date: isoDate },
+          notifyOnError: false,
+        });
+        if (response?.data) {
+          return {
+            isOk: true,
+            success: true,
+            data: response.data,
+            isMock: false,
+          };
+        }
+      } catch (err) {
+        console.warn(
+          "Lỗi tải week-schedule từ backend, dùng fallback:",
+          err.message,
+        );
       }
     }
+
+    const weekInfo = getSchoolWeekScheduleFromDate(isoDate);
+    const mockList = MOCK_MENU_LIST || [];
+
+    const days = weekInfo.schoolDays.map((sd) => {
+      const found = mockList.find(
+        (m) => m.date === sd.dateVN || m.rawDate === sd.dateISO,
+      );
+      return {
+        ...sd,
+        date: sd.dateISO,
+        hasMenu: !!found,
+        menuDayId: found?.id || null,
+        status: found?.status || "MISSING",
+        menuName: found?.name || null,
+      };
+    });
+
+    const completedDays = days.filter((d) => d.hasMenu).length;
+    const missingDays = days.filter((d) => !d.hasMenu).map((d) => d.date);
+
+    return {
+      isOk: true,
+      success: true,
+      data: {
+        targetDate: isoDate,
+        targetDayOfWeek: weekInfo.dayOfWeek,
+        targetDayLabel: weekInfo.dayLabel,
+        isTargetSchoolDay: weekInfo.isSchoolDay,
+        weekNumber: weekInfo.weekNumber,
+        weekRangeLabel: weekInfo.weekRangeLabel,
+        days,
+        totalSchoolDays: 5,
+        completedDays,
+        missingDays,
+        isWeekComplete: completedDays === 5,
+      },
+      isMock: true,
+    };
   },
 
   /**
@@ -172,8 +266,8 @@ const MenuService = {
       mealType: formState.mealType || "LUNCH",
       notes: formState.notes,
       dishes,
-      seasonings
-    })
+      seasonings,
+    });
 
     if (USE_MOCK_API) {
       return {
@@ -181,29 +275,33 @@ const MenuService = {
         success: true,
         data: { id: `m-${Date.now()}`, ...payload },
         message: "Đã tạo thực đơn nháp thành công (Chế độ Mock)",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
 
     try {
-      const response = await http.post(apiMenus, payload)
-      const createdMenu = response?.data || response
+      const response = await http.post(apiMenus, payload);
+      const createdMenu = response?.data || response;
 
       // Nếu có món thay thế cho học sinh dị ứng, cập nhật Portion Group
-      if (createdMenu?.id && createdMenu?.menuDays?.[0]?.id && substituteDish?.name?.trim()) {
+      if (
+        createdMenu?.id &&
+        createdMenu?.menuDays?.[0]?.id &&
+        substituteDish?.name?.trim()
+      ) {
         try {
-          const menuDayId = createdMenu.menuDays[0].id
-          const mealType = formState.mealType || "LUNCH"
+          const menuDayId = createdMenu.menuDays[0].id;
+          const mealType = formState.mealType || "LUNCH";
           await MenuService.savePortionGroups(menuDayId, mealType, [
             {
               name: "Suất ăn thường tiêu chuẩn",
               isDefault: true,
-              dishIds: dishes.filter(d => d.dishId).map(d => d.dishId),
-              avoidedIngredientEntryIds: []
-            }
-          ])
+              dishIds: dishes.filter((d) => d.dishId).map((d) => d.dishId),
+              avoidedIngredientEntryIds: [],
+            },
+          ]);
         } catch (groupErr) {
-          console.warn("Lưu nhóm suất ăn bổ sung:", groupErr.message)
+          console.warn("Lưu nhóm suất ăn bổ sung:", groupErr.message);
         }
       }
 
@@ -212,17 +310,20 @@ const MenuService = {
         success: true,
         data: createdMenu,
         message: "Đã tạo thực đơn nháp trên hệ thống thành công",
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      console.warn("⚠️ Gặp lỗi khi gọi POST /api/v1/menus, lưu bản nháp cục bộ:", err.message)
+      console.warn(
+        "⚠️ Gặp lỗi khi gọi POST /api/v1/menus, lưu bản nháp cục bộ:",
+        err.message,
+      );
       return {
         isOk: true,
         success: true,
         data: { id: `m-${Date.now()}`, ...payload },
         message: "Đã lưu bản nháp thực đơn (Chế độ Offline/Mock)",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
@@ -230,9 +331,9 @@ const MenuService = {
    * Cập nhật thực đơn
    */
   updateMenu: async (id, { formState, dishes, substituteDish, seasonings }) => {
-    let weeklyId = id
+    let weeklyId = id;
     if (typeof id === "string" && id.includes("_")) {
-      weeklyId = id.split("_")[0]
+      weeklyId = id.split("_")[0];
     }
 
     const payload = adaptFormToBackendWrite({
@@ -241,144 +342,156 @@ const MenuService = {
       mealType: formState.mealType || "LUNCH",
       notes: formState.notes,
       dishes,
-      seasonings
-    })
+      seasonings,
+    });
 
-    if (USE_MOCK_API || (typeof weeklyId === "string" && weeklyId.startsWith("m-"))) {
+    if (
+      USE_MOCK_API ||
+      (typeof weeklyId === "string" && weeklyId.startsWith("m-"))
+    ) {
       return {
         isOk: true,
         success: true,
         data: { id: weeklyId, ...payload },
         message: "Đã cập nhật thực đơn thành công (Chế độ Mock)",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
 
     try {
-      const response = await http.put(apiMenuDetail(weeklyId), payload)
+      const response = await http.put(apiMenuDetail(weeklyId), payload);
       return {
         isOk: true,
         success: true,
         data: response?.data || response,
         message: "Đã cập nhật thực đơn thành công",
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      console.warn(`⚠️ Lỗi khi cập nhật thực đơn ${weeklyId}:`, err.message)
+      console.warn(`⚠️ Lỗi khi cập nhật thực đơn ${weeklyId}:`, err.message);
       return {
         isOk: true,
         success: true,
         data: { id: weeklyId, ...payload },
         message: "Đã cập nhật thực đơn (Fallback)",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
   /**
    * Gửi thực đơn lên Ban Giám Hiệu phê duyệt
    */
-  submitMenu: async id => {
-    let weeklyId = id
+  submitMenu: async (id) => {
+    let weeklyId = id;
     if (typeof id === "string" && id.includes("_")) {
-      weeklyId = id.split("_")[0]
+      weeklyId = id.split("_")[0];
     }
 
-    if (USE_MOCK_API || (typeof weeklyId === "string" && weeklyId.startsWith("m-"))) {
+    if (
+      USE_MOCK_API ||
+      (typeof weeklyId === "string" && weeklyId.startsWith("m-"))
+    ) {
       return {
         isOk: true,
         success: true,
         message: "Đã gửi thực đơn chờ Ban Giám Hiệu phê duyệt (Mock)",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
 
     try {
-      const response = await http.post(apiSubmitMenu(weeklyId), {})
+      const response = await http.post(apiSubmitMenu(weeklyId), {});
       return {
         isOk: true,
         success: true,
         data: response?.data || response,
         message: "Đã gửi thực đơn chờ Ban Giám Hiệu phê duyệt",
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      console.warn(`⚠️ Lỗi khi gửi duyệt thực đơn ${weeklyId}:`, err.message)
+      console.warn(`⚠️ Lỗi khi gửi duyệt thực đơn ${weeklyId}:`, err.message);
       return {
         isOk: true,
         success: true,
         message: "Đã gửi thực đơn chờ Ban Giám Hiệu phê duyệt",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
   /**
    * Xóa thực đơn bản nháp
    */
-  deleteMenu: async id => {
-    let weeklyId = id
+  deleteMenu: async (id) => {
+    let weeklyId = id;
     if (typeof id === "string" && id.includes("_")) {
-      weeklyId = id.split("_")[0]
+      weeklyId = id.split("_")[0];
     }
 
-    if (USE_MOCK_API || (typeof weeklyId === "string" && weeklyId.startsWith("m-"))) {
+    if (
+      USE_MOCK_API ||
+      (typeof weeklyId === "string" && weeklyId.startsWith("m-"))
+    ) {
       return {
         isOk: true,
         success: true,
         message: "Đã xóa thực đơn nháp (Mock)",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
 
     try {
-      const response = await http.delete(apiMenuDetail(weeklyId))
+      const response = await http.delete(apiMenuDetail(weeklyId));
       return {
         isOk: true,
         success: true,
         data: response?.data || response,
         message: "Đã xóa thực đơn nháp thành công",
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      console.warn(`⚠️ Lỗi khi xóa thực đơn ${weeklyId}:`, err.message)
+      console.warn(`⚠️ Lỗi khi xóa thực đơn ${weeklyId}:`, err.message);
       return {
         isOk: true,
         success: true,
         message: "Đã xóa thực đơn nháp",
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
   /**
    * Kiểm tra dị ứng học đường theo danh sách nguyên liệu đã chọn
    */
-  checkAllergies: async ingredientIds => {
+  checkAllergies: async (ingredientIds) => {
     if (!ingredientIds || ingredientIds.length === 0) {
-      return { isOk: true, data: [] }
+      return { isOk: true, data: [] };
     }
 
     try {
       const response = await http.post(
         apiAllergyCheck,
         { ingredientIds },
-        { notifyOnError: false }
-      )
+        { notifyOnError: false },
+      );
       return {
         isOk: true,
         success: true,
         data: response?.data || response || [],
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      console.warn("⚠️ Kiểm tra dị ứng qua API thất bại, sử dụng kiểm tra ngoại tuyến:", err.message)
+      console.warn(
+        "⚠️ Kiểm tra dị ứng qua API thất bại, sử dụng kiểm tra ngoại tuyến:",
+        err.message,
+      );
       return {
         isOk: true,
         success: true,
         data: [],
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
@@ -388,23 +501,27 @@ const MenuService = {
   getIngredientOptions: async (kind = "main") => {
     try {
       const response = await http.get(apiIngredientOptions(kind), {
-        notifyOnError: false
-      })
-      const items = response?.data?.items || response?.items || response?.data || []
+        notifyOnError: false,
+      });
+      const items =
+        response?.data?.items || response?.items || response?.data || [];
       return {
         isOk: true,
         success: true,
         data: items,
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      console.warn(`⚠️ Lỗi lấy danh mục nguyên liệu ${kind} từ API:`, err.message)
+      console.warn(
+        `⚠️ Lỗi lấy danh mục nguyên liệu ${kind} từ API:`,
+        err.message,
+      );
       return {
         isOk: true,
         success: true,
         data: [],
-        isMock: true
-      }
+        isMock: true,
+      };
     }
   },
 
@@ -414,16 +531,16 @@ const MenuService = {
   getPortionGroups: async (menuDayId, mealType = "LUNCH") => {
     try {
       const response = await http.get(apiPortionGroups(menuDayId, mealType), {
-        notifyOnError: false
-      })
+        notifyOnError: false,
+      });
       return {
         isOk: true,
         success: true,
         data: response?.data || response,
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      return { isOk: false, data: null, error: err.message }
+      return { isOk: false, data: null, error: err.message };
     }
   },
 
@@ -435,19 +552,18 @@ const MenuService = {
       const response = await http.put(
         apiPortionGroups(menuDayId, mealType),
         { groups },
-        { notifyOnError: false }
-      )
+        { notifyOnError: false },
+      );
       return {
         isOk: true,
         success: true,
         data: response?.data || response,
-        isMock: false
-      }
+        isMock: false,
+      };
     } catch (err) {
-      return { isOk: false, error: err.message }
+      return { isOk: false, error: err.message };
     }
-  }
-}
+  },
+};
 
-export default MenuService
-
+export default MenuService;

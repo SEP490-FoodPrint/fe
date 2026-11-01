@@ -30,7 +30,11 @@
 }
 
 .cardTitle {
-  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family:
+    "Be Vietnam Pro",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   font-size: 17px;
   font-weight: 600;
   color: #0f172a;
@@ -214,11 +218,252 @@
 }
 
 @media (max-width: 640px) {
-  .col6, .col3 {
+  .col6,
+  .col3 {
     grid-column: span 12;
   }
 
   .card {
     padding: 16px;
   }
+}
+
+/* ========================================================
+   DATEPICKER & DẢI 5 NGÀY HỌC ĐƯỜNG (T2 - T6)
+   ======================================================== */
+.labelWithAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.openCalendarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-primary, #0a8066);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 15px;
+  }
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1);
+  }
+}
+
+.datePickerContainer {
+  position: relative;
+  width: 100%;
+}
+
+.hiddenNativeDatePicker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+/* Khối thông tin lịch tuần và 5 ngày T2 - T6 */
+.weekScheduleCard {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+
+  &.cardWeekendWarning {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+  }
+}
+
+.weekHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.weekTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #334155;
+  font-size: 13px;
+}
+
+.weekIcon {
+  color: var(--color-primary, #0a8066);
+  font-size: 18px;
+}
+
+.weekTitleText {
+  strong {
+    color: var(--color-primary, #0a8066);
+    font-weight: 700;
+  }
+}
+
+.weekStatusBadgeWrap {
+  display: flex;
+  align-items: center;
+}
+
+.badgeComplete {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #166534;
+  background-color: #dcfce7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+}
+
+.badgeMissing {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fef3c7;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #fde68a;
+}
+
+.badgeWeekend {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #b91c1c;
+  background-color: #fee2e2;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+}
+
+/* Dải 5 nút ngày Thứ 2 đến Thứ 6 */
+.daysStrip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dayPill {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+  }
+
+  &.dayPillActive {
+    border-color: var(--color-primary, #0a8066);
+    background-color: var(--color-primary-soft, #e8f5f1);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.2);
+  }
+
+  &.dayPillDone {
+    border-left: 3px solid #16a34a;
+  }
+
+  &.dayPillMissing {
+    border-left: 3px solid #f59e0b;
+  }
+}
+
+.pillTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.pillIndexBadge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.pillDayName {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.pillDate {
+  font-size: 11px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.pillBottom {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+}
+
+.statusActive {
+  font-weight: 700;
+  color: var(--color-primary, #0a8066);
+}
+
+.statusDone {
+  font-weight: 600;
+  color: #16a34a;
+}
+
+.statusMissing {
+  font-weight: 600;
+  color: #d97706;
+}
+
+.weekendAlertBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  font-size: 12px;
+  color: #991b1b;
+}
+
+.alertIcon {
+  font-size: 18px;
+  color: #dc2626;
+  flex-shrink: 0;
 }
