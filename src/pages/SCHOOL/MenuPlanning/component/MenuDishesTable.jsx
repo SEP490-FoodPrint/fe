@@ -29,7 +29,7 @@ export default function MenuDishesTable({
           <div>
             <h2 className={styles.cardTitle}>Món ăn trong thực đơn</h2>
             <p className={styles.cardSubtitle}>
-              Tên món ăn nhập tự do. Thành phần chính chọn qua Popup lọc theo: <strong>Phân loại → Nhà cung cấp liên kết → Nguyên liệu</strong>.
+              Tên món ăn tự do nhập text. Thành phần chính chọn qua Popup lọc theo: <strong>Phân loại → Nhà cung cấp liên kết → Nguyên liệu</strong>.
             </p>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function MenuDishesTable({
               <th className={styles.thOrder}>STT</th>
               <th className={styles.thDishName}>Tên món ăn (Tự do nhập text)</th>
               <th className={styles.thIngredientFlow}>
-                Thành phần chính (Từ NCC liên kết) & Đối soát dị ứng
+                Thành phần chính (NCC liên kết) & Đối soát dị ứng
               </th>
               <th className={styles.thQty}>Định lượng / Suất</th>
               <th className={styles.thAction}>Thao tác</th>
@@ -90,30 +90,29 @@ export default function MenuDishesTable({
                         onClick={() => onOpenPicker(dish.id)}
                       >
                         <span className="material-symbols-outlined">add_circle_outline</span>
-                        <span>Chọn nguyên liệu từ NCC liên kết (Phân loại → NCC → Nguyên liệu)</span>
+                        <span>Chọn nguyên liệu từ NCC liên kết</span>
                       </button>
                     ) : (
-                      /* Trường hợp đã chọn nguyên liệu */
-                      <div className={styles.selectedIngredientWrap}>
-                        <div className={styles.ingredientInfoBox}>
-                          <div className={styles.ingLeft}>
-                            <div className={styles.iconCircle}>
+                      /* Trường hợp đã chọn nguyên liệu: Khối thống nhất siêu sạch */
+                      <div className={`${styles.ingUnifiedCard} ${hasAllergyConflict ? styles.cardConflict : styles.cardSafe}`}>
+                        {/* Hàng thông tin nguyên liệu */}
+                        <div className={styles.ingTopRow}>
+                          <div className={styles.ingMainInfo}>
+                            <div className={styles.iconBox}>
                               <span className={`material-symbols-outlined ${styles.ingIcon}`}>
                                 {getCategoryIcon(selectedIng.category)}
                               </span>
                             </div>
-                            <div className={styles.ingDetails}>
-                              <div className={styles.ingNameRow}>
+                            <div className={styles.nameAndTags}>
+                              <div className={styles.titleWrap}>
                                 <strong className={styles.ingName}>{selectedIng.name}</strong>
-                                <span className={styles.categoryTag}>{selectedIng.category}</span>
+                                <span className={styles.categoryBadge}>{selectedIng.category}</span>
                               </div>
-                              <div className={styles.supplierRow}>
+                              <div className={styles.supplierWrap}>
                                 <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
-                                <span className={styles.supplierName}>
-                                  {supplier?.name || "NCC liên kết"}
-                                </span>
+                                <span className={styles.supplierName}>{supplier?.name || "NCC liên kết"}</span>
                                 {supplier?.badge && (
-                                  <span className={styles.badgeTag}>{supplier.badge}</span>
+                                  <span className={styles.supplierBadge}>{supplier.badge}</span>
                                 )}
                               </div>
                             </div>
@@ -130,32 +129,36 @@ export default function MenuDishesTable({
                           </button>
                         </div>
 
-                        {/* Kiểm tra dị ứng: CHỈ HIỆN KHI ĐÃ CHỌN XONG NGUYÊN LIỆU */}
-                        {hasAllergyConflict ? (
-                          <div className={styles.allergyAlertBox}>
-                            <span className={`material-symbols-outlined ${styles.alertIcon}`}>warning</span>
-                            <div className={styles.alertTextWrap}>
-                              <strong className={styles.alertTitle}>
-                                Cảnh báo dị ứng: {selectedIng.allergyWarning}
-                              </strong>
-                              <span className={styles.alertSub}>
-                                → Bắt buộc bố trí suất ăn riêng thay thế (đã tự động kích hoạt bên dưới)
+                        {/* Hàng đối soát dị ứng: CHỈ HIỆN KHI ĐÃ CHỌN XONG NGUYÊN LIỆU */}
+                        <div className={styles.allergySection}>
+                          {hasAllergyConflict ? (
+                            <div className={styles.allergyBanner}>
+                              <span className={`material-symbols-outlined ${styles.alertIcon}`}>warning</span>
+                              <div className={styles.alertContent}>
+                                <span className={styles.alertMainText}>
+                                  <strong>Cảnh báo dị ứng:</strong> {selectedIng.allergyWarning}
+                                </span>
+                                <span className={styles.alertSubText}>
+                                  → Tự động kích hoạt tạo món ăn riêng thay thế ở mục bên dưới
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className={styles.safeBanner}>
+                              <span className={`material-symbols-outlined ${styles.safeIcon}`}>check_circle</span>
+                              <span className={styles.safeText}>
+                                An toàn: Không phát hiện học sinh dị ứng thành phần này
                               </span>
                             </div>
-                          </div>
-                        ) : (
-                          <div className={styles.safeBox}>
-                            <span className={`material-symbols-outlined ${styles.safeIcon}`}>check_circle</span>
-                            <span>An toàn: Không phát hiện học sinh dị ứng thành phần này</span>
-                          </div>
-                        )}
+                          )}
+                        </div>
                       </div>
                     )}
                   </td>
 
                   {/* Định lượng / Suất */}
                   <td className={styles.tdQty}>
-                    <div className={styles.qtyGroup}>
+                    <div className={styles.qtyControlGroup}>
                       <input
                         type="number"
                         min="1"

@@ -111,20 +111,20 @@ export default function MenuPlanning() {
   // Khi người dùng chọn xong nguyên liệu từ Popup Modal
   const handleSelectIngredient = (ingredient) => {
     if (pickerContext.type === "dish" && pickerContext.dishId) {
+      const existingDish = dishes.find(d => d.id === pickerContext.dishId)
       handleUpdateDish(pickerContext.dishId, {
         ingredientId: ingredient.id,
         ingredientCategory: ingredient.category,
         supplierId: ingredient.supplierId,
-        portionQty: ingredient.defaultQty,
-        unit: ingredient.unit
+        portionQty: existingDish?.portionQty || 50,
+        unit: existingDish?.unit || ingredient.unit || "g"
       })
       showToast(`Đã chọn nguyên liệu: "${ingredient.name}"`, "success")
     } else if (pickerContext.type === "substitute") {
       setSubstituteDish(prev => ({
         ...prev,
         ingredientId: ingredient.id,
-        portionQty: ingredient.defaultQty,
-        unit: ingredient.unit
+        unit: prev.unit || ingredient.unit || "g"
       }))
       showToast(`Đã chọn nguyên liệu thay thế: "${ingredient.name}"`, "success")
     }

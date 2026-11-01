@@ -3,7 +3,7 @@
   border-radius: 14px;
   border: 1px solid rgba(189, 201, 195, 0.5);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  padding: 20px 24px;
+  padding: 18px 22px;
   margin-bottom: 24px;
 }
 
@@ -31,7 +31,7 @@
 
 .cardTitle {
   font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 16.5px;
+  font-size: 16px;
   font-weight: 600;
   color: #0f172a;
   margin: 0 0 3px 0;
@@ -42,7 +42,7 @@
   font-size: 13px;
   color: #64748b;
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.4;
 
   strong {
     color: #1e293b;
@@ -75,7 +75,7 @@
 
 .tableWrapper {
   overflow-x: auto;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
 }
@@ -94,7 +94,9 @@
       padding: 12px 14px;
       font-weight: 600;
       color: #475569;
-      font-size: 12.5px;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
       white-space: nowrap;
     }
   }
@@ -109,14 +111,14 @@
       }
 
       &:hover {
-        background-color: #fbfcfe;
+        background-color: #fafbfc;
       }
     }
   }
 }
 
 .rowConflict {
-  background-color: #fffaf7 !important;
+  background-color: #fffdfa !important;
 }
 
 .thOrder {
@@ -125,25 +127,26 @@
 }
 
 .thDishName {
-  width: 220px;
+  width: 230px;
 }
 
 .thIngredientFlow {
-  min-width: 420px;
+  min-width: 480px;
 }
 
 .thQty {
-  width: 180px;
+  width: 170px;
 }
 
 .thAction {
-  width: 56px;
+  width: 54px;
   text-align: center;
 }
 
 .tdOrder {
   text-align: center;
   padding: 14px 8px;
+  vertical-align: top;
 }
 
 .orderNumber {
@@ -157,6 +160,7 @@
   color: #475569;
   font-size: 12px;
   font-weight: 600;
+  margin-top: 6px;
 }
 
 .tdDishName {
@@ -166,10 +170,10 @@
 
 .dishNameInput {
   width: 100%;
-  height: 40px;
+  height: 38px;
   padding: 0 12px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: 7px;
   font-size: 13.5px;
   font-weight: 500;
   color: #0f172a;
@@ -195,8 +199,8 @@
 /* Nút chọn nguyên liệu khi chưa chọn */
 .pickIngredientBtn {
   width: 100%;
-  min-height: 44px;
-  padding: 10px 14px;
+  min-height: 42px;
+  padding: 8px 14px;
   background-color: #f8fafc;
   border: 1.5px dashed #cbd5e1;
   border-radius: 8px;
@@ -211,7 +215,7 @@
   transition: all 0.15s ease;
 
   span:first-child {
-    font-size: 19px;
+    font-size: 18px;
   }
 
   &:hover {
@@ -221,60 +225,69 @@
   }
 }
 
-/* Khối nguyên liệu đã chọn */
-.selectedIngredientWrap {
+/* Khối thống nhất nguyên liệu + đối soát dị ứng */
+.ingUnifiedCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 9px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  transition: all 0.15s ease;
 }
 
-.ingredientInfoBox {
+.cardSafe {
+  border-left: 3.5px solid #10b981;
+  background-color: #ffffff;
+}
+
+.cardConflict {
+  border-left: 3.5px solid #f97316;
+  background-color: #fffaf5;
+  border-color: #fed7aa;
+}
+
+.ingTopRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
   gap: 12px;
 }
 
-.ingLeft {
+.ingMainInfo {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
 
-.iconCircle {
+.iconBox {
   width: 34px;
   height: 34px;
   border-radius: 6px;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
   .ingIcon {
-    font-size: 18px;
+    font-size: 19px;
     color: var(--color-primary, #0a8066);
   }
 }
 
-.ingDetails {
+.nameAndTags {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
 
-.ingNameRow {
+.titleWrap {
   display: flex;
   align-items: center;
   gap: 6px;
-  flex-wrap: wrap;
 }
 
 .ingName {
@@ -283,25 +296,26 @@
   color: #0f172a;
 }
 
-.categoryTag {
-  font-size: 10.5px;
+.categoryBadge {
+  font-size: 10px;
+  font-weight: 500;
   padding: 1px 6px;
   border-radius: 4px;
   background-color: #e2e8f0;
   color: #475569;
-  font-weight: 500;
+  white-space: nowrap;
 }
 
-.supplierRow {
+.supplierWrap {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
-  color: #64748b;
+  white-space: nowrap;
 }
 
 .verifyIcon {
-  font-size: 14px;
+  font-size: 13.5px;
   color: #0284c7;
 }
 
@@ -310,25 +324,26 @@
   font-weight: 500;
 }
 
-.badgeTag {
+.supplierBadge {
   font-size: 10px;
+  font-weight: 600;
   padding: 1px 5px;
   border-radius: 3px;
   background-color: #e0f2fe;
   color: #0369a1;
-  font-weight: 600;
+  white-space: nowrap;
 }
 
 .changeBtn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 10px;
+  padding: 5px 9px;
   background-color: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   color: #475569;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -336,7 +351,7 @@
   transition: all 0.15s ease;
 
   span {
-    font-size: 15px;
+    font-size: 14px;
     color: var(--color-primary, #0a8066);
   }
 
@@ -347,57 +362,61 @@
   }
 }
 
-/* Hộp cảnh báo dị ứng sau khi chọn */
-.allergyAlertBox {
+/* Phần đối soát dị ứng */
+.allergySection {
+  border-top: 1px dashed rgba(203, 213, 225, 0.6);
+  padding-top: 6px;
+}
+
+.allergyBanner {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
-  padding: 7px 10px;
-  background-color: #fff7ed;
-  border: 1px solid #fed7aa;
-  border-radius: 6px;
+  gap: 6px;
   font-size: 12px;
 }
 
 .alertIcon {
   color: #ea580c;
-  font-size: 16px;
+  font-size: 15px;
   margin-top: 1px;
   flex-shrink: 0;
 }
 
-.alertTextWrap {
+.alertContent {
   display: flex;
   flex-direction: column;
   gap: 1px;
 }
 
-.alertTitle {
+.alertMainText {
   color: #9a3412;
-  font-weight: 600;
+  font-size: 12px;
+
+  strong {
+    font-weight: 700;
+  }
 }
 
-.alertSub {
+.alertSubText {
   color: #c2410c;
   font-size: 11px;
 }
 
-/* Hộp an toàn */
-.safeBox {
+.safeBanner {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 9px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 6px;
   font-size: 11.5px;
-  color: #166534;
+  color: #15803d;
 }
 
 .safeIcon {
   color: #16a34a;
   font-size: 15px;
+}
+
+.safeText {
+  font-weight: 500;
 }
 
 /* Định lượng / Suất */
@@ -406,18 +425,18 @@
   vertical-align: top;
 }
 
-.qtyGroup {
+.qtyControlGroup {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .qtyInput {
-  width: 68px;
-  height: 40px;
+  width: 64px;
+  height: 38px;
   padding: 0 8px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
+  border-radius: 7px;
   font-size: 13.5px;
   font-weight: 600;
   text-align: right;
@@ -430,11 +449,11 @@
 }
 
 .unitSelect {
-  height: 40px;
-  padding: 0 8px;
+  height: 38px;
+  padding: 0 6px;
   border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 13px;
+  border-radius: 7px;
+  font-size: 12.5px;
   color: #334155;
   background-color: #f8fafc;
   cursor: pointer;
@@ -465,6 +484,7 @@
   cursor: pointer;
   padding: 6px;
   border-radius: 6px;
+  margin-top: 2px;
   transition: all 0.15s ease;
 
   span {
@@ -492,7 +512,7 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  padding: 6px 0;
+  padding: 4px 0;
 
   span {
     font-size: 18px;

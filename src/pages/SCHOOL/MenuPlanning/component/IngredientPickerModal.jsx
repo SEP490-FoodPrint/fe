@@ -244,10 +244,6 @@ export default function IngredientPickerModal({
                           </span>
                         )}
                       </div>
-
-                      <div className={styles.qtySuggestion}>
-                        Định lượng gợi ý: <strong>{ing.defaultQty} {ing.unit}/suất</strong>
-                      </div>
                     </div>
 
                     <div className={styles.actionCol}>
@@ -283,4 +279,3 @@ export default function IngredientPickerModal({
     </div>
   )
 }
-
