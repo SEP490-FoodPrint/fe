@@ -22,6 +22,8 @@ function SupplierRelationships() {
   const { userStore } = useContext(StoreContext)
   const [params, setParams] = useSearchParams()
   const [rows, setRows] = useState([])
+  // Tab mà `rows` đang thuộc về: hai tab có dạng dữ liệu khác nhau
+  const [rowsView, setRowsView] = useState(null)
   const [pagination, setPagination] = useState(emptyPage)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -128,12 +130,14 @@ function SupplierRelationships() {
       .then((response) => {
         if (!controller.signal.aborted) {
           setRows(response.data.items)
+          setRowsView(activeView)
           setPagination(response.data.pagination)
         }
       })
       .catch((failure) => {
         if (!controller.signal.aborted) {
           setRows([])
+          setRowsView(activeView)
           setPagination(emptyPage)
           setError(
             failure?.response?.data?.message || "Không thể tải nhà cung cấp.",
@@ -156,6 +160,8 @@ function SupplierRelationships() {
     refresh,
   ])
 
+  // Vừa đổi tab thì `rows` còn là dữ liệu tab cũ cho tới khi request mới trả về
+  const listLoading = loading || rowsView !== activeView
   const onOpen = (id, intent) => setWorkspace({ id, intent })
   return (
     <div className="supplier-relationships-page">
@@ -289,7 +295,7 @@ function SupplierRelationships() {
       {activeView === "suppliers" ? (
         <SupplierList
           suppliers={rows}
-          loading={loading}
+          loading={listLoading}
           pagination={pagination}
           onPageChange={(value) => update({ page: value })}
           onOpen={onOpen}
@@ -298,7 +304,7 @@ function SupplierRelationships() {
       ) : (
         <RelationshipList
           relationships={rows}
-          loading={loading}
+          loading={listLoading}
           pagination={pagination}
           onPageChange={(value) => update({ page: value })}
           onOpen={onOpen}
