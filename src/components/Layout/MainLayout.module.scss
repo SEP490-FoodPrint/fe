@@ -35,3 +35,9 @@
 @media (max-width: 600px) {
   .mainContent { padding: var(--space-4); }
 }
+
+
+.fullBleedWhite {
+  padding: 0 !important;
+  background: #ffffff !important;
+}
