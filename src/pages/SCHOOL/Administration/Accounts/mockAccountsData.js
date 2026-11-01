@@ -615,6 +615,35 @@ export function addNewAccount(newAccount) {
 }
 
 /**
+ * Lấy thông tin tài khoản theo ID hoặc theo Mã
+ */
+export function getAccountById(id) {
+  const accounts = getStoredAccounts()
+  return accounts.find((a) => a.id === id || a.code === id) || null
+}
+
+/**
+ * Cập nhật thông tin tài khoản và lưu vào localStorage
+ */
+export function updateStoredAccount(id, updatedFields) {
+  const accounts = getStoredAccounts()
+  let updatedAccount = null
+  const updatedList = accounts.map((acc) => {
+    if (acc.id === id || acc.code === id) {
+      updatedAccount = {
+        ...acc,
+        ...updatedFields,
+        updatedAt: new Date().toISOString(),
+      }
+      return updatedAccount
+    }
+    return acc
+  })
+  saveStoredAccounts(updatedList)
+  return updatedAccount
+}
+
+/**
  * Tự động sinh mã nhân viên kế tiếp dựa trên phòng ban được chọn
  * Ví dụ: BGH -> TK-BGH-004, Y_TE -> TK-YT-006, BEP -> TK-BP-006, ...
  */
