@@ -1,0 +1,126 @@
+.headerContainer {
+  margin-bottom: 24px;
+}
+
+.titleRow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  justify-content: space-between;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pageTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+.codePill {
+  font-size: 13px;
+  font-weight: 700;
+  font-family: monospace;
+  color: #1e293b;
+  background-color: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+
+  &.revision {
+    background-color: #ffe4e6;
+    color: #e11d48;
+    border: 1px solid #fecdd3;
+    .statusDot { background-color: #e11d48; }
+  }
+
+  &.approved {
+    background-color: #d1fae5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+    .statusDot { background-color: #047857; }
+  }
+
+  &.pending {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1px solid #fde68a;
+    .statusDot { background-color: #d97706; }
+  }
+
+  &.draft {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    .statusDot { background-color: #94a3b8; }
+  }
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.pageSubtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  align-self: flex-start;
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+}
+
+.backIcon {
+  font-size: 18px;
+}
+

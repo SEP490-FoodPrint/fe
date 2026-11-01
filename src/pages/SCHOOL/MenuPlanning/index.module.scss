@@ -1,15 +1,25 @@
-.pageContainer {
-  padding: 24px 32px 100px 32px;
-  background-color: #ffffff; /* Nền trắng tinh toàn trang */
-  min-height: 100vh;
-  box-sizing: border-box;
+.menuListPage {
   width: 100%;
+  padding: 24px 32px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+  min-height: 100%;
+
+  @media (max-width: 768px) {
+    padding: 16px 16px 32px;
+  }
 }
 
-.contentWrapper {
+.tableCard {
   width: 100%;
-  max-width: 100%; /* Lấp đầy toàn màn hình, không bị thừa khoảng cách ngoài */
-  margin: 0;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(36, 49, 45, 0.04), 0 4px 12px rgba(36, 49, 45, 0.03);
+  border: 1px solid rgba(189, 201, 195, 0.35);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -54,10 +64,4 @@
 .warning {
   background-color: #b45309;
   color: #ffffff;
-}
-
-@media (max-width: 768px) {
-  .pageContainer {
-    padding: 16px 16px 110px 16px;
-  }
 }

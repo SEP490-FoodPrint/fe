@@ -61,7 +61,7 @@ const MainLayout = ({ type }) => {
         />
         <main
           id="dashboard-content"
-          className={`${styles.mainContent} ${location.pathname.startsWith(ROUTER.SCHOOL_MENU_PLANNING) ? styles.fullBleedWhite : ""}`}
+          className={`${styles.mainContent} ${(location.pathname.startsWith(ROUTER.SCHOOL_MENU_PLANNING) || location.pathname.includes("/create") || location.pathname.includes("/edit")) ? styles.fullBleedWhite : ""}`}
         >
           <Outlet />
         </main>

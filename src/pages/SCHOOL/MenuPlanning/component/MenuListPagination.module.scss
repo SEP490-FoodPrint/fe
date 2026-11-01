@@ -1,0 +1,101 @@
+.paginationContainer {
+  padding: 14px 20px;
+  background-color: #ffffff;
+  border-top: 1px solid rgba(189, 201, 195, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+  }
+}
+
+.summaryText {
+  font-size: 13px;
+  color: #64748b;
+  text-align: center;
+
+  @media (min-width: 640px) {
+    text-align: left;
+  }
+}
+
+.highlight {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.pageButtons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.numButtonGroup {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(.disabled) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+  }
+}
+
+.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.navIcon {
+  font-size: 16px;
+}
+
+.pageBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: none;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover:not(.active) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+  }
+}
+
+.active {
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.25);
+}
+

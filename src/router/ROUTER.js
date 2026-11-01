@@ -36,7 +36,10 @@ const ROUTER = {
   SCHOOL_ACCOUNT_CREATE: "/school/administration/accounts/create",
   SCHOOL_ACCOUNT_EDIT: "/school/administration/accounts/:id/edit",
   SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
-  SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
+  SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Danh sách thực đơn (Ban Y tế)
+  SCHOOL_MENU_CREATE: "/school/menu-planning/create",     // Tạo thực đơn mới
+  SCHOOL_MENU_EDIT: "/school/menu-planning/:id/edit",     // Chỉnh sửa thực đơn
+  SCHOOL_MENU_DETAIL: "/school/menu-planning/:id",        // Chi tiết thực đơn
   // Phân hệ Y tế học đường (Nhân viên Y tế)
   SCHOOL_HEALTH_OVERVIEW: "/school/health-overview",       // Trang chủ / Tổng quan Y tế
   SCHOOL_HEALTH_ALLERGY: "/school/health-allergy",         // Thông tin dị ứng
