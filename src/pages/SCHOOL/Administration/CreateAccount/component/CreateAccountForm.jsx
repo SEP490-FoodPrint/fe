@@ -28,17 +28,13 @@ function CreateAccountForm({
   const [showPassword, setShowPassword] = useState(false)
   const [copiedPass, setCopiedPass] = useState(false)
 
-  // Sao chép nhanh mật khẩu mặc định
-  const handleCopyPassword = () => {
-    navigator.clipboard.writeText(DEFAULT_INITIAL_PASSWORD)
-    setCopiedPass(true)
-    setTimeout(() => setCopiedPass(false), 2000)
-  }
+
 
   return (
     <form className={styles.formCard} onSubmit={onSubmit} noValidate>
       <div className={styles.fieldGrid}>
         {/* 1. Chọn phòng ban */}
+        <h2 className={styles.sectionTitle}>1. Chọn phòng ban chuyên trách</h2>
         <div className={`${styles.formGroup} ${styles.fullWidth}`}>
           <label className={styles.label} htmlFor="departmentId">
             Phòng ban <span className={styles.required}>*</span>
@@ -77,7 +73,7 @@ function CreateAccountForm({
             />
           </div>
         </div>
-
+        <h2 className={styles.sectionTitle}>2. Thông tin nhân sự & Tài khoản</h2>
         {/* 3. Họ và tên */}
         <div className={`${styles.formGroup} ${styles.fullWidth}`}>
           <label className={styles.label} htmlFor="fullName">
@@ -179,18 +175,6 @@ function CreateAccountForm({
                 title={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-              <button
-                type="button"
-                className={styles.actionIconBtn}
-                onClick={handleCopyPassword}
-                title="Sao chép mật khẩu"
-              >
-                {copiedPass ? (
-                  <Check size={16} style={{ color: "#16a34a" }} />
-                ) : (
-                  <Copy size={16} />
-                )}
               </button>
             </div>
           </div>

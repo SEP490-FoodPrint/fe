@@ -14,6 +14,13 @@
   }
 }
 
+.sectionTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+}
+
 .fieldGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
