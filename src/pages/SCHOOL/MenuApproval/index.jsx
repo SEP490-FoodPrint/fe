@@ -9,9 +9,15 @@ import MenuSchedule from "./component/MenuSchedule"
 import MenuSummary from "./component/MenuSummary"
 import "./style.scss"
 
-const MENU_ID = "43000000-0000-4000-8000-000000000001"
+// Ưu tiên tuần chờ duyệt cũ nhất; không còn tuần chờ thì mở tuần mới nhất
+const pickDefaultWeek = weeks => {
+  const pending = weeks.filter(week => week.status === "PENDING_APPROVAL")
+  return (pending.at(-1) || weeks[0])?.id || null
+}
 
 function MenuApproval() {
+  const [weeks, setWeeks] = useState([])
+  const [menuId, setMenuId] = useState(null)
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -24,11 +30,41 @@ function MenuApproval() {
   useEffect(() => {
     let mounted = true
 
+    const loadWeeks = async () => {
+      setLoading(true)
+      setError("")
+      try {
+        const items = await MenuService.getApprovalWeeks()
+        if (!mounted) return
+        setWeeks(items)
+        setMenuId(pickDefaultWeek(items))
+        if (!items.length) setLoading(false)
+      } catch (requestError) {
+        if (mounted) {
+          setError(
+            requestError?.response?.data?.message ||
+              "Không thể tải danh sách tuần thực đơn. Vui lòng thử lại.",
+          )
+          setLoading(false)
+        }
+      }
+    }
+
+    loadWeeks()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!menuId) return undefined
+    let mounted = true
+
     const loadMenu = async () => {
       setLoading(true)
       setError("")
       try {
-        const response = await MenuService.getApprovalDetail(MENU_ID)
+        const response = await MenuService.getApprovalDetail(menuId)
         if (mounted) setMenu(response?.data || response)
       } catch (requestError) {
         if (mounted) {
@@ -46,7 +82,7 @@ function MenuApproval() {
     return () => {
       mounted = false
     }
-  }, [])
+  }, [menuId])
 
   const visibleDays = useMemo(() => {
     if (!menu?.days) return []
@@ -73,6 +109,13 @@ function MenuApproval() {
     setDirective("")
   }
 
+  const changeWeek = weekId => {
+    if (submitting || dialog || weekId === menuId) return
+    setMenuId(weekId)
+    setActiveDay("all")
+    setDirective("")
+  }
+
   const applyDecision = async (type, text) => {
     if (!dialog || submitLock.current) return
     submitLock.current = true
@@ -83,6 +126,9 @@ function MenuApproval() {
         ? await MenuService.approveMenu(menu.id, { ...body, notes: text })
         : await MenuService.requestRevision(menu.id, { ...body, reason: text })
       const result = response.data
+      setWeeks(current =>
+        current.map(week => (week.id === menu.id ? { ...week, status: result.status } : week)),
+      )
       setMenu(current => ({
         ...current,
         status: result.status,
@@ -139,6 +185,14 @@ function MenuApproval() {
     )
   }
 
+  if (!error && !weeks.length) {
+    return (
+      <div className="menu-approval-page">
+        <Alert severity="info">Chưa có thực đơn tuần nào được Y tế gửi duyệt.</Alert>
+      </div>
+    )
+  }
+
   if (error || !menu) {
     return (
       <div className="menu-approval-page">
@@ -151,6 +205,9 @@ function MenuApproval() {
     <div className="menu-approval-page">
       <MenuApprovalHeader
         menu={{ ...menu, status: scopeStatus }}
+        weeks={weeks}
+        selectedWeekId={menuId}
+        onWeekChange={changeWeek}
         canDecide={canDecide}
         scopeLabel={scopeLabel}
         submitting={submitting}
