@@ -106,7 +106,7 @@ export const MenuItemSchool = () => [
     label: "Tổng quan Trường học",
     icon: <DashboardOutlinedIcon />,
     roles: [
-      ROLES.SCHOOL_ADMIN,
+      ROLES.SCHOOL_ADMINISTRATION,
       ROLES.SCHOOL_MANAGEMENT_BOARD,
       ROLES.HOMEROOM_TEACHER,
       ROLES.PARENTS_COMMITTEE,
@@ -117,13 +117,13 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_ADMINISTRATION,
     label: "Quản lý Tài khoản",
     icon: <AdminPanelSettingsOutlinedIcon />,
-    roles: [ROLES.SCHOOL_ADMIN],
+    roles: [ROLES.SCHOOL_ADMINISTRATION],
   },
   {
     key: ROUTER.SCHOOL_MENU_APPROVAL,
     label: "Phê duyệt Thực đơn",
     icon: <FactCheckOutlinedIcon />,
-    roles: [ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD],
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN Y TẾ (SCHOOL_HEALTH_OFFICER) - 5 MỤC QUY CHUẨN ===
   {

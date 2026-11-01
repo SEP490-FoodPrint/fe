@@ -29,7 +29,8 @@ const normalizeUser = (user) => {
   if (!user?.id || !user.role || !user.orgType)
     throw new Error("Thông tin tài khoản không hợp lệ.");
   const roleAliases = {
-    SCHOOL_ADMINISTRATION: ROLES.SCHOOL_ADMIN,
+    SCHOOL_ADMIN: ROLES.SCHOOL_ADMINISTRATION,
+    SCHOOL_ADMINISTRATION: ROLES.SCHOOL_ADMINISTRATION,
     INGREDIENT_SUPPLIER_ADMIN: ROLES.INGREDIENT_SUPPLIER,
   };
 
