@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { INITIAL_DISHES, INITIAL_SEASONINGS, LINKED_SUPPLIERS } from "./mockMenuData"
+import { INITIAL_DISHES, INITIAL_SEASONINGS, ALL_INGREDIENTS } from "./mockMenuData"
 
 import CreateMenuHeader from "./component/CreateMenuHeader"
 import MenuBasicInfoCard from "./component/MenuBasicInfoCard"
@@ -17,11 +17,11 @@ export default function MenuPlanning() {
 
   // Form State
   const [formState, setFormState] = useState({
-    name: "Thực đơn tuần 46 – Khối 1-2 – Bữa trưa",
+    name: "Thực đơn tuần 46 – Khối 1 & 2 – Bữa trưa",
     date: "26/10/2026",
     mealType: "LUNCH",
-    targetScope: "ALL",
-    portionCount: 520,
+    targetScope: "Khối 1 & Khối 2 (Độ tuổi 6-7 tuổi)",
+    portionCount: 210,
     notes: "Thực đơn giàu đạm và chất xơ, hạn chế muối theo tiêu chuẩn dinh dưỡng học đường."
   })
 
@@ -45,40 +45,15 @@ export default function MenuPlanning() {
 
   // Cập nhật thông tin cơ bản
   const handleChangeField = (field, value) => {
-    setFormState(prev => {
-      let portionCount = prev.portionCount
-      if (field === "targetScope") {
-        if (value === "ALL") portionCount = 520
-        else if (value === "K1_K2") portionCount = 210
-        else if (value === "K3_K5") portionCount = 310
-        else if (value === "MAM_NON") portionCount = 150
-      }
-      return { ...prev, [field]: value, portionCount }
-    })
+    setFormState(prev => ({ ...prev, [field]: value }))
   }
 
-  // Cập nhật từng món ăn trong bảng
-  const handleUpdateDish = (dishId, field, value) => {
+  // Cập nhật từng món ăn trong bảng (nhận payload object)
+  const handleUpdateDish = (dishId, updates) => {
     setDishes(prev =>
       prev.map(dish => {
         if (dish.id !== dishId) return dish
-
-        // Nếu đổi thành phần chính, tự động cập nhật định lượng mặc định và đơn vị
-        if (field === "ingredientId") {
-          let defaultQty = dish.portionQty
-          let defaultUnit = dish.unit
-          for (const sup of LINKED_SUPPLIERS) {
-            const ing = sup.ingredients.find(i => i.id === value)
-            if (ing) {
-              defaultQty = ing.defaultQty || dish.portionQty
-              defaultUnit = ing.unit || dish.unit
-              break
-            }
-          }
-          return { ...dish, [field]: value, portionQty: defaultQty, unit: defaultUnit }
-        }
-
-        return { ...dish, [field]: value }
+        return { ...dish, ...updates }
       })
     )
   }
@@ -88,7 +63,8 @@ export default function MenuPlanning() {
     const newDish = {
       id: `dish-${Date.now()}`,
       name: "",
-      category: "Món mặn",
+      ingredientCategory: "",
+      supplierId: "",
       ingredientId: "",
       portionQty: 50,
       unit: "g"
@@ -110,11 +86,8 @@ export default function MenuPlanning() {
 
   // Kiểm tra danh sách món có xung đột dị ứng
   const conflictDishes = dishes.filter(d => {
-    for (const sup of LINKED_SUPPLIERS) {
-      const ing = sup.ingredients.find(i => i.id === d.ingredientId)
-      if (ing?.allergen) return true
-    }
-    return false
+    const ing = ALL_INGREDIENTS.find(i => i.id === d.ingredientId)
+    return Boolean(ing?.allergen)
   })
 
   const conflictCount = conflictDishes.length > 0 ? 12 : 0
@@ -154,13 +127,13 @@ export default function MenuPlanning() {
         {/* Page Header (Đã xóa Breadcrumb) */}
         <CreateMenuHeader onBack={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)} />
 
-        {/* Khối 1: Thông tin thực đơn */}
+        {/* Khối 1: Thông tin thực đơn (Khối lớp áp dụng nhập text tự do) */}
         <MenuBasicInfoCard
           formState={formState}
           onChangeField={handleChangeField}
         />
 
-        {/* Khối 2: Bảng món ăn trong thực đơn (Tên tự gõ, NCC select, kiểm tra dị ứng inline) */}
+        {/* Khối 2: Bảng món ăn trong thực đơn (Tên tự gõ, NCC 3 cấp: Phân loại -> NCC -> Nguyên liệu, kiểm tra dị ứng inline sau khi chọn) */}
         <MenuDishesTable
           dishes={dishes}
           onUpdateDish={handleUpdateDish}

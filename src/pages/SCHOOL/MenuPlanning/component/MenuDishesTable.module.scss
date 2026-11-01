@@ -78,7 +78,7 @@
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  min-width: 820px;
+  min-width: 950px;
 
   thead {
     background-color: #f8fafc;
@@ -111,24 +111,24 @@
 }
 
 .thOrder {
-  width: 50px;
+  width: 45px;
   text-align: center;
 }
 
 .thDishName {
-  width: 250px;
+  width: 220px;
 }
 
-.thIngredient {
-  width: 360px;
+.thIngredientFlow {
+  width: 520px;
 }
 
 .thQty {
-  width: 170px;
+  width: 160px;
 }
 
 .thAction {
-  width: 60px;
+  width: 50px;
   text-align: center;
 }
 
@@ -151,12 +151,6 @@
   font-weight: 700;
   color: #94a3b8;
   font-size: 14px;
-}
-
-.dishNameBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .dishNameInput {
@@ -184,27 +178,29 @@
   }
 }
 
-.categorySelect {
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 500;
-  outline: none;
-  cursor: pointer;
-
-  &:focus {
-    border-color: var(--color-primary, #0a8066);
-  }
+.cascadingSelectors {
+  display: grid;
+  grid-template-columns: 140px 160px 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.ingredientBlock {
+.selectorCol {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 3px;
+}
+
+.selectorColWide {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.miniLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
 }
 
 .selectWrapper {
@@ -212,15 +208,15 @@
   width: 100%;
 }
 
-.ingredientSelect {
+.compactSelect {
   width: 100%;
-  height: 38px;
-  padding: 0 32px 0 12px;
+  height: 36px;
+  padding: 0 24px 0 10px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
   background-color: #ffffff;
   color: #0f172a;
-  font-size: 13.5px;
+  font-size: 12.5px;
   outline: none;
   appearance: none;
   cursor: pointer;
@@ -229,65 +225,45 @@
 
   &:focus {
     border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
   }
 
-  optgroup {
-    font-weight: 700;
-    color: #00654f;
+  &:disabled {
     background-color: #f1f5f9;
+    color: #94a3b8;
+    cursor: not-allowed;
+    border-color: #e2e8f0;
   }
 
   option {
-    font-weight: 400;
-    color: #0f172a;
-    background-color: #ffffff;
-    padding: 6px 10px;
+    padding: 6px;
   }
 }
 
 .selectWarning {
   border-color: #f87171 !important;
-  background-color: #fff5f5;
+  background-color: #fff8f8;
 }
 
 .selectChevron {
   position: absolute;
-  right: 10px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 18px;
+  font-size: 16px;
   color: #64748b;
   pointer-events: none;
 }
 
-.supplierTagRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.allergyCheckResult {
+  margin-top: 4px;
 }
 
-.supplierPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11.5px;
-  color: #0a8066;
-  background-color: #eaf7f0;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-weight: 500;
-
-  span {
-    font-size: 13px;
-  }
-}
-
-.allergyAlertPill {
+.allergyAlertBox {
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-radius: 6px;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
@@ -303,7 +279,7 @@
   }
 }
 
-.alertTextGroup {
+.alertTextWrap {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -314,13 +290,13 @@
   color: #b91c1c;
 }
 
-.alertHint {
+.alertSub {
   font-size: 11px;
   color: #7f1d1d;
   font-style: italic;
 }
 
-.safePill {
+.safeBox {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -345,7 +321,7 @@
 
 .qtyInput {
   width: 65px;
-  height: 38px;
+  height: 36px;
   padding: 0 8px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
@@ -364,13 +340,13 @@
 }
 
 .unitSelect {
-  height: 38px;
+  height: 36px;
   padding: 0 8px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
   background-color: #ffffff;
   color: #334155;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   outline: none;
   cursor: pointer;
@@ -436,6 +412,12 @@
 
   span {
     font-size: 18px;
+  }
+}
+
+@media (max-width: 900px) {
+  .cascadingSelectors {
+    grid-template-columns: 1fr;
   }
 }
 

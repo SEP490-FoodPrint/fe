@@ -1,6 +1,6 @@
 import React from "react"
 import styles from "./AllergyAlternativeMealsCard.module.scss"
-import { LINKED_SUPPLIERS } from "../mockMenuData"
+import { LINKED_SUPPLIERS, ALL_INGREDIENTS } from "../mockMenuData"
 
 export default function AllergyAlternativeMealsCard({
   conflictDishes,
@@ -89,7 +89,7 @@ export default function AllergyAlternativeMealsCard({
             </div>
 
             <div className={styles.formBody}>
-              {/* Tên món thay thế */}
+              {/* Tên món thay thế (Tự nhập text) */}
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>
                   Tên món thay thế (Tự nhập) <span className={styles.req}>*</span>
@@ -115,17 +115,22 @@ export default function AllergyAlternativeMealsCard({
                     onChange={(e) => onChangeSubstituteDish("ingredientId", e.target.value)}
                   >
                     <option value="">-- Chọn nguyên liệu thay thế an toàn --</option>
-                    {LINKED_SUPPLIERS.map(sup => (
-                      <optgroup key={sup.id} label={`🏢 ${sup.name}`}>
-                        {sup.ingredients
-                          .filter(ing => !ing.allergen) // Lọc các nguyên liệu không gây dị ứng
-                          .map(ing => (
+                    {LINKED_SUPPLIERS.map(sup => {
+                      const safeIngredients = ALL_INGREDIENTS.filter(
+                        ing => ing.supplierId === sup.id && !ing.allergen
+                      )
+                      if (safeIngredients.length === 0) return null
+
+                      return (
+                        <optgroup key={sup.id} label={`🏢 ${sup.name}`}>
+                          {safeIngredients.map(ing => (
                             <option key={ing.id} value={ing.id}>
                               {ing.name} ({sup.name})
                             </option>
                           ))}
-                      </optgroup>
-                    ))}
+                        </optgroup>
+                      )
+                    })}
                   </select>
                   <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
                 </div>

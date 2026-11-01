@@ -15,7 +15,7 @@ export default function MenuBasicInfoCard({
         <div className={styles.headerRight}>
           <span className={styles.multiNotice}>
             <span className={`material-symbols-outlined ${styles.multiIcon}`}>info</span>
-            Có thể tạo nhiều thực đơn trong cùng 1 ngày (theo khối/ca ăn)
+            Hỗ trợ tạo nhiều thực đơn trong cùng 1 ngày (theo khối lớp hoặc ca ăn)
           </span>
         </div>
       </div>
@@ -32,7 +32,7 @@ export default function MenuBasicInfoCard({
             className={styles.textInput}
             value={formState.name}
             onChange={(e) => onChangeField("name", e.target.value)}
-            placeholder="Ví dụ: Thực đơn tuần 46 - Khối 1-2 - Bữa trưa"
+            placeholder="Ví dụ: Thực đơn tuần 46 - Khối 1 & 2 - Bữa trưa"
           />
         </div>
 
@@ -73,36 +73,36 @@ export default function MenuBasicInfoCard({
           </div>
         </div>
 
-        {/* Áp dụng cho */}
+        {/* Khối lớp / Độ tuổi áp dụng (Nhập Text tự do theo yêu cầu) */}
         <div className={`${styles.fieldCol} ${styles.col6}`}>
           <label className={styles.fieldLabel} htmlFor="targetScope">
-            Khối lớp áp dụng <span className={styles.req}>*</span>
+            Khối lớp / Độ tuổi áp dụng <span className={styles.req}>*</span>
           </label>
-          <div className={styles.selectWrapper}>
-            <select
-              id="targetScope"
-              className={styles.selectInput}
-              value={formState.targetScope}
-              onChange={(e) => onChangeField("targetScope", e.target.value)}
-            >
-              <option value="ALL">Toàn trường (Khối 1 - Khối 5) • 520 suất</option>
-              <option value="K1_K2">Khối 1 & Khối 2 • 210 suất</option>
-              <option value="K3_K5">Khối 3, Khối 4 & Khối 5 • 310 suất</option>
-              <option value="MAM_NON">Khối Mầm non • 150 suất</option>
-            </select>
-            <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
-          </div>
+          <input
+            id="targetScope"
+            type="text"
+            className={styles.textInput}
+            value={formState.targetScope}
+            onChange={(e) => onChangeField("targetScope", e.target.value)}
+            placeholder="Tự nhập khối/độ tuổi, ví dụ: Toàn trường, Khối 1-2, Lớp Mầm non 3-4 tuổi..."
+          />
         </div>
 
         {/* Tổng số suất dự kiến */}
         <div className={`${styles.fieldCol} ${styles.col6}`}>
-          <label className={styles.fieldLabel}>
-            Tổng số suất kế hoạch
+          <label className={styles.fieldLabel} htmlFor="portionCount">
+            Tổng số suất ăn kế hoạch <span className={styles.req}>*</span>
           </label>
-          <div className={styles.readonlyPill}>
-            <span className={`material-symbols-outlined ${styles.readonlyIcon}`}>group</span>
-            <span className={styles.readonlyNumber}>{formState.portionCount}</span>
-            <span className={styles.readonlyUnit}>suất ăn học đường</span>
+          <div className={styles.portionInputWrapper}>
+            <input
+              id="portionCount"
+              type="number"
+              min="1"
+              className={styles.portionNumberInput}
+              value={formState.portionCount}
+              onChange={(e) => onChangeField("portionCount", Number(e.target.value) || 0)}
+            />
+            <span className={styles.portionUnitLabel}>suất ăn</span>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export default function MenuBasicInfoCard({
             className={styles.textInput}
             value={formState.notes}
             onChange={(e) => onChangeField("notes", e.target.value)}
-            placeholder="Ghi chú hướng dẫn cho Bếp hoặc chỉ số dinh dưỡng..."
+            placeholder="Ghi chú dinh dưỡng, định hướng khẩu phần học đường..."
           />
         </div>
       </div>
