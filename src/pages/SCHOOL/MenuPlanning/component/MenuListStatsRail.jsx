@@ -3,10 +3,11 @@ import styles from "./MenuListStatsRail.module.scss"
 
 export default function MenuListStatsRail({ stats, onFilterByStatus }) {
   const {
-    total = 18,
-    needsAction = 2,
-    pendingApproval = 1,
-    approved = 15
+    total = 0,
+    draft = 0,
+    pendingApproval = 0,
+    approved = 0,
+    revisionRequested = 0,
   } = stats || {}
 
   return (
@@ -24,15 +25,15 @@ export default function MenuListStatsRail({ stats, onFilterByStatus }) {
 
       <div className={styles.divider} />
 
-      {/* Stat 2: Cần xử lý */}
+      {/* Stat 2: Bản nháp */}
       <div
         className={`${styles.statItem} ${styles.clickable}`}
-        onClick={() => onFilterByStatus && onFilterByStatus("needsAction")}
-        title="Lọc các thực đơn cần xử lý (bản nháp, yêu cầu chỉnh sửa)"
+        onClick={() => onFilterByStatus && onFilterByStatus("DRAFT")}
+        title="Lọc các thực đơn đang là bản nháp (chưa gửi duyệt)"
       >
-        <span className={styles.statLabel}>Cần xử lý:</span>
-        <span className={`${styles.statValue} ${styles.danger}`}>{String(needsAction).padStart(2, "0")}</span>
-        <span className={styles.statSub}>(chờ hoàn thiện / sửa đổi)</span>
+        <span className={styles.statLabel}>Bản nháp:</span>
+        <span className={`${styles.statValue} ${styles.warning}`}>{String(draft).padStart(2, "0")}</span>
+        <span className={styles.statSub}>(chưa gửi duyệt)</span>
       </div>
 
       <div className={styles.divider} />
@@ -45,7 +46,6 @@ export default function MenuListStatsRail({ stats, onFilterByStatus }) {
       >
         <span className={styles.statLabel}>Chờ BGH duyệt:</span>
         <span className={`${styles.statValue} ${styles.info}`}>{String(pendingApproval).padStart(2, "0")}</span>
-        <span className={styles.statSub}>(tuần 46)</span>
       </div>
 
       <div className={styles.divider} />
@@ -60,6 +60,21 @@ export default function MenuListStatsRail({ stats, onFilterByStatus }) {
         <span className={`${styles.statValue} ${styles.success}`}>{String(approved).padStart(2, "0")}</span>
         <span className={styles.statSub}>(sẵn sàng áp dụng)</span>
       </div>
+
+      {revisionRequested > 0 && (
+        <>
+          <div className={styles.divider} />
+          {/* Stat 5: Yêu cầu chỉnh sửa */}
+          <div
+            className={`${styles.statItem} ${styles.clickable}`}
+            onClick={() => onFilterByStatus && onFilterByStatus("REVISION_REQUESTED")}
+            title="Lọc các thực đơn có yêu cầu chỉnh sửa từ BGH"
+          >
+            <span className={styles.statLabel}>Yêu cầu sửa:</span>
+            <span className={`${styles.statValue} ${styles.danger}`}>{String(revisionRequested).padStart(2, "0")}</span>
+          </div>
+        </>
+      )}
     </div>
   )
 }

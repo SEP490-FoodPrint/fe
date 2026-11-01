@@ -64,9 +64,18 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(0.95); opacity: 0.8; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(0.95); opacity: 0.8; }
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
 }
 
 .actionBtns {
@@ -169,4 +178,20 @@
     transform: scale(0.98);
     background-color: var(--color-primary-hover, #08735c);
   }
+}
+
+.createBtn,
+.exportBtn,
+.mobileCreateBtn {
+  text-transform: none;
+  font-family: var(--font-sans);
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.shiftBadge {
+  max-width: 100%;
+  line-height: var(--leading-normal);
 }

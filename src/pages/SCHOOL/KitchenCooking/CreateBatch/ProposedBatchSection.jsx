@@ -122,36 +122,49 @@ export default function ProposedBatchSection({
 
         {isLotsDetailOpen && (
           <div className={styles.traceLotsList}>
-            <div className={styles.traceItem}>
-              <span className={styles.traceLotBadge}>LOT-HEO-892</span>
-              <span className={styles.traceItemName}>
-                Thịt ba chỉ heo tươi (50.0 kg)
-              </span>
-            </div>
-            <div className={styles.traceItem}>
-              <span className={styles.traceLotBadge}>LOT-HEO-893</span>
-              <span className={styles.traceItemName}>
-                Thịt ba chỉ heo tươi (35.5 kg)
-              </span>
-            </div>
-            <div className={styles.traceItem}>
-              <span className={styles.traceLotBadge}>LOT-CUT-224</span>
-              <span className={styles.traceItemName}>
-                Trứng cút tươi sạch (2.500 quả)
-              </span>
-            </div>
-            <div className={styles.traceItem}>
-              <span className={styles.traceLotBadge}>LOT-DUA-018</span>
-              <span className={styles.traceItemName}>
-                Nước dừa tươi nguyên chất (80.0 lít)
-              </span>
-            </div>
-            <div className={styles.traceItem}>
-              <span className={styles.traceLotBadge}>LOT-GVI-045</span>
-              <span className={styles.traceItemName}>
-                Gia vị kho an toàn (4.2 kg)
-              </span>
-            </div>
+            {[
+              {
+                code: "LOT-HEO-892",
+                name: "Thịt ba chỉ heo tươi",
+                amount: "50.0 kg",
+                cert: "VietGAP",
+              },
+              {
+                code: "LOT-HEO-893",
+                name: "Thịt ba chỉ heo tươi",
+                amount: "35.5 kg",
+                cert: "VietGAP",
+              },
+              {
+                code: "LOT-CUT-224",
+                name: "Trứng cút tươi sạch",
+                amount: "2.500 quả",
+                cert: "HACCP",
+              },
+              {
+                code: "LOT-DUA-018",
+                name: "Nước dừa tươi nguyên chất",
+                amount: "80.0 lít",
+                cert: "Chuẩn ATTP",
+              },
+              {
+                code: "LOT-GVI-045",
+                name: "Gia vị kho an toàn",
+                amount: "4.2 kg",
+                cert: "OCOP 4 sao",
+              },
+            ].map((lot) => (
+              <div key={lot.code} className={styles.traceItem}>
+                <div className={styles.traceItemLeft}>
+                  <span className={styles.traceLotBadge}>{lot.code}</span>
+                  <span className={styles.traceItemName}>{lot.name}</span>
+                </div>
+                <div className={styles.traceItemRight}>
+                  <span className={styles.traceAmount}>{lot.amount}</span>
+                  <span className={styles.traceCertBadge}>{lot.cert}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

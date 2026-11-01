@@ -59,31 +59,6 @@
   gap: 10px;
 }
 
-.draftBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 42px;
-  padding: 0 16px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #f9fafb;
-  color: var(--text-primary, #111827);
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #f3f4f6;
-    border-color: #d1d5db;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
 .createBtn {
   display: inline-flex;
   align-items: center;
@@ -136,30 +111,8 @@
   margin: 0 auto;
 }
 
-.mobDraftBtn {
-  flex: 1;
-  height: 44px; // Chuẩn touch target 44px
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #f9fafb;
-  color: var(--text-secondary, #4b5563);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:active {
-    background-color: #e5e7eb;
-    transform: scale(0.97);
-  }
-}
-
 .mobCreateBtn {
-  flex: 2;
+  flex: 1;
   height: 44px; // Chuẩn touch target 44px
   display: inline-flex;
   align-items: center;

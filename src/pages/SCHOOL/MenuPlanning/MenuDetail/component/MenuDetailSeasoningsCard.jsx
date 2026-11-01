@@ -1,7 +1,7 @@
 import React from "react"
 import styles from "./MenuDetailSeasoningsCard.module.scss"
 
-export default function MenuDetailSeasoningsCard({ seasonings = [], portionCount = 210 }) {
+export default function MenuDetailSeasoningsCard({ seasonings = [] }) {
   // Chuẩn hóa danh sách gia vị
   const normalizedSeasonings = (seasonings && seasonings.length > 0 ? seasonings : [
     "Dầu thực vật Neptune 100% nguyên chất",
@@ -22,18 +22,6 @@ export default function MenuDetailSeasoningsCard({ seasonings = [], portionCount
     return s
   })
 
-  // Tính tổng nhu cầu
-  const calculateTotal = (qty, unit, count) => {
-    const total = qty * count
-    if (unit === "g" && total >= 1000) {
-      return `${(total / 1000).toFixed(2)} kg`
-    }
-    if (unit === "ml" && total >= 1000) {
-      return `${(total / 1000).toFixed(2)} lít`
-    }
-    return `${total.toLocaleString()} ${unit}`
-  }
-
   return (
     <div className={styles.seasoningsCard}>
       <div className={styles.cardHeader}>
@@ -42,7 +30,7 @@ export default function MenuDetailSeasoningsCard({ seasonings = [], portionCount
           <div>
             <h2 className={styles.cardTitle}>Gia vị sử dụng (Kho nguyên liệu nhà trường)</h2>
             <p className={styles.cardSubtitle}>
-              Danh mục gia vị chuẩn do Bộ phận Quản lý nguyên liệu & Kho nhập. Định lượng tính cho ca {portionCount} suất.
+              Danh mục gia vị chuẩn do Bộ phận Quản lý nguyên liệu & Kho nhập. Định lượng theo một suất ăn.
             </p>
           </div>
         </div>
@@ -54,8 +42,6 @@ export default function MenuDetailSeasoningsCard({ seasonings = [], portionCount
 
       <div className={styles.seasoningsGrid}>
         {normalizedSeasonings.map((s, idx) => {
-          const totalDemand = calculateTotal(s.portionQty, s.unit, portionCount)
-
           return (
             <div key={idx} className={styles.seasoningItem}>
               <div className={styles.itemHeader}>
@@ -63,10 +49,6 @@ export default function MenuDetailSeasoningsCard({ seasonings = [], portionCount
                 <span className={styles.portionQtyBadge}>
                   {s.portionQty} {s.unit}/suất
                 </span>
-              </div>
-              <div className={styles.itemFooter}>
-                <span className={styles.demandLabel}>Tổng nhu cầu ca:</span>
-                <span className={styles.demandValue}>{totalDemand}</span>
               </div>
             </div>
           )

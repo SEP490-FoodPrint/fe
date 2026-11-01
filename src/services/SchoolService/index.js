@@ -334,6 +334,16 @@ const getSchoolDetailByCodeApi = async (code) => {
   return res;
 };
 
+const getSchoolDetailByIdApi = async (id) => {
+  const res = await http.get(apiGetSchoolDetail(id), { skipAuthRedirect: true });
+  return res;
+};
+
+const getSchoolDetailByIdMock = async (id) => {
+  const found = MOCK_SCHOOLS.find((school) => school.id === id);
+  return { isOk: true, success: true, data: found || null };
+};
+
 const getDailyMealMenuApi = async (schoolCode, date) => {
   const res = await http.get(apiGetDailyMealMenu(schoolCode, date), { skipAuthRedirect: true });
   return res;
@@ -438,6 +448,9 @@ const SchoolService = {
   getSchoolDetailByCode: isUseMock
     ? getSchoolDetailByCodeMock
     : getSchoolDetailByCodeApi,
+  getSchoolDetailById: isUseMock
+    ? getSchoolDetailByIdMock
+    : getSchoolDetailByIdApi,
   getDailyMealMenu: isUseMock ? getDailyMealMenuMock : getDailyMealMenuSafe,
   getWeeklyMenu: isUseMock ? getWeeklyMenuMock : getWeeklyMenuSafe,
 };

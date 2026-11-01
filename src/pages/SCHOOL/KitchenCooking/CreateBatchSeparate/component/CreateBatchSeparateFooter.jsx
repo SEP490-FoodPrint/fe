@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   CheckCircle2,
   AlertCircle,
-  FileText,
   PlusCircle,
 } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
@@ -15,24 +14,6 @@ export default function CreateBatchSeparateFooter({ selectedDish }) {
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isError, setIsError] = useState(false);
-
-  const handleSaveDraft = () => {
-    if (!selectedDish) {
-      setToastMessage("Vui lòng chọn món ăn ở Bước 1 trước khi lưu phương án.");
-      setIsError(true);
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 2500);
-      return;
-    }
-    setIsError(false);
-    setToastMessage(
-      "Đã lưu phương án 02 lô chế biến nấu riêng ở trạng thái DRAFT.",
-    );
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
-    }, 2500);
-  };
 
   const handleCreateBatch = () => {
     if (!selectedDish) {
@@ -69,19 +50,10 @@ export default function CreateBatchSeparateFooter({ selectedDish }) {
 
         <div className={styles.actionGroup}>
           <span className={styles.footerNote}>
-            Hệ thống sẽ tạo 02 lô chế biến mới độc lập ở trạng thái Chờ nấu.
+            Các lô mới ở trạng thái Chưa xác nhận. Xác nhận nấu sau khi kiểm tra.
           </span>
 
           <div className={styles.buttonsWrap}>
-            <button
-              type="button"
-              className={styles.draftBtn}
-              onClick={handleSaveDraft}
-            >
-              <FileText size={16} />
-              <span>Lưu phương án</span>
-            </button>
-
             <button
               type="button"
               className={styles.createBtn}
@@ -98,16 +70,6 @@ export default function CreateBatchSeparateFooter({ selectedDish }) {
       {/* 2. Mobile Sticky Bottom Bar */}
       <div className={styles.mobileStickyBar}>
         <div className={styles.mobileBarInner}>
-          <button
-            type="button"
-            className={styles.mobDraftBtn}
-            onClick={handleSaveDraft}
-            aria-label="Lưu phương án chế biến dạng nháp"
-          >
-            <FileText size={16} />
-            <span>Lưu nháp</span>
-          </button>
-
           <button
             type="button"
             className={styles.mobCreateBtn}

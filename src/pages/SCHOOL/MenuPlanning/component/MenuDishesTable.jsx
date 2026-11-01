@@ -60,7 +60,7 @@ export default function MenuDishesTable({
               // Hỗ trợ mảng nhiều nguyên liệu
               const ingredientIds = dish.ingredientIds || (dish.ingredientId ? [dish.ingredientId] : [])
               const selectedIngs = ingredientIds
-                .map(id => ALL_INGREDIENTS.find(i => i.id === id))
+                .map(id => ALL_INGREDIENTS.find(i => i.id === id) || dish.ingredientDetails?.find(i => i.id === id))
                 .filter(Boolean)
 
               // Kiểm tra dị ứng trên tất cả các nguyên liệu đã chọn
@@ -118,7 +118,7 @@ export default function MenuDishesTable({
                                     </div>
                                     <div className={styles.supplierWrap}>
                                       <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
-                                      <span className={styles.supplierName}>{supplier?.name || "NCC"}</span>
+                                      <span className={styles.supplierName}>{supplier?.name || ing.supplierName || "NCC"}</span>
                                       {supplier?.badge && (
                                         <span className={styles.supplierBadge}>{supplier.badge}</span>
                                       )}
@@ -182,7 +182,40 @@ export default function MenuDishesTable({
 
                   {/* Định lượng / Suất */}
                   <td className={styles.tdQty}>
-                    <div className={styles.qtyControlGroup}>
+                    {selectedIngs.length > 0 ? (
+                      <div className={styles.qtyStandardsList}>
+                        {selectedIngs.map((ingredient) => {
+                          const standard = dish.ingredientStandards?.find((line) => line.ingredientId === ingredient.id) || {
+                            ingredientId: ingredient.id,
+                            quantityPerPortion: dish.portionQty || 50,
+                            unit: dish.unit || "g",
+                          }
+                          const updateStandard = (field, value) => onUpdateDish(dish.id, {
+                            ingredientStandards: (dish.ingredientStandards || selectedIngs.map((item) => ({
+                              ingredientId: item.id,
+                              quantityPerPortion: dish.portionQty || 50,
+                              unit: dish.unit || "g",
+                            }))).map((line) => line.ingredientId === ingredient.id ? { ...line, [field]: value } : line),
+                          })
+                          return (
+                            <div className={styles.qtyStandardRow} key={ingredient.id}>
+                              <span className={styles.qtyIngredientName}>{ingredient.name}</span>
+                              <div className={styles.qtyControlGroup}>
+                                <input type="number" min="0.001" step="0.001" className={styles.qtyInput}
+                                  aria-label={`Định lượng ${ingredient.name} mỗi suất`}
+                                  value={standard.quantityPerPortion}
+                                  onChange={(event) => updateStandard("quantityPerPortion", event.target.value)} />
+                                <select className={styles.unitSelect} aria-label={`Đơn vị ${ingredient.name}`}
+                                  value={standard.unit} onChange={(event) => updateStandard("unit", event.target.value)}>
+                                  <option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="quả">quả</option><option value="cái">cái</option>
+                                </select>
+                                <span className={styles.portionLabel}>/suất</span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : <div className={styles.qtyControlGroup}>
                       <input
                         type="number"
                         min="1"
@@ -202,7 +235,7 @@ export default function MenuDishesTable({
                         <option value="cái">cái</option>
                       </select>
                       <span className={styles.portionLabel}>/suất</span>
-                    </div>
+                    </div>}
                   </td>
 
                   {/* Thao tác xóa món */}

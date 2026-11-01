@@ -277,7 +277,7 @@ export default function BasicInfoSeparateSection({
         {/* Số suất dự kiến (Tự động từ điểm danh GVCN) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label}>Số suất dự kiến chế biến</label>
+            <label className={styles.label} htmlFor="planned-portions-separate">Số suất dự kiến chế biến</label>
             <span
               className={styles.lockHint}
               title="Đối soát tự động từ điểm danh"
@@ -289,18 +289,19 @@ export default function BasicInfoSeparateSection({
 
           <div className={styles.inputInner}>
             <input
-              type="number"
+              id="planned-portions-separate"
+              type="text"
               className={styles.portionInput}
-              value={portions}
-              onChange={(e) => setPortions?.(Number(e.target.value) || 0)}
-              min={1}
-              step={1}
+              value={Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "—"}
+              readOnly
+              aria-readonly="true"
+              aria-describedby="planned-portions-separate-hint"
               aria-label="Số suất dự kiến chế biến"
             />
             <span className={styles.unitSuffix}>suất</span>
           </div>
-          <span className={styles.helperText}>
-            • Đã chốt từ 35/35 lớp học (Điểm danh học sinh bán trú hôm nay)
+          <span id="planned-portions-separate-hint" className={styles.helperText}>
+            Số suất do giáo viên chốt sau điểm danh. Nhân viên bếp không chỉnh sửa.
           </span>
         </div>
       </div>

@@ -35,8 +35,8 @@
     -apple-system,
     BlinkMacSystemFont,
     sans-serif;
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 16.5px;
+  font-weight: 700;
   color: #0f172a;
   margin: 0;
   letter-spacing: -0.01em;
@@ -52,12 +52,12 @@
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: #0284c7;
-  background-color: #f0f9ff;
-  border: 1px solid #e0f2fe;
+  color: var(--color-primary, #0a8066);
+  background-color: var(--color-primary-soft, #e8f5f1);
+  border: 1px solid rgba(10, 128, 102, 0.2);
   padding: 4px 10px;
   border-radius: 6px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .multiIcon {
@@ -82,6 +82,10 @@
 
 .col6 {
   grid-column: span 6;
+}
+
+.col9 {
+  grid-column: span 9;
 }
 
 .col3 {
@@ -121,23 +125,116 @@
   }
 }
 
+.textareaInput {
+  :global(.MuiOutlinedInput-root) {
+    align-items: flex-start;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: var(--text-sm);
+    font-weight: var(--font-normal);
+    line-height: var(--leading-relaxed);
+    transition: box-shadow 0.15s ease, background-color 0.15s ease;
+
+    :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: var(--border-default);
+    }
+
+    &:hover:not(:global(.Mui-disabled)):not(:global(.Mui-focused)) :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: var(--border-strong);
+    }
+
+    &:global(.Mui-focused) {
+      box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+
+      :global(.MuiOutlinedInput-notchedOutline) {
+        border-color: var(--border-focus);
+        border-width: 1px;
+      }
+    }
+
+    &:global(.Mui-disabled) {
+      background-color: var(--bg-muted);
+    }
+  }
+
+  :global(.MuiInputBase-inputMultiline) {
+    padding: 0;
+
+    &::placeholder {
+      color: var(--text-muted);
+      opacity: 1;
+    }
+  }
+}
+
+.labelWithAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.openCalendarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--color-primary-soft, #e8f5f1);
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  color: var(--color-primary, #0a8066);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: 5px;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background-color: #d1fae5;
+  }
+}
+
+.datePickerContainer {
+  position: relative;
+  width: 100%;
+}
+
 .inputWithIcon {
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
+  cursor: pointer;
 }
 
 .innerIcon {
   position: absolute;
   left: 12px;
   font-size: 18px;
-  color: #64748b;
+  color: var(--color-primary, #0a8066);
   pointer-events: none;
 }
 
 .plIcon {
   padding-left: 38px;
+  cursor: pointer;
+}
+
+.hiddenNativeDatePicker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 1;
 }
 
 .selectWrapper {
@@ -168,7 +265,7 @@
 
 .selectChevron {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 20px;
@@ -176,6 +273,411 @@
   pointer-events: none;
 }
 
+/* ========================================================
+   KHỐI TIỆN ÍCH LỊCH TUẦN HỌC ĐƯỜNG (T2 ĐẾN T6) - CLEAN UI/UX
+   ======================================================== */
+.weekScheduleCard {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  &.cardWeekendWarning {
+    background-color: #fffbeb;
+    border-color: #fde68a;
+  }
+
+  @media (max-width: 640px) {
+    padding: 12px 14px;
+    gap: 12px;
+  }
+}
+
+.weekHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.weekTitleWrap {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+}
+
+/* Segmented Week Nav Pill */
+.weekPillNav {
+  display: inline-flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  padding: 3px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  gap: 2px;
+}
+
+.weekNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:active {
+    background-color: #e2e8f0;
+    transform: scale(0.92);
+  }
+}
+
+.weekInfoCenter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+}
+
+.weekCalendarIcon {
+  font-size: 16px;
+  color: var(--color-primary, #0a8066);
+}
+
+.weekRangeText {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.currentDayIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9999px;
+  font-size: 12px;
+  color: #475569;
+  white-space: nowrap;
+
+  strong {
+    color: var(--color-primary, #0a8066);
+    font-weight: 700;
+  }
+}
+
+.indicatorDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--color-primary, #0a8066);
+  box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.2);
+}
+
+.weekStatusBadgeWrap {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.badgeComplete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #bbf7d0;
+
+  span {
+    font-size: 15px;
+  }
+}
+
+.badgeMissing {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fef3c7;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #fde68a;
+
+  span {
+    font-size: 15px;
+  }
+
+  strong {
+    color: #92400e;
+    font-weight: 700;
+  }
+}
+
+.badgeWeekend {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #b91c1c;
+  background-color: #fee2e2;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #fecaca;
+
+  span {
+    font-size: 15px;
+  }
+}
+
+.badgeLoading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #e2e8f0;
+
+  span {
+    font-size: 15px;
+  }
+}
+
+.spinIcon {
+  animation: spinAround 1.2s linear infinite;
+}
+
+@keyframes spinAround {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dải 5 thẻ ngày học đường (T2 đến T6) */
+.daysStrip {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.dayCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 68px;
+  box-sizing: border-box;
+  text-align: left;
+  outline: none;
+
+  &:hover {
+    border-color: #94a3b8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.06);
+  }
+
+  &.dayCardActive {
+    border-color: var(--color-primary, #0a8066);
+    background-color: #f0fdf9;
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.14), 0 4px 10px -2px rgba(10, 128, 102, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &.dayCardDone:not(.dayCardActive) {
+    border-top: 3px solid #16a34a;
+  }
+
+  &.dayCardMissing:not(.dayCardActive) {
+    border-top: 3px solid #f59e0b;
+  }
+}
+
+.dayCardTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.dayNameText {
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.dayDateText {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+
+.dayCardStatusWrap {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.statusPillActive {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--color-primary, #0a8066);
+  background-color: var(--color-primary-soft, #e8f5f1);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.activeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-primary, #0a8066);
+}
+
+.statusPillDone {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #f0fdf4;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+
+  span {
+    font-size: 13px;
+  }
+}
+
+.statusPillMissing {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fffbeb;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+
+  span {
+    font-size: 13px;
+  }
+}
+
+.statusPillLoading {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+.pulseDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+  animation: pulseDotAnim 1.4s ease-in-out infinite;
+}
+
+@keyframes pulseDotAnim {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.weekendAlertBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  font-size: 12px;
+  color: #991b1b;
+}
+
+.alertIcon {
+  font-size: 18px;
+  color: #dc2626;
+  flex-shrink: 0;
+}
+
+/* Khẩu phần & Ghi chú */
 .portionInputWrapper {
   position: relative;
   display: flex;
@@ -212,6 +714,10 @@
 }
 
 @media (max-width: 900px) {
+  .col9 {
+    grid-column: span 12;
+  }
+
   .col3 {
     grid-column: span 6;
   }
@@ -219,6 +725,7 @@
 
 @media (max-width: 640px) {
   .col6,
+  .col9,
   .col3 {
     grid-column: span 12;
   }
@@ -226,244 +733,4 @@
   .card {
     padding: 16px;
   }
-}
-
-/* ========================================================
-   DATEPICKER & DẢI 5 NGÀY HỌC ĐƯỜNG (T2 - T6)
-   ======================================================== */
-.labelWithAction {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.openCalendarBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  color: var(--color-primary, #0a8066);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 0 4px;
-  border-radius: 4px;
-  transition: all 0.15s ease;
-
-  span {
-    font-size: 15px;
-  }
-
-  &:hover {
-    background-color: var(--color-primary-soft, #e8f5f1);
-  }
-}
-
-.datePickerContainer {
-  position: relative;
-  width: 100%;
-}
-
-.hiddenNativeDatePicker {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 1;
-}
-
-/* Khối thông tin lịch tuần và 5 ngày T2 - T6 */
-.weekScheduleCard {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 12px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: all 0.2s ease;
-
-  &.cardWeekendWarning {
-    background-color: #fffbeb;
-    border-color: #fde68a;
-  }
-}
-
-.weekHeaderRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.weekTitleWrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: #334155;
-  font-size: 13px;
-}
-
-.weekIcon {
-  color: var(--color-primary, #0a8066);
-  font-size: 18px;
-}
-
-.weekTitleText {
-  strong {
-    color: var(--color-primary, #0a8066);
-    font-weight: 700;
-  }
-}
-
-.weekStatusBadgeWrap {
-  display: flex;
-  align-items: center;
-}
-
-.badgeComplete {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #166534;
-  background-color: #dcfce7;
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid #bbf7d0;
-}
-
-.badgeMissing {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #b45309;
-  background-color: #fef3c7;
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid #fde68a;
-}
-
-.badgeWeekend {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #b91c1c;
-  background-color: #fee2e2;
-  padding: 2px 8px;
-  border-radius: 6px;
-  border: 1px solid #fecaca;
-}
-
-/* Dải 5 nút ngày Thứ 2 đến Thứ 6 */
-.daysStrip {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-
-  @media (max-width: 640px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.dayPill {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s ease;
-
-  &:hover {
-    border-color: #cbd5e1;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  }
-
-  &.dayPillActive {
-    border-color: var(--color-primary, #0a8066);
-    background-color: var(--color-primary-soft, #e8f5f1);
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.2);
-  }
-
-  &.dayPillDone {
-    border-left: 3px solid #16a34a;
-  }
-
-  &.dayPillMissing {
-    border-left: 3px solid #f59e0b;
-  }
-}
-
-.pillTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 4px;
-}
-
-.pillIndexBadge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 1px 4px;
-  border-radius: 4px;
-  background-color: #f1f5f9;
-  color: #475569;
-}
-
-.pillDayName {
-  font-size: 12px;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.pillDate {
-  font-size: 11px;
-  color: #64748b;
-  font-variant-numeric: tabular-nums;
-}
-
-.pillBottom {
-  display: flex;
-  align-items: center;
-  font-size: 11px;
-}
-
-.statusActive {
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-}
-
-.statusDone {
-  font-weight: 600;
-  color: #16a34a;
-}
-
-.statusMissing {
-  font-weight: 600;
-  color: #d97706;
-}
-
-.weekendAlertBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  font-size: 12px;
-  color: #991b1b;
-}
-
-.alertIcon {
-  font-size: 18px;
-  color: #dc2626;
-  flex-shrink: 0;
 }

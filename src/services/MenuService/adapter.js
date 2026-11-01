@@ -124,6 +124,7 @@ export function getSchoolWeekScheduleFromDate(dateInput) {
     isSchoolDay: !isWeekend,
     weekNumber,
     weekRangeLabel: `Tuần ${weekNumber} (T2 ${startVN} – T6 ${endVN})`,
+    dayIndexLabel: targetDay >= 1 && targetDay <= 5 ? `T${targetDay + 1}` : (targetDay === 6 ? "T7" : "CN"),
     schoolDays,
   };
 }
@@ -171,6 +172,33 @@ export function getStatusLabel(status) {
     default:
       return "Bản nháp";
   }
+}
+
+export function getDishAllergyState(dish, check) {
+  const ingredientIds = dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || [];
+  if (!ingredientIds.length) {
+    return { status: "unknown", label: "Chưa đủ dữ liệu", description: "Chưa có danh sách nguyên liệu để đối soát." };
+  }
+  if (check.status === "loading") {
+    return { status: "loading", label: "Đang đối soát", description: "Đang đối chiếu hồ sơ dị ứng của các lớp." };
+  }
+  if (check.status !== "ready") {
+    return { status: "unknown", label: "Chưa đối soát", description: "Chưa lấy được kết quả đối chiếu hồ sơ dị ứng." };
+  }
+
+  const conflicts = check.conflicts.filter((line) => ingredientIds.includes(line.ingredientId));
+  if (conflicts.length) {
+    return {
+      status: "conflict",
+      label: "Có cảnh báo dị ứng",
+      description: [...new Set(conflicts.map((line) => line.ingredientName).filter(Boolean))].join(", "),
+      classes: [...new Set(conflicts.flatMap((line) => (line.affectedClasses || []).map((group) => group.className)).filter(Boolean))],
+    };
+  }
+  if (ingredientIds.some((id) => !check.ingredientIds.includes(id))) {
+    return { status: "unknown", label: "Chưa đủ dữ liệu", description: "Chưa đối soát được đầy đủ nguyên liệu của món." };
+  }
+  return { status: "clear", label: "Chưa ghi nhận dị ứng", description: "Theo hồ sơ dị ứng của các lớp hiện có." };
 }
 
 /**
@@ -344,6 +372,7 @@ export function adaptBackendMenuDetailToView(
       .forEach((d) => {
         dishes.push({
           id: d.dishId || d.id,
+          dishId: d.dishId,
           name: d.Dish?.name || "Món ăn",
           qty: d.ingredients?.[0]
             ? `${Number(d.ingredients[0].quantityPerPortion)}${d.ingredients[0].unit}`
@@ -358,6 +387,20 @@ export function adaptBackendMenuDetailToView(
           ingredientIds: Array.isArray(d.ingredients)
             ? d.ingredients.map((i) => i.ingredientId)
             : [],
+          ingredientDetails: Array.isArray(d.ingredients)
+            ? d.ingredients.map((i) => ({
+                id: i.ingredientId,
+                name: i.ingredient?.name || "Nguyên liệu",
+                category: i.ingredient?.category || "Nguyên liệu",
+              }))
+            : [],
+          ingredientStandards: Array.isArray(d.ingredients)
+            ? d.ingredients.map((i) => ({
+                ingredientId: i.ingredientId,
+                quantityPerPortion: String(i.quantityPerPortion),
+                unit: i.unit,
+              }))
+            : [],
         });
       });
   }
@@ -368,8 +411,21 @@ export function adaptBackendMenuDetailToView(
     currentDay.mealSeasonings
       .filter((s) => !targetMealType || s.mealType === targetMealType)
       .forEach((s) => {
-        const name = s.ingredientEntry?.Ingredient?.name || "Gia vị";
-        if (!seasonings.includes(name)) seasonings.push(name);
+        const name =
+          s.ingredientEntry?.Ingredient?.name ||
+          s.ingredientEntry?.ingredient?.name ||
+          s.Ingredient?.name ||
+          s.ingredient?.name ||
+          "Gia vị";
+        seasonings.push({
+          id: s.ingredientEntryId,
+          ingredientEntryId: s.ingredientEntryId,
+          catalogId: s.ingredientEntryId,
+          name,
+          portionQty: Number(s.quantityPerPortion),
+          quantityPerPortion: String(s.quantityPerPortion),
+          unit: s.unit,
+        });
       });
   }
 
@@ -388,6 +444,8 @@ export function adaptBackendMenuDetailToView(
     date: dateStr,
     rawDate,
     mealType: targetMealType,
+    weeklyStatus: normalizeStatus(weeklyMenu.status),
+    hasMeal: dishes.length > 0 || seasonings.length > 0,
     mealTypeLabel: targetMealType === "AFTERNOON" ? "Chiều" : "Trưa",
     targetScope: "Toàn trường (Khối 1 - 5)",
     portionCount: 210,
@@ -461,23 +519,39 @@ export function adaptFormToBackendWrite({
       const qtyStr = String(d.portionQty || 50);
       const unitStr = (d.unit || "g").trim().toLowerCase();
 
-      dishObj.ingredients = ingIds.map((id) => ({
-        ingredientId: id,
-        quantityPerPortion: qtyStr,
-        unit: unitStr,
-      }));
+      dishObj.ingredients = Array.isArray(d.ingredientStandards)
+        ? d.ingredientStandards.map((standard) => ({
+            ingredientId: standard.ingredientId,
+            quantityPerPortion: String(standard.quantityPerPortion),
+            unit: standard.unit,
+          }))
+        : ingIds.map((id) => ({
+            ingredientId: id,
+            quantityPerPortion: qtyStr,
+            unit: unitStr,
+          }));
 
       return dishObj;
     });
 
   // Gia vị
+  const isEntryId = (value) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(value || "");
   const mappedSeasonings = seasonings
-    .filter((s) => s && (s.ingredientEntryId || s.id))
-    .map((s) => ({
-      ingredientEntryId: s.ingredientEntryId || s.id,
-      quantityPerPortion: String(s.quantityPerPortion || s.defaultQty || 5),
-      unit: (s.unit || "g").trim().toLowerCase(),
-    }));
+    .filter((s) => s && (s.ingredientEntryId || s.catalogId || s.name?.trim() || isEntryId(s.id)))
+    .map((s) => {
+      const ingredientEntryId = s.ingredientEntryId || s.catalogId || s.id;
+      if (!isEntryId(ingredientEntryId)) {
+        throw new Error(`Vui lòng chọn lại gia vị “${s.name || "chưa chọn"}” từ kho trường.`);
+      }
+      return {
+        ingredientEntryId,
+        quantityPerPortion: String(s.portionQty ?? s.quantityPerPortion ?? s.defaultQty ?? 5),
+        unit: (s.unit || "g").trim().toLowerCase(),
+      };
+    });
+  if (new Set(mappedSeasonings.map((s) => s.ingredientEntryId)).size !== mappedSeasonings.length) {
+    throw new Error("Mỗi gia vị chỉ được khai báo một lần trong bữa ăn.");
+  }
 
   return {
     weekStartDate: weekStartDateISO,

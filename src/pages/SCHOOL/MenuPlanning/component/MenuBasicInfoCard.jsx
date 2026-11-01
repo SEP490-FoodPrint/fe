@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState, useRef, useMemo } from "react";
+import React, { useContext, useEffect, useState, useMemo, useRef } from "react";
+import { TextField } from "@mui/material";
 import styles from "./MenuBasicInfoCard.module.scss";
 import { StoreContext } from "src/contexts";
 import STORAGE, { getStorage } from "src/lib/storage";
@@ -10,13 +11,18 @@ import {
   formatDateVN,
 } from "src/services/MenuService/adapter";
 
-export default function MenuBasicInfoCard({ formState, onChangeField }) {
+export default function MenuBasicInfoCard({
+  formState,
+  onChangeField,
+  readOnly = false,
+}) {
   const store = useContext(StoreContext);
   const user = store?.userStore?.user || getStorage(STORAGE.USER_INFO) || {};
   const schoolId = user.schoolId || user.orgId;
   const [mealTimes, setMealTimes] = useState({ lunch: null, afternoon: null });
   const [weekSchedule, setWeekSchedule] = useState(null);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
+  const [weekendWarning, setWeekendWarning] = useState(false);
   const dateInputRef = useRef(null);
 
   // Tải cấu hình giờ ăn từ trường
@@ -50,7 +56,7 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
   const lunchTime = formatTime(mealTimes.lunch);
   const afternoonTime = formatTime(mealTimes.afternoon);
 
-  // Tính toán Thứ, Tuần, T2-T6 tức thời theo ngày hiện tại của form
+  // Tính toán T2-T6, Tuần tức thời theo ngày hiện tại của form
   const weekInfo = useMemo(() => {
     return getSchoolWeekScheduleFromDate(formState.date);
   }, [formState.date]);
@@ -61,13 +67,24 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
     return parseDateVNToISO(formState.date);
   }, [formState.date]);
 
-  // Gọi API / Mock để kiểm tra trạng thái 5 ngày của tuần đó (T2 - T6)
+  // Chuỗi dải ngày từ T2 đến T6 trong tuần (DD/MM – DD/MM/YYYY)
+  const weekRange = useMemo(() => {
+    if (!weekInfo?.schoolDays || weekInfo.schoolDays.length < 5) return "";
+    const startStr = weekInfo.schoolDays[0].dateVN.slice(0, 5);
+    const endStr = weekInfo.schoolDays[4].dateVN;
+    return `${startStr} – ${endStr}`;
+  }, [weekInfo]);
+
+  const weekStartDate = weekInfo?.schoolDays?.[0]?.dateISO;
+
+  // Gọi API để kiểm tra trạng thái 5 ngày của tuần đó (T2 - T6)
+  // Chỉ gọi lại khi chuyển sang tuần khác (weekStartDate thay đổi), không fetch lại khi chọn thứ trong tuần
   useEffect(() => {
     let active = true;
-    if (!formState.date) return;
+    if (!weekStartDate) return;
 
     setLoadingSchedule(true);
-    MenuService.getWeekSchedule(formState.date)
+    MenuService.getWeekSchedule(weekStartDate)
       .then((res) => {
         if (!active) return;
         if (res?.data) {
@@ -84,28 +101,55 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
     return () => {
       active = false;
     };
-  }, [formState.date]);
+  }, [weekStartDate]);
+
+  // Cảnh báo nếu hôm nay là cuối tuần và tuần tới chưa có thực đơn T2
+  useEffect(() => {
+    const today = new Date();
+    if (today.getDay() !== 0 && today.getDay() !== 6) {
+      setWeekendWarning(false);
+      return;
+    }
+    const monday = new Date(today);
+    monday.setHours(0, 0, 0, 0);
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + 7);
+    const mondayIso = `${monday.getFullYear()}-${String(monday.getMonth() + 1).padStart(2, "0")}-${String(monday.getDate()).padStart(2, "0")}`;
+
+    if (weekStartDate === mondayIso && weekSchedule?.days) {
+      const mondayMenu = weekSchedule.days.find((day) => day.date === mondayIso);
+      setWeekendWarning(!mondayMenu?.hasMenu);
+      return;
+    }
+
+    MenuService.getWeekSchedule(mondayIso)
+      .then((res) => {
+        const mondayMenu = res?.data?.days?.find(
+          (day) => day.date === mondayIso,
+        );
+        setWeekendWarning(!mondayMenu?.hasMenu);
+      })
+      .catch(() => setWeekendWarning(false));
+  }, [weekStartDate, weekSchedule]);
 
   // Xử lý khi chọn ngày từ DatePicker Lịch
   const handleCalendarChange = (e) => {
-    const val = e.target.value; // Format YYYY-MM-DD
+    const val = e.target.value;
     if (!val) return;
-    const formatted = formatDateVN(val); // Format DD/MM/YYYY
+    const formatted = formatDateVN(val);
     onChangeField("date", formatted);
 
-    // Tự động cập nhật tên thực đơn nếu chưa nhập hoặc tên đang theo mẫu cũ
-    if (!formState.name || formState.name.startsWith("Thực đơn Thứ")) {
+    // Tự động cập nhật tên thực đơn nếu chưa nhập hoặc tên đang theo mẫu mặc định
+    if (!formState.name || formState.name.startsWith("Thực đơn T")) {
       const newWeekInfo = getSchoolWeekScheduleFromDate(formatted);
       const mealName =
         formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa";
       onChangeField(
         "name",
-        `Thực đơn ${newWeekInfo.dayLabel} (Tuần ${newWeekInfo.weekNumber}) - ${mealName}`,
+        `Thực đơn ${newWeekInfo.dayIndexLabel || "T2"} (Tuần ${newWeekInfo.weekNumber}) - ${mealName}`,
       );
     }
   };
 
-  // Mở popup Datepicker
   const handleTriggerDatePicker = () => {
     if (dateInputRef.current) {
       if (typeof dateInputRef.current.showPicker === "function") {
@@ -116,15 +160,23 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
     }
   };
 
-  // Chuyển nhanh giữa 5 ngày trong tuần
+  // Di chuyển giữa các tuần (Lùi 1 tuần hoặc Tiến 1 tuần)
+  const handleShiftWeek = (offset) => {
+    const selectedDate = new Date(`${weekInfo.dateISO}T00:00:00`);
+    selectedDate.setDate(selectedDate.getDate() + offset * 7);
+    const dateVN = `${String(selectedDate.getDate()).padStart(2, "0")}/${String(selectedDate.getMonth() + 1).padStart(2, "0")}/${selectedDate.getFullYear()}`;
+    onChangeField("date", dateVN);
+  };
+
+  // Bấm chọn trực tiếp một trong 5 ngày học đường (T2 - T6)
   const handleSelectDayPill = (day) => {
     onChangeField("date", day.dateVN);
-    if (!formState.name || formState.name.startsWith("Thực đơn Thứ")) {
+    if (!formState.name || formState.name.startsWith("Thực đơn T")) {
       const mealName =
         formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa";
       onChangeField(
         "name",
-        `Thực đơn ${day.dayLabel} (Tuần ${weekInfo.weekNumber}) - ${mealName}`,
+        `Thực đơn ${day.dayIndexLabel} (Tuần ${weekInfo.weekNumber}) - ${mealName}`,
       );
     }
   };
@@ -141,15 +193,27 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
         <div className={styles.headerRight}>
           <span className={styles.multiNotice}>
             <span className={`material-symbols-outlined ${styles.multiIcon}`}>
-              date_range
+              calendar_view_week
             </span>
-            Tuần học đường chuẩn: 05 ngày từ Thứ Hai đến Thứ Sáu (T2 – T6)
+            Tuần học đường bán trú: T2 đến T6
           </span>
         </div>
       </div>
 
+      {weekendWarning && (
+        <div className={styles.weekendAlertBox} role="alert">
+          <span className={`material-symbols-outlined ${styles.alertIcon}`}>
+            warning
+          </span>
+          <span>
+            Cuối tuần rồi nhưng tuần tới chưa có thực đơn cho Thứ Hai. Vui lòng
+            tạo thực đơn trước ngày học đầu tuần.
+          </span>
+        </div>
+      )}
+
       <div className={styles.formGrid}>
-        {/* Tên thực đơn */}
+        {/* Tên thực đơn (col6) */}
         <div className={`${styles.fieldCol} ${styles.col6}`}>
           <label className={styles.fieldLabel} htmlFor="menuName">
             Tên thực đơn <span className={styles.req}>*</span>
@@ -159,59 +223,62 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
             type="text"
             className={styles.textInput}
             value={formState.name}
+            disabled={readOnly}
             onChange={(e) => onChangeField("name", e.target.value)}
-            placeholder="Ví dụ: Thực đơn Thứ Tư (Tuần 46) - Bữa trưa"
+            placeholder="Ví dụ: Thực đơn T2 (Tuần 45) - Bữa trưa"
           />
         </div>
 
-        {/* Ngày ăn với Lịch Datepicker */}
+        {/* Ngày áp dụng kèm Lịch (col3) */}
         <div className={`${styles.fieldCol} ${styles.col3}`}>
           <div className={styles.labelWithAction}>
             <label className={styles.fieldLabel} htmlFor="menuDate">
               Ngày áp dụng <span className={styles.req}>*</span>
             </label>
-            <button
-              type="button"
-              className={styles.openCalendarBtn}
-              onClick={handleTriggerDatePicker}
-              title="Bấm để mở lịch chọn ngày"
-            >
-              <span className="material-symbols-outlined">calendar_month</span>
-              <span>Chọn lịch</span>
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                className={styles.openCalendarBtn}
+                onClick={handleTriggerDatePicker}
+                title="Mở lịch chọn ngày bất kỳ"
+              >
+                <span className="material-symbols-outlined">event</span>
+                Chọn lịch
+              </button>
+            )}
           </div>
-
           <div className={styles.datePickerContainer}>
             <div
-              className={styles.inputWithIcon}
-              onClick={handleTriggerDatePicker}
+              className={`${styles.inputWithIcon} ${readOnly ? styles.inputDisabled : ""}`}
+              onClick={!readOnly ? handleTriggerDatePicker : undefined}
             >
               <span className={`material-symbols-outlined ${styles.innerIcon}`}>
-                calendar_today
+                calendar_month
               </span>
               <input
                 id="menuDate"
                 type="text"
+                readOnly
                 className={`${styles.textInput} ${styles.plIcon}`}
                 value={formState.date}
-                onChange={(e) => onChangeField("date", e.target.value)}
                 placeholder="DD/MM/YYYY"
               />
+              {!readOnly && (
+                <input
+                  ref={dateInputRef}
+                  type="date"
+                  className={styles.hiddenNativeDatePicker}
+                  value={isoDateValue}
+                  onChange={handleCalendarChange}
+                  tabIndex={-1}
+                  aria-label="Chọn ngày trên lịch"
+                />
+              )}
             </div>
-
-            {/* Native Date Picker ẩn nhưng hỗ trợ showPicker click */}
-            <input
-              type="date"
-              ref={dateInputRef}
-              className={styles.hiddenNativeDatePicker}
-              value={isoDateValue}
-              onChange={handleCalendarChange}
-              aria-label="Chọn ngày trên lịch"
-            />
           </div>
         </div>
 
-        {/* Bữa ăn */}
+        {/* Loại bữa ăn (col3) */}
         <div className={`${styles.fieldCol} ${styles.col3}`}>
           <label className={styles.fieldLabel} htmlFor="mealType">
             Loại bữa ăn <span className={styles.req}>*</span>
@@ -221,6 +288,7 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
               id="mealType"
               className={styles.selectInput}
               value={formState.mealType}
+              disabled={readOnly}
               onChange={(e) => onChangeField("mealType", e.target.value)}
             >
               <option value="LUNCH">
@@ -238,49 +306,104 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
           </div>
         </div>
 
-        {/* DẢI TIỆN ÍCH THÔNG MINH: BẢNG 5 NGÀY HỌC ĐƯỜNG TUẦN (T2 - T6) */}
+        {/* KHỐI TIỆN ÍCH LỊCH TUẦN HỌC ĐƯỜNG (T2 ĐẾN T6) - CLEAN UI/UX */}
         <div className={`${styles.fieldCol} ${styles.col12}`}>
           <div
-            className={`${styles.weekScheduleCard} ${weekInfo.isWeekend ? styles.cardWeekendWarning : ""}`}
+            className={`${styles.weekScheduleCard} ${
+              weekInfo.isWeekend ? styles.cardWeekendWarning : ""
+            }`}
           >
+            {/* Header dải tuần: Stepper chuyển tuần + Trạng thái */}
             <div className={styles.weekHeaderRow}>
               <div className={styles.weekTitleWrap}>
-                <span
-                  className={`material-symbols-outlined ${styles.weekIcon}`}
-                >
-                  {weekInfo.isWeekend ? "event_busy" : "event_available"}
-                </span>
-                <span className={styles.weekTitleText}>
-                  Đang chọn: <strong>{weekInfo.dayLabel}</strong> (
-                  {formState.date}) • {weekInfo.weekRangeLabel}
-                </span>
+                {/* Segmented Week Nav Pill */}
+                <div className={styles.weekPillNav}>
+                  <button
+                    type="button"
+                    className={styles.weekNavBtn}
+                    onClick={() => handleShiftWeek(-1)}
+                    title="Chuyển sang tuần trước"
+                    aria-label="Tuần trước"
+                  >
+                    <span className="material-symbols-outlined">
+                      chevron_left
+                    </span>
+                  </button>
+
+                  <div className={styles.weekInfoCenter}>
+                    <span
+                      className={`material-symbols-outlined ${styles.weekCalendarIcon}`}
+                    >
+                      date_range
+                    </span>
+                    <span className={styles.weekRangeText}>
+                      Tuần {weekInfo.weekNumber} • {weekRange}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    className={styles.weekNavBtn}
+                    onClick={() => handleShiftWeek(1)}
+                    title="Chuyển sang tuần sau"
+                    aria-label="Tuần sau"
+                  >
+                    <span className="material-symbols-outlined">
+                      chevron_right
+                    </span>
+                  </button>
+                </div>
+
+                {/* Tag Đang chọn ngày nào */}
+                <div className={styles.currentDayIndicator}>
+                  <span className={styles.indicatorDot} />
+                  <span>
+                    Đang chọn:{" "}
+                    <strong>
+                      {weekInfo.dayIndexLabel || "T2"} ({formState.date})
+                    </strong>
+                  </span>
+                </div>
               </div>
 
+              {/* Status Badge */}
               <div className={styles.weekStatusBadgeWrap}>
-                {weekInfo.isWeekend ? (
+                {loadingSchedule && !weekSchedule ? (
+                  <span className={styles.badgeLoading}>
+                    <span className={`material-symbols-outlined ${styles.spinIcon}`}>
+                      sync
+                    </span>
+                    Đang kiểm tra tiến độ tuần…
+                  </span>
+                ) : weekInfo.isWeekend ? (
                   <span className={styles.badgeWeekend}>
-                    ⚠️ Cuối tuần — Không tổ chức bán trú
+                    <span className="material-symbols-outlined">
+                      event_busy
+                    </span>
+                    Cuối tuần (Không có bán trú)
                   </span>
                 ) : weekSchedule?.isWeekComplete ? (
                   <span className={styles.badgeComplete}>
-                    ✓ Đã có đủ 5/5 ngày bán trú trong tuần
+                    <span className="material-symbols-outlined">
+                      check_circle
+                    </span>
+                    Đã tạo đủ 5/5 ngày bán trú
                   </span>
                 ) : (
                   <span className={styles.badgeMissing}>
-                    Đã tạo {weekSchedule?.completedDays || 0}/5 ngày •{" "}
-                    {weekSchedule?.missingDays?.length ? (
-                      <strong>
-                        Chưa tạo: {weekSchedule.missingDays.length} ngày ⚠️
-                      </strong>
-                    ) : (
-                      "Đang tải lịch tuần..."
-                    )}
+                    <span className="material-symbols-outlined">
+                      pending_actions
+                    </span>
+                    Đã tạo {weekSchedule?.completedDays ?? 0}/5 ngày •{" "}
+                    <strong>
+                      Chưa tạo {weekSchedule?.missingDays?.length ?? (5 - (weekSchedule?.completedDays ?? 0))} ngày ⚠️
+                    </strong>
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Dải 5 nút chuyển ngày Thứ 2 đến Thứ 6 */}
+            {/* Dải 5 thẻ ngày học đường T2 đến T6 */}
             <div className={styles.daysStrip}>
               {weekInfo.schoolDays.map((day) => {
                 const isSelected = formState.date === day.dateVN;
@@ -293,32 +416,45 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
                   <button
                     key={day.dateISO}
                     type="button"
-                    className={`${styles.dayPill} ${isSelected ? styles.dayPillActive : ""} ${hasMenu ? styles.dayPillDone : styles.dayPillMissing}`}
+                    className={`${styles.dayCard} ${
+                      isSelected ? styles.dayCardActive : ""
+                    } ${hasMenu ? styles.dayCardDone : styles.dayCardMissing}`}
                     onClick={() => handleSelectDayPill(day)}
-                    title={`Chuyển sang ${day.dayLabel} (${day.dateVN})`}
+                    title={`Chọn ngày ${day.dayIndexLabel} (${day.dateVN})`}
                   >
-                    <div className={styles.pillTop}>
-                      <span className={styles.pillIndexBadge}>
+                    <div className={styles.dayCardTop}>
+                      <span className={styles.dayNameText}>
                         {day.dayIndexLabel}
                       </span>
-                      <span className={styles.pillDayName}>
-                        {day.dayLabel.replace("Thứ ", "T")}
-                      </span>
-                      <span className={styles.pillDate}>
+                      <span className={styles.dayDateText}>
                         {day.dateVN.slice(0, 5)}
                       </span>
                     </div>
 
-                    <div className={styles.pillBottom}>
+                    <div className={styles.dayCardStatusWrap}>
                       {isSelected ? (
-                        <span className={styles.statusActive}>
-                          📍 Đang chọn
+                        <span className={styles.statusPillActive}>
+                          <span className={styles.activeDot} />
+                          Đang chọn
+                        </span>
+                      ) : loadingSchedule && !weekSchedule ? (
+                        <span className={styles.statusPillLoading}>
+                          <span className={styles.pulseDot} />
+                          Đang tải...
                         </span>
                       ) : hasMenu ? (
-                        <span className={styles.statusDone}>✓ Đã có món</span>
+                        <span className={styles.statusPillDone}>
+                          <span className="material-symbols-outlined">
+                            check
+                          </span>
+                          Đã có món
+                        </span>
                       ) : (
-                        <span className={styles.statusMissing}>
-                          ⚠️ Chưa tạo
+                        <span className={styles.statusPillMissing}>
+                          <span className="material-symbols-outlined">
+                            add
+                          </span>
+                          Chưa tạo
                         </span>
                       )}
                     </div>
@@ -335,10 +471,10 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
                   warning
                 </span>
                 <span>
-                  <strong>Cảnh báo:</strong> Bạn đang chọn ngày cuối tuần (
-                  {weekInfo.dayLabel}). Bán trú nhà trường chỉ phục vụ từ{" "}
-                  <strong>Thứ Hai đến Thứ Sáu</strong>. Vui lòng bấm vào một
-                  ngày trong dải trên để tiếp tục!
+                  <strong>Lưu ý:</strong> Ngày bạn đang chọn là cuối tuần (
+                  {weekInfo.dayLabel}). Nhà trường chỉ tổ chức bán trú từ{" "}
+                  <strong>T2 đến T6</strong>. Vui lòng bấm vào thẻ{" "}
+                  <strong>T2 – T6</strong> ở trên để tiếp tục.
                 </span>
               </div>
             )}
@@ -355,20 +491,22 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
             type="text"
             className={styles.textInput}
             value={formState.targetScope}
+            disabled={readOnly}
             onChange={(e) => onChangeField("targetScope", e.target.value)}
-            placeholder="Tự nhập khối/độ tuổi, ví dụ: Toàn trường, Khối 1-2, Lớp Mầm non 3-4 tuổi..."
+            placeholder="Ví dụ: Khối 1 - Khối 5 (Tiểu học) hoặc Toàn trường"
           />
         </div>
 
-        {/* Tổng số suất dự kiến */}
+        {/* Số suất ăn dự kiến */}
         <div className={`${styles.fieldCol} ${styles.col6}`}>
           <label className={styles.fieldLabel} htmlFor="portionCount">
-            Tổng số suất ăn kế hoạch <span className={styles.req}>*</span>
+            Số suất ăn dự kiến <span className={styles.req}>*</span>
           </label>
-          <div className={styles.portionInputWrapper}>
+          <div className={styles.portionInputGroup}>
             <input
               id="portionCount"
               type="number"
+              disabled={readOnly}
               min="1"
               className={styles.portionNumberInput}
               value={formState.portionCount}
@@ -376,22 +514,26 @@ export default function MenuBasicInfoCard({ formState, onChangeField }) {
                 onChangeField("portionCount", Number(e.target.value) || 0)
               }
             />
-            <span className={styles.portionUnitLabel}>suất ăn</span>
           </div>
         </div>
 
-        {/* Ghi chú dinh dưỡng */}
+        {/* Ghi chú thực đơn */}
         <div className={`${styles.fieldCol} ${styles.col12}`}>
           <label className={styles.fieldLabel} htmlFor="menuNotes">
-            Ghi chú dinh dưỡng & khuyến nghị
+            Ghi chú thực đơn (nếu có)
           </label>
-          <input
+          <TextField
             id="menuNotes"
-            type="text"
-            className={styles.textInput}
-            value={formState.notes}
+            multiline
+            minRows={3}
+            maxRows={8}
+            fullWidth
+            variant="outlined"
+            className={styles.textareaInput}
+            value={formState.notes || ""}
+            disabled={readOnly}
             onChange={(e) => onChangeField("notes", e.target.value)}
-            placeholder="Ghi chú dinh dưỡng, định hướng khẩu phần học đường..."
+            placeholder="Thêm lưu ý về chế biến, phục vụ hoặc dinh dưỡng…"
           />
         </div>
       </div>

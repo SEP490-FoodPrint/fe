@@ -71,6 +71,11 @@
     background-color: #f8fafc;
     border-color: #94a3b8;
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 .submitBtn {
