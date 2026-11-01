@@ -24,7 +24,7 @@ function SchoolOverview() {
       title="Tổng quan Trường học (School Overview)"
       description="Dashboard toàn cảnh bữa ăn học đường trong ngày, tỷ lệ học sinh ăn bán trú, trạng thái bếp nấu."
       allowedRoles={[
-        ROLES.SCHOOL_ADMIN,
+        ROLES.SCHOOL_ADMINISTRATION,
         ROLES.SCHOOL_MANAGEMENT_BOARD,
         ROLES.SCHOOL_HEALTH_OFFICER,
         ROLES.SCHOOL_KITCHEN_STAFF,

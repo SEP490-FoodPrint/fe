@@ -24,7 +24,7 @@ export const ROLES = {
   INGREDIENT_SUPPLIER: "INGREDIENT_SUPPLIER_ADMIN", // Alias tương thích ngược
 
   // Nhóm SCHOOL
-  SCHOOL_ADMIN: "SCHOOL_ADMINISTRATION", // Alias tương thích ngược cho SCHOOL_ADMIN
+  SCHOOL_ADMINISTRATION: "SCHOOL_ADMINISTRATION",
   SCHOOL_MANAGEMENT_BOARD: "SCHOOL_MANAGEMENT_BOARD", // Ban giám hiệu
   SCHOOL_HEALTH_OFFICER: "SCHOOL_HEALTH_OFFICER", // Ban y tế
   SCHOOL_KITCHEN_STAFF: "SCHOOL_KITCHEN_STAFF", // Nhân viên bếp
@@ -42,7 +42,7 @@ export const ROLE_LABELS = {
   [ROLES.INGREDIENT_SUPPLIER_ADMIN]:
     "Quản trị viên Nhà cung cấp (Supplier Admin)",
   [ROLES.INGREDIENT_SUPPLIER_STAFF]: "Nhân viên Nhà cung cấp (Supplier Staff)",
-  [ROLES.SCHOOL_ADMIN]: "Quản trị viên Nhà trường (School Admin)",
+  [ROLES.SCHOOL_ADMINISTRATION]: "Quản trị viên Nhà trường (School Admin)",
   [ROLES.SCHOOL_MANAGEMENT_BOARD]: "Ban Giám Hiệu",
   [ROLES.SCHOOL_HEALTH_OFFICER]: "Cán bộ Y tế Trường",
   [ROLES.SCHOOL_KITCHEN_STAFF]: "Nhân viên Bếp / Bếp trưởng",
