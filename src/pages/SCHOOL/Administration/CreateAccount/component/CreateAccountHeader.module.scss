@@ -1,10 +1,18 @@
 .headerContainer {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   padding: 8px 0 20px;
   border-bottom: 1px solid var(--border-light, #eef2f0);
   margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.leftArea {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .backBtn {
@@ -30,6 +38,12 @@
   }
 }
 
+.titleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .mainTitle {
   font-size: 22px;
   font-weight: 700;
@@ -37,4 +51,10 @@
   margin: 0;
   font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
   letter-spacing: -0.01em;
+}
+
+.subTitle {
+  font-size: 13px;
+  color: var(--text-secondary, #6b7c74);
+  margin: 0;
 }
