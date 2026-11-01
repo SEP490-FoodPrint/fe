@@ -1,0 +1,189 @@
+.card {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid rgba(189, 201, 195, 0.5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.headerIcon {
+  color: var(--color-primary, #0a8066);
+  font-size: 20px;
+}
+
+.cardTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.reqNotice {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+}
+
+.fieldCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.col12 {
+  grid-column: span 12;
+}
+
+.col6 {
+  grid-column: span 6;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+
+  .req {
+    color: #e11d48;
+  }
+}
+
+.textInput {
+  width: 100%;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+}
+
+.inputWithIcon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.innerIcon {
+  position: absolute;
+  left: 12px;
+  font-size: 18px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.plIcon {
+  padding-left: 38px;
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.selectInput {
+  width: 100%;
+  height: 42px;
+  padding: 0 36px 0 14px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+  }
+}
+
+.selectChevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.readonlyPill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  box-sizing: border-box;
+}
+
+.readonlyIcon {
+  font-size: 18px;
+  color: var(--color-primary, #0a8066);
+}
+
+.readonlyNumber {
+  font-weight: 700;
+  color: var(--color-primary, #0a8066);
+  font-size: 16px;
+}
+
+.readonlyUnit {
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 768px) {
+  .col6 {
+    grid-column: span 12;
+  }
+
+  .card {
+    padding: 16px;
+  }
+}
+

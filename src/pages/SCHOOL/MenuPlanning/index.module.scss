@@ -1,0 +1,74 @@
+.pageContainer {
+  padding: 24px 32px 100px 32px;
+  background-color: var(--color-surface, #f0fcf6);
+  min-height: 100vh;
+  box-sizing: border-box;
+  position: relative;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 7.2fr) minmax(320px, 4.8fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.toastNotice {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  font-size: 14px;
+  font-weight: 600;
+  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.success {
+  background-color: #00654f;
+  color: #ffffff;
+}
+
+.info {
+  background-color: #0369a1;
+  color: #ffffff;
+}
+
+@media (max-width: 1080px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .pageContainer {
+    padding: 16px 16px 100px 16px;
+  }
+}
+

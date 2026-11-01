@@ -1,0 +1,134 @@
+.bottomBarContainer {
+  position: fixed;
+  bottom: 0;
+  left: var(--sidebar-width, 260px);
+  right: 0;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(189, 201, 195, 0.4);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
+  z-index: 40;
+  padding: 12px 24px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  transition: left 0.2s ease;
+}
+
+.barInner {
+  max-width: 1280px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+}
+
+.cancelBtn {
+  background: none;
+  border: 1px solid transparent;
+  color: #64748b;
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+  }
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.draftBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+  }
+}
+
+.submitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: none;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(10, 128, 102, 0.3);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #086a55;
+    box-shadow: 0 4px 6px -1px rgba(10, 128, 102, 0.35);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.btnIcon {
+  font-size: 18px;
+}
+
+@media (max-width: 1024px) {
+  .bottomBarContainer {
+    left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .bottomBarContainer {
+    padding: 8px 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+
+  .barInner {
+    gap: 8px;
+  }
+
+  .cancelBtn {
+    padding: 6px 8px;
+    font-size: 12.5px;
+  }
+
+  .draftBtn {
+    padding: 6px 10px;
+    font-size: 12.5px;
+  }
+
+  .submitBtn {
+    padding: 6px 12px;
+    font-size: 12.5px;
+  }
+}

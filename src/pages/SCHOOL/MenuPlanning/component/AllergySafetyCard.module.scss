@@ -1,0 +1,281 @@
+.stickyCard {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid rgba(189, 201, 195, 0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px 22px;
+  position: sticky;
+  top: 88px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.iconCircle {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background-color: #eaf7f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.shieldIcon {
+  color: var(--color-primary, #0a8066);
+  font-size: 24px;
+}
+
+.cardTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+  letter-spacing: -0.01em;
+}
+
+.cardSubtitle {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+.alertBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background-color: #fff1f2;
+  border: 1px solid #ffe4e6;
+  margin-bottom: 16px;
+}
+
+.alertIcon {
+  color: #e11d48;
+  font-size: 20px;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.alertTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #9f1239;
+  margin-bottom: 2px;
+}
+
+.alertDesc {
+  font-size: 12px;
+  color: #be123c;
+  line-height: 1.4;
+}
+
+.conflictDetailCard {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+.conflictItemHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dishLabel {
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.dishTarget {
+  font-size: 14px;
+  color: #0f172a;
+}
+
+.allergenInfo {
+  font-size: 13px;
+  color: #334155;
+  margin-bottom: 10px;
+}
+
+.allergenHighlight {
+  color: #e11d48;
+}
+
+.affectedBreakdown {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 8px;
+}
+
+.breakdownHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.miniIcon {
+  font-size: 16px;
+  color: #64748b;
+}
+
+.classesTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.classTag {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.optionsSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.optionsTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+  margin-bottom: 2px;
+}
+
+.optionCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #94a3b8;
+    background-color: #f8fafc;
+  }
+}
+
+.selectedCard {
+  border-color: var(--color-primary, #0a8066) !important;
+  background-color: #f0fdf9 !important;
+  box-shadow: 0 0 0 1px var(--color-primary, #0a8066);
+}
+
+.radioInput {
+  margin-top: 3px;
+  accent-color: var(--color-primary, #0a8066);
+  cursor: pointer;
+}
+
+.optionContent {
+  flex: 1;
+}
+
+.optionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.optionName {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.recommendedBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background-color: #dcfce7;
+  color: #166534;
+  text-transform: uppercase;
+}
+
+.optionDesc {
+  font-size: 12px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.allSafeBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px 16px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  margin-bottom: 16px;
+}
+
+.safeBigIcon {
+  font-size: 36px;
+  color: #16a34a;
+  margin-bottom: 8px;
+}
+
+.safeTitle {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #15803d;
+  margin-bottom: 4px;
+}
+
+.safeDesc {
+  font-size: 12.5px;
+  color: #4b5563;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.noteFooter {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+.infoIcon {
+  font-size: 16px;
+  color: #94a3b8;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
