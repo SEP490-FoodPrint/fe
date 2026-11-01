@@ -59,7 +59,10 @@ const MainLayout = ({ type }) => {
           navigationButtonRef={navigationButtonRef}
           onLogout={handleLogout}
         />
-        <main id="dashboard-content" className={styles.mainContent}>
+        <main
+          id="dashboard-content"
+          className={`${styles.mainContent} ${(location.pathname.startsWith(ROUTER.SCHOOL_MENU_PLANNING) || location.pathname.includes("/create") || location.pathname.includes("/edit")) ? styles.fullBleedWhite : ""}`}
+        >
           <Outlet />
         </main>
       </div>

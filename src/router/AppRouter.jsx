@@ -33,8 +33,14 @@ const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
 const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
+const SchoolAccountCreate = lazy(() => import("src/pages/SCHOOL/Administration/CreateAccount"))
+const SchoolAccountEdit = lazy(() => import("src/pages/SCHOOL/Administration/EditAccount"))
 const MenuApproval = lazy(() => import("src/pages/SCHOOL/MenuApproval"))
 const MenuPlanning = lazy(() => import("src/pages/SCHOOL/MenuPlanning"))
+const CreateMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/CreateMenu"))
+const MenuDetail = lazy(() => import("src/pages/SCHOOL/MenuPlanning/MenuDetail"))
+const EditMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/EditMenu"))
+const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
@@ -181,6 +187,8 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN]} />,
             children: [
               { path: ROUTER.SCHOOL_ADMINISTRATION, element: <LazyWrapper><SchoolAdministration /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ACCOUNT_CREATE, element: <LazyWrapper><SchoolAccountCreate /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ACCOUNT_EDIT, element: <LazyWrapper><SchoolAccountEdit /></LazyWrapper> },
             ],
           },
 
@@ -192,11 +200,23 @@ const routes = [
             ],
           },
 
+          // Phân hệ Y tế học đường: Ban Y tế, School Admin
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMIN]} />,
+            children: [
+              { path: ROUTER.SCHOOL_HEALTH_OVERVIEW, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
+            ],
+          },
+
           // Lập thực đơn & cảnh báo dị ứng: Ban Y tế
           {
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MENU_DETAIL, element: <LazyWrapper><MenuDetail /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MENU_EDIT, element: <LazyWrapper><EditMenu /></LazyWrapper> },
             ],
           },
 

@@ -128,7 +128,7 @@
   --shadow-lg: 0 12px 28px rgb(29 43 38 / 12%);
 
   /* 6. LAYOUT AND COMPONENT SIZES */
-  --sidebar-width: 240px;
+  --sidebar-width: 260px;
   --sidebar-icon-width: 64px;
   --sidebar-mobile-width: 280px;
   --header-height: 72px;

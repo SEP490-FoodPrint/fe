@@ -44,6 +44,9 @@ export const getDefaultRedirectByUser = user => {
   if (user.role === "SCHOOL_KITCHEN_STAFF") {
     return ROUTER.SCHOOL_KITCHEN_COOKING
   }
+  if (user.role === "SCHOOL_HEALTH_OFFICER") {
+    return ROUTER.SCHOOL_HEALTH_OVERVIEW
+  }
   return getDefaultRedirectByOrg(user.orgType)
 }
 

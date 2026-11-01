@@ -1,0 +1,152 @@
+.alertRevision,
+.alertApproved,
+.alertPending,
+.alertDraft {
+  width: 100%;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.alertRevision {
+  background-color: #fff1f2;
+  border: 1px solid #fecdd3;
+  color: #9f1239;
+}
+
+.alertApproved {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+}
+
+.alertPending {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+}
+
+.alertDraft {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.alertHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.alertTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.alertIconRevision {
+  font-size: 26px;
+  color: #e11d48;
+}
+
+.alertIconApproved {
+  font-size: 26px;
+  color: #16a34a;
+}
+
+.alertIconPending {
+  font-size: 26px;
+  color: #0284c7;
+}
+
+.alertIconDraft {
+  font-size: 26px;
+  color: #64748b;
+}
+
+.alertTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alertTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #9f1239;
+  margin: 0;
+}
+
+.alertTitleApproved {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #14532d;
+  margin: 0;
+}
+
+.alertTitlePending {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0c4a6e;
+  margin: 0;
+}
+
+.alertTitleDraft {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.alertTime {
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+.alertBody {
+  padding-left: 38px;
+}
+
+.alertComment {
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+  color: #881337;
+}
+
+.alertCommentApproved {
+  font-size: 13.5px;
+  line-height: 1.5;
+  margin: 0;
+  color: #15803d;
+}
+
+.btnActionRevision {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background-color: #e11d48;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(225, 29, 72, 0.25);
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #be123c;
+  }
+}
+

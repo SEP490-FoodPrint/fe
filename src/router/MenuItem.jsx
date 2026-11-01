@@ -21,6 +21,7 @@ import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
 import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -107,7 +108,6 @@ export const MenuItemSchool = () => [
     roles: [
       ROLES.SCHOOL_ADMIN,
       ROLES.SCHOOL_MANAGEMENT_BOARD,
-      ROLES.SCHOOL_HEALTH_OFFICER,
       ROLES.HOMEROOM_TEACHER,
       ROLES.PARENTS_COMMITTEE,
       ROLES.INGREDIENT_MANAGEMENT,
@@ -125,10 +125,35 @@ export const MenuItemSchool = () => [
     icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN Y TẾ (SCHOOL_HEALTH_OFFICER) - 5 MỤC QUY CHUẨN ===
+  {
+    key: ROUTER.SCHOOL_HEALTH_OVERVIEW,
+    label: "Tổng quan",
+    icon: <DashboardOutlinedIcon />,
+    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+  },
   {
     key: ROUTER.SCHOOL_MENU_PLANNING,
-    label: "Lập Thực đơn & Giám sát Dị ứng",
-    icon: <DescriptionOutlinedIcon />,
+    label: "Thực đơn",
+    icon: <RestaurantMenuOutlinedIcon />,
+    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+  },
+  {
+    key: ROUTER.SCHOOL_HEALTH_ALLERGY,
+    label: "Thông tin dị ứng",
+    icon: <HealthAndSafetyOutlinedIcon />,
+    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+  },
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
+    label: "Đánh giá giao hàng",
+    icon: <FactCheckOutlinedIcon />,
+    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+  },
+  {
+    key: ROUTER.SCHOOL_MEAL_FEEDBACK,
+    label: "Khiếu nại",
+    icon: <ReportProblemOutlinedIcon />,
     roles: [ROLES.SCHOOL_HEALTH_OFFICER],
   },
   {
@@ -137,7 +162,6 @@ export const MenuItemSchool = () => [
     icon: <HealthAndSafetyOutlinedIcon />,
     // Màn hình dùng cho Y tế, Phụ huynh, Kho
     roles: [
-      ROLES.SCHOOL_HEALTH_OFFICER,
       ROLES.PARENTS_COMMITTEE,
       ROLES.INGREDIENT_MANAGEMENT,
     ],

@@ -1,0 +1,603 @@
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContainer {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 880px;
+  max-height: 90vh;
+  border-radius: 16px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(16px);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 24px 14px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 16px;
+}
+
+.headerTitleWrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.headerIcon {
+  color: var(--color-primary, #0a8066);
+  font-size: 26px;
+  margin-top: 2px;
+}
+
+.modalTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 0 3px 0;
+  letter-spacing: -0.01em;
+}
+
+.modalSubtitle {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+
+  strong {
+    color: #1e293b;
+  }
+}
+
+.safeFilterTag {
+  color: var(--color-primary, #0a8066);
+  font-weight: 600;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+  }
+}
+
+/* Category Tabs Section */
+.categoryTabsSection {
+  padding: 12px 24px 10px 24px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.filterSectionLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+.categoryPills {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
+}
+
+.catPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+
+  span:first-child {
+    font-size: 15px;
+  }
+
+  &:hover {
+    border-color: #94a3b8;
+    background-color: #f1f5f9;
+  }
+}
+
+.catPillActive {
+  background-color: var(--color-primary, #0a8066) !important;
+  border-color: var(--color-primary, #0a8066) !important;
+  color: #ffffff !important;
+
+  .countBadge {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+  }
+}
+
+.countBadge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+/* Secondary Filter Bar */
+.secondaryFilterBar {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 12px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+}
+
+.supplierFilterCol {
+  flex: 1;
+}
+
+.searchCol {
+  flex: 1.2;
+}
+
+.filterLabel {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 5px;
+}
+
+.selectWrap {
+  position: relative;
+  width: 100%;
+}
+
+.supplierSelect {
+  width: 100%;
+  height: 38px;
+  padding: 0 32px 0 12px;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+  appearance: none;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary, #0a8066);
+    background-color: #ffffff;
+  }
+}
+
+.selectChevron {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #64748b;
+  font-size: 18px;
+}
+
+.searchInputWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  height: 38px;
+  padding: 0 34px 0 36px;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 13px;
+  color: #1e293b;
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary, #0a8066);
+    background-color: #ffffff;
+  }
+}
+
+.clearSearchBtn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  padding: 2px;
+  color: #94a3b8;
+  cursor: pointer;
+
+  span {
+    font-size: 16px;
+  }
+
+  &:hover {
+    color: #475569;
+  }
+}
+
+/* List Container */
+.listContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
+  min-height: 280px;
+  max-height: 440px;
+  background-color: #fafbfc;
+}
+
+.resultInfoBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.resultCount {
+  font-size: 12.5px;
+  color: #64748b;
+
+  strong {
+    color: var(--color-primary, #0a8066);
+    font-weight: 700;
+  }
+}
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--color-primary, #0a8066);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+
+  span {
+    font-size: 15px;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Grid & Cards */
+.ingredientGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.ingredientCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    .pickBtn {
+      background-color: var(--color-primary, #0a8066);
+      color: #ffffff;
+    }
+  }
+}
+
+.cardSelected {
+  border-color: var(--color-primary, #0a8066);
+  background-color: #f0fdf9;
+}
+
+.cardIconBox {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .cardIcon {
+    font-size: 20px;
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+.cardContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ingredientName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.currentBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #059669;
+  background-color: #ecfdf5;
+  padding: 2px 6px;
+  border-radius: 10px;
+
+  span {
+    font-size: 12px;
+  }
+}
+
+.tagsRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.categoryBadge {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 500;
+}
+
+.supplierBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 500;
+
+  span {
+    font-size: 12px;
+  }
+}
+
+.actionCol {
+  flex-shrink: 0;
+}
+
+.pickBtn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-primary, #0a8066);
+  background-color: #ffffff;
+  color: var(--color-primary, #0a8066);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pickBtnActive {
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 40px;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 6px 0;
+}
+
+.emptySub {
+  font-size: 12.5px;
+  color: #64748b;
+  max-width: 400px;
+  margin: 0 0 16px 0;
+}
+
+.resetEmptyBtn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* Modal Footer */
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-top: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  gap: 16px;
+}
+
+.footerHelp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+
+  span:first-child {
+    font-size: 15px;
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+.selectedCountHighlight {
+  color: var(--color-primary, #0a8066);
+  font-weight: 700;
+}
+
+.doneBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  border: none;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background-color: #00513f;
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.25);
+  }
+}
+
+@media (max-width: 768px) {
+  .secondaryFilterBar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .ingredientGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .modalHeader, .secondaryFilterBar, .categoryTabsSection, .listContainer, .modalFooter {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}

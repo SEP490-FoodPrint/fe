@@ -1,0 +1,217 @@
+.timelineCard {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #fbfdfc;
+  }
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.headerIcon {
+  font-size: 22px;
+  color: var(--color-primary, #0a8066);
+}
+
+.cardTitle {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.cardSubtitle {
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+.toggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+  }
+}
+
+.chevron {
+  font-size: 18px;
+  transition: transform 0.2s ease;
+
+  &.rotated {
+    transform: rotate(180deg);
+  }
+}
+
+.timelineBody {
+  padding: 16px 20px 20px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  flex-direction: column;
+}
+
+.stepRow {
+  display: flex;
+  gap: 14px;
+  position: relative;
+  min-height: 60px;
+
+  &:last-child {
+    min-height: auto;
+  }
+}
+
+.nodeColumn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.iconWrap {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+
+  &.completed {
+    background-color: #d1fae5;
+    color: #047857;
+    border: 1.5px solid #a7f3d0;
+  }
+
+  &.revision {
+    background-color: #ffe4e6;
+    color: #e11d48;
+    border: 1.5px solid #fecdd3;
+  }
+
+  &.in_progress {
+    background-color: #fef3c7;
+    color: #d97706;
+    border: 1.5px solid #fde68a;
+  }
+
+  &.pending {
+    background-color: #f1f5f9;
+    color: #94a3b8;
+    border: 1.5px solid #e2e8f0;
+  }
+}
+
+.connectingLine {
+  width: 2px;
+  flex: 1;
+  background-color: #e2e8f0;
+  margin: 3px 0;
+}
+
+.stepContent {
+  flex: 1;
+  padding-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stepTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stepTitle {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.statusBadge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 9999px;
+
+  &.completed {
+    background-color: #d1fae5;
+    color: #047857;
+  }
+
+  &.revision {
+    background-color: #ffe4e6;
+    color: #e11d48;
+  }
+
+  &.in_progress {
+    background-color: #fef3c7;
+    color: #d97706;
+  }
+
+  &.pending {
+    background-color: #f1f5f9;
+    color: #64748b;
+  }
+}
+
+.stepTime {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.stepAuthor {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.stepDesc {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 2px 0 0;
+}
