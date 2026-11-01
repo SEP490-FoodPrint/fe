@@ -35,6 +35,9 @@ const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
 const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
 const MenuApproval = lazy(() => import("src/pages/SCHOOL/MenuApproval"))
 const MenuPlanning = lazy(() => import("src/pages/SCHOOL/MenuPlanning"))
+const CreateMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/CreateMenu"))
+const MenuDetail = lazy(() => import("src/pages/SCHOOL/MenuPlanning/MenuDetail"))
+const EditMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/EditMenu"))
 const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
@@ -208,6 +211,9 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MENU_DETAIL, element: <LazyWrapper><MenuDetail /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MENU_EDIT, element: <LazyWrapper><EditMenu /></LazyWrapper> },
             ],
           },
 

@@ -1,285 +1,189 @@
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { INITIAL_DISHES, INITIAL_SEASONINGS, ALL_INGREDIENTS } from "./mockMenuData"
+import { MOCK_MENU_LIST } from "./mockMenuListData"
 
-import CreateMenuHeader from "./component/CreateMenuHeader"
-import MenuBasicInfoCard from "./component/MenuBasicInfoCard"
-import MenuDishesTable from "./component/MenuDishesTable"
-import AllergyAlternativeMealsCard from "./component/AllergyAlternativeMealsCard"
-import MenuSeasoningCard from "./component/MenuSeasoningCard"
-import CreateMenuBottomBar from "./component/CreateMenuBottomBar"
-import ConfirmSubmitModal from "./component/ConfirmSubmitModal"
-import IngredientPickerModal from "./component/IngredientPickerModal"
+import MenuListHeader from "./component/MenuListHeader"
+import MenuListStatsRail from "./component/MenuListStatsRail"
+import MenuListFilterStrip from "./component/MenuListFilterStrip"
+import MenuListTable from "./component/MenuListTable"
+import MenuListPagination from "./component/MenuListPagination"
+import MenuDetailModal from "./component/MenuDetailModal"
 
 export default function MenuPlanning() {
   const navigate = useNavigate()
 
-  // Form State
-  const [formState, setFormState] = useState({
-    name: "Thực đơn tuần 46 – Khối 1 & 2 – Bữa trưa",
-    date: "26/10/2026",
-    mealType: "LUNCH",
-    targetScope: "Khối 1 & Khối 2 (Độ tuổi 6-7 tuổi)",
-    portionCount: 210,
-    notes: "Thực đơn giàu đạm và chất xơ, hạn chế muối theo tiêu chuẩn dinh dưỡng học đường."
+  // Master data
+  const [menus] = useState(MOCK_MENU_LIST)
+
+  // Filter state
+  const [filters, setFilters] = useState({
+    searchKeyword: "",
+    dateFilter: "current",
+    mealType: "all",
+    status: "all"
   })
 
-  // Danh sách món ăn trong thực đơn (mỗi món có thể có nhiều nguyên liệu chính)
-  const [dishes, setDishes] = useState(INITIAL_DISHES)
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 5
 
-  // Món thay thế cho học sinh dị ứng (Mặc định là suất ăn riêng)
-  const [substituteDish, setSubstituteDish] = useState({
-    name: "Thịt bò xào rau củ thập cẩm",
-    ingredientId: "ing-vis-1",
-    portionQty: 40,
-    unit: "g"
-  })
+  // Detail Modal state
+  const [selectedMenu, setSelectedMenu] = useState(null)
+  const [isDetailOpen, setIsDetailOpen] = useState(false)
 
-  // Gia vị bữa ăn học đường (chọn từ danh mục kho, nhập định lượng, không check tồn kho)
-  const [seasonings, setSeasonings] = useState(INITIAL_SEASONINGS)
-
-  // Modal chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu)
-  const [isPickerOpen, setIsPickerOpen] = useState(false)
-  const [pickerContext, setPickerContext] = useState({ type: "dish", dishId: null })
-
-  // Modal xác nhận gửi BGH duyệt
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  // Toast notification
   const [toast, setToast] = useState(null)
-
-  // Cập nhật thông tin cơ bản
-  const handleChangeField = (field, value) => {
-    setFormState(prev => ({ ...prev, [field]: value }))
-  }
-
-  // Cập nhật từng món ăn trong bảng (nhận payload object)
-  const handleUpdateDish = (dishId, updates) => {
-    setDishes(prev =>
-      prev.map(dish => {
-        if (dish.id !== dishId) return dish
-        return { ...dish, ...updates }
-      })
-    )
-  }
-
-  // Thêm dòng món ăn mới vào bảng
-  const handleAddDishRow = () => {
-    const newDish = {
-      id: `dish-${Date.now()}`,
-      name: "",
-      ingredientIds: [],
-      portionQty: 50,
-      unit: "g"
-    }
-    setDishes(prev => [...prev, newDish])
-    showToast("Đã thêm một dòng món ăn mới vào bảng", "info")
-  }
-
-  // Xóa món ăn khỏi bảng
-  const handleRemoveDish = (dishId) => {
-    setDishes(prev => prev.filter(d => d.id !== dishId))
-    showToast("Đã xóa món ăn khỏi thực đơn", "info")
-  }
-
-  // Xóa một nguyên liệu khỏi món ăn
-  const handleRemoveIngredientFromDish = (dishId, ingredientId) => {
-    const targetDish = dishes.find(d => d.id === dishId)
-    if (!targetDish) return
-    const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
-    const newIds = currentIds.filter(id => id !== ingredientId)
-    handleUpdateDish(dishId, { ingredientIds: newIds })
-    showToast("Đã xóa nguyên liệu khỏi món", "info")
-  }
-
-  // Quản lý Gia vị (chọn từ danh mục kho nguyên liệu)
-  const handleAddSeasoning = () => {
-    const newSeasoning = {
-      id: `seas-${Date.now()}`,
-      catalogId: "",
-      name: "",
-      portionQty: 1,
-      unit: "g"
-    }
-    setSeasonings(prev => [...prev, newSeasoning])
-    showToast("Đã thêm một dòng gia vị mới", "info")
-  }
-
-  const handleRemoveSeasoning = (seasoningId) => {
-    setSeasonings(prev => prev.filter(s => s.id !== seasoningId))
-    showToast("Đã xóa gia vị", "info")
-  }
-
-  const handleUpdateSeasoning = (seasoningId, updates) => {
-    setSeasonings(prev =>
-      prev.map(s => (s.id === seasoningId ? { ...s, ...updates } : s))
-    )
-  }
-
-  // Cập nhật thông tin món thay thế dị ứng
-  const handleChangeSubstituteDish = (field, value) => {
-    setSubstituteDish(prev => ({ ...prev, [field]: value }))
-  }
-
-  // Mở Popup chọn nguyên liệu cho món ăn cụ thể
-  const handleOpenPickerForDish = (dishId) => {
-    setPickerContext({ type: "dish", dishId })
-    setIsPickerOpen(true)
-  }
-
-  // Mở Popup chọn nguyên liệu cho món thay thế dị ứng
-  const handleOpenPickerForSubstitute = () => {
-    setPickerContext({ type: "substitute", dishId: null })
-    setIsPickerOpen(true)
-  }
-
-  // Toggle nguyên liệu trong Popup Modal (chọn được nhiều nguyên liệu)
-  const handleToggleIngredient = (ingredient) => {
-    if (pickerContext.type === "dish" && pickerContext.dishId) {
-      const targetDish = dishes.find(d => d.id === pickerContext.dishId)
-      if (!targetDish) return
-      const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
-      const exists = currentIds.includes(ingredient.id)
-      const newIds = exists
-        ? currentIds.filter(id => id !== ingredient.id)
-        : [...currentIds, ingredient.id]
-
-      handleUpdateDish(pickerContext.dishId, {
-        ingredientIds: newIds
-      })
-
-      if (exists) {
-        showToast(`Đã bỏ nguyên liệu "${ingredient.name}"`, "info")
-      } else {
-        showToast(`Đã thêm nguyên liệu "${ingredient.name}" vào món`, "success")
-      }
-    } else if (pickerContext.type === "substitute") {
-      setSubstituteDish(prev => ({
-        ...prev,
-        ingredientId: ingredient.id,
-        unit: prev.unit || ingredient.unit || "g"
-      }))
-      showToast(`Đã chọn nguyên liệu thay thế: "${ingredient.name}"`, "success")
-      setIsPickerOpen(false)
-    }
-  }
-
-  // Lấy ngữ cảnh tên món đang chọn để hiển thị trên tiêu đề Modal
-  const currentTargetDish = pickerContext.type === "dish"
-    ? dishes.find(d => d.id === pickerContext.dishId)
-    : null
-
-  const selectedIngredientIds = pickerContext.type === "dish"
-    ? (currentTargetDish?.ingredientIds || (currentTargetDish?.ingredientId ? [currentTargetDish.ingredientId] : []))
-    : (substituteDish.ingredientId ? [substituteDish.ingredientId] : [])
-
-  // Kiểm tra danh sách món có xung đột dị ứng (Kiểm tra trên TẤT CẢ các nguyên liệu đã chọn)
-  const conflictDishes = dishes.filter(d => {
-    const ids = d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])
-    return ids.some(id => {
-      const ing = ALL_INGREDIENTS.find(i => i.id === id)
-      return Boolean(ing?.allergen)
-    })
-  })
-
-  const conflictCount = conflictDishes.length > 0 ? 12 : 0
-
-  const handleSaveDraft = () => {
-    showToast("Đã lưu bản nháp thực đơn thành công (Trạng thái DRAFT)", "success")
-  }
-
-  const handleConfirmSubmit = () => {
-    setIsConfirmModalOpen(false)
-    showToast("Đã gửi thực đơn lên Ban Giám hiệu phê duyệt thành công!", "success")
-    setTimeout(() => {
-      navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)
-    }, 1200)
-  }
 
   const showToast = (message, type = "success") => {
     setToast({ message, type })
     setTimeout(() => {
       setToast(null)
-    }, 3500)
+    }, 3000)
+  }
+
+  // Filter changes
+  const handleChangeFilter = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }))
+    setCurrentPage(1) // Reset to first page upon filter change
+  }
+
+  const handleResetFilters = () => {
+    setFilters({
+      searchKeyword: "",
+      dateFilter: "all",
+      mealType: "all",
+      status: "all"
+    })
+    setCurrentPage(1)
+    showToast("Đã đặt lại bộ lọc về mặc định", "info")
+  }
+
+  const handleFilterByStatus = (statusValue) => {
+    setFilters(prev => ({ ...prev, status: statusValue }))
+    setCurrentPage(1)
+  }
+
+  // Compute stats for Stats Rail (across all menus)
+  const stats = useMemo(() => {
+    const total = menus.length
+    const needsAction = menus.filter(
+      m => m.status === "DRAFT" || m.status === "REVISION_REQUESTED"
+    ).length
+    const pendingApproval = menus.filter(m => m.status === "PENDING_APPROVAL").length
+    const approved = menus.filter(m => m.status === "APPROVED").length
+
+    return { total, needsAction, pendingApproval, approved }
+  }, [menus])
+
+  // Filtered menus
+  const filteredMenus = useMemo(() => {
+    return menus.filter(menu => {
+      // 1. Search keyword (name or code)
+      if (filters.searchKeyword.trim()) {
+        const kw = filters.searchKeyword.trim().toLowerCase()
+        const matchName = menu.name.toLowerCase().includes(kw)
+        const matchCode = menu.code.toLowerCase().includes(kw)
+        if (!matchName && !matchCode) return false
+      }
+
+      // 2. Date filter
+      if (filters.dateFilter !== "all") {
+        if (filters.dateFilter === "current" && menu.week !== "current") return false
+        if (filters.dateFilter === "next" && menu.week !== "next") return false
+        if (filters.dateFilter === "prev" && menu.week !== "prev") return false
+      }
+
+      // 3. Meal type filter
+      if (filters.mealType !== "all") {
+        if (menu.mealType !== filters.mealType) return false
+      }
+
+      // 4. Status filter
+      if (filters.status !== "all") {
+        if (filters.status === "needsAction") {
+          if (menu.status !== "DRAFT" && menu.status !== "REVISION_REQUESTED") return false
+        } else if (menu.status !== filters.status) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [menus, filters])
+
+  // Paginated menus
+  const totalItems = filteredMenus.length
+  const totalPages = Math.ceil(totalItems / pageSize) || 1
+  const paginatedMenus = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredMenus.slice(start, start + pageSize)
+  }, [filteredMenus, currentPage, pageSize])
+
+  // Navigation handlers
+  const handleNavigateCreate = () => {
+    navigate(ROUTER.SCHOOL_MENU_CREATE)
+  }
+
+  const handleEditMenu = (menu) => {
+    navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })
+  }
+
+  const handleViewDetail = (menu) => {
+    navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), { state: { menu } })
   }
 
   return (
-    <div className={styles.pageContainer}>
+    <div className={styles.menuListPage}>
       {/* Toast Notification */}
       {toast && (
         <div className={`${styles.toastNotice} ${styles[toast.type]}`}>
-          <span className="material-symbols-outlined">
+          <span className="material-symbols-outlined text-[18px]">
             {toast.type === "success" ? "check_circle" : toast.type === "warning" ? "warning" : "info"}
           </span>
           <span>{toast.message}</span>
         </div>
       )}
 
-      <div className={styles.contentWrapper}>
-        {/* Page Header */}
-        <CreateMenuHeader onBack={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)} />
+      {/* Section 1: Header Bar & Actions */}
+      <MenuListHeader onNavigateCreate={handleNavigateCreate} />
 
-        {/* Khối 1: Thông tin thực đơn (Khối lớp áp dụng nhập text tự do) */}
-        <MenuBasicInfoCard
-          formState={formState}
-          onChangeField={handleChangeField}
+      {/* Section 2: Compact Minimalist Stats Rail */}
+      <MenuListStatsRail
+        stats={stats}
+        onFilterByStatus={handleFilterByStatus}
+      />
+
+      {/* Section 3: Flat Clean Filter Strip */}
+      <MenuListFilterStrip
+        filters={filters}
+        onChangeFilter={handleChangeFilter}
+        onResetFilters={handleResetFilters}
+      />
+
+      {/* Section 4 & 5: Clean Flat Table with Pagination */}
+      <div className={styles.tableCard}>
+        <MenuListTable
+          menus={paginatedMenus}
+          onViewDetail={handleViewDetail}
+          onEditMenu={handleEditMenu}
         />
-
-        {/* Khối 2: Bảng món ăn trong thực đơn (Chọn nhiều nguyên liệu, icon thay đổi, đối soát dị ứng tự động) */}
-        <MenuDishesTable
-          dishes={dishes}
-          onUpdateDish={handleUpdateDish}
-          onAddDishRow={handleAddDishRow}
-          onRemoveDish={handleRemoveDish}
-          onOpenPicker={handleOpenPickerForDish}
-          onRemoveIngredientFromDish={handleRemoveIngredientFromDish}
-        />
-
-        {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng & Tạo món thay thế */}
-        <AllergyAlternativeMealsCard
-          conflictDishes={conflictDishes}
-          portionCount={formState.portionCount}
-          substituteDish={substituteDish}
-          onChangeSubstituteDish={handleChangeSubstituteDish}
-          onOpenPickerForSubstitute={handleOpenPickerForSubstitute}
-        />
-
-        {/* Khối 4: Gia vị dùng chung (Chọn từ danh mục kho do Quản lý nguyên liệu nhập, nhập định lượng) */}
-        <MenuSeasoningCard
-          seasonings={seasonings}
-          portionCount={formState.portionCount}
-          onUpdateSeasoning={handleUpdateSeasoning}
-          onAddSeasoning={handleAddSeasoning}
-          onRemoveSeasoning={handleRemoveSeasoning}
+        <MenuListPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          onPageChange={(page) => setCurrentPage(page)}
         />
       </div>
 
-      {/* Sticky Bottom Action Bar */}
-      <CreateMenuBottomBar
-        onCancel={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)}
-        onSaveDraft={handleSaveDraft}
-        onSubmitApproval={() => setIsConfirmModalOpen(true)}
-      />
-
-      {/* Popup Modal: Chọn nguyên liệu từ NCC liên kết (hỗ trợ chọn nhiều) */}
-      <IngredientPickerModal
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        selectedIngredientIds={selectedIngredientIds}
-        onToggleIngredient={handleToggleIngredient}
-        dishContextName={pickerContext.type === "dish" ? (currentTargetDish?.name || "Món ăn") : (substituteDish.name || "Món thay thế dị ứng")}
-        onlySafe={pickerContext.type === "substitute"}
-      />
-
-      {/* Modal xác nhận gửi BGH duyệt */}
-      <ConfirmSubmitModal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        onConfirm={handleConfirmSubmit}
-        menuData={formState}
-        dishesCount={dishes.length}
-        selectedAllergyOption="OPTION_2"
-        conflictCount={conflictCount}
+      {/* Detail Modal */}
+      <MenuDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
+        menu={selectedMenu}
+        onEditMenu={handleEditMenu}
       />
     </div>
   )

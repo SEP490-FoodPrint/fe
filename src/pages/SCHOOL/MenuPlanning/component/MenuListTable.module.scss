@@ -1,0 +1,285 @@
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 900px;
+}
+
+.headerRow {
+  background-color: #f8fafc;
+  height: 44px;
+  border-bottom: 1px solid rgba(189, 201, 195, 0.4);
+}
+
+.th {
+  padding: 0 20px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.thMenu {
+  width: 32%;
+}
+
+.thDate {
+  width: 12%;
+}
+
+.thMeal {
+  width: 10%;
+}
+
+.thAllergy {
+  width: 22%;
+}
+
+.thStatus {
+  width: 14%;
+}
+
+.thActions {
+  width: 10%;
+  text-align: right;
+}
+
+.tableRow {
+  height: 64px;
+  border-bottom: 1px solid rgba(189, 201, 195, 0.25);
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: rgba(240, 252, 246, 0.45);
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.td {
+  padding: 12px 20px;
+  vertical-align: middle;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.menuInfo {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.menuNameBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  cursor: pointer;
+  transition: color 0.15s ease;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+
+  &:hover {
+    color: var(--color-primary, #0a8066);
+    text-decoration: underline;
+  }
+}
+
+.menuCode {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.dateText {
+  font-size: 13.5px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.mealBadge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: #f1f5f9;
+  color: #334155;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.allergyInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.allergyHeader {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-primary, #0a8066);
+}
+
+.allergyIcon {
+  font-size: 16px;
+}
+
+.allergyTitle {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.allergySub {
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.3;
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.noAllergyText {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.revision {
+  color: #ba1a1a;
+  .dot {
+    background-color: #ba1a1a;
+  }
+}
+
+.approved {
+  color: #00654f;
+  .dot {
+    background-color: #00654f;
+  }
+}
+
+.pending {
+  color: #175b92;
+  .dot {
+    background-color: #175b92;
+  }
+}
+
+.draft {
+  color: #64748b;
+  .dot {
+    background-color: #94a3b8;
+  }
+}
+
+.actionButtonGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.iconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #e2e8f0;
+  }
+}
+
+.editBtn {
+  color: var(--color-primary, #0a8066);
+
+  &:hover {
+    background-color: #e6f7f2;
+    color: #00513f;
+    border-color: #b9ebd9;
+  }
+}
+
+.actionIcon {
+  font-size: 19px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  text-align: center;
+}
+
+.emptyIcon {
+  font-size: 48px;
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 6px 0;
+}
+
+.emptySubtitle {
+  font-size: 13.5px;
+  color: #64748b;
+  max-width: 420px;
+  margin: 0;
+}
+
