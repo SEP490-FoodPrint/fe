@@ -33,25 +33,7 @@ export default function MenuDetailBasicInfo({ menu }) {
 
       <div className={styles.divider}></div>
 
-      {/* Cột 3: Tổng số suất kế hoạch */}
-      <div className={styles.metricCol}>
-        <span className={styles.metricLabel}>Quy mô ca ăn</span>
-        <div className={styles.metricValueRow}>
-          <span className="material-symbols-outlined text-[17px] text-[#0a8066]">groups</span>
-          <span className={styles.portionNum}>{menu.portionCount}</span>
-          <span className={styles.portionUnit}>suất</span>
-          {menu.hasAllergyMenu && (
-            <span className={styles.allergyTag}>12 suất riêng</span>
-          )}
-        </div>
-        <span className={styles.metricSub}>
-          {menu.hasAllergyMenu ? "Đã đối soát dị ứng" : "100% Suất thường"}
-        </span>
-      </div>
-
-      <div className={styles.divider}></div>
-
-      {/* Cột 4: CBYT phụ trách & Tiêu chuẩn */}
+      {/* Cột 3: CBYT phụ trách & Tiêu chuẩn */}
       <div className={styles.metricCol}>
         <span className={styles.metricLabel}>Cán bộ Y tế lập kế hoạch</span>
         <div className={styles.metricValueRow}>

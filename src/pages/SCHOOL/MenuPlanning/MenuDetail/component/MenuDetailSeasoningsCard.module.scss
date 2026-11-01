@@ -110,22 +110,3 @@
   border-radius: 4px;
   white-space: nowrap;
 }
-
-.itemFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: 8px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.demandLabel {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.demandValue {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-}

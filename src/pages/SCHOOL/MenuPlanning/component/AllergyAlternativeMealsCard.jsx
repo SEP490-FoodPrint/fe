@@ -15,7 +15,6 @@ const getCategoryIcon = (cat) => {
 
 export default function AllergyAlternativeMealsCard({
   conflictDishes,
-  portionCount,
   substituteDish,
   onChangeSubstituteDish,
   onOpenPickerForSubstitute
@@ -41,7 +40,6 @@ export default function AllergyAlternativeMealsCard({
 
   // Tổng hợp số suất dị ứng từ các món xung đột
   const totalAllergyPortions = conflictDishes.reduce((acc, d) => acc + (d.allergyCount || 12), 0)
-  const standardPortions = Math.max(0, portionCount - totalAllergyPortions)
 
   const selectedSubIng = ALL_INGREDIENTS.find(i => i.id === substituteDish.ingredientId) || null
   const subSupplier = selectedSubIng ? LINKED_SUPPLIERS.find(s => s.id === selectedSubIng.supplierId) : null
@@ -69,7 +67,7 @@ export default function AllergyAlternativeMealsCard({
           <div className={styles.portionSplitBox}>
             <div className={styles.portionRow}>
               <span className={styles.rowLabel}>Suất ăn tiêu chuẩn (Toàn trường):</span>
-              <strong className={styles.stdPortionVal}>{standardPortions} suất</strong>
+              <strong className={styles.stdPortionVal}>Do GVCN chốt</strong>
             </div>
             <div className={styles.portionRow}>
               <span className={styles.rowLabel}>Suất ăn riêng thay thế (Dị ứng):</span>

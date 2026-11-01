@@ -1,6 +1,16 @@
 import React from "react"
 import styles from "./MenuListFilterStrip.module.scss"
 
+const weekRangeLabel = (offset) => {
+  const monday = new Date()
+  monday.setHours(0, 0, 0, 0)
+  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + offset * 7)
+  const sunday = new Date(monday)
+  sunday.setDate(sunday.getDate() + 6)
+  const format = (date) => `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`
+  return `${format(monday)} - ${format(sunday)}`
+}
+
 export default function MenuListFilterStrip({
   filters,
   onChangeFilter,
@@ -8,7 +18,7 @@ export default function MenuListFilterStrip({
 }) {
   const {
     searchKeyword = "",
-    dateFilter = "current",
+    dateFilter = "all",
     mealType = "all",
     status = "all"
   } = filters
@@ -45,10 +55,10 @@ export default function MenuListFilterStrip({
           value={dateFilter}
           onChange={(e) => onChangeFilter("dateFilter", e.target.value)}
         >
-          <option value="current">Tuần này: 24/10 - 29/10/2026</option>
           <option value="all">Tất cả các ngày</option>
-          <option value="next">Tuần tới: 31/10 - 05/11/2026</option>
-          <option value="prev">Tuần trước: 17/10 - 22/10/2026</option>
+          <option value="current">Tuần này: {weekRangeLabel(0)}</option>
+          <option value="next">Tuần tới: {weekRangeLabel(1)}</option>
+          <option value="prev">Tuần trước: {weekRangeLabel(-1)}</option>
         </select>
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
@@ -77,7 +87,6 @@ export default function MenuListFilterStrip({
           onChange={(e) => onChangeFilter("status", e.target.value)}
         >
           <option value="all">Tất cả trạng thái</option>
-          <option value="needsAction">Cần xử lý (Nháp / Sửa)</option>
           <option value="DRAFT">Bản nháp</option>
           <option value="PENDING_APPROVAL">Chờ BGH duyệt</option>
           <option value="APPROVED">Đã duyệt</option>
