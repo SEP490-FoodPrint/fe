@@ -4,6 +4,7 @@ import styles from "./EditMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { getMenuById } from "../mockMenuListData"
 import { ALL_INGREDIENTS, INITIAL_SEASONINGS } from "../mockMenuData"
+import MenuService from "src/services/MenuService"
 
 import EditMenuHeader from "./component/EditMenuHeader"
 import MenuDetailBGHFeedback from "../MenuDetail/component/MenuDetailBGHFeedback"
@@ -36,88 +37,99 @@ export default function EditMenu() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
-  // Khởi tạo dữ liệu từ mock data theo ID
+  // Khởi tạo dữ liệu từ API hoặc mock fallback theo ID
   useEffect(() => {
-    const rawMenu = getMenuById(id)
-    if (!rawMenu) return
-    setMenu(rawMenu)
+    let isMounted = true
+    const loadMenu = async () => {
+      try {
+        const res = await MenuService.getMenuDetail(id)
+        const rawMenu = res?.data || getMenuById(id)
+        if (!isMounted || !rawMenu) return
+        setMenu(rawMenu)
 
-    // Form state
-    setFormState({
-      name: rawMenu.name,
-      date: rawMenu.date,
-      mealType: rawMenu.mealType,
-      targetScope: rawMenu.targetScope || "Toàn trường",
-      portionCount: rawMenu.portionCount || 210,
-      notes: rawMenu.feedback || ""
-    })
+        // Form state
+        setFormState({
+          name: rawMenu.name,
+          date: rawMenu.date,
+          mealType: rawMenu.mealType,
+          targetScope: rawMenu.targetScope || "Toàn trường",
+          portionCount: rawMenu.portionCount || 210,
+          notes: rawMenu.feedback || ""
+        })
 
-    // Map dishes
-    if (rawMenu.dishes && rawMenu.dishes.length > 0) {
-      const mappedDishes = rawMenu.dishes.map((d, idx) => {
-        const qtyMatch = (d.qty || "50g").match(/(\d+)/)
-        const qtyNum = qtyMatch ? parseInt(qtyMatch[1], 10) : 50
+        // Map dishes
+        if (rawMenu.dishes && rawMenu.dishes.length > 0) {
+          const mappedDishes = rawMenu.dishes.map((d, idx) => {
+            const qtyMatch = (d.qty || "50g").match(/(\d+)/)
+            const qtyNum = qtyMatch ? parseInt(qtyMatch[1], 10) : 50
 
-        // Tìm matching ingredient IDs từ danh mục ALL_INGREDIENTS
-        const matchedIds = []
-        if (d.ingredients && Array.isArray(d.ingredients)) {
-          d.ingredients.forEach(ingName => {
-            const found = ALL_INGREDIENTS.find(ai =>
-              ai.name.toLowerCase().includes(ingName.toLowerCase().split("(")[0].trim()) ||
-              ingName.toLowerCase().includes(ai.name.toLowerCase())
-            )
-            if (found && !matchedIds.includes(found.id)) {
-              matchedIds.push(found.id)
+            // Tìm matching ingredient IDs từ danh mục ALL_INGREDIENTS hoặc ingredientIds có sẵn
+            let matchedIds = d.ingredientIds || []
+            if (matchedIds.length === 0 && d.ingredients && Array.isArray(d.ingredients)) {
+              d.ingredients.forEach(ingName => {
+                const found = ALL_INGREDIENTS.find(ai =>
+                  ai.name.toLowerCase().includes(ingName.toLowerCase().split("(")[0].trim()) ||
+                  ingName.toLowerCase().includes(ai.name.toLowerCase())
+                )
+                if (found && !matchedIds.includes(found.id)) {
+                  matchedIds.push(found.id)
+                }
+              })
             }
+
+            // Nếu không khớp, gán default ingredient
+            if (matchedIds.length === 0) {
+              if (idx === 0) matchedIds.push("ing-sea-1")
+              else if (idx === 1) matchedIds.push("ing-cp-1")
+              else if (idx === 2) matchedIds.push("ing-veg-2")
+              else matchedIds.push("ing-rice-1")
+            }
+
+            return {
+              id: `dish-edit-${idx + 1}`,
+              dishId: d.dishId || undefined,
+              name: d.name,
+              ingredientIds: matchedIds,
+              portionQty: qtyNum,
+              unit: "g"
+            }
+          })
+          setDishes(mappedDishes)
+        }
+
+        // Map substitute dish
+        if (rawMenu.substituteDish) {
+          const subQtyMatch = (rawMenu.substituteDish.qty || "45g").match(/(\d+)/)
+          setSubstituteDish({
+            name: rawMenu.substituteDish.name || "Thịt bò xào rau củ",
+            ingredientId: "ing-vis-1",
+            portionQty: subQtyMatch ? parseInt(subQtyMatch[1], 10) : 45,
+            unit: "g"
           })
         }
 
-        // Nếu không khớp, gán default ingredient
-        if (matchedIds.length === 0) {
-          if (idx === 0) matchedIds.push("ing-sea-1")
-          else if (idx === 1) matchedIds.push("ing-cp-1")
-          else if (idx === 2) matchedIds.push("ing-veg-2")
-          else matchedIds.push("ing-rice-1")
+        // Map seasonings
+        if (rawMenu.seasonings && rawMenu.seasonings.length > 0) {
+          const mappedSeasonings = rawMenu.seasonings.map((s, idx) => {
+            if (typeof s === "string") {
+              return {
+                id: `seas-edit-${idx}`,
+                name: s,
+                catalogId: `cat-${idx}`,
+                portionQty: idx === 0 ? 5 : idx === 1 ? 3 : 2,
+                unit: idx < 2 ? "ml" : "g"
+              }
+            }
+            return s
+          })
+          setSeasonings(mappedSeasonings)
         }
-
-        return {
-          id: `dish-edit-${idx + 1}`,
-          name: d.name,
-          ingredientIds: matchedIds,
-          portionQty: qtyNum,
-          unit: "g"
-        }
-      })
-      setDishes(mappedDishes)
+      } catch (err) {
+        console.warn("Lỗi load thực đơn:", err)
+      }
     }
-
-    // Map substitute dish
-    if (rawMenu.substituteDish) {
-      const subQtyMatch = (rawMenu.substituteDish.qty || "45g").match(/(\d+)/)
-      setSubstituteDish({
-        name: rawMenu.substituteDish.name || "Thịt bò xào rau củ",
-        ingredientId: "ing-vis-1",
-        portionQty: subQtyMatch ? parseInt(subQtyMatch[1], 10) : 45,
-        unit: "g"
-      })
-    }
-
-    // Map seasonings
-    if (rawMenu.seasonings && rawMenu.seasonings.length > 0) {
-      const mappedSeasonings = rawMenu.seasonings.map((s, idx) => {
-        if (typeof s === "string") {
-          return {
-            id: `seas-edit-${idx}`,
-            name: s,
-            catalogId: `cat-${idx}`,
-            portionQty: idx === 0 ? 5 : idx === 1 ? 3 : 2,
-            unit: idx < 2 ? "ml" : "g"
-          }
-        }
-        return s
-      })
-      setSeasonings(mappedSeasonings)
-    }
+    loadMenu()
+    return () => { isMounted = false }
   }, [id])
 
   const showToast = (message, type = "success") => {
@@ -255,16 +267,27 @@ export default function EditMenu() {
   const conflictCount = conflictDishes.length > 0 ? 12 : 0
 
   // Actions
-  const handleSaveDraft = () => {
-    showToast("Đã lưu các chỉnh sửa thực đơn thành công (Trạng thái DRAFT)", "success")
+  const handleSaveDraft = async () => {
+    try {
+      const res = await MenuService.updateMenu(id, { formState, dishes, substituteDish, seasonings })
+      showToast(res.message || "Đã lưu các chỉnh sửa thực đơn thành công", "success")
+    } catch (err) {
+      showToast("Lỗi lưu thực đơn: " + err.message, "warning")
+    }
   }
 
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     setIsConfirmModalOpen(false)
-    showToast("Đã gửi lại thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
-    setTimeout(() => {
-      navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", id))
-    }, 1200)
+    try {
+      await MenuService.updateMenu(id, { formState, dishes, substituteDish, seasonings })
+      await MenuService.submitMenu(id)
+      showToast("Đã gửi lại thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
+      setTimeout(() => {
+        navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", id))
+      }, 1200)
+    } catch (err) {
+      showToast("Lỗi gửi duyệt: " + err.message, "warning")
+    }
   }
 
   if (!menu || !formState) {

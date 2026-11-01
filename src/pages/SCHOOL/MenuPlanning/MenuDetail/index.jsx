@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { getMenuById } from "../mockMenuListData"
+import MenuService from "src/services/MenuService"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
 import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
@@ -19,13 +20,31 @@ export default function MenuDetail() {
   const navigate = useNavigate()
 
   const [menu, setMenu] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
   const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
   useEffect(() => {
-    const data = getMenuById(id)
-    setMenu(data)
+    let isMounted = true
+    const fetchDetail = async () => {
+      setLoading(true)
+      try {
+        const res = await MenuService.getMenuDetail(id)
+        if (isMounted && res?.data) {
+          setMenu(res.data)
+        } else if (isMounted) {
+          setMenu(getMenuById(id))
+        }
+      } catch (err) {
+        console.warn("Lỗi tải chi tiết thực đơn:", err)
+        if (isMounted) setMenu(getMenuById(id))
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    fetchDetail()
+    return () => { isMounted = false }
   }, [id])
 
   const showToast = (message, type = "success") => {
@@ -36,8 +55,14 @@ export default function MenuDetail() {
   }
 
   // Xử lý gửi BGH duyệt từ trang chi tiết
-  const handleConfirmSubmit = () => {
+  const handleConfirmSubmit = async () => {
     setIsConfirmSubmitOpen(false)
+    const targetId = menu.weeklyMenuId || menu.id
+    try {
+      await MenuService.submitMenu(targetId)
+    } catch (e) {
+      console.warn("Submit menu API:", e)
+    }
     setMenu(prev => ({
       ...prev,
       status: "PENDING_APPROVAL",
