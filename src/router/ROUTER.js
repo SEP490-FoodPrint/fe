@@ -63,6 +63,7 @@ const ROUTER = {
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
   SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
   SCHOOL_SUPPLIERS: "/school/suppliers",
+  SCHOOL_CLASS_ASSIGNMENT: "/school/class-assignment",   // BGH phân công GVCN
 
   // Common/Error
   FORBIDDEN: "/403",
