@@ -22,6 +22,7 @@ import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
 import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
+import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -222,6 +223,12 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_SUPPLIERS,
     label: "Nhà cung cấp",
     icon: <LocalShippingOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
+    label: "Phân công GVCN",
+    icon: <AssignmentIndOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
