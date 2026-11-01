@@ -1,4 +1,5 @@
 import React from "react"
+import { displayName } from "src/lib/displayName"
 import {
   Button,
   Chip,
@@ -41,7 +42,7 @@ function RelationshipList({
             {relationships.map((item) => (
               <TableRow key={item.id} hover>
                 <TableCell>
-                  <strong>{item.supplier.name}</strong>
+                  <strong>{displayName(item.supplier.name)}</strong>
                   <small>MST: {item.supplier.taxCode || "—"}</small>
                 </TableCell>
                 <TableCell>

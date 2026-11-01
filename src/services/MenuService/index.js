@@ -1,4 +1,5 @@
 import http from "../01_axios"
+import { displayName } from "src/lib/displayName"
 import {
   apiApproveMenu,
   apiGetMenus,
@@ -6,7 +7,10 @@ import {
   apiRequestMenuRevision,
 } from "./urls"
 
-const getApprovalDetail = menuId => http.get(apiGetMenuApprovalDetail(menuId))
+const getApprovalDetail = async menuId => {
+  const response = await http.get(apiGetMenuApprovalDetail(menuId))
+  return { ...response, data: { ...response.data, title: displayName(response.data.title) } }
+}
 
 const getMenus = async () => {
   const items = []
@@ -17,7 +21,7 @@ const getMenus = async () => {
     const response = await http.get(apiGetMenus, {
       params: { page, limit: 100 },
     })
-    items.push(...(response?.data?.items || []))
+    items.push(...(response?.data?.items || []).map(menu => ({ ...menu, title: displayName(menu.title) })))
     hasNext = Boolean(response?.data?.pagination?.hasNext)
     page += 1
   } while (hasNext)

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react"
+import { displayName } from "src/lib/displayName"
 import {
   Alert,
   Button,
@@ -242,7 +243,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
         <DialogTitle component="div">
           <div className="supplier-dialog-title">
             <div>
-              <h2>{data?.supplier.name || "Hồ sơ nhà cung cấp"}</h2>
+              <h2>{displayName(data?.supplier.name) || "Hồ sơ nhà cung cấp"}</h2>
               <small>
                 {data?.supplier.taxCode
                   ? `MST: ${data.supplier.taxCode}`
