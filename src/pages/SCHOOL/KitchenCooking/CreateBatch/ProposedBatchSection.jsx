@@ -109,46 +109,46 @@ export default function ProposedBatchSection({
             </span>
           </div>
           <div className={styles.traceToggleRight}>
-            <span className={styles.detailToggleText}>
+            <span className={styles.traceHint}>
               {isLotsDetailOpen ? "Thu gọn danh sách" : "Xem chi tiết lô nguồn"}
             </span>
             {isLotsDetailOpen ? (
-              <ChevronUp size={16} className={styles.toggleArrow} />
+              <ChevronUp size={16} className={styles.traceIcon} />
             ) : (
-              <ChevronDown size={16} className={styles.toggleArrow} />
+              <ChevronDown size={16} className={styles.traceIcon} />
             )}
           </div>
         </button>
 
         {isLotsDetailOpen && (
-          <div className={styles.lotsListContent}>
-            <div className={styles.lotChipItem}>
-              <span className={styles.chipCode}>LOT-HEO-892</span>
-              <span className={styles.chipName}>
+          <div className={styles.traceLotsList}>
+            <div className={styles.traceItem}>
+              <span className={styles.traceLotBadge}>LOT-HEO-892</span>
+              <span className={styles.traceItemName}>
                 Thịt ba chỉ heo tươi (50.0 kg)
               </span>
             </div>
-            <div className={styles.lotChipItem}>
-              <span className={styles.chipCode}>LOT-HEO-893</span>
-              <span className={styles.chipName}>
+            <div className={styles.traceItem}>
+              <span className={styles.traceLotBadge}>LOT-HEO-893</span>
+              <span className={styles.traceItemName}>
                 Thịt ba chỉ heo tươi (35.5 kg)
               </span>
             </div>
-            <div className={styles.lotChipItem}>
-              <span className={styles.chipCode}>LOT-CUT-224</span>
-              <span className={styles.chipName}>
+            <div className={styles.traceItem}>
+              <span className={styles.traceLotBadge}>LOT-CUT-224</span>
+              <span className={styles.traceItemName}>
                 Trứng cút tươi sạch (2.500 quả)
               </span>
             </div>
-            <div className={styles.lotChipItem}>
-              <span className={styles.chipCode}>LOT-DUA-018</span>
-              <span className={styles.chipName}>
+            <div className={styles.traceItem}>
+              <span className={styles.traceLotBadge}>LOT-DUA-018</span>
+              <span className={styles.traceItemName}>
                 Nước dừa tươi nguyên chất (80.0 lít)
               </span>
             </div>
-            <div className={styles.lotChipItem}>
-              <span className={styles.chipCode}>LOT-GVI-045</span>
-              <span className={styles.chipName}>
+            <div className={styles.traceItem}>
+              <span className={styles.traceLotBadge}>LOT-GVI-045</span>
+              <span className={styles.traceItemName}>
                 Gia vị kho an toàn (4.2 kg)
               </span>
             </div>

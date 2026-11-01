@@ -425,3 +425,118 @@
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
 }
+
+/* Missing component styling for ProposedSeparateBatchSection */
+.batchSizeBadge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  white-space: nowrap;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.deviceRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+}
+
+.deviceLabel {
+  color: var(--text-muted, #6b7280);
+  font-weight: 500;
+}
+
+.deviceVal {
+  color: var(--text-primary, #111827);
+  font-weight: 600;
+}
+
+.sourceBox {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background-color: #f9fafb;
+  border: 1px solid #f3f4f6;
+}
+
+.sourceLabel {
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
+  font-weight: 500;
+}
+
+.sourcePillPrimary {
+  font-size: 12px;
+  color: var(--color-primary, #0a8066);
+  strong {
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+  }
+}
+
+.sourcePillSecondary {
+  font-size: 12px;
+  color: #2563eb;
+  strong {
+    font-family: ui-monospace, monospace;
+    font-weight: 700;
+  }
+}
+
+.detailToggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px dashed var(--border-default, #e5e7eb);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #4b5563);
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f9fafb;
+    color: var(--text-primary, #111827);
+  }
+}
+
+.detailsContent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: #f9fafb;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+
+  span {
+    color: var(--text-secondary, #4b5563);
+  }
+
+  strong {
+    color: var(--text-primary, #111827);
+    font-weight: 600;
+  }
+}

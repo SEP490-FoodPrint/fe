@@ -395,25 +395,36 @@ export default function BasicInfoSection({
                   return (
                     <div
                       key={dish.id}
-                      className={`${styles.dropdownItem} ${
+                      className={`${styles.itemRow} ${
                         isSelected ? styles.itemSelected : ""
                       }`}
                       onClick={() => handleSelectDish(dish)}
                       role="option"
                       aria-selected={isSelected}
                     >
-                      <div className={styles.itemIconBox}>
-                        <ItemIcon size={16} />
-                      </div>
-                      <div className={styles.itemDetails}>
-                        <span className={styles.itemName}>{dish.name}</span>
-                        <span className={styles.itemCategory}>{dish.type}</span>
+                      <div className={styles.itemInfo}>
+                        <div
+                          className={`${styles.iconWrap} ${
+                            isSelected ? styles.iconWrapActive : ""
+                          }`}
+                        >
+                          <ItemIcon size={16} />
+                        </div>
+                        <div className={styles.textContainer}>
+                          <span
+                            className={
+                              isSelected
+                                ? styles.selectedName
+                                : styles.regularName
+                            }
+                          >
+                            {dish.name}
+                          </span>
+                          <span className={styles.dishMeta}>{dish.type}</span>
+                        </div>
                       </div>
                       {isSelected && (
-                        <CheckCircle2
-                          size={16}
-                          className={styles.itemCheckIcon}
-                        />
+                        <CheckCircle2 size={16} className={styles.checkIcon} />
                       )}
                     </div>
                   );

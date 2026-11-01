@@ -21,16 +21,16 @@ export function formatDateVN(dateInput) {
  * Định dạng ngày DD/MM/YYYY -> ISO (YYYY-MM-DDTHH:mm:ss.sssZ)
  */
 export function parseDateVNToISO(vnDateStr) {
-  if (!vnDateStr) return new Date().toISOString()
-  if (vnDateStr.includes("T")) return vnDateStr
+  if (!vnDateStr) return new Date().toISOString().slice(0, 10)
+  if (vnDateStr.includes("T")) return vnDateStr.slice(0, 10)
   const parts = vnDateStr.split("/")
   if (parts.length === 3) {
     const d = parseInt(parts[0], 10)
     const m = parseInt(parts[1], 10) - 1
     const y = parseInt(parts[2], 10)
-    return new Date(Date.UTC(y, m, d, 0, 0, 0)).toISOString()
+    return new Date(Date.UTC(y, m, d, 0, 0, 0)).toISOString().slice(0, 10)
   }
-  return new Date(vnDateStr).toISOString()
+  return new Date(vnDateStr).toISOString().slice(0, 10)
 }
 
 /**
@@ -305,6 +305,7 @@ export function adaptFormToBackendWrite({
   dishes = [],
   seasonings = []
 }) {
+  const normalizedMealType = mealType === "AFTERNOON_SNACK" ? "AFTERNOON" : mealType
   const menuDateISO = parseDateVNToISO(date)
   const menuDateObj = new Date(menuDateISO)
 
@@ -358,7 +359,7 @@ export function adaptFormToBackendWrite({
         note: notes ? notes.trim() : null,
         meals: [
           {
-            mealType,
+            mealType: normalizedMealType,
             dishes: mappedDishes,
             seasonings: mappedSeasonings
           }
