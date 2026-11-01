@@ -3,7 +3,7 @@ import { Alert, Button, CircularProgress } from "@mui/material"
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom"
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined"
 import AuthCard, { AuthHeading, AuthStatusIcon } from "src/components/Auth/AuthCard"
-import AuthField from "src/components/Auth/AuthField"
+import AuthInput from "src/components/Auth/AuthInput"
 import EmailCodeForm from "src/components/Auth/EmailCodeForm"
 import NewPasswordFields from "src/components/Auth/NewPasswordFields"
 import FormErrors from "src/components/Auth/FormErrors"
@@ -151,7 +151,7 @@ export default function PasswordRecovery({ step }) {
     {step === "email" && location.state?.recoveryExpired && <Alert severity="info">Phiên khôi phục không còn hiệu lực. Vui lòng nhập email để nhận mã mới.</Alert>}
     <FormErrors errors={errors} message={message} />
     {step === "reset" ? <NewPasswordFields values={values} onChange={change} errors={errors} disabled={loading} />
-      : <AuthField id="email" label="Email đã đăng ký" type="email" required autoComplete="email" placeholder="Nhập địa chỉ email" value={email} onChange={event => setEmail(event.target.value)} error={errors.email} inputProps={{ maxLength: 254 }} disabled={loading} />}
+      : <AuthInput id="email" label="Email đã đăng ký" type="email" required span="full" autoComplete="email" placeholder="Nhập địa chỉ email" value={email} onChange={event => setEmail(event.target.value)} error={errors.email} inputProps={{ maxLength: 254 }} disabled={loading} />}
     <Button type="submit" variant="contained" className={form.primary} disabled={loading || remaining > 0}>{loading ? <CircularProgress size={22} color="inherit" aria-label={step === "reset" ? "Đang đặt lại mật khẩu" : "Đang gửi mã"} /> : remaining ? `Thử lại sau ${remaining}s` : step === "reset" ? "Cập nhật mật khẩu" : "Gửi mã xác nhận"}</Button>
     <Button component={Link} to={ROUTER.LOGIN} className={`${form.link} ${styles.back}`} disabled={loading}>Quay lại đăng nhập</Button>
   </AuthCard>

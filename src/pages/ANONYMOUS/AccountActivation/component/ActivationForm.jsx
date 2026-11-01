@@ -3,7 +3,7 @@ import { Button } from "@mui/material"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined"
 import AuthCard, { AuthHeading, AuthStatusIcon } from "src/components/Auth/AuthCard"
-import AuthField from "src/components/Auth/AuthField"
+import AuthInput from "src/components/Auth/AuthInput"
 import EmailCodeForm from "src/components/Auth/EmailCodeForm"
 import useCountdown from "src/lib/useCountdown"
 import AuthService from "src/services/AuthService"
@@ -126,12 +126,12 @@ export default function ActivationForm() {
     eyebrow="Bước 2 / 4 · Kích hoạt email"
     description={pending?.codeSent ? "Nhập mã được gửi đến email đăng ký để xác nhận tài khoản." : "Nhập mã xác nhận từ email để tiếp tục."}
     email={pending?.email}
-    emailField={<AuthField id="activation-email" label="Email đã đăng ký" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} error={errors["activation-email"]} placeholder="Nhập địa chỉ email đã đăng ký" disabled={sending || verifying} />}
+    emailField={<AuthInput id="activation-email" label="Email đã đăng ký" type="email" required span="full" autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} error={errors["activation-email"]} placeholder="Nhập địa chỉ email đã đăng ký" disabled={sending || verifying} />}
     code={code} onCodeChange={setCode} errors={errors} message={message} notice={notice}
     sending={sending} verifying={verifying} remaining={remaining} verified={verified}
     onSubmit={verify} onResend={resend} submitLabel="Xác nhận tài khoản"
     footer={<Button component={Link} to={ROUTER.REGISTER} className={form.link} disabled={sending || verifying}>Quay lại đăng ký</Button>}
   >
-    {!memoryPassword && <AuthField id="activation-password" label="Mật khẩu tài khoản" type="password" required autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} error={errors["activation-password"]} placeholder="Nhập mật khẩu bạn đã đăng ký" hint="Nhập mật khẩu để đăng nhập sau khi xác nhận email." disabled={sending || verifying} />}
+    {!memoryPassword && <AuthInput id="activation-password" label="Mật khẩu tài khoản" type="password" required span="full" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} error={errors["activation-password"]} placeholder="Nhập mật khẩu bạn đã đăng ký" hint="Nhập mật khẩu để đăng nhập sau khi xác nhận email." disabled={sending || verifying} />}
   </EmailCodeForm>
 }
