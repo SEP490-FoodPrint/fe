@@ -57,7 +57,14 @@ export default function MenuSeasoningCard({
             </tr>
           </thead>
           <tbody>
-            {seasonings.map((seas, index) => {
+            {seasonings.length === 0 ? (
+              <tr>
+                <td colSpan={4} style={{ textAlign: "center", padding: "24px 16px", color: "#94a3b8", fontSize: "13px" }}>
+                  Chưa có gia vị nào. Bấm "+ Thêm gia vị từ kho" bên dưới để bổ sung gia vị xuất kho.
+                </td>
+              </tr>
+            ) : (
+              seasonings.map((seas, index) => {
               return (
                 <tr key={seas.id} className={styles.seasoningRow}>
                   {/* STT */}
@@ -124,7 +131,7 @@ export default function MenuSeasoningCard({
                   </td>
                 </tr>
               )
-            })}
+            }))}
           </tbody>
         </table>
       </div>

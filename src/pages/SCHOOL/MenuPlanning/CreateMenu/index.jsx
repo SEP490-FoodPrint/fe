@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import styles from "./CreateMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { INITIAL_DISHES, INITIAL_SEASONINGS, ALL_INGREDIENTS } from "../mockMenuData"
+import MenuService from "src/services/MenuService"
 
 import CreateMenuHeader from "../component/CreateMenuHeader"
 import MenuBasicInfoCard from "../component/MenuBasicInfoCard"
@@ -16,29 +17,46 @@ import IngredientPickerModal from "../component/IngredientPickerModal"
 export default function CreateMenu() {
   const navigate = useNavigate()
 
-  // Form State
+  // Hàm lấy ngày hôm nay theo định dạng DD/MM/YYYY
+  const getTodayFormatted = () => {
+    const now = new Date()
+    const d = String(now.getDate()).padStart(2, "0")
+    const m = String(now.getMonth() + 1).padStart(2, "0")
+    const y = now.getFullYear()
+    return `${d}/${m}/${y}`
+  }
+
+  // Form State: Khởi tạo hoàn toàn trống để Cán bộ Y tế nhập mới
   const [formState, setFormState] = useState({
-    name: "Thực đơn tuần 46 – Khối 1 & 2 – Bữa trưa",
-    date: "26/10/2026",
+    name: "",
+    date: getTodayFormatted(),
     mealType: "LUNCH",
-    targetScope: "Khối 1 & Khối 2 (Độ tuổi 6-7 tuổi)",
-    portionCount: 210,
-    notes: "Thực đơn giàu đạm và chất xơ, hạn chế muối theo tiêu chuẩn dinh dưỡng học đường."
+    targetScope: "",
+    portionCount: "",
+    notes: ""
   })
 
-  // Danh sách món ăn trong thực đơn (mỗi món có thể có nhiều nguyên liệu chính)
-  const [dishes, setDishes] = useState(INITIAL_DISHES)
+  // Danh sách món ăn trong thực đơn: Bắt đầu bằng 1 dòng trống để người dùng nhập
+  const [dishes, setDishes] = useState([
+    {
+      id: "dish-1",
+      name: "",
+      ingredientIds: [],
+      portionQty: 50,
+      unit: "g"
+    }
+  ])
 
-  // Món thay thế cho học sinh dị ứng (Mặc định là suất ăn riêng)
+  // Món thay thế cho học sinh dị ứng (Mặc định là suất ăn riêng, khởi tạo trống)
   const [substituteDish, setSubstituteDish] = useState({
-    name: "Thịt bò xào rau củ thập cẩm",
-    ingredientId: "ing-vis-1",
+    name: "",
+    ingredientId: null,
     portionQty: 40,
     unit: "g"
   })
 
-  // Gia vị bữa ăn học đường (chọn từ danh mục kho, nhập định lượng, không check tồn kho)
-  const [seasonings, setSeasonings] = useState(INITIAL_SEASONINGS)
+  // Gia vị bữa ăn học đường: Khởi tạo danh sách rỗng, người dùng bấm thêm khi cần
+  const [seasonings, setSeasonings] = useState([])
 
   // Modal chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu)
   const [isPickerOpen, setIsPickerOpen] = useState(false)
@@ -184,16 +202,49 @@ export default function CreateMenu() {
 
   const conflictCount = conflictDishes.length > 0 ? 12 : 0
 
-  const handleSaveDraft = () => {
-    showToast("Đã lưu bản nháp thực đơn thành công (Trạng thái DRAFT)", "success")
+  const handleSaveDraft = async () => {
+    if (!formState.name.trim()) {
+      showToast("Vui lòng nhập tên thực đơn để lưu nháp", "warning")
+      return
+    }
+    try {
+      const res = await MenuService.createMenu({ formState, dishes, substituteDish, seasonings })
+      showToast(res.message || "Đã lưu bản nháp thực đơn thành công (Trạng thái DRAFT)", "success")
+      setTimeout(() => {
+        navigate(ROUTER.SCHOOL_MENU_PLANNING)
+      }, 1000)
+    } catch (err) {
+      showToast("Không thể lưu bản nháp: " + err.message, "warning")
+    }
   }
 
-  const handleConfirmSubmit = () => {
+  const handleOpenConfirmSubmit = () => {
+    if (!formState.name.trim()) {
+      showToast("Vui lòng nhập tên thực đơn trước khi gửi duyệt", "warning")
+      return
+    }
+    const hasValidDish = dishes.some(d => d.name.trim().length > 0)
+    if (!hasValidDish) {
+      showToast("Vui lòng nhập ít nhất 1 món ăn trong thực đơn", "warning")
+      return
+    }
+    setIsConfirmModalOpen(true)
+  }
+
+  const handleConfirmSubmit = async () => {
     setIsConfirmModalOpen(false)
-    showToast("Đã gửi thực đơn lên Ban Giám hiệu phê duyệt thành công!", "success")
-    setTimeout(() => {
-      navigate(ROUTER.SCHOOL_MENU_PLANNING)
-    }, 1200)
+    try {
+      const created = await MenuService.createMenu({ formState, dishes, substituteDish, seasonings })
+      if (created?.data?.id) {
+        await MenuService.submitMenu(created.data.id)
+      }
+      showToast("Đã gửi thực đơn lên Ban Giám hiệu phê duyệt thành công!", "success")
+      setTimeout(() => {
+        navigate(ROUTER.SCHOOL_MENU_PLANNING)
+      }, 1200)
+    } catch (err) {
+      showToast("Lỗi gửi duyệt: " + err.message, "warning")
+    }
   }
 
   const showToast = (message, type = "success") => {
@@ -258,7 +309,7 @@ export default function CreateMenu() {
       <CreateMenuBottomBar
         onCancel={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
         onSaveDraft={handleSaveDraft}
-        onSubmitApproval={() => setIsConfirmModalOpen(true)}
+        onSubmitApproval={handleOpenConfirmSubmit}
       />
 
       {/* Popup Modal: Chọn nguyên liệu từ NCC liên kết (hỗ trợ chọn nhiều) */}

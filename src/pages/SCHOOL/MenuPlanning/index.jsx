@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { MOCK_MENU_LIST } from "./mockMenuListData"
+import MenuService from "src/services/MenuService"
 
 import MenuListHeader from "./component/MenuListHeader"
 import MenuListStatsRail from "./component/MenuListStatsRail"
@@ -15,7 +16,28 @@ export default function MenuPlanning() {
   const navigate = useNavigate()
 
   // Master data
-  const [menus] = useState(MOCK_MENU_LIST)
+  const [menus, setMenus] = useState(MOCK_MENU_LIST)
+  const [loading, setLoading] = useState(false)
+
+  // Tải dữ liệu thực tế từ backend (Azure DB) hoặc fallback mock
+  useEffect(() => {
+    let isMounted = true
+    const fetchMenus = async () => {
+      setLoading(true)
+      try {
+        const res = await MenuService.getMenus()
+        if (isMounted && res?.data && res.data.length > 0) {
+          setMenus(res.data)
+        }
+      } catch (err) {
+        console.warn("Lỗi tải thực đơn:", err)
+      } finally {
+        if (isMounted) setLoading(false)
+      }
+    }
+    fetchMenus()
+    return () => { isMounted = false }
+  }, [])
 
   // Filter state
   const [filters, setFilters] = useState({
