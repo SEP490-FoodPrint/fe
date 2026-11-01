@@ -1,55 +1,93 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Plus, FileDown, Clock } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
-import CookingBatchesKPI from "./CookingBatchesKPI"
-import CookingBatchesFilter from "./CookingBatchesFilter"
-import CookingBatchesTable from "./CookingBatchesTable"
-import SampleReminderBanner from "./SampleReminderBanner"
-import styles from "./index.module.scss"
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, FileDown, Clock } from "lucide-react";
+import ROUTER from "src/router/ROUTER";
+import STORAGE, { getStorage } from "src/lib/storage";
+import { StoreContext } from "src/contexts";
+import CookingBatchesKPI from "./CookingBatchesKPI";
+import CookingBatchesFilter from "./CookingBatchesFilter";
+import CookingBatchesTable from "./CookingBatchesTable";
+import SampleReminderBanner from "./SampleReminderBanner";
+import styles from "./index.module.scss";
 
 /**
  * CookingBatches - Màn hình Quản lý Lô Chế Biến (Nhân viên Bếp)
- * Chuẩn hóa Mobile-First & UI/UX Pro Max:
- * - Kế thừa MainLayout dùng chung (Sidebar xanh #0A8066 + DashboardHeader)
- * - Header Trang: Tiêu đề + Nút Tạo mẻ mới
- * - 4 Ô KPI dạng ngói compact 2 cột trên mobile
- * - Dải Filter Chips vuốt ngang mượt mà
- * - Bảng thích ứng: Desktop giữ bảng, Mobile chuyển thành Thẻ 2 hàng mật độ cao (~60px)
- * - Nút Tạo mẻ ghim đáy màn hình (Sticky Bottom CTA) cho ngón tay cái thao tác 1 tay
+ * Tự động hiển thị ca ăn và chuyển hướng theo cấu hình chế độ nấu của trường:
+ * - Trường Nấu chung Cầu Giấy (COMBINE_LOTS): Ca trưa 11:00 -> /batches/create (Nấu chung)
+ * - Trường Nấu riêng FoodPrint DEMO (SEPARATE_BY_LOT): Ca trưa 11:30 -> /batches/create-separate (Nấu riêng)
  */
 function CookingBatches() {
-  const navigate = useNavigate()
-  const [filterChip, setFilterChip] = useState("ALL")
-  const [searchTerm, setSearchTerm] = useState("")
+  const navigate = useNavigate();
+  const { userStore } = useContext(StoreContext) || {};
+  const [filterChip, setFilterChip] = useState("ALL");
+  const [searchTerm, setSearchTerm] = useState("");
+
+  // Tự động phát hiện trường học của tài khoản Bếp đang đăng nhập
+  const userInfo = userStore?.user || getStorage(STORAGE.USER_INFO) || {};
+  const isSeparateMode =
+    userInfo.cookingMode === "SEPARATE_BY_LOT" ||
+    userInfo.orgName?.toLowerCase().includes("demo") ||
+    userInfo.schoolName?.toLowerCase().includes("demo") ||
+    userInfo.username === "fp_demo_kitchen" ||
+    userInfo.email === "fp_demo_kitchen@example.invalid" ||
+    userInfo.email?.includes("demo_kitchen") ||
+    userInfo.schoolId === "4eabb820-f445-52db-8aeb-2fd0f6cb882a";
+
+  // Giờ ăn do BGH trường thiết lập trong CSDL
+  const shiftTimeLabel = isSeparateMode ? "Ca trưa (11:30)" : "Ca trưa (11:00)";
+  const schoolLabel = isSeparateMode
+    ? "Trường DEMO (Nấu riêng 1:1)"
+    : "Trường Cầu Giấy (Nấu chung)";
+
+  const handleNavigateCreate = () => {
+    if (isSeparateMode) {
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE);
+    } else {
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE);
+    }
+  };
 
   return (
     <div className={styles.batchesContainer}>
-      {/* 1. Header Trang: Tiêu đề + Badge ca ăn + Nút thao tác Desktop */}
+      {/* 1. Header Trang: Tiêu đề + Badge ca ăn đồng bộ cấu hình BGH + Nút thao tác Desktop */}
       <div className={styles.pageHeader}>
         <div className={styles.titleWrap}>
           <h1 className={styles.title}>Quản lý lô chế biến</h1>
           <div className={styles.shiftBadge}>
             <span className={styles.pulseDot} />
             <Clock size={13} className={styles.clockIcon} />
-            <span>Ca trưa (11:15)</span>
+            <span>{shiftTimeLabel}</span>
+            <span style={{ opacity: 0.6, margin: "0 2px" }}>•</span>
+            <span style={{ fontSize: "11.5px" }}>{schoolLabel}</span>
           </div>
         </div>
 
         {/* Action buttons (Desktop) */}
         <div className={styles.actionBtns}>
-          <button type="button" className={styles.exportBtn} title="Xuất báo cáo danh sách lô chế biến">
+          <button
+            type="button"
+            className={styles.exportBtn}
+            title="Xuất báo cáo danh sách lô chế biến"
+          >
             <FileDown size={16} />
             <span>Xuất báo cáo</span>
           </button>
 
+          {/* Nút hành động chuẩn theo cấu hình chế độ nấu của nhà trường */}
           <button
             type="button"
             className={styles.createBtn}
-            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)}
+            onClick={() => handleNavigateCreate()}
+            title={
+              isSeparateMode
+                ? "Chế độ trường: Nấu riêng từng lô"
+                : "Chế độ trường: Nấu chung hợp nhất lô"
+            }
           >
             <Plus size={18} />
-            <span>Tạo lô nấu mới</span>
+            <span>
+              {isSeparateMode ? "Tạo lô nấu riêng" : "Tạo lô nấu mới"}
+            </span>
           </button>
         </div>
       </div>
@@ -75,14 +113,14 @@ function CookingBatches() {
         <button
           type="button"
           className={styles.mobileCreateBtn}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)}
+          onClick={() => handleNavigateCreate()}
         >
           <Plus size={19} />
-          <span>Tạo lô nấu mới</span>
+          <span>{isSeparateMode ? "Tạo lô nấu riêng" : "Tạo lô nấu mới"}</span>
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-export default CookingBatches
+export default CookingBatches;

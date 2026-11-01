@@ -1,30 +1,57 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { ArrowLeft, CheckCircle2, FileText, PlusCircle } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
-import styles from "./CreateBatchFooter.module.scss"
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  PlusCircle,
+} from "lucide-react";
+import ROUTER from "src/router/ROUTER";
+import styles from "./CreateBatchFooter.module.scss";
 
-export default function CreateBatchFooter() {
-  const navigate = useNavigate()
-  const [showSuccessToast, setShowSuccessToast] = useState(false)
-  const [toastMessage, setToastMessage] = useState("")
+export default function CreateBatchFooter({ selectedDish }) {
+  const navigate = useNavigate();
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [isError, setIsError] = useState(false);
 
   const handleSaveDraft = () => {
-    setToastMessage("Đã lưu phương án chế biến ở trạng thái Chưa xác nhận (DRAFT).")
-    setShowSuccessToast(true)
+    if (!selectedDish) {
+      setToastMessage("Vui lòng chọn món ăn ở Bước 1 trước khi lưu phương án.");
+      setIsError(true);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
+      return;
+    }
+    setIsError(false);
+    setToastMessage(
+      "Đã lưu phương án chế biến ở trạng thái Chưa xác nhận (DRAFT).",
+    );
+    setShowToast(true);
     setTimeout(() => {
-      setShowSuccessToast(false)
-    }, 2500)
-  }
+      setShowToast(false);
+    }, 2500);
+  };
 
   const handleCreateBatch = () => {
-    setToastMessage("Khởi tạo lô chế biến Thịt heo kho nước dừa thành công!")
-    setShowSuccessToast(true)
+    if (!selectedDish) {
+      setToastMessage(
+        "Vui lòng chọn món ăn ở Bước 1 trước khi tạo lô chế biến.",
+      );
+      setIsError(true);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
+      return;
+    }
+    setIsError(false);
+    setToastMessage(`Khởi tạo lô chế biến ${selectedDish.name} thành công!`);
+    setShowToast(true);
     setTimeout(() => {
-      setShowSuccessToast(false)
-      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)
-    }, 1200)
-  }
+      setShowToast(false);
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
+    }, 1200);
+  };
 
   return (
     <>
@@ -59,6 +86,7 @@ export default function CreateBatchFooter() {
               type="button"
               className={styles.createBtn}
               onClick={handleCreateBatch}
+              style={{ opacity: selectedDish ? 1 : 0.6 }}
             >
               <PlusCircle size={17} />
               <span>Tạo lô chế biến</span>
@@ -67,7 +95,7 @@ export default function CreateBatchFooter() {
         </div>
       </div>
 
-      {/* 2. Mobile Sticky Bottom Bar (Ghim cố định đáy màn hình < 768px cho ngón cái) */}
+      {/* 2. Mobile Sticky Bottom Bar */}
       <div className={styles.mobileStickyBar}>
         <div className={styles.mobileBarInner}>
           <button
@@ -85,6 +113,7 @@ export default function CreateBatchFooter() {
             className={styles.mobCreateBtn}
             onClick={handleCreateBatch}
             aria-label="Khởi tạo lô chế biến mới"
+            style={{ opacity: selectedDish ? 1 : 0.6 }}
           >
             <PlusCircle size={18} />
             <span>Tạo lô chế biến</span>
@@ -92,13 +121,22 @@ export default function CreateBatchFooter() {
         </div>
       </div>
 
-      {/* Success Toast Notification */}
-      {showSuccessToast && (
-        <div className={styles.toast} role="status" aria-live="polite">
-          <CheckCircle2 size={18} className={styles.toastIcon} />
+      {/* Toast Notification */}
+      {showToast && (
+        <div
+          className={styles.toast}
+          role="status"
+          aria-live="polite"
+          style={{ backgroundColor: isError ? "#ef4444" : "#0a8066" }}
+        >
+          {isError ? (
+            <AlertCircle size={18} className={styles.toastIcon} />
+          ) : (
+            <CheckCircle2 size={18} className={styles.toastIcon} />
+          )}
           <span>{toastMessage}</span>
         </div>
       )}
     </>
-  )
+  );
 }

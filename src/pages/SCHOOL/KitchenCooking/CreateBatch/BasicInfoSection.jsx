@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react"
+import React, { useState, useRef, useEffect } from "react";
 import {
   Lock,
   Calendar,
@@ -10,79 +10,253 @@ import {
   Apple,
   CheckCircle2,
   Search,
-  X
-} from "lucide-react"
-import styles from "./BasicInfoSection.module.scss"
+  X,
+} from "lucide-react";
+import styles from "./BasicInfoSection.module.scss";
 
-const DISH_OPTIONS = [
+export const DISH_OPTIONS = [
   {
     id: "dish-1",
     name: "Thịt heo kho nước dừa",
     type: "Món mặn chính • Giàu đạm, canxi",
     icon: Beef,
+    portionStandard: 1250,
+    ingredients: [
+      {
+        id: "ing-1",
+        name: "Thịt ba chỉ heo tươi",
+        supplier: "Hợp tác xã Nam Hà",
+        totalRequired: "85.5 kg",
+        portionNote: "1.250 suất",
+        isMultiLot: true,
+        statusText: "Đủ 85.5 / 85.5 kg",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-HEO-892",
+            exp: "12/11/2026",
+            available: "50.0 kg",
+            allocated: "50.0 kg",
+          },
+          {
+            code: "LOT-HEO-893",
+            exp: "13/11/2026",
+            available: "60.0 kg",
+            allocated: "35.5 kg",
+          },
+        ],
+      },
+      {
+        id: "ing-2",
+        name: "Trứng cút tươi sạch",
+        supplier: "Trang trại Gia cầm Ba Vì",
+        totalRequired: "2.500 quả",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 2.500 / 2.500 quả",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-CUT-224",
+            exp: "20/11/2026",
+            available: "3.000 quả",
+            allocated: "2.500 quả",
+          },
+        ],
+      },
+      {
+        id: "ing-3",
+        name: "Nước dừa tươi nguyên chất",
+        supplier: "Công ty Nông sản Bến Tre",
+        totalRequired: "80.0 lít",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 80.0 / 80.0 lít",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-DUA-018",
+            exp: "15/11/2026",
+            available: "120.0 lít",
+            allocated: "80.0 lít",
+          },
+        ],
+      },
+      {
+        id: "ing-4",
+        name: "Gia vị kho an toàn",
+        supplier: "Tổng kho gia vị thực phẩm",
+        totalRequired: "4.2 kg",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 4.2 / 4.2 kg",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-GVI-045",
+            exp: "30/12/2026",
+            available: "15.0 kg",
+            allocated: "4.2 kg",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "dish-2",
     name: "Canh sườn hầm củ quả thập cẩm",
-    type: "Món canh",
+    type: "Món canh dinh dưỡng",
     icon: Soup,
+    portionStandard: 1250,
+    ingredients: [
+      {
+        id: "ing-21",
+        name: "Sườn heo non tươi",
+        supplier: "Hợp tác xã Nam Hà",
+        totalRequired: "62.5 kg",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 62.5 / 62.5 kg",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-SUON-301",
+            exp: "12/11/2026",
+            available: "80.0 kg",
+            allocated: "62.5 kg",
+          },
+        ],
+      },
+      {
+        id: "ing-22",
+        name: "Củ quả tươi (Cà rốt, ngô ngọt)",
+        supplier: "Hợp tác xã Nông sản Ba Vì",
+        totalRequired: "75.0 kg",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 75.0 / 75.0 kg",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-CUQUA-112",
+            exp: "15/11/2026",
+            available: "100.0 kg",
+            allocated: "75.0 kg",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "dish-3",
-    name: "Đậu hũ non sốt thịt băm cà chua",
-    type: "Món phụ / xào",
+    name: "Cơm gạo ST25 dẻo thơm",
+    type: "Món chính • Năng lượng sạch",
     icon: Utensils,
+    portionStandard: 1250,
+    ingredients: [
+      {
+        id: "ing-31",
+        name: "Gạo đặc sản ST25",
+        supplier: "Tập đoàn Nông sản Vinaseed",
+        totalRequired: "150.0 kg",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 150.0 / 150.0 kg",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-GAO-ST25-99",
+            exp: "30/12/2026",
+            available: "500.0 kg",
+            allocated: "150.0 kg",
+          },
+        ],
+      },
+    ],
   },
   {
     id: "dish-4",
     name: "Thanh long ruột đỏ Bình Thuận",
     type: "Món tráng miệng",
     icon: Apple,
+    portionStandard: 1250,
+    ingredients: [
+      {
+        id: "ing-41",
+        name: "Thanh long ruột đỏ VietGAP",
+        supplier: "Hợp tác xã Trái cây Bình Thuận",
+        totalRequired: "125.0 kg",
+        portionNote: "1.250 suất",
+        isMultiLot: false,
+        statusText: "Đủ 125.0 / 125.0 kg",
+        statusType: "success",
+        lots: [
+          {
+            code: "LOT-THANHLONG-05",
+            exp: "08/11/2026",
+            available: "150.0 kg",
+            allocated: "125.0 kg",
+          },
+        ],
+      },
+    ],
   },
-]
+];
 
-export default function BasicInfoSection() {
-  const [selectedMeal, setSelectedMeal] = useState("lunch")
-  const [selectedDish, setSelectedDish] = useState(DISH_OPTIONS[0])
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [portions, setPortions] = useState(1250)
+export default function BasicInfoSection({
+  selectedDish,
+  setSelectedDish,
+  portions = 1250,
+  setPortions,
+  selectedMeal = "lunch",
+  setSelectedMeal,
+}) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const dropdownRef = useRef(null)
+  const dropdownRef = useRef(null);
 
   // Handle click outside to close dropdown
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false)
+        setIsDropdownOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Handle escape key
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key === "Escape") {
-        setIsDropdownOpen(false)
+        setIsDropdownOpen(false);
       }
     }
-    document.addEventListener("keydown", handleKeyDown)
-    return () => document.removeEventListener("keydown", handleKeyDown)
-  }, [])
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const filteredDishes = DISH_OPTIONS.filter((dish) =>
-    dish.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+    dish.name.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   const handleClearSelection = (e) => {
-    e.stopPropagation()
-    setSelectedDish(null)
-    setIsDropdownOpen(true)
-  }
+    e.stopPropagation();
+    setSelectedDish(null);
+    setIsDropdownOpen(true);
+  };
 
-  const DishIcon = selectedDish?.icon || Utensils
+  const handleSelectDish = (dish) => {
+    setSelectedDish(dish);
+    if (dish.portionStandard && setPortions) {
+      setPortions(dish.portionStandard);
+    }
+    setIsDropdownOpen(false);
+  };
+
+  const DishIcon = selectedDish?.icon || Utensils;
 
   return (
     <section className={styles.sectionContainer}>
@@ -101,11 +275,14 @@ export default function BasicInfoSection() {
 
       {/* Row 1: Ngày ăn & Bữa ăn */}
       <div className={styles.gridRow}>
-        {/* Ngày ăn (Khóa) */}
+        {/* Ngày ăn (Khóa theo thực đơn hôm nay) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
             <label className={styles.label}>Ngày ăn / Chế biến</label>
-            <span className={styles.lockHint} title="Đồng bộ tự động từ thực đơn">
+            <span
+              className={styles.lockHint}
+              title="Đồng bộ tự động từ thực đơn đã duyệt"
+            >
               <Lock size={12} />
               <span>Đã khóa theo thực đơn</span>
             </span>
@@ -115,11 +292,11 @@ export default function BasicInfoSection() {
             <div className={styles.lockedValue}>
               <Calendar size={15} className={styles.calIcon} />
               <div className={styles.dateMeta}>
-                <span className={styles.lockedDate}>26/10/2026</span>
-                <span className={styles.lockedSub}>• Thứ Hai (Tuần 46)</span>
+                <span className={styles.lockedDate}>01/11/2026</span>
+                <span className={styles.lockedSub}>• Hôm nay (Tuần 45)</span>
               </div>
             </div>
-            <span className={styles.lockedBadge}>Khóa</span>
+            <span className={styles.lockedBadge}>Đã duyệt</span>
           </div>
         </div>
 
@@ -130,14 +307,20 @@ export default function BasicInfoSection() {
             <select
               className={styles.selectInput}
               value={selectedMeal}
-              onChange={(e) => setSelectedMeal(e.target.value)}
+              onChange={(e) => setSelectedMeal?.(e.target.value)}
               aria-label="Chọn bữa ăn phục vụ"
             >
-              <option value="lunch">Bữa trưa học đường (10:45 – 11:45)</option>
+              <option value="lunch">Bữa trưa học đường (11:00 – 12:00)</option>
               <option value="afternoon">Bữa phụ chiều (14:30 – 15:00)</option>
-              <option value="breakfast">Bữa sáng bán trú (06:45 – 07:30)</option>
+              <option value="breakfast">
+                Bữa sáng bán trú (06:45 – 07:30)
+              </option>
             </select>
-            <ChevronDown size={16} className={styles.selectArrow} aria-hidden="true" />
+            <ChevronDown
+              size={16}
+              className={styles.selectArrow}
+              aria-hidden="true"
+            />
           </div>
         </div>
       </div>
@@ -146,7 +329,9 @@ export default function BasicInfoSection() {
       <div className={styles.gridRow}>
         {/* Món cần chế biến (Searchable Dropdown) */}
         <div className={styles.formGroup} ref={dropdownRef}>
-          <label className={styles.label}>Món cần chế biến</label>
+          <label className={styles.label}>
+            Món cần chế biến (Thực đơn hôm nay)
+          </label>
           <div
             className={`${styles.dropdownTrigger} ${
               isDropdownOpen ? styles.dropdownOpen : ""
@@ -162,7 +347,9 @@ export default function BasicInfoSection() {
                 <DishIcon size={16} />
               </div>
               <span className={styles.dishName}>
-                {selectedDish ? selectedDish.name : "Chọn món cần chế biến..."}
+                {selectedDish
+                  ? selectedDish.name
+                  : "-- Chọn món ăn trong thực đơn hôm nay --"}
               </span>
             </div>
 
@@ -194,7 +381,7 @@ export default function BasicInfoSection() {
                 <input
                   type="text"
                   className={styles.searchInput}
-                  placeholder="Tìm tên món trong thực đơn..."
+                  placeholder="Tìm món trong thực đơn hôm nay..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
@@ -203,81 +390,69 @@ export default function BasicInfoSection() {
 
               <div className={styles.itemsList} role="listbox">
                 {filteredDishes.map((dish) => {
-                  const isSelected = selectedDish?.id === dish.id
-                  const ItemIcon = dish.icon
+                  const isSelected = selectedDish?.id === dish.id;
+                  const ItemIcon = dish.icon;
                   return (
                     <div
                       key={dish.id}
-                      className={`${styles.itemRow} ${
+                      className={`${styles.dropdownItem} ${
                         isSelected ? styles.itemSelected : ""
                       }`}
-                      onClick={() => {
-                        setSelectedDish(dish)
-                        setIsDropdownOpen(false)
-                        setSearchQuery("")
-                      }}
+                      onClick={() => handleSelectDish(dish)}
                       role="option"
                       aria-selected={isSelected}
                     >
-                      <div className={styles.itemInfo}>
-                        <div className={`${styles.iconWrap} ${isSelected ? styles.iconWrapActive : ""}`}>
-                          {isSelected ? (
-                            <CheckCircle2 size={16} className={styles.checkIcon} />
-                          ) : (
-                            <ItemIcon size={16} />
-                          )}
-                        </div>
-                        <div className={styles.textContainer}>
-                          <span
-                            className={
-                              isSelected ? styles.selectedName : styles.regularName
-                            }
-                          >
-                            {dish.name}
-                          </span>
-                          <span className={styles.dishMeta}>{dish.type}</span>
-                        </div>
+                      <div className={styles.itemIconBox}>
+                        <ItemIcon size={16} />
                       </div>
-
-                      {isSelected ? (
-                        <span className={styles.activeTag}>Đang chọn</span>
-                      ) : (
-                        <span className={styles.chooseAction}>Chọn</span>
+                      <div className={styles.itemDetails}>
+                        <span className={styles.itemName}>{dish.name}</span>
+                        <span className={styles.itemCategory}>{dish.type}</span>
+                      </div>
+                      {isSelected && (
+                        <CheckCircle2
+                          size={16}
+                          className={styles.itemCheckIcon}
+                        />
                       )}
                     </div>
-                  )
+                  );
                 })}
-
-                {filteredDishes.length === 0 && (
-                  <div className={styles.emptyState}>
-                    Không tìm thấy món phù hợp với "{searchQuery}"
-                  </div>
-                )}
               </div>
             </div>
           )}
         </div>
 
-        {/* Số suất cần chế biến (Tự động tính từ sĩ số chốt của GVCN) */}
+        {/* Số suất dự kiến (Tự động từ điểm danh GVCN) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label}>Số suất chế biến</label>
-            <span className={styles.lockHint} title="Tự động tính từ sĩ số báo ăn của GVCN">
+            <label className={styles.label}>Số suất dự kiến chế biến</label>
+            <span
+              className={styles.lockHint}
+              title="Đối soát tự động từ điểm danh"
+            >
               <Lock size={12} />
-              <span>Tự động tính theo báo ăn</span>
+              <span>Chốt theo điểm danh</span>
             </span>
           </div>
 
-          <div className={styles.lockedField}>
-            <div className={styles.lockedValue}>
-              <CheckCircle2 size={16} className={styles.calIcon} />
-              <span className={styles.lockedDate}>{portions.toLocaleString("vi-VN")} suất</span>
-              <span className={styles.lockedSub}>(Khớp 100% sĩ số chốt)</span>
-            </div>
-            <span className={styles.lockedBadge}>Đã chốt báo ăn</span>
+          <div className={styles.inputInner}>
+            <input
+              type="number"
+              className={styles.portionInput}
+              value={portions}
+              onChange={(e) => setPortions?.(Number(e.target.value) || 0)}
+              min={1}
+              step={1}
+              aria-label="Số suất dự kiến chế biến"
+            />
+            <span className={styles.unitSuffix}>suất</span>
           </div>
+          <span className={styles.helperText}>
+            • Đã chốt từ 35/35 lớp học (Điểm danh học sinh bán trú hôm nay)
+          </span>
         </div>
       </div>
     </section>
-  )
+  );
 }
