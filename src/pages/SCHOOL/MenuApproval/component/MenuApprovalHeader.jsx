@@ -1,13 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Breadcrumbs, Button, Card, Chip, MenuItem, TextField, Typography } from "@mui/material"
-import {
-  CheckCircle2,
-  ChevronRight,
-  ClipboardCheck,
-  Printer,
-  RotateCcw,
-} from "lucide-react"
+import { Button, MenuItem, TextField } from "@mui/material"
+import { CheckCircle2, ClipboardCheck, Printer, RotateCcw } from "lucide-react"
 import styles from "./MenuApprovalHeader.module.scss"
 
 const STATUS_CONFIG = {
@@ -17,7 +11,7 @@ const STATUS_CONFIG = {
     icon: <ClipboardCheck size={14} />,
   },
   APPROVED: {
-    label: "Đã phê duyệt bởi BGH",
+    label: "Đã phê duyệt",
     className: styles.statusApproved,
     icon: <CheckCircle2 size={14} />,
   },
@@ -59,52 +53,52 @@ function MenuApprovalHeader({
   const status = STATUS_CONFIG[menu.status] || { label: "Chưa gửi duyệt", className: styles.statusPending }
 
   return (
-    <section className={styles.wrapper} aria-labelledby="menu-approval-title">
-      <Breadcrumbs
-        separator={<ChevronRight size={14} />}
-        aria-label="Điều hướng trang"
-        className={styles.breadcrumbs}
-      >
-        <Typography variant="caption">Ban Giám hiệu</Typography>
-        <Typography variant="caption">Duyệt thực đơn</Typography>
-        <Typography variant="caption" className={styles.currentBreadcrumb}>
-          Chi tiết đề xuất
-        </Typography>
-      </Breadcrumbs>
+    <>
+      <header className={styles.header}>
+        <div>
+          <nav className={styles.breadcrumb} aria-label="Đường dẫn trang">
+            <span>Ban Giám hiệu</span>
+            <span>/</span>
+            <strong>Phê duyệt thực đơn</strong>
+          </nav>
+          <p className={styles.eyebrow}>Thẩm định bán trú</p>
+          <h1 id="menu-approval-title" className={styles.title}>Phê duyệt thực đơn</h1>
+          <p className={styles.subtitle}>
+            Xem thực đơn tuần do Y tế gửi, phê duyệt cả tuần hoặc từng ngày.
+          </p>
+        </div>
 
-      <Card className={styles.headerCard} elevation={0}>
-        <div className={styles.headingGroup}>
-          <div className={styles.titleRow}>
-            <Typography id="menu-approval-title" component="h1" className={styles.title}>
-              Chi tiết thực đơn đề xuất
-            </Typography>
-            <Chip label={`Mã: ${menu.code}`} size="small" className={styles.codeChip} />
-            <span className={`${styles.status} ${status.className}`}>
-              {status.icon}
-              {status.label}
-            </span>
-          </div>
-          <Typography className={styles.description}>Phạm vi xử lý: {scopeLabel}. Chỉ các ngày còn chờ duyệt được xử lý.</Typography>
+        <TextField
+          select
+          size="small"
+          label="Tuần thực đơn"
+          value={selectedWeekId || ""}
+          onChange={event => onWeekChange(event.target.value)}
+          disabled={submitting}
+          className={styles.weekSelect}
+        >
+          {weeks.map(week => (
+            <MenuItem key={week.id} value={week.id}>
+              Tuần {formatWeekRange(week.weekStartDate)} · {WEEK_STATUS_LABEL[week.status] || week.status}
+            </MenuItem>
+          ))}
+        </TextField>
+      </header>
+
+      <section className={styles.decisionBar} aria-labelledby="menu-approval-title">
+        <div className={styles.decisionInfo}>
+          <span className={`${styles.status} ${status.className}`}>
+            {status.icon}
+            {status.label}
+          </span>
+          <span className={styles.scope}>
+            Phạm vi xử lý: <strong>{scopeLabel}</strong>
+          </span>
         </div>
 
         <div className={styles.actions}>
-          <TextField
-            select
-            size="small"
-            label="Tuần thực đơn"
-            value={selectedWeekId || ""}
-            onChange={event => onWeekChange(event.target.value)}
-            disabled={submitting}
-            className={styles.weekSelect}
-          >
-            {weeks.map(week => (
-              <MenuItem key={week.id} value={week.id}>
-                Tuần {formatWeekRange(week.weekStartDate)} · {WEEK_STATUS_LABEL[week.status] || week.status}
-              </MenuItem>
-            ))}
-          </TextField>
           <Button
-            variant="outlined"
+            variant="text"
             color="inherit"
             startIcon={<Printer size={17} />}
             onClick={onPrint}
@@ -113,7 +107,7 @@ function MenuApprovalHeader({
           </Button>
           {canDecide && (
             <>
-              <Button variant="text" color="error" onClick={onReject} disabled={submitting}>
+              <Button variant="outlined" color="error" onClick={onReject} disabled={submitting}>
                 Yêu cầu chỉnh sửa
               </Button>
               <Button
@@ -127,8 +121,8 @@ function MenuApprovalHeader({
             </>
           )}
         </div>
-      </Card>
-    </section>
+      </section>
+    </>
   )
 }
 

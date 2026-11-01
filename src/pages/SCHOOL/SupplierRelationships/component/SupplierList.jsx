@@ -44,11 +44,13 @@ function SupplierList({
                   <small>{supplier.phone || supplier.email || ""}</small>
                 </TableCell>
                 <TableCell>
-                  <span>
-                    {[supplier.location?.name, supplier.location?.parent?.name]
-                      .filter(Boolean)
-                      .join(", ") || "Chưa cập nhật địa bàn"}
-                  </span>
+                  {(supplier.location?.name || supplier.location?.parent?.name) && (
+                    <span>
+                      {[supplier.location?.name, supplier.location?.parent?.name]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </span>
+                  )}
                   <small>{supplier.address || "Chưa cập nhật địa chỉ"}</small>
                   <small>
                     {supplier.ingredients
