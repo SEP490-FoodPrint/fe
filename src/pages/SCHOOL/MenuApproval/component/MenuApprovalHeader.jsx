@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Breadcrumbs, Button, Card, Chip, Typography } from "@mui/material"
+import { Breadcrumbs, Button, Card, Chip, MenuItem, TextField, Typography } from "@mui/material"
 import {
   CheckCircle2,
   ChevronRight,
@@ -28,7 +28,34 @@ const STATUS_CONFIG = {
   },
 }
 
-function MenuApprovalHeader({ menu, onApprove, onReject, onPrint, canDecide, scopeLabel, submitting }) {
+const WEEK_STATUS_LABEL = {
+  PENDING_APPROVAL: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  REVISION_REQUIRED: "Yêu cầu điều chỉnh",
+}
+
+// weekStartDate là ngày thứ Hai (YYYY-MM-DD...), tuần học từ thứ Hai đến thứ Sáu
+const formatWeekRange = weekStartDate => {
+  const [year, month, day] = String(weekStartDate).slice(0, 10).split("-").map(Number)
+  const start = new Date(Date.UTC(year, month - 1, day))
+  const end = new Date(Date.UTC(year, month - 1, day + 4))
+  const pad = value => String(value).padStart(2, "0")
+  const short = date => `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}`
+  return `${short(start)} – ${short(end)}/${end.getUTCFullYear()}`
+}
+
+function MenuApprovalHeader({
+  menu,
+  weeks,
+  selectedWeekId,
+  onWeekChange,
+  onApprove,
+  onReject,
+  onPrint,
+  canDecide,
+  scopeLabel,
+  submitting,
+}) {
   const status = STATUS_CONFIG[menu.status] || { label: "Chưa gửi duyệt", className: styles.statusPending }
 
   return (
@@ -61,6 +88,21 @@ function MenuApprovalHeader({ menu, onApprove, onReject, onPrint, canDecide, sco
         </div>
 
         <div className={styles.actions}>
+          <TextField
+            select
+            size="small"
+            label="Tuần thực đơn"
+            value={selectedWeekId || ""}
+            onChange={event => onWeekChange(event.target.value)}
+            disabled={submitting}
+            className={styles.weekSelect}
+          >
+            {weeks.map(week => (
+              <MenuItem key={week.id} value={week.id}>
+                Tuần {formatWeekRange(week.weekStartDate)} · {WEEK_STATUS_LABEL[week.status] || week.status}
+              </MenuItem>
+            ))}
+          </TextField>
           <Button
             variant="outlined"
             color="inherit"
@@ -92,6 +134,9 @@ function MenuApprovalHeader({ menu, onApprove, onReject, onPrint, canDecide, sco
 
 MenuApprovalHeader.propTypes = {
   menu: PropTypes.object.isRequired,
+  weeks: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedWeekId: PropTypes.string,
+  onWeekChange: PropTypes.func.isRequired,
   onApprove: PropTypes.func.isRequired,
   onReject: PropTypes.func.isRequired,
   onPrint: PropTypes.func.isRequired,

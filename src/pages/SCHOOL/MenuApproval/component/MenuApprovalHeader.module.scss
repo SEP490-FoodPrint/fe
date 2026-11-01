@@ -98,6 +98,11 @@
   flex-shrink: 0;
 }
 
+.weekSelect {
+  min-width: 18rem;
+  background: var(--bg-surface);
+}
+
 @media (max-width: 1050px) {
   .headerCard {
     align-items: flex-start;
