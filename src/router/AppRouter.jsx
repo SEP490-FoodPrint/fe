@@ -35,6 +35,7 @@ const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
 const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
 const MenuApproval = lazy(() => import("src/pages/SCHOOL/MenuApproval"))
 const MenuPlanning = lazy(() => import("src/pages/SCHOOL/MenuPlanning"))
+const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
@@ -190,6 +191,15 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_APPROVAL, element: <LazyWrapper><MenuApproval /></LazyWrapper> },
+            ],
+          },
+
+          // Phân hệ Y tế học đường: Ban Y tế, School Admin
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMIN]} />,
+            children: [
+              { path: ROUTER.SCHOOL_HEALTH_OVERVIEW, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
             ],
           },
 
