@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import SchoolService, { MOCK_SCHOOLS } from "src/services/SchoolService";
+import SchoolService from "src/services/SchoolService";
 import SchoolHeader from "./component/SchoolHeader";
 import SchoolHero from "./component/SchoolHero";
 import QuickStatsStrip from "./component/QuickStatsStrip";
@@ -35,10 +35,7 @@ function SchoolLanding() {
         ]);
 
         if (isMounted) {
-          const schoolData =
-            schoolRes?.data ||
-            MOCK_SCHOOLS.find((s) => s.code.toUpperCase() === activeCode) ||
-            MOCK_SCHOOLS[0];
+          const schoolData = schoolRes?.data;
 
           setSchool(schoolData);
           setDailyMeal(dailyRes?.data || null);

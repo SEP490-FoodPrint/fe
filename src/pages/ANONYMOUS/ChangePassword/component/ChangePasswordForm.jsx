@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react"
 import { Alert, Button, CircularProgress } from "@mui/material"
 import { Link } from "react-router-dom"
 import AuthCard, { AuthHeading } from "src/components/Auth/AuthCard"
-import AuthField from "src/components/Auth/AuthField"
+import AuthInput from "src/components/Auth/AuthInput"
 import FormErrors from "src/components/Auth/FormErrors"
 import NewPasswordFields from "src/components/Auth/NewPasswordFields"
 import { newPasswordErrors, validCurrentPassword } from "src/lib/authValidation"
@@ -65,7 +65,7 @@ export default function ChangePasswordForm({ onSuccess }) {
         <Alert severity="success" role="status">Đã xác nhận mật khẩu hiện tại.</Alert>
         <NewPasswordFields values={values} onChange={change} errors={errors} disabled={loading} />
         <p className={form.hint}>Sau khi đổi mật khẩu, bạn cần đăng nhập lại trên các thiết bị.</p>
-      </> : <AuthField id="current-password" label="Mật khẩu hiện tại" type="password" required autoComplete="current-password" placeholder="Nhập mật khẩu hiện tại" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} error={errors["current-password"]} disabled={loading} />}
+      </> : <AuthInput id="current-password" label="Mật khẩu hiện tại" type="password" required span="full" autoComplete="current-password" placeholder="Nhập mật khẩu hiện tại" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} error={errors["current-password"]} disabled={loading} />}
       <Button type="submit" variant="contained" className={form.primary} disabled={loading || remaining > 0}>{loading ? <CircularProgress size={22} color="inherit" aria-label={verified ? "Đang đổi mật khẩu" : "Đang kiểm tra mật khẩu"} /> : remaining ? `Thử lại sau ${remaining}s` : verified ? "Cập nhật mật khẩu" : "Tiếp tục"}</Button>
       {verified ? <Button type="button" onClick={back} className={form.link} disabled={loading}>Nhập lại mật khẩu hiện tại</Button> : <Button component={Link} to={ROUTER.FORGOT_PASSWORD} className={form.link} disabled={loading}>Quên mật khẩu?</Button>}
     </AuthCard>
