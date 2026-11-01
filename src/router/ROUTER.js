@@ -37,6 +37,9 @@ const ROUTER = {
   SCHOOL_ACCOUNT_EDIT: "/school/administration/accounts/:id/edit",
   SCHOOL_MENU_APPROVAL: "/school/menu-approval",           // BGH, School Admin
   SCHOOL_MENU_PLANNING: "/school/menu-planning",           // Ban Y tế
+  // Phân hệ Y tế học đường (Nhân viên Y tế)
+  SCHOOL_HEALTH_OVERVIEW: "/school/health-overview",       // Trang chủ / Tổng quan Y tế
+  SCHOOL_HEALTH_ALLERGY: "/school/health-allergy",         // Thông tin dị ứng
   // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)
   SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Trang chủ Bếp
   SCHOOL_KITCHEN_MENU: "/school/kitchen-cooking/menu",     // Thực đơn đã lên

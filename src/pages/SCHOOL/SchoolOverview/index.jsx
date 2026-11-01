@@ -14,6 +14,11 @@ function SchoolOverview() {
     return <Navigate to={ROUTER.SCHOOL_KITCHEN_COOKING} replace />
   }
 
+  // Nếu là Nhân viên y tế -> Điều hướng sang Tổng quan Y tế
+  if (user?.role === ROLES.SCHOOL_HEALTH_OFFICER) {
+    return <Navigate to={ROUTER.SCHOOL_HEALTH_OVERVIEW} replace />
+  }
+
   return (
     <ExamplePageStub
       title="Tổng quan Trường học (School Overview)"

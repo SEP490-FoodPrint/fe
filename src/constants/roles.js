@@ -87,7 +87,7 @@ export const MOCK_ACCOUNTS = [
   {
     userId: "fp_demo_health",
     username: "fp_demo_health",
-    fullName: "Nhân viên y tế Demo",
+    fullName: "BS. Nguyễn Thu Trang",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
     orgName: "Trường Tiểu học FoodPrint (DEMO)",

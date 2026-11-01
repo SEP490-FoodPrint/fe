@@ -1,0 +1,110 @@
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.kpiCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
+    background-color: #fcfdfd;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(10, 128, 102, 0.08);
+
+    .hoverArrow {
+      opacity: 1;
+      transform: translateX(0);
+      color: var(--color-primary, #0a8066);
+    }
+  }
+
+  &:focus-visible {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.2);
+  }
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-secondary, #52635c);
+}
+
+.iconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.kpiIcon {
+  font-size: 20px !important;
+}
+
+.cardBottom {
+  display: flex;
+  flex-direction: column;
+}
+
+.valueRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.countNumber {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 30px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.hoverArrow {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: all 0.2s ease;
+  font-size: 16px;
+  color: #94a3b8;
+}
+
+.cardDesc {
+  margin: 6px 0 0 0;
+  font-size: 12.5px;
+  color: #64748b;
+  line-height: 1.4;
+}
+
