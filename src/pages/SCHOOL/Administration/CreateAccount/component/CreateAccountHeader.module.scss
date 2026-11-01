@@ -1,0 +1,40 @@
+.headerContainer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0 20px;
+  border-bottom: 1px solid var(--border-light, #eef2f0);
+  margin-bottom: 24px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 8px;
+  color: var(--text-primary, #1d2b26);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  flex-shrink: 0;
+
+  &:hover {
+    background-color: #f7faf8;
+    border-color: var(--color-primary, #0a8066);
+    color: var(--color-primary, #0a8066);
+    transform: translateX(-2px);
+  }
+}
+
+.mainTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  letter-spacing: -0.01em;
+}
