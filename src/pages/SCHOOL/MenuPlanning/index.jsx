@@ -26,7 +26,7 @@ export default function MenuPlanning() {
     notes: "Thực đơn giàu đạm và chất xơ, hạn chế muối theo tiêu chuẩn dinh dưỡng học đường."
   })
 
-  // Danh sách món ăn trong thực đơn
+  // Danh sách món ăn trong thực đơn (mỗi món có thể có nhiều nguyên liệu chính)
   const [dishes, setDishes] = useState(INITIAL_DISHES)
 
   // Món thay thế cho học sinh dị ứng (Mặc định là suất ăn riêng)
@@ -37,7 +37,7 @@ export default function MenuPlanning() {
     unit: "g"
   })
 
-  // Gia vị bữa ăn học đường (nhập định lượng, không check tồn kho)
+  // Gia vị bữa ăn học đường (chọn từ danh mục kho, nhập định lượng, không check tồn kho)
   const [seasonings, setSeasonings] = useState(INITIAL_SEASONINGS)
 
   // Modal chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu)
@@ -68,9 +68,7 @@ export default function MenuPlanning() {
     const newDish = {
       id: `dish-${Date.now()}`,
       name: "",
-      ingredientCategory: "",
-      supplierId: "",
-      ingredientId: "",
+      ingredientIds: [],
       portionQty: 50,
       unit: "g"
     }
@@ -84,10 +82,37 @@ export default function MenuPlanning() {
     showToast("Đã xóa món ăn khỏi thực đơn", "info")
   }
 
-  // Cập nhật định lượng gia vị
-  const handleUpdateSeasoning = (seasoningId, newQty) => {
+  // Xóa một nguyên liệu khỏi món ăn
+  const handleRemoveIngredientFromDish = (dishId, ingredientId) => {
+    const targetDish = dishes.find(d => d.id === dishId)
+    if (!targetDish) return
+    const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
+    const newIds = currentIds.filter(id => id !== ingredientId)
+    handleUpdateDish(dishId, { ingredientIds: newIds })
+    showToast("Đã xóa nguyên liệu khỏi món", "info")
+  }
+
+  // Quản lý Gia vị (chọn từ danh mục kho nguyên liệu)
+  const handleAddSeasoning = () => {
+    const newSeasoning = {
+      id: `seas-${Date.now()}`,
+      catalogId: "",
+      name: "",
+      portionQty: 1,
+      unit: "g"
+    }
+    setSeasonings(prev => [...prev, newSeasoning])
+    showToast("Đã thêm một dòng gia vị mới", "info")
+  }
+
+  const handleRemoveSeasoning = (seasoningId) => {
+    setSeasonings(prev => prev.filter(s => s.id !== seasoningId))
+    showToast("Đã xóa gia vị", "info")
+  }
+
+  const handleUpdateSeasoning = (seasoningId, updates) => {
     setSeasonings(prev =>
-      prev.map(s => (s.id === seasoningId ? { ...s, portionQty: newQty } : s))
+      prev.map(s => (s.id === seasoningId ? { ...s, ...updates } : s))
     )
   }
 
@@ -108,18 +133,26 @@ export default function MenuPlanning() {
     setIsPickerOpen(true)
   }
 
-  // Khi người dùng chọn xong nguyên liệu từ Popup Modal
-  const handleSelectIngredient = (ingredient) => {
+  // Toggle nguyên liệu trong Popup Modal (chọn được nhiều nguyên liệu)
+  const handleToggleIngredient = (ingredient) => {
     if (pickerContext.type === "dish" && pickerContext.dishId) {
-      const existingDish = dishes.find(d => d.id === pickerContext.dishId)
+      const targetDish = dishes.find(d => d.id === pickerContext.dishId)
+      if (!targetDish) return
+      const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
+      const exists = currentIds.includes(ingredient.id)
+      const newIds = exists
+        ? currentIds.filter(id => id !== ingredient.id)
+        : [...currentIds, ingredient.id]
+
       handleUpdateDish(pickerContext.dishId, {
-        ingredientId: ingredient.id,
-        ingredientCategory: ingredient.category,
-        supplierId: ingredient.supplierId,
-        portionQty: existingDish?.portionQty || 50,
-        unit: existingDish?.unit || ingredient.unit || "g"
+        ingredientIds: newIds
       })
-      showToast(`Đã chọn nguyên liệu: "${ingredient.name}"`, "success")
+
+      if (exists) {
+        showToast(`Đã bỏ nguyên liệu "${ingredient.name}"`, "info")
+      } else {
+        showToast(`Đã thêm nguyên liệu "${ingredient.name}" vào món`, "success")
+      }
     } else if (pickerContext.type === "substitute") {
       setSubstituteDish(prev => ({
         ...prev,
@@ -127,6 +160,7 @@ export default function MenuPlanning() {
         unit: prev.unit || ingredient.unit || "g"
       }))
       showToast(`Đã chọn nguyên liệu thay thế: "${ingredient.name}"`, "success")
+      setIsPickerOpen(false)
     }
   }
 
@@ -135,14 +169,17 @@ export default function MenuPlanning() {
     ? dishes.find(d => d.id === pickerContext.dishId)
     : null
 
-  const currentIngredientId = pickerContext.type === "dish"
-    ? currentTargetDish?.ingredientId
-    : substituteDish.ingredientId
+  const selectedIngredientIds = pickerContext.type === "dish"
+    ? (currentTargetDish?.ingredientIds || (currentTargetDish?.ingredientId ? [currentTargetDish.ingredientId] : []))
+    : (substituteDish.ingredientId ? [substituteDish.ingredientId] : [])
 
-  // Kiểm tra danh sách món có xung đột dị ứng (Đối soát ngầm sau khi đã chọn nguyên liệu)
+  // Kiểm tra danh sách món có xung đột dị ứng (Kiểm tra trên TẤT CẢ các nguyên liệu đã chọn)
   const conflictDishes = dishes.filter(d => {
-    const ing = ALL_INGREDIENTS.find(i => i.id === d.ingredientId)
-    return Boolean(ing?.allergen)
+    const ids = d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])
+    return ids.some(id => {
+      const ing = ALL_INGREDIENTS.find(i => i.id === id)
+      return Boolean(ing?.allergen)
+    })
   })
 
   const conflictCount = conflictDishes.length > 0 ? 12 : 0
@@ -172,14 +209,14 @@ export default function MenuPlanning() {
       {toast && (
         <div className={`${styles.toastNotice} ${styles[toast.type]}`}>
           <span className="material-symbols-outlined">
-            {toast.type === "success" ? "check_circle" : "info"}
+            {toast.type === "success" ? "check_circle" : toast.type === "warning" ? "warning" : "info"}
           </span>
           <span>{toast.message}</span>
         </div>
       )}
 
       <div className={styles.contentWrapper}>
-        {/* Page Header (Đã xóa Breadcrumb) */}
+        {/* Page Header */}
         <CreateMenuHeader onBack={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)} />
 
         {/* Khối 1: Thông tin thực đơn (Khối lớp áp dụng nhập text tự do) */}
@@ -188,13 +225,14 @@ export default function MenuPlanning() {
           onChangeField={handleChangeField}
         />
 
-        {/* Khối 2: Bảng món ăn trong thực đơn (Tên tự gõ, chọn nguyên liệu qua Popup Modal, đối soát dị ứng sau khi chọn) */}
+        {/* Khối 2: Bảng món ăn trong thực đơn (Chọn nhiều nguyên liệu, icon thay đổi, đối soát dị ứng tự động) */}
         <MenuDishesTable
           dishes={dishes}
           onUpdateDish={handleUpdateDish}
           onAddDishRow={handleAddDishRow}
           onRemoveDish={handleRemoveDish}
           onOpenPicker={handleOpenPickerForDish}
+          onRemoveIngredientFromDish={handleRemoveIngredientFromDish}
         />
 
         {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng & Tạo món thay thế */}
@@ -206,11 +244,13 @@ export default function MenuPlanning() {
           onOpenPickerForSubstitute={handleOpenPickerForSubstitute}
         />
 
-        {/* Khối 4: Gia vị dùng chung bữa ăn học đường (Chỉ nhập định lượng, KHÔNG check tồn kho) */}
+        {/* Khối 4: Gia vị dùng chung (Chọn từ danh mục kho do Quản lý nguyên liệu nhập, nhập định lượng) */}
         <MenuSeasoningCard
           seasonings={seasonings}
           portionCount={formState.portionCount}
           onUpdateSeasoning={handleUpdateSeasoning}
+          onAddSeasoning={handleAddSeasoning}
+          onRemoveSeasoning={handleRemoveSeasoning}
         />
       </div>
 
@@ -221,12 +261,12 @@ export default function MenuPlanning() {
         onSubmitApproval={() => setIsConfirmModalOpen(true)}
       />
 
-      {/* Popup Modal: Chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu) */}
+      {/* Popup Modal: Chọn nguyên liệu từ NCC liên kết (hỗ trợ chọn nhiều) */}
       <IngredientPickerModal
         isOpen={isPickerOpen}
         onClose={() => setIsPickerOpen(false)}
-        onSelectIngredient={handleSelectIngredient}
-        currentIngredientId={currentIngredientId}
+        selectedIngredientIds={selectedIngredientIds}
+        onToggleIngredient={handleToggleIngredient}
         dishContextName={pickerContext.type === "dish" ? (currentTargetDish?.name || "Món ăn") : (substituteDish.name || "Món thay thế dị ứng")}
         onlySafe={pickerContext.type === "substitute"}
       />

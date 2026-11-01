@@ -17,8 +17,8 @@ const getCategoryIcon = (cat) => {
 export default function IngredientPickerModal({
   isOpen,
   onClose,
-  onSelectIngredient,
-  currentIngredientId,
+  selectedIngredientIds = [],
+  onToggleIngredient,
   dishContextName = "",
   onlySafe = false
 }) {
@@ -63,12 +63,6 @@ export default function IngredientPickerModal({
     setSearchTerm("")
   }
 
-  // Khi chọn 1 nguyên liệu
-  const handlePick = (ing) => {
-    onSelectIngredient(ing)
-    onClose()
-  }
-
   if (!isOpen) return null
 
   return (
@@ -82,7 +76,7 @@ export default function IngredientPickerModal({
               <h2 className={styles.modalTitle}>Chọn nguyên liệu từ Nhà cung cấp liên kết</h2>
               <p className={styles.modalSubtitle}>
                 {dishContextName ? (
-                  <>Áp dụng cho món: <strong>{dishContextName}</strong></>
+                  <>Áp dụng cho món: <strong>{dishContextName}</strong> (Có thể chọn nhiều nguyên liệu chính)</>
                 ) : (
                   "Lựa chọn nguyên liệu theo Phân loại và Nhà cung cấp đã liên kết với trường"
                 )}
@@ -185,7 +179,8 @@ export default function IngredientPickerModal({
         <div className={styles.listContainer}>
           <div className={styles.resultInfoBar}>
             <span className={styles.resultCount}>
-              Hiển thị <strong>{filteredIngredients.length}</strong> nguyên liệu đạt chuẩn
+              Hiển thị <strong>{filteredIngredients.length}</strong> nguyên liệu đạt chuẩn • Đã chọn{" "}
+              <strong className={styles.selectedCountHighlight}>{selectedIngredientIds.length}</strong> nguyên liệu cho món này
             </span>
             {(selectedCategory !== "ALL" || selectedSupplierId !== "ALL" || searchTerm) && (
               <button type="button" className={styles.resetBtn} onClick={handleResetFilters}>
@@ -210,13 +205,13 @@ export default function IngredientPickerModal({
             <div className={styles.ingredientGrid}>
               {filteredIngredients.map(ing => {
                 const supplier = LINKED_SUPPLIERS.find(s => s.id === ing.supplierId)
-                const isSelected = ing.id === currentIngredientId
+                const isSelected = selectedIngredientIds.includes(ing.id)
 
                 return (
                   <div
                     key={ing.id}
                     className={`${styles.ingredientCard} ${isSelected ? styles.cardSelected : ""}`}
-                    onClick={() => handlePick(ing)}
+                    onClick={() => onToggleIngredient(ing)}
                   >
                     <div className={styles.cardIconBox}>
                       <span className={`material-symbols-outlined ${styles.cardIcon}`}>
@@ -229,8 +224,8 @@ export default function IngredientPickerModal({
                         <h4 className={styles.ingredientName}>{ing.name}</h4>
                         {isSelected && (
                           <span className={styles.currentBadge}>
-                            <span className="material-symbols-outlined">check</span>
-                            Đang chọn
+                            <span className="material-symbols-outlined">check_circle</span>
+                            Đã chọn
                           </span>
                         )}
                       </div>
@@ -252,10 +247,10 @@ export default function IngredientPickerModal({
                         className={`${styles.pickBtn} ${isSelected ? styles.pickBtnActive : ""}`}
                         onClick={(e) => {
                           e.stopPropagation()
-                          handlePick(ing)
+                          onToggleIngredient(ing)
                         }}
                       >
-                        {isSelected ? "Đang dùng" : "Chọn"}
+                        {isSelected ? "Bỏ chọn" : "+ Thêm"}
                       </button>
                     </div>
                   </div>
@@ -269,10 +264,11 @@ export default function IngredientPickerModal({
         <div className={styles.modalFooter}>
           <div className={styles.footerHelp}>
             <span className="material-symbols-outlined">info</span>
-            <span>Hệ thống sẽ đối soát kiểm tra dị ứng tự động ngay sau khi nguyên liệu được chọn.</span>
+            <span>Có thể chọn nhiều nguyên liệu cho 1 món. Đối soát dị ứng tự động cập nhật ngay trên bảng.</span>
           </div>
-          <button type="button" className={styles.closeFooterBtn} onClick={onClose}>
-            Đóng
+          <button type="button" className={styles.doneBtn} onClick={onClose}>
+            <span className="material-symbols-outlined">done</span>
+            <span>Hoàn tất ({selectedIngredientIds.length})</span>
           </button>
         </div>
       </div>

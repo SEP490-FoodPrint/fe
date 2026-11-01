@@ -220,69 +220,82 @@ export const ALL_INGREDIENTS = [
   }
 ]
 
-// 4. Món ăn khởi tạo mặc định trong thực đơn (Tên món nhập text tự do)
+// 4. Danh mục Gia vị do Bộ phận Quản lý nguyên liệu nhập kho sẵn
+export const WAREHOUSE_SEASONINGS_CATALOG = [
+  { id: "ws-1", name: "Dầu ăn thực vật Neptune (Can 5L)", defaultUnit: "ml" },
+  { id: "ws-2", name: "Nước mắm Phú Quốc 40°N (Chai 1L)", defaultUnit: "ml" },
+  { id: "ws-3", name: "Muối tinh I-ốt Bạc Liêu (Gói 1kg)", defaultUnit: "g" },
+  { id: "ws-4", name: "Đường cát trắng Biên Hòa (Túi 1kg)", defaultUnit: "g" },
+  { id: "ws-5", name: "Hạt nêm thịt thăn Knorr (Gói 1kg)", defaultUnit: "g" },
+  { id: "ws-6", name: "Hạt tiêu đen xay Đắk Lắk (Hũ 200g)", defaultUnit: "g" },
+  { id: "ws-7", name: "Bột ngọt Ajinomoto (Gói 454g)", defaultUnit: "g" },
+  { id: "ws-8", name: "Dầu hào Maggi hảo hạng (Chai 820g)", defaultUnit: "ml" },
+  { id: "ws-9", name: "Tương cà chua Cholimex (Chai 830g)", defaultUnit: "g" },
+  { id: "ws-10", name: "Tương ớt chua cay Cholimex (Chai 830g)", defaultUnit: "g" },
+  { id: "ws-11", name: "Hành khô tím Lý Sơn (Kg)", defaultUnit: "g" },
+  { id: "ws-12", name: "Tỏi ta Kinh Môn bóc sẵn (Kg)", defaultUnit: "g" },
+  { id: "ws-13", name: "Gừng củ tươi sạch (Kg)", defaultUnit: "g" }
+]
+
+// 5. Món ăn khởi tạo mặc định trong thực đơn (Tên món nhập text tự do, có thể chọn nhiều nguyên liệu)
 export const INITIAL_DISHES = [
   {
     id: "dish-1",
     name: "Tôm sú hấp sả",
-    ingredientCategory: "Thủy hải sản",
-    supplierId: "sup-sea",
-    ingredientId: "ing-sea-1",
+    ingredientIds: ["ing-sea-1"],
     portionQty: 65,
     unit: "g"
   },
   {
     id: "dish-2",
     name: "Thịt heo kho trứng cút",
-    ingredientCategory: "Thịt & Gia cầm",
-    supplierId: "sup-cp",
-    ingredientId: "ing-cp-1",
+    ingredientIds: ["ing-cp-1", "ing-egg-1"], // Có 2 nguyên liệu chính!
     portionQty: 45,
     unit: "g"
   },
   {
     id: "dish-3",
     name: "Canh cải ngọt nấu thịt bằm",
-    ingredientCategory: "Rau củ quả",
-    supplierId: "sup-veg",
-    ingredientId: "ing-veg-1",
+    ingredientIds: ["ing-veg-1", "ing-cp-2"], // Có 2 nguyên liệu chính!
     portionQty: 50,
     unit: "g"
   },
   {
     id: "dish-4",
     name: "Cơm trắng tám thơm",
-    ingredientCategory: "Tinh bột & Ngũ cốc",
-    supplierId: "sup-rice",
-    ingredientId: "ing-rice-1",
+    ingredientIds: ["ing-rice-1"],
     portionQty: 120,
     unit: "g"
   }
 ]
 
-// 5. Gia vị dùng chung bữa ăn học đường (Chỉ nhập định lượng, KHÔNG check tồn kho)
+// 6. Gia vị khởi tạo mặc định (Lấy từ danh mục Quản lý nguyên liệu, chỉ nhập định lượng, không check kho hay tổng nhu cầu)
 export const INITIAL_SEASONINGS = [
   {
     id: "seas-1",
-    name: "Dầu ăn thực vật Neptune",
+    catalogId: "ws-1",
+    name: "Dầu ăn thực vật Neptune (Can 5L)",
     portionQty: 5,
     unit: "ml"
   },
   {
     id: "seas-2",
-    name: "Nước mắm Phú Quốc 40°N",
+    catalogId: "ws-2",
+    name: "Nước mắm Phú Quốc 40°N (Chai 1L)",
     portionQty: 3,
     unit: "ml"
   },
   {
     id: "seas-3",
-    name: "Muối tinh I-ốt Bạc Liêu",
+    catalogId: "ws-3",
+    name: "Muối tinh I-ốt Bạc Liêu (Gói 1kg)",
     portionQty: 2,
     unit: "g"
   },
   {
     id: "seas-4",
-    name: "Đường cát trắng Biên Hòa",
+    catalogId: "ws-4",
+    name: "Đường cát trắng Biên Hòa (Túi 1kg)",
     portionQty: 2,
     unit: "g"
   }

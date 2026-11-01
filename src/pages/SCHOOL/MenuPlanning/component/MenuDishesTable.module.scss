@@ -196,7 +196,7 @@
   vertical-align: top;
 }
 
-/* Nút chọn nguyên liệu khi chưa chọn */
+/* Nút chọn nguyên liệu khi chưa có */
 .pickIngredientBtn {
   width: 100%;
   min-height: 42px;
@@ -229,7 +229,7 @@
 .ingUnifiedCard {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 9px 12px;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -249,39 +249,59 @@
 
 .ingTopRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
-.ingMainInfo {
+.ingChipsContainer {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
   min-width: 0;
 }
 
-.iconBox {
-  width: 34px;
-  height: 34px;
+.ingChipItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #edf2f7;
   border-radius: 6px;
-  background-color: #f1f5f9;
+  padding: 5px 8px;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+}
+
+.iconBox {
+  width: 28px;
+  height: 28px;
+  border-radius: 5px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 
   .ingIcon {
-    font-size: 19px;
+    font-size: 16px;
     color: var(--color-primary, #0a8066);
   }
 }
 
 .nameAndTags {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
   min-width: 0;
+  flex-wrap: wrap;
 }
 
 .titleWrap {
@@ -291,9 +311,10 @@
 }
 
 .ingName {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   color: #0f172a;
+  white-space: nowrap;
 }
 
 .categoryBadge {
@@ -310,22 +331,22 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 11.5px;
   white-space: nowrap;
 }
 
 .verifyIcon {
-  font-size: 13.5px;
+  font-size: 13px;
   color: #0284c7;
 }
 
 .supplierName {
-  color: #334155;
+  color: #475569;
   font-weight: 500;
 }
 
 .supplierBadge {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 3px;
@@ -334,31 +355,53 @@
   white-space: nowrap;
 }
 
-.changeBtn {
+.removeChipBtn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.12s ease;
+
+  span {
+    font-size: 15px;
+  }
+
+  &:hover {
+    color: #ef4444;
+    background-color: #fee2e2;
+  }
+}
+
+/* Nút THAY ĐỔI / THÊM: CHỈ ĐỂ ICON CHO DỄ NHÌN */
+.iconChangeBtn {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 9px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
   background-color: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  color: #475569;
-  font-size: 11.5px;
-  font-weight: 600;
+  color: var(--color-primary, #0a8066);
   cursor: pointer;
-  white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.15s ease;
 
   span {
-    font-size: 14px;
-    color: var(--color-primary, #0a8066);
+    font-size: 18px;
   }
 
   &:hover {
     border-color: var(--color-primary, #0a8066);
-    color: var(--color-primary, #0a8066);
     background-color: #f0fdf9;
+    color: #00513f;
+    box-shadow: 0 1px 4px rgba(10, 128, 102, 0.15);
   }
 }
 
@@ -470,7 +513,7 @@
   white-space: nowrap;
 }
 
-/* Thao tác */
+/* Thao tác xóa món */
 .tdAction {
   padding: 14px 8px;
   text-align: center;

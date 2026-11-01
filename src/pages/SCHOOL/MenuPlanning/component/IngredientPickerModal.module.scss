@@ -556,19 +556,32 @@
   }
 }
 
-.closeFooterBtn {
-  padding: 6px 16px;
-  border-radius: 6px;
-  background-color: #f1f5f9;
-  color: #334155;
-  border: 1px solid #cbd5e1;
-  font-size: 12.5px;
+.selectedCountHighlight {
+  color: var(--color-primary, #0a8066);
+  font-weight: 700;
+}
+
+.doneBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 20px;
+  border-radius: 8px;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  border: none;
+  font-size: 13.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 
+  span {
+    font-size: 18px;
+  }
+
   &:hover {
-    background-color: #e2e8f0;
+    background-color: #00513f;
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.25);
   }
 }
 

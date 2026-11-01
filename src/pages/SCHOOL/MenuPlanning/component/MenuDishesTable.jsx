@@ -19,7 +19,8 @@ export default function MenuDishesTable({
   onUpdateDish,
   onAddDishRow,
   onRemoveDish,
-  onOpenPicker
+  onOpenPicker,
+  onRemoveIngredientFromDish
 }) {
   return (
     <div className={styles.tableCard}>
@@ -28,9 +29,7 @@ export default function MenuDishesTable({
           <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant</span>
           <div>
             <h2 className={styles.cardTitle}>Món ăn trong thực đơn</h2>
-            <p className={styles.cardSubtitle}>
-              Tên món ăn tự do nhập text. Thành phần chính chọn qua Popup lọc theo: <strong>Phân loại → Nhà cung cấp liên kết → Nguyên liệu</strong>.
-            </p>
+
           </div>
         </div>
         <button
@@ -48,7 +47,7 @@ export default function MenuDishesTable({
           <thead>
             <tr>
               <th className={styles.thOrder}>STT</th>
-              <th className={styles.thDishName}>Tên món ăn (Tự do nhập text)</th>
+              <th className={styles.thDishName}>Tên món ăn</th>
               <th className={styles.thIngredientFlow}>
                 Thành phần chính (NCC liên kết) & Đối soát dị ứng
               </th>
@@ -58,9 +57,15 @@ export default function MenuDishesTable({
           </thead>
           <tbody>
             {dishes.map((dish, index) => {
-              const selectedIng = ALL_INGREDIENTS.find(i => i.id === dish.ingredientId) || null
-              const supplier = selectedIng ? LINKED_SUPPLIERS.find(s => s.id === selectedIng.supplierId) : null
-              const hasAllergyConflict = Boolean(selectedIng?.allergen)
+              // Hỗ trợ mảng nhiều nguyên liệu
+              const ingredientIds = dish.ingredientIds || (dish.ingredientId ? [dish.ingredientId] : [])
+              const selectedIngs = ingredientIds
+                .map(id => ALL_INGREDIENTS.find(i => i.id === id))
+                .filter(Boolean)
+
+              // Kiểm tra dị ứng trên tất cả các nguyên liệu đã chọn
+              const conflictIngs = selectedIngs.filter(i => Boolean(i.allergen))
+              const hasAllergyConflict = conflictIngs.length > 0
 
               return (
                 <tr key={dish.id} className={`${styles.dishRow} ${hasAllergyConflict ? styles.rowConflict : ""}`}>
@@ -80,10 +85,10 @@ export default function MenuDishesTable({
                     />
                   </td>
 
-                  {/* Thành phần chính chọn qua Popup & Đối soát dị ứng */}
+                  {/* Thành phần chính (chọn được nhiều nguyên liệu) & Đối soát dị ứng */}
                   <td className={styles.tdIngredientFlow}>
-                    {!selectedIng ? (
-                      /* Trường hợp chưa chọn nguyên liệu */
+                    {selectedIngs.length === 0 ? (
+                      /* Trường hợp chưa có nguyên liệu nào */
                       <button
                         type="button"
                         className={styles.pickIngredientBtn}
@@ -93,39 +98,57 @@ export default function MenuDishesTable({
                         <span>Chọn nguyên liệu từ NCC liên kết</span>
                       </button>
                     ) : (
-                      /* Trường hợp đã chọn nguyên liệu: Khối thống nhất siêu sạch */
+                      /* Trường hợp đã chọn 1 hoặc nhiều nguyên liệu: Khối thống nhất */
                       <div className={`${styles.ingUnifiedCard} ${hasAllergyConflict ? styles.cardConflict : styles.cardSafe}`}>
-                        {/* Hàng thông tin nguyên liệu */}
                         <div className={styles.ingTopRow}>
-                          <div className={styles.ingMainInfo}>
-                            <div className={styles.iconBox}>
-                              <span className={`material-symbols-outlined ${styles.ingIcon}`}>
-                                {getCategoryIcon(selectedIng.category)}
-                              </span>
-                            </div>
-                            <div className={styles.nameAndTags}>
-                              <div className={styles.titleWrap}>
-                                <strong className={styles.ingName}>{selectedIng.name}</strong>
-                                <span className={styles.categoryBadge}>{selectedIng.category}</span>
-                              </div>
-                              <div className={styles.supplierWrap}>
-                                <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
-                                <span className={styles.supplierName}>{supplier?.name || "NCC liên kết"}</span>
-                                {supplier?.badge && (
-                                  <span className={styles.supplierBadge}>{supplier.badge}</span>
-                                )}
-                              </div>
-                            </div>
+                          <div className={styles.ingChipsContainer}>
+                            {selectedIngs.map((ing) => {
+                              const supplier = LINKED_SUPPLIERS.find(s => s.id === ing.supplierId)
+                              return (
+                                <div key={ing.id} className={styles.ingChipItem}>
+                                  <div className={styles.iconBox}>
+                                    <span className={`material-symbols-outlined ${styles.ingIcon}`}>
+                                      {getCategoryIcon(ing.category)}
+                                    </span>
+                                  </div>
+                                  <div className={styles.nameAndTags}>
+                                    <div className={styles.titleWrap}>
+                                      <strong className={styles.ingName}>{ing.name}</strong>
+                                      <span className={styles.categoryBadge}>{ing.category}</span>
+                                    </div>
+                                    <div className={styles.supplierWrap}>
+                                      <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
+                                      <span className={styles.supplierName}>{supplier?.name || "NCC"}</span>
+                                      {supplier?.badge && (
+                                        <span className={styles.supplierBadge}>{supplier.badge}</span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Nút xóa nhanh nguyên liệu đơn lẻ */}
+                                  <button
+                                    type="button"
+                                    className={styles.removeChipBtn}
+                                    onClick={() => onRemoveIngredientFromDish && onRemoveIngredientFromDish(dish.id, ing.id)}
+                                    title={`Xóa ${ing.name} khỏi món này`}
+                                    aria-label="Xóa nguyên liệu"
+                                  >
+                                    <span className="material-symbols-outlined">close</span>
+                                  </button>
+                                </div>
+                              )
+                            })}
                           </div>
 
+                          {/* Nút THAY ĐỔI / THÊM: CHỈ ĐỂ ICON CHO DỄ NHÌN theo yêu cầu */}
                           <button
                             type="button"
-                            className={styles.changeBtn}
+                            className={styles.iconChangeBtn}
                             onClick={() => onOpenPicker(dish.id)}
-                            title="Thay đổi nguyên liệu khác"
+                            title="Thay đổi / Thêm nguyên liệu"
+                            aria-label="Thay đổi nguyên liệu"
                           >
-                            <span className="material-symbols-outlined">swap_horiz</span>
-                            <span>Thay đổi</span>
+                            <span className="material-symbols-outlined">edit_note</span>
                           </button>
                         </div>
 
@@ -136,10 +159,11 @@ export default function MenuDishesTable({
                               <span className={`material-symbols-outlined ${styles.alertIcon}`}>warning</span>
                               <div className={styles.alertContent}>
                                 <span className={styles.alertMainText}>
-                                  <strong>Cảnh báo dị ứng:</strong> {selectedIng.allergyWarning}
+                                  <strong>Cảnh báo dị ứng ({conflictIngs.length} thành phần):</strong>{" "}
+                                  {conflictIngs.map(ci => ci.allergyWarning || `${ci.name} (${ci.allergen})`).join(" • ")}
                                 </span>
                                 <span className={styles.alertSubText}>
-                                  → Tự động kích hoạt tạo món ăn riêng thay thế ở mục bên dưới
+                                  → Tự động kích hoạt tạo suất ăn riêng thay thế ở mục bên dưới
                                 </span>
                               </div>
                             </div>
@@ -147,7 +171,7 @@ export default function MenuDishesTable({
                             <div className={styles.safeBanner}>
                               <span className={`material-symbols-outlined ${styles.safeIcon}`}>check_circle</span>
                               <span className={styles.safeText}>
-                                An toàn: Không phát hiện học sinh dị ứng thành phần này
+                                An toàn: Không phát hiện học sinh dị ứng các thành phần này
                               </span>
                             </div>
                           )}
@@ -181,7 +205,7 @@ export default function MenuDishesTable({
                     </div>
                   </td>
 
-                  {/* Thao tác */}
+                  {/* Thao tác xóa món */}
                   <td className={styles.tdAction}>
                     <button
                       type="button"

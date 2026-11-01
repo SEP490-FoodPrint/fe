@@ -146,9 +146,9 @@ export default function AllergyAlternativeMealsCard({
                       className={styles.changeSubBtn}
                       onClick={onOpenPickerForSubstitute}
                       title="Chọn nguyên liệu thay thế khác"
+                      aria-label="Thay đổi nguyên liệu thay thế"
                     >
-                      <span className="material-symbols-outlined">swap_horiz</span>
-                      <span>Thay đổi</span>
+                      <span className="material-symbols-outlined">edit_note</span>
                     </button>
                   </div>
                 ) : (
