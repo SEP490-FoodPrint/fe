@@ -1,0 +1,472 @@
+.container {
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.05);
+}
+
+.safeContainer {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.safeLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.safeIcon {
+  color: #16a34a;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.safeTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #14532d;
+  margin: 0 0 2px 0;
+}
+
+.safeDesc {
+  font-size: 13px;
+  color: #15803d;
+  margin: 0;
+}
+
+.safeBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #fef08a;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.titleWithIcon {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 650px;
+}
+
+.headerIcon {
+  color: #b45309;
+  font-size: 24px;
+  margin-top: 2px;
+}
+
+.title {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 16.5px;
+  font-weight: 700;
+  color: #78350f;
+  margin: 0 0 2px 0;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #92400e;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.tag {
+  font-size: 12px;
+  font-weight: 600;
+  color: #9a3412;
+  background-color: #ffedd5;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #fed7aa;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 20px;
+}
+
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.portionSplitBox {
+  background-color: #ffffff;
+  border: 1px solid #fef08a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.portionRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.rowLabel {
+  color: #475569;
+}
+
+.stdPortionVal {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.allergyPortionVal {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.conflictListBox {
+  background-color: #ffffff;
+  border: 1px solid #fef08a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conflictListTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #92400e;
+
+  span {
+    font-size: 16px;
+  }
+}
+
+.conflictClassItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.conflictDishName {
+  font-size: 12.5px;
+  color: #334155;
+}
+
+.classChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.classChip {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.substituteFormCard {
+  background-color: #ffffff;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.05);
+}
+
+.formHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #fef08a;
+}
+
+.formIcon {
+  color: #b45309;
+  font-size: 18px;
+}
+
+.formTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+
+  .req {
+    color: #e11d48;
+  }
+}
+
+.subInput {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 600;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: #b45309;
+    box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.12);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+  }
+}
+
+/* Thẻ chọn nguyên liệu thay thế */
+.selectedSubstituteBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  gap: 10px;
+}
+
+.subLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.subIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .subIcon {
+    font-size: 18px;
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+.subMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.subNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.subName {
+  font-size: 13.5px;
+  color: #0f172a;
+}
+
+.subCatTag {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.subSupplier {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.changeSubBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #b45309;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 18px;
+  }
+
+  &:hover {
+    border-color: #b45309;
+    background-color: #fefce8;
+  }
+}
+
+.pickSubBtn {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #b45309;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+
+  span:first-child {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background-color: #fefce8;
+    border-color: #b45309;
+  }
+}
+
+.qtyRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+}
+
+.qtyInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qtyNumInput {
+  width: 72px;
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+  text-align: right;
+
+  &:focus {
+    outline: none;
+    border-color: #b45309;
+  }
+}
+
+.qtyUnitSelect {
+  height: 38px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #f8fafc;
+  font-size: 13px;
+  color: #334155;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #b45309;
+  }
+}
+
+.noticeTextWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: #fefce8;
+  border-radius: 6px;
+  border: 1px solid #fef08a;
+}
+
+.noteIcon {
+  color: #b45309;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.noteText {
+  font-size: 11.5px;
+  color: #92400e;
+  line-height: 1.35;
+}
+
+@media (max-width: 900px) {
+  .mainGrid {
+    grid-template-columns: 1fr;
+  }
+}

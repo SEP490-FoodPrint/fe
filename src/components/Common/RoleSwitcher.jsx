@@ -21,6 +21,7 @@ import { getDefaultRedirectByUser } from "src/lib/utils"
 import { USE_MOCK_API } from "src/lib/config"
 
 function RoleSwitcher() {
+  return null;
   const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
