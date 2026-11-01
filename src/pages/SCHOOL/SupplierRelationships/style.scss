@@ -8,17 +8,22 @@
 }
 
 .supplier-filters {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  padding: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: 14px;
+  > .MuiTextField-root {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
 }
 .supplier-clear-filters {
-  grid-column: 1 / -1;
-  justify-self: center;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 .supplier-results {
   background: var(--bg-surface);
@@ -177,15 +182,14 @@
   }
 }
 @media (max-width: 800px) {
-  .supplier-filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .supplier-contract-picker {
     grid-template-columns: 1fr;
   }
 }
 @media (max-width: 600px) {
-  .supplier-filters,
+  .supplier-filters > .MuiTextField-root {
+    flex-basis: 100%;
+  }
   .supplier-contract-fields,
   .supplier-scope-items {
     grid-template-columns: 1fr;
