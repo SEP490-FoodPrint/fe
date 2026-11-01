@@ -1,0 +1,127 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.breadcrumbs {
+  color: var(--text-muted);
+}
+
+.currentBreadcrumb {
+  color: var(--color-primary) !important;
+  font-weight: var(--font-semibold) !important;
+}
+
+.headerCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl) !important;
+  background: var(--bg-surface) !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.headingGroup {
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.title {
+  margin-right: var(--space-1) !important;
+  color: var(--text-primary);
+  font-size: var(--text-2xl) !important;
+  font-weight: var(--font-bold) !important;
+  line-height: var(--leading-tight) !important;
+}
+
+.codeChip {
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-muted) !important;
+  color: var(--text-secondary) !important;
+  font-family: monospace !important;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+}
+
+.statusPending {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.statusApproved {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+}
+
+.statusRejected {
+  color: var(--color-error);
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+.description {
+  max-width: 48rem;
+  margin-top: var(--space-2) !important;
+  color: var(--text-secondary);
+  font-size: var(--text-sm) !important;
+  line-height: var(--leading-normal) !important;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 1050px) {
+  .headerCard {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .actions {
+    width: 100%;
+
+    :global(.MuiButton-root) {
+      flex: 1 1 auto;
+    }
+  }
+}
+
+@media print {
+  .breadcrumbs,
+  .actions {
+    display: none;
+  }
+}
