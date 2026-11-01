@@ -47,7 +47,6 @@ function MenuApprovalHeader({
   onReject,
   onPrint,
   canDecide,
-  scopeLabel,
   submitting,
 }) {
   const status = STATUS_CONFIG[menu.status] || { label: "Chưa gửi duyệt", className: styles.statusPending }
@@ -64,7 +63,7 @@ function MenuApprovalHeader({
           <p className={styles.eyebrow}>Thẩm định bán trú</p>
           <h1 id="menu-approval-title" className={styles.title}>Phê duyệt thực đơn</h1>
           <p className={styles.subtitle}>
-            Xem thực đơn tuần do Y tế gửi, phê duyệt cả tuần hoặc từng ngày.
+            Xem thực đơn tuần do Y tế gửi, phê duyệt hoặc yêu cầu chỉnh sửa cả tuần.
           </p>
         </div>
 
@@ -91,9 +90,7 @@ function MenuApprovalHeader({
             {status.icon}
             {status.label}
           </span>
-          <span className={styles.scope}>
-            Phạm vi xử lý: <strong>{scopeLabel}</strong>
-          </span>
+          <span className={styles.scope}>Phê duyệt hoặc yêu cầu chỉnh sửa áp dụng cho cả tuần.</span>
         </div>
 
         <div className={styles.actions}>
@@ -116,7 +113,7 @@ function MenuApprovalHeader({
                 onClick={onApprove}
                 disabled={submitting}
               >
-                Phê duyệt {scopeLabel}
+                Phê duyệt
               </Button>
             </>
           )}
@@ -135,7 +132,6 @@ MenuApprovalHeader.propTypes = {
   onReject: PropTypes.func.isRequired,
   onPrint: PropTypes.func.isRequired,
   canDecide: PropTypes.bool.isRequired,
-  scopeLabel: PropTypes.string.isRequired,
   submitting: PropTypes.bool.isRequired,
 }
 

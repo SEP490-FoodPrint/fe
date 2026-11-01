@@ -1,29 +1,16 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Alert, Button, Card, Chip, TextField, Typography } from "@mui/material"
+import { Alert, Card, Chip, Typography } from "@mui/material"
 import {
   CheckCircle2,
   FileCheck2,
-  RotateCcw,
   ShieldCheck,
   Signature,
   Stethoscope,
 } from "lucide-react"
 import styles from "./MenuReview.module.scss"
 
-function MenuReview({
-  review,
-  approval,
-  directive,
-  status,
-  canDecide,
-  scopeLabel,
-  onDirectiveChange,
-  onApprove,
-  onReject,
-  submitting,
-}) {
-  const isPending = canDecide
+function MenuReview({ review, approval, status }) {
 
   return (
     <section className={styles.grid} aria-label="Thẩm định và phê duyệt">
@@ -67,54 +54,28 @@ function MenuReview({
           <span className={`${styles.headerIcon} ${styles.primaryIcon}`}><Signature size={20} /></span>
           <div>
             <Typography component="h2" className={styles.title}>Ý kiến chỉ đạo của Ban Giám hiệu</Typography>
-            <Typography className={styles.subtitle}>Phạm vi: {scopeLabel}</Typography>
+            <Typography className={styles.subtitle}>Quyết định áp dụng cho cả tuần</Typography>
           </div>
         </div>
 
-        <TextField
-          multiline
-          minRows={5}
-          fullWidth
-          value={isPending ? directive : approval.note || ""}
-          disabled={!isPending || submitting}
-          onChange={event => onDirectiveChange(event.target.value)}
-          placeholder="Nhập ý kiến chỉ đạo về dị nguyên, nhiệt độ món ăn, lưu mẫu hoặc quy trình phục vụ..."
-          className={styles.directiveInput}
-        />
+        {approval.note ? (
+          <Typography className={styles.note}>“{approval.note}”</Typography>
+        ) : (
+          <Typography className={styles.subtitle}>Chưa có ý kiến chỉ đạo.</Typography>
+        )}
 
         <div className={styles.approver}>
           <ShieldCheck size={18} />
           <span>Người phê duyệt: <strong>{approval.approver}</strong> ({approval.role})</span>
         </div>
 
-        {isPending ? (
-          <div className={styles.actions}>
-            <Button
-              color="error"
-              startIcon={<RotateCcw size={17} />}
-              onClick={onReject}
-              disabled={submitting}
-            >
-              Yêu cầu sửa đổi
-            </Button>
-            <Button
-              variant="contained"
-              startIcon={<CheckCircle2 size={17} />}
-              onClick={onApprove}
-              disabled={submitting}
-            >
-              {submitting ? "Đang xử lý..." : `Phê duyệt ${scopeLabel}`}
-            </Button>
-          </div>
-        ) : (
-          <Alert severity={status === "APPROVED" ? "success" : status === "REVISION_REQUIRED" ? "warning" : "info"}>
-            {status === "APPROVED"
-              ? `Đã phê duyệt ${scopeLabel}`
-              : status === "REVISION_REQUIRED"
-                ? `Có yêu cầu điều chỉnh trong phạm vi ${scopeLabel}`
-                : "Thực đơn chưa sẵn sàng để duyệt"}
-          </Alert>
-        )}
+        <Alert severity={status === "APPROVED" ? "success" : status === "REVISION_REQUIRED" ? "warning" : "info"}>
+          {status === "APPROVED"
+            ? "Thực đơn tuần đã được phê duyệt"
+            : status === "REVISION_REQUIRED"
+              ? "Đã yêu cầu Y tế chỉnh sửa thực đơn tuần"
+              : "Đang chờ Ban Giám hiệu quyết định"}
+        </Alert>
       </Card>
     </section>
   )
@@ -123,14 +84,7 @@ function MenuReview({
 MenuReview.propTypes = {
   review: PropTypes.object.isRequired,
   approval: PropTypes.object.isRequired,
-  directive: PropTypes.string.isRequired,
-  status: PropTypes.string.isRequired,
-  canDecide: PropTypes.bool.isRequired,
-  scopeLabel: PropTypes.string.isRequired,
-  onDirectiveChange: PropTypes.func.isRequired,
-  onApprove: PropTypes.func.isRequired,
-  onReject: PropTypes.func.isRequired,
-  submitting: PropTypes.bool.isRequired,
+  status: PropTypes.string,
 }
 
 export default MenuReview

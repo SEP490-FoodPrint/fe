@@ -5,42 +5,10 @@ import {
   Apple,
   CalendarRange,
   ChefHat,
-  Check,
-  CircleAlert,
-  Clock3,
   Cookie,
-  FilePenLine,
-  RotateCcw,
   Utensils,
 } from "lucide-react"
 import styles from "./MenuSchedule.module.scss"
-
-const dayStatuses = {
-  PENDING_APPROVAL: {
-    label: "Chờ duyệt",
-    color: "warning",
-    Icon: Clock3,
-    indicatorClass: "statusPending",
-  },
-  APPROVED: {
-    label: "Đã duyệt",
-    color: "success",
-    Icon: Check,
-    indicatorClass: "statusApproved",
-  },
-  REVISION_REQUIRED: {
-    label: "Yêu cầu điều chỉnh",
-    color: "error",
-    Icon: RotateCcw,
-    indicatorClass: "statusRevision",
-  },
-  DRAFT: {
-    label: "Bản nháp",
-    color: "default",
-    Icon: FilePenLine,
-    indicatorClass: "statusDraft",
-  },
-}
 
 function FoodItem({ item, compact = false }) {
   const isAlert = item.tone === "error"
@@ -84,7 +52,6 @@ function DailyMenuCard({ day }) {
           </div>
         </div>
         <div className={styles.dayMeta}>
-          <Chip label={dayStatuses[day.status]?.label || "Chưa xác định"} color={dayStatuses[day.status]?.color || "default"} size="small" variant="outlined" />
           <Chip label={`${(Number(day.portions) || 0).toLocaleString("vi-VN")} suất`} size="small" />
           <Chip label="Bữa trưa + Bữa xế" size="small" className={styles.mealChip} />
         </div>
@@ -135,11 +102,8 @@ function MenuSchedule({ days, visibleDays, activeDay, onDayChange, disabled }) {
             <CalendarRange size={21} /> Chi tiết thực đơn từng ngày
           </Typography>
           <Typography className={styles.sectionSubtitle}>
-            Chọn Cả tuần để xử lý các ngày còn chờ; chọn từng thứ để chỉ xử lý ngày đó.
+            Thực đơn được phê duyệt theo cả tuần. Chọn từng thứ để xem chi tiết ngày đó.
           </Typography>
-        </div>
-        <div className={styles.alertHint}>
-          <CircleAlert size={16} /> {days.filter(day => day.status === "APPROVED").length}/{days.length} ngày đã duyệt
         </div>
       </div>
 
@@ -153,30 +117,18 @@ function MenuSchedule({ days, visibleDays, activeDay, onDayChange, disabled }) {
         >
           Cả tuần
         </Button>
-        {days.map(day => {
-          const status = dayStatuses[day.status] || {
-            label: "Chưa xác định",
-            Icon: CircleAlert,
-            indicatorClass: "statusDraft",
-          }
-          const StatusIcon = status.Icon
-
-          return (
-            <Button
-              role="tab"
-              aria-selected={activeDay === day.id}
-              className={activeDay === day.id ? styles.activeTab : styles.tab}
-              onClick={() => onDayChange(day.id)}
-              disabled={disabled}
-              key={day.id}
-            >
-              <span>{day.shortLabel}</span>
-              <span className={`${styles.tabStatus} ${styles[status.indicatorClass]}`} role="img" aria-label={status.label} title={status.label}>
-                <StatusIcon size={14} strokeWidth={2.5} />
-              </span>
-            </Button>
-          )
-        })}
+        {days.map(day => (
+          <Button
+            role="tab"
+            aria-selected={activeDay === day.id}
+            className={activeDay === day.id ? styles.activeTab : styles.tab}
+            onClick={() => onDayChange(day.id)}
+            disabled={disabled}
+            key={day.id}
+          >
+            {day.shortLabel}
+          </Button>
+        ))}
       </div>
 
       <div className={styles.dayList}>
