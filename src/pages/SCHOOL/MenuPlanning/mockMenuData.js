@@ -1,101 +1,138 @@
+// Danh mục Nhà cung cấp đang liên kết hợp lệ (ACTIVE) với trường học
+export const LINKED_SUPPLIERS = [
+  {
+    id: "sup-cp",
+    name: "CP Foods Việt Nam",
+    category: "Thịt gia súc, gia cầm tươi sạch",
+    badge: "Thịt sạch VietGAP",
+    ingredients: [
+      { id: "ing-cp-1", name: "Thịt ba chỉ heo sạch", defaultQty: 45, unit: "g", allergen: null },
+      { id: "ing-cp-2", name: "Thịt nạc vai xay", defaultQty: 20, unit: "g", allergen: null },
+      { id: "ing-cp-3", name: "Thịt đùi gà phi lê", defaultQty: 60, unit: "g", allergen: null },
+      { id: "ing-cp-4", name: "Thịt heo nạc thăn", defaultQty: 50, unit: "g", allergen: null }
+    ]
+  },
+  {
+    id: "sup-sea",
+    name: "Hải sản Sạch Vũng Tàu",
+    category: "Thủy hải sản tươi sống",
+    badge: "Hải sản đánh bắt",
+    ingredients: [
+      {
+        id: "ing-sea-1",
+        name: "Tôm sú biển tươi",
+        defaultQty: 65,
+        unit: "g",
+        allergen: "Giáp xác",
+        allergyWarning: "12 học sinh dị ứng Giáp xác (Lớp 1A: 4, 2B: 5, 3C: 3)"
+      },
+      {
+        id: "ing-sea-2",
+        name: "Cá điêu hồng phi lê",
+        defaultQty: 60,
+        unit: "g",
+        allergen: "Cá / Thủy sản",
+        allergyWarning: "8 học sinh dị ứng Cá (Lớp 2A: 3, 4B: 5)"
+      },
+      {
+        id: "ing-sea-3",
+        name: "Mực nang tươi",
+        defaultQty: 50,
+        unit: "g",
+        allergen: "Hải sản thân mềm",
+        allergyWarning: "6 học sinh dị ứng Mực (Lớp 3A: 2, 5B: 4)"
+      }
+    ]
+  },
+  {
+    id: "sup-veg",
+    name: "HTX Rau sạch Nam Hà",
+    category: "Rau củ quả sạch VietGAP",
+    badge: "VietGAP Organic",
+    ingredients: [
+      { id: "ing-veg-1", name: "Cải ngọt VietGAP", defaultQty: 50, unit: "g", allergen: null },
+      { id: "ing-veg-2", name: "Bí đỏ hồ lô", defaultQty: 60, unit: "g", allergen: null },
+      { id: "ing-veg-3", name: "Cà rốt Đà Lạt", defaultQty: 30, unit: "g", allergen: null },
+      { id: "ing-veg-4", name: "Cần tây sạch", defaultQty: 25, unit: "g", allergen: null },
+      { id: "ing-veg-5", name: "Bắp cải trắng", defaultQty: 50, unit: "g", allergen: null }
+    ]
+  },
+  {
+    id: "sup-egg",
+    name: "Công ty Ba Huân",
+    category: "Trứng gia cầm kiểm dịch",
+    badge: "Kiểm dịch ATTP",
+    ingredients: [
+      { id: "ing-egg-1", name: "Trứng cút tươi", defaultQty: 2, unit: "quả", allergen: null },
+      {
+        id: "ing-egg-2",
+        name: "Trứng gà tươi loại 1",
+        defaultQty: 1,
+        unit: "quả",
+        allergen: "Trứng gà",
+        allergyWarning: "5 học sinh dị ứng Trứng gà (Lớp 1B: 2, 4A: 3)"
+      }
+    ]
+  },
+  {
+    id: "sup-vis",
+    name: "Thực phẩm Vissan",
+    category: "Thịt bò nạc & đạm tươi",
+    badge: "ISO 22000",
+    ingredients: [
+      { id: "ing-vis-1", name: "Thịt bò nạc loại 1", defaultQty: 40, unit: "g", allergen: null },
+      { id: "ing-vis-2", name: "Thịt bê mềm", defaultQty: 45, unit: "g", allergen: null }
+    ]
+  },
+  {
+    id: "sup-rice",
+    name: "Gạo Sạch Hải Hậu",
+    category: "Tinh bột & ngũ cốc học đường",
+    badge: "Gạo OCOP 4 sao",
+    ingredients: [
+      { id: "ing-rice-1", name: "Gạo tám thơm Hải Hậu", defaultQty: 120, unit: "g", allergen: null },
+      { id: "ing-rice-2", name: "Gạo lứt đỏ huyết rồng", defaultQty: 110, unit: "g", allergen: null }
+    ]
+  }
+]
+
+// Món ăn ban đầu trong thực đơn
 export const INITIAL_DISHES = [
   {
     id: "dish-1",
     name: "Tôm sú hấp sả",
     category: "Món mặn",
-    categoryType: "main",
-    hasAllergyConflict: true,
-    allergenName: "Giáp xác",
-    allergyCount: 12,
-    allergyClasses: ["Lớp 1A (4 HS)", "Lớp 2B (5 HS)", "Lớp 3C (3 HS)"],
-    ingredients: [
-      {
-        id: "ing-1-1",
-        name: "Tôm sú tươi",
-        supplier: "Hải sản Vũng Tàu",
-        portionQty: 65,
-        unit: "g",
-        hasAllergen: true
-      },
-      {
-        id: "ing-1-2",
-        name: "Sả cây tươi",
-        supplier: "Nông sản Đà Lạt",
-        portionQty: 10,
-        unit: "g",
-        hasAllergen: false
-      }
-    ]
+    ingredientId: "ing-sea-1",
+    portionQty: 65,
+    unit: "g"
   },
   {
     id: "dish-2",
     name: "Thịt heo kho trứng cút",
     category: "Món mặn phụ",
-    categoryType: "side",
-    hasAllergyConflict: false,
-    ingredients: [
-      {
-        id: "ing-2-1",
-        name: "Thịt ba chỉ sạch",
-        supplier: "CP Foods Việt Nam",
-        portionQty: 45,
-        unit: "g",
-        hasAllergen: false
-      },
-      {
-        id: "ing-2-2",
-        name: "Trứng cút tươi",
-        supplier: "Công ty Ba Huân",
-        portionQty: 2,
-        unit: "quả",
-        hasAllergen: false
-      }
-    ]
+    ingredientId: "ing-cp-1",
+    portionQty: 45,
+    unit: "g"
   },
   {
     id: "dish-3",
     name: "Canh cải ngọt nấu thịt bằm",
     category: "Món canh",
-    categoryType: "soup",
-    hasAllergyConflict: false,
-    ingredients: [
-      {
-        id: "ing-3-1",
-        name: "Cải ngọt VietGAP",
-        supplier: "HTX Rau Nam Hà",
-        portionQty: 50,
-        unit: "g",
-        hasAllergen: false
-      },
-      {
-        id: "ing-3-2",
-        name: "Thịt nạc xay",
-        supplier: "CP Foods Việt Nam",
-        portionQty: 15,
-        unit: "g",
-        hasAllergen: false
-      }
-    ]
+    ingredientId: "ing-veg-1",
+    portionQty: 50,
+    unit: "g"
   },
   {
     id: "dish-4",
     name: "Cơm trắng tám thơm",
     category: "Cơm / Tinh bột",
-    categoryType: "rice",
-    hasAllergyConflict: false,
-    ingredients: [
-      {
-        id: "ing-4-1",
-        name: "Gạo tám thơm Hải Hậu",
-        supplier: "Gạo sạch Hải Hậu",
-        portionQty: 120,
-        unit: "g",
-        hasAllergen: false
-      }
-    ]
+    ingredientId: "ing-rice-1",
+    portionQty: 120,
+    unit: "g"
   }
 ]
 
+// Gia vị dùng chung từ kho trường (giữ nguyên)
 export const INITIAL_SEASONINGS = [
   {
     id: "seas-1",
@@ -135,66 +172,31 @@ export const INITIAL_SEASONINGS = [
   }
 ]
 
-export const DISH_REPOSITORY = [
+// Dữ liệu học sinh dị ứng đã khai báo theo Lớp (tổng hợp cấp lớp)
+export const ALLERGY_PROFILES_BY_CLASS = [
   {
-    id: "repo-1",
-    name: "Thịt bò xào rau củ thập cẩm",
-    category: "Món mặn",
-    categoryType: "main",
-    allergenAlert: null,
-    supplierName: "Vissan & HTX Rau Nam Hà",
-    description: "Thịt bò nạc xào cần tây, cà rốt, ớt chuông. Giàu sắt và protein.",
-    ingredientsText: "Thịt bò nạc (40g), Cần tây (25g), Cà rốt (20g)"
+    allergen: "Giáp xác",
+    affectedCount: 12,
+    classes: [
+      { className: "Lớp 1A", count: 4 },
+      { className: "Lớp 2B", count: 5 },
+      { className: "Lớp 3C", count: 3 }
+    ]
   },
   {
-    id: "repo-2",
-    name: "Gà hấp lá chanh",
-    category: "Món mặn",
-    categoryType: "main",
-    allergenAlert: null,
-    supplierName: "CP Foods Việt Nam",
-    description: "Thịt gà thả vườn hấp lá chanh thanh đạm, giàu đạm dễ tiêu hóa.",
-    ingredientsText: "Thịt đùi gà (70g), Lá chanh (5g)"
+    allergen: "Cá / Thủy sản",
+    affectedCount: 8,
+    classes: [
+      { className: "Lớp 2A", count: 3 },
+      { className: "Lớp 4B", count: 5 }
+    ]
   },
   {
-    id: "repo-3",
-    name: "Cá điêu hồng sốt cà chua",
-    category: "Món mặn",
-    categoryType: "main",
-    allergenAlert: "Dị ứng: Cá / Thủy sản",
-    supplierName: "Thủy sản Miền Tây",
-    description: "Cá điêu hồng phi lê lọc sạch xương sốt cà chua tươi.",
-    ingredientsText: "Cá điêu hồng phi lê (60g), Cà chua (30g)"
-  },
-  {
-    id: "repo-4",
-    name: "Canh bí đỏ nấu tôm khô",
-    category: "Món canh",
-    categoryType: "soup",
-    allergenAlert: "Dị ứng: Giáp xác (Tôm khô)",
-    supplierName: "Nông sản Đà Lạt",
-    description: "Bí đỏ bùi ngọt nấu tôm khô thơm lừng, bổ sung vitamin A.",
-    ingredientsText: "Bí đỏ (60g), Tôm khô loại 1 (8g)"
-  },
-  {
-    id: "repo-5",
-    name: "Trứng chiên thịt bằm nấm mèo",
-    category: "Món mặn phụ",
-    categoryType: "side",
-    allergenAlert: "Dị ứng: Trứng gà",
-    supplierName: "Công ty Ba Huân",
-    description: "Trứng gà tươi đánh đều thịt heo bằm và mộc nhĩ giòn dai.",
-    ingredientsText: "Trứng gà (1 quả), Thịt heo xay (20g), Nấm mèo (5g)"
-  },
-  {
-    id: "repo-6",
-    name: "Chuối tiêu tráng miệng VietGAP",
-    category: "Tráng miệng",
-    categoryType: "dessert",
-    allergenAlert: null,
-    supplierName: "HTX Nông nghiệp Tân Dân",
-    description: "Chuối tiêu chín tự nhiên, giàu kali và vitamin tốt cho tiêu hóa học sinh.",
-    ingredientsText: "Chuối tiêu (1 quả ~ 100g)"
+    allergen: "Trứng gà",
+    affectedCount: 5,
+    classes: [
+      { className: "Lớp 1B", count: 2 },
+      { className: "Lớp 4A", count: 3 }
+    ]
   }
 ]
-

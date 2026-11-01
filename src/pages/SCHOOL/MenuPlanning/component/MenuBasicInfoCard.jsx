@@ -12,12 +12,17 @@ export default function MenuBasicInfoCard({
           <span className={`material-symbols-outlined ${styles.headerIcon}`}>tune</span>
           <h2 className={styles.cardTitle}>Thông tin thực đơn</h2>
         </div>
-        <span className={styles.reqNotice}>* Trường bắt buộc</span>
+        <div className={styles.headerRight}>
+          <span className={styles.multiNotice}>
+            <span className={`material-symbols-outlined ${styles.multiIcon}`}>info</span>
+            Có thể tạo nhiều thực đơn trong cùng 1 ngày (theo khối/ca ăn)
+          </span>
+        </div>
       </div>
 
       <div className={styles.formGrid}>
         {/* Tên thực đơn */}
-        <div className={`${styles.fieldCol} ${styles.col12}`}>
+        <div className={`${styles.fieldCol} ${styles.col6}`}>
           <label className={styles.fieldLabel} htmlFor="menuName">
             Tên thực đơn <span className={styles.req}>*</span>
           </label>
@@ -27,12 +32,12 @@ export default function MenuBasicInfoCard({
             className={styles.textInput}
             value={formState.name}
             onChange={(e) => onChangeField("name", e.target.value)}
-            placeholder="Ví dụ: Thực đơn tuần 46 - Bữa trưa"
+            placeholder="Ví dụ: Thực đơn tuần 46 - Khối 1-2 - Bữa trưa"
           />
         </div>
 
         {/* Ngày ăn */}
-        <div className={`${styles.fieldCol} ${styles.col6}`}>
+        <div className={`${styles.fieldCol} ${styles.col3}`}>
           <label className={styles.fieldLabel} htmlFor="menuDate">
             Ngày áp dụng <span className={styles.req}>*</span>
           </label>
@@ -50,7 +55,7 @@ export default function MenuBasicInfoCard({
         </div>
 
         {/* Bữa ăn */}
-        <div className={`${styles.fieldCol} ${styles.col6}`}>
+        <div className={`${styles.fieldCol} ${styles.col3}`}>
           <label className={styles.fieldLabel} htmlFor="mealType">
             Loại bữa ăn <span className={styles.req}>*</span>
           </label>
@@ -71,7 +76,7 @@ export default function MenuBasicInfoCard({
         {/* Áp dụng cho */}
         <div className={`${styles.fieldCol} ${styles.col6}`}>
           <label className={styles.fieldLabel} htmlFor="targetScope">
-            Áp dụng cho <span className={styles.req}>*</span>
+            Khối lớp áp dụng <span className={styles.req}>*</span>
           </label>
           <div className={styles.selectWrapper}>
             <select
@@ -83,6 +88,7 @@ export default function MenuBasicInfoCard({
               <option value="ALL">Toàn trường (Khối 1 - Khối 5) • 520 suất</option>
               <option value="K1_K2">Khối 1 & Khối 2 • 210 suất</option>
               <option value="K3_K5">Khối 3, Khối 4 & Khối 5 • 310 suất</option>
+              <option value="MAM_NON">Khối Mầm non • 150 suất</option>
             </select>
             <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
           </div>
@@ -118,4 +124,3 @@ export default function MenuBasicInfoCard({
     </div>
   )
 }
-

@@ -2,16 +2,14 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { INITIAL_DISHES, INITIAL_SEASONINGS } from "./mockMenuData"
+import { INITIAL_DISHES, INITIAL_SEASONINGS, LINKED_SUPPLIERS } from "./mockMenuData"
 
 import CreateMenuHeader from "./component/CreateMenuHeader"
 import MenuBasicInfoCard from "./component/MenuBasicInfoCard"
 import MenuDishesTable from "./component/MenuDishesTable"
-import MenuSeasoningCard from "./component/MenuSeasoningCard"
-import AllergySafetyCard from "./component/AllergySafetyCard"
 import AllergyAlternativeMealsCard from "./component/AllergyAlternativeMealsCard"
+import MenuSeasoningCard from "./component/MenuSeasoningCard"
 import CreateMenuBottomBar from "./component/CreateMenuBottomBar"
-import AddDishModal from "./component/AddDishModal"
 import ConfirmSubmitModal from "./component/ConfirmSubmitModal"
 
 export default function MenuPlanning() {
@@ -19,7 +17,7 @@ export default function MenuPlanning() {
 
   // Form State
   const [formState, setFormState] = useState({
-    name: "Thực đơn tiêu chuẩn tuần 46 – Bữa trưa",
+    name: "Thực đơn tuần 46 – Khối 1-2 – Bữa trưa",
     date: "26/10/2026",
     mealType: "LUNCH",
     targetScope: "ALL",
@@ -27,19 +25,25 @@ export default function MenuPlanning() {
     notes: "Thực đơn giàu đạm và chất xơ, hạn chế muối theo tiêu chuẩn dinh dưỡng học đường."
   })
 
-  // Dishes & Seasonings State
+  // Danh sách món ăn trong thực đơn
   const [dishes, setDishes] = useState(INITIAL_DISHES)
+
+  // Món thay thế cho học sinh dị ứng (Mặc định là suất ăn riêng)
+  const [substituteDish, setSubstituteDish] = useState({
+    name: "Thịt bò xào rau củ thập cẩm",
+    ingredientId: "ing-vis-1",
+    portionQty: 40,
+    unit: "g"
+  })
+
+  // Gia vị dùng chung từ kho trường (giữ nguyên)
   const [seasonings] = useState(INITIAL_SEASONINGS)
 
-  // Allergy Resolution Option (OPTION_1: Thay thế món, OPTION_2: Bố trí suất riêng)
-  const [selectedAllergyOption, setSelectedAllergyOption] = useState("OPTION_2")
-
-  // Modals & Feedback
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
+  // Modal xác nhận gửi BGH duyệt
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
-  // Field change
+  // Cập nhật thông tin cơ bản
   const handleChangeField = (field, value) => {
     setFormState(prev => {
       let portionCount = prev.portionCount
@@ -47,56 +51,73 @@ export default function MenuPlanning() {
         if (value === "ALL") portionCount = 520
         else if (value === "K1_K2") portionCount = 210
         else if (value === "K3_K5") portionCount = 310
+        else if (value === "MAM_NON") portionCount = 150
       }
       return { ...prev, [field]: value, portionCount }
     })
   }
 
-  // Conflict item
-  const conflictDish = dishes.find(d => d.hasAllergyConflict)
-  const conflictCount = conflictDish ? conflictDish.allergyCount : 0
+  // Cập nhật từng món ăn trong bảng
+  const handleUpdateDish = (dishId, field, value) => {
+    setDishes(prev =>
+      prev.map(dish => {
+        if (dish.id !== dishId) return dish
 
-  // Actions
+        // Nếu đổi thành phần chính, tự động cập nhật định lượng mặc định và đơn vị
+        if (field === "ingredientId") {
+          let defaultQty = dish.portionQty
+          let defaultUnit = dish.unit
+          for (const sup of LINKED_SUPPLIERS) {
+            const ing = sup.ingredients.find(i => i.id === value)
+            if (ing) {
+              defaultQty = ing.defaultQty || dish.portionQty
+              defaultUnit = ing.unit || dish.unit
+              break
+            }
+          }
+          return { ...dish, [field]: value, portionQty: defaultQty, unit: defaultUnit }
+        }
+
+        return { ...dish, [field]: value }
+      })
+    )
+  }
+
+  // Thêm dòng món ăn mới vào bảng
+  const handleAddDishRow = () => {
+    const newDish = {
+      id: `dish-${Date.now()}`,
+      name: "",
+      category: "Món mặn",
+      ingredientId: "",
+      portionQty: 50,
+      unit: "g"
+    }
+    setDishes(prev => [...prev, newDish])
+    showToast("Đã thêm một dòng món ăn mới vào bảng", "info")
+  }
+
+  // Xóa món ăn khỏi bảng
   const handleRemoveDish = (dishId) => {
     setDishes(prev => prev.filter(d => d.id !== dishId))
     showToast("Đã xóa món ăn khỏi thực đơn", "info")
   }
 
-  const handleSelectDishFromModal = (repoDish) => {
-    const newDish = {
-      id: `dish-${Date.now()}`,
-      name: repoDish.name,
-      category: repoDish.category,
-      categoryType: repoDish.categoryType,
-      hasAllergyConflict: Boolean(repoDish.allergenAlert),
-      allergenName: repoDish.allergenAlert ? "Thủy sản / Cá" : null,
-      allergyCount: repoDish.allergenAlert ? 8 : 0,
-      allergyClasses: repoDish.allergenAlert ? ["Lớp 2A (3 HS)", "Lớp 4B (5 HS)"] : [],
-      ingredients: [
-        {
-          id: `ing-${Date.now()}-1`,
-          name: repoDish.ingredientsText.split("(")[0].trim(),
-          supplier: repoDish.supplierName,
-          portionQty: 50,
-          unit: "g",
-          hasAllergen: Boolean(repoDish.allergenAlert)
-        }
-      ]
-    }
-
-    setDishes(prev => [...prev, newDish])
-    setIsAddModalOpen(false)
-    showToast(`Đã thêm món "${repoDish.name}" vào thực đơn`, "success")
+  // Cập nhật thông tin món thay thế dị ứng
+  const handleChangeSubstituteDish = (field, value) => {
+    setSubstituteDish(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSelectAllergyOption = (option) => {
-    setSelectedAllergyOption(option)
-    if (option === "OPTION_1") {
-      showToast("Đã chuyển sang Phương án 1: Thay thế toàn bộ món ăn", "info")
-    } else {
-      showToast("Đã chọn Phương án 2: Bố trí suất ăn riêng kèm tem nhận diện", "success")
+  // Kiểm tra danh sách món có xung đột dị ứng
+  const conflictDishes = dishes.filter(d => {
+    for (const sup of LINKED_SUPPLIERS) {
+      const ing = sup.ingredients.find(i => i.id === d.ingredientId)
+      if (ing?.allergen) return true
     }
-  }
+    return false
+  })
+
+  const conflictCount = conflictDishes.length > 0 ? 12 : 0
 
   const handleSaveDraft = () => {
     showToast("Đã lưu bản nháp thực đơn thành công (Trạng thái DRAFT)", "success")
@@ -104,7 +125,7 @@ export default function MenuPlanning() {
 
   const handleConfirmSubmit = () => {
     setIsConfirmModalOpen(false)
-    showToast("Đã gửi thực đơn tuần 46 lên Ban Giám hiệu phê duyệt thành công!", "success")
+    showToast("Đã gửi thực đơn lên Ban Giám hiệu phê duyệt thành công!", "success")
     setTimeout(() => {
       navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)
     }, 1200)
@@ -129,49 +150,37 @@ export default function MenuPlanning() {
         </div>
       )}
 
-      {/* Page Header with Breadcrumb */}
-      <CreateMenuHeader onBack={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)} />
+      <div className={styles.contentWrapper}>
+        {/* Page Header (Đã xóa Breadcrumb) */}
+        <CreateMenuHeader onBack={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)} />
 
-      {/* Main 2-Column Grid (70% / 30%) */}
-      <div className={styles.mainGrid}>
-        {/* Left Column (70%) */}
-        <div className={styles.leftCol}>
-          {/* Khối A: Thông tin cơ bản */}
-          <MenuBasicInfoCard
-            formState={formState}
-            onChangeField={handleChangeField}
-          />
+        {/* Khối 1: Thông tin thực đơn */}
+        <MenuBasicInfoCard
+          formState={formState}
+          onChangeField={handleChangeField}
+        />
 
-          {/* Khối B: Danh sách món ăn trong thực đơn */}
-          <MenuDishesTable
-            dishes={dishes}
-            onOpenAddModal={() => setIsAddModalOpen(true)}
-            onRemoveDish={handleRemoveDish}
-          />
+        {/* Khối 2: Bảng món ăn trong thực đơn (Tên tự gõ, NCC select, kiểm tra dị ứng inline) */}
+        <MenuDishesTable
+          dishes={dishes}
+          onUpdateDish={handleUpdateDish}
+          onAddDishRow={handleAddDishRow}
+          onRemoveDish={handleRemoveDish}
+        />
 
-          {/* Khối C: Bố trí suất ăn riêng cho dị ứng (chỉ hiện khi chọn Phương án 2) */}
-          {selectedAllergyOption === "OPTION_2" && (
-            <AllergyAlternativeMealsCard
-              conflictDish={conflictDish}
-              portionCount={formState.portionCount}
-            />
-          )}
+        {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng & Tạo món thay thế */}
+        <AllergyAlternativeMealsCard
+          conflictDishes={conflictDishes}
+          portionCount={formState.portionCount}
+          substituteDish={substituteDish}
+          onChangeSubstituteDish={handleChangeSubstituteDish}
+        />
 
-          {/* Khối D: Gia vị từ kho trường */}
-          <MenuSeasoningCard
-            seasonings={seasonings}
-            portionCount={formState.portionCount}
-          />
-        </div>
-
-        {/* Right Column (30% Sticky) */}
-        <div className={styles.rightCol}>
-          <AllergySafetyCard
-            conflictDish={conflictDish}
-            selectedOption={selectedAllergyOption}
-            onSelectOption={handleSelectAllergyOption}
-          />
-        </div>
+        {/* Khối 4: Gia vị dùng chung từ kho trường (giữ nguyên) */}
+        <MenuSeasoningCard
+          seasonings={seasonings}
+          portionCount={formState.portionCount}
+        />
       </div>
 
       {/* Sticky Bottom Action Bar */}
@@ -181,21 +190,14 @@ export default function MenuPlanning() {
         onSubmitApproval={() => setIsConfirmModalOpen(true)}
       />
 
-      {/* Modal 24.1: Chọn món ăn vào thực đơn */}
-      <AddDishModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSelectDish={handleSelectDishFromModal}
-      />
-
-      {/* Modal 24.2: Xác nhận gửi BGH duyệt */}
+      {/* Modal xác nhận gửi BGH duyệt */}
       <ConfirmSubmitModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmSubmit}
         menuData={formState}
         dishesCount={dishes.length}
-        selectedAllergyOption={selectedAllergyOption}
+        selectedAllergyOption="OPTION_2"
         conflictCount={conflictCount}
       />
     </div>

@@ -1,25 +1,14 @@
 .pageContainer {
   padding: 24px 32px 100px 32px;
-  background-color: var(--color-surface, #f0fcf6);
+  background-color: #ffffff; /* Nền trắng tinh theo yêu cầu */
   min-height: 100vh;
   box-sizing: border-box;
   position: relative;
 }
 
-.mainGrid {
-  display: grid;
-  grid-template-columns: minmax(0, 7.2fr) minmax(320px, 4.8fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.leftCol {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.rightCol {
+.contentWrapper {
+  max-width: 1240px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
@@ -61,14 +50,8 @@
   color: #ffffff;
 }
 
-@media (max-width: 1080px) {
-  .mainGrid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-
+@media (max-width: 768px) {
   .pageContainer {
     padding: 16px 16px 100px 16px;
   }
 }
-

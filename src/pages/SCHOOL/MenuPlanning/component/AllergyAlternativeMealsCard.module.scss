@@ -1,141 +1,402 @@
 .container {
   background-color: #fffbeb;
   border: 1px solid #fde68a;
-  border-radius: 12px;
-  padding: 16px 20px;
+  border-radius: 14px;
+  padding: 20px 24px;
   margin-bottom: 20px;
 }
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #fef08a;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 .titleWithIcon {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.icon {
+.headerIcon {
   color: #b45309;
-  font-size: 20px;
+  font-size: 24px;
+  margin-top: 2px;
 }
 
 .title {
   font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: 700;
   color: #92400e;
+  margin: 0 0 2px 0;
+  letter-spacing: -0.01em;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #78350f;
   margin: 0;
 }
 
 .tag {
   font-size: 11.5px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 3px 10px;
+  border-radius: 6px;
   background-color: #fef3c7;
   color: #b45309;
   border: 1px solid #fcd34d;
 }
 
-.contentGrid {
+.mainGrid {
   display: grid;
-  grid-template-columns: 1fr 1.6fr;
-  gap: 14px;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 18px;
 }
 
-.portionSplitCard {
+.leftCol {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.portionSplitBox {
   background-color: #ffffff;
   border: 1px solid #fef08a;
   border-radius: 8px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 8px;
 }
 
-.splitRow {
+.portionRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 12px;
   font-size: 13px;
 }
 
-.splitLabel {
+.rowLabel {
   color: #475569;
 }
 
-.splitValue {
+.stdPortionVal {
   color: #0f172a;
-  font-weight: 600;
-}
-
-.splitValueAllergy {
-  color: #b45309;
-  font-weight: 700;
   font-size: 14px;
 }
 
-.substituteCard {
+.allergyPortionVal {
+  color: #b45309;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.conflictListBox {
   background-color: #ffffff;
   border: 1px solid #fef08a;
   border-radius: 8px;
   padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
-.subHead {
+.conflictListTitle {
   display: flex;
   align-items: center;
   gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #92400e;
+
+  span {
+    font-size: 16px;
+  }
+}
+
+.conflictClassItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.conflictDishName {
+  font-size: 12.5px;
+  color: #334155;
+}
+
+.classChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.classChip {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.rightCol {
+  display: flex;
+  flex-direction: column;
+}
+
+.substituteFormCard {
+  background-color: #ffffff;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.05);
+}
+
+.formHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #fef08a;
+}
+
+.formIcon {
+  color: #b45309;
+  font-size: 18px;
+}
+
+.formTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #92400e;
+  margin: 0;
+}
+
+.formBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+
+  .req {
+    color: #e11d48;
+  }
+}
+
+.subInput {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 600;
+  outline: none;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: #b45309;
+    box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.12);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+    font-weight: 400;
+  }
+}
+
+.selectWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.subSelect {
+  width: 100%;
+  height: 38px;
+  padding: 0 32px 0 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 13px;
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: #b45309;
+    box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.12);
+  }
+
+  optgroup {
+    font-weight: 700;
+    color: #00654f;
+    background-color: #f1f5f9;
+  }
+
+  option {
+    font-weight: 400;
+    color: #0f172a;
+    padding: 6px;
+  }
+}
+
+.chevronIcon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.qtyRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
-.subLabel {
-  font-size: 12.5px;
+.qtyInputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.qtyNumInput {
+  width: 65px;
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: right;
+  outline: none;
+
+  &:focus {
+    border-color: #b45309;
+  }
+}
+
+.qtyUnitSelect {
+  height: 36px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+}
+
+.qtyPerPortionLabel {
+  font-size: 12px;
   color: #64748b;
 }
 
-.subDishName {
-  font-size: 13.5px;
-  color: #0f172a;
-}
-
-.subIngredients {
-  font-size: 12.5px;
-  color: #334155;
-  line-height: 1.4;
-}
-
-.subLabelNotice {
-  display: flex;
-  align-items: flex-start;
+.subNotice {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
   font-size: 12px;
   color: #92400e;
-  padding-top: 4px;
-  border-top: 1px dashed #fde68a;
+  background-color: #fffbeb;
+  border: 1px solid #fef08a;
+  padding: 8px 10px;
+  border-radius: 6px;
 
   .tagIcon {
     font-size: 16px;
-    margin-top: 1px;
-    flex-shrink: 0;
+    color: #d97706;
   }
 }
 
-@media (max-width: 768px) {
-  .contentGrid {
+.safeContainer {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.safeLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.safeIcon {
+  color: #16a34a;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.safeTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #15803d;
+  margin: 0 0 2px 0;
+}
+
+.safeDesc {
+  font-size: 12.5px;
+  color: #4b5563;
+  margin: 0;
+}
+
+.safeBadge {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #dcfce7;
+  color: #166534;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .mainGrid {
     grid-template-columns: 1fr;
   }
-}
 
+  .container {
+    padding: 16px;
+  }
+}
