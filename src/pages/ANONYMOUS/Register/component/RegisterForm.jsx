@@ -1,12 +1,7 @@
 import React, { useContext, useRef, useState } from "react";
 import { CircularProgress } from "@mui/material";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import {
-  AlertCircle,
-  ArrowRight,
-  School,
-  Truck,
-} from "lucide-react";
+import { AlertCircle, ArrowRight, School, Truck } from "lucide-react";
 import AuthInput from "src/components/Auth/AuthInput";
 import AuthService from "src/services/AuthService";
 import { signupErrors } from "src/lib/authValidation";
@@ -200,7 +195,6 @@ export default function RegisterForm() {
               autoComplete="email"
               disabled={loading}
               error={errors.email}
-              hint="OTP 6 số sẽ gửi đến đây"
               inputProps={{
                 maxLength: 254,
                 autoCapitalize: "none",
@@ -250,9 +244,7 @@ export default function RegisterForm() {
               span="half"
               placeholder="••••••••••••"
               value={values.confirmPassword}
-              onChange={(e) =>
-                handleChange("confirmPassword", e.target.value)
-              }
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
               autoComplete="new-password"
               disabled={loading}
               error={errors.confirmPassword}
