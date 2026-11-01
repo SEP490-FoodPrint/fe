@@ -22,7 +22,6 @@ function MenuApproval() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [activeDay, setActiveDay] = useState("all")
-  const [directive, setDirective] = useState("")
   const [dialog, setDialog] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const submitLock = useRef(false)
@@ -91,29 +90,23 @@ function MenuApproval() {
       : menu.days.filter(day => day.id === activeDay)
   }, [activeDay, menu?.days])
 
-  const selectedDay = menu?.days.find(day => day.id === activeDay)
-  const scopeLabel = selectedDay ? `${selectedDay.shortLabel} (${selectedDay.date})` : "cả tuần"
-  const scopeStatus = selectedDay?.status || menu?.status
-  const canDecide = activeDay === "all"
-    ? Boolean(menu?.canDecide)
-    : menu?.status !== "DRAFT" && selectedDay?.status === "PENDING_APPROVAL"
+  // Thực đơn chỉ được duyệt hoặc trả về theo cả tuần; tab ngày chỉ để xem
+  const canDecide = menu?.status === "PENDING_APPROVAL" && Boolean(menu?.canDecide)
 
   const openDecision = type => {
     if (!canDecide || submitting) return
-    setDialog({ type, menuDayId: selectedDay?.id, scopeLabel })
+    setDialog({ type })
   }
 
   const changeDay = dayId => {
     if (submitting || dialog) return
     setActiveDay(dayId)
-    setDirective("")
   }
 
   const changeWeek = weekId => {
     if (submitting || dialog || weekId === menuId) return
     setMenuId(weekId)
     setActiveDay("all")
-    setDirective("")
   }
 
   const applyDecision = async (type, text) => {
@@ -121,10 +114,9 @@ function MenuApproval() {
     submitLock.current = true
     setSubmitting(true)
     try {
-      const body = dialog.menuDayId ? { menuDayId: dialog.menuDayId } : {}
       const response = type === "approve"
-        ? await MenuService.approveMenu(menu.id, { ...body, notes: text })
-        : await MenuService.requestRevision(menu.id, { ...body, reason: text })
+        ? await MenuService.approveMenu(menu.id, {})
+        : await MenuService.requestRevision(menu.id, { reason: text })
       const result = response.data
       setWeeks(current =>
         current.map(week => (week.id === menu.id ? { ...week, status: result.status } : week)),
@@ -136,15 +128,11 @@ function MenuApproval() {
           const changed = result.days.find(item => item.id === day.id)
           return changed ? { ...day, status: changed.status } : day
         }),
-        canDecide: current.days.some(day =>
-          day.status === "PENDING_APPROVAL" && !result.days.some(item => item.id === day.id),
-        ),
+        canDecide: false,
       }))
       setDialog(null)
-      setDirective("")
       notice({
-        msg: type === "approve" ? "Phê duyệt thành công" : "Đã yêu cầu điều chỉnh",
-        desc: `Đã xử lý ${result.days.length} ngày trong phạm vi ${dialog.scopeLabel}.`,
+        msg: type === "approve" ? "Đã phê duyệt thực đơn tuần" : "Đã yêu cầu Y tế chỉnh sửa thực đơn",
       })
       try {
         const detail = await MenuService.getApprovalDetail(menu.id)
@@ -164,8 +152,8 @@ function MenuApproval() {
     }
   }
 
-  const handleApprove = async notes => {
-    await applyDecision("approve", notes)
+  const handleApprove = async () => {
+    await applyDecision("approve")
   }
 
   const handleRequestRevision = async reason => {
@@ -204,12 +192,11 @@ function MenuApproval() {
   return (
     <div className="menu-approval-page">
       <MenuApprovalHeader
-        menu={{ ...menu, status: scopeStatus }}
+        menu={menu}
         weeks={weeks}
         selectedWeekId={menuId}
         onWeekChange={changeWeek}
         canDecide={canDecide}
-        scopeLabel={scopeLabel}
         submitting={submitting}
         onApprove={() => openDecision("approve")}
         onReject={() => openDecision("reject")}
@@ -225,24 +212,14 @@ function MenuApproval() {
       />
       <MenuReview
         review={menu.medicalReview}
-        approval={selectedDay?.approval || menu.approval}
-        directive={directive}
-        status={scopeStatus}
-        canDecide={canDecide}
-        scopeLabel={scopeLabel}
-        onDirectiveChange={setDirective}
-        onApprove={() => openDecision("approve")}
-        onReject={() => openDecision("reject")}
-        submitting={submitting}
+        approval={menu.approval}
+        status={menu.status}
       />
       <DecisionDialog
         type={dialog?.type || null}
         menu={menu}
         open={Boolean(dialog)}
         submitting={submitting}
-        initialNotes={directive}
-        scopeLabel={dialog?.scopeLabel || scopeLabel}
-        pendingCount={dialog?.menuDayId ? 1 : menu.days.filter(day => day.status === "PENDING_APPROVAL").length}
         onClose={() => setDialog(null)}
         onApprove={handleApprove}
         onReject={handleRequestRevision}
