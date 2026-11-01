@@ -62,6 +62,7 @@ const ROUTER = {
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho, Bếp
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
   SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
+  SCHOOL_SUPPLIERS: "/school/suppliers",
 
   // Common/Error
   FORBIDDEN: "/403",
