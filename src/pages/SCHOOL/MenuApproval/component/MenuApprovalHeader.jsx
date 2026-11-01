@@ -61,9 +61,6 @@ function MenuApprovalHeader({
             <strong>Phê duyệt thực đơn</strong>
           </nav>
           <h1 id="menu-approval-title" className={styles.title}>Phê duyệt thực đơn</h1>
-          <p className={styles.subtitle}>
-            Xem thực đơn tuần do Y tế gửi, phê duyệt hoặc yêu cầu chỉnh sửa cả tuần.
-          </p>
         </div>
 
         <TextField

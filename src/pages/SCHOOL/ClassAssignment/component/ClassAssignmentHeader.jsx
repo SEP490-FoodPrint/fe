@@ -13,9 +13,6 @@ function ClassAssignmentHeader({ years, academicYear, currentYear, onYearChange 
           <strong>Phân công GVCN</strong>
         </nav>
         <h1 className={styles.title}>Phân công giáo viên chủ nhiệm</h1>
-        <p className={styles.subtitle}>
-          Mỗi lớp có một GVCN trong từng niên khóa. Niên khóa đã kết thúc chỉ xem lại lịch sử.
-        </p>
       </div>
 
       <TextField
