@@ -1,16 +1,16 @@
-import React, { Component } from "react"
-import { Box, Typography, Button } from "@mui/material"
+import React, { Component } from "react";
+import { Box, Typography, Button } from "@mui/material";
 
 export default class ErrorBoundary extends Component {
-  state = { hasError: false }
+  state = { hasError: false };
 
   static getDerivedStateFromError(error) {
-    console.log("error", error)
-    return { hasError: true }
+    console.log("error", error);
+    return { hasError: true };
   }
 
   componentDidCatch(error, info) {
-    console.log("error ", error, "info ", info)
+    console.log("error ", error, "info ", info);
   }
 
   render() {
@@ -27,11 +27,6 @@ export default class ErrorBoundary extends Component {
             p: 3,
           }}
         >
-          <img
-            src={errorImg}
-            alt="error"
-            style={{ maxWidth: 400, width: "100%", marginBottom: 24 }}
-          />
           <Typography variant="h5" fontWeight={700} gutterBottom>
             Có lỗi xảy ra!
           </Typography>
@@ -46,9 +41,9 @@ export default class ErrorBoundary extends Component {
             Tải lại trang
           </Button>
         </Box>
-      )
+      );
     }
 
-    return this.props.children
+    return this.props.children;
   }
 }

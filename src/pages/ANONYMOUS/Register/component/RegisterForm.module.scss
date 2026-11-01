@@ -1,1 +1,507 @@
-.accountFields { align-items: start; }
+.registerWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* 1. Main Register Card */
+.card {
+  width: 100%;
+  max-width: 560px;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 24px rgba(0, 101, 79, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
+  padding: var(--space-6);
+  border: 1px solid var(--border-default);
+  position: relative;
+  z-index: 10;
+  transition: all 0.3s ease;
+
+  @media (min-width: 576px) {
+    padding: var(--space-8);
+  }
+}
+
+.topBadgeWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-4);
+}
+
+.pillBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft, #eaf7f0);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: var(--font-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pulseDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--color-primary);
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+}
+
+.headingGroup {
+  text-align: center;
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  margin: 0 0 6px;
+}
+
+.subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  max-width: 440px;
+  margin: 0 auto;
+}
+
+/* Role Selector Tabs */
+.roleTabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  background-color: var(--color-primary-soft, #eaf7f0);
+  border-radius: 12px;
+  margin-bottom: var(--space-5);
+}
+
+.roleTab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.activeRoleTab {
+  background-color: var(--white);
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.errorAlert {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: var(--space-4);
+}
+
+.errorIcon {
+  flex-shrink: 0;
+}
+
+/* Form Layout */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.fieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+
+  @media (min-width: 576px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.fullWidth {
+  @media (min-width: 576px) {
+    grid-column: 1 / -1;
+  }
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.required {
+  color: var(--color-error);
+}
+
+.optionalBadge {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.inputContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border-radius: 10px;
+  background-color: var(--color-primary-soft, #eaf7f0);
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    background-color: var(--white);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.15);
+  }
+}
+
+.inputLeftIcon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.input {
+  width: 100%;
+  height: 44px;
+  padding-left: 38px;
+  padding-right: 14px;
+  border: none;
+  background: transparent;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  border-radius: 10px;
+  outline: none;
+
+  &::placeholder {
+    color: var(--text-muted);
+    opacity: 0.8;
+  }
+}
+
+.togglePasswordBtn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 6px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.hasError {
+  border-color: var(--color-error) !important;
+  background-color: #fdecec !important;
+}
+
+.fieldError {
+  font-size: 11px;
+  color: var(--color-error);
+  margin-top: 2px;
+}
+
+.emailHelper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.helperIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* Password Strength Meter */
+.strengthMeter {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 4px;
+}
+
+.meterBars {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  height: 5px;
+  width: 100%;
+  background-color: #dce5e0;
+  border-radius: 4px;
+  overflow: hidden;
+  padding: 1px;
+}
+
+.meterSegment {
+  height: 100%;
+  border-radius: 4px;
+  background-color: transparent;
+  transition: all 0.3s ease;
+
+  &.weak {
+    background-color: var(--color-error, #ba1a1a);
+  }
+
+  &.fair {
+    background-color: var(--color-warning, #e9a23b);
+  }
+
+  &.good {
+    background-color: #0a8066;
+  }
+
+  &.strong {
+    background-color: #00654f;
+  }
+}
+
+.meterLabels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.strengthText {
+  font-weight: 500;
+
+  &.weak {
+    color: var(--color-error, #ba1a1a);
+    font-weight: 600;
+  }
+
+  &.fair {
+    color: var(--color-warning, #e9a23b);
+    font-weight: 600;
+  }
+
+  &.good {
+    color: #0a8066;
+    font-weight: 600;
+  }
+
+  &.strong {
+    color: #00654f;
+    font-weight: 700;
+  }
+}
+
+/* Terms Checkbox */
+.termsWrapper {
+  padding-top: var(--space-2);
+}
+
+.termsLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkboxContainer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.checkboxHidden {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.checkboxBox {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft, #eaf7f0);
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--white);
+  transition: all 0.2s ease;
+
+  &.checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+}
+
+.termsText {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.45;
+}
+
+.legalLink {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Submit Button */
+.submitBtn {
+  width: 100%;
+  height: 48px;
+  border-radius: 12px;
+  background-color: var(--color-primary);
+  color: var(--white);
+  border: none;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(10, 128, 102, 0.24);
+  transition: all 0.2s ease;
+  margin-top: var(--space-2);
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(10, 128, 102, 0.32);
+
+    .arrowIcon {
+      transform: translateX(3px);
+    }
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.arrowIcon {
+  transition: transform 0.2s ease;
+}
+
+/* Card Footer */
+.cardFooter {
+  margin-top: var(--space-6);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-default);
+  text-align: center;
+}
+
+.cardFooterText {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.loginLink {
+  color: var(--color-primary);
+  font-weight: var(--font-semibold);
+  text-decoration: none;
+  margin-left: 4px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* 2. Institutional Trust Indicators */
+.trustBadgesRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trustIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}

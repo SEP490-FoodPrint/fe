@@ -3,10 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import { ROLES } from "src/constants/roles"
 import { getAuthRedirect, needsRegistrationCompletion } from "src/lib/utils"
-import { USE_MOCK_API } from "src/lib/config"
 import ROUTER from "src/router/ROUTER"
 import LoginForm from "./component/LoginForm"
-import QuickLoginList from "./component/QuickLoginList"
 
 export default function LoginPage() {
   const navigate = useNavigate()
@@ -26,6 +24,5 @@ export default function LoginPage() {
   }
   return <>
     <LoginForm initialIdentifier={feedback?.identifier || ""} passwordUpdated={feedback?.passwordUpdated === true} onLoginSuccess={onSuccess} />
-    {USE_MOCK_API && <QuickLoginList onLoginSuccess={onSuccess} />}
   </>
 }
