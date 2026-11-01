@@ -2,11 +2,23 @@ import React from "react"
 import styles from "./AllergyAlternativeMealsCard.module.scss"
 import { LINKED_SUPPLIERS, ALL_INGREDIENTS } from "../mockMenuData"
 
+const getCategoryIcon = (cat) => {
+  switch (cat) {
+    case "Thịt & Gia cầm": return "lunch_dining"
+    case "Thủy hải sản": return "set_meal"
+    case "Rau củ quả": return "eco"
+    case "Trứng gia cầm": return "egg"
+    case "Tinh bột & Ngũ cốc": return "grain"
+    default: return "restaurant"
+  }
+}
+
 export default function AllergyAlternativeMealsCard({
   conflictDishes,
   portionCount,
   substituteDish,
-  onChangeSubstituteDish
+  onChangeSubstituteDish,
+  onOpenPickerForSubstitute
 }) {
   const hasConflict = conflictDishes && conflictDishes.length > 0
 
@@ -18,7 +30,7 @@ export default function AllergyAlternativeMealsCard({
           <div>
             <h3 className={styles.safeTitle}>Bố trí suất ăn: 100% học sinh dùng thực đơn tiêu chuẩn</h3>
             <p className={styles.safeDesc}>
-              Tất cả các món ăn đã chọn đều an toàn, không chứa dị nguyên thuộc hồ sơ sức khỏe của học sinh toàn trường.
+              Tất cả các món ăn đã chọn đều an toàn, không chứa dị nguyên thuộc hồ sơ sức khỏe của học sinh trong trường.
             </p>
           </div>
         </div>
@@ -30,6 +42,9 @@ export default function AllergyAlternativeMealsCard({
   // Tổng hợp số suất dị ứng từ các món xung đột
   const totalAllergyPortions = conflictDishes.reduce((acc, d) => acc + (d.allergyCount || 12), 0)
   const standardPortions = Math.max(0, portionCount - totalAllergyPortions)
+
+  const selectedSubIng = ALL_INGREDIENTS.find(i => i.id === substituteDish.ingredientId) || null
+  const subSupplier = selectedSubIng ? LINKED_SUPPLIERS.find(s => s.id === selectedSubIng.supplierId) : null
 
   return (
     <div className={styles.container}>
@@ -103,37 +118,49 @@ export default function AllergyAlternativeMealsCard({
                 />
               </div>
 
-              {/* Thành phần chính thay thế từ NCC liên kết */}
+              {/* Thành phần chính thay thế từ NCC liên kết qua Modal */}
               <div className={styles.fieldGroup}>
                 <label className={styles.fieldLabel}>
-                  Thành phần chính thay thế (NCC liên kết) <span className={styles.req}>*</span>
+                  Thành phần chính thay thế (NCC liên kết an toàn) <span className={styles.req}>*</span>
                 </label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    className={styles.subSelect}
-                    value={substituteDish.ingredientId}
-                    onChange={(e) => onChangeSubstituteDish("ingredientId", e.target.value)}
+                {selectedSubIng ? (
+                  <div className={styles.selectedSubstituteBox}>
+                    <div className={styles.subLeft}>
+                      <div className={styles.subIconWrap}>
+                        <span className={`material-symbols-outlined ${styles.subIcon}`}>
+                          {getCategoryIcon(selectedSubIng.category)}
+                        </span>
+                      </div>
+                      <div className={styles.subMeta}>
+                        <div className={styles.subNameRow}>
+                          <strong className={styles.subName}>{selectedSubIng.name}</strong>
+                          <span className={styles.subCatTag}>{selectedSubIng.category}</span>
+                        </div>
+                        <span className={styles.subSupplier}>
+                          🏢 {subSupplier?.name} ({subSupplier?.badge})
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.changeSubBtn}
+                      onClick={onOpenPickerForSubstitute}
+                      title="Chọn nguyên liệu thay thế khác"
+                    >
+                      <span className="material-symbols-outlined">swap_horiz</span>
+                      <span>Thay đổi</span>
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.pickSubBtn}
+                    onClick={onOpenPickerForSubstitute}
                   >
-                    <option value="">-- Chọn nguyên liệu thay thế an toàn --</option>
-                    {LINKED_SUPPLIERS.map(sup => {
-                      const safeIngredients = ALL_INGREDIENTS.filter(
-                        ing => ing.supplierId === sup.id && !ing.allergen
-                      )
-                      if (safeIngredients.length === 0) return null
-
-                      return (
-                        <optgroup key={sup.id} label={`🏢 ${sup.name}`}>
-                          {safeIngredients.map(ing => (
-                            <option key={ing.id} value={ing.id}>
-                              {ing.name} ({sup.name})
-                            </option>
-                          ))}
-                        </optgroup>
-                      )
-                    })}
-                  </select>
-                  <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
-                </div>
+                    <span className="material-symbols-outlined">add_circle_outline</span>
+                    <span>Chọn nguyên liệu an toàn từ NCC liên kết</span>
+                  </button>
+                )}
               </div>
 
               {/* Định lượng / suất */}
@@ -154,16 +181,19 @@ export default function AllergyAlternativeMealsCard({
                       onChange={(e) => onChangeSubstituteDish("unit", e.target.value)}
                     >
                       <option value="g">g</option>
+                      <option value="kg">kg</option>
                       <option value="ml">ml</option>
                       <option value="quả">quả</option>
+                      <option value="cái">cái</option>
                     </select>
-                    <span className={styles.qtyPerPortionLabel}>/suất</span>
                   </div>
                 </div>
 
-                <div className={styles.subNotice}>
-                  <span className={`material-symbols-outlined ${styles.tagIcon}`}>local_offer</span>
-                  <span>Tem dán nhận diện: <strong>Màu vàng cam</strong> ghi rõ tên lớp</span>
+                <div className={styles.noticeTextWrap}>
+                  <span className={`material-symbols-outlined ${styles.noteIcon}`}>info</span>
+                  <span className={styles.noteText}>
+                    Gia vị chế biến món thay thế giữ nguyên theo thực đơn chung học đường.
+                  </span>
                 </div>
               </div>
             </div>

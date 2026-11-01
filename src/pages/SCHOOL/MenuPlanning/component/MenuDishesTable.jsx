@@ -1,71 +1,26 @@
 import React from "react"
 import styles from "./MenuDishesTable.module.scss"
-import { INGREDIENT_CATEGORIES, LINKED_SUPPLIERS, ALL_INGREDIENTS } from "../mockMenuData"
+import { LINKED_SUPPLIERS, ALL_INGREDIENTS } from "../mockMenuData"
+
+// Helper icon cho phân loại
+const getCategoryIcon = (cat) => {
+  switch (cat) {
+    case "Thịt & Gia cầm": return "lunch_dining"
+    case "Thủy hải sản": return "set_meal"
+    case "Rau củ quả": return "eco"
+    case "Trứng gia cầm": return "egg"
+    case "Tinh bột & Ngũ cốc": return "grain"
+    default: return "restaurant"
+  }
+}
 
 export default function MenuDishesTable({
   dishes,
   onUpdateDish,
   onAddDishRow,
-  onRemoveDish
+  onRemoveDish,
+  onOpenPicker
 }) {
-  // Lấy danh sách NCC theo phân loại nguyên liệu đã chọn
-  const getSuppliersByCategory = (category) => {
-    if (!category) return []
-    return LINKED_SUPPLIERS.filter(sup => sup.categories.includes(category))
-  }
-
-  // Lấy danh sách nguyên liệu theo NCC và phân loại
-  const getIngredientsBySupplier = (supplierId, category) => {
-    if (!supplierId || !category) return []
-    return ALL_INGREDIENTS.filter(ing => ing.supplierId === supplierId && ing.category === category)
-  }
-
-  // Lấy thông tin chi tiết nguyên liệu đã chọn
-  const getSelectedIngredient = (ingredientId) => {
-    return ALL_INGREDIENTS.find(i => i.id === ingredientId) || null
-  }
-
-  // Xử lý đổi phân loại nguyên liệu
-  const handleCategoryChange = (dishId, newCategory) => {
-    const suppliers = getSuppliersByCategory(newCategory)
-    const firstSupplier = suppliers.length > 0 ? suppliers[0].id : ""
-    const ingredients = getIngredientsBySupplier(firstSupplier, newCategory)
-    const firstIngredient = ingredients.length > 0 ? ingredients[0].id : ""
-    const ingObj = ingredients.length > 0 ? ingredients[0] : null
-
-    onUpdateDish(dishId, {
-      ingredientCategory: newCategory,
-      supplierId: firstSupplier,
-      ingredientId: firstIngredient,
-      portionQty: ingObj?.defaultQty || 50,
-      unit: ingObj?.unit || "g"
-    })
-  }
-
-  // Xử lý đổi NCC
-  const handleSupplierChange = (dishId, newSupplierId, currentCategory) => {
-    const ingredients = getIngredientsBySupplier(newSupplierId, currentCategory)
-    const firstIngredient = ingredients.length > 0 ? ingredients[0].id : ""
-    const ingObj = ingredients.length > 0 ? ingredients[0] : null
-
-    onUpdateDish(dishId, {
-      supplierId: newSupplierId,
-      ingredientId: firstIngredient,
-      portionQty: ingObj?.defaultQty || 50,
-      unit: ingObj?.unit || "g"
-    })
-  }
-
-  // Xử lý đổi nguyên liệu cụ thể
-  const handleIngredientChange = (dishId, newIngredientId) => {
-    const ingObj = getSelectedIngredient(newIngredientId)
-    onUpdateDish(dishId, {
-      ingredientId: newIngredientId,
-      portionQty: ingObj?.defaultQty || 50,
-      unit: ingObj?.unit || "g"
-    })
-  }
-
   return (
     <div className={styles.tableCard}>
       <div className={styles.cardHeader}>
@@ -74,7 +29,7 @@ export default function MenuDishesTable({
           <div>
             <h2 className={styles.cardTitle}>Món ăn trong thực đơn</h2>
             <p className={styles.cardSubtitle}>
-              Tên món nhập tự do theo thực tế; Thành phần chính chọn theo 3 cấp: <strong>Phân loại → Nhà cung cấp liên kết → Nguyên liệu</strong>.
+              Tên món ăn nhập tự do. Thành phần chính chọn qua Popup lọc theo: <strong>Phân loại → Nhà cung cấp liên kết → Nguyên liệu</strong>.
             </p>
           </div>
         </div>
@@ -95,7 +50,7 @@ export default function MenuDishesTable({
               <th className={styles.thOrder}>STT</th>
               <th className={styles.thDishName}>Tên món ăn (Tự do nhập text)</th>
               <th className={styles.thIngredientFlow}>
-                Thành phần chính (Phân loại → NCC → Nguyên liệu) & Đối soát dị ứng
+                Thành phần chính (Từ NCC liên kết) & Đối soát dị ứng
               </th>
               <th className={styles.thQty}>Định lượng / Suất</th>
               <th className={styles.thAction}>Thao tác</th>
@@ -103,9 +58,8 @@ export default function MenuDishesTable({
           </thead>
           <tbody>
             {dishes.map((dish, index) => {
-              const suppliers = getSuppliersByCategory(dish.ingredientCategory)
-              const ingredients = getIngredientsBySupplier(dish.supplierId, dish.ingredientCategory)
-              const selectedIng = getSelectedIngredient(dish.ingredientId)
+              const selectedIng = ALL_INGREDIENTS.find(i => i.id === dish.ingredientId) || null
+              const supplier = selectedIng ? LINKED_SUPPLIERS.find(s => s.id === selectedIng.supplierId) : null
               const hasAllergyConflict = Boolean(selectedIng?.allergen)
 
               return (
@@ -115,7 +69,7 @@ export default function MenuDishesTable({
                     <span className={styles.orderNumber}>{index + 1}</span>
                   </td>
 
-                  {/* Tên món ăn (Tự nhập text) - Trong DB dishes không có cột category */}
+                  {/* Tên món ăn (Tự do nhập text) */}
                   <td className={styles.tdDishName}>
                     <input
                       type="text"
@@ -126,88 +80,73 @@ export default function MenuDishesTable({
                     />
                   </td>
 
-                  {/* Thành phần chính chọn theo 3 bước: Phân loại -> NCC -> Nguyên liệu */}
+                  {/* Thành phần chính chọn qua Popup & Đối soát dị ứng */}
                   <td className={styles.tdIngredientFlow}>
-                    <div className={styles.cascadingSelectors}>
-                      {/* Bước 1: Chọn Phân loại nguyên liệu */}
-                      <div className={styles.selectorCol}>
-                        <label className={styles.miniLabel}>1. Phân loại:</label>
-                        <div className={styles.selectWrapper}>
-                          <select
-                            className={styles.compactSelect}
-                            value={dish.ingredientCategory || ""}
-                            onChange={(e) => handleCategoryChange(dish.id, e.target.value)}
-                          >
-                            <option value="">-- Phân loại --</option>
-                            {INGREDIENT_CATEGORIES.map(cat => (
-                              <option key={cat} value={cat}>{cat}</option>
-                            ))}
-                          </select>
-                          <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
-                        </div>
-                      </div>
+                    {!selectedIng ? (
+                      /* Trường hợp chưa chọn nguyên liệu */
+                      <button
+                        type="button"
+                        className={styles.pickIngredientBtn}
+                        onClick={() => onOpenPicker(dish.id)}
+                      >
+                        <span className="material-symbols-outlined">add_circle_outline</span>
+                        <span>Chọn nguyên liệu từ NCC liên kết (Phân loại → NCC → Nguyên liệu)</span>
+                      </button>
+                    ) : (
+                      /* Trường hợp đã chọn nguyên liệu */
+                      <div className={styles.selectedIngredientWrap}>
+                        <div className={styles.ingredientInfoBox}>
+                          <div className={styles.ingLeft}>
+                            <div className={styles.iconCircle}>
+                              <span className={`material-symbols-outlined ${styles.ingIcon}`}>
+                                {getCategoryIcon(selectedIng.category)}
+                              </span>
+                            </div>
+                            <div className={styles.ingDetails}>
+                              <div className={styles.ingNameRow}>
+                                <strong className={styles.ingName}>{selectedIng.name}</strong>
+                                <span className={styles.categoryTag}>{selectedIng.category}</span>
+                              </div>
+                              <div className={styles.supplierRow}>
+                                <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
+                                <span className={styles.supplierName}>
+                                  {supplier?.name || "NCC liên kết"}
+                                </span>
+                                {supplier?.badge && (
+                                  <span className={styles.badgeTag}>{supplier.badge}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
 
-                      {/* Bước 2: Chọn Nhà cung cấp liên kết */}
-                      <div className={styles.selectorCol}>
-                        <label className={styles.miniLabel}>2. Nhà cung cấp:</label>
-                        <div className={styles.selectWrapper}>
-                          <select
-                            className={styles.compactSelect}
-                            value={dish.supplierId || ""}
-                            onChange={(e) => handleSupplierChange(dish.id, e.target.value, dish.ingredientCategory)}
-                            disabled={!dish.ingredientCategory}
+                          <button
+                            type="button"
+                            className={styles.changeBtn}
+                            onClick={() => onOpenPicker(dish.id)}
+                            title="Thay đổi nguyên liệu khác"
                           >
-                            <option value="">-- Chọn NCC --</option>
-                            {suppliers.map(sup => (
-                              <option key={sup.id} value={sup.id}>{sup.name}</option>
-                            ))}
-                          </select>
-                          <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
+                            <span className="material-symbols-outlined">swap_horiz</span>
+                            <span>Thay đổi</span>
+                          </button>
                         </div>
-                      </div>
 
-                      {/* Bước 3: Chọn Nguyên liệu sạch (KHÔNG hiện sẵn cảnh báo ở select) */}
-                      <div className={styles.selectorColWide}>
-                        <label className={styles.miniLabel}>3. Nguyên liệu:</label>
-                        <div className={styles.selectWrapper}>
-                          <select
-                            className={`${styles.compactSelect} ${hasAllergyConflict ? styles.selectWarning : ""}`}
-                            value={dish.ingredientId || ""}
-                            onChange={(e) => handleIngredientChange(dish.id, e.target.value)}
-                            disabled={!dish.supplierId}
-                          >
-                            <option value="">-- Chọn nguyên liệu --</option>
-                            {ingredients.map(ing => (
-                              /* Tên nguyên liệu sạch sẽ, không hiện sẵn cảnh báo dị ứng trong option */
-                              <option key={ing.id} value={ing.id}>
-                                {ing.name}
-                              </option>
-                            ))}
-                          </select>
-                          <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Kiểm tra dị ứng CHỈ HIỆN KHI ĐÃ CHỌN XONG NGUYÊN LIỆU */}
-                    {selectedIng && (
-                      <div className={styles.allergyCheckResult}>
+                        {/* Kiểm tra dị ứng: CHỈ HIỆN KHI ĐÃ CHỌN XONG NGUYÊN LIỆU */}
                         {hasAllergyConflict ? (
                           <div className={styles.allergyAlertBox}>
                             <span className={`material-symbols-outlined ${styles.alertIcon}`}>warning</span>
                             <div className={styles.alertTextWrap}>
                               <strong className={styles.alertTitle}>
-                                Xung đột dị ứng: {selectedIng.allergyWarning}
+                                Cảnh báo dị ứng: {selectedIng.allergyWarning}
                               </strong>
                               <span className={styles.alertSub}>
-                                → Đã tự động kích hoạt tạo món ăn thay thế ở mục Bố trí suất ăn riêng bên dưới
+                                → Bắt buộc bố trí suất ăn riêng thay thế (đã tự động kích hoạt bên dưới)
                               </span>
                             </div>
                           </div>
                         ) : (
                           <div className={styles.safeBox}>
                             <span className={`material-symbols-outlined ${styles.safeIcon}`}>check_circle</span>
-                            <span>An toàn: Không có học sinh dị ứng thành phần này</span>
+                            <span>An toàn: Không phát hiện học sinh dị ứng thành phần này</span>
                           </div>
                         )}
                       </div>

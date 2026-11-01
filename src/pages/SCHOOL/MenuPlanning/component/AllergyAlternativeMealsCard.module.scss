@@ -3,7 +3,56 @@
   border: 1px solid #fde68a;
   border-radius: 14px;
   padding: 20px 24px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(180, 83, 9, 0.05);
+}
+
+.safeContainer {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.safeLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.safeIcon {
+  color: #16a34a;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.safeTitle {
+  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #14532d;
+  margin: 0 0 2px 0;
+}
+
+.safeDesc {
+  font-size: 13px;
+  color: #15803d;
+  margin: 0;
+}
+
+.safeBadge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
 }
 
 .header {
@@ -21,6 +70,7 @@
   display: flex;
   align-items: flex-start;
   gap: 10px;
+  max-width: 650px;
 }
 
 .headerIcon {
@@ -33,44 +83,45 @@
   font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 16.5px;
   font-weight: 700;
-  color: #92400e;
+  color: #78350f;
   margin: 0 0 2px 0;
   letter-spacing: -0.01em;
 }
 
 .subtitle {
   font-size: 13px;
-  color: #78350f;
+  color: #92400e;
   margin: 0;
+  line-height: 1.4;
 }
 
 .tag {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 3px 10px;
+  color: #9a3412;
+  background-color: #ffedd5;
+  padding: 4px 10px;
   border-radius: 6px;
-  background-color: #fef3c7;
-  color: #b45309;
-  border: 1px solid #fcd34d;
+  border: 1px solid #fed7aa;
 }
 
 .mainGrid {
   display: grid;
-  grid-template-columns: 1fr 1.3fr;
-  gap: 18px;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 20px;
 }
 
 .leftCol {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
 .portionSplitBox {
   background-color: #ffffff;
   border: 1px solid #fef08a;
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -80,7 +131,6 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
   font-size: 13px;
 }
 
@@ -90,12 +140,11 @@
 
 .stdPortionVal {
   color: #0f172a;
-  font-size: 14px;
+  font-weight: 700;
 }
 
 .allergyPortionVal {
   color: #b45309;
-  font-size: 15px;
   font-weight: 700;
 }
 
@@ -230,59 +279,129 @@
   }
 }
 
-.selectWrapper {
-  position: relative;
-  width: 100%;
-}
-
-.subSelect {
-  width: 100%;
-  height: 38px;
-  padding: 0 32px 0 12px;
-  border-radius: 6px;
+/* Thẻ chọn nguyên liệu thay thế */
+.selectedSubstituteBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #f8fafc;
   border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  gap: 10px;
+}
+
+.subLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.subIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   background-color: #ffffff;
-  color: #0f172a;
-  font-size: 13px;
-  outline: none;
-  appearance: none;
-  cursor: pointer;
-  box-sizing: border-box;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 
-  &:focus {
-    border-color: #b45309;
-    box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.12);
-  }
-
-  optgroup {
-    font-weight: 700;
-    color: #00654f;
-    background-color: #f1f5f9;
-  }
-
-  option {
-    font-weight: 400;
-    color: #0f172a;
-    padding: 6px;
+  .subIcon {
+    font-size: 18px;
+    color: var(--color-primary, #0a8066);
   }
 }
 
-.chevronIcon {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 18px;
+.subMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.subNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.subName {
+  font-size: 13.5px;
+  color: #0f172a;
+}
+
+.subCatTag {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.subSupplier {
+  font-size: 11.5px;
   color: #64748b;
-  pointer-events: none;
+}
+
+.changeSubBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  span {
+    font-size: 15px;
+    color: #b45309;
+  }
+
+  &:hover {
+    border-color: #b45309;
+    color: #b45309;
+  }
+}
+
+.pickSubBtn {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+  color: #b45309;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+
+  span:first-child {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background-color: #fefce8;
+    border-color: #b45309;
+  }
 }
 
 .qtyRow {
   display: flex;
   align-items: flex-end;
-  justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
 }
 
 .qtyInputs {
@@ -292,111 +411,64 @@
 }
 
 .qtyNumInput {
-  width: 65px;
-  height: 36px;
+  width: 72px;
+  height: 38px;
   padding: 0 8px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
   background-color: #ffffff;
-  color: #0f172a;
   font-size: 13.5px;
   font-weight: 600;
+  color: #0f172a;
   text-align: right;
-  outline: none;
 
   &:focus {
+    outline: none;
     border-color: #b45309;
   }
 }
 
 .qtyUnitSelect {
-  height: 36px;
+  height: 38px;
   padding: 0 8px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #334155;
+  background-color: #f8fafc;
   font-size: 13px;
-  outline: none;
+  color: #334155;
   cursor: pointer;
-}
 
-.qtyPerPortionLabel {
-  font-size: 12px;
-  color: #64748b;
-}
-
-.subNotice {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #92400e;
-  background-color: #fffbeb;
-  border: 1px solid #fef08a;
-  padding: 8px 10px;
-  border-radius: 6px;
-
-  .tagIcon {
-    font-size: 16px;
-    color: #d97706;
+  &:focus {
+    outline: none;
+    border-color: #b45309;
   }
 }
 
-.safeContainer {
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 20px;
+.noticeTextWrap {
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 6px;
+  padding: 8px 10px;
+  background-color: #fefce8;
+  border-radius: 6px;
+  border: 1px solid #fef08a;
 }
 
-.safeLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.safeIcon {
-  color: #16a34a;
-  font-size: 28px;
+.noteIcon {
+  color: #b45309;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
-.safeTitle {
-  font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 14.5px;
-  font-weight: 600;
-  color: #15803d;
-  margin: 0 0 2px 0;
-}
-
-.safeDesc {
-  font-size: 12.5px;
-  color: #4b5563;
-  margin: 0;
-}
-
-.safeBadge {
+.noteText {
   font-size: 11.5px;
-  font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background-color: #dcfce7;
-  color: #166534;
-  white-space: nowrap;
+  color: #92400e;
+  line-height: 1.35;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .mainGrid {
     grid-template-columns: 1fr;
-  }
-
-  .container {
-    padding: 16px;
   }
 }

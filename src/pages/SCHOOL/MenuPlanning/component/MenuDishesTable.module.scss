@@ -1,19 +1,17 @@
 .tableCard {
   background-color: #ffffff;
   border-radius: 14px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(189, 201, 195, 0.5);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   padding: 20px 24px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .cardHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 18px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 16px;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -21,21 +19,22 @@
 .headerLeft {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
+  gap: 12px;
+  max-width: 700px;
 }
 
 .headerIcon {
   color: var(--color-primary, #0a8066);
-  font-size: 22px;
+  font-size: 24px;
   margin-top: 2px;
 }
 
 .cardTitle {
   font-family: "Be Vietnam Pro", -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: 17px;
+  font-size: 16.5px;
   font-weight: 600;
   color: #0f172a;
-  margin: 0 0 2px 0;
+  margin: 0 0 3px 0;
   letter-spacing: -0.01em;
 }
 
@@ -43,42 +42,49 @@
   font-size: 13px;
   color: #64748b;
   margin: 0;
+  line-height: 1.45;
+
+  strong {
+    color: #1e293b;
+  }
 }
 
 .addDishBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  background-color: #f0fdf9;
   border: 1px solid var(--color-primary, #0a8066);
-  background-color: #eaf7f0;
-  color: #00654f;
+  color: var(--color-primary, #0a8066);
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
 
-  &:hover {
-    background-color: #d7f3e5;
-  }
-
   span {
     font-size: 18px;
+  }
+
+  &:hover {
+    background-color: var(--color-primary, #0a8066);
+    color: #ffffff;
   }
 }
 
 .tableWrapper {
   overflow-x: auto;
-  border-radius: 10px;
+  margin-bottom: 16px;
   border: 1px solid #e2e8f0;
+  border-radius: 10px;
 }
 
 .dishTable {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  min-width: 950px;
+  font-size: 13.5px;
 
   thead {
     background-color: #f8fafc;
@@ -86,32 +92,35 @@
 
     th {
       padding: 12px 14px;
-      font-size: 12px;
       font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      color: #64748b;
+      color: #475569;
+      font-size: 12.5px;
+      white-space: nowrap;
     }
   }
 
   tbody {
     tr {
       border-bottom: 1px solid #f1f5f9;
-      transition: background-color 0.15s ease;
-
-      &:hover {
-        background-color: #fafbfb;
-      }
+      transition: background-color 0.12s ease;
 
       &:last-child {
         border-bottom: none;
+      }
+
+      &:hover {
+        background-color: #fbfcfe;
       }
     }
   }
 }
 
+.rowConflict {
+  background-color: #fffaf7 !important;
+}
+
 .thOrder {
-  width: 45px;
+  width: 44px;
   text-align: center;
 }
 
@@ -120,197 +129,281 @@
 }
 
 .thIngredientFlow {
-  width: 520px;
+  min-width: 420px;
 }
 
 .thQty {
-  width: 160px;
+  width: 180px;
 }
 
 .thAction {
-  width: 50px;
+  width: 56px;
   text-align: center;
-}
-
-.dishRow {
-  td {
-    padding: 14px 12px;
-    vertical-align: top;
-  }
-}
-
-.rowConflict {
-  background-color: #fffcfc;
 }
 
 .tdOrder {
   text-align: center;
+  padding: 14px 8px;
 }
 
 .orderNumber {
-  font-weight: 700;
-  color: #94a3b8;
-  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tdDishName {
+  padding: 14px 12px;
+  vertical-align: top;
 }
 
 .dishNameInput {
   width: 100%;
-  height: 38px;
+  height: 40px;
   padding: 0 12px;
-  border-radius: 6px;
   border: 1px solid #cbd5e1;
-  background-color: #ffffff;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
   color: #0f172a;
-  font-size: 14px;
-  font-weight: 600;
-  outline: none;
+  background-color: #ffffff;
   transition: all 0.15s ease;
-  box-sizing: border-box;
-
-  &:focus {
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
-  }
 
   &::placeholder {
     color: #94a3b8;
-    font-weight: 400;
   }
-}
-
-.cascadingSelectors {
-  display: grid;
-  grid-template-columns: 140px 160px 1fr;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.selectorCol {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.selectorColWide {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.miniLabel {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.selectWrapper {
-  position: relative;
-  width: 100%;
-}
-
-.compactSelect {
-  width: 100%;
-  height: 36px;
-  padding: 0 24px 0 10px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #0f172a;
-  font-size: 12.5px;
-  outline: none;
-  appearance: none;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-sizing: border-box;
 
   &:focus {
+    outline: none;
     border-color: var(--color-primary, #0a8066);
     box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
   }
+}
 
-  &:disabled {
-    background-color: #f1f5f9;
-    color: #94a3b8;
-    cursor: not-allowed;
-    border-color: #e2e8f0;
+.tdIngredientFlow {
+  padding: 14px 12px;
+  vertical-align: top;
+}
+
+/* Nút chọn nguyên liệu khi chưa chọn */
+.pickIngredientBtn {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  background-color: #f8fafc;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 8px;
+  color: var(--color-primary, #0a8066);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  span:first-child {
+    font-size: 19px;
   }
 
-  option {
-    padding: 6px;
+  &:hover {
+    background-color: #f0fdf9;
+    border-color: var(--color-primary, #0a8066);
+    color: #00513f;
   }
 }
 
-.selectWarning {
-  border-color: #f87171 !important;
-  background-color: #fff8f8;
+/* Khối nguyên liệu đã chọn */
+.selectedIngredientWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.selectChevron {
-  position: absolute;
-  right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px;
+.ingredientInfoBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  gap: 12px;
+}
+
+.ingLeft {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.iconCircle {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .ingIcon {
+    font-size: 18px;
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+.ingDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ingNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ingName {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.categoryTag {
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: #e2e8f0;
+  color: #475569;
+  font-weight: 500;
+}
+
+.supplierRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
   color: #64748b;
-  pointer-events: none;
 }
 
-.allergyCheckResult {
-  margin-top: 4px;
+.verifyIcon {
+  font-size: 14px;
+  color: #0284c7;
 }
 
+.supplierName {
+  color: #334155;
+  font-weight: 500;
+}
+
+.badgeTag {
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.changeBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  span {
+    font-size: 15px;
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
+    color: var(--color-primary, #0a8066);
+    background-color: #f0fdf9;
+  }
+}
+
+/* Hộp cảnh báo dị ứng sau khi chọn */
 .allergyAlertBox {
   display: flex;
   align-items: flex-start;
-  gap: 6px;
-  padding: 6px 10px;
+  gap: 8px;
+  padding: 7px 10px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
   border-radius: 6px;
-  background-color: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #991b1b;
   font-size: 12px;
-  line-height: 1.4;
+}
 
-  .alertIcon {
-    font-size: 16px;
-    color: #dc2626;
-    margin-top: 1px;
-    flex-shrink: 0;
-  }
+.alertIcon {
+  color: #ea580c;
+  font-size: 16px;
+  margin-top: 1px;
+  flex-shrink: 0;
 }
 
 .alertTextWrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .alertTitle {
-  font-size: 12px;
-  color: #b91c1c;
+  color: #9a3412;
+  font-weight: 600;
 }
 
 .alertSub {
+  color: #c2410c;
   font-size: 11px;
-  color: #7f1d1d;
-  font-style: italic;
 }
 
+/* Hộp an toàn */
 .safeBox {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: #15803d;
+  gap: 6px;
+  padding: 5px 9px;
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
-  padding: 3px 8px;
   border-radius: 6px;
-  font-weight: 500;
+  font-size: 11.5px;
+  color: #166534;
+}
 
-  .safeIcon {
-    font-size: 15px;
-  }
+.safeIcon {
+  color: #16a34a;
+  font-size: 15px;
+}
+
+/* Định lượng / Suất */
+.tdQty {
+  padding: 14px 12px;
+  vertical-align: top;
 }
 
 .qtyGroup {
@@ -320,38 +413,34 @@
 }
 
 .qtyInput {
-  width: 65px;
-  height: 36px;
+  width: 68px;
+  height: 40px;
   padding: 0 8px;
-  border-radius: 6px;
   border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #0f172a;
-  font-size: 14px;
+  border-radius: 8px;
+  font-size: 13.5px;
   font-weight: 600;
   text-align: right;
-  outline: none;
-  box-sizing: border-box;
+  color: #0f172a;
 
   &:focus {
+    outline: none;
     border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
   }
 }
 
 .unitSelect {
-  height: 36px;
+  height: 40px;
   padding: 0 8px;
-  border-radius: 6px;
   border: 1px solid #cbd5e1;
-  background-color: #ffffff;
+  border-radius: 8px;
+  font-size: 13px;
   color: #334155;
-  font-size: 12.5px;
-  font-weight: 500;
-  outline: none;
+  background-color: #f8fafc;
   cursor: pointer;
 
   &:focus {
+    outline: none;
     border-color: var(--color-primary, #0a8066);
   }
 }
@@ -362,67 +451,82 @@
   white-space: nowrap;
 }
 
+/* Thao tác */
 .tdAction {
+  padding: 14px 8px;
   text-align: center;
+  vertical-align: top;
 }
 
 .deleteBtn {
   background: none;
   border: none;
   color: #94a3b8;
+  cursor: pointer;
   padding: 6px;
   border-radius: 6px;
-  cursor: pointer;
   transition: all 0.15s ease;
-
-  &:hover {
-    color: #e11d48;
-    background-color: #ffe4e6;
-  }
 
   span {
     font-size: 20px;
   }
+
+  &:hover {
+    color: #ef4444;
+    background-color: #fef2f2;
+  }
 }
 
+/* Footer bảng */
 .tableFooter {
-  padding-top: 14px;
-  display: flex;
-  justify-content: flex-start;
+  padding-top: 4px;
 }
 
 .addInlineBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 16px;
-  border-radius: 8px;
-  border: 1px dashed #0a8066;
-  background-color: #ffffff;
-  color: #0a8066;
-  font-size: 13.5px;
+  background: none;
+  border: none;
+  color: var(--color-primary, #0a8066);
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #eaf7f0;
-    border-style: solid;
-  }
+  padding: 6px 0;
 
   span {
     font-size: 18px;
   }
-}
 
-@media (max-width: 900px) {
-  .cascadingSelectors {
-    grid-template-columns: 1fr;
+  &:hover {
+    text-decoration: underline;
   }
 }
 
-@media (max-width: 640px) {
-  .tableCard {
-    padding: 16px;
+@media (max-width: 900px) {
+  .dishTable {
+    display: block;
+
+    thead {
+      display: none;
+    }
+
+    tbody, tr, td {
+      display: block;
+      width: 100%;
+    }
+
+    tr {
+      padding: 12px 0;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    td {
+      padding: 6px 0;
+    }
+  }
+
+  .thIngredientFlow {
+    min-width: unset;
   }
 }

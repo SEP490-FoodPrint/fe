@@ -47,7 +47,8 @@ export const LINKED_SUPPLIERS = [
   }
 ]
 
-// 3. Danh mục nguyên liệu cụ thể từ các NCC (chứa thông tin dị nguyên ngầm, KHÔNG hiển thị lộ ra trong danh sách chọn)
+// 3. Danh mục nguyên liệu cụ thể từ các NCC liên kết
+// Lưu ý: Thông tin dị nguyên được đối soát ngầm sau khi chọn, KHÔNG hiển thị trước trong popup danh sách nguyên liệu
 export const ALL_INGREDIENTS = [
   // Thịt & Gia cầm - CP Foods
   {
@@ -219,7 +220,7 @@ export const ALL_INGREDIENTS = [
   }
 ]
 
-// Món ăn khởi tạo mặc định trong thực đơn (Tên món nhập text tự do)
+// 4. Món ăn khởi tạo mặc định trong thực đơn (Tên món nhập text tự do)
 export const INITIAL_DISHES = [
   {
     id: "dish-1",
@@ -259,42 +260,30 @@ export const INITIAL_DISHES = [
   }
 ]
 
-// Gia vị dùng chung từ kho trường (giữ nguyên)
+// 5. Gia vị dùng chung bữa ăn học đường (Chỉ nhập định lượng, KHÔNG check tồn kho)
 export const INITIAL_SEASONINGS = [
   {
     id: "seas-1",
     name: "Dầu ăn thực vật Neptune",
     portionQty: 5,
-    unit: "ml",
-    stockAvailable: 15,
-    stockUnit: "lít",
-    warehouseLocation: "Kệ gia vị A1 - Kho Trường"
+    unit: "ml"
   },
   {
     id: "seas-2",
     name: "Nước mắm Phú Quốc 40°N",
     portionQty: 3,
-    unit: "ml",
-    stockAvailable: 6,
-    stockUnit: "lít",
-    warehouseLocation: "Kệ gia vị A2 - Kho Trường"
+    unit: "ml"
   },
   {
     id: "seas-3",
     name: "Muối tinh I-ốt Bạc Liêu",
     portionQty: 2,
-    unit: "g",
-    stockAvailable: 8,
-    stockUnit: "kg",
-    warehouseLocation: "Kệ đồ khô B1 - Kho Trường"
+    unit: "g"
   },
   {
     id: "seas-4",
     name: "Đường cát trắng Biên Hòa",
     portionQty: 2,
-    unit: "g",
-    stockAvailable: 10,
-    stockUnit: "kg",
-    warehouseLocation: "Kệ đồ khô B2 - Kho Trường"
+    unit: "g"
   }
 ]

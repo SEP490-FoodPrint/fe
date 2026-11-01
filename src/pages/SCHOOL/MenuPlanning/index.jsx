@@ -11,6 +11,7 @@ import AllergyAlternativeMealsCard from "./component/AllergyAlternativeMealsCard
 import MenuSeasoningCard from "./component/MenuSeasoningCard"
 import CreateMenuBottomBar from "./component/CreateMenuBottomBar"
 import ConfirmSubmitModal from "./component/ConfirmSubmitModal"
+import IngredientPickerModal from "./component/IngredientPickerModal"
 
 export default function MenuPlanning() {
   const navigate = useNavigate()
@@ -36,8 +37,12 @@ export default function MenuPlanning() {
     unit: "g"
   })
 
-  // Gia vị dùng chung từ kho trường (giữ nguyên)
-  const [seasonings] = useState(INITIAL_SEASONINGS)
+  // Gia vị bữa ăn học đường (nhập định lượng, không check tồn kho)
+  const [seasonings, setSeasonings] = useState(INITIAL_SEASONINGS)
+
+  // Modal chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu)
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
+  const [pickerContext, setPickerContext] = useState({ type: "dish", dishId: null })
 
   // Modal xác nhận gửi BGH duyệt
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
@@ -79,12 +84,62 @@ export default function MenuPlanning() {
     showToast("Đã xóa món ăn khỏi thực đơn", "info")
   }
 
+  // Cập nhật định lượng gia vị
+  const handleUpdateSeasoning = (seasoningId, newQty) => {
+    setSeasonings(prev =>
+      prev.map(s => (s.id === seasoningId ? { ...s, portionQty: newQty } : s))
+    )
+  }
+
   // Cập nhật thông tin món thay thế dị ứng
   const handleChangeSubstituteDish = (field, value) => {
     setSubstituteDish(prev => ({ ...prev, [field]: value }))
   }
 
-  // Kiểm tra danh sách món có xung đột dị ứng
+  // Mở Popup chọn nguyên liệu cho món ăn cụ thể
+  const handleOpenPickerForDish = (dishId) => {
+    setPickerContext({ type: "dish", dishId })
+    setIsPickerOpen(true)
+  }
+
+  // Mở Popup chọn nguyên liệu cho món thay thế dị ứng
+  const handleOpenPickerForSubstitute = () => {
+    setPickerContext({ type: "substitute", dishId: null })
+    setIsPickerOpen(true)
+  }
+
+  // Khi người dùng chọn xong nguyên liệu từ Popup Modal
+  const handleSelectIngredient = (ingredient) => {
+    if (pickerContext.type === "dish" && pickerContext.dishId) {
+      handleUpdateDish(pickerContext.dishId, {
+        ingredientId: ingredient.id,
+        ingredientCategory: ingredient.category,
+        supplierId: ingredient.supplierId,
+        portionQty: ingredient.defaultQty,
+        unit: ingredient.unit
+      })
+      showToast(`Đã chọn nguyên liệu: "${ingredient.name}"`, "success")
+    } else if (pickerContext.type === "substitute") {
+      setSubstituteDish(prev => ({
+        ...prev,
+        ingredientId: ingredient.id,
+        portionQty: ingredient.defaultQty,
+        unit: ingredient.unit
+      }))
+      showToast(`Đã chọn nguyên liệu thay thế: "${ingredient.name}"`, "success")
+    }
+  }
+
+  // Lấy ngữ cảnh tên món đang chọn để hiển thị trên tiêu đề Modal
+  const currentTargetDish = pickerContext.type === "dish"
+    ? dishes.find(d => d.id === pickerContext.dishId)
+    : null
+
+  const currentIngredientId = pickerContext.type === "dish"
+    ? currentTargetDish?.ingredientId
+    : substituteDish.ingredientId
+
+  // Kiểm tra danh sách món có xung đột dị ứng (Đối soát ngầm sau khi đã chọn nguyên liệu)
   const conflictDishes = dishes.filter(d => {
     const ing = ALL_INGREDIENTS.find(i => i.id === d.ingredientId)
     return Boolean(ing?.allergen)
@@ -133,12 +188,13 @@ export default function MenuPlanning() {
           onChangeField={handleChangeField}
         />
 
-        {/* Khối 2: Bảng món ăn trong thực đơn (Tên tự gõ, NCC 3 cấp: Phân loại -> NCC -> Nguyên liệu, kiểm tra dị ứng inline sau khi chọn) */}
+        {/* Khối 2: Bảng món ăn trong thực đơn (Tên tự gõ, chọn nguyên liệu qua Popup Modal, đối soát dị ứng sau khi chọn) */}
         <MenuDishesTable
           dishes={dishes}
           onUpdateDish={handleUpdateDish}
           onAddDishRow={handleAddDishRow}
           onRemoveDish={handleRemoveDish}
+          onOpenPicker={handleOpenPickerForDish}
         />
 
         {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng & Tạo món thay thế */}
@@ -147,12 +203,14 @@ export default function MenuPlanning() {
           portionCount={formState.portionCount}
           substituteDish={substituteDish}
           onChangeSubstituteDish={handleChangeSubstituteDish}
+          onOpenPickerForSubstitute={handleOpenPickerForSubstitute}
         />
 
-        {/* Khối 4: Gia vị dùng chung từ kho trường (giữ nguyên) */}
+        {/* Khối 4: Gia vị dùng chung bữa ăn học đường (Chỉ nhập định lượng, KHÔNG check tồn kho) */}
         <MenuSeasoningCard
           seasonings={seasonings}
           portionCount={formState.portionCount}
+          onUpdateSeasoning={handleUpdateSeasoning}
         />
       </div>
 
@@ -161,6 +219,16 @@ export default function MenuPlanning() {
         onCancel={() => navigate(ROUTER.SCHOOL_HEALTH_OVERVIEW)}
         onSaveDraft={handleSaveDraft}
         onSubmitApproval={() => setIsConfirmModalOpen(true)}
+      />
+
+      {/* Popup Modal: Chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu) */}
+      <IngredientPickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        onSelectIngredient={handleSelectIngredient}
+        currentIngredientId={currentIngredientId}
+        dishContextName={pickerContext.type === "dish" ? (currentTargetDish?.name || "Món ăn") : (substituteDish.name || "Món thay thế dị ứng")}
+        onlySafe={pickerContext.type === "substitute"}
       />
 
       {/* Modal xác nhận gửi BGH duyệt */}
