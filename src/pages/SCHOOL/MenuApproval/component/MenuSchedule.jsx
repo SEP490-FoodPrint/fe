@@ -1,151 +1,99 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Button, Card, Chip, Typography } from "@mui/material"
-import {
-  Apple,
-  CalendarRange,
-  ChefHat,
-  Cookie,
-  Utensils,
-} from "lucide-react"
+import { Tooltip, Typography } from "@mui/material"
+import { CalendarRange, Cookie, Users, Utensils } from "lucide-react"
 import styles from "./MenuSchedule.module.scss"
 
-function FoodItem({ item, compact = false }) {
-  const isAlert = item.tone === "error"
+const MEALS = [
+  { key: "lunch", label: "Bữa trưa", Icon: Utensils },
+  { key: "snack", label: "Bữa xế", Icon: Cookie },
+]
+
+function DishCell({ dishes }) {
+  if (!dishes.length) return <span className={styles.missing}>Chưa có món</span>
+
   return (
-    <div className={`${styles.foodItem} ${compact ? styles.foodItemCompact : ""}`}>
-      <span className={`${styles.foodDot} ${isAlert ? styles.foodDotAlert : ""}`} />
-      <div className={styles.foodContent}>
-        <div className={styles.foodTitleRow}>
-          <Typography component="p" className={styles.foodName}>{item.name}</Typography>
-          {item.tag && (
-            <Chip
-              label={item.tag}
-              size="small"
-              className={`${styles.foodTag} ${styles[item.tone || "neutral"]}`}
-            />
-          )}
-        </div>
-        <Typography component="p" className={styles.foodDescription}>
-          {item.description}
-        </Typography>
-        {item.supplier && (
-          <Typography component="p" className={styles.supplier}>{item.supplier}</Typography>
-        )}
-      </div>
-    </div>
+    <ul className={styles.dishList}>
+      {dishes.map((dish, index) => {
+        const detail = [dish.description, dish.supplier && `NCC: ${dish.supplier}`]
+          .filter(Boolean)
+          .join(" · ")
+        return (
+          <li key={`${dish.name}-${index}`}>
+            {detail ? (
+              <Tooltip title={detail} placement="top" arrow>
+                <span className={styles.dishName}>{dish.name}</span>
+              </Tooltip>
+            ) : (
+              <span className={styles.dishName}>{dish.name}</span>
+            )}
+          </li>
+        )
+      })}
+    </ul>
   )
 }
 
-function DailyMenuCard({ day }) {
-  const regularLunch = day.lunch.filter(item => !item.kind)
-  const extras = day.lunch.filter(item => item.kind)
-
-  return (
-    <Card className={styles.dayCard} elevation={0}>
-      <header className={styles.dayHeader}>
-        <div className={styles.dayIdentity}>
-          <span className={styles.dayNumber}>{day.dayNumber}</span>
-          <div>
-            <Typography component="h3" className={styles.dayName}>{day.shortLabel}</Typography>
-            <Typography className={styles.dayDate}>{day.date}</Typography>
-          </div>
-        </div>
-        <div className={styles.dayMeta}>
-          <Chip label={`${(Number(day.portions) || 0).toLocaleString("vi-VN")} suất`} size="small" />
-          <Chip label="Bữa trưa + Bữa xế" size="small" className={styles.mealChip} />
-        </div>
-      </header>
-
-      <div className={styles.dayBody}>
-        <section className={styles.lunchSection} aria-label={`Bữa trưa ${day.shortLabel}`}>
-          <div className={styles.mealHeading}>
-            <span><Utensils size={17} /> Bữa trưa chính</span>
-            <small>{day.lunch.length} món</small>
-          </div>
-          <div className={styles.foodList}>
-            {regularLunch.map(item => <FoodItem item={item} key={item.name} />)}
-          </div>
-          <div className={styles.extrasGrid}>
-            {extras.map(item => (
-              <div className={styles.extraItem} key={item.name}>
-                {item.kind === "dessert" ? <Apple size={17} /> : <ChefHat size={17} />}
-                <div>
-                  <strong>{item.name}</strong>
-                  <span>{item.description}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <aside className={styles.snackSection} aria-label={`Bữa xế ${day.shortLabel}`}>
-          <div className={styles.snackHeading}>
-            <span><Cookie size={17} /> Bữa xế chiều</span>
-            <small>14:30 - 15:00</small>
-          </div>
-          <div className={styles.snackList}>
-            {day.snack.map(item => <FoodItem item={item} compact key={item.name} />)}
-          </div>
-        </aside>
-      </div>
-    </Card>
+// Bảng cả tuần: cột là ngày, hàng là bữa ăn — BGH xem và duyệt toàn bộ thực đơn một lần
+function MenuSchedule({ days }) {
+  const missingCount = days.reduce(
+    (count, day) => count + MEALS.filter(meal => !day[meal.key].length).length,
+    0,
   )
-}
 
-function MenuSchedule({ days, visibleDays, activeDay, onDayChange, disabled }) {
   return (
     <section className={styles.wrapper} aria-labelledby="menu-schedule-title">
       <div className={styles.sectionHeader}>
-        <div>
-          <Typography component="h2" id="menu-schedule-title" className={styles.sectionTitle}>
-            <CalendarRange size={21} /> Chi tiết thực đơn từng ngày
-          </Typography>
-          <Typography className={styles.sectionSubtitle}>
-            Thực đơn được phê duyệt theo cả tuần. Chọn từng thứ để xem chi tiết ngày đó.
-          </Typography>
-        </div>
+        <Typography component="h2" id="menu-schedule-title" className={styles.sectionTitle}>
+          <CalendarRange size={21} /> Thực đơn tuần
+        </Typography>
+        {missingCount > 0 && (
+          <span className={styles.missingHint}>{missingCount} bữa chưa có món</span>
+        )}
       </div>
 
-      <div className={styles.tabs} role="tablist" aria-label="Lọc thực đơn theo ngày">
-        <Button
-          role="tab"
-          aria-selected={activeDay === "all"}
-          className={activeDay === "all" ? styles.activeTab : styles.tab}
-          onClick={() => onDayChange("all")}
-          disabled={disabled}
-        >
-          Cả tuần
-        </Button>
-        {days.map(day => (
-          <Button
-            role="tab"
-            aria-selected={activeDay === day.id}
-            className={activeDay === day.id ? styles.activeTab : styles.tab}
-            onClick={() => onDayChange(day.id)}
-            disabled={disabled}
-            key={day.id}
-          >
-            {day.shortLabel}
-          </Button>
-        ))}
-      </div>
-
-      <div className={styles.dayList}>
-        {visibleDays.map(day => <DailyMenuCard day={day} key={day.id} />)}
+      <div className={styles.scroller}>
+        <table className={styles.grid}>
+          <thead>
+            <tr>
+              <th scope="col" className={styles.corner} aria-label="Bữa ăn" />
+              {days.map(day => (
+                <th scope="col" key={day.id} className={styles.dayHead}>
+                  <span className={styles.dayName}>{day.shortLabel}</span>
+                  <span className={styles.dayDate}>{day.date}</span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {MEALS.map(({ key, label, Icon }) => (
+              <tr key={key}>
+                <th scope="row" className={styles.mealHead}>
+                  <Icon size={16} /> {label}
+                </th>
+                {days.map(day => (
+                  <td key={day.id} className={day[key].length ? undefined : styles.emptyCell}>
+                    <DishCell dishes={day[key]} />
+                  </td>
+                ))}
+              </tr>
+            ))}
+            <tr className={styles.portionRow}>
+              <th scope="row" className={styles.mealHead}>
+                <Users size={16} /> Số suất
+              </th>
+              {days.map(day => (
+                <td key={day.id}>{(Number(day.portions) || 0).toLocaleString("vi-VN")}</td>
+              ))}
+            </tr>
+          </tbody>
+        </table>
       </div>
     </section>
   )
 }
 
-FoodItem.propTypes = { item: PropTypes.object.isRequired, compact: PropTypes.bool }
-DailyMenuCard.propTypes = { day: PropTypes.object.isRequired }
-MenuSchedule.propTypes = {
-  days: PropTypes.array.isRequired,
-  visibleDays: PropTypes.array.isRequired,
-  activeDay: PropTypes.string.isRequired,
-  onDayChange: PropTypes.func.isRequired,
-  disabled: PropTypes.bool,
-}
+DishCell.propTypes = { dishes: PropTypes.array.isRequired }
+MenuSchedule.propTypes = { days: PropTypes.array.isRequired }
 
 export default MenuSchedule
