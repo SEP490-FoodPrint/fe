@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Alert, Skeleton } from "@mui/material"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
@@ -21,7 +21,6 @@ function MenuApproval() {
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [activeDay, setActiveDay] = useState("all")
   const [dialog, setDialog] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const submitLock = useRef(false)
@@ -83,14 +82,7 @@ function MenuApproval() {
     }
   }, [menuId])
 
-  const visibleDays = useMemo(() => {
-    if (!menu?.days) return []
-    return activeDay === "all"
-      ? menu.days
-      : menu.days.filter(day => day.id === activeDay)
-  }, [activeDay, menu?.days])
-
-  // Thực đơn chỉ được duyệt hoặc trả về theo cả tuần; tab ngày chỉ để xem
+  // Thực đơn chỉ được duyệt hoặc trả về theo cả tuần
   const canDecide = menu?.status === "PENDING_APPROVAL" && Boolean(menu?.canDecide)
 
   const openDecision = type => {
@@ -98,15 +90,9 @@ function MenuApproval() {
     setDialog({ type })
   }
 
-  const changeDay = dayId => {
-    if (submitting || dialog) return
-    setActiveDay(dayId)
-  }
-
   const changeWeek = weekId => {
     if (submitting || dialog || weekId === menuId) return
     setMenuId(weekId)
-    setActiveDay("all")
   }
 
   const applyDecision = async (type, text) => {
@@ -202,14 +188,8 @@ function MenuApproval() {
         onReject={() => openDecision("reject")}
         onPrint={() => window.print()}
       />
+      <MenuSchedule days={menu.days} />
       <MenuSummary menu={menu} />
-      <MenuSchedule
-        days={menu.days}
-        visibleDays={visibleDays}
-        activeDay={activeDay}
-        onDayChange={changeDay}
-        disabled={submitting || Boolean(dialog)}
-      />
       <MenuReview
         review={menu.medicalReview}
         approval={menu.approval}
