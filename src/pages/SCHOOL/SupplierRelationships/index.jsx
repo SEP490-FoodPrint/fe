@@ -27,20 +27,15 @@ function SupplierRelationships() {
   const [pagination, setPagination] = useState(emptyPage)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [provinces, setProvinces] = useState([])
-  const [wards, setWards] = useState([])
   const [categories, setCategories] = useState([])
   const [workspace, setWorkspace] = useState(null)
   const [refresh, setRefresh] = useState(0)
   const [search, setSearch] = useState(params.get("q") || "")
   const activeView =
     params.get("view") === "relationships" ? "relationships" : "suppliers"
-  const provinceId = params.get("provinceId") || ""
-  const wardId = params.get("wardId") || ""
   const q = params.get("q") || ""
   const status = params.get("status") || ""
   const category = params.get("category") || ""
-  const locationMode = params.get("locationMode") || "REGISTERED"
   const page = Math.max(1, Number(params.get("page")) || 1)
   const canManage =
     userStore?.user?.permissions?.includes("supplier_relationship.manage") &&
@@ -66,15 +61,9 @@ function SupplierRelationships() {
 
   useEffect(() => {
     let active = true
-    Promise.all([
-      SupplierRelationshipService.getLocations(),
-      SupplierRelationshipService.getFilters(),
-    ])
-      .then(([locations, filters]) => {
-        if (active) {
-          setProvinces(locations.data)
-          setCategories(filters.data.categories)
-        }
+    SupplierRelationshipService.getFilters()
+      .then((filters) => {
+        if (active) setCategories(filters.data.categories)
       })
       .catch((failure) => {
         if (active)
@@ -90,37 +79,14 @@ function SupplierRelationships() {
 
   useEffect(() => {
     const controller = new AbortController()
-    setWards([])
-    if (provinceId)
-      SupplierRelationshipService.getLocations(provinceId, controller.signal)
-        .then((response) => setWards(response.data))
-        .catch((failure) => {
-          if (!controller.signal.aborted)
-            setError(
-              failure?.response?.data?.message ||
-                "Không thể tải danh mục xã/phường.",
-            )
-        })
-    return () => controller.abort()
-  }, [provinceId])
-
-  useEffect(() => {
-    const controller = new AbortController()
     setLoading(true)
     setError("")
     const query = {
       page,
       limit: 10,
       ...(q ? { q } : {}),
-      ...(status ? { status } : {}),
-      ...(activeView === "suppliers"
-        ? {
-            ...(provinceId ? { provinceId } : {}),
-            ...(wardId ? { wardId } : {}),
-            ...(category ? { category } : {}),
-            locationMode,
-          }
-        : {}),
+      ...(activeView === "relationships" && status ? { status } : {}),
+      ...(activeView === "suppliers" && category ? { category } : {}),
     }
     const request =
       activeView === "suppliers"
@@ -153,10 +119,7 @@ function SupplierRelationships() {
     page,
     q,
     status,
-    provinceId,
-    wardId,
     category,
-    locationMode,
     refresh,
   ])
 
@@ -190,96 +153,35 @@ function SupplierRelationships() {
           }}
         />
         {activeView === "suppliers" && (
-          <>
-            <TextField
-              select
-              size="small"
-              label="Lọc theo địa bàn"
-              value={locationMode}
-              onChange={(event) => update({ locationMode: event.target.value })}
-            >
-              <MenuItem value="REGISTERED">Địa chỉ trụ sở</MenuItem>
-              <MenuItem value="SERVICE">Khu vực giao hàng</MenuItem>
-            </TextField>
-            <TextField
-              select
-              size="small"
-              label="Tỉnh/thành phố"
-              value={
-                provinces.some((item) => item.id === provinceId)
-                  ? provinceId
-                  : ""
-              }
-              onChange={(event) =>
-                update({ provinceId: event.target.value, wardId: null })
-              }
-            >
-              <MenuItem value="">Tất cả tỉnh/thành</MenuItem>
-              {provinces.map((item) => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              size="small"
-              label="Xã/phường"
-              disabled={!provinceId}
-              value={wards.some((item) => item.id === wardId) ? wardId : ""}
-              onChange={(event) => update({ wardId: event.target.value })}
-            >
-              <MenuItem value="">Tất cả xã/phường</MenuItem>
-              {wards.map((item) => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              size="small"
-              label="Nhóm nguyên liệu"
-              value={category}
-              onChange={(event) => update({ category: event.target.value })}
-            >
-              <MenuItem value="">Tất cả nhóm hàng</MenuItem>
-              {categories.map((item) => (
-                <MenuItem key={item} value={item}>
-                  {item}
-                </MenuItem>
-              ))}
-            </TextField>
-          </>
+          <TextField
+            select
+            size="small"
+            label="Nhóm nguyên liệu"
+            value={category}
+            onChange={(event) => update({ category: event.target.value })}
+          >
+            <MenuItem value="">Tất cả nhóm hàng</MenuItem>
+            {categories.map((item) => (
+              <MenuItem key={item} value={item}>
+                {item}
+              </MenuItem>
+            ))}
+          </TextField>
         )}
-        <TextField
-          select
-          size="small"
-          label={
-            activeView === "suppliers"
-              ? "Trạng thái NCC"
-              : "Trạng thái liên kết"
-          }
-          value={status}
-          onChange={(event) => update({ status: event.target.value })}
-        >
-          <MenuItem value="">Tất cả trạng thái</MenuItem>
-          <MenuItem value="ACTIVE">
-            {activeView === "suppliers" ? "Đang hoạt động" : "Đang liên kết"}
-          </MenuItem>
-          {activeView === "suppliers" ? (
-            <MenuItem value="INACTIVE">Ngừng hoạt động</MenuItem>
-          ) : (
-            [
-              <MenuItem key="SUSPENDED" value="SUSPENDED">
-                Tạm dừng
-              </MenuItem>,
-              <MenuItem key="UNLINKED" value="UNLINKED">
-                Đã ngừng liên kết
-              </MenuItem>,
-            ]
-          )}
-        </TextField>
+        {activeView === "relationships" && (
+          <TextField
+            select
+            size="small"
+            label="Trạng thái liên kết"
+            value={status}
+            onChange={(event) => update({ status: event.target.value })}
+          >
+            <MenuItem value="">Tất cả trạng thái</MenuItem>
+            <MenuItem value="ACTIVE">Đang liên kết</MenuItem>
+            <MenuItem value="SUSPENDED">Tạm dừng</MenuItem>
+            <MenuItem value="UNLINKED">Đã ngừng liên kết</MenuItem>
+          </TextField>
+        )}
         <Button
           className="supplier-clear-filters"
           onClick={() => {
