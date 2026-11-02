@@ -193,7 +193,7 @@ const routes = [
           },
 
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_ADMINISTRATION, element: <LazyWrapper><SchoolAdministration /></LazyWrapper> },
               { path: ROUTER.SCHOOL_ACCOUNT_CREATE, element: <LazyWrapper><SchoolAccountCreate /></LazyWrapper> },
@@ -203,7 +203,7 @@ const routes = [
 
           // Duyệt thực đơn: Ban Giám Hiệu, School Admin
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMINISTRATION, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_APPROVAL, element: <LazyWrapper><MenuApproval /></LazyWrapper> },
             ],
@@ -211,7 +211,7 @@ const routes = [
 
           // Phân hệ Y tế học đường: Ban Y tế, School Admin
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMIN]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_HEALTH_OVERVIEW, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
               { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
@@ -239,7 +239,7 @@ const routes = [
 
           // Vận hành Bếp ăn: Nhân viên Bếp, School Admin (Các trang chuyên biệt của Bếp)
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMIN]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },

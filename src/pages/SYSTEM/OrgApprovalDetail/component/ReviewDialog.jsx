@@ -7,13 +7,15 @@ import { formatRequestDate, organizationName, requestCode, REQUEST_TYPES } from 
 import CloseIcon from "@mui/icons-material/Close"
 import styles from "./ReviewDialog.module.scss"
 
-export default function ReviewDialog({ mode, request, reviewer, onClose, onReviewed }) {
+export default function ReviewDialog({ mode, request, reviewer, onClose, onReviewed, onReload }) {
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)")
   const [reason, setReason] = useState("")
+  const [reasonError, setReasonError] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState("")
+  const [conflict, setConflict] = useState(false)
   const submittingRef = useRef(false)
-  useEffect(() => { setReason(""); setError("") }, [mode])
+  useEffect(() => { setReason(""); setReasonError(""); setError(""); setConflict(false) }, [mode])
   const isResult = mode === "RESULT"
   const isReject = mode === "REJECTED"
   const title = isResult ? request.status === "APPROVED" ? "Đã phê duyệt hồ sơ đăng ký." : "Đã từ chối hồ sơ đăng ký."
@@ -21,13 +23,22 @@ export default function ReviewDialog({ mode, request, reviewer, onClose, onRevie
   const submit = async event => {
     event.preventDefault()
     if (submittingRef.current || isResult) return
+    if (isReject && !reason.trim()) { setReasonError("Nhập lý do từ chối hồ sơ."); return }
     submittingRef.current = true
     setSubmitting(true)
+    setReasonError("")
     setError("")
+    setConflict(false)
     try {
-      const response = await RegistrationService.reviewRequest(request.id, { status: mode, rejection_reason: isReject ? reason.trim() || null : null }, reviewer)
-      onReviewed(response.data)
+      const response = await RegistrationService.reviewRequest(request.id, {
+        status: mode,
+        rejection_reason: isReject ? reason.trim() : null,
+        expected_review_version: request.review_version,
+      }, reviewer)
+      onReviewed(response.data, response.isMock)
     } catch (err) {
+      const code = err?.response?.data?.error?.code
+      setConflict(["REGISTRATION_STALE", "REGISTRATION_ALREADY_REVIEWED"].includes(code))
       setError(err.message || "Không thể lưu quyết định xét duyệt.")
     } finally { setSubmitting(false); submittingRef.current = false }
   }
@@ -44,14 +55,15 @@ export default function ReviewDialog({ mode, request, reviewer, onClose, onRevie
           </> : isReject ? <>
             <p className={styles.muted}>Hồ sơ {requestCode(request.id)} của {request.applicant?.full_name || "người đăng ký"}.</p>
             <label className={styles.reasonLabel} htmlFor="rejection-reason">Lý do từ chối</label>
-            <TextField id="rejection-reason" value={reason} onChange={event => setReason(event.target.value)} multiline rows={4} fullWidth autoFocus disabled={submitting}
-              placeholder="Nhập lý do từ chối hồ sơ" slotProps={{ htmlInput: { maxLength: 2000, "aria-describedby": "rejection-hint" } }} />
-            <p id="rejection-hint" className={styles.muted}>Bổ sung lý do nếu cần phản hồi cho người đăng ký.</p>
+            <TextField id="rejection-reason" value={reason} onChange={event => { setReason(event.target.value); setReasonError("") }} multiline rows={4} fullWidth autoFocus disabled={submitting}
+              error={Boolean(reasonError)} helperText={reasonError || undefined}
+              placeholder="Nhập lý do từ chối hồ sơ" slotProps={{ htmlInput: { maxLength: 4000, "aria-describedby": "rejection-hint" } }} />
+            <p id="rejection-hint" className={styles.muted}>Lý do từ chối là bắt buộc, tối đa 4000 ký tự.</p>
           </> : <>
             <p className={styles.muted}>Bạn có chắc chắn muốn phê duyệt hồ sơ đăng ký này?</p>
             <RequestFields columns={1} fields={[{ label: "Người đăng ký", value: request.applicant?.full_name }, { label: "Loại hồ sơ", value: REQUEST_TYPES[request.request_type] }, { label: "Đơn vị đăng ký", value: organizationName(request) }]} />
           </>}
-          {error && <Alert severity="error">{error}</Alert>}
+          {error && <Alert severity="error" action={conflict && onReload ? <Button onClick={onReload}>Tải lại hồ sơ</Button> : undefined}>{error}</Alert>}
         </DialogContent>
         {!isResult && <DialogActions className={styles.actions}><Button variant="outlined" onClick={onClose} disabled={submitting} autoFocus={!isReject}>Hủy</Button><Button type="submit" variant={isReject ? "outlined" : "contained"} className={isReject ? styles.reject : undefined} disabled={submitting}>{submitting ? "Đang lưu…" : "Xác nhận"}</Button></DialogActions>}
       </form>

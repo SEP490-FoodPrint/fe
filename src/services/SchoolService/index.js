@@ -41,6 +41,14 @@ const getSchoolDetailByCodeApi = async (code) => {
 };
 
 /**
+ * Chi tiết trường học theo ID
+ */
+const getSchoolDetailByIdApi = async (id) => {
+  const res = await http.get(apiGetSchoolDetail(id), { skipAuthRedirect: true });
+  return res;
+};
+
+/**
  * 3. Thực đơn ngày của trường học
  */
 const getDailyMealMenuApi = async (schoolCode, date) => {
@@ -94,6 +102,7 @@ const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getPublicLocations: getPublicLocationsApi,
   getSchoolDetailByCode: getSchoolDetailByCodeApi,
+  getSchoolDetailById: getSchoolDetailByIdApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
 };

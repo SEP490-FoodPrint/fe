@@ -1,11 +1,11 @@
-import React from "react"
-import { useNavigate } from "react-router-dom"
-import { ArrowLeft } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
-import styles from "./CreateBatchSeparateHeader.module.scss"
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+import ROUTER from "src/router/ROUTER";
+import styles from "./CreateBatchSeparateHeader.module.scss";
 
 export default function CreateBatchSeparateHeader() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className={styles.headerBar}>
@@ -37,5 +37,5 @@ export default function CreateBatchSeparateHeader() {
         </div>
       </div>
     </div>
-  )
+  );
 }

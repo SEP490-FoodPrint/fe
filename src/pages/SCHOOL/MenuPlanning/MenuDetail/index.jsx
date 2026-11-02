@@ -109,13 +109,13 @@ export default function MenuDetail() {
         <MenuDetailBasicInfo menu={menu} />
 
         {/* Khối 2: Bảng cơ cấu món ăn trong thực đơn & Đối soát định lượng */}
-        <MenuDetailDishesTable dishes={menu.dishes} portionCount={menu.portionCount} />
+        <MenuDetailDishesTable dishes={menu.dishes} />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
         <MenuDetailAllergyCard menu={menu} />
 
         {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
-        <MenuDetailSeasoningsCard seasonings={menu.seasonings} portionCount={menu.portionCount} />
+        <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
 
         {/* Khối 5: Lịch sử theo dõi tiến trình & Kiểm duyệt */}
         <MenuDetailTimeline menu={menu} />

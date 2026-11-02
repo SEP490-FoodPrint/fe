@@ -1,16 +1,17 @@
 import React from "react"
 import styles from "./CreateMenuHeader.module.scss"
 
-export default function CreateMenuHeader({ onBack }) {
+export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = false, statusLabel }) {
+  const hasMeal = Boolean(selectedDayMenu?.hasMeal)
   return (
     <div className={styles.headerContainer}>
       <div className={styles.titleRow}>
         <div className={styles.titleBlock}>
           <div className={styles.titleWithBadge}>
-            <h1 className={styles.pageTitle}>Tạo thực đơn</h1>
+            <h1 className={styles.pageTitle}>{readOnly ? "Xem thực đơn" : hasMeal ? "Chỉnh sửa thực đơn" : "Tạo thực đơn"}</h1>
             <span className={styles.statusPill}>
               <span className={styles.statusDot}></span>
-              Bản nháp mới
+              {hasMeal ? statusLabel : "Bản nháp mới"}
             </span>
           </div>
           <p className={styles.pageSubtitle}>

@@ -474,6 +474,29 @@
   gap: 6px;
 }
 
+.qtyStandardsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 200px;
+}
+
+.qtyStandardRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.qtyIngredientName {
+  max-width: 190px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .qtyInput {
   width: 64px;
   height: 38px;

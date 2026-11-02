@@ -2,337 +2,354 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Eye,
-  CheckCircle2,
-  Edit2,
+  Edit3,
   ChevronLeft,
   ChevronRight,
-  ShieldAlert,
   Utensils,
-  CookingPot,
-  FlaskConical,
+  Split,
 } from "lucide-react"
-import { Tooltip, IconButton } from "@mui/material"
+import {
+  Alert,
+  Button,
+  Tooltip,
+  IconButton,
+  Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@mui/material"
 import ROUTER from "src/router/ROUTER"
 import styles from "./CookingBatchesTable.module.scss"
 
-const BATCHES_DATA = [
-  {
-    id: "b1",
-    code: "CB-20261024-001",
-    dishName: "Thịt heo kho cút nước dừa",
-    mealCategory: "Bữa trưa • 11:15",
-    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
-    method: "COMMON",
-    methodLabel: "Nấu chung",
-    portion: "120 suất",
-    sampleCode: "SMP-001 • Đã lưu",
-    hasSample: true,
-    status: "COMPLETED",
-    statusLabel: "Đã nấu xong",
-    statusType: "success",
-    actions: ["view"],
-  },
-  {
-    id: "b2",
-    code: "CB-20261024-002",
-    dishName: "Canh bí đỏ hầm sườn non",
-    mealCategory: "Bữa trưa • 11:15",
-    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
-    method: "COMMON",
-    methodLabel: "Nấu chung",
-    portion: "120 suất",
-    sampleCode: "SMP-002 • Đã lưu",
-    hasSample: true,
-    status: "COMPLETED",
-    statusLabel: "Đã nấu xong",
-    statusType: "success",
-    actions: ["view"],
-  },
-  {
-    id: "b3",
-    code: "CB-20261024-003",
-    dishName: "Cơm trắng dẻo thơm",
-    mealCategory: "Bữa trưa • 11:15",
-    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
-    method: "COMMON",
-    methodLabel: "Nấu chung",
-    portion: "450 suất",
-    sampleCode: "—",
-    hasSample: false,
-    status: "COMPLETED",
-    statusLabel: "Đã nấu xong",
-    statusType: "success",
-    actions: ["view", "done"],
-  },
-  {
-    id: "b4",
-    code: "CB-20261024-004",
-    dishName: "Trứng cuộn rau củ (Ăn kiêng)",
-    mealCategory: "Bữa trưa • 11:15",
-    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
-    method: "ALLERGY",
-    methodLabel: "Nấu riêng",
-    portion: "30 suất",
-    sampleCode: "—",
-    hasSample: false,
-    status: "CONFIRMED",
-    statusLabel: "Chờ nấu",
-    statusType: "warning",
-    actions: ["view", "confirm_finish"],
-  },
-  {
-    id: "b5",
-    code: "CB-20261024-005",
-    dishName: "Chè đậu đỏ cốt dừa",
-    mealCategory: "Bữa xế • 14:15",
-    timeTag: "Giờ ăn 14:15 (Xong trước 13:45)",
-    method: "ALLERGY",
-    methodLabel: "Nấu riêng",
-    portion: "80 suất",
-    sampleCode: "—",
-    hasSample: false,
-    status: "DRAFT",
-    statusLabel: "Chưa xác nhận",
-    statusType: "muted",
-    actions: ["view", "edit"],
-  },
-]
-
-function CookingBatchesTable({ filterChip = "ALL", searchTerm = "" }) {
+export default function CookingBatchesTable({
+  rows = [],
+  pagination,
+  loading,
+  error,
+  onRetry,
+  onPageChange,
+  onPageSizeChange,
+}) {
   const navigate = useNavigate()
-  const [pageSize, setPageSize] = useState("10")
-  const [currentPage, setCurrentPage] = useState(1)
+  const [selectedBatch, setSelectedBatch] = useState(null)
+  const { page, limit, totalItems, totalPages } = pagination
+  const methodClass = (row) =>
+    row.methodType === "separate"
+      ? styles.methodSeparate
+      : row.methodType === "common"
+        ? styles.methodCommon
+        : styles.methodUnknown
+  const methodIcon = (row, size = 14) =>
+    row.methodType === "separate" ? (
+      <Split size={size} aria-hidden="true" />
+    ) : (
+      <Utensils size={size} aria-hidden="true" />
+    )
+  const statusBadge = (row, mobile = false) => (
+    <span
+      className={`${mobile ? styles.mobileStatusBadge : styles.statusBadge} ${styles[`status_${row.statusType}`]}`}
+    >
+      <span>{row.statusLabel}</span>
+    </span>
+  )
 
-  // Lọc dữ liệu theo chip và tìm kiếm
-  const filteredData = BATCHES_DATA.filter((item) => {
-    if (searchTerm) {
-      const matchSearch =
-        item.dishName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.code.toLowerCase().includes(searchTerm.toLowerCase())
-      if (!matchSearch) return false
+  const handleViewDetail = (row) => {
+    navigate(
+      ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", row.code || row.id),
+    )
+  }
+
+  const handleEditBatch = (row) => {
+    navigate(
+      ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", row.code || row.id),
+    )
+  }
+
+  const renderActions = (row, mobile = false) => {
+    const isCompleted = row.status === "COMPLETED"
+
+    if (mobile) {
+      return (
+        <div className={styles.mobileActionBox}>
+          <button
+            type="button"
+            className={styles.mobileBtnActionView}
+            onClick={() => handleViewDetail(row)}
+            title="Xem chi tiết lô chế biến"
+          >
+            <Eye size={13} />
+            <span>Chi tiết</span>
+          </button>
+          <button
+            type="button"
+            className={styles.mobileBtnActionEdit}
+            disabled={isCompleted}
+            onClick={() => handleEditBatch(row)}
+            title={
+              isCompleted
+                ? "Lô đã hoàn thành, không thể chỉnh sửa"
+                : "Chỉnh sửa lô chế biến"
+            }
+          >
+            <Edit3 size={13} />
+            <span>Sửa</span>
+          </button>
+        </div>
+      )
     }
-    if (filterChip === "ALL") return true
-    if (filterChip === "LUNCH") return item.mealCategory.includes("trưa")
-    if (filterChip === "AFTERNOON") return item.mealCategory.includes("xế")
-    if (filterChip === "PENDING") return item.status === "CONFIRMED" || item.status === "DRAFT"
-    if (filterChip === "COMPLETED") return item.status === "COMPLETED"
-    if (filterChip === "ALLERGY") return item.method === "ALLERGY"
-    return true
-  })
+
+    return (
+      <div className={styles.actionButtonsGroup}>
+        <Tooltip title="Xem chi tiết lô chế biến" arrow>
+          <button
+            type="button"
+            className={styles.btnActionView}
+            onClick={() => handleViewDetail(row)}
+            aria-label={`Xem chi tiết lô ${row.code}`}
+          >
+            <Eye size={14} />
+            <span>Chi tiết</span>
+          </button>
+        </Tooltip>
+
+        <Tooltip
+          title={
+            isCompleted
+              ? "Lô đã hoàn thành chế biến, không thể chỉnh sửa"
+              : "Chỉnh sửa lô chế biến"
+          }
+          arrow
+        >
+          <span>
+            <button
+              type="button"
+              className={styles.btnActionEdit}
+              disabled={isCompleted}
+              onClick={() => handleEditBatch(row)}
+              aria-label={`Chỉnh sửa lô ${row.code}`}
+            >
+              <Edit3 size={14} />
+              <span>Sửa</span>
+            </button>
+          </span>
+        </Tooltip>
+      </div>
+    )
+  }
 
   return (
-    <div className={styles.tableCard}>
-      {/* 1. Desktop View: Bảng dữ liệu chuẩn (Hiện trên Desktop >= 768px) */}
-      <div className={styles.desktopTableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th className={styles.thCode}>Mã lô</th>
-              <th className={styles.thDish}>Món ăn &amp; Ca ăn</th>
-              <th className={styles.thMethod}>Phương thức</th>
-              <th className={styles.thPortion}>Số suất</th>
-              <th className={styles.thSample}>Mẫu lưu</th>
-              <th className={styles.thStatus}>Trạng thái</th>
-              <th className={styles.thAction}>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredData.map((row) => (
-              <tr key={row.id} className={styles.row}>
-                {/* 1. Mã mẻ */}
-                <td className={styles.tdCode}>{row.code}</td>
-
-                {/* 2. Món ăn & Bữa */}
-                <td className={styles.tdDish}>
-                  <div className={styles.dishWrap}>
-                    <span className={styles.dishName}>{row.dishName}</span>
-                    <span className={styles.dishCategory}>{row.timeTag}</span>
-                  </div>
-                </td>
-
-                {/* 3. Phương thức */}
-                <td className={styles.tdMethod}>
-                  <span
-                    className={`${styles.methodBadge} ${
-                      row.method === "ALLERGY" ? styles.methodAllergy : styles.methodCommon
-                    }`}
-                  >
-                    {row.method === "ALLERGY" ? <ShieldAlert size={13} /> : <Utensils size={13} />}
-                    <span>{row.methodLabel}</span>
-                  </span>
-                </td>
-
-                {/* 4. Số suất */}
-                <td className={styles.tdPortion}>
-                  <span className={styles.portionBold}>{row.portion}</span>
-                </td>
-
-                {/* 6. Mẫu lưu */}
-                <td className={styles.tdSample}>
-                  {row.sampleCode === "—" ? (
-                    <span className={styles.dash}>—</span>
-                  ) : (
-                    <span className={styles.sampleBadge}>
-                      <FlaskConical size={13} />
-                      <span>{row.sampleCode}</span>
-                    </span>
-                  )}
-                </td>
-
-                {/* 7. Trạng thái */}
-                <td className={styles.tdStatus}>
-                  <span className={`${styles.statusBadge} ${styles[`status_${row.statusType}`] || ""}`}>
-                    {row.statusLabel}
-                  </span>
-                </td>
-
-                {/* 8. Thao tác */}
-                <td className={styles.tdAction}>
-                  <div className={styles.actionGroup}>
-                    <Tooltip title="Xem chi tiết lô" arrow>
-                      <button
-                        type="button"
-                        className={styles.iconActionBtn}
-                        aria-label="Xem chi tiết"
-                        onClick={() => navigate(`${ROUTER.SCHOOL_KITCHEN_BATCHES}/${row.id}`)}
+    <div className={styles.tableCard} aria-busy={loading}>
+      {loading ? (
+        <div className={styles.listState} role="status">
+          <span>Đang tải lô chế biến…</span>
+          {[1, 2, 3].map((key) => (
+            <Skeleton key={key} variant="rounded" height={60} />
+          ))}
+        </div>
+      ) : error ? (
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" onClick={onRetry}>
+              Tải lại
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      ) : rows.length === 0 ? (
+        <div className={styles.listState} role="status">
+          Không có lô chế biến phù hợp với bộ lọc.
+        </div>
+      ) : (
+        <>
+          <div className={styles.desktopTableWrap}>
+            <table className={styles.table} aria-label="Danh sách lô chế biến">
+              <thead>
+                <tr>
+                  <th scope="col">Mã lô</th>
+                  <th scope="col">Món ăn &amp; Ca ăn</th>
+                  <th scope="col">Phương thức</th>
+                  <th scope="col">Số suất</th>
+                  <th scope="col">Trạng thái</th>
+                  <th scope="col" className={styles.thActions}>Thao tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td className={styles.tdCode}>{row.code}</td>
+                    <td>
+                      <div className={styles.dishWrap}>
+                        <span className={styles.dishName}>{row.dishName}</span>
+                        <span className={styles.dishCategory}>
+                          {row.timeTag}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <span
+                        className={`${styles.methodBadge} ${methodClass(row)}`}
                       >
-                        <Eye size={16} />
-                      </button>
-                    </Tooltip>
-
-                    {row.actions.includes("confirm_finish") && (
-                      <Tooltip title="Xác nhận nấu xong" arrow>
-                        <button
-                          type="button"
-                          className={`${styles.iconActionBtn} ${styles.btnSuccess}`}
-                          aria-label="Xác nhận nấu xong"
-                        >
-                          <CheckCircle2 size={16} />
-                        </button>
-                      </Tooltip>
-                    )}
-
-                    {row.actions.includes("edit") && (
-                      <Tooltip title="Chỉnh sửa lô" arrow>
-                        <button type="button" className={styles.iconActionBtn} aria-label="Chỉnh sửa lô">
-                          <Edit2 size={16} />
-                        </button>
-                      </Tooltip>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 2. Mobile View: Thẻ 2 hàng mật độ cao chuẩn UI/UX Pro Max (Hiện trên Mobile < 768px) */}
-      <div className={styles.mobileCardsList} role="list" aria-label="Danh sách lô chế biến">
-        {filteredData.map((row) => (
-          <div
-            key={row.id}
-            className={styles.mobileBatchCard}
-            role="listitem"
-            onClick={() => navigate(`${ROUTER.SCHOOL_KITCHEN_BATCHES}/${row.id}`)}
-          >
-            {/* Hàng 1: Tên món + Tag dị ứng (nếu có) + Chip Trạng thái */}
-            <div className={styles.mobileTopRow}>
-              <div className={styles.dishTitleWrap}>
-                <span className={styles.methodIconBox} aria-hidden="true">
-                  {row.method === "ALLERGY" ? (
-                    <ShieldAlert size={14} className={styles.iconAllergy} />
-                  ) : (
-                    <CookingPot size={14} className={styles.iconCommon} />
-                  )}
-                </span>
-                <span className={styles.mobileDishName}>{row.dishName}</span>
-                {row.method === "ALLERGY" && <span className={styles.tagAllergySmall}>Kiêng</span>}
-              </div>
-
-              <span className={`${styles.mobileStatusBadge} ${styles[`status_${row.statusType}`] || ""}`}>
-                <span className={styles.statusDot} />
-                <span>{row.statusLabel}</span>
-              </span>
-            </div>
-
-            {/* Hàng 2: Số suất • Mốc giờ ăn & Hạn chót + Icon Action */}
-            <div className={styles.mobileBottomRow}>
-              <div className={styles.mobileMetaWrap}>
-                <span className={styles.portionHighlight}>{row.portion}</span>
-                <span className={styles.metaDot}>•</span>
-                <span className={styles.timeScheduleText}>{row.timeTag}</span>
-              </div>
-
-              <div className={styles.mobileActionBox} onClick={(e) => e.stopPropagation()}>
-                <Tooltip title="Xem chi tiết" arrow>
-                  <IconButton
-                    className={styles.mobileActionBtn}
-                    aria-label={`Xem chi tiết lô ${row.dishName}`}
-                    onClick={() => navigate(`${ROUTER.SCHOOL_KITCHEN_BATCHES}/${row.id}`)}
-                  >
-                    <Eye size={16} />
-                  </IconButton>
-                </Tooltip>
-
-                {row.status === "CONFIRMED" && (
-                  <Tooltip title="Xác nhận xong" arrow>
-                    <IconButton
-                      className={`${styles.mobileActionBtn} ${styles.mobileActionConfirm}`}
-                      aria-label={`Xác nhận nấu xong ${row.dishName}`}
-                    >
-                      <CheckCircle2 size={16} />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
+                        {methodIcon(row)}
+                        <span>{row.methodLabel}</span>
+                      </span>
+                    </td>
+                    <td className={styles.portionBold}>{row.portion}</td>
+                    <td>{statusBadge(row)}</td>
+                    <td className={styles.tdActions}>{renderActions(row)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+          <div
+            className={styles.mobileCardsList}
+            role="list"
+            aria-label="Danh sách lô chế biến"
+          >
+            {rows.map((row) => (
+              <article
+                key={row.id}
+                className={styles.mobileBatchCard}
+                role="listitem"
+              >
+                <div className={styles.mobileTopRow}>
+                  <div className={styles.dishTitleWrap}>
+                    <span
+                      className={styles.methodIconBox}
+                      title={row.methodLabel}
+                    >
+                      {methodIcon(row)}
+                    </span>
+                    <span className={styles.mobileDishName}>
+                      {row.dishName}
+                    </span>
+                  </div>
+                  {statusBadge(row, true)}
+                </div>
+                <div className={styles.mobileBottomRow}>
+                  <div className={styles.mobileMetaWrap}>
+                    <span className={styles.portionHighlight}>
+                      {row.portion}
+                    </span>
+                    <span className={styles.metaDot}>•</span>
+                    <span>
+                      {row.dateLabel} ·{" "}
+                      {row.mealType === "LUNCH"
+                        ? "Trưa"
+                        : row.mealType === "AFTERNOON"
+                          ? "Xế"
+                          : "—"}
+                    </span>
+                    <span
+                      className={`${styles.mobileMethod} ${methodClass(row)}`}
+                    >
+                      {row.methodType === "separate"
+                        ? "Nấu riêng"
+                        : row.methodLabel}
+                    </span>
+                  </div>
+                  <div className={styles.mobileActionBox}>
+                    {renderActions(row, true)}
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </>
+      )}
 
-      {/* 3. Phân trang */}
       <div className={styles.paginationBar}>
         <div className={styles.pageInfo}>
           <span>
-            Hiển thị <strong>{filteredData.length}</strong> lô chế biến
+            {loading
+              ? "Đang tải…"
+              : error
+                ? "Chưa tải được danh sách"
+                : `${totalItems.toLocaleString("vi-VN")} lô · ${totalItems ? (page - 1) * limit + 1 : 0}–${Math.min(page * limit, totalItems)}`}
           </span>
           <div className={styles.pageSizeSelect}>
             <span>Xem:</span>
             <select
-              value={pageSize}
-              onChange={(e) => setPageSize(e.target.value)}
+              value={limit}
+              onChange={(event) => onPageSizeChange(Number(event.target.value))}
               aria-label="Số dòng mỗi trang"
+              disabled={loading}
             >
-              <option value="10">10 / trang</option>
-              <option value="20">20 / trang</option>
+              <option value={10}>10 / trang</option>
+              <option value={20}>20 / trang</option>
+              <option value={50}>50 / trang</option>
             </select>
           </div>
         </div>
-
         <div className={styles.pageNav}>
-          <button
-            type="button"
+          <IconButton
             className={styles.pageBtn}
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={loading || Boolean(error) || page <= 1}
+            onClick={() => onPageChange(page - 1)}
             aria-label="Trang trước"
           >
-            <ChevronLeft size={16} />
-          </button>
-          <span className={styles.pageText}>Trang {currentPage}</span>
-          <button
-            type="button"
+            <ChevronLeft size={18} />
+          </IconButton>
+          <span className={styles.pageText}>
+            Trang {page}/{totalPages}
+          </span>
+          <IconButton
             className={styles.pageBtn}
-            onClick={() => setCurrentPage((p) => p + 1)}
+            disabled={loading || Boolean(error) || page >= totalPages}
+            onClick={() => onPageChange(page + 1)}
             aria-label="Trang tiếp"
           >
-            <ChevronRight size={16} />
-          </button>
+            <ChevronRight size={18} />
+          </IconButton>
         </div>
       </div>
+      <Dialog
+        open={Boolean(selectedBatch)}
+        onClose={() => setSelectedBatch(null)}
+        fullWidth
+        maxWidth="sm"
+        aria-labelledby="batch-list-detail-title"
+      >
+        <DialogTitle id="batch-list-detail-title">
+          {selectedBatch?.dishName}
+        </DialogTitle>
+        <DialogContent>
+          <dl className={styles.batchFacts}>
+            <div>
+              <dt>Ngày thực đơn</dt>
+              <dd>{selectedBatch?.dateLabel}</dd>
+            </div>
+            <div>
+              <dt>Bữa ăn</dt>
+              <dd>{selectedBatch?.mealLabel}</dd>
+            </div>
+            <div>
+              <dt>Phương thức</dt>
+              <dd>{selectedBatch?.methodLabel}</dd>
+            </div>
+            <div>
+              <dt>Số suất</dt>
+              <dd>{selectedBatch?.portion}</dd>
+            </div>
+            <div>
+              <dt>Trạng thái</dt>
+              <dd>{selectedBatch?.statusLabel}</dd>
+            </div>
+            {selectedBatch?.note && (
+              <div className={styles.batchNote}>
+                <dt>Ghi chú</dt>
+                <dd>{selectedBatch.note}</dd>
+              </div>
+            )}
+          </dl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSelectedBatch(null)}>Đóng</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
-
-export default CookingBatchesTable
