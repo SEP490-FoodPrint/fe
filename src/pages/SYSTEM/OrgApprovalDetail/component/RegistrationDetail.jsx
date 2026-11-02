@@ -81,8 +81,7 @@ export default function RegistrationDetail() {
         <h2 id="review-title">Xét duyệt hồ sơ</h2>
         {request.status === "PENDING" ? <>
           <p className={styles.description}>Hồ sơ hiện đang chờ xét duyệt.</p>
-          <div className={styles.actions}><Button variant="contained" disabled={!isMock} onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} disabled={!isMock} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
-          {!isMock && <p className={styles.description}>Chức năng xét duyệt hiện chưa khả dụng.</p>}
+          <div className={styles.actions}><Button variant="contained" onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
         </> : <>
           <RequestStatus status={request.status} />
           <RequestFields fields={[field("Người xét duyệt", request.reviewer?.full_name || "Chưa có"), field("Ngày xét duyệt", formatRequestDate(request.reviewed_at, true))]} />
@@ -98,7 +97,7 @@ export default function RegistrationDetail() {
       <SupportingDocuments documents={request.supporting_documents || []} organization={organizationName(request)} />
       {isSupplier && <RegisteredIngredients ingredients={Array.isArray(profile.ingredients) ? profile.ingredients.filter(item => item && typeof item === "object") : []} />}
       {isMock && <p className={styles.note}>Dữ liệu và minh chứng minh họa cho giao diện.</p>}
-      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={updated => { setRequest(updated); setDialog("RESULT") }} />
+      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={(updated, reviewedMock) => { setRequest(updated); setIsMock(Boolean(reviewedMock)); setDialog("RESULT") }} onReload={() => { setDialog(null); setRetry(value => value + 1) }} />
     </section>
   )
 }
