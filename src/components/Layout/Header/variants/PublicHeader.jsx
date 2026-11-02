@@ -154,14 +154,14 @@ function PublicHeader() {
             </div>
 
             <div className={styles.panelFooter}>
-              <a
-                href={`${ROUTER.DEFAULT}#schools`}
+              <Link
+                to={ROUTER.SCHOOL_LIST}
                 onClick={() => setIsDropdownOpen(false)}
                 className={styles.viewAllLink}
               >
                 <span>Xem tất cả danh sách trường</span>
                 <ArrowRight size={14} />
-              </a>
+              </Link>
             </div>
           </div>
         )}

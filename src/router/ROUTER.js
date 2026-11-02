@@ -12,6 +12,7 @@ const ROUTER = {
   FORGOT_PASSWORD: "/forgot-password",
   PASSWORD_RECOVERY_CODE: "/forgot-password/verify",
   RESET_PASSWORD: "/reset-password",
+  SCHOOL_LIST: "/schools",
   SCHOOL_LANDING: "/school/:schoolCode",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)

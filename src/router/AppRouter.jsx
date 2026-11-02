@@ -8,6 +8,7 @@ import ROUTER from "./ROUTER"
 
 // Lazy load Pages
 const PlatformHome = lazy(() => import("src/pages/ANONYMOUS/PlatformHome"))
+const SchoolListPage = lazy(() => import("src/pages/ANONYMOUS/SchoolList"))
 const ProfilePage = lazy(() => import("src/pages/ANONYMOUS/Profile"))
 const ChangePassword = lazy(() => import("src/pages/ANONYMOUS/ChangePassword"))
 const SchoolLanding = lazy(() => import("src/pages/ANONYMOUS/SchoolLanding"))
@@ -76,6 +77,14 @@ const routes = [
         element: (
           <LazyWrapper>
             <PlatformHome />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: ROUTER.SCHOOL_LIST,
+        element: (
+          <LazyWrapper>
+            <SchoolListPage />
           </LazyWrapper>
         ),
       },

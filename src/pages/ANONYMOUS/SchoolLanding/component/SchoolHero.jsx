@@ -28,6 +28,19 @@ function SchoolHero({ school }) {
     if (el) el.scrollIntoView({ behavior: "smooth" })
   }
 
+  console.log(school);
+  
+  const schoolAddress =
+    school?.address ||
+    school?.addressLine ||
+    school?.address_line ||
+    "Chưa cập nhật"
+
+  const schoolBoardingScale =
+    school?.boarding_scale ||
+    school?.boardingScale ||
+    "Chưa cập nhật"
+
   return (
     <section id="gioi-thieu" className={styles.heroSection}>
       <div className={styles.container}>
@@ -52,8 +65,8 @@ function SchoolHero({ school }) {
                   <MapPin size={20} className={styles.metaIcon} />
                   <div className={styles.metaContent}>
                     <span className={styles.metaLabel}>Địa chỉ</span>
-                    <span className={styles.metaValue}>
-                      {school?.address}
+                    <span className={styles.metaValue} title={schoolAddress}>
+                      {schoolAddress}
                     </span>
                   </div>
                 </div>
@@ -61,9 +74,9 @@ function SchoolHero({ school }) {
                 <div className={styles.metaCard}>
                   <Users size={20} className={styles.metaIcon} />
                   <div className={styles.metaContent}>
-                    <span className={styles.metaLabel}>Quy mô bán trú</span>
-                    <span className={styles.metaValue}>
-                      {school?.boarding_scale}
+                    <span className={styles.metaLabel}>Tổng suất ăn bán trú</span>
+                    <span className={styles.metaValue} title={schoolBoardingScale}>
+                      {schoolBoardingScale}
                     </span>
                   </div>
                 </div>
@@ -94,8 +107,8 @@ function SchoolHero({ school }) {
             <div className={styles.rightCol}>
               <div className={styles.imageFrame}>
                 <img
-                  src={DEFAULT_HERO_IMAGE}
-                  alt={`Khay cơm bán trú học sinh ${school?.name}`}
+                  src={school?.cover_image_url || school?.coverImageUrl || DEFAULT_HERO_IMAGE}
+                  alt={`Khay cơm bán trú học sinh ${school?.name || ""}`}
                   className={styles.heroImg}
                   loading="eager"
                 />
@@ -123,8 +136,13 @@ SchoolHero.propTypes = {
   school: PropTypes.shape({
     name: PropTypes.string,
     address: PropTypes.string,
+    addressLine: PropTypes.string,
+    address_line: PropTypes.string,
     description: PropTypes.string,
     boarding_scale: PropTypes.string,
+    boardingScale: PropTypes.string,
+    cover_image_url: PropTypes.string,
+    coverImageUrl: PropTypes.string,
     national_standard: PropTypes.string,
     safety_standard: PropTypes.string,
   }),

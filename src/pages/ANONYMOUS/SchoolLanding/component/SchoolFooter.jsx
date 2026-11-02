@@ -36,7 +36,12 @@ function SchoolFooter({ school }) {
             <div className={styles.contactList}>
               <div className={styles.contactItem}>
                 <MapPin size={16} className={styles.icon} />
-                <span>{school?.address || "Hà Nội"}</span>
+                <span>
+                  {school?.address ||
+                    school?.addressLine ||
+                    school?.address_line ||
+                    "Hà Nội"}
+                </span>
               </div>
               <div className={styles.contactItem}>
                 <Phone size={16} className={styles.icon} />
