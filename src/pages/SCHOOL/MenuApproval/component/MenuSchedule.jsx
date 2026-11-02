@@ -1,8 +1,24 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Tooltip, Typography } from "@mui/material"
+import { MenuItem, TextField, Tooltip, Typography } from "@mui/material"
 import { CalendarRange, Cookie, Users, Utensils } from "lucide-react"
 import styles from "./MenuSchedule.module.scss"
+
+const WEEK_STATUS_LABEL = {
+  PENDING_APPROVAL: "Chờ duyệt",
+  APPROVED: "Đã duyệt",
+  REVISION_REQUIRED: "Yêu cầu điều chỉnh",
+}
+
+// weekStartDate là ngày thứ Hai (YYYY-MM-DD...), tuần học từ thứ Hai đến thứ Sáu
+const formatWeekRange = weekStartDate => {
+  const [year, month, day] = String(weekStartDate).slice(0, 10).split("-").map(Number)
+  const start = new Date(Date.UTC(year, month - 1, day))
+  const end = new Date(Date.UTC(year, month - 1, day + 4))
+  const pad = value => String(value).padStart(2, "0")
+  const short = date => `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}`
+  return `${short(start)} – ${short(end)}/${end.getUTCFullYear()}`
+}
 
 const MEALS = [
   { key: "lunch", label: "Bữa trưa", Icon: Utensils },
@@ -35,21 +51,28 @@ function DishCell({ dishes }) {
 }
 
 // Bảng cả tuần: cột là ngày, hàng là bữa ăn — BGH xem và duyệt toàn bộ thực đơn một lần
-function MenuSchedule({ days }) {
-  const missingCount = days.reduce(
-    (count, day) => count + MEALS.filter(meal => !day[meal.key].length).length,
-    0,
-  )
-
+function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
   return (
     <section className={styles.wrapper} aria-labelledby="menu-schedule-title">
       <div className={styles.sectionHeader}>
         <Typography component="h2" id="menu-schedule-title" className={styles.sectionTitle}>
           <CalendarRange size={21} /> Thực đơn tuần
         </Typography>
-        {missingCount > 0 && (
-          <span className={styles.missingHint}>{missingCount} bữa chưa có món</span>
-        )}
+        <TextField
+          select
+          size="small"
+          label="Tuần thực đơn"
+          value={selectedWeekId || ""}
+          onChange={event => onWeekChange(event.target.value)}
+          disabled={disabled}
+          className={styles.weekSelect}
+        >
+          {weeks.map(week => (
+            <MenuItem key={week.id} value={week.id}>
+              Tuần {formatWeekRange(week.weekStartDate)} · {WEEK_STATUS_LABEL[week.status] || week.status}
+            </MenuItem>
+          ))}
+        </TextField>
       </div>
 
       <div className={styles.scroller}>
@@ -94,6 +117,12 @@ function MenuSchedule({ days }) {
 }
 
 DishCell.propTypes = { dishes: PropTypes.array.isRequired }
-MenuSchedule.propTypes = { days: PropTypes.array.isRequired }
+MenuSchedule.propTypes = {
+  days: PropTypes.array.isRequired,
+  weeks: PropTypes.arrayOf(PropTypes.object).isRequired,
+  selectedWeekId: PropTypes.string,
+  onWeekChange: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+}
 
 export default MenuSchedule

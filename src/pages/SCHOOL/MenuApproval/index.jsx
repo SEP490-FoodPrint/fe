@@ -179,16 +179,19 @@ function MenuApproval() {
     <div className="menu-approval-page">
       <MenuApprovalHeader
         menu={menu}
-        weeks={weeks}
-        selectedWeekId={menuId}
-        onWeekChange={changeWeek}
         canDecide={canDecide}
         submitting={submitting}
         onApprove={() => openDecision("approve")}
         onReject={() => openDecision("reject")}
         onPrint={() => window.print()}
       />
-      <MenuSchedule days={menu.days} />
+      <MenuSchedule
+        days={menu.days}
+        weeks={weeks}
+        selectedWeekId={menuId}
+        onWeekChange={changeWeek}
+        disabled={submitting || Boolean(dialog)}
+      />
       <MenuSummary menu={menu} />
       <MenuReview
         review={menu.medicalReview}

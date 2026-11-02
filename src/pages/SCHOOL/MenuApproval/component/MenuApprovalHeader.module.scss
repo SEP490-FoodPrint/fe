@@ -28,13 +28,6 @@
   line-height: var(--leading-tight);
 }
 
-.weekSelect {
-  flex: 0 0 auto;
-  width: 23rem;
-  max-width: 100%;
-  background: var(--bg-surface);
-}
-
 .decisionBar {
   display: flex;
   align-items: center;
@@ -106,10 +99,6 @@
     font-size: var(--text-xl);
   }
 
-  .weekSelect {
-    width: 100%;
-  }
-
   .actions {
     width: 100%;
 
@@ -120,7 +109,6 @@
 }
 
 @media print {
-  .weekSelect,
   .actions {
     display: none;
   }
