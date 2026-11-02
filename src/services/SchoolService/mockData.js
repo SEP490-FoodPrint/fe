@@ -1,3 +1,5 @@
+import { ORG_TYPES, ROLES } from "src/constants/roles";
+
 /**
  * Mock Data chuẩn 100% theo schema bảng foodprint.schools trong DB_script.txt
  */

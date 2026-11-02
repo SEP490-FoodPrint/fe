@@ -27,19 +27,52 @@ function SchoolLanding() {
       try {
         setLoading(true);
 
-        // Nạp song song thông tin trường, thực đơn ngày và thực đơn tuần
-        const [schoolRes, dailyRes, weeklyRes] = await Promise.all([
-          SchoolService.getSchoolDetailByCode(activeCode),
-          SchoolService.getDailyMealMenu(activeCode),
-          SchoolService.getWeeklyMenu(activeCode),
-        ]);
+        // Nạp song song và độc lập thông tin trường, thực đơn ngày và thực đơn tuần
+        const [schoolResult, dailyResult, weeklyResult] =
+          await Promise.allSettled([
+            SchoolService.getSchoolDetailByCode(activeCode),
+            SchoolService.getDailyMealMenu(activeCode),
+            SchoolService.getWeeklyMenu(activeCode),
+          ]);
 
         if (isMounted) {
-          const schoolData = schoolRes?.data;
+          // Xử lý thông tin chi tiết trường
+          if (schoolResult.status === "fulfilled" && schoolResult.value) {
+            const res = schoolResult.value;
+            const schoolData =
+              res?.data &&
+              typeof res.data === "object" &&
+              !Array.isArray(res.data) &&
+              (res.data.id || res.data.code || res.data.name)
+                ? res.data
+                : res?.data?.data || res;
+            setSchool(schoolData);
+          } else if (schoolResult.status === "rejected") {
+            console.error(
+              "Lỗi khi tải chi tiết trường học:",
+              schoolResult.reason
+            );
+          }
 
-          setSchool(schoolData);
-          setDailyMeal(dailyRes?.data || null);
-          setWeeklyMenu(weeklyRes?.data || null);
+          // Xử lý thực đơn ngày
+          if (dailyResult.status === "fulfilled" && dailyResult.value) {
+            const rawDaily = dailyResult.value;
+            const dailyData =
+              rawDaily?.data && !rawDaily.data.data
+                ? rawDaily.data
+                : rawDaily?.data?.data || rawDaily;
+            setDailyMeal(dailyData || null);
+          }
+
+          // Xử lý thực đơn tuần
+          if (weeklyResult.status === "fulfilled" && weeklyResult.value) {
+            const rawWeekly = weeklyResult.value;
+            const weeklyData =
+              rawWeekly?.data && !rawWeekly.data.data
+                ? rawWeekly.data
+                : rawWeekly?.data?.data || rawWeekly;
+            setWeeklyMenu(weeklyData || null);
+          }
         }
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu trang trường:", err);
