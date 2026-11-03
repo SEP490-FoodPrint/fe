@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import {
   Card,
   Typography,
@@ -10,40 +10,43 @@ import {
   TableCell,
   Tooltip,
   IconButton,
-} from "@mui/material";
-import { ArrowRight, Eye, UtensilsCrossed } from "lucide-react";
-import ROUTER from "src/router/ROUTER";
-import styles from "./RecentCookingBatches.module.scss";
-
-const COOKING_BATCHES = [
-  {
-    id: "batch-1",
-    dish: "Thịt heo kho nước dừa",
-    timeTag: "Giờ ăn 11:15 (Xong trước 10:30)",
-    portion: "1.250 suất",
-    status: "Chờ nấu",
-    statusType: "warning",
-  },
-  {
-    id: "batch-2",
-    dish: "Canh sườn hầm củ quả",
-    timeTag: "Ca trưa 11:15 (Đã hoàn tất)",
-    portion: "1.250 suất",
-    status: "Đã nấu",
-    statusType: "success",
-  },
-  {
-    id: "batch-3",
-    dish: "Trứng chiên thịt băm",
-    timeTag: "Ca trưa 11:15 (Đã hoàn tất)",
-    portion: "1.220 suất",
-    status: "Đã nấu",
-    statusType: "success",
-  },
-];
+  Skeleton,
+} from "@mui/material"
+import { ArrowRight, Eye, UtensilsCrossed } from "lucide-react"
+import ROUTER from "src/router/ROUTER"
+import KitchenService from "src/services/KitchenService"
+import { adaptCookingBatch } from "src/services/KitchenService/adapter"
+import styles from "./RecentCookingBatches.module.scss"
 
 function RecentCookingBatches() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [loading, setLoading] = useState(true)
+  const [batches, setBatches] = useState([])
+
+  useEffect(() => {
+    let active = true
+    const controller = new AbortController()
+
+    KitchenService.getBatches({ limit: 5 }, { signal: controller.signal })
+      .then((res) => {
+        if (active) {
+          const adapted = (res.items || []).map(adaptCookingBatch)
+          setBatches(adapted)
+        }
+      })
+      .catch(() => {
+        // Fallback gracefully on network error
+        if (active) setBatches([])
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+      controller.abort()
+    }
+  }, [])
 
   return (
     <Card className={styles.tableCard}>
@@ -62,115 +65,145 @@ function RecentCookingBatches() {
         </button>
       </div>
 
-      {/* Desktop Table View (>= 640px) */}
-      <div className={styles.desktopTableView}>
-        <Table className={styles.dataTable} size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell className={styles.th}>Món ăn</TableCell>
-              <TableCell className={styles.th}>Bữa ăn / Giờ nấu</TableCell>
-              <TableCell align="right" className={styles.th}>
-                Số suất
-              </TableCell>
-              <TableCell align="center" className={styles.th}>
-                Trạng thái
-              </TableCell>
-              <TableCell align="center" className={styles.th}>
-                Xem
-              </TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {COOKING_BATCHES.map((row) => (
-              <TableRow key={row.id} className={styles.tableRow}>
-                <TableCell className={styles.dishCell}>{row.dish}</TableCell>
-                <TableCell className={styles.timeCell}>{row.timeTag}</TableCell>
-                <TableCell align="right" className={styles.portionCell}>
-                  {row.portion}
-                </TableCell>
-                <TableCell align="center">
+      {loading ? (
+        <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 10 }}>
+          <Skeleton variant="rounded" height={42} />
+          <Skeleton variant="rounded" height={42} />
+          <Skeleton variant="rounded" height={42} />
+        </div>
+      ) : batches.length === 0 ? (
+        <div style={{ padding: "32px 20px", textAlign: "center", color: "#6b7280", fontSize: "0.875rem" }}>
+          Chưa có lô chế biến nào được lập cho hôm nay.
+        </div>
+      ) : (
+        <>
+          {/* Desktop Table View (>= 640px) */}
+          <div className={styles.desktopTableView}>
+            <Table className={styles.dataTable} size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell className={styles.th}>Món ăn</TableCell>
+                  <TableCell className={styles.th}>Bữa ăn / Giờ nấu</TableCell>
+                  <TableCell align="right" className={styles.th}>
+                    Số suất
+                  </TableCell>
+                  <TableCell align="center" className={styles.th}>
+                    Trạng thái
+                  </TableCell>
+                  <TableCell align="center" className={styles.th}>
+                    Xem
+                  </TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {batches.map((row) => (
+                  <TableRow key={row.id} className={styles.tableRow}>
+                    <TableCell className={styles.dishCell}>{row.dishName}</TableCell>
+                    <TableCell className={styles.timeCell}>{row.timeTag}</TableCell>
+                    <TableCell align="right" className={styles.portionCell}>
+                      {row.portion}
+                    </TableCell>
+                    <TableCell align="center">
+                      <span
+                        className={`${styles.statusText} ${
+                          row.status === "COMPLETED"
+                            ? styles.status_success
+                            : styles.status_warning
+                        }`}
+                      >
+                        {row.statusLabel}
+                      </span>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Xem chi tiết" arrow>
+                        <IconButton
+                          size="small"
+                          className={styles.actionIconBtn}
+                          aria-label={"Xem chi tiết " + row.dishName}
+                          onClick={() =>
+                            navigate(
+                              ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(
+                                ":id",
+                                row.id,
+                              ),
+                            )
+                          }
+                        >
+                          <Eye size={17} />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Mobile Icon-Action List (< 640px) */}
+          <div className={styles.mobileCardList}>
+            {batches.map((row) => (
+              <div
+                key={row.id}
+                className={styles.mobileCardItem}
+                onClick={() =>
+                  navigate(
+                    ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", row.id),
+                  )
+                }
+              >
+                {/* Hàng 1: Tên món ăn + Trạng thái */}
+                <div className={styles.topRow}>
+                  <div className={styles.titleWithIcon}>
+                    <span className={styles.itemIcon} aria-hidden="true">
+                      <UtensilsCrossed size={14} />
+                    </span>
+                    <Typography className={styles.dishTitle}>
+                      {row.dishName}
+                    </Typography>
+                  </div>
+
                   <span
-                    className={`${styles.statusText} ${
-                      row.statusType === "success"
+                    className={`${styles.mobileStatusBadge} ${
+                      row.status === "COMPLETED"
                         ? styles.status_success
                         : styles.status_warning
                     }`}
                   >
-                    {row.status}
+                    {row.statusLabel}
                   </span>
-                </TableCell>
-                <TableCell align="center">
-                  <Tooltip title="Xem chi tiết" arrow>
-                    <IconButton
-                      size="small"
-                      className={styles.actionIconBtn}
-                      aria-label={"Xem chi tiết " + row.dish}
-                      onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-                    >
-                      <Eye size={17} />
-                    </IconButton>
-                  </Tooltip>
-                </TableCell>
-              </TableRow>
+                </div>
+
+                {/* Hàng 2: Số suất • Thời gian + Nút xem chi tiết */}
+                <div className={styles.bottomRow}>
+                  <div className={styles.metaInfo}>
+                    <span className={styles.portionText}>{row.portion}</span>
+                    <span className={styles.metaDivider}>•</span>
+                    <span className={styles.timeText}>{row.timeTag}</span>
+                  </div>
+
+                  <IconButton
+                    className={styles.mobileActionBtn}
+                    aria-label={"Xem chi tiết " + row.dishName}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      navigate(
+                        ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(
+                          ":id",
+                          row.id,
+                        ),
+                      )
+                    }}
+                  >
+                    <Eye size={16} />
+                  </IconButton>
+                </div>
+              </div>
             ))}
-          </TableBody>
-        </Table>
-      </div>
-
-      {/* Mobile Icon-Action List (< 640px) 2 hàng nhỏ gọn */}
-      <div className={styles.mobileCardList}>
-        {COOKING_BATCHES.map((row) => (
-          <div
-            key={row.id}
-            className={styles.mobileCardItem}
-            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-          >
-            {/* Hàng 1: Tên món ăn + Trạng thái */}
-            <div className={styles.topRow}>
-              <div className={styles.titleWithIcon}>
-                <span className={styles.itemIcon} aria-hidden="true">
-                  <UtensilsCrossed size={14} />
-                </span>
-                <Typography className={styles.dishTitle}>
-                  {row.dish}
-                </Typography>
-              </div>
-
-              <span
-                className={`${styles.mobileStatusBadge} ${
-                  row.statusType === "success"
-                    ? styles.status_success
-                    : styles.status_warning
-                }`}
-              >
-                {row.status}
-              </span>
-            </div>
-
-            {/* Hàng 2: Số suất • Thời gian + Nút xem chi tiết */}
-            <div className={styles.bottomRow}>
-              <div className={styles.metaInfo}>
-                <span className={styles.portionText}>{row.portion}</span>
-                <span className={styles.metaDivider}>•</span>
-                <span className={styles.timeText}>{row.timeTag}</span>
-              </div>
-
-              <IconButton
-                className={styles.mobileActionBtn}
-                aria-label={"Xem chi tiết " + row.dish}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
-                }}
-              >
-                <Eye size={16} />
-              </IconButton>
-            </div>
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </Card>
-  );
+  )
 }
 
-export default RecentCookingBatches;
+export default RecentCookingBatches

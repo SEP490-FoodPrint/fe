@@ -1,6 +1,11 @@
-import React, { useState } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { Alert, Button, Skeleton } from "@mui/material"
+import { ArrowLeft } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
+import notice from "src/components/Notice"
+import KitchenService from "src/services/KitchenService"
+import { adaptBatchDetail } from "src/services/KitchenService/adapter"
 import BatchDetailHeader from "./component/BatchDetailHeader"
 import BatchInfoCard from "./component/BatchInfoCard"
 import BatchIngredientsCard from "./component/BatchIngredientsCard"
@@ -11,128 +16,192 @@ import BatchActionsCard from "./component/BatchActionsCard"
 import ConfirmBatchModal from "./component/ConfirmBatchModal"
 import DeleteBatchModal from "./component/DeleteBatchModal"
 import CompleteBatchModal from "./component/CompleteBatchModal"
+import RetainedSampleModal from "./component/RetainedSampleModal"
 import styles from "./index.module.scss"
-
-const INITIAL_BATCH_DATA = {
-  id: "CB-20241110-001",
-  code: "CB-20241110-001",
-  status: "DRAFT", // DRAFT | CONFIRMED | COMPLETED
-  dishName: "Thịt heo kho cút nước dừa",
-  dishCategory: "Món mặn chính",
-  menuDate: "10/11/2024",
-  mealType: "Bữa trưa",
-  servingTime: "11:15",
-  portions: 1250,
-  method: "SEPARATE", // SEPARATE | COMMON
-  createdBy: "Nguyễn Văn Vận",
-  createdAt: "10/11/2024 07:15",
-  completedAt: null
-}
-
-const INITIAL_INGREDIENTS = [
-  {
-    id: 1,
-    name: "Thịt ba chỉ heo tươi",
-    lotCode: "LOT-HEO-892",
-    quantity: "50.0",
-    unit: "kg",
-    expiryDate: "12/11/2024",
-    expiryNote: "Còn 2 ngày",
-    noteType: "warning"
-  },
-  {
-    id: 2,
-    name: "Trứng cút tươi sạch",
-    lotCode: "LOT-CUT-224",
-    quantity: "1.462",
-    unit: "quả",
-    expiryDate: "25/11/2024",
-    expiryNote: "Còn 15 ngày",
-    noteType: "default"
-  },
-  {
-    id: 3,
-    name: "Nước dừa xiêm nguyên chất",
-    lotCode: "LOT-DUA-018",
-    quantity: "46.8",
-    unit: "lít",
-    expiryDate: "12/11/2024",
-    expiryNote: "Bảo quản lạnh",
-    noteType: "info"
-  },
-  {
-    id: 4,
-    name: "Gia vị kho tổng hợp tiêu chuẩn",
-    lotCode: "LOT-GVI-045",
-    quantity: "2.46",
-    unit: "kg",
-    expiryDate: "30/12/2024",
-    expiryNote: "Đóng gói niêm phong",
-    noteType: "default"
-  }
-]
 
 export default function KitchenBatchDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
 
-  const [batchData, setBatchData] = useState({
-    ...INITIAL_BATCH_DATA,
-    code: id || INITIAL_BATCH_DATA.code
-  })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [batchData, setBatchData] = useState(null)
+  const [sampleData, setSampleData] = useState(null)
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const [ingredients] = useState(INITIAL_INGREDIENTS)
-
-  const [auditData, setAuditData] = useState({
-    createdBy: "Nguyễn Văn Vận (Bếp chính)",
-    createdAt: "10/11/2024 07:15",
-    confirmedBy: null,
-    confirmedAt: null,
-    completedBy: null,
-    completedAt: null
-  })
-
-  // Modal states
+  // Modals
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
   const [isCompleteOpen, setIsCompleteOpen] = useState(false)
+  const [isSampleOpen, setIsSampleOpen] = useState(false)
 
-  // Xử lý xác nhận phương án
-  const handleConfirmBatch = () => {
-    setIsConfirmOpen(false)
-    setBatchData((prev) => ({
-      ...prev,
-      status: "CONFIRMED"
-    }))
-    setAuditData((prev) => ({
-      ...prev,
-      confirmedBy: "Nguyễn Văn Vận (Bếp trưởng cơ sở)",
-      confirmedAt: "10/11/2024 08:05"
-    }))
+  const fetchBatch = useCallback(
+    async (signal) => {
+      if (!id) return
+      setLoading(true)
+      setError("")
+      try {
+        const rawBatch = await KitchenService.getBatchDetail(id, { signal })
+        const adapted = adaptBatchDetail(rawBatch)
+        setBatchData(adapted)
+
+        // Tải thông tin mẫu lưu nếu mẻ đã hoàn thành
+        if (adapted.status === "COMPLETED") {
+          const sample = await KitchenService.getBatchSample(id, { signal })
+          setSampleData(sample)
+        }
+      } catch (err) {
+        if (!signal?.aborted) {
+          setError(err.message || "Không thể tải thông tin lô chế biến.")
+        }
+      } finally {
+        if (!signal?.aborted) {
+          setLoading(false)
+        }
+      }
+    },
+    [id],
+  )
+
+  useEffect(() => {
+    const controller = new AbortController()
+    fetchBatch(controller.signal)
+    return () => controller.abort()
+  }, [fetchBatch])
+
+  // Xử lý xác nhận phương án chế biến (Chuyển sang CONFIRMED)
+  const handleConfirmBatch = async () => {
+    setActionLoading(true)
+    try {
+      await KitchenService.confirmBatch(id)
+      notice({
+        msg: "Xác nhận phương án chế biến thành công!",
+        isSuccess: true,
+      })
+      setIsConfirmOpen(false)
+      fetchBatch()
+    } catch (err) {
+      notice({
+        msg: err.message || "Không thể xác nhận phương án chế biến.",
+        isSuccess: false,
+      })
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  // Xử lý hoàn thành mẻ chế biến
-  const handleCompleteBatch = () => {
-    setIsCompleteOpen(false)
-    const now = new Date()
-    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
-    setBatchData((prev) => ({
-      ...prev,
-      status: "COMPLETED",
-      completedAt: timeStr
-    }))
-
-    setAuditData((prev) => ({
-      ...prev,
-      completedBy: "Nguyễn Văn Vận (Bếp chính)",
-      completedAt: `${batchData.menuDate || "10/11/2024"} ${timeStr}`
-    }))
+  // Xử lý ghi nhận hoàn thành chế biến (Chuyển sang COMPLETED)
+  const handleCompleteBatch = async (payload) => {
+    setActionLoading(true)
+    try {
+      await KitchenService.completeBatch(id, payload)
+      notice({
+        msg: "Ghi nhận hoàn thành mẻ nấu thành công!",
+        isSuccess: true,
+      })
+      setIsCompleteOpen(false)
+      fetchBatch()
+    } catch (err) {
+      notice({
+        msg: err.message || "Không thể ghi nhận hoàn thành mẻ nấu.",
+        isSuccess: false,
+      })
+    } finally {
+      setActionLoading(false)
+    }
   }
 
-  // Xử lý xóa lô
-  const handleDeleteBatch = () => {
-    setIsDeleteOpen(false)
-    navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)
+  // Xử lý xóa lô chế biến
+  const handleDeleteBatch = async () => {
+    setActionLoading(true)
+    try {
+      await KitchenService.deleteBatch(id)
+      notice({
+        msg: "Đã xóa lô chế biến thành công!",
+        isSuccess: true,
+      })
+      setIsDeleteOpen(false)
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)
+    } catch (err) {
+      notice({
+        msg: err.message || "Không thể xóa lô chế biến.",
+        isSuccess: false,
+      })
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  // Xử lý lưu mẫu thực phẩm 24h
+  const handleSaveSample = async (samplePayload) => {
+    setActionLoading(true)
+    try {
+      const created = await KitchenService.createBatchSample(id, samplePayload)
+      setSampleData(created)
+      notice({
+        msg: "Niêm phong lưu mẫu thực phẩm 24h thành công!",
+        isSuccess: true,
+      })
+      setIsSampleOpen(false)
+    } catch (err) {
+      notice({
+        msg: err.message || "Không thể ghi nhận lưu mẫu thực phẩm.",
+        isSuccess: false,
+      })
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className={styles.batchDetailPage} aria-busy="true">
+        <div style={{ padding: "24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Skeleton variant="rounded" height={60} />
+          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
+            <Skeleton variant="rounded" height={360} />
+            <Skeleton variant="rounded" height={360} />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !batchData) {
+    return (
+      <div className={styles.batchDetailPage}>
+        <div style={{ padding: "32px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" onClick={() => fetchBatch()}>
+                Tải lại
+              </Button>
+            }
+          >
+            {error || "Không tìm thấy thông tin lô chế biến này."}
+          </Alert>
+          <div>
+            <Button
+              variant="outlined"
+              startIcon={<ArrowLeft size={16} />}
+              onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+            >
+              Quay lại danh sách lô
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const auditData = {
+    createdBy: "Nhân viên Bếp (Bếp chính)",
+    createdAt: batchData.createdAt,
+    confirmedBy: batchData.confirmedAt ? "Bếp trưởng cơ sở" : null,
+    confirmedAt: batchData.confirmedAt,
+    completedBy: batchData.completedAt ? "Nhân viên Bếp (Bếp chính)" : null,
+    completedAt: batchData.completedAtFull || batchData.completedAt,
   }
 
   return (
@@ -148,7 +217,7 @@ export default function KitchenBatchDetail() {
           <BatchInfoCard batchData={batchData} />
 
           {/* Thẻ 2: Nguyên liệu sử dụng */}
-          <BatchIngredientsCard ingredients={ingredients} />
+          <BatchIngredientsCard ingredients={batchData.ingredients} />
 
           {/* Thẻ 3: Kết quả chế biến */}
           <BatchCookingResultCard batchData={batchData} />
@@ -167,12 +236,15 @@ export default function KitchenBatchDetail() {
 
           {/* Thẻ 3 Cột Phải: Thao tác nghiệp vụ */}
           <BatchActionsCard
+            batchId={batchData.id}
             status={batchData.status}
             batchCode={batchData.code}
             dishName={batchData.dishName}
+            hasSample={Boolean(sampleData)}
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
             onOpenCompleteModal={() => setIsCompleteOpen(true)}
+            onOpenSampleModal={() => setIsSampleOpen(true)}
           />
         </div>
       </div>
@@ -183,6 +255,7 @@ export default function KitchenBatchDetail() {
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmBatch}
         batchData={batchData}
+        loading={actionLoading}
       />
 
       <DeleteBatchModal
@@ -190,6 +263,7 @@ export default function KitchenBatchDetail() {
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDeleteBatch}
         batchCode={batchData.code}
+        loading={actionLoading}
       />
 
       <CompleteBatchModal
@@ -197,6 +271,15 @@ export default function KitchenBatchDetail() {
         onClose={() => setIsCompleteOpen(false)}
         onConfirm={handleCompleteBatch}
         batchData={batchData}
+        loading={actionLoading}
+      />
+
+      <RetainedSampleModal
+        isOpen={isSampleOpen}
+        onClose={() => setIsSampleOpen(false)}
+        onConfirm={handleSaveSample}
+        batchData={batchData}
+        loading={actionLoading}
       />
     </div>
   )

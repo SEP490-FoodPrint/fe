@@ -2,8 +2,8 @@ import React from "react"
 import { Activity, Check } from "lucide-react"
 import styles from "./BatchTimelineCard.module.scss"
 
-export default function BatchTimelineCard({ status = "DRAFT" }) {
-  const isDraft = status === "DRAFT"
+export default function BatchTimelineCard({ status = "UNCONFIRMED" }) {
+  const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
 
@@ -87,4 +87,3 @@ export default function BatchTimelineCard({ status = "DRAFT" }) {
     </section>
   )
 }
-

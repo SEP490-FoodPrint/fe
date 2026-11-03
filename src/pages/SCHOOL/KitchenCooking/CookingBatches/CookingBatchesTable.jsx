@@ -56,18 +56,24 @@ export default function CookingBatchesTable({
 
   const handleViewDetail = (row) => {
     navigate(
-      ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", row.code || row.id),
+      ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", row.id || row.code),
     )
   }
 
   const handleEditBatch = (row) => {
     navigate(
-      ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", row.code || row.id),
+      ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", row.id || row.code),
     )
   }
 
   const renderActions = (row, mobile = false) => {
-    const isCompleted = row.status === "COMPLETED"
+    const canEdit = row.status === "UNCONFIRMED"
+    const editDisabledTooltip =
+      row.status === "CONFIRMED"
+        ? "Lô đã xác nhận chế biến, không thể chỉnh sửa"
+        : row.status === "COMPLETED"
+          ? "Lô đã hoàn thành chế biến, không thể chỉnh sửa"
+          : "Chỉnh sửa lô chế biến"
 
     if (mobile) {
       return (
@@ -84,13 +90,9 @@ export default function CookingBatchesTable({
           <button
             type="button"
             className={styles.mobileBtnActionEdit}
-            disabled={isCompleted}
+            disabled={!canEdit}
             onClick={() => handleEditBatch(row)}
-            title={
-              isCompleted
-                ? "Lô đã hoàn thành, không thể chỉnh sửa"
-                : "Chỉnh sửa lô chế biến"
-            }
+            title={editDisabledTooltip}
           >
             <Edit3 size={13} />
             <span>Sửa</span>
@@ -113,19 +115,12 @@ export default function CookingBatchesTable({
           </button>
         </Tooltip>
 
-        <Tooltip
-          title={
-            isCompleted
-              ? "Lô đã hoàn thành chế biến, không thể chỉnh sửa"
-              : "Chỉnh sửa lô chế biến"
-          }
-          arrow
-        >
+        <Tooltip title={editDisabledTooltip} arrow>
           <span>
             <button
               type="button"
               className={styles.btnActionEdit}
-              disabled={isCompleted}
+              disabled={!canEdit}
               onClick={() => handleEditBatch(row)}
               aria-label={`Chỉnh sửa lô ${row.code}`}
             >

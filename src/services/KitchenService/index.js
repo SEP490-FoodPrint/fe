@@ -1,5 +1,9 @@
 import http from "../01_axios"
-import { apiCookingBatches, apiCookingBatchStats } from "./urls"
+import {
+  apiCookingBatches,
+  apiCookingBatchStats,
+  apiRetainedSamples,
+} from "./urls"
 import { apiGetSchoolDetail } from "../SchoolService/urls"
 import { batchQuery } from "./adapter"
 
@@ -82,6 +86,75 @@ const KitchenService = {
       page += 1
     } while (items.length < total)
     return items
+  },
+  async getBatchDetail(id, { signal } = {}) {
+    if (!id) throw new Error("Thiếu mã định danh lô chế biến.")
+    const response = await http.get(`${apiCookingBatches}/${id}`, {
+      signal,
+      notifyOnError: false,
+    })
+    const data = response?.data || response
+    if (!data?.id) throw new Error("Không tìm thấy dữ liệu lô chế biến.")
+    return data
+  },
+  async confirmBatch(id) {
+    if (!id) throw new Error("Thiếu mã định danh lô chế biến.")
+    const response = await http.post(`${apiCookingBatches}/${id}/confirm`, null, {
+      notifyOnError: true,
+    })
+    return response?.data || response
+  },
+  async completeBatch(id, payload = {}) {
+    if (!id) throw new Error("Thiếu mã định danh lô chế biến.")
+    const response = await http.post(`${apiCookingBatches}/${id}/complete`, payload, {
+      notifyOnError: true,
+    })
+    return response?.data || response
+  },
+  async deleteBatch(id) {
+    if (!id) throw new Error("Thiếu mã định danh lô chế biến.")
+    const response = await http.delete(`${apiCookingBatches}/${id}`, {
+      notifyOnError: true,
+    })
+    return response?.data || response
+  },
+  async getBatchSample(batchId, { signal } = {}) {
+    if (!batchId) return null
+    try {
+      const response = await http.get(`${apiCookingBatches}/${batchId}/food-samples`, {
+        signal,
+        notifyOnError: false,
+      })
+      return response?.data || response
+    } catch {
+      return null
+    }
+  },
+  async createBatchSample(batchId, sampleData) {
+    if (!batchId) throw new Error("Thiếu mã định danh lô chế biến.")
+    const response = await http.post(
+      `${apiCookingBatches}/${batchId}/food-samples`,
+      sampleData,
+      { notifyOnError: true }
+    )
+    return response?.data || response
+  },
+  async getRetainedSamples(query = {}, { signal } = {}) {
+    const response = await http.get(apiRetainedSamples, {
+      params: query,
+      signal,
+      notifyOnError: false,
+    })
+    return response?.data || response
+  },
+  async disposeRetainedSample(sampleId, payload = {}) {
+    if (!sampleId) throw new Error("Thiếu mã mẫu lưu.")
+    const response = await http.post(
+      `${apiRetainedSamples}/${sampleId}/dispose`,
+      payload,
+      { notifyOnError: true }
+    )
+    return response?.data || response
   },
 }
 

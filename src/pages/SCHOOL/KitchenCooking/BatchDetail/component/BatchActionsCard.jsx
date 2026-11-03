@@ -8,32 +8,32 @@ import {
   Shield,
   CookingPot,
   MoreVertical,
-  FlaskConical
+  FlaskConical,
+  Check,
 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./BatchActionsCard.module.scss"
 
 export default function BatchActionsCard({
-  status = "DRAFT",
-  batchCode = "CB-20261023-01A",
-  dishName = "Thịt heo kho cút nước dừa",
+  batchId,
+  status = "UNCONFIRMED",
+  batchCode = "",
+  dishName = "",
+  hasSample = false,
   onOpenConfirmModal,
   onOpenDeleteModal,
-  onOpenCompleteModal
+  onOpenCompleteModal,
+  onOpenSampleModal,
 }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const isDraft = status === "DRAFT"
+  const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
 
-  const handleGoToSample = () => {
-    navigate(
-      `${ROUTER.SCHOOL_KITCHEN_SAMPLES}?batchCode=${batchCode}&dishName=${encodeURIComponent(
-        dishName || ""
-      )}`
-    )
+  const handleEdit = () => {
+    navigate(ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", batchId || batchCode))
   }
 
   return (
@@ -70,17 +70,37 @@ export default function BatchActionsCard({
             </button>
           )}
 
-          {/* Nút 3: Tiếp tục hiển thị ghi nhận mẫu lưu (khi đã hoàn thành chế biến) */}
+          {/* Nút 3: Mẫu lưu thực phẩm (khi đã hoàn thành chế biến) */}
           {isCompleted && (
             <div className={styles.sampleActionBlock}>
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                onClick={handleGoToSample}
-              >
-                <FlaskConical size={18} />
-                <span>Ghi nhận mẫu lưu</span>
-              </button>
+              {hasSample ? (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 14px",
+                    borderRadius: 8,
+                    backgroundColor: "#ecfdf5",
+                    border: "1px solid #a7f3d0",
+                    color: "#065f46",
+                    fontWeight: 600,
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  <Check size={18} color="#059669" />
+                  <span>Đã lưu mẫu thực phẩm (24h)</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={onOpenSampleModal}
+                >
+                  <FlaskConical size={18} />
+                  <span>Ghi nhận mẫu lưu thực phẩm</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -90,7 +110,7 @@ export default function BatchActionsCard({
               <button
                 type="button"
                 className={styles.btnSecondary}
-                onClick={() => navigate(`/school/kitchen-cooking/batches/${batchCode}/edit`)}
+                onClick={handleEdit}
                 title="Chỉnh sửa phương án"
               >
                 <Edit3 size={16} />
@@ -100,7 +120,7 @@ export default function BatchActionsCard({
               <button
                 type="button"
                 className={styles.btnDanger}
-                onClick={() => onOpenDeleteModal()}
+                onClick={onOpenDeleteModal}
                 title="Xóa lô chế biến"
               >
                 <Trash2 size={16} />
@@ -115,7 +135,7 @@ export default function BatchActionsCard({
           <Shield size={16} className={styles.shieldIcon} />
           <p className={styles.securityText}>
             {isCompleted
-              ? "Lô chế biến đã hoàn tất ra khay và sẵn sàng phân chia suất ăn về các lớp."
+              ? "Lô chế biến đã hoàn tất ra khay và sẵn sàng phân chia suất ăn về các lớp học."
               : "Lô chế biến chỉ có thể chỉnh sửa hoặc xóa khi chưa được xác nhận phương án. Khi đã xác nhận, dữ liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc."}
           </p>
         </div>
@@ -152,7 +172,7 @@ export default function BatchActionsCard({
                       className={styles.mobileMenuItem}
                       onClick={() => {
                         setMobileMenuOpen(false)
-                        navigate(`/school/kitchen-cooking/batches/${batchCode}/edit`)
+                        handleEdit()
                       }}
                     >
                       <Edit3 size={16} />
@@ -187,14 +207,35 @@ export default function BatchActionsCard({
           )}
 
           {isCompleted && (
-            <button
-              type="button"
-              className={styles.mobilePrimaryBtn}
-              onClick={handleGoToSample}
-            >
-              <FlaskConical size={18} />
-              <span>Ghi nhận mẫu lưu</span>
-            </button>
+            hasSample ? (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  padding: "10px 14px",
+                  borderRadius: 8,
+                  backgroundColor: "#ecfdf5",
+                  color: "#065f46",
+                  fontWeight: 600,
+                  fontSize: "0.875rem",
+                  flex: 1,
+                }}
+              >
+                <Check size={18} color="#059669" />
+                <span>Đã lưu mẫu thực phẩm</span>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className={styles.mobilePrimaryBtn}
+                onClick={onOpenSampleModal}
+              >
+                <FlaskConical size={18} />
+                <span>Ghi nhận mẫu lưu</span>
+              </button>
+            )
           )}
         </div>
       </div>

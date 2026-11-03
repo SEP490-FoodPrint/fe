@@ -8,7 +8,7 @@ export default function BatchDetailHeader({ batchData }) {
   const navigate = useNavigate()
 
   const getStatusBadge = () => {
-    switch (batchData.status) {
+    switch (batchData?.status) {
       case "CONFIRMED":
         return (
           <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
@@ -23,6 +23,7 @@ export default function BatchDetailHeader({ batchData }) {
             Đã hoàn thành
           </span>
         )
+      case "UNCONFIRMED":
       case "DRAFT":
       default:
         return (
