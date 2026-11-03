@@ -32,7 +32,7 @@ export default function BatchInfoCard({ batchData = {} }) {
         </div>
         <div className={styles.safetyBadge}>
           <ShieldCheck size={14} />
-          <span>Kiểm thực 3 bước ATTP</span>
+          <span>Đảm bảo ATTP</span>
         </div>
       </div>
 

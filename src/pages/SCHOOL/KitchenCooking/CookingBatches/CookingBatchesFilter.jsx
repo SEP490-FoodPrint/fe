@@ -5,14 +5,11 @@ import {
   InputAdornment,
   IconButton,
   Tooltip,
-  Button,
 } from "@mui/material"
 import { Search, RotateCcw, SlidersHorizontal } from "lucide-react"
 import {
   BATCH_STATUSES,
-  COOKING_MODES,
   EMPTY_BATCH_FILTERS,
-  localDateISO,
 } from "src/services/KitchenService/adapter"
 import styles from "./CookingBatchesFilter.module.scss"
 
@@ -24,29 +21,7 @@ export default function CookingBatchesFilter({ filters, onChange, onRefresh }) {
     filters.status,
   ].filter(Boolean).length
   const update = (field, value) => onChange({ ...filters, [field]: value })
-  const today = localDateISO()
-  const chips = [
-    {
-      id: "all",
-      label: "Tất cả",
-      active: !Object.entries(filters).some(([key, value]) =>
-        key === "search" ? value.trim() : value,
-      ),
-      apply: () => onChange({ ...EMPTY_BATCH_FILTERS }),
-    },
-    {
-      id: "today",
-      label: "Hôm nay",
-      active: filters.date === today,
-      apply: () => update("date", filters.date === today ? "" : today),
-    },
-    ...Object.entries(BATCH_STATUSES).map(([value, label]) => ({
-      id: value,
-      label,
-      active: filters.status === value,
-      apply: () => update("status", filters.status === value ? "" : value),
-    })),
-  ]
+
   return (
     <div className={styles.filterSection}>
       <div className={styles.filterBar}>
@@ -132,23 +107,6 @@ export default function CookingBatchesFilter({ filters, onChange, onRefresh }) {
             </IconButton>
           </Tooltip>
         </div>
-      </div>
-      <div
-        className={styles.chipsRow}
-        role="group"
-        aria-label="Bộ lọc nhanh lô chế biến"
-      >
-        {chips.map((chip) => (
-          <Button
-            key={chip.id}
-            className={styles.chipBtn}
-            variant={chip.active ? "contained" : "outlined"}
-            aria-pressed={chip.active}
-            onClick={chip.apply}
-          >
-            {chip.label}
-          </Button>
-        ))}
       </div>
     </div>
   )
