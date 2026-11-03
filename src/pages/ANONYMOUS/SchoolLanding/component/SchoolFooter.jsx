@@ -3,7 +3,6 @@ import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
 import {
   ArrowRight,
-  CheckCircle2,
   Mail,
   MapPin,
   Phone,
@@ -13,6 +12,12 @@ import ROUTER from "src/router/ROUTER"
 import styles from "./SchoolFooter.module.scss"
 
 function SchoolFooter({ school }) {
+  const schoolAddress =
+    school?.address ||
+    school?.addressLine ||
+    school?.address_line ||
+    "Hà Nội"
+
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
@@ -24,7 +29,7 @@ function SchoolFooter({ school }) {
                 <Sun size={20} />
               </div>
               <span className={styles.brandName}>
-                {school?.name || "Trường Tiểu học Ánh Dương"}
+                {school?.name || "Trường học"}
               </span>
             </div>
 
@@ -36,7 +41,7 @@ function SchoolFooter({ school }) {
             <div className={styles.contactList}>
               <div className={styles.contactItem}>
                 <MapPin size={16} className={styles.icon} />
-                <span>{school?.address || "Hà Nội"}</span>
+                <span>{schoolAddress}</span>
               </div>
               <div className={styles.contactItem}>
                 <Phone size={16} className={styles.icon} />
@@ -122,7 +127,7 @@ function SchoolFooter({ school }) {
         {/* Bottom Bar */}
         <div className={styles.bottomBar}>
           <p className={styles.copyrightText}>
-            © 2026 {school?.name || "Trường Tiểu học"}. Đồng hành cùng Nền tảng
+            © 2026 {school?.name || "Trường học"}. Đồng hành cùng Nền tảng
             Quản lý bữa ăn học đường FoodPrint.
           </p>
         </div>
@@ -135,6 +140,8 @@ SchoolFooter.propTypes = {
   school: PropTypes.shape({
     name: PropTypes.string,
     address: PropTypes.string,
+    addressLine: PropTypes.string,
+    address_line: PropTypes.string,
     phone: PropTypes.string,
     hotline: PropTypes.string,
     email: PropTypes.string,

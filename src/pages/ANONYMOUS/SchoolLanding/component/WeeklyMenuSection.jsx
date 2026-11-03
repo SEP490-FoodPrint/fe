@@ -1,20 +1,43 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import PropTypes from "prop-types"
 import {
+  CalendarX,
   ChevronLeft,
   ChevronRight,
   Download,
   FileText,
+  Users,
 } from "lucide-react"
 import notice from "src/components/Notice"
 import WeeklyDayCard from "./WeeklyDayCard"
 import styles from "./WeeklyMenuSection.module.scss"
 
-function WeeklyMenuSection({ weeklyMenu }) {
-  const [selectedGrade, setSelectedGrade] = useState("GRADE_1_2")
+function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
   const [weekOffset, setWeekOffset] = useState(0)
 
-  if (!weeklyMenu) return null
+  const groups =
+    weeklyMenu?.portionGroups ||
+    weeklyMenu?.gradeGroups ||
+    weeklyMenu?.grade_groups ||
+    []
+
+  const defaultGroupId =
+    groups.find(g => g.isDefault)?.id ||
+    groups.find(g => g.isDefault)?.key ||
+    groups[0]?.id ||
+    groups[0]?.key ||
+    "all"
+
+  const [activeGroupId, setActiveGroupId] = useState(defaultGroupId)
+
+  useEffect(() => {
+    if (groups.length > 0) {
+      const exists = groups.some(g => (g.id || g.key) === activeGroupId)
+      if (!exists) {
+        setActiveGroupId(defaultGroupId)
+      }
+    }
+  }, [groups, defaultGroupId, activeGroupId])
 
   const handleDownloadPdf = () => {
     notice({
@@ -24,22 +47,47 @@ function WeeklyMenuSection({ weeklyMenu }) {
   }
 
   const handlePrevWeek = () => {
-    setWeekOffset(prev => prev - 1)
-    notice({
-      msg: "Đang xem dữ liệu tuần trước",
-      isSuccess: true,
-    })
+    const nextOffset = weekOffset - 1
+    setWeekOffset(nextOffset)
+    if (onWeekChange) {
+      onWeekChange(nextOffset, activeGroupId)
+    } else {
+      notice({
+        msg: "Đang xem dữ liệu tuần trước",
+        isSuccess: true,
+      })
+    }
   }
 
   const handleNextWeek = () => {
-    setWeekOffset(prev => prev + 1)
-    notice({
-      msg: "Đang xem dữ liệu tuần tiếp theo",
-      isSuccess: true,
-    })
+    const nextOffset = weekOffset + 1
+    setWeekOffset(nextOffset)
+    if (onWeekChange) {
+      onWeekChange(nextOffset, activeGroupId)
+    } else {
+      notice({
+        msg: "Đang xem dữ liệu tuần tiếp theo",
+        isSuccess: true,
+      })
+    }
   }
 
-  const displayWeekNumber = (weeklyMenu.week_number || 42) + weekOffset
+  const handleSelectGroup = groupId => {
+    setActiveGroupId(groupId)
+    if (onGroupChange) {
+      onGroupChange(groupId, weekOffset)
+    }
+  }
+
+  const weekNumber =
+    (weeklyMenu?.weekNumber || weeklyMenu?.week_number || 44) + weekOffset
+  const weekRange =
+    weeklyMenu?.weekRange ||
+    weeklyMenu?.week_range ||
+    "Chưa cập nhật ngày"
+
+  const days = weeklyMenu?.days || []
+  const hasDays = days.length > 0
 
   return (
     <section id="thuc-don-tuan" className={styles.section}>
@@ -69,7 +117,7 @@ function WeeklyMenuSection({ weeklyMenu }) {
             <div className={styles.weekInfo}>
               <FileText size={16} className={styles.calendarIcon} />
               <span>
-                Tuần {displayWeekNumber}: {weeklyMenu.week_range || "19/10/2026 – 23/10/2026"}{" "}
+                Tuần {weekNumber}: {weekRange}{" "}
                 {weekOffset === 0 ? "(Tuần hiện tại)" : ""}
               </span>
             </div>
@@ -84,29 +132,34 @@ function WeeklyMenuSection({ weeklyMenu }) {
             </button>
           </div>
 
-          {/* Grade Selector & Download */}
+          {/* Dynamic Portion/Grade Groups & Download */}
           <div className={styles.rightActions}>
-            {/* Grade Switcher */}
-            <div className={styles.gradeTabs}>
-              <button
-                type="button"
-                className={`${styles.gradeTab} ${
-                  selectedGrade === "GRADE_1_2" ? styles.activeGrade : ""
-                }`}
-                onClick={() => setSelectedGrade("GRADE_1_2")}
-              >
-                Khối 1 – 2
-              </button>
-              <button
-                type="button"
-                className={`${styles.gradeTab} ${
-                  selectedGrade === "GRADE_3_5" ? styles.activeGrade : ""
-                }`}
-                onClick={() => setSelectedGrade("GRADE_3_5")}
-              >
-                Khối 3 – 5
-              </button>
-            </div>
+            {groups.length > 1 ? (
+              <div className={styles.gradeTabs}>
+                {groups.map(group => {
+                  const gId = group.id || group.key
+                  const gName = group.name || group.label
+                  const isActive = activeGroupId === gId
+                  return (
+                    <button
+                      key={gId}
+                      type="button"
+                      className={`${styles.gradeTab} ${
+                        isActive ? styles.activeGrade : ""
+                      }`}
+                      onClick={() => handleSelectGroup(gId)}
+                    >
+                      {gName}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : groups.length === 1 ? (
+              <div className={styles.singleGroupBadge}>
+                <Users size={14} />
+                <span>Khẩu phần: {groups[0].name || groups[0].label || "Toàn trường"}</span>
+              </div>
+            ) : null}
 
             <div className={styles.separator} />
 
@@ -122,12 +175,28 @@ function WeeklyMenuSection({ weeklyMenu }) {
           </div>
         </div>
 
-        {/* 5 Days Grid */}
-        <div className={styles.daysGrid}>
-          {weeklyMenu.days?.map((day, idx) => (
-            <WeeklyDayCard key={day.date || idx} day={day} />
-          ))}
-        </div>
+        {/* Nội dung: Hiển thị Empty State Banner trong container hoặc Lưới 5 ngày */}
+        {!hasDays ? (
+          <div className={styles.emptyContainer}>
+            <div className={styles.emptyIconBox}>
+              <CalendarX size={32} />
+            </div>
+            <h3 className={styles.emptyTitle}>
+              Chưa có thực đơn bán trú cho tuần này
+            </h3>
+            <p className={styles.emptyDescription}>
+              Nhà trường hiện chưa công bố thực đơn tuần được phê duyệt cho khoảng
+              thời gian này. Phụ huynh có thể bấm nút chuyển tuần để tra cứu các
+              tuần khác hoặc liên hệ bộ phận bán trú của nhà trường.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.daysGrid}>
+            {days.map((day, idx) => (
+              <WeeklyDayCard key={day.date || day.id || idx} day={day} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )
@@ -135,10 +204,19 @@ function WeeklyMenuSection({ weeklyMenu }) {
 
 WeeklyMenuSection.propTypes = {
   weeklyMenu: PropTypes.shape({
+    id: PropTypes.string,
+    title: PropTypes.string,
+    weekNumber: PropTypes.number,
     week_number: PropTypes.number,
+    weekRange: PropTypes.string,
     week_range: PropTypes.string,
+    portionGroups: PropTypes.array,
+    gradeGroups: PropTypes.array,
+    grade_groups: PropTypes.array,
     days: PropTypes.array,
   }),
+  onWeekChange: PropTypes.func,
+  onGroupChange: PropTypes.func,
 }
 
 export default WeeklyMenuSection
