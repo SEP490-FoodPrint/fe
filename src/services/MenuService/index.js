@@ -605,6 +605,4 @@ const MenuService = {
   requestRevision: (menuId, body) => http.post(apiRequestMenuRevision(menuId), body)
 }
 
-export default MenuService
-
 export default MenuService;
