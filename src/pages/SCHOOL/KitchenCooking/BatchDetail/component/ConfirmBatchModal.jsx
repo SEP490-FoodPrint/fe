@@ -1,12 +1,12 @@
 import React from "react"
-import { CheckCircle2, X, AlertCircle, ShieldCheck } from "lucide-react"
+import { CheckCircle2, X, ShieldCheck } from "lucide-react"
 import styles from "./ConfirmBatchModal.module.scss"
 
 export default function ConfirmBatchModal({
   isOpen,
   onClose,
   onConfirm,
-  batchData
+  batchData = {}
 }) {
   if (!isOpen) return null
 
@@ -34,11 +34,11 @@ export default function ConfirmBatchModal({
           <div className={styles.batchBriefBox}>
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>Món ăn:</span>
-              <span className={styles.briefValueBold}>{batchData.dishName}</span>
+              <span className={styles.briefValueBold}>{batchData.dishName || "—"}</span>
             </div>
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>Mã lô:</span>
-              <span className={styles.briefValueMono}>{batchData.code}</span>
+              <span className={styles.briefValueMono}>{batchData.code || "—"}</span>
             </div>
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>Số suất chế biến:</span>
@@ -48,7 +48,7 @@ export default function ConfirmBatchModal({
             </div>
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>Nguyên liệu:</span>
-              <span className={styles.briefValue}>4 nguyên liệu đạt chuẩn kiểm thực</span>
+              <span className={styles.briefValue}>4 nguyên liệu đạt chuẩn an toàn</span>
             </div>
           </div>
 
@@ -74,4 +74,3 @@ export default function ConfirmBatchModal({
     </div>
   )
 }
-

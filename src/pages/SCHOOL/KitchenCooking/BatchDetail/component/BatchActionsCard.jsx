@@ -8,8 +8,7 @@ import {
   Shield,
   CookingPot,
   MoreVertical,
-  FlaskConical,
-  Printer
+  FlaskConical
 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./BatchActionsCard.module.scss"
@@ -20,8 +19,7 @@ export default function BatchActionsCard({
   dishName = "Thịt heo kho cút nước dừa",
   onOpenConfirmModal,
   onOpenDeleteModal,
-  onOpenCompleteModal,
-  onOpenPrintModal
+  onOpenCompleteModal
 }) {
   const navigate = useNavigate()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -36,14 +34,6 @@ export default function BatchActionsCard({
         dishName || ""
       )}`
     )
-  }
-
-  const handlePrint = () => {
-    if (onOpenPrintModal) {
-      onOpenPrintModal()
-    } else {
-      window.print()
-    }
   }
 
   return (
@@ -80,7 +70,7 @@ export default function BatchActionsCard({
             </button>
           )}
 
-          {/* Nút 3: Tiếp tục hiển thị ghi nhận mẫu lưu & In phiếu (khi đã hoàn thành chế biến) */}
+          {/* Nút 3: Tiếp tục hiển thị ghi nhận mẫu lưu (khi đã hoàn thành chế biến) */}
           {isCompleted && (
             <div className={styles.sampleActionBlock}>
               <button
@@ -90,15 +80,6 @@ export default function BatchActionsCard({
               >
                 <FlaskConical size={18} />
                 <span>Ghi nhận mẫu lưu</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.btnPrintSecondary}
-                onClick={handlePrint}
-              >
-                <Printer size={16} />
-                <span>In sổ kiểm thực 3 bước</span>
               </button>
             </div>
           )}
@@ -134,7 +115,7 @@ export default function BatchActionsCard({
           <Shield size={16} className={styles.shieldIcon} />
           <p className={styles.securityText}>
             {isCompleted
-              ? "Lô chế biến đã hoàn tất ra khay. Bếp và cán bộ y tế tiến hành kiểm thực 3 bước theo đúng QĐ 1246/QĐ-BYT để hoàn tất hồ sơ pháp lý."
+              ? "Lô chế biến đã hoàn tất ra khay và sẵn sàng phân chia suất ăn về các lớp."
               : "Lô chế biến chỉ có thể chỉnh sửa hoặc xóa khi chưa được xác nhận phương án. Khi đã xác nhận, dữ liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc."}
           </p>
         </div>
@@ -206,25 +187,14 @@ export default function BatchActionsCard({
           )}
 
           {isCompleted && (
-            <div className={styles.mobileCompletedActionWrap}>
-              <button
-                type="button"
-                className={styles.mobilePrimaryBtn}
-                onClick={handleGoToSample}
-              >
-                <FlaskConical size={18} />
-                <span>Ghi nhận mẫu lưu</span>
-              </button>
-              <button
-                type="button"
-                className={styles.mobilePrintIconBtn}
-                onClick={handlePrint}
-                title="In phiếu kiểm thực & Lô mẻ"
-                aria-label="In phiếu kiểm thực"
-              >
-                <Printer size={18} />
-              </button>
-            </div>
+            <button
+              type="button"
+              className={styles.mobilePrimaryBtn}
+              onClick={handleGoToSample}
+            >
+              <FlaskConical size={18} />
+              <span>Ghi nhận mẫu lưu</span>
+            </button>
           )}
         </div>
       </div>
