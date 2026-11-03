@@ -10,8 +10,7 @@ import BatchAuditCard from "./component/BatchAuditCard"
 import BatchActionsCard from "./component/BatchActionsCard"
 import ConfirmBatchModal from "./component/ConfirmBatchModal"
 import DeleteBatchModal from "./component/DeleteBatchModal"
-import InspectionSheetModal from "./component/InspectionSheetModal"
-import CompleteBatchInspectionModal from "./component/CompleteBatchInspectionModal"
+import CompleteBatchModal from "./component/CompleteBatchModal"
 import styles from "./index.module.scss"
 
 const INITIAL_BATCH_DATA = {
@@ -27,8 +26,7 @@ const INITIAL_BATCH_DATA = {
   method: "SEPARATE", // SEPARATE | COMMON
   createdBy: "Nguyễn Văn Vận",
   createdAt: "10/11/2024 07:15",
-  completedAt: null,
-  inspectionData: null
+  completedAt: null
 }
 
 const INITIAL_INGREDIENTS = [
@@ -83,7 +81,7 @@ export default function KitchenBatchDetail() {
     code: id || INITIAL_BATCH_DATA.code
   })
 
-  const [ingredients, setIngredients] = useState(INITIAL_INGREDIENTS)
+  const [ingredients] = useState(INITIAL_INGREDIENTS)
 
   const [auditData, setAuditData] = useState({
     createdBy: "Nguyễn Văn Vận (Bếp chính)",
@@ -97,8 +95,7 @@ export default function KitchenBatchDetail() {
   // Modal states
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
+  const [isCompleteOpen, setIsCompleteOpen] = useState(false)
 
   // Xử lý xác nhận phương án
   const handleConfirmBatch = () => {
@@ -114,25 +111,21 @@ export default function KitchenBatchDetail() {
     }))
   }
 
-  // Xử lý mở popup nghiệm thu kiểm thực khi bấm hoàn thành
-  const handleOpenCompleteModal = () => {
-    setIsCompleteModalOpen(true)
-  }
-
-  // Xử lý lưu kết quả nghiệm thu kiểm thực 3 bước (Phương án B: JSONB)
-  const handleConfirmInspection = (inspectionRecord) => {
-    setIsCompleteModalOpen(false)
+  // Xử lý hoàn thành mẻ chế biến
+  const handleCompleteBatch = () => {
+    setIsCompleteOpen(false)
+    const now = new Date()
+    const timeStr = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
     setBatchData((prev) => ({
       ...prev,
       status: "COMPLETED",
-      completedAt: inspectionRecord.inspectedTime || "10:25",
-      inspectionData: inspectionRecord
+      completedAt: timeStr
     }))
-    
+
     setAuditData((prev) => ({
       ...prev,
-      completedBy: inspectionRecord.inspectedBy || "Nguyễn Văn Vận (Bếp chính)",
-      completedAt: inspectionRecord.inspectedAt || "10/11/2024 10:25"
+      completedBy: "Nguyễn Văn Vận (Bếp chính)",
+      completedAt: `${batchData.menuDate || "10/11/2024"} ${timeStr}`
     }))
   }
 
@@ -164,8 +157,10 @@ export default function KitchenBatchDetail() {
         {/* CỘT PHẢI (~30% / 4 Cols Desktop) */}
         <div className={styles.rightCol}>
           {/* Thẻ 1 Cột Phải: Tiến trình chế biến */}
-          <BatchTimelineCard status={batchData.status}
-            batchCode={batchData.code} />
+          <BatchTimelineCard
+            status={batchData.status}
+            batchCode={batchData.code}
+          />
 
           {/* Thẻ 2 Cột Phải: Theo dõi kiểm toán */}
           <BatchAuditCard auditData={auditData} />
@@ -177,8 +172,7 @@ export default function KitchenBatchDetail() {
             dishName={batchData.dishName}
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
-            onOpenCompleteModal={handleOpenCompleteModal}
-            onOpenPrintModal={() => setIsPrintModalOpen(true)}
+            onOpenCompleteModal={() => setIsCompleteOpen(true)}
           />
         </div>
       </div>
@@ -198,19 +192,11 @@ export default function KitchenBatchDetail() {
         batchCode={batchData.code}
       />
 
-      <CompleteBatchInspectionModal
-        isOpen={isCompleteModalOpen}
-        onClose={() => setIsCompleteModalOpen(false)}
-        onConfirm={handleConfirmInspection}
+      <CompleteBatchModal
+        isOpen={isCompleteOpen}
+        onClose={() => setIsCompleteOpen(false)}
+        onConfirm={handleCompleteBatch}
         batchData={batchData}
-      />
-
-      <InspectionSheetModal
-        isOpen={isPrintModalOpen}
-        onClose={() => setIsPrintModalOpen(false)}
-        batchData={batchData}
-        ingredients={ingredients}
-        auditData={auditData}
       />
     </div>
   )

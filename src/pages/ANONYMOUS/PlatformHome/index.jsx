@@ -16,12 +16,12 @@ function PlatformHome() {
 
     const fetchSchools = async () => {
       try {
-        const res = await SchoolService.getPublicSchools()
+        const res = await SchoolService.getPublicSchools({ limit: 6, page: 1 })
         if (isMounted) {
           const schoolList = Array.isArray(res?.data)
             ? res.data
             : (Array.isArray(res?.data?.items) ? res.data.items : [])
-          setSchools(schoolList)
+          setSchools(schoolList.slice(0, 6))
         }
       } catch (err) {
         console.error("Lỗi khi tải danh sách trường tại PlatformHome:", err)

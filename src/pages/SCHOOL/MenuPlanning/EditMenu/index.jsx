@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import styles from "./EditMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { getMenuById } from "../mockMenuListData"
-import { ALL_INGREDIENTS, INITIAL_SEASONINGS } from "../mockMenuData"
+import { ALL_INGREDIENTS } from "../mockMenuData"
 import MenuService from "src/services/MenuService"
 
 import EditMenuHeader from "./component/EditMenuHeader"
@@ -29,7 +29,7 @@ export default function EditMenu() {
     portionQty: 45,
     unit: "g"
   })
-  const [seasonings, setSeasonings] = useState(INITIAL_SEASONINGS)
+  const [seasonings, setSeasonings] = useState([])
 
   // Modals & Context
   const [isPickerOpen, setIsPickerOpen] = useState(false)
@@ -51,9 +51,8 @@ export default function EditMenu() {
         setFormState({
           name: rawMenu.name,
           date: rawMenu.date,
-          mealType: rawMenu.mealType,
+          mealType: rawMenu.mealType === "AFTERNOON_SNACK" ? "AFTERNOON" : rawMenu.mealType,
           targetScope: rawMenu.targetScope || "Toàn trường",
-          portionCount: rawMenu.portionCount || 210,
           notes: rawMenu.feedback || ""
         })
 
@@ -109,15 +108,15 @@ export default function EditMenu() {
         }
 
         // Map seasonings
-        if (rawMenu.seasonings && rawMenu.seasonings.length > 0) {
-          const mappedSeasonings = rawMenu.seasonings.map((s, idx) => {
+        {
+          const mappedSeasonings = (rawMenu.seasonings || []).map((s, idx) => {
             if (typeof s === "string") {
               return {
                 id: `seas-edit-${idx}`,
                 name: s,
-                catalogId: `cat-${idx}`,
-                portionQty: idx === 0 ? 5 : idx === 1 ? 3 : 2,
-                unit: idx < 2 ? "ml" : "g"
+                catalogId: "",
+                portionQty: "",
+                unit: "g"
               }
             }
             return s
@@ -379,7 +378,6 @@ export default function EditMenu() {
         {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng */}
         <AllergyAlternativeMealsCard
           conflictDishes={conflictDishes}
-          portionCount={formState.portionCount}
           substituteDish={substituteDish}
           onChangeSubstituteDish={handleChangeSubstituteDish}
           onOpenPickerForSubstitute={handleOpenPickerForSubstitute}
@@ -388,7 +386,6 @@ export default function EditMenu() {
         {/* Khối 4: Gia vị dùng chung */}
         <MenuSeasoningCard
           seasonings={seasonings}
-          portionCount={formState.portionCount}
           onUpdateSeasoning={handleUpdateSeasoning}
           onAddSeasoning={handleAddSeasoning}
           onRemoveSeasoning={handleRemoveSeasoning}

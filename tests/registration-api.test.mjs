@@ -101,10 +101,10 @@ test("summary uses unfiltered server counts and fetches at most one row per coun
   assert(requests.every(config => config.params.limit === 1 && !config.params.search))
 })
 
-test("detail maps applicant/reviewer and preserves JSON payloads", async () => {
+test("detail maps applicant/reviewer, preserves JSON payloads and the review version", async () => {
   const profile = { organizationName: "Trường học A", customField: { value: 1 } }
   const documents = [{ name: "Chứng nhận", url: "https://example.test/file.pdf" }]
-  respond = () => success({ ...row, profileData: profile, supportingDocuments: documents, applicantUser: { ...row.applicantUser, username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", emailVerifiedAt: "2026-10-30T07:00:00.000Z" }, reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, rejectionReason: "Lý do" })
+  respond = () => success({ ...row, profileData: profile, supportingDocuments: documents, reviewVersion: "a".repeat(64), applicantUser: { ...row.applicantUser, username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", emailVerifiedAt: "2026-10-30T07:00:00.000Z" }, reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, rejectionReason: "Lý do" })
   const result = await RegistrationService.getRequest(id)
   assert.equal(requests[0].url, `/registration-requests/${id}`)
   assert.deepEqual(result.data.applicant, { id: principal.id, full_name: "Nguyễn Văn A", username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", email_verified_at: "2026-10-30T07:00:00.000Z" })
@@ -112,11 +112,13 @@ test("detail maps applicant/reviewer and preserves JSON payloads", async () => {
   assert.deepEqual(result.data.profile_data, profile)
   assert.deepEqual(result.data.supporting_documents, documents)
   assert.equal(result.data.rejection_reason, "Lý do")
+  assert.equal(result.data.review_version, "a".repeat(64))
   assert.deepEqual(registrationRequest({ ...row, profileData: null, supportingDocuments: {} }).supporting_documents, [])
   const optional = registrationRequest({ ...row, applicantUser: { ...row.applicantUser, phone: null, emailVerifiedAt: null }, reviewedByUser: null })
   assert.equal(optional.applicant.phone, null)
   assert.equal(optional.applicant.email_verified_at, null)
   assert.equal(optional.reviewer, null)
+  assert.equal(optional.review_version, null)
 })
 
 test("403/404/503 are surfaced to the page without falling back to demo data", async () => {
@@ -126,12 +128,42 @@ test("403/404/503 are surfaced to the page without falling back to demo data", a
   }
 })
 
-test("canceled requests stay canceled and review never calls an absent API", async () => {
+test("canceled requests stay canceled", async () => {
   const controller = new AbortController()
   controller.abort()
   await assert.rejects(RegistrationService.getRequests({}, { signal: controller.signal }), error => error.code === "ERR_CANCELED")
-  await assert.rejects(RegistrationService.reviewRequest(id, { status: "APPROVED" }), /chưa khả dụng/)
   assert.equal(requests.length, 0)
+})
+
+test("approve posts the latest review version and maps the decision", async () => {
+  const version = "a".repeat(64)
+  respond = () => success({ ...row, status: "APPROVED", reviewVersion: "b".repeat(64), reviewedAt: "2026-10-30T09:00:00.000Z", reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, accountStatus: "ACTIVE" })
+  const result = await RegistrationService.reviewRequest(id, { status: "APPROVED", expected_review_version: version })
+  assert.equal(requests[0].url, `/registration-requests/${id}/approve`)
+  assert.equal(requests[0].method, "post")
+  assert.deepEqual(JSON.parse(requests[0].data), { expectedReviewVersion: version })
+  assert.equal(result.isMock, false)
+  assert.equal(result.data.status, "APPROVED")
+  assert.equal(result.data.reviewer.full_name, "Người duyệt")
+  assert.equal(result.data.review_version, "b".repeat(64))
+})
+
+test("reject requires a reason and posts it with the review version", async () => {
+  const version = "c".repeat(64)
+  await assert.rejects(RegistrationService.reviewRequest(id, { status: "REJECTED", expected_review_version: version }), /lý do từ chối/)
+  assert.equal(requests.length, 0)
+  respond = () => success({ ...row, status: "REJECTED", reviewVersion: "d".repeat(64), reviewedAt: "2026-10-30T09:00:00.000Z", reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, rejectionReason: "Thiếu tệp" })
+  const result = await RegistrationService.reviewRequest(id, { status: "REJECTED", rejection_reason: "  Thiếu tệp  ", expected_review_version: version })
+  assert.equal(requests[0].url, `/registration-requests/${id}/reject`)
+  assert.deepEqual(JSON.parse(requests[0].data), { expectedReviewVersion: version, rejectionReason: "Thiếu tệp" })
+  assert.equal(result.data.rejection_reason, "Thiếu tệp")
+})
+
+test("review requires a real version and surfaces stale conflicts", async () => {
+  await assert.rejects(RegistrationService.reviewRequest(id, { status: "APPROVED" }), /phiên bản hồ sơ/)
+  assert.equal(requests.length, 0)
+  respond = config => { throw new AxiosError("Request failed", "ERR_BAD_RESPONSE", config, null, { status: 409, data: { success: false, statusCode: 409, message: "Hồ sơ đã thay đổi; vui lòng xem lại trước khi xét duyệt", error: { code: "REGISTRATION_STALE" } } }) }
+  await assert.rejects(RegistrationService.reviewRequest(id, { status: "APPROVED", expected_review_version: "e".repeat(64) }), /Hồ sơ đã thay đổi/)
 })
 
 test("login uses cookie credentials/CSRF, stores no real token and restores via /auth/me", async () => {

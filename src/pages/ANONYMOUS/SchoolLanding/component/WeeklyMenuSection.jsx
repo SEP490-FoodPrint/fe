@@ -162,16 +162,6 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
             ) : null}
 
             <div className={styles.separator} />
-
-            {/* PDF Download */}
-            <button
-              type="button"
-              className={styles.downloadBtn}
-              onClick={handleDownloadPdf}
-            >
-              <Download size={16} className={styles.downloadIcon} />
-              <span>Tải thực đơn PDF</span>
-            </button>
           </div>
         </div>
 

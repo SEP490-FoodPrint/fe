@@ -1,47 +1,54 @@
-import React, { useContext, useEffect, useRef, useState } from "react"
-import PropTypes from "prop-types"
-import { Outlet, useLocation, useNavigate } from "react-router-dom"
-import { useMediaQuery } from "@mui/material"
-import { DashboardHeader } from "./Header"
-import Sidebar from "./Sidebar"
-import { StoreContext } from "src/contexts"
-import AuthService from "src/services/AuthService"
-import ROUTER from "src/router/ROUTER"
-import styles from "./MainLayout.module.scss"
-import notice from "src/components/Notice"
-import RoleSwitcher from "src/components/Common/RoleSwitcher"
+import React, { useContext, useEffect, useRef, useState } from "react";
+import PropTypes from "prop-types";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { useMediaQuery } from "@mui/material";
+import { DashboardHeader } from "./Header";
+import Sidebar from "./Sidebar";
+import { StoreContext } from "src/contexts";
+import AuthService from "src/services/AuthService";
+import ROUTER from "src/router/ROUTER";
+import styles from "./MainLayout.module.scss";
+import notice from "src/components/Notice";
+import RoleSwitcher from "src/components/Common/RoleSwitcher";
 
 const MainLayout = ({ type }) => {
-  const location = useLocation()
-  const navigate = useNavigate()
-  const { loginStore, userStore } = useContext(StoreContext)
-  const isMobile = useMediaQuery("(max-width:600px)")
-  const isTablet = useMediaQuery("(min-width:601px) and (max-width:1199px)")
-  const [navigationOpen, setNavigationOpen] = useState(false)
-  const navigationButtonRef = useRef(null)
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { loginStore, userStore } = useContext(StoreContext);
+  const isMobile = useMediaQuery("(max-width:600px)");
+  const isTablet = useMediaQuery("(min-width:601px) and (max-width:1199px)");
+  const [navigationOpen, setNavigationOpen] = useState(false);
+  const navigationButtonRef = useRef(null);
 
   useEffect(() => {
-    setNavigationOpen(false)
-    document.getElementById("root")?.scrollTo(0, 0)
-  }, [location.pathname, type])
+    setNavigationOpen(false);
+    document.getElementById("root")?.scrollTo(0, 0);
+  }, [location.pathname, type]);
 
   useEffect(() => {
-    if (!isMobile) setNavigationOpen(false)
-  }, [isMobile])
+    if (!isMobile) setNavigationOpen(false);
+  }, [isMobile]);
 
   const handleLogout = async () => {
-    setNavigationOpen(false)
-    try { await AuthService.logout() }
-    catch (error) { notice({ msg: error.message || "Không thể xác nhận đăng xuất. Vui lòng thử lại.", isSuccess: false }); return }
-    loginStore.setIsLoginContext(false)
-    userStore.setUser(null)
-    navigate(ROUTER.LOGIN, { replace: true })
-  }
+    setNavigationOpen(false);
+    try {
+      await AuthService.logout();
+    } catch (error) {
+      notice({
+        msg: error.message || "Không thể xác nhận đăng xuất. Vui lòng thử lại.",
+        isSuccess: false,
+      });
+      return;
+    }
+    loginStore.setIsLoginContext(false);
+    userStore.setUser(null);
+    navigate(ROUTER.LOGIN, { replace: true });
+  };
 
   const handleOpenNavigation = () => {
-    navigationButtonRef.current?.focus()
-    setNavigationOpen(true)
-  }
+    navigationButtonRef.current?.focus();
+    setNavigationOpen(true);
+  };
 
   return (
     <div className={styles.layoutWrapper}>
@@ -62,21 +69,21 @@ const MainLayout = ({ type }) => {
         />
         <main
           id="dashboard-content"
-          className={`${styles.mainContent} ${(location.pathname.startsWith(ROUTER.SCHOOL_MENU_PLANNING) || location.pathname.includes("/create") || location.pathname.includes("/edit")) ? styles.fullBleedWhite : ""}`}
+          className={`${styles.mainContent} ${location.pathname.startsWith(ROUTER.SCHOOL_MENU_PLANNING) ? styles.fullBleedWhite : ""}`}
         >
           <Outlet />
         </main>
       </div>
       <RoleSwitcher />
     </div>
-  )
-}
+  );
+};
 
-MainLayout.propTypes = { type: PropTypes.string }
+MainLayout.propTypes = { type: PropTypes.string };
 
-export { default as PublicLayout } from "./PublicLayout/PublicLayout"
-export { default as AuthLayout } from "./AuthLayout/AuthLayout"
-export { default as Sidebar } from "./Sidebar"
-export * from "./Header"
+export { default as PublicLayout } from "./PublicLayout/PublicLayout";
+export { default as AuthLayout } from "./AuthLayout/AuthLayout";
+export { default as Sidebar } from "./Sidebar";
+export * from "./Header";
 
-export default MainLayout
+export default MainLayout;
