@@ -31,12 +31,12 @@ export default function IngredientOrders() {
   // Pagination state
   const [page, setPage] = useState(1)
 
-  // Tải dữ liệu ban đầu
+  // Tải dữ liệu ban đầu 1 lần duy nhất khi mount
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
       const [catalogRes, suppliersRes] = await Promise.all([
-        IngredientOrderService.getMasterIngredientCatalog(filters),
+        IngredientOrderService.getMasterIngredientCatalog(),
         IngredientOrderService.getSuppliers(),
       ])
       if (Array.isArray(catalogRes?.items)) setCatalog(catalogRes.items)
@@ -46,7 +46,7 @@ export default function IngredientOrders() {
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [])
 
   useEffect(() => {
     fetchData()
@@ -62,7 +62,7 @@ export default function IngredientOrders() {
     }
   }, [catalog, suppliers])
 
-  // Lọc dữ liệu danh mục
+  // Lọc dữ liệu danh mục ngay tại Client (nhanh, mượt, không gọi API thừa)
   const filteredCatalog = useMemo(() => {
     return catalog.filter(it => {
       const matchSearch =
@@ -118,7 +118,7 @@ export default function IngredientOrders() {
         catalogCount={catalog.length}
       />
 
-      {/* Nội dung Tab: Ưu tiên phát triển hoàn thiện Tab Danh mục nguyên liệu */}
+      {/* Nội dung Tab: Danh mục nguyên liệu */}
       {activeTab === "catalog" ? (
         <>
           {/* 3. Thẻ thống kê Danh mục nguyên liệu */}

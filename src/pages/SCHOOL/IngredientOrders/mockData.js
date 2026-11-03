@@ -1,8 +1,8 @@
 /**
  * Master Ingredient Catalog chuẩn nghiệp vụ (Cách hiểu 1)
  * Phân rõ:
- * - DRY_STOCK: Kho khô lưu trữ dài ngày
  * - DIRECT_USE: Thực phẩm tươi sống dùng ngay trong ngày
+ * - DRY_STOCK: Kho khô lưu trữ dài ngày
  */
 
 export const MOCK_SUPPLIERS = [
@@ -49,7 +49,117 @@ export const MOCK_SUPPLIERS = [
 ]
 
 export const MOCK_MASTER_INGREDIENT_CATALOG = [
-  // --- NHÓM TƯƠI SỐNG (DIRECT_USE: Nhập dùng ngay trong ngày) ---
+  // ========================================================
+  // 1. NHÓM KHO KHÔ (DRY_STOCK: Gạo, ngũ cốc, gia vị lưu kho dài ngày)
+  // ========================================================
+  {
+    id: "ing-gao-09",
+    name: "Gạo thơm Sóc Trăng ST25 chuẩn",
+    category: "Ngũ cốc & Lương thực",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "kg",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 180,
+    storageRequirements: "Kê pallet cách đất 20cm, cách tường 30cm, độ ẩm < 14%",
+    unitPrice: 28000,
+    minOrderQty: 100,
+  },
+  {
+    id: "ing-dau-10",
+    name: "Dầu thực vật Neptune Gold (Can 20L)",
+    category: "Dầu mỡ & Gia vị",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "can",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 365,
+    storageRequirements: "Để nơi khô ráo, thoáng mát, tránh ánh sáng trực tiếp",
+    unitPrice: 650000,
+    minOrderQty: 2,
+  },
+  {
+    id: "ing-nuocmam-11",
+    name: "Nước mắm truyền thống Phú Quốc 35 độ đạm",
+    category: "Dầu mỡ & Gia vị",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "lít",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 365,
+    storageRequirements: "Đậy kín nắp sau khi mở, nhiệt độ phòng 20 - 25°C",
+    unitPrice: 75000,
+    minOrderQty: 10,
+  },
+  {
+    id: "ing-muoi-12",
+    name: "Muối tinh sấy i-ốt Hải Châu",
+    category: "Dầu mỡ & Gia vị",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "gói",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 730,
+    storageRequirements: "Bảo quản nơi khô ráo, buộc kín miệng túi chống ẩm",
+    unitPrice: 8000,
+    minOrderQty: 20,
+  },
+  {
+    id: "ing-duong-13",
+    name: "Đường kính trắng Lam Sơn (Bao 50kg)",
+    category: "Dầu mỡ & Gia vị",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "bao",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 365,
+    storageRequirements: "Bảo quản khô ráo, kê trên pallet nhựa",
+    unitPrice: 1100000,
+    minOrderQty: 1,
+  },
+  {
+    id: "ing-hatnem-14",
+    name: "Hạt nêm Knorr từ thịt thăn, xương ống (Gói 1kg)",
+    category: "Dầu mỡ & Gia vị",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "gói",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 365,
+    storageRequirements: "Bảo quản nơi khô ráo, tránh nhiệt độ cao",
+    unitPrice: 65000,
+    minOrderQty: 5,
+  },
+  {
+    id: "ing-tieu-15",
+    name: "Tiêu đen xay nguyên chất Phú Quốc",
+    category: "Dầu mỡ & Gia vị",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "hũ",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 540,
+    storageRequirements: "Đậy kín nắp sau khi dùng, tránh ẩm mốc",
+    unitPrice: 45000,
+    minOrderQty: 5,
+  },
+  {
+    id: "ing-mien-16",
+    name: "Miến dong sợi sạch truyền thống Na Rì",
+    category: "Ngũ cốc & Lương thực",
+    handlingType: "DRY_STOCK",
+    defaultUnit: "kg",
+    supplierId: "sup-kho-04",
+    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+    shelfLifeDays: 365,
+    storageRequirements: "Để nơi khô ráo thoáng khí, bọc kín túi",
+    unitPrice: 70000,
+    minOrderQty: 10,
+  },
+
+  // ========================================================
+  // 2. NHÓM TƯƠI SỐNG (DIRECT_USE: Thịt, cá, rau củ dùng trong ngày)
+  // ========================================================
   {
     id: "ing-ga-01",
     name: "Thịt gà đồi làm sạch (thịt đùi + cánh)",
@@ -153,72 +263,5 @@ export const MOCK_MASTER_INGREDIENT_CATALOG = [
     storageRequirements: "Xếp khay chuyên dụng, nhiệt độ phòng 18 - 25°C",
     unitPrice: 3200,
     minOrderQty: 200,
-  },
-
-  // --- NHÓM KHO KHÔ (DRY_STOCK: Lưu kho dài ngày) ---
-  {
-    id: "ing-gao-09",
-    name: "Gạo thơm Sóc Trăng ST25 chuẩn",
-    category: "Ngũ cốc & Lương thực",
-    handlingType: "DRY_STOCK",
-    defaultUnit: "kg",
-    supplierId: "sup-kho-04",
-    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
-    shelfLifeDays: 180,
-    storageRequirements: "Kê pallet cách đất 20cm, cách tường 30cm, độ ẩm < 14%",
-    unitPrice: 28000,
-    minOrderQty: 100,
-  },
-  {
-    id: "ing-dau-10",
-    name: "Dầu thực vật Neptune Gold (Can 20L)",
-    category: "Dầu mỡ & Gia vị",
-    handlingType: "DRY_STOCK",
-    defaultUnit: "can",
-    supplierId: "sup-kho-04",
-    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
-    shelfLifeDays: 365,
-    storageRequirements: "Để nơi khô ráo, thoáng mát, tránh ánh sáng trực tiếp",
-    unitPrice: 650000,
-    minOrderQty: 2,
-  },
-  {
-    id: "ing-nuocmam-11",
-    name: "Nước mắm truyền thống Phú Quốc 35 độ đạm",
-    category: "Dầu mỡ & Gia vị",
-    handlingType: "DRY_STOCK",
-    defaultUnit: "lít",
-    supplierId: "sup-kho-04",
-    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
-    shelfLifeDays: 365,
-    storageRequirements: "Đậy kín nắp sau khi mở, nhiệt độ thường",
-    unitPrice: 75000,
-    minOrderQty: 10,
-  },
-  {
-    id: "ing-muoi-12",
-    name: "Muối tinh sấy i-ốt Hải Châu",
-    category: "Dầu mỡ & Gia vị",
-    handlingType: "DRY_STOCK",
-    defaultUnit: "gói",
-    supplierId: "sup-kho-04",
-    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
-    shelfLifeDays: 730,
-    storageRequirements: "Bảo quản nơi khô ráo, buộc kín miệng túi chống ẩm",
-    unitPrice: 8000,
-    minOrderQty: 20,
-  },
-  {
-    id: "ing-duong-13",
-    name: "Đường kính trắng Lam Sơn (Bao 50kg)",
-    category: "Dầu mỡ & Gia vị",
-    handlingType: "DRY_STOCK",
-    defaultUnit: "bao",
-    supplierId: "sup-kho-04",
-    supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
-    shelfLifeDays: 365,
-    storageRequirements: "Bảo quản khô ráo, kê trên pallet nhựa",
-    unitPrice: 1100000,
-    minOrderQty: 1,
   },
 ]

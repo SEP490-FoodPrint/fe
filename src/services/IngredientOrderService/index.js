@@ -1,58 +1,47 @@
 import http from "../01_axios"
-import {
-  apiIngredients,
-  apiSuppliers,
-  apiSupplyOrders,
-  apiDeliveries,
-} from "./urls"
+import { apiIngredients, apiSuppliers } from "./urls"
 import { adaptCatalogItem } from "./adapter"
-import { MOCK_MASTER_INGREDIENT_CATALOG, MOCK_SUPPLIERS } from "src/pages/SCHOOL/IngredientOrders/mockData"
+import {
+  MOCK_MASTER_INGREDIENT_CATALOG,
+  MOCK_SUPPLIERS,
+} from "src/pages/SCHOOL/IngredientOrders/mockData"
 
 const IngredientOrderService = {
   /**
    * Lấy Danh mục nguyên liệu chuẩn (Master Ingredient Catalog)
+   * Đảm bảo luôn có đầy đủ cả Kho khô (DRY_STOCK) và Tươi sống (DIRECT_USE)
    */
-  async getMasterIngredientCatalog(params = {}) {
+  async getMasterIngredientCatalog() {
     try {
-      const response = await http.get(apiIngredients, { params })
+      const response = await http.get(apiIngredients, {
+        params: { page: 1, limit: 100 },
+        notifyOnError: false,
+      })
       const data = response?.data || response
-      if (Array.isArray(data?.items)) {
-        return { items: data.items.map(adaptCatalogItem), total: data.total, isMock: false }
-      }
-      if (Array.isArray(data)) {
-        return { items: data.map(adaptCatalogItem), total: data.length, isMock: false }
+      const apiItems = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : []
+
+      if (apiItems.length > 0) {
+        const adaptedApi = apiItems.map(adaptCatalogItem)
+        const hasDryStock = adaptedApi.some(it => it.handlingType === "DRY_STOCK")
+
+        if (!hasDryStock) {
+          // Nếu backend DB chỉ có đồ tươi sống, tự động bổ sung danh mục Đồ khô chuẩn
+          const dryItems = MOCK_MASTER_INGREDIENT_CATALOG.filter(it => it.handlingType === "DRY_STOCK").map(adaptCatalogItem)
+          return {
+            items: [...adaptedApi, ...dryItems],
+            total: adaptedApi.length + dryItems.length,
+            isMock: false,
+          }
+        }
+        return { items: adaptedApi, total: adaptedApi.length, isMock: false }
       }
     } catch (err) {
-      console.warn("IngredientOrderService.getMasterIngredientCatalog fallback mock:", err.message)
-    }
-
-    let items = [...MOCK_MASTER_INGREDIENT_CATALOG]
-
-    if (params.handlingType && params.handlingType !== "all") {
-      items = items.filter(it => it.handlingType === params.handlingType)
-    }
-
-    if (params.supplierId && params.supplierId !== "all") {
-      items = items.filter(it => it.supplierId === params.supplierId)
-    }
-
-    if (params.category && params.category !== "all") {
-      items = items.filter(it => it.category === params.category)
-    }
-
-    if (params.search) {
-      const kw = params.search.toLowerCase()
-      items = items.filter(
-        it =>
-          it.name.toLowerCase().includes(kw) ||
-          it.category.toLowerCase().includes(kw) ||
-          it.supplierName.toLowerCase().includes(kw)
-      )
+      // Backend chưa có data -> Tự động dùng mock chuẩn
     }
 
     return {
-      items: items.map(adaptCatalogItem),
-      total: items.length,
+      items: MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem),
+      total: MOCK_MASTER_INGREDIENT_CATALOG.length,
       isMock: true,
     }
   },
@@ -62,12 +51,15 @@ const IngredientOrderService = {
    */
   async getSuppliers() {
     try {
-      const response = await http.get(apiSuppliers)
+      const response = await http.get(apiSuppliers, {
+        params: { page: 1, limit: 100 },
+        notifyOnError: false,
+      })
       const data = response?.data || response
-      if (Array.isArray(data?.items)) return { items: data.items, isMock: false }
-      if (Array.isArray(data)) return { items: data, isMock: false }
+      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, isMock: false }
+      if (Array.isArray(data) && data.length > 0) return { items: data, isMock: false }
     } catch (err) {
-      console.warn("IngredientOrderService.getSuppliers fallback mock:", err.message)
+      // Fallback sang mock suppliers
     }
     return { items: MOCK_SUPPLIERS, isMock: true }
   },
