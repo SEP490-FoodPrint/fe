@@ -22,6 +22,7 @@ import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
 import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -98,7 +99,7 @@ export const MenuItemSupplier = () => [
 ]
 
 /**
- * Menu dành cho phân hệ Nhà trường (SCHOOL) - Tự động lọc theo 7 roles của trường
+ * Menu dành cho phân hệ Nhà trường (SCHOOL) - Tự động lọc theo các roles của trường
  */
 export const MenuItemSchool = () => [
   {
@@ -110,7 +111,6 @@ export const MenuItemSchool = () => [
       ROLES.SCHOOL_MANAGEMENT_BOARD,
       ROLES.HOMEROOM_TEACHER,
       ROLES.PARENTS_COMMITTEE,
-      ROLES.INGREDIENT_MANAGEMENT,
     ],
   },
   {
@@ -160,10 +160,9 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Kiểm tra Nguyên liệu",
     icon: <HealthAndSafetyOutlinedIcon />,
-    // Màn hình dùng cho Y tế, Phụ huynh, Kho
+    // Màn hình dùng cho Phụ huynh
     roles: [
       ROLES.PARENTS_COMMITTEE,
-      ROLES.INGREDIENT_MANAGEMENT,
     ],
   },
 
@@ -224,12 +223,39 @@ export const MenuItemSchool = () => [
     icon: <HowToRegOutlinedIcon />,
     roles: [ROLES.HOMEROOM_TEACHER],
   },
+
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO BỘ PHẬN QUẢN LÝ KHO & NGUYÊN LIỆU (INGREDIENT_MANAGEMENT) - 5 MỤC QUY CHUẨN ===
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_OVERVIEW,
+    label: "Tổng quan",
+    icon: <DashboardOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
   {
     key: ROUTER.SCHOOL_WAREHOUSE,
-    label: "Quản lý Kho Nguyên liệu",
+    label: "Quản lý kho",
     icon: <WarehouseOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_ORDERS,
+    label: "Phiếu nhập & Đơn hàng",
+    icon: <ReceiptLongOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
+    label: "Kiểm tra nguyên liệu",
+    icon: <FactCheckOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_REPORTS,
+    label: "Thống kê & Báo cáo",
+    icon: <AssessmentOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+
   {
     key: ROUTER.SCHOOL_MEAL_FEEDBACK,
     label: "Ý kiến & Phản ánh Bữa ăn",
