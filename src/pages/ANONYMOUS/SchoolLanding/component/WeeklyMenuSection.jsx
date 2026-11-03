@@ -8,6 +8,7 @@ import {
   FileText,
   Users,
 } from "lucide-react"
+import { NO_DATA_TEXT } from "src/constants/ui"
 import notice from "src/components/Notice"
 import WeeklyDayCard from "./WeeklyDayCard"
 import styles from "./WeeklyMenuSection.module.scss"
@@ -18,7 +19,6 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
   const groups =
     weeklyMenu?.portionGroups ||
     weeklyMenu?.gradeGroups ||
-    weeklyMenu?.grade_groups ||
     []
 
   const defaultGroupId =
@@ -79,12 +79,8 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
     }
   }
 
-  const weekNumber =
-    (weeklyMenu?.weekNumber || weeklyMenu?.week_number || 44) + weekOffset
-  const weekRange =
-    weeklyMenu?.weekRange ||
-    weeklyMenu?.week_range ||
-    "Chưa cập nhật ngày"
+  const weekNumber = weeklyMenu?.weekNumber ? weeklyMenu.weekNumber + weekOffset : null
+  const weekRange = weeklyMenu?.weekRange || NO_DATA_TEXT
 
   const days = weeklyMenu?.days || []
   const hasDays = days.length > 0
@@ -117,7 +113,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
             <div className={styles.weekInfo}>
               <FileText size={16} className={styles.calendarIcon} />
               <span>
-                Tuần {weekNumber}: {weekRange}{" "}
+                {weekNumber ? `Tuần ${weekNumber}: ${weekRange}` : weekRange}{" "}
                 {weekOffset === 0 ? "(Tuần hiện tại)" : ""}
               </span>
             </div>
@@ -197,12 +193,9 @@ WeeklyMenuSection.propTypes = {
     id: PropTypes.string,
     title: PropTypes.string,
     weekNumber: PropTypes.number,
-    week_number: PropTypes.number,
     weekRange: PropTypes.string,
-    week_range: PropTypes.string,
     portionGroups: PropTypes.array,
     gradeGroups: PropTypes.array,
-    grade_groups: PropTypes.array,
     days: PropTypes.array,
   }),
   onWeekChange: PropTypes.func,

@@ -9,6 +9,7 @@ import {
   Sparkles,
   UtensilsCrossed,
 } from "lucide-react";
+import { NO_DATA_TEXT } from "src/constants/ui";
 import styles from "./DailyMealSection.module.scss";
 
 function DailyMealSection({ dailyMeal }) {
@@ -22,10 +23,8 @@ function DailyMealSection({ dailyMeal }) {
   const lunch = dailyMeal?.lunch;
   const snack = dailyMeal?.snack;
 
-  const dateLabel =
-    dailyMeal?.dateLabel || dailyMeal?.date_label || "Thực đơn hôm nay";
-  const updatedAt =
-    dailyMeal?.updatedAt || dailyMeal?.updated_at || "07:15 sáng nay";
+  const dateLabel = dailyMeal?.dateLabel || NO_DATA_TEXT;
+  const updatedAt = dailyMeal?.updatedAt || NO_DATA_TEXT;
 
   const snackItems =
     snack?.items && snack.items.length > 0
@@ -33,7 +32,7 @@ function DailyMealSection({ dailyMeal }) {
       : (snack?.dishes || []).map((d) => ({
           id: d.id,
           name: d.name,
-          desc: d.portion || "1 suất",
+          desc: d.portion || NO_DATA_TEXT,
           icon:
             d.name.toLowerCase().includes("sữa") ||
             d.name.toLowerCase().includes("nước") ||
@@ -61,7 +60,7 @@ function DailyMealSection({ dailyMeal }) {
 
           <div className={styles.updateTime}>
             <Clock size={16} className={styles.clockIcon} />
-            <span>Cập nhật lúc {updatedAt}</span>
+            <span>Cập nhật lúc: {updatedAt}</span>
           </div>
         </div>
 
@@ -91,13 +90,11 @@ function DailyMealSection({ dailyMeal }) {
                   </div>
                   <div>
                     <h3 className={styles.cardTitle}>
-                      {lunch?.title || "Bữa trưa chính"}
+                      {lunch?.title || NO_DATA_TEXT}
                     </h3>
                     <span className={styles.servingTime}>
                       Khung giờ phục vụ:{" "}
-                      {lunch?.servingWindow ||
-                        lunch?.serving_window ||
-                        "10:45 – 11:30"}
+                      {lunch?.servingWindow || NO_DATA_TEXT}
                     </span>
                   </div>
                 </div>
@@ -110,7 +107,6 @@ function DailyMealSection({ dailyMeal }) {
                     <img
                       src={
                         lunch?.trayImageUrl ||
-                        lunch?.tray_image_url ||
                         "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=80"
                       }
                       alt={lunch?.title || "Khay cơm trưa"}
@@ -118,9 +114,7 @@ function DailyMealSection({ dailyMeal }) {
                       loading="lazy"
                     />
                     <span className={styles.trayTag}>
-                      {lunch?.trayType ||
-                        lunch?.tray_type ||
-                        "Khay chia 5 ngăn inox chuẩn y tế"}
+                      {lunch?.trayType || NO_DATA_TEXT}
                     </span>
                   </div>
                 </div>
@@ -138,7 +132,7 @@ function DailyMealSection({ dailyMeal }) {
                           {idx + 1}. {dish.name}
                         </span>
                         <span className={styles.dishPortion}>
-                          {dish.portion || "1 suất"}
+                          {dish.portion || NO_DATA_TEXT}
                         </span>
                       </li>
                     ))}
@@ -151,17 +145,13 @@ function DailyMealSection({ dailyMeal }) {
                 <div className={styles.standardRow}>
                   <CheckCircle size={18} className={styles.checkIcon} />
                   <span>
-                    {lunch?.standardsNote ||
-                      lunch?.standards_note ||
-                      "Đạt chuẩn 4 nhóm chất dinh dưỡng"}
+                    {lunch?.standardsNote || NO_DATA_TEXT}
                   </span>
                 </div>
                 <div className={styles.allergyWarningRow}>
                   <Info size={16} className={styles.infoIcon} />
                   <span>
-                    {lunch?.allergyWarning ||
-                      lunch?.allergy_warning ||
-                      "Đã kiểm thực 3 bước — An toàn dinh dưỡng học đường"}
+                    {lunch?.allergyWarning || NO_DATA_TEXT}
                   </span>
                 </div>
               </div>
@@ -176,13 +166,11 @@ function DailyMealSection({ dailyMeal }) {
                   </div>
                   <div>
                     <h3 className={styles.cardTitle}>
-                      {snack?.title || "Bữa phụ chiều"}
+                      {snack?.title || NO_DATA_TEXT}
                     </h3>
                     <span className={styles.servingTime}>
                       Khung giờ phục vụ:{" "}
-                      {snack?.servingWindow ||
-                        snack?.serving_window ||
-                        "14:30 – 15:00"}
+                      {snack?.servingWindow || NO_DATA_TEXT}
                     </span>
                   </div>
                 </div>
@@ -193,7 +181,6 @@ function DailyMealSection({ dailyMeal }) {
                   <img
                     src={
                       snack?.imageUrl ||
-                      snack?.image_url ||
                       "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&auto=format&fit=crop&q=80"
                     }
                     alt={snack?.title || "Bữa phụ chiều"}
@@ -229,8 +216,7 @@ function DailyMealSection({ dailyMeal }) {
               </div>
 
               <div className={styles.snackFooter}>
-                {snack?.note ||
-                  "Cung cấp năng lượng kịp thời cho học sinh tham gia các hoạt động ngoại khóa."}
+                {snack?.note || NO_DATA_TEXT}
               </div>
             </div>
           </div>

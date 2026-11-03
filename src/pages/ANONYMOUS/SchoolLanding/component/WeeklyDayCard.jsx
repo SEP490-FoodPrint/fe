@@ -1,20 +1,18 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { ArrowDown, ArrowRight } from "lucide-react"
+import { NO_DATA_TEXT } from "src/constants/ui"
 import styles from "./WeeklyDayCard.module.scss"
 
 function WeeklyDayCard({ day }) {
   if (!day) return null
 
-  const dayOfWeek = day.dayOfWeek || day.day_of_week || ""
+  const dayOfWeek = day.dayOfWeek || NO_DATA_TEXT
   const date = day.date || ""
-  const isToday = day.isToday !== undefined ? day.isToday : Boolean(day.is_today)
-  const statusLabel = day.statusLabel || day.status_label || (isToday ? "Hôm nay" : "Sắp diễn ra")
-  const lunchDishes = day.lunchDishes || day.lunch_dishes || []
-  const snackSummary = day.snackSummary || day.snack_summary || "Bữa phụ dinh dưỡng học đường"
-  const calories = day.calories || 680
-  const proteinG = day.proteinG !== undefined ? day.proteinG : day.protein_g || 24
-  const fatG = day.fatG !== undefined ? day.fatG : day.fat_g || 18
+  const isToday = Boolean(day.isToday)
+  const statusLabel = day.statusLabel || (isToday ? "Hôm nay" : "Sắp diễn ra")
+  const lunchDishes = day.lunchDishes || []
+  const snackSummary = day.snackSummary || NO_DATA_TEXT
 
   return (
     <div className={`${styles.card} ${isToday ? styles.todayCard : ""}`}>
@@ -46,16 +44,20 @@ function WeeklyDayCard({ day }) {
         {/* Lunch Dishes */}
         <div className={styles.mealBlock}>
           <span className={styles.blockTitle}>Bữa trưa chính</span>
-          <ul className={styles.dishList}>
-            {lunchDishes.map((dish, i) => (
-              <li key={i} className={styles.dishItem}>
-                <span className={styles.bullet}>•</span>
-                <span className={styles.dishText}>
-                  {typeof dish === "string" ? dish : dish.name}
-                </span>
-              </li>
-            ))}
-          </ul>
+          {lunchDishes.length > 0 ? (
+            <ul className={styles.dishList}>
+              {lunchDishes.map((dish, i) => (
+                <li key={i} className={styles.dishItem}>
+                  <span className={styles.bullet}>•</span>
+                  <span className={styles.dishText}>
+                    {typeof dish === "string" ? dish : dish.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.snackDesc}>{NO_DATA_TEXT}</p>
+          )}
         </div>
 
         {/* Snack */}
@@ -65,15 +67,8 @@ function WeeklyDayCard({ day }) {
         </div>
       </div>
 
-      {/* Bottom Nutrition & Link */}
+      {/* Bottom Link */}
       <div className={styles.bottomSection}>
-        <div className={styles.nutritionRow}>
-          <span className={styles.calories}>{calories} kcal</span>
-          <span className={styles.macros}>
-            Đạm {proteinG}g · Béo {fatG}g
-          </span>
-        </div>
-
         {isToday ? (
           <a href="#thuc-don-ngay" className={styles.todayActionLink}>
             <span>Đang phục vụ hôm nay</span>
@@ -93,22 +88,12 @@ function WeeklyDayCard({ day }) {
 WeeklyDayCard.propTypes = {
   day: PropTypes.shape({
     dayOfWeek: PropTypes.string,
-    day_of_week: PropTypes.string,
     date: PropTypes.string,
     isToday: PropTypes.bool,
-    is_today: PropTypes.bool,
     status: PropTypes.string,
     statusLabel: PropTypes.string,
-    status_label: PropTypes.string,
     lunchDishes: PropTypes.array,
-    lunch_dishes: PropTypes.array,
     snackSummary: PropTypes.string,
-    snack_summary: PropTypes.string,
-    calories: PropTypes.number,
-    proteinG: PropTypes.number,
-    protein_g: PropTypes.number,
-    fatG: PropTypes.number,
-    fat_g: PropTypes.number,
   }),
 }
 
