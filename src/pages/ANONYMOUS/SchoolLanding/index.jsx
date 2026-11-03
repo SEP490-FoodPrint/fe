@@ -34,13 +34,6 @@ function SchoolLanding() {
             SchoolService.getDailyMealMenu(activeCode),
             SchoolService.getWeeklyMenu(activeCode),
           ]);
-        // Nạp song song và độc lập thông tin trường, thực đơn ngày và thực đơn tuần
-        const [schoolResult, dailyResult, weeklyResult] =
-          await Promise.allSettled([
-            SchoolService.getSchoolDetailByCode(activeCode),
-            SchoolService.getDailyMealMenu(activeCode),
-            SchoolService.getWeeklyMenu(activeCode),
-          ]);
 
         if (isMounted) {
           // Xử lý thông tin chi tiết trường
