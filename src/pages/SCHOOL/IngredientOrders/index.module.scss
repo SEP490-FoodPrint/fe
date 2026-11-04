@@ -1,0 +1,16 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  padding-bottom: 32px;
+}
+
+.placeholderCard {
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: 12px;
+  border: 1px dashed var(--border-default, #d1d5db);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--text-secondary, #6b7280);
+}

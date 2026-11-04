@@ -1,0 +1,87 @@
+.tableWrapper {
+  border-radius: 12px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+.table {
+  min-width: 950px;
+}
+
+.tableHead {
+  background-color: #f9fafb;
+
+  :global(.MuiTableCell-head) {
+    font-weight: 700;
+    color: var(--text-secondary, #4b5563);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-default, #e5e7eb);
+  }
+}
+
+.tableRow {
+  transition: background-color 0.15s ease;
+
+  :global(.MuiTableCell-body) {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-default, #f3f4f6);
+  }
+
+  &:last-child :global(.MuiTableCell-body) {
+    border-bottom: none;
+  }
+}
+
+.ingName {
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  font-size: 0.95rem;
+}
+
+.categoryText {
+  color: var(--text-secondary, #4b5563);
+}
+
+.handlingChip {
+  font-weight: 700;
+  font-size: 0.72rem;
+  border-radius: 6px;
+  height: 22px;
+}
+
+.unitText {
+  font-weight: 600;
+  color: var(--text-primary, #374151);
+}
+
+.shelfLifeText {
+  font-weight: 600;
+  color: var(--text-secondary, #4b5563);
+}
+
+.amountText {
+  font-weight: 700;
+  color: var(--color-primary, #1e7e34);
+}
+
+.supplierText {
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+}
+
+.storageText {
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.35;
+  display: block;
+  max-width: 260px;
+}
+
+.emptyCell {
+  padding: 40px !important;
+  color: var(--text-secondary, #9ca3af);
+  font-style: italic;
+}
