@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { StoreContext } from "src/contexts";
 import PublicAccountMenu from "src/components/Common/PublicAccountMenu";
+import { NO_DATA_TEXT } from "src/constants/ui";
 import ROUTER from "src/router/ROUTER";
 import SchoolService from "src/services/SchoolService";
 import styles from "./SchoolHeader.module.scss";
@@ -74,7 +75,7 @@ function SchoolHeader({ school }) {
             </div>
             <div className={styles.schoolMeta}>
               <span className={styles.schoolName}>
-                {school?.name || "Trường Tiểu học"}
+                {school?.name || NO_DATA_TEXT}
               </span>
               <span className={styles.schoolSubtext}>
                 Hệ thống Bán trú FoodPrint
@@ -126,14 +127,14 @@ function SchoolHeader({ school }) {
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <span className={styles.optionCode}>
-                        {item.short_name || item.code?.slice(0, 2) || "TH"}
+                        {item.shortName || item.short_name || item.code?.slice(0, 2) || "TH"}
                       </span>
                       <div className={styles.optionDetails}>
                         <span className={styles.optionName}>{item.name}</span>
                         <span className={styles.optionDistrict}>
                           {item.district
-                            ? `${item.district}, ${item.city || "Hà Nội"}`
-                            : item.address || "Hà Nội"}
+                            ? `${item.district}, ${item.city || NO_DATA_TEXT}`
+                            : item.address || NO_DATA_TEXT}
                         </span>
                       </div>
                     </Link>
@@ -162,6 +163,7 @@ SchoolHeader.propTypes = {
     name: PropTypes.string,
     code: PropTypes.string,
     short_name: PropTypes.string,
+    shortName: PropTypes.string,
   }),
 };
 

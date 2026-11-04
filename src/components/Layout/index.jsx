@@ -9,6 +9,7 @@ import AuthService from "src/services/AuthService";
 import ROUTER from "src/router/ROUTER";
 import styles from "./MainLayout.module.scss";
 import notice from "src/components/Notice";
+import RoleSwitcher from "src/components/Common/RoleSwitcher";
 
 const MainLayout = ({ type }) => {
   const location = useLocation();
@@ -73,6 +74,7 @@ const MainLayout = ({ type }) => {
           <Outlet />
         </main>
       </div>
+      <RoleSwitcher />
     </div>
   );
 };
