@@ -53,6 +53,7 @@ const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
 const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
+const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
 
 function LazyWrapper({ children }) {
   return (
@@ -273,6 +274,7 @@ const routes = [
             children: [
               { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><SupplierRelationships /></LazyWrapper> },
               { path: ROUTER.SCHOOL_CLASS_ASSIGNMENT, element: <LazyWrapper><ClassAssignment /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_COOKING_MODE, element: <LazyWrapper><CookingMode /></LazyWrapper> },
             ],
           },
           {
