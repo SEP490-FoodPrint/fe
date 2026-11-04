@@ -2,6 +2,7 @@
  * API Endpoints cho danh mục Trường học (Schools)
  */
 export const apiGetPublicSchools = "/schools/public"
+export const apiCookingMode = "/schools/me/cooking-mode"
 export const apiGetSchoolDetail = id => `/schools/public/${id}`
 export const apiGetSchoolDetailByCode = code => `/schools/public/code/${code}`
 export const apiGetDailyMealMenu = (schoolCode, date) =>
