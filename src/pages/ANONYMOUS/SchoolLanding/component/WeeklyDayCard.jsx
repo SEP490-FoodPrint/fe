@@ -1,80 +1,75 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { ArrowDown, ArrowRight } from "lucide-react"
+import { NO_DATA_TEXT } from "src/constants/ui"
 import styles from "./WeeklyDayCard.module.scss"
 
 function WeeklyDayCard({ day }) {
   if (!day) return null
 
-  const {
-    day_of_week,
-    date,
-    is_today,
-    status_label,
-    lunch_dishes = [],
-    snack_summary,
-    calories,
-    protein_g,
-    fat_g,
-  } = day
+  const dayOfWeek = day.dayOfWeek || NO_DATA_TEXT
+  const date = day.date || ""
+  const isToday = Boolean(day.isToday)
+  const statusLabel = day.statusLabel || (isToday ? "Hôm nay" : "Sắp diễn ra")
+  const lunchDishes = day.lunchDishes || []
+  const snackSummary = day.snackSummary || NO_DATA_TEXT
 
   return (
-    <div className={`${styles.card} ${is_today ? styles.todayCard : ""}`}>
+    <div className={`${styles.card} ${isToday ? styles.todayCard : ""}`}>
       <div className={styles.topSection}>
         {/* Day Header */}
         <div className={styles.dayHeader}>
           <div>
-            <span className={`${styles.dayTitle} ${is_today ? styles.todayText : ""}`}>
-              {day_of_week}
+            <span className={`${styles.dayTitle} ${isToday ? styles.todayText : ""}`}>
+              {dayOfWeek}
             </span>
-            <span className={`${styles.dateText} ${is_today ? styles.todayText : ""}`}>
+            <span className={`${styles.dateText} ${isToday ? styles.todayText : ""}`}>
               {date}
             </span>
           </div>
 
           <span
             className={`${styles.statusBadge} ${
-              is_today
+              isToday
                 ? styles.todayBadge
                 : day.status === "SERVED"
                 ? styles.servedBadge
                 : styles.upcomingBadge
             }`}
           >
-            {status_label || (is_today ? "Hôm nay" : "Sắp diễn ra")}
+            {statusLabel}
           </span>
         </div>
 
         {/* Lunch Dishes */}
         <div className={styles.mealBlock}>
           <span className={styles.blockTitle}>Bữa trưa chính</span>
-          <ul className={styles.dishList}>
-            {lunch_dishes.map((dish, i) => (
-              <li key={i} className={styles.dishItem}>
-                <span className={styles.bullet}>•</span>
-                <span className={styles.dishText}>{dish}</span>
-              </li>
-            ))}
-          </ul>
+          {lunchDishes.length > 0 ? (
+            <ul className={styles.dishList}>
+              {lunchDishes.map((dish, i) => (
+                <li key={i} className={styles.dishItem}>
+                  <span className={styles.bullet}>•</span>
+                  <span className={styles.dishText}>
+                    {typeof dish === "string" ? dish : dish.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.snackDesc}>{NO_DATA_TEXT}</p>
+          )}
         </div>
 
         {/* Snack */}
         <div className={styles.snackBlock}>
           <span className={styles.snackTitle}>Bữa xế chiều</span>
-          <p className={styles.snackDesc}>{snack_summary}</p>
+          <p className={styles.snackDesc}>{snackSummary}</p>
         </div>
       </div>
 
-      {/* Bottom Nutrition & Link */}
+      {/* Bottom Link */}
       <div className={styles.bottomSection}>
-        <div className={styles.nutritionRow}>
-          <span className={styles.calories}>{calories} kcal</span>
-          <span className={styles.macros}>
-            Đạm {protein_g}g · Béo {fat_g}g
-          </span>
-        </div>
-
-        {is_today ? (
+        {isToday ? (
           <a href="#thuc-don-ngay" className={styles.todayActionLink}>
             <span>Đang phục vụ hôm nay</span>
             <ArrowDown size={14} />
@@ -92,17 +87,14 @@ function WeeklyDayCard({ day }) {
 
 WeeklyDayCard.propTypes = {
   day: PropTypes.shape({
-    day_of_week: PropTypes.string.isRequired,
-    date: PropTypes.string.isRequired,
-    is_today: PropTypes.bool,
+    dayOfWeek: PropTypes.string,
+    date: PropTypes.string,
+    isToday: PropTypes.bool,
     status: PropTypes.string,
-    status_label: PropTypes.string,
-    lunch_dishes: PropTypes.array,
-    snack_summary: PropTypes.string,
-    calories: PropTypes.number,
-    protein_g: PropTypes.number,
-    fat_g: PropTypes.number,
-  }).isRequired,
+    statusLabel: PropTypes.string,
+    lunchDishes: PropTypes.array,
+    snackSummary: PropTypes.string,
+  }),
 }
 
 export default WeeklyDayCard

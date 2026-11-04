@@ -218,6 +218,18 @@ export const MenuItemSchool = () => [
   },
 
   {
+    key: ROUTER.SCHOOL_SUPPLIERS,
+    label: "Nhà cung cấp",
+    icon: <LocalShippingOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
+    label: "Phân công GVCN",
+    icon: <AssignmentIndOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
     key: ROUTER.SCHOOL_DAILY_CONFIRM,
     label: "Báo suất ăn & Dị ứng lớp",
     icon: <HowToRegOutlinedIcon />,

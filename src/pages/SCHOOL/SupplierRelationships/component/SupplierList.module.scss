@@ -1,0 +1,220 @@
+.panel {
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: minmax(16rem, 1.5fr) minmax(15rem, 1fr) 12rem auto;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.search {
+  width: 100%;
+}
+
+.addressSearch {
+  width: 100%;
+}
+
+.filterControl {
+  min-width: 12rem;
+}
+
+.filterIcon {
+  margin-right: var(--space-2);
+  color: var(--text-muted);
+}
+
+.clearButton {
+  white-space: nowrap;
+}
+
+.locationNotice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.locationNotice svg {
+  flex: 0 0 auto;
+}
+
+.desktopTable :global(.MuiTableCell-head) {
+  height: 2.75rem;
+  padding: 0 var(--space-4);
+  border-color: var(--border-default);
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  white-space: nowrap;
+}
+
+.desktopTable :global(.MuiTableCell-body) {
+  min-height: 3.25rem;
+  padding: var(--space-3) var(--space-4);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+  font-size: var(--text-xs);
+  vertical-align: middle;
+}
+
+.supplierName,
+.stack,
+.secondary,
+.identifier {
+  display: block;
+}
+
+.supplierName {
+  max-width: 17rem;
+  margin-bottom: var(--space-1);
+  font-weight: var(--font-medium);
+}
+
+.secondary,
+.identifier {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.identifier {
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.address {
+  max-width: 16rem;
+}
+
+.loading {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.empty {
+  display: flex;
+  min-height: 18rem;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.empty strong {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+}
+
+.empty span {
+  font-size: var(--text-xs);
+}
+
+.mobileList {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .search,
+  .addressSearch,
+  .filterControl {
+    width: 100%;
+  }
+
+  .desktopTable {
+    display: none;
+  }
+
+  .mobileList {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4);
+  }
+
+  .mobileCard {
+    padding: var(--space-4);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+  }
+
+  .cardHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .cardHeader strong,
+  .cardHeader span {
+    display: block;
+  }
+
+  .cardHeader strong {
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+  }
+
+  .cardHeader > div > span {
+    margin-top: var(--space-1);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .mobileCard dl {
+    display: grid;
+    gap: var(--space-2);
+    margin: var(--space-4) 0;
+  }
+
+  .mobileCard dl div {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: var(--space-2);
+    font-size: var(--text-xs);
+  }
+
+  .mobileCard dt {
+    color: var(--text-muted);
+  }
+
+  .mobileCard dd {
+    margin: 0;
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 480px) {
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .clearButton {
+    width: 100%;
+  }
+
+  .cardHeader {
+    flex-direction: column;
+  }
+}
