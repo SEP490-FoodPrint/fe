@@ -29,6 +29,18 @@ import RelationshipStatus from "./RelationshipStatus"
 
 const dateText = (value) =>
   value ? new Date(value).toLocaleDateString("vi-VN") : "—"
+const vietnamToday = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Ho_Chi_Minh" })
+// Cùng quy tắc với BE (supplier-onboarding.rules) để báo lỗi ngay khi nhập
+const contractDateErrors = ({ signedOn, startsOn, endsOn }, today) => ({
+  signedOn: signedOn > today ? "Ngày ký không được ở tương lai" : "",
+  endsOn:
+    endsOn && startsOn && endsOn < startsOn
+      ? "Phải từ ngày hiệu lực trở đi"
+      : endsOn && endsOn < today
+        ? "Hợp đồng đã hết hạn"
+        : "",
+})
 const contractLabels = {
   DRAFT: "Hồ sơ nháp",
   ACTIVE: "Đã kích hoạt",
@@ -173,6 +185,11 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   )
   const draft = !contract?.id || contract.status === "DRAFT"
   const canEdit = Boolean(data?.canManage && draft && !busy)
+  const today = vietnamToday()
+  const dateErrors = draft
+    ? contractDateErrors(form, today)
+    : { signedOn: "", endsOn: "" }
+  const datesInvalid = Boolean(dateErrors.signedOn || dateErrors.endsOn)
   const currentRelationship = data?.relationships.find((item) =>
     ["ACTIVE", "SUSPENDED"].includes(item.status),
   )
@@ -511,7 +528,10 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       <>
                         <Stepper
                           activeStep={
-                            !contract?.id || dirty || !metadataComplete
+                            !contract?.id ||
+                            dirty ||
+                            !metadataComplete ||
+                            datesInvalid
                               ? 0
                               : contract.issues?.some((issue) =>
                                     issue.includes("tải"),
@@ -558,7 +578,12 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             onChange={(event) =>
                               setField("signedOn", event.target.value)
                             }
-                            slotProps={{ inputLabel: { shrink: true } }}
+                            error={Boolean(dateErrors.signedOn)}
+                            helperText={dateErrors.signedOn}
+                            slotProps={{
+                              inputLabel: { shrink: true },
+                              htmlInput: { max: today },
+                            }}
                           />
                           <TextField
                             size="small"
@@ -580,7 +605,15 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             onChange={(event) =>
                               setField("endsOn", event.target.value)
                             }
-                            slotProps={{ inputLabel: { shrink: true } }}
+                            error={Boolean(dateErrors.endsOn)}
+                            helperText={dateErrors.endsOn}
+                            slotProps={{
+                              inputLabel: { shrink: true },
+                              htmlInput: {
+                                min:
+                                  form.startsOn > today ? form.startsOn : today,
+                              },
+                            }}
                           />
                         </div>
                         <section>
@@ -698,7 +731,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                         {data.canManage && draft && (
                           <Button
                             variant="outlined"
-                            disabled={busy}
+                            disabled={busy || datesInvalid}
                             onClick={save}
                           >
                             {busy ? "Đang xử lý…" : "Lưu nháp hồ sơ"}
