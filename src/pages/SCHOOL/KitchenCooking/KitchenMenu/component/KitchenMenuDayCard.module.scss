@@ -1,0 +1,158 @@
+.dayColumn {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all 0.16s ease;
+  min-width: 0;
+
+  &:hover {
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.todayColumn {
+  border-color: var(--color-primary, #0a8066) !important;
+  box-shadow: 0 2px 8px rgba(10, 128, 102, 0.12) !important;
+
+  .dayHeader {
+    background-color: var(--color-primary-soft, #e8f5f1);
+    border-bottom-color: rgba(10, 128, 102, 0.2);
+  }
+
+  .dayIndexBadge {
+    background-color: var(--color-primary, #0a8066);
+    color: #ffffff;
+  }
+
+  .dayLabel {
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background-color: var(--bg-muted, #f9fafb);
+  border-bottom: 1px solid var(--border-default, #e5e7eb);
+  gap: 8px;
+}
+
+.dayTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dayNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dayIndexBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  color: var(--text-primary, #111827);
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.dayLabel {
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+}
+
+.dayDateText {
+  font-size: 11.5px;
+  color: var(--text-secondary, #6b7280);
+}
+
+.todayBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+/* 2. Vertical Stack of Dishes */
+.dishesVerticalStack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px;
+  flex: 1;
+  background-color: #ffffff;
+}
+
+.mealGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mealGroupHeader {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border-default, #f1f5f3);
+}
+
+.mealIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.mealGroupTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-secondary, #4b5563);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex: 1;
+}
+
+.dishCount {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-muted, #9ca3af);
+  background-color: #f3f4f6;
+  padding: 0 5px;
+  border-radius: 4px;
+}
+
+.dishList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.emptyDayNotice {
+  padding: 24px 10px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted, #9ca3af);
+  font-style: italic;
+}
+

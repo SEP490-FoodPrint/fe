@@ -43,6 +43,7 @@ const MenuDetail = lazy(() => import("src/pages/SCHOOL/MenuPlanning/MenuDetail")
 const EditMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/EditMenu"))
 const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
+const KitchenMenu = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenMenu"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
 const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatchSeparate"))
@@ -243,7 +244,7 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenMenu /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCHES, element: <LazyWrapper><KitchenBatches /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE, element: <LazyWrapper><KitchenCreateBatch /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH, element: <LazyWrapper><KitchenCreateBatch /></LazyWrapper> },

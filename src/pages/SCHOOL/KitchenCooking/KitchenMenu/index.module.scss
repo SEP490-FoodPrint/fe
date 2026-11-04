@@ -1,0 +1,86 @@
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+  padding: 16px 20px 32px;
+  box-sizing: border-box;
+}
+
+/* Glanceable Stats Strip */
+.glanceStrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 10px 16px;
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
+}
+
+.glanceItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.glanceIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.glanceIconSuccess {
+  color: var(--color-success, #168456);
+  flex-shrink: 0;
+}
+
+.glanceValue {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary, #1d2b26);
+}
+
+.glanceLabel {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary, #52635c);
+}
+
+.glanceDivider {
+  width: 1px;
+  height: 16px;
+  background-color: var(--border-default, #dce5e0);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 10px 12px 24px;
+    gap: 12px;
+  }
+
+  .glanceStrip {
+    padding: 8px 12px;
+    gap: 10px;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .glanceDivider {
+    display: none;
+  }
+
+  .glanceItem {
+    background-color: var(--bg-surface, #ffffff);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm, 6px);
+    border: 1px solid var(--border-default, #dce5e0);
+  }
+}
+

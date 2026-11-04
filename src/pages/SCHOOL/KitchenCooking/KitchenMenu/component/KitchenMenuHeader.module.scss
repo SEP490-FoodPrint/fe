@@ -1,0 +1,197 @@
+.headerContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  width: 100%;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4, 16px);
+  flex-wrap: wrap;
+}
+
+.titleLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.headingWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.heading {
+  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
+  font-size: var(--text-2xl, 24px);
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.02em;
+  margin: 0;
+
+  @media (max-width: 640px) {
+    font-size: 19px;
+  }
+}
+
+.approvedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.subHint {
+  font-size: 12.5px;
+  color: var(--text-secondary, #6b7280);
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.batchesBtn {
+  border-color: var(--border-default, #e5e7eb) !important;
+  color: var(--text-secondary, #374151) !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md, 8px) !important;
+  padding: 6px 14px !important;
+
+  &:hover {
+    background-color: var(--bg-muted, #f9fafb) !important;
+    border-color: var(--color-primary, #0a8066) !important;
+    color: var(--color-primary, #0a8066) !important;
+  }
+}
+
+/* Dải chuyển tuần */
+.weekNavStrip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  padding: 8px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  @media (max-width: 640px) {
+    padding: 6px 10px;
+  }
+}
+
+.weekControls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navArrowBtn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default, #e5e7eb);
+  background-color: #ffffff;
+  color: var(--text-secondary, #374151);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+
+  /* Hit box >= 44px */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    left: -4px;
+    right: -4px;
+  }
+
+  &:hover {
+    background-color: var(--bg-muted, #f9fafb);
+    border-color: var(--border-strong, #adbbb3);
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:active {
+    transform: scale(0.94);
+  }
+}
+
+.weekInfoBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 6px;
+}
+
+.calendarIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.weekRangeText {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.01em;
+
+  @media (max-width: 640px) {
+    font-size: 12.5px;
+  }
+}
+
+.quickNavBtns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.todayBtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default, #e5e7eb);
+  background-color: var(--bg-muted, #f9fafb);
+  color: var(--text-secondary, #4b5563);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1);
+    border-color: var(--color-primary, #0a8066);
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+

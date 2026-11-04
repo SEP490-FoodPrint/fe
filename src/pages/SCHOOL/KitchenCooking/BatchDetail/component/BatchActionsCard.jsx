@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Edit3,
   Trash2,
-  Shield,
   CookingPot,
   MoreVertical,
   FlaskConical,
@@ -53,7 +52,7 @@ export default function BatchActionsCard({
               className={styles.btnPrimary}
               onClick={onOpenConfirmModal}
             >
-              <CheckCircle2 size={17} />
+              <CheckCircle2 size={18} />
               <span>Xác nhận phương án</span>
             </button>
           )}
@@ -65,7 +64,7 @@ export default function BatchActionsCard({
               className={styles.btnPrimary}
               onClick={onOpenCompleteModal}
             >
-              <CookingPot size={17} />
+              <CookingPot size={18} />
               <span>Ghi nhận hoàn thành chế biến</span>
             </button>
           )}
@@ -129,16 +128,6 @@ export default function BatchActionsCard({
             </>
           )}
         </div>
-
-        {/* Chú thích an toàn FoodPrint */}
-        <div className={styles.securityNote}>
-          <Shield size={16} className={styles.shieldIcon} />
-          <p className={styles.securityText}>
-            {isCompleted
-              ? "Lô chế biến đã hoàn tất ra khay và sẵn sàng phân chia suất ăn về các lớp học."
-              : "Lô chế biến chỉ có thể chỉnh sửa hoặc xóa khi chưa được xác nhận phương án. Khi đã xác nhận, dữ liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc."}
-          </p>
-        </div>
       </section>
 
       {/* 2. Mobile Sticky Bottom Bar (Hiện trên Mobile < 768px) */}
@@ -151,7 +140,7 @@ export default function BatchActionsCard({
                 className={styles.mobilePrimaryBtn}
                 onClick={onOpenConfirmModal}
               >
-                <CheckCircle2 size={18} />
+                <CheckCircle2 size={19} />
                 <span>Xác nhận phương án</span>
               </button>
 
@@ -201,8 +190,8 @@ export default function BatchActionsCard({
               className={styles.mobilePrimaryBtn}
               onClick={onOpenCompleteModal}
             >
-              <CookingPot size={18} />
-              <span>Ghi nhận hoàn thành chế biến</span>
+              <CookingPot size={19} />
+              <span>Ghi nhận hoàn thành</span>
             </button>
           )}
 
@@ -221,6 +210,7 @@ export default function BatchActionsCard({
                   fontWeight: 600,
                   fontSize: "0.875rem",
                   flex: 1,
+                  height: 48,
                 }}
               >
                 <Check size={18} color="#059669" />
@@ -232,7 +222,7 @@ export default function BatchActionsCard({
                 className={styles.mobilePrimaryBtn}
                 onClick={onOpenSampleModal}
               >
-                <FlaskConical size={18} />
+                <FlaskConical size={19} />
                 <span>Ghi nhận mẫu lưu</span>
               </button>
             )

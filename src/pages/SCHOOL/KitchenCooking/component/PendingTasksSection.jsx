@@ -27,20 +27,20 @@ function PendingTasksSection() {
         const items = res.items || []
         const derived = []
 
-        // 1. Unconfirmed batches (Chờ xác nhận)
+        // 1. Unconfirmed batches (Chờ xác nhận phương án)
         items
           .filter((b) => b.status === "UNCONFIRMED")
           .forEach((b) => {
             derived.push({
               id: `unconf-${b.id}`,
               title: b.Dish?.name || b.batchCode || "Lô chế biến",
-              timeTag: `${b.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} (Cần xác nhận phương án)`,
+              timeTag: b.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế",
               portion: Number.isSafeInteger(b.plannedPortions)
                 ? `${b.plannedPortions.toLocaleString("vi-VN")} suất`
                 : "—",
               statusText: "Chờ xác nhận",
               statusType: "warning",
-              icon: <UtensilsCrossed size={15} />,
+              icon: <UtensilsCrossed size={16} />,
               actionIcon: <ChevronRight size={18} />,
               actionLabel: "Xem và xác nhận lô",
               route: ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", b.id),
@@ -55,13 +55,13 @@ function PendingTasksSection() {
             derived.push({
               id: `conf-${b.id}`,
               title: b.Dish?.name || b.batchCode || "Lô chế biến",
-              timeTag: `${b.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} (Đang chế biến tại bếp)`,
+              timeTag: b.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế",
               portion: Number.isSafeInteger(b.plannedPortions)
                 ? `${b.plannedPortions.toLocaleString("vi-VN")} suất`
                 : "—",
               statusText: "Đang nấu",
               statusType: "primary",
-              icon: <CookingPot size={15} />,
+              icon: <CookingPot size={16} />,
               actionIcon: <ChevronRight size={18} />,
               actionLabel: "Ghi nhận hoàn thành",
               route: ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", b.id),
@@ -76,13 +76,13 @@ function PendingTasksSection() {
             derived.push({
               id: `sample-${b.id}`,
               title: b.Dish?.name || b.batchCode || "Lô chế biến",
-              timeTag: "Đã nấu xong (Cần niêm phong mẫu lưu 24h)",
+              timeTag: "Chờ niêm phong mẫu",
               portion: Number.isSafeInteger(b.plannedPortions)
                 ? `${b.plannedPortions.toLocaleString("vi-VN")} suất`
                 : "—",
               statusText: "Chưa lưu mẫu",
               statusType: "info",
-              icon: <FlaskConical size={15} />,
+              icon: <FlaskConical size={16} />,
               actionIcon: <ChevronRight size={18} />,
               actionLabel: "Niêm phong lưu mẫu",
               route: ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", b.id),
@@ -126,21 +126,20 @@ function PendingTasksSection() {
         <div
           style={{
             margin: "12px 16px 16px",
-            padding: "16px 18px",
+            padding: "14px 16px",
             display: "flex",
             alignItems: "center",
-            gap: 12,
+            gap: 10,
             color: "#065f46",
             backgroundColor: "#ecfdf5",
             borderRadius: 8,
             border: "1px solid #a7f3d0",
             fontSize: "0.875rem",
+            fontWeight: 500,
           }}
         >
-          <CheckCircle2 size={20} color="#059669" />
-          <span>
-            Bếp hoạt động tốt! Không có việc nào tồn đọng. Tất cả các lô chế biến đã được xử lý và lưu mẫu theo quy định.
-          </span>
+          <CheckCircle2 size={18} color="#059669" />
+          <span>Không có công việc tồn đọng hôm nay.</span>
         </div>
       ) : (
         <div className={styles.taskList} role="list">

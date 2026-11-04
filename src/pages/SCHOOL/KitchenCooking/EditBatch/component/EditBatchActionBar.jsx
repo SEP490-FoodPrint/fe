@@ -16,7 +16,7 @@ export default function EditBatchActionBar({
       <div className={styles.auditInfo}>
         <History size={16} className={styles.historyIcon} />
         <span className={styles.auditText}>
-          Lần sửa đổi gần nhất: <strong>{lastEdited}</strong> bởi <strong>{lastEditor}</strong>
+          Sửa: <strong>{lastEdited}</strong> ({lastEditor})
         </span>
       </div>
 

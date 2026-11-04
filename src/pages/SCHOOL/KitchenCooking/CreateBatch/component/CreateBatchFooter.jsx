@@ -49,9 +49,7 @@ export default function CreateBatchFooter({ selectedDish }) {
         </button>
 
         <div className={styles.actionGroup}>
-          <span className={styles.footerNote}>
-            Lô mới ở trạng thái Chưa xác nhận. Xác nhận nấu sau khi kiểm tra.
-          </span>
+          
 
           <div className={styles.buttonsWrap}>
             <button

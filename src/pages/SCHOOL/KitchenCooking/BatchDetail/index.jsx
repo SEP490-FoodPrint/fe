@@ -9,7 +9,6 @@ import { adaptBatchDetail } from "src/services/KitchenService/adapter"
 import BatchDetailHeader from "./component/BatchDetailHeader"
 import BatchInfoCard from "./component/BatchInfoCard"
 import BatchIngredientsCard from "./component/BatchIngredientsCard"
-import BatchCookingResultCard from "./component/BatchCookingResultCard"
 import BatchTimelineCard from "./component/BatchTimelineCard"
 import BatchAuditCard from "./component/BatchAuditCard"
 import BatchActionsCard from "./component/BatchActionsCard"
@@ -211,30 +210,24 @@ export default function KitchenBatchDetail() {
 
       {/* 2. Main Content Grid (8 Cols Left - 4 Cols Right trên Desktop, Stack trên Mobile) */}
       <div className={styles.contentGrid}>
-        {/* CỘT TRÁI (~70% / 8 Cols Desktop) */}
+        {/* CỘT TRÁI: Thông tin trọng tâm (Món ăn, số suất) & Nguyên liệu */}
         <div className={styles.leftCol}>
-          {/* Thẻ 1: Thông tin lô chế biến */}
+          {/* Thẻ 1: Thông tin lô chế biến (Món ăn, số suất, chế độ nấu) */}
           <BatchInfoCard batchData={batchData} />
 
           {/* Thẻ 2: Nguyên liệu sử dụng */}
           <BatchIngredientsCard ingredients={batchData.ingredients} />
-
-          {/* Thẻ 3: Kết quả chế biến */}
-          <BatchCookingResultCard batchData={batchData} />
         </div>
 
-        {/* CỘT PHẢI (~30% / 4 Cols Desktop) */}
+        {/* CỘT PHẢI: Tiến trình & Thao tác nghiệp vụ */}
         <div className={styles.rightCol}>
-          {/* Thẻ 1 Cột Phải: Tiến trình chế biến */}
+          {/* Thẻ 1: Tiến trình chế biến (3 bước gọn) */}
           <BatchTimelineCard
             status={batchData.status}
             batchCode={batchData.code}
           />
 
-          {/* Thẻ 2 Cột Phải: Theo dõi kiểm toán */}
-          <BatchAuditCard auditData={auditData} />
-
-          {/* Thẻ 3 Cột Phải: Thao tác nghiệp vụ */}
+          {/* Thẻ 2: Thao tác nghiệp vụ (Nút bấm to rõ) */}
           <BatchActionsCard
             batchId={batchData.id}
             status={batchData.status}
@@ -246,6 +239,9 @@ export default function KitchenBatchDetail() {
             onOpenCompleteModal={() => setIsCompleteOpen(true)}
             onOpenSampleModal={() => setIsSampleOpen(true)}
           />
+
+          {/* Thẻ 3: Lịch sử thao tác & kiểm toán (Dạng đóng gọn, chỉ mở khi cần xem) */}
+          <BatchAuditCard auditData={auditData} />
         </div>
       </div>
 

@@ -77,26 +77,29 @@ export default function CookingBatchesTable({
 
     if (mobile) {
       return (
-        <div className={styles.mobileActionBox}>
-          <button
-            type="button"
-            className={styles.mobileBtnActionView}
-            onClick={() => handleViewDetail(row)}
-            title="Xem chi tiết lô chế biến"
-          >
-            <Eye size={13} />
-            <span>Chi tiết</span>
-          </button>
-          <button
-            type="button"
-            className={styles.mobileBtnActionEdit}
-            disabled={!canEdit}
-            onClick={() => handleEditBatch(row)}
-            title={editDisabledTooltip}
-          >
-            <Edit3 size={13} />
-            <span>Sửa</span>
-          </button>
+        <div className={styles.mobileActionBox} onClick={(e) => e.stopPropagation()}>
+          <Tooltip title="Xem chi tiết" arrow>
+            <IconButton
+              size="small"
+              className={styles.mobileActionIconBtn}
+              onClick={() => handleViewDetail(row)}
+              aria-label={`Xem chi tiết ${row.dishName}`}
+            >
+              <Eye size={16} />
+            </IconButton>
+          </Tooltip>
+          {canEdit && (
+            <Tooltip title="Chỉnh sửa lô" arrow>
+              <IconButton
+                size="small"
+                className={styles.mobileEditIconBtn}
+                onClick={() => handleEditBatch(row)}
+                aria-label={`Chỉnh sửa ${row.dishName}`}
+              >
+                <Edit3 size={15} />
+              </IconButton>
+            </Tooltip>
+          )}
         </div>
       )
     }
@@ -209,6 +212,8 @@ export default function CookingBatchesTable({
                 key={row.id}
                 className={styles.mobileBatchCard}
                 role="listitem"
+                onClick={() => handleViewDetail(row)}
+                style={{ cursor: "pointer" }}
               >
                 <div className={styles.mobileTopRow}>
                   <div className={styles.dishTitleWrap}>
@@ -246,9 +251,7 @@ export default function CookingBatchesTable({
                         : row.methodLabel}
                     </span>
                   </div>
-                  <div className={styles.mobileActionBox}>
-                    {renderActions(row, true)}
-                  </div>
+                  {renderActions(row, true)}
                 </div>
               </article>
             ))}

@@ -7,22 +7,19 @@ import styles from "./index.module.scss"
 
 /**
  * KitchenCooking - Giao diện Bảng điều khiển Nhân viên Bếp (FoodPrint)
- * Hoạt động bên trong khung MainLayout dùng chung của dự án:
- * - Đồng bộ 100% Sidebar và Header từ main
- * - Section A: Tiêu đề & Giới thiệu
- * - Section B: 4 Thẻ truy cập nhanh (Quick Access Cards)
- * - Section C: Công việc cần xử lý hôm nay (Pending Tasks)
- * - Section D: Hoạt động gần đây (Recent Batches & Allocations)
+ * Tối ưu theo phản hồi Mentor:
+ * - Trực quan, ít chữ, tập trung vào thao tác chính
+ * - Thân thiện với màn hình điện thoại di động
  */
 function KitchenCooking() {
   return (
     <div className={styles.dashboardContainer}>
-      {/* Section A: Tiêu đề & Tổng quan */}
+      {/* Section A: Tiêu đề & Tag ca làm việc */}
       <div className={styles.titleSection}>
-        <h1 className={styles.title}>Vận hành Bếp ăn</h1>
-        <p className={styles.subtitle}>
-          Theo dõi tiến độ chế biến, phân bổ khẩu phần theo lớp và ghi nhận lưu mẫu thực phẩm trong ngày.
-        </p>
+        <div className={styles.titleRow}>
+          <h1 className={styles.title}>Vận hành Bếp ăn</h1>
+          <span className={styles.todayBadge}>Ca nấu hôm nay</span>
+        </div>
       </div>
 
       {/* Section B: Truy cập nhanh (4 Cards) */}
@@ -31,7 +28,7 @@ function KitchenCooking() {
       {/* Section C: Công việc cần xử lý hôm nay */}
       <PendingTasksSection />
 
-      {/* Section D: Hoạt động gần đây (2 Bảng dữ liệu song song) */}
+      {/* Section D: Hoạt động gần đây */}
       <div className={styles.tablesGrid}>
         <RecentCookingBatches />
         <RecentMealAllocations />

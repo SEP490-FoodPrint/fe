@@ -664,3 +664,62 @@
     }
   }
 }
+
+.mobileActionIconBtn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background-color: #f3f4f6 !important;
+  color: var(--text-secondary, #4b5563) !important;
+  padding: 0 !important;
+  position: relative;
+  transition: all 0.16s ease !important;
+
+  /* Hit box mở rộng >= 44px (Rule 6.2) */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+  }
+
+  &:active {
+    transform: scale(0.92) !important;
+  }
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1) !important;
+    color: var(--color-primary, #0a8066) !important;
+  }
+}
+
+.mobileEditIconBtn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  background-color: var(--color-primary-soft, #e8f5f1) !important;
+  color: var(--color-primary, #0a8066) !important;
+  padding: 0 !important;
+  position: relative;
+  transition: all 0.16s ease !important;
+
+  /* Hit box mở rộng >= 44px (Rule 6.2) */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+  }
+
+  &:active {
+    transform: scale(0.92) !important;
+  }
+
+  &:hover {
+    background-color: #d1fae5 !important;
+  }
+}

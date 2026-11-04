@@ -1,0 +1,136 @@
+.gridContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+/* 1. Mobile Day Selector Bar */
+.mobileDayBar {
+  display: none;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.mobileDayList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.mobileDayPill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 44px; /* Touch target >= 44px */
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-default);
+  background-color: var(--background-paper);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  position: relative;
+
+  .pillIndex {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-primary);
+  }
+
+  .pillDate {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    line-height: 1.2;
+  }
+
+  .pillDot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--primary-main, #047857);
+  }
+
+  &:hover {
+    background-color: var(--background-paper-secondary, #f8fafc);
+    border-color: var(--border-focus, #10b981);
+  }
+
+  &.mobileDayPillActive {
+    background-color: var(--primary-main, #047857);
+    border-color: var(--primary-main, #047857);
+    color: #ffffff;
+
+    .pillIndex {
+      color: #ffffff;
+    }
+
+    .pillDate {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .pillDot {
+      background-color: #ffffff;
+    }
+  }
+
+  &.mobileDayPillToday:not(.mobileDayPillActive) {
+    border-color: var(--primary-main, #047857);
+    background-color: rgba(4, 120, 87, 0.05);
+
+    .pillIndex {
+      color: var(--primary-main, #047857);
+    }
+  }
+}
+
+/* 2. Days Grid Wrapper */
+.daysGridWrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(210px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+
+.dayColItem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* 3. Responsive adjustments */
+@media (max-width: 900px) {
+  .mobileDayBar {
+    display: block;
+  }
+
+  .daysGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .mobileHidden {
+    display: none !important;
+  }
+}
+

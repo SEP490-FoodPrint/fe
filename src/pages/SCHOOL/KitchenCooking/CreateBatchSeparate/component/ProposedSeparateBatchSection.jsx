@@ -28,9 +28,7 @@ export default function ProposedSeparateBatchSection({
               <h2 className={styles.sectionTitle}>
                 3. Phương án tách lô chế biến (Nấu riêng)
               </h2>
-              <p className={styles.sectionSubtitle}>
-                Phương án 02 lô nấu độc lập song song theo nguồn gốc nguyên liệu
-              </p>
+              
             </div>
           </div>
         </div>
@@ -40,10 +38,7 @@ export default function ProposedSeparateBatchSection({
             <CookingPot size={26} />
           </div>
           <h3 className={styles.emptyTitle}>Chưa có phương án tách lô</h3>
-          <p className={styles.emptyDesc}>
-            Phương án phân tách lô chế biến độc lập sẽ được tạo tự động ngay khi
-            chọn món ăn và hoàn tất đối soát nguyên liệu.
-          </p>
+          <p className={styles.emptyDesc}>Phương án tách lô sẽ hiển thị tự động sau khi chọn món.</p>
           <div className={styles.emptyHintBadge}>
             <Sparkles size={12} />
             <span>Phân tách 1:1 theo từng nguồn nguyên liệu</span>
@@ -67,9 +62,7 @@ export default function ProposedSeparateBatchSection({
             <h2 className={styles.sectionTitle}>
               3. Phương án tách lô chế biến ({selectedDish.name})
             </h2>
-            <p className={styles.sectionSubtitle}>
-              Phương án 02 lô nấu độc lập song song theo nguồn gốc nguyên liệu
-            </p>
+            
           </div>
         </div>
       </div>

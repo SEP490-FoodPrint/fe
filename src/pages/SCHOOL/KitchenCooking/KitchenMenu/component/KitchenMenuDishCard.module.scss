@@ -1,0 +1,176 @@
+.dishCard {
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: var(--radius-md, 8px);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.08);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.985);
+  }
+}
+
+.dishHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.categoryTag {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.catMain {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.catSoup {
+  background-color: #e0f2fe;
+  color: #0369a1;
+}
+
+.catSide {
+  background-color: #fef3c7;
+  color: #b45309;
+}
+
+.catDessert {
+  background-color: #fce7f3;
+  color: #be185d;
+}
+
+.catSnack {
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+}
+
+.catDefault {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.allergenChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background-color: #fff1f2;
+  color: #e11d48;
+  border: 1px solid #fecdd3;
+  white-space: nowrap;
+}
+
+.dishBody {
+  min-width: 0;
+}
+
+.dishName {
+  margin: 0;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-primary, #111827);
+  line-height: 1.3;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dishFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 3px;
+  border-top: 1px dashed var(--border-default, #f1f5f3);
+}
+
+.portionWrap {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  font-size: 11.5px;
+}
+
+.portionNum {
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.portionUnit {
+  color: var(--text-secondary, #6b7280);
+}
+
+.actionWrap {
+  display: flex;
+  align-items: center;
+}
+
+/* Touch Target chuẩn 44px (Rule 6.2) */
+.btnViewBatch,
+.btnCreateBatch {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 6px !important;
+  padding: 0 !important;
+  position: relative;
+  transition: all 0.15s ease !important;
+
+  /* Hit box mở rộng >= 44px */
+  &::after {
+    content: "";
+    position: absolute;
+    top: -8px;
+    bottom: -8px;
+    left: -8px;
+    right: -8px;
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+.btnViewBatch {
+  background-color: #f3f4f6 !important;
+  color: var(--text-secondary, #4b5563) !important;
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1) !important;
+    color: var(--color-primary, #0a8066) !important;
+  }
+}
+
+.btnCreateBatch {
+  background-color: var(--color-primary-soft, #e8f5f1) !important;
+  color: var(--color-primary, #0a8066) !important;
+
+  &:hover {
+    background-color: var(--color-primary, #0a8066) !important;
+    color: #ffffff !important;
+  }
+}
+

@@ -1,0 +1,169 @@
+.filterBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  flex-wrap: wrap;
+  width: 100%;
+  background-color: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: var(--radius-lg, 12px);
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+
+  @media (max-width: 768px) {
+    gap: 8px;
+    padding: 8px 10px;
+  }
+}
+
+.searchWrapper {
+  flex: 1;
+  min-width: 220px;
+
+  @media (max-width: 640px) {
+    min-width: 100%;
+  }
+}
+
+.searchField {
+  width: 100%;
+
+  :global(.MuiInputBase-root) {
+    font-size: 13px !important;
+    background-color: var(--bg-muted, #f9fafb);
+    border-radius: var(--radius-md, 8px) !important;
+    height: 38px;
+  }
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: var(--border-default, #e5e7eb) !important;
+  }
+
+  &:hover :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: var(--border-strong, #adbbb3) !important;
+  }
+
+  & :global(.Mui-focused .MuiOutlinedInput-notchedOutline) {
+    border-color: var(--color-primary, #0a8066) !important;
+  }
+}
+
+.searchIcon {
+  color: var(--text-muted, #9ca3af);
+}
+
+/* 2. Segmented Buttons */
+.segmentedGroup {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-muted, #f3f4f6);
+  border-radius: var(--radius-md, 8px);
+  padding: 3px;
+  gap: 2px;
+}
+
+.segmentBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary, #4b5563);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: var(--text-primary, #111827);
+  }
+
+  &.segmentActive {
+    background-color: #ffffff;
+    color: var(--color-primary, #0a8066);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* 3. Category Select */
+.categorySelectWrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.categorySelect {
+  height: 38px;
+  padding: 0 12px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default, #e5e7eb);
+  background-color: var(--bg-muted, #f9fafb);
+  color: var(--text-primary, #111827);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: var(--border-strong, #adbbb3);
+  }
+
+  &:focus {
+    border-color: var(--color-primary, #0a8066);
+    background-color: #ffffff;
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+}
+
+/* 4. Filter Meta */
+.filterMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+}
+
+.totalBadge {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--radius-full, 9999px);
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  white-space: nowrap;
+}
+
+.resetBtn {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  color: var(--text-muted, #6b7280) !important;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: -6px;
+    bottom: -6px;
+    left: -6px;
+    right: -6px;
+  }
+
+  &:hover {
+    background-color: var(--bg-muted, #f3f4f6) !important;
+    color: var(--text-primary, #111827) !important;
+  }
+}
+

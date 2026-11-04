@@ -1,5 +1,5 @@
 import React from "react"
-import { Activity, Check } from "lucide-react"
+import { Check } from "lucide-react"
 import styles from "./BatchTimelineCard.module.scss"
 
 export default function BatchTimelineCard({ status = "UNCONFIRMED" }) {
@@ -7,82 +7,63 @@ export default function BatchTimelineCard({ status = "UNCONFIRMED" }) {
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
 
+  const steps = [
+    {
+      id: "draft",
+      number: 1,
+      title: "Chưa xác nhận",
+      isCurrent: isDraft,
+      isDone: !isDraft,
+    },
+    {
+      id: "confirmed",
+      number: 2,
+      title: "Đang chế biến",
+      isCurrent: isConfirmed,
+      isDone: isCompleted,
+    },
+    {
+      id: "completed",
+      number: 3,
+      title: "Đã xong",
+      isCurrent: isCompleted,
+      isDone: isCompleted,
+    },
+  ]
+
   return (
     <section className={styles.timelineCard}>
-      {/* Header Thẻ */}
-      <div className={styles.cardHeader}>
-        <Activity size={18} className={styles.headerIcon} />
-        <h2 className={styles.cardTitle}>Tiến trình chế biến</h2>
-      </div>
-
-      {/* Stepper Dọc */}
-      <div className={styles.timelineList}>
-        {/* Bước 1: Chưa xác nhận */}
-        <div className={`${styles.timelineItem} ${isDraft ? styles.itemCurrent : styles.itemDone}`}>
-          <div className={styles.nodeMarker}>
-            {isDraft ? (
-              <span className={styles.innerDot} />
-            ) : (
-              <Check size={12} className={styles.checkIcon} />
-            )}
-          </div>
-
-          <div className={styles.itemContent}>
-            <div className={styles.itemHeader}>
-              <span className={styles.stepTitle}>1. Chưa xác nhận</span>
-              {isDraft && <span className={styles.currentBadge}>Hiện tại</span>}
+      <h3 className={styles.cardTitle}>Tiến trình chế biến</h3>
+      <div className={styles.stepperRow}>
+        {steps.map((step, idx) => (
+          <React.Fragment key={step.id}>
+            <div
+              className={`${styles.stepItem} ${
+                step.isCurrent
+                  ? styles.stepCurrent
+                  : step.isDone
+                    ? styles.stepDone
+                    : styles.stepPending
+              }`}
+            >
+              <div className={styles.stepCircle}>
+                {step.isDone && !step.isCurrent ? (
+                  <Check size={13} className={styles.checkIcon} />
+                ) : (
+                  <span>{step.number}</span>
+                )}
+              </div>
+              <span className={styles.stepLabel}>{step.title}</span>
             </div>
-            <p className={styles.stepDesc}>
-              Phương án lô nấu đã lập xong, đang đợi rà soát lô nguyên liệu.
-            </p>
-          </div>
-        </div>
-
-        {/* Bước 2: Đã xác nhận phương án */}
-        <div
-          className={`${styles.timelineItem} ${
-            isConfirmed ? styles.itemCurrent : isCompleted ? styles.itemDone : styles.itemPending
-          }`}
-        >
-          <div className={styles.nodeMarker}>
-            {isCompleted ? (
-              <Check size={12} className={styles.checkIcon} />
-            ) : (
-              <span className={styles.innerDot} />
+            {idx < steps.length - 1 && (
+              <div
+                className={`${styles.stepConnector} ${
+                  step.isDone ? styles.connectorDone : ""
+                }`}
+              />
             )}
-          </div>
-
-          <div className={styles.itemContent}>
-            <div className={styles.itemHeader}>
-              <span className={styles.stepTitle}>2. Đã xác nhận phương án</span>
-              {isConfirmed && <span className={styles.currentBadgeConfirmed}>Hiện tại</span>}
-            </div>
-            <p className={styles.stepDesc}>
-              Bếp trưởng duyệt phương án và cho phép xuất kho nấu lô chế biến.
-            </p>
-          </div>
-        </div>
-
-        {/* Bước 3: Đã chế biến xong */}
-        <div className={`${styles.timelineItem} ${isCompleted ? styles.itemDone : styles.itemPending}`}>
-          <div className={styles.nodeMarker}>
-            {isCompleted ? (
-              <Check size={12} className={styles.checkIcon} />
-            ) : (
-              <span className={styles.innerDot} />
-            )}
-          </div>
-
-          <div className={styles.itemContent}>
-            <div className={styles.itemHeader}>
-              <span className={styles.stepTitle}>3. Đã chế biến xong</span>
-              {isCompleted && <span className={styles.currentBadgeCompleted}>Hoàn tất</span>}
-            </div>
-            <p className={styles.stepDesc}>
-              Cập nhật số suất thực tế, lưu mẫu thức ăn 24h và hoàn tất quy trình.
-            </p>
-          </div>
-        </div>
+          </React.Fragment>
+        ))}
       </div>
     </section>
   )

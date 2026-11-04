@@ -110,10 +110,7 @@ export default function IngredientSeparateSection({
               <h2 className={styles.sectionTitle}>
                 2. Đối soát & Phân tách lô theo nguồn gốc
               </h2>
-              <p className={styles.sectionSubtitle}>
-                Chính sách nấu riêng: Không gộp các lô khác nguồn vào cùng một
-                nồi nấu
-              </p>
+              
             </div>
           </div>
         </div>
@@ -123,10 +120,7 @@ export default function IngredientSeparateSection({
             <PackageCheck size={26} />
           </div>
           <h3 className={styles.emptyTitle}>Chưa chọn món ăn cần chế biến</h3>
-          <p className={styles.emptyDesc}>
-            Vui lòng chọn món ăn ở <strong>Bước 1</strong> để hệ thống phân tách
-            các lô nguyên liệu theo quy chuẩn nấu riêng 1:1.
-          </p>
+          <p className={styles.emptyDesc}>Chọn món ăn ở Bước 1 để kiểm tra và đối soát nguyên liệu.</p>
           <div className={styles.emptyHintBadge}>
             <Sparkles size={12} />
             <span>Phân tách lô độc lập đảm bảo truy xuất nguồn gốc</span>
@@ -145,10 +139,7 @@ export default function IngredientSeparateSection({
             <h2 className={styles.sectionTitle}>
               2. Đối soát & Phân tách lô theo nguồn gốc ({selectedDish.name})
             </h2>
-            <p className={styles.sectionSubtitle}>
-              Chính sách nấu riêng: Phân tách nguồn nguyên liệu thành 02 lô độc
-              lập để truy xuất nguồn gốc 1:1
-            </p>
+            
           </div>
         </div>
 

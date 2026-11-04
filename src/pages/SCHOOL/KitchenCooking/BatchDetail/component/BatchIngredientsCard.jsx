@@ -1,5 +1,5 @@
 import React from "react"
-import { Layers, PackageCheck, Info } from "lucide-react"
+import { Layers, PackageCheck } from "lucide-react"
 import styles from "./BatchIngredientsCard.module.scss"
 
 export default function BatchIngredientsCard({ ingredients = [] }) {
@@ -15,7 +15,7 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
         </div>
         <div className={styles.countBadge}>
           <PackageCheck size={14} />
-          <span>{ingredients.length} nguyên liệu (từ các lô xuất kho đạt chuẩn)</span>
+          <span>{ingredients.length} nguyên liệu</span>
         </div>
       </div>
 
@@ -134,14 +134,6 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
             </div>
           ))
         )}
-      </div>
-
-      {/* Footer Info */}
-      <div className={styles.footerNote}>
-        <Info size={15} className={styles.infoIcon} />
-        <span>
-          Nguyên liệu xuất kho theo phương án chế biến và quy chuẩn an toàn đã được phê duyệt.
-        </span>
       </div>
     </section>
   )
