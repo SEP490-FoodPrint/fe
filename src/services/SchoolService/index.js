@@ -5,6 +5,7 @@ import {
   apiGetSchoolDetailByCode,
   apiGetDailyMealMenu,
   apiGetWeeklyMenu,
+  apiCookingMode,
 } from "./urls";
 
 /**
@@ -50,11 +51,16 @@ const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
   return res;
 };
 
+const getCookingMode = () => http.get(apiCookingMode);
+const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMode });
+
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getSchoolDetailByCode: getSchoolDetailByCodeApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
+  getCookingMode,
+  updateCookingMode,
 };
 
 export default SchoolService;

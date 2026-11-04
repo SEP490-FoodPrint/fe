@@ -232,6 +232,12 @@ export const MenuItemSchool = () => [
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
+    key: ROUTER.SCHOOL_COOKING_MODE,
+    label: "Chế độ nấu",
+    icon: <SoupKitchenOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
     key: ROUTER.SCHOOL_DAILY_CONFIRM,
     label: "Báo suất ăn & Dị ứng lớp",
     icon: <HowToRegOutlinedIcon />,
