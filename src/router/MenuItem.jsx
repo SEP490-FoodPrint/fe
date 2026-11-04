@@ -124,7 +124,7 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_MENU_APPROVAL,
     label: "Phê duyệt Thực đơn",
     icon: <FactCheckOutlinedIcon />,
-    roles: [ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD],
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN Y TẾ (SCHOOL_HEALTH_OFFICER) - 5 MỤC QUY CHUẨN ===
   {

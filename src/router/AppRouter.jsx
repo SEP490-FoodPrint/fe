@@ -194,9 +194,9 @@ const routes = [
             ],
           },
 
-          // Duyệt thực đơn: Ban Giám Hiệu, School Admin
+          // Duyệt thực đơn: Ban Giám Hiệu
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMIN, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_APPROVAL, element: <LazyWrapper><MenuApproval /></LazyWrapper> },
             ],
