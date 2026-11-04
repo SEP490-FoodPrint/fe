@@ -55,6 +55,8 @@ const IngredientOverview = lazy(() => import("src/pages/SCHOOL/IngredientOvervie
 const IngredientOrders = lazy(() => import("src/pages/SCHOOL/IngredientOrders"))
 const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
+const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
+const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
 
 function LazyWrapper({ children }) {
   return (
@@ -281,6 +283,13 @@ const routes = [
           },
 
           // Phản ánh bữa ăn: Ban Phụ huynh, GVCN, Ban Giám hiệu
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            children: [
+              { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><SupplierRelationships /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_CLASS_ASSIGNMENT, element: <LazyWrapper><ClassAssignment /></LazyWrapper> },
+            ],
+          },
           {
             element: <RoleRoute allowedRoles={[ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [

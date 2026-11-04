@@ -18,7 +18,7 @@ function SchoolLanding() {
   const [dailyMeal, setDailyMeal] = useState(null);
   const [weeklyMenu, setWeeklyMenu] = useState(null);
   const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,7 +50,7 @@ function SchoolLanding() {
           } else if (schoolResult.status === "rejected") {
             console.error(
               "Lỗi khi tải chi tiết trường học:",
-              schoolResult.reason
+              schoolResult.reason,
             );
           }
 
@@ -91,6 +91,44 @@ function SchoolLanding() {
     };
   }, [activeCode]);
 
+  const handleWeekChange = async (offset, groupId) => {
+    try {
+      const target = new Date();
+      target.setDate(target.getDate() + offset * 7);
+      const targetDateStr = target.toISOString().slice(0, 10);
+      const res = await SchoolService.getWeeklyMenu(
+        activeCode,
+        targetDateStr,
+        groupId,
+      );
+      const data =
+        res?.data && !res.data.data ? res.data : res?.data?.data || res;
+      setWeeklyMenu(data || null);
+    } catch (err) {
+      console.error("Lỗi khi chuyển đổi tuần:", err);
+    }
+  };
+
+  const handleGroupChange = async (groupId, offset = 0) => {
+    try {
+      const target = new Date();
+      if (offset !== 0) {
+        target.setDate(target.getDate() + offset * 7);
+      }
+      const targetDateStr = target.toISOString().slice(0, 10);
+      const res = await SchoolService.getWeeklyMenu(
+        activeCode,
+        targetDateStr,
+        groupId,
+      );
+      const data =
+        res?.data && !res.data.data ? res.data : res?.data?.data || res;
+      setWeeklyMenu(data || null);
+    } catch (err) {
+      console.error("Lỗi khi chuyển đổi nhóm bán trú:", err);
+    }
+  };
+
   return (
     <div className="school-landing-wrapper">
       {/* 1. School Header cố định trên cùng */}
@@ -111,7 +149,11 @@ function SchoolLanding() {
         />
 
         {/* Thực đơn bán trú theo tuần */}
-        <WeeklyMenuSection weeklyMenu={weeklyMenu} />
+        <WeeklyMenuSection
+          weeklyMenu={weeklyMenu}
+          onWeekChange={handleWeekChange}
+          onGroupChange={handleGroupChange}
+        />
       </main>
 
       {/* 3. Footer của riêng trường */}
