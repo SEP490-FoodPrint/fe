@@ -23,6 +23,7 @@ import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined"
+import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -235,6 +236,12 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_COOKING_MODE,
     label: "Chế độ nấu",
     icon: <SoupKitchenOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_MEAL_TIMES,
+    label: "Giờ phục vụ",
+    icon: <ScheduleOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
