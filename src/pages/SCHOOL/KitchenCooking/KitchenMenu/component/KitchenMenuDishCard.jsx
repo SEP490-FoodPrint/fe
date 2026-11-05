@@ -16,11 +16,9 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
     }
   }
 
-  const isLunch = mealType === "LUNCH"
-
   return (
     <div
-      className={`${styles.dishRow} ${isLunch ? styles.dishRowLunch : styles.dishRowAfternoon}`}
+      className={styles.dishRow}
       onClick={handleAction}
       role="button"
       tabIndex={0}
@@ -31,10 +29,10 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
       }
       aria-label={`${dish.name} - ${dish.isBatchCreated ? "Đã lập lô" : "Chưa tạo lô"}`}
     >
-      {/* 1. Tên món ăn (to, thoáng, rõ nét) */}
+      {/* 1. Tên món ăn: NỔI BẬT NHẤT CHO NGƯỜI LÀM BẾP DỄ QUÉT MẮT */}
       <span className={styles.dishName}>{dish.name}</span>
 
-      {/* 2. Nút thao tác lô chế biến thay cho phần suất */}
+      {/* 2. Cụm thao tác lô: Nhẹ nhàng, tinh tế, không lấn át tên món */}
       <div className={styles.actionWrap}>
         {dish.isBatchCreated ? (
           <button
@@ -43,19 +41,17 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
             onClick={handleAction}
             aria-label={`Xem lô chế biến món ${dish.name}`}
           >
-            <CheckCircle2 size={12} className={styles.btnIcon} />
+            <CheckCircle2 size={11} className={styles.btnIcon} />
             <span>Đã lập lô</span>
           </button>
         ) : (
           <button
             type="button"
-            className={`${styles.btnCreateBatch} ${
-              isLunch ? styles.btnCreateLunch : styles.btnCreateAfternoon
-            }`}
+            className={styles.btnCreateBatch}
             onClick={handleAction}
             aria-label={`Tạo lô chế biến món ${dish.name}`}
           >
-            <Plus size={12} className={styles.btnIcon} />
+            <Plus size={11} className={styles.btnIcon} />
             <span>Tạo lô</span>
           </button>
         )}

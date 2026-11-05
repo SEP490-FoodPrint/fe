@@ -7,7 +7,6 @@
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   min-width: 0;
-  height: 100%;
   transition: border-color 0.18s ease, box-shadow 0.18s ease;
 
   &:hover {
@@ -17,32 +16,33 @@
 }
 
 .todayColumn {
-  border: 2px solid var(--color-primary, #0a8066) !important;
-  box-shadow: 0 4px 16px rgba(10, 128, 102, 0.12) !important;
+  border-color: var(--color-primary, #0a8066) !important;
+  box-shadow: 0 0 0 1px var(--color-primary, #0a8066), 0 4px 16px rgba(10, 128, 102, 0.1) !important;
 
   .dayHeader {
     background-color: #f0fdf4;
   }
 }
 
-/* 1. Header Cột Ngày (Thứ Hai, Thứ Ba...) - Căn giữa cân đối, đệm thoáng */
+/* 1. Header Cột Ngày (Thứ Hai, Thứ Ba...) - Chiều cao cố định 66px căn đều tuyệt đối cả 5 cột */
 .dayHeader {
-  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 16px 14px 14px;
+  height: 66px;
+  box-sizing: border-box;
+  padding: 10px 14px;
   background-color: #ffffff;
   border-bottom: 1px solid var(--border-default, #e2e8f0);
-  gap: 4px;
+  gap: 3px;
 }
 
 .dayTitleRow {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   width: 100%;
 }
 
@@ -60,14 +60,11 @@
 }
 
 .todayPill {
-  position: absolute;
-  top: 10px;
-  right: 10px;
   font-size: 10px;
   font-weight: 700;
   color: #ffffff;
   background-color: var(--color-primary, #0a8066);
-  padding: 2px 7px;
+  padding: 1px 6px;
   border-radius: 4px;
   letter-spacing: -0.01em;
 }
@@ -84,27 +81,23 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  flex: 1;
 }
 
 .mealSection {
   display: flex;
   flex-direction: column;
-
-  &:last-child {
-    margin-top: 8px; /* Khoảng đệm thoáng mắt 8px giữa ca Trưa và ca Xế, không bị dính liền vào nhau */
-    border-top: 1px solid #e2e8f0;
-  }
 }
 
 /* ========================================================
-   DẢI BỮA TRƯA: Tông Cam ấm áp nhẹ nhàng, phẳng tràn viền
+   DẢI BỮA TRƯA: Chiều cao chuẩn 38px gióng thẳng hàng 5 cột
    ======================================================== */
 .lunchBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 14px;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 14px;
   background-color: #fff7ed;
   border-top: 1px solid #ffedd5;
   border-bottom: 1px solid #fed7aa;
@@ -139,14 +132,24 @@
   border-radius: 4px;
 }
 
+/* Danh sách món Bữa Trưa: Chiều cao chuẩn 5 x 54px = 270px để Bữa Xế bằng chằn chặn */
+.dishesListLunch {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  min-height: 270px;
+}
+
 /* ========================================================
-   DẢI BỮA XẾ: Tông Xanh lam thanh mát, phẳng tràn viền
+   DẢI BỮA XẾ: Chiều cao chuẩn 38px gióng thẳng hàng 5 cột
    ======================================================== */
 .afternoonBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 9px 14px;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 14px;
   background-color: #eff6ff;
   border-top: 1px solid #dbeafe;
   border-bottom: 1px solid #bfdbfe;
@@ -175,11 +178,12 @@
   border-radius: 4px;
 }
 
-/* Danh sách món phẳng */
-.dishesList {
+/* Danh sách món Bữa Xế: Chiều cao chuẩn 1 x 54px = 54px */
+.dishesListAfternoon {
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
+  min-height: 54px;
 }
 
 .emptyNotice {
@@ -188,4 +192,8 @@
   font-size: 12px;
   color: var(--text-muted, #94a3b8);
   font-style: italic;
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

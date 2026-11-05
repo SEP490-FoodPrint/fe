@@ -2,14 +2,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 11px 14px;
+  gap: 10px;
+  height: 54px; /* Chiều cao cố định bằng nhau tuyệt đối để tất cả các dòng gióng hàng ngang thẳng tắp */
+  box-sizing: border-box;
+  padding: 0 14px;
   border-bottom: 1px solid #f1f5f9;
   background-color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.15s ease;
-  min-height: 48px; /* Chiều cao thoáng, cân đối, dễ nhìn */
-  box-sizing: border-box;
+  transition: background-color 0.12s ease;
 
   &:last-child {
     border-bottom: none;
@@ -17,41 +17,31 @@
 
   &:hover {
     background-color: #f8fafc;
+
+    .dishName {
+      color: var(--color-primary, #0a8066);
+    }
+
+    .btnCreateBatch {
+      border-color: var(--color-primary, #0a8066);
+      color: var(--color-primary, #0a8066);
+      background-color: #f0fdf4;
+    }
   }
 
   @media (max-width: 768px) {
-    min-height: 50px;
-    padding: 12px 14px;
+    height: 56px;
+    padding: 0 12px;
   }
 }
 
-.dishRowLunch {
-  &:hover {
-    background-color: #fffaf5;
-
-    .dishName {
-      color: #9a3412;
-    }
-  }
-}
-
-.dishRowAfternoon {
-  &:hover {
-    background-color: #f8faff;
-
-    .dishName {
-      color: #1e40af;
-    }
-  }
-}
-
-/* 1. Tên món ăn: Rõ ràng, thoáng, sắc nét */
+/* 1. Tên món ăn: NỔI BẬT NHẤT CHO NGƯỜI LÀM BẾP (ĐẬM, RÕ NÉT, TƯƠNG PHẢN CAO) */
 .dishName {
   font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary, #1e293b);
-  line-height: 1.4;
+  font-size: 13.5px;
+  font-weight: 600; /* Nét đậm rõ nét */
+  color: #0f172a; /* Slate 900 - màu đậm sâu, nổi bật chữ */
+  line-height: 1.35;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -59,90 +49,64 @@
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  transition: color 0.15s ease;
-
-  @media (max-width: 640px) {
-    font-size: 13px;
-    font-weight: 600;
-  }
+  letter-spacing: -0.01em;
+  transition: color 0.12s ease;
 }
 
-/* 2. Cụm nút thao tác lô */
+/* 2. Cụm nút thao tác: Tinh tế, chìm hơn để nhường vị trí trung tâm cho tên món */
 .actionWrap {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
 
-/* Badge Món đã lập lô */
+/* Đã lập lô: Tag nhỏ gọn, nhẹ nhàng, thanh thoát */
 .badgeBatchDone {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  font-weight: 600;
-  color: #047857;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
+  font-weight: 500;
+  color: #15803d;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
   padding: 3px 8px;
-  border-radius: 5px;
+  border-radius: 4px;
   line-height: 1.2;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.12s ease;
 
   &:hover {
-    background-color: #d1fae5;
-    border-color: #6ee7b7;
-    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.18);
+    background-color: #dcfce7;
+    border-color: #bbf7d0;
   }
 
   .btnIcon {
     flex-shrink: 0;
+    color: #16a34a;
   }
 }
 
-/* Nút Tạo lô */
+/* Tạo lô: Nút viền mỏng trung tính, thanh thoát, không màu mè chói mắt */
 .btnCreateBatch {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
+  color: #64748b;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
   padding: 3px 8px;
-  border-radius: 5px;
+  border-radius: 4px;
   line-height: 1.2;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 
   .btnIcon {
     flex-shrink: 0;
-  }
-}
-
-.btnCreateLunch {
-  background-color: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
-
-  &:hover {
-    background-color: #ea580c;
-    color: #ffffff;
-    border-color: #ea580c;
-    box-shadow: 0 1px 4px rgba(234, 88, 12, 0.22);
-  }
-}
-
-.btnCreateAfternoon {
-  background-color: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
-
-  &:hover {
-    background-color: #2563eb;
-    color: #ffffff;
-    border-color: #2563eb;
-    box-shadow: 0 1px 4px rgba(37, 99, 235, 0.22);
+    color: #94a3b8;
   }
 }

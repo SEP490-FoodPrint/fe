@@ -25,23 +25,23 @@ export default function KitchenMenuDayCard({
 
   return (
     <div className={`${styles.dayColumn} ${isToday ? styles.todayColumn : ""}`}>
-      {/* 1. Header Cột Ngày (Thứ Hai, Thứ Ba... kèm icon lịch) */}
+      {/* 1. Header Cột Ngày: Chiều cao chuẩn 66px căn đều trên cả 5 cột */}
       <div className={styles.dayHeader}>
-        {isToday && <span className={styles.todayPill}>Hôm nay</span>}
         <div className={styles.dayTitleRow}>
           <Calendar size={15} className={styles.dayCalendarIcon} />
           <span className={styles.dayLabel}>{dayData.dayLabel}</span>
+          {isToday && <span className={styles.todayPill}>Hôm nay</span>}
         </div>
         <span className={styles.dayDateText}>{dayData.dateVN}</span>
       </div>
 
-      {/* 2. Danh sách món ăn phân đoạn 2 ca: Bữa trưa (Cam) & Bữa xế (Xanh) */}
+      {/* 2. Danh sách món ăn phân đoạn 2 ca: Bữa trưa & Bữa xế thẳng hàng ngang */}
       <div className={styles.dishesBody}>
         {totalFilteredDishes === 0 ? (
           <div className={styles.emptyNotice}>Không có món phù hợp</div>
         ) : (
           <>
-            {/* KHỐI BỮA TRƯA */}
+            {/* KHỐI BỮA TRƯA: Dải cao 38px + danh sách 5 món chuẩn 270px */}
             {lunchDishes.length > 0 && (
               <div className={styles.mealSection}>
                 <div className={styles.lunchBanner}>
@@ -52,7 +52,7 @@ export default function KitchenMenuDayCard({
                   <span className={styles.lunchBadge}>{lunchDishes.length} món</span>
                 </div>
 
-                <div className={styles.dishesList}>
+                <div className={styles.dishesListLunch}>
                   {lunchDishes.map((dish) => (
                     <KitchenMenuDishCard key={dish.id} dish={dish} mealType="LUNCH" />
                   ))}
@@ -60,7 +60,7 @@ export default function KitchenMenuDayCard({
               </div>
             )}
 
-            {/* KHỐI BỮA XẾ */}
+            {/* KHỐI BỮA XẾ: Dải cao 38px + danh sách món chuẩn 54px */}
             {afternoonDishes.length > 0 && (
               <div className={styles.mealSection}>
                 <div className={styles.afternoonBanner}>
@@ -71,7 +71,7 @@ export default function KitchenMenuDayCard({
                   <span className={styles.afternoonBadge}>{afternoonDishes.length} món</span>
                 </div>
 
-                <div className={styles.dishesList}>
+                <div className={styles.dishesListAfternoon}>
                   {afternoonDishes.map((dish) => (
                     <KitchenMenuDishCard key={dish.id} dish={dish} mealType="AFTERNOON" />
                   ))}
