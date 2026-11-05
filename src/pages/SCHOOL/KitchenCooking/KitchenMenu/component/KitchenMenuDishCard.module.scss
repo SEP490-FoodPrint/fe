@@ -1,6 +1,5 @@
 .dishCard {
-  background-color: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-default, #e5e7eb);
+  background-color: #ffffff;
   border-radius: var(--radius-md, 8px);
   padding: 8px 10px;
   display: flex;
@@ -11,10 +10,18 @@
   position: relative;
   -webkit-tap-highlight-color: transparent;
 
+  /* Touch target an toàn >= 44x44px trên mobile */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    z-index: 1;
+    pointer-events: none;
+  }
+
   &:hover {
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.08);
     transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
   }
 
   &:active {
@@ -22,59 +29,31 @@
   }
 }
 
-.dishHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+/* Biến thể Bữa Trưa (Ấm áp, Vàng Cam Hổ Phách) */
+.dishCardLunch {
+  border: 1px solid #fde68a;
+  background-color: #ffffff;
+
+  &:hover {
+    border-color: #f59e0b;
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.12);
+  }
 }
 
-/* Huy hiệu trạng thái lô chế biến */
-.batchReadyBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3.5px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-success, #168456);
-  background-color: var(--color-success-bg, #e8f6ef);
-  padding: 2px 7px;
-  border-radius: 4px;
-  line-height: 1.2;
+/* Biến thể Bữa Xế (Thanh mát, Xanh Lam Phấn) */
+.dishCardAfternoon {
+  border: 1px solid #bfdbfe;
+  background-color: #ffffff;
+
+  &:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.12);
+  }
 }
 
-.batchPendingBadge {
-  display: inline-flex;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7c74);
-  background-color: var(--bg-muted, #f1f5f3);
-  padding: 2px 7px;
-  border-radius: 4px;
-  line-height: 1.2;
-}
-
-/* Dị nguyên */
-.allergenChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #b45309;
-  background-color: #fef3c7;
-  padding: 1.5px 5px;
-  border-radius: 4px;
-  max-width: 90px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Tên món - chuẩn 13.5px SemiBold theo Section 6 ai_coding_rule.md */
-.dishBody {
-  min-height: 19px;
+/* 1. Tên món ăn */
+.dishTopRow {
+  min-height: 20px;
 }
 
 .dishName {
@@ -89,13 +68,14 @@
   overflow: hidden;
 }
 
-/* Footer: Số suất + Nút thao tác */
-.dishFooter {
+/* 2. Chân thẻ */
+.dishBottomRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-top: 4px;
-  border-top: 1px dashed var(--border-default, #f3f4f6);
+  border-top: 1px dashed var(--border-default, #e5e7eb);
+  gap: 6px;
 }
 
 .portionWrap {
@@ -105,9 +85,9 @@
 }
 
 .portionNum {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: var(--text-secondary, #374151);
 }
 
 .portionUnit {
@@ -115,48 +95,59 @@
   color: var(--text-muted, #6b7280);
 }
 
-/* Nút thao tác Icon-First có touch target >= 44x44px */
-.actionWrap {
+/* Trạng thái lập lô */
+.statusActionWrap {
   display: flex;
   align-items: center;
 }
 
-.btnViewBatch {
-  width: 28px !important;
-  height: 28px !important;
-  background-color: var(--color-primary-soft, #e8f5f1) !important;
-  color: var(--color-primary, #0a8066) !important;
-  border-radius: 6px !important;
-  position: relative;
+.batchReadyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-success, #168456);
+  background-color: var(--color-success-bg, #e8f6ef);
+  padding: 2px 6px;
+  border-radius: 4px;
+  line-height: 1.2;
 
-  &::after {
-    content: "";
-    position: absolute;
-    inset: -8px;
-  }
-
-  &:hover {
-    background-color: var(--color-primary, #0a8066) !important;
-    color: #ffffff !important;
+  .checkIcon {
+    flex-shrink: 0;
   }
 }
 
-.btnCreateBatch {
-  width: 28px !important;
-  height: 28px !important;
-  background-color: var(--bg-muted, #f3f4f6) !important;
-  color: var(--text-secondary, #4b5563) !important;
-  border-radius: 6px !important;
-  position: relative;
+.batchCreateAction {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1.2;
+  transition: all 0.15s ease;
+}
 
-  &::after {
-    content: "";
-    position: absolute;
-    inset: -8px;
-  }
+.btnLunchAction {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
 
   &:hover {
-    background-color: var(--color-primary, #0a8066) !important;
-    color: #ffffff !important;
+    background-color: #ea580c;
+    color: #ffffff;
+  }
+}
+
+.btnAfternoonAction {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+
+  &:hover {
+    background-color: #2563eb;
+    color: #ffffff;
   }
 }

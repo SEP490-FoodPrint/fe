@@ -1,11 +1,102 @@
-.gridContainer {
+.menuSheetBoard {
   display: flex;
   flex-direction: column;
   gap: 12px;
   width: 100%;
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e2e8f0);
+  border-radius: var(--radius-xl, 16px);
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-/* 1. Mobile Day Selector Bar */
+/* 1. Sheet Top Banner & Chú thích 2 ca ăn */
+.sheetTopBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--border-default, #e2e8f0);
+}
+
+.sheetBannerTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sheetSub {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+}
+
+.mealLegend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.legendLunch {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.legendDotLunch {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #ea580c;
+}
+
+.legendIconLunch {
+  color: #ea580c;
+}
+
+.legendAfternoon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.legendDotAfternoon {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #2563eb;
+}
+
+.legendIconAfternoon {
+  color: #2563eb;
+}
+
+.legendLabel {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+
+  .legendLunch & {
+    color: #9a3412;
+  }
+
+  .legendAfternoon & {
+    color: #1e40af;
+  }
+}
+
+/* 2. Mobile Day Selector Bar */
 .mobileDayBar {
   display: none;
   width: 100%;
@@ -34,9 +125,9 @@
   min-height: 44px; /* Touch target >= 44px */
   padding: 6px 12px;
   border-radius: 8px;
-  border: 1px solid var(--border-default);
-  background-color: var(--background-paper);
-  color: var(--text-secondary);
+  border: 1px solid var(--border-default, #e2e8f0);
+  background-color: #ffffff;
+  color: var(--text-secondary, #475569);
   cursor: pointer;
   transition: all 0.15s ease;
   position: relative;
@@ -45,13 +136,13 @@
     font-size: 13px;
     font-weight: 700;
     line-height: 1.2;
-    color: var(--text-primary);
+    color: var(--text-primary, #0f172a);
   }
 
   .pillDate {
     font-size: 11px;
     font-weight: 500;
-    color: var(--text-tertiary);
+    color: var(--text-muted, #94a3b8);
     line-height: 1.2;
   }
 
@@ -62,17 +153,17 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: var(--primary-main, #047857);
+    background-color: var(--color-primary, #0a8066);
   }
 
   &:hover {
-    background-color: var(--background-paper-secondary, #f8fafc);
-    border-color: var(--border-focus, #10b981);
+    background-color: #f8fafc;
+    border-color: var(--color-primary, #0a8066);
   }
 
   &.mobileDayPillActive {
-    background-color: var(--primary-main, #047857);
-    border-color: var(--primary-main, #047857);
+    background-color: var(--color-primary, #0a8066);
+    border-color: var(--color-primary, #0a8066);
     color: #ffffff;
 
     .pillIndex {
@@ -89,20 +180,20 @@
   }
 
   &.mobileDayPillToday:not(.mobileDayPillActive) {
-    border-color: var(--primary-main, #047857);
-    background-color: rgba(4, 120, 87, 0.05);
+    border-color: var(--color-primary, #0a8066);
+    background-color: rgba(10, 128, 102, 0.06);
 
     .pillIndex {
-      color: var(--primary-main, #047857);
+      color: var(--color-primary, #0a8066);
     }
   }
 }
 
-/* 2. Days Grid Wrapper */
+/* 3. Days Grid */
 .daysGridWrapper {
   width: 100%;
   overflow-x: auto;
-  padding-bottom: 8px;
+  padding-bottom: 4px;
 }
 
 .daysGrid {
@@ -118,8 +209,13 @@
   min-width: 0;
 }
 
-/* 3. Responsive adjustments */
+/* 4. Responsive */
 @media (max-width: 900px) {
+  .menuSheetBoard {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
   .mobileDayBar {
     display: block;
   }
@@ -133,4 +229,3 @@
     display: none !important;
   }
 }
-

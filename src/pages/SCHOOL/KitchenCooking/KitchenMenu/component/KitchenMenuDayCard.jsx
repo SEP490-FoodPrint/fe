@@ -1,5 +1,5 @@
 import React from "react"
-import { Calendar, Utensils, Coffee } from "lucide-react"
+import { Utensils, Coffee } from "lucide-react"
 import KitchenMenuDishCard from "./KitchenMenuDishCard"
 import styles from "./KitchenMenuDayCard.module.scss"
 
@@ -42,7 +42,7 @@ export default function KitchenMenuDayCard({
         )}
       </div>
 
-      {/* 2. Danh sách các món ăn đổ dọc xuống */}
+      {/* 2. Danh sách các món ăn phân chia rõ rệt 2 màu: Bữa trưa (Cam) & Bữa xế (Xanh lam) */}
       <div className={styles.dishesVerticalStack}>
         {totalFilteredDishes === 0 ? (
           <div className={styles.emptyDayNotice}>
@@ -50,35 +50,51 @@ export default function KitchenMenuDayCard({
           </div>
         ) : (
           <>
-            {/* Nhóm Bữa Trưa */}
+            {/* KHỐI 1: BỮA TRƯA (Màu Cam / Hổ phách ấm áp) */}
             {lunchDishes.length > 0 && (
-              <div className={styles.mealGroup}>
-                <div className={styles.mealGroupHeader}>
-                  <Utensils size={13} className={styles.mealIcon} />
-                  <span className={styles.mealGroupTitle}>Bữa trưa (11:00)</span>
-                  <span className={styles.dishCount}>{lunchDishes.length}</span>
+              <div className={styles.lunchMealGroup}>
+                <div className={styles.lunchHeader}>
+                  <div className={styles.mealTitleLeft}>
+                    <Utensils size={13} className={styles.lunchIcon} />
+                    <span className={styles.lunchTitle}>Bữa trưa (11:00)</span>
+                  </div>
+                  <span className={styles.lunchCountBadge}>
+                    {lunchDishes.length} món
+                  </span>
                 </div>
 
-                <div className={styles.dishList}>
+                <div className={styles.lunchDishList}>
                   {lunchDishes.map((dish) => (
-                    <KitchenMenuDishCard key={dish.id} dish={dish} />
+                    <KitchenMenuDishCard
+                      key={dish.id}
+                      dish={dish}
+                      mealType="LUNCH"
+                    />
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Nhóm Bữa Xế */}
+            {/* KHỐI 2: BỮA XẾ (Màu Xanh lam / Tím mát mẻ) */}
             {afternoonDishes.length > 0 && (
-              <div className={styles.mealGroup}>
-                <div className={styles.mealGroupHeader}>
-                  <Coffee size={13} className={styles.mealIcon} />
-                  <span className={styles.mealGroupTitle}>Bữa xế (14:30)</span>
-                  <span className={styles.dishCount}>{afternoonDishes.length}</span>
+              <div className={styles.afternoonMealGroup}>
+                <div className={styles.afternoonHeader}>
+                  <div className={styles.mealTitleLeft}>
+                    <Coffee size={13} className={styles.afternoonIcon} />
+                    <span className={styles.afternoonTitle}>Bữa xế (14:30)</span>
+                  </div>
+                  <span className={styles.afternoonCountBadge}>
+                    {afternoonDishes.length} món
+                  </span>
                 </div>
 
-                <div className={styles.dishList}>
+                <div className={styles.afternoonDishList}>
                   {afternoonDishes.map((dish) => (
-                    <KitchenMenuDishCard key={dish.id} dish={dish} />
+                    <KitchenMenuDishCard
+                      key={dish.id}
+                      dish={dish}
+                      mealType="AFTERNOON"
+                    />
                   ))}
                 </div>
               </div>

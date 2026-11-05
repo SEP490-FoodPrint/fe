@@ -1,6 +1,14 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { ChevronLeft, ChevronRight, Calendar, ArrowRight, CheckCircle2 } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  ArrowRight,
+  CheckCircle2,
+  Printer,
+  ChefHat,
+} from "lucide-react"
 import { Button } from "@mui/material"
 import ROUTER from "src/router/ROUTER"
 import styles from "./KitchenMenuHeader.module.scss"
@@ -18,18 +26,29 @@ export default function KitchenMenuHeader({
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <div className={styles.headingWrap}>
-            <h1 className={styles.heading}>Thực đơn đã lên</h1>
+            <ChefHat size={22} className={styles.headingIcon} />
+            <h1 className={styles.heading}>Thực đơn tuần học đường</h1>
             <span className={styles.approvedBadge}>
               <CheckCircle2 size={13} />
               <span>Đã duyệt BGH</span>
             </span>
           </div>
           <span className={styles.subHint}>
-            Kế hoạch chế biến các bữa ăn trong tuần của bếp cơ sở
+            Thực đơn hoàn chỉnh do Ban Y tế lập và Ban Giám Hiệu phê duyệt • Sẵn sàng chế biến
           </span>
         </div>
 
         <div className={styles.headerActions}>
+          <Button
+            variant="outlined"
+            size="small"
+            className={styles.printBtn}
+            onClick={() => window.print()}
+            startIcon={<Printer size={15} />}
+          >
+            In tờ thực đơn
+          </Button>
+
           <Button
             variant="outlined"
             size="small"
@@ -86,4 +105,3 @@ export default function KitchenMenuHeader({
     </div>
   )
 }
-

@@ -26,6 +26,10 @@
   flex-wrap: wrap;
 }
 
+.headingIcon {
+  color: var(--color-primary, #0a8066);
+}
+
 .heading {
   font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
   font-size: var(--text-2xl, 24px);
@@ -45,8 +49,8 @@
   gap: 4px;
   padding: 3px 9px;
   border-radius: var(--radius-full, 9999px);
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
+  background-color: var(--color-success-bg, #e8f6ef);
+  color: var(--color-success, #168456);
   font-size: 12px;
   font-weight: 600;
 }
@@ -70,7 +74,7 @@
   }
 }
 
-.batchesBtn {
+.printBtn {
   border-color: var(--border-default, #e5e7eb) !important;
   color: var(--text-secondary, #374151) !important;
   text-transform: none !important;
@@ -80,8 +84,21 @@
 
   &:hover {
     background-color: var(--bg-muted, #f9fafb) !important;
-    border-color: var(--color-primary, #0a8066) !important;
-    color: var(--color-primary, #0a8066) !important;
+    border-color: var(--text-primary, #111827) !important;
+    color: var(--text-primary, #111827) !important;
+  }
+}
+
+.batchesBtn {
+  border-color: var(--color-primary, #0a8066) !important;
+  color: var(--color-primary, #0a8066) !important;
+  text-transform: none !important;
+  font-weight: 600 !important;
+  border-radius: var(--radius-md, 8px) !important;
+  padding: 6px 14px !important;
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e8f5f1) !important;
   }
 }
 
@@ -109,37 +126,29 @@
 }
 
 .navArrowBtn {
-  width: 36px;
-  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md, 8px);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
   border: 1px solid var(--border-default, #e5e7eb);
   background-color: #ffffff;
-  color: var(--text-secondary, #374151);
+  color: var(--text-secondary, #4b5563);
   cursor: pointer;
-  position: relative;
   transition: all 0.15s ease;
+  position: relative;
 
-  /* Hit box >= 44px */
   &::after {
     content: "";
     position: absolute;
-    top: -4px;
-    bottom: -4px;
-    left: -4px;
-    right: -4px;
+    inset: -6px;
   }
 
   &:hover {
-    background-color: var(--bg-muted, #f9fafb);
-    border-color: var(--border-strong, #adbbb3);
-    color: var(--color-primary, #0a8066);
-  }
-
-  &:active {
-    transform: scale(0.94);
+    background-color: var(--bg-muted, #f3f4f6);
+    color: var(--text-primary, #111827);
+    border-color: var(--border-strong, #9ca3af);
   }
 }
 
@@ -147,7 +156,9 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 0 6px;
+  padding: 4px 10px;
+  background-color: var(--bg-muted, #f9fafb);
+  border-radius: 6px;
 }
 
 .calendarIcon {
@@ -159,10 +170,9 @@
   font-size: 13.5px;
   font-weight: 700;
   color: var(--text-primary, #111827);
-  letter-spacing: -0.01em;
 
   @media (max-width: 640px) {
-    font-size: 12.5px;
+    font-size: 12px;
   }
 }
 
@@ -173,25 +183,27 @@
 }
 
 .todayBtn {
-  height: 34px;
+  height: 32px;
   padding: 0 12px;
-  border-radius: var(--radius-md, 8px);
+  border-radius: 6px;
   border: 1px solid var(--border-default, #e5e7eb);
-  background-color: var(--bg-muted, #f9fafb);
-  color: var(--text-secondary, #4b5563);
+  background-color: #ffffff;
+  color: var(--text-secondary, #374151);
   font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -6px;
+  }
 
   &:hover {
-    background-color: var(--color-primary-soft, #e8f5f1);
     border-color: var(--color-primary, #0a8066);
     color: var(--color-primary, #0a8066);
-  }
-
-  &:active {
-    transform: scale(0.96);
+    background-color: var(--color-primary-soft, #e8f5f1);
   }
 }
-

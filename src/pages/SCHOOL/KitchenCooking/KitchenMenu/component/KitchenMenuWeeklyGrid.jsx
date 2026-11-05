@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react"
+import { Utensils, Coffee } from "lucide-react"
 import KitchenMenuDayCard from "./KitchenMenuDayCard"
 import styles from "./KitchenMenuWeeklyGrid.module.scss"
 
@@ -21,8 +22,29 @@ export default function KitchenMenuWeeklyGrid({
   }, [todayDay])
 
   return (
-    <div className={styles.gridContainer}>
-      {/* 1. Dải chuyển ngày Mobile-first (ẩn trên màn hình Desktop) */}
+    <div className={styles.menuSheetBoard}>
+      {/* 1. Thanh chú thích 2 ca ăn (Tờ thực đơn chuẩn học đường) */}
+      <div className={styles.sheetTopBanner}>
+        <div className={styles.sheetBannerTitle}>
+          <span className={styles.sheetSub}>Thực đơn chế biến 1 tuần (Thứ Hai — Thứ Sáu)</span>
+        </div>
+
+        <div className={styles.mealLegend}>
+          <div className={styles.legendLunch}>
+            <span className={styles.legendDotLunch} />
+            <Utensils size={13} className={styles.legendIconLunch} />
+            <span className={styles.legendLabel}>Bữa trưa (11:00)</span>
+          </div>
+
+          <div className={styles.legendAfternoon}>
+            <span className={styles.legendDotAfternoon} />
+            <Coffee size={13} className={styles.legendIconAfternoon} />
+            <span className={styles.legendLabel}>Bữa xế (14:30)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Dải chuyển ngày Mobile-first (ẩn trên màn hình Desktop) */}
       <div className={styles.mobileDayBar}>
         <div className={styles.mobileDayList}>
           {schoolDays.map((day) => {
@@ -59,7 +81,7 @@ export default function KitchenMenuWeeklyGrid({
         </div>
       </div>
 
-      {/* 2. Lưới 5 cột hiển thị thực đơn theo ngày */}
+      {/* 3. Lưới 5 cột hiển thị thực đơn theo ngày */}
       <div className={styles.daysGridWrapper}>
         <div className={styles.daysGrid}>
           {schoolDays.map((day) => {
