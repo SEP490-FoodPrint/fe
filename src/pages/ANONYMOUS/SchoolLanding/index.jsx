@@ -91,11 +91,17 @@ function SchoolLanding() {
     };
   }, [activeCode]);
 
-  const handleWeekChange = async (offset, groupId) => {
+  const handleWeekChange = async (weekValue, groupId) => {
     try {
-      const target = new Date();
-      target.setDate(target.getDate() + offset * 7);
-      const targetDateStr = target.toISOString().slice(0, 10);
+      let targetDateStr;
+      if (typeof weekValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(weekValue)) {
+        targetDateStr = weekValue;
+      } else {
+        const offset = Number(weekValue) || 0;
+        const target = new Date();
+        target.setDate(target.getDate() + offset * 7);
+        targetDateStr = target.toISOString().slice(0, 10);
+      }
       const res = await SchoolService.getWeeklyMenu(
         activeCode,
         targetDateStr,
@@ -109,13 +115,19 @@ function SchoolLanding() {
     }
   };
 
-  const handleGroupChange = async (groupId, offset = 0) => {
+  const handleGroupChange = async (groupId, weekValue) => {
     try {
-      const target = new Date();
-      if (offset !== 0) {
-        target.setDate(target.getDate() + offset * 7);
+      let targetDateStr;
+      if (typeof weekValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(weekValue)) {
+        targetDateStr = weekValue;
+      } else {
+        const offset = Number(weekValue) || 0;
+        const target = new Date();
+        if (offset !== 0) {
+          target.setDate(target.getDate() + offset * 7);
+        }
+        targetDateStr = target.toISOString().slice(0, 10);
       }
-      const targetDateStr = target.toISOString().slice(0, 10);
       const res = await SchoolService.getWeeklyMenu(
         activeCode,
         targetDateStr,
