@@ -8,6 +8,7 @@ import styles from "./index.module.scss"
 
 export default function KitchenMenu() {
   const [targetDate, setTargetDate] = useState(() => new Date())
+  const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
   const [loading, setLoading] = useState(false)
   const [apiWeekData, setApiWeekData] = useState(null)
 
@@ -66,7 +67,7 @@ export default function KitchenMenu() {
     })
   }, [weekInfo, apiWeekData])
 
-  // 4. Thống kê tổng số món
+  // 4. Thống kê tổng số món theo ca ăn đang chọn
   const stats = useMemo(() => {
     let totalDishes = 0
     let portions = 1250
@@ -74,17 +75,25 @@ export default function KitchenMenu() {
     processedDays.forEach((day) => {
       const lunchDishes = day?.meals?.LUNCH?.dishes || []
       const afternoonDishes = day?.meals?.AFTERNOON?.dishes || []
-      totalDishes += lunchDishes.length + afternoonDishes.length
+
+      if (mealTypeFilter === "ALL") {
+        totalDishes += lunchDishes.length + afternoonDishes.length
+      } else if (mealTypeFilter === "LUNCH") {
+        totalDishes += lunchDishes.length
+      } else if (mealTypeFilter === "AFTERNOON") {
+        totalDishes += afternoonDishes.length
+      }
+
       if (lunchDishes[0]?.portions) {
         portions = lunchDishes[0].portions
       }
     })
 
     return {
-      totalDishes: totalDishes || 30,
+      totalDishes,
       portions,
     }
-  }, [processedDays])
+  }, [processedDays, mealTypeFilter])
 
   // Điều hướng tuần
   const handlePrevWeek = () => {
@@ -109,7 +118,7 @@ export default function KitchenMenu() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* 1. Header: Tiêu đề, Duyệt BGH, Điều hướng tuần & KPI inline chuẩn hình mẫu */}
+      {/* 1. Header: Tiêu đề, Duyệt BGH, Điều hướng tuần, Bộ lọc ca & KPI */}
       <KitchenMenuHeader
         weekInfo={weekInfo}
         onPrevWeek={handlePrevWeek}
@@ -117,12 +126,14 @@ export default function KitchenMenu() {
         onCurrentWeek={handleCurrentWeek}
         totalDishes={stats.totalDishes}
         portions={stats.portions}
+        mealTypeFilter={mealTypeFilter}
+        onMealTypeFilterChange={setMealTypeFilter}
       />
 
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
       <KitchenMenuWeeklyGrid
         schoolDays={processedDays}
-        mealTypeFilter="ALL"
+        mealTypeFilter={mealTypeFilter}
         todayISO={todayISO}
       />
     </div>

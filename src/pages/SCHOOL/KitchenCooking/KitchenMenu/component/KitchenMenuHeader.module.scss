@@ -95,7 +95,7 @@
   }
 }
 
-/* HÀNG 2: Bộ Chuyển Tuần + KPI Inline */
+/* HÀNG 2: Bộ Chuyển Tuần + Bộ Lọc Ca Ăn + KPI Inline */
 .controlRow {
   display: flex;
   align-items: center;
@@ -108,7 +108,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: 16px;
 }
 
 /* Cụm điều hướng tuần gộp khung đơn */
@@ -182,11 +182,67 @@
   }
 }
 
+/* ========================================================
+   BỘ LỌC CA ĂN (Thay thế 10 bữa ăn): Tinh tế, rõ ràng
+   ======================================================== */
+.mealFilterSegment {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f1f5f9;
+  border: 1px solid var(--border-default, #e2e8f0);
+  border-radius: 6px;
+  padding: 2px;
+  height: 36px;
+  box-sizing: border-box;
+  gap: 2px;
+}
+
+.filterSegmentBtn {
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary, #64748b);
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 0 12px;
+  height: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover:not(.filterSegmentBtnActive):not(.filterSegmentLunchActive):not(.filterSegmentAfternoonActive) {
+    color: var(--text-primary, #1e293b);
+    background-color: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.filterSegmentBtnActive {
+  background-color: #ffffff;
+  color: var(--text-primary, #1e293b);
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.filterSegmentLunchActive {
+  background-color: #fff7ed;
+  color: #c2410c;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(234, 88, 12, 0.12);
+}
+
+.filterSegmentAfternoonActive {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 600;
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
+}
+
 /* KPI Inline */
 .kpiInlineGroup {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 20px;
   flex-wrap: wrap;
 }
 

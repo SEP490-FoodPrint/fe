@@ -4,7 +4,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  Utensils,
   CookingPot,
   Users,
   Check,
@@ -21,6 +20,8 @@ export default function KitchenMenuHeader({
   onCurrentWeek,
   totalDishes = 30,
   portions = 1250,
+  mealTypeFilter = "ALL",
+  onMealTypeFilterChange,
 }) {
   const navigate = useNavigate()
 
@@ -72,7 +73,7 @@ export default function KitchenMenuHeader({
         </div>
       </div>
 
-      {/* HÀNG 2: Bộ Chuyển Tuần Gộp Khung | Các KPI Inline */}
+      {/* HÀNG 2: Bộ Chuyển Tuần Gộp Khung | Bộ Lọc Ca Ăn | Các KPI Inline */}
       <div className={styles.controlRow}>
         <div className={styles.controlLeft}>
           {/* Cụm điều hướng tuần đóng khung đơn gọn gàng */}
@@ -113,15 +114,41 @@ export default function KitchenMenuHeader({
 
           <span className={styles.inlineDivider} />
 
+          {/* Bộ lọc Ca ăn (thay thế 10 bữa ăn theo yêu cầu) */}
+          <div className={styles.mealFilterSegment} role="group" aria-label="Bộ lọc ca ăn">
+            <button
+              type="button"
+              className={`${styles.filterSegmentBtn} ${
+                mealTypeFilter === "ALL" ? styles.filterSegmentBtnActive : ""
+              }`}
+              onClick={() => onMealTypeFilterChange?.("ALL")}
+            >
+              Tất cả
+            </button>
+            <button
+              type="button"
+              className={`${styles.filterSegmentBtn} ${
+                mealTypeFilter === "LUNCH" ? styles.filterSegmentLunchActive : ""
+              }`}
+              onClick={() => onMealTypeFilterChange?.("LUNCH")}
+            >
+              Bữa trưa
+            </button>
+            <button
+              type="button"
+              className={`${styles.filterSegmentBtn} ${
+                mealTypeFilter === "AFTERNOON" ? styles.filterSegmentAfternoonActive : ""
+              }`}
+              onClick={() => onMealTypeFilterChange?.("AFTERNOON")}
+            >
+              Bữa xế / chiều
+            </button>
+          </div>
+
+          <span className={styles.inlineDivider} />
+
           {/* Các KPI hiển thị ngang theo đúng hình mẫu */}
           <div className={styles.kpiInlineGroup}>
-            <div className={styles.kpiInlineItem}>
-              <Utensils size={14} className={styles.kpiIcon} />
-              <span className={styles.kpiText}>
-                <strong>10</strong> bữa ăn
-              </span>
-            </div>
-
             <div className={styles.kpiInlineItem}>
               <CookingPot size={14} className={styles.kpiIcon} />
               <span className={styles.kpiText}>
