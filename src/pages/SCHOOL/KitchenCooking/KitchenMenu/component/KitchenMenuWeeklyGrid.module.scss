@@ -1,7 +1,7 @@
 .gridContainer {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
@@ -30,10 +30,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 60px;
+  min-width: 64px;
   min-height: 44px; /* Touch target >= 44px */
-  padding: 6px 10px;
-  border-radius: 6px; /* Bo tối thiểu 6px */
+  padding: 6px 12px;
+  border-radius: 6px;
   border: 1px solid var(--border-default, #dce5e0);
   background-color: #ffffff;
   color: var(--text-secondary, #52635c);
@@ -98,17 +98,17 @@
   }
 }
 
-/* 2. Days Grid */
+/* 2. Days Grid (5 cột rộng rãi, thoáng mắt) */
 .daysGridWrapper {
   width: 100%;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: 6px;
 }
 
 .daysGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(5, minmax(215px, 1fr));
+  gap: 14px;
   align-items: start;
 }
 

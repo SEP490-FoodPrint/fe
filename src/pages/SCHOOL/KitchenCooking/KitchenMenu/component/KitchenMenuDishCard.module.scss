@@ -2,13 +2,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
+  gap: 12px;
+  padding: 10px 12px;
   border-bottom: 1px solid #f1f5f9;
-  background-color: transparent;
+  background-color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.12s ease;
-  min-height: 38px;
+  transition: background-color 0.15s ease;
+  min-height: 44px; /* Touch target >= 44px */
   box-sizing: border-box;
 
   &:last-child {
@@ -16,8 +16,8 @@
   }
 
   @media (max-width: 768px) {
-    min-height: 44px; /* Touch target >= 44px trên mobile */
-    padding: 10px 10px;
+    min-height: 46px;
+    padding: 11px 12px;
   }
 }
 
@@ -33,11 +33,12 @@
   }
 }
 
+/* 1. Tên món ăn (thoáng, rõ ràng, tương phản chuẩn) */
 .dishName {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--text-primary, #1d2b26);
-  line-height: 1.35;
+  line-height: 1.4;
   flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -52,15 +53,81 @@
   }
 }
 
-.dishPortion {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7c74);
-  white-space: nowrap;
+/* 2. Cụm nút thao tác */
+.actionWrap {
+  display: flex;
+  align-items: center;
   flex-shrink: 0;
-  text-align: right;
+}
 
-  @media (max-width: 640px) {
-    font-size: 12px;
+/* Món đã lập lô */
+.badgeBatchDone {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-success, #168456);
+  background-color: var(--color-success-bg, #e8f6ef);
+  border: 1px solid var(--color-success-border, #bce6cf);
+  padding: 3px 8px;
+  border-radius: 4px;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background-color: #d1fae5;
+    border-color: #6ee7b7;
+  }
+
+  .btnIcon {
+    flex-shrink: 0;
+  }
+}
+
+/* Nút Tạo lô */
+.btnCreateBatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 4px;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+
+  .btnIcon {
+    flex-shrink: 0;
+  }
+}
+
+.btnCreateLunch {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+
+  &:hover {
+    background-color: #ea580c;
+    color: #ffffff;
+    border-color: #ea580c;
+    box-shadow: 0 2px 6px rgba(234, 88, 12, 0.2);
+  }
+}
+
+.btnCreateAfternoon {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+
+  &:hover {
+    background-color: #2563eb;
+    color: #ffffff;
+    border-color: #2563eb;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
   }
 }
