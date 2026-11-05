@@ -1,17 +1,14 @@
 import React, { useState, useEffect, useMemo } from "react"
-import { Utensils, Users, CheckCircle2, Clock } from "lucide-react"
 import MenuService from "src/services/MenuService"
 import { getSchoolWeekScheduleFromDate } from "src/services/MenuService/adapter"
 import { DEFAULT_WEEKLY_MENU } from "./component/mockWeeklyMenuData"
 import KitchenMenuHeader from "./component/KitchenMenuHeader"
-import KitchenMenuFilter from "./component/KitchenMenuFilter"
 import KitchenMenuWeeklyGrid from "./component/KitchenMenuWeeklyGrid"
 import styles from "./index.module.scss"
 
 export default function KitchenMenu() {
   const [targetDate, setTargetDate] = useState(() => new Date())
   const [search, setSearch] = useState("")
-  const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
   const [loading, setLoading] = useState(false)
   const [apiWeekData, setApiWeekData] = useState(null)
 
@@ -70,51 +67,25 @@ export default function KitchenMenu() {
     })
   }, [weekInfo, apiWeekData])
 
-  // 4. Tính toán số liệu thống kê tổng hợp (KPI glanceable)
+  // 4. Thống kê tổng số món
   const stats = useMemo(() => {
     let totalDishes = 0
-    let createdBatches = 0
     let portions = 1250
 
     processedDays.forEach((day) => {
       const lunchDishes = day?.meals?.LUNCH?.dishes || []
       const afternoonDishes = day?.meals?.AFTERNOON?.dishes || []
-      const allDayDishes = [...lunchDishes, ...afternoonDishes]
-
-      totalDishes += allDayDishes.length
-      createdBatches += allDayDishes.filter((d) => d.isBatchCreated).length
+      totalDishes += lunchDishes.length + afternoonDishes.length
       if (lunchDishes[0]?.portions) {
         portions = lunchDishes[0].portions
       }
     })
 
     return {
-      totalDishes,
-      createdBatches,
+      totalDishes: totalDishes || 30,
       portions,
     }
   }, [processedDays])
-
-  // 5. Tính số món thỏa mãn bộ lọc hiện tại
-  const totalFilteredDishes = useMemo(() => {
-    let count = 0
-    processedDays.forEach((day) => {
-      const lunchDishes = (day?.meals?.LUNCH?.dishes || []).filter((dish) => {
-        if (mealTypeFilter !== "ALL" && mealTypeFilter !== "LUNCH") return false
-        if (search && !dish.name.toLowerCase().includes(search.toLowerCase())) return false
-        return true
-      })
-
-      const afternoonDishes = (day?.meals?.AFTERNOON?.dishes || []).filter((dish) => {
-        if (mealTypeFilter !== "ALL" && mealTypeFilter !== "AFTERNOON") return false
-        if (search && !dish.name.toLowerCase().includes(search.toLowerCase())) return false
-        return true
-      })
-
-      count += lunchDishes.length + afternoonDishes.length
-    })
-    return count
-  }, [processedDays, mealTypeFilter, search])
 
   // Điều hướng tuần
   const handlePrevWeek = () => {
@@ -137,73 +108,24 @@ export default function KitchenMenu() {
     setTargetDate(new Date())
   }
 
-  const handleResetFilter = () => {
-    setSearch("")
-    setMealTypeFilter("ALL")
-  }
-
   return (
     <div className={styles.pageContainer}>
-      {/* 1. Header & Điều hướng tuần */}
+      {/* 1. Header: Tiêu đề, Duyệt BGH, Điều hướng tuần & KPI inline chuẩn hình mẫu */}
       <KitchenMenuHeader
         weekInfo={weekInfo}
         onPrevWeek={handlePrevWeek}
         onNextWeek={handleNextWeek}
         onCurrentWeek={handleCurrentWeek}
-      />
-
-      {/* 2. Dải thông số nhanh tinh gọn cho bếp (Glanceable Stats Strip) */}
-      <div className={styles.glanceStrip}>
-        <div className={styles.glanceItem}>
-          <Utensils size={15} className={styles.glanceIcon} />
-          <span className={styles.glanceValue}>{stats.totalDishes}</span>
-          <span className={styles.glanceLabel}>món / tuần</span>
-        </div>
-
-        <div className={styles.glanceDivider} />
-
-        <div className={styles.glanceItem}>
-          <Users size={15} className={styles.glanceIcon} />
-          <span className={styles.glanceValue}>
-            {stats.portions.toLocaleString("vi-VN")}
-          </span>
-          <span className={styles.glanceLabel}>suất / ca</span>
-        </div>
-
-        <div className={styles.glanceDivider} />
-
-        <div className={styles.glanceItem}>
-          <CheckCircle2 size={15} className={styles.glanceIconSuccess} />
-          <span className={styles.glanceValue}>
-            {stats.createdBatches}/{stats.totalDishes}
-          </span>
-          <span className={styles.glanceLabel}>đã lập lô</span>
-        </div>
-
-        <div className={styles.glanceDivider} />
-
-        <div className={styles.glanceItem}>
-          <Clock size={15} className={styles.glanceIcon} />
-          <span className={styles.glanceLabel}>
-            Trưa (11:00) • Xế (14:30)
-          </span>
-        </div>
-      </div>
-
-      {/* 3. Thanh bộ lọc chuẩn hóa theo DB (Tìm kiếm & Ca ăn MealType) */}
-      <KitchenMenuFilter
+        totalDishes={stats.totalDishes}
+        portions={stats.portions}
         search={search}
         onSearchChange={setSearch}
-        mealTypeFilter={mealTypeFilter}
-        onMealTypeChange={setMealTypeFilter}
-        onReset={handleResetFilter}
-        totalDishesCount={totalFilteredDishes}
       />
 
-      {/* 4. Lưới thực đơn 5 ngày theo tuần (Thứ 2 -> Thứ 6) */}
+      {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
       <KitchenMenuWeeklyGrid
         schoolDays={processedDays}
-        mealTypeFilter={mealTypeFilter}
+        mealTypeFilter="ALL"
         search={search}
         todayISO={todayISO}
       />

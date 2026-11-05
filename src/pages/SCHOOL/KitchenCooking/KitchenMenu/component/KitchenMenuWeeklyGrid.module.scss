@@ -1,102 +1,11 @@
-.menuSheetBoard {
+.gridContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  background-color: #ffffff;
-  border: 1px solid var(--border-default, #e2e8f0);
-  border-radius: var(--radius-xl, 16px);
-  padding: 14px 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
-/* 1. Sheet Top Banner & Chú thích 2 ca ăn */
-.sheetTopBanner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed var(--border-default, #e2e8f0);
-}
-
-.sheetBannerTitle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sheetSub {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-secondary, #475569);
-}
-
-.mealLegend {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.legendLunch {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background-color: #fff7ed;
-  border: 1px solid #fed7aa;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.legendDotLunch {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #ea580c;
-}
-
-.legendIconLunch {
-  color: #ea580c;
-}
-
-.legendAfternoon {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background-color: #eff6ff;
-  border: 1px solid #bfdbfe;
-  padding: 4px 10px;
-  border-radius: 6px;
-}
-
-.legendDotAfternoon {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #2563eb;
-}
-
-.legendIconAfternoon {
-  color: #2563eb;
-}
-
-.legendLabel {
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-
-  .legendLunch & {
-    color: #9a3412;
-  }
-
-  .legendAfternoon & {
-    color: #1e40af;
-  }
-}
-
-/* 2. Mobile Day Selector Bar */
+/* 1. Mobile Day Selector Bar */
 .mobileDayBar {
   display: none;
   width: 100%;
@@ -121,28 +30,28 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 64px;
+  min-width: 60px;
   min-height: 44px; /* Touch target >= 44px */
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e2e8f0);
+  padding: 6px 10px;
+  border-radius: 6px; /* Bo tối thiểu 6px */
+  border: 1px solid var(--border-default, #dce5e0);
   background-color: #ffffff;
-  color: var(--text-secondary, #475569);
+  color: var(--text-secondary, #52635c);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
   position: relative;
 
   .pillIndex {
     font-size: 13px;
     font-weight: 700;
     line-height: 1.2;
-    color: var(--text-primary, #0f172a);
+    color: var(--text-primary, #1d2b26);
   }
 
   .pillDate {
     font-size: 11px;
     font-weight: 500;
-    color: var(--text-muted, #94a3b8);
+    color: var(--text-muted, #6b7c74);
     line-height: 1.2;
   }
 
@@ -157,7 +66,7 @@
   }
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: var(--bg-muted, #f1f5f3);
     border-color: var(--color-primary, #0a8066);
   }
 
@@ -189,7 +98,7 @@
   }
 }
 
-/* 3. Days Grid */
+/* 2. Days Grid */
 .daysGridWrapper {
   width: 100%;
   overflow-x: auto;
@@ -198,8 +107,8 @@
 
 .daysGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(210px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, minmax(200px, 1fr));
+  gap: 10px;
   align-items: start;
 }
 
@@ -209,13 +118,8 @@
   min-width: 0;
 }
 
-/* 4. Responsive */
+/* 3. Responsive */
 @media (max-width: 900px) {
-  .menuSheetBoard {
-    padding: 10px;
-    border-radius: 12px;
-  }
-
   .mobileDayBar {
     display: block;
   }

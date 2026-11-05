@@ -1,45 +1,53 @@
 .headerContainer {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3, 12px);
+  gap: 12px;
   width: 100%;
 }
 
-.titleRow {
+/* HÀNG 1: Tiêu đề & Huy hiệu */
+.topRow {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-4, 16px);
   flex-wrap: wrap;
+  gap: 12px;
 }
 
-.titleLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.headingWrap {
+.titleGroup {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.headingIcon {
+.clocheIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--color-primary, #0a8066);
 }
 
+.clocheIcon {
+  color: var(--color-primary, #0a8066);
+}
+
+.verticalDivider {
+  color: var(--border-default, #dce5e0);
+  font-size: 18px;
+  user-select: none;
+}
+
 .heading {
-  font-family: var(--font-heading, "Be Vietnam Pro", sans-serif);
-  font-size: var(--text-2xl, 24px);
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-  letter-spacing: -0.02em;
   margin: 0;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary, #1d2b26);
+  letter-spacing: -0.02em;
 
   @media (max-width: 640px) {
-    font-size: 19px;
+    font-size: 18px;
   }
 }
 
@@ -47,24 +55,20 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 9px;
-  border-radius: var(--radius-full, 9999px);
+  padding: 3px 8px;
+  border-radius: 4px; /* Bo tối thiểu 4px */
   background-color: var(--color-success-bg, #e8f6ef);
+  border: 1px solid var(--color-success-border, #bce6cf);
   color: var(--color-success, #168456);
   font-size: 12px;
   font-weight: 600;
-}
 
-.subHint {
-  font-size: 12.5px;
-  color: var(--text-secondary, #6b7280);
-
-  @media (max-width: 640px) {
-    display: none;
+  .checkIcon {
+    stroke-width: 3px;
   }
 }
 
-.headerActions {
+.topActions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -74,136 +78,200 @@
   }
 }
 
-.printBtn {
-  border-color: var(--border-default, #e5e7eb) !important;
-  color: var(--text-secondary, #374151) !important;
+.actionBtn {
+  border-color: var(--border-default, #dce5e0) !important;
+  color: var(--text-secondary, #52635c) !important;
   text-transform: none !important;
   font-weight: 600 !important;
-  border-radius: var(--radius-md, 8px) !important;
-  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+  border-radius: 6px !important;
+  padding: 5px 12px !important;
 
   &:hover {
-    background-color: var(--bg-muted, #f9fafb) !important;
-    border-color: var(--text-primary, #111827) !important;
-    color: var(--text-primary, #111827) !important;
+    background-color: var(--bg-muted, #f1f5f3) !important;
+    border-color: var(--border-strong, #adbbb3) !important;
   }
 }
 
-.batchesBtn {
+.actionBtnPrimary {
   border-color: var(--color-primary, #0a8066) !important;
   color: var(--color-primary, #0a8066) !important;
   text-transform: none !important;
   font-weight: 600 !important;
-  border-radius: var(--radius-md, 8px) !important;
-  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+  border-radius: 6px !important;
+  padding: 5px 12px !important;
 
   &:hover {
     background-color: var(--color-primary-soft, #e8f5f1) !important;
   }
 }
 
-/* Dải chuyển tuần */
-.weekNavStrip {
+/* HÀNG 2: Bộ Chuyển Tuần + KPI Inline + Search */
+.controlRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  background-color: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: var(--radius-lg, 12px);
-  padding: 8px 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-
-  @media (max-width: 640px) {
-    padding: 6px 10px;
-  }
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.weekControls {
+.controlLeft {
   display: flex;
   align-items: center;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.navArrowBtn {
+/* Cụm điều hướng tuần gộp khung đơn */
+.weekControlBox {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 6px; /* Bo tối thiểu 6px */
+  background-color: #ffffff;
+  overflow: hidden;
+  height: 34px;
+}
+
+.weekArrowBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #ffffff;
-  color: var(--text-secondary, #4b5563);
+  height: 100%;
+  border: none;
+  background-color: transparent;
+  color: var(--text-secondary, #52635c);
   cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: -6px;
-  }
+  transition: background-color 0.12s ease;
 
   &:hover {
-    background-color: var(--bg-muted, #f3f4f6);
-    color: var(--text-primary, #111827);
-    border-color: var(--border-strong, #9ca3af);
+    background-color: var(--bg-muted, #f1f5f3);
+    color: var(--color-primary, #0a8066);
   }
 }
 
-.weekInfoBox {
-  display: flex;
+.weekCenterBox {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 10px;
-  background-color: var(--bg-muted, #f9fafb);
-  border-radius: 6px;
+  gap: 6px;
+  padding: 0 10px;
+  height: 100%;
+  cursor: pointer;
+  border-left: 1px solid var(--border-default, #dce5e0);
+  border-right: 1px solid var(--border-default, #dce5e0);
+  background-color: transparent;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: var(--bg-muted, #f8faf9);
+  }
 }
 
-.calendarIcon {
+.calIcon {
   color: var(--color-primary, #0a8066);
   flex-shrink: 0;
 }
 
 .weekRangeText {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary, #1d2b26);
+  white-space: nowrap;
+}
+
+.inlineDivider {
+  color: var(--border-default, #dce5e0);
+  font-size: 16px;
+  user-select: none;
 
   @media (max-width: 640px) {
-    font-size: 12px;
+    display: none;
   }
 }
 
-.quickNavBtns {
+/* KPI Inline theo đúng nguyên mẫu ảnh */
+.kpiInlineGroup {
   display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.kpiInlineItem {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-.todayBtn {
-  height: 32px;
-  padding: 0 12px;
-  border-radius: 6px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #ffffff;
-  color: var(--text-secondary, #374151);
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  position: relative;
+.kpiIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
 
-  &::after {
-    content: "";
-    position: absolute;
-    inset: -6px;
+.kpiText {
+  font-size: 12.5px;
+  color: var(--text-secondary, #52635c);
+
+  strong {
+    font-weight: 700;
+    color: var(--text-primary, #1d2b26);
+    margin-right: 2px;
+  }
+}
+
+/* Ô tìm kiếm nhanh tinh gọn */
+.searchBox {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 6px;
+  background-color: #ffffff;
+  min-width: 170px;
+
+  @media (max-width: 640px) {
+    width: 100%;
   }
 
-  &:hover {
+  &:focus-within {
     border-color: var(--color-primary, #0a8066);
-    color: var(--color-primary, #0a8066);
-    background-color: var(--color-primary-soft, #e8f5f1);
+  }
+}
+
+.searchIcon {
+  color: var(--text-muted, #6b7c74);
+  flex-shrink: 0;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12.5px;
+  color: var(--text-primary, #1d2b26);
+  width: 100%;
+  font-family: inherit;
+
+  &::placeholder {
+    color: var(--text-muted, #94a3b8);
+  }
+}
+
+.clearSearchBtn {
+  border: none;
+  background: transparent;
+  padding: 2px;
+  cursor: pointer;
+  color: var(--text-muted, #94a3b8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    color: var(--text-primary, #1d2b26);
   }
 }
