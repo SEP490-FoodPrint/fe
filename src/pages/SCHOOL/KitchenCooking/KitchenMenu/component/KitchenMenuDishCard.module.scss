@@ -5,7 +5,7 @@
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   cursor: pointer;
   transition: all 0.16s ease;
   position: relative;
@@ -29,144 +29,111 @@
   gap: 6px;
 }
 
-.categoryTag {
-  font-size: 10.5px;
+/* Huy hiệu trạng thái lô chế biến */
+.batchReadyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3.5px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 1.5px 6px;
+  color: var(--color-success, #168456);
+  background-color: var(--color-success-bg, #e8f6ef);
+  padding: 2px 7px;
   border-radius: 4px;
-  line-height: 1.3;
-  white-space: nowrap;
+  line-height: 1.2;
 }
 
-.catMain {
-  background-color: #fee2e2;
-  color: #b91c1c;
+.batchPendingBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted, #6b7c74);
+  background-color: var(--bg-muted, #f1f5f3);
+  padding: 2px 7px;
+  border-radius: 4px;
+  line-height: 1.2;
 }
 
-.catSoup {
-  background-color: #e0f2fe;
-  color: #0369a1;
-}
-
-.catSide {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.catDessert {
-  background-color: #fce7f3;
-  color: #be185d;
-}
-
-.catSnack {
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-}
-
-.catDefault {
-  background-color: #f3f4f6;
-  color: #4b5563;
-}
-
+/* Dị nguyên */
 .allergenChip {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 1px 5px;
+  color: #b45309;
+  background-color: #fef3c7;
+  padding: 1.5px 5px;
   border-radius: 4px;
-  background-color: #fff1f2;
-  color: #e11d48;
-  border: 1px solid #fecdd3;
+  max-width: 90px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+/* Tên món - chuẩn 13.5px SemiBold theo Section 6 ai_coding_rule.md */
 .dishBody {
-  min-width: 0;
+  min-height: 19px;
 }
 
 .dishName {
   margin: 0;
-  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-primary, #111827);
-  line-height: 1.3;
-  white-space: normal;
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
+/* Footer: Số suất + Nút thao tác */
 .dishFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 3px;
-  border-top: 1px dashed var(--border-default, #f1f5f3);
+  padding-top: 4px;
+  border-top: 1px dashed var(--border-default, #f3f4f6);
 }
 
 .portionWrap {
   display: flex;
   align-items: baseline;
-  gap: 4px;
-  font-size: 11.5px;
+  gap: 3px;
 }
 
 .portionNum {
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-primary, #111827);
 }
 
 .portionUnit {
-  color: var(--text-secondary, #6b7280);
+  font-size: 11px;
+  color: var(--text-muted, #6b7280);
 }
 
+/* Nút thao tác Icon-First có touch target >= 44x44px */
 .actionWrap {
   display: flex;
   align-items: center;
 }
 
-/* Touch Target chuẩn 44px (Rule 6.2) */
-.btnViewBatch,
-.btnCreateBatch {
+.btnViewBatch {
   width: 28px !important;
   height: 28px !important;
+  background-color: var(--color-primary-soft, #e8f5f1) !important;
+  color: var(--color-primary, #0a8066) !important;
   border-radius: 6px !important;
-  padding: 0 !important;
   position: relative;
-  transition: all 0.15s ease !important;
 
-  /* Hit box mở rộng >= 44px */
   &::after {
     content: "";
     position: absolute;
-    top: -8px;
-    bottom: -8px;
-    left: -8px;
-    right: -8px;
+    inset: -8px;
   }
-
-  &:active {
-    transform: scale(0.9);
-  }
-}
-
-.btnViewBatch {
-  background-color: #f3f4f6 !important;
-  color: var(--text-secondary, #4b5563) !important;
-
-  &:hover {
-    background-color: var(--color-primary-soft, #e8f5f1) !important;
-    color: var(--color-primary, #0a8066) !important;
-  }
-}
-
-.btnCreateBatch {
-  background-color: var(--color-primary-soft, #e8f5f1) !important;
-  color: var(--color-primary, #0a8066) !important;
 
   &:hover {
     background-color: var(--color-primary, #0a8066) !important;
@@ -174,3 +141,22 @@
   }
 }
 
+.btnCreateBatch {
+  width: 28px !important;
+  height: 28px !important;
+  background-color: var(--bg-muted, #f3f4f6) !important;
+  color: var(--text-secondary, #4b5563) !important;
+  border-radius: 6px !important;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+  }
+
+  &:hover {
+    background-color: var(--color-primary, #0a8066) !important;
+    color: #ffffff !important;
+  }
+}

@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from "react"
-import { Calendar, Check } from "lucide-react"
 import KitchenMenuDayCard from "./KitchenMenuDayCard"
 import styles from "./KitchenMenuWeeklyGrid.module.scss"
 
 export default function KitchenMenuWeeklyGrid({
   schoolDays = [],
   mealTypeFilter = "ALL",
-  categoryFilter = "ALL",
   search = "",
   todayISO = "",
 }) {
   // Mobile active day tab: 'ALL' or dayOfWeek (1..5)
-  // Default to today's day of week if within Monday-Friday, else 1 (Monday)
   const todayDay = schoolDays.find((d) => d.dateISO === todayISO)
   const [selectedDayOfWeek, setSelectedDayOfWeek] = useState(
     todayDay ? todayDay.dayOfWeek : 1
@@ -67,7 +64,7 @@ export default function KitchenMenuWeeklyGrid({
         <div className={styles.daysGrid}>
           {schoolDays.map((day) => {
             const isToday = day.dateISO === todayISO
-            // On mobile, if a single day is selected, hide the other days
+            // Trên mobile, nếu chọn một ngày cụ thể thì ẩn các ngày còn lại
             const isHiddenOnMobile =
               selectedDayOfWeek !== "ALL" && selectedDayOfWeek !== day.dayOfWeek
 
@@ -82,7 +79,6 @@ export default function KitchenMenuWeeklyGrid({
                   dayData={day}
                   isToday={isToday}
                   mealTypeFilter={mealTypeFilter}
-                  categoryFilter={categoryFilter}
                   search={search}
                 />
               </div>
@@ -93,4 +89,3 @@ export default function KitchenMenuWeeklyGrid({
     </div>
   )
 }
-

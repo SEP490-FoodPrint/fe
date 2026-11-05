@@ -12,7 +12,6 @@ export default function KitchenMenu() {
   const [targetDate, setTargetDate] = useState(() => new Date())
   const [search, setSearch] = useState("")
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
-  const [categoryFilter, setCategoryFilter] = useState("ALL")
   const [loading, setLoading] = useState(false)
   const [apiWeekData, setApiWeekData] = useState(null)
 
@@ -102,14 +101,12 @@ export default function KitchenMenu() {
     processedDays.forEach((day) => {
       const lunchDishes = (day?.meals?.LUNCH?.dishes || []).filter((dish) => {
         if (mealTypeFilter !== "ALL" && mealTypeFilter !== "LUNCH") return false
-        if (categoryFilter !== "ALL" && dish.category !== categoryFilter) return false
         if (search && !dish.name.toLowerCase().includes(search.toLowerCase())) return false
         return true
       })
 
       const afternoonDishes = (day?.meals?.AFTERNOON?.dishes || []).filter((dish) => {
         if (mealTypeFilter !== "ALL" && mealTypeFilter !== "AFTERNOON") return false
-        if (categoryFilter !== "ALL" && dish.category !== categoryFilter) return false
         if (search && !dish.name.toLowerCase().includes(search.toLowerCase())) return false
         return true
       })
@@ -117,7 +114,7 @@ export default function KitchenMenu() {
       count += lunchDishes.length + afternoonDishes.length
     })
     return count
-  }, [processedDays, mealTypeFilter, categoryFilter, search])
+  }, [processedDays, mealTypeFilter, search])
 
   // Điều hướng tuần
   const handlePrevWeek = () => {
@@ -143,7 +140,6 @@ export default function KitchenMenu() {
   const handleResetFilter = () => {
     setSearch("")
     setMealTypeFilter("ALL")
-    setCategoryFilter("ALL")
   }
 
   return (
@@ -194,14 +190,12 @@ export default function KitchenMenu() {
         </div>
       </div>
 
-      {/* 3. Thanh bộ lọc thông minh */}
+      {/* 3. Thanh bộ lọc chuẩn hóa theo DB (Tìm kiếm & Ca ăn MealType) */}
       <KitchenMenuFilter
         search={search}
         onSearchChange={setSearch}
         mealTypeFilter={mealTypeFilter}
         onMealTypeChange={setMealTypeFilter}
-        categoryFilter={categoryFilter}
-        onCategoryChange={setCategoryFilter}
         onReset={handleResetFilter}
         totalDishesCount={totalFilteredDishes}
       />
@@ -210,11 +204,9 @@ export default function KitchenMenu() {
       <KitchenMenuWeeklyGrid
         schoolDays={processedDays}
         mealTypeFilter={mealTypeFilter}
-        categoryFilter={categoryFilter}
         search={search}
         todayISO={todayISO}
       />
     </div>
   )
 }
-

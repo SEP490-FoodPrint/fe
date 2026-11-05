@@ -8,18 +8,18 @@ export default function KitchenMenuFilter({
   onSearchChange,
   mealTypeFilter,
   onMealTypeChange,
-  categoryFilter,
-  onCategoryChange,
   onReset,
   totalDishesCount = 0,
 }) {
+  const isFiltering = Boolean(search || mealTypeFilter !== "ALL")
+
   return (
     <div className={styles.filterBar}>
       {/* 1. Thanh tìm kiếm món */}
       <div className={styles.searchWrapper}>
         <TextField
           size="small"
-          placeholder="Tìm tên món ăn (ví dụ: Thịt gà, Canh bí, Bánh bao...)"
+          placeholder="Tìm tên món ăn (ví dụ: Thịt gà, Canh bí, Phở bò...)"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           className={styles.searchField}
@@ -35,7 +35,7 @@ export default function KitchenMenuFilter({
         />
       </div>
 
-      {/* 2. Lọc theo ca ăn (Segmented buttons) */}
+      {/* 2. Lọc theo ca ăn (Segmented buttons - chuẩn 100% trường MealType DB) */}
       <div className={styles.segmentedGroup}>
         <button
           type="button"
@@ -71,31 +71,13 @@ export default function KitchenMenuFilter({
         </button>
       </div>
 
-      {/* 3. Lọc theo nhóm món */}
-      <div className={styles.categorySelectWrap}>
-        <select
-          value={categoryFilter}
-          onChange={(e) => onCategoryChange(e.target.value)}
-          className={styles.categorySelect}
-          aria-label="Lọc theo nhóm món ăn"
-        >
-          <option value="ALL">Tất cả nhóm món</option>
-          <option value="MAIN">Món chính</option>
-          <option value="SOUP">Món canh</option>
-          <option value="SIDE">Món xào / Đạm phụ</option>
-          <option value="STAPLE">Cơm / Bánh mì</option>
-          <option value="DESSERT">Tráng miệng</option>
-          <option value="SNACK">Bữa phụ xế</option>
-        </select>
-      </div>
-
-      {/* 4. Reset & Tổng số món */}
+      {/* 3. Reset & Tổng số món */}
       <div className={styles.filterMeta}>
         <span className={styles.totalBadge}>
           {totalDishesCount} món ăn
         </span>
 
-        {(search || mealTypeFilter !== "ALL" || categoryFilter !== "ALL") && (
+        {isFiltering && (
           <Tooltip title="Đặt lại bộ lọc" arrow>
             <IconButton
               size="small"
@@ -111,4 +93,3 @@ export default function KitchenMenuFilter({
     </div>
   )
 }
-

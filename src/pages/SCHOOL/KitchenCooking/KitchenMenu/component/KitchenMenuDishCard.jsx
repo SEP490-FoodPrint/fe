@@ -5,7 +5,6 @@ import {
   Eye,
   AlertTriangle,
   CheckCircle2,
-  CookingPot,
   Plus,
 } from "lucide-react"
 import { Tooltip, IconButton } from "@mui/material"
@@ -26,24 +25,6 @@ export default function KitchenMenuDishCard({ dish }) {
     }
   }
 
-  const getCategoryClass = () => {
-    switch (dish.category) {
-      case "MAIN":
-        return styles.catMain
-      case "SOUP":
-        return styles.catSoup
-      case "SIDE":
-        return styles.catSide
-      case "DESSERT":
-        return styles.catDessert
-      case "SNACK":
-      case "DRINK":
-        return styles.catSnack
-      default:
-        return styles.catDefault
-    }
-  }
-
   return (
     <div
       className={styles.dishCard}
@@ -53,12 +34,24 @@ export default function KitchenMenuDishCard({ dish }) {
       aria-label={`${dish.name} - ${dish.portions} ${dish.unit || "suất"}`}
     >
       <div className={styles.dishHeader}>
-        <span className={`${styles.categoryTag} ${getCategoryClass()}`}>
-          {dish.categoryLabel || "Món ăn"}
-        </span>
+        {/* Huy hiệu trạng thái lô chế biến */}
+        {dish.isBatchCreated ? (
+          <span className={styles.batchReadyBadge}>
+            <CheckCircle2 size={11} />
+            <span>Đã lập lô</span>
+          </span>
+        ) : (
+          <span className={styles.batchPendingBadge}>
+            <span>Chưa lập lô</span>
+          </span>
+        )}
 
+        {/* Cảnh báo dị ứng nếu có */}
         {dish.allergens && dish.allergens.length > 0 && (
-          <span className={styles.allergenChip} title={`Có dị nguyên: ${dish.allergens.join(", ")}`}>
+          <span
+            className={styles.allergenChip}
+            title={`Có dị nguyên: ${dish.allergens.join(", ")}`}
+          >
             <AlertTriangle size={11} />
             <span>{dish.allergens[0]}</span>
           </span>
@@ -106,4 +99,3 @@ export default function KitchenMenuDishCard({ dish }) {
     </div>
   )
 }
-
