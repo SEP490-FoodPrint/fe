@@ -8,10 +8,7 @@ import {
   CookingPot,
   Users,
   Check,
-  Printer,
   ArrowRight,
-  Search,
-  X,
 } from "lucide-react"
 import { Button } from "@mui/material"
 import ROUTER from "src/router/ROUTER"
@@ -24,17 +21,14 @@ export default function KitchenMenuHeader({
   onCurrentWeek,
   totalDishes = 30,
   portions = 1250,
-  search = "",
-  onSearchChange,
 }) {
   const navigate = useNavigate()
 
   return (
     <div className={styles.headerContainer}>
-      {/* HÀNG 1: Icon Chuông Đậy Món | Tiêu Đề + Huy Hiệu Duyệt */}
+      {/* HÀNG 1: Icon Chuông Đậy Món | Tiêu Đề + Huy Hiệu Duyệt BGH */}
       <div className={styles.topRow}>
         <div className={styles.titleGroup}>
-          {/* Icon Cloche (Nắp đậy món ăn học đường chuẩn như hình mẫu) */}
           <div className={styles.clocheIconWrap}>
             <svg
               width="24"
@@ -64,18 +58,8 @@ export default function KitchenMenuHeader({
           </span>
         </div>
 
-        {/* Nút In hoặc Chuyển trang (góc phải) */}
+        {/* Nút Điều Hướng Sang Lô Chế Biến */}
         <div className={styles.topActions}>
-          <Button
-            variant="outlined"
-            size="small"
-            className={styles.actionBtn}
-            onClick={() => window.print()}
-            startIcon={<Printer size={14} />}
-          >
-            In thực đơn
-          </Button>
-
           <Button
             variant="outlined"
             size="small"
@@ -88,7 +72,7 @@ export default function KitchenMenuHeader({
         </div>
       </div>
 
-      {/* HÀNG 2: Bộ Chuyển Tuần Gộp Khung | Các KPI Inline | Tìm Kiếm Tinh Gọn */}
+      {/* HÀNG 2: Bộ Chuyển Tuần Gộp Khung | Các KPI Inline */}
       <div className={styles.controlRow}>
         <div className={styles.controlLeft}>
           {/* Cụm điều hướng tuần đóng khung đơn gọn gàng */}
@@ -153,30 +137,6 @@ export default function KitchenMenuHeader({
             </div>
           </div>
         </div>
-
-        {/* Ô tìm kiếm nhanh tinh gọn (không làm phình thêm card viền) */}
-        {onSearchChange && (
-          <div className={styles.searchBox}>
-            <Search size={14} className={styles.searchIcon} />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Tìm nhanh món..."
-              className={styles.searchInput}
-            />
-            {search && (
-              <button
-                type="button"
-                className={styles.clearSearchBtn}
-                onClick={() => onSearchChange("")}
-                title="Xóa tìm kiếm"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   )

@@ -8,7 +8,6 @@ import styles from "./index.module.scss"
 
 export default function KitchenMenu() {
   const [targetDate, setTargetDate] = useState(() => new Date())
-  const [search, setSearch] = useState("")
   const [loading, setLoading] = useState(false)
   const [apiWeekData, setApiWeekData] = useState(null)
 
@@ -118,15 +117,12 @@ export default function KitchenMenu() {
         onCurrentWeek={handleCurrentWeek}
         totalDishes={stats.totalDishes}
         portions={stats.portions}
-        search={search}
-        onSearchChange={setSearch}
       />
 
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
       <KitchenMenuWeeklyGrid
         schoolDays={processedDays}
         mealTypeFilter="ALL"
-        search={search}
         todayISO={todayISO}
       />
     </div>

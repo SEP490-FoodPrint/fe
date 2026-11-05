@@ -7,17 +7,14 @@ export default function KitchenMenuDayCard({
   dayData,
   isToday = false,
   mealTypeFilter = "ALL",
-  search = "",
 }) {
   const lunchDishes = (dayData?.meals?.LUNCH?.dishes || []).filter((dish) => {
     if (mealTypeFilter !== "ALL" && mealTypeFilter !== "LUNCH") return false
-    if (search && !dish.name.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 
   const afternoonDishes = (dayData?.meals?.AFTERNOON?.dishes || []).filter((dish) => {
     if (mealTypeFilter !== "ALL" && mealTypeFilter !== "AFTERNOON") return false
-    if (search && !dish.name.toLowerCase().includes(search.toLowerCase())) return false
     return true
   })
 

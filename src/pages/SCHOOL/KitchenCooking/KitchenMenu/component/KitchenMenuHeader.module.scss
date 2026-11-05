@@ -1,7 +1,7 @@
 .headerContainer {
   display: flex;
   flex-direction: column;
-  gap: 18px; /* Tăng khoảng cách giữa Hàng 1 (Tiêu đề) và Hàng 2 (Bộ chuyển tuần + KPI) */
+  gap: 18px;
   width: 100%;
   padding-bottom: 2px;
 }
@@ -81,21 +81,6 @@
   }
 }
 
-.actionBtn {
-  border-color: var(--border-default, #dce5e0) !important;
-  color: var(--text-secondary, #52635c) !important;
-  text-transform: none !important;
-  font-weight: 600 !important;
-  font-size: 12.5px !important;
-  border-radius: 6px !important;
-  padding: 5px 14px !important;
-
-  &:hover {
-    background-color: var(--bg-muted, #f1f5f3) !important;
-    border-color: var(--border-strong, #adbbb3) !important;
-  }
-}
-
 .actionBtnPrimary {
   border-color: var(--color-primary, #0a8066) !important;
   color: var(--color-primary, #0a8066) !important;
@@ -110,11 +95,11 @@
   }
 }
 
-/* HÀNG 2: Bộ Chuyển Tuần + KPI Inline + Search */
+/* HÀNG 2: Bộ Chuyển Tuần + KPI Inline */
 .controlRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 16px;
 }
@@ -123,7 +108,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px; /* Thoáng mắt, tách rõ Bộ chuyển tuần và các KPI */
+  gap: 20px;
 }
 
 /* Cụm điều hướng tuần gộp khung đơn */
@@ -197,11 +182,11 @@
   }
 }
 
-/* KPI Inline theo đúng nguyên mẫu ảnh */
+/* KPI Inline */
 .kpiInlineGroup {
   display: flex;
   align-items: center;
-  gap: 22px; /* Khoảng cách rộng rãi giữa các chỉ số KPI */
+  gap: 22px;
   flex-wrap: wrap;
 }
 
@@ -224,62 +209,5 @@
     font-weight: 700;
     color: var(--text-primary, #1e293b);
     margin-right: 2px;
-  }
-}
-
-/* Ô tìm kiếm nhanh tinh gọn */
-.searchBox {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 36px;
-  padding: 0 12px;
-  border: 1px solid var(--border-default, #e2e8f0);
-  border-radius: 6px;
-  background-color: #ffffff;
-  min-width: 190px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-
-  @media (max-width: 640px) {
-    width: 100%;
-  }
-
-  &:focus-within {
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
-  }
-}
-
-.searchIcon {
-  color: var(--text-muted, #94a3b8);
-  flex-shrink: 0;
-}
-
-.searchInput {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 13px;
-  color: var(--text-primary, #1e293b);
-  width: 100%;
-  font-family: inherit;
-
-  &::placeholder {
-    color: var(--text-muted, #94a3b8);
-  }
-}
-
-.clearSearchBtn {
-  border: none;
-  background: transparent;
-  padding: 2px;
-  cursor: pointer;
-  color: var(--text-muted, #94a3b8);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  &:hover {
-    color: var(--text-primary, #1e293b);
   }
 }

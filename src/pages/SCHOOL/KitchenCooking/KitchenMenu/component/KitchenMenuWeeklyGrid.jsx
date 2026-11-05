@@ -5,7 +5,6 @@ import styles from "./KitchenMenuWeeklyGrid.module.scss"
 export default function KitchenMenuWeeklyGrid({
   schoolDays = [],
   mealTypeFilter = "ALL",
-  search = "",
   todayISO = "",
 }) {
   // Mobile active day tab: 'ALL' or dayOfWeek (1..5)
@@ -79,7 +78,6 @@ export default function KitchenMenuWeeklyGrid({
                   dayData={day}
                   isToday={isToday}
                   mealTypeFilter={mealTypeFilter}
-                  search={search}
                 />
               </div>
             )
