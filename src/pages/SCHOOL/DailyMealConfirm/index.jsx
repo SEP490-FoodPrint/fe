@@ -6,6 +6,7 @@ import {
 } from "@mui/material"
 import dayjs from "dayjs"
 import { CheckCircle2, ClipboardList, Save } from "lucide-react"
+import { useSearchParams } from "react-router-dom"
 import notice from "src/components/Notice"
 import MealPortionService from "src/services/MealPortionService"
 import "./style.scss"
@@ -15,8 +16,12 @@ const statusLabel = status => (status === "FINALIZED" ? "Đã chốt" : "Bản n
 const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa phụ" : "Bữa trưa")
 
 function DailyMealConfirm() {
-  const [date, setDate] = useState(dayjs().format("YYYY-MM-DD"))
-  const [mealType, setMealType] = useState("LUNCH")
+  const [searchParams] = useSearchParams()
+  const initialMealType = searchParams.get("mealType") === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
+  const initialDate = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.get("date") || "")
+    ? searchParams.get("date") : dayjs().format("YYYY-MM-DD")
+  const [date, setDate] = useState(initialDate)
+  const [mealType, setMealType] = useState(initialMealType)
   const [context, setContext] = useState(null)
   const [history, setHistory] = useState([])
   const [totalPortions, setTotalPortions] = useState("")

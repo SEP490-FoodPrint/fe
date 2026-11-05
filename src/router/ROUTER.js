@@ -32,6 +32,7 @@ const ROUTER = {
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
   SCHOOL: "/school",
   SCHOOL_OVERVIEW: "/school/overview",
+  SCHOOL_HOMEROOM_OVERVIEW: "/school/homeroom-overview",
   SCHOOL_ADMINISTRATION: "/school/administration",
   SCHOOL_ACCOUNT_CREATE: "/school/administration/accounts/create",
   SCHOOL_ACCOUNT_EDIT: "/school/administration/accounts/:id/edit",

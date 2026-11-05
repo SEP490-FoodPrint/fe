@@ -32,6 +32,7 @@ const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
+const HomeroomOverview = lazy(() => import("src/pages/SCHOOL/HomeroomOverview"))
 const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
 const SchoolAccountCreate = lazy(() => import("src/pages/SCHOOL/Administration/CreateAccount"))
 const SchoolAccountEdit = lazy(() => import("src/pages/SCHOOL/Administration/EditAccount"))
@@ -257,6 +258,7 @@ const routes = [
           {
             element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER]} />,
             children: [
+              { path: ROUTER.SCHOOL_HOMEROOM_OVERVIEW, element: <LazyWrapper><HomeroomOverview /></LazyWrapper> },
               { path: ROUTER.SCHOOL_DAILY_CONFIRM, element: <LazyWrapper><DailyMealConfirm /></LazyWrapper> },
             ],
           },
