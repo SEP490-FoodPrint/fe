@@ -110,10 +110,15 @@ export const MenuItemSchool = () => [
     roles: [
       ROLES.SCHOOL_ADMIN,
       ROLES.SCHOOL_MANAGEMENT_BOARD,
-      ROLES.HOMEROOM_TEACHER,
       ROLES.PARENTS_COMMITTEE,
       ROLES.INGREDIENT_MANAGEMENT,
     ],
+  },
+  {
+    key: ROUTER.SCHOOL_HOMEROOM_OVERVIEW,
+    label: "Tổng quan lớp",
+    icon: <HomeOutlinedIcon />,
+    roles: [ROLES.HOMEROOM_TEACHER],
   },
   {
     key: ROUTER.SCHOOL_ADMINISTRATION,
