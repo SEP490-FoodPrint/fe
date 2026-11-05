@@ -54,12 +54,12 @@ export default function KitchenMenuHeader({
             </svg>
           </div>
 
-          <span className={styles.verticalDivider}>|</span>
+          <span className={styles.verticalDivider} />
 
           <h1 className={styles.heading}>Thực đơn tuần học đường</h1>
 
           <span className={styles.approvedBadge}>
-            <Check size={13} className={styles.checkIcon} />
+            <Check size={12} className={styles.checkIcon} />
             <span>Đã duyệt BGH</span>
           </span>
         </div>
@@ -110,7 +110,7 @@ export default function KitchenMenuHeader({
               tabIndex={0}
               title="Bấm để về tuần này"
             >
-              <Calendar size={15} className={styles.calIcon} />
+              <Calendar size={14} className={styles.calIcon} />
               <span className={styles.weekRangeText}>
                 {weekInfo?.weekRangeLabel || "Tuần học đường"}
               </span>
@@ -127,26 +127,26 @@ export default function KitchenMenuHeader({
             </button>
           </div>
 
-          <span className={styles.inlineDivider}>|</span>
+          <span className={styles.inlineDivider} />
 
           {/* Các KPI hiển thị ngang theo đúng hình mẫu */}
           <div className={styles.kpiInlineGroup}>
             <div className={styles.kpiInlineItem}>
-              <Utensils size={15} className={styles.kpiIcon} />
+              <Utensils size={14} className={styles.kpiIcon} />
               <span className={styles.kpiText}>
                 <strong>10</strong> bữa ăn
               </span>
             </div>
 
             <div className={styles.kpiInlineItem}>
-              <CookingPot size={15} className={styles.kpiIcon} />
+              <CookingPot size={14} className={styles.kpiIcon} />
               <span className={styles.kpiText}>
                 <strong>{totalDishes}</strong> món
               </span>
             </div>
 
             <div className={styles.kpiInlineItem}>
-              <Users size={15} className={styles.kpiIcon} />
+              <Users size={14} className={styles.kpiIcon} />
               <span className={styles.kpiText}>
                 <strong>{portions.toLocaleString("vi-VN")}</strong> suất/ngày
               </span>

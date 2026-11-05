@@ -27,10 +27,10 @@ export default function KitchenMenuDayCard({
     <div className={`${styles.dayColumn} ${isToday ? styles.todayColumn : ""}`}>
       {/* 1. Header Cột Ngày (Thứ Hai, Thứ Ba... kèm icon lịch) */}
       <div className={styles.dayHeader}>
+        {isToday && <span className={styles.todayPill}>Hôm nay</span>}
         <div className={styles.dayTitleRow}>
           <Calendar size={15} className={styles.dayCalendarIcon} />
           <span className={styles.dayLabel}>{dayData.dayLabel}</span>
-          {isToday && <span className={styles.todayPill}>Hôm nay</span>}
         </div>
         <span className={styles.dayDateText}>{dayData.dateVN}</span>
       </div>

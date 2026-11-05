@@ -109,13 +109,14 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(215px, 1fr));
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
 }
 
 .dayColItem {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  height: 100%;
 }
 
 /* 3. Responsive */
