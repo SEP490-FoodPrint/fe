@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { Search, MapPin, Building2, RotateCcw } from "lucide-react";
+import { FormControl, Select, MenuItem, InputAdornment } from "@mui/material";
 import styles from "./SchoolFilterBar.module.scss";
 
 function SchoolFilterBar({
@@ -88,64 +89,94 @@ function SchoolFilterBar({
           </div>
         </div>
 
-        {/* 2. Dropdown 1: Tỉnh / Thành phố */}
+        {/* 2. Dropdown 1: Tỉnh / Thành phố (MUI v6 Select) */}
         <div className={styles.selectCol}>
-          <label htmlFor="citySelect" className={styles.filterLabel}>
+          <label id="citySelectLabel" htmlFor="citySelect" className={styles.filterLabel}>
             Tỉnh / Thành phố
           </label>
-          <div className={styles.selectWrapper}>
-            <Building2 size={18} className={styles.inputIcon} />
-            <select
+          <FormControl fullWidth size="small" className={styles.formControl}>
+            <Select
               id="citySelect"
-              className={styles.selectInput}
+              labelId="citySelectLabel"
               value={selectedCity}
               onChange={(e) => {
                 onCityChange(e.target.value);
                 // Reset quận/huyện khi đổi Tỉnh/TP
                 onDistrictChange("");
               }}
+              displayEmpty
               disabled={isLoading}
+              startAdornment={
+                <InputAdornment position="start" className={styles.adornment}>
+                  <Building2 size={18} className={styles.inputIcon} />
+                </InputAdornment>
+              }
+              className={styles.muiSelect}
+              MenuProps={{
+                PaperProps: {
+                  className: styles.dropdownPaper,
+                },
+              }}
             >
-              <option value="">Tất cả Tỉnh / Thành phố</option>
+              <MenuItem value="" className={styles.placeholderItem}>
+                Tất cả Tỉnh / Thành phố
+              </MenuItem>
               {cities.map((c) => (
-                <option key={c.id || c.name} value={c.name}>
+                <MenuItem
+                  key={c.id || c.name}
+                  value={c.name}
+                  className={styles.menuItem}
+                >
                   {c.name}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
+            </Select>
+          </FormControl>
         </div>
 
-        {/* 3. Dropdown 2: Quận / Huyện / Phường / Xã */}
+        {/* 3. Dropdown 2: Quận / Huyện / Phường (MUI v6 Select) */}
         <div className={styles.selectCol}>
-          <label htmlFor="districtSelect" className={styles.filterLabel}>
+          <label id="districtSelectLabel" htmlFor="districtSelect" className={styles.filterLabel}>
             Quận / Huyện / Phường
           </label>
-          <div
-            className={`${styles.selectWrapper} ${
-              !selectedCity ? styles.disabledWrapper : ""
-            }`}
-          >
-            <MapPin size={18} className={styles.inputIcon} />
-            <select
+          <FormControl fullWidth size="small" className={styles.formControl}>
+            <Select
               id="districtSelect"
-              className={styles.selectInput}
+              labelId="districtSelectLabel"
               value={selectedDistrict}
               onChange={(e) => onDistrictChange(e.target.value)}
+              displayEmpty
               disabled={!selectedCity || isLoading}
+              startAdornment={
+                <InputAdornment position="start" className={styles.adornment}>
+                  <MapPin size={18} className={styles.inputIcon} />
+                </InputAdornment>
+              }
+              className={`${styles.muiSelect} ${
+                !selectedCity ? styles.disabledSelect : ""
+              }`}
+              MenuProps={{
+                PaperProps: {
+                  className: styles.dropdownPaper,
+                },
+              }}
             >
-              <option value="">
+              <MenuItem value="" className={styles.placeholderItem}>
                 {selectedCity
                   ? "Tất cả Quận / Huyện / Phường"
                   : "— Chọn Tỉnh/TP trước —"}
-              </option>
+              </MenuItem>
               {districts.map((d) => (
-                <option key={d.id || d.name} value={d.name}>
+                <MenuItem
+                  key={d.id || d.name}
+                  value={d.name}
+                  className={styles.menuItem}
+                >
                   {d.name}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
+            </Select>
+          </FormControl>
         </div>
 
         {/* 4. Nút Đặt lại bộ lọc */}
