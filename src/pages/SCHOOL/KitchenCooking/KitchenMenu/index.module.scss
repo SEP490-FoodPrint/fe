@@ -1,14 +1,14 @@
 .pageContainer {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 24px; /* Khoảng cách thoáng 24px giữa Header và Lưới Thực đơn tuần, tránh dính sát nhau */
   width: 100%;
   max-width: 100%;
-  padding: 16px 20px 32px;
+  padding: 20px 24px 36px;
   box-sizing: border-box;
 
   @media (max-width: 768px) {
-    padding: 12px 10px 24px;
-    gap: 10px;
+    padding: 14px 12px 28px;
+    gap: 16px;
   }
 }
