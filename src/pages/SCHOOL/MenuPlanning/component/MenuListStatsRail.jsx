@@ -1,7 +1,7 @@
 import React from "react"
 import styles from "./MenuListStatsRail.module.scss"
 
-export default function MenuListStatsRail({ stats, onFilterByStatus }) {
+export default function MenuListStatsRail({ stats, year, onFilterByStatus }) {
   const {
     total = 0,
     draft = 0,
@@ -10,15 +10,17 @@ export default function MenuListStatsRail({ stats, onFilterByStatus }) {
     revisionRequested = 0,
   } = stats || {}
 
+  const displayYear = year || new Date().getFullYear()
+
   return (
     <div className={styles.statsRail}>
-      {/* Stat 1: Tổng thực đơn */}
+      {/* Stat 1: Tổng thực đơn của năm hiện tại */}
       <div
         className={`${styles.statItem} ${styles.clickable}`}
         onClick={() => onFilterByStatus && onFilterByStatus("all")}
-        title="Xem tất cả thực đơn"
+        title={`Xem tất cả thực đơn năm ${displayYear}`}
       >
-        <span className={styles.statLabel}>Tổng thực đơn:</span>
+        <span className={styles.statLabel}>Tổng thực đơn năm {displayYear}:</span>
         <span className={`${styles.statValue} ${styles.neutral}`}>{String(total).padStart(2, "0")}</span>
         <span className={styles.statUnit}>thực đơn</span>
       </div>
@@ -78,4 +80,3 @@ export default function MenuListStatsRail({ stats, onFilterByStatus }) {
     </div>
   )
 }
-

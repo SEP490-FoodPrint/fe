@@ -1,31 +1,32 @@
-import React from "react"
+import React, { useMemo } from "react"
 import styles from "./MenuListFilterStrip.module.scss"
-
-const weekRangeLabel = (offset) => {
-  const monday = new Date()
-  monday.setHours(0, 0, 0, 0)
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + offset * 7)
-  const sunday = new Date(monday)
-  sunday.setDate(sunday.getDate() + 6)
-  const format = (date) => `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`
-  return `${format(monday)} - ${format(sunday)}`
-}
+import { getWeeksOfYear, getISOWeekNumber } from "src/services/MenuService/adapter"
 
 export default function MenuListFilterStrip({
   filters,
   onChangeFilter,
-  onResetFilters
+  onResetFilters,
+  availableYears = [2024, 2025, 2026, 2027],
 }) {
   const {
     searchKeyword = "",
-    dateFilter = "all",
+    year = new Date().getFullYear(),
+    week = getISOWeekNumber(new Date()),
     mealType = "all",
-    status = "all"
+    status = "all",
   } = filters
+
+  const currentYear = new Date().getFullYear()
+  const currentWeek = getISOWeekNumber(new Date())
+
+  // Tạo danh sách toàn bộ các tuần của năm đã chọn
+  const weeks = useMemo(() => {
+    return getWeeksOfYear(Number(year) || currentYear)
+  }, [year, currentYear])
 
   return (
     <div className={styles.filterStrip}>
-      {/* 1. Search Input */}
+      {/* 1. Tìm kiếm theo tên hoặc mã thực đơn */}
       <div className={styles.searchWrapper}>
         <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
         <input
@@ -47,60 +48,86 @@ export default function MenuListFilterStrip({
         )}
       </div>
 
-      {/* 2. Date Filter */}
-      <div className={styles.selectWrapper}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>calendar_today</span>
+      {/* 2. Bộ lọc Năm (Thêm theo yêu cầu) */}
+      <div className={styles.selectWrapperYear}>
+        <span className={`material-symbols-outlined ${styles.selectIcon}`}>calendar_month</span>
         <select
           className={styles.selectInput}
-          value={dateFilter}
-          onChange={(e) => onChangeFilter("dateFilter", e.target.value)}
+          value={year}
+          onChange={(e) => onChangeFilter("year", Number(e.target.value))}
+          title="Chọn năm"
         >
-          <option value="all">Tất cả các ngày</option>
-          <option value="current">Tuần này: {weekRangeLabel(0)}</option>
-          <option value="next">Tuần tới: {weekRangeLabel(1)}</option>
-          <option value="prev">Tuần trước: {weekRangeLabel(-1)}</option>
+          {availableYears.map((y) => (
+            <option key={y} value={y}>
+              Năm {y}
+            </option>
+          ))}
         </select>
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 3. Meal Type Filter */}
+      {/* 3. Bộ lọc Tuần (Lọc theo các tuần cho mọi năm, mặc định là tuần này) */}
+      <div className={styles.selectWrapperWeek}>
+        <span className={`material-symbols-outlined ${styles.selectIcon}`}>view_week</span>
+        <select
+          className={styles.selectInput}
+          value={String(week)}
+          onChange={(e) => onChangeFilter("week", e.target.value === "all" ? "all" : Number(e.target.value))}
+          title="Chọn tuần trong năm"
+        >
+          <option value="all">Tất cả các tuần ({year})</option>
+          {weeks.map((w) => {
+            const isThisWeek = Number(year) === currentYear && w.weekNumber === currentWeek
+            return (
+              <option key={w.weekNumber} value={w.weekNumber}>
+                {isThisWeek ? `${w.label} — Tuần này` : w.label}
+              </option>
+            )
+          })}
+        </select>
+        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+      </div>
+
+      {/* 4. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>
         <span className={`material-symbols-outlined ${styles.selectIcon}`}>restaurant</span>
         <select
           className={styles.selectInput}
           value={mealType}
           onChange={(e) => onChangeFilter("mealType", e.target.value)}
+          title="Chọn ca ăn"
         >
-          <option value="all">Tất cả bữa</option>
+          <option value="all">Tất cả ca</option>
           <option value="LUNCH">Bữa trưa</option>
-          <option value="AFTERNOON">Bữa chiều</option>
+          <option value="AFTERNOON">Bữa chiều / xế</option>
         </select>
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 4. Status Filter */}
+      {/* 5. Bộ lọc Trạng thái */}
       <div className={styles.selectWrapperMd}>
         <span className={`material-symbols-outlined ${styles.selectIcon}`}>verified_user</span>
         <select
           className={styles.selectInput}
           value={status}
           onChange={(e) => onChangeFilter("status", e.target.value)}
+          title="Chọn trạng thái phê duyệt"
         >
           <option value="all">Tất cả trạng thái</option>
-          <option value="DRAFT">Bản nháp</option>
-          <option value="PENDING_APPROVAL">Chờ BGH duyệt</option>
           <option value="APPROVED">Đã duyệt</option>
+          <option value="PENDING_APPROVAL">Chờ BGH duyệt</option>
+          <option value="DRAFT">Bản nháp</option>
           <option value="REVISION_REQUESTED">Yêu cầu chỉnh sửa</option>
         </select>
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 5. Reset Filter Button */}
+      {/* 6. Nút Đặt lại bộ lọc */}
       <button
         type="button"
         className={styles.resetBtn}
         onClick={onResetFilters}
-        title="Đặt lại bộ lọc về mặc định"
+        title="Đặt lại bộ lọc về mặc định (Tuần này)"
       >
         <span className={`material-symbols-outlined ${styles.resetIcon}`}>restart_alt</span>
         <span className={styles.resetLabel}>Đặt lại</span>
@@ -108,4 +135,3 @@ export default function MenuListFilterStrip({
     </div>
   )
 }
-

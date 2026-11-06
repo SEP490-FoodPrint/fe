@@ -222,7 +222,7 @@ const routes = [
 
           // Lập thực đơn & cảnh báo dị ứng: Ban Y tế
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
               { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },

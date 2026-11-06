@@ -57,6 +57,71 @@ export function getISOWeekNumber(date) {
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
 }
 
+export function getDateOfISOWeek(w, y) {
+  const simple = new Date(Date.UTC(y, 0, 1 + (w - 1) * 7));
+  const dow = simple.getUTCDay();
+  const ISOweekStart = new Date(simple);
+  if (dow <= 4) {
+    if (dow === 0) ISOweekStart.setUTCDate(simple.getUTCDate() - 6);
+    else ISOweekStart.setUTCDate(simple.getUTCDate() - dow + 1);
+  } else {
+    ISOweekStart.setUTCDate(simple.getUTCDate() + (8 - dow));
+  }
+  return ISOweekStart;
+}
+
+export function getWeeksOfYear(year) {
+  const weeks = [];
+  const p = (y) => (y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400)) % 7;
+  const numWeeks = (p(year) === 4 || p(year - 1) === 3) ? 53 : 52;
+  const pad = (n) => String(n).padStart(2, "0");
+
+  for (let w = 1; w <= numWeeks; w++) {
+    const monday = getDateOfISOWeek(w, year);
+    const friday = new Date(monday);
+    friday.setUTCDate(friday.getUTCDate() + 4);
+    const mStr = `${pad(monday.getUTCDate())}/${pad(monday.getUTCMonth() + 1)}`;
+    const fStr = `${pad(friday.getUTCDate())}/${pad(friday.getUTCMonth() + 1)}`;
+    weeks.push({
+      weekNumber: w,
+      year,
+      startDate: monday,
+      fridayDate: friday,
+      label: `Tuần ${w} (${mStr} – ${fStr}/${year})`,
+      shortLabel: `Tuần ${w}`,
+      dateRangeLabel: `${mStr} – ${fStr}/${year}`,
+      startVN: mStr,
+      endVN: fStr,
+    });
+  }
+  return weeks;
+}
+
+export function getMenuDateObj(menu) {
+  if (!menu) return new Date();
+  if (menu.rawDate) {
+    const parts = menu.rawDate.split("-");
+    if (parts.length === 3) {
+      return new Date(Date.UTC(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10)));
+    }
+  }
+  if (menu.date) {
+    const parts = menu.date.split("/");
+    if (parts.length === 3) {
+      return new Date(Date.UTC(parseInt(parts[2], 10), parseInt(parts[1], 10) - 1, parseInt(parts[0], 10)));
+    }
+  }
+  return new Date();
+}
+
+export function getMenuYear(menu) {
+  return getMenuDateObj(menu).getUTCFullYear();
+}
+
+export function getMenuISOWeek(menu) {
+  return getISOWeekNumber(getMenuDateObj(menu));
+}
+
 export function getSchoolMonday(date) {
   const d = new Date(date);
   const day = d.getDay() === 0 ? 7 : d.getDay();

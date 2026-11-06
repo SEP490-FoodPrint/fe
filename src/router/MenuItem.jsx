@@ -176,8 +176,14 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_MENU,
-    label: "Thực đơn đã lên",
+    label: "Thực đơn tuần học đường",
     icon: <RestaurantMenuOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_MENU_PLANNING,
+    label: "Danh sách thực đơn",
+    icon: <DescriptionOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {

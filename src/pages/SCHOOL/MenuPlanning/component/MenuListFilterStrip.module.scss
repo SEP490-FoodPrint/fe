@@ -14,13 +14,18 @@
   @media (min-width: 1024px) {
     flex-direction: row;
     align-items: center;
+    flex-wrap: wrap;
+  }
+
+  @media (min-width: 1280px) {
+    flex-wrap: nowrap;
   }
 }
 
 .searchWrapper {
   position: relative;
   flex: 1;
-  min-width: 220px;
+  min-width: 200px;
   display: flex;
   align-items: center;
 }
@@ -77,6 +82,8 @@
 }
 
 .selectWrapper,
+.selectWrapperYear,
+.selectWrapperWeek,
 .selectWrapperSm,
 .selectWrapperMd {
   position: relative;
@@ -90,21 +97,33 @@
   }
 }
 
+.selectWrapperYear {
+  @media (min-width: 1024px) {
+    width: 130px;
+  }
+}
+
+.selectWrapperWeek {
+  @media (min-width: 1024px) {
+    width: 245px;
+  }
+}
+
 .selectWrapper {
   @media (min-width: 1024px) {
-    width: 230px;
+    width: 220px;
   }
 }
 
 .selectWrapperSm {
   @media (min-width: 1024px) {
-    width: 150px;
+    width: 145px;
   }
 }
 
 .selectWrapperMd {
   @media (min-width: 1024px) {
-    width: 190px;
+    width: 175px;
   }
 }
 
@@ -119,7 +138,7 @@
 .selectInput {
   width: 100%;
   height: 40px;
-  padding: 0 32px 0 36px;
+  padding: 0 30px 0 36px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
@@ -183,4 +202,3 @@
     display: none;
   }
 }
-

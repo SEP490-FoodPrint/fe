@@ -1,0 +1,568 @@
+.verticalViewContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.weekControlBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid rgba(189, 201, 195, 0.4);
+  padding: 10px 16px;
+  box-shadow: 0 1px 3px rgba(36, 49, 45, 0.04);
+}
+
+.weekInfoGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weekTag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.weekIcon {
+  font-size: 20px;
+  color: #0a8066;
+}
+
+.weekHeading {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.currentWeekBadge {
+  background-color: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.viewModeGroup {
+  display: flex;
+  align-items: center;
+  background-color: #f1f5f9;
+  padding: 3px;
+  border-radius: 8px;
+  gap: 2px;
+}
+
+.viewModeBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #0f172a;
+  }
+}
+
+.activeViewMode {
+  background-color: #ffffff;
+  color: #0a8066;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Vertical Days Stack */
+.daysVerticalStack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dayCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(36, 49, 45, 0.04);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+    border-color: #cbd5e1;
+  }
+}
+
+.isTodayCard {
+  border: 2px solid #059669;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.1);
+}
+
+.dayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 18px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.dayTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dayCalendarCircle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #e6f4ea;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dayNameBlock {
+  display: flex;
+  align-items: center;
+}
+
+.dayName {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dayDate {
+  font-weight: 500;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.todayPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #059669;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 2px 9px;
+  border-radius: 9999px;
+}
+
+.pulsingDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ffffff;
+}
+
+.dayStatsInline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statBadgePortions,
+.statBadgeDishes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* Meals Grid inside each Day */
+.mealsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  padding: 16px;
+
+  @media (min-width: 900px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.mealColumn {
+  display: flex;
+  flex-direction: column;
+}
+
+.mealBox {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.lunchBox {
+  border-left: 4px solid #f97316;
+}
+
+.afternoonBox {
+  border-left: 4px solid #3b82f6;
+}
+
+.mealBoxTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mealBadgeGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.lunchTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+}
+
+.afternoonTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.3px;
+}
+
+.mealActionBtns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.actionBtnIcon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
+  }
+}
+
+.editIconBtn {
+  &:hover {
+    color: #0a8066;
+    border-color: #0a8066;
+  }
+}
+
+.menuTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menuName {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #0a8066;
+  }
+}
+
+.menuMetaLine {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.codeText {
+  font-family: monospace;
+  font-weight: 600;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.metaDot {
+  color: #cbd5e1;
+}
+
+.targetText {
+  color: #64748b;
+}
+
+/* Dishes Section */
+.dishesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  padding: 10px 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.dishesList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dishItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dishNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.dishBullet {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+/* Tên món ăn nổi bật cho người bếp nhìn vào */
+.dishName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dishQty {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.dishIngredients {
+  font-size: 11.5px;
+  color: #64748b;
+  padding-left: 18px;
+}
+
+/* Allergy Card */
+.allergyCard {
+  background-color: #fefce8;
+  border: 1px solid #fef08a;
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.allergyHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.allergyShieldIcon {
+  font-size: 16px;
+  color: #ca8a04;
+}
+
+.allergyLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #854d0e;
+}
+
+.allergyNote {
+  margin: 0;
+  font-size: 11.5px;
+  color: #713f12;
+}
+
+.substituteDishRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 11.5px;
+  margin-top: 2px;
+}
+
+.substituteTag {
+  font-weight: 600;
+  color: #854d0e;
+}
+
+.substituteName {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Empty meal slot */
+.emptyMealSlot {
+  background-color: #fafafa;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.emptyMealIconWrap {
+  color: #94a3b8;
+}
+
+.emptyMealText {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.addMealBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  background-color: #ffffff;
+  border: 1px solid #0a8066;
+  color: #0a8066;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #ecfdf5;
+  }
+}
+
+/* Status pills */
+.statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.approved {
+  background-color: #ecfdf5;
+  color: #065f46;
+  .dot {
+    background-color: #10b981;
+  }
+}
+
+.pending {
+  background-color: #eff6ff;
+  color: #1e40af;
+  .dot {
+    background-color: #3b82f6;
+  }
+}
+
+.revision {
+  background-color: #fef2f2;
+  color: #991b1b;
+  .dot {
+    background-color: #ef4444;
+  }
+}
+
+.draft {
+  background-color: #f1f5f9;
+  color: #475569;
+  .dot {
+    background-color: #94a3b8;
+  }
+}

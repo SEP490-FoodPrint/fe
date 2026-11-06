@@ -4,6 +4,14 @@ import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { MOCK_MENU_LIST } from "./mockMenuListData"
 import MenuService from "src/services/MenuService"
+import {
+  getDateOfISOWeek,
+  getWeeksOfYear,
+  getMenuYear,
+  getMenuISOWeek,
+  getISOWeekNumber,
+  SCHOOL_DAY_LABELS,
+} from "src/services/MenuService/adapter"
 
 import MenuListHeader from "./component/MenuListHeader"
 import MenuListStatsRail from "./component/MenuListStatsRail"
@@ -11,37 +19,32 @@ import MenuListFilterStrip from "./component/MenuListFilterStrip"
 import MenuListTable from "./component/MenuListTable"
 import MenuListPagination from "./component/MenuListPagination"
 import MenuDetailModal from "./component/MenuDetailModal"
-
-const getWeekStartDate = (weekFilter) => {
-  if (weekFilter === "all") return undefined
-  const date = new Date()
-  date.setHours(0, 0, 0, 0)
-  const daysSinceMonday = (date.getDay() + 6) % 7
-  const weekOffset = weekFilter === "next" ? 1 : weekFilter === "prev" ? -1 : 0
-  date.setDate(date.getDate() - daysSinceMonday + weekOffset * 7)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const day = String(date.getDate()).padStart(2, "0")
-  return `${year}-${month}-${day}`
-}
+import MenuListWeeklyVerticalView from "./component/MenuListWeeklyVerticalView"
 
 export default function MenuPlanning() {
   const navigate = useNavigate()
+
+  const currentYear = useMemo(() => new Date().getFullYear(), [])
+  const currentWeek = useMemo(() => getISOWeekNumber(new Date()), [])
 
   // Master data
   const [menus, setMenus] = useState(MOCK_MENU_LIST)
   const [menusAreMock, setMenusAreMock] = useState(true)
   const [loading, setLoading] = useState(false)
 
-  // Filter state
+  // Chế độ xem: "vertical" (Kiểu dọc theo tuần - Mặc định) hoặc "table" (Kiểu bảng)
+  const [viewMode, setViewMode] = useState("vertical")
+
+  // Filter state: Mặc định lọc năm hiện tại và Tuần này!
   const [filters, setFilters] = useState({
     searchKeyword: "",
-    dateFilter: "all",
+    year: currentYear,
+    week: currentWeek, // Mặc định luôn là tuần này!
     mealType: "all",
-    status: "all"
+    status: "all",
   })
 
-  // Tải dữ liệu thực tế từ backend (Azure DB) hoặc fallback mock
+  // Tải dữ liệu thực tế từ backend hoặc fallback mock
   useEffect(() => {
     let isMounted = true
     const fetchMenus = async () => {
@@ -61,10 +64,12 @@ export default function MenuPlanning() {
       }
     }
     fetchMenus()
-    return () => { isMounted = false }
+    return () => {
+      isMounted = false
+    }
   }, [filters.status])
 
-  // Pagination state
+  // Pagination state (dành cho chế độ bảng)
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 5
 
@@ -84,41 +89,58 @@ export default function MenuPlanning() {
 
   // Filter changes
   const handleChangeFilter = (field, value) => {
-    setFilters(prev => ({ ...prev, [field]: value }))
-    setCurrentPage(1) // Reset to first page upon filter change
+    setFilters((prev) => {
+      const next = { ...prev, [field]: value }
+      // Khi đổi năm: nếu đổi sang năm khác và tuần đang là currentWeek thì reset hoặc tính hợp lệ
+      if (field === "year" && next.week !== "all") {
+        if (Number(value) === currentYear) {
+          next.week = currentWeek
+        }
+      }
+      return next
+    })
+    setCurrentPage(1)
   }
 
   const handleResetFilters = () => {
     setFilters({
       searchKeyword: "",
-      dateFilter: "all",
+      year: currentYear,
+      week: currentWeek,
       mealType: "all",
-      status: "all"
+      status: "all",
     })
+    setViewMode("vertical")
     setCurrentPage(1)
-    showToast("Đã đặt lại bộ lọc về mặc định", "info")
+    showToast("Đã đặt lại bộ lọc về Tuần này", "info")
   }
 
   const handleFilterByStatus = (statusValue) => {
-    setFilters(prev => ({ ...prev, status: statusValue }))
+    setFilters((prev) => ({ ...prev, status: statusValue }))
     setCurrentPage(1)
   }
 
-  // Compute stats for Stats Rail (across all menus)
+  // Tính thống kê cho Stats Rail: Tổng thực đơn của năm hiện tại / năm đã chọn
   const stats = useMemo(() => {
-    const total = menus.length
-    const draft = menus.filter(m => m.status === "DRAFT").length
-    const pendingApproval = menus.filter(m => m.status === "PENDING_APPROVAL").length
-    const approved = menus.filter(m => m.status === "APPROVED").length
-    const revisionRequested = menus.filter(m => m.status === "REVISION_REQUESTED").length
+    const targetYear = Number(filters.year) || currentYear
+    const yearMenus = menus.filter((m) => getMenuYear(m) === targetYear)
+    const total = yearMenus.length
+    const draft = yearMenus.filter((m) => m.status === "DRAFT").length
+    const pendingApproval = yearMenus.filter(
+      (m) => m.status === "PENDING_APPROVAL"
+    ).length
+    const approved = yearMenus.filter((m) => m.status === "APPROVED").length
+    const revisionRequested = yearMenus.filter(
+      (m) => m.status === "REVISION_REQUESTED"
+    ).length
 
     return { total, draft, pendingApproval, approved, revisionRequested }
-  }, [menus])
+  }, [menus, filters.year, currentYear])
 
-  // Filtered menus
+  // Lọc danh sách thực đơn
   const filteredMenus = useMemo(() => {
-    return menus.filter(menu => {
-      // 1. Search keyword (name or code)
+    return menus.filter((menu) => {
+      // 1. Từ khóa tìm kiếm (tên thực đơn hoặc mã)
       if (filters.searchKeyword.trim()) {
         const kw = filters.searchKeyword.trim().toLowerCase()
         const matchName = menu.name.toLowerCase().includes(kw)
@@ -126,28 +148,92 @@ export default function MenuPlanning() {
         if (!matchName && !matchCode) return false
       }
 
-      // 2. Lọc theo tuần (xử lý tức thời trong bộ nhớ 0ms cho cả Real Data và Mock)
-      if (filters.dateFilter !== "all") {
-        if (filters.dateFilter === "current" && menu.week !== "current") return false
-        if (filters.dateFilter === "next" && menu.week !== "next") return false
-        if (filters.dateFilter === "prev" && menu.week !== "prev") return false
+      // 2. Lọc theo Năm
+      const mYear = getMenuYear(menu)
+      if (filters.year && mYear !== Number(filters.year)) {
+        return false
       }
 
-      // 3. Meal type filter
+      // 3. Lọc theo Tuần (Tuần ISO hoặc tuần được chọn)
+      if (filters.week !== "all") {
+        const targetWeek = Number(filters.week)
+        const mWeek = getMenuISOWeek(menu)
+        if (mWeek !== targetWeek) {
+          // Fallback đối soát nếu mock data có gán tag week tương đối
+          const isMatchRelative =
+            (targetWeek === currentWeek && menu.week === "current") ||
+            (targetWeek === currentWeek - 1 && menu.week === "prev") ||
+            (targetWeek === currentWeek + 1 && menu.week === "next")
+          if (!isMatchRelative) return false
+        }
+      }
+
+      // 4. Lọc theo Ca ăn
       if (filters.mealType !== "all") {
         if (menu.mealType !== filters.mealType) return false
       }
 
-      // 4. Status filter
+      // 5. Lọc theo Trạng thái
       if (filters.status !== "all") {
         if (menu.status !== filters.status) return false
       }
 
       return true
     })
-  }, [menus, menusAreMock, filters])
+  }, [menus, filters, currentWeek])
 
-  // Paginated menus
+  // Danh sách các ngày trong tuần được chọn (dành cho chế độ xem dọc)
+  const weekSchoolDays = useMemo(() => {
+    if (filters.week === "all") return []
+    const monday = getDateOfISOWeek(
+      Number(filters.week),
+      Number(filters.year) || currentYear
+    )
+    const pad = (n) => String(n).padStart(2, "0")
+    const now = new Date()
+    const todayISO = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
+      now.getDate()
+    )}`
+
+    const days = []
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(monday)
+      d.setUTCDate(monday.getUTCDate() + i)
+      const dateVN = `${pad(d.getUTCDate())}/${pad(
+        d.getUTCMonth() + 1
+      )}/${d.getUTCFullYear()}`
+      const dateISO = `${d.getUTCFullYear()}-${pad(
+        d.getUTCMonth() + 1
+      )}-${pad(d.getUTCDate())}`
+      days.push({
+        dayOfWeek: i + 1,
+        dayLabel: SCHOOL_DAY_LABELS[i + 1] || `Thứ ${i + 2}`,
+        dateVN,
+        dateISO,
+        isToday: dateISO === todayISO,
+      })
+    }
+    return days
+  }, [filters.week, filters.year, currentYear])
+
+  // Nhãn tuần được chọn
+  const selectedWeekLabel = useMemo(() => {
+    if (filters.week === "all") {
+      return `Tất cả các tuần năm ${filters.year}`
+    }
+    const weeks = getWeeksOfYear(Number(filters.year) || currentYear)
+    const found = weeks.find((w) => w.weekNumber === Number(filters.week))
+    return found ? found.label : `Tuần ${filters.week}/${filters.year}`
+  }, [filters.week, filters.year, currentYear])
+
+  const isCurrentWeek = useMemo(() => {
+    return (
+      Number(filters.year) === currentYear &&
+      Number(filters.week) === currentWeek
+    )
+  }, [filters.year, filters.week, currentYear, currentWeek])
+
+  // Paginated menus (dành cho chế độ bảng)
   const totalItems = filteredMenus.length
   const totalPages = Math.ceil(totalItems / pageSize) || 1
   const paginatedMenus = useMemo(() => {
@@ -160,12 +246,22 @@ export default function MenuPlanning() {
     navigate(ROUTER.SCHOOL_MENU_CREATE)
   }
 
+  const handleNavigateCreateWithDate = (dateISO, mealType) => {
+    navigate(ROUTER.SCHOOL_MENU_CREATE, {
+      state: { initialDate: dateISO, initialMealType: mealType },
+    })
+  }
+
   const handleEditMenu = (menu) => {
-    navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })
+    navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), {
+      state: { menu },
+    })
   }
 
   const handleViewDetail = (menu) => {
-    navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), { state: { menu } })
+    navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), {
+      state: { menu },
+    })
   }
 
   return (
@@ -174,7 +270,11 @@ export default function MenuPlanning() {
       {toast && (
         <div className={`${styles.toastNotice} ${styles[toast.type]}`}>
           <span className="material-symbols-outlined text-[18px]">
-            {toast.type === "success" ? "check_circle" : toast.type === "warning" ? "warning" : "info"}
+            {toast.type === "success"
+              ? "check_circle"
+              : toast.type === "warning"
+              ? "warning"
+              : "info"}
           </span>
           <span>{toast.message}</span>
         </div>
@@ -183,34 +283,75 @@ export default function MenuPlanning() {
       {/* Section 1: Header Bar & Actions */}
       <MenuListHeader onNavigateCreate={handleNavigateCreate} />
 
-      {/* Section 2: Compact Minimalist Stats Rail */}
+      {/* Section 2: Tổng thực đơn của năm hiện tại & Thống kê trạng thái */}
       <MenuListStatsRail
         stats={stats}
+        year={filters.year}
         onFilterByStatus={handleFilterByStatus}
       />
 
-      {/* Section 3: Flat Clean Filter Strip */}
+      {/* Section 3: Bộ lọc Năm, Tuần và Ca ăn */}
       <MenuListFilterStrip
         filters={filters}
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
       />
 
-      {/* Section 4 & 5: Clean Flat Table with Pagination */}
-      <div className={styles.tableCard}>
-        <MenuListTable
-          menus={paginatedMenus}
+      {/* Section 4: Hiển thị Danh sách thực đơn kiểu dọc (Mặc định cho 1 tuần) hoặc Kiểu bảng */}
+      {viewMode === "vertical" && filters.week !== "all" ? (
+        <MenuListWeeklyVerticalView
+          schoolDays={weekSchoolDays}
+          menus={filteredMenus}
+          mealTypeFilter={filters.mealType}
           onViewDetail={handleViewDetail}
           onEditMenu={handleEditMenu}
+          onNavigateCreate={handleNavigateCreateWithDate}
+          viewMode={viewMode}
+          onChangeViewMode={setViewMode}
+          selectedWeekLabel={selectedWeekLabel}
+          isCurrentWeek={isCurrentWeek}
         />
-        <MenuListPagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          pageSize={pageSize}
-          totalItems={totalItems}
-          onPageChange={(page) => setCurrentPage(page)}
-        />
-      </div>
+      ) : (
+        <div className={styles.tableCard}>
+          <div className={styles.tableTopBar}>
+            <div className={styles.tableModeLabel}>
+              <span className="material-symbols-outlined text-[18px]">
+                table_rows
+              </span>
+              <span>
+                Bảng danh sách thực đơn ({filteredMenus.length} thực đơn)
+              </span>
+            </div>
+            <div className={styles.tableModeActions}>
+              {filters.week !== "all" && (
+                <button
+                  type="button"
+                  className={styles.switchModeBtn}
+                  onClick={() => setViewMode("vertical")}
+                  title="Chuyển sang kiểu dọc theo tuần"
+                >
+                  <span className="material-symbols-outlined text-[16px]">
+                    calendar_view_day
+                  </span>
+                  <span>Xem kiểu dọc</span>
+                </button>
+              )}
+            </div>
+          </div>
+          <MenuListTable
+            menus={paginatedMenus}
+            onViewDetail={handleViewDetail}
+            onEditMenu={handleEditMenu}
+          />
+          <MenuListPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        </div>
+      )}
 
       {/* Detail Modal */}
       <MenuDetailModal
