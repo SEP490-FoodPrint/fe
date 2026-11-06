@@ -1,5 +1,6 @@
 import React, { useContext, useState } from "react"
-import { Avatar, Button, ListItemIcon, Menu, MenuItem } from "@mui/material"
+import { Button, ListItemIcon, Menu, MenuItem } from "@mui/material"
+import UserAvatar from "src/components/Common/UserAvatar"
 import { Link, useNavigate } from "react-router-dom"
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined"
 import AuthService from "src/services/AuthService"
@@ -39,7 +40,7 @@ export default function PublicAccountMenu() {
   }
   return <>
     <Button id="public-account-button" className={styles.trigger} aria-label={`Tài khoản ${name}`} aria-haspopup="menu" aria-expanded={open} aria-controls={open ? "public-account-menu" : undefined} onClick={event => setAnchor(event.currentTarget)}>
-      <Avatar src={user?.avatarUrl || user?.avatar || undefined} alt="" className={styles.avatar}>{name.trim().split(/\s+/).slice(-2).map(word => word[0]).join("").toUpperCase()}</Avatar>
+      <UserAvatar user={user} className={styles.avatar} />
       <span className={styles.name}>{name}</span><KeyboardArrowDownIcon className={styles.chevron} />
     </Button>
     <Menu id="public-account-menu" anchorEl={anchor} open={open} onClose={close} slotProps={{ list: { "aria-labelledby": "public-account-button" }, paper: { className: styles.menu } }}>

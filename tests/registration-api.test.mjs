@@ -6,6 +6,7 @@ import { registrationList, registrationQuery, registrationRequest } from "../src
 import { newPasswordErrors, signupErrors, validCurrentPassword, validPassword } from "../src/lib/authValidation.js"
 import { onboardingBody, appendDocumentFiles } from "../src/services/AuthService/onboarding.js"
 import { ROLES } from "../src/constants/roles.js"
+import { hasNewRegistrationResponse, registrationObservation } from "../src/lib/registration.js"
 
 const id = "00000000-0000-4000-8000-000000000101"
 const principal = { id: "00000000-0000-4000-8000-000000000102", username: "system_admin", fullName: "Quản trị viên", role: "SYSTEM_ADMIN", orgType: "SYSTEM", permissions: ["registration.view"] }
@@ -60,6 +61,54 @@ test("query uses the backend whitelist and omits empty filters", () => {
   assert.deepEqual(registrationQuery({ search: "  Nguyễn Văn  ", type: "SCHOOL", status: "PENDING", from: "2026-10-01", to: "2026-10-30", page: 2, pageSize: 2 }), {
     page: 2, limit: 2, search: "Nguyễn Văn", requestType: "SCHOOL", status: "PENDING", fromDate: "2026-10-01", toDate: "2026-10-30",
   })
+})
+
+test("registration feedback records only the applicant's request identity, status and submission", () => {
+  const user = { id: "applicant", orgType: "SCHOOL", registrationRequest: { id, status: "PENDING", submittedAt: row.submittedAt, rejectionReason: "Private reason" } }
+  assert.deepEqual(registrationObservation(user), { userId: "applicant", requestId: id, status: "PENDING", submittedAt: row.submittedAt })
+  assert.equal(registrationObservation({ ...user, orgType: "SYSTEM" }), null)
+  assert.equal(registrationObservation({ ...user, registrationRequest: null }), null)
+  assert.equal(registrationObservation({ ...user, registrationRequest: { status: "PENDING" } }), null)
+  assert.equal(registrationObservation(null), null)
+})
+
+test("pending registrations never announce a decision, even when old review data exists", () => {
+  const user = { id: "applicant", orgType: "SCHOOL", registrationRequest: { id, status: "PENDING", rejectionReason: "Old rejection", reviewedAt: row.submittedAt } }
+  const pending = registrationObservation(user)
+  assert.equal(hasNewRegistrationResponse(null, pending), false)
+  assert.equal(hasNewRegistrationResponse({ ...pending, status: "REJECTED" }, pending), false)
+})
+
+test("pending to approved or rejected announces new feedback for both applicant types", () => {
+  for (const orgType of ["SCHOOL", "SUPPLIER"]) {
+    const pending = registrationObservation({ id: "applicant", orgType, registrationRequest: { id, status: "PENDING" } })
+    for (const status of ["APPROVED", "REJECTED"]) assert.equal(hasNewRegistrationResponse(pending, { ...pending, status }), true)
+  }
+})
+
+test("a decision without an observed pending transition does not open the feedback popup", () => {
+  for (const status of ["APPROVED", "REJECTED"]) {
+    const response = registrationObservation({ id: "applicant", orgType: "SCHOOL", registrationRequest: { id, status, submittedAt: row.submittedAt } })
+    assert.equal(hasNewRegistrationResponse(null, response), false)
+    assert.equal(hasNewRegistrationResponse(JSON.parse(JSON.stringify(response)), response), false)
+  }
+})
+
+test("resubmitting the same request permits another rejection notification", () => {
+  const rejected = registrationObservation({ id: "applicant", orgType: "SUPPLIER", registrationRequest: { id, status: "REJECTED", submittedAt: row.submittedAt } })
+  const pendingAgain = { ...rejected, status: "PENDING" }
+  assert.equal(hasNewRegistrationResponse(pendingAgain, rejected), true)
+  assert.equal(hasNewRegistrationResponse(rejected, { ...rejected, submittedAt: "2026-11-06T10:00:00.000Z" }), false)
+})
+
+test("a pending transition only notifies the same account and registration request", () => {
+  const response = registrationObservation({ id: "applicant", orgType: "SCHOOL", registrationRequest: { id, status: "APPROVED" } })
+  const pending = { ...response, status: "PENDING" }
+  assert.equal(hasNewRegistrationResponse(pending, response), true)
+  assert.equal(hasNewRegistrationResponse(pending, { ...response, userId: "other-applicant" }), false)
+  assert.equal(hasNewRegistrationResponse(pending, { ...response, requestId: "other-request" }), false)
+  assert.equal(hasNewRegistrationResponse(response, null), false)
+  assert.equal(hasNewRegistrationResponse(null, { ...response, status: "UNKNOWN" }), false)
 })
 
 test("list reads the nested pagination envelope without fabricating omitted fields", async () => {

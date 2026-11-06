@@ -4,13 +4,11 @@ import { UtensilsCrossed } from "lucide-react"
 import { PublicHeader } from "../Header"
 import ROUTER from "src/router/ROUTER"
 import styles from "./PublicLayout.module.scss"
-import CompleteRegistrationDialog from "src/components/Auth/CompleteRegistrationDialog"
 
 function PublicLayout() {
   return (
     <div className={styles.layoutWrapper}>
       <PublicHeader />
-      <CompleteRegistrationDialog />
 
       <main className={styles.mainContent}>
         <Outlet />

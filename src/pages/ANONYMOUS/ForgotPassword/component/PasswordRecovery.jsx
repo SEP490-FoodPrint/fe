@@ -143,11 +143,11 @@ export default function PasswordRecovery({ step }) {
   </AuthCard>
   if ((step === "verify" && !recovery?.email) || (step === "reset" && (!recovery?.resetToken || (!grantRemaining && !loading)))) return <Navigate to={ROUTER.FORGOT_PASSWORD} replace state={{ recoveryExpired: true }} />
 
-  if (step === "verify") return <EmailCodeForm eyebrow="Bước 2 / 3 · Xác minh email" description={genericDelivery} email={recovery.email} code={code} onCodeChange={setCode} codeId="recovery-code" errors={errors} message={message} notice={notice} sending={sending} verifying={loading} remaining={remaining} submitRemaining={verifyRemaining} onSubmit={verify} onResend={resend}
+  if (step === "verify") return <EmailCodeForm description={genericDelivery} email={recovery.email} code={code} onCodeChange={setCode} codeId="recovery-code" errors={errors} message={message} notice={notice} sending={sending} verifying={loading} remaining={remaining} submitRemaining={verifyRemaining} onSubmit={verify} onResend={resend}
     footer={<Button component={Link} to={ROUTER.FORGOT_PASSWORD} className={form.link} disabled={loading || sending}>Đổi địa chỉ email</Button>} />
 
   return <AuthCard component="form" noValidate onSubmit={step === "reset" ? reset : request} aria-busy={loading} aria-label={step === "reset" ? "Đặt lại mật khẩu" : "Quên mật khẩu"}>
-    <AuthHeading eyebrow={step === "reset" ? "Bước 3 / 3 · Mật khẩu mới" : "Bước 1 / 3 · Khôi phục tài khoản"} title={step === "reset" ? "Đặt lại mật khẩu" : "Quên mật khẩu?"} description={step === "reset" ? "Tạo mật khẩu mới để tiếp tục sử dụng tài khoản FoodPrint." : "Nhập email đã đăng ký để nhận mã xác minh đặt lại mật khẩu."} />
+    <AuthHeading title={step === "reset" ? "Đặt lại mật khẩu" : "Quên mật khẩu?"} description={step === "reset" ? "Tạo mật khẩu mới để tiếp tục sử dụng tài khoản FoodPrint." : "Nhập email đã đăng ký để nhận mã xác minh đặt lại mật khẩu."} />
     {step === "email" && location.state?.recoveryExpired && <Alert severity="info">Phiên khôi phục không còn hiệu lực. Vui lòng nhập email để nhận mã mới.</Alert>}
     <FormErrors errors={errors} message={message} />
     {step === "reset" ? <NewPasswordFields values={values} onChange={change} errors={errors} disabled={loading} />

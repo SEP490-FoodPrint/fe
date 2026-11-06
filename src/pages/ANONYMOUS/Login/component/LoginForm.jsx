@@ -5,7 +5,6 @@ import { Link } from "react-router-dom"
 import {
   AlertCircle,
   ArrowRight,
-  ShieldCheck,
 } from "lucide-react"
 import AuthInput from "src/components/Auth/AuthInput"
 import AuthService from "src/services/AuthService"
@@ -50,17 +49,6 @@ export default function LoginForm({
     <div className={styles.loginWrapper}>
       {/* 1. Main Card */}
       <div className={styles.card}>
-        {/* Top Eyebrow Pill & Security Icon */}
-        <div className={styles.topBar}>
-          <div className={styles.pillBadge}>
-            <span className={styles.pulseDot} />
-            <span>CỔNG ĐĂNG NHẬP CƠ SỞ &amp; ĐỐI TÁC</span>
-          </div>
-          <div className={styles.securityIconBox} title="Bảo mật cấp trường học">
-            <ShieldCheck size={18} />
-          </div>
-        </div>
-
         {/* Heading */}
         <div className={styles.headingGroup}>
           <h1 className={styles.title}>Đăng nhập tài khoản</h1>
