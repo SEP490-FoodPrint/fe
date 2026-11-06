@@ -175,14 +175,11 @@ export default function AllergyAlternativeMealsCard({
                     />
                     <select
                       className={styles.qtyUnitSelect}
-                      value={substituteDish.unit}
+                      value={substituteDish.unit || "g"}
                       onChange={(e) => onChangeSubstituteDish("unit", e.target.value)}
                     >
                       <option value="g">g</option>
-                      <option value="kg">kg</option>
                       <option value="ml">ml</option>
-                      <option value="quả">quả</option>
-                      <option value="cái">cái</option>
                     </select>
                   </div>
                 </div>

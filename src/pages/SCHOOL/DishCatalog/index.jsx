@@ -95,7 +95,7 @@ export default function DishCatalogPage() {
       name: dish.name || "",
       category: dish.category || "MAIN_DISH",
       portionQty: dish.portionQty ?? "",
-      unit: dish.unit || "g",
+      unit: dish.unit === "ml" ? "ml" : "g",
     })
 
     // Nạp danh sách nguyên liệu của món ăn đang sửa
@@ -210,7 +210,7 @@ export default function DishCatalogPage() {
               category: form.category,
               categoryLabel: catInfo?.label || "Món ăn",
               portionQty: Number(form.portionQty) || 50,
-              unit: form.unit || "g",
+              unit: form.unit === "ml" ? "ml" : "g",
               mainIngredient: mainIngText,
               supplierId: finalSupplierId,
               supplierName: finalSupplierName,
@@ -232,7 +232,7 @@ export default function DishCatalogPage() {
         category: form.category,
         categoryLabel: catInfo?.label || "Món ăn",
         portionQty: Number(form.portionQty) || 50,
-        unit: form.unit || "g",
+        unit: form.unit === "ml" ? "ml" : "g",
         mainIngredient: mainIngText,
         supplierId: finalSupplierId,
         supplierName: finalSupplierName,
@@ -475,8 +475,6 @@ export default function DishCatalogPage() {
                     >
                       <option value="g">g</option>
                       <option value="ml">ml</option>
-                      <option value="cái">cái</option>
-                      <option value="phần">phần</option>
                     </select>
                   </div>
                 </div>
