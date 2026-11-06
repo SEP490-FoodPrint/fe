@@ -32,7 +32,7 @@ export default function CreateMenuDayModal({
   totalStudents = 1250,
   onSaveDay,
 }) {
-  // Tabs: "DISHES" (Chọn món ăn từ Kho) hoặc "SEASONINGS" (Nhập gia vị cho 1,250 HS)
+  // Tabs: "DISHES" (Chọn món ăn từ Kho) hoặc "SEASONINGS" (Nhập gia vị kho)
   const [activeTab, setActiveTab] = useState(initialTab)
   const [selectedMealType, setSelectedMealType] = useState(
     initialMealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
@@ -60,7 +60,7 @@ export default function CreateMenuDayModal({
         Array.isArray(dayMenu?.AFTERNOON) ? [...dayMenu.AFTERNOON] : []
       )
 
-      // Khởi tạo gia vị: nếu chưa có thì lấy từ INITIAL_SEASONINGS
+      // Khởi tạo gia vị
       if (Array.isArray(dayMenu?.seasonings) && dayMenu.seasonings.length > 0) {
         setSeasonings(
           dayMenu.seasonings.map((s) => ({
@@ -242,20 +242,15 @@ export default function CreateMenuDayModal({
   return (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true">
       <div className={styles.modalContainer}>
-        {/* Modal Header */}
+        {/* Modal Header: Tinh gọn, không chữ thừa */}
         <div className={styles.modalHeader}>
           <div className={styles.headerTitleWrap}>
             <div className={styles.dayBadge}>
               {dayData?.dayLabel || "Thứ Hai"}
             </div>
-            <div>
-              <h2 className={styles.headerTitle}>
-                Thực đơn ngày {dayData?.dateVN || "10/11/2026"}
-              </h2>
-              <p className={styles.headerSub}>
-                Soạn thực đơn bữa trưa, bữa xế và gia vị dùng chung cho bữa ăn của ngày
-              </p>
-            </div>
+            <h2 className={styles.headerTitle}>
+              Thực đơn ngày {dayData?.dateVN || "10/11/2026"}
+            </h2>
           </div>
           <button
             type="button"
@@ -270,15 +265,11 @@ export default function CreateMenuDayModal({
         {/* Modal Body: 50/50 Split View */}
         <div className={styles.modalBody}>
           {/* ========================================================
-              CỘT TRÁI (50%): PREVIEW HÔM THỨ ĐÓ
+              CỘT TRÁI (50%): TỔNG QUÁT HÔM ĐÓ - KHÔNG CẦN CUỘN
               ======================================================== */}
           <div className={styles.previewColumn}>
+            {/* Thanh tóm tắt nhanh */}
             <div className={styles.columnStickyHeader}>
-              <div className={styles.previewTitleRow}>
-                <span className={styles.previewHeading}>
-                  Xem trước thực đơn hôm thứ đó
-                </span>
-              </div>
               <div className={styles.summaryBar}>
                 <span className={styles.summaryItem}>
                   Trưa: <strong>{lunchDishes.length}</strong> món
@@ -299,7 +290,7 @@ export default function CreateMenuDayModal({
               <div className={styles.previewMealCard}>
                 <div className={`${styles.mealBanner} ${styles.lunchBanner}`}>
                   <div className={styles.bannerLeft}>
-                    <Utensils size={14} />
+                    <Utensils size={13} className={styles.lunchBannerIcon} />
                     <span className={styles.bannerText}>BỮA TRƯA</span>
                   </div>
                   <span className={styles.dishesCountBadge}>
@@ -310,26 +301,21 @@ export default function CreateMenuDayModal({
                 <div className={styles.previewDishesList}>
                   {lunchDishes.length === 0 ? (
                     <div className={styles.emptyNotice}>
-                      <span>Chưa có món trưa. Chọn món từ kho bên phải để thêm vào.</span>
+                      <span>Chưa có món trưa. Chọn món từ kho bên phải để thêm.</span>
                     </div>
                   ) : (
                     lunchDishes.map((dish) => (
                       <div key={dish.id} className={styles.previewDishItem}>
                         <div className={styles.dishInfoLeft}>
-                          <span className={styles.dishBullet} />
-                          <div>
-                            <div className={styles.dishNameRow}>
-                              <span className={styles.dishName}>{dish.name}</span>
-                              {dish.categoryLabel && (
-                                <span className={styles.categoryPill}>
-                                  {dish.categoryLabel}
-                                </span>
-                              )}
-                            </div>
-                            <span className={styles.supplierSub}>
-                              {dish.supplierName} • {dish.supplierBadge}
+                          <span className={styles.dishBulletLunch} />
+                          <span className={styles.dishName} title={dish.name}>
+                            {dish.name}
+                          </span>
+                          {dish.categoryLabel && (
+                            <span className={styles.categoryPill}>
+                              {dish.categoryLabel}
                             </span>
-                          </div>
+                          )}
                         </div>
                         <div className={styles.dishInfoRight}>
                           <span className={styles.portionBadge}>
@@ -341,7 +327,7 @@ export default function CreateMenuDayModal({
                             onClick={() => handleRemoveDishFromPreview("LUNCH", dish.id)}
                             title={`Xóa ${dish.name} khỏi bữa trưa`}
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </div>
@@ -354,7 +340,7 @@ export default function CreateMenuDayModal({
               <div className={styles.previewMealCard}>
                 <div className={`${styles.mealBanner} ${styles.afternoonBanner}`}>
                   <div className={styles.bannerLeft}>
-                    <Coffee size={14} />
+                    <Coffee size={13} className={styles.afternoonBannerIcon} />
                     <span className={styles.bannerText}>BỮA XẾ</span>
                   </div>
                   <span className={styles.dishesCountBadge}>
@@ -365,26 +351,21 @@ export default function CreateMenuDayModal({
                 <div className={styles.previewDishesList}>
                   {afternoonDishes.length === 0 ? (
                     <div className={styles.emptyNotice}>
-                      <span>Chưa có món xế. Chọn ca Bữa xế bên phải để thêm món.</span>
+                      <span>Chưa có món xế. Chọn ca Bữa xế bên phải để thêm.</span>
                     </div>
                   ) : (
                     afternoonDishes.map((dish) => (
                       <div key={dish.id} className={styles.previewDishItem}>
                         <div className={styles.dishInfoLeft}>
                           <span className={styles.dishBulletAfternoon} />
-                          <div>
-                            <div className={styles.dishNameRow}>
-                              <span className={styles.dishName}>{dish.name}</span>
-                              {dish.categoryLabel && (
-                                <span className={styles.categoryPill}>
-                                  {dish.categoryLabel}
-                                </span>
-                              )}
-                            </div>
-                            <span className={styles.supplierSub}>
-                              {dish.supplierName} • {dish.supplierBadge}
+                          <span className={styles.dishName} title={dish.name}>
+                            {dish.name}
+                          </span>
+                          {dish.categoryLabel && (
+                            <span className={styles.categoryPill}>
+                              {dish.categoryLabel}
                             </span>
-                          </div>
+                          )}
                         </div>
                         <div className={styles.dishInfoRight}>
                           <span className={styles.portionBadge}>
@@ -396,7 +377,7 @@ export default function CreateMenuDayModal({
                             onClick={() => handleRemoveDishFromPreview("AFTERNOON", dish.id)}
                             title={`Xóa ${dish.name} khỏi bữa xế`}
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={13} />
                           </button>
                         </div>
                       </div>
@@ -405,24 +386,22 @@ export default function CreateMenuDayModal({
                 </div>
               </div>
 
-              {/* KHỐI 3: GIA VỊ DÙNG CHUNG CỦA NGÀY (CHO TOÀN BỘ 1,250 HỌC SINH) */}
+              {/* KHỐI 3: GIA VỊ KHO DÙNG CHUNG */}
               <div className={styles.previewSeasoningCard}>
                 <div className={styles.seasoningBanner}>
                   <div className={styles.bannerLeft}>
-                    <Sparkles size={14} />
-                    <span className={styles.bannerText}>
-                      GIA VỊ DÙNG CHUNG (CHO CẢ HÔM ĐÓ)
-                    </span>
+                    <Sparkles size={13} className={styles.seasoningBannerIcon} />
+                    <span className={styles.bannerText}>GIA VỊ KHO DÙNG CHUNG</span>
                   </div>
-                  <span className={styles.seasoningRuleBadge}>
-                    Gia vị cả ngày
+                  <span className={styles.seasoningCountBadge}>
+                    {seasonings.length} loại
                   </span>
                 </div>
 
                 <div className={styles.previewSeasoningsList}>
                   {seasonings.length === 0 ? (
                     <div className={styles.emptyNotice}>
-                      <span>Chưa có gia vị. Chuyển sang tab “Nhập gia vị” bên phải để khai báo.</span>
+                      <span>Chưa có gia vị. Chuyển sang tab “Gia vị dùng chung” bên phải để khai báo.</span>
                     </div>
                   ) : (
                     <table className={styles.miniSeasoningTable}>
@@ -431,7 +410,7 @@ export default function CreateMenuDayModal({
                           <th>Gia vị xuất kho</th>
                           <th>Định lượng</th>
                           <th className={styles.alignRight}>Tổng xuất kho</th>
-                          <th></th>
+                          <th style={{ width: "24px" }}></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -439,7 +418,10 @@ export default function CreateMenuDayModal({
                           const unitLabel = s.unit === "ml" ? "Lít" : "Kg"
                           return (
                             <tr key={s.id}>
-                              <td className={styles.seasoningNameCell}>{s.name}</td>
+                              <td className={styles.seasoningNameCell}>
+                                <span className={styles.seasoningDot} />
+                                <span>{s.name.replace(/\(.*?\)/g, "").trim()}</span>
+                              </td>
                               <td className={styles.seasoningPortionCell}>
                                 {s.portionQty} {s.unit}/suất
                               </td>
@@ -453,7 +435,7 @@ export default function CreateMenuDayModal({
                                   onClick={() => handleRemoveSeasoning(s.id)}
                                   title={`Xóa gia vị ${s.name}`}
                                 >
-                                  <Trash2 size={13} />
+                                  <Trash2 size={12} />
                                 </button>
                               </td>
                             </tr>
@@ -468,7 +450,7 @@ export default function CreateMenuDayModal({
           </div>
 
           {/* ========================================================
-              CỘT PHẢI (50%): NHẬP THÔNG TIN / CHỌN MÓN & NHẬP GIA VỊ
+              CỘT PHẢI (50%): CHỌN MÓN TỪ KHO & NHẬP GIA VỊ
               ======================================================== */}
           <div className={styles.inputColumn}>
             {/* Top Switcher Tabs */}
@@ -480,7 +462,7 @@ export default function CreateMenuDayModal({
                 }`}
                 onClick={() => setActiveTab("DISHES")}
               >
-                <Utensils size={15} />
+                <Utensils size={14} />
                 <span>Chọn món từ Kho món ăn</span>
                 <span className={styles.tabBadge}>
                   {currentMealDishes.length}
@@ -494,8 +476,8 @@ export default function CreateMenuDayModal({
                 }`}
                 onClick={() => setActiveTab("SEASONINGS")}
               >
-                <Sparkles size={15} />
-                <span>Nhập gia vị cho cả hôm đó</span>
+                <Sparkles size={14} />
+                <span>Gia vị dùng chung</span>
                 <span className={styles.tabBadge}>
                   {seasonings.length}
                 </span>
@@ -516,7 +498,7 @@ export default function CreateMenuDayModal({
                       }`}
                       onClick={() => setSelectedMealType("LUNCH")}
                     >
-                      <Utensils size={14} />
+                      <Utensils size={13} />
                       <span>Bữa trưa ({lunchDishes.length} món)</span>
                     </button>
                     <button
@@ -526,7 +508,7 @@ export default function CreateMenuDayModal({
                       }`}
                       onClick={() => setSelectedMealType("AFTERNOON")}
                     >
-                      <Coffee size={14} />
+                      <Coffee size={13} />
                       <span>Bữa xế ({afternoonDishes.length} món)</span>
                     </button>
                   </div>
@@ -535,7 +517,7 @@ export default function CreateMenuDayModal({
                 {/* Search & Filter pills */}
                 <div className={styles.searchAndFilter}>
                   <div className={styles.searchBox}>
-                    <Search size={15} className={styles.searchIcon} />
+                    <Search size={14} className={styles.searchIcon} />
                     <input
                       type="text"
                       className={styles.searchInput}
@@ -549,7 +531,7 @@ export default function CreateMenuDayModal({
                         className={styles.clearSearchBtn}
                         onClick={() => setSearchKeyword("")}
                       >
-                        <X size={14} />
+                        <X size={13} />
                       </button>
                     )}
                   </div>
@@ -574,7 +556,7 @@ export default function CreateMenuDayModal({
                 <div className={styles.catalogListScroll}>
                   {filteredCatalog.length === 0 ? (
                     <div className={styles.emptyCatalog}>
-                      <AlertCircle size={24} />
+                      <AlertCircle size={22} />
                       <p>Không tìm thấy món ăn nào phù hợp với từ khóa.</p>
                     </div>
                   ) : (
@@ -603,7 +585,7 @@ export default function CreateMenuDayModal({
                               </span>
                               <span className={styles.metaDivider}>•</span>
                               <span className={styles.metaSupplier}>
-                                <Truck size={12} />
+                                <Truck size={11} />
                                 <span>{dish.supplierName}</span>
                               </span>
                             </div>
@@ -618,13 +600,13 @@ export default function CreateMenuDayModal({
                           >
                             {isPicked ? (
                               <>
-                                <Check size={14} />
+                                <Check size={13} />
                                 <span>Đã chọn</span>
                               </>
                             ) : (
                               <>
-                                <Plus size={14} />
-                                <span>Thêm vào ca</span>
+                                <Plus size={13} />
+                                <span>Thêm</span>
                               </>
                             )}
                           </button>
@@ -636,24 +618,9 @@ export default function CreateMenuDayModal({
               </div>
             )}
 
-            {/* TAB 2: NHẬP GIA VỊ CHO CẢ HÔM ĐÓ (1,250 HỌC SINH) */}
+            {/* TAB 2: GIA VỊ DÙNG CHUNG */}
             {activeTab === "SEASONINGS" && (
               <div className={styles.tabContentPane}>
-                {/* Banner hướng dẫn định lượng cho toàn trường */}
-                <div className={styles.seasoningNoticeBox}>
-                  <div className={styles.noticeIconWrap}>
-                    <Sparkles size={16} />
-                  </div>
-                  <div className={styles.noticeContent}>
-                    <p className={styles.noticeTitle}>
-                      Gia vị xuất kho chung cho bữa ăn ngày {dayData?.dayLabel || "hôm đó"}
-                    </p>
-                    <p className={styles.noticeDesc}>
-                      Khai báo định lượng gia vị dùng chung cho bữa ăn ngày hôm đó. Khi bạn nhập định lượng mỗi suất, hệ thống sẽ tự động quy đổi thành tổng số Kg hoặc Lít xuất kho thực tế.
-                    </p>
-                  </div>
-                </div>
-
                 {/* Bảng nhập gia vị */}
                 <div className={styles.seasoningsEditorTableWrap}>
                   <table className={styles.seasoningsEditorTable}>
@@ -661,9 +628,7 @@ export default function CreateMenuDayModal({
                       <tr>
                         <th style={{ width: "42%" }}>Gia vị từ kho trường</th>
                         <th style={{ width: "26%" }}>Mỗi suất</th>
-                        <th style={{ width: "24%" }}>
-                          Tổng xuất kho cả ngày
-                        </th>
+                        <th style={{ width: "24%" }}>Tổng xuất kho</th>
                         <th style={{ width: "8%" }}></th>
                       </tr>
                     </thead>
@@ -706,7 +671,7 @@ export default function CreateMenuDayModal({
                               </div>
                             </td>
 
-                            {/* Tổng lượng xuất kho cho 1,250 học sinh */}
+                            {/* Tổng lượng xuất kho */}
                             <td>
                               <div className={styles.inputWithUnit}>
                                 <input
@@ -731,7 +696,7 @@ export default function CreateMenuDayModal({
                                 onClick={() => handleRemoveSeasoning(s.id)}
                                 title="Xóa gia vị này"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={13} />
                               </button>
                             </td>
                           </tr>
@@ -748,7 +713,7 @@ export default function CreateMenuDayModal({
                     className={styles.addSeasoningRowBtn}
                     onClick={handleAddSeasoningRow}
                   >
-                    <Plus size={14} />
+                    <Plus size={13} />
                     <span>+ Thêm gia vị từ kho</span>
                   </button>
 
@@ -758,7 +723,7 @@ export default function CreateMenuDayModal({
                     onClick={handleResetDefaultSeasonings}
                     title="Đặt lại 4 gia vị chuẩn: Dầu ăn, Nước mắm, Muối, Đường"
                   >
-                    <RotateCcw size={13} />
+                    <RotateCcw size={12} />
                     <span>Nạp gia vị mặc định</span>
                   </button>
                 </div>
@@ -771,7 +736,7 @@ export default function CreateMenuDayModal({
         <div className={styles.modalFooter}>
           <div className={styles.footerInfo}>
             <span>
-              Đang chỉnh sửa: <strong>{dayData?.dayLabel} ({dayData?.dateVN})</strong>
+              {dayData?.dayLabel} ({dayData?.dateVN})
             </span>
           </div>
 
@@ -788,7 +753,7 @@ export default function CreateMenuDayModal({
               className={styles.confirmSaveBtn}
               onClick={handleSaveAndClose}
             >
-              <Check size={16} />
+              <Check size={15} />
               <span>Xác nhận &amp; Cập nhật vào ngày này</span>
             </button>
           </div>
@@ -797,4 +762,3 @@ export default function CreateMenuDayModal({
     </div>
   )
 }
-
