@@ -536,3 +536,4 @@ export function saveDishToCatalog(newDish) {
   }
   return updated;
 }
+

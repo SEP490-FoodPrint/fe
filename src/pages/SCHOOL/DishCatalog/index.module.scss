@@ -1,0 +1,620 @@
+.page {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: "Be Vietnam Pro", sans-serif;
+}
+
+/* ─── Header ─────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.titleBlock {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.titleIcon {
+  width: 40px;
+  height: 40px;
+  background: #e8f5f1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0a8066;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #0a8066;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+  font-family: "Be Vietnam Pro", sans-serif;
+
+  &:hover {
+    background: #087055;
+  }
+}
+
+/* ─── Filter bar ─────────────────────────────────── */
+.filterBar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.searchWrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 320px;
+
+  svg {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #aaa;
+    pointer-events: none;
+  }
+}
+
+.searchInput {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #1a1a1a;
+  background: #fff;
+  box-sizing: border-box;
+  transition: border-color 0.18s;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+  }
+}
+
+.catTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.catTab {
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1.5px solid #e0e0e0;
+  background: #fff;
+  color: #555;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: "Be Vietnam Pro", sans-serif;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #0a8066;
+    color: #0a8066;
+  }
+
+  &.active {
+    background: #0a8066;
+    border-color: #0a8066;
+    color: #fff;
+    font-weight: 600;
+  }
+}
+
+/* ─── Stats row ──────────────────────────────────── */
+.statsRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.statCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  min-width: 110px;
+}
+
+.statIcon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.statNum {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0a8066;
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.3;
+}
+
+/* ─── Table ──────────────────────────────────────── */
+.tableWrap {
+  background: #fff;
+  border-radius: 10px;
+  border: 1px solid #eee;
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th {
+  background: #f5f5f5;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  border-bottom: 1px solid #eee;
+  white-space: nowrap;
+}
+
+.table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+  color: #333;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: #f9fffe;
+}
+
+.dishName {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.dishDesc {
+  font-size: 11px;
+  color: #999;
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+.catBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+
+  &.rice { background: #fff3e0; color: #e65100; }
+  &.main { background: #fce4ec; color: #c62828; }
+  &.veg  { background: #e8f5e9; color: #2e7d32; }
+  &.soup { background: #e3f2fd; color: #1565c0; }
+  &.after { background: #f3e5f5; color: #6a1b9a; }
+  &.allergy { background: #fff8e1; color: #f57f17; }
+}
+
+.mealBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+
+  &.lunch  { background: #e8f5f1; color: #0a8066; }
+  &.after  { background: #f3e5f5; color: #6a1b9a; }
+  &.both   { background: #e3f2fd; color: #1565c0; }
+}
+
+.allergenBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 8px;
+  font-size: 11px;
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.noAllergen {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.portionCell {
+  font-weight: 600;
+  color: #0a8066;
+}
+
+.actionBtns {
+  display: flex;
+  gap: 6px;
+}
+
+.editBtn,
+.deleteBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 0.15s;
+  background: transparent;
+}
+
+.editBtn {
+  border-color: #0a8066;
+  color: #0a8066;
+
+  &:hover {
+    background: #0a8066;
+    color: #fff;
+  }
+}
+
+.deleteBtn {
+  border-color: #e53935;
+  color: #e53935;
+
+  &:hover {
+    background: #e53935;
+    color: #fff;
+  }
+}
+
+/* ─── Empty state ────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: #aaa;
+
+  .emptyIcon {
+    font-size: 48px;
+    margin-bottom: 10px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+/* ─── Modal overlay ──────────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 1;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0;
+}
+
+.closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f5f5f5;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #eee;
+    color: #1a1a1a;
+  }
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formFullRow {
+  grid-column: 1 / -1;
+}
+
+.formLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.required {
+  color: #e53935;
+  margin-left: 2px;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #1a1a1a;
+  box-sizing: border-box;
+  transition: border-color 0.18s;
+  background: #fff;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+  }
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 70px;
+}
+
+.portionRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.portionInput {
+  flex: 1;
+}
+
+.unitSelect {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.mealCheckboxGroup {
+  display: flex;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    width: 15px;
+    height: 15px;
+    accent-color: #0a8066;
+    cursor: pointer;
+  }
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px 18px;
+  border-top: 1px solid #eee;
+}
+
+.cancelBtn {
+  padding: 8px 18px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: "Be Vietnam Pro", sans-serif;
+  transition: all 0.15s;
+
+  &:hover {
+    border-color: #bbb;
+    background: #f5f5f5;
+  }
+}
+
+.saveBtn {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #0a8066;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Be Vietnam Pro", sans-serif;
+  transition: background 0.18s;
+
+  &:hover {
+    background: #087055;
+  }
+}
+
+/* ─── Confirm delete dialog ──────────────────────── */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+}
+
+.confirmBox {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px 24px 20px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.16);
+  text-align: center;
+}
+
+.confirmIcon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.confirmTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 6px;
+}
+
+.confirmMsg {
+  font-size: 13px;
+  color: #888;
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.confirmCancel {
+  padding: 8px 20px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: "Be Vietnam Pro", sans-serif;
+  transition: all 0.15s;
+
+  &:hover {
+    background: #f5f5f5;
+  }
+}
+
+.confirmDelete {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #e53935;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: "Be Vietnam Pro", sans-serif;
+  transition: background 0.18s;
+
+  &:hover {
+    background: #c62828;
+  }
+}
+
