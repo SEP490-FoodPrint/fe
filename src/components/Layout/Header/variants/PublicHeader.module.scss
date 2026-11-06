@@ -252,6 +252,9 @@
   gap: var(--space-3);
 }
 
+.brandLink { text-decoration: none; }
+
+
 .loginBtn {
   display: inline-flex;
   align-items: center;
@@ -294,4 +297,13 @@
     box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.35);
     transform: translateY(-1px);
   }
+}
+
+@media (max-width: 600px) {
+  .brandLink span:last-child { display: none; }
+  .brandLink > div { gap: var(--space-2); }
+  .brandLink > div > div:first-child { width: var(--space-8); height: var(--space-8); }
+  .actionsWrap { gap: var(--space-1); }
+  .loginBtn, .registerBtn { padding: var(--space-2); font-size: var(--text-xs); white-space: nowrap; }
+  .loginBtn svg { display: none; }
 }

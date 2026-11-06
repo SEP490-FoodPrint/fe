@@ -74,7 +74,7 @@ function PublicHeader() {
   }, [schools, dropdownSearch]);
 
   const leftSlot = (
-    <Link to={ROUTER.DEFAULT} style={{ textDecoration: "none" }}>
+    <Link to={ROUTER.DEFAULT} className={styles.brandLink}>
       <BrandLogo theme="light" />
     </Link>
   );
