@@ -15,7 +15,7 @@ export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = f
             </span>
           </div>
           <p className={styles.pageSubtitle}>
-            Khai báo cơ cấu món ăn, chọn nguyên liệu từ các Nhà cung cấp liên kết và bố trí suất ăn riêng cho học sinh dị ứng.
+            Chọn món ăn từ Kho món ăn bán trú để thiết lập cơ cấu dinh dưỡng và hoàn thiện thực đơn theo tuần học đường.
           </p>
         </div>
 

@@ -21,6 +21,14 @@ export default function DishPickerModal({
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [selectedIds, setSelectedIds] = useState(initialSelectedIds)
 
+  // Cập nhật lại kho món ăn mỗi khi mở modal
+  useEffect(() => {
+    if (isOpen) {
+      setCatalog(getStoredDishCatalog())
+      setSelectedIds(initialSelectedIds || [])
+    }
+  }, [isOpen, initialSelectedIds])
+
   // Form thêm món mới vào kho
   const [showAddForm, setShowAddForm] = useState(false)
   const [newDishForm, setNewDishForm] = useState({
@@ -29,7 +37,6 @@ export default function DishPickerModal({
     portionQty: 60,
     unit: "g",
     supplierId: "sup-cp",
-    allergen: "",
   })
 
   // Lọc danh sách món ăn theo category & keyword
@@ -235,17 +242,7 @@ export default function DishPickerModal({
                 </select>
               </div>
             </div>
-            <div className={styles.formActions}>
-              <input
-                type="text"
-                className={styles.formInput}
-                style={{ flex: 1 }}
-                placeholder="Cảnh báo dị ứng nếu có (ví dụ: Hải sản, Trứng, Sữa bò... hoặc bỏ trống)"
-                value={newDishForm.allergen}
-                onChange={(e) =>
-                  setNewDishForm({ ...newDishForm, allergen: e.target.value })
-                }
-              />
+            <div className={styles.formActions} style={{ justifyContent: "flex-end" }}>
               <button type="submit" className={styles.confirmBtn}>
                 Lưu vào kho
               </button>
@@ -319,17 +316,12 @@ export default function DishPickerModal({
                       <div className={styles.supplierRow} title={"NCC: " + dish.supplierName}>
                         <Truck size={11} className={styles.supplierIcon} />
                         <span>NCC: {dish.supplierName}</span>
+                        {dish.supplierBadge && (
+                          <span className={styles.supplierBadgePill}>
+                            {dish.supplierBadge}
+                          </span>
+                        )}
                       </div>
-                    )}
-                    {dish.allergen && (
-                      <div className={styles.allergenWarning}>
-                        <AlertTriangle size={11} className={styles.warningIcon} />
-                        <span>Dị ứng: {dish.allergen}</span>
-                      </div>
-                    )}
-
-                    {dish.description && (
-                      <p className={styles.dishDesc}>{dish.description}</p>
                     )}
                   </div>
                 )

@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react"
+import React, { useEffect, useState, useMemo, useCallback } from "react"
 import { Alert, Button } from "@mui/material"
 import { useNavigate, useLocation } from "react-router-dom"
 import styles from "./CreateMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { INITIAL_DISHES, INITIAL_SEASONINGS, ALL_INGREDIENTS } from "../mockMenuData"
 import MenuService from "src/services/MenuService"
 import {
   adaptBackendMenuDetailToView,
@@ -15,15 +14,13 @@ import {
 } from "src/services/MenuService/adapter"
 
 import CreateMenuHeader from "../component/CreateMenuHeader"
-import CreateMenuWeeklyLivePreview from "../component/CreateMenuWeeklyLivePreview"
-import MenuBasicInfoCard from "../component/MenuBasicInfoCard"
-import MenuDishesTable from "../component/MenuDishesTable"
-import AllergyAlternativeMealsCard from "../component/AllergyAlternativeMealsCard"
-import MenuSeasoningCard from "../component/MenuSeasoningCard"
 import CreateMenuBottomBar from "../component/CreateMenuBottomBar"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
-import IngredientPickerModal from "../component/IngredientPickerModal"
 import DishPickerModal from "../component/DishPickerModal"
+
+import CreateMenuNavigator from "./CreateMenuNavigator"
+import CreateMenuDishesTable from "./CreateMenuDishesTable"
+import CreateMenuSidePreview from "./CreateMenuSidePreview"
 
 export default function CreateMenu() {
   const navigate = useNavigate()
@@ -52,7 +49,7 @@ export default function CreateMenu() {
     return `${d}/${m}/${y}`
   }
 
-  // Form State: Khởi tạo thông tin ca ăn đang chọn
+  // 1. Form State (BỎ Hoàn toàn Số suất ăn dự kiến)
   const [formState, setFormState] = useState({
     name: "",
     date: getTodayFormatted(),
@@ -61,42 +58,42 @@ export default function CreateMenu() {
     notes: "",
   })
 
-  // Danh sách món ăn trong thực đơn của ca ăn hiện tại
-  const [dishes, setDishes] = useState([
-    {
-      id: "dish-1",
-      name: "",
-      ingredientIds: [],
-      portionQty: 50,
-      unit: "g",
-    },
-  ])
+  // 2. Danh sách món ăn trong ca ăn hiện tại
+  const [dishes, setDishes] = useState([])
 
-  // Món thay thế cho học sinh dị ứng
-  const [substituteDish, setSubstituteDish] = useState({
-    name: "",
-    ingredientId: null,
-    portionQty: 40,
-    unit: "g",
-  })
+  // 3. Trạng thái Live Preview của cả tuần { [dateISO]: { LUNCH: [], AFTERNOON: [] } }
+  const [weeklyMeals, setWeeklyMeals] = useState({})
 
-  // Gia vị bữa ăn học đường (nhập theo định lượng trên 1 bữa của 1.250 học sinh)
-  const [seasonings, setSeasonings] = useState([])
+  // 4. Modal Kho món ăn & Xác nhận
+  const [isDishPickerOpen, setIsDishPickerOpen] = useState(false)
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  // 5. Backend Menu data
   const [selectedDayMenu, setSelectedDayMenu] = useState(null)
   const [loadingSelectedDay, setLoadingSelectedDay] = useState(false)
   const [selectedDayError, setSelectedDayError] = useState("")
   const [selectedDayAttempt, setSelectedDayAttempt] = useState(0)
 
-  // 1. Tính toán danh sách 5 ngày học của tuần đang chọn
+  // Tính toán dải tuần từ ngày hiện tại
   const weekInfo = useMemo(() => {
     return getSchoolWeekScheduleFromDate(formState.date)
   }, [formState.date])
   const schoolDays = weekInfo?.schoolDays || []
 
-  // 2. Trạng thái Live Preview của cả tuần
-  const [weeklyMeals, setWeeklyMeals] = useState({})
+  // Đặt tên mặc định nếu chưa có tên
+  useEffect(() => {
+    setFormState((prev) => {
+      const mealName = prev.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"
+      const dayLabel = weekInfo?.dayLabel || "Thứ Hai"
+      return {
+        ...prev,
+        name: prev.name || `Thực đơn ${mealName} ${dayLabel} (${prev.date})`,
+      }
+    })
+  }, [formState.date, formState.mealType, weekInfo?.dayLabel])
 
-  // Tự động tải dữ liệu tuần nếu có từ backend hoặc mock
+  // Nạp lịch tuần từ backend/mock
   useEffect(() => {
     let active = true
     const weekStart = schoolDays[0]?.dateISO
@@ -129,7 +126,7 @@ export default function CreateMenu() {
     }
   }, [schoolDays[0]?.dateISO])
 
-  // Cập nhật món ăn đang soạn thảo vào bảng Live Preview theo thời gian thực
+  // Cập nhật real-time món đang soạn thảo vào weeklyMeals để Live Preview bên phải thấy ngay
   useEffect(() => {
     const currentISO = parseDateVNToISO(formState.date)
     if (!currentISO) return
@@ -140,26 +137,13 @@ export default function CreateMenu() {
         ...prev,
         [currentISO]: {
           ...existingDay,
-          [formState.mealType]: dishes.filter(
-            (d) => d.name && d.name.trim().length > 0
-          ),
+          [formState.mealType]: dishes.filter((d) => d.name && d.name.trim().length > 0),
         },
       }
     })
   }, [dishes, formState.date, formState.mealType])
 
-  // Khi click vào ca ăn bất kỳ trên bảng Live Preview tuần
-  const handleSelectMealFromPreview = (dateISO, mealType) => {
-    const targetDay = schoolDays.find((sd) => sd.dateISO === dateISO)
-    const dateVN = targetDay ? targetDay.dateVN : formatDateVN(dateISO)
-    setFormState((prev) => ({
-      ...prev,
-      date: dateVN,
-      mealType: mealType,
-    }))
-  }
-
-  // Tải dữ liệu thực đơn theo ngày và ca ăn đang chọn
+  // Tải chi tiết thực đơn khi đổi ngày hoặc ca ăn
   useEffect(() => {
     let active = true
     const loadSelectedDay = async () => {
@@ -189,16 +173,14 @@ export default function CreateMenu() {
                 }
               : null
           )
-          setFormState((current) => ({
-            ...current,
-            name: current.name || `Thực đơn ${formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"} (${formState.date})`,
-            notes: "",
-          }))
+
+          // Khôi phục món đã soạn từ weeklyMeals nếu có
+          const cachedDishes = weeklyMeals[selectedISO]?.[formState.mealType] || []
+          setDishes(cachedDishes)
           return
         }
 
-        const menu = schedule.data.weeklyMenu?.menuDays?.[0]?.menuDayDishes?.[0]
-          ?.Dish
+        const menu = schedule.data.weeklyMenu?.menuDays?.[0]?.menuDayDishes?.[0]?.Dish
           ? adaptBackendMenuDetailToView(
               schedule.data.weeklyMenu,
               selectedDate.menuDayId,
@@ -225,12 +207,10 @@ export default function CreateMenu() {
           name: menu.name,
         }
         setSelectedDayMenu(dayMenu)
+
         if (!hasMeal) {
-          setFormState((current) => ({
-            ...current,
-            name: `Thực đơn ${formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"} (${formState.date})`,
-            notes: "",
-          }))
+          const cachedDishes = weeklyMeals[selectedISO]?.[formState.mealType] || []
+          setDishes(cachedDishes)
           return
         }
 
@@ -242,35 +222,25 @@ export default function CreateMenu() {
           targetScope: menu.targetScope || current.targetScope,
           notes: menu.feedback || "",
         }))
+
         setDishes(
-          menu.dishes.map((dish, index) => ({
+          (menu.dishes || []).map((dish, index) => ({
             id: `dish-day-${dish.dishId || dish.id || index}`,
             dishId: dish.dishId || dish.id,
             name: dish.name,
-            ingredientIds: dish.ingredientIds || [],
-            ingredientDetails: dish.ingredientDetails || [],
-            ingredientStandards: dish.ingredientStandards || [],
+            category: dish.category,
+            categoryLabel: dish.categoryLabel,
             portionQty: dish.portionQty || 50,
             unit: dish.unit || "g",
+            mainIngredient: dish.mainIngredient || dish.ingredientNames?.[0] || dish.name,
+            supplierName: dish.supplierName || "CP Foods Việt Nam",
+            supplierBadge: dish.supplierBadge || "VietGAP",
+            ingredientIds: dish.ingredientIds || [],
           }))
         )
-        setSeasonings(menu.seasonings || [])
-        setSubstituteDish(
-          menu.substituteDish || {
-            name: "",
-            ingredientId: null,
-            portionQty: 40,
-            unit: "g",
-          }
-        )
-      } catch (error) {
-        if (active) {
-          setSelectedDayError(
-            error.message || "Không tải được thực đơn của ngày đã chọn."
-          )
-          setSelectedDayMenu(null)
-          console.warn("Không tải được dữ liệu thực đơn theo ngày:", error)
-        }
+      } catch (err) {
+        if (!active) return
+        setSelectedDayError(err.message || "Lỗi tải thực đơn")
       } finally {
         if (active) setLoadingSelectedDay(false)
       }
@@ -282,240 +252,102 @@ export default function CreateMenu() {
     }
   }, [formState.date, formState.mealType, selectedDayAttempt])
 
-  // Modal Kho món ăn Master Data
-  const [isDishPickerOpen, setIsDishPickerOpen] = useState(false)
-  const [targetDishIdForPicker, setTargetDishIdForPicker] = useState(null)
+  // Chuyển đổi ngày / ca ăn khi click vào ô trên Live Preview tuần
+  const handleSelectMealFromPreview = useCallback((dateISO, mealType) => {
+    const targetDay = schoolDays.find((sd) => sd.dateISO === dateISO)
+    const dateVN = targetDay ? targetDay.dateVN : formatDateVN(dateISO)
+    const mealLabel = mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"
+    const dayLabel = targetDay?.dayLabel || "Thứ Hai"
 
-  const handleOpenDishPicker = (dishId = null) => {
-    setTargetDishIdForPicker(dishId)
-    setIsDishPickerOpen(true)
-  }
+    setFormState((prev) => ({
+      ...prev,
+      date: dateVN,
+      mealType: mealType,
+      name: `Thực đơn ${mealLabel} ${dayLabel} (${dateVN})`,
+    }))
+  }, [schoolDays])
 
-  const handleSelectDishesFromPicker = (selectedDishes) => {
-    if (!Array.isArray(selectedDishes) || selectedDishes.length === 0) return
+  // Chọn ngày từ dải nút thứ 2 - thứ 6
+  const handleSelectDay = useCallback((dayVN) => {
+    const targetDay = schoolDays.find((sd) => sd.dateVN === dayVN)
+    const mealLabel = formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"
+    const dayLabel = targetDay?.dayLabel || ""
 
-    if (targetDishIdForPicker) {
-      // Thay đổi món cho dòng đang chọn
-      const picked = selectedDishes[0]
-      setDishes((prev) =>
-        prev.map((d) => {
-          if (d.id === targetDishIdForPicker) {
-            return {
-              ...d,
-              dishId: picked.id,
-              name: picked.name,
-              category: picked.category,
-              categoryLabel: picked.categoryLabel,
-              portionQty: picked.portionQty || d.portionQty || 50,
-              unit: picked.unit || d.unit || "g",
-              ingredientIds: picked.ingredientIds?.length
-                ? picked.ingredientIds
-                : d.ingredientIds || [],
-              allergen: picked.allergen || null,
-            }
-          }
-          return d
-        })
-      )
-      showToast(`Đã đổi sang món "${picked.name}"`, "success")
-    } else {
-      // Thêm 1 hoặc nhiều món vào ca ăn
-      const newDishes = selectedDishes.map((picked, idx) => ({
-        id: `dish-${Date.now()}-${idx}`,
-        dishId: picked.id,
-        name: picked.name,
-        category: picked.category,
-        categoryLabel: picked.categoryLabel,
-        portionQty: picked.portionQty || 50,
-        unit: picked.unit || "g",
-        ingredientIds: picked.ingredientIds || [],
-        allergen: picked.allergen || null,
-      }))
+    setFormState((prev) => ({
+      ...prev,
+      date: dayVN,
+      name: `Thực đơn ${mealLabel} ${dayLabel} (${dayVN})`,
+    }))
+  }, [schoolDays, formState.mealType])
 
-      setDishes((prev) => {
-        const cleanPrev = prev.filter((d) => d.name && d.name.trim().length > 0)
-        return [...cleanPrev, ...newDishes]
-      })
-      showToast(`Đã thêm ${newDishes.length} món từ Kho vào thực đơn`, "success")
-    }
-  }
+  // Chọn ca ăn (Bữa trưa / Bữa xế)
+  const handleSelectMealType = useCallback((mealType) => {
+    const mealLabel = mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"
+    const dayLabel = weekInfo?.dayLabel || ""
 
-  // Modal chọn nguyên liệu từ NCC liên kết (Phân loại -> NCC -> Nguyên liệu)
-  const [isPickerOpen, setIsPickerOpen] = useState(false)
-  const [pickerContext, setPickerContext] = useState({
-    type: "dish",
-    dishId: null,
-  })
+    setFormState((prev) => ({
+      ...prev,
+      mealType: mealType,
+      name: `Thực đơn ${mealLabel} ${dayLabel} (${prev.date})`,
+    }))
+  }, [weekInfo?.dayLabel])
 
-  // Modal xác nhận gửi BGH duyệt
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
-  const [toast, setToast] = useState(null)
-
-  // Cập nhật thông tin cơ bản
-  const handleChangeField = (field, value) => {
-    setFormState((prev) => ({ ...prev, [field]: value }))
-  }
-
-  // Cập nhật từng món ăn trong bảng (nhận payload object)
-  const handleUpdateDish = (dishId, updates) => {
-    setDishes((prev) =>
-      prev.map((dish) => {
-        if (dish.id !== dishId) return dish
-        const updated = { ...dish, ...updates }
-        if ("portionQty" in updates || "unit" in updates) {
-          const ids = updated.ingredientIds || []
-          updated.ingredientStandards = ids.map((ingredientId) => {
-            const existing = dish.ingredientStandards?.find(
-              (line) => line.ingredientId === ingredientId
-            )
-            return {
-              ingredientId,
-              quantityPerPortion: String(updated.portionQty || 50),
-              unit: updated.unit || "g",
-              ...(existing && {
-                ...existing,
-                quantityPerPortion: String(
-                  updated.portionQty || existing.quantityPerPortion
-                ),
-                unit: updated.unit || existing.unit,
-              }),
-            }
-          })
-        }
-        return updated
-      })
-    )
-  }
-
-  // Thêm dòng món ăn mới vào bảng (mở luôn modal kho món)
-  const handleAddDishRow = () => {
-    handleOpenDishPicker(null)
-  }
-
-  // Xóa món ăn khỏi bảng
-  const handleRemoveDish = (dishId) => {
-    setDishes((prev) => prev.filter((d) => d.id !== dishId))
-    showToast("Đã xóa món ăn khỏi thực đơn", "info")
-  }
-
-  // Xóa một nguyên liệu khỏi món ăn
-  const handleRemoveIngredientFromDish = (dishId, ingredientId) => {
-    const targetDish = dishes.find((d) => d.id === dishId)
-    if (!targetDish) return
-    const currentIds =
-      targetDish.ingredientIds ||
-      (targetDish.ingredientId ? [targetDish.ingredientId] : [])
-    const newIds = currentIds.filter((id) => id !== ingredientId)
-    handleUpdateDish(dishId, { ingredientIds: newIds })
-    showToast("Đã xóa nguyên liệu khỏi món", "info")
-  }
-
-  // Quản lý Gia vị
-  const handleAddSeasoning = () => {
-    const newSeasoning = {
-      id: `seas-${Date.now()}`,
-      catalogId: "",
+  // Chuyển tuần (tuần trước / tuần sau)
+  const handleShiftWeek = useCallback((offset) => {
+    if (!formState.date) return
+    const currentISO = parseDateVNToISO(formState.date)
+    if (!currentISO) return
+    const curDate = new Date(currentISO)
+    curDate.setDate(curDate.getDate() + offset * 7)
+    const newDateVN = formatDateVN(curDate.toISOString().slice(0, 10))
+    setFormState((prev) => ({
+      ...prev,
+      date: newDateVN,
       name: "",
-      portionQty: 2,
-      unit: "g",
-    }
-    setSeasonings((prev) => [...prev, newSeasoning])
-    showToast("Đã thêm một dòng gia vị mới", "info")
-  }
+    }))
+  }, [formState.date])
 
-  const handleRemoveSeasoning = (seasoningId) => {
-    setSeasonings((prev) => prev.filter((s) => s.id !== seasoningId))
-    showToast("Đã xóa gia vị", "info")
-  }
+  const handleChangeField = useCallback((field, value) => {
+    setFormState((prev) => ({ ...prev, [field]: value }))
+  }, [])
 
-  const handleUpdateSeasoning = (seasoningId, updates) => {
-    setSeasonings((prev) =>
-      prev.map((s) => (s.id === seasoningId ? { ...s, ...updates } : s))
-    )
-  }
+  // Thêm món ăn từ Kho Món Ăn (Master Data)
+  const handleSelectDishesFromPicker = useCallback((pickedList) => {
+    if (!Array.isArray(pickedList) || pickedList.length === 0) return
 
-  // Cập nhật thông tin món thay thế dị ứng
-  const handleChangeSubstituteDish = (field, value) => {
-    setSubstituteDish((prev) => ({ ...prev, [field]: value }))
-  }
+    const newEntries = pickedList.map((picked, idx) => ({
+      id: `dish-picked-${Date.now()}-${idx}`,
+      dishId: picked.id,
+      name: picked.name,
+      category: picked.category,
+      categoryLabel: picked.categoryLabel,
+      portionQty: picked.portionQty || 50,
+      unit: picked.unit || "g",
+      mainIngredient: picked.mainIngredient || picked.ingredientNames?.[0] || picked.name,
+      supplierName: picked.supplierName || "CP Foods Việt Nam",
+      supplierBadge: picked.supplierBadge || "VietGAP",
+      ingredientIds: picked.ingredientIds || [],
+    }))
 
-  // Mở Popup chọn nguyên liệu cho món ăn cụ thể
-  const handleOpenPickerForDish = (dishId) => {
-    setPickerContext({ type: "dish", dishId })
-    setIsPickerOpen(true)
-  }
-
-  // Mở Popup chọn nguyên liệu cho món thay thế dị ứng
-  const handleOpenPickerForSubstitute = () => {
-    setPickerContext({ type: "substitute", dishId: null })
-    setIsPickerOpen(true)
-  }
-
-  // Toggle nguyên liệu trong Popup Modal (chọn được nhiều nguyên liệu)
-  const handleToggleIngredient = (ingredient) => {
-    if (pickerContext.type === "dish" && pickerContext.dishId) {
-      const targetDish = dishes.find((d) => d.id === pickerContext.dishId)
-      if (!targetDish) return
-      const currentIds =
-        targetDish.ingredientIds ||
-        (targetDish.ingredientId ? [targetDish.ingredientId] : [])
-      const exists = currentIds.includes(ingredient.id)
-      const newIds = exists
-        ? currentIds.filter((id) => id !== ingredient.id)
-        : [...currentIds, ingredient.id]
-
-      const standards = newIds.map((ingredientId) => {
-        const existing = targetDish.ingredientStandards?.find(
-          (line) => line.ingredientId === ingredientId
-        )
-        return (
-          existing || {
-            ingredientId,
-            quantityPerPortion: String(targetDish.portionQty || 50),
-            unit: targetDish.unit || "g",
-          }
-        )
-      })
-
-      handleUpdateDish(pickerContext.dishId, {
-        ingredientIds: newIds,
-        ingredientStandards: standards,
-      })
-    } else if (pickerContext.type === "substitute") {
-      setSubstituteDish((prev) => ({
-        ...prev,
-        ingredientId: ingredient.id,
-        name: prev.name || ingredient.name,
-      }))
-    }
-  }
-
-  // Thu thập danh sách nguyên liệu của món ăn đang được chọn trong popup
-  const currentTargetDish = dishes.find((d) => d.id === pickerContext.dishId)
-  const selectedIngredientIds =
-    pickerContext.type === "dish"
-      ? currentTargetDish?.ingredientIds ||
-        (currentTargetDish?.ingredientId
-          ? [currentTargetDish.ingredientId]
-          : [])
-      : substituteDish.ingredientId
-      ? [substituteDish.ingredientId]
-      : []
-
-  // Tìm các món trong thực đơn đang có nguyên liệu gây dị ứng
-  const conflictDishes = dishes.filter((dish) => {
-    const ids =
-      dish.ingredientIds || (dish.ingredientId ? [dish.ingredientId] : [])
-    const hasConflictIng = ids.some((id) => {
-      const ing = ALL_INGREDIENTS.find((i) => i.id === id)
-      return Boolean(ing?.allergen)
+    setDishes((prev) => {
+      // Loại bỏ các món trùng ID nếu có
+      const existingIds = new Set(prev.map((d) => d.dishId || d.name))
+      const filteredNew = newEntries.filter((n) => !existingIds.has(n.dishId || n.name))
+      return [...prev, ...filteredNew]
     })
-    return hasConflictIng || Boolean(dish.allergen)
-  })
 
-  const conflictCount = conflictDishes.length
+    showToast(`Đã thêm ${newEntries.length} món từ Kho vào thực đơn`, "success")
+  }, [])
+
+  // Xóa món khỏi ca ăn
+  const handleRemoveDish = useCallback((dishId) => {
+    setDishes((prev) => prev.filter((d) => d.id !== dishId))
+    showToast("Đã xóa món khỏi ca ăn", "info")
+  }, [])
+
   const isReadOnly = normalizeStatus(selectedDayMenu?.status) === "APPROVED"
 
+  // Lưu bản nháp
   const handleSaveDraft = async () => {
     if (!formState.name.trim()) {
       showToast("Vui lòng nhập tên thực đơn trước khi lưu", "warning")
@@ -525,11 +357,11 @@ export default function CreateMenu() {
       const res = await MenuService.createMenu({
         formState,
         dishes,
-        substituteDish,
-        seasonings,
+        substituteDish: null,
+        seasonings: [],
       })
       showToast(
-        res.message || "Đã lưu bản nháp thực đơn thành công (Trạng thái DRAFT)",
+        res.message || "Đã lưu bản nháp thực đơn thành công",
         "success"
       )
       setTimeout(() => {
@@ -540,27 +372,29 @@ export default function CreateMenu() {
     }
   }
 
+  // Mở modal xác nhận gửi duyệt
   const handleOpenConfirmSubmit = () => {
     if (!formState.name.trim()) {
       showToast("Vui lòng nhập tên thực đơn trước khi gửi duyệt", "warning")
       return
     }
-    const hasValidDish = dishes.some((d) => d.name.trim().length > 0)
+    const hasValidDish = dishes.some((d) => d.name && d.name.trim().length > 0)
     if (!hasValidDish) {
-      showToast("Vui lòng chọn ít nhất 1 món ăn trong thực đơn", "warning")
+      showToast("Vui lòng chọn ít nhất 1 món ăn từ Kho vào thực đơn", "warning")
       return
     }
     setIsConfirmModalOpen(true)
   }
 
+  // Xác nhận gửi Ban Giám Hiệu duyệt
   const handleConfirmSubmit = async () => {
     setIsConfirmModalOpen(false)
     try {
       const created = await MenuService.createMenu({
         formState,
         dishes,
-        substituteDish,
-        seasonings,
+        substituteDish: null,
+        seasonings: [],
       })
       if (created?.data?.id) {
         await MenuService.submitMenu(created.data.id)
@@ -586,22 +420,15 @@ export default function CreateMenu() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* Toast Notification */}
+      {/* Toast thông báo */}
       {toast && (
         <div className={`${styles.toastNotice} ${styles[toast.type]}`}>
-          <span className="material-symbols-outlined">
-            {toast.type === "success"
-              ? "check_circle"
-              : toast.type === "warning"
-              ? "warning"
-              : "info"}
-          </span>
           <span>{toast.message}</span>
         </div>
       )}
 
       <div className={styles.contentWrapper}>
-        {/* Page Header */}
+        {/* Header trang */}
         <CreateMenuHeader
           onBack={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
           selectedDayMenu={selectedDayMenu}
@@ -609,25 +436,10 @@ export default function CreateMenu() {
           statusLabel={getStatusLabel(selectedDayMenu?.status)}
         />
 
-        {/* Khối Live Preview Toàn Tuần (5 ngày x 2 ca ăn) */}
-        <CreateMenuWeeklyLivePreview
-          schoolDays={schoolDays}
-          weeklyMeals={weeklyMeals}
-          activeDate={parseDateVNToISO(formState.date) || formState.date}
-          activeMealType={formState.mealType}
-          onSelectMeal={handleSelectMealFromPreview}
-        />
-
-        {/* Khối 1: Thông tin thực đơn */}
-        <MenuBasicInfoCard
-          formState={formState}
-          onChangeField={handleChangeField}
-          readOnly={isReadOnly}
-        />
-
+        {/* Thông báo trạng thái nếu có */}
         {loadingSelectedDay ? (
           <div role="status" className={styles.menuStatusNotice}>
-            Đang tải thực đơn của ngày đã chọn…
+            Đang tải thực đơn của ca ăn đã chọn…
           </div>
         ) : selectedDayError ? (
           <Alert
@@ -636,7 +448,7 @@ export default function CreateMenu() {
             action={
               <Button
                 color="inherit"
-                onClick={() => setSelectedDayAttempt((value) => value + 1)}
+                onClick={() => setSelectedDayAttempt((v) => v + 1)}
               >
                 Tải lại
               </Button>
@@ -644,51 +456,46 @@ export default function CreateMenu() {
           >
             {selectedDayError}
           </Alert>
-        ) : selectedDayMenu ? (
-          <div role="status" className={styles.menuStatusNotice}>
-            {selectedDayMenu.hasMeal
-              ? `Ngày ${formState.date} · ${
-                  formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"
-                } · ${getStatusLabel(selectedDayMenu.status)}`
-              : `Ngày ${formState.date} · Chưa có ${
-                  formState.mealType === "AFTERNOON" ? "bữa xế" : "bữa trưa"
-                } · ${getStatusLabel(selectedDayMenu.status)}`}
-            {isReadOnly && " · Chỉ xem"}
-          </div>
         ) : null}
 
-        {/* Khối 2: Bảng món ăn trong thực đơn (Chọn từ Kho món ăn Master Data) */}
-        <fieldset
-          className={styles.editorFieldset}
-          disabled={loadingSelectedDay || isReadOnly || Boolean(selectedDayError)}
-        >
-          <MenuDishesTable
-            dishes={dishes}
-            onUpdateDish={handleUpdateDish}
-            onAddDishRow={handleAddDishRow}
-            onRemoveDish={handleRemoveDish}
-            onOpenPicker={handleOpenPickerForDish}
-            onRemoveIngredientFromDish={handleRemoveIngredientFromDish}
-            onOpenDishPicker={handleOpenDishPicker}
-          />
+        {/* BỐ CỤC 2 CỘT TÁCH BIỆT (SPLIT LAYOUT):
+            - Cột trái: Soạn thảo ca ăn (Điều hướng ngày/ca, thông tin, bảng món ăn)
+            - Cột phải: Live Preview Thực đơn Tuần (Sticky cố định, cập nhật tức thì, không cần kéo lên) */}
+        <div className={styles.splitLayout}>
+          {/* CỘT TRÁI: KHU VỰC SOẠN THẢO */}
+          <div className={styles.editorPane}>
+            {/* 1. Bộ điều hướng ngày học & thông tin ca ăn (BỎ số suất ăn dự kiến) */}
+            <CreateMenuNavigator
+              weekInfo={weekInfo}
+              formState={formState}
+              weeklyMeals={weeklyMeals}
+              onChangeField={handleChangeField}
+              onSelectDay={handleSelectDay}
+              onSelectMealType={handleSelectMealType}
+              onShiftWeek={handleShiftWeek}
+              readOnly={isReadOnly}
+            />
 
-          {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng & Tạo món thay thế */}
-          <AllergyAlternativeMealsCard
-            conflictDishes={conflictDishes}
-            substituteDish={substituteDish}
-            onChangeSubstituteDish={handleChangeSubstituteDish}
-            onOpenPickerForSubstitute={handleOpenPickerForSubstitute}
-          />
+            {/* 2. Bảng món ăn trong ca ăn (Chỉ chọn từ Kho món ăn, không chọn nguyên liệu hay nhập định lượng) */}
+            <CreateMenuDishesTable
+              dishes={dishes}
+              onOpenDishPicker={() => setIsDishPickerOpen(true)}
+              onRemoveDish={handleRemoveDish}
+              readOnly={isReadOnly}
+            />
+          </div>
 
-          {/* Khối 4: Gia vị dùng chung (Nhập định lượng trên 1 bữa của 1.250 HS) */}
-          <MenuSeasoningCard
-            seasonings={seasonings}
-            onUpdateSeasoning={handleUpdateSeasoning}
-            onAddSeasoning={handleAddSeasoning}
-            onRemoveSeasoning={handleRemoveSeasoning}
-            totalStudents={1250}
-          />
-        </fieldset>
+          {/* CỘT PHẢI: XEM TRƯỚC THỰC ĐƠN TUẦN (STICKY LIVE PREVIEW) */}
+          <div className={styles.previewPane}>
+            <CreateMenuSidePreview
+              schoolDays={schoolDays}
+              weeklyMeals={weeklyMeals}
+              activeDate={parseDateVNToISO(formState.date) || formState.date}
+              activeMealType={formState.mealType}
+              onSelectMeal={handleSelectMealFromPreview}
+            />
+          </div>
+        </div>
       </div>
 
       {/* Sticky Bottom Action Bar */}
@@ -710,27 +517,14 @@ export default function CreateMenu() {
         }
       />
 
-      {/* Modal: Kho món ăn học đường Master Data */}
+      {/* Modal: Kho Món Ăn Bán Trú (Multi-select các món chuẩn) */}
       <DishPickerModal
         isOpen={isDishPickerOpen}
         onClose={() => setIsDishPickerOpen(false)}
         onSelectDishes={handleSelectDishesFromPicker}
         currentMealType={formState.mealType}
-        singleSelect={Boolean(targetDishIdForPicker)}
-      />
-
-      {/* Popup Modal: Chọn nguyên liệu từ NCC liên kết (hỗ trợ chọn nhiều) */}
-      <IngredientPickerModal
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        selectedIngredientIds={selectedIngredientIds}
-        onToggleIngredient={handleToggleIngredient}
-        dishContextName={
-          pickerContext.type === "dish"
-            ? currentTargetDish?.name || "Món ăn"
-            : substituteDish.name || "Món thay thế dị ứng"
-        }
-        onlySafe={pickerContext.type === "substitute"}
+        singleSelect={false}
+        initialSelectedIds={dishes.map((d) => d.dishId || d.id)}
       />
 
       {/* Modal xác nhận gửi BGH duyệt */}
@@ -741,7 +535,7 @@ export default function CreateMenu() {
         menuData={formState}
         dishesCount={dishes.length}
         selectedAllergyOption="OPTION_2"
-        conflictCount={conflictCount}
+        conflictCount={0}
       />
     </div>
   )
