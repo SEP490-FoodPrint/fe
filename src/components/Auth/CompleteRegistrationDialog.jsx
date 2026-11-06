@@ -86,7 +86,7 @@ export default function CompleteRegistrationDialog() {
     setCompletionUserId(null)
   }
   const agree = () => { const destination = response ? ROUTER.REGISTRATION_STATUS : getRegistrationDestination(user); close(); navigate(destination) }
-  return <Dialog open={open} onClose={(_, reason) => { if (reason !== "backdropClick") close() }} maxWidth="xs" fullWidth aria-labelledby="complete-registration-title" aria-describedby={response ? undefined : "complete-registration-description"} className={`${styles.dialog} ${response ? styles.feedback : ""}`}>
+  return <Dialog open={open} onClose={(_, reason) => { if (reason !== "backdropClick") close() }} maxWidth="xs" fullWidth aria-labelledby="complete-registration-title" aria-describedby={response ? undefined : "complete-registration-description"} className={`${styles.dialog} ${response ? styles.feedback : styles.completion}`}>
     <DialogTitle id="complete-registration-title" className={styles.title}>{response ? "Hồ sơ của bạn đã có phản hồi mới" : "Hoàn thiện hồ sơ đăng ký"}<IconButton onClick={close} aria-label={response ? "Đóng thông báo phản hồi hồ sơ" : "Đóng nhắc hoàn thiện hồ sơ"} className={styles.close}><CloseIcon /></IconButton></DialogTitle>
     {!response && <DialogContent className={styles.content}>
       <span className={styles.icon} aria-hidden="true"><DescriptionOutlinedIcon /></span>

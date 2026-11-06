@@ -26,6 +26,7 @@
   background: var(--bg-surface);
   width: var(--space-12);
   height: var(--space-10);
+  &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 }
 .requestStatus {
   display: flex;
@@ -60,7 +61,7 @@
   flex-wrap: wrap;
   gap: var(--space-3);
   width: 100%;
-  :global(.MuiButton-root) { min-height: calc(var(--space-10) + var(--space-1)); min-width: 200px; }
+  :global(.MuiButton-root) { min-height: calc(var(--space-10) + var(--space-1)); min-width: 200px; &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; } }
   :global(.MuiButton-contained) { min-width: 228px; }
 }
 .reject:global(.MuiButton-root) { color: var(--text-primary); background: var(--color-secondary-soft); border-color: var(--color-secondary); &:hover { background: var(--bg-accent); } }
@@ -77,7 +78,7 @@
 .loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 300px; color: var(--text-muted); }
 
 @container (max-width: 640px) {
-  .card > dl { grid-template-columns: minmax(0, 1fr); }
+  .card > dl { grid-template-columns: minmax(0, 1fr); row-gap: var(--space-4); }
   .actions :global(.MuiButton-root) { min-width: 0; flex: 1 1 200px; }
 }
 @media (max-width: 600px) {

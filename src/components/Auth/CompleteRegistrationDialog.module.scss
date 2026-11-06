@@ -5,6 +5,15 @@
 .icon { display: flex; align-items: center; justify-content: center; width: var(--space-12); height: var(--space-12); border-radius: var(--radius-lg); background: var(--color-primary-soft); color: var(--color-primary); }
 .actions:global(.MuiDialogActions-root) { padding: var(--space-4) var(--space-6) var(--space-6); :global(.MuiButton-root) { width: 100%; min-height: var(--control-height-lg); font-weight: var(--font-semibold); text-transform: none; border-radius: var(--radius-md); box-shadow: none; } }
 
+.completion {
+  :global(.MuiDialog-paper) { position: relative; }
+  .title:global(.MuiDialogTitle-root) { display: block; padding: var(--space-8) var(--space-12) var(--space-2) var(--space-6); font-size: var(--text-xl); line-height: var(--leading-tight); }
+  .close:global(.MuiIconButton-root) { position: absolute; top: var(--space-3); right: var(--space-3); }
+  .content:global(.MuiDialogContent-root) { gap: var(--space-3); padding-top: var(--space-4); }
+  .icon { width: var(--space-10); height: var(--space-10); }
+  .actions:global(.MuiDialogActions-root) { padding-top: var(--space-6); }
+}
+
 .feedback {
   :global(.MuiDialog-paper) { position: relative; }
 

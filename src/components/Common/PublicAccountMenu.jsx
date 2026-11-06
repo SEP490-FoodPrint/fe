@@ -47,7 +47,7 @@ export default function PublicAccountMenu() {
       <UserAvatar user={user} className={styles.avatar} />
       <span className={styles.name}>{name}</span><KeyboardArrowDownIcon className={styles.chevron} />
     </Button>
-    <Menu id="public-account-menu" anchorEl={anchor} open={open} onClose={close} slotProps={{ list: { "aria-labelledby": "public-account-button" }, paper: { className: styles.menu } }}>
+    <Menu id="public-account-menu" anchorEl={anchor} open={open} onClose={close} anchorOrigin={{ vertical: "bottom", horizontal: "right" }} transformOrigin={{ vertical: "top", horizontal: "right" }} slotProps={{ list: { "aria-labelledby": "public-account-button" }, paper: { className: styles.menu } }}>
       {hasDashboard && <MenuItem component={Link} to={dashboardPath} onClick={close}><ListItemIcon><DashboardOutlinedIcon /></ListItemIcon>Bảng điều khiển</MenuItem>}
       <MenuItem component={Link} to={ROUTER.PROFILE} onClick={close}><ListItemIcon><PersonOutlineOutlinedIcon /></ListItemIcon>Profile</MenuItem>
       <MenuItem component={Link} to={getRegistrationDestination(user)} onClick={close}><ListItemIcon><DescriptionOutlinedIcon /></ListItemIcon>Hồ sơ đăng ký</MenuItem>
