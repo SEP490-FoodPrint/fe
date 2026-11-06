@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import { Utensils, Search, Plus, Check, AlertTriangle, X, Truck } from "lucide-react"
 import styles from "./DishPickerModal.module.scss"
 import {
