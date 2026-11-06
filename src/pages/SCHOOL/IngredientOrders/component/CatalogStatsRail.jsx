@@ -21,7 +21,6 @@ export default function CatalogStatsRail({ stats, onFilterHandlingType }) {
       icon: <Leaf size={22} />,
       color: "#059669",
       bg: "#ecfdf5",
-      subtext: "Thịt, cá, rau củ quả",
     },
     {
       id: "DRY_STOCK",
@@ -30,7 +29,6 @@ export default function CatalogStatsRail({ stats, onFilterHandlingType }) {
       icon: <Archive size={22} />,
       color: "#d97706",
       bg: "#fffbeb",
-      subtext: "Gạo, gia vị, dầu ăn",
     },
     {
       id: "suppliers",
@@ -39,7 +37,6 @@ export default function CatalogStatsRail({ stats, onFilterHandlingType }) {
       icon: <Building2 size={22} />,
       color: "#2563eb",
       bg: "#eff6ff",
-      subtext: "Đã liên kết & có chứng nhận",
     },
   ]
 
