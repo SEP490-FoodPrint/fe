@@ -173,7 +173,7 @@
   }
 }
 
-/* 3. LƯỚI 5 CỘT DỌC CHO CẢ TUẦN */
+/* 3. LƯỚI 5 CỘT THỰC ĐƠN DỌC CHO CẢ TUẦN */
 .weeklyGridWrapper {
   width: 100%;
   overflow-x: auto;
@@ -284,14 +284,14 @@
   flex-direction: column;
 }
 
-/* Dải BỮA TRƯA: 38px */
+/* Dải BỮA TRƯA: 38px (Chứa 1 nút Xem chi tiết và 1 nút Chỉnh sửa) */
 .lunchBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 38px;
   box-sizing: border-box;
-  padding: 0 14px;
+  padding: 0 10px 0 14px;
   background-color: #fff7ed;
   border-top: 1px solid #ffedd5;
   border-bottom: 1px solid #fed7aa;
@@ -316,17 +316,59 @@
   letter-spacing: 0.04em;
 }
 
-.lunchBadge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #c2410c;
-  background-color: #ffedd5;
-  border: 1px solid #fed7aa;
-  padding: 2px 7px;
-  border-radius: 4px;
+/* Cụm 1 nút Xem chi tiết & 1 nút Chỉnh sửa */
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-/* Danh sách món Bữa Trưa: Chiều cao chuẩn 270px */
+.mealActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(194, 65, 12, 0.3);
+  background-color: #ffffff;
+  color: #c2410c;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background-color: #ffedd5;
+    border-color: #c2410c;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.mealEditBtn {
+  color: #0a8066;
+  border-color: rgba(10, 128, 102, 0.35);
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #0a8066;
+  }
+}
+
+.actionBtnLabel {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+
+  @media (max-width: 1150px) and (min-width: 900px) {
+    display: none;
+  }
+}
+
+/* Danh sách món Bữa Trưa: Chiều cao chuẩn 270px (5 x 54px) */
 .dishesListLunch {
   display: flex;
   flex-direction: column;
@@ -334,17 +376,37 @@
   min-height: 270px;
 }
 
-/* Dải BỮA XẾ: 38px */
+/* Dải BỮA XẾ: 38px (Chứa 1 nút Xem chi tiết và 1 nút Chỉnh sửa) */
 .afternoonBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 38px;
   box-sizing: border-box;
-  padding: 0 14px;
+  padding: 0 10px 0 14px;
   background-color: #eff6ff;
   border-top: 1px solid #dbeafe;
   border-bottom: 1px solid #bfdbfe;
+
+  .mealActionBtn {
+    border-color: rgba(29, 78, 216, 0.3);
+    color: #1d4ed8;
+
+    &:hover {
+      background-color: #dbeafe;
+      border-color: #1d4ed8;
+    }
+  }
+
+  .mealEditBtn {
+    color: #0a8066;
+    border-color: rgba(10, 128, 102, 0.35);
+
+    &:hover {
+      background-color: #ecfdf5;
+      border-color: #0a8066;
+    }
+  }
 }
 
 .afternoonIcon {
@@ -360,17 +422,7 @@
   letter-spacing: 0.04em;
 }
 
-.afternoonBadge {
-  font-size: 11px;
-  font-weight: 700;
-  color: #1d4ed8;
-  background-color: #dbeafe;
-  border: 1px solid #bfdbfe;
-  padding: 2px 7px;
-  border-radius: 4px;
-}
-
-/* Danh sách món Bữa Xế: Chiều cao chuẩn 54px */
+/* Danh sách món Bữa Xế: Chiều cao chuẩn 54px (1 x 54px) */
 .dishesListAfternoon {
   display: flex;
   flex-direction: column;
@@ -378,12 +430,10 @@
   min-height: 54px;
 }
 
-/* DÒNG MÓN ĂN: 54px chuẩn thẳng hàng ngang */
+/* DÒNG MÓN ĂN: 54px chuẩn - SẠCH SẼ, KHÔNG CÓ NÚT LẺ TẺ TRÊN MÓN */
 .dishRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
   height: 54px;
   box-sizing: border-box;
   padding: 0 14px;
@@ -402,12 +452,6 @@
     .dishName {
       color: #0a8066;
     }
-
-    .viewDishBtn {
-      border-color: #0a8066;
-      color: #0a8066;
-      background-color: #f0fdf4;
-    }
   }
 
   @media (max-width: 768px) {
@@ -416,14 +460,14 @@
   }
 }
 
-/* TÊN MÓN ĂN NỔI BẬT CHO NGƯỜI LÀM BẾP NHÌN VÀO */
+/* TÊN MÓN ĂN NỔI BẬT CHO NGƯỜI LÀM BẾP DỄ QUÉT MẮT */
 .dishName {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 13.5px;
   font-weight: 600;
   color: #0f172a;
   line-height: 1.35;
-  flex: 1;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: normal;
@@ -432,36 +476,6 @@
   -webkit-box-orient: vertical;
   letter-spacing: -0.01em;
   transition: color 0.12s ease;
-}
-
-.dishRightWrap {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.viewDishBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 5px;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  color: #94a3b8;
-  cursor: pointer;
-  transition: all 0.12s ease;
-
-  &:hover {
-    border-color: #0a8066;
-    color: #0a8066;
-    background-color: #f0fdf4;
-  }
-}
-
-.eyeIcon {
-  flex-shrink: 0;
 }
 
 .emptyMealNotice {
@@ -484,12 +498,12 @@
   font-style: italic;
 }
 
-/* Chân Cột Thao Tác: 44px */
+/* Chân Cột: 40px */
 .dayFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 44px;
+  height: 40px;
   box-sizing: border-box;
   padding: 0 12px;
   background-color: #f8fafc;
@@ -499,7 +513,11 @@
 .footerLeft {
   display: flex;
   align-items: center;
-  gap: 6px;
+}
+
+.footerRight {
+  display: flex;
+  align-items: center;
 }
 
 .allergyWarningTag {
@@ -513,40 +531,6 @@
   border: 1px solid #fde68a;
   padding: 1px 5px;
   border-radius: 4px;
-}
-
-.footerActions {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.actionBtnSmall {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 5px;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #475569;
-  cursor: pointer;
-  transition: all 0.12s ease;
-
-  &:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
-    border-color: #94a3b8;
-  }
-}
-
-.editBtn {
-  &:hover {
-    color: #0a8066;
-    border-color: #0a8066;
-    background-color: #f0fdf4;
-  }
 }
 
 /* Status Pill */
