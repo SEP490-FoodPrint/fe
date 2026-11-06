@@ -1,6 +1,7 @@
 import React, { useRef } from "react"
 import { Button, InputAdornment, MenuItem, TextField } from "@mui/material"
 import { REQUEST_STATUSES, REQUEST_TYPES } from "src/lib/registration"
+import { isInvalidRegistrationCodeSearch } from "src/services/RegistrationService/adapter"
 import SearchIcon from "@mui/icons-material/Search"
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
@@ -33,7 +34,7 @@ export default function RegistrationFilters({ filters, onChange, onReset, hasFil
       <div className={styles.filters}>
         <div className={`${styles.field} ${styles.search}`}>
           <label htmlFor="registration-search">Tìm kiếm</label>
-          <TextField id="registration-search" value={filters.search} onChange={event => onChange("search", event.target.value)} placeholder="Nhập UUID đầy đủ hoặc tên người đăng ký" size="small" fullWidth
+          <TextField id="registration-search" value={filters.search} onChange={event => onChange("search", event.target.value)} placeholder="Mã hồ sơ hoặc tên người nộp" size="small" fullWidth error={isInvalidRegistrationCodeSearch(filters.search)} helperText={isInvalidRegistrationCodeSearch(filters.search) ? "Nhập mã hồ sơ đầy đủ, ví dụ FP-REG-00001." : undefined}
             slotProps={{ htmlInput: { maxLength: 255 }, input: { startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment> } }} />
         </div>
         {[{ key: "type", label: "Loại hồ sơ", values: REQUEST_TYPES }, { key: "status", label: "Trạng thái", values: REQUEST_STATUSES }].map(({ key, label, values }) => (

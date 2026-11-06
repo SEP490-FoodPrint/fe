@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react"
 import { Alert, Button, Card, CircularProgress, Pagination, useMediaQuery } from "@mui/material"
 import { useSearchParams } from "react-router-dom"
 import RegistrationService from "src/services/RegistrationService"
+import { isInvalidRegistrationCodeSearch } from "src/services/RegistrationService/adapter"
 import RegistrationFilters from "./RegistrationFilters"
 import RegistrationTable from "./RegistrationTable"
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined"
@@ -23,6 +24,7 @@ export default function RegistrationList() {
   const [error, setError] = useState("")
   const [retry, setRetry] = useState(0)
   const invalidDates = Boolean(filters.from && filters.to && filters.from > filters.to)
+  const invalidSearch = isInvalidRegistrationCodeSearch(filters.search)
   const queryKey = params.toString()
 
   useEffect(() => {
@@ -40,7 +42,7 @@ export default function RegistrationList() {
     let active = true
     const controller = new AbortController()
     setError("")
-    if (invalidDates) { setLoading(false); return () => controller.abort() }
+    if (invalidDates || invalidSearch) { setLoading(false); return () => controller.abort() }
     setLoading(true)
     const timer = setTimeout(async () => {
       try {
@@ -95,11 +97,11 @@ export default function RegistrationList() {
       <div className={styles.list}>
         <div className={styles.listTitle}><h2>Hồ sơ đăng ký</h2></div>
         <RegistrationFilters filters={filters} onChange={updateFilter} onReset={() => setParams({})} hasFilters={Object.values(filters).some(Boolean)} />
-        {error ? <Alert severity="error" className={styles.feedback} action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{error}</Alert>
+        {invalidSearch ? null : error ? <Alert severity="error" className={styles.feedback} action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{error}</Alert>
           : loading ? <div className={styles.loading} role="status"><CircularProgress size={28} /><span>Đang tải hồ sơ…</span></div>
             : !result.data.length || invalidDates ? <div className={styles.empty}><h2>Không tìm thấy hồ sơ</h2><p>Thử thay đổi từ khóa hoặc điều kiện lọc.</p><Button onClick={() => setParams({})}>Xóa bộ lọc</Button></div>
               : <RegistrationTable requests={result.data} start={start} isMobile={isMobile} busy={loading} />}
-        {!error && !loading && (result.total > 0 || result.total === null && (result.data.length > 0 || currentPage > 1)) && !invalidDates && (
+        {!error && !loading && !invalidSearch && (result.total > 0 || result.total === null && (result.data.length > 0 || currentPage > 1)) && !invalidDates && (
           <div className={styles.pagination}>
             <p aria-live="polite">{range}</p>
             {isMobile || result.total === null ? <div className={styles.mobilePagination}>

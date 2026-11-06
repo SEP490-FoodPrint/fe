@@ -2,7 +2,7 @@ import assert from "node:assert/strict"
 import { after, before, beforeEach, test } from "node:test"
 import { AxiosError } from "axios"
 import { createServer } from "vite"
-import { registrationList, registrationQuery, registrationRequest } from "../src/services/RegistrationService/adapter.js"
+import { isRegistrationSearch, registrationList, registrationQuery, registrationRequest } from "../src/services/RegistrationService/adapter.js"
 import { newPasswordErrors, signupErrors, validCurrentPassword, validPassword } from "../src/lib/authValidation.js"
 import { onboardingBody, appendDocumentFiles } from "../src/services/AuthService/onboarding.js"
 import { ROLES } from "../src/constants/roles.js"
@@ -127,12 +127,37 @@ test("list reads the nested pagination envelope without fabricating omitted fiel
   assert.throws(() => registrationList({ data: [row], total: 6 }), /không hợp lệ/)
 })
 
-test("search uses its own endpoint and combines filters with server pagination", async () => {
-  await RegistrationService.getRequests({ search: "  Nguyễn Văn  ", status: "PENDING", page: 2, pageSize: 2 })
-  assert.equal(requests[0].url, "/registration-requests/search")
-  assert.deepEqual(requests[0].params, { search: "Nguyễn Văn", status: "PENDING", page: 2, limit: 2 })
+test("search sends registrationID to the list endpoint and applies additional filters", async () => {
+  respond = () => list([row], 1, 1, 2)
+  const match = await RegistrationService.getRequests({ search: "  fp-reg-00001  ", status: "PENDING", pageSize: 2 })
+  assert.equal(requests[0].url, "/registration-requests")
+  assert.deepEqual(requests[0].params, { search: "FP-REG-00001", page: 1, limit: 2 })
+  assert.equal(match.data[0].registrationID, "FP-REG-00001")
+  const filtered = await RegistrationService.getRequests({ search: "FP-REG-00001", status: "REJECTED", pageSize: 2 })
+  assert.equal(filtered.data.length, 0)
+  assert.equal(filtered.total, 0)
   await RegistrationService.getRequests({ search: "   " })
-  assert.equal(requests[1].url, "/registration-requests")
+  assert.equal(requests[2].url, "/registration-requests")
+})
+
+test("registration search accepts complete public codes and rejects UUIDs or partial codes", async () => {
+  for (const value of ["", "fp-reg-00001", "FP-REG-123456"]) assert.equal(isRegistrationSearch(value), true)
+  for (const value of [id, "FP-REG-12", "FP-REG-00000", "FP-REG-9223372036854775808"]) assert.equal(isRegistrationSearch(value), false)
+  await assert.rejects(RegistrationService.getRequests({ search: "FP-REG-12" }), /mã hồ sơ đầy đủ/)
+  assert.equal(requests.length, 0)
+})
+
+test("search finds applicant names across pages, ignoring accents and respecting filters", async () => {
+  const rows = Array.from({ length: 103 }, (_, index) => ({ ...row, id: `request-${index}`, applicantUser: { ...row.applicantUser, fullName: index < 7 ? "Nguyễn Văn An" : "Trần Thị Bình" }, status: index === 0 ? "REJECTED" : "PENDING" }))
+  respond = config => {
+    const { page, limit } = config.params
+    const start = (page - 1) * limit
+    return success({ items: rows.slice(start, start + limit), pagination: { page, limit, hasNext: start + limit < rows.length } })
+  }
+  const result = await RegistrationService.getRequests({ search: "nguyen van", status: "PENDING", page: 2, pageSize: 2 })
+  assert.equal(result.total, 6)
+  assert.deepEqual(result.data.map(item => item.id), ["request-3", "request-4"])
+  assert.deepEqual(requests.map(config => config.params), [{ page: 1, limit: 100 }, { page: 2, limit: 100 }])
 })
 
 test("registration list maps the same applicant contact fields as detail", async () => {
@@ -150,6 +175,23 @@ test("summary uses unfiltered server counts and fetches at most one row per coun
   assert.deepEqual(await RegistrationService.getSummary(), { total: 80, pending: 12 })
   assert.equal(requests.length, 2)
   assert(requests.every(config => config.params.limit === 1 && !config.params.search))
+})
+
+test("summary counts all unfiltered pages when the API only provides hasNext", async () => {
+  const rows = Array.from({ length: 103 }, (_, index) => ({ ...row, id: `request-${index}`, status: index % 2 ? "APPROVED" : "PENDING" }))
+  respond = config => {
+    const { page, limit } = config.params
+    const start = (page - 1) * limit
+    return success({ items: rows.slice(start, start + limit), pagination: { page, limit, hasNext: start + limit < rows.length } })
+  }
+  assert.deepEqual(await RegistrationService.getSummary(), { total: 103, pending: 52 })
+  assert.deepEqual(requests.map(config => config.params), [{ page: 1, limit: 1 }, { page: 1, limit: 100 }, { page: 2, limit: 100 }])
+})
+
+test("summary counts an empty list when the API does not return totals", async () => {
+  respond = () => success({ items: [], pagination: { page: 1, limit: 1, hasNext: false } })
+  assert.deepEqual(await RegistrationService.getSummary(), { total: 0, pending: 0 })
+  assert.equal(requests.length, 1)
 })
 
 test("detail maps applicant/reviewer, preserves JSON payloads and the review version", async () => {
