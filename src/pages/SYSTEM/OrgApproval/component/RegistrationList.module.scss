@@ -16,15 +16,16 @@
 .loading, .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--space-3); min-height: 324px; padding: var(--space-6); color: var(--text-muted); text-align: center; h2 { font-size: var(--text-lg); color: var(--text-primary); margin: 0; } p { margin: 0; font-size: var(--text-sm); } }
 .feedback { margin: var(--space-4); }
 .pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-5); p { margin: 0; font-size: var(--text-xs); color: var(--text-muted); } :global(.MuiPaginationItem-root) { min-height: var(--space-10); min-width: var(--space-10); font-size: var(--text-sm); } }
+.mobilePagination { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); > span { white-space: nowrap; } }
 .note { color: var(--text-muted); font-size: var(--text-xs); margin: 0; }
 @media (max-width: 850px) { .pagination { flex-wrap: wrap; } }
 @media (max-width: 600px) {
   .page { gap: var(--space-4); }
   .heading h1 { font-size: var(--text-lg); }
   .stats { gap: var(--space-4); }
-  .stat:global(.MuiCard-root) { position: relative; padding: var(--space-4); > div { flex: 1; align-items: flex-end; > .statIcon { position: absolute; top: var(--space-4); left: var(--space-4); } > span { min-height: var(--space-10); } } strong { position: absolute; top: var(--space-4); right: var(--space-4); } }
+  .stat:global(.MuiCard-root) { padding: var(--space-4); min-width: 0; > div { align-items: flex-start; > span { min-width: 0; overflow-wrap: anywhere; } } strong { font-variant-numeric: tabular-nums; } }
   .list { display: flex; flex-direction: column; gap: var(--space-4); border: 0; border-radius: 0; background: transparent; overflow: visible; }
   .listTitle { display: none; }
   .pagination { display: flex; flex-direction: column; align-items: stretch; padding: 0; gap: var(--space-3); }
-  .mobilePagination { display: flex; justify-content: space-between; align-items: center; gap: var(--space-2); font-size: var(--text-sm); > span { white-space: nowrap; } :global(.MuiButton-root) { background: var(--bg-surface); border-color: var(--border-default); min-height: calc(var(--space-10) + var(--space-1)); } }
+  .mobilePagination { justify-content: space-between; :global(.MuiButton-root) { background: var(--bg-surface); border-color: var(--border-default); min-height: calc(var(--space-10) + var(--space-1)); } }
 }
