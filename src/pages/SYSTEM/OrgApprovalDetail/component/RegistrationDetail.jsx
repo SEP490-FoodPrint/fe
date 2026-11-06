@@ -66,9 +66,10 @@ export default function RegistrationDetail() {
     field(`Tên ${organizationLabel}`, name),
     ...(isSupplier ? [field("Mã số thuế", profile.taxCode || profile.tax_code)] : []),
     field("Email liên hệ", profile.email), field("Số điện thoại liên hệ", profile.phone),
+    field("Địa chỉ", profile.address),
   ]
   const organizationDetails = [
-    field("Địa chỉ", profile.address), field(`Giới thiệu về ${organizationLabel}`, profile.description),
+    field(`Giới thiệu về ${organizationLabel}`, profile.description),
   ]
 
   return (
@@ -80,11 +81,11 @@ export default function RegistrationDetail() {
       <header className={styles.headingContent}>
         <div className={styles.titleRow}>
           <h1 id="request-detail-title">{name}</h1>
-          <div className={styles.requestStatus}><span>Trạng thái hồ sơ</span><RequestStatus status={request.status} /></div>
+          <div className={styles.requestStatus}><RequestStatus status={request.status} variant="badge" /></div>
         </div>
         <dl className={styles.metadata}>
-          <div><dt>Mã hồ sơ</dt><dd>{code}</dd></div>
-          <div><dt>Loại đăng ký</dt><dd>{type}</dd></div>
+          <div><dd>{code}</dd></div>
+          <div><dd>{type}</dd></div>
           <div className={styles.submitted}><dt>Ngày gửi</dt><dd>{formatRequestDate(request.submitted_at, true)}</dd></div>
         </dl>
       </header>
