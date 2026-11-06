@@ -9,14 +9,13 @@ export default function HealthMasterDataCard() {
   const navigate = useNavigate()
   const catalog = getStoredDishCatalog()
 
-  // Thống kê nhanh theo từng nhóm món ăn
+  // 5 nhóm món ăn chuẩn hóa
   const stats = [
-    { key: "RICE_STARCH", label: "Cơm & Tinh bột", emoji: "🍚", count: catalog.filter((d) => d.category === "RICE_STARCH").length },
-    { key: "MAIN_DISH", label: "Đạm chính / Món mặn", emoji: "🍖", count: catalog.filter((d) => d.category === "MAIN_DISH").length },
-    { key: "VEGETABLE", label: "Món xào / Rau củ", emoji: "🥦", count: catalog.filter((d) => d.category === "VEGETABLE").length },
-    { key: "SOUP", label: "Canh dinh dưỡng", emoji: "🍲", count: catalog.filter((d) => d.category === "SOUP").length },
-    { key: "AFTERNOON", label: "Món xế bán trú", emoji: "🧋", count: catalog.filter((d) => d.category === "AFTERNOON").length },
-    { key: "ALLERGY_SUBSTITUTE", label: "Thay thế dị ứng", emoji: "🛡️", count: catalog.filter((d) => d.category === "ALLERGY_SUBSTITUTE").length },
+    { key: "RICE_STARCH", label: "Cơm & Tinh bột", count: catalog.filter((d) => d.category === "RICE_STARCH").length },
+    { key: "MAIN_DISH", label: "Món mặn & Súp", count: catalog.filter((d) => d.category === "MAIN_DISH").length },
+    { key: "VEGETABLE", label: "Món xào / Rau củ", count: catalog.filter((d) => d.category === "VEGETABLE").length },
+    { key: "SOUP", label: "Canh dinh dưỡng", count: catalog.filter((d) => d.category === "SOUP").length },
+    { key: "DESSERT", label: "Món tráng miệng", count: catalog.filter((d) => d.category === "DESSERT").length },
   ]
 
   return (
@@ -42,7 +41,6 @@ export default function HealthMasterDataCard() {
           <div className={styles.categoryPills}>
             {stats.map((s) => (
               <div key={s.key} className={styles.pillItem}>
-                <span className={styles.pillEmoji}>{s.emoji}</span>
                 <span className={styles.pillLabel}>{s.label}:</span>
                 <strong className={styles.pillCount}>{s.count}</strong>
               </div>

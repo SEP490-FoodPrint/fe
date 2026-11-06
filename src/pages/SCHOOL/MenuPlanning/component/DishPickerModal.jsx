@@ -93,7 +93,7 @@ export default function DishPickerModal({
       unit: newDishForm.unit || "g",
       allergen: newDishForm.allergen?.trim() || null,
       mealType:
-        newDishForm.category === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
+        newDishForm.category === "DESSERT" ? "AFTERNOON" : "LUNCH",
       ingredientNames: [newDishForm.name.trim()],
     }
 
@@ -128,10 +128,8 @@ export default function DishPickerModal({
         return styles.tagVeg
       case "SOUP":
         return styles.tagSoup
-      case "AFTERNOON":
-        return styles.tagAfternoon
-      case "ALLERGY_SUBSTITUTE":
-        return styles.tagSubstitute
+      case "DESSERT":
+        return styles.tagDessert
       default:
         return ""
     }

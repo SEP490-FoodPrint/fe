@@ -525,9 +525,9 @@
   max-height: 36px;
   box-sizing: border-box;
   padding: 0 8px 0 10px;
-  background-color: #fff7ed;
-  border-top: 1px solid #ffedd5;
-  border-bottom: 1px solid #fed7aa;
+  background-color: #e8f5f1;
+  border-top: 1px solid #c9e8de;
+  border-bottom: 1px solid #bce6cf;
 }
 
 .bannerLeft {
@@ -537,14 +537,14 @@
 }
 
 .lunchIcon {
-  color: #ea580c;
+  color: #0a8066;
   flex-shrink: 0;
 }
 
 .lunchTitle {
   font-size: 11px;
   font-weight: 700;
-  color: #9a3412;
+  color: #08604d;
   letter-spacing: 0.04em;
 }
 
@@ -573,11 +573,11 @@
 }
 
 .lunchIconBtn {
-  color: #c2410c;
+  color: #08604d;
 
   &:hover {
-    background-color: #ffedd5;
-    border-color: #ea580c;
+    background-color: #c9e8de;
+    border-color: #0a8066;
   }
 }
 
@@ -633,29 +633,29 @@
   max-height: 36px;
   box-sizing: border-box;
   padding: 0 8px 0 10px;
-  background-color: #eff6ff;
-  border-top: 1px solid #dbeafe;
-  border-bottom: 1px solid #bfdbfe;
+  background-color: #f4eeea;
+  border-top: 1px solid #eae1db;
+  border-bottom: 1px solid #ded3cd;
 }
 
 .afternoonIcon {
-  color: #2563eb;
+  color: #75635c;
   flex-shrink: 0;
 }
 
 .afternoonTitle {
   font-size: 11px;
   font-weight: 700;
-  color: #1e40af;
+  color: #584b46;
   letter-spacing: 0.04em;
 }
 
 .afternoonIconBtn {
-  color: #1d4ed8;
+  color: #584b46;
 
   &:hover {
-    background-color: #dbeafe;
-    border-color: #2563eb;
+    background-color: #ded3cd;
+    border-color: #75635c;
   }
 }
 
