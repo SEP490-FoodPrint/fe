@@ -1,7 +1,6 @@
 import React, { useRef, useState } from "react"
-import { Alert, Button, CircularProgress } from "@mui/material"
+import { Alert, Button, Card, CircularProgress } from "@mui/material"
 import { Link } from "react-router-dom"
-import AuthCard, { AuthHeading } from "src/components/Auth/AuthCard"
 import AuthInput from "src/components/Auth/AuthInput"
 import FormErrors from "src/components/Auth/FormErrors"
 import NewPasswordFields from "src/components/Auth/NewPasswordFields"
@@ -57,9 +56,11 @@ export default function ChangePasswordForm({ onSuccess }) {
     }
     finally { lock.current = false; setLoading(false) }
   }
-  return <section className={styles.page}>
-    <AuthCard component="form" noValidate onSubmit={submit} aria-busy={loading}>
-      <AuthHeading eyebrow={verified ? "Bước 2 / 2 · Mật khẩu mới" : "Bước 1 / 2 · Xác nhận mật khẩu hiện tại"} title="Đổi mật khẩu" description={verified ? "Nhập mật khẩu mới và xác nhận lại để lưu thay đổi." : "Xác nhận mật khẩu hiện tại trước khi tạo mật khẩu mới."} />
+  return <section className={styles.page} aria-labelledby="change-password-title">
+    <div className={styles.heading}><h1 id="change-password-title">Đổi mật khẩu</h1><span>{verified ? "Nhập mật khẩu mới và xác nhận lại để lưu thay đổi." : "Xác nhận mật khẩu hiện tại trước khi tạo mật khẩu mới."}</span></div>
+    <Card component="form" variant="outlined" className={styles.card} noValidate onSubmit={submit} aria-busy={loading}>
+      <h2 className={styles.step}>{verified ? "Bước 2 / 2 · Mật khẩu mới" : "Bước 1 / 2 · Xác nhận mật khẩu hiện tại"}</h2>
+      <div className={styles.formContent}>
       <FormErrors errors={errors} message={message} />
       {verified ? <>
         <Alert severity="success" role="status">Đã xác nhận mật khẩu hiện tại.</Alert>
@@ -68,6 +69,7 @@ export default function ChangePasswordForm({ onSuccess }) {
       </> : <AuthInput id="current-password" label="Mật khẩu hiện tại" type="password" required span="full" autoComplete="current-password" placeholder="Nhập mật khẩu hiện tại" value={currentPassword} onChange={event => setCurrentPassword(event.target.value)} error={errors["current-password"]} disabled={loading} />}
       <Button type="submit" variant="contained" className={form.primary} disabled={loading || remaining > 0}>{loading ? <CircularProgress size={22} color="inherit" aria-label={verified ? "Đang đổi mật khẩu" : "Đang kiểm tra mật khẩu"} /> : remaining ? `Thử lại sau ${remaining}s` : verified ? "Cập nhật mật khẩu" : "Tiếp tục"}</Button>
       {verified ? <Button type="button" onClick={back} className={form.link} disabled={loading}>Nhập lại mật khẩu hiện tại</Button> : <Button component={Link} to={ROUTER.FORGOT_PASSWORD} className={form.link} disabled={loading}>Quên mật khẩu?</Button>}
-    </AuthCard>
+      </div>
+    </Card>
   </section>
 }

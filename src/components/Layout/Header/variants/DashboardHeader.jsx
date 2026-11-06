@@ -1,7 +1,8 @@
 import React, { useContext, useEffect, useState } from "react"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
-import { Avatar, ButtonBase, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material"
+import { ButtonBase, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material"
+import UserAvatar from "src/components/Common/UserAvatar"
 import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined"
@@ -17,8 +18,6 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
   const user = userStore?.user
   const [accountAnchor, setAccountAnchor] = useState(null)
   const [notificationAnchor, setNotificationAnchor] = useState(null)
-  const words = (user?.fullName || "").trim().split(/\s+/).filter(Boolean)
-  const initials = words.length ? (words[0][0] + (words.length > 1 ? words[words.length - 1][0] : "")).toUpperCase() : "FP"
   const roleLabel = user?.role === ROLES.SYSTEM_ADMIN ? "Quản trị viên" : ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role
   const closeAccount = () => setAccountAnchor(null)
 
@@ -69,7 +68,7 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
             aria-expanded={Boolean(accountAnchor)}
             aria-controls={accountAnchor ? "dashboard-account-menu" : undefined}
           >
-            <Avatar className={styles.avatar}>{initials}</Avatar>
+            <UserAvatar user={user} className={styles.avatar} />
             <span className={styles.userInfo}>
               <span className={styles.userName}>{user.fullName}</span>
               <span className={styles.userRole}>{roleLabel}</span>

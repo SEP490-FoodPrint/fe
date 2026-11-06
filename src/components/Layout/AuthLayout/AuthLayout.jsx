@@ -1,13 +1,16 @@
 import React from "react"
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom"
 import { AuthHeader } from "../Header"
+import ROUTER from "src/router/ROUTER"
 import styles from "./AuthLayout.module.scss"
 
 function AuthLayout() {
+  const { pathname } = useLocation()
+  const redesigned = [ROUTER.LOGIN, ROUTER.REGISTER, ROUTER.FORGOT_PASSWORD, ROUTER.PASSWORD_RECOVERY_CODE, ROUTER.RESET_PASSWORD].includes(pathname)
   return (
-    <div className={styles.layoutWrapper}>
+    <div className={`${styles.layoutWrapper} ${redesigned ? styles.redesigned : ""}`}>
       {/* 1. Fixed Header kính mờ */}
-      <AuthHeader />
+      <AuthHeader minimal={redesigned} />
 
       {/* 2. Quầng sáng decor ambient blur phía sau */}
       <div className={styles.haloTop} aria-hidden="true" />
