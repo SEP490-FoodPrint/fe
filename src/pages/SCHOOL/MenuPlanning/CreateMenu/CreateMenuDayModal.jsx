@@ -250,10 +250,10 @@ export default function CreateMenuDayModal({
             </div>
             <div>
               <h2 className={styles.headerTitle}>
-                Biên tập thực đơn ngày {dayData?.dateVN || "10/11/2026"}
+                Thực đơn ngày {dayData?.dateVN || "10/11/2026"}
               </h2>
               <p className={styles.headerSub}>
-                Soạn thực đơn bữa trưa, bữa xế và nhập gia vị dùng chung cho toàn bộ {totalStudents.toLocaleString()} học sinh
+                Soạn thực đơn bữa trưa, bữa xế và gia vị dùng chung cho bữa ăn của ngày
               </p>
             </div>
           </div>
@@ -277,9 +277,6 @@ export default function CreateMenuDayModal({
               <div className={styles.previewTitleRow}>
                 <span className={styles.previewHeading}>
                   Xem trước thực đơn hôm thứ đó
-                </span>
-                <span className={styles.studentCountTag}>
-                  {totalStudents.toLocaleString()} học sinh
                 </span>
               </div>
               <div className={styles.summaryBar}>
@@ -418,7 +415,7 @@ export default function CreateMenuDayModal({
                     </span>
                   </div>
                   <span className={styles.seasoningRuleBadge}>
-                    Toàn trường: {totalStudents.toLocaleString()} HS
+                    Gia vị cả ngày
                   </span>
                 </div>
 
@@ -652,8 +649,7 @@ export default function CreateMenuDayModal({
                       Gia vị xuất kho chung cho bữa ăn ngày {dayData?.dayLabel || "hôm đó"}
                     </p>
                     <p className={styles.noticeDesc}>
-                      Định lượng tính cho <strong>toàn bộ {totalStudents.toLocaleString()} học sinh</strong>.
-                      Khi bạn nhập định lượng mỗi suất, hệ thống sẽ tự động quy đổi thành tổng số Kg hoặc Lít xuất kho thực tế.
+                      Khai báo định lượng gia vị dùng chung cho bữa ăn ngày hôm đó. Khi bạn nhập định lượng mỗi suất, hệ thống sẽ tự động quy đổi thành tổng số Kg hoặc Lít xuất kho thực tế.
                     </p>
                   </div>
                 </div>
@@ -666,7 +662,7 @@ export default function CreateMenuDayModal({
                         <th style={{ width: "42%" }}>Gia vị từ kho trường</th>
                         <th style={{ width: "26%" }}>Mỗi suất</th>
                         <th style={{ width: "24%" }}>
-                          Tổng ({totalStudents.toLocaleString()} HS)
+                          Tổng xuất kho cả ngày
                         </th>
                         <th style={{ width: "8%" }}></th>
                       </tr>

@@ -1,216 +1,325 @@
+/* ========================================================
+   LƯỚI 5 CỘT THỰC ĐƠN TUẦN - GIỐNG 100% PHẦN DANH SÁCH THỰC ĐƠN
+   DÃN ĐỀU 100%, TUYỆT ĐỐI KHÔNG BỊ CUỘN NGANG VỠ LAYOUT
+   ======================================================== */
 .weeklyGridWrapper {
   width: 100%;
-  overflow-x: auto;
-  padding-bottom: 12px;
-
-  &::-webkit-scrollbar {
-    height: 8px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 8px;
-  }
+  overflow: visible;
+  box-sizing: border-box;
 }
 
 .weeklyGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(230px, 1fr));
-  gap: 16px;
-  min-width: 1100px;
-}
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
 
-/* ========================================================
-   CỘT NGÀY
-   ======================================================== */
-.dayColumn {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  transition: all 0.2s ease;
-
-  &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08);
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   }
 }
 
-/* HEADER CỘT NGÀY */
-.columnHeader {
-  padding: 12px 14px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+.dayColItem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+.dayCard {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Cột Hôm nay: Sắc nét, đồng bộ danh sách thực đơn */
+.todayDayCard {
+  border: 2px solid #0a8066 !important;
+  box-shadow: inset 0 0 0 1px #0a8066, 0 3px 12px rgba(10, 128, 102, 0.12) !important;
+  position: relative;
+  z-index: 2;
+
+  .dayHeader {
+    background-color: #f0fdf4;
+  }
+}
+
+/* ========================================================
+   HEADER CỘT NGÀY: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 64px
+   ======================================================== */
+.dayHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 4px;
+  overflow: hidden;
 }
 
 .dayTitleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 4px;
+  width: 100%;
 }
 
-.dayNameGroup {
+.dayTitleLeft {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
 }
 
 .dayLabel {
-  font-size: 14.5px;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13.5px;
   font-weight: 700;
   color: #0f172a;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.dayDate {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #64748b;
+.todayPill {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #0a8066;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
 }
 
-.statusBadge {
+/* Badge tiến độ ngày */
+.dayProgressBadge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 3px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 6px;
+  padding: 2px 5px;
+  border-radius: 9999px;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.badgeFull {
-  background-color: #e6f4ea;
-  color: #00654f;
-  border: 1px solid #b7e1cd;
+.badgeCompleted {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
 }
 
 .badgePartial {
-  background-color: #fefce8;
-  color: #a16207;
-  border: 1px solid #fde047;
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
 .badgeEmpty {
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
   color: #64748b;
   border: 1px solid #e2e8f0;
 }
 
-/* THÂN CỘT */
-.columnBody {
-  padding: 12px;
+.dayDateRow {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.dayDateText {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 /* ========================================================
-   KHỐI BỮA ĂN (LUNCH & AFTERNOON)
+   THÂN THỰC ĐƠN
    ======================================================== */
-.mealCard {
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  overflow: hidden;
+.dayMealsBody {
+  display: flex;
+  flex-direction: column;
   background-color: #ffffff;
+  flex: 1;
+}
+
+.mealBlock {
   display: flex;
   flex-direction: column;
 }
 
-.mealHeader {
-  padding: 7px 10px;
+/* ========================================================
+   KHỐI BỮA TRƯA: BANNER (36px) + DANH SÁCH MÓN
+   ======================================================== */
+.lunchBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  box-sizing: border-box;
+  padding: 0 8px 0 10px;
+  background-color: #e8f5f1;
+  border-top: 1px solid #c9e8de;
+  border-bottom: 1px solid #bce6cf;
 }
 
-.lunchHeader {
-  background-color: #fff7ed;
-  color: #c2410c;
-}
-
-.afternoonHeader {
-  background-color: #fefce8;
-  color: #a16207;
-}
-
-.mealTitleLeft {
+.bannerLeft {
   display: flex;
   align-items: center;
-  gap: 6px;
-}
-
-.mealTitle {
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.mealActionBtn {
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: 600;
-  color: inherit;
-  opacity: 0.85;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: opacity 0.15s ease, background-color 0.15s ease;
-
-  &:hover {
-    opacity: 1;
-    background-color: rgba(255, 255, 255, 0.6);
-  }
-}
-
-.dishesBox {
-  min-height: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.dishesList {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
   gap: 5px;
 }
 
-.dishRow {
+.lunchIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.lunchTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #08604d;
+  letter-spacing: 0.04em;
+}
+
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mealIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 0;
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+.lunchIconBtn {
+  color: #08604d;
+
+  &:hover {
+    background-color: #c9e8de;
+    border-color: #0a8066;
+  }
+}
+
+.dishesListLunch {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  min-height: 180px;
+  box-sizing: border-box;
+}
+
+.lunchDishRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 12px;
   gap: 6px;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid #f8fafc;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #fffaf5;
+
+    .dishDotLunch {
+      background-color: #ea580c;
+    }
+
+    .dishName {
+      color: #ea580c;
+    }
+  }
 }
 
-.lunchDot {
+.dishLeftWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dishDotLunch {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #ea580c;
+  background-color: #fed7aa;
   flex-shrink: 0;
+  transition: background-color 0.12s ease;
 }
 
-.afternoonDot {
+.dishDotAfternoon {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #ca8a04;
+  background-color: #bfdbfe;
   flex-shrink: 0;
+  transition: background-color 0.12s ease;
+}
+
+.dishDotSeasoning {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #86efac;
+  flex-shrink: 0;
+  transition: background-color 0.12s ease;
 }
 
 .dishName {
-  flex: 1;
-  color: #1e293b;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 12px;
   font-weight: 500;
+  color: #1e293b;
+  line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -218,111 +327,226 @@
   line-clamp: 1;
 }
 
-.dishPortion {
-  font-size: 11px;
+.dishPortionTag {
+  font-size: 10.5px;
   font-weight: 600;
   color: #64748b;
   white-space: nowrap;
 }
 
-.emptyMealClickBox {
-  padding: 16px 10px;
+/* Ô trống khi chưa có món */
+.emptySingleMealBox {
+  min-height: 180px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  background-color: #fafbfc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.emptySingleMealBoxSm {
+  min-height: 100px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #fafbfc;
+}
+
+.emptyMealText {
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+}
+
+.addSingleMealBtn {
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
   cursor: pointer;
-  background-color: #fafafa;
-  transition: background-color 0.15s ease;
+  transition: all 0.12s ease;
+  white-space: nowrap;
 
   &:hover {
-    background-color: #f1f5f9;
+    background-color: #ecfdf5;
+    color: #0a8066;
+    border-color: #a7f3d0;
   }
-}
-
-.emptyNoticeText {
-  font-size: 11.5px;
-  color: #94a3b8;
-}
-
-.addDishHint {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #00654f;
 }
 
 /* ========================================================
-   KHỐI GIA VỊ (1,250 HS)
+   KHỐI BỮA XẾ: BANNER (36px) + DANH SÁCH MÓN
    ======================================================== */
-.seasoningCard {
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #ffffff;
-  display: flex;
-  flex-direction: column;
-}
-
-.seasoningHeader {
-  background-color: #f0fdf4;
-  color: #166534;
-  padding: 7px 10px;
+.afternoonBanner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #dcfce7;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  box-sizing: border-box;
+  padding: 0 8px 0 10px;
+  background-color: #f4eeea;
+  border-top: 1px solid #eae1db;
+  border-bottom: 1px solid #ded3cd;
 }
 
-.seasoningTitle {
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
+.afternoonIcon {
+  color: #75635c;
+  flex-shrink: 0;
 }
 
-.seasoningActionBtn {
-  background: transparent;
-  border: none;
+.afternoonTitle {
   font-size: 11px;
-  font-weight: 600;
-  color: #15803d;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: background-color 0.15s ease;
+  font-weight: 700;
+  color: #584b46;
+  letter-spacing: 0.04em;
+}
+
+.afternoonIconBtn {
+  color: #584b46;
 
   &:hover {
-    background-color: #dcfce7;
+    background-color: #ded3cd;
+    border-color: #75635c;
   }
 }
 
-.seasoningsBox {
-  min-height: 70px;
+.dishesListAfternoon {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  background-color: #ffffff;
+  min-height: 100px;
+  box-sizing: border-box;
 }
 
-.seasoningItemsList {
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.seasoningRow {
+.afternoonDishRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 11.5px;
   gap: 6px;
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid #f8fafc;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #f8faff;
+
+    .dishDotAfternoon {
+      background-color: #2563eb;
+    }
+
+    .dishName {
+      color: #2563eb;
+    }
+  }
 }
 
-.seasoningName {
-  flex: 1;
+/* ========================================================
+   KHỐI GIA VỊ: BANNER (36px) + DANH SÁCH GIA VỊ
+   ======================================================== */
+.seasoningBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  box-sizing: border-box;
+  padding: 0 8px 0 10px;
+  background-color: #f0fdf4;
+  border-top: 1px solid #dcfce7;
+  border-bottom: 1px solid #bbf7d0;
+}
+
+.seasoningIcon {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+.seasoningTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  letter-spacing: 0.04em;
+}
+
+.seasoningIconBtn {
+  color: #15803d;
+
+  &:hover {
+    background-color: #dcfce7;
+    border-color: #16a34a;
+  }
+}
+
+.dishesListSeasoning {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  min-height: 90px;
+  box-sizing: border-box;
+}
+
+.seasoningDishRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  height: 38px;
+  min-height: 38px;
+  max-height: 38px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid #f8fafc;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #f0fdf4;
+
+    .dishDotSeasoning {
+      background-color: #16a34a;
+    }
+
+    .seasoningNameText {
+      color: #16a34a;
+    }
+  }
+}
+
+.seasoningNameText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 11.5px;
+  font-weight: 500;
   color: #334155;
   white-space: nowrap;
   overflow: hidden;
@@ -331,57 +555,9 @@
   line-clamp: 1;
 }
 
-.seasoningBatchQty {
+.seasoningQtyText {
   font-size: 11px;
   font-weight: 700;
   color: #00654f;
   white-space: nowrap;
 }
-
-.emptySeasoningClickBox {
-  padding: 14px 10px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  cursor: pointer;
-  background-color: #fafafa;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: #f0fdf4;
-  }
-}
-
-/* ========================================================
-   FOOTER CỘT
-   ======================================================== */
-.columnFooter {
-  padding: 8px 12px 12px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.fullEditDayBtn {
-  width: 100%;
-  border: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #f1f5f9;
-    border-color: #cbd5e1;
-    color: #0f172a;
-  }
-}
-

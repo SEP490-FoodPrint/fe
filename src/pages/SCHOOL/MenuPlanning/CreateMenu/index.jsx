@@ -77,7 +77,7 @@ export default function CreateMenu() {
   const [weeklyMeals, setWeeklyMeals] = useState({})
   const [loadingSchedule, setLoadingSchedule] = useState(false)
 
-  // 4. Modal Biên tập Ngày (50/50: Nửa trái Preview ngày, Nửa phải Chọn món & Nhập gia vị)
+  // 4. Modal Chi tiết Ngày (50/50: Nửa trái Preview ngày, Nửa phải Chọn món & Nhập gia vị)
   const [dayModalState, setDayModalState] = useState({
     isOpen: false,
     dayData: null,
@@ -181,7 +181,7 @@ export default function CreateMenu() {
     setMenuTitle("") // Cho phép đặt lại tiêu đề tuần mới
   }, [currentDateVN])
 
-  // Mở Popup Modal Biên tập ngày (50/50)
+  // Mở Popup Modal Chi tiết ngày (50/50)
   const handleOpenDayModal = useCallback((dayData, mealType = "LUNCH", tab = "DISHES") => {
     setDayModalState({
       isOpen: true,
@@ -342,9 +342,6 @@ export default function CreateMenu() {
               <span className={styles.statPill}>
                 Tổng số món: <strong>{totalWeeklyDishesCount}</strong> món
               </span>
-              <span className={styles.statPill}>
-                Quy mô: <strong>{totalStudents.toLocaleString()}</strong> học sinh
-              </span>
             </div>
           </div>
 
@@ -371,17 +368,6 @@ export default function CreateMenu() {
                 placeholder="Ví dụ: Toàn trường (Khối 1 - 5)"
               />
             </div>
-
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Quy mô suất ăn học sinh</label>
-              <input
-                type="text"
-                className={`${styles.textInput} ${styles.readOnlyInput}`}
-                value={`${totalStudents.toLocaleString()} học sinh bán trú`}
-                readOnly
-                title="Quy mô cố định 1,250 học sinh dùng để tính định lượng gia vị chung"
-              />
-            </div>
           </div>
         </div>
 
@@ -392,9 +378,6 @@ export default function CreateMenu() {
               <CalendarDays size={18} />
               <span>Bảng thực đơn tuần (Thứ Hai – Thứ Sáu)</span>
             </h3>
-            <span className={styles.sectionSubtitle}>
-              Bấm “+ Thêm / Sửa” hoặc “Kê gia vị” tại bất kỳ ngày nào để mở cửa sổ biên tập chi tiết
-            </span>
           </div>
 
           <CreateMenuWeeklyGrid

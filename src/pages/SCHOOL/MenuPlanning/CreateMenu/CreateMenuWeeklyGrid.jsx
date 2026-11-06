@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
-  Settings2,
 } from "lucide-react"
 import styles from "./CreateMenuWeeklyGrid.module.scss"
 
@@ -35,178 +34,207 @@ export default function CreateMenuWeeklyGrid({
           const hasAfternoon = afternoonDishes.length > 0
           const hasSeasonings = seasonings.length > 0
 
-          // Tiến độ ngày
-          let statusBadge = {
-            label: "Chưa có món",
-            styleClass: styles.badgeEmpty,
-            icon: HelpCircle,
+          // Tiến độ ngày (Đồng bộ nhãn & màu với màn danh sách thực đơn)
+          let progress = {
+            label: "Chưa tạo",
+            badgeClass: styles.badgeEmpty,
+            IconComponent: HelpCircle,
           }
           if (hasLunch && hasAfternoon) {
-            statusBadge = {
-              label: "Đủ 2 ca",
-              styleClass: styles.badgeFull,
-              icon: CheckCircle2,
+            progress = {
+              label: "Đủ ca",
+              badgeClass: styles.badgeCompleted,
+              IconComponent: CheckCircle2,
             }
           } else if (hasLunch || hasAfternoon) {
-            statusBadge = {
-              label: hasLunch ? "Thiếu bữa xế" : "Thiếu bữa trưa",
-              styleClass: styles.badgePartial,
-              icon: AlertCircle,
+            progress = {
+              label: hasLunch ? "Thiếu ca xế" : "Thiếu ca trưa",
+              badgeClass: styles.badgePartial,
+              IconComponent: AlertCircle,
             }
           }
 
-          const StatusIcon = statusBadge.icon
+          const ProgressIcon = progress.IconComponent
 
           return (
-            <div key={sd.dateISO} className={styles.dayColumn}>
-              {/* CỘT HEADER */}
-              <div className={styles.columnHeader}>
-                <div className={styles.dayTitleRow}>
-                  <div className={styles.dayNameGroup}>
-                    <span className={styles.dayLabel}>{sd.dayLabel}</span>
-                    <span className={styles.dayDate}>{sd.dateVN?.slice(0, 5)}</span>
-                  </div>
-                  <span
-                    className={`${styles.statusBadge} ${statusBadge.styleClass}`}
-                    title={statusBadge.label}
-                  >
-                    <StatusIcon size={12} />
-                    <span>{statusBadge.label}</span>
-                  </span>
-                </div>
-              </div>
-
-              {/* THÂN CỘT: CÁC KHỐI BỮA ĂN VÀ GIA VỊ */}
-              <div className={styles.columnBody}>
-                {/* 1. KHỐI BỮA TRƯA */}
-                <div className={styles.mealCard}>
-                  <div className={`${styles.mealHeader} ${styles.lunchHeader}`}>
-                    <div className={styles.mealTitleLeft}>
-                      <Utensils size={13} />
-                      <span className={styles.mealTitle}>BỮA TRƯA</span>
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.mealActionBtn}
-                      onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
-                      title={hasLunch ? "Chỉnh sửa món trưa" : "Thêm món trưa"}
-                    >
-                      {hasLunch ? (
-                        <>
-                          <Edit2 size={11} />
-                          <span>Sửa</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={11} />
-                          <span>Thêm</span>
-                        </>
+            <div key={sd.dateISO} className={styles.dayColItem}>
+              <div
+                className={`${styles.dayCard} ${
+                  sd.isToday ? styles.todayDayCard : ""
+                }`}
+              >
+                {/* HÀNG 1: HEADER CỘT NGÀY - CHIỀU CAO CỐ ĐỊNH 64px */}
+                <div className={styles.dayHeader}>
+                  <div className={styles.dayTitleRow}>
+                    <div className={styles.dayTitleLeft}>
+                      <span className={styles.dayLabel}>{sd.dayLabel}</span>
+                      {sd.isToday && (
+                        <span className={styles.todayPill}>Hôm nay</span>
                       )}
-                    </button>
+                    </div>
+
+                    {/* Tiến độ ngày */}
+                    <span
+                      className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
+                      title={`Tiến độ ngày: ${progress.label}`}
+                    >
+                      <ProgressIcon size={11} />
+                      <span>{progress.label}</span>
+                    </span>
                   </div>
 
-                  <div className={styles.dishesBox}>
+                  <div className={styles.dayDateRow}>
+                    <span className={styles.dayDateText}>{sd.dateVN}</span>
+                  </div>
+                </div>
+
+                {/* THÂN THỰC ĐƠN: BỮA TRƯA + BỮA XẾ + GIA VỊ */}
+                <div className={styles.dayMealsBody}>
+                  {/* ========================================================
+                      KHỐI BỮA TRƯA: BANNER (36px) + DANH SÁCH MÓN
+                      ======================================================== */}
+                  <div className={styles.mealBlock}>
+                    <div className={styles.lunchBanner}>
+                      <div className={styles.bannerLeft}>
+                        <Utensils size={13} className={styles.lunchIcon} />
+                        <span className={styles.lunchTitle}>BỮA TRƯA</span>
+                      </div>
+
+                      <div className={styles.bannerActions}>
+                        <button
+                          type="button"
+                          className={`${styles.mealIconBtn} ${styles.lunchIconBtn}`}
+                          onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
+                          title={hasLunch ? "Sửa thực đơn trưa" : "Thêm thực đơn trưa"}
+                          aria-label="Thao tác bữa trưa"
+                        >
+                          {hasLunch ? <Edit2 size={12} /> : <Plus size={12} />}
+                        </button>
+                      </div>
+                    </div>
+
                     {hasLunch ? (
-                      <div className={styles.dishesList}>
+                      <div className={styles.dishesListLunch}>
                         {lunchDishes.map((dish, idx) => (
-                          <div key={dish.id || idx} className={styles.dishRow}>
-                            <span className={styles.lunchDot} />
-                            <span className={styles.dishName} title={dish.name}>
-                              {dish.name}
-                            </span>
-                            <span className={styles.dishPortion}>
+                          <div
+                            key={dish.id || idx}
+                            className={styles.lunchDishRow}
+                            onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
+                            title={`Món: ${dish.name} — Bấm để sửa`}
+                          >
+                            <div className={styles.dishLeftWrap}>
+                              <span className={styles.dishDotLunch} />
+                              <span className={styles.dishName}>{dish.name}</span>
+                            </div>
+                            <span className={styles.dishPortionTag}>
                               {dish.portionQty}{dish.unit || "g"}
                             </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div
-                        className={styles.emptyMealClickBox}
-                        onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
-                      >
-                        <span className={styles.emptyNoticeText}>Chưa có món trưa</span>
-                        <span className={styles.addDishHint}>+ Thêm món</span>
+                      <div className={styles.emptySingleMealBox}>
+                        <span className={styles.emptyMealText}>
+                          Chưa có thực đơn trưa
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.addSingleMealBtn}
+                          onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
+                          title={`Thêm thực đơn bữa trưa cho ${sd.dayLabel}`}
+                        >
+                          <Plus size={12} />
+                          <span>Thêm bữa trưa</span>
+                        </button>
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* 2. KHỐI BỮA XẾ */}
-                <div className={styles.mealCard}>
-                  <div className={`${styles.mealHeader} ${styles.afternoonHeader}`}>
-                    <div className={styles.mealTitleLeft}>
-                      <Coffee size={13} />
-                      <span className={styles.mealTitle}>BỮA XẾ</span>
+                  {/* ========================================================
+                      KHỐI BỮA XẾ: BANNER (36px) + DANH SÁCH MÓN
+                      ======================================================== */}
+                  <div className={styles.mealBlock}>
+                    <div className={styles.afternoonBanner}>
+                      <div className={styles.bannerLeft}>
+                        <Coffee size={13} className={styles.afternoonIcon} />
+                        <span className={styles.afternoonTitle}>BỮA XẾ</span>
+                      </div>
+
+                      <div className={styles.bannerActions}>
+                        <button
+                          type="button"
+                          className={`${styles.mealIconBtn} ${styles.afternoonIconBtn}`}
+                          onClick={() => onOpenDayModal(sd, "AFTERNOON", "DISHES")}
+                          title={hasAfternoon ? "Sửa thực đơn xế" : "Thêm thực đơn xế"}
+                          aria-label="Thao tác bữa xế"
+                        >
+                          {hasAfternoon ? <Edit2 size={12} /> : <Plus size={12} />}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      className={styles.mealActionBtn}
-                      onClick={() => onOpenDayModal(sd, "AFTERNOON", "DISHES")}
-                      title={hasAfternoon ? "Chỉnh sửa món xế" : "Thêm món xế"}
-                    >
-                      {hasAfternoon ? (
-                        <>
-                          <Edit2 size={11} />
-                          <span>Sửa</span>
-                        </>
-                      ) : (
-                        <>
-                          <Plus size={11} />
-                          <span>Thêm</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
 
-                  <div className={styles.dishesBox}>
                     {hasAfternoon ? (
-                      <div className={styles.dishesList}>
+                      <div className={styles.dishesListAfternoon}>
                         {afternoonDishes.map((dish, idx) => (
-                          <div key={dish.id || idx} className={styles.dishRow}>
-                            <span className={styles.afternoonDot} />
-                            <span className={styles.dishName} title={dish.name}>
-                              {dish.name}
-                            </span>
-                            <span className={styles.dishPortion}>
+                          <div
+                            key={dish.id || idx}
+                            className={styles.afternoonDishRow}
+                            onClick={() => onOpenDayModal(sd, "AFTERNOON", "DISHES")}
+                            title={`Món: ${dish.name} — Bấm để sửa`}
+                          >
+                            <div className={styles.dishLeftWrap}>
+                              <span className={styles.dishDotAfternoon} />
+                              <span className={styles.dishName}>{dish.name}</span>
+                            </div>
+                            <span className={styles.dishPortionTag}>
                               {dish.portionQty}{dish.unit || "g"}
                             </span>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div
-                        className={styles.emptyMealClickBox}
-                        onClick={() => onOpenDayModal(sd, "AFTERNOON", "DISHES")}
-                      >
-                        <span className={styles.emptyNoticeText}>Chưa có món xế</span>
-                        <span className={styles.addDishHint}>+ Thêm món</span>
+                      <div className={styles.emptySingleMealBoxSm}>
+                        <span className={styles.emptyMealText}>
+                          Chưa có thực đơn xế
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.addSingleMealBtn}
+                          onClick={() => onOpenDayModal(sd, "AFTERNOON", "DISHES")}
+                          title={`Thêm thực đơn bữa xế cho ${sd.dayLabel}`}
+                        >
+                          <Plus size={12} />
+                          <span>Thêm bữa xế</span>
+                        </button>
                       </div>
                     )}
                   </div>
-                </div>
 
-                {/* 3. KHỐI GIA VỊ DÙNG CHUNG (1,250 HỌC SINH) */}
-                <div className={styles.seasoningCard}>
-                  <div className={styles.seasoningHeader}>
-                    <div className={styles.mealTitleLeft}>
-                      <Sparkles size={13} />
-                      <span className={styles.seasoningTitle}>GIA VỊ (1,250 HS)</span>
+                  {/* ========================================================
+                      KHỐI GIA VỊ: BANNER (36px) + DANH SÁCH GIA VỊ
+                      ======================================================== */}
+                  <div className={styles.mealBlock}>
+                    <div className={styles.seasoningBanner}>
+                      <div className={styles.bannerLeft}>
+                        <Sparkles size={13} className={styles.seasoningIcon} />
+                        <span className={styles.seasoningTitle}>GIA VỊ KHO</span>
+                      </div>
+
+                      <div className={styles.bannerActions}>
+                        <button
+                          type="button"
+                          className={`${styles.mealIconBtn} ${styles.seasoningIconBtn}`}
+                          onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
+                          title={hasSeasonings ? "Sửa gia vị kho" : "Thêm gia vị kho"}
+                          aria-label="Thao tác gia vị kho"
+                        >
+                          {hasSeasonings ? <Edit2 size={12} /> : <Plus size={12} />}
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      type="button"
-                      className={styles.seasoningActionBtn}
-                      onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
-                      title="Chỉnh sửa gia vị dùng chung cho bữa ăn ngày này"
-                    >
-                      <Edit2 size={11} />
-                      <span>{hasSeasonings ? "Sửa" : "Kê gia vị"}</span>
-                    </button>
-                  </div>
 
-                  <div className={styles.seasoningsBox}>
                     {hasSeasonings ? (
-                      <div className={styles.seasoningItemsList}>
+                      <div className={styles.dishesListSeasoning}>
                         {seasonings.map((s, idx) => {
                           const unitLabel = s.unit === "ml" ? "L" : "kg"
                           const total =
@@ -215,14 +243,19 @@ export default function CreateMenuWeeklyGrid({
                               (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
                             )
                           return (
-                            <div key={s.id || idx} className={styles.seasoningRow}>
-                              <span
-                                className={styles.seasoningName}
-                                title={`${s.name} (${s.portionQty} ${s.unit}/suất)`}
-                              >
-                                {s.name.replace(/\(.*?\)/g, "").trim()}
-                              </span>
-                              <span className={styles.seasoningBatchQty}>
+                            <div
+                              key={s.id || idx}
+                              className={styles.seasoningDishRow}
+                              onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
+                              title={`${s.name} (${s.portionQty} ${s.unit}/suất) — Bấm để sửa`}
+                            >
+                              <div className={styles.dishLeftWrap}>
+                                <span className={styles.dishDotSeasoning} />
+                                <span className={styles.seasoningNameText}>
+                                  {s.name.replace(/\(.*?\)/g, "").trim()}
+                                </span>
+                              </div>
+                              <span className={styles.seasoningQtyText}>
                                 {total} {unitLabel}
                               </span>
                             </div>
@@ -230,29 +263,23 @@ export default function CreateMenuWeeklyGrid({
                         })}
                       </div>
                     ) : (
-                      <div
-                        className={styles.emptySeasoningClickBox}
-                        onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
-                      >
-                        <span className={styles.emptyNoticeText}>Chưa kê gia vị</span>
-                        <span className={styles.addDishHint}>+ Nhập gia vị</span>
+                      <div className={styles.emptySingleMealBoxSm}>
+                        <span className={styles.emptyMealText}>
+                          Chưa kê gia vị
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.addSingleMealBtn}
+                          onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
+                          title={`Khai báo gia vị kho cho ${sd.dayLabel}`}
+                        >
+                          <Plus size={12} />
+                          <span>+ Thêm gia vị</span>
+                        </button>
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
-
-              {/* NÚT THAO TÁC TOÀN NGÀY */}
-              <div className={styles.columnFooter}>
-                <button
-                  type="button"
-                  className={styles.fullEditDayBtn}
-                  onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
-                  title={`Mở cửa sổ biên tập toàn diện cho ${sd.dayLabel}`}
-                >
-                  <Settings2 size={13} />
-                  <span>Biên tập ngày {sd.dayLabel}</span>
-                </button>
               </div>
             </div>
           )
@@ -261,4 +288,3 @@ export default function CreateMenuWeeklyGrid({
     </div>
   )
 }
-
