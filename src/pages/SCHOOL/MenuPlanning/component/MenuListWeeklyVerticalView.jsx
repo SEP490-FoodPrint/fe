@@ -1,5 +1,22 @@
 import React, { useState, useEffect, useMemo } from "react"
-import { Calendar, Utensils, Coffee, Eye, Edit3, AlertTriangle, Plus, Send, CheckCircle2 } from "lucide-react"
+import {
+  Calendar,
+  Utensils,
+  Coffee,
+  Eye,
+  Edit2,
+  AlertTriangle,
+  Plus,
+  Send,
+  CheckCircle2,
+  Clock,
+  FileEdit,
+  Columns3,
+  Table,
+  PlusCircle,
+  AlertCircle,
+  CalendarCheck,
+} from "lucide-react"
 import { DEFAULT_WEEKLY_MENU } from "src/pages/SCHOOL/KitchenCooking/KitchenMenu/component/mockWeeklyMenuData"
 import styles from "./MenuListWeeklyVerticalView.module.scss"
 
@@ -31,7 +48,7 @@ export default function MenuListWeeklyVerticalView({
     }
   }, [todayDay])
 
-  // Trạng thái chung của cả tuần (1 tuần 1 trạng thái đồng nhất)
+  // Trạng thái chung của cả tuần
   const weekStatus = useMemo(() => {
     if (propWeekStatus) return propWeekStatus
     const dayStatuses = menus.map((m) => m.status).filter(Boolean)
@@ -87,9 +104,9 @@ export default function MenuListWeeklyVerticalView({
       // Xác định tiến độ / trạng thái của ngày đó
       let progress = {
         type: "COMPLETED",
-        label: "Đủ 2 ca",
+        label: "Đủ ca",
         badgeClass: styles.badgeCompleted,
-        icon: "check_circle",
+        IconComponent: CheckCircle2,
       }
 
       if (weekStatus === "APPROVED") {
@@ -97,14 +114,14 @@ export default function MenuListWeeklyVerticalView({
           type: "APPROVED",
           label: "Đã duyệt",
           badgeClass: styles.badgeApproved,
-          icon: "verified",
+          IconComponent: CheckCircle2,
         }
       } else if (weekStatus === "PENDING_APPROVAL") {
         progress = {
           type: "PENDING",
           label: "Chờ duyệt",
           badgeClass: styles.badgePending,
-          icon: "hourglass_top",
+          IconComponent: Clock,
         }
       } else if (weekStatus === "REVISION_REQUESTED") {
         const isRevisionDay = dayMenus.some(
@@ -114,9 +131,9 @@ export default function MenuListWeeklyVerticalView({
           const revNote = dayMenus.find((m) => m.feedback)?.feedback || weekFeedback
           progress = {
             type: "REVISION_REQUIRED",
-            label: "Cần chỉnh sửa",
+            label: "Cần sửa",
             badgeClass: styles.badgeRevision,
-            icon: "error",
+            IconComponent: AlertTriangle,
             note: revNote,
           }
         } else {
@@ -124,7 +141,7 @@ export default function MenuListWeeklyVerticalView({
             type: "REVISION_PASSED",
             label: "Đạt chuẩn",
             badgeClass: styles.badgeApproved,
-            icon: "check_circle",
+            IconComponent: CheckCircle2,
           }
         }
       } else {
@@ -134,33 +151,33 @@ export default function MenuListWeeklyVerticalView({
             type: "EMPTY",
             label: "Chưa tạo",
             badgeClass: styles.badgeEmpty,
-            icon: "radio_button_unchecked",
+            IconComponent: PlusCircle,
           }
         } else if (hasLunch && hasAfternoon) {
           progress = {
             type: "COMPLETED",
-            label: "Đủ 2 ca",
+            label: "Đủ ca",
             badgeClass: styles.badgeCompleted,
-            icon: "check_circle",
+            IconComponent: CheckCircle2,
           }
         } else if (hasLunch && !hasAfternoon) {
           progress = {
             type: "PARTIAL_AFTERNOON",
-            label: "Thiếu bữa xế",
+            label: "Thiếu xế",
             badgeClass: styles.badgePartial,
-            icon: "warning",
+            IconComponent: AlertCircle,
           }
         } else {
           progress = {
             type: "PARTIAL_LUNCH",
-            label: "Thiếu bữa trưa",
+            label: "Thiếu trưa",
             badgeClass: styles.badgePartial,
-            icon: "warning",
+            IconComponent: AlertCircle,
           }
         }
       }
 
-      // Xây dựng fallback cho thực đơn khi đã duyệt hoặc đang chờ duyệt mà không có dữ liệu riêng
+      // Fallback thực đơn khi đã duyệt hoặc đang chờ duyệt mà không có dữ liệu riêng
       const fallbackLunch = (weekStatus === "APPROVED" || weekStatus === "PENDING_APPROVAL")
         ? {
             id: `menu-${sd.dateISO}-lunch`,
@@ -234,8 +251,8 @@ export default function MenuListWeeklyVerticalView({
             className={`${styles.weekStatusBadge} ${styles.statusRevision}`}
             title="Ban Giám Hiệu yêu cầu chỉnh sửa thực đơn tuần này"
           >
-            <span className="material-symbols-outlined text-[15px]">warning</span>
-            <span>Yêu cầu chỉnh sửa</span>
+            <AlertTriangle size={13} />
+            <span>Yêu cầu sửa</span>
           </span>
         )
       case "PENDING_APPROVAL":
@@ -244,7 +261,7 @@ export default function MenuListWeeklyVerticalView({
             className={`${styles.weekStatusBadge} ${styles.statusPending}`}
             title="Thực đơn tuần này đang chờ BGH phê duyệt"
           >
-            <span className="material-symbols-outlined text-[15px]">schedule</span>
+            <Clock size={13} />
             <span>Chờ BGH duyệt</span>
           </span>
         )
@@ -254,7 +271,7 @@ export default function MenuListWeeklyVerticalView({
             className={`${styles.weekStatusBadge} ${styles.statusDraft}`}
             title="Thực đơn tuần này đang là bản nháp soạn thảo của Y tế"
           >
-            <span className="material-symbols-outlined text-[15px]">edit_note</span>
+            <FileEdit size={13} />
             <span>Bản nháp tuần</span>
           </span>
         )
@@ -265,8 +282,8 @@ export default function MenuListWeeklyVerticalView({
             className={`${styles.weekStatusBadge} ${styles.statusApproved}`}
             title="Thực đơn tuần này đã được Ban Giám Hiệu phê duyệt chính thức"
           >
-            <span className="material-symbols-outlined text-[15px]">check_circle</span>
-            <span>✓ Đã duyệt BGH</span>
+            <CheckCircle2 size={13} />
+            <span>Đã duyệt BGH</span>
           </span>
         )
     }
@@ -274,33 +291,35 @@ export default function MenuListWeeklyVerticalView({
 
   return (
     <div className={styles.verticalWeeklyContainer}>
-      {/* 1. Bar điều khiển tuần & Chuyển đổi View Mode */}
+      {/* 1. Bar điều khiển tuần & Thao tác tối giản */}
       <div className={styles.topControlBar}>
         <div className={styles.weekTitleWrap}>
-          <Calendar size={18} className={styles.weekCalendarIcon} />
+          <div className={styles.weekIconBox}>
+            <Calendar size={16} />
+          </div>
           <span className={styles.weekLabelText}>
             {selectedWeekLabel || "Thực đơn tuần học đường"}
           </span>
           {isCurrentWeek && (
             <span className={styles.currentWeekTag}>Tuần này</span>
           )}
-          {/* Badge trạng thái duy nhất của CẢ TUẦN */}
+          {/* Badge trạng thái tuần */}
           {renderWeekStatusBadge(weekStatus)}
 
-          {/* Khi tuần là DRAFT: Hiển thị pill tiến độ nhập liệu */}
+          {/* Pill tiến độ khi DRAFT */}
           {weekStatus === "DRAFT" && (
             <div className={styles.weekProgressPill}>
-              <span className="material-symbols-outlined text-[14px]">task_alt</span>
+              <CalendarCheck size={13} />
               <span>
-                Tiến độ: <strong>{weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày</strong> đủ 2 ca
+                Tiến độ: <strong>{weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày</strong> đủ ca
               </span>
             </div>
           )}
         </div>
 
-        {/* Khối các nút hành động cấp tuần */}
+        {/* Cụm nút thao tác bên phải */}
         <div className={styles.topActionsGroup}>
-          {/* Nút Gửi BGH duyệt khi tuần đang là DRAFT */}
+          {/* Nút Gửi BGH duyệt khi DRAFT */}
           {weekStatus === "DRAFT" && (
             <button
               type="button"
@@ -311,15 +330,15 @@ export default function MenuListWeeklyVerticalView({
               title={
                 weekProgressStats.isAllCompleted
                   ? "Gửi thực đơn cả tuần cho Ban Giám Hiệu phê duyệt"
-                  : `Chưa thể gửi: Còn ${weekProgressStats.totalDays - weekProgressStats.completedDays} ngày chưa hoàn tất thực đơn`
+                  : `Chưa thể gửi: Còn ${weekProgressStats.totalDays - weekProgressStats.completedDays} ngày chưa hoàn tất`
               }
             >
-              <Send size={14} />
-              <span>Gửi BGH duyệt tuần</span>
+              <Send size={13} />
+              <span>Gửi BGH duyệt</span>
             </button>
           )}
 
-          {/* Nút Gửi lại BGH duyệt khi tuần bị REVISION_REQUESTED */}
+          {/* Nút Gửi lại BGH duyệt khi REVISION_REQUESTED */}
           {weekStatus === "REVISION_REQUESTED" && (
             <button
               type="button"
@@ -327,23 +346,23 @@ export default function MenuListWeeklyVerticalView({
               onClick={onResubmitWeeklyMenu}
               title="Gửi lại thực đơn đã chỉnh sửa cho Ban Giám Hiệu phê duyệt"
             >
-              <Send size={14} />
-              <span>Gửi lại BGH duyệt</span>
+              <Send size={13} />
+              <span>Gửi lại BGH</span>
             </button>
           )}
 
-          {/* Chuyển đổi chế độ xem */}
-          <div className={styles.viewModeSwitcher}>
+          {/* Chuyển đổi chế độ xem: Dọc / Bảng bằng Icon */}
+          <div className={styles.viewModeSwitcher} role="group" aria-label="Chế độ xem">
             <button
               type="button"
               className={`${styles.viewBtn} ${
                 viewMode === "vertical" ? styles.viewBtnActive : ""
               }`}
               onClick={() => onChangeViewMode && onChangeViewMode("vertical")}
-              title="Xem toàn bộ tuần dạng cột dọc (Mặc định)"
+              title="Xem kiểu tuần dọc (Mặc định)"
+              aria-label="Kiểu tuần dọc"
             >
-              <span className="material-symbols-outlined text-[16px]">calendar_view_day</span>
-              <span>Kiểu tuần dọc</span>
+              <Columns3 size={15} />
             </button>
             <button
               type="button"
@@ -351,32 +370,30 @@ export default function MenuListWeeklyVerticalView({
                 viewMode === "table" ? styles.viewBtnActive : ""
               }`}
               onClick={() => onChangeViewMode && onChangeViewMode("table")}
-              title="Xem bảng danh sách thực đơn"
+              title="Xem kiểu bảng danh sách"
+              aria-label="Kiểu bảng danh sách"
             >
-              <span className="material-symbols-outlined text-[16px]">table_rows</span>
-              <span>Kiểu bảng</span>
+              <Table size={15} />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Banner phản hồi của BGH nếu tuần có yêu cầu chỉnh sửa */}
+      {/* Banner phản hồi BGH nếu tuần có yêu cầu chỉnh sửa */}
       {weekStatus === "REVISION_REQUESTED" && weekFeedback && (
         <div className={styles.weekFeedbackBanner}>
-          <AlertTriangle size={18} className={styles.feedbackIcon} />
+          <AlertTriangle size={16} className={styles.feedbackIcon} />
           <div className={styles.feedbackContent}>
             <div className={styles.feedbackTitleRow}>
-              <span className={styles.feedbackTitle}>
-                Yêu cầu chỉnh sửa từ Ban Giám Hiệu:
-              </span>
-              <span className={styles.feedbackSub}>Vui lòng hoàn thiện các ngày được đánh dấu đỏ trước khi gửi lại</span>
+              <span className={styles.feedbackTitle}>Yêu cầu chỉnh sửa từ Ban Giám Hiệu:</span>
+              <span className={styles.feedbackSub}>Vui lòng hoàn thiện các ngày đánh dấu đỏ rồi gửi lại</span>
             </div>
-            <span className={styles.feedbackText}>{weekFeedback}</span>
+            <p className={styles.feedbackText}>{weekFeedback}</p>
           </div>
         </div>
       )}
 
-      {/* 2. Dải chọn ngày trên điện thoại (Mobile-first) */}
+      {/* 2. Dải chọn ngày trên điện thoại */}
       <div className={styles.mobileDayBar}>
         <div className={styles.mobileDayList}>
           {schoolDays.map((day) => {
@@ -409,7 +426,7 @@ export default function MenuListWeeklyVerticalView({
         </div>
       </div>
 
-      {/* 3. Lưới 5 CỘT THỰC ĐƠN DỌC CHO CẢ TUẦN */}
+      {/* 3. Lưới 5 CỘT THỰC ĐƠN DỌC - CLEAN & DỄ NHÌN CHO Y TẾ */}
       <div className={styles.weeklyGridWrapper}>
         <div className={styles.weeklyGrid}>
           {schoolDays.map((sd) => {
@@ -431,8 +448,9 @@ export default function MenuListWeeklyVerticalView({
             const canEditLunch = canEditWeeklyMenu && Boolean(resolvedLunchMenu)
             const canEditAfternoon = canEditWeeklyMenu && Boolean(resolvedAfternoonMenu)
 
-            // Cột trống hoàn toàn (Chưa tạo bữa nào trong ngày)
+            // Cột trống hoàn toàn
             const isDayCompletelyEmpty = !hasLunch && !hasAfternoon
+            const ProgressIcon = progress?.IconComponent || CheckCircle2
 
             return (
               <div
@@ -446,26 +464,23 @@ export default function MenuListWeeklyVerticalView({
                     sd.isToday ? styles.todayDayCard : ""
                   }`}
                 >
-                  {/* HÀNG 1: Header Cột Ngày (70px) */}
+                  {/* HÀNG 1: Header Cột Ngày Clean */}
                   <div className={styles.dayHeader}>
                     <div className={styles.dayTitleRow}>
                       <div className={styles.dayTitleLeft}>
-                        <Calendar size={14} className={styles.dayCalIcon} />
                         <span className={styles.dayLabel}>{sd.dayLabel}</span>
                         {sd.isToday && (
                           <span className={styles.todayPill}>Hôm nay</span>
                         )}
                       </div>
 
-                      {/* Tiến độ / Trạng thái của từng ngày */}
+                      {/* Tiến độ ngày: Icon + Label ngắn gọn */}
                       {progress && (
                         <span
                           className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                          title={`Trạng thái ngày: ${progress.label}`}
+                          title={`Tiến độ ngày: ${progress.label}`}
                         >
-                          <span className="material-symbols-outlined text-[13px]">
-                            {progress.icon}
-                          </span>
+                          <ProgressIcon size={12} />
                           <span>{progress.label}</span>
                         </span>
                       )}
@@ -479,7 +494,7 @@ export default function MenuListWeeklyVerticalView({
                           title="Có học sinh dị ứng cần thực đơn riêng trong ngày này"
                         >
                           <AlertTriangle size={11} />
-                          Dị ứng
+                          <span>Dị ứng</span>
                         </span>
                       )}
                     </div>
@@ -487,13 +502,11 @@ export default function MenuListWeeklyVerticalView({
 
                   {/* THÂN THỰC ĐƠN */}
                   <div className={styles.dayMealsBody}>
-                    {/* TRƯỜNG HỢP 1: NGÀY CHƯA TẠO THỰC ĐƠN (EMPTY STATE NÉT ĐỨT) */}
+                    {/* TRƯỜNG HỢP 1: NGÀY CHƯA TẠO (EMPTY STATE NÉT ĐỨT SẠCH SẼ) */}
                     {isDayCompletelyEmpty ? (
                       <div className={styles.emptyDayBox}>
                         <div className={styles.emptyDayIconWrap}>
-                          <span className="material-symbols-outlined text-[28px]">
-                            playlist_add
-                          </span>
+                          <PlusCircle size={24} />
                         </div>
                         <span className={styles.emptyDayTitle}>Chưa tạo thực đơn</span>
                         <span className={styles.emptyDayDesc}>
@@ -506,8 +519,8 @@ export default function MenuListWeeklyVerticalView({
                             onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
                             title={`Tạo thực đơn mới cho ${sd.dayLabel}`}
                           >
-                            <Plus size={14} />
-                            <span>Tạo thực đơn ngày</span>
+                            <Plus size={13} />
+                            <span>Tạo thực đơn</span>
                           </button>
                         )}
                       </div>
@@ -518,8 +531,8 @@ export default function MenuListWeeklyVerticalView({
                         {progress?.type === "REVISION_REQUIRED" && progress.note && (
                           <div className={styles.dayRevisionCallout}>
                             <div className={styles.dayRevisionHeader}>
-                              <AlertTriangle size={13} />
-                              <span>Cần chỉnh sửa</span>
+                              <AlertTriangle size={12} />
+                              <span>BGH yêu cầu sửa</span>
                             </div>
                             <p className={styles.dayRevisionNote}>{progress.note}</p>
                           </div>
@@ -534,17 +547,17 @@ export default function MenuListWeeklyVerticalView({
                                 <span className={styles.lunchTitle}>BỮA TRƯA</span>
                               </div>
 
-                              {/* Nút Chi tiết & Sửa CHỈ ĐỂ ICON */}
+                              {/* Nút Xem & Sửa: Icon-only tinh tế */}
                               <div className={styles.bannerActions}>
                                 {hasLunch && (
                                   <button
                                     type="button"
                                     className={`${styles.mealIconBtn} ${styles.lunchIconBtn}`}
                                     onClick={() => onViewDetail(resolvedLunchMenu)}
-                                    title="Xem chi tiết thực đơn bữa trưa"
-                                    aria-label="Xem chi tiết bữa trưa"
+                                    title="Xem chi tiết thực đơn trưa"
+                                    aria-label="Xem chi tiết trưa"
                                   >
-                                    <Eye size={13} />
+                                    <Eye size={12} />
                                   </button>
                                 )}
                                 {canEditLunch && (
@@ -558,18 +571,18 @@ export default function MenuListWeeklyVerticalView({
                                     onClick={() => onEditMenu(resolvedLunchMenu)}
                                     title={
                                       progress?.type === "REVISION_REQUIRED"
-                                        ? "Chỉnh sửa thực đơn trưa theo yêu cầu BGH"
-                                        : "Chỉnh sửa thực đơn bữa trưa"
+                                        ? "Sửa thực đơn theo yêu cầu BGH"
+                                        : "Chỉnh sửa thực đơn trưa"
                                     }
-                                    aria-label="Chỉnh sửa bữa trưa"
+                                    aria-label="Chỉnh sửa trưa"
                                   >
-                                    <Edit3 size={13} />
+                                    <Edit2 size={12} />
                                   </button>
                                 )}
                               </div>
                             </div>
 
-                            {/* Danh sách 5 món trưa hoặc ô tạo thêm nếu thiếu */}
+                            {/* Danh sách 5 món trưa */}
                             {hasLunch ? (
                               <div className={styles.dishesListLunch}>
                                 {lunchDishes.map((dish) => (
@@ -579,6 +592,7 @@ export default function MenuListWeeklyVerticalView({
                                     onClick={() => onViewDetail(resolvedLunchMenu)}
                                     title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
                                   >
+                                    <span className={styles.dishDotLunch} />
                                     <span className={styles.dishName}>
                                       {dish.name}
                                     </span>
@@ -587,7 +601,7 @@ export default function MenuListWeeklyVerticalView({
                               </div>
                             ) : (
                               <div className={styles.emptySingleMealBox}>
-                                <span className={styles.emptyMealText}>Chưa tạo bữa trưa</span>
+                                <span className={styles.emptyMealText}>Chưa có bữa trưa</span>
                                 {canEditWeeklyMenu && (
                                   <button
                                     type="button"
@@ -612,17 +626,17 @@ export default function MenuListWeeklyVerticalView({
                                 <span className={styles.afternoonTitle}>BỮA XẾ</span>
                               </div>
 
-                              {/* Nút Chi tiết & Sửa CHỈ ĐỂ ICON */}
+                              {/* Nút Xem & Sửa: Icon-only tinh tế */}
                               <div className={styles.bannerActions}>
                                 {hasAfternoon && (
                                   <button
                                     type="button"
                                     className={`${styles.mealIconBtn} ${styles.afternoonIconBtn}`}
                                     onClick={() => onViewDetail(resolvedAfternoonMenu)}
-                                    title="Xem chi tiết thực đơn bữa xế"
-                                    aria-label="Xem chi tiết bữa xế"
+                                    title="Xem chi tiết thực đơn xế"
+                                    aria-label="Xem chi tiết xế"
                                   >
-                                    <Eye size={13} />
+                                    <Eye size={12} />
                                   </button>
                                 )}
                                 {canEditAfternoon && (
@@ -636,18 +650,18 @@ export default function MenuListWeeklyVerticalView({
                                     onClick={() => onEditMenu(resolvedAfternoonMenu)}
                                     title={
                                       progress?.type === "REVISION_REQUIRED"
-                                        ? "Chỉnh sửa thực đơn xế theo yêu cầu BGH"
-                                        : "Chỉnh sửa thực đơn bữa xế"
+                                        ? "Sửa thực đơn theo yêu cầu BGH"
+                                        : "Chỉnh sửa thực đơn xế"
                                     }
-                                    aria-label="Chỉnh sửa bữa xế"
+                                    aria-label="Chỉnh sửa xế"
                                   >
-                                    <Edit3 size={13} />
+                                    <Edit2 size={12} />
                                   </button>
                                 )}
                               </div>
                             </div>
 
-                            {/* Danh sách món xế hoặc ô tạo thêm nếu thiếu */}
+                            {/* Danh sách món xế */}
                             {hasAfternoon ? (
                               <div className={styles.dishesListAfternoon}>
                                 {afternoonDishes.map((dish) => (
@@ -657,6 +671,7 @@ export default function MenuListWeeklyVerticalView({
                                     onClick={() => onViewDetail(resolvedAfternoonMenu)}
                                     title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
                                   >
+                                    <span className={styles.dishDotAfternoon} />
                                     <span className={styles.dishName}>
                                       {dish.name}
                                     </span>

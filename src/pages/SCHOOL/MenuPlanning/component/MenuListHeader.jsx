@@ -1,5 +1,6 @@
 import React, { useContext } from "react"
 import { useNavigate } from "react-router-dom"
+import { Plus, Home, ChevronRight, ShieldCheck } from "lucide-react"
 import styles from "./MenuListHeader.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { StoreContext } from "src/contexts"
@@ -18,38 +19,44 @@ export default function MenuListHeader({ onNavigateCreate }) {
   return (
     <div className={styles.headerContainer}>
       <div className={styles.titleArea}>
-        {/* Subdued Breadcrumb */}
+        {/* Breadcrumb tối giản */}
         <nav className={styles.breadcrumb} aria-label="Breadcrumb">
           <button
             type="button"
             className={styles.breadcrumbLink}
             onClick={() => navigate(homePath)}
           >
-            Trang chủ
+            <Home size={13} />
+            <span>Trang chủ</span>
           </button>
-          <span className={`material-symbols-outlined ${styles.chevronIcon}`}>
-            chevron_right
-          </span>
-          <span className={styles.breadcrumbActive}>Danh sách thực đơn</span>
+          <ChevronRight size={13} className={styles.chevronIcon} />
+          <span className={styles.breadcrumbActive}>Thực đơn học đường</span>
         </nav>
 
-        {/* Primary Title & Subtitle */}
+        {/* Tiêu đề trang sạch & Tag nghiệp vụ Y tế */}
         <div className={styles.headingGroup}>
-          <h1 className={styles.pageTitle}>Danh sách thực đơn</h1>
+          <div className={styles.titleWithBadge}>
+            <h1 className={styles.pageTitle}>Thực đơn học đường</h1>
+            <span className={styles.roleBadge}>
+              <ShieldCheck size={13} />
+              <span>Ban Y tế</span>
+            </span>
+          </div>
           <p className={styles.pageSubtitle}>
-            Quản lý và theo dõi thực đơn theo năm, tuần học đường, ca ăn và trạng thái duyệt.
+            Lập kế hoạch dinh dưỡng tuần, kiểm soát an toàn dị ứng và theo dõi phê duyệt BGH.
           </p>
         </div>
       </div>
 
-      {/* Header Action Button (Chỉ hiển thị cho vai trò được tạo thực đơn) */}
+      {/* Nút hành động Tạo thực đơn */}
       <div className={styles.actionArea}>
         <button
           type="button"
           className={styles.createBtn}
           onClick={onNavigateCreate}
+          title="Tạo thực đơn mới"
         >
-          <span className={`material-symbols-outlined ${styles.addIcon}`}>add</span>
+          <Plus size={16} />
           <span>Tạo thực đơn</span>
         </button>
       </div>

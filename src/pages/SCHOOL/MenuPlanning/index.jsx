@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { CheckCircle2, AlertTriangle, Info, Table, Columns3 } from "lucide-react"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { MOCK_MENU_LIST, getWeeklyMenuStatus } from "./mockMenuListData"
@@ -96,7 +97,7 @@ export default function MenuPlanning() {
           next.week = currentWeek
         }
       }
-      // Trạng thái theo tuần: Khi đổi trạng thái, tự chuyển sang tuần tương ứng minh họa
+      // Khi lọc trạng thái: chuyển sang tuần tương ứng minh họa
       if (field === "status") {
         if (value === "REVISION_REQUESTED") next.week = 44
         else if (value === "PENDING_APPROVAL") next.week = 46
@@ -131,7 +132,6 @@ export default function MenuPlanning() {
   const handleFilterByStatus = (statusValue) => {
     setFilters((prev) => {
       const next = { ...prev, status: statusValue }
-      // Khi bấm lọc trạng thái từ StatsRail: tự động mở tuần tương ứng
       if (statusValue === "REVISION_REQUESTED") {
         next.week = 44
       } else if (statusValue === "PENDING_APPROVAL") {
@@ -148,7 +148,7 @@ export default function MenuPlanning() {
     setCurrentPage(1)
   }
 
-  // Tính thống kê cho Stats Rail: Tổng thực đơn tuần của năm
+  // Thống kê cho Quick Status Pills
   const stats = useMemo(() => {
     const targetYear = Number(filters.year) || currentYear
     if (targetYear === 2026) {
@@ -177,12 +177,13 @@ export default function MenuPlanning() {
   // Lọc danh sách thực đơn
   const filteredMenus = useMemo(() => {
     return menus.filter((menu) => {
-      // 1. Từ khóa tìm kiếm (tên thực đơn hoặc mã)
+      // 1. Tìm kiếm tên món, tên thực đơn hoặc mã
       if (filters.searchKeyword.trim()) {
         const kw = filters.searchKeyword.trim().toLowerCase()
         const matchName = menu.name.toLowerCase().includes(kw)
         const matchCode = menu.code.toLowerCase().includes(kw)
-        if (!matchName && !matchCode) return false
+        const matchDish = menu.dishes?.some((d) => d.name?.toLowerCase().includes(kw))
+        if (!matchName && !matchCode && !matchDish) return false
       }
 
       // 2. Lọc theo Năm
@@ -191,12 +192,11 @@ export default function MenuPlanning() {
         return false
       }
 
-      // 3. Lọc theo Tuần (Tuần ISO hoặc tuần được chọn)
+      // 3. Lọc theo Tuần
       if (filters.week !== "all") {
         const targetWeek = Number(filters.week)
         const mWeek = getMenuISOWeek(menu)
         if (mWeek !== targetWeek) {
-          // Fallback đối soát nếu mock data có gán tag week tương đối
           const isMatchRelative =
             (targetWeek === currentWeek && menu.week === "current") ||
             (targetWeek === currentWeek - 1 && menu.week === "prev") ||
@@ -219,7 +219,7 @@ export default function MenuPlanning() {
     })
   }, [menus, filters, currentWeek])
 
-  // Danh sách các ngày trong tuần được chọn (dành cho chế độ xem dọc)
+  // Danh sách các ngày trong tuần được chọn
   const weekSchoolDays = useMemo(() => {
     if (filters.week === "all") return []
     const monday = getDateOfISOWeek(
@@ -283,9 +283,8 @@ export default function MenuPlanning() {
     return filteredMenus.slice(start, start + pageSize)
   }, [filteredMenus, currentPage, pageSize])
 
-  // Xử lý gửi BGH duyệt thực đơn tuần (khi DRAFT)
+  // Xử lý gửi BGH duyệt tuần (khi DRAFT)
   const handleSubmitWeeklyMenu = () => {
-    // Kiểm tra xem cả 5 ngày đã đủ cả 2 ca trưa và xế chưa
     let missingDays = []
     weekSchoolDays.forEach((sd) => {
       const dayMenus = filteredMenus.filter(
@@ -300,13 +299,12 @@ export default function MenuPlanning() {
 
     if (missingDays.length > 0) {
       showToast(
-        `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa hoàn tất đủ 2 ca (trưa & xế). Vui lòng tạo đủ 5 ngày trước khi gửi BGH!`,
+        `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa đủ 2 ca (trưa & xế). Vui lòng hoàn tất 5 ngày trước khi gửi!`,
         "warning"
       )
       return
     }
 
-    // Đủ 5 ngày: Cập nhật trạng thái tuần và các thực đơn sang PENDING_APPROVAL
     const targetWeek = Number(filters.week)
     setMenus((prev) =>
       prev.map((m) => {
@@ -344,7 +342,7 @@ export default function MenuPlanning() {
       })
     )
     showToast(
-      `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu phê duyệt!`,
+      `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
       "success"
     )
   }
@@ -377,35 +375,32 @@ export default function MenuPlanning() {
       {/* Toast Notification */}
       {toast && (
         <div className={`${styles.toastNotice} ${styles[toast.type]}`}>
-          <span className="material-symbols-outlined text-[18px]">
-            {toast.type === "success"
-              ? "check_circle"
-              : toast.type === "warning"
-              ? "warning"
-              : "info"}
-          </span>
+          {toast.type === "success" && <CheckCircle2 size={16} />}
+          {toast.type === "warning" && <AlertTriangle size={16} />}
+          {toast.type === "info" && <Info size={16} />}
           <span>{toast.message}</span>
         </div>
       )}
 
-      {/* Section 1: Header Bar & Actions */}
+      {/* Section 1: Header Bar & Actions Clean */}
       <MenuListHeader onNavigateCreate={handleNavigateCreate} />
 
-      {/* Section 2: Tổng thực đơn của năm hiện tại & Thống kê trạng thái */}
+      {/* Section 2: Quick Status Filter Pills (Tối giản, icon trực quan) */}
       <MenuListStatsRail
         stats={stats}
         year={filters.year}
+        activeStatus={filters.status}
         onFilterByStatus={handleFilterByStatus}
       />
 
-      {/* Section 3: Bộ lọc Năm, Tuần và Ca ăn */}
+      {/* Section 3: Bộ lọc Phẳng (Năm, Tuần, Ca ăn) */}
       <MenuListFilterStrip
         filters={filters}
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
       />
 
-      {/* Section 4: Hiển thị Danh sách thực đơn kiểu dọc (Mặc định cho 1 tuần) hoặc Kiểu bảng */}
+      {/* Section 4: Hiển thị Danh sách thực đơn kiểu dọc tuần (Mặc định) hoặc Kiểu bảng */}
       {viewMode === "vertical" && filters.week !== "all" ? (
         <MenuListWeeklyVerticalView
           schoolDays={weekSchoolDays}
@@ -427,9 +422,7 @@ export default function MenuPlanning() {
         <div className={styles.tableCard}>
           <div className={styles.tableTopBar}>
             <div className={styles.tableModeLabel}>
-              <span className="material-symbols-outlined text-[18px]">
-                table_rows
-              </span>
+              <Table size={16} />
               <span>
                 Bảng danh sách thực đơn ({filteredMenus.length} thực đơn)
               </span>
@@ -442,9 +435,7 @@ export default function MenuPlanning() {
                   onClick={() => setViewMode("vertical")}
                   title="Chuyển sang kiểu dọc theo tuần"
                 >
-                  <span className="material-symbols-outlined text-[16px]">
-                    calendar_view_day
-                  </span>
+                  <Columns3 size={14} />
                   <span>Xem kiểu dọc</span>
                 </button>
               )}

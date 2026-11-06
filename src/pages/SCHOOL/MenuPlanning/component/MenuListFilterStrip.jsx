@@ -1,4 +1,5 @@
 import React, { useMemo } from "react"
+import { Search, Calendar, CalendarDays, Utensils, ShieldCheck, RotateCcw, X, ChevronDown } from "lucide-react"
 import styles from "./MenuListFilterStrip.module.scss"
 import { getWeeksOfYear, getISOWeekNumber } from "src/services/MenuService/adapter"
 
@@ -19,7 +20,7 @@ export default function MenuListFilterStrip({
   const currentYear = new Date().getFullYear()
   const currentWeek = getISOWeekNumber(new Date())
 
-  // Tạo danh sách toàn bộ các tuần của năm đã chọn
+  // Danh sách các tuần của năm đã chọn
   const weeks = useMemo(() => {
     return getWeeksOfYear(Number(year) || currentYear)
   }, [year, currentYear])
@@ -28,11 +29,11 @@ export default function MenuListFilterStrip({
     <div className={styles.filterStrip}>
       {/* 1. Tìm kiếm theo tên hoặc mã thực đơn */}
       <div className={styles.searchWrapper}>
-        <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+        <Search size={16} className={styles.searchIcon} />
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Tìm tên thực đơn hoặc mã TD..."
+          placeholder="Tìm tên món ăn, thực đơn hoặc mã TD..."
           value={searchKeyword}
           onChange={(e) => onChangeFilter("searchKeyword", e.target.value)}
         />
@@ -44,14 +45,14 @@ export default function MenuListFilterStrip({
             title="Xóa tìm kiếm"
             aria-label="Xóa từ khóa tìm kiếm"
           >
-            <span className="material-symbols-outlined text-[16px]">close</span>
+            <X size={14} />
           </button>
         )}
       </div>
 
-      {/* 2. Bộ lọc Năm (Đủ rộng, không bị cắt chữ) */}
+      {/* 2. Bộ lọc Năm */}
       <div className={styles.selectWrapperYear}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>calendar_month</span>
+        <Calendar size={15} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
           value={year}
@@ -64,12 +65,12 @@ export default function MenuListFilterStrip({
             </option>
           ))}
         </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+        <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 3. Bộ lọc Tuần (Đủ rộng hiển thị trọn vẹn Tuần 45 (02/11 – 06/11/2026)) */}
+      {/* 3. Bộ lọc Tuần */}
       <div className={styles.selectWrapperWeek}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>view_week</span>
+        <CalendarDays size={15} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
           value={String(week)}
@@ -88,12 +89,12 @@ export default function MenuListFilterStrip({
             )
           })}
         </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+        <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
       {/* 4. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>restaurant</span>
+        <Utensils size={14} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
           value={mealType}
@@ -102,14 +103,14 @@ export default function MenuListFilterStrip({
         >
           <option value="all">Tất cả ca</option>
           <option value="LUNCH">Bữa trưa</option>
-          <option value="AFTERNOON">Bữa chiều / xế</option>
+          <option value="AFTERNOON">Bữa xế</option>
         </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+        <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 5. Bộ lọc Trạng thái (Đủ rộng không bị che Tất cả trạng thái) */}
+      {/* 5. Bộ lọc Trạng thái */}
       <div className={styles.selectWrapperMd}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>verified_user</span>
+        <ShieldCheck size={15} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
           value={status}
@@ -120,20 +121,20 @@ export default function MenuListFilterStrip({
           <option value="APPROVED">Đã duyệt</option>
           <option value="PENDING_APPROVAL">Chờ BGH duyệt</option>
           <option value="DRAFT">Bản nháp</option>
-          <option value="REVISION_REQUESTED">Yêu cầu chỉnh sửa</option>
+          <option value="REVISION_REQUESTED">Cần chỉnh sửa</option>
         </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+        <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 6. Nút Đặt lại bộ lọc: Icon-only theo yêu cầu của người dùng */}
+      {/* 6. Nút Đặt lại: Icon-only tinh tế */}
       <button
         type="button"
         className={styles.resetBtn}
         onClick={onResetFilters}
-        title="Đặt lại bộ lọc về mặc định (Tuần này)"
-        aria-label="Đặt lại bộ lọc về mặc định"
+        title="Đặt lại bộ lọc về Tuần này"
+        aria-label="Đặt lại bộ lọc"
       >
-        <span className={`material-symbols-outlined ${styles.resetIcon}`}>restart_alt</span>
+        <RotateCcw size={15} />
       </button>
     </div>
   )

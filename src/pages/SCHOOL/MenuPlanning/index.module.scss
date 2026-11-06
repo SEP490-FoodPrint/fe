@@ -1,24 +1,24 @@
 .menuListPage {
   width: 100%;
-  padding: 24px 32px 48px;
+  padding: 18px 24px 36px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
   box-sizing: border-box;
-  background-color: #ffffff;
+  background-color: #fbfcfd;
   min-height: 100%;
 
   @media (max-width: 768px) {
-    padding: 16px 16px 32px;
+    padding: 12px 14px 28px;
+    gap: 8px;
   }
 }
 
 .tableCard {
   width: 100%;
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(36, 49, 45, 0.04), 0 4px 12px rgba(36, 49, 45, 0.03);
-  border: 1px solid rgba(189, 201, 195, 0.35);
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -28,16 +28,16 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 18px;
+  padding: 10px 14px;
   background-color: #f8fafc;
-  border-bottom: 1px solid #edf2f7;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .tableModeLabel {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
+  gap: 6px;
+  font-size: 13px;
   font-weight: 600;
   color: #334155;
 }
@@ -45,22 +45,22 @@
 .tableModeActions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .switchModeBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
+  gap: 5px;
+  padding: 5px 10px;
   background-color: #ffffff;
   border: 1px solid #cbd5e1;
   color: #0a8066;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
-  border-radius: 6px;
+  border-radius: 5px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.12s ease;
 
   &:hover {
     background-color: #ecfdf5;
@@ -68,25 +68,26 @@
   }
 }
 
+/* Toast Notification tinh tế */
 .toastNotice {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  top: 20px;
+  right: 20px;
   z-index: 2000;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  border-radius: 10px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  font-size: 14px;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
   font-weight: 600;
-  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideIn {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-16px);
     opacity: 0;
   }
   to {
@@ -100,12 +101,12 @@
   color: #ffffff;
 }
 
-.info {
-  background-color: #0369a1;
+.warning {
+  background-color: #b45309;
   color: #ffffff;
 }
 
-.warning {
-  background-color: #b45309;
+.info {
+  background-color: #175b92;
   color: #ffffff;
 }

@@ -1,14 +1,13 @@
 .filterStrip {
   width: 100%;
   background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(36, 49, 45, 0.04);
-  border: 1px solid rgba(189, 201, 195, 0.35);
-  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 8px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 8px;
+  margin-bottom: 6px;
   box-sizing: border-box;
 
   @media (min-width: 1024px) {
@@ -33,17 +32,16 @@
 
 .searchIcon {
   position: absolute;
-  left: 12px;
-  font-size: 19px;
-  color: #64748b;
+  left: 11px;
+  color: #94a3b8;
   pointer-events: none;
 }
 
 .searchInput {
   width: 100%;
-  height: 40px;
-  padding: 0 32px 0 38px;
-  border-radius: 8px;
+  height: 36px;
+  padding: 0 30px 0 34px;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
   color: #0f172a;
@@ -56,17 +54,18 @@
   &:focus {
     background-color: #ffffff;
     border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
   }
 
   &::placeholder {
     color: #94a3b8;
+    font-size: 12.5px;
   }
 }
 
 .clearSearchBtn {
   position: absolute;
-  right: 10px;
+  right: 8px;
   background: none;
   border: none;
   padding: 2px;
@@ -99,38 +98,30 @@
   }
 }
 
-/* Kích thước co giãn chuẩn, không bị cắt bớt nội dung chữ */
 .selectWrapperYear {
   @media (min-width: 1024px) {
-    min-width: 125px;
+    min-width: 120px;
     flex: 0 0 auto;
   }
 }
 
 .selectWrapperWeek {
   @media (min-width: 1024px) {
-    min-width: 295px;
-    flex: 0 0 auto;
-  }
-}
-
-.selectWrapper {
-  @media (min-width: 1024px) {
-    min-width: 200px;
+    min-width: 290px;
     flex: 0 0 auto;
   }
 }
 
 .selectWrapperSm {
   @media (min-width: 1024px) {
-    min-width: 130px;
+    min-width: 125px;
     flex: 0 0 auto;
   }
 }
 
 .selectWrapperMd {
   @media (min-width: 1024px) {
-    min-width: 185px;
+    min-width: 175px;
     flex: 0 0 auto;
   }
 }
@@ -138,20 +129,19 @@
 .selectIcon {
   position: absolute;
   left: 10px;
-  font-size: 18px;
   color: #64748b;
   pointer-events: none;
 }
 
 .selectInput {
   width: 100%;
-  height: 40px;
-  padding: 0 24px 0 32px;
-  border-radius: 8px;
+  height: 36px;
+  padding: 0 24px 0 30px;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
   color: #0f172a;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   font-family: "Be Vietnam Pro", sans-serif;
   outline: none;
@@ -163,28 +153,27 @@
   &:focus {
     background-color: #ffffff;
     border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
   }
 }
 
 .chevronIcon {
   position: absolute;
   right: 8px;
-  font-size: 18px;
-  color: #64748b;
+  color: #94a3b8;
   pointer-events: none;
 }
 
-/* Nút đặt lại bộ lọc: Icon-only hình vuông 40px x 40px gọn gàng */
+/* Nút đặt lại bộ lọc */
 .resetBtn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   padding: 0;
-  min-width: 40px;
-  border-radius: 8px;
+  min-width: 36px;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
-  color: #475569;
+  color: #64748b;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -195,15 +184,10 @@
   &:hover {
     background-color: #ecfdf5;
     color: #0a8066;
-    border-color: #0a8066;
-    box-shadow: 0 1px 3px rgba(10, 128, 102, 0.1);
+    border-color: #a7f3d0;
   }
 
   &:active {
     transform: scale(0.92);
   }
-}
-
-.resetIcon {
-  font-size: 20px;
 }
