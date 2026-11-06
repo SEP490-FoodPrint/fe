@@ -22,10 +22,10 @@
 
 .modalContainer {
   background-color: #ffffff;
-  width: 92vw;
-  max-width: 1200px;
-  height: 82vh;
-  max-height: 800px;
+  width: 94vw;
+  max-width: 1280px;
+  height: 86vh;
+  max-height: 860px;
   border-radius: 10px;
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2);
   display: flex;
@@ -109,7 +109,9 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
   background-color: #ffffff;
+  overflow: hidden;
 }
 
 .columnStickyHeader {
@@ -137,19 +139,41 @@
 
 .previewScrollArea {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 10px 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+
+  /* Custom scrollbar mượt mà */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 4px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+
+    &:hover {
+      background-color: #94a3b8;
+    }
+  }
 }
 
-/* THẺ BỮA TRƯA & BỮA XẾ & GIA VỊ */
+/* THẺ BỮA TRƯA & BỮA XẾ & GIA VỊ: Không bao giờ bị co ép (flex-shrink: 0), chiều cao tự nhiên */
 .previewMealCard {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
-  overflow: hidden;
   background-color: #ffffff;
+  flex-shrink: 0;
+  height: auto;
+  min-height: min-content;
+  overflow: visible;
 }
 
 /* Banner chuẩn đồng bộ 100% với danh sách thực đơn */
@@ -161,6 +185,9 @@
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
+  flex-shrink: 0;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }
 
 .lunchBanner {
@@ -211,6 +238,8 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  height: auto;
+  overflow: visible;
 }
 
 .emptyNotice {
@@ -219,9 +248,10 @@
   font-size: 11.5px;
   color: #94a3b8;
   font-style: italic;
+  flex-shrink: 0;
 }
 
-/* Hàng món ăn compact, 1 dòng gọn gàng */
+/* Hàng món ăn compact, 1 dòng gọn gàng, tự co giãn, không bị ép đè */
 .previewDishItem {
   display: flex;
   align-items: center;
@@ -229,7 +259,9 @@
   padding: 4px 6px;
   border-radius: 4px;
   transition: background-color 0.12s ease;
-  min-height: 30px;
+  min-height: 32px;
+  height: auto;
+  flex-shrink: 0;
 
   &:hover {
     background-color: #f8fafc;
@@ -318,12 +350,15 @@
   }
 }
 
-/* KHỐI GIA VỊ TRÊN PREVIEW */
+/* KHỐI GIA VỊ TRÊN PREVIEW: Không co ép (flex-shrink: 0), chiều cao tự nhiên */
 .previewSeasoningCard {
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  overflow: hidden;
   background-color: #ffffff;
+  flex-shrink: 0;
+  height: auto;
+  min-height: min-content;
+  overflow: visible;
 }
 
 .seasoningBanner {
@@ -337,6 +372,9 @@
   border-top: 1px solid #dcfce7;
   border-bottom: 1px solid #bbf7d0;
   color: #15803d;
+  flex-shrink: 0;
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
 }
 
 .seasoningBannerIcon {
