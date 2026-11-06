@@ -1,6 +1,6 @@
 /* ========================================================
-   LƯỚI 5 CỘT THỰC ĐƠN TUẦN - GIỐNG 100% PHẦN DANH SÁCH THỰC ĐƠN
-   DÃN ĐỀU 100%, TUYỆT ĐỐI KHÔNG BỊ CUỘN NGANG VỠ LAYOUT
+   LƯỚI 5 CỘT THỰC ĐƠN TUẦN - CO GIÃN TỰ NHIÊN THEO MÓN ĂN
+   THÊM MÓN THÌ DÀI RA VÀ ĐẨY XUỐNG, KHÔNG CỐ ĐỊNH, KHÔNG MẤT NỘI DUNG
    ======================================================== */
 .weeklyGridWrapper {
   width: 100%;
@@ -12,7 +12,7 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
-  align-items: stretch;
+  align-items: start; /* Cho phép các cột co giãn dài tự nhiên theo nội dung */
   width: 100%;
   box-sizing: border-box;
 
@@ -25,7 +25,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  height: 100%;
+  height: auto;
 }
 
 .dayCard {
@@ -34,8 +34,8 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  overflow: hidden;
-  height: 100%;
+  overflow: visible; /* Không ẩn hay cắt mất nội dung */
+  height: auto;
   box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
@@ -157,22 +157,24 @@
 }
 
 /* ========================================================
-   THÂN THỰC ĐƠN
+   THÂN THỰC ĐƠN: TỰ ĐỘNG DÀI RA KHI THÊM MÓN, ĐẨY XUỐNG DƯỚI
    ======================================================== */
 .dayMealsBody {
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  flex: 1;
+  gap: 6px;
+  padding-bottom: 6px;
 }
 
 .mealBlock {
   display: flex;
   flex-direction: column;
+  height: auto;
 }
 
 /* ========================================================
-   KHỐI BỮA TRƯA: BANNER (36px) + DANH SÁCH MÓN
+   KHỐI BỮA TRƯA: BANNER (36px) + DANH SÁCH MÓN TỰ DÀI RA
    ======================================================== */
 .lunchBanner {
   display: flex;
@@ -239,12 +241,14 @@
   }
 }
 
+/* Danh sách món trưa: Chiều cao động, không cố định, dài ra đẩy bữa xế xuống */
 .dishesListLunch {
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  min-height: 180px;
+  height: auto;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .lunchDishRow {
@@ -252,11 +256,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
+  min-height: 38px;
+  height: auto;
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 6px 10px;
   border-bottom: 1px solid #f8fafc;
   background-color: #ffffff;
   cursor: pointer;
@@ -291,7 +294,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #fed7aa;
+  background-color: #0a8066;
   flex-shrink: 0;
   transition: background-color 0.12s ease;
 }
@@ -300,7 +303,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #bfdbfe;
+  background-color: #75635c;
   flex-shrink: 0;
   transition: background-color 0.12s ease;
 }
@@ -309,7 +312,7 @@
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background-color: #86efac;
+  background-color: #16a34a;
   flex-shrink: 0;
   transition: background-color 0.12s ease;
 }
@@ -334,27 +337,29 @@
   white-space: nowrap;
 }
 
-/* Ô trống khi chưa có món */
+/* Ô trống gọn gàng khi chưa có món */
 .emptySingleMealBox {
-  min-height: 180px;
+  min-height: 52px;
+  padding: 10px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 5px;
   background-color: #fafbfc;
   border-bottom: 1px solid #f1f5f9;
 }
 
 .emptySingleMealBoxSm {
-  min-height: 100px;
+  min-height: 48px;
+  padding: 8px 10px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   background-color: #fafbfc;
 }
 
@@ -369,10 +374,10 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 9px;
+  padding: 3px 8px;
   font-size: 11px;
   font-weight: 600;
-  border-radius: 5px;
+  border-radius: 4px;
   background-color: #ffffff;
   border: 1px solid #cbd5e1;
   color: #475569;
@@ -388,7 +393,7 @@
 }
 
 /* ========================================================
-   KHỐI BỮA XẾ: BANNER (36px) + DANH SÁCH MÓN
+   KHỐI BỮA XẾ: BANNER (36px) + DANH SÁCH MÓN TỰ DÀI RA
    ======================================================== */
 .afternoonBanner {
   display: flex;
@@ -429,8 +434,9 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  min-height: 100px;
+  height: auto;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .afternoonDishRow {
@@ -438,11 +444,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  height: 44px;
-  min-height: 44px;
-  max-height: 44px;
+  min-height: 38px;
+  height: auto;
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 6px 10px;
   border-bottom: 1px solid #f8fafc;
   background-color: #ffffff;
   cursor: pointer;
@@ -466,7 +471,7 @@
 }
 
 /* ========================================================
-   KHỐI GIA VỊ: BANNER (36px) + DANH SÁCH GIA VỊ
+   KHỐI GIA VỊ: BANNER (36px) + DANH SÁCH GIA VỊ THEO SUẤT
    ======================================================== */
 .seasoningBanner {
   display: flex;
@@ -507,8 +512,9 @@
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  min-height: 90px;
+  height: auto;
   box-sizing: border-box;
+  overflow: visible;
 }
 
 .seasoningDishRow {
@@ -516,11 +522,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 6px;
-  height: 38px;
-  min-height: 38px;
-  max-height: 38px;
+  min-height: 34px;
+  height: auto;
   box-sizing: border-box;
-  padding: 0 10px;
+  padding: 5px 10px;
   border-bottom: 1px solid #f8fafc;
   background-color: #ffffff;
   cursor: pointer;
@@ -558,6 +563,6 @@
 .seasoningQtyText {
   font-size: 11px;
   font-weight: 700;
-  color: #00654f;
+  color: #0a8066;
   white-space: nowrap;
 }

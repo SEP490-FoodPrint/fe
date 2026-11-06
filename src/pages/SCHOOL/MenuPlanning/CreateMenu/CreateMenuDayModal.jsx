@@ -29,7 +29,6 @@ export default function CreateMenuDayModal({
   dayMenu,
   initialMealType = "LUNCH",
   initialTab = "DISHES",
-  totalStudents = 1250,
   onSaveDay,
 }) {
   // Tabs: "DISHES" (Chọn món ăn từ Kho) hoặc "SEASONINGS" (Nhập gia vị kho)
@@ -60,32 +59,18 @@ export default function CreateMenuDayModal({
         Array.isArray(dayMenu?.AFTERNOON) ? [...dayMenu.AFTERNOON] : []
       )
 
-      // Khởi tạo gia vị
+      // Khởi tạo gia vị theo suất
       if (Array.isArray(dayMenu?.seasonings) && dayMenu.seasonings.length > 0) {
-        setSeasonings(
-          dayMenu.seasonings.map((s) => ({
-            ...s,
-            totalBatchQty:
-              s.totalBatchQty ??
-              Number((((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)),
-          }))
-        )
+        setSeasonings(dayMenu.seasonings.map((s) => ({ ...s })))
       } else {
-        setSeasonings(
-          INITIAL_SEASONINGS.map((s) => ({
-            ...s,
-            totalBatchQty: Number(
-              (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
-            ),
-          }))
-        )
+        setSeasonings(INITIAL_SEASONINGS.map((s) => ({ ...s })))
       }
 
       setDishCatalog(getStoredDishCatalog())
       setSearchKeyword("")
       setSelectedCategory("ALL")
     }
-  }, [isOpen, dayMenu, initialMealType, initialTab, totalStudents])
+  }, [isOpen, dayMenu, initialMealType, initialTab])
 
   // Lọc danh sách món ăn từ Kho
   const filteredCatalog = useMemo(() => {
@@ -147,7 +132,7 @@ export default function CreateMenuDayModal({
     }
   }, [])
 
-  // Thao tác Gia vị (Seasonings)
+  // Thao tác Gia vị (Seasonings) - Hoàn toàn theo suất
   const handleAddSeasoningRow = () => {
     const defaultItem = WAREHOUSE_SEASONINGS_CATALOG[0]
     const newSeas = {
@@ -156,7 +141,6 @@ export default function CreateMenuDayModal({
       name: defaultItem.name,
       portionQty: 2,
       unit: defaultItem.defaultUnit || "g",
-      totalBatchQty: Number(((2 * totalStudents) / 1000).toFixed(2)),
     }
     setSeasonings((prev) => [...prev, newSeas])
   }
@@ -168,43 +152,23 @@ export default function CreateMenuDayModal({
       prev.map((s) => {
         if (s.id !== seasId) return s
         const unit = item.defaultUnit || "g"
-        const qty = Number(s.portionQty) || 2
         return {
           ...s,
           catalogId: item.id,
           name: item.name,
           unit,
-          totalBatchQty: Number(((qty * totalStudents) / 1000).toFixed(2)),
         }
       })
     )
   }
 
   const handleUpdatePortionQty = (seasId, rawValue) => {
-    const portion = Math.max(0, Number(rawValue) || 0)
     setSeasonings((prev) =>
       prev.map((s) => {
         if (s.id !== seasId) return s
-        const total = Number(((portion * totalStudents) / 1000).toFixed(2))
         return {
           ...s,
           portionQty: rawValue,
-          totalBatchQty: total,
-        }
-      })
-    )
-  }
-
-  const handleUpdateTotalBatchQty = (seasId, rawValue) => {
-    const total = Math.max(0, Number(rawValue) || 0)
-    setSeasonings((prev) =>
-      prev.map((s) => {
-        if (s.id !== seasId) return s
-        const portion = Number(((total * 1000) / totalStudents).toFixed(1))
-        return {
-          ...s,
-          totalBatchQty: rawValue,
-          portionQty: portion,
         }
       })
     )
@@ -215,14 +179,7 @@ export default function CreateMenuDayModal({
   }
 
   const handleResetDefaultSeasonings = () => {
-    setSeasonings(
-      INITIAL_SEASONINGS.map((s) => ({
-        ...s,
-        totalBatchQty: Number(
-          (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
-        ),
-      }))
-    )
+    setSeasonings(INITIAL_SEASONINGS.map((s) => ({ ...s })))
   }
 
   // Lưu và cập nhật về ngày
@@ -386,12 +343,12 @@ export default function CreateMenuDayModal({
                 </div>
               </div>
 
-              {/* KHỐI 3: GIA VỊ KHO DÙNG CHUNG */}
+              {/* KHỐI 3: GIA VỊ KHO DÙNG CHUNG (THEO SUẤT) */}
               <div className={styles.previewSeasoningCard}>
                 <div className={styles.seasoningBanner}>
                   <div className={styles.bannerLeft}>
                     <Sparkles size={13} className={styles.seasoningBannerIcon} />
-                    <span className={styles.bannerText}>GIA VỊ KHO DÙNG CHUNG</span>
+                    <span className={styles.bannerText}>GIA VỊ KHO (THEO SUẤT)</span>
                   </div>
                   <span className={styles.seasoningCountBadge}>
                     {seasonings.length} loại
@@ -407,40 +364,33 @@ export default function CreateMenuDayModal({
                     <table className={styles.miniSeasoningTable}>
                       <thead>
                         <tr>
-                          <th>Gia vị xuất kho</th>
-                          <th>Định lượng</th>
-                          <th className={styles.alignRight}>Tổng xuất kho</th>
+                          <th>Gia vị kho</th>
+                          <th className={styles.alignRight}>Định lượng theo suất</th>
                           <th style={{ width: "24px" }}></th>
                         </tr>
                       </thead>
                       <tbody>
-                        {seasonings.map((s) => {
-                          const unitLabel = s.unit === "ml" ? "Lít" : "Kg"
-                          return (
-                            <tr key={s.id}>
-                              <td className={styles.seasoningNameCell}>
-                                <span className={styles.seasoningDot} />
-                                <span>{s.name.replace(/\(.*?\)/g, "").trim()}</span>
-                              </td>
-                              <td className={styles.seasoningPortionCell}>
-                                {s.portionQty} {s.unit}/suất
-                              </td>
-                              <td className={`${styles.seasoningTotalCell} ${styles.alignRight}`}>
-                                <strong>{s.totalBatchQty}</strong> {unitLabel}
-                              </td>
-                              <td className={styles.actionCell}>
-                                <button
-                                  type="button"
-                                  className={styles.removeIconBtn}
-                                  onClick={() => handleRemoveSeasoning(s.id)}
-                                  title={`Xóa gia vị ${s.name}`}
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </td>
-                            </tr>
-                          )
-                        })}
+                        {seasonings.map((s) => (
+                          <tr key={s.id}>
+                            <td className={styles.seasoningNameCell}>
+                              <span className={styles.seasoningDot} />
+                              <span>{s.name.replace(/\(.*?\)/g, "").trim()}</span>
+                            </td>
+                            <td className={`${styles.seasoningPortionCell} ${styles.alignRight}`}>
+                              <strong>{s.portionQty}</strong> {s.unit || "g"}/suất
+                            </td>
+                            <td className={styles.actionCell}>
+                              <button
+                                type="button"
+                                className={styles.removeIconBtn}
+                                onClick={() => handleRemoveSeasoning(s.id)}
+                                title={`Xóa gia vị ${s.name}`}
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   )}
@@ -477,7 +427,7 @@ export default function CreateMenuDayModal({
                 onClick={() => setActiveTab("SEASONINGS")}
               >
                 <Sparkles size={14} />
-                <span>Gia vị dùng chung</span>
+                <span>Gia vị dùng chung (theo suất)</span>
                 <span className={styles.tabBadge}>
                   {seasonings.length}
                 </span>
@@ -618,90 +568,69 @@ export default function CreateMenuDayModal({
               </div>
             )}
 
-            {/* TAB 2: GIA VỊ DÙNG CHUNG */}
+            {/* TAB 2: GIA VỊ DÙNG CHUNG (THEO SUẤT) */}
             {activeTab === "SEASONINGS" && (
               <div className={styles.tabContentPane}>
-                {/* Bảng nhập gia vị */}
+                {/* Bảng nhập gia vị hoàn toàn theo suất */}
                 <div className={styles.seasoningsEditorTableWrap}>
                   <table className={styles.seasoningsEditorTable}>
                     <thead>
                       <tr>
-                        <th style={{ width: "42%" }}>Gia vị từ kho trường</th>
-                        <th style={{ width: "26%" }}>Mỗi suất</th>
-                        <th style={{ width: "24%" }}>Tổng xuất kho</th>
-                        <th style={{ width: "8%" }}></th>
+                        <th style={{ width: "55%" }}>Gia vị từ kho trường</th>
+                        <th style={{ width: "35%" }}>Định lượng theo suất</th>
+                        <th style={{ width: "10%" }}></th>
                       </tr>
                     </thead>
                     <tbody>
-                      {seasonings.map((s) => {
-                        const unitLabel = s.unit === "ml" ? "Lít" : "Kg"
-                        return (
-                          <tr key={s.id}>
-                            {/* Chọn gia vị từ kho */}
-                            <td>
-                              <select
-                                className={styles.tableSelect}
-                                value={s.catalogId}
+                      {seasonings.map((s) => (
+                        <tr key={s.id}>
+                          {/* Chọn gia vị từ kho */}
+                          <td>
+                            <select
+                              className={styles.tableSelect}
+                              value={s.catalogId}
+                              onChange={(e) =>
+                                handleUpdateSeasoningCatalog(s.id, e.target.value)
+                              }
+                            >
+                              {WAREHOUSE_SEASONINGS_CATALOG.map((w) => (
+                                <option key={w.id} value={w.id}>
+                                  {w.name}
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+
+                          {/* Định lượng theo suất */}
+                          <td>
+                            <div className={styles.inputWithUnit}>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.5"
+                                className={styles.tableNumberInput}
+                                value={s.portionQty}
                                 onChange={(e) =>
-                                  handleUpdateSeasoningCatalog(s.id, e.target.value)
+                                  handleUpdatePortionQty(s.id, e.target.value)
                                 }
-                              >
-                                {WAREHOUSE_SEASONINGS_CATALOG.map((w) => (
-                                  <option key={w.id} value={w.id}>
-                                    {w.name}
-                                  </option>
-                                ))}
-                              </select>
-                            </td>
+                              />
+                              <span className={styles.unitAddon}>{s.unit}/suất</span>
+                            </div>
+                          </td>
 
-                            {/* Định lượng / suất */}
-                            <td>
-                              <div className={styles.inputWithUnit}>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.5"
-                                  className={styles.tableNumberInput}
-                                  value={s.portionQty}
-                                  onChange={(e) =>
-                                    handleUpdatePortionQty(s.id, e.target.value)
-                                  }
-                                />
-                                <span className={styles.unitAddon}>{s.unit}</span>
-                              </div>
-                            </td>
-
-                            {/* Tổng lượng xuất kho */}
-                            <td>
-                              <div className={styles.inputWithUnit}>
-                                <input
-                                  type="number"
-                                  min="0"
-                                  step="0.1"
-                                  className={styles.tableNumberInput}
-                                  value={s.totalBatchQty}
-                                  onChange={(e) =>
-                                    handleUpdateTotalBatchQty(s.id, e.target.value)
-                                  }
-                                />
-                                <span className={styles.unitAddon}>{unitLabel}</span>
-                              </div>
-                            </td>
-
-                            {/* Xóa dòng */}
-                            <td className={styles.alignCenter}>
-                              <button
-                                type="button"
-                                className={styles.removeIconBtn}
-                                onClick={() => handleRemoveSeasoning(s.id)}
-                                title="Xóa gia vị này"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </td>
-                          </tr>
-                        )
-                      })}
+                          {/* Xóa dòng */}
+                          <td className={styles.alignCenter}>
+                            <button
+                              type="button"
+                              className={styles.removeIconBtn}
+                              onClick={() => handleRemoveSeasoning(s.id)}
+                              title="Xóa gia vị này"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>

@@ -14,7 +14,6 @@ import styles from "./CreateMenuWeeklyGrid.module.scss"
 export default function CreateMenuWeeklyGrid({
   schoolDays = [],
   weeklyMeals = {},
-  totalStudents = 1250,
   onOpenDayModal,
 }) {
   return (
@@ -235,32 +234,24 @@ export default function CreateMenuWeeklyGrid({
 
                     {hasSeasonings ? (
                       <div className={styles.dishesListSeasoning}>
-                        {seasonings.map((s, idx) => {
-                          const unitLabel = s.unit === "ml" ? "L" : "kg"
-                          const total =
-                            s.totalBatchQty ??
-                            Number(
-                              (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
-                            )
-                          return (
-                            <div
-                              key={s.id || idx}
-                              className={styles.seasoningDishRow}
-                              onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
-                              title={`${s.name} (${s.portionQty} ${s.unit}/suất) — Bấm để sửa`}
-                            >
-                              <div className={styles.dishLeftWrap}>
-                                <span className={styles.dishDotSeasoning} />
-                                <span className={styles.seasoningNameText}>
-                                  {s.name.replace(/\(.*?\)/g, "").trim()}
-                                </span>
-                              </div>
-                              <span className={styles.seasoningQtyText}>
-                                {total} {unitLabel}
+                        {seasonings.map((s, idx) => (
+                          <div
+                            key={s.id || idx}
+                            className={styles.seasoningDishRow}
+                            onClick={() => onOpenDayModal(sd, "LUNCH", "SEASONINGS")}
+                            title={`${s.name} (${s.portionQty} ${s.unit || "g"}/suất) — Bấm để sửa`}
+                          >
+                            <div className={styles.dishLeftWrap}>
+                              <span className={styles.dishDotSeasoning} />
+                              <span className={styles.seasoningNameText}>
+                                {s.name.replace(/\(.*?\)/g, "").trim()}
                               </span>
                             </div>
-                          )
-                        })}
+                            <span className={styles.seasoningQtyText}>
+                              {s.portionQty} {s.unit || "g"}/suất
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     ) : (
                       <div className={styles.emptySingleMealBoxSm}>

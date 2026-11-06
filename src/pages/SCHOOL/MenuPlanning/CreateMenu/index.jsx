@@ -62,7 +62,6 @@ export default function CreateMenu() {
   // 2. Thông tin thực đơn tuần
   const [menuTitle, setMenuTitle] = useState("")
   const [targetScope, setTargetScope] = useState("Toàn trường (Khối 1 – 5)")
-  const [totalStudents] = useState(1250) // Mặc định quy mô 1,250 học sinh toàn trường
 
   // Đặt tên thực đơn mặc định theo tuần
   useEffect(() => {
@@ -116,12 +115,7 @@ export default function CreateMenu() {
               seasonings:
                 Array.isArray(day.seasonings) && day.seasonings.length > 0
                   ? day.seasonings
-                  : INITIAL_SEASONINGS.map((s) => ({
-                      ...s,
-                      totalBatchQty: Number(
-                        (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
-                      ),
-                    })),
+                  : INITIAL_SEASONINGS,
             }
           }
         })
@@ -132,23 +126,13 @@ export default function CreateMenu() {
             mapped[sd.dateISO] = {
               LUNCH: [],
               AFTERNOON: [],
-              seasonings: INITIAL_SEASONINGS.map((s) => ({
-                ...s,
-                totalBatchQty: Number(
-                  (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
-                ),
-              })),
+              seasonings: INITIAL_SEASONINGS,
             }
           } else if (
             !Array.isArray(mapped[sd.dateISO].seasonings) ||
             mapped[sd.dateISO].seasonings.length === 0
           ) {
-            mapped[sd.dateISO].seasonings = INITIAL_SEASONINGS.map((s) => ({
-              ...s,
-              totalBatchQty: Number(
-                (((Number(s.portionQty) || 0) * totalStudents) / 1000).toFixed(2)
-              ),
-            }))
+            mapped[sd.dateISO].seasonings = INITIAL_SEASONINGS
           }
         })
 
@@ -167,7 +151,7 @@ export default function CreateMenu() {
     return () => {
       active = false
     }
-  }, [schoolDays[0]?.dateISO, totalStudents])
+  }, [schoolDays[0]?.dateISO])
 
   // Điều hướng tuần (Tuần trước / Tuần sau)
   const handleShiftWeek = useCallback((offset) => {
@@ -383,7 +367,6 @@ export default function CreateMenu() {
           <CreateMenuWeeklyGrid
             schoolDays={schoolDays}
             weeklyMeals={weeklyMeals}
-            totalStudents={totalStudents}
             onOpenDayModal={handleOpenDayModal}
           />
         </div>
@@ -397,7 +380,7 @@ export default function CreateMenu() {
         isLoading={loadingSchedule}
       />
 
-      {/* 3. POPUP MODAL TO RỘNG (50/50: NỬA TRÁI PREVIEW, NỬA PHẢI CHỌN MÓN & NHẬP GIA VỊ 1,250 HS) */}
+      {/* 3. POPUP MODAL TO RỘNG (50/50: NỬA TRÁI PREVIEW, NỬA PHẢI CHỌN MÓN & NHẬP GIA VỊ KHO) */}
       <CreateMenuDayModal
         isOpen={dayModalState.isOpen}
         onClose={handleCloseDayModal}
@@ -409,7 +392,6 @@ export default function CreateMenu() {
         }
         initialMealType={dayModalState.mealType}
         initialTab={dayModalState.tab}
-        totalStudents={totalStudents}
         onSaveDay={handleSaveDayFromModal}
       />
 
