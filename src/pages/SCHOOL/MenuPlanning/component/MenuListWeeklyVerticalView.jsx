@@ -396,7 +396,7 @@ export default function MenuListWeeklyVerticalView({
         </div>
       </div>
 
-      {/* 3. Lưới 5 CỘT THỰC ĐƠN DỌC - CLEAN & DỄ NHÌN CHO Y TẾ */}
+      {/* 3. LƯỚI 5 CỘT THỰC ĐƠN DỌC - CÁC BỮA THẲNG HÀNG NHAU 100% */}
       <div className={styles.weeklyGridWrapper}>
         <div className={styles.weeklyGrid}>
           {schoolDays.map((sd) => {
@@ -417,9 +417,6 @@ export default function MenuListWeeklyVerticalView({
 
             const canEditLunch = canEditWeeklyMenu && Boolean(resolvedLunchMenu)
             const canEditAfternoon = canEditWeeklyMenu && Boolean(resolvedAfternoonMenu)
-
-            // Cột trống hoàn toàn
-            const isDayCompletelyEmpty = !hasLunch && !hasAfternoon
             const ProgressIcon = progress?.IconComponent || CheckCircle2
 
             return (
@@ -434,7 +431,7 @@ export default function MenuListWeeklyVerticalView({
                     sd.isToday ? styles.todayDayCard : ""
                   }`}
                 >
-                  {/* HÀNG 1: Header Cột Ngày Clean */}
+                  {/* HÀNG 1: Header Cột Ngày - CHIỀU CAO CỐ ĐỊNH 64px ĐỒNG BỘ CẢ 5 NGÀY */}
                   <div className={styles.dayHeader}>
                     <div className={styles.dayTitleRow}>
                       <div className={styles.dayTitleLeft}>
@@ -448,7 +445,7 @@ export default function MenuListWeeklyVerticalView({
                       {progress && (
                         <span
                           className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                          title={`Tiến độ ngày: ${progress.label}`}
+                          title={progress.note ? `BGH: ${progress.note}` : `Tiến độ ngày: ${progress.label}`}
                         >
                           <ProgressIcon size={12} />
                           <span>{progress.label}</span>
@@ -470,202 +467,174 @@ export default function MenuListWeeklyVerticalView({
                     </div>
                   </div>
 
-                  {/* THÂN THỰC ĐƠN */}
+                  {/* THÂN THỰC ĐƠN - CẤU TRÚC ĐỒNG NHẤT 100% CHO CẢ 5 CỘT */}
                   <div className={styles.dayMealsBody}>
-                    {/* TRƯỜNG HỢP 1: NGÀY CHƯA TẠO (EMPTY STATE NÉT ĐỨT SẠCH SẼ) */}
-                    {isDayCompletelyEmpty ? (
-                      <div className={styles.emptyDayBox}>
-                        <div className={styles.emptyDayIconWrap}>
-                          <PlusCircle size={24} />
+                    {/* ========================================================
+                        KHỐI BỮA TRƯA: BANNER (36px) + DANH SÁCH MÓN (250px)
+                        TẤT CẢ 5 CỘT BẮT ĐẦU BỮA TRƯA CHÍNH XÁC TẠI CÙNG 1 ĐỘ CAO!
+                        ======================================================== */}
+                    {(mealTypeFilter === "all" || mealTypeFilter === "LUNCH") && (
+                      <div className={styles.mealBlock}>
+                        {/* Dải Banner Bữa Trưa (36px) */}
+                        <div className={styles.lunchBanner}>
+                          <div className={styles.bannerLeft}>
+                            <Utensils size={13} className={styles.lunchIcon} />
+                            <span className={styles.lunchTitle}>BỮA TRƯA</span>
+                          </div>
+
+                          {/* Nút Xem & Sửa: Icon-only tinh tế */}
+                          <div className={styles.bannerActions}>
+                            {hasLunch && (
+                              <button
+                                type="button"
+                                className={`${styles.mealIconBtn} ${styles.lunchIconBtn}`}
+                                onClick={() => onViewDetail(resolvedLunchMenu)}
+                                title="Xem chi tiết thực đơn trưa"
+                                aria-label="Xem chi tiết trưa"
+                              >
+                                <Eye size={12} />
+                              </button>
+                            )}
+                            {canEditLunch && (
+                              <button
+                                type="button"
+                                className={`${styles.mealIconBtn} ${styles.lunchEditBtn} ${
+                                  progress?.type === "REVISION_REQUIRED"
+                                    ? styles.revisionEditBtn
+                                    : ""
+                                }`}
+                                onClick={() => onEditMenu(resolvedLunchMenu)}
+                                title={
+                                  progress?.type === "REVISION_REQUIRED"
+                                    ? `Sửa thực đơn theo BGH: ${progress.note || "Yêu cầu chỉnh sửa"}`
+                                    : "Chỉnh sửa thực đơn trưa"
+                                }
+                                aria-label="Chỉnh sửa trưa"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <span className={styles.emptyDayTitle}>Chưa tạo thực đơn</span>
-                        <span className={styles.emptyDayDesc}>
-                          {sd.dayLabel} chưa có bữa trưa và xế
-                        </span>
-                        {canEditWeeklyMenu && (
-                          <button
-                            type="button"
-                            className={styles.addDayMenuBtn}
-                            onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
-                            title={`Tạo thực đơn mới cho ${sd.dayLabel}`}
-                          >
-                            <Plus size={13} />
-                            <span>Tạo thực đơn</span>
-                          </button>
+
+                        {/* Danh sách món trưa (Chiều cao cố định 250px) */}
+                        {hasLunch ? (
+                          <div className={styles.dishesListLunch}>
+                            {lunchDishes.map((dish) => (
+                              <div
+                                key={dish.id || dish.name}
+                                className={styles.lunchDishRow}
+                                onClick={() => onViewDetail(resolvedLunchMenu)}
+                                title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
+                              >
+                                <span className={styles.dishDotLunch} />
+                                <span className={styles.dishName}>
+                                  {dish.name}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.emptySingleMealBox}>
+                            <span className={styles.emptyMealText}>Chưa có thực đơn trưa</span>
+                            {canEditWeeklyMenu && (
+                              <button
+                                type="button"
+                                className={styles.addSingleMealBtn}
+                                onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
+                                title={`Thêm thực đơn bữa trưa cho ${sd.dayLabel}`}
+                              >
+                                <Plus size={12} />
+                                <span>Thêm bữa trưa</span>
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
-                    ) : (
-                      /* TRƯỜNG HỢP 2: ĐÃ CÓ MỘT HOẶC CẢ HAI BỮA */
-                      <>
-                        {/* Cảnh báo BGH nếu ngày này có yêu cầu chỉnh sửa */}
-                        {progress?.type === "REVISION_REQUIRED" && progress.note && (
-                          <div className={styles.dayRevisionCallout}>
-                            <div className={styles.dayRevisionHeader}>
-                              <AlertTriangle size={12} />
-                              <span>BGH yêu cầu sửa</span>
-                            </div>
-                            <p className={styles.dayRevisionNote}>{progress.note}</p>
+                    )}
+
+                    {/* ========================================================
+                        KHỐI BỮA XẾ: BANNER (36px) + DANH SÁCH MÓN (100px)
+                        TẤT CẢ 5 CỘT BẮT ĐẦU BỮA XẾ CHÍNH XÁC TẠI CÙNG 1 ĐỘ CAO!
+                        ======================================================== */}
+                    {(mealTypeFilter === "all" || mealTypeFilter === "AFTERNOON") && (
+                      <div className={styles.mealBlock}>
+                        {/* Dải Banner Bữa Xế (36px) */}
+                        <div className={styles.afternoonBanner}>
+                          <div className={styles.bannerLeft}>
+                            <Coffee size={13} className={styles.afternoonIcon} />
+                            <span className={styles.afternoonTitle}>BỮA XẾ</span>
                           </div>
-                        )}
 
-                        {/* KHỐI BỮA TRƯA */}
-                        {(mealTypeFilter === "all" || mealTypeFilter === "LUNCH") && (
-                          <div className={styles.mealBlock}>
-                            <div className={styles.lunchBanner}>
-                              <div className={styles.bannerLeft}>
-                                <Utensils size={13} className={styles.lunchIcon} />
-                                <span className={styles.lunchTitle}>BỮA TRƯA</span>
-                              </div>
+                          {/* Nút Xem & Sửa: Icon-only tinh tế */}
+                          <div className={styles.bannerActions}>
+                            {hasAfternoon && (
+                              <button
+                                type="button"
+                                className={`${styles.mealIconBtn} ${styles.afternoonIconBtn}`}
+                                onClick={() => onViewDetail(resolvedAfternoonMenu)}
+                                title="Xem chi tiết thực đơn xế"
+                                aria-label="Xem chi tiết xế"
+                              >
+                                <Eye size={12} />
+                              </button>
+                            )}
+                            {canEditAfternoon && (
+                              <button
+                                type="button"
+                                className={`${styles.mealIconBtn} ${styles.afternoonEditBtn} ${
+                                  progress?.type === "REVISION_REQUIRED"
+                                    ? styles.revisionEditBtn
+                                    : ""
+                                }`}
+                                onClick={() => onEditMenu(resolvedAfternoonMenu)}
+                                title={
+                                  progress?.type === "REVISION_REQUIRED"
+                                    ? `Sửa thực đơn theo BGH: ${progress.note || "Yêu cầu chỉnh sửa"}`
+                                    : "Chỉnh sửa thực đơn xế"
+                                }
+                                aria-label="Chỉnh sửa xế"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
 
-                              {/* Nút Xem & Sửa: Icon-only tinh tế */}
-                              <div className={styles.bannerActions}>
-                                {hasLunch && (
-                                  <button
-                                    type="button"
-                                    className={`${styles.mealIconBtn} ${styles.lunchIconBtn}`}
-                                    onClick={() => onViewDetail(resolvedLunchMenu)}
-                                    title="Xem chi tiết thực đơn trưa"
-                                    aria-label="Xem chi tiết trưa"
-                                  >
-                                    <Eye size={12} />
-                                  </button>
-                                )}
-                                {canEditLunch && (
-                                  <button
-                                    type="button"
-                                    className={`${styles.mealIconBtn} ${styles.lunchEditBtn} ${
-                                      progress?.type === "REVISION_REQUIRED"
-                                        ? styles.revisionEditBtn
-                                        : ""
-                                    }`}
-                                    onClick={() => onEditMenu(resolvedLunchMenu)}
-                                    title={
-                                      progress?.type === "REVISION_REQUIRED"
-                                        ? "Sửa thực đơn theo yêu cầu BGH"
-                                        : "Chỉnh sửa thực đơn trưa"
-                                    }
-                                    aria-label="Chỉnh sửa trưa"
-                                  >
-                                    <Edit2 size={12} />
-                                  </button>
-                                )}
+                        {/* Danh sách món xế (Chiều cao cố định 100px) */}
+                        {hasAfternoon ? (
+                          <div className={styles.dishesListAfternoon}>
+                            {afternoonDishes.map((dish) => (
+                              <div
+                                key={dish.id || dish.name}
+                                className={styles.afternoonDishRow}
+                                onClick={() => onViewDetail(resolvedAfternoonMenu)}
+                                title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
+                              >
+                                <span className={styles.dishDotAfternoon} />
+                                <span className={styles.dishName}>
+                                  {dish.name}
+                                </span>
                               </div>
-                            </div>
-
-                            {/* Danh sách 5 món trưa */}
-                            {hasLunch ? (
-                              <div className={styles.dishesListLunch}>
-                                {lunchDishes.map((dish) => (
-                                  <div
-                                    key={dish.id || dish.name}
-                                    className={styles.lunchDishRow}
-                                    onClick={() => onViewDetail(resolvedLunchMenu)}
-                                    title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
-                                  >
-                                    <span className={styles.dishDotLunch} />
-                                    <span className={styles.dishName}>
-                                      {dish.name}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className={styles.emptySingleMealBox}>
-                                <span className={styles.emptyMealText}>Chưa có bữa trưa</span>
-                                {canEditWeeklyMenu && (
-                                  <button
-                                    type="button"
-                                    className={styles.addSingleMealBtn}
-                                    onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
-                                  >
-                                    <Plus size={12} />
-                                    <span>Thêm bữa trưa</span>
-                                  </button>
-                                )}
-                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.emptySingleMealBoxSm}>
+                            <span className={styles.emptyMealText}>Chưa có thực đơn xế</span>
+                            {canEditWeeklyMenu && (
+                              <button
+                                type="button"
+                                className={styles.addSingleMealBtn}
+                                onClick={() => onNavigateCreate(sd.dateISO, "AFTERNOON")}
+                                title={`Thêm thực đơn bữa xế cho ${sd.dayLabel}`}
+                              >
+                                <Plus size={12} />
+                                <span>Thêm bữa xế</span>
+                              </button>
                             )}
                           </div>
                         )}
-
-                        {/* KHỐI BỮA XẾ */}
-                        {(mealTypeFilter === "all" || mealTypeFilter === "AFTERNOON") && (
-                          <div className={styles.mealBlock}>
-                            <div className={styles.afternoonBanner}>
-                              <div className={styles.bannerLeft}>
-                                <Coffee size={13} className={styles.afternoonIcon} />
-                                <span className={styles.afternoonTitle}>BỮA XẾ</span>
-                              </div>
-
-                              {/* Nút Xem & Sửa: Icon-only tinh tế */}
-                              <div className={styles.bannerActions}>
-                                {hasAfternoon && (
-                                  <button
-                                    type="button"
-                                    className={`${styles.mealIconBtn} ${styles.afternoonIconBtn}`}
-                                    onClick={() => onViewDetail(resolvedAfternoonMenu)}
-                                    title="Xem chi tiết thực đơn xế"
-                                    aria-label="Xem chi tiết xế"
-                                  >
-                                    <Eye size={12} />
-                                  </button>
-                                )}
-                                {canEditAfternoon && (
-                                  <button
-                                    type="button"
-                                    className={`${styles.mealIconBtn} ${styles.afternoonEditBtn} ${
-                                      progress?.type === "REVISION_REQUIRED"
-                                        ? styles.revisionEditBtn
-                                        : ""
-                                    }`}
-                                    onClick={() => onEditMenu(resolvedAfternoonMenu)}
-                                    title={
-                                      progress?.type === "REVISION_REQUIRED"
-                                        ? "Sửa thực đơn theo yêu cầu BGH"
-                                        : "Chỉnh sửa thực đơn xế"
-                                    }
-                                    aria-label="Chỉnh sửa xế"
-                                  >
-                                    <Edit2 size={12} />
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Danh sách món xế */}
-                            {hasAfternoon ? (
-                              <div className={styles.dishesListAfternoon}>
-                                {afternoonDishes.map((dish) => (
-                                  <div
-                                    key={dish.id || dish.name}
-                                    className={styles.afternoonDishRow}
-                                    onClick={() => onViewDetail(resolvedAfternoonMenu)}
-                                    title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
-                                  >
-                                    <span className={styles.dishDotAfternoon} />
-                                    <span className={styles.dishName}>
-                                      {dish.name}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className={styles.emptySingleMealBoxSm}>
-                                <span className={styles.emptyMealText}>Chưa có bữa xế</span>
-                                {canEditWeeklyMenu && (
-                                  <button
-                                    type="button"
-                                    className={styles.addSingleMealBtn}
-                                    onClick={() => onNavigateCreate(sd.dateISO, "AFTERNOON")}
-                                  >
-                                    <Plus size={12} />
-                                    <span>Thêm bữa xế</span>
-                                  </button>
-                                )}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
