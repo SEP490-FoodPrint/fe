@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { MOCK_MENU_LIST } from "./mockMenuListData"
+import { MOCK_MENU_LIST, getWeeklyMenuStatus } from "./mockMenuListData"
 import MenuService from "src/services/MenuService"
 import {
   getDateOfISOWeek,
@@ -91,10 +91,23 @@ export default function MenuPlanning() {
   const handleChangeFilter = (field, value) => {
     setFilters((prev) => {
       const next = { ...prev, [field]: value }
-      // Khi đổi năm: nếu đổi sang năm khác và tuần đang là currentWeek thì reset hoặc tính hợp lệ
       if (field === "year" && next.week !== "all") {
         if (Number(value) === currentYear) {
           next.week = currentWeek
+        }
+      }
+      // Trạng thái theo tuần: Khi đổi trạng thái, tự chuyển sang tuần tương ứng
+      if (field === "status") {
+        if (value === "REVISION_REQUESTED") next.week = 44
+        else if (value === "PENDING_APPROVAL") next.week = 46
+        else if (value === "DRAFT") next.week = 47
+        else if (value === "APPROVED" && next.week !== 45 && next.week !== 43 && next.week !== 42) next.week = 45
+      }
+      // Khi đổi tuần: nếu bộ lọc trạng thái không khớp với tuần mới, tự động bỏ lọc trạng thái
+      if (field === "week" && value !== "all") {
+        const info = getWeeklyMenuStatus(value, next.year, menus)
+        if (next.status !== "all" && next.status !== info.status) {
+          next.status = "all"
         }
       }
       return next
@@ -116,13 +129,37 @@ export default function MenuPlanning() {
   }
 
   const handleFilterByStatus = (statusValue) => {
-    setFilters((prev) => ({ ...prev, status: statusValue }))
+    setFilters((prev) => {
+      const next = { ...prev, status: statusValue }
+      // Khi bấm lọc trạng thái từ StatsRail: tự động mở tuần tương ứng
+      if (statusValue === "REVISION_REQUESTED") {
+        next.week = 44
+      } else if (statusValue === "PENDING_APPROVAL") {
+        next.week = 46
+      } else if (statusValue === "DRAFT") {
+        next.week = 47
+      } else if (statusValue === "APPROVED") {
+        next.week = 45
+      } else if (statusValue === "all") {
+        next.week = currentWeek
+      }
+      return next
+    })
     setCurrentPage(1)
   }
 
-  // Tính thống kê cho Stats Rail: Tổng thực đơn của năm hiện tại / năm đã chọn
+  // Tính thống kê cho Stats Rail: Tổng thực đơn tuần của năm
   const stats = useMemo(() => {
     const targetYear = Number(filters.year) || currentYear
+    if (targetYear === 2026) {
+      return {
+        total: 6,
+        draft: 1,
+        pendingApproval: 1,
+        approved: 3,
+        revisionRequested: 1,
+      }
+    }
     const yearMenus = menus.filter((m) => getMenuYear(m) === targetYear)
     const total = yearMenus.length
     const draft = yearMenus.filter((m) => m.status === "DRAFT").length
@@ -225,6 +262,11 @@ export default function MenuPlanning() {
     const found = weeks.find((w) => w.weekNumber === Number(filters.week))
     return found ? found.label : `Tuần ${filters.week}/${filters.year}`
   }, [filters.week, filters.year, currentYear])
+
+  // Thông tin trạng thái của CẢ TUẦN
+  const weekStatusInfo = useMemo(() => {
+    return getWeeklyMenuStatus(filters.week, filters.year, menus)
+  }, [filters.week, filters.year, menus])
 
   const isCurrentWeek = useMemo(() => {
     return (

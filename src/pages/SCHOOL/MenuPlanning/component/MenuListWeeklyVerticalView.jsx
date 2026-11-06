@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { Calendar, Utensils, Coffee, Eye, Edit3, AlertTriangle } from "lucide-react"
 import { DEFAULT_WEEKLY_MENU } from "src/pages/SCHOOL/KitchenCooking/KitchenMenu/component/mockWeeklyMenuData"
 import styles from "./MenuListWeeklyVerticalView.module.scss"
@@ -14,6 +14,8 @@ export default function MenuListWeeklyVerticalView({
   onChangeViewMode,
   selectedWeekLabel = "",
   isCurrentWeek = false,
+  weekStatus: propWeekStatus,
+  weekFeedback: propWeekFeedback,
 }) {
   // Mobile day switcher: 'ALL' hoặc dayOfWeek (1..5)
   const todayDay = schoolDays.find((d) => d.isToday)
@@ -27,10 +29,42 @@ export default function MenuListWeeklyVerticalView({
     }
   }, [todayDay])
 
-  // Kiểm tra quyền chỉnh sửa phù hợp với trạng thái (chỉ DRAFT hoặc REVISION_REQUESTED mới sửa được)
-  const canEditMenu = (menu) => {
-    if (!menu) return false
-    return menu.status === "DRAFT" || menu.status === "REVISION_REQUESTED"
+  // Trạng thái chung của cả tuần (1 tuần 1 trạng thái đồng nhất, không trạng thái từng ngày)
+  const weekStatus = useMemo(() => {
+    if (propWeekStatus) return propWeekStatus
+    const dayStatuses = menus.map((m) => m.status).filter(Boolean)
+    if (dayStatuses.includes("REVISION_REQUESTED")) return "REVISION_REQUESTED"
+    if (dayStatuses.includes("PENDING_APPROVAL")) return "PENDING_APPROVAL"
+    if (dayStatuses.includes("DRAFT")) return "DRAFT"
+    if (dayStatuses.length > 0) return dayStatuses[0]
+    return "APPROVED"
+  }, [propWeekStatus, menus])
+
+  // Phản hồi chỉnh sửa từ BGH nếu tuần có yêu cầu sửa
+  const weekFeedback = useMemo(() => {
+    if (propWeekFeedback) return propWeekFeedback
+    const revMenu = menus.find(
+      (m) => m.feedback && m.status === "REVISION_REQUESTED"
+    )
+    return revMenu?.feedback || ""
+  }, [propWeekFeedback, menus])
+
+  // Quyền chỉnh sửa theo tuần: Chỉ tuần DRAFT hoặc REVISION_REQUESTED mới được sửa
+  const canEditWeeklyMenu =
+    weekStatus === "DRAFT" || weekStatus === "REVISION_REQUESTED"
+
+  const getWeekStatusLabel = (status) => {
+    switch (status) {
+      case "REVISION_REQUESTED":
+        return "Yêu cầu chỉnh sửa"
+      case "PENDING_APPROVAL":
+        return "Chờ BGH duyệt"
+      case "DRAFT":
+        return "Bản nháp"
+      case "APPROVED":
+      default:
+        return "Đã duyệt BGH"
+    }
   }
 
   // Lấy dữ liệu thực đơn và món ăn chuẩn cho từng ngày trong tuần
@@ -44,7 +78,7 @@ export default function MenuListWeeklyVerticalView({
     const lunchMenu = dayMenus.find((m) => m.mealType === "LUNCH")
     const afternoonMenu = dayMenus.find((m) => m.mealType === "AFTERNOON")
 
-    // Thực đơn Bữa Trưa (fallback dữ liệu mock nếu chưa có từ DB)
+    // Thực đơn Bữa Trưa (đồng bộ trạng thái theo tuần)
     const resolvedLunchMenu = lunchMenu || {
       id: `menu-${sd.dateISO}-lunch`,
       name: `Thực đơn Bữa trưa (${sd.dayLabel})`,
@@ -53,13 +87,13 @@ export default function MenuListWeeklyVerticalView({
       rawDate: sd.dateISO,
       mealType: "LUNCH",
       mealTypeLabel: "Trưa",
-      status: "APPROVED",
-      statusLabel: "Đã duyệt",
+      status: weekStatus,
+      statusLabel: getWeekStatusLabel(weekStatus),
       portionCount: 1250,
       dishes: defaultDay?.meals?.LUNCH?.dishes || [],
     }
 
-    // Thực đơn Bữa Xế (fallback dữ liệu mock nếu chưa có từ DB)
+    // Thực đơn Bữa Xế (đồng bộ trạng thái theo tuần)
     const resolvedAfternoonMenu = afternoonMenu || {
       id: `menu-${sd.dateISO}-afternoon`,
       name: `Thực đơn Bữa xế (${sd.dayLabel})`,
@@ -68,8 +102,8 @@ export default function MenuListWeeklyVerticalView({
       rawDate: sd.dateISO,
       mealType: "AFTERNOON",
       mealTypeLabel: "Chiều",
-      status: "APPROVED",
-      statusLabel: "Đã duyệt",
+      status: weekStatus,
+      statusLabel: getWeekStatusLabel(weekStatus),
       portionCount: 1250,
       dishes: defaultDay?.meals?.AFTERNOON?.dishes || [],
     }
@@ -109,35 +143,62 @@ export default function MenuListWeeklyVerticalView({
       primaryMenu,
       lunchDishes,
       afternoonDishes,
-      hasAllergy: Boolean(lunchMenu?.hasAllergyMenu || afternoonMenu?.hasAllergyMenu),
+      hasAllergy: Boolean(
+        lunchMenu?.hasAllergyMenu || afternoonMenu?.hasAllergyMenu
+      ),
     }
   }
 
-  const getStatusBadge = (status) => {
+  // Badge trạng thái của CẢ TUẦN (Hiển thị tập trung ở đầu tuần)
+  const getWeekStatusBadge = (status) => {
     switch (status) {
       case "REVISION_REQUESTED":
         return (
-          <span className={`${styles.statusPill} ${styles.revision}`}>
-            Yêu cầu sửa
-          </span>
-        )
-      case "APPROVED":
-        return (
-          <span className={`${styles.statusPill} ${styles.approved}`}>
-            ✓ Đã duyệt BGH
+          <span
+            className={`${styles.weekStatusBadge} ${styles.statusRevision}`}
+            title="Ban Giám Hiệu yêu cầu chỉnh sửa thực đơn tuần này"
+          >
+            <span className="material-symbols-outlined text-[15px]">
+              warning
+            </span>
+            <span>Yêu cầu chỉnh sửa</span>
           </span>
         )
       case "PENDING_APPROVAL":
         return (
-          <span className={`${styles.statusPill} ${styles.pending}`}>
-            Chờ duyệt
+          <span
+            className={`${styles.weekStatusBadge} ${styles.statusPending}`}
+            title="Thực đơn tuần này đang chờ BGH phê duyệt"
+          >
+            <span className="material-symbols-outlined text-[15px]">
+              schedule
+            </span>
+            <span>Chờ BGH duyệt</span>
           </span>
         )
       case "DRAFT":
+        return (
+          <span
+            className={`${styles.weekStatusBadge} ${styles.statusDraft}`}
+            title="Thực đơn tuần này đang là bản nháp chưa gửi duyệt"
+          >
+            <span className="material-symbols-outlined text-[15px]">
+              edit_note
+            </span>
+            <span>Bản nháp</span>
+          </span>
+        )
+      case "APPROVED":
       default:
         return (
-          <span className={`${styles.statusPill} ${styles.draft}`}>
-            Bản nháp
+          <span
+            className={`${styles.weekStatusBadge} ${styles.statusApproved}`}
+            title="Thực đơn tuần này đã được Ban Giám Hiệu phê duyệt chính thức"
+          >
+            <span className="material-symbols-outlined text-[15px]">
+              check_circle
+            </span>
+            <span>✓ Đã duyệt BGH</span>
           </span>
         )
     }
@@ -155,6 +216,8 @@ export default function MenuListWeeklyVerticalView({
           {isCurrentWeek && (
             <span className={styles.currentWeekTag}>Tuần này</span>
           )}
+          {/* Badge trạng thái duy nhất của CẢ TUẦN */}
+          {getWeekStatusBadge(weekStatus)}
         </div>
 
         {/* Chuyển đổi chế độ xem */}
@@ -187,6 +250,19 @@ export default function MenuListWeeklyVerticalView({
           </button>
         </div>
       </div>
+
+      {/* Banner phản hồi của BGH nếu tuần có yêu cầu chỉnh sửa */}
+      {weekStatus === "REVISION_REQUESTED" && weekFeedback && (
+        <div className={styles.weekFeedbackBanner}>
+          <AlertTriangle size={16} className={styles.feedbackIcon} />
+          <div className={styles.feedbackContent}>
+            <span className={styles.feedbackTitle}>
+              Yêu cầu chỉnh sửa từ Ban Giám Hiệu:
+            </span>
+            <span className={styles.feedbackText}>{weekFeedback}</span>
+          </div>
+        </div>
+      )}
 
       {/* 2. Dải chọn ngày trên điện thoại (Mobile-first) */}
       <div className={styles.mobileDayBar}>
@@ -221,14 +297,13 @@ export default function MenuListWeeklyVerticalView({
         </div>
       </div>
 
-      {/* 3. Lưới 5 CỘT THỰC ĐƠN DỌC CHO CẢ TUẦN — CĂN BẰNG NHAU TUYỆT ĐỐI */}
+      {/* 3. Lưới 5 CỘT THỰC ĐƠN DỌC CHO CẢ TUẦN (Không còn trạng thái từng ngày) */}
       <div className={styles.weeklyGridWrapper}>
         <div className={styles.weeklyGrid}>
           {schoolDays.map((sd) => {
             const {
               resolvedLunchMenu,
               resolvedAfternoonMenu,
-              primaryMenu,
               lunchDishes,
               afternoonDishes,
               hasAllergy,
@@ -237,8 +312,8 @@ export default function MenuListWeeklyVerticalView({
             const isHiddenOnMobile =
               selectedDayOfWeek !== "ALL" && selectedDayOfWeek !== sd.dayOfWeek
 
-            const canEditLunch = canEditMenu(resolvedLunchMenu)
-            const canEditAfternoon = canEditMenu(resolvedAfternoonMenu)
+            const canEditLunch = canEditWeeklyMenu
+            const canEditAfternoon = canEditWeeklyMenu
 
             return (
               <div
@@ -261,7 +336,18 @@ export default function MenuListWeeklyVerticalView({
                         <span className={styles.todayPill}>Hôm nay</span>
                       )}
                     </div>
-                    <span className={styles.dayDateText}>{sd.dateVN}</span>
+                    <div className={styles.dayDateRow}>
+                      <span className={styles.dayDateText}>{sd.dateVN}</span>
+                      {hasAllergy && (
+                        <span
+                          className={styles.allergyTag}
+                          title="Có học sinh dị ứng cần thực đơn riêng trong ngày này"
+                        >
+                          <AlertTriangle size={11} />
+                          Dị ứng
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* THÂN THỰC ĐƠN: XẾP DỌC BỮA TRƯA & BỮA XẾ */}
@@ -290,13 +376,13 @@ export default function MenuListWeeklyVerticalView({
                               <button
                                 type="button"
                                 className={`${styles.mealIconBtn} ${styles.lunchEditBtn} ${
-                                  resolvedLunchMenu.status === "REVISION_REQUESTED"
+                                  weekStatus === "REVISION_REQUESTED"
                                     ? styles.revisionEditBtn
                                     : ""
                                 }`}
                                 onClick={() => onEditMenu(resolvedLunchMenu)}
                                 title={
-                                  resolvedLunchMenu.status === "REVISION_REQUESTED"
+                                  weekStatus === "REVISION_REQUESTED"
                                     ? "Chỉnh sửa thực đơn theo yêu cầu BGH"
                                     : "Chỉnh sửa thực đơn bữa trưa"
                                 }
@@ -361,13 +447,13 @@ export default function MenuListWeeklyVerticalView({
                               <button
                                 type="button"
                                 className={`${styles.mealIconBtn} ${styles.afternoonEditBtn} ${
-                                  resolvedAfternoonMenu.status === "REVISION_REQUESTED"
+                                  weekStatus === "REVISION_REQUESTED"
                                     ? styles.revisionEditBtn
                                     : ""
                                 }`}
                                 onClick={() => onEditMenu(resolvedAfternoonMenu)}
                                 title={
-                                  resolvedAfternoonMenu.status === "REVISION_REQUESTED"
+                                  weekStatus === "REVISION_REQUESTED"
                                     ? "Chỉnh sửa thực đơn theo yêu cầu BGH"
                                     : "Chỉnh sửa thực đơn bữa xế"
                                 }
@@ -401,24 +487,6 @@ export default function MenuListWeeklyVerticalView({
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  {/* CHÂN CỘT: Trạng thái phê duyệt & Cảnh báo dị ứng (40px) */}
-                  <div className={styles.dayFooter}>
-                    <div className={styles.footerLeft}>
-                      {getStatusBadge(primaryMenu?.status || "APPROVED")}
-                    </div>
-                    <div className={styles.footerRight}>
-                      {hasAllergy && (
-                        <span
-                          className={styles.allergyWarningTag}
-                          title="Có học sinh dị ứng cần thực đơn riêng"
-                        >
-                          <AlertTriangle size={11} />
-                          Dị ứng
-                        </span>
-                      )}
-                    </div>
                   </div>
                 </div>
               </div>

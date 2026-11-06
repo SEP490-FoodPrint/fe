@@ -47,6 +47,95 @@
   border-radius: 9999px;
 }
 
+/* Badge trạng thái duy nhất của CẢ TUẦN */
+.weekStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+.statusApproved {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+
+  span:first-child {
+    color: #059669;
+  }
+}
+
+.statusPending {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+
+  span:first-child {
+    color: #2563eb;
+  }
+}
+
+.statusRevision {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+
+  span:first-child {
+    color: #dc2626;
+  }
+}
+
+.statusDraft {
+  background-color: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+
+  span:first-child {
+    color: #64748b;
+  }
+}
+
+/* Banner phản hồi BGH nếu tuần có yêu cầu chỉnh sửa */
+.weekFeedbackBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 2px rgba(220, 38, 38, 0.05);
+}
+
+.feedbackIcon {
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedbackContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.feedbackTitle {
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.feedbackText {
+  color: #7f1d1d;
+  font-size: 12.5px;
+}
+
+
 .viewModeSwitcher {
   display: flex;
   align-items: center;
@@ -273,6 +362,28 @@
   font-weight: 500;
   text-align: center;
 }
+
+.dayDateRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.allergyTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #b45309;
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
 
 /* Thân thực đơn */
 .dayMealsBody {
