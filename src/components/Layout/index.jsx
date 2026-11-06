@@ -1,15 +1,14 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
-import PropTypes from "prop-types";
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useMediaQuery } from "@mui/material";
-import { DashboardHeader } from "./Header";
-import Sidebar from "./Sidebar";
-import { StoreContext } from "src/contexts";
-import AuthService from "src/services/AuthService";
-import ROUTER from "src/router/ROUTER";
-import styles from "./MainLayout.module.scss";
-import notice from "src/components/Notice";
-import RoleSwitcher from "src/components/Common/RoleSwitcher";
+import React, { useContext, useEffect, useRef, useState } from "react"
+import PropTypes from "prop-types"
+import { Outlet, useLocation, useNavigate } from "react-router-dom"
+import { useMediaQuery } from "@mui/material"
+import { DashboardHeader } from "./Header"
+import Sidebar from "./Sidebar"
+import { StoreContext } from "src/contexts"
+import AuthService from "src/services/AuthService"
+import ROUTER from "src/router/ROUTER"
+import styles from "./MainLayout.module.scss"
+import notice from "src/components/Notice"
 
 const MainLayout = ({ type }) => {
   const location = useLocation();
@@ -74,7 +73,6 @@ const MainLayout = ({ type }) => {
           <Outlet />
         </main>
       </div>
-      <RoleSwitcher />
     </div>
   );
 };

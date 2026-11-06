@@ -30,7 +30,5 @@ export const apiMealIngredients = (menuDayId, mealType) =>
 export const apiMealRequirements = (menuDayId, mealType) =>
   `/v1/menus/days/${menuDayId}/meals/${mealType}/requirements`
 
-// Màn Ban Giám Hiệu duyệt thực đơn (cả tuần hoặc từng ngày)
-export const apiGetMenuApprovalDetail = menuId => `/menus/${menuId}/approval-detail`
-export const apiApproveMenu = menuId => `/menus/${menuId}/approve`
-export const apiRequestMenuRevision = menuId => `/menus/${menuId}/request-revision`
+// Hồ sơ duyệt thực đơn tuần của Ban Giám Hiệu
+export const apiGetMenuApprovalDetail = menuId => `/v1/menus/${menuId}/approval-detail`

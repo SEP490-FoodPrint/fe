@@ -1,0 +1,53 @@
+.cooking-mode-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+
+    strong {
+      color: var(--text-secondary);
+      font-weight: var(--font-medium);
+    }
+  }
+
+  &__title {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-tight);
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  &__hint {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  @media (max-width: 600px) {
+    &__title {
+      font-size: var(--text-xl);
+    }
+
+    &__footer {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+}

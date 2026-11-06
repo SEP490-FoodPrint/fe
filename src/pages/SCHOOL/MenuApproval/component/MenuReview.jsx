@@ -64,10 +64,12 @@ function MenuReview({ review, approval, status }) {
           <Typography className={styles.subtitle}>Chưa có ý kiến chỉ đạo.</Typography>
         )}
 
-        <div className={styles.approver}>
-          <ShieldCheck size={18} />
-          <span>Người phê duyệt: <strong>{approval.approver}</strong> ({approval.role})</span>
-        </div>
+        {approval.approver && (
+          <div className={styles.approver}>
+            <ShieldCheck size={18} />
+            <span>Người quyết định: <strong>{approval.approver}</strong> ({approval.role})</span>
+          </div>
+        )}
 
         <Alert severity={status === "APPROVED" ? "success" : status === "REVISION_REQUIRED" ? "warning" : "info"}>
           {status === "APPROVED"

@@ -6,6 +6,8 @@ import {
   apiGetSchoolDetailByCode,
   apiGetDailyMealMenu,
   apiGetWeeklyMenu,
+  apiCookingMode,
+  apiMealTimes,
 } from "./urls";
 
 /**
@@ -84,6 +86,11 @@ const getPublicLocationsApi = async () => {
   return res;
 };
 
+const getCookingMode = () => http.get(apiCookingMode);
+const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMode });
+const getMealTimes = () => http.get(apiMealTimes, { notifyOnError: false });
+const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnError: false });
+
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getPublicLocations: getPublicLocationsApi,
@@ -91,6 +98,10 @@ const SchoolService = {
   getSchoolDetailById: getSchoolDetailByIdApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
+  getCookingMode,
+  updateCookingMode,
+  getMealTimes,
+  updateMealTimes,
 };
 
 export default SchoolService;
