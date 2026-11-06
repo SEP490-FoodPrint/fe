@@ -1,4 +1,6 @@
-import React from "react"
+import React, { useState, useEffect } from "react"
+import { Calendar, Utensils, Coffee, Eye, CheckCircle2, AlertTriangle, Edit3 } from "lucide-react"
+import { DEFAULT_WEEKLY_MENU } from "src/pages/SCHOOL/KitchenCooking/KitchenMenu/component/mockWeeklyMenuData"
 import styles from "./MenuListWeeklyVerticalView.module.scss"
 
 export default function MenuListWeeklyVerticalView({
@@ -13,92 +15,152 @@ export default function MenuListWeeklyVerticalView({
   selectedWeekLabel = "",
   isCurrentWeek = false,
 }) {
+  // Mobile day switcher: 'ALL' hoặc dayOfWeek (1..5)
+  const todayDay = schoolDays.find((d) => d.isToday)
+  const [selectedDayOfWeek, setSelectedDayOfWeek] = useState(
+    todayDay ? todayDay.dayOfWeek : 1
+  )
+
+  useEffect(() => {
+    if (todayDay) {
+      setSelectedDayOfWeek(todayDay.dayOfWeek)
+    }
+  }, [todayDay])
+
+  // Lấy dữ liệu món ăn phân bổ cho từng ngày trong tuần
+  const getDayMealsData = (sd) => {
+    const defaultDay = DEFAULT_WEEKLY_MENU[sd.dayOfWeek] || {}
+
+    // Tìm thực đơn tương ứng từ danh sách menus
+    const dayMenus = menus.filter(
+      (m) => m.rawDate === sd.dateISO || m.date === sd.dateVN
+    )
+    const lunchMenu = dayMenus.find((m) => m.mealType === "LUNCH")
+    const afternoonMenu = dayMenus.find((m) => m.mealType === "AFTERNOON")
+
+    // Món Bữa Trưa
+    let lunchDishes = []
+    if (lunchMenu?.dishes?.length > 0) {
+      lunchDishes = lunchMenu.dishes.map((d, i) => ({
+        id: d.id || `dish-${sd.dayOfWeek}-l-${i}`,
+        name: d.name,
+        qty: d.qty || "65g",
+        ingredients: d.ingredients || [],
+        menu: lunchMenu,
+      }))
+    } else if (defaultDay?.meals?.LUNCH?.dishes) {
+      lunchDishes = defaultDay.meals.LUNCH.dishes.map((d) => ({
+        ...d,
+        qty: d.qty || "65g",
+        menu: lunchMenu,
+      }))
+    }
+
+    // Món Bữa Xế
+    let afternoonDishes = []
+    if (afternoonMenu?.dishes?.length > 0) {
+      afternoonDishes = afternoonMenu.dishes.map((d, i) => ({
+        id: d.id || `dish-${sd.dayOfWeek}-a-${i}`,
+        name: d.name,
+        qty: d.qty || "80g",
+        ingredients: d.ingredients || [],
+        menu: afternoonMenu,
+      }))
+    } else if (defaultDay?.meals?.AFTERNOON?.dishes) {
+      afternoonDishes = defaultDay.meals.AFTERNOON.dishes.map((d) => ({
+        ...d,
+        qty: d.qty || "80g",
+        menu: afternoonMenu,
+      }))
+    }
+
+    // Lọc theo ca ăn
+    if (mealTypeFilter === "LUNCH") {
+      afternoonDishes = []
+    } else if (mealTypeFilter === "AFTERNOON") {
+      lunchDishes = []
+    }
+
+    const primaryMenu = lunchMenu || afternoonMenu
+
+    return {
+      lunchMenu,
+      afternoonMenu,
+      primaryMenu,
+      lunchDishes,
+      afternoonDishes,
+      hasAllergy: Boolean(lunchMenu?.hasAllergyMenu || afternoonMenu?.hasAllergyMenu),
+    }
+  }
+
   const getStatusBadge = (status) => {
     switch (status) {
       case "REVISION_REQUESTED":
         return (
           <span className={`${styles.statusPill} ${styles.revision}`}>
-            <span className={styles.dot}></span>
-            <span>Yêu cầu sửa</span>
+            Yêu cầu sửa
           </span>
         )
       case "APPROVED":
         return (
           <span className={`${styles.statusPill} ${styles.approved}`}>
-            <span className={styles.dot}></span>
-            <span>Đã duyệt BGH</span>
+            ✓ Đã duyệt BGH
           </span>
         )
       case "PENDING_APPROVAL":
         return (
           <span className={`${styles.statusPill} ${styles.pending}`}>
-            <span className={styles.dot}></span>
-            <span>Chờ duyệt</span>
+            Chờ duyệt
           </span>
         )
       case "DRAFT":
       default:
         return (
           <span className={`${styles.statusPill} ${styles.draft}`}>
-            <span className={styles.dot}></span>
-            <span>Bản nháp</span>
+            Bản nháp
           </span>
         )
     }
   }
 
-  // Lọc thực đơn theo ngày
-  const getDayMeals = (day) => {
-    const dayMenus = menus.filter(
-      (m) => m.rawDate === day.dateISO || m.date === day.dateVN
-    )
-    const lunchMenu = dayMenus.find((m) => m.mealType === "LUNCH")
-    const afternoonMenu = dayMenus.find((m) => m.mealType === "AFTERNOON")
-    return { lunchMenu, afternoonMenu, dayMenus }
-  }
-
   return (
-    <div className={styles.verticalViewContainer}>
-      {/* 1. Bar tiêu đề tuần & Chuyển đổi chế độ xem */}
-      <div className={styles.weekControlBar}>
-        <div className={styles.weekInfoGroup}>
-          <div className={styles.weekTag}>
-            <span className={`material-symbols-outlined ${styles.weekIcon}`}>
-              date_range
-            </span>
-            <span className={styles.weekHeading}>
-              {selectedWeekLabel || "Thực đơn tuần học đường"}
-            </span>
-            {isCurrentWeek && (
-              <span className={styles.currentWeekBadge}>Tuần này</span>
-            )}
-          </div>
+    <div className={styles.verticalWeeklyContainer}>
+      {/* 1. Bar điều khiển tuần & Chuyển đổi View Mode */}
+      <div className={styles.topControlBar}>
+        <div className={styles.weekTitleWrap}>
+          <Calendar size={18} className={styles.weekCalendarIcon} />
+          <span className={styles.weekLabelText}>
+            {selectedWeekLabel || "Thực đơn tuần học đường"}
+          </span>
+          {isCurrentWeek && (
+            <span className={styles.currentWeekTag}>Tuần này</span>
+          )}
         </div>
 
-        {/* Nút chuyển đổi View Mode */}
-        <div className={styles.viewModeGroup}>
+        {/* Chuyển đổi chế độ xem */}
+        <div className={styles.viewModeSwitcher}>
           <button
             type="button"
-            className={`${styles.viewModeBtn} ${
-              viewMode === "vertical" ? styles.activeViewMode : ""
+            className={`${styles.viewBtn} ${
+              viewMode === "vertical" ? styles.viewBtnActive : ""
             }`}
             onClick={() => onChangeViewMode && onChangeViewMode("vertical")}
-            title="Xem dạng dọc theo tuần (Mặc định)"
+            title="Xem toàn bộ tuần dạng cột dọc (Mặc định)"
           >
-            <span className="material-symbols-outlined text-[17px]">
+            <span className="material-symbols-outlined text-[16px]">
               calendar_view_day
             </span>
-            <span>Kiểu dọc theo tuần</span>
+            <span>Kiểu tuần dọc</span>
           </button>
           <button
             type="button"
-            className={`${styles.viewModeBtn} ${
-              viewMode === "table" ? styles.activeViewMode : ""
+            className={`${styles.viewBtn} ${
+              viewMode === "table" ? styles.viewBtnActive : ""
             }`}
             onClick={() => onChangeViewMode && onChangeViewMode("table")}
-            title="Xem dạng bảng danh sách truyền thống"
+            title="Xem bảng danh sách thực đơn"
           >
-            <span className="material-symbols-outlined text-[17px]">
+            <span className="material-symbols-outlined text-[16px]">
               table_rows
             </span>
             <span>Kiểu bảng</span>
@@ -106,385 +168,231 @@ export default function MenuListWeeklyVerticalView({
         </div>
       </div>
 
-      {/* 2. Danh sách dọc theo từng ngày trong tuần */}
-      <div className={styles.daysVerticalStack}>
-        {schoolDays.map((day) => {
-          const { lunchMenu, afternoonMenu, dayMenus } = getDayMeals(day)
-          const totalPortions = dayMenus.reduce(
-            (sum, m) => sum + (m.portionCount || 0),
-            0
-          )
-          const totalDishes = dayMenus.reduce(
-            (sum, m) => sum + (m.dishes?.length || 0),
-            0
-          )
+      {/* 2. Dải chọn ngày trên điện thoại (Mobile-first) */}
+      <div className={styles.mobileDayBar}>
+        <div className={styles.mobileDayList}>
+          {schoolDays.map((day) => {
+            const isSelected = selectedDayOfWeek === day.dayOfWeek
+            return (
+              <button
+                key={day.dayOfWeek}
+                type="button"
+                className={`${styles.mobileDayPill} ${
+                  isSelected ? styles.mobileDayPillActive : ""
+                } ${day.isToday ? styles.mobileDayPillToday : ""}`}
+                onClick={() => setSelectedDayOfWeek(day.dayOfWeek)}
+              >
+                <span className={styles.pillIndex}>{day.dayLabel?.slice(0, 7)}</span>
+                <span className={styles.pillDate}>{day.dateVN?.slice(0, 5)}</span>
+                {day.isToday && <span className={styles.pillDot} />}
+              </button>
+            )
+          })}
+          <button
+            type="button"
+            className={`${styles.mobileDayPill} ${
+              selectedDayOfWeek === "ALL" ? styles.mobileDayPillActive : ""
+            }`}
+            onClick={() => setSelectedDayOfWeek("ALL")}
+          >
+            <span className={styles.pillIndex}>Cả tuần</span>
+            <span className={styles.pillDate}>5 ngày</span>
+          </button>
+        </div>
+      </div>
 
-          const showLunch =
-            mealTypeFilter === "all" || mealTypeFilter === "LUNCH"
-          const showAfternoon =
-            mealTypeFilter === "all" || mealTypeFilter === "AFTERNOON"
+      {/* 3. Lưới 5 CỘT THỰC ĐƠN DỌC CHO CẢ TUẦN — CĂN BẰNG NHAU TUYỆT ĐỐI */}
+      <div className={styles.weeklyGridWrapper}>
+        <div className={styles.weeklyGrid}>
+          {schoolDays.map((sd) => {
+            const {
+              lunchMenu,
+              afternoonMenu,
+              primaryMenu,
+              lunchDishes,
+              afternoonDishes,
+              hasAllergy,
+            } = getDayMealsData(sd)
 
-          return (
-            <div
-              key={day.dateISO || day.dateVN}
-              className={`${styles.dayCard} ${
-                day.isToday ? styles.isTodayCard : ""
-              }`}
-            >
-              {/* Header ngày */}
-              <div className={styles.dayHeader}>
-                <div className={styles.dayTitleGroup}>
-                  <div className={styles.dayCalendarCircle}>
-                    <span className="material-symbols-outlined text-[18px]">
-                      calendar_month
-                    </span>
+            const isHiddenOnMobile =
+              selectedDayOfWeek !== "ALL" && selectedDayOfWeek !== sd.dayOfWeek
+
+            return (
+              <div
+                key={sd.dayOfWeek}
+                className={`${styles.dayColItem} ${
+                  isHiddenOnMobile ? styles.mobileHidden : ""
+                }`}
+              >
+                <div
+                  className={`${styles.dayCard} ${
+                    sd.isToday ? styles.todayDayCard : ""
+                  }`}
+                >
+                  {/* HÀNG 1: Header Cột Ngày (66px) */}
+                  <div className={styles.dayHeader}>
+                    <div className={styles.dayTitleRow}>
+                      <Calendar size={15} className={styles.dayCalIcon} />
+                      <span className={styles.dayLabel}>{sd.dayLabel}</span>
+                      {sd.isToday && (
+                        <span className={styles.todayPill}>Hôm nay</span>
+                      )}
+                    </div>
+                    <span className={styles.dayDateText}>{sd.dateVN}</span>
                   </div>
-                  <div className={styles.dayNameBlock}>
-                    <h3 className={styles.dayName}>
-                      {day.dayLabel}
-                      <span className={styles.dayDate}> — {day.dateVN}</span>
-                    </h3>
-                  </div>
-                  {day.isToday && (
-                    <span className={styles.todayPill}>
-                      <span className={styles.pulsingDot}></span>
-                      <span>Hôm nay</span>
-                    </span>
-                  )}
-                </div>
 
-                <div className={styles.dayStatsInline}>
-                  {totalPortions > 0 && (
-                    <span className={styles.statBadgePortions}>
-                      <span className="material-symbols-outlined text-[15px]">
-                        group
-                      </span>
-                      {totalPortions.toLocaleString()} suất
-                    </span>
-                  )}
-                  {totalDishes > 0 && (
-                    <span className={styles.statBadgeDishes}>
-                      <span className="material-symbols-outlined text-[15px]">
-                        restaurant_menu
-                      </span>
-                      {totalDishes} món
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Thân ngày: Các ca ăn được xếp dọc / ngang tinh gọn */}
-              <div className={styles.mealsGrid}>
-                {/* Ca Trưa */}
-                {showLunch && (
-                  <div className={styles.mealColumn}>
-                    {lunchMenu ? (
-                      <div className={`${styles.mealBox} ${styles.lunchBox}`}>
-                        {/* Hàng trên: Tag ca ăn + Trạng thái + Actions */}
-                        <div className={styles.mealBoxTop}>
-                          <div className={styles.mealBadgeGroup}>
-                            <span className={styles.lunchTag}>
-                              <span className="material-symbols-outlined text-[14px]">
-                                light_mode
-                              </span>
-                              BỮA TRƯA
-                            </span>
-                            {getStatusBadge(lunchMenu.status)}
+                  {/* THÂN THỰC ĐƠN: XẾP DỌC BỮA TRƯA & BỮA XẾ */}
+                  <div className={styles.dayMealsBody}>
+                    {/* KHỐI BỮA TRƯA: Banner 38px + Danh sách món 270px */}
+                    {(mealTypeFilter === "all" || mealTypeFilter === "LUNCH") && (
+                      <div className={styles.mealBlock}>
+                        <div className={styles.lunchBanner}>
+                          <div className={styles.bannerLeft}>
+                            <Utensils size={13} className={styles.lunchIcon} />
+                            <span className={styles.lunchTitle}>BỮA TRƯA</span>
                           </div>
-                          <div className={styles.mealActionBtns}>
-                            <button
-                              type="button"
-                              className={styles.actionBtnIcon}
-                              onClick={() => onViewDetail(lunchMenu)}
-                              title="Xem chi tiết thực đơn này"
+                          <span className={styles.lunchBadge}>
+                            {lunchDishes.length} món
+                          </span>
+                        </div>
+
+                        <div className={styles.dishesListLunch}>
+                          {lunchDishes.map((dish) => (
+                            <div
+                              key={dish.id}
+                              className={styles.dishRow}
+                              onClick={() => {
+                                if (dish.menu) onViewDetail(dish.menu)
+                              }}
+                              title={`Món: ${dish.name} — Bấm xem chi tiết`}
                             >
-                              <span className="material-symbols-outlined text-[18px]">
-                                visibility
+                              <span className={styles.dishName}>
+                                {dish.name}
                               </span>
-                            </button>
-                            {(lunchMenu.status === "DRAFT" ||
-                              lunchMenu.status === "REVISION_REQUESTED") && (
-                              <button
-                                type="button"
-                                className={`${styles.actionBtnIcon} ${styles.editIconBtn}`}
-                                onClick={() => onEditMenu(lunchMenu)}
-                                title="Chỉnh sửa thực đơn"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  edit
-                                </span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Tiêu đề & Thông số */}
-                        <div className={styles.menuTitleGroup}>
-                          <h4
-                            className={styles.menuName}
-                            onClick={() => onViewDetail(lunchMenu)}
-                          >
-                            {lunchMenu.name}
-                          </h4>
-                          <div className={styles.menuMetaLine}>
-                            <span className={styles.codeText}>
-                              {lunchMenu.code}
-                            </span>
-                            <span className={styles.metaDot}>•</span>
-                            <span>{lunchMenu.portionCount} suất</span>
-                            <span className={styles.metaDot}>•</span>
-                            <span className={styles.targetText}>
-                              {lunchMenu.targetScope}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Danh sách Món ăn (Nổi bật cho nhân viên bếp) */}
-                        <div className={styles.dishesSection}>
-                          <div className={styles.sectionHeading}>
-                            <span className="material-symbols-outlined text-[15px]">
-                              soup_kitchen
-                            </span>
-                            <span>
-                              Món ăn ({lunchMenu.dishes?.length || 0} món):
-                            </span>
-                          </div>
-                          <ul className={styles.dishesList}>
-                            {lunchMenu.dishes?.map((dish, idx) => (
-                              <li key={idx} className={styles.dishItem}>
-                                <div className={styles.dishNameRow}>
-                                  <span className={styles.dishBullet}>
-                                    {idx + 1}.
-                                  </span>
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
-                                  {dish.qty && (
-                                    <span className={styles.dishQty}>
-                                      ({dish.qty})
-                                    </span>
-                                  )}
-                                </div>
-                                {dish.ingredients &&
-                                  dish.ingredients.length > 0 && (
-                                    <span className={styles.dishIngredients}>
-                                      {dish.ingredients.join(", ")}
-                                    </span>
-                                  )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* Thẻ Dị ứng & Món thay thế (nếu có) */}
-                        {lunchMenu.hasAllergyMenu && (
-                          <div className={styles.allergyCard}>
-                            <div className={styles.allergyHeader}>
-                              <span
-                                className={`material-symbols-outlined ${styles.allergyShieldIcon}`}
-                              >
-                                health_and_safety
-                              </span>
-                              <span className={styles.allergyLabel}>
-                                Có thực đơn thay thế dị ứng
-                              </span>
-                            </div>
-                            <p className={styles.allergyNote}>
-                              {lunchMenu.allergyNote}
-                            </p>
-                            {lunchMenu.substituteDish && (
-                              <div className={styles.substituteDishRow}>
-                                <span className={styles.substituteTag}>
-                                  Món thay thế:
-                                </span>
-                                <span className={styles.substituteName}>
-                                  {lunchMenu.substituteDish.name} (
-                                  {lunchMenu.substituteDish.qty})
-                                </span>
+                              <div className={styles.dishRightWrap}>
+                                <button
+                                  type="button"
+                                  className={styles.viewDishBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (dish.menu) onViewDetail(dish.menu)
+                                  }}
+                                  title="Xem chi tiết"
+                                >
+                                  <Eye size={12} className={styles.eyeIcon} />
+                                </button>
                               </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className={styles.emptyMealSlot}>
-                        <div className={styles.emptyMealIconWrap}>
-                          <span className="material-symbols-outlined text-[24px]">
-                            lunch_dining
-                          </span>
+                            </div>
+                          ))}
+                          {lunchDishes.length === 0 && (
+                            <div className={styles.emptyMealNotice}>
+                              Chưa có món trưa
+                            </div>
+                          )}
                         </div>
-                        <p className={styles.emptyMealText}>
-                          Chưa có thực đơn Bữa trưa
-                        </p>
-                        <button
-                          type="button"
-                          className={styles.addMealBtn}
-                          onClick={() =>
-                            onNavigateCreate &&
-                            onNavigateCreate(day.dateISO, "LUNCH")
-                          }
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            add
-                          </span>
-                          <span>Tạo thực đơn trưa</span>
-                        </button>
                       </div>
                     )}
-                  </div>
-                )}
 
-                {/* Ca Chiều / Xế */}
-                {showAfternoon && (
-                  <div className={styles.mealColumn}>
-                    {afternoonMenu ? (
-                      <div className={`${styles.mealBox} ${styles.afternoonBox}`}>
-                        {/* Hàng trên: Tag ca ăn + Trạng thái + Actions */}
-                        <div className={styles.mealBoxTop}>
-                          <div className={styles.mealBadgeGroup}>
-                            <span className={styles.afternoonTag}>
-                              <span className="material-symbols-outlined text-[14px]">
-                                bedtime
-                              </span>
+                    {/* KHỐI BỮA XẾ: Banner 38px + Danh sách món 54px */}
+                    {(mealTypeFilter === "all" ||
+                      mealTypeFilter === "AFTERNOON") && (
+                      <div className={styles.mealBlock}>
+                        <div className={styles.afternoonBanner}>
+                          <div className={styles.bannerLeft}>
+                            <Coffee
+                              size={13}
+                              className={styles.afternoonIcon}
+                            />
+                            <span className={styles.afternoonTitle}>
                               BỮA XẾ
                             </span>
-                            {getStatusBadge(afternoonMenu.status)}
                           </div>
-                          <div className={styles.mealActionBtns}>
-                            <button
-                              type="button"
-                              className={styles.actionBtnIcon}
-                              onClick={() => onViewDetail(afternoonMenu)}
-                              title="Xem chi tiết thực đơn này"
+                          <span className={styles.afternoonBadge}>
+                            {afternoonDishes.length} món
+                          </span>
+                        </div>
+
+                        <div className={styles.dishesListAfternoon}>
+                          {afternoonDishes.map((dish) => (
+                            <div
+                              key={dish.id}
+                              className={styles.dishRow}
+                              onClick={() => {
+                                if (dish.menu) onViewDetail(dish.menu)
+                              }}
+                              title={`Món: ${dish.name} — Bấm xem chi tiết`}
                             >
-                              <span className="material-symbols-outlined text-[18px]">
-                                visibility
+                              <span className={styles.dishName}>
+                                {dish.name}
                               </span>
-                            </button>
-                            {(afternoonMenu.status === "DRAFT" ||
-                              afternoonMenu.status === "REVISION_REQUESTED") && (
-                              <button
-                                type="button"
-                                className={`${styles.actionBtnIcon} ${styles.editIconBtn}`}
-                                onClick={() => onEditMenu(afternoonMenu)}
-                                title="Chỉnh sửa thực đơn"
-                              >
-                                <span className="material-symbols-outlined text-[18px]">
-                                  edit
-                                </span>
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Tiêu đề & Thông số */}
-                        <div className={styles.menuTitleGroup}>
-                          <h4
-                            className={styles.menuName}
-                            onClick={() => onViewDetail(afternoonMenu)}
-                          >
-                            {afternoonMenu.name}
-                          </h4>
-                          <div className={styles.menuMetaLine}>
-                            <span className={styles.codeText}>
-                              {afternoonMenu.code}
-                            </span>
-                            <span className={styles.metaDot}>•</span>
-                            <span>{afternoonMenu.portionCount} suất</span>
-                            <span className={styles.metaDot}>•</span>
-                            <span className={styles.targetText}>
-                              {afternoonMenu.targetScope}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Danh sách Món ăn Bữa xế */}
-                        <div className={styles.dishesSection}>
-                          <div className={styles.sectionHeading}>
-                            <span className="material-symbols-outlined text-[15px]">
-                              bakery_dining
-                            </span>
-                            <span>
-                              Món ăn ({afternoonMenu.dishes?.length || 0} món):
-                            </span>
-                          </div>
-                          <ul className={styles.dishesList}>
-                            {afternoonMenu.dishes?.map((dish, idx) => (
-                              <li key={idx} className={styles.dishItem}>
-                                <div className={styles.dishNameRow}>
-                                  <span className={styles.dishBullet}>
-                                    {idx + 1}.
-                                  </span>
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
-                                  {dish.qty && (
-                                    <span className={styles.dishQty}>
-                                      ({dish.qty})
-                                    </span>
-                                  )}
-                                </div>
-                                {dish.ingredients &&
-                                  dish.ingredients.length > 0 && (
-                                    <span className={styles.dishIngredients}>
-                                      {dish.ingredients.join(", ")}
-                                    </span>
-                                  )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* Thẻ Dị ứng nếu có */}
-                        {afternoonMenu.hasAllergyMenu && (
-                          <div className={styles.allergyCard}>
-                            <div className={styles.allergyHeader}>
-                              <span
-                                className={`material-symbols-outlined ${styles.allergyShieldIcon}`}
-                              >
-                                health_and_safety
-                              </span>
-                              <span className={styles.allergyLabel}>
-                                Có thực đơn thay thế dị ứng
-                              </span>
+                              <div className={styles.dishRightWrap}>
+                                <button
+                                  type="button"
+                                  className={styles.viewDishBtn}
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (dish.menu) onViewDetail(dish.menu)
+                                  }}
+                                  title="Xem chi tiết"
+                                >
+                                  <Eye size={12} className={styles.eyeIcon} />
+                                </button>
+                              </div>
                             </div>
-                            <p className={styles.allergyNote}>
-                              {afternoonMenu.allergyNote}
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className={styles.emptyMealSlot}>
-                        <div className={styles.emptyMealIconWrap}>
-                          <span className="material-symbols-outlined text-[24px]">
-                            cookie
-                          </span>
+                          ))}
+                          {afternoonDishes.length === 0 && (
+                            <div className={styles.emptyMealNoticeSm}>
+                              Chưa có món xế
+                            </div>
+                          )}
                         </div>
-                        <p className={styles.emptyMealText}>
-                          Chưa có thực đơn Bữa xế
-                        </p>
-                        <button
-                          type="button"
-                          className={styles.addMealBtn}
-                          onClick={() =>
-                            onNavigateCreate &&
-                            onNavigateCreate(day.dateISO, "AFTERNOON")
-                          }
-                        >
-                          <span className="material-symbols-outlined text-[16px]">
-                            add
-                          </span>
-                          <span>Tạo thực đơn xế</span>
-                        </button>
                       </div>
                     )}
                   </div>
-                )}
+
+                  {/* CHÂN CỘT: Trạng thái & Nút thao tác nhanh (44px) */}
+                  <div className={styles.dayFooter}>
+                    <div className={styles.footerLeft}>
+                      {getStatusBadge(primaryMenu?.status || "APPROVED")}
+                      {hasAllergy && (
+                        <span
+                          className={styles.allergyWarningTag}
+                          title="Có học sinh dị ứng cần thực đơn riêng"
+                        >
+                          <AlertTriangle size={11} />
+                          Dị ứng
+                        </span>
+                      )}
+                    </div>
+                    <div className={styles.footerActions}>
+                      {primaryMenu && (
+                        <button
+                          type="button"
+                          className={styles.actionBtnSmall}
+                          onClick={() => onViewDetail(primaryMenu)}
+                          title="Xem chi tiết thực đơn"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      )}
+                      {(primaryMenu?.status === "DRAFT" ||
+                        primaryMenu?.status === "REVISION_REQUESTED") && (
+                        <button
+                          type="button"
+                          className={`${styles.actionBtnSmall} ${styles.editBtn}`}
+                          onClick={() => onEditMenu(primaryMenu)}
+                          title="Chỉnh sửa thực đơn"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     </div>
   )
