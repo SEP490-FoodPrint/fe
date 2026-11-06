@@ -1,6 +1,6 @@
 .pageContainer {
-  padding: 24px 32px 100px 32px;
-  background-color: #ffffff; /* Nền trắng tinh toàn trang */
+  padding: 20px 32px 100px 32px;
+  background-color: #f8fafc;
   min-height: calc(100dvh - var(--header-height, 64px));
   box-sizing: border-box;
   width: 100%;
@@ -8,52 +8,182 @@
 
 .contentWrapper {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
-.menuStatusNotice {
-  margin: 0 0 14px;
-  padding: 10px 16px;
-  border: 1px solid #cbd5e1;
+/* ========================================================
+   TOP CONTROLS BAR: TUẦN & THÔNG TIN THỰC ĐƠN
+   ======================================================== */
+.topControlsCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.controlsTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.weekStepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f1f5f9;
+  padding: 4px 8px;
   border-radius: 8px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 13.5px;
-  font-weight: 600;
+  border: 1px solid #cbd5e1;
 }
 
-/* 2-Column Split Layout */
-.splitLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(360px, 420px);
-  gap: 20px;
-  align-items: flex-start;
-  margin-top: 12px;
+.weekNavBtn {
+  background: transparent;
+  border: none;
+  color: #475569;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
 
-  @media (max-width: 1100px) {
+  &:hover {
+    background-color: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.weekRangeText {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.weekQuickStats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.statPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 6px;
+
+  strong {
+    color: #00654f;
+  }
+}
+
+.controlsInputsRow {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.8fr) minmax(200px, 1.2fr) minmax(180px, 1fr);
+  gap: 14px;
+  align-items: flex-end;
+
+  @media (max-width: 900px) {
     grid-template-columns: 1fr;
   }
 }
 
-.editorPane {
+.inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  min-width: 0;
+  gap: 5px;
 }
 
-.previewPane {
-  min-width: 0;
+.inputLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
 }
 
+.textInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 13.5px;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #00654f;
+    box-shadow: 0 0 0 2px rgba(0, 101, 79, 0.15);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+}
+
+.readOnlyInput {
+  background-color: #f8fafc;
+  color: #334155;
+  cursor: not-allowed;
+}
+
+/* ========================================================
+   KHU VỰC HÀNG DÀI THỰC ĐƠN TUẦN
+   ======================================================== */
+.weeklySectionWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionSubtitle {
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+/* TOAST */
 .toastNotice {
   position: fixed;
   top: 24px;
   right: 24px;
-  z-index: 2000;
+  z-index: 2500;
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -93,6 +223,6 @@
 
 @media (max-width: 768px) {
   .pageContainer {
-    padding: 16px 16px 110px 16px;
+    padding: 14px 14px 110px 14px;
   }
 }
