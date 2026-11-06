@@ -1,0 +1,54 @@
+.filterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--card-bg, #ffffff);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  margin-bottom: 20px;
+}
+
+.filterInputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+}
+
+.searchInput {
+  min-width: 280px;
+  flex: 1;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+}
+
+.searchIcon {
+  color: #888888;
+}
+
+.selectInput {
+  min-width: 180px;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 8px;
+    background-color: #fafafa;
+  }
+}
+
+.resetBtn {
+  color: var(--text-secondary, #666666);
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+  }
+}

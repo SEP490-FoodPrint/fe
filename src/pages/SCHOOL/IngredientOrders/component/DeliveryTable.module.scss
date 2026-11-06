@@ -1,0 +1,178 @@
+.tableWrapper {
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.table {
+  min-width: 900px;
+}
+
+.tableHead {
+  background-color: #f8fafc;
+
+  :global(.MuiTableCell-head) {
+    font-weight: 600;
+    color: var(--text-secondary, #475569);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+  }
+}
+
+.tableRow {
+  transition: background-color 0.15s ease;
+
+  :global(.MuiTableCell-body) {
+    padding: 14px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+}
+
+.deliveryNo {
+  font-weight: 600;
+  color: var(--text-primary, #0f172a);
+}
+
+.orderNo {
+  color: #64748b;
+  display: block;
+}
+
+.batch1Chip {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.batch2Chip {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.timeText {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dateText {
+  color: #64748b;
+  display: block;
+}
+
+.menuName {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.portionsText {
+  color: #059669;
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+
+.supplierText {
+  color: #334155;
+  font-weight: 500;
+}
+
+.qrBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-family: monospace;
+  margin-top: 3px;
+}
+
+.qrIcon {
+  color: #0284c7;
+}
+
+.approvalMatrix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.roleIconBadge {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.15);
+  }
+}
+
+.approvedDot {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.pendingDot {
+  background-color: #fef9c3;
+  color: #a16207;
+  border: 1px solid #fde047;
+}
+
+.rejectedDot {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.statusSuccess {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.statusWarning {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.statusPending {
+  background-color: #ffedd5;
+  color: #c2410c;
+  font-weight: 600;
+}
+
+.statusInfo {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.statusDanger {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+}
+
+.emptyCell {
+  padding: 48px 16px;
+  color: #94a3b8;
+  font-style: italic;
+}

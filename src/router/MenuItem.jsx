@@ -23,6 +23,7 @@ import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
+import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 

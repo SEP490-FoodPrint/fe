@@ -9,23 +9,39 @@ import OrderFilterStrip from "./component/OrderFilterStrip"
 import CatalogTable from "./component/CatalogTable"
 import OrderPagination from "./component/OrderPagination"
 
+// Các component cho Tab Phiếu giao nhận & Nhập hàng (Chỉ danh sách, thống kê, bộ lọc)
+import DeliveryStatsRail from "./component/DeliveryStatsRail"
+import DeliveryFilterStrip from "./component/DeliveryFilterStrip"
+import DeliveryTable from "./component/DeliveryTable"
+
 import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
 
 export default function IngredientOrders() {
+  // Tab 1: Danh mục nguyên liệu
   const [catalog, setCatalog] = useState([])
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(false)
 
-  // Active tab: "catalog" (mặc định) | "orders" | "deliveries"
+  // Tab 2: Phiếu giao nhận & Nhập hàng
+  const [deliveries, setDeliveries] = useState([])
+
+  // Active tab: "catalog" (mặc định) | "deliveries" | "orders"
   const [activeTab, setActiveTab] = useState("catalog")
 
-  // Filter state
+  // Filter state cho Danh mục nguyên liệu
   const [filters, setFilters] = useState({
     search: "",
     handlingType: "all",
     supplierId: "all",
+  })
+
+  // Filter state cho Phiếu giao nhận
+  const [deliveryFilters, setDeliveryFilters] = useState({
+    search: "",
+    batchType: "all",
+    status: "all",
   })
 
   // Pagination state
@@ -35,14 +51,16 @@ export default function IngredientOrders() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const [catalogRes, suppliersRes] = await Promise.all([
+      const [catalogRes, suppliersRes, deliveriesRes] = await Promise.all([
         IngredientOrderService.getMasterIngredientCatalog(),
         IngredientOrderService.getSuppliers(),
+        IngredientOrderService.getDeliveries(),
       ])
       if (Array.isArray(catalogRes?.items)) setCatalog(catalogRes.items)
       if (Array.isArray(suppliersRes?.items)) setSuppliers(suppliersRes.items)
+      if (Array.isArray(deliveriesRes?.items)) setDeliveries(deliveriesRes.items)
     } catch (err) {
-      console.warn("Lỗi tải danh mục nguyên liệu:", err)
+      console.warn("Lỗi tải dữ liệu:", err)
     } finally {
       setLoading(false)
     }
@@ -62,7 +80,17 @@ export default function IngredientOrders() {
     }
   }, [catalog, suppliers])
 
-  // Lọc dữ liệu danh mục ngay tại Client (nhanh, mượt, không gọi API thừa)
+  // Thống kê cho Phiếu giao nhận
+  const deliveryStats = useMemo(() => {
+    return {
+      total: deliveries.length,
+      batch1Count: deliveries.filter(d => d.batchType === "BATCH_1").length,
+      waitingAttendanceCount: deliveries.filter(d => d.status === "WAITING_ATTENDANCE").length,
+      completedCount: deliveries.filter(d => d.status === "COMPLETED").length,
+    }
+  }, [deliveries])
+
+  // Lọc dữ liệu danh mục ngay tại Client
   const filteredCatalog = useMemo(() => {
     return catalog.filter(it => {
       const matchSearch =
@@ -81,14 +109,51 @@ export default function IngredientOrders() {
     })
   }, [catalog, filters])
 
-  // Phân trang
-  const totalCount = filteredCatalog.length
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE) || 1
-  const paginatedData = useMemo(() => {
+  // Lọc dữ liệu Phiếu giao nhận ngay tại Client
+  const filteredDeliveries = useMemo(() => {
+    return deliveries.filter(d => {
+      const kw = deliveryFilters.search.toLowerCase()
+      const matchSearch =
+        !kw ||
+        d.deliveryNo.toLowerCase().includes(kw) ||
+        d.orderNo.toLowerCase().includes(kw) ||
+        d.supplierName.toLowerCase().includes(kw) ||
+        d.menuName.toLowerCase().includes(kw)
+
+      let matchBatch = true
+      if (deliveryFilters.batchType === "BATCH_1") {
+        matchBatch = d.batchType === "BATCH_1"
+      } else if (deliveryFilters.batchType === "BATCH_2") {
+        matchBatch = d.batchType === "BATCH_2"
+      } else if (deliveryFilters.batchType === "WAITING_ATTENDANCE") {
+        matchBatch = d.status === "WAITING_ATTENDANCE"
+      } else if (deliveryFilters.batchType === "COMPLETED") {
+        matchBatch = d.status === "COMPLETED"
+      }
+
+      const matchStatus =
+        deliveryFilters.status === "all" || d.status === deliveryFilters.status
+
+      return matchSearch && matchBatch && matchStatus
+    })
+  }, [deliveries, deliveryFilters])
+
+  // Phân trang cho Tab hiện tại
+  const currentTotalCount =
+    activeTab === "catalog" ? filteredCatalog.length : filteredDeliveries.length
+  const totalPages = Math.ceil(currentTotalCount / PAGE_SIZE) || 1
+
+  const paginatedCatalog = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE
     return filteredCatalog.slice(start, start + PAGE_SIZE)
   }, [filteredCatalog, page])
 
+  const paginatedDeliveries = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return filteredDeliveries.slice(start, start + PAGE_SIZE)
+  }, [filteredDeliveries, page])
+
+  // Handlers cho Tab 1
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }))
     setPage(1)
@@ -99,6 +164,21 @@ export default function IngredientOrders() {
       search: "",
       handlingType: "all",
       supplierId: "all",
+    })
+    setPage(1)
+  }
+
+  // Handlers cho Tab 2 (Phiếu giao nhận)
+  const handleDeliveryFilterChange = (field, value) => {
+    setDeliveryFilters(prev => ({ ...prev, [field]: value }))
+    setPage(1)
+  }
+
+  const handleResetDeliveryFilters = () => {
+    setDeliveryFilters({
+      search: "",
+      batchType: "all",
+      status: "all",
     })
     setPage(1)
   }
@@ -116,18 +196,19 @@ export default function IngredientOrders() {
           setPage(1)
         }}
         catalogCount={catalog.length}
+        deliveriesCount={deliveries.length}
       />
 
-      {/* Nội dung Tab: Danh mục nguyên liệu */}
-      {activeTab === "catalog" ? (
+      {/* Nội dung Tab 1: Danh mục nguyên liệu */}
+      {activeTab === "catalog" && (
         <>
-          {/* 3. Thẻ thống kê Danh mục nguyên liệu */}
+          {/* Thẻ thống kê Danh mục nguyên liệu */}
           <CatalogStatsRail
             stats={stats}
             onFilterHandlingType={val => handleFilterChange("handlingType", val)}
           />
 
-          {/* 4. Bộ lọc & Tìm kiếm */}
+          {/* Bộ lọc & Tìm kiếm */}
           <OrderFilterStrip
             filters={filters}
             onFilterChange={handleFilterChange}
@@ -135,25 +216,59 @@ export default function IngredientOrders() {
             suppliers={suppliers}
           />
 
-          {/* 5. Bảng Danh mục nguyên liệu chuẩn (Cách hiểu 1) */}
-          <CatalogTable catalog={paginatedData} />
+          {/* Bảng Danh mục nguyên liệu chuẩn (Cách hiểu 1) */}
+          <CatalogTable catalog={paginatedCatalog} />
 
-          {/* 6. Phân trang */}
+          {/* Phân trang */}
           <OrderPagination
             page={page}
             count={totalPages}
-            totalItems={totalCount}
+            totalItems={currentTotalCount}
             pageSize={PAGE_SIZE}
             onPageChange={setPage}
           />
         </>
-      ) : (
+      )}
+
+      {/* Nội dung Tab 2: Phiếu giao nhận & Nhập hàng (Chỉ danh sách, thống kê, bộ lọc) */}
+      {activeTab === "deliveries" && (
+        <>
+          {/* Thẻ thống kê Phiếu giao nhận (Chia 2 đợt & Nghiệm thu 4 bên) */}
+          <DeliveryStatsRail
+            stats={deliveryStats}
+            activeBatchFilter={deliveryFilters.batchType}
+            onFilterBatchType={val => handleDeliveryFilterChange("batchType", val)}
+          />
+
+          {/* Bộ lọc & Tìm kiếm */}
+          <DeliveryFilterStrip
+            filters={deliveryFilters}
+            onFilterChange={handleDeliveryFilterChange}
+            onResetFilters={handleResetDeliveryFilters}
+          />
+
+          {/* Bảng Phiếu giao nhận */}
+          <DeliveryTable deliveries={paginatedDeliveries} />
+
+          {/* Phân trang */}
+          <OrderPagination
+            page={page}
+            count={totalPages}
+            totalItems={currentTotalCount}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        </>
+      )}
+
+      {/* Nội dung Tab 3: Theo dõi đơn hàng (Làm sau cùng với Mục 1) */}
+      {activeTab === "orders" && (
         <Box className={styles.placeholderCard}>
           <Typography variant="h6" gutterBottom>
-            Tab {activeTab === "orders" ? "Đơn đặt hàng (Yêu cầu mua)" : "Phiếu giao nhận & Nhập hàng"}
+            Tab Theo Dõi Đơn Hàng (Order Tracking)
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Phần này sẽ được phát triển tiếp nối sau khi danh mục nguyên liệu đã được rà soát và chuẩn hóa.
+            Tab này sẽ được phát triển kết nối sau khi hoàn thiện phân hệ Quản lý Kho đồ khô (Mục 2), để theo dõi liên kết giữa tồn kho và tiến độ cung ứng của NCC.
           </Typography>
         </Box>
       )}

@@ -265,3 +265,455 @@ export const MOCK_MASTER_INGREDIENT_CATALOG = [
     minOrderQty: 200,
   },
 ]
+
+/**
+ * Danh sách Thực đơn đã được BGH & Y tế phê duyệt (APPROVED)
+ * Cung cấp định lượng món ăn chuẩn để Ban QL NL tạo yêu cầu mua hàng
+ */
+export const MOCK_APPROVED_MENUS = [
+  {
+    id: "menu-20261025",
+    code: "TD-20261025-01",
+    name: "Thực đơn Tiêu chuẩn Ngày 25/10/2026",
+    mealDate: "2026-10-25",
+    mealType: "LUNCH",
+    mealTypeLabel: "Bữa trưa",
+    targetScope: "Toàn trường (Khối 6 - 9)",
+    maxPortions: 850,
+    dishes: [
+      "Thịt lợn nạc xào ngô ngọt",
+      "Canh cải xanh nấu thịt băm",
+      "Bắp cải trắng luộc chấm trứng",
+      "Cơm thơm ST25",
+    ],
+    ingredients: [
+      {
+        id: "ing-lon-02",
+        name: "Thịt lợn nạc mông VietGAP",
+        category: "Thịt & Thủy hải sản",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        qtyPerPortion: 0.05, // 50g / suất
+        supplierId: "sup-bavi-01",
+        supplierName: "HTX Chăn nuôi Sạch Ba Vì",
+        unitPrice: 115000,
+      },
+      {
+        id: "ing-bap-01",
+        name: "Bắp cải trắng Đà Lạt",
+        category: "Rau củ quả",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        qtyPerPortion: 0.06, // 60g / suất
+        supplierId: "sup-dalat-03",
+        supplierName: "Công ty Nông sản An toàn Đà Lạt Green",
+        unitPrice: 18000,
+      },
+      {
+        id: "ing-cai-05",
+        name: "Rau cải xanh VietGAP",
+        category: "Rau củ quả",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        qtyPerPortion: 0.04, // 40g / suất
+        supplierId: "sup-dalat-03",
+        supplierName: "Công ty Nông sản An toàn Đà Lạt Green",
+        unitPrice: 22000,
+      },
+      {
+        id: "ing-trung-08",
+        name: "Trứng gà ta có kiểm dịch",
+        category: "Trứng & bơ sữa",
+        handlingType: "DIRECT_USE",
+        unit: "quả",
+        qtyPerPortion: 0.5, // 1/2 quả / suất
+        supplierId: "sup-chilinh-02",
+        supplierName: "Nông trại Gà đồi Chí Linh",
+        unitPrice: 3200,
+      },
+      {
+        id: "ing-gao-09",
+        name: "Gạo thơm Sóc Trăng ST25 chuẩn",
+        category: "Ngũ cốc & Lương thực",
+        handlingType: "DRY_STOCK",
+        unit: "kg",
+        qtyPerPortion: 0.12, // 120g / suất
+        supplierId: "sup-kho-04",
+        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        unitPrice: 28000,
+      },
+      {
+        id: "ing-dau-10",
+        name: "Dầu thực vật Neptune Gold (Can 20L)",
+        category: "Dầu mỡ & Gia vị",
+        handlingType: "DRY_STOCK",
+        unit: "lít",
+        qtyPerPortion: 0.01, // 10ml / suất
+        supplierId: "sup-kho-04",
+        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        unitPrice: 32500,
+      },
+      {
+        id: "ing-nuocmam-11",
+        name: "Nước mắm truyền thống Phú Quốc 35 độ đạm",
+        category: "Dầu mỡ & Gia vị",
+        handlingType: "DRY_STOCK",
+        unit: "lít",
+        qtyPerPortion: 0.005, // 5ml / suất
+        supplierId: "sup-kho-04",
+        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        unitPrice: 75000,
+      },
+      {
+        id: "ing-muoi-12",
+        name: "Muối tinh sấy i-ốt Hải Châu",
+        category: "Dầu mỡ & Gia vị",
+        handlingType: "DRY_STOCK",
+        unit: "kg",
+        qtyPerPortion: 0.003, // 3g / suất
+        supplierId: "sup-kho-04",
+        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        unitPrice: 8000,
+      },
+    ],
+  },
+  {
+    id: "menu-20261026",
+    code: "TD-20261026-01",
+    name: "Thực đơn Cải thiện Năng lượng Ngày 26/10/2026",
+    mealDate: "2026-10-26",
+    mealType: "LUNCH",
+    mealTypeLabel: "Bữa trưa",
+    targetScope: "Toàn trường (Khối 6 - 9)",
+    maxPortions: 850,
+    dishes: [
+      "Thịt gà ta rang gừng lá chanh",
+      "Canh cà rốt su hào hầm xương",
+      "Rau bắp cải xào tỏi",
+      "Cơm thơm ST25",
+    ],
+    ingredients: [
+      {
+        id: "ing-ga-01",
+        name: "Thịt gà đồi làm sạch VietGAP",
+        category: "Thịt & Thủy hải sản",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        qtyPerPortion: 0.08,
+        supplierId: "sup-chilinh-02",
+        supplierName: "Nông trại Gà đồi Chí Linh",
+        unitPrice: 85000,
+      },
+      {
+        id: "ing-cu-07",
+        name: "Cà rốt tươi loại 1",
+        category: "Rau củ quả",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        qtyPerPortion: 0.04,
+        supplierId: "sup-dalat-03",
+        supplierName: "Công ty Nông sản An toàn Đà Lạt Green",
+        unitPrice: 25000,
+      },
+      {
+        id: "ing-bap-01",
+        name: "Bắp cải trắng Đà Lạt",
+        category: "Rau củ quả",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        qtyPerPortion: 0.06,
+        supplierId: "sup-dalat-03",
+        supplierName: "Công ty Nông sản An toàn Đà Lạt Green",
+        unitPrice: 18000,
+      },
+      {
+        id: "ing-gao-09",
+        name: "Gạo thơm Sóc Trăng ST25 chuẩn",
+        category: "Ngũ cốc & Lương thực",
+        handlingType: "DRY_STOCK",
+        unit: "kg",
+        qtyPerPortion: 0.12,
+        supplierId: "sup-kho-04",
+        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        unitPrice: 28000,
+      },
+    ],
+  },
+]
+
+/**
+ * Danh sách Phiếu giao nhận & Nhập hàng (Deliveries)
+ * Thể hiện chuẩn nghiệp vụ:
+ * 1. Chia 2 đợt (BATCH_1: 50% suất tối đa; BATCH_2: Theo sĩ số GVCN chốt sáng)
+ * 2. Mã QR lô hàng do NCC tạo
+ * 3. Hội đồng nghiệm thu 4 bên (Ban QL NL, Y tế, Ban Phụ huynh, Bên Bếp)
+ * 4. 1 trong 4 bên từ chối -> Yêu cầu NCC giao lại lô khác
+ */
+export const MOCK_DELIVERIES = [
+  {
+    id: "deliv-20261025-01",
+    deliveryNo: "PN-20261025-D1",
+    orderNo: "PO-20261025-01",
+    menuId: "menu-20261025",
+    menuName: "Thực đơn Tiêu chuẩn Ngày 25/10/2026",
+    deliveryDate: "2026-10-25",
+    deliveryTime: "05:30",
+    batchType: "BATCH_1",
+    batchLabel: "Đợt 1 (50% Suất tối đa)",
+    maxPortions: 850,
+    plannedPortions: 425, // 50% của 850
+    supplierId: "sup-bavi-01",
+    supplierName: "HTX Chăn nuôi Sạch Ba Vì & Liên minh NCC",
+    driverName: "Nguyễn Văn Tuấn (Xe lạnh 29H-839.22)",
+    deliveryQr: "QR-LOT-20261025-BV01",
+    refrigerationTemp: "3.8°C",
+    status: "COMPLETED",
+    statusLabel: "Đã duyệt 4/4 & Bàn giao bếp",
+    approvals: {
+      ingredientManagement: { approved: true, name: "Trần Hữu Kiên (Ban QL NL)", time: "05:40" },
+      healthOfficer: { approved: true, name: "BS. Lê Thu Nga (Y tế)", time: "05:42" },
+      parentsCommittee: { approved: true, name: "Bác Phạm Văn Hùng (Ban PH)", time: "05:45" },
+      kitchenStaff: { approved: true, name: "Bếp trưởng Nguyễn Thị Sen", time: "05:48" },
+    },
+    items: [
+      {
+        ingredientName: "Thịt lợn nạc mông VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 21.25, // 425 * 0.05
+        deliveredQty: 21.5,
+        status: "ACCEPTED",
+      },
+      {
+        ingredientName: "Bắp cải trắng Đà Lạt",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 25.5, // 425 * 0.06
+        deliveredQty: 25.5,
+        status: "ACCEPTED",
+      },
+      {
+        ingredientName: "Rau cải xanh VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 17.0, // 425 * 0.04
+        deliveredQty: 17.0,
+        status: "ACCEPTED",
+      },
+      {
+        ingredientName: "Trứng gà ta có kiểm dịch",
+        handlingType: "DIRECT_USE",
+        unit: "quả",
+        orderedQty: 213,
+        deliveredQty: 215,
+        status: "ACCEPTED",
+      },
+    ],
+  },
+  {
+    id: "deliv-20261025-02",
+    deliveryNo: "PN-20261025-D2",
+    orderNo: "PO-20261025-01",
+    menuId: "menu-20261025",
+    menuName: "Thực đơn Tiêu chuẩn Ngày 25/10/2026",
+    deliveryDate: "2026-10-25",
+    deliveryTime: "07:45",
+    batchType: "BATCH_2",
+    batchLabel: "Đợt 2 (Cân đối theo sĩ số GVCN)",
+    maxPortions: 850,
+    batch1Portions: 425,
+    actualAttendance: 820, // GVCN điểm danh chốt 820 HS (nghỉ 30 HS)
+    plannedPortions: 395, // 820 - 425 = 395 suất
+    supplierId: "sup-bavi-01",
+    supplierName: "HTX Chăn nuôi Sạch Ba Vì & Liên minh NCC",
+    driverName: "Nguyễn Văn Tuấn (Xe lạnh 29H-839.22)",
+    deliveryQr: "QR-LOT-20261025-BV02",
+    refrigerationTemp: "4.1°C",
+    status: "INSPECTING",
+    statusLabel: "Đang kiểm tra 4 bên",
+    approvals: {
+      ingredientManagement: { approved: true, name: "Trần Hữu Kiên (Ban QL NL)", time: "07:50" },
+      healthOfficer: { approved: true, name: "BS. Lê Thu Nga (Y tế)", time: "07:52" },
+      parentsCommittee: { approved: null, name: "Bác Phạm Văn Hùng (Ban PH)", time: null }, // Đang kiểm tra
+      kitchenStaff: { approved: true, name: "Bếp trưởng Nguyễn Thị Sen", time: "07:54" },
+    },
+    items: [
+      {
+        ingredientName: "Thịt lợn nạc mông VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 19.75, // 395 * 0.05
+        deliveredQty: 20.0,
+        status: "CHECKING",
+      },
+      {
+        ingredientName: "Bắp cải trắng Đà Lạt",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 23.7, // 395 * 0.06
+        deliveredQty: 23.7,
+        status: "CHECKING",
+      },
+      {
+        ingredientName: "Rau cải xanh VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 15.8, // 395 * 0.04
+        deliveredQty: 15.8,
+        status: "CHECKING",
+      },
+      {
+        ingredientName: "Trứng gà ta có kiểm dịch",
+        handlingType: "DIRECT_USE",
+        unit: "quả",
+        orderedQty: 198,
+        deliveredQty: 200,
+        status: "CHECKING",
+      },
+    ],
+  },
+  {
+    id: "deliv-20261026-01",
+    deliveryNo: "PN-20261026-D1",
+    orderNo: "PO-20261026-01",
+    menuId: "menu-20261026",
+    menuName: "Thực đơn Cải thiện Năng lượng Ngày 26/10/2026",
+    deliveryDate: "2026-10-26",
+    deliveryTime: "05:30",
+    batchType: "BATCH_1",
+    batchLabel: "Đợt 1 (50% Suất tối đa)",
+    maxPortions: 850,
+    plannedPortions: 425,
+    supplierId: "sup-chilinh-02",
+    supplierName: "Nông trại Gà đồi Chí Linh & Đà Lạt Green",
+    driverName: "Trần Minh Hoàng (Xe 34C-129.50)",
+    deliveryQr: "QR-LOT-20261026-CL01",
+    refrigerationTemp: "2.9°C",
+    status: "CONFIRMED",
+    statusLabel: "NCC đang chuẩn bị hàng",
+    approvals: {
+      ingredientManagement: { approved: null, name: "Ban QL NL" },
+      healthOfficer: { approved: null, name: "Y tế" },
+      parentsCommittee: { approved: null, name: "Ban PH" },
+      kitchenStaff: { approved: null, name: "Bên Bếp" },
+    },
+    items: [
+      {
+        ingredientName: "Thịt gà đồi làm sạch VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 34.0, // 425 * 0.08
+        deliveredQty: 0,
+        status: "WAITING",
+      },
+      {
+        ingredientName: "Cà rốt tươi loại 1",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 17.0, // 425 * 0.04
+        deliveredQty: 0,
+        status: "WAITING",
+      },
+      {
+        ingredientName: "Bắp cải trắng Đà Lạt",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 25.5,
+        deliveredQty: 0,
+        status: "WAITING",
+      },
+    ],
+  },
+  {
+    id: "deliv-20261026-02",
+    deliveryNo: "PN-20261026-D2",
+    orderNo: "PO-20261026-01",
+    menuId: "menu-20261026",
+    menuName: "Thực đơn Cải thiện Năng lượng Ngày 26/10/2026",
+    deliveryDate: "2026-10-26",
+    deliveryTime: "07:45",
+    batchType: "BATCH_2",
+    batchLabel: "Đợt 2 (Chờ GVCN chốt sĩ số)",
+    maxPortions: 850,
+    batch1Portions: 425,
+    actualAttendance: null, // Chưa có sĩ số
+    plannedPortions: 425, // Dự kiến tạm tính
+    supplierId: "sup-chilinh-02",
+    supplierName: "Nông trại Gà đồi Chí Linh & Đà Lạt Green",
+    driverName: "--",
+    deliveryQr: "--",
+    refrigerationTemp: "--",
+    status: "WAITING_ATTENDANCE",
+    statusLabel: "Chờ GVCN báo sĩ số sáng",
+    approvals: {
+      ingredientManagement: { approved: null },
+      healthOfficer: { approved: null },
+      parentsCommittee: { approved: null },
+      kitchenStaff: { approved: null },
+    },
+    items: [
+      {
+        ingredientName: "Thịt gà đồi làm sạch VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 34.0,
+        deliveredQty: 0,
+        status: "WAITING",
+      },
+      {
+        ingredientName: "Cà rốt tươi loại 1",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 17.0,
+        deliveredQty: 0,
+        status: "WAITING",
+      },
+      {
+        ingredientName: "Bắp cải trắng Đà Lạt",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 25.5,
+        deliveredQty: 0,
+        status: "WAITING",
+      },
+    ],
+  },
+  {
+    id: "deliv-20261024-REJ",
+    deliveryNo: "PN-20261024-D1-REJ",
+    orderNo: "PO-20261024-00",
+    menuId: "menu-20261025",
+    menuName: "Thực đơn Ngày 24/10/2026",
+    deliveryDate: "2026-10-24",
+    deliveryTime: "05:15",
+    batchType: "BATCH_1",
+    batchLabel: "Đợt 1 (50% Suất tối đa)",
+    maxPortions: 850,
+    plannedPortions: 425,
+    supplierId: "sup-dalat-03",
+    supplierName: "Công ty Nông sản An toàn Đà Lạt Green",
+    driverName: "Đặng Văn Nam (Xe 29B-441.90)",
+    deliveryQr: "QR-LOT-20261024-DL01",
+    refrigerationTemp: "14.5°C (Quá ngưỡng quy định)",
+    status: "REJECTED",
+    statusLabel: "Từ chối 1 trong 4 bên (Yêu cầu giao lại)",
+    rejectionReason:
+      "BS. Lê Thu Nga (Y tế) & Bác Phạm Văn Hùng (Ban PH) từ chối: Thùng xe lạnh bị hỏng máy lạnh (14.5°C), rau cải bị dập nát > 25% và có mùi úng. Yêu cầu NCC đổi xe khác trước 06h15.",
+    approvals: {
+      ingredientManagement: { approved: true, name: "Trần Hữu Kiên (Ban QL NL)" },
+      healthOfficer: { approved: false, name: "BS. Lê Thu Nga (Y tế) - TỪ CHỐI" },
+      parentsCommittee: { approved: false, name: "Bác Phạm Văn Hùng (Ban PH) - TỪ CHỐI" },
+      kitchenStaff: { approved: true, name: "Bếp trưởng Nguyễn Thị Sen" },
+    },
+    items: [
+      {
+        ingredientName: "Rau cải xanh VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 17.0,
+        deliveredQty: 17.0,
+        status: "REJECTED",
+      },
+    ],
+  },
+]
