@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback } from "react"
 import {
   DISH_CATEGORIES,
   CATALOG_SUPPLIERS,
+  SUPPLIER_INGREDIENTS,
   getStoredDishCatalog,
   saveDishToCatalog,
 } from "src/pages/SCHOOL/MenuPlanning/dishCatalogData"
@@ -16,23 +17,15 @@ const CAT_STYLE = {
   DESSERT:     styles.catDessert,
 }
 
-const MEAL_LABEL = {
-  LUNCH:     { label: "Bữa trưa", cls: styles.mealLunch },
-  AFTERNOON: { label: "Bữa xế",  cls: styles.mealAfter },
-  BOTH:      { label: "Cả hai ca", cls: styles.mealBoth },
-}
-
 const EMPTY_FORM = {
   name: "",
   category: "MAIN_DISH",
-  mealType: "LUNCH",
   portionQty: "",
   unit: "g",
   mainIngredient: "",
   supplierId: "sup-cp",
   supplierName: "CP Foods Việt Nam",
   customSupplierName: "",
-  description: "",
 }
 
 export default function DishCatalogPage() {
@@ -45,6 +38,12 @@ export default function DishCatalogPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingDish, setEditingDish] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [isCustomIngredient, setIsCustomIngredient] = useState(false)
+
+  // Danh sách nguyên liệu theo NCC đang chọn trong form
+  const currentSupplierIngredients = useMemo(() => {
+    return SUPPLIER_INGREDIENTS[form.supplierId] || []
+  }, [form.supplierId])
 
   // Modal xác nhận xóa
   const [deletingDish, setDeletingDish] = useState(null)
@@ -64,8 +63,7 @@ export default function DishCatalogPage() {
         (d) =>
           d.name.toLowerCase().includes(q) ||
           (d.mainIngredient || "").toLowerCase().includes(q) ||
-          (d.supplierName || "").toLowerCase().includes(q) ||
-          (d.description || "").toLowerCase().includes(q)
+          (d.supplierName || "").toLowerCase().includes(q)
       )
     }
     return list
@@ -81,7 +79,19 @@ export default function DishCatalogPage() {
   /* ─── Handlers ───────────────────────────────── */
   const openAdd = useCallback(() => {
     setEditingDish(null)
-    setForm(EMPTY_FORM)
+    setIsCustomIngredient(false)
+    const defaultSupplierId = "sup-cp"
+    const ings = SUPPLIER_INGREDIENTS[defaultSupplierId] || []
+    setForm({
+      name: "",
+      category: "MAIN_DISH",
+      portionQty: "",
+      unit: "g",
+      mainIngredient: ings[0] || "",
+      supplierId: defaultSupplierId,
+      supplierName: "CP Foods Việt Nam",
+      customSupplierName: "",
+    })
     setModalOpen(true)
   }, [])
 
@@ -89,18 +99,22 @@ export default function DishCatalogPage() {
     const knownSupplier = CATALOG_SUPPLIERS.find(
       (s) => s.id === dish.supplierId || s.name === dish.supplierName
     )
+    const supId = knownSupplier ? knownSupplier.id : "CUSTOM"
+    const currentIng = dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
+    const supIngs = SUPPLIER_INGREDIENTS[supId] || []
+    const isCustom = supId === "CUSTOM" || (currentIng && !supIngs.includes(currentIng))
+
     setEditingDish(dish)
+    setIsCustomIngredient(Boolean(isCustom))
     setForm({
       name: dish.name || "",
       category: dish.category || "MAIN_DISH",
-      mealType: dish.mealType || "LUNCH",
       portionQty: dish.portionQty ?? "",
       unit: dish.unit || "g",
-      mainIngredient: dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || "",
-      supplierId: knownSupplier ? knownSupplier.id : "CUSTOM",
+      mainIngredient: currentIng,
+      supplierId: supId,
       supplierName: dish.supplierName || (knownSupplier ? knownSupplier.name : "CP Foods Việt Nam"),
       customSupplierName: knownSupplier ? "" : (dish.supplierName || ""),
-      description: dish.description || "",
     })
     setModalOpen(true)
   }, [])
@@ -108,6 +122,7 @@ export default function DishCatalogPage() {
   const closeModal = useCallback(() => {
     setModalOpen(false)
     setEditingDish(null)
+    setIsCustomIngredient(false)
     setForm(EMPTY_FORM)
   }, [])
 
@@ -118,8 +133,13 @@ export default function DishCatalogPage() {
         if (value !== "CUSTOM") {
           const sup = CATALOG_SUPPLIERS.find((s) => s.id === value)
           next.supplierName = sup ? sup.name : ""
+          const ings = SUPPLIER_INGREDIENTS[value] || []
+          next.mainIngredient = ings[0] || ""
+          setIsCustomIngredient(false)
         } else {
           next.supplierName = next.customSupplierName || ""
+          next.mainIngredient = ""
+          setIsCustomIngredient(true)
         }
       }
       return next
@@ -153,13 +173,16 @@ export default function DishCatalogPage() {
         d.id === editingDish.id
           ? {
               ...d,
-              ...form,
-              portionQty: Number(form.portionQty) || 50,
+              name: form.name.trim(),
+              category: form.category,
               categoryLabel: catInfo?.label || "Món ăn",
+              portionQty: Number(form.portionQty) || 50,
+              unit: form.unit || "g",
               mainIngredient: mainIng,
               supplierId: finalSupplierId,
               supplierName: finalSupplierName,
               supplierBadge: finalSupplierBadge,
+              ingredientNames: [mainIng],
             }
           : d
       )
@@ -171,9 +194,11 @@ export default function DishCatalogPage() {
       }
     } else {
       const newDish = {
-        ...form,
-        portionQty: Number(form.portionQty) || 50,
+        name: form.name.trim(),
+        category: form.category,
         categoryLabel: catInfo?.label || "Món ăn",
+        portionQty: Number(form.portionQty) || 50,
+        unit: form.unit || "g",
         mainIngredient: mainIng,
         supplierId: finalSupplierId,
         supplierName: finalSupplierName,
@@ -267,7 +292,7 @@ export default function DishCatalogPage() {
         </div>
       </div>
 
-      {/* Bảng danh sách món ăn (Đã bỏ cột cảnh báo dị ứng) */}
+      {/* Bảng danh sách món ăn (Đã bỏ cột ca ăn, bỏ mô tả, không check dị ứng) */}
       <div className={styles.tableWrap}>
         {filtered.length === 0 ? (
           <div className={styles.empty}>
@@ -278,18 +303,16 @@ export default function DishCatalogPage() {
             <thead>
               <tr>
                 <th style={{ width: 45, textAlign: "center" }}>#</th>
-                <th style={{ minWidth: 200 }}>Tên món ăn</th>
-                <th style={{ width: 140 }}>Nhóm món</th>
-                <th style={{ width: 110 }}>Ca ăn</th>
-                <th style={{ width: 125 }}>Định lượng / suất</th>
-                <th style={{ minWidth: 260 }}>Nguyên liệu chính & NCC</th>
+                <th style={{ minWidth: 220 }}>Tên món ăn</th>
+                <th style={{ width: 150 }}>Nhóm món</th>
+                <th style={{ width: 140 }}>Định lượng / suất</th>
+                <th style={{ minWidth: 280 }}>Nguyên liệu chính & NCC</th>
                 <th style={{ width: 100, textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map((dish, idx) => {
                 const catClass = CAT_STYLE[dish.category] || ""
-                const mealStyle = MEAL_LABEL[dish.mealType] || MEAL_LABEL.LUNCH
                 const mainIng = dish.mainIngredient || dish.ingredientNames?.[0] || dish.name
                 return (
                   <tr key={dish.id}>
@@ -298,22 +321,10 @@ export default function DishCatalogPage() {
                     </td>
                     <td>
                       <div className={styles.dishName}>{dish.name}</div>
-                      {dish.description && (
-                        <div className={styles.dishDesc} title={dish.description}>
-                          {dish.description.length > 70
-                            ? dish.description.slice(0, 70) + "…"
-                            : dish.description}
-                        </div>
-                      )}
                     </td>
                     <td>
                       <span className={`${styles.catBadge} ${catClass}`}>
                         {dish.categoryLabel || dish.category}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`${styles.mealBadge} ${mealStyle.cls}`}>
-                        {mealStyle.label}
                       </span>
                     </td>
                     <td className={styles.portionCell}>
@@ -354,7 +365,7 @@ export default function DishCatalogPage() {
         )}
       </div>
 
-      {/* Modal Thêm / Sửa món ăn (Không dùng icon, không nhập dị ứng) */}
+      {/* Modal Thêm / Sửa món ăn (Không ca ăn, không mô tả, chọn nguyên liệu theo NCC) */}
       {modalOpen && (
         <div
           className={styles.modalOverlay}
@@ -402,20 +413,6 @@ export default function DishCatalogPage() {
                   </select>
                 </div>
 
-                {/* Loại ca ăn */}
-                <div>
-                  <label className={styles.formLabel}>Loại ca ăn</label>
-                  <select
-                    className={styles.formSelect}
-                    value={form.mealType}
-                    onChange={(e) => handleFormChange("mealType", e.target.value)}
-                  >
-                    <option value="LUNCH">Bữa trưa</option>
-                    <option value="AFTERNOON">Bữa xế</option>
-                    <option value="BOTH">Cả hai ca</option>
-                  </select>
-                </div>
-
                 {/* Định lượng / suất */}
                 <div>
                   <label className={styles.formLabel}>
@@ -426,7 +423,7 @@ export default function DishCatalogPage() {
                       type="number"
                       min="1"
                       className={`${styles.formInput} ${styles.portionInput}`}
-                      placeholder="Số lượng (g, ml)"
+                      placeholder="Số lượng"
                       value={form.portionQty}
                       onChange={(e) => handleFormChange("portionQty", e.target.value)}
                     />
@@ -443,24 +440,10 @@ export default function DishCatalogPage() {
                   </div>
                 </div>
 
-                {/* Nguyên liệu chính */}
-                <div>
-                  <label className={styles.formLabel}>
-                    Nguyên liệu chính <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    placeholder="Ví dụ: Thịt ba chỉ heo sạch CP, Gạo tám thơm..."
-                    value={form.mainIngredient}
-                    onChange={(e) => handleFormChange("mainIngredient", e.target.value)}
-                  />
-                </div>
-
                 {/* Nhà cung cấp liên kết (NCC) */}
                 <div className={styles.formFullRow}>
                   <label className={styles.formLabel}>
-                    Nhà cung cấp (NCC) cung ứng <span className={styles.required}>*</span>
+                    Nhà cung cấp (NCC) liên kết <span className={styles.required}>*</span>
                   </label>
                   <select
                     className={styles.formSelect}
@@ -472,7 +455,7 @@ export default function DishCatalogPage() {
                         {s.name} ({s.badge})
                       </option>
                     ))}
-                    <option value="CUSTOM">Nhà cung cấp khác (Tự nhập tên)...</option>
+                    <option value="CUSTOM">Nhà cung cấp đối tác khác (Tự nhập tên)...</option>
                   </select>
                 </div>
 
@@ -492,15 +475,55 @@ export default function DishCatalogPage() {
                   </div>
                 )}
 
-                {/* Mô tả */}
+                {/* Nguyên liệu chính: Tự động hiển thị danh mục theo NCC đã chọn */}
                 <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>Mô tả món ăn / ghi chú chế biến</label>
-                  <textarea
-                    className={styles.formTextarea}
-                    placeholder="Thông tin thành phần, đặc tính dinh dưỡng, ghi chú cách nấu..."
-                    value={form.description}
-                    onChange={(e) => handleFormChange("description", e.target.value)}
-                  />
+                  <label className={styles.formLabel}>
+                    Nguyên liệu chính (Cung cấp bởi {form.supplierId === "CUSTOM" ? (form.customSupplierName || "NCC đối tác") : form.supplierName}) <span className={styles.required}>*</span>
+                  </label>
+
+                  {form.supplierId !== "CUSTOM" && currentSupplierIngredients.length > 0 ? (
+                    <div className={styles.ingredientSelectWrap}>
+                      <select
+                        className={styles.formSelect}
+                        value={isCustomIngredient ? "CUSTOM_ING" : form.mainIngredient}
+                        onChange={(e) => {
+                          if (e.target.value === "CUSTOM_ING") {
+                            setIsCustomIngredient(true)
+                            handleFormChange("mainIngredient", "")
+                          } else {
+                            setIsCustomIngredient(false)
+                            handleFormChange("mainIngredient", e.target.value)
+                          }
+                        }}
+                      >
+                        {currentSupplierIngredients.map((ing) => (
+                          <option key={ing} value={ing}>
+                            {ing}
+                          </option>
+                        ))}
+                        <option value="CUSTOM_ING">+ Nhập nguyên liệu khác của NCC này...</option>
+                      </select>
+
+                      {isCustomIngredient && (
+                        <input
+                          type="text"
+                          className={`${styles.formInput} ${styles.customIngInput}`}
+                          placeholder="Nhập tên nguyên liệu mới do NCC này cung cấp..."
+                          value={form.mainIngredient}
+                          onChange={(e) => handleFormChange("mainIngredient", e.target.value)}
+                          autoFocus
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      placeholder="Nhập tên nguyên liệu chính (ví dụ: Gạo tám thơm, Thịt heo sạch CP...)"
+                      value={form.mainIngredient}
+                      onChange={(e) => handleFormChange("mainIngredient", e.target.value)}
+                    />
+                  )}
                 </div>
               </div>
             </div>
@@ -513,7 +536,7 @@ export default function DishCatalogPage() {
                 type="button"
                 className={styles.saveBtn}
                 onClick={handleSave}
-                disabled={!form.name.trim() || !form.portionQty}
+                disabled={!form.name.trim() || !form.portionQty || !form.mainIngredient.trim()}
               >
                 {editingDish ? "Lưu thay đổi" : "Lưu vào Kho món ăn"}
               </button>

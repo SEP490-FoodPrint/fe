@@ -544,6 +544,17 @@
   flex-shrink: 0;
 }
 
+.ingredientSelectWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.customIngInput {
+  margin-top: 4px;
+}
+
 .modalFooter {
   display: flex;
   justify-content: flex-end;

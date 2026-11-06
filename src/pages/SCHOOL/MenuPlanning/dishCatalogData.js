@@ -31,6 +31,73 @@ export const CATALOG_SUPPLIERS = [
   { id: "sup-milk", name: "Sữa Tươi TH True Milk", badge: "Chuẩn Organic" },
 ];
 
+/**
+ * Danh mục nguyên liệu do từng Nhà cung cấp (NCC) cung ứng
+ * Khi thêm món ăn, Cán bộ Y tế chọn NCC thì các nguyên liệu tương ứng sẽ hiển thị ra để chọn
+ */
+export const SUPPLIER_INGREDIENTS = {
+  "sup-rice": [
+    "Gạo tám thơm Hải Hậu",
+    "Gạo sạch hữu cơ",
+    "Gạo lứt đỏ huyết rồng",
+    "Nếp cái hoa vàng & Bắp nếp",
+    "Gạo thơm ST25",
+    "Bắp nếp ngọt non",
+  ],
+  "sup-cp": [
+    "Thịt ba chỉ heo sạch CP",
+    "Thịt nạc thăn heo CP",
+    "Thịt nạc vai heo CP",
+    "Thịt đùi gà phi lê CP",
+    "Thịt ức gà tươi xé CP",
+    "Giò lụa nạc heo CP",
+    "Xúc xích tiệt trùng CP",
+    "Thịt heo nạc xay CP",
+  ],
+  "sup-vis": [
+    "Thịt bò nạc Vissan",
+    "Thịt bò Úc xay Vissan",
+    "Giò sống nạc heo Vissan",
+    "Thịt heo xay Vissan",
+    "Thịt nạc thăn heo Vissan",
+  ],
+  "sup-sea": [
+    "Tôm sú biển tươi Vũng Tàu",
+    "Tôm nõn bóc vỏ Vũng Tàu",
+    "Mực ống tươi sạch",
+    "Cá basa phi lê sạch",
+    "Phi lê cá hồi Nauy",
+    "Ngao biển tươi sống",
+    "Chả cá thu tươi Vũng Tàu",
+  ],
+  "sup-veg": [
+    "Cải thìa xanh VietGAP",
+    "Đậu bắp non Đà Lạt",
+    "Bắp cải trắng Mộc Châu",
+    "Đậu cô ve tươi",
+    "Nấm đùi gà & nấm hương tươi",
+    "Rau muống sạch VietGAP",
+    "Mồng tơi & Cua đồng tươi",
+    "Bí đỏ hồ lô",
+    "Cải xoong VietGAP",
+    "Cà chua Đà Lạt",
+    "Cà rốt & Su hào tươi",
+  ],
+  "sup-egg": [
+    "Trứng gà Ba Huân",
+    "Trứng cút sạch Ba Huân",
+    "Trứng vịt muối Ba Huân",
+    "Đậu hũ non & Trứng Ba Huân",
+  ],
+  "sup-milk": [
+    "Sữa bò tươi nguyên chất TH True Milk",
+    "Sữa chua tự nhiên TH True Milk",
+    "Sữa chua uống tiệt trùng TH",
+    "Bơ kem tươi tự nhiên TH",
+    "Kem tươi bơ sữa TH",
+  ],
+};
+
 export const INITIAL_DISH_CATALOG = [
   // ==========================================================
   // NHÓM 1: CƠM & TINH BỘT (GẠO LÀ MÓN ĂN CHÍNH)
