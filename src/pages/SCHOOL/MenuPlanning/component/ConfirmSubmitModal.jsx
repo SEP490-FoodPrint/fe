@@ -38,10 +38,6 @@ export default function ConfirmSubmitModal({
               </strong>
             </div>
             <div className={styles.summaryItem}>
-              <span className={styles.summaryLabel}>Quy mô phục vụ:</span>
-              <strong className={styles.summaryVal}>{menuData.portionCount} suất học sinh</strong>
-            </div>
-            <div className={styles.summaryItem}>
               <span className={styles.summaryLabel}>Cơ cấu món ăn:</span>
               <strong className={styles.summaryVal}>{dishesCount} món ăn chính</strong>
             </div>

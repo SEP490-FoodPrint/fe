@@ -50,10 +50,10 @@ export default function DocumentDialog({ document, organization, onClose }) {
           </article>
         </div> : !url && loading ? <div role="status" aria-live="polite"><CircularProgress size={28} /><span>Đang tải tệp…</span></div> : !url || failed ? <Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{error || "Không thể xem tệp này."}{url && <Button component="a" href={url} target="_blank" rel="noopener noreferrer">Mở tệp gốc</Button>}</Alert> : <div className={styles.realPreview}>
           {loading && <div className={styles.loading} role="status"><CircularProgress size={28} /><span>Đang tải tệp…</span></div>}
-          {isImage ? <img key={url} src={url} referrerPolicy="no-referrer" alt={document?.file_name || document?.name || "Tệp minh chứng"} onLoad={() => setLoading(false)} onError={() => { setFailed(true); setLoading(false) }} />
+          {isImage ? <a className={styles.previewLink} href={url} target="_blank" rel="noopener noreferrer" title="Mở tệp gốc trong tab mới" aria-label={`Mở tệp gốc ${document?.file_name || document?.name || "minh chứng"} trong tab mới`}>
+            <img key={url} src={url} referrerPolicy="no-referrer" alt={document?.file_name || document?.name || "Tệp minh chứng"} onLoad={() => setLoading(false)} onError={() => { setFailed(true); setLoading(false) }} />
+          </a>
             : <iframe key={url} src={url} referrerPolicy="no-referrer" title={document?.file_name || document?.name || "Tài liệu minh chứng"} onLoad={() => setLoading(false)} onError={() => { setFailed(true); setLoading(false) }} />}
-          <Button component="a" href={url} target="_blank" rel="noopener noreferrer">Mở tệp gốc</Button>
-          <Button onClick={() => setRetry(value => value + 1)}>Tải lại</Button>
         </div>}
       </DialogContent>
     </Dialog>

@@ -1,0 +1,54 @@
+.filterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--border-default, #e5e7eb);
+}
+
+.filterInputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  flex: 1;
+}
+
+.searchInput {
+  min-width: 280px;
+  flex: 1;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 8px;
+    background-color: #f9fafb;
+  }
+}
+
+.searchIcon {
+  color: var(--text-secondary, #9ca3af);
+}
+
+.selectInput {
+  min-width: 200px;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 8px;
+    background-color: #f9fafb;
+  }
+}
+
+.resetBtn {
+  color: var(--text-secondary, #6b7280);
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+
+  &:hover {
+    color: var(--color-primary, #1e7e34);
+    background-color: var(--color-primary-soft, #f0fdf4);
+  }
+}

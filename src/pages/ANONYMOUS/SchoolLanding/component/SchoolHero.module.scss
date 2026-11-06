@@ -99,23 +99,21 @@
 }
 
 .metaGrid {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
   padding-top: var(--space-2);
-
-  @media (min-width: 576px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+  width: 100%;
 }
 
 .metaCard {
   display: flex;
   align-items: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-3);
+  gap: var(--space-3);
+  padding: 12px var(--space-4);
   border-radius: var(--radius-lg);
   background-color: var(--bg-muted);
+  border: 1px solid var(--border-default);
 }
 
 .metaIcon {
@@ -127,18 +125,24 @@
 .metaContent {
   display: flex;
   flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .metaLabel {
   font-size: 11px;
+  font-weight: 500;
   color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .metaValue {
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: var(--font-semibold);
   color: var(--text-primary);
-  line-height: var(--leading-tight);
+  line-height: var(--leading-normal);
+  word-break: break-word;
 }
 
 .ctaGroup {

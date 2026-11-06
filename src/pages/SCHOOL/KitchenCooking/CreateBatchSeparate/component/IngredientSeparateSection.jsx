@@ -1,12 +1,14 @@
-import React from "react"
+import React from "react";
 import {
   ShieldCheck,
   CheckCircle2,
   PackageCheck,
   Layers,
-  Split
-} from "lucide-react"
-import styles from "./IngredientSeparateSection.module.scss"
+  Split,
+  Calendar,
+  Sparkles,
+} from "lucide-react";
+import styles from "./IngredientSeparateSection.module.scss";
 
 const INGREDIENTS_DATA = [
   {
@@ -21,14 +23,14 @@ const INGREDIENTS_DATA = [
     lots: [
       {
         code: "LOT-HEO-892",
-        exp: "12/11/2024",
+        exp: "12/11/2026",
         available: "50.0 kg",
         allocated: "50.0 kg",
         targetBatch: "Lô 1 (731 suất)",
       },
       {
         code: "LOT-HEO-893",
-        exp: "13/11/2024",
+        exp: "13/11/2026",
         available: "60.0 kg",
         allocated: "35.5 kg",
         targetBatch: "Lô 2 (519 suất)",
@@ -47,7 +49,7 @@ const INGREDIENTS_DATA = [
     lots: [
       {
         code: "LOT-CUT-224",
-        exp: "20/11/2024",
+        exp: "20/11/2026",
         available: "3.000 quả",
         allocated: "2.500 quả",
         targetBatch: "Phân bổ 2 lô",
@@ -66,7 +68,7 @@ const INGREDIENTS_DATA = [
     lots: [
       {
         code: "LOT-DUA-018",
-        exp: "15/11/2024",
+        exp: "15/11/2026",
         available: "120.0 lít",
         allocated: "80.0 lít",
         targetBatch: "Phân bổ 2 lô",
@@ -85,124 +87,153 @@ const INGREDIENTS_DATA = [
     lots: [
       {
         code: "LOT-GVI-045",
-        exp: "30/12/2024",
+        exp: "30/12/2026",
         available: "15.0 kg",
         allocated: "4.2 kg",
         targetBatch: "Phân bổ 2 lô",
       },
     ],
   },
-]
+];
 
-export default function IngredientSeparateSection() {
+export default function IngredientSeparateSection({
+  selectedDish,
+  portions = 1250,
+}) {
+  if (!selectedDish) {
+    return (
+      <section className={styles.sectionContainer}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.titleWithBadge}>
+            <div className={styles.numberBadge}>2</div>
+            <div>
+              <h2 className={styles.sectionTitle}>
+                2. Đối soát & Phân tách lô theo nguồn gốc
+              </h2>
+              <p className={styles.sectionSubtitle}>
+                Chính sách nấu riêng: Không gộp các lô khác nguồn vào cùng một
+                nồi nấu
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIconBox}>
+            <PackageCheck size={26} />
+          </div>
+          <h3 className={styles.emptyTitle}>Chưa chọn món ăn cần chế biến</h3>
+          <p className={styles.emptyDesc}>
+            Vui lòng chọn món ăn ở <strong>Bước 1</strong> để hệ thống phân tách
+            các lô nguyên liệu theo quy chuẩn nấu riêng 1:1.
+          </p>
+          <div className={styles.emptyHintBadge}>
+            <Sparkles size={12} />
+            <span>Phân tách lô độc lập đảm bảo truy xuất nguồn gốc</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className={styles.sectionContainer}>
-      {/* Header phần 2 */}
       <div className={styles.sectionHeader}>
         <div className={styles.titleWithBadge}>
           <div className={styles.numberBadge}>2</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              2. Chọn lô nguyên liệu &amp; Đối soát định lượng
+              2. Đối soát & Phân tách lô theo nguồn gốc ({selectedDish.name})
             </h2>
             <p className={styles.sectionSubtitle}>
-              Tự động phân tách lô theo nguồn gốc xuất xứ nguyên liệu chính
+              Chính sách nấu riêng: Phân tách nguồn nguyên liệu thành 02 lô độc
+              lập để truy xuất nguồn gốc 1:1
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Banner quy chuẩn nấu riêng 1:1 của nhà trường */}
-      <div className={styles.policyBanner}>
-        <ShieldCheck size={18} className={styles.policyIcon} />
-        <div className={styles.policyContent}>
-          <div className={styles.policyMeta}>
-            <span className={styles.policyTitle}>
-              Quy định trường: Nấu riêng 1:1 theo lô nguyên liệu
-            </span>
-            <span className={styles.bullet}>•</span>
-            <span className={styles.mealTime}>Giờ ăn: Bữa trưa (11:15)</span>
-          </div>
-          <p className={styles.policyDesc}>
-            Khi nguyên liệu chính có nhiều lô hàng khác nhau, hệ thống tự động tách thành các
-            lô chế biến độc lập để bảo đảm tính truy xuất nguồn gốc số hóa riêng biệt 1:1.
-          </p>
+        <div className={styles.autoMatchedTag}>
+          <ShieldCheck size={14} />
+          <span>Tách lô nguyên liệu đạt chuẩn</span>
         </div>
       </div>
 
-      {/* 1. Desktop View: Bảng đối soát phân tách lô (Hiện trên Desktop >= 768px) */}
+      {/* Desktop Table View */}
       <div className={styles.desktopTableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thLeft}>Nguyên liệu &amp; Nhà cung cấp</th>
-              <th>Tổng định lượng</th>
-              <th>Mã lô (HSD)</th>
-              <th className={styles.textRight}>Tồn khả dụng</th>
-              <th className={styles.textRight}>Xuất lấy</th>
-              <th>Phân bổ phiên nấu</th>
-              <th className={`${styles.thRight} ${styles.textCenter}`}>Đối soát</th>
+              <th className={styles.thLeft} style={{ width: "25%" }}>
+                Nguyên liệu & Nhà cung cấp
+              </th>
+              <th className={styles.thLeft} style={{ width: "15%" }}>
+                Mã lô nhập kho
+              </th>
+              <th className={styles.thLeft} style={{ width: "13%" }}>
+                Hạn sử dụng
+              </th>
+              <th className={styles.thRight} style={{ width: "13%" }}>
+                Tồn khả dụng
+              </th>
+              <th className={styles.thRight} style={{ width: "14%" }}>
+                Định mức lấy
+              </th>
+              <th className={styles.thLeft} style={{ width: "20%" }}>
+                Phân bổ mẻ nấu
+              </th>
             </tr>
           </thead>
           <tbody>
             {INGREDIENTS_DATA.map((ing) => (
               <React.Fragment key={ing.id}>
                 {ing.lots.map((lot, idx) => (
-                  <tr key={lot.code} className={styles.trHover}>
+                  <tr key={lot.code}>
                     {idx === 0 && (
-                      <td className={styles.alignTop} rowSpan={ing.lots.length}>
+                      <td rowSpan={ing.lots.length} className={styles.alignTop}>
                         <div className={styles.ingredientInfo}>
-                          <span className={styles.ingredientName}>{ing.name}</span>
-                          <span className={styles.supplierName}>{ing.supplier}</span>
+                          <span className={styles.ingredientName}>
+                            {ing.name}
+                          </span>
+                          <span className={styles.supplierName}>
+                            {ing.supplier}
+                          </span>
                           {ing.isSplit && (
                             <span className={styles.tagSplit}>
                               <Split size={11} />
-                              <span>Tách {ing.lots.length} lô</span>
+                              <span>Tách 02 mẻ độc lập</span>
                             </span>
                           )}
                         </div>
                       </td>
                     )}
 
-                    {idx === 0 && (
-                      <td className={styles.alignTop} rowSpan={ing.lots.length}>
-                        <div className={styles.totalRequired}>
-                          <span className={styles.requiredAmount}>{ing.totalRequired}</span>
-                          <span className={styles.portionNote}>{ing.portionNote}</span>
-                        </div>
-                      </td>
-                    )}
+                    <td className={styles.compactTd}>
+                      <span className={styles.lotCode}>{lot.code}</span>
+                    </td>
 
                     <td className={styles.compactTd}>
-                      <div className={styles.lotInfo}>
-                        <span className={styles.lotCode}>{lot.code}</span>
-                        <span className={styles.lotExp}>(HSD: {lot.exp})</span>
-                      </div>
+                      <span className={styles.lotExp}>{lot.exp}</span>
                     </td>
 
-                    <td className={`${styles.compactTd} ${styles.textRight}`}>
-                      {lot.available}
-                    </td>
+                    <td className={styles.textRight}>{lot.available}</td>
 
-                    <td className={`${styles.compactTd} ${styles.textRight}`}>
+                    <td className={styles.textRight}>
                       <span className={styles.takeBadge}>{lot.allocated}</span>
                     </td>
 
-                    <td className={styles.compactTd}>
-                      <span className={styles.targetBatchPill}>{lot.targetBatch}</span>
-                    </td>
-
-                    {idx === 0 && (
-                      <td
-                        className={`${styles.alignMiddle} ${styles.textCenter}`}
-                        rowSpan={ing.lots.length}
+                    <td className={styles.alignMiddle}>
+                      <span
+                        className={
+                          lot.targetBatch.includes("Lô 1")
+                            ? styles.badgeBatch1
+                            : lot.targetBatch.includes("Lô 2")
+                              ? styles.badgeBatch2
+                              : styles.badgeBatchShared
+                        }
                       >
-                        <div className={styles.statusSuccess}>
-                          <CheckCircle2 size={15} />
-                          <span>{ing.statusText}</span>
-                        </div>
-                      </td>
-                    )}
+                        {lot.targetBatch}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </React.Fragment>
@@ -211,71 +242,16 @@ export default function IngredientSeparateSection() {
         </table>
       </div>
 
-      {/* 2. Mobile View: Thẻ nguyên liệu đối soát phân tách lô (Hiện trên Mobile < 768px) */}
-      <div className={styles.mobileCardsList} role="list" aria-label="Danh sách đối soát nguyên liệu">
-        {INGREDIENTS_DATA.map((ing) => (
-          <div key={ing.id} className={styles.mobileIngCard} role="listitem">
-            {/* Hàng 1: Tên nguyên liệu + Trạng thái */}
-            <div className={styles.mobileCardHeader}>
-              <div className={styles.ingTitleWrap}>
-                <span className={styles.mobileIngName}>{ing.name}</span>
-                {ing.isSplit && (
-                  <span className={styles.tagSplitSmall}>
-                    <Split size={10} />
-                    <span>Tách {ing.lots.length} lô</span>
-                  </span>
-                )}
-              </div>
-              <span className={styles.mobileStatusBadge}>
-                <CheckCircle2 size={13} className={styles.checkIconSmall} />
-                <span>Đủ</span>
-              </span>
-            </div>
-
-            {/* Hàng 2: Định lượng cần & Nhà cung cấp */}
-            <div className={styles.mobileMetaRow}>
-              <span className={styles.metaHighlight}>Cần: {ing.totalRequired}</span>
-              <span className={styles.metaDot}>•</span>
-              <span className={styles.metaSupplier}>{ing.supplier}</span>
-            </div>
-
-            {/* Hàng 3: Danh sách các lô xuất kho con (Thẻ 2 dòng chống tràn chữ) */}
-            <div className={styles.mobileLotsWrap}>
-              {ing.lots.map((lot) => (
-                <div key={lot.code} className={styles.mobileLotCard}>
-                  <div className={styles.lotCardTop}>
-                    <span className={styles.lotCodeMonospace}>{lot.code}</span>
-                    <span className={styles.lotExpText}>HSD: {lot.exp}</span>
-                  </div>
-                  <div className={styles.lotCardBottom}>
-                    <span className={styles.lotAvailText}>
-                      Tồn: <strong>{lot.available}</strong>
-                    </span>
-                    <div className={styles.lotBottomRight}>
-                      <span className={styles.lotTargetPill}>{lot.targetBatch}</span>
-                      <span className={styles.lotAllocBadge}>
-                        Lấy: <strong>{lot.allocated}</strong>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Dòng tổng kết dưới bảng */}
       <div className={styles.summaryBar}>
         <div className={styles.summaryStatus}>
-          <PackageCheck size={16} />
-          <span>Đã chọn đủ nguyên liệu (100% định lượng)</span>
+          <CheckCircle2 size={16} />
+          <span>Đã hoàn tất phân bổ 02 nhánh lô chế biến song song</span>
         </div>
         <div className={styles.summaryMeta}>
-          Tổng cộng: <strong>04 nhóm nguyên liệu</strong> từ{" "}
-          <strong>05 lô hàng</strong> đạt chuẩn
+          Tổng cộng: <strong>85.5 kg thịt heo</strong> tách làm{" "}
+          <strong>02 lô nấu độc lập</strong>
         </div>
       </div>
     </section>
-  )
+  );
 }

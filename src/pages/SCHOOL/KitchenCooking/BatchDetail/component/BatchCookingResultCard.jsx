@@ -6,7 +6,6 @@ export default function BatchCookingResultCard({ batchData = {} }) {
   const isDraft = batchData.status === "DRAFT"
   const isConfirmed = batchData.status === "CONFIRMED"
   const isCompleted = batchData.status === "COMPLETED"
-  const inspection = batchData.inspectionData
 
   return (
     <section className={styles.resultCard}>
@@ -43,7 +42,7 @@ export default function BatchCookingResultCard({ batchData = {} }) {
           <div className={styles.bannerContent}>
             <h3 className={styles.bannerTitle}>Đã xác nhận phương án — Đang chế biến</h3>
             <p className={styles.bannerDesc}>
-              Bếp đang tiến hành chế biến theo phương án đã phê duyệt. Sau khi hoàn tất nấu và kiểm tra nhiệt độ ra khay, bấm "Ghi nhận hoàn thành chế biến".
+              Bếp đang tiến hành chế biến theo phương án đã phê duyệt. Sau khi hoàn tất nấu và ra khay, bấm "Ghi nhận hoàn thành chế biến".
             </p>
           </div>
         </div>
@@ -55,17 +54,9 @@ export default function BatchCookingResultCard({ batchData = {} }) {
             <CheckCircle2 size={20} />
           </div>
           <div className={styles.bannerContent}>
-            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến &amp; Nghiệm thu kiểm thực</h3>
+            <h3 className={styles.bannerTitle}>Đã hoàn thành chế biến</h3>
             <p className={styles.bannerDesc}>
-              {inspection ? (
-                <>
-                  Món ăn đã ra khay lúc {batchData.completedAt || "10:25"}. Nhiệt độ chia suất:{" "}
-                  <strong>{inspection.servingTemperature}°C</strong> (
-                  {inspection.isTempPass ? "✓ Đạt chuẩn > 65°C" : "Cảnh báo nhiệt độ"}). Sẵn sàng in sổ kiểm thực 3 bước theo đúng QĐ 1246/QĐ-BYT.
-                </>
-              ) : (
-                "Món ăn đã ra khay theo đúng sĩ số chốt và sẵn sàng in sổ kiểm thực 3 bước."
-              )}
+              Món ăn đã ra khay lúc {batchData.completedAt || "10:25"} theo đúng sĩ số chốt và sẵn sàng chia suất phục vụ học sinh.
             </p>
           </div>
         </div>
@@ -99,9 +90,9 @@ export default function BatchCookingResultCard({ batchData = {} }) {
               isCompleted ? styles.successVal : isConfirmed ? styles.warningVal : styles.draftVal
             }`}
           >
-            {isCompleted ? "Đã nghiệm thu" : isConfirmed ? "Đang chế biến" : "Chờ xác nhận"}
+            {isCompleted ? "Đã hoàn thành" : isConfirmed ? "Đang chế biến" : "Chờ xác nhận"}
           </span>
-          <span className={styles.kpiSub}>Kiểm thực bếp</span>
+          <span className={styles.kpiSub}>Bếp ăn cơ sở</span>
         </div>
 
         {/* KPI 4: Thời điểm hoàn thành */}
@@ -111,7 +102,7 @@ export default function BatchCookingResultCard({ batchData = {} }) {
             {batchData.completedAt || "—"}
           </span>
           <span className={styles.kpiSub}>
-            {inspection ? `Nhiệt độ: ${inspection.servingTemperature}°C` : batchData.completedAt ? "Đã ra khay" : "Chưa hoàn tất"}
+            {batchData.completedAt ? "Đã ra khay" : "Chưa hoàn tất"}
           </span>
         </div>
       </div>

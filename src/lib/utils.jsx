@@ -1,4 +1,5 @@
 import ROUTER from "src/router/ROUTER"
+import { ROLES } from "src/constants/roles"
 
 /**
  * Kiểm tra xem user có quyền truy cập vào màn hình/chức năng hay không
@@ -41,25 +42,31 @@ export const getDefaultRedirectByOrg = orgType => {
  */
 export const getDefaultRedirectByUser = user => {
   if (!user) return ROUTER.LOGIN
-  if (user.role === "SCHOOL_KITCHEN_STAFF") {
+  if (user.role === "SCHOOL_KITCHEN_STAFF" || user.role === ROLES?.SCHOOL_KITCHEN_STAFF) {
     return ROUTER.SCHOOL_KITCHEN_COOKING
   }
-  if (user.role === "SCHOOL_HEALTH_OFFICER") {
+  if (user.role === "SCHOOL_HEALTH_OFFICER" || user.role === ROLES?.SCHOOL_HEALTH_OFFICER) {
     return ROUTER.SCHOOL_HEALTH_OVERVIEW
   }
   if (user.role === "HOMEROOM_TEACHER") {
     return ROUTER.SCHOOL_HOMEROOM_OVERVIEW
   }
+  if (
+    user.role === "INGREDIENT_MANAGEMENT_DEPARTMENT" ||
+    user.role === ROLES?.INGREDIENT_MANAGEMENT
+  ) {
+    return ROUTER.SCHOOL_INGREDIENT_OVERVIEW
+  }
   return getDefaultRedirectByOrg(user.orgType)
 }
 
 export const getAuthRedirect = user => {
-  if (user?.role === "SYSTEM_ADMIN") return ROUTER.SYSTEM_ORG_APPROVAL
+  if (user?.role === "SYSTEM_ADMIN" || user?.role === ROLES?.SYSTEM_ADMIN) return ROUTER.SYSTEM_ORG_APPROVAL
   if (user?.onboardingRequired || user?.status === "UNVERIFIED") return ROUTER.DEFAULT
   return getDefaultRedirectByUser(user)
 }
 
 export const needsRegistrationCompletion = user => Boolean(user && ["SCHOOL", "SUPPLIER"].includes(user.orgType) && user.onboardingRequired && (!user.registrationRequest || user.registrationRequest.status === "REJECTED"))
 
-export const getRegistrationDestination = user => user?.role === "SYSTEM_ADMIN" ? ROUTER.SYSTEM_ORG_APPROVAL
+export const getRegistrationDestination = user => (user?.role === "SYSTEM_ADMIN" || user?.role === ROLES?.SYSTEM_ADMIN) ? ROUTER.SYSTEM_ORG_APPROVAL
   : user?.registrationRequest ? ROUTER.REGISTRATION_STATUS : ROUTER.REGISTRATION_PROFILE

@@ -5,11 +5,9 @@ import {
   CalendarRange,
   Leaf,
   MapPin,
-  ShieldCheck,
   Users,
-  Utensils,
-  Verified,
 } from "lucide-react"
+import { NO_DATA_TEXT } from "src/constants/ui"
 import styles from "./SchoolHero.module.scss"
 
 const DEFAULT_HERO_IMAGE =
@@ -28,6 +26,12 @@ function SchoolHero({ school }) {
     if (el) el.scrollIntoView({ behavior: "smooth" })
   }
 
+  const schoolAddress = school?.address || NO_DATA_TEXT
+
+  const schoolBoardingScale =
+    school?.boardingScale ||
+    NO_DATA_TEXT
+
   return (
     <section id="gioi-thieu" className={styles.heroSection}>
       <div className={styles.container}>
@@ -38,22 +42,21 @@ function SchoolHero({ school }) {
             <div className={styles.leftCol}>
               <div className={styles.titleGroup}>
                 <h1 className={styles.schoolTitle}>
-                  {school?.name || "Trường Tiểu học Ánh Dương"}
+                  {school?.name || NO_DATA_TEXT}
                 </h1>
                 <p className={styles.description}>
-                  {school?.description ||
-                    "Cam kết minh bạch 100% thực đơn học đường, quy trình dinh dưỡng cân bằng và vệ sinh an toàn thực phẩm, đồng hành cùng phụ huynh chăm sóc sức khỏe toàn diện cho học sinh."}
+                  {school?.description || NO_DATA_TEXT}
                 </p>
               </div>
 
-              {/* 2 Metadata Pills */}
+              {/* 2 Metadata Rows: Địa chỉ & Tổng suất ăn bán trú */}
               <div className={styles.metaGrid}>
                 <div className={styles.metaCard}>
                   <MapPin size={20} className={styles.metaIcon} />
                   <div className={styles.metaContent}>
                     <span className={styles.metaLabel}>Địa chỉ</span>
-                    <span className={styles.metaValue}>
-                      {school?.address}
+                    <span className={styles.metaValue} title={schoolAddress}>
+                      {schoolAddress}
                     </span>
                   </div>
                 </div>
@@ -61,9 +64,9 @@ function SchoolHero({ school }) {
                 <div className={styles.metaCard}>
                   <Users size={20} className={styles.metaIcon} />
                   <div className={styles.metaContent}>
-                    <span className={styles.metaLabel}>Quy mô bán trú</span>
-                    <span className={styles.metaValue}>
-                      {school?.boarding_scale}
+                    <span className={styles.metaLabel}>Tổng suất ăn bán trú</span>
+                    <span className={styles.metaValue} title={schoolBoardingScale}>
+                      {schoolBoardingScale}
                     </span>
                   </div>
                 </div>
@@ -94,8 +97,8 @@ function SchoolHero({ school }) {
             <div className={styles.rightCol}>
               <div className={styles.imageFrame}>
                 <img
-                  src={DEFAULT_HERO_IMAGE}
-                  alt={`Khay cơm bán trú học sinh ${school?.name}`}
+                  src={school?.coverImageUrl || DEFAULT_HERO_IMAGE}
+                  alt={`Khay cơm bán trú học sinh ${school?.name || ""}`}
                   className={styles.heroImg}
                   loading="eager"
                 />
@@ -124,9 +127,8 @@ SchoolHero.propTypes = {
     name: PropTypes.string,
     address: PropTypes.string,
     description: PropTypes.string,
-    boarding_scale: PropTypes.string,
-    national_standard: PropTypes.string,
-    safety_standard: PropTypes.string,
+    boardingScale: PropTypes.string,
+    coverImageUrl: PropTypes.string,
   }),
 }
 

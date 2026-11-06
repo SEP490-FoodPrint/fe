@@ -1,95 +1,56 @@
-import React from "react"
+import React from "react";
 import {
   ShieldCheck,
   CheckCircle2,
   PackageCheck,
   Calendar,
-  Layers
-} from "lucide-react"
-import styles from "./IngredientAllocationSection.module.scss"
+  Layers,
+  Sparkles,
+} from "lucide-react";
+import styles from "./IngredientAllocationSection.module.scss";
 
-const INGREDIENTS_DATA = [
-  {
-    id: "ing-1",
-    name: "Thịt ba chỉ heo tươi",
-    supplier: "Hợp tác xã Nam Hà",
-    totalRequired: "85.5 kg",
-    portionNote: "1.250 suất",
-    isMultiLot: true,
-    statusText: "Đủ 85.5 / 85.5 kg",
-    statusType: "success",
-    lots: [
-      {
-        code: "LOT-HEO-892",
-        exp: "12/11/2024",
-        available: "50.0 kg",
-        allocated: "50.0 kg",
-      },
-      {
-        code: "LOT-HEO-893",
-        exp: "13/11/2024",
-        available: "60.0 kg",
-        allocated: "35.5 kg",
-      },
-    ],
-  },
-  {
-    id: "ing-2",
-    name: "Trứng cút tươi sạch",
-    supplier: "Trang trại Gia cầm Ba Vì",
-    totalRequired: "2.500 quả",
-    portionNote: "1.250 suất",
-    isMultiLot: false,
-    statusText: "Đủ 2.500 / 2.500 quả",
-    statusType: "success",
-    lots: [
-      {
-        code: "LOT-CUT-224",
-        exp: "20/11/2024",
-        available: "3.000 quả",
-        allocated: "2.500 quả",
-      },
-    ],
-  },
-  {
-    id: "ing-3",
-    name: "Nước dừa tươi nguyên chất",
-    supplier: "Công ty Nông sản Bến Tre",
-    totalRequired: "80.0 lít",
-    portionNote: "1.250 suất",
-    isMultiLot: false,
-    statusText: "Đủ 80.0 / 80.0 lít",
-    statusType: "success",
-    lots: [
-      {
-        code: "LOT-DUA-018",
-        exp: "15/11/2024",
-        available: "120.0 lít",
-        allocated: "80.0 lít",
-      },
-    ],
-  },
-  {
-    id: "ing-4",
-    name: "Gia vị kho an toàn",
-    supplier: "Tổng kho gia vị thực phẩm",
-    totalRequired: "4.2 kg",
-    portionNote: "1.250 suất",
-    isMultiLot: false,
-    statusText: "Đủ 4.2 / 4.2 kg",
-    statusType: "success",
-    lots: [
-      {
-        code: "LOT-GVI-045",
-        exp: "30/12/2024",
-        available: "15.0 kg",
-        allocated: "4.2 kg",
-      },
-    ],
-  },
-]
+export default function IngredientAllocationSection({
+  selectedDish,
+  portions = 1250,
+}) {
+  if (!selectedDish) {
+    return (
+      <section className={styles.sectionContainer}>
+        <div className={styles.sectionHeader}>
+          <div className={styles.titleWithBadge}>
+            <div className={styles.numberBadge}>2</div>
+            <div>
+              <h2 className={styles.sectionTitle}>
+                2. Phân bổ lô nguyên liệu & Đối soát định mức
+              </h2>
+              <p className={styles.sectionSubtitle}>
+                Tự động kiểm tra tồn kho lô nguyên liệu theo số suất ăn
+              </p>
+            </div>
+          </div>
+        </div>
 
-export default function IngredientAllocationSection() {
+        <div className={styles.emptyState}>
+          <div className={styles.emptyIconBox}>
+            <PackageCheck size={26} />
+          </div>
+          <h3 className={styles.emptyTitle}>Chưa chọn món ăn cần chế biến</h3>
+          <p className={styles.emptyDesc}>
+            Vui lòng chọn món ăn ở <strong>Bước 1</strong>. Hệ thống sẽ tự động
+            đối soát tồn kho, áp dụng định mức và phân bổ các lô nguyên liệu đạt
+            chuẩn kiểm thực.
+          </p>
+          <div className={styles.emptyHintBadge}>
+            <Sparkles size={12} />
+            <span>Đang chờ chọn món ăn ở Bước 1</span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const ingredients = selectedDish.ingredients || [];
+
   return (
     <section className={styles.sectionContainer}>
       {/* Header phần 2 */}
@@ -98,102 +59,94 @@ export default function IngredientAllocationSection() {
           <div className={styles.numberBadge}>2</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              <span className={styles.desktopTitle}>2. Chọn lô nguyên liệu &amp; Đối soát số lượng</span>
-              <span className={styles.mobileTitle}>2. Chọn lô nguyên liệu</span>
+              2. Phân bổ lô nguyên liệu & Đối soát định mức ({selectedDish.name}
+              )
             </h2>
             <p className={styles.sectionSubtitle}>
-              Tự động tính theo định mức công thức món và số suất ăn
+              Tự động kiểm tra tồn kho lô nguyên liệu theo quy mô{" "}
+              {portions.toLocaleString("vi-VN")} suất ăn
             </p>
           </div>
         </div>
-      </div>
 
-      {/* Banner quy chuẩn nấu chung của nhà trường */}
-      <div className={styles.policyBanner}>
-        <ShieldCheck size={18} className={styles.policyIcon} />
-        <div className={styles.policyContent}>
-          <div className={styles.policyMeta}>
-            <span className={styles.policyTitle}>
-              Quy định trường: Nấu chung đa lô nguyên liệu
-            </span>
-            <span className={styles.bullet}>•</span>
-            <span className={styles.mealTime}>Giờ ăn: Bữa trưa (11:15)</span>
-          </div>
-          <p className={styles.policyDesc}>
-            Cho phép kết hợp nhiều lô của cùng một loại nguyên liệu trong một lô chế biến,
-            bắt buộc ghi nhận riêng số lượng từng lô để phục vụ truy xuất nguồn gốc số hóa.
-          </p>
+        <div className={styles.autoMatchedTag}>
+          <ShieldCheck size={14} />
+          <span>Tự động khớp lô đủ 100%</span>
         </div>
       </div>
 
-      {/* 1. Desktop View: Bảng đối soát đa lô (Hiện trên Desktop >= 768px) */}
+      {/* 1. Desktop View: Bảng đối soát chi tiết */}
       <div className={styles.desktopTableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thLeft}>Nguyên liệu &amp; Nhà cung cấp</th>
-              <th>Số lượng cần</th>
-              <th>Mã lô (HSD)</th>
-              <th className={styles.textRight}>Tồn khả dụng</th>
-              <th className={styles.textRight}>Dự kiến lấy</th>
-              <th className={`${styles.thRight} ${styles.textCenter}`}>
+              <th className={styles.thLeft} style={{ width: "26%" }}>
+                Nguyên liệu & Nhà cung cấp
+              </th>
+              <th className={styles.thLeft} style={{ width: "16%" }}>
+                Mã lô nhập kho
+              </th>
+              <th className={styles.thLeft} style={{ width: "14%" }}>
+                Hạn sử dụng
+              </th>
+              <th className={styles.thRight} style={{ width: "14%" }}>
+                Tồn kho khả dụng
+              </th>
+              <th className={styles.thRight} style={{ width: "15%" }}>
+                Định mức phân bổ
+              </th>
+              <th className={styles.thLeft} style={{ width: "15%" }}>
                 Đối soát
               </th>
             </tr>
           </thead>
           <tbody>
-            {INGREDIENTS_DATA.map((ing) => (
+            {ingredients.map((ing) => (
               <React.Fragment key={ing.id}>
                 {ing.lots.map((lot, idx) => (
-                  <tr key={lot.code} className={styles.trHover}>
+                  <tr key={lot.code}>
                     {idx === 0 && (
-                      <td className={styles.alignTop} rowSpan={ing.lots.length}>
+                      <td rowSpan={ing.lots.length} className={styles.alignTop}>
                         <div className={styles.ingredientInfo}>
-                          <span className={styles.ingredientName}>{ing.name}</span>
-                          <span className={styles.supplierName}>{ing.supplier}</span>
+                          <span className={styles.ingredientName}>
+                            {ing.name}
+                          </span>
+                          <span className={styles.supplierName}>
+                            {ing.supplier}
+                          </span>
                           {ing.isMultiLot && (
                             <span className={styles.tagMultiLot}>
                               <Layers size={11} />
-                              <span>Gộp {ing.lots.length} lô</span>
+                              <span>Ghép 02 lô nguyên liệu</span>
                             </span>
                           )}
                         </div>
                       </td>
                     )}
 
-                    {idx === 0 && (
-                      <td className={styles.alignTop} rowSpan={ing.lots.length}>
-                        <div className={styles.totalRequired}>
-                          <span className={styles.requiredAmount}>{ing.totalRequired}</span>
-                          <span className={styles.portionNote}>{ing.portionNote}</span>
-                        </div>
-                      </td>
-                    )}
+                    <td className={styles.compactTd}>
+                      <span className={styles.lotCode}>{lot.code}</span>
+                    </td>
 
                     <td className={styles.compactTd}>
-                      <div className={styles.lotInfo}>
-                        <span className={styles.lotCode}>{lot.code}</span>
-                        <span className={styles.lotExp}>(HSD: {lot.exp})</span>
-                      </div>
+                      <span className={styles.lotExp}>{lot.exp}</span>
                     </td>
 
-                    <td className={`${styles.compactTd} ${styles.textRight}`}>
-                      {lot.available}
-                    </td>
+                    <td className={styles.textRight}>{lot.available}</td>
 
-                    <td className={`${styles.compactTd} ${styles.textRight}`}>
+                    <td className={styles.textRight}>
                       <span className={styles.takeBadge}>{lot.allocated}</span>
                     </td>
 
                     {idx === 0 && (
                       <td
-                        className={`${styles.alignMiddle} ${styles.textCenter}`}
                         rowSpan={ing.lots.length}
+                        className={styles.alignMiddle}
                       >
-                        <div className={styles.statusSuccess}>
-                          <CheckCircle2 size={15} />
+                        <span className={styles.statusSuccess}>
+                          <CheckCircle2 size={13} />
                           <span>{ing.statusText}</span>
-                        </div>
+                        </span>
                       </td>
                     )}
                   </tr>
@@ -204,11 +157,14 @@ export default function IngredientAllocationSection() {
         </table>
       </div>
 
-      {/* 2. Mobile View: Thẻ nguyên liệu đối soát đa lô mật độ cao (Hiện trên Mobile < 768px) */}
-      <div className={styles.mobileCardsList} role="list" aria-label="Danh sách đối soát nguyên liệu">
-        {INGREDIENTS_DATA.map((ing) => (
+      {/* 2. Mobile Cards List */}
+      <div
+        className={styles.mobileCardsList}
+        role="list"
+        aria-label="Danh sách đối soát nguyên liệu"
+      >
+        {ingredients.map((ing) => (
           <div key={ing.id} className={styles.mobileIngCard} role="listitem">
-            {/* Hàng 1: Tên nguyên liệu + Trạng thái đối soát */}
             <div className={styles.mobileCardHeader}>
               <div className={styles.ingTitleWrap}>
                 <span className={styles.mobileIngName}>{ing.name}</span>
@@ -220,19 +176,19 @@ export default function IngredientAllocationSection() {
                 )}
               </div>
               <span className={styles.mobileStatusBadge}>
-                <CheckCircle2 size={13} className={styles.checkIconSmall} />
+                <CheckCircle2 size={13} />
                 <span>Đủ</span>
               </span>
             </div>
 
-            {/* Hàng 2: Định lượng cần & Nhà cung cấp */}
             <div className={styles.mobileMetaRow}>
-              <span className={styles.metaHighlight}>Cần: {ing.totalRequired}</span>
+              <span className={styles.metaHighlight}>
+                Cần: {ing.totalRequired}
+              </span>
               <span className={styles.metaDot}>•</span>
               <span className={styles.metaSupplier}>{ing.supplier}</span>
             </div>
 
-            {/* Hàng 3: Danh sách các lô xuất kho con (Dạng thẻ 2 dòng chống tràn chữ) */}
             <div className={styles.mobileLotsWrap}>
               {ing.lots.map((lot) => (
                 <div key={lot.code} className={styles.mobileLotCard}>
@@ -259,13 +215,16 @@ export default function IngredientAllocationSection() {
       <div className={styles.summaryBar}>
         <div className={styles.summaryStatus}>
           <PackageCheck size={16} />
-          <span>Đã chọn đủ nguyên liệu (100% nhu cầu)</span>
+          <span>Đã chọn đủ nguyên liệu (100% nhu cầu chế biến)</span>
         </div>
         <div className={styles.summaryMeta}>
-          Tổng cộng: <strong>04 nhóm nguyên liệu</strong> từ{" "}
-          <strong>05 lô hàng</strong> đạt chuẩn
+          Tổng cộng: <strong>{ingredients.length} nhóm nguyên liệu</strong> từ{" "}
+          <strong>
+            {ingredients.reduce((s, i) => s + i.lots.length, 0)} lô hàng
+          </strong>{" "}
+          đạt chuẩn
         </div>
       </div>
     </section>
-  )
+  );
 }

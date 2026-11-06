@@ -1,6 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
+import { Link } from "react-router-dom"
 import { ArrowRight, Search, SearchX } from "lucide-react"
+import ROUTER from "src/router/ROUTER"
 import SchoolCard from "./SchoolCard"
 import styles from "./SchoolDiscovery.module.scss"
 
@@ -48,7 +50,7 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
         {/* Lưới danh sách các trường học */}
         <div className={styles.schoolsGrid}>
           {schools.length > 0 ? (
-            schools.map(school => (
+            schools.slice(0, 6).map(school => (
               <SchoolCard key={school.id} school={school} />
             ))
           ) : (
@@ -74,6 +76,14 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
               </p>
             </div>
           )}
+        </div>
+
+        {/* Nút điều hướng xem toàn bộ trường học */}
+        <div className={styles.viewAllWrapper}>
+          <Link to={ROUTER.SCHOOL_LIST} className={styles.viewAllBtn}>
+            <span>Xem tất cả danh sách trường học</span>
+            <ArrowRight size={18} />
+          </Link>
         </div>
       </div>
     </section>

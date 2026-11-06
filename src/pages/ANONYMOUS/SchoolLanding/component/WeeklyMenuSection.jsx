@@ -1,45 +1,95 @@
-import React, { useState } from "react"
-import PropTypes from "prop-types"
+import React, { useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 import {
+  CalendarX,
   ChevronLeft,
   ChevronRight,
-  Download,
   FileText,
-} from "lucide-react"
-import notice from "src/components/Notice"
-import WeeklyDayCard from "./WeeklyDayCard"
-import styles from "./WeeklyMenuSection.module.scss"
+  Users,
+} from "lucide-react";
+import { FormControl, Select, MenuItem, InputAdornment } from "@mui/material";
+import { NO_DATA_TEXT } from "src/constants/ui";
+import WeeklyDayCard from "./WeeklyDayCard";
+import styles from "./WeeklyMenuSection.module.scss";
 
-function WeeklyMenuSection({ weeklyMenu }) {
-  const [selectedGrade, setSelectedGrade] = useState("GRADE_1_2")
-  const [weekOffset, setWeekOffset] = useState(0)
+function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
+  const groups =
+    weeklyMenu?.portionGroups ||
+    weeklyMenu?.gradeGroups ||
+    [];
 
-  if (!weeklyMenu) return null
+  const defaultGroupId =
+    groups.find((g) => g.isDefault)?.id ||
+    groups.find((g) => g.isDefault)?.key ||
+    groups[0]?.id ||
+    groups[0]?.key ||
+    "all";
 
-  const handleDownloadPdf = () => {
-    notice({
-      msg: "Đang tạo và tải xuống bản in Thực đơn tuần PDF...",
-      isSuccess: true,
-    })
-  }
+  const [activeGroupId, setActiveGroupId] = useState(defaultGroupId);
+
+  useEffect(() => {
+    if (groups.length > 0) {
+      const exists = groups.some((g) => (g.id || g.key) === activeGroupId);
+      if (!exists) {
+        setActiveGroupId(defaultGroupId);
+      }
+    }
+  }, [groups, defaultGroupId, activeGroupId]);
+
+  // Danh sách các tuần thực tế có menu từ Backend
+  const availableWeeks = useMemo(() => {
+    const list = weeklyMenu?.availableWeeks || weeklyMenu?.available_weeks || [];
+    if (!Array.isArray(list) || list.length === 0) return [];
+    // Sắp xếp các tuần theo thứ tự thời gian tăng dần
+    return [...list].sort((a, b) =>
+      (a.weekStartDate || "").localeCompare(b.weekStartDate || "")
+    );
+  }, [weeklyMenu]);
+
+  // Ngày bắt đầu của tuần đang xem
+  const currentWeekDate = weeklyMenu?.weekStartDate || (availableWeeks[0]?.weekStartDate || "");
+
+  // Tìm index tuần hiện tại trong danh sách các tuần có sẵn
+  const currentWeekIndex = useMemo(() => {
+    if (availableWeeks.length === 0 || !currentWeekDate) return -1;
+    return availableWeeks.findIndex((w) => w.weekStartDate === currentWeekDate);
+  }, [availableWeeks, currentWeekDate]);
+
+  const canGoPrev = currentWeekIndex > 0;
+  const canGoNext =
+    currentWeekIndex >= 0 && currentWeekIndex < availableWeeks.length - 1;
 
   const handlePrevWeek = () => {
-    setWeekOffset(prev => prev - 1)
-    notice({
-      msg: "Đang xem dữ liệu tuần trước",
-      isSuccess: true,
-    })
-  }
+    if (!canGoPrev || !onWeekChange) return;
+    const prevWeek = availableWeeks[currentWeekIndex - 1];
+    onWeekChange(prevWeek.weekStartDate, activeGroupId);
+  };
 
   const handleNextWeek = () => {
-    setWeekOffset(prev => prev + 1)
-    notice({
-      msg: "Đang xem dữ liệu tuần tiếp theo",
-      isSuccess: true,
-    })
-  }
+    if (!canGoNext || !onWeekChange) return;
+    const nextWeek = availableWeeks[currentWeekIndex + 1];
+    onWeekChange(nextWeek.weekStartDate, activeGroupId);
+  };
 
-  const displayWeekNumber = (weeklyMenu.week_number || 42) + weekOffset
+  const handleSelectWeek = (e) => {
+    const targetDate = e.target.value;
+    if (onWeekChange && targetDate && targetDate !== currentWeekDate) {
+      onWeekChange(targetDate, activeGroupId);
+    }
+  };
+
+  const handleSelectGroup = (groupId) => {
+    setActiveGroupId(groupId);
+    if (onGroupChange) {
+      onGroupChange(groupId, currentWeekDate);
+    }
+  };
+
+  const days = weeklyMenu?.days || [];
+  const hasDays = days.length > 0;
+
+  // Xác định tuần hiện tại theo thời gian thực (realtime)
+  const todayIso = new Date().toISOString().slice(0, 10);
 
   return (
     <section id="thuc-don-tuan" className={styles.section}>
@@ -49,96 +99,168 @@ function WeeklyMenuSection({ weeklyMenu }) {
           <h2 className={styles.title}>Thực đơn bán trú theo tuần</h2>
           <p className={styles.subtitle}>
             Tra cứu thực đơn đầy đủ từ Thứ 2 đến Thứ 6 được nhà trường công khai
-            và phê duyệt bởi Chuyên viên Dinh dưỡng.
           </p>
         </div>
 
         {/* Toolbar */}
         <div className={styles.toolbar}>
-          {/* Week Switcher */}
+          {/* Week Switcher kết hợp Dropdown chọn tuần thực tế */}
           <div className={styles.weekSwitcher}>
             <button
               type="button"
               className={styles.weekBtn}
               onClick={handlePrevWeek}
-              title="Tuần trước"
+              disabled={!canGoPrev}
+              title={canGoPrev ? "Xem tuần trước" : "Không có tuần trước đó"}
             >
               <ChevronLeft size={18} />
             </button>
 
-            <div className={styles.weekInfo}>
-              <FileText size={16} className={styles.calendarIcon} />
-              <span>
-                Tuần {displayWeekNumber}: {weeklyMenu.week_range || "19/10/2026 – 23/10/2026"}{" "}
-                {weekOffset === 0 ? "(Tuần hiện tại)" : ""}
-              </span>
-            </div>
+            {/* Dropdown chọn tuần từ MUI v6 */}
+            <FormControl size="small" className={styles.weekFormControl}>
+              <Select
+                id="weekSelect"
+                value={currentWeekDate || ""}
+                onChange={handleSelectWeek}
+                displayEmpty
+                disabled={availableWeeks.length === 0}
+                className={styles.weekMuiSelect}
+                startAdornment={
+                  <InputAdornment position="start" className={styles.calendarAdornment}>
+                    <FileText size={16} />
+                  </InputAdornment>
+                }
+                MenuProps={{
+                  PaperProps: {
+                    className: styles.weekDropdownPaper,
+                  },
+                }}
+              >
+                {availableWeeks.length === 0 ? (
+                  <MenuItem value="" disabled className={styles.placeholderItem}>
+                    {NO_DATA_TEXT}
+                  </MenuItem>
+                ) : (
+                  availableWeeks.map((w) => {
+                    // Kiểm tra xem tuần này có bao trùm ngày hôm nay không
+                    const isRealtimeCurrentWeek =
+                      todayIso >= w.weekStartDate &&
+                      todayIso <=
+                        new Date(
+                          new Date(w.weekStartDate).getTime() +
+                            4 * 24 * 60 * 60 * 1000
+                        )
+                          .toISOString()
+                          .slice(0, 10);
+
+                    return (
+                      <MenuItem
+                        key={w.id || w.weekStartDate}
+                        value={w.weekStartDate}
+                        className={styles.weekMenuItem}
+                      >
+                        <span className={styles.weekItemTitle}>
+                          {w.title || `Tuần ${w.weekNumber}`}
+                        </span>
+                        <span className={styles.weekItemRange}>
+                          ({w.weekRange})
+                        </span>
+                        {isRealtimeCurrentWeek && (
+                          <span className={styles.currentTag}>Tuần này</span>
+                        )}
+                      </MenuItem>
+                    );
+                  })
+                )}
+              </Select>
+            </FormControl>
 
             <button
               type="button"
               className={styles.weekBtn}
               onClick={handleNextWeek}
-              title="Tuần kế tiếp"
+              disabled={!canGoNext}
+              title={canGoNext ? "Xem tuần kế tiếp" : "Không có tuần kế tiếp"}
             >
               <ChevronRight size={18} />
             </button>
           </div>
 
-          {/* Grade Selector & Download */}
+          {/* Dynamic Portion/Grade Groups */}
           <div className={styles.rightActions}>
-            {/* Grade Switcher */}
-            <div className={styles.gradeTabs}>
-              <button
-                type="button"
-                className={`${styles.gradeTab} ${
-                  selectedGrade === "GRADE_1_2" ? styles.activeGrade : ""
-                }`}
-                onClick={() => setSelectedGrade("GRADE_1_2")}
-              >
-                Khối 1 – 2
-              </button>
-              <button
-                type="button"
-                className={`${styles.gradeTab} ${
-                  selectedGrade === "GRADE_3_5" ? styles.activeGrade : ""
-                }`}
-                onClick={() => setSelectedGrade("GRADE_3_5")}
-              >
-                Khối 3 – 5
-              </button>
-            </div>
-
-            <div className={styles.separator} />
-
-            {/* PDF Download */}
-            <button
-              type="button"
-              className={styles.downloadBtn}
-              onClick={handleDownloadPdf}
-            >
-              <Download size={16} className={styles.downloadIcon} />
-              <span>Tải thực đơn PDF</span>
-            </button>
+            {groups.length > 1 ? (
+              <div className={styles.gradeTabs}>
+                {groups.map((group) => {
+                  const gId = group.id || group.key;
+                  const gName = group.name || group.label;
+                  const isActive = activeGroupId === gId;
+                  return (
+                    <button
+                      key={gId}
+                      type="button"
+                      className={`${styles.gradeTab} ${
+                        isActive ? styles.activeGrade : ""
+                      }`}
+                      onClick={() => handleSelectGroup(gId)}
+                    >
+                      {gName}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : groups.length === 1 ? (
+              <div className={styles.singleGroupBadge}>
+                <Users size={14} />
+                <span>
+                  Khẩu phần: {groups[0].name || groups[0].label || "Toàn trường"}
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
 
-        {/* 5 Days Grid */}
-        <div className={styles.daysGrid}>
-          {weeklyMenu.days?.map((day, idx) => (
-            <WeeklyDayCard key={day.date || idx} day={day} />
-          ))}
-        </div>
+        {/* Nội dung: Hiển thị Empty State Banner trong container hoặc Lưới 5 ngày */}
+        {!hasDays ? (
+          <div className={styles.emptyContainer}>
+            <div className={styles.emptyIconBox}>
+              <CalendarX size={32} />
+            </div>
+            <h3 className={styles.emptyTitle}>
+              Chưa có thực đơn bán trú cho tuần này
+            </h3>
+            <p className={styles.emptyDescription}>
+              Nhà trường hiện chưa công bố thực đơn tuần được phê duyệt cho khoảng
+              thời gian này. Phụ huynh có thể chọn các tuần khác trong danh sách thả xuống
+              ở trên hoặc liên hệ bộ phận bán trú của nhà trường.
+            </p>
+          </div>
+        ) : (
+          <div className={styles.daysGrid}>
+            {days.map((day, idx) => (
+              <WeeklyDayCard key={day.date || day.id || idx} day={day} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
-  )
+  );
 }
 
 WeeklyMenuSection.propTypes = {
   weeklyMenu: PropTypes.shape({
-    week_number: PropTypes.number,
-    week_range: PropTypes.string,
+    id: PropTypes.string,
+    title: PropTypes.string,
+    weekNumber: PropTypes.number,
+    weekStartDate: PropTypes.string,
+    weekRange: PropTypes.string,
+    portionGroups: PropTypes.array,
+    gradeGroups: PropTypes.array,
     days: PropTypes.array,
+    availableWeeks: PropTypes.array,
+    available_weeks: PropTypes.array,
   }),
-}
+  onWeekChange: PropTypes.func,
+  onGroupChange: PropTypes.func,
+};
 
-export default WeeklyMenuSection
+export default WeeklyMenuSection;

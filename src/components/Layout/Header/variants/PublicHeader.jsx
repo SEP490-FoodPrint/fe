@@ -9,6 +9,7 @@ import {
 import { StoreContext } from "src/contexts";
 import ROUTER from "src/router/ROUTER";
 import BrandLogo from "src/components/Common/BrandLogo";
+import { NO_DATA_TEXT } from "src/constants/ui";
 import SchoolService from "src/services/SchoolService";
 import BaseHeader from "../BaseHeader";
 import styles from "./PublicHeader.module.scss";
@@ -135,7 +136,7 @@ function PublicHeader() {
                 >
                   <div className={styles.itemLeft}>
                     <div className={styles.itemAvatar}>
-                      {school.short_name || school.code?.slice(0, 2) || "TH"}
+                      {school.shortName || school.short_name || school.code?.slice(0, 2) || "TH"}
                     </div>
                     <div className={styles.itemInfo}>
                       <span className={styles.itemSchoolName}>
@@ -143,8 +144,8 @@ function PublicHeader() {
                       </span>
                       <span className={styles.itemAddress}>
                         {school.district
-                          ? `${school.district}, ${school.city || "Hà Nội"}`
-                          : school.address || "Hà Nội"}
+                          ? `${school.district}, ${school.city || NO_DATA_TEXT}`
+                          : school.address || NO_DATA_TEXT}
                       </span>
                     </div>
                   </div>
@@ -154,14 +155,14 @@ function PublicHeader() {
             </div>
 
             <div className={styles.panelFooter}>
-              <a
-                href={`${ROUTER.DEFAULT}#schools`}
+              <Link
+                to={ROUTER.SCHOOL_LIST}
                 onClick={() => setIsDropdownOpen(false)}
                 className={styles.viewAllLink}
               >
                 <span>Xem tất cả danh sách trường</span>
                 <ArrowRight size={14} />
-              </a>
+              </Link>
             </div>
           </div>
         )}

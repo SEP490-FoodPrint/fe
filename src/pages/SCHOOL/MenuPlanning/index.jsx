@@ -12,12 +12,34 @@ import MenuListTable from "./component/MenuListTable"
 import MenuListPagination from "./component/MenuListPagination"
 import MenuDetailModal from "./component/MenuDetailModal"
 
+const getWeekStartDate = (weekFilter) => {
+  if (weekFilter === "all") return undefined
+  const date = new Date()
+  date.setHours(0, 0, 0, 0)
+  const daysSinceMonday = (date.getDay() + 6) % 7
+  const weekOffset = weekFilter === "next" ? 1 : weekFilter === "prev" ? -1 : 0
+  date.setDate(date.getDate() - daysSinceMonday + weekOffset * 7)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 export default function MenuPlanning() {
   const navigate = useNavigate()
 
   // Master data
   const [menus, setMenus] = useState(MOCK_MENU_LIST)
+  const [menusAreMock, setMenusAreMock] = useState(true)
   const [loading, setLoading] = useState(false)
+
+  // Filter state
+  const [filters, setFilters] = useState({
+    searchKeyword: "",
+    dateFilter: "all",
+    mealType: "all",
+    status: "all"
+  })
 
   // Tải dữ liệu thực tế từ backend (Azure DB) hoặc fallback mock
   useEffect(() => {
@@ -25,9 +47,12 @@ export default function MenuPlanning() {
     const fetchMenus = async () => {
       setLoading(true)
       try {
-        const res = await MenuService.getMenus()
-        if (isMounted && res?.data && res.data.length > 0) {
+        const res = await MenuService.getMenus({
+          status: filters.status,
+        })
+        if (isMounted && Array.isArray(res?.data)) {
           setMenus(res.data)
+          setMenusAreMock(Boolean(res.isMock))
         }
       } catch (err) {
         console.warn("Lỗi tải thực đơn:", err)
@@ -37,15 +62,7 @@ export default function MenuPlanning() {
     }
     fetchMenus()
     return () => { isMounted = false }
-  }, [])
-
-  // Filter state
-  const [filters, setFilters] = useState({
-    searchKeyword: "",
-    dateFilter: "current",
-    mealType: "all",
-    status: "all"
-  })
+  }, [filters.status])
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -90,13 +107,12 @@ export default function MenuPlanning() {
   // Compute stats for Stats Rail (across all menus)
   const stats = useMemo(() => {
     const total = menus.length
-    const needsAction = menus.filter(
-      m => m.status === "DRAFT" || m.status === "REVISION_REQUESTED"
-    ).length
+    const draft = menus.filter(m => m.status === "DRAFT").length
     const pendingApproval = menus.filter(m => m.status === "PENDING_APPROVAL").length
     const approved = menus.filter(m => m.status === "APPROVED").length
+    const revisionRequested = menus.filter(m => m.status === "REVISION_REQUESTED").length
 
-    return { total, needsAction, pendingApproval, approved }
+    return { total, draft, pendingApproval, approved, revisionRequested }
   }, [menus])
 
   // Filtered menus
@@ -110,7 +126,7 @@ export default function MenuPlanning() {
         if (!matchName && !matchCode) return false
       }
 
-      // 2. Date filter
+      // 2. Lọc theo tuần (xử lý tức thời trong bộ nhớ 0ms cho cả Real Data và Mock)
       if (filters.dateFilter !== "all") {
         if (filters.dateFilter === "current" && menu.week !== "current") return false
         if (filters.dateFilter === "next" && menu.week !== "next") return false
@@ -124,16 +140,12 @@ export default function MenuPlanning() {
 
       // 4. Status filter
       if (filters.status !== "all") {
-        if (filters.status === "needsAction") {
-          if (menu.status !== "DRAFT" && menu.status !== "REVISION_REQUESTED") return false
-        } else if (menu.status !== filters.status) {
-          return false
-        }
+        if (menu.status !== filters.status) return false
       }
 
       return true
     })
-  }, [menus, filters])
+  }, [menus, menusAreMock, filters])
 
   // Paginated menus
   const totalItems = filteredMenus.length

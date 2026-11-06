@@ -1,7 +1,40 @@
-import React from "react"
+import React, { useEffect, useMemo, useState } from "react"
+import { Button, Chip } from "@mui/material"
+import { ClipboardCheck, CircleHelp, LoaderCircle, ShieldAlert } from "lucide-react"
 import styles from "./MenuDetailDishesTable.module.scss"
+import MenuService from "src/services/MenuService"
+import { getDishAllergyState } from "src/services/MenuService/adapter"
 
-export default function MenuDetailDishesTable({ dishes = [], portionCount = 210 }) {
+export default function MenuDetailDishesTable({ dishes = [] }) {
+  const ingredientKey = useMemo(() => [...new Set((Array.isArray(dishes) ? dishes : []).flatMap((dish) =>
+    dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || [],
+  ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(","), [dishes])
+  const [allergyCheck, setAllergyCheck] = useState({ key: "", status: "unknown", conflicts: [], ingredientIds: [] })
+  const [retryAttempt, setRetryAttempt] = useState(0)
+
+  useEffect(() => {
+    let active = true
+    if (!ingredientKey) return () => { active = false }
+    const ingredientIds = ingredientKey.split(",")
+    setAllergyCheck({ key: ingredientKey, status: "loading", conflicts: [], ingredientIds })
+    const batches = []
+    for (let index = 0; index < ingredientIds.length; index += 100) {
+      batches.push(ingredientIds.slice(index, index + 100))
+    }
+    Promise.all(batches.map((ids) => MenuService.checkAllergies(ids)))
+      .then((results) => {
+        if (active) setAllergyCheck({ key: ingredientKey, status: "ready", ingredientIds, conflicts: results.flatMap((result) => result.data.conflicts) })
+      })
+      .catch((error) => {
+        if (active) setAllergyCheck({ key: ingredientKey, status: "error", ingredientIds, conflicts: [], message: error.message })
+      })
+    return () => { active = false }
+  }, [ingredientKey, retryAttempt])
+
+  const currentCheck = allergyCheck.key === ingredientKey
+    ? allergyCheck
+    : { status: ingredientKey ? "loading" : "unknown", conflicts: [], ingredientIds: [] }
+
   if (!dishes || dishes.length === 0) {
     return (
       <div className={styles.emptyCard}>
@@ -9,50 +42,6 @@ export default function MenuDetailDishesTable({ dishes = [], portionCount = 210 
         <p className="text-slate-500 font-medium">Chưa có món ăn nào trong thực đơn này.</p>
       </div>
     )
-  }
-
-  // Helper tính tổng nhu cầu
-  const calculateTotalDemand = (qtyStr, count) => {
-    if (!qtyStr) return "—"
-    const match = qtyStr.match(/([\d.]+)\s*([a-zA-Z]+)/)
-    if (!match) return "—"
-    const num = parseFloat(match[1])
-    const unit = match[2]
-
-    if (isNaN(num)) return "—"
-    const total = num * count
-
-    if (unit.toLowerCase() === "g") {
-      if (total >= 1000) {
-        return `${(total / 1000).toFixed(2)} kg`
-      }
-      return `${total.toLocaleString()} g`
-    }
-    if (unit.toLowerCase() === "ml") {
-      if (total >= 1000) {
-        return `${(total / 1000).toFixed(2)} lít`
-      }
-      return `${total.toLocaleString()} ml`
-    }
-    return `${total.toLocaleString()} ${unit}`
-  }
-
-  // Helper kiểm tra cảnh báo dị ứng theo tên món và thành phần
-  const getAllergyWarning = (dish) => {
-    const text = (dish.name + " " + (dish.ingredients || []).join(" ")).toLowerCase()
-    if (text.includes("tôm") || text.includes("cua") || text.includes("mực") || text.includes("hải sản") || text.includes("ngao")) {
-      return { type: "SEAFOOD", label: "Dị ứng Hải sản", severity: "danger" }
-    }
-    if (text.includes("lạc") || text.includes("đậu phộng") || text.includes("hạt điều") || text.includes("óc chó")) {
-      return { type: "NUTS", label: "Dị ứng Các loại hạt", severity: "danger" }
-    }
-    if (text.includes("trứng")) {
-      return { type: "EGG", label: "Dị ứng Trứng gia cầm", severity: "warning" }
-    }
-    if (text.includes("sữa") || text.includes("phô mai")) {
-      return { type: "DAIRY", label: "Dị ứng Sữa & Lactose", severity: "warning" }
-    }
-    return null
   }
 
   return (
@@ -65,29 +54,34 @@ export default function MenuDetailDishesTable({ dishes = [], portionCount = 210 
             <span className={styles.dishCountBadge}>{dishes.length} món ăn</span>
           </div>
         </div>
-        <div className={styles.headerMeta}>
-          <span className={styles.portionInfo}>
-            Áp dụng cho: <strong>{portionCount} suất tiêu chuẩn</strong>
-          </span>
-        </div>
+      </div>
+
+      <div className={styles.allergyNotice} role="status" aria-live="polite">
+        <span>{currentCheck.status === "loading"
+          ? "Đang đối chiếu nguyên liệu với hồ sơ dị ứng của các lớp…"
+          : currentCheck.status === "error"
+            ? currentCheck.message || "Chưa tải được kết quả đối soát dị ứng."
+            : "Đối soát dựa trên nguyên liệu và hồ sơ dị ứng của các lớp hiện có."}</span>
+        {currentCheck.status === "error" && <Button size="small" onClick={() => setRetryAttempt(value => value + 1)}>Thử lại</Button>}
       </div>
 
       <div className={styles.tableResponsive}>
-        <table className={styles.table}>
+        <table className={styles.table} aria-label="Cơ cấu món ăn và đối soát dị ứng">
           <thead>
             <tr>
-              <th className={styles.thIndex}>STT</th>
-              <th className={styles.thDish}>Tên món ăn</th>
-              <th className={styles.thQty}>Định lượng / Suất</th>
-              <th className={styles.thIngredients}>Thành phần chính & Nhà cung cấp liên kết</th>
-              <th className={styles.thDemand}>Tổng nhu cầu</th>
-              <th className={styles.thAllergy}>Đối soát dị ứng</th>
+              <th scope="col" className={styles.thIndex}>STT</th>
+              <th scope="col" className={styles.thDish}>Tên món ăn</th>
+              <th scope="col" className={styles.thQty}>Định lượng / Suất</th>
+              <th scope="col" className={styles.thIngredients}>Thành phần chính & Nhà cung cấp liên kết</th>
+              <th scope="col" className={styles.thAllergy}>Đối soát dị ứng</th>
             </tr>
           </thead>
           <tbody>
             {dishes.map((dish, idx) => {
-              const allergy = getAllergyWarning(dish)
-              const demand = calculateTotalDemand(dish.qty, portionCount)
+              const allergy = getDishAllergyState(dish, currentCheck)
+              const AllergyIcon = allergy.status === "conflict" ? ShieldAlert
+                : allergy.status === "clear" ? ClipboardCheck
+                  : allergy.status === "loading" ? LoaderCircle : CircleHelp
 
               return (
                 <tr key={idx} className={styles.tr}>
@@ -128,27 +122,17 @@ export default function MenuDetailDishesTable({ dishes = [], portionCount = 210 
                     </div>
                   </td>
 
-                  {/* Tổng nhu cầu */}
-                  <td className={styles.tdDemand}>
-                    <div className={styles.demandBlock}>
-                      <span className={styles.demandValue}>{demand}</span>
-                      <span className={styles.demandSub}>Theo quy mô ca</span>
-                    </div>
-                  </td>
-
                   {/* Đối soát dị ứng */}
                   <td className={styles.tdAllergy}>
-                    {allergy ? (
-                      <div className={`${styles.allergyPill} ${styles[allergy.severity]}`}>
-                        <span className="material-symbols-outlined text-[15px]">warning</span>
-                        <span>{allergy.label}</span>
-                      </div>
-                    ) : (
-                      <div className={styles.safePill}>
-                        <span className="material-symbols-outlined text-[15px]">check_circle</span>
-                        <span>An toàn phổ thông</span>
-                      </div>
-                    )}
+                    <div className={styles.allergyStatus}>
+                      <Chip className={`${styles.allergyChip} ${styles[allergy.status]}`}
+                        icon={<AllergyIcon aria-hidden="true" className={allergy.status === "loading" ? styles.loadingIcon : undefined} />}
+                        label={allergy.label} />
+                      {allergy.description && <span className={styles.allergyDescription}>{allergy.description}</span>}
+                      {allergy.classes?.length > 0 && (
+                        <span className={styles.affectedClasses}>Lớp: {allergy.classes.join(", ")}</span>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )

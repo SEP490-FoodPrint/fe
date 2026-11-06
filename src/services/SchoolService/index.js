@@ -1,6 +1,7 @@
 import http from "../01_axios";
 import {
   apiGetPublicSchools,
+  apiGetPublicLocations,
   apiGetSchoolDetail,
   apiGetSchoolDetailByCode,
   apiGetDailyMealMenu,
@@ -11,6 +12,7 @@ import {
 
 /**
  * 1. Hàm gọi API danh sách trường học công khai
+ * Hỗ trợ các query params: page, limit, search, city, district, locationId
  * Tự động bóc tách envelope phân trang { items, pagination } để res.data là mảng trường học,
  * đồng thời giữ lại res.pagination cho component nếu cần.
  * Tuyệt đối không fallback sang mock để lỗi Backend được hiển thị minh bạch.
@@ -37,18 +39,50 @@ const getSchoolDetailByCodeApi = async (code) => {
 };
 
 /**
- * 3. Thực đơn ngày của trường học
+ * Chi tiết trường học theo ID
  */
-const getDailyMealMenuApi = async (schoolCode, date) => {
-  const res = await http.get(apiGetDailyMealMenu(schoolCode, date), { skipAuthRedirect: true });
+const getSchoolDetailByIdApi = async (id) => {
+  const res = await http.get(apiGetSchoolDetail(id), { skipAuthRedirect: true });
   return res;
 };
 
 /**
+ * 3. Thực đơn ngày của trường học
+ * Trả về dữ liệu thực tế từ API, trả về null nếu trường chưa có thực đơn hoặc lỗi.
+ */
+const getDailyMealMenuApi = async (schoolCode, date) => {
+  try {
+    const res = await http.get(apiGetDailyMealMenu(schoolCode, date), {
+      skipAuthRedirect: true,
+      notifyOnError: false,
+    });
+    return res;
+  } catch (err) {
+    return { data: null };
+  }
+};
+
+/**
  * 4. Thực đơn tuần của trường học
+ * Trả về dữ liệu thực tế từ API, trả về null nếu trường chưa có thực đơn hoặc lỗi.
  */
 const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
-  const res = await http.get(apiGetWeeklyMenu(schoolCode, weekStart, grade), { skipAuthRedirect: true });
+  try {
+    const res = await http.get(apiGetWeeklyMenu(schoolCode, weekStart, grade), {
+      skipAuthRedirect: true,
+      notifyOnError: false,
+    });
+    return res;
+  } catch (err) {
+    return { data: null };
+  }
+};
+
+/**
+ * 5. Danh mục địa giới hành chính công khai (Tỉnh/TP -> Quận/Huyện/Phường)
+ */
+const getPublicLocationsApi = async () => {
+  const res = await http.get(apiGetPublicLocations, { skipAuthRedirect: true });
   return res;
 };
 
@@ -59,7 +93,9 @@ const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnE
 
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
+  getPublicLocations: getPublicLocationsApi,
   getSchoolDetailByCode: getSchoolDetailByCodeApi,
+  getSchoolDetailById: getSchoolDetailByIdApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
   getCookingMode,

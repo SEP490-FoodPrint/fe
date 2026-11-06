@@ -46,7 +46,17 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
             <NavLink
               key={item.key}
               to={item.key}
-              end={item.end !== undefined ? item.end : (item.key === ROUTER.SCHOOL_KITCHEN_COOKING || item.key === ROUTER.SCHOOL_HEALTH_OVERVIEW || item.key === ROUTER.SCHOOL_OVERVIEW || item.key === ROUTER.SUPPLIER_OVERVIEW)}
+              end={
+                item.end !== undefined
+                  ? item.end
+                  : (
+                      item.key === ROUTER.SCHOOL_KITCHEN_COOKING ||
+                      item.key === ROUTER.SCHOOL_HEALTH_OVERVIEW ||
+                      item.key === ROUTER.SCHOOL_OVERVIEW ||
+                      item.key === ROUTER.SUPPLIER_OVERVIEW ||
+                      item.key === ROUTER.SCHOOL_INGREDIENT_OVERVIEW
+                    )
+              }
               onClick={mobile ? onClose : undefined}
               aria-label={tooltipTitle}
               className={({ isActive }) => [styles.navItem, isActive && styles.isActive].filter(Boolean).join(" ")}

@@ -13,6 +13,11 @@ import SupportingDocuments from "./SupportingDocuments"
 import RegisteredIngredients from "./RegisteredIngredients"
 import styles from "./RegistrationDetail.module.scss"
 
+const ACCOUNT_STATUSES = {
+  ACTIVE: "Hoạt động", INACTIVE: "Ngừng hoạt động", PENDING: "Chờ xác minh",
+  SUSPENDED: "Tạm khóa", UNVERIFIED: "Chưa xác minh",
+}
+
 export default function RegistrationDetail() {
   const { requestId } = useParams()
   const location = useLocation()
@@ -45,60 +50,71 @@ export default function RegistrationDetail() {
 
   const profile = request.profile_data || {}
   const applicant = request.applicant || {}
-  const type = REQUEST_TYPES[request.request_type] || request.request_type
-  const code = requestCode(request.id)
+  const name = organizationName(request)
+  const type = REQUEST_TYPES[request.request_type] || request.request_type || "Chưa cung cấp"
+  const code = requestCode(request.registrationID)
   const isSupplier = request.request_type === "SUPPLIER"
-  const field = (label, value) => ({ label, value })
-  const requestFields = [
-    field("Mã hồ sơ", code), field("Loại đăng ký", type),
-    field("Trạng thái", <RequestStatus status={request.status} />), field("Ngày gửi", formatRequestDate(request.submitted_at, true)),
-    field("Ngày xét duyệt", request.reviewed_at ? formatRequestDate(request.reviewed_at, true) : "Chưa xét duyệt"),
-    field("Người xét duyệt", request.reviewer?.full_name || "Chưa có"), field("Cập nhật lần cuối", formatRequestDate(request.updated_at, true)),
-  ]
+  const isReviewed = request.status === "APPROVED" || request.status === "REJECTED"
+  const organizationLabel = isSupplier ? "nhà cung cấp" : request.request_type === "SCHOOL" ? "trường học" : "đơn vị đăng ký"
+  const field = (label, value) => ({ label, value: value == null || typeof value === "string" && !value.trim() ? "Chưa cung cấp" : value })
   const applicantFields = [
-    field("Họ và tên", applicant.full_name), field("Tên đăng nhập", applicant.username),
-    field("Email", applicant.email), field("Số điện thoại", applicant.phone),
-    field("Trạng thái tài khoản", <span className={applicant.status === "ACTIVE" ? styles.active : ""}>{({ ACTIVE: "Hoạt động", INACTIVE: "Ngừng hoạt động", PENDING: "Chờ xác minh", SUSPENDED: "Tạm khóa" })[applicant.status] || applicant.status || "Chưa cung cấp"}</span>),
-    field("Xác minh email lúc", applicant.email_verified_at ? formatRequestDate(applicant.email_verified_at, true) : "Chưa có thông tin"),
+    field("Họ và tên", applicant.full_name),
+    field("Email đăng ký", applicant.email), field("Số điện thoại", applicant.phone),
+    field("Trạng thái tài khoản", <span className={applicant.status === "ACTIVE" ? styles.active : ""}>{ACCOUNT_STATUSES[applicant.status] || applicant.status || "Chưa cung cấp"}</span>),
   ]
-  const profileFields = [field(isSupplier ? "Tên nhà cung cấp" : "Tên trường học", organizationName(request)),
-    field(isSupplier ? "Mã số thuế" : "Mã trường", isSupplier ? profile.tax_code : profile.code),
+  const profileFields = [
+    field(`Tên ${organizationLabel}`, name),
+    ...(isSupplier ? [field("Mã số thuế", profile.taxCode || profile.tax_code)] : []),
     field("Email liên hệ", profile.email), field("Số điện thoại liên hệ", profile.phone),
-    field("Địa chỉ", profile.address), field(isSupplier ? "Giới thiệu về nhà cung cấp" : "Giới thiệu về trường học", profile.description)]
+    field("Địa chỉ", profile.address),
+  ]
+  const organizationDetails = [
+    field(`Giới thiệu về ${organizationLabel}`, profile.description),
+  ]
 
   return (
     <section className={styles.page} aria-labelledby="request-detail-title">
-      <div className={styles.heading}><IconButton component={Link} to={listUrl} className={styles.back} aria-label="Quay lại danh sách"><KeyboardArrowLeftIcon /></IconButton><h1 id="request-detail-title">Xem chi tiết</h1></div>
-      <Card component="section" variant="outlined" className={styles.card} aria-label="Tóm tắt hồ sơ">
-        <div className={styles.summaryTop}><span>{code}</span><RequestStatus status={request.status} /></div>
-        <div className={styles.summaryFields}>
-          <div><span>Loại hồ sơ</span><p>{type}</p></div>
-          <div><span>Người đăng ký</span><p>{applicant.full_name || "Chưa cung cấp"}</p></div>
-          <div><span>Ngày gửi</span><p>{formatRequestDate(request.submitted_at, true)}</p></div>
-        </div>
-      </Card>
-      <Card component="section" variant="outlined" className={styles.card} aria-labelledby="review-title">
-        <h2 id="review-title">Xét duyệt hồ sơ</h2>
-        {request.status === "PENDING" ? <>
-          <p className={styles.description}>Hồ sơ hiện đang chờ xét duyệt.</p>
-          <div className={styles.actions}><Button variant="contained" disabled={!isMock} onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} disabled={!isMock} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
-          {!isMock && <p className={styles.description}>Chức năng xét duyệt hiện chưa khả dụng.</p>}
-        </> : <>
-          <RequestStatus status={request.status} />
-          <RequestFields fields={[field("Người xét duyệt", request.reviewer?.full_name || "Chưa có"), field("Ngày xét duyệt", formatRequestDate(request.reviewed_at, true))]} />
-          {request.rejection_reason && <RequestFields columns={1} fields={[field("Lý do từ chối", request.rejection_reason)]} />}
-          <p className={styles.description}>Quyết định đã được ghi nhận.</p>
-        </>}
-      </Card>
-      <div className={styles.infoColumns}>
-        <Card component="section" variant="outlined" className={styles.card} aria-labelledby="request-info-title"><h2 id="request-info-title">Thông tin hồ sơ</h2><RequestFields fields={requestFields} /></Card>
-        <Card component="section" variant="outlined" className={styles.card} aria-labelledby="applicant-info-title"><h2 id="applicant-info-title">Thông tin người đăng ký</h2><RequestFields fields={applicantFields} /></Card>
+      <div className={styles.heading}>
+        <IconButton component={Link} to={listUrl} className={styles.back} aria-label="Quay lại danh sách"><KeyboardArrowLeftIcon /></IconButton>
+        <span>Xem chi tiết</span>
       </div>
-      <Card component="section" variant="outlined" className={styles.card} aria-labelledby="organization-info-title"><h2 id="organization-info-title">Thông tin {isSupplier ? "nhà cung cấp" : "trường học"} đăng ký</h2><p className={styles.caption}>Thông tin do người đăng ký cung cấp.</p><RequestFields fields={profileFields} /></Card>
-      <SupportingDocuments documents={request.supporting_documents || []} organization={organizationName(request)} />
+      <header className={styles.headingContent}>
+        <div className={styles.titleRow}>
+          <h1 id="request-detail-title">{name}</h1>
+          <div className={styles.requestStatus}><RequestStatus status={request.status} variant="badge" /></div>
+        </div>
+        <dl className={styles.metadata}>
+          <div><dd>{code}</dd></div>
+          <div><dd>{type}</dd></div>
+          <div className={styles.submitted}><dt>Ngày gửi</dt><dd>{formatRequestDate(request.submitted_at, true)}</dd></div>
+        </dl>
+      </header>
+      <Card component="section" variant="outlined" className={styles.card} aria-labelledby="organization-info-title">
+        <h2 id="organization-info-title">Thông tin {organizationLabel}</h2>
+        <RequestFields columns={2} fields={profileFields} />
+        <RequestFields columns={1} fields={organizationDetails} />
+      </Card>
+      <Card component="section" variant="outlined" className={styles.card} aria-labelledby="applicant-info-title">
+        <h2 id="applicant-info-title">Thông tin người đăng ký</h2>
+        <RequestFields columns={2} fields={applicantFields} />
+      </Card>
+      <SupportingDocuments documents={request.supporting_documents || []} organization={name} />
       {isSupplier && <RegisteredIngredients ingredients={Array.isArray(profile.ingredients) ? profile.ingredients.filter(item => item && typeof item === "object") : []} />}
-      {isMock && <p className={styles.note}>Dữ liệu và minh chứng minh họa cho giao diện.</p>}
-      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={updated => { setRequest(updated); setDialog("RESULT") }} />
+      <Card component="section" variant="outlined" className={styles.card} aria-labelledby="review-title">
+        <h2 id="review-title">Thông tin xét duyệt</h2>
+        {request.status === "PENDING" ? <>
+          <p className={styles.description}>Hồ sơ chưa được xét duyệt</p>
+          <div className={styles.actions}><Button variant="contained" onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
+        </> : isReviewed ? <>
+          <RequestFields columns={2} fields={[field("Người xét duyệt", request.reviewer?.full_name), field("Ngày xét duyệt", request.reviewed_at ? formatRequestDate(request.reviewed_at, true) : null)]} />
+          {request.rejection_reason && <RequestFields columns={1} fields={[field("Lý do từ chối", request.rejection_reason)]} />}
+        </> : <p className={styles.description}>Chưa có thông tin xét duyệt.</p>}
+      </Card>
+      <footer className={styles.footer}>
+        <p>Cập nhật lần cuối: {formatRequestDate(request.updated_at, true)}</p>
+        {isMock && <p>Dữ liệu và minh chứng minh họa cho giao diện.</p>}
+      </footer>
+      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={(updated, reviewedMock) => { setRequest(updated); setIsMock(Boolean(reviewedMock)); setDialog("RESULT") }} onReload={() => { setDialog(null); setRetry(value => value + 1) }} />
     </section>
   )
 }

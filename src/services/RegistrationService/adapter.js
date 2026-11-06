@@ -29,6 +29,7 @@ export function registrationRequest(value) {
   const reviewer = object(value.reviewedByUser)
   return {
     id: value.id,
+    registrationID: value.registrationID,
     applicant_user_id: value.applicantUserId,
     request_type: value.requestType,
     status: value.status,
@@ -37,6 +38,8 @@ export function registrationRequest(value) {
     updated_at: value.updatedAt,
     rejection_reason: value.rejectionReason,
     reviewed_by_user_id: value.reviewedByUserId,
+    // Only the detail endpoint returns this optimistic-lock token.
+    review_version: value.reviewVersion || null,
     applicant: { id: applicant.id, full_name: applicant.fullName, username: applicant.username, email: applicant.email, phone: applicant.phone, status: applicant.status, email_verified_at: applicant.emailVerifiedAt },
     reviewer: value.reviewedByUser ? { id: reviewer.id, full_name: reviewer.fullName } : null,
     // JSON fields have no enforced business schema. Keep their existing keys.
