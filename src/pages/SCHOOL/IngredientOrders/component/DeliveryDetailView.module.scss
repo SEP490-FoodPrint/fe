@@ -1,0 +1,453 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.navHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--card-bg, #ffffff);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.navLeft {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  border-color: #cbd5e1;
+  color: #475569;
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+
+  &:hover {
+    border-color: #94a3b8;
+    background-color: #f8fafc;
+  }
+}
+
+.titleInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.titleWithBadge {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mainTitle {
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+.batch1Chip {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.batch2Chip {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.subTitle {
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.navRight {
+  display: flex;
+  align-items: center;
+}
+
+.printBtn {
+  border-color: #cbd5e1;
+  color: #334155;
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}
+
+.rejectAlert {
+  border-radius: 10px;
+}
+
+.rejectTitle {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.infoCard {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cardHeaderTitle {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.cardDivider {
+  margin: 6px 0 10px 0;
+}
+
+.infoItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.infoIcon {
+  color: #64748b;
+}
+
+.infoLabel {
+  color: #64748b;
+  min-width: 130px;
+}
+
+.infoValue {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.tempDanger {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.qrCard {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  padding: 18px 20px;
+}
+
+.qrHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qrIcon {
+  color: #16a34a;
+}
+
+.qrTitle {
+  font-weight: 600;
+  color: #166534;
+}
+
+.qrBody {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.qrPlaceholder {
+  width: 84px;
+  height: 84px;
+  background-color: #ffffff;
+  border: 1px dashed #86efac;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.qrBigIcon {
+  color: #15803d;
+}
+
+.qrDetails {
+  flex: 1;
+}
+
+.qrCodeText {
+  font-family: monospace;
+  font-weight: 700;
+  color: #14532d;
+  background-color: #dcfce7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.qrDesc {
+  color: #374151;
+  display: block;
+  line-height: 1.4;
+}
+
+.sectionWrapper {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  padding: 20px 24px;
+}
+
+.sectionTitleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sectionHeading {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.consensusChip {
+  background-color: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.approvalsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.approvalCard {
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid;
+  display: flex;
+  flex-direction: column;
+}
+
+.approvedCard {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+
+  .roleTitleGroup {
+    color: #15803d;
+  }
+}
+
+.rejectedCard {
+  background-color: #fef2f2;
+  border-color: #fecaca;
+
+  .roleTitleGroup {
+    color: #b91c1c;
+  }
+}
+
+.pendingCard {
+  background-color: #fffbeb;
+  border-color: #fef08a;
+
+  .roleTitleGroup {
+    color: #a16207;
+  }
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.roleTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.roleTitle {
+  font-weight: 600;
+}
+
+.checkIcon {
+  color: #16a34a;
+}
+
+.rejectIcon {
+  color: #dc2626;
+}
+
+.clockIcon {
+  color: #d97706;
+}
+
+.roleDuty {
+  color: #64748b;
+  font-size: 0.75rem;
+}
+
+.roleDivider {
+  margin: 10px 0;
+}
+
+.cardBottom {
+  display: flex;
+  flex-direction: column;
+}
+
+.signerName {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.signTime {
+  color: #64748b;
+  font-size: 0.7rem;
+}
+
+.rejectSignText {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.pendingSignText {
+  color: #b45309;
+  font-style: italic;
+  font-size: 0.75rem;
+}
+
+.tableWrapper {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+.itemsTable {
+  min-width: 650px;
+}
+
+.tableHeaderRow {
+  background-color: #f8fafc;
+
+  :global(.MuiTableCell-head) {
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    padding: 12px 16px;
+  }
+}
+
+.tableRow {
+  :global(.MuiTableCell-body) {
+    padding: 12px 16px;
+  }
+}
+
+.ingName {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.freshChip {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-size: 0.7rem;
+}
+
+.dryChip {
+  background-color: #fef3c7;
+  color: #92400e;
+  font-size: 0.7rem;
+}
+
+.orderedQty {
+  color: #64748b;
+}
+
+.deliveredQty {
+  color: #0284c7;
+  font-weight: 700;
+}
+
+.itemAccepted {
+  background-color: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+.itemRejected {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  font-weight: 600;
+  font-size: 0.7rem;
+}
+
+.itemChecking {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-size: 0.7rem;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+
+.backBtnBottom {
+  border-color: #cbd5e1;
+  color: #475569;
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+}

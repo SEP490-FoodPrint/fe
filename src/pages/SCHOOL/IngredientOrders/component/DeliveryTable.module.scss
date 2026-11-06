@@ -7,7 +7,7 @@
 }
 
 .table {
-  min-width: 900px;
+  min-width: 950px;
 }
 
 .tableHead {
@@ -30,6 +30,14 @@
   :global(.MuiTableCell-body) {
     padding: 14px 16px;
     border-bottom: 1px solid #f1f5f9;
+  }
+}
+
+.clickableRow {
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f8fafc;
   }
 }
 
@@ -175,4 +183,17 @@
   padding: 48px 16px;
   color: #94a3b8;
   font-style: italic;
+}
+
+.viewBtn {
+  color: var(--color-primary, #1e7e34);
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover {
+    background-color: var(--color-primary-soft, #e6f4ea);
+  }
 }

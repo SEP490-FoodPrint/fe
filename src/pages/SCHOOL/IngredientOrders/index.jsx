@@ -9,10 +9,11 @@ import OrderFilterStrip from "./component/OrderFilterStrip"
 import CatalogTable from "./component/CatalogTable"
 import OrderPagination from "./component/OrderPagination"
 
-// Các component cho Tab Phiếu giao nhận & Nhập hàng (Chỉ danh sách, thống kê, bộ lọc)
+// Các component cho Tab Phiếu giao nhận & Nhập hàng
 import DeliveryStatsRail from "./component/DeliveryStatsRail"
 import DeliveryFilterStrip from "./component/DeliveryFilterStrip"
 import DeliveryTable from "./component/DeliveryTable"
+import DeliveryDetailView from "./component/DeliveryDetailView"
 
 import styles from "./index.module.scss"
 
@@ -26,6 +27,10 @@ export default function IngredientOrders() {
 
   // Tab 2: Phiếu giao nhận & Nhập hàng
   const [deliveries, setDeliveries] = useState([])
+
+  // Sub-view trong Tab 2: "list" (mặc định) | "detail"
+  const [deliverySubView, setDeliverySubView] = useState("list")
+  const [selectedDelivery, setSelectedDelivery] = useState(null)
 
   // Active tab: "catalog" (mặc định) | "deliveries" | "orders"
   const [activeTab, setActiveTab] = useState("catalog")
@@ -183,16 +188,30 @@ export default function IngredientOrders() {
     setPage(1)
   }
 
+  // Xem chi tiết phiếu giao nhận
+  const handleViewDetail = deliveryItem => {
+    setSelectedDelivery(deliveryItem)
+    setDeliverySubView("detail")
+  }
+
+  // Quay lại danh sách phiếu giao nhận
+  const handleBackToList = () => {
+    setDeliverySubView("list")
+    setSelectedDelivery(null)
+  }
+
   return (
     <Box className={styles.pageContainer}>
-      {/* 1. Header */}
+      {/* 1. Header (CỐ ĐỊNH Ở TRÊN) */}
       <OrderListHeader />
 
-      {/* 2. Tabs */}
+      {/* 2. Tabs (CỐ ĐỊNH Ở TRÊN) */}
       <OrderTabViews
         activeTab={activeTab}
         onTabChange={tab => {
           setActiveTab(tab)
+          setDeliverySubView("list")
+          setSelectedDelivery(null)
           setPage(1)
         }}
         catalogCount={catalog.length}
@@ -230,34 +249,50 @@ export default function IngredientOrders() {
         </>
       )}
 
-      {/* Nội dung Tab 2: Phiếu giao nhận & Nhập hàng (Chỉ danh sách, thống kê, bộ lọc) */}
+      {/* Nội dung Tab 2: Phiếu giao nhận & Nhập hàng (CHUYỂN ĐỔI BÊN DƯỚI 3 TAB) */}
       {activeTab === "deliveries" && (
         <>
-          {/* Thẻ thống kê Phiếu giao nhận (Chia 2 đợt & Nghiệm thu 4 bên) */}
-          <DeliveryStatsRail
-            stats={deliveryStats}
-            activeBatchFilter={deliveryFilters.batchType}
-            onFilterBatchType={val => handleDeliveryFilterChange("batchType", val)}
-          />
+          {/* Sub-view 1: Bảng Danh sách Phiếu giao nhận (Mặc định) */}
+          {deliverySubView === "list" && (
+            <>
+              {/* Thẻ thống kê Phiếu giao nhận (Chia 2 đợt & Nghiệm thu 4 bên) */}
+              <DeliveryStatsRail
+                stats={deliveryStats}
+                activeBatchFilter={deliveryFilters.batchType}
+                onFilterBatchType={val => handleDeliveryFilterChange("batchType", val)}
+              />
 
-          {/* Bộ lọc & Tìm kiếm */}
-          <DeliveryFilterStrip
-            filters={deliveryFilters}
-            onFilterChange={handleDeliveryFilterChange}
-            onResetFilters={handleResetDeliveryFilters}
-          />
+              {/* Bộ lọc & Tìm kiếm */}
+              <DeliveryFilterStrip
+                filters={deliveryFilters}
+                onFilterChange={handleDeliveryFilterChange}
+                onResetFilters={handleResetDeliveryFilters}
+              />
 
-          {/* Bảng Phiếu giao nhận */}
-          <DeliveryTable deliveries={paginatedDeliveries} />
+              {/* Bảng Phiếu giao nhận */}
+              <DeliveryTable
+                deliveries={paginatedDeliveries}
+                onViewDetail={handleViewDetail}
+              />
 
-          {/* Phân trang */}
-          <OrderPagination
-            page={page}
-            count={totalPages}
-            totalItems={currentTotalCount}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-          />
+              {/* Phân trang */}
+              <OrderPagination
+                page={page}
+                count={totalPages}
+                totalItems={currentTotalCount}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+              />
+            </>
+          )}
+
+          {/* Sub-view 2: Chi tiết Phiếu giao nhận & Nghiệm thu 4 bên (Thay thế nội dung bên dưới 3 tab) */}
+          {deliverySubView === "detail" && selectedDelivery && (
+            <DeliveryDetailView
+              delivery={selectedDelivery}
+              onBack={handleBackToList}
+            />
+          )}
         </>
       )}
 

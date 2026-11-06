@@ -12,6 +12,7 @@ import {
   Typography,
   Tooltip,
   Box,
+  Button,
 } from "@mui/material"
 import {
   QrCode,
@@ -23,10 +24,11 @@ import {
   Stethoscope,
   HeartHandshake,
   Utensils,
+  Eye,
 } from "lucide-react"
 import styles from "./DeliveryTable.module.scss"
 
-export default function DeliveryTable({ deliveries = [] }) {
+export default function DeliveryTable({ deliveries = [], onViewDetail }) {
   // Render badge trạng thái 4 bên
   const renderApprovalMatrix = approvals => {
     if (!approvals) return null
@@ -127,12 +129,13 @@ export default function DeliveryTable({ deliveries = [] }) {
             <TableCell>Nhà cung cấp & Lô QR</TableCell>
             <TableCell align="center">Kiểm tra 4 bên</TableCell>
             <TableCell>Trạng thái</TableCell>
+            <TableCell align="center">Thao tác</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {deliveries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" className={styles.emptyCell}>
+              <TableCell colSpan={8} align="center" className={styles.emptyCell}>
                 Không có phiếu giao nhận nào phù hợp với bộ lọc
               </TableCell>
             </TableRow>
@@ -141,7 +144,12 @@ export default function DeliveryTable({ deliveries = [] }) {
               const isBatch1 = item.batchType === "BATCH_1"
 
               return (
-                <TableRow key={item.id} className={styles.tableRow} hover>
+                <TableRow
+                  key={item.id}
+                  className={`${styles.tableRow} ${styles.clickableRow}`}
+                  hover
+                  onClick={() => onViewDetail && onViewDetail(item)}
+                >
                   {/* Mã phiếu & Mã đơn */}
                   <TableCell>
                     <Typography variant="subtitle2" className={styles.deliveryNo}>
@@ -205,6 +213,19 @@ export default function DeliveryTable({ deliveries = [] }) {
 
                   {/* Trạng thái */}
                   <TableCell>{getStatusBadge(item)}</TableCell>
+
+                  {/* Thao tác */}
+                  <TableCell align="center" onClick={e => e.stopPropagation()}>
+                    <Button
+                      variant="text"
+                      size="small"
+                      startIcon={<Eye size={15} />}
+                      onClick={() => onViewDetail && onViewDetail(item)}
+                      className={styles.viewBtn}
+                    >
+                      Chi tiết
+                    </Button>
+                  </TableCell>
                 </TableRow>
               )
             })
@@ -217,4 +238,5 @@ export default function DeliveryTable({ deliveries = [] }) {
 
 DeliveryTable.propTypes = {
   deliveries: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onViewDetail: PropTypes.func,
 }
