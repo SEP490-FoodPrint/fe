@@ -1,8 +1,14 @@
 import React from "react"
-import { LayoutGrid, FileEdit, Clock, CheckCircle, AlertTriangle } from "lucide-react"
+import { LayoutGrid, FileEdit, Clock, CheckCircle, AlertTriangle, Plus } from "lucide-react"
 import styles from "./MenuListStatsRail.module.scss"
 
-export default function MenuListStatsRail({ stats, year, activeStatus = "all", onFilterByStatus }) {
+export default function MenuListStatsRail({
+  stats,
+  year,
+  activeStatus = "all",
+  onFilterByStatus,
+  onNavigateCreate,
+}) {
   const {
     total = 0,
     draft = 0,
@@ -91,6 +97,19 @@ export default function MenuListStatsRail({ stats, year, activeStatus = "all", o
           )
         })}
       </div>
+
+      {/* Nút Tạo thực đơn chuyển sang đây */}
+      {onNavigateCreate && (
+        <button
+          type="button"
+          className={styles.createBtn}
+          onClick={onNavigateCreate}
+          title="Tạo thực đơn mới"
+        >
+          <Plus size={15} />
+          <span>Tạo thực đơn</span>
+        </button>
+      )}
     </div>
   )
 }

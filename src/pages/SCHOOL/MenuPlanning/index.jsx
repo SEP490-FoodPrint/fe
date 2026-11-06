@@ -14,7 +14,6 @@ import {
   SCHOOL_DAY_LABELS,
 } from "src/services/MenuService/adapter"
 
-import MenuListHeader from "./component/MenuListHeader"
 import MenuListStatsRail from "./component/MenuListStatsRail"
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
 import MenuDetailModal from "./component/MenuDetailModal"
@@ -355,15 +354,13 @@ export default function MenuPlanning() {
         </div>
       )}
 
-      {/* Section 1: Header Bar & Actions Clean */}
-      <MenuListHeader onNavigateCreate={handleNavigateCreate} />
-
-      {/* Section 2: Quick Status Filter Pills (Tối giản, icon trực quan) */}
+      {/* Dải Quick Status Pills & Nút Tạo thực đơn */}
       <MenuListStatsRail
         stats={stats}
         year={filters.year}
         activeStatus={filters.status}
         onFilterByStatus={handleFilterByStatus}
+        onNavigateCreate={handleNavigateCreate}
       />
 
       {/* Section 3: Bộ lọc Phẳng (Năm, Tuần, Ca ăn) */}
