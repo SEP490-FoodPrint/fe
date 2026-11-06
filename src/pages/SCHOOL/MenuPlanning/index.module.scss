@@ -1,6 +1,6 @@
 .menuListPage {
   width: 100%;
-  padding: 18px 24px 36px;
+  padding: 16px 20px 32px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -9,62 +9,8 @@
   min-height: 100%;
 
   @media (max-width: 768px) {
-    padding: 12px 14px 28px;
+    padding: 12px 12px 24px;
     gap: 8px;
-  }
-}
-
-.tableCard {
-  width: 100%;
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
-
-.tableTopBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.tableModeLabel {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-}
-
-.tableModeActions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.switchModeBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #0a8066;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.12s ease;
-
-  &:hover {
-    background-color: #ecfdf5;
-    border-color: #0a8066;
   }
 }
 
@@ -92,7 +38,6 @@
   }
   to {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 

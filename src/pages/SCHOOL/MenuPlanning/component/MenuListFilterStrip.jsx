@@ -74,10 +74,9 @@ export default function MenuListFilterStrip({
         <select
           className={styles.selectInput}
           value={String(week)}
-          onChange={(e) => onChangeFilter("week", e.target.value === "all" ? "all" : Number(e.target.value))}
+          onChange={(e) => onChangeFilter("week", Number(e.target.value))}
           title="Chọn tuần trong năm"
         >
-          <option value="all">Tất cả các tuần ({year})</option>
           {weeks.map((w) => {
             const isThisWeek = Number(year) === currentYear && w.weekNumber === currentWeek
             return (

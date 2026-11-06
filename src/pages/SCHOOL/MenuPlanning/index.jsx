@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { CheckCircle2, AlertTriangle, Info, Table, Columns3 } from "lucide-react"
+import { CheckCircle2, AlertTriangle, Info } from "lucide-react"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { MOCK_MENU_LIST, getWeeklyMenuStatus } from "./mockMenuListData"
@@ -17,8 +17,6 @@ import {
 import MenuListHeader from "./component/MenuListHeader"
 import MenuListStatsRail from "./component/MenuListStatsRail"
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
-import MenuListTable from "./component/MenuListTable"
-import MenuListPagination from "./component/MenuListPagination"
 import MenuDetailModal from "./component/MenuDetailModal"
 import MenuListWeeklyVerticalView from "./component/MenuListWeeklyVerticalView"
 
@@ -32,9 +30,6 @@ export default function MenuPlanning() {
   const [menus, setMenus] = useState(MOCK_MENU_LIST)
   const [menusAreMock, setMenusAreMock] = useState(true)
   const [loading, setLoading] = useState(false)
-
-  // Chế độ xem: "vertical" (Kiểu dọc theo tuần - Mặc định) hoặc "table" (Kiểu bảng)
-  const [viewMode, setViewMode] = useState("vertical")
 
   // Filter state: Mặc định lọc năm hiện tại và Tuần này!
   const [filters, setFilters] = useState({
@@ -70,10 +65,6 @@ export default function MenuPlanning() {
     }
   }, [filters.status])
 
-  // Pagination state (dành cho chế độ bảng)
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 5
-
   // Detail Modal state
   const [selectedMenu, setSelectedMenu] = useState(null)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
@@ -92,7 +83,7 @@ export default function MenuPlanning() {
   const handleChangeFilter = (field, value) => {
     setFilters((prev) => {
       const next = { ...prev, [field]: value }
-      if (field === "year" && next.week !== "all") {
+      if (field === "year") {
         if (Number(value) === currentYear) {
           next.week = currentWeek
         }
@@ -105,7 +96,7 @@ export default function MenuPlanning() {
         else if (value === "APPROVED" && next.week !== 45 && next.week !== 43 && next.week !== 42) next.week = 45
       }
       // Khi đổi tuần: nếu bộ lọc trạng thái không khớp với tuần mới, tự động bỏ lọc trạng thái
-      if (field === "week" && value !== "all") {
+      if (field === "week") {
         const info = getWeeklyMenuStatus(value, next.year, menus)
         if (next.status !== "all" && next.status !== info.status) {
           next.status = "all"
@@ -113,7 +104,6 @@ export default function MenuPlanning() {
       }
       return next
     })
-    setCurrentPage(1)
   }
 
   const handleResetFilters = () => {
@@ -124,8 +114,6 @@ export default function MenuPlanning() {
       mealType: "all",
       status: "all",
     })
-    setViewMode("vertical")
-    setCurrentPage(1)
     showToast("Đã đặt lại bộ lọc về Tuần này", "info")
   }
 
@@ -145,7 +133,6 @@ export default function MenuPlanning() {
       }
       return next
     })
-    setCurrentPage(1)
   }
 
   // Thống kê cho Quick Status Pills
@@ -193,16 +180,14 @@ export default function MenuPlanning() {
       }
 
       // 3. Lọc theo Tuần
-      if (filters.week !== "all") {
-        const targetWeek = Number(filters.week)
-        const mWeek = getMenuISOWeek(menu)
-        if (mWeek !== targetWeek) {
-          const isMatchRelative =
-            (targetWeek === currentWeek && menu.week === "current") ||
-            (targetWeek === currentWeek - 1 && menu.week === "prev") ||
-            (targetWeek === currentWeek + 1 && menu.week === "next")
-          if (!isMatchRelative) return false
-        }
+      const targetWeek = Number(filters.week)
+      const mWeek = getMenuISOWeek(menu)
+      if (mWeek !== targetWeek) {
+        const isMatchRelative =
+          (targetWeek === currentWeek && menu.week === "current") ||
+          (targetWeek === currentWeek - 1 && menu.week === "prev") ||
+          (targetWeek === currentWeek + 1 && menu.week === "next")
+        if (!isMatchRelative) return false
       }
 
       // 4. Lọc theo Ca ăn
@@ -221,7 +206,6 @@ export default function MenuPlanning() {
 
   // Danh sách các ngày trong tuần được chọn
   const weekSchoolDays = useMemo(() => {
-    if (filters.week === "all") return []
     const monday = getDateOfISOWeek(
       Number(filters.week),
       Number(filters.year) || currentYear
@@ -255,9 +239,6 @@ export default function MenuPlanning() {
 
   // Nhãn tuần được chọn
   const selectedWeekLabel = useMemo(() => {
-    if (filters.week === "all") {
-      return `Tất cả các tuần năm ${filters.year}`
-    }
     const weeks = getWeeksOfYear(Number(filters.year) || currentYear)
     const found = weeks.find((w) => w.weekNumber === Number(filters.week))
     return found ? found.label : `Tuần ${filters.week}/${filters.year}`
@@ -274,14 +255,6 @@ export default function MenuPlanning() {
       Number(filters.week) === currentWeek
     )
   }, [filters.year, filters.week, currentYear, currentWeek])
-
-  // Paginated menus (dành cho chế độ bảng)
-  const totalItems = filteredMenus.length
-  const totalPages = Math.ceil(totalItems / pageSize) || 1
-  const paginatedMenus = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return filteredMenus.slice(start, start + pageSize)
-  }, [filteredMenus, currentPage, pageSize])
 
   // Xử lý gửi BGH duyệt tuần (khi DRAFT)
   const handleSubmitWeeklyMenu = () => {
@@ -400,61 +373,21 @@ export default function MenuPlanning() {
         onResetFilters={handleResetFilters}
       />
 
-      {/* Section 4: Hiển thị Danh sách thực đơn kiểu dọc tuần (Mặc định) hoặc Kiểu bảng */}
-      {viewMode === "vertical" && filters.week !== "all" ? (
-        <MenuListWeeklyVerticalView
-          schoolDays={weekSchoolDays}
-          menus={filteredMenus}
-          mealTypeFilter={filters.mealType}
-          onViewDetail={handleViewDetail}
-          onEditMenu={handleEditMenu}
-          onNavigateCreate={handleNavigateCreateWithDate}
-          viewMode={viewMode}
-          onChangeViewMode={setViewMode}
-          selectedWeekLabel={selectedWeekLabel}
-          isCurrentWeek={isCurrentWeek}
-          weekStatus={weekStatusInfo.status}
-          weekFeedback={weekStatusInfo.feedback}
-          onSubmitWeeklyMenu={handleSubmitWeeklyMenu}
-          onResubmitWeeklyMenu={handleResubmitWeeklyMenu}
-        />
-      ) : (
-        <div className={styles.tableCard}>
-          <div className={styles.tableTopBar}>
-            <div className={styles.tableModeLabel}>
-              <Table size={16} />
-              <span>
-                Bảng danh sách thực đơn ({filteredMenus.length} thực đơn)
-              </span>
-            </div>
-            <div className={styles.tableModeActions}>
-              {filters.week !== "all" && (
-                <button
-                  type="button"
-                  className={styles.switchModeBtn}
-                  onClick={() => setViewMode("vertical")}
-                  title="Chuyển sang kiểu dọc theo tuần"
-                >
-                  <Columns3 size={14} />
-                  <span>Xem kiểu dọc</span>
-                </button>
-              )}
-            </div>
-          </div>
-          <MenuListTable
-            menus={paginatedMenus}
-            onViewDetail={handleViewDetail}
-            onEditMenu={handleEditMenu}
-          />
-          <MenuListPagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            pageSize={pageSize}
-            totalItems={totalItems}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
-      )}
+      {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
+      <MenuListWeeklyVerticalView
+        schoolDays={weekSchoolDays}
+        menus={filteredMenus}
+        mealTypeFilter={filters.mealType}
+        onViewDetail={handleViewDetail}
+        onEditMenu={handleEditMenu}
+        onNavigateCreate={handleNavigateCreateWithDate}
+        selectedWeekLabel={selectedWeekLabel}
+        isCurrentWeek={isCurrentWeek}
+        weekStatus={weekStatusInfo.status}
+        weekFeedback={weekStatusInfo.feedback}
+        onSubmitWeeklyMenu={handleSubmitWeeklyMenu}
+        onResubmitWeeklyMenu={handleResubmitWeeklyMenu}
+      />
 
       {/* Detail Modal */}
       <MenuDetailModal

@@ -11,8 +11,6 @@ import {
   CheckCircle2,
   Clock,
   FileEdit,
-  Columns3,
-  Table,
   PlusCircle,
   AlertCircle,
   CalendarCheck,
@@ -27,8 +25,6 @@ export default function MenuListWeeklyVerticalView({
   onViewDetail,
   onEditMenu,
   onNavigateCreate,
-  viewMode = "vertical",
-  onChangeViewMode,
   selectedWeekLabel = "",
   isCurrentWeek = false,
   weekStatus: propWeekStatus,
@@ -350,32 +346,6 @@ export default function MenuListWeeklyVerticalView({
               <span>Gửi lại BGH</span>
             </button>
           )}
-
-          {/* Chuyển đổi chế độ xem: Dọc / Bảng bằng Icon */}
-          <div className={styles.viewModeSwitcher} role="group" aria-label="Chế độ xem">
-            <button
-              type="button"
-              className={`${styles.viewBtn} ${
-                viewMode === "vertical" ? styles.viewBtnActive : ""
-              }`}
-              onClick={() => onChangeViewMode && onChangeViewMode("vertical")}
-              title="Xem kiểu tuần dọc (Mặc định)"
-              aria-label="Kiểu tuần dọc"
-            >
-              <Columns3 size={15} />
-            </button>
-            <button
-              type="button"
-              className={`${styles.viewBtn} ${
-                viewMode === "table" ? styles.viewBtnActive : ""
-              }`}
-              onClick={() => onChangeViewMode && onChangeViewMode("table")}
-              title="Xem kiểu bảng danh sách"
-              aria-label="Kiểu bảng danh sách"
-            >
-              <Table size={15} />
-            </button>
-          </div>
         </div>
       </div>
 
