@@ -1,12 +1,16 @@
 import React, { useState, useMemo, useCallback } from "react"
-import { Pencil, Trash2 } from "lucide-react"
+import { Pencil, Trash2, Plus, ShoppingBag } from "lucide-react"
 import {
   DISH_CATEGORIES,
   CATALOG_SUPPLIERS,
-  SUPPLIER_INGREDIENTS,
   getStoredDishCatalog,
   saveDishToCatalog,
 } from "src/pages/SCHOOL/MenuPlanning/dishCatalogData"
+import {
+  ALL_INGREDIENTS,
+  LINKED_SUPPLIERS,
+} from "src/pages/SCHOOL/MenuPlanning/mockMenuData"
+import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import styles from "./index.module.scss"
 
 /* ─── Helpers ────────────────────────────────────── */
@@ -23,10 +27,6 @@ const EMPTY_FORM = {
   category: "MAIN_DISH",
   portionQty: "",
   unit: "g",
-  mainIngredient: "",
-  supplierId: "sup-cp",
-  supplierName: "CP Foods Việt Nam",
-  customSupplierName: "",
 }
 
 export default function DishCatalogPage() {
@@ -39,12 +39,16 @@ export default function DishCatalogPage() {
   const [modalOpen, setModalOpen] = useState(false)
   const [editingDish, setEditingDish] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
-  const [isCustomIngredient, setIsCustomIngredient] = useState(false)
 
-  // Danh sách nguyên liệu theo NCC đang chọn trong form
-  const currentSupplierIngredients = useMemo(() => {
-    return SUPPLIER_INGREDIENTS[form.supplierId] || []
-  }, [form.supplierId])
+  // Danh sách nguyên liệu cấu thành món ăn (dạng bảng trực quan)
+  const [selectedIngredients, setSelectedIngredients] = useState([])
+  const [pickerOpen, setPickerOpen] = useState(false)
+
+  // Danh sách ID nguyên liệu để đồng bộ với IngredientPickerModal
+  const selectedIngredientIds = useMemo(
+    () => selectedIngredients.map((i) => i.id),
+    [selectedIngredients]
+  )
 
   // Modal xác nhận xóa
   const [deletingDish, setDeletingDish] = useState(null)
@@ -80,94 +84,122 @@ export default function DishCatalogPage() {
   /* ─── Handlers ───────────────────────────────── */
   const openAdd = useCallback(() => {
     setEditingDish(null)
-    setIsCustomIngredient(false)
-    const defaultSupplierId = "sup-cp"
-    const ings = SUPPLIER_INGREDIENTS[defaultSupplierId] || []
-    setForm({
-      name: "",
-      category: "MAIN_DISH",
-      portionQty: "",
-      unit: "g",
-      mainIngredient: ings[0] || "",
-      supplierId: defaultSupplierId,
-      supplierName: "CP Foods Việt Nam",
-      customSupplierName: "",
-    })
+    setForm(EMPTY_FORM)
+    setSelectedIngredients([])
     setModalOpen(true)
   }, [])
 
   const openEdit = useCallback((dish) => {
-    const knownSupplier = CATALOG_SUPPLIERS.find(
-      (s) => s.id === dish.supplierId || s.name === dish.supplierName
-    )
-    const supId = knownSupplier ? knownSupplier.id : "CUSTOM"
-    const currentIng = dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
-    const supIngs = SUPPLIER_INGREDIENTS[supId] || []
-    const isCustom = supId === "CUSTOM" || (currentIng && !supIngs.includes(currentIng))
-
     setEditingDish(dish)
-    setIsCustomIngredient(Boolean(isCustom))
     setForm({
       name: dish.name || "",
       category: dish.category || "MAIN_DISH",
       portionQty: dish.portionQty ?? "",
       unit: dish.unit || "g",
-      mainIngredient: currentIng,
-      supplierId: supId,
-      supplierName: dish.supplierName || (knownSupplier ? knownSupplier.name : "CP Foods Việt Nam"),
-      customSupplierName: knownSupplier ? "" : (dish.supplierName || ""),
     })
+
+    // Nạp danh sách nguyên liệu của món ăn đang sửa
+    let initialIngs = []
+    if (Array.isArray(dish.ingredientIds) && dish.ingredientIds.length > 0) {
+      initialIngs = dish.ingredientIds
+        .map((id) => {
+          const found = ALL_INGREDIENTS.find((i) => i.id === id)
+          if (found) {
+            const sup = LINKED_SUPPLIERS.find((s) => s.id === found.supplierId)
+            return {
+              ...found,
+              supplierName: sup ? sup.name : "NCC liên kết",
+              supplierBadge: sup ? sup.badge : "",
+            }
+          }
+          return null
+        })
+        .filter(Boolean)
+    }
+
+    // Nếu chưa có mảng ID, nạp từ mainIngredient text hoặc tìm trong ALL_INGREDIENTS
+    if (initialIngs.length === 0) {
+      const mainText = dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
+      const foundByName = ALL_INGREDIENTS.find(
+        (i) => i.name.toLowerCase() === mainText.toLowerCase()
+      )
+      if (foundByName) {
+        const sup = LINKED_SUPPLIERS.find((s) => s.id === foundByName.supplierId)
+        initialIngs = [
+          {
+            ...foundByName,
+            supplierName: sup ? sup.name : "NCC liên kết",
+            supplierBadge: sup ? sup.badge : "",
+          },
+        ]
+      } else {
+        initialIngs = [
+          {
+            id: `ing-syn-${dish.id}`,
+            name: mainText,
+            category: dish.categoryLabel || "Nguyên liệu chính",
+            supplierId: dish.supplierId || "sup-cp",
+            supplierName: dish.supplierName || "CP Foods Việt Nam",
+            supplierBadge: dish.supplierBadge || "VietGAP",
+          },
+        ]
+      }
+    }
+
+    setSelectedIngredients(initialIngs)
     setModalOpen(true)
   }, [])
 
   const closeModal = useCallback(() => {
     setModalOpen(false)
     setEditingDish(null)
-    setIsCustomIngredient(false)
+    setSelectedIngredients([])
     setForm(EMPTY_FORM)
   }, [])
 
   const handleFormChange = useCallback((field, value) => {
-    setForm((prev) => {
-      const next = { ...prev, [field]: value }
-      if (field === "supplierId") {
-        if (value !== "CUSTOM") {
-          const sup = CATALOG_SUPPLIERS.find((s) => s.id === value)
-          next.supplierName = sup ? sup.name : ""
-          const ings = SUPPLIER_INGREDIENTS[value] || []
-          next.mainIngredient = ings[0] || ""
-          setIsCustomIngredient(false)
-        } else {
-          next.supplierName = next.customSupplierName || ""
-          next.mainIngredient = ""
-          setIsCustomIngredient(true)
-        }
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }, [])
+
+  // Toggle chọn nguyên liệu từ IngredientPickerModal
+  const handleToggleIngredient = useCallback((ing) => {
+    setSelectedIngredients((prev) => {
+      const exists = prev.some((i) => i.id === ing.id)
+      if (exists) {
+        return prev.filter((i) => i.id !== ing.id)
       }
-      return next
+      const sup = LINKED_SUPPLIERS.find((s) => s.id === ing.supplierId)
+      return [
+        ...prev,
+        {
+          id: ing.id,
+          name: ing.name,
+          category: ing.category,
+          supplierId: ing.supplierId,
+          supplierName: sup ? sup.name : ing.supplierName || "NCC liên kết",
+          supplierBadge: sup ? sup.badge : ing.supplierBadge || "",
+        },
+      ]
     })
   }, [])
 
+  // Xóa nguyên liệu khỏi bảng trong modal
+  const handleRemoveIngredient = useCallback((ingId) => {
+    setSelectedIngredients((prev) => prev.filter((i) => i.id !== ingId))
+  }, [])
+
   const handleSave = useCallback(() => {
-    if (!form.name.trim() || !form.portionQty) return
+    if (!form.name.trim() || !form.portionQty || selectedIngredients.length === 0) return
 
     const catInfo = DISH_CATEGORIES.find((c) => c.key === form.category)
-    let finalSupplierId = form.supplierId
-    let finalSupplierName = form.supplierName
-    let finalSupplierBadge = ""
+    const primaryIng = selectedIngredients[0]
+    const allNames = selectedIngredients.map((i) => i.name)
+    const mainIngText = allNames.join(" & ")
+    const ingIds = selectedIngredients.map((i) => i.id)
 
-    if (form.supplierId === "CUSTOM") {
-      finalSupplierName = form.customSupplierName.trim() || "Nhà cung cấp đối tác"
-      finalSupplierId = `custom-sup-${Date.now()}`
-      finalSupplierBadge = "Đối tác liên kết"
-    } else {
-      const sup = CATALOG_SUPPLIERS.find((s) => s.id === form.supplierId)
-      if (sup) {
-        finalSupplierName = sup.name
-        finalSupplierBadge = sup.badge
-      }
-    }
-
-    const mainIng = form.mainIngredient.trim() || form.name.trim()
+    const finalSupplierId = primaryIng?.supplierId || "sup-cp"
+    const finalSupplierName = primaryIng?.supplierName || "CP Foods Việt Nam"
+    const finalSupplierBadge = primaryIng?.supplierBadge || "VietGAP"
 
     if (editingDish) {
       const updated = catalog.map((d) =>
@@ -179,11 +211,12 @@ export default function DishCatalogPage() {
               categoryLabel: catInfo?.label || "Món ăn",
               portionQty: Number(form.portionQty) || 50,
               unit: form.unit || "g",
-              mainIngredient: mainIng,
+              mainIngredient: mainIngText,
               supplierId: finalSupplierId,
               supplierName: finalSupplierName,
               supplierBadge: finalSupplierBadge,
-              ingredientNames: [mainIng],
+              ingredientIds: ingIds,
+              ingredientNames: allNames,
             }
           : d
       )
@@ -200,18 +233,18 @@ export default function DishCatalogPage() {
         categoryLabel: catInfo?.label || "Món ăn",
         portionQty: Number(form.portionQty) || 50,
         unit: form.unit || "g",
-        mainIngredient: mainIng,
+        mainIngredient: mainIngText,
         supplierId: finalSupplierId,
         supplierName: finalSupplierName,
         supplierBadge: finalSupplierBadge,
-        ingredientIds: [],
-        ingredientNames: [mainIng],
+        ingredientIds: ingIds,
+        ingredientNames: allNames,
       }
       const updated = saveDishToCatalog(newDish)
       setCatalog(updated)
     }
     closeModal()
-  }, [form, editingDish, catalog, closeModal])
+  }, [form, editingDish, selectedIngredients, catalog, closeModal])
 
   const handleDeleteConfirm = useCallback(() => {
     if (!deletingDish) return
@@ -240,7 +273,7 @@ export default function DishCatalogPage() {
         </button>
       </div>
 
-      {/* Stats row (Không có icon / emoji, tập trung thuần túy về món ăn) */}
+      {/* Stats row (3 thẻ số liệu trọng tâm) */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.total}</div>
@@ -256,7 +289,7 @@ export default function DishCatalogPage() {
         </div>
       </div>
 
-      {/* Filter bar (Không có icon) */}
+      {/* Filter bar */}
       <div className={styles.filterBar}>
         <input
           type="text"
@@ -293,7 +326,7 @@ export default function DishCatalogPage() {
         </div>
       </div>
 
-      {/* Bảng danh sách món ăn (Đã bỏ cột ca ăn, bỏ mô tả, không check dị ứng) */}
+      {/* Bảng danh sách món ăn */}
       <div className={styles.tableWrap}>
         {filtered.length === 0 ? (
           <div className={styles.empty}>
@@ -373,7 +406,7 @@ export default function DishCatalogPage() {
         )}
       </div>
 
-      {/* Modal Thêm / Sửa món ăn (Không ca ăn, không mô tả, chọn nguyên liệu theo NCC) */}
+      {/* Modal Thêm / Sửa món ăn (Có BẢNG CHỌN NGUYÊN LIỆU có phân loại) */}
       {modalOpen && (
         <div
           className={styles.modalOverlay}
@@ -448,95 +481,114 @@ export default function DishCatalogPage() {
                   </div>
                 </div>
 
-                {/* Nhà cung cấp liên kết (NCC) */}
-                <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>
-                    Nhà cung cấp (NCC) liên kết <span className={styles.required}>*</span>
-                  </label>
-                  <select
-                    className={styles.formSelect}
-                    value={form.supplierId}
-                    onChange={(e) => handleFormChange("supplierId", e.target.value)}
-                  >
-                    {CATALOG_SUPPLIERS.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name} ({s.badge})
-                      </option>
-                    ))}
-                    <option value="CUSTOM">Nhà cung cấp đối tác khác (Tự nhập tên)...</option>
-                  </select>
-                </div>
+                {/* KHU VỰC: BẢNG NGUYÊN LIỆU CẤU THÀNH MÓN ĂN (Có phân loại & NCC) */}
+                <div className={styles.ingredientsSection}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div>
+                      <label className={styles.sectionTitle}>
+                        Nguyên liệu cấu thành món ăn <span className={styles.required}>*</span>
+                      </label>
+                      <p className={styles.sectionSub}>
+                        Chọn nguyên liệu theo Phân loại và Nhà cung cấp đã liên kết
+                      </p>
+                    </div>
 
-                {/* Nếu chọn NCC tự nhập */}
-                {form.supplierId === "CUSTOM" && (
-                  <div className={styles.formFullRow}>
-                    <label className={styles.formLabel}>
-                      Tên Nhà cung cấp mới <span className={styles.required}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      placeholder="Nhập tên đơn vị cung ứng thực phẩm..."
-                      value={form.customSupplierName}
-                      onChange={(e) => handleFormChange("customSupplierName", e.target.value)}
-                    />
+                    <button
+                      type="button"
+                      className={styles.openPickerBtn}
+                      onClick={() => setPickerOpen(true)}
+                    >
+                      <Plus size={14} />
+                      <span>Chọn nguyên liệu từ NCC ({selectedIngredients.length})</span>
+                    </button>
                   </div>
-                )}
 
-                {/* Nguyên liệu chính: Tự động hiển thị danh mục theo NCC đã chọn */}
-                <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>
-                    Nguyên liệu chính (Cung cấp bởi {form.supplierId === "CUSTOM" ? (form.customSupplierName || "NCC đối tác") : form.supplierName}) <span className={styles.required}>*</span>
-                  </label>
-
-                  {form.supplierId !== "CUSTOM" && currentSupplierIngredients.length > 0 ? (
-                    <div className={styles.ingredientSelectWrap}>
-                      <select
-                        className={styles.formSelect}
-                        value={isCustomIngredient ? "CUSTOM_ING" : form.mainIngredient}
-                        onChange={(e) => {
-                          if (e.target.value === "CUSTOM_ING") {
-                            setIsCustomIngredient(true)
-                            handleFormChange("mainIngredient", "")
-                          } else {
-                            setIsCustomIngredient(false)
-                            handleFormChange("mainIngredient", e.target.value)
-                          }
-                        }}
-                      >
-                        {currentSupplierIngredients.map((ing) => (
-                          <option key={ing} value={ing}>
-                            {ing}
-                          </option>
-                        ))}
-                        <option value="CUSTOM_ING">+ Nhập nguyên liệu khác của NCC này...</option>
-                      </select>
-
-                      {isCustomIngredient && (
-                        <input
-                          type="text"
-                          className={`${styles.formInput} ${styles.customIngInput}`}
-                          placeholder="Nhập tên nguyên liệu mới do NCC này cung cấp..."
-                          value={form.mainIngredient}
-                          onChange={(e) => handleFormChange("mainIngredient", e.target.value)}
-                          autoFocus
-                        />
-                      )}
+                  {/* Bảng nguyên liệu */}
+                  {selectedIngredients.length === 0 ? (
+                    <div
+                      className={styles.emptyIngredientBox}
+                      onClick={() => setPickerOpen(true)}
+                    >
+                      <div className={styles.emptyPrompt}>
+                        <p className={styles.emptyPromptTitle}>Chưa chọn nguyên liệu cho món này</p>
+                        <p className={styles.emptyPromptSub}>
+                          Bấm vào đây để mở bảng chọn nguyên liệu có đầy đủ Phân loại & Nhà cung cấp liên kết
+                        </p>
+                      </div>
+                      <button type="button" className={styles.emptyAddBtn}>
+                        + Mở bảng chọn nguyên liệu
+                      </button>
                     </div>
                   ) : (
-                    <input
-                      type="text"
-                      className={styles.formInput}
-                      placeholder="Nhập tên nguyên liệu chính (ví dụ: Gạo tám thơm, Thịt heo sạch CP...)"
-                      value={form.mainIngredient}
-                      onChange={(e) => handleFormChange("mainIngredient", e.target.value)}
-                    />
+                    <div className={styles.ingTableWrap}>
+                      <table className={styles.ingTable}>
+                        <thead>
+                          <tr>
+                            <th style={{ width: 40, textAlign: "center" }}>#</th>
+                            <th style={{ minWidth: 160 }}>Tên nguyên liệu</th>
+                            <th style={{ width: 140 }}>Phân loại</th>
+                            <th style={{ minWidth: 180 }}>Nhà cung cấp cung ứng</th>
+                            <th style={{ width: 60, textAlign: "center" }}>Xóa</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedIngredients.map((ing, iIdx) => {
+                            const sup = LINKED_SUPPLIERS.find((s) => s.id === ing.supplierId)
+                            return (
+                              <tr key={ing.id || iIdx}>
+                                <td style={{ textAlign: "center", color: "#6b7c74", fontSize: 12 }}>
+                                  {iIdx + 1}
+                                </td>
+                                <td>
+                                  <strong className={styles.ingTableNameText}>{ing.name}</strong>
+                                </td>
+                                <td>
+                                  <span className={styles.ingTableCatBadge}>
+                                    {ing.category}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div className={styles.ingTableSupplierWrap}>
+                                    <span className={styles.ingTableSupplierName}>
+                                      {sup?.name || ing.supplierName || "NCC liên kết"}
+                                    </span>
+                                    {(sup?.badge || ing.supplierBadge) && (
+                                      <span className={styles.ingTableSupplierBadge}>
+                                        {sup?.badge || ing.supplierBadge}
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td style={{ textAlign: "center" }}>
+                                  <button
+                                    type="button"
+                                    className={styles.ingTableRemoveBtn}
+                                    onClick={() => handleRemoveIngredient(ing.id)}
+                                    title={`Xóa ${ing.name} khỏi món này`}
+                                    aria-label="Xóa nguyên liệu"
+                                  >
+                                    <Trash2 size={15} />
+                                  </button>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   )}
                 </div>
               </div>
             </div>
 
             <div className={styles.modalFooter}>
+              <div className={styles.modalFooterHint}>
+                {selectedIngredients.length === 0 && (
+                  <span className={styles.footerWarning}>
+                    * Vui lòng chọn ít nhất 1 nguyên liệu cho món ăn
+                  </span>
+                )}
+              </div>
               <button type="button" className={styles.cancelBtn} onClick={closeModal}>
                 Hủy
               </button>
@@ -544,7 +596,7 @@ export default function DishCatalogPage() {
                 type="button"
                 className={styles.saveBtn}
                 onClick={handleSave}
-                disabled={!form.name.trim() || !form.portionQty || !form.mainIngredient.trim()}
+                disabled={!form.name.trim() || !form.portionQty || selectedIngredients.length === 0}
               >
                 {editingDish ? "Lưu thay đổi" : "Lưu vào Kho món ăn"}
               </button>
@@ -552,6 +604,15 @@ export default function DishCatalogPage() {
           </div>
         </div>
       )}
+
+      {/* Popup Modal Chọn nguyên liệu chuẩn theo phân loại & NCC (như bên Tạo thực đơn) */}
+      <IngredientPickerModal
+        isOpen={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        selectedIngredientIds={selectedIngredientIds}
+        onToggleIngredient={handleToggleIngredient}
+        dishContextName={form.name.trim() || (editingDish ? editingDish.name : "Món ăn mới")}
+      />
 
       {/* Modal Xác nhận xóa */}
       {deletingDish && (

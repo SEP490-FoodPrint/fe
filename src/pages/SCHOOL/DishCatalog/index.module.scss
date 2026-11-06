@@ -438,7 +438,7 @@
   background-color: #ffffff;
   border-radius: 10px;
   width: 100%;
-  max-width: 580px;
+  max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
@@ -556,16 +556,215 @@
   flex-shrink: 0;
 }
 
-.ingredientSelectWrap {
+
+/* ─── Ingredients section in Add / Edit Modal ───── */
+.ingredientsSection {
+  grid-column: 1 / -1;
+  margin-top: 6px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 100%;
+  gap: 10px;
 }
 
-.customIngInput {
-  margin-top: 4px;
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
+
+.sectionTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1d2b26;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sectionSub {
+  font-size: 12px;
+  color: #52635c;
+  margin: 2px 0 0;
+}
+
+.openPickerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  border: 1px solid #c9e8de;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #0a8066;
+    color: #ffffff;
+    border-color: #0a8066;
+  }
+}
+
+.emptyIngredientBox {
+  border: 1.5px dashed #c9e8de;
+  border-radius: 8px;
+  background-color: #f8faf9;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    border-color: #0a8066;
+    background-color: #e8f5f1;
+  }
+}
+
+.emptyPromptTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1d2b26;
+  margin: 0;
+}
+
+.emptyPromptSub {
+  font-size: 12px;
+  color: #52635c;
+  margin: 0;
+}
+
+.emptyAddBtn {
+  margin-top: 4px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #0a8066;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ingTableWrap {
+  border: 1px solid #e8eeeb;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.ingTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.ingTable th {
+  background-color: #f8faf9;
+  color: #52635c;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8eeeb;
+  text-align: left;
+}
+
+.ingTable td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f3;
+  color: #1d2b26;
+  vertical-align: middle;
+}
+
+.ingTable tr:last-child td {
+  border-bottom: none;
+}
+
+.ingTableNameText {
+  color: #1d2b26;
+  font-weight: 600;
+}
+
+.ingTableCatBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
+  white-space: nowrap;
+}
+
+.ingTableSupplierWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #52635c;
+}
+
+.ingTableSupplierBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background-color: #f4eeea;
+  color: #584b46;
+  border: 1px solid #ded3cd;
+}
+
+.ingTableRemoveBtn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #991b1b;
+    transform: scale(1.15);
+  }
+}
+
+.modalFooterHint {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.footerWarning {
+  font-size: 12px;
+  color: #d97706;
+  font-weight: 500;
+}
+
 
 .modalFooter {
   display: flex;
