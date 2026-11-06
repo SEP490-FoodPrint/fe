@@ -335,8 +335,12 @@ export default function DishCatalogPage() {
                     <td>
                       <div className={styles.mainIngredientName}>{mainIng}</div>
                       <div className={styles.supplierText}>
-                        NCC: {dish.supplierName || "Chưa gắn"}{" "}
-                        {dish.supplierBadge ? `• ${dish.supplierBadge}` : ""}
+                        <span>NCC: {dish.supplierName || "Chưa gắn"}</span>
+                        {dish.supplierBadge && (
+                          <span className={styles.supplierBadgePill}>
+                            {dish.supplierBadge}
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td style={{ textAlign: "center" }}>
