@@ -65,69 +65,69 @@
 
 /* Biến thể khi Active */
 .activeAll {
-  background-color: #0f172a !important;
-  border-color: #0f172a !important;
+  background-color: #0a8066 !important;
+  border-color: #0a8066 !important;
   color: #ffffff !important;
 
   .pillIcon {
-    color: #94a3b8;
+    color: #e8f5f1;
   }
 
   .pillCount {
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(255, 255, 255, 0.25);
     color: #ffffff;
   }
 }
 
 .activeDraft {
-  background-color: #f8fafc !important;
-  border-color: #94a3b8 !important;
-  color: #1e293b !important;
+  background-color: #f8faf9 !important;
+  border-color: #0a8066 !important;
+  color: #0a8066 !important;
 
   .pillIcon {
-    color: #64748b;
+    color: #0a8066;
   }
 
   .pillCount {
-    background-color: #e2e8f0;
-    color: #1e293b;
+    background-color: #e8f5f1;
+    color: #08604d;
   }
 }
 
 .activePending {
-  background-color: #eff6ff !important;
-  border-color: #93c5fd !important;
-  color: #1d4ed8 !important;
+  background-color: #fef9ee !important;
+  border-color: #f59e0b !important;
+  color: #8f5b00 !important;
 
   .pillIcon {
-    color: #2563eb;
+    color: #d97706;
   }
 
   .pillCount {
-    background-color: #dbeafe;
-    color: #1e40af;
+    background-color: #fde68a;
+    color: #8f5b00;
   }
 }
 
 .activeApproved {
-  background-color: #ecfdf5 !important;
-  border-color: #6ee7b7 !important;
-  color: #065f46 !important;
+  background-color: #e8f5f1 !important;
+  border-color: #0a8066 !important;
+  color: #08604d !important;
 
   .pillIcon {
-    color: #059669;
+    color: #0a8066;
   }
 
   .pillCount {
-    background-color: #a7f3d0;
-    color: #064e3b;
+    background-color: #c9e8de;
+    color: #08604d;
   }
 }
 
 .activeRevision {
   background-color: #fef2f2 !important;
-  border-color: #fca5a5 !important;
-  color: #b91c1c !important;
+  border-color: #dc2626 !important;
+  color: #991b1b !important;
 
   .pillIcon {
     color: #dc2626;

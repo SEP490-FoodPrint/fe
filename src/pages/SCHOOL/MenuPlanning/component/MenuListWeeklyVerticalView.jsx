@@ -300,6 +300,8 @@ export default function MenuListWeeklyVerticalView({
             {weeklyMenuTitle || "Thực đơn tuần"}
           </h2>
 
+          <div className={styles.metaDivider} />
+
           {/* Badge trạng thái tuần */}
           {renderWeekStatusBadge(weekStatus)}
 

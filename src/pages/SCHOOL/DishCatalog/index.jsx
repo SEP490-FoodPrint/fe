@@ -32,7 +32,6 @@ const EMPTY_FORM = {
   supplierId: "sup-cp",
   supplierName: "CP Foods Việt Nam",
   customSupplierName: "",
-  allergen: "",
   description: "",
 }
 
@@ -66,8 +65,7 @@ export default function DishCatalogPage() {
           d.name.toLowerCase().includes(q) ||
           (d.mainIngredient || "").toLowerCase().includes(q) ||
           (d.supplierName || "").toLowerCase().includes(q) ||
-          (d.description || "").toLowerCase().includes(q) ||
-          (d.allergen || "").toLowerCase().includes(q)
+          (d.description || "").toLowerCase().includes(q)
       )
     }
     return list
@@ -75,10 +73,9 @@ export default function DishCatalogPage() {
 
   /* ─── Stats ──────────────────────────────────── */
   const stats = useMemo(() => {
-    const allergyCount = catalog.filter((d) => d.allergen).length
     const catCount = new Set(catalog.map((d) => d.category)).size
     const supplierCount = new Set(catalog.map((d) => d.supplierName).filter(Boolean)).size
-    return { total: catalog.length, allergyCount, catCount, supplierCount }
+    return { total: catalog.length, catCount, supplierCount }
   }, [catalog])
 
   /* ─── Handlers ───────────────────────────────── */
@@ -103,7 +100,6 @@ export default function DishCatalogPage() {
       supplierId: knownSupplier ? knownSupplier.id : "CUSTOM",
       supplierName: dish.supplierName || (knownSupplier ? knownSupplier.name : "CP Foods Việt Nam"),
       customSupplierName: knownSupplier ? "" : (dish.supplierName || ""),
-      allergen: dish.allergen || "",
       description: dish.description || "",
     })
     setModalOpen(true)
@@ -164,7 +160,6 @@ export default function DishCatalogPage() {
               supplierId: finalSupplierId,
               supplierName: finalSupplierName,
               supplierBadge: finalSupplierBadge,
-              allergen: form.allergen.trim() || null,
             }
           : d
       )
@@ -183,7 +178,6 @@ export default function DishCatalogPage() {
         supplierId: finalSupplierId,
         supplierName: finalSupplierName,
         supplierBadge: finalSupplierBadge,
-        allergen: form.allergen.trim() || null,
         ingredientIds: [],
         ingredientNames: [mainIng],
       }
@@ -220,23 +214,19 @@ export default function DishCatalogPage() {
         </button>
       </div>
 
-      {/* Stats row (Không có icon / emoji) */}
+      {/* Stats row (Không có icon / emoji, tập trung thuần túy về món ăn) */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.total}</div>
-          <div className={styles.statLabel}>Tổng số món ăn</div>
+          <div className={styles.statLabel}>Tổng số món ăn trong kho</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.catCount}</div>
-          <div className={styles.statLabel}>Nhóm món ăn</div>
+          <div className={styles.statLabel}>Nhóm món ăn dinh dưỡng</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.supplierCount}</div>
           <div className={styles.statLabel}>Nhà cung cấp liên kết</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statNum}>{stats.allergyCount}</div>
-          <div className={styles.statLabel}>Món có dị nguyên</div>
         </div>
       </div>
 
@@ -245,7 +235,7 @@ export default function DishCatalogPage() {
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Tìm theo tên món, nguyên liệu, NCC, dị ứng..."
+          placeholder="Tìm theo tên món, nguyên liệu, nhà cung cấp..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -277,7 +267,7 @@ export default function DishCatalogPage() {
         </div>
       </div>
 
-      {/* Bảng danh sách món ăn */}
+      {/* Bảng danh sách món ăn (Đã bỏ cột cảnh báo dị ứng) */}
       <div className={styles.tableWrap}>
         {filtered.length === 0 ? (
           <div className={styles.empty}>
@@ -287,13 +277,12 @@ export default function DishCatalogPage() {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th style={{ width: 40, textAlign: "center" }}>#</th>
-                <th style={{ minWidth: 170 }}>Tên món ăn</th>
-                <th style={{ width: 130 }}>Nhóm món</th>
-                <th style={{ width: 95 }}>Ca ăn</th>
-                <th style={{ width: 110 }}>Định lượng / suất</th>
-                <th style={{ minWidth: 220 }}>Nguyên liệu chính</th>
-                <th style={{ width: 140 }}>Cảnh báo dị ứng</th>
+                <th style={{ width: 45, textAlign: "center" }}>#</th>
+                <th style={{ minWidth: 200 }}>Tên món ăn</th>
+                <th style={{ width: 140 }}>Nhóm món</th>
+                <th style={{ width: 110 }}>Ca ăn</th>
+                <th style={{ width: 125 }}>Định lượng / suất</th>
+                <th style={{ minWidth: 260 }}>Nguyên liệu chính & NCC</th>
                 <th style={{ width: 100, textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
@@ -338,13 +327,6 @@ export default function DishCatalogPage() {
                         {dish.supplierBadge ? `• ${dish.supplierBadge}` : ""}
                       </div>
                     </td>
-                    <td>
-                      {dish.allergen ? (
-                        <span className={styles.allergenBadge}>{dish.allergen}</span>
-                      ) : (
-                        <span className={styles.noAllergen}>—</span>
-                      )}
-                    </td>
                     <td style={{ textAlign: "center" }}>
                       <div className={styles.actionBtns}>
                         <button
@@ -372,7 +354,7 @@ export default function DishCatalogPage() {
         )}
       </div>
 
-      {/* Modal Thêm / Sửa món ăn (Không dùng icon) */}
+      {/* Modal Thêm / Sửa món ăn (Không dùng icon, không nhập dị ứng) */}
       {modalOpen && (
         <div
           className={styles.modalOverlay}
@@ -510,24 +492,12 @@ export default function DishCatalogPage() {
                   </div>
                 )}
 
-                {/* Cảnh báo dị ứng */}
-                <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>Cảnh báo dị nguyên (nếu có)</label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    placeholder="Để trống nếu an toàn, hoặc ghi: Hải sản, Trứng, Sữa bò..."
-                    value={form.allergen}
-                    onChange={(e) => handleFormChange("allergen", e.target.value)}
-                  />
-                </div>
-
                 {/* Mô tả */}
                 <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>Mô tả dinh dưỡng / ghi chú chế biến</label>
+                  <label className={styles.formLabel}>Mô tả món ăn / ghi chú chế biến</label>
                   <textarea
                     className={styles.formTextarea}
-                    placeholder="Thông tin dinh dưỡng, xuất xứ, khuyến nghị khẩu phần..."
+                    placeholder="Thông tin thành phần, đặc tính dinh dưỡng, ghi chú cách nấu..."
                     value={form.description}
                     onChange={(e) => handleFormChange("description", e.target.value)}
                   />

@@ -16,8 +16,8 @@
   gap: 12px;
   background-color: #ffffff;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 8px 14px;
+  border: 1px solid #e8eeeb;
+  padding: 8px 16px;
   min-height: 48px;
   width: 100%;
   box-sizing: border-box;
@@ -37,42 +37,49 @@
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  background-color: #ecfdf5;
+  background-color: #e8f5f1;
   color: #0a8066;
   flex-shrink: 0;
 }
 
 .weeklyMenuTitle {
-  font-family: "Be Vietnam Pro", sans-serif;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: #1d2b26;
   letter-spacing: -0.01em;
   margin: 0;
   line-height: 1.25;
 }
 
+.metaDivider {
+  width: 1px;
+  height: 16px;
+  background-color: #dce5e0;
+  margin: 0 4px;
+}
+
 .targetScopeBadge {
   display: inline-flex;
   align-items: center;
-  padding: 2px 8px;
+  padding: 2.5px 9px;
   border-radius: 9999px;
-  background-color: #f8fafc;
-  color: #475569;
+  background-color: #f4eeea;
+  color: #584b46;
   font-size: 11.5px;
-  font-weight: 500;
-  font-family: "Be Vietnam Pro", sans-serif;
-  border: 1px solid #e2e8f0;
+  font-weight: 600;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  border: 1px solid #ded3cd;
   line-height: 1.2;
 }
 
 .currentWeekTag {
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
   font-size: 11px;
   font-weight: 700;
-  padding: 2px 7px;
+  padding: 2.5px 8px;
   border-radius: 9999px;
   line-height: 1.2;
 }
@@ -84,21 +91,21 @@
   gap: 4px;
   font-size: 11.5px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 2.5px 9px;
   border-radius: 9999px;
   line-height: 1.2;
 }
 
 .statusApproved {
-  background-color: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
 }
 
 .statusPending {
-  background-color: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
+  background-color: #fef9ee;
+  color: #8f5b00;
+  border: 1px solid #fae1a7;
 }
 
 .statusRevision {
@@ -108,9 +115,9 @@
 }
 
 .statusDraft {
-  background-color: #f8fafc;
-  color: #475569;
-  border: 1px solid #cbd5e1;
+  background-color: #f8faf9;
+  color: #52635c;
+  border: 1px solid #e8eeeb;
 }
 
 /* Pill tiến độ tuần DRAFT */
@@ -118,17 +125,17 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background-color: #f0fdf4;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-  padding: 2px 8px;
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
+  padding: 2.5px 9px;
   border-radius: 9999px;
   font-size: 11.5px;
   font-weight: 500;
 
   strong {
     font-weight: 700;
-    color: #15803d;
+    color: #0a8066;
   }
 }
 
@@ -144,10 +151,11 @@
   align-items: center;
   gap: 5px;
   height: 32px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: 6px;
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
+  font-family: inherit;
   cursor: pointer;
   transition: all 0.15s ease;
   border: none;
@@ -158,13 +166,14 @@
   color: #ffffff;
 
   &:hover {
-    background-color: #086b55;
+    background-color: #08735c;
   }
 }
 
 .submitDisabled {
-  background-color: #f1f5f9;
-  color: #94a3b8;
+  background-color: #f8faf9;
+  color: #adbbb3;
+  border: 1px solid #e8eeeb;
   cursor: not-allowed;
 }
 
