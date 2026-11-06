@@ -188,8 +188,8 @@ export default function DeliveryTable({ deliveries = [], onViewDetail }) {
                       {isBatch1
                         ? `Giao: ${item.plannedPortions} / ${item.maxPortions} suất`
                         : item.actualAttendance
-                        ? `Sĩ số chốt: ${item.actualAttendance} HS (Giao bù: ${item.plannedPortions} suất)`
-                        : `Dự kiến: ${item.plannedPortions} suất`}
+                          ? `Sĩ số chốt: ${item.actualAttendance} HS (Giao nốt: ${item.plannedPortions} suất)`
+                          : `Dự kiến: ${item.plannedPortions} suất`}
                     </Typography>
                   </TableCell>
 
@@ -198,12 +198,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail }) {
                     <Typography variant="body2" className={styles.supplierText}>
                       {item.supplierName}
                     </Typography>
-                    {item.deliveryQr && item.deliveryQr !== "--" && (
-                      <Box className={styles.qrBadge}>
-                        <QrCode size={13} className={styles.qrIcon} />
-                        <span>{item.deliveryQr}</span>
-                      </Box>
-                    )}
+
                   </TableCell>
 
                   {/* Kiểm tra 4 bên */}

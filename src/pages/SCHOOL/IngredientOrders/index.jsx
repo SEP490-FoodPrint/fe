@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box, Typography } from "@mui/material"
+import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
 
 import OrderListHeader from "./component/OrderListHeader"
@@ -14,6 +15,7 @@ import DeliveryStatsRail from "./component/DeliveryStatsRail"
 import DeliveryFilterStrip from "./component/DeliveryFilterStrip"
 import DeliveryTable from "./component/DeliveryTable"
 import DeliveryDetailView from "./component/DeliveryDetailView"
+import CreateDeliveryView from "./component/CreateDeliveryView"
 
 import styles from "./index.module.scss"
 
@@ -27,8 +29,9 @@ export default function IngredientOrders() {
 
   // Tab 2: Phiếu giao nhận & Nhập hàng
   const [deliveries, setDeliveries] = useState([])
+  const [approvedMenus, setApprovedMenus] = useState([])
 
-  // Sub-view trong Tab 2: "list" (mặc định) | "detail"
+  // Sub-view trong Tab 2: "list" (mặc định) | "create" | "detail"
   const [deliverySubView, setDeliverySubView] = useState("list")
   const [selectedDelivery, setSelectedDelivery] = useState(null)
 
@@ -56,14 +59,16 @@ export default function IngredientOrders() {
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
-      const [catalogRes, suppliersRes, deliveriesRes] = await Promise.all([
+      const [catalogRes, suppliersRes, deliveriesRes, menusRes] = await Promise.all([
         IngredientOrderService.getMasterIngredientCatalog(),
         IngredientOrderService.getSuppliers(),
         IngredientOrderService.getDeliveries(),
+        IngredientOrderService.getApprovedMenus(),
       ])
       if (Array.isArray(catalogRes?.items)) setCatalog(catalogRes.items)
       if (Array.isArray(suppliersRes?.items)) setSuppliers(suppliersRes.items)
       if (Array.isArray(deliveriesRes?.items)) setDeliveries(deliveriesRes.items)
+      if (Array.isArray(menusRes?.items)) setApprovedMenus(menusRes.items)
     } catch (err) {
       console.warn("Lỗi tải dữ liệu:", err)
     } finally {
@@ -200,6 +205,39 @@ export default function IngredientOrders() {
     setSelectedDelivery(null)
   }
 
+  // Tạo đơn mua hàng từ Thực đơn
+  const handleCreateOrder = async orderData => {
+    const res = await IngredientOrderService.createSupplyOrder(orderData)
+    if (res?.success) {
+      const refreshed = await IngredientOrderService.getDeliveries()
+      if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
+      setDeliverySubView("list")
+      notice({
+        msg: `Đã tạo thành công Đơn mua hàng ${res.orderNo} gồm 2 đợt giao nhận!`,
+        isSuccess: true,
+      })
+    }
+  }
+
+  // Cập nhật sĩ số GVCN cho Đợt 2
+  const handleConfirmAttendance = async (deliveryId, actualCount) => {
+    const res = await IngredientOrderService.updateBatch2Attendance(deliveryId, actualCount)
+    if (res?.success) {
+      const refreshed = await IngredientOrderService.getDeliveries()
+      if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
+      if (res.delivery) setSelectedDelivery(res.delivery)
+      notice({
+        msg: `Đã chốt sĩ số Đợt 2 (${actualCount} học sinh). Số lượng nguyên liệu đã được tính lại và gửi sang NCC!`,
+        isSuccess: true,
+      })
+    } else {
+      notice({
+        msg: "Không thể cập nhật sĩ số. Vui lòng thử lại.",
+        isSuccess: false,
+      })
+    }
+  }
+
   return (
     <Box className={styles.pageContainer}>
       {/* 1. Header (CỐ ĐỊNH Ở TRÊN) */}
@@ -262,11 +300,12 @@ export default function IngredientOrders() {
                 onFilterBatchType={val => handleDeliveryFilterChange("batchType", val)}
               />
 
-              {/* Bộ lọc & Tìm kiếm */}
+              {/* Bộ lọc & Tìm kiếm + Nút Tạo yêu cầu mua hàng */}
               <DeliveryFilterStrip
                 filters={deliveryFilters}
                 onFilterChange={handleDeliveryFilterChange}
                 onResetFilters={handleResetDeliveryFilters}
+                onOpenCreate={() => setDeliverySubView("create")}
               />
 
               {/* Bảng Phiếu giao nhận */}
@@ -286,11 +325,21 @@ export default function IngredientOrders() {
             </>
           )}
 
-          {/* Sub-view 2: Chi tiết Phiếu giao nhận & Nghiệm thu 4 bên (Thay thế nội dung bên dưới 3 tab) */}
+          {/* Sub-view 2: Tạo Đơn Mua Hàng Từ Thực Đơn (Thay thế nội dung bên dưới 3 tab) */}
+          {deliverySubView === "create" && (
+            <CreateDeliveryView
+              menus={approvedMenus}
+              onBack={handleBackToList}
+              onSubmit={handleCreateOrder}
+            />
+          )}
+
+          {/* Sub-view 3: Chi tiết Phiếu giao nhận & Nghiệm thu 4 bên (Thay thế nội dung bên dưới 3 tab) */}
           {deliverySubView === "detail" && selectedDelivery && (
             <DeliveryDetailView
               delivery={selectedDelivery}
               onBack={handleBackToList}
+              onConfirmAttendance={handleConfirmAttendance}
             />
           )}
         </>

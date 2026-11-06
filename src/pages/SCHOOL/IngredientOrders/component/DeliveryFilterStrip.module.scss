@@ -52,3 +52,21 @@
     background-color: rgba(0, 0, 0, 0.04);
   }
 }
+
+.actionGroup {
+  display: flex;
+  align-items: center;
+}
+
+.createBtn {
+  background-color: var(--color-primary, #1e7e34);
+  text-transform: none;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(30, 126, 52, 0.25);
+
+  &:hover {
+    background-color: #176529;
+  }
+}

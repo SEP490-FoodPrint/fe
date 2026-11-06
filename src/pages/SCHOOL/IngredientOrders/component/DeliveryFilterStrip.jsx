@@ -1,13 +1,14 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Box, TextField, MenuItem, InputAdornment, Button } from "@mui/material"
-import { Search, RotateCcw } from "lucide-react"
+import { Search, RotateCcw, PlusCircle } from "lucide-react"
 import styles from "./DeliveryFilterStrip.module.scss"
 
 export default function DeliveryFilterStrip({
   filters,
   onFilterChange,
   onResetFilters,
+  onOpenCreate,
 }) {
   return (
     <Box className={styles.filterBar}>
@@ -59,14 +60,18 @@ export default function DeliveryFilterStrip({
         </TextField>
       </Box>
 
-      <Button
-        variant="text"
-        startIcon={<RotateCcw size={16} />}
-        onClick={onResetFilters}
-        className={styles.resetBtn}
-      >
-        Đặt lại
-      </Button>
+      {onOpenCreate && (
+        <Box className={styles.actionGroup}>
+          <Button
+            variant="contained"
+            startIcon={<PlusCircle size={18} />}
+            onClick={onOpenCreate}
+            className={styles.createBtn}
+          >
+            Tạo yêu cầu mua hàng
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }
@@ -79,4 +84,5 @@ DeliveryFilterStrip.propTypes = {
   }).isRequired,
   onFilterChange: PropTypes.func.isRequired,
   onResetFilters: PropTypes.func.isRequired,
+  onOpenCreate: PropTypes.func,
 }
