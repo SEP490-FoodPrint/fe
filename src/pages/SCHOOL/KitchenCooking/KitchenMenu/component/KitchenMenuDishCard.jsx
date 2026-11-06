@@ -18,7 +18,9 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
 
   return (
     <div
-      className={styles.dishRow}
+      className={`${styles.dishRow} ${
+        mealType === "AFTERNOON" ? styles.afternoonDishRow : styles.lunchDishRow
+      }`}
       onClick={handleAction}
       role="button"
       tabIndex={0}

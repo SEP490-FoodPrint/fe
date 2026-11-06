@@ -15,17 +15,33 @@
     border-bottom: none;
   }
 
-  &:hover {
-    background-color: #f8fafc;
+  /* Hover theo màu ca Bữa Trưa (Cam) */
+  &.lunchDishRow:hover {
+    background-color: #fff7ed;
 
     .dishName {
-      color: var(--color-primary, #0a8066);
+      color: #ea580c;
     }
 
     .btnCreateBatch {
-      border-color: var(--color-primary, #0a8066);
-      color: var(--color-primary, #0a8066);
-      background-color: #f0fdf4;
+      border-color: #ea580c;
+      color: #c2410c;
+      background-color: #ffedd5;
+    }
+  }
+
+  /* Hover theo màu ca Bữa Xế (Xanh dương) */
+  &.afternoonDishRow:hover {
+    background-color: #eff6ff;
+
+    .dishName {
+      color: #2563eb;
+    }
+
+    .btnCreateBatch {
+      border-color: #2563eb;
+      color: #1d4ed8;
+      background-color: #dbeafe;
     }
   }
 

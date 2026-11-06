@@ -284,7 +284,9 @@
   flex-direction: column;
 }
 
-/* Dải BỮA TRƯA: 38px (Chứa 1 nút Xem chi tiết và 1 nút Chỉnh sửa) */
+/* ========================================================
+   DẢI BỮA TRƯA: 38px
+   ======================================================== */
 .lunchBanner {
   display: flex;
   align-items: center;
@@ -316,55 +318,85 @@
   letter-spacing: 0.04em;
 }
 
-/* Cụm 1 nút Xem chi tiết & 1 nút Chỉnh sửa */
+/* Cụm nút icon thao tác trên banner */
 .bannerActions {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
-.mealActionBtn {
+.mealIconBtn {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  justify-content: center;
+  width: 24px;
   height: 24px;
-  padding: 0 6px;
-  border-radius: 4px;
-  border: 1px solid rgba(194, 65, 12, 0.3);
-  background-color: #ffffff;
-  color: #c2410c;
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: 5px;
   cursor: pointer;
   transition: all 0.12s ease;
+  background-color: #ffffff;
+  padding: 0;
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+/* Nút Bữa Trưa */
+.lunchIconBtn {
+  border: 1px solid rgba(234, 88, 12, 0.3);
+  color: #c2410c;
 
   &:hover {
     background-color: #ffedd5;
-    border-color: #c2410c;
-  }
-
-  &:active {
-    transform: scale(0.96);
+    border-color: #ea580c;
+    color: #9a3412;
   }
 }
 
-.mealEditBtn {
+.lunchEditBtn {
+  border: 1px solid rgba(10, 128, 102, 0.35);
   color: #0a8066;
-  border-color: rgba(10, 128, 102, 0.35);
 
   &:hover {
     background-color: #ecfdf5;
     border-color: #0a8066;
+    color: #047857;
   }
 }
 
-.actionBtnLabel {
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1;
+/* Nút Bữa Xế */
+.afternoonIconBtn {
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  color: #1d4ed8;
 
-  @media (max-width: 1150px) and (min-width: 900px) {
-    display: none;
+  &:hover {
+    background-color: #dbeafe;
+    border-color: #2563eb;
+    color: #1e40af;
+  }
+}
+
+.afternoonEditBtn {
+  border: 1px solid rgba(10, 128, 102, 0.35);
+  color: #0a8066;
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #0a8066;
+    color: #047857;
+  }
+}
+
+/* Nút sửa khi yêu cầu chỉnh sửa từ BGH */
+.revisionEditBtn {
+  border: 1px solid rgba(220, 38, 38, 0.4) !important;
+  color: #dc2626 !important;
+
+  &:hover {
+    background-color: #fee2e2 !important;
+    border-color: #dc2626 !important;
+    color: #991b1b !important;
   }
 }
 
@@ -376,7 +408,7 @@
   min-height: 270px;
 }
 
-/* Dải BỮA XẾ: 38px (Chứa 1 nút Xem chi tiết và 1 nút Chỉnh sửa) */
+/* DẢI BỮA XẾ: 38px */
 .afternoonBanner {
   display: flex;
   align-items: center;
@@ -387,26 +419,6 @@
   background-color: #eff6ff;
   border-top: 1px solid #dbeafe;
   border-bottom: 1px solid #bfdbfe;
-
-  .mealActionBtn {
-    border-color: rgba(29, 78, 216, 0.3);
-    color: #1d4ed8;
-
-    &:hover {
-      background-color: #dbeafe;
-      border-color: #1d4ed8;
-    }
-  }
-
-  .mealEditBtn {
-    color: #0a8066;
-    border-color: rgba(10, 128, 102, 0.35);
-
-    &:hover {
-      background-color: #ecfdf5;
-      border-color: #0a8066;
-    }
-  }
 }
 
 .afternoonIcon {
@@ -430,8 +442,11 @@
   min-height: 54px;
 }
 
-/* DÒNG MÓN ĂN: 54px chuẩn - SẠCH SẼ, KHÔNG CÓ NÚT LẺ TẺ TRÊN MÓN */
-.dishRow {
+/* ========================================================
+   DÒNG MÓN ĂN: 54px chuẩn
+   HOVER THEO MÀU CỦA TỪNG LOẠI BỮA
+   ======================================================== */
+.lunchDishRow {
   display: flex;
   align-items: center;
   height: 54px;
@@ -440,17 +455,48 @@
   border-bottom: 1px solid #f1f5f9;
   background-color: #ffffff;
   cursor: pointer;
-  transition: background-color 0.12s ease;
+  transition: all 0.15s ease;
 
   &:last-child {
     border-bottom: none;
   }
 
+  /* HOVER THEO MÀU BỮA TRƯA (CAM) */
   &:hover {
-    background-color: #f8fafc;
+    background-color: #fff7ed;
 
     .dishName {
-      color: #0a8066;
+      color: #ea580c;
+    }
+  }
+
+  @media (max-width: 768px) {
+    height: 56px;
+    padding: 0 12px;
+  }
+}
+
+.afternoonDishRow {
+  display: flex;
+  align-items: center;
+  height: 54px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  /* HOVER THEO MÀU BỮA XẾ (XANH DƯƠNG) */
+  &:hover {
+    background-color: #eff6ff;
+
+    .dishName {
+      color: #2563eb;
     }
   }
 
