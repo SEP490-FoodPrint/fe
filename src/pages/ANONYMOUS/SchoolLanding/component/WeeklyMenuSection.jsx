@@ -12,7 +12,7 @@ import { NO_DATA_TEXT } from "src/constants/ui";
 import WeeklyDayCard from "./WeeklyDayCard";
 import styles from "./WeeklyMenuSection.module.scss";
 
-function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
+function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode }) {
   const groups =
     weeklyMenu?.portionGroups ||
     weeklyMenu?.gradeGroups ||
@@ -237,7 +237,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
         ) : (
           <div className={styles.daysGrid}>
             {days.map((day, idx) => (
-              <WeeklyDayCard key={day.date || day.id || idx} day={day} />
+              <WeeklyDayCard key={day.date || day.id || idx} day={day} schoolCode={schoolCode} />
             ))}
           </div>
         )}
@@ -247,6 +247,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
 }
 
 WeeklyMenuSection.propTypes = {
+  schoolCode: PropTypes.string,
   weeklyMenu: PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,

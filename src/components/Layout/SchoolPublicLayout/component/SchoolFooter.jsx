@@ -1,19 +1,19 @@
-import React from "react"
-import PropTypes from "prop-types"
-import { Link } from "react-router-dom"
+import React from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
 import {
   ArrowRight,
   Mail,
   MapPin,
   Phone,
   Sun,
-} from "lucide-react"
-import { NO_DATA_TEXT } from "src/constants/ui"
-import ROUTER from "src/router/ROUTER"
-import styles from "./SchoolFooter.module.scss"
+} from "lucide-react";
+import { NO_DATA_TEXT } from "src/constants/ui";
+import ROUTER from "src/router/ROUTER";
+import styles from "./SchoolFooter.module.scss";
 
 function SchoolFooter({ school }) {
-  const schoolAddress = school?.address || NO_DATA_TEXT
+  const schoolAddress = school?.address || NO_DATA_TEXT;
 
   return (
     <footer className={styles.footer}>
@@ -125,7 +125,7 @@ function SchoolFooter({ school }) {
         </div>
       </div>
     </footer>
-  )
+  );
 }
 
 SchoolFooter.propTypes = {
@@ -136,6 +136,10 @@ SchoolFooter.propTypes = {
     hotline: PropTypes.string,
     email: PropTypes.string,
   }),
-}
+};
 
-export default SchoolFooter
+SchoolFooter.defaultProps = {
+  school: null,
+};
+
+export default SchoolFooter;

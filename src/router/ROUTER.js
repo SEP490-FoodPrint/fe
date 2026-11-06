@@ -14,6 +14,7 @@ const ROUTER = {
   RESET_PASSWORD: "/reset-password",
   SCHOOL_LIST: "/schools",
   SCHOOL_LANDING: "/school/:schoolCode",
+  SCHOOL_MEAL_DETAIL: "/school/:schoolCode/daily-menu",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",

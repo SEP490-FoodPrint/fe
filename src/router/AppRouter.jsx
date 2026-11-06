@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from "react"
 import { useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
-import MainLayout, { AuthLayout, PublicLayout } from "src/components/Layout"
+import MainLayout, { AuthLayout, PublicLayout, SchoolPublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
 import { ORG_TYPES, ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
@@ -12,6 +12,7 @@ const SchoolListPage = lazy(() => import("src/pages/ANONYMOUS/SchoolList"))
 const ProfilePage = lazy(() => import("src/pages/ANONYMOUS/Profile"))
 const ChangePassword = lazy(() => import("src/pages/ANONYMOUS/ChangePassword"))
 const SchoolLanding = lazy(() => import("src/pages/ANONYMOUS/SchoolLanding"))
+const MealDetail = lazy(() => import("src/pages/ANONYMOUS/MealDetail"))
 const LoginPage = lazy(() => import("src/pages/ANONYMOUS/Login"))
 const RegisterPage = lazy(() => import("src/pages/ANONYMOUS/Register"))
 const RegistrationProfile = lazy(() => import("src/pages/ANONYMOUS/RegistrationProfile"))
@@ -106,14 +107,27 @@ const routes = [
     ],
   },
 
-  // 2. Trang Cổng thông tin & Thực đơn Trường học (Công khai)
+  // 2. Phân hệ Cổng thông tin Trường học (Công khai dùng chung SchoolPublicLayout)
   {
-    path: ROUTER.SCHOOL_LANDING,
-    element: (
-      <LazyWrapper>
-        <SchoolLanding />
-      </LazyWrapper>
-    ),
+    element: <SchoolPublicLayout />,
+    children: [
+      {
+        path: ROUTER.SCHOOL_LANDING,
+        element: (
+          <LazyWrapper>
+            <SchoolLanding />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: ROUTER.SCHOOL_MEAL_DETAIL,
+        element: (
+          <LazyWrapper>
+            <MealDetail />
+          </LazyWrapper>
+        ),
+      },
+    ],
   },
 
   // 3. Trang Đăng nhập (Công khai với AuthLayout)

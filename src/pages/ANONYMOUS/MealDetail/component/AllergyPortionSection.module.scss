@@ -1,0 +1,328 @@
+.allergySection {
+  width: 100%;
+  padding-left: var(--space-6);
+  padding-right: var(--space-6);
+  padding-bottom: var(--space-8);
+  background-color: var(--bg-page);
+
+  @media (min-width: 1024px) {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+.innerContainer {
+  max-width: 1152px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mainCard {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.cardHeader {
+  padding: var(--space-5) var(--space-6);
+  background: linear-gradient(to right, var(--color-secondary-soft), var(--bg-surface));
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.titleBadgeGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.headerTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg) !important;
+  font-weight: var(--font-bold) !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+
+  @media (min-width: 768px) {
+    font-size: var(--text-xl) !important;
+  }
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary-soft);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.headerSubtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.cardBody {
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.filterRow {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-secondary-soft);
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.filterLabel {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.selectWrapper {
+  flex: 1;
+  max-width: 520px;
+}
+
+.customSelect {
+  width: 100%;
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-lg) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-semibold) !important;
+  color: var(--text-primary) !important;
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: var(--color-primary) !important;
+  }
+
+  &:hover :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: var(--color-primary-hover) !important;
+  }
+
+  :global(.MuiSelect-select) {
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+    padding-right: 38px !important;
+  }
+}
+
+.menuItemOption {
+  font-family: var(--font-sans) !important;
+  font-size: var(--text-sm) !important;
+  color: var(--text-primary) !important;
+  padding: 10px 16px !important;
+
+  &:hover {
+    background-color: var(--color-primary-soft) !important;
+    color: var(--color-primary) !important;
+  }
+
+  &:global(.Mui-selected) {
+    background-color: var(--color-primary-soft) !important;
+    color: var(--color-primary) !important;
+    font-weight: var(--font-semibold) !important;
+  }
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+.columnHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-1);
+}
+
+.columnTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.safeDishesTag {
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+}
+
+.verifiedTag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+}
+
+.dishList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dishCard {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-secondary-soft);
+  }
+}
+
+.dishCardPrimary {
+  background-color: var(--color-primary-soft);
+  border-left: 4px solid var(--color-primary);
+  border-top: 1px solid var(--border-default);
+  border-right: 1px solid var(--border-default);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.dishInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.dishTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.dishName {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.replaceTag {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  background-color: var(--color-primary);
+  color: var(--text-on-primary);
+}
+
+.dishPortionText {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.portionBadge {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  white-space: nowrap;
+}
+
+.ingredientList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.ingredientCard {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-secondary-soft);
+  border: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.ingredientInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.ingredientName {
+  font-size: var(--text-sm);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.ingredientMeta {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.traceButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-on-primary);
+  background-color: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+  }
+}

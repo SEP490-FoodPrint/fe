@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   ArrowLeft,
   ChevronDown,
@@ -18,6 +18,10 @@ import styles from "./SchoolHeader.module.scss";
 function SchoolHeader({ school }) {
   const { loginStore } = useContext(StoreContext);
   const isLoginContext = loginStore?.isLoginContext;
+  const location = useLocation();
+
+  const isDailyMenuPage = location.pathname.includes("/daily-menu");
+  const schoolCode = school?.code || "";
 
   const [schools, setSchools] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -57,6 +61,10 @@ function SchoolHeader({ school }) {
     };
   }, []);
 
+  const homeHref = isDailyMenuPage ? `/school/${schoolCode}` : "#";
+  const aboutHref = isDailyMenuPage ? `/school/${schoolCode}#gioi-thieu` : "#gioi-thieu";
+  const dailyHref = `/school/${schoolCode}/daily-menu`;
+
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
@@ -69,7 +77,7 @@ function SchoolHeader({ school }) {
 
           <div className={styles.separator} />
 
-          <a href="#" className={styles.schoolBrand}>
+          <Link to={`/school/${schoolCode}`} className={styles.schoolBrand}>
             <div className={styles.logoBadge}>
               <Sun size={22} strokeWidth={2.2} />
             </div>
@@ -81,23 +89,26 @@ function SchoolHeader({ school }) {
                 Hệ thống Bán trú FoodPrint
               </span>
             </div>
-          </a>
+          </Link>
         </div>
 
         {/* Center: Navigation Links */}
         <nav className={styles.navBar} aria-label="School Navigation">
-          <a href="#" className={`${styles.navItem} ${styles.isActive}`}>
+          <a
+            href={homeHref}
+            className={`${styles.navItem} ${!isDailyMenuPage ? styles.isActive : ""}`}
+          >
             Trang chủ
           </a>
-          <a href="#gioi-thieu" className={styles.navItem}>
+          <a href={aboutHref} className={styles.navItem}>
             Giới thiệu trường
           </a>
-          <a href="#thuc-don-ngay" className={styles.navItem}>
-            Thực đơn theo ngày
-          </a>
-          <a href="#thuc-don-tuan" className={styles.navItem}>
-            Thực đơn theo tuần
-          </a>
+          <Link
+            to={dailyHref}
+            className={`${styles.navItem} ${isDailyMenuPage ? styles.isActive : ""}`}
+          >
+            Thực đơn
+          </Link>
         </nav>
 
         {/* Right: School Switcher & Auth */}
@@ -119,31 +130,38 @@ function SchoolHeader({ school }) {
                   <span>Danh sách trường liên kết</span>
                 </div>
                 <div className={styles.dropdownList}>
-                  {schools.map((item) => (
-                    <Link
-                      key={item.id}
-                      to={`/school/${item.code}`}
-                      className={`${styles.schoolOption} ${item.code === school?.code ? styles.selectedOption : ""}`}
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <span className={styles.optionCode}>
-                        {item.shortName || item.short_name || item.code?.slice(0, 2) || "TH"}
-                      </span>
-                      <div className={styles.optionDetails}>
-                        <span className={styles.optionName}>{item.name}</span>
-                        <span className={styles.optionDistrict}>
-                          {item.district
-                            ? `${item.district}, ${item.city || NO_DATA_TEXT}`
-                            : item.address || NO_DATA_TEXT}
+                  {schools.map((item) => {
+                    const targetTo = isDailyMenuPage
+                      ? `/school/${item.code}/daily-menu${location.search}`
+                      : `/school/${item.code}`;
+
+                    return (
+                      <Link
+                        key={item.id}
+                        to={targetTo}
+                        className={`${styles.schoolOption} ${item.code === schoolCode ? styles.selectedOption : ""}`}
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <span className={styles.optionCode}>
+                          {item.shortName || item.short_name || item.code?.slice(0, 2) || "TH"}
                         </span>
-                      </div>
-                    </Link>
-                  ))}
+                        <div className={styles.optionDetails}>
+                          <span className={styles.optionName}>{item.name}</span>
+                          <span className={styles.optionDistrict}>
+                            {item.district
+                              ? `${item.district}, ${item.city || NO_DATA_TEXT}`
+                              : item.address || NO_DATA_TEXT}
+                          </span>
+                        </div>
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             )}
           </div>
 
+          {/* User Auth Info */}
           {isLoginContext ? (
             <PublicAccountMenu />
           ) : (
@@ -162,9 +180,12 @@ SchoolHeader.propTypes = {
   school: PropTypes.shape({
     name: PropTypes.string,
     code: PropTypes.string,
-    short_name: PropTypes.string,
-    shortName: PropTypes.string,
+    logoUrl: PropTypes.string,
   }),
+};
+
+SchoolHeader.defaultProps = {
+  school: null,
 };
 
 export default SchoolHeader;

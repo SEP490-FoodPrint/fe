@@ -1,0 +1,195 @@
+.detailCard {
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+
+  @media (min-width: 1024px) {
+    padding: var(--space-7);
+  }
+}
+
+.headerArea {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-bottom: var(--space-5);
+  padding-left: var(--space-3);
+  padding-top: var(--space-3);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.headerTopRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.titleWithBadges {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.mainTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-xl) !important;
+  font-weight: var(--font-bold) !important;
+  color: var(--text-primary) !important;
+  margin: 0 !important;
+}
+
+.countBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  background-color: var(--color-secondary-soft);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+}
+
+.currentDishPill {
+  font-family: var(--font-sans);
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
+}
+
+.headerDescription {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.ingredientList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.ingredientRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-default);
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-secondary-soft);
+  }
+
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.ingredientMainInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.nameTagRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.ingredientName {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.categoryTag {
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-muted);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+}
+
+.portionText {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+
+  strong {
+    color: var(--text-primary);
+    font-weight: var(--font-semibold);
+  }
+}
+
+.actionArea {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.traceButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-on-primary);
+  background-color: var(--color-primary);
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-primary-hover);
+  }
+}
+
+.emptyIngredients {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  background-color: var(--bg-page);
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--border-default);
+}
+
+.policyCallout {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background-color: var(--color-secondary-soft);
+  border: 1px solid var(--border-default);
+}
+
+.shieldIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.policyText {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: var(--leading-normal);
+  margin: 0;
+}
