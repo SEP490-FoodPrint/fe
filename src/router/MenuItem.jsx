@@ -1,30 +1,26 @@
-import React from "react";
-import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
-import SoupKitchenOutlinedIcon from "@mui/icons-material/SoupKitchenOutlined";
-import OutdoorGrillOutlinedIcon from "@mui/icons-material/OutdoorGrillOutlined";
-import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined";
-import SanitizerOutlinedIcon from "@mui/icons-material/SanitizerOutlined";
-import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
-import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined";
-import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
-import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined";
-import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined";
-import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined";
-import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined";
-import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlined";
-import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined";
-import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
-import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined";
-import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined";
-import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
-import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined";
-import { ROLES } from "src/constants/roles";
-import ROUTER from "./ROUTER";
+import React from "react"
+import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined"
+import SoupKitchenOutlinedIcon from "@mui/icons-material/SoupKitchenOutlined"
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined"
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
+import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined"
+import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"
+import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined"
+import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined"
+import HowToRegOutlinedIcon from "@mui/icons-material/HowToRegOutlined"
+import WarehouseOutlinedIcon from "@mui/icons-material/WarehouseOutlined"
+import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined"
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined"
+import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined"
+import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlined"
+import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
+import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
+import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
+import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
+import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
+import { ROLES } from "src/constants/roles"
+import ROUTER from "./ROUTER"
 
 /**
  * Menu dành cho phân hệ Quản trị Hệ thống (SYSTEM)

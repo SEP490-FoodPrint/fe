@@ -49,11 +49,11 @@ export default function ReviewDialog({ mode, request, reviewer, onClose, onRevie
         <DialogContent className={styles.content}>
           {isResult ? <>
             <RequestStatus status={request.status} />
-            <p>{requestCode(request.id)} · {organizationName(request)}</p>
+            <p>{requestCode(request.registrationID)} · {organizationName(request)}</p>
             <RequestFields columns={1} fields={[{ label: "Người xét duyệt", value: request.reviewer?.full_name || "Chưa có" }, { label: "Ngày xét duyệt", value: formatRequestDate(request.reviewed_at, true) }, ...(request.rejection_reason ? [{ label: "Lý do từ chối", value: request.rejection_reason }] : [])]} />
             <p className={styles.muted}>Quyết định đã được ghi nhận.</p>
           </> : isReject ? <>
-            <p className={styles.muted}>Hồ sơ {requestCode(request.id)} của {request.applicant?.full_name || "người đăng ký"}.</p>
+            <p className={styles.muted}>Hồ sơ {requestCode(request.registrationID)} của {request.applicant?.full_name || "người đăng ký"}.</p>
             <label className={styles.reasonLabel} htmlFor="rejection-reason">Lý do từ chối</label>
             <TextField id="rejection-reason" value={reason} onChange={event => { setReason(event.target.value); setReasonError("") }} multiline rows={4} fullWidth autoFocus disabled={submitting}
               error={Boolean(reasonError)} helperText={reasonError || undefined}

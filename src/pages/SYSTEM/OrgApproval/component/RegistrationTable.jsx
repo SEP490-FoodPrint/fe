@@ -20,7 +20,7 @@ export default function RegistrationTable({ requests, start, isMobile, busy }) {
       <p className={styles.resultRange} aria-live="polite">Đang hiển thị {requests.length ? start + 1 : 0}–{start + requests.length}</p>
       {requests.map(request => (
         <article className={styles.mobileCard} key={request.id}>
-          <div className={styles.cardTop}><span>{requestCode(request.id)}</span><RequestStatus status={request.status} /></div>
+          <div className={styles.cardTop}><span>{requestCode(request.registrationID)}</span><RequestStatus status={request.status} /></div>
           <h2>{request.applicant?.full_name || "Chưa cung cấp"}</h2>
           <p className={styles.email}><EmailOutlinedIcon />{request.applicant?.email || "Chưa cung cấp"}</p>
           <dl className={styles.cardFields}>
@@ -42,7 +42,7 @@ export default function RegistrationTable({ requests, start, isMobile, busy }) {
           <TableBody>{requests.map((request, index) => (
             <TableRow key={request.id} hover>
               <TableCell>{String(start + index + 1).padStart(2, "0")}</TableCell>
-              <TableCell><Link className={styles.codeLink} to={detailUrl(request.id)} state={{ listSearch }}>{requestCode(request.id)}</Link></TableCell>
+              <TableCell><Link className={styles.codeLink} to={detailUrl(request.id)} state={{ listSearch }}>{requestCode(request.registrationID)}</Link></TableCell>
               <TableCell>{request.applicant?.full_name || "Chưa cung cấp"}</TableCell>
               <TableCell>{request.applicant?.email || "Chưa cung cấp"}</TableCell>
               <TableCell>{REQUEST_TYPES[request.request_type] || request.request_type}</TableCell>
@@ -50,7 +50,7 @@ export default function RegistrationTable({ requests, start, isMobile, busy }) {
               <TableCell><RequestStatus status={request.status} /></TableCell>
               <TableCell>{formatRequestDate(request.submitted_at)}</TableCell>
               <TableCell>{formatRequestDate(request.reviewed_at)}</TableCell>
-              <TableCell align="center"><Tooltip title="Xem chi tiết"><IconButton component={Link} to={detailUrl(request.id)} state={{ listSearch }} aria-label={`Xem chi tiết ${requestCode(request.id)}`}><VisibilityOutlinedIcon /></IconButton></Tooltip></TableCell>
+              <TableCell align="center"><Tooltip title="Xem chi tiết"><IconButton component={Link} to={detailUrl(request.id)} state={{ listSearch }} aria-label={`Xem chi tiết ${requestCode(request.registrationID)}`}><VisibilityOutlinedIcon /></IconButton></Tooltip></TableCell>
             </TableRow>
           ))}</TableBody>
         </Table>

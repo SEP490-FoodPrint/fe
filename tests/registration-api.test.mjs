@@ -9,7 +9,7 @@ import { ROLES } from "../src/constants/roles.js"
 
 const id = "00000000-0000-4000-8000-000000000101"
 const principal = { id: "00000000-0000-4000-8000-000000000102", username: "system_admin", fullName: "Quản trị viên", role: "SYSTEM_ADMIN", orgType: "SYSTEM", permissions: ["registration.view"] }
-const row = { id, applicantUserId: principal.id, requestType: "SCHOOL", status: "PENDING", submittedAt: "2026-10-30T08:00:00.000Z", reviewedAt: null, updatedAt: "2026-10-30T08:00:00.000Z", applicantUser: { id: principal.id, fullName: "Nguyễn Văn A" } }
+const row = { id, registrationID: "FP-REG-00001", applicantUserId: principal.id, requestType: "SCHOOL", status: "PENDING", submittedAt: "2026-10-30T08:00:00.000Z", reviewedAt: null, updatedAt: "2026-10-30T08:00:00.000Z", applicantUser: { id: principal.id, fullName: "Nguyễn Văn A" } }
 const success = data => ({ success: true, statusCode: 200, data })
 const list = (items = [row], total = 6, page = 1, limit = 5) => success({ items, pagination: { total, page, limit, totalPages: Math.ceil(total / limit), hasNext: page * limit < total, hasPrevious: page > 1 } })
 let server, http, RegistrationService, AuthService, SchoolService, storageKeys, navigation
@@ -21,7 +21,7 @@ const savedStorage = globalThis.localStorage
 before(async () => {
   server = await createServer({
     cacheDir: "/tmp/foodprint-registration-tests-vite",
-    server: { middlewareMode: true, hmr: false },
+    server: { middlewareMode: true, hmr: false, ws: false },
     optimizeDeps: { noDiscovery: true, entries: [] },
     define: { "import.meta.env.VITE_USE_MOCK": '"false"' },
     appType: "custom",
@@ -69,6 +69,8 @@ test("list reads the nested pagination envelope without fabricating omitted fiel
   assert.equal(requests[0].headers.Authorization, undefined)
   assert.equal(requests[0].withCredentials, true)
   assert.equal(result.total, 6)
+  assert.equal(result.data[0].registrationID, row.registrationID)
+  assert.equal(result.data[0].id, id)
   assert.equal(result.data[0].applicant.full_name, "Nguyễn Văn A")
   assert.equal(result.data[0].applicant.email, undefined)
   assert.deepEqual(result.data[0].profile_data, {})
@@ -107,6 +109,7 @@ test("detail maps applicant/reviewer, preserves JSON payloads and the review ver
   respond = () => success({ ...row, profileData: profile, supportingDocuments: documents, reviewVersion: "a".repeat(64), applicantUser: { ...row.applicantUser, username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", emailVerifiedAt: "2026-10-30T07:00:00.000Z" }, reviewedByUser: { id: principal.id, fullName: "Người duyệt" }, rejectionReason: "Lý do" })
   const result = await RegistrationService.getRequest(id)
   assert.equal(requests[0].url, `/registration-requests/${id}`)
+  assert.equal(result.data.registrationID, row.registrationID)
   assert.deepEqual(result.data.applicant, { id: principal.id, full_name: "Nguyễn Văn A", username: "school_applicant", email: "applicant@example.test", phone: "0901234567", status: "UNVERIFIED", email_verified_at: "2026-10-30T07:00:00.000Z" })
   assert.equal(result.data.reviewer.full_name, "Người duyệt")
   assert.deepEqual(result.data.profile_data, profile)
@@ -144,6 +147,7 @@ test("approve posts the latest review version and maps the decision", async () =
   assert.deepEqual(JSON.parse(requests[0].data), { expectedReviewVersion: version })
   assert.equal(result.isMock, false)
   assert.equal(result.data.status, "APPROVED")
+  assert.equal(result.data.registrationID, row.registrationID)
   assert.equal(result.data.reviewer.full_name, "Người duyệt")
   assert.equal(result.data.review_version, "b".repeat(64))
 })

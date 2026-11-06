@@ -29,6 +29,7 @@ export function registrationRequest(value) {
   const reviewer = object(value.reviewedByUser)
   return {
     id: value.id,
+    registrationID: value.registrationID,
     applicant_user_id: value.applicantUserId,
     request_type: value.requestType,
     status: value.status,

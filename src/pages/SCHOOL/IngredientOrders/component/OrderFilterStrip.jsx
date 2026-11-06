@@ -59,15 +59,6 @@ export default function OrderFilterStrip({
           ))}
         </TextField>
       </Box>
-
-      <Button
-        variant="text"
-        startIcon={<RotateCcw size={16} />}
-        onClick={onResetFilters}
-        className={styles.resetBtn}
-      >
-        Đặt lại
-      </Button>
     </Box>
   )
 }
