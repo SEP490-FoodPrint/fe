@@ -19,6 +19,17 @@ export const DISH_CATEGORIES = [
   { key: "ALLERGY_SUBSTITUTE", label: "Món thay thế dị ứng", icon: "health_and_safety" },
 ];
 
+
+export const CATALOG_SUPPLIERS = [
+  { id: "sup-rice", name: "Gạo Sạch Hải Hậu", badge: "OCOP 4 sao" },
+  { id: "sup-cp", name: "CP Foods Việt Nam", badge: "VietGAP" },
+  { id: "sup-vis", name: "Thực phẩm Vissan", badge: "ISO 22000" },
+  { id: "sup-sea", name: "Hải sản Sạch Vũng Tàu", badge: "Đánh bắt tự nhiên" },
+  { id: "sup-veg", name: "HTX Rau sạch Nam Hà", badge: "VietGAP Organic" },
+  { id: "sup-egg", name: "Công ty Ba Huân", badge: "Kiểm dịch ATTP" },
+  { id: "sup-milk", name: "Sữa Tươi TH True Milk", badge: "Chuẩn Organic" },
+];
+
 export const INITIAL_DISH_CATALOG = [
   // ==========================================================
   // NHÓM 1: CƠM & TINH BỘT (GẠO LÀ MÓN ĂN CHÍNH)
@@ -35,6 +46,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Gạo tám thơm Hải Hậu"],
     allergen: null,
     description: "Cơm trắng dẻo thơm nấu từ gạo tám thơm nguyên chất Hải Hậu đạt chuẩn OCOP 4 sao.",
+    supplierId: "sup-rice",
+    supplierName: "Gạo Sạch Hải Hậu",
+    supplierBadge: "OCOP 4 sao",
   },
   {
     id: "dish-cat-02",
@@ -48,6 +62,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Gạo sạch hữu cơ"],
     allergen: null,
     description: "Cơm trắng truyền thống dẻo mềm phù hợp khẩu vị học sinh tiểu học và THCS.",
+    supplierId: "sup-rice",
+    supplierName: "Gạo Sạch Hải Hậu",
+    supplierBadge: "OCOP 4 sao",
   },
   {
     id: "dish-cat-03",
@@ -61,6 +78,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Gạo lứt đỏ huyết rồng"],
     allergen: null,
     description: "Bổ sung chất xơ và vitamin nhóm B, hỗ trợ kiểm soát đường huyết và hệ tiêu hóa.",
+    supplierId: "sup-rice",
+    supplierName: "Gạo Sạch Hải Hậu",
+    supplierBadge: "OCOP 4 sao",
   },
   {
     id: "dish-cat-04",
@@ -74,6 +94,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Nếp cái hoa vàng", "Bắp nếp ngọt"],
     allergen: null,
     description: "Món tinh bột xế chiều dẻo bùi thơm ngon.",
+    supplierId: "sup-rice",
+    supplierName: "Gạo Sạch Hải Hậu",
+    supplierBadge: "OCOP 4 sao",
   },
   {
     id: "dish-cat-05",
@@ -87,6 +110,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Mì Ý Barilla", "Thịt bò nạc xay Vissan", "Cà chua tươi"],
     allergen: null,
     description: "Món tinh bột phong cách Âu giàu năng lượng được học sinh yêu thích.",
+    supplierId: "sup-vis",
+    supplierName: "Thực phẩm Vissan",
+    supplierBadge: "ISO 22000",
   },
 
   // ==========================================================
@@ -104,6 +130,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Thịt ba chỉ heo sạch CP"],
     allergen: null,
     description: "Thịt ba chỉ heo sạch đảo cháy cạnh thơm giòn, đậm đà vị truyền thống.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
   {
     id: "dish-cat-11",
@@ -117,6 +146,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Tôm sú biển tươi Vũng Tàu", "Măng tây xanh Nam Hà"],
     allergen: "Hải sản (Tôm)",
     description: "Giàu canxi và kẽm. Lưu ý học sinh có tiền sử dị ứng hải sản.",
+    supplierId: "sup-sea",
+    supplierName: "Hải sản Sạch Vũng Tàu",
+    supplierBadge: "Đánh bắt tự nhiên",
   },
   {
     id: "dish-cat-12",
@@ -130,6 +162,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Thịt nạc thăn heo CP", "Trứng cút sạch Ba Huân"],
     allergen: "Trứng",
     description: "Món mặn đậm vị, mềm béo tự nhiên từ nước dừa tươi.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
   {
     id: "dish-cat-13",
@@ -143,6 +178,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Thịt đùi gà phi lê CP", "Nước cốt me tươi"],
     allergen: null,
     description: "Đùi gà áp chảo sốt me chua ngọt kích thích vị giác học sinh.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
   {
     id: "dish-cat-14",
@@ -156,6 +194,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Cá basa phi lê sạch", "Bột chiên xù Panko"],
     allergen: null,
     description: "Giàu Omega-3 và đạm dễ tiêu hóa, vỏ ngoài giòn rụm không xương.",
+    supplierId: "sup-sea",
+    supplierName: "Hải sản Sạch Vũng Tàu",
+    supplierBadge: "Đánh bắt tự nhiên",
   },
   {
     id: "dish-cat-15",
@@ -169,6 +210,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Tôm nõn tươi", "Mực ống sạch Vũng Tàu"],
     allergen: "Hải sản (Tôm, Mực)",
     description: "Chả hải sản chiên vàng giòn thơm nức mũi.",
+    supplierId: "sup-sea",
+    supplierName: "Hải sản Sạch Vũng Tàu",
+    supplierBadge: "Đánh bắt tự nhiên",
   },
   {
     id: "dish-cat-16",
@@ -182,6 +226,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Phi lê cá hồi Nauy", "Nước cam tươi sành"],
     allergen: null,
     description: "Thực đơn dinh dưỡng cao cấp bổ sung DHA và vitamin D phát triển trí não.",
+    supplierId: "sup-sea",
+    supplierName: "Hải sản Sạch Vũng Tàu",
+    supplierBadge: "Đánh bắt tự nhiên",
   },
   {
     id: "dish-cat-17",
@@ -195,6 +242,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Đậu hũ sạch", "Thịt nạc vai xay CP", "Cà chua tươi"],
     allergen: null,
     description: "Món đạm thực vật kết hợp đạm động vật mềm béo dễ ăn.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
   {
     id: "dish-cat-18",
@@ -208,6 +258,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Trứng gà Ba Huân", "Thịt nạc xay", "Hành hoa"],
     allergen: "Trứng",
     description: "Món trứng chiên vàng thơm ngậy, giàu choline.",
+    supplierId: "sup-egg",
+    supplierName: "Công ty Ba Huân",
+    supplierBadge: "Kiểm dịch ATTP",
   },
 
   // ==========================================================
@@ -225,6 +278,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Cải thìa xanh VietGAP", "Dầu hào Maggi"],
     allergen: null,
     description: "Cải thìa chần giòn xào nhanh dầu hào giữ trọn vitamin C.",
+    supplierId: "sup-veg",
+    supplierName: "HTX Rau sạch Nam Hà",
+    supplierBadge: "VietGAP Organic",
   },
   {
     id: "dish-cat-21",
@@ -238,6 +294,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Đậu bắp non Đà Lạt"],
     allergen: null,
     description: "Bổ sung chất nhầy tự nhiên bảo vệ niêm mạc dạ dày học sinh.",
+    supplierId: "sup-veg",
+    supplierName: "HTX Rau sạch Nam Hà",
+    supplierBadge: "VietGAP Organic",
   },
   {
     id: "dish-cat-22",
@@ -251,6 +310,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Bắp cải trắng Mộc Châu", "Cà chua tươi"],
     allergen: null,
     description: "Vị chua ngọt thanh mát bổ sung chất xơ tự nhiên.",
+    supplierId: "sup-veg",
+    supplierName: "HTX Rau sạch Nam Hà",
+    supplierBadge: "VietGAP Organic",
   },
   {
     id: "dish-cat-23",
@@ -264,6 +326,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Đậu cô ve sạch", "Nấm đùi gà tươi"],
     allergen: null,
     description: "Hương vị nấm giòn bùi tự nhiên, thanh đạm cân bằng bữa ăn.",
+    supplierId: "sup-veg",
+    supplierName: "HTX Rau sạch Nam Hà",
+    supplierBadge: "VietGAP Organic",
   },
   {
     id: "dish-cat-24",
@@ -277,6 +342,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Rau muống sạch VietGAP", "Tỏi ta Kinh Môn"],
     allergen: null,
     description: "Món rau xào quen thuộc, giàu sắt và chất diệp lục.",
+    supplierId: "sup-veg",
+    supplierName: "HTX Rau sạch Nam Hà",
+    supplierBadge: "VietGAP Organic",
   },
 
   // ==========================================================
@@ -294,6 +362,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Ngao biển tươi sống", "Cà chua", "Thì là hành hoa"],
     allergen: "Hải sản (Ngao)",
     description: "Canh ngao thanh ngọt tự nhiên, dồi dào kẽm và khoáng vi lượng.",
+    supplierId: "sup-sea",
+    supplierName: "Hải sản Sạch Vũng Tàu",
+    supplierBadge: "Đánh bắt tự nhiên",
   },
   {
     id: "dish-cat-31",
@@ -307,6 +378,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Cua đồng xay lọc sạch", "Mồng tơi", "Mướp hương"],
     allergen: "Hải sản (Cua đồng)",
     description: "Canh cua đồng mát ruột, hàm lượng canxi hữu cơ cao nhất cho lứa tuổi dậy thì.",
+    supplierId: "sup-sea",
+    supplierName: "Hải sản Sạch Vũng Tàu",
+    supplierBadge: "Đánh bắt tự nhiên",
   },
   {
     id: "dish-cat-32",
@@ -320,6 +394,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Bí đỏ hồ lô", "Đậu phộng tươi"],
     allergen: "Đậu phộng (Lạc)",
     description: "Canh bí đỏ ngọt bùi bổ não, lưu ý học sinh dị ứng lạc.",
+    supplierId: "sup-veg",
+    supplierName: "HTX Rau sạch Nam Hà",
+    supplierBadge: "VietGAP Organic",
   },
   {
     id: "dish-cat-33",
@@ -333,6 +410,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Bí đỏ", "Hạt sen tươi Huế", "Thịt heo nạc băm"],
     allergen: null,
     description: "Món canh bổ dưỡng thanh mát giúp học sinh ngủ ngon và tập trung học tập.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
   {
     id: "dish-cat-34",
@@ -346,6 +426,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Cải xoong tươi", "Thịt nạc thăn heo CP"],
     allergen: null,
     description: "Thanh mát vị ngọt đậm từ thịt nạc tươi sạch.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
 
   // ==========================================================
@@ -363,6 +446,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Bột mì thượng hạng", "Trứng muối sạch", "Chà bông heo"],
     allergen: "Trứng",
     description: "Bánh xốp mềm ngọt dịu kết hợp chà bông mặn thơm ngon.",
+    supplierId: "sup-egg",
+    supplierName: "Công ty Ba Huân",
+    supplierBadge: "Kiểm dịch ATTP",
   },
   {
     id: "dish-cat-41",
@@ -376,6 +462,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Sữa hạt hạnh nhân óc chó tiệt trùng"],
     allergen: "Hạt cây",
     description: "Bổ sung chất béo tốt không bão hòa và năng lượng học tập buổi chiều.",
+    supplierId: "sup-milk",
+    supplierName: "Sữa Tươi TH True Milk",
+    supplierBadge: "Chuẩn Organic",
   },
   {
     id: "dish-cat-42",
@@ -389,6 +478,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Sữa tươi nguyên chất tiệt trùng 100%"],
     allergen: "Sữa bò",
     description: "Bổ sung canxi và vitamin D3 giúp phát triển chiều cao vượt trội.",
+    supplierId: "sup-milk",
+    supplierName: "Sữa Tươi TH True Milk",
+    supplierBadge: "Chuẩn Organic",
   },
   {
     id: "dish-cat-43",
@@ -402,6 +494,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Vỏ bánh su giòn", "Kem tươi vani sữa béo"],
     allergen: "Sữa bò, Trứng",
     description: "Vỏ bánh giòn xốp nhân kem vani thơm lừng mát lạnh.",
+    supplierId: "sup-milk",
+    supplierName: "Sữa Tươi TH True Milk",
+    supplierBadge: "Chuẩn Organic",
   },
   {
     id: "dish-cat-44",
@@ -415,6 +510,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Bắp nếp non", "Nước cốt dừa tươi", "Đường phèn"],
     allergen: null,
     description: "Vị ngọt thanh từ đường phèn và độ bùi dẻo của ngô nếp non.",
+    supplierId: "sup-rice",
+    supplierName: "Gạo Sạch Hải Hậu",
+    supplierBadge: "OCOP 4 sao",
   },
   {
     id: "dish-cat-45",
@@ -428,6 +526,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Sữa chua lên men tự nhiên", "Thạch nha đam giòn"],
     allergen: "Sữa bò",
     description: "Hỗ trợ tiêu hóa khỏe mạnh và tăng cường hệ miễn dịch đường ruột.",
+    supplierId: "sup-milk",
+    supplierName: "Sữa Tươi TH True Milk",
+    supplierBadge: "Chuẩn Organic",
   },
   {
     id: "dish-cat-46",
@@ -441,6 +542,9 @@ export const INITIAL_DISH_CATALOG = [
     ingredientNames: ["Thịt ức gà xé", "Ngô ngọt non", "Nấm tuyết", "Trứng gà"],
     allergen: "Trứng",
     description: "Súp ấm nóng thơm lừng bồi bổ thể lực sau giờ học thể dục.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
 
   // ==========================================================
@@ -459,6 +563,9 @@ export const INITIAL_DISH_CATALOG = [
     allergen: null,
     substituteFor: "Hải sản (Tôm, Cua, Mực)",
     description: "Món thay thế an toàn 100% cho các em học sinh có dị ứng tôm, cua, mực.",
+    supplierId: "sup-vis",
+    supplierName: "Thực phẩm Vissan",
+    supplierBadge: "ISO 22000",
   },
   {
     id: "dish-cat-51",
@@ -473,6 +580,9 @@ export const INITIAL_DISH_CATALOG = [
     allergen: null,
     substituteFor: "Chả hải sản, Tôm",
     description: "Thay thế món chả tôm mực, an toàn tuyệt đối cho học sinh dị ứng đồ biển.",
+    supplierId: "sup-vis",
+    supplierName: "Thực phẩm Vissan",
+    supplierBadge: "ISO 22000",
   },
   {
     id: "dish-cat-52",
@@ -487,6 +597,9 @@ export const INITIAL_DISH_CATALOG = [
     allergen: null,
     substituteFor: "Trứng (Trứng cút, trứng gà)",
     description: "Món đạm thay thế dành riêng cho học sinh dị ứng lòng trắng hoặc lòng đỏ trứng.",
+    supplierId: "sup-cp",
+    supplierName: "CP Foods Việt Nam",
+    supplierBadge: "VietGAP",
   },
   {
     id: "dish-cat-53",
@@ -501,6 +614,9 @@ export const INITIAL_DISH_CATALOG = [
     allergen: null,
     substituteFor: "Sữa bò (Lactose)",
     description: "Đồ uống thay thế an toàn cho học sinh bất dung nạp lactose hoặc dị ứng đạm sữa bò.",
+    supplierId: "sup-milk",
+    supplierName: "Sữa Tươi TH True Milk",
+    supplierBadge: "Chuẩn Organic",
   },
 ];
 
@@ -512,7 +628,28 @@ export function getStoredDishCatalog() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed.map((dish) => {
+          if (!dish.supplierName) {
+            const initial = INITIAL_DISH_CATALOG.find((d) => d.id === dish.id || d.name === dish.name);
+            if (initial) {
+              return {
+                ...dish,
+                supplierId: initial.supplierId || "sup-cp",
+                supplierName: initial.supplierName || "CP Foods Việt Nam",
+                supplierBadge: initial.supplierBadge || "VietGAP",
+              };
+            }
+            return {
+              ...dish,
+              supplierId: "sup-cp",
+              supplierName: "CP Foods Việt Nam",
+              supplierBadge: "VietGAP",
+            };
+          }
+          return dish;
+        });
+      }
     }
   } catch (err) {
     console.warn("Lỗi đọc dish catalog từ storage:", err);

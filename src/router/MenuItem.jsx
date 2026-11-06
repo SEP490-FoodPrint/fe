@@ -143,7 +143,7 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_DISH_CATALOG,
     label: "Kho Món Ăn",
     icon: <MenuBookOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+    roles: [ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION],
   },
   {
     key: ROUTER.SCHOOL_HEALTH_ALLERGY,

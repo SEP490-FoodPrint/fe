@@ -5,12 +5,14 @@ import {
   Pencil,
   Trash2,
   X,
-  UtensilsCrossed,
   AlertCircle,
   BookOpen,
+  Truck,
+  Sparkles,
 } from "lucide-react"
 import {
   DISH_CATEGORIES,
+  CATALOG_SUPPLIERS,
   getStoredDishCatalog,
   saveDishToCatalog,
 } from "src/pages/SCHOOL/MenuPlanning/dishCatalogData"
@@ -38,6 +40,9 @@ const EMPTY_FORM = {
   mealType: "LUNCH",
   portionQty: "",
   unit: "g",
+  supplierId: "sup-cp",
+  supplierName: "CP Foods Việt Nam",
+  customSupplierName: "",
   allergen: "",
   substituteFor: "",
   description: "",
@@ -48,6 +53,7 @@ export default function DishCatalogPage() {
   const [catalog, setCatalog] = useState(() => getStoredDishCatalog())
   const [search, setSearch] = useState("")
   const [activeCat, setActiveCat] = useState("ALL")
+  const [supplierFilter, setSupplierFilter] = useState("ALL")
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false)
@@ -60,24 +66,31 @@ export default function DishCatalogPage() {
   /* ─── Filtered list ─────────────────────────── */
   const filtered = useMemo(() => {
     let list = catalog
-    if (activeCat !== "ALL") list = list.filter((d) => d.category === activeCat)
+    if (activeCat !== "ALL") {
+      list = list.filter((d) => d.category === activeCat)
+    }
+    if (supplierFilter !== "ALL") {
+      list = list.filter((d) => d.supplierId === supplierFilter || d.supplierName === supplierFilter)
+    }
     if (search.trim()) {
       const q = search.toLowerCase()
       list = list.filter(
         (d) =>
           d.name.toLowerCase().includes(q) ||
           (d.description || "").toLowerCase().includes(q) ||
-          (d.allergen || "").toLowerCase().includes(q)
+          (d.allergen || "").toLowerCase().includes(q) ||
+          (d.supplierName || "").toLowerCase().includes(q)
       )
     }
     return list
-  }, [catalog, activeCat, search])
+  }, [catalog, activeCat, supplierFilter, search])
 
   /* ─── Stats ──────────────────────────────────── */
   const stats = useMemo(() => {
     const allergyCount = catalog.filter((d) => d.allergen).length
     const catCount = new Set(catalog.map((d) => d.category)).size
-    return { total: catalog.length, allergyCount, catCount }
+    const supplierCount = new Set(catalog.map((d) => d.supplierName).filter(Boolean)).size
+    return { total: catalog.length, allergyCount, catCount, supplierCount }
   }, [catalog])
 
   /* ─── Handlers ───────────────────────────────── */
@@ -88,6 +101,7 @@ export default function DishCatalogPage() {
   }, [])
 
   const openEdit = useCallback((dish) => {
+    const knownSupplier = CATALOG_SUPPLIERS.find((s) => s.id === dish.supplierId || s.name === dish.supplierName)
     setEditingDish(dish)
     setForm({
       name: dish.name || "",
@@ -95,6 +109,9 @@ export default function DishCatalogPage() {
       mealType: dish.mealType || "LUNCH",
       portionQty: dish.portionQty ?? "",
       unit: dish.unit || "g",
+      supplierId: knownSupplier ? knownSupplier.id : "CUSTOM",
+      supplierName: dish.supplierName || (knownSupplier ? knownSupplier.name : "CP Foods Việt Nam"),
+      customSupplierName: knownSupplier ? "" : (dish.supplierName || ""),
       allergen: dish.allergen || "",
       substituteFor: dish.substituteFor || "",
       description: dish.description || "",
@@ -109,14 +126,43 @@ export default function DishCatalogPage() {
   }, [])
 
   const handleFormChange = useCallback((field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }))
+    setForm((prev) => {
+      const next = { ...prev, [field]: value }
+      if (field === "supplierId") {
+        if (value !== "CUSTOM") {
+          const sup = CATALOG_SUPPLIERS.find((s) => s.id === value)
+          next.supplierName = sup ? sup.name : ""
+          next.supplierBadge = sup ? sup.badge : ""
+        } else {
+          next.supplierName = next.customSupplierName || ""
+        }
+      }
+      return next
+    })
   }, [])
 
   const handleSave = useCallback(() => {
-    if (!form.name.trim()) return
+    if (!form.name.trim() || !form.portionQty) return
+
     const catInfo = DISH_CATEGORIES.find((c) => c.key === form.category)
+    let finalSupplierId = form.supplierId
+    let finalSupplierName = form.supplierName
+    let finalSupplierBadge = ""
+
+    if (form.supplierId === "CUSTOM") {
+      finalSupplierName = form.customSupplierName.trim() || "Nhà cung cấp đối tác"
+      finalSupplierId = `custom-sup-${Date.now()}`
+      finalSupplierBadge = "Đối tác liên kết"
+    } else {
+      const sup = CATALOG_SUPPLIERS.find((s) => s.id === form.supplierId)
+      if (sup) {
+        finalSupplierName = sup.name
+        finalSupplierBadge = sup.badge
+      }
+    }
+
     if (editingDish) {
-      // Update existing
+      // Update existing dish
       const updated = catalog.map((d) =>
         d.id === editingDish.id
           ? {
@@ -124,6 +170,9 @@ export default function DishCatalogPage() {
               ...form,
               portionQty: Number(form.portionQty) || 50,
               categoryLabel: catInfo?.label || "",
+              supplierId: finalSupplierId,
+              supplierName: finalSupplierName,
+              supplierBadge: finalSupplierBadge,
               allergen: form.allergen.trim() || null,
               substituteFor: form.substituteFor.trim() || undefined,
             }
@@ -132,17 +181,22 @@ export default function DishCatalogPage() {
       setCatalog(updated)
       try {
         localStorage.setItem("FOODPRINT_DISH_CATALOG", JSON.stringify(updated))
-      } catch {}
+      } catch (e) {
+        console.warn("Lỗi lưu dish catalog:", e)
+      }
     } else {
-      // Add new via helper
+      // Create new dish via saveDishToCatalog
       const newDish = {
         ...form,
         portionQty: Number(form.portionQty) || 50,
         categoryLabel: catInfo?.label || "",
+        supplierId: finalSupplierId,
+        supplierName: finalSupplierName,
+        supplierBadge: finalSupplierBadge,
         allergen: form.allergen.trim() || null,
         substituteFor: form.substituteFor.trim() || undefined,
         ingredientIds: [],
-        ingredientNames: [],
+        ingredientNames: [form.name],
       }
       const updated = saveDishToCatalog(newDish)
       setCatalog(updated)
@@ -156,7 +210,9 @@ export default function DishCatalogPage() {
     setCatalog(updated)
     try {
       localStorage.setItem("FOODPRINT_DISH_CATALOG", JSON.stringify(updated))
-    } catch {}
+    } catch (e) {
+      console.warn("Lỗi xóa dish:", e)
+    }
     setDeletingDish(null)
   }, [deletingDish, catalog])
 
@@ -167,16 +223,18 @@ export default function DishCatalogPage() {
       <div className={styles.header}>
         <div className={styles.titleBlock}>
           <div className={styles.titleIcon}>
-            <BookOpen size={20} />
+            <BookOpen size={22} />
           </div>
           <div>
-            <h1 className={styles.title}>Kho Món Ăn</h1>
-            <p className={styles.subtitle}>Quản lý danh mục món ăn chuẩn cho thực đơn học đường</p>
+            <h1 className={styles.title}>Kho Món Ăn Bán Trú (Master Data)</h1>
+            <p className={styles.subtitle}>
+              Cán bộ Y tế quản lý danh mục món ăn chuẩn, định lượng theo suất và liên kết Nhà cung cấp (NCC)
+            </p>
           </div>
         </div>
         <button className={styles.addBtn} onClick={openAdd}>
-          <Plus size={15} />
-          Thêm món ăn
+          <Plus size={16} />
+          <span>Thêm món ăn mới</span>
         </button>
       </div>
 
@@ -186,21 +244,28 @@ export default function DishCatalogPage() {
           <span className={styles.statIcon}>🍽️</span>
           <div>
             <div className={styles.statNum}>{stats.total}</div>
-            <div className={styles.statLabel}>Tổng món ăn</div>
+            <div className={styles.statLabel}>Tổng món trong kho</div>
           </div>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statIcon}>🗂️</span>
           <div>
             <div className={styles.statNum}>{stats.catCount}</div>
-            <div className={styles.statLabel}>Nhóm món</div>
+            <div className={styles.statLabel}>Nhóm món ăn</div>
+          </div>
+        </div>
+        <div className={styles.statCard}>
+          <span className={styles.statIcon}>🚚</span>
+          <div>
+            <div className={styles.statNum}>{stats.supplierCount}</div>
+            <div className={styles.statLabel}>NCC đang liên kết</div>
           </div>
         </div>
         <div className={styles.statCard}>
           <span className={styles.statIcon}>⚠️</span>
           <div>
             <div className={styles.statNum}>{stats.allergyCount}</div>
-            <div className={styles.statLabel}>Có cảnh báo dị ứng</div>
+            <div className={styles.statLabel}>Món có dị nguyên</div>
           </div>
         </div>
       </div>
@@ -211,11 +276,27 @@ export default function DishCatalogPage() {
           <Search size={14} />
           <input
             className={styles.searchInput}
-            placeholder="Tìm theo tên món, dị ứng..."
+            placeholder="Tìm theo tên món, NCC, dị ứng..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
+
+        {/* Lọc theo NCC */}
+        <select
+          className={styles.supplierFilter}
+          value={supplierFilter}
+          onChange={(e) => setSupplierFilter(e.target.value)}
+        >
+          <option value="ALL">🏢 Tất cả Nhà cung cấp (NCC)</option>
+          {CATALOG_SUPPLIERS.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name} ({s.badge})
+            </option>
+          ))}
+        </select>
+
+        {/* Tab nhóm món */}
         <div className={styles.catTabs}>
           {DISH_CATEGORIES.map((cat) => (
             <button
@@ -234,19 +315,20 @@ export default function DishCatalogPage() {
         {filtered.length === 0 ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>🍽️</div>
-            <p>Không tìm thấy món ăn nào.</p>
+            <p>Không tìm thấy món ăn nào phù hợp với bộ lọc.</p>
           </div>
         ) : (
           <table className={styles.table}>
             <thead>
               <tr>
-                <th style={{ width: 36 }}>#</th>
+                <th style={{ width: 40 }}>#</th>
                 <th>Tên món ăn</th>
-                <th>Nhóm</th>
-                <th>Bữa</th>
+                <th>Nhóm món</th>
+                <th>Bữa ăn</th>
                 <th>Định lượng / suất</th>
-                <th>Dị ứng</th>
-                <th style={{ width: 80 }}></th>
+                <th>Nhà cung cấp (NCC) liên kết</th>
+                <th>Cảnh báo dị ứng</th>
+                <th style={{ width: 85, textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -255,13 +337,13 @@ export default function DishCatalogPage() {
                 const mealStyle = MEAL_LABEL[dish.mealType] || MEAL_LABEL.LUNCH
                 return (
                   <tr key={dish.id}>
-                    <td style={{ color: "#bbb", fontSize: 12 }}>{idx + 1}</td>
+                    <td style={{ color: "#94a3b8", fontSize: 12 }}>{idx + 1}</td>
                     <td>
                       <div className={styles.dishName}>{dish.name}</div>
                       {dish.description && (
-                        <div className={styles.dishDesc}>
-                          {dish.description.length > 70
-                            ? dish.description.slice(0, 70) + "…"
+                        <div className={styles.dishDesc} title={dish.description}>
+                          {dish.description.length > 75
+                            ? dish.description.slice(0, 75) + "…"
                             : dish.description}
                         </div>
                       )}
@@ -280,10 +362,19 @@ export default function DishCatalogPage() {
                       {dish.portionQty} {dish.unit}
                     </td>
                     <td>
+                      <span className={styles.supplierBadge} title={`NCC: ${dish.supplierName || "Chưa gắn"}`}>
+                        <Truck size={13} className={styles.truckIcon} />
+                        <span>{dish.supplierName || "Chưa gắn NCC"}</span>
+                        {dish.supplierBadge && (
+                          <span className={styles.supplierCert}>{dish.supplierBadge}</span>
+                        )}
+                      </span>
+                    </td>
+                    <td>
                       {dish.allergen ? (
                         <span className={styles.allergenBadge}>
-                          <AlertCircle size={11} />
-                          {dish.allergen}
+                          <AlertCircle size={12} />
+                          <span>{dish.allergen}</span>
                         </span>
                       ) : (
                         <span className={styles.noAllergen}>—</span>
@@ -293,17 +384,17 @@ export default function DishCatalogPage() {
                       <div className={styles.actionBtns}>
                         <button
                           className={styles.editBtn}
-                          title="Chỉnh sửa"
+                          title="Chỉnh sửa món & NCC"
                           onClick={() => openEdit(dish)}
                         >
-                          <Pencil size={13} />
+                          <Pencil size={14} />
                         </button>
                         <button
                           className={styles.deleteBtn}
-                          title="Xóa"
+                          title="Xóa món ăn"
                           onClick={() => setDeletingDish(dish)}
                         >
-                          <Trash2 size={13} />
+                          <Trash2 size={14} />
                         </button>
                       </div>
                     </td>
@@ -321,7 +412,7 @@ export default function DishCatalogPage() {
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>
-                {editingDish ? "Chỉnh sửa món ăn" : "Thêm món ăn mới"}
+                {editingDish ? "Chỉnh sửa món ăn & NCC liên kết" : "Thêm món ăn mới vào kho"}
               </h2>
               <button className={styles.closeBtn} onClick={closeModal}>
                 <X size={16} />
@@ -337,13 +428,13 @@ export default function DishCatalogPage() {
                   </label>
                   <input
                     className={styles.formInput}
-                    placeholder="Vd: Thịt ba chỉ rang cháy cạnh"
+                    placeholder="Vd: Thịt ba chỉ rang cháy cạnh, Cơm tám Hải Hậu..."
                     value={form.name}
                     onChange={(e) => handleFormChange("name", e.target.value)}
                   />
                 </div>
 
-                {/* Nhóm */}
+                {/* Nhóm món */}
                 <div>
                   <label className={styles.formLabel}>Nhóm món ăn</label>
                   <select
@@ -359,7 +450,7 @@ export default function DishCatalogPage() {
 
                 {/* Loại bữa */}
                 <div>
-                  <label className={styles.formLabel}>Loại bữa</label>
+                  <label className={styles.formLabel}>Loại ca ăn</label>
                   <select
                     className={styles.formSelect}
                     value={form.mealType}
@@ -367,14 +458,14 @@ export default function DishCatalogPage() {
                   >
                     <option value="LUNCH">🌞 Bữa trưa</option>
                     <option value="AFTERNOON">🌙 Bữa xế</option>
-                    <option value="BOTH">🌟 Cả hai bữa</option>
+                    <option value="BOTH">🌟 Cả hai ca</option>
                   </select>
                 </div>
 
-                {/* Định lượng */}
+                {/* Định lượng / suất */}
                 <div>
                   <label className={styles.formLabel}>
-                    Định lượng / 1 suất <span className={styles.required}>*</span>
+                    Định lượng chuẩn / 1 suất <span className={styles.required}>*</span>
                   </label>
                   <div className={styles.portionRow}>
                     <input
@@ -398,24 +489,58 @@ export default function DishCatalogPage() {
                   </div>
                 </div>
 
-                {/* Dị ứng */}
+                {/* Nhà cung cấp liên kết (NCC) */}
                 <div>
-                  <label className={styles.formLabel}>Cảnh báo dị ứng</label>
+                  <label className={styles.formLabel}>
+                    Nhà cung cấp (NCC) liên kết <span className={styles.required}>*</span>
+                  </label>
+                  <select
+                    className={styles.formSelect}
+                    value={form.supplierId}
+                    onChange={(e) => handleFormChange("supplierId", e.target.value)}
+                  >
+                    {CATALOG_SUPPLIERS.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.badge})
+                      </option>
+                    ))}
+                    <option value="CUSTOM">➕ Nhà cung cấp khác (Nhập tay)...</option>
+                  </select>
+                </div>
+
+                {/* Nếu chọn NCC khác */}
+                {form.supplierId === "CUSTOM" && (
+                  <div className={styles.formFullRow}>
+                    <label className={styles.formLabel}>
+                      Tên Nhà cung cấp mới <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      className={styles.formInput}
+                      placeholder="Nhập tên đơn vị cung ứng thực phẩm..."
+                      value={form.customSupplierName}
+                      onChange={(e) => handleFormChange("customSupplierName", e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {/* Cảnh báo dị ứng */}
+                <div>
+                  <label className={styles.formLabel}>Cảnh báo dị nguyên (nếu có)</label>
                   <input
                     className={styles.formInput}
-                    placeholder="Để trống nếu không có"
+                    placeholder="Vd: Hải sản (Tôm, Cua), Trứng, Sữa bò..."
                     value={form.allergen}
                     onChange={(e) => handleFormChange("allergen", e.target.value)}
                   />
                 </div>
 
-                {/* Thay thế cho */}
+                {/* Thay thế dị ứng */}
                 {form.category === "ALLERGY_SUBSTITUTE" && (
-                  <div className={styles.formFullRow}>
-                    <label className={styles.formLabel}>Thay thế cho dị ứng</label>
+                  <div>
+                    <label className={styles.formLabel}>Dành thay thế cho món / dị nguyên nào</label>
                     <input
                       className={styles.formInput}
-                      placeholder="Vd: Hải sản (Tôm, Cua, Mực)"
+                      placeholder="Vd: Dị ứng Tôm, Cua, Mực"
                       value={form.substituteFor}
                       onChange={(e) => handleFormChange("substituteFor", e.target.value)}
                     />
@@ -424,10 +549,10 @@ export default function DishCatalogPage() {
 
                 {/* Mô tả */}
                 <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>Mô tả ngắn</label>
+                  <label className={styles.formLabel}>Mô tả & ghi chú dinh dưỡng</label>
                   <textarea
                     className={styles.formTextarea}
-                    placeholder="Thông tin dinh dưỡng, lưu ý chế biến..."
+                    placeholder="Thông tin nguồn gốc nguyên liệu, đặc tính dinh dưỡng, lưu ý chế biến..."
                     value={form.description}
                     onChange={(e) => handleFormChange("description", e.target.value)}
                   />
@@ -440,9 +565,9 @@ export default function DishCatalogPage() {
               <button
                 className={styles.saveBtn}
                 onClick={handleSave}
-                disabled={!form.name.trim() || !form.portionQty}
+                disabled={!form.name.trim() || !form.portionQty || (form.supplierId === "CUSTOM" && !form.customSupplierName.trim())}
               >
-                {editingDish ? "Lưu thay đổi" : "Thêm vào kho"}
+                {editingDish ? "Lưu thay đổi" : "Lưu vào Kho món ăn"}
               </button>
             </div>
           </div>
@@ -454,18 +579,18 @@ export default function DishCatalogPage() {
         <div className={styles.confirmOverlay}>
           <div className={styles.confirmBox}>
             <div className={styles.confirmIcon}>🗑️</div>
-            <h3 className={styles.confirmTitle}>Xóa món ăn?</h3>
+            <h3 className={styles.confirmTitle}>Xóa món ăn khỏi kho?</h3>
             <p className={styles.confirmMsg}>
-              Bạn có chắc muốn xóa <strong>"{deletingDish.name}"</strong> khỏi kho món ăn?
+              Bạn có chắc muốn xóa món <strong>"{deletingDish.name}"</strong>?
               <br />
-              Thao tác này không thể hoàn tác.
+              Món này sẽ không còn hiển thị để chọn khi tạo thực đơn mới.
             </p>
             <div className={styles.confirmActions}>
               <button className={styles.confirmCancel} onClick={() => setDeletingDish(null)}>
                 Hủy
               </button>
               <button className={styles.confirmDelete} onClick={handleDeleteConfirm}>
-                Xóa
+                Xác nhận xóa
               </button>
             </div>
           </div>
@@ -474,4 +599,3 @@ export default function DishCatalogPage() {
     </div>
   )
 }
-

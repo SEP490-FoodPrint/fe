@@ -1,8 +1,9 @@
 import React, { useState, useMemo } from "react"
-import { Utensils, Search, Plus, Check, AlertTriangle, X } from "lucide-react"
+import { Utensils, Search, Plus, Check, AlertTriangle, X, Truck } from "lucide-react"
 import styles from "./DishPickerModal.module.scss"
 import {
   DISH_CATEGORIES,
+  CATALOG_SUPPLIERS,
   getStoredDishCatalog,
   saveDishToCatalog,
 } from "../dishCatalogData"
@@ -27,6 +28,7 @@ export default function DishPickerModal({
     category: "MAIN_DISH",
     portionQty: 60,
     unit: "g",
+    supplierId: "sup-cp",
     allergen: "",
   })
 
@@ -315,6 +317,12 @@ export default function DishPickerModal({
                       </span>
                     </div>
 
+                    {dish.supplierName && (
+                      <div className={styles.supplierRow} title={"NCC: " + dish.supplierName}>
+                        <Truck size={11} className={styles.supplierIcon} />
+                        <span>NCC: {dish.supplierName}</span>
+                      </div>
+                    )}
                     {dish.allergen && (
                       <div className={styles.allergenWarning}>
                         <AlertTriangle size={11} className={styles.warningIcon} />
