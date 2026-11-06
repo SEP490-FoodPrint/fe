@@ -89,7 +89,6 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
       >
         <MenuItem disabled className={styles.accountDetails}>
           <strong>{user?.fullName}</strong>
-          <span>{user?.orgName || roleLabel}</span>
         </MenuItem>
         <Divider />
         <MenuItem onClick={() => { closeAccount(); onLogout() }} className={styles.logout}>
