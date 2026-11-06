@@ -80,7 +80,9 @@ export default function MenuListFilterStrip({
             const isThisWeek = Number(year) === currentYear && w.weekNumber === currentWeek
             return (
               <option key={w.weekNumber} value={w.weekNumber}>
-                {isThisWeek ? `${w.label} — Tuần này` : w.label}
+                {isThisWeek
+                  ? `Tuần ${w.weekNumber} (${w.startVN} – ${w.endVN}) — Tuần này`
+                  : `Tuần ${w.weekNumber} (${w.startVN} – ${w.endVN})`}
               </option>
             )
           })}
@@ -122,15 +124,15 @@ export default function MenuListFilterStrip({
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 6. Nút Đặt lại bộ lọc */}
+      {/* 6. Nút Đặt lại bộ lọc: Icon-only theo yêu cầu */}
       <button
         type="button"
         className={styles.resetBtn}
         onClick={onResetFilters}
         title="Đặt lại bộ lọc về mặc định (Tuần này)"
+        aria-label="Đặt lại bộ lọc về mặc định"
       >
         <span className={`material-symbols-outlined ${styles.resetIcon}`}>restart_alt</span>
-        <span className={styles.resetLabel}>Đặt lại</span>
       </button>
     </div>
   )
