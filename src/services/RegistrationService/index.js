@@ -1,10 +1,10 @@
 import http from "../01_axios"
 import { getStorage, setStorage } from "src/lib/storage"
 import { USE_MOCK_API } from "src/lib/config"
-import { normalizeRequestSearch, organizationName, requestCode, requestDateKey } from "src/lib/registration"
+import { normalizeRequestSearch, requestDateKey } from "src/lib/registration"
 import { MOCK_REGISTRATION_REQUESTS } from "./mockData"
-import { apiApproveRegistrationRequest, apiGetRegistrationDocument, apiGetRegistrationRequest, apiGetRegistrationRequests, apiRejectRegistrationRequest, apiSearchRegistrationRequests } from "./urls"
-import { registrationList, registrationQuery, registrationRequest } from "./adapter"
+import { apiApproveRegistrationRequest, apiGetRegistrationDocument, apiGetRegistrationRequest, apiGetRegistrationRequests, apiRejectRegistrationRequest } from "./urls"
+import { isInvalidRegistrationCodeSearch, isRegistrationSearch, registrationList, registrationQuery, registrationRequest } from "./adapter"
 
 const REVIEW_STORAGE = "foodprint_registration_reviews_v1"
 const getMockRequests = () => {
@@ -18,19 +18,44 @@ function checkResponse(response) {
 }
 
 const getRequests = async ({ search = "", type = "", status = "", from = "", to = "", page = 1, pageSize = 5 } = {}, { signal } = {}) => {
+  const searchCode = search.trim().toUpperCase()
+  if (isInvalidRegistrationCodeSearch(searchCode)) throw new Error("Nhập mã hồ sơ đầy đủ, ví dụ FP-REG-00001.")
+  const searchByCode = Boolean(searchCode) && isRegistrationSearch(searchCode)
+  const query = normalizeRequestSearch(search)
+  const matchesFilters = request => {
+    const date = requestDateKey(request.submitted_at)
+    return (!type || request.request_type === type) && (!status || request.status === status)
+      && (!from || date >= from) && (!to || date <= to)
+  }
   if (!USE_MOCK_API) {
-    const response = checkResponse(await http.get(search.trim() ? apiSearchRegistrationRequests : apiGetRegistrationRequests, {
-      params: registrationQuery({ search, type, status, from, to, page, pageSize }), signal, notifyOnError: false,
+    if (query && !searchByCode) {
+      const matching = []
+      let scanPage = 1
+      let hasNext = true
+      while (hasNext) {
+        const response = checkResponse(await http.get(apiGetRegistrationRequests, {
+          params: registrationQuery({ page: scanPage, pageSize: 100 }), signal, notifyOnError: false,
+        }))
+        const result = registrationList(response)
+        if (result.page !== scanPage) throw new Error("Không thể tải danh sách hồ sơ.")
+        matching.push(...result.data.filter(request => normalizeRequestSearch(request.applicant?.full_name).includes(query) && matchesFilters(request)))
+        hasNext = typeof result.hasNext === "boolean" ? result.hasNext : result.total !== null && scanPage * result.pageSize < result.total
+        if (hasNext && result.data.length === 0) throw new Error("Không thể tải danh sách hồ sơ.")
+        scanPage += 1
+      }
+      return { data: matching.slice((page - 1) * pageSize, page * pageSize), total: matching.length, page, pageSize, hasNext: page * pageSize < matching.length, isMock: false }
+    }
+    const response = checkResponse(await http.get(apiGetRegistrationRequests, {
+      params: searchCode ? registrationQuery({ search: searchCode, page, pageSize }) : registrationQuery({ type, status, from, to, page, pageSize }), signal, notifyOnError: false,
     }))
-    return registrationList(response)
+    const result = registrationList(response)
+    if (!searchCode || !(type || status || from || to)) return result
+    const data = result.data.filter(matchesFilters)
+    return { ...result, data, total: data.length, hasNext: false }
   }
   const requests = getMockRequests()
-  const query = normalizeRequestSearch(search)
   const filtered = requests.filter(request => {
-    const haystack = normalizeRequestSearch([requestCode(request.id), request.applicant.full_name, request.applicant.email, organizationName(request)].join(" "))
-    const date = requestDateKey(request.submitted_at)
-    return (!query || haystack.includes(query)) && (!type || request.request_type === type)
-      && (!status || request.status === status) && (!from || date >= from) && (!to || date <= to)
+    return (!query || (searchByCode ? normalizeRequestSearch(request.registrationID) === query : normalizeRequestSearch(request.applicant?.full_name).includes(query))) && matchesFilters(request)
   })
   const currentPage = Math.max(1, Math.min(page, Math.ceil(filtered.length / pageSize) || 1))
   return {
@@ -45,8 +70,23 @@ const getSummary = async ({ signal } = {}) => {
   }
   // No statistics endpoint yet; use the server's pagination counts, without downloading every record.
   const all = await getRequests({ pageSize: 1 }, { signal })
-  // The newer basic list only exposes hasNext, without counts or status filters.
-  if (all.total === null) return {}
+  // The basic endpoint exposes hasNext without counts or status filters.
+  if (all.total === null) {
+    if (!all.hasNext) return { total: all.data.length, pending: all.data.filter(request => request.status === "PENDING").length }
+    let page = 1
+    let total = 0
+    let pending = 0
+    let hasNext = true
+    while (hasNext) {
+      const result = await getRequests({ page, pageSize: 100 }, { signal })
+      if (result.page !== page || (result.hasNext && result.data.length === 0)) throw new Error("Không thể tải thống kê hồ sơ.")
+      total += result.data.length
+      pending += result.data.filter(request => request.status === "PENDING").length
+      hasNext = result.hasNext
+      page += 1
+    }
+    return { total, pending }
+  }
   const pending = await getRequests({ status: "PENDING", pageSize: 1 }, { signal })
   return { total: all.total, pending: pending.total }
 }
