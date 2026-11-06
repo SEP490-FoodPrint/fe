@@ -263,7 +263,7 @@ export default function DishCatalogPage() {
       {/* Header (Không có icon) */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
-          <h1 className={styles.title}>Kho Món Ăn Bán Trú (Master Data)</h1>
+          <h1 className={styles.title}>Kho Món Ăn Bán Trú</h1>
           <p className={styles.subtitle}>
             Cán bộ Y tế quản lý danh mục món ăn chuẩn, định lượng theo suất và nguyên liệu từ Nhà cung cấp
           </p>
@@ -277,7 +277,7 @@ export default function DishCatalogPage() {
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.total}</div>
-          <div className={styles.statLabel}>Tổng số món ăn trong kho</div>
+          <div className={styles.statLabel}>Tổng số món ăn</div>
         </div>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.catCount}</div>
@@ -415,7 +415,7 @@ export default function DishCatalogPage() {
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
               <h2 className={styles.modalTitle}>
-                {editingDish ? "Chỉnh sửa món ăn" : "Thêm món ăn mới vào kho"}
+                {editingDish ? "Chỉnh sửa món ăn" : "Thêm món ăn mới"}
               </h2>
               <button type="button" className={styles.closeBtn} onClick={closeModal}>
                 Đóng
@@ -598,7 +598,7 @@ export default function DishCatalogPage() {
                 onClick={handleSave}
                 disabled={!form.name.trim() || !form.portionQty || selectedIngredients.length === 0}
               >
-                {editingDish ? "Lưu thay đổi" : "Lưu vào Kho món ăn"}
+                {editingDish ? "Lưu thay đổi" : "Lưu món ăn"}
               </button>
             </div>
           </div>
