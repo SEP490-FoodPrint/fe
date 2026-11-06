@@ -33,6 +33,7 @@ const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
+const HomeroomOverview = lazy(() => import("src/pages/SCHOOL/HomeroomOverview"))
 const SchoolAdministration = lazy(() => import("src/pages/SCHOOL/Administration"))
 const SchoolAccountCreate = lazy(() => import("src/pages/SCHOOL/Administration/CreateAccount"))
 const SchoolAccountEdit = lazy(() => import("src/pages/SCHOOL/Administration/EditAccount"))
@@ -57,6 +58,8 @@ const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
 const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
+const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
+const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
 
 function LazyWrapper({ children }) {
   return (
@@ -206,9 +209,9 @@ const routes = [
             ],
           },
 
-          // Duyệt thực đơn: Ban Giám Hiệu, School Admin
+          // Duyệt thực đơn: Ban Giám Hiệu
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_ADMINISTRATION, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_APPROVAL, element: <LazyWrapper><MenuApproval /></LazyWrapper> },
             ],
@@ -267,6 +270,7 @@ const routes = [
           {
             element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER]} />,
             children: [
+              { path: ROUTER.SCHOOL_HOMEROOM_OVERVIEW, element: <LazyWrapper><HomeroomOverview /></LazyWrapper> },
               { path: ROUTER.SCHOOL_DAILY_CONFIRM, element: <LazyWrapper><DailyMealConfirm /></LazyWrapper> },
             ],
           },
@@ -288,6 +292,8 @@ const routes = [
             children: [
               { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><SupplierRelationships /></LazyWrapper> },
               { path: ROUTER.SCHOOL_CLASS_ASSIGNMENT, element: <LazyWrapper><ClassAssignment /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_COOKING_MODE, element: <LazyWrapper><CookingMode /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MEAL_TIMES, element: <LazyWrapper><MealServingTimes /></LazyWrapper> },
             ],
           },
           {

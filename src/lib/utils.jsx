@@ -48,6 +48,9 @@ export const getDefaultRedirectByUser = user => {
   if (user.role === "SCHOOL_HEALTH_OFFICER" || user.role === ROLES?.SCHOOL_HEALTH_OFFICER) {
     return ROUTER.SCHOOL_HEALTH_OVERVIEW
   }
+  if (user.role === "HOMEROOM_TEACHER") {
+    return ROUTER.SCHOOL_HOMEROOM_OVERVIEW
+  }
   if (
     user.role === "INGREDIENT_MANAGEMENT_DEPARTMENT" ||
     user.role === ROLES?.INGREDIENT_MANAGEMENT

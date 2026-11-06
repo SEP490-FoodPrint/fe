@@ -25,6 +25,7 @@ export const MOCK_REGISTRATION_REQUESTS = Array.from({ length: 80 }, (_, index) 
   const reviewed_at = status === "PENDING" ? null : index < 4 ? "2026-10-22T09:30:00+07:00" : index === 4 ? "2026-10-21T09:30:00+07:00" : submitted_at
   return {
     id: `${String(248 - index).padStart(6, "0")}00-0000-4000-8000-000000000001`,
+    registrationID: `FP-REG-${String(248 - index).padStart(5, "0")}`,
     applicant_user_id: `demo-applicant-${index + 1}`,
     request_type, status, submitted_at, reviewed_at, updated_at: reviewed_at || submitted_at,
     reviewed_by_user_id: reviewed_at ? "demo-system-admin" : null,

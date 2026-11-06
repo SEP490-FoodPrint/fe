@@ -9,9 +9,7 @@ import {
   apiAllergyCheck,
   apiIngredientOptions,
   apiPortionGroups,
-  apiGetMenuApprovalDetail,
-  apiApproveMenu,
-  apiRequestMenuRevision
+  apiGetMenuApprovalDetail
 } from "./urls"
 import {
   adaptWeeklyMenuToCardList,
@@ -595,14 +593,9 @@ const MenuService = {
   getApprovalDetail: menuId => http.get(apiGetMenuApprovalDetail(menuId)),
 
   /**
-   * Phê duyệt cả tuần hoặc một ngày (body: { notes?, menuDayId? })
+   * Quyết định cho cả tuần (body: { decision: "APPROVED" | "REVISION_REQUESTED", feedback? })
    */
-  approveMenu: (menuId, body) => http.post(apiApproveMenu(menuId), body),
-
-  /**
-   * Yêu cầu chỉnh sửa cả tuần hoặc một ngày (body: { reason, menuDayId? })
-   */
-  requestRevision: (menuId, body) => http.post(apiRequestMenuRevision(menuId), body)
+  reviewMenu: (menuId, body) => http.post(apiReviewMenu(menuId), body)
 }
 
 export default MenuService;

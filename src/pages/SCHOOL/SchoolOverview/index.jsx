@@ -28,7 +28,7 @@ function SchoolOverview() {
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if ([ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_HEALTH_OFFICER].includes(role)) return
+    if ([ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_HEALTH_OFFICER, ROLES.HOMEROOM_TEACHER].includes(role)) return
     let active = true
     setLoading(true)
     setError("")
@@ -44,6 +44,7 @@ function SchoolOverview() {
 
   if (role === ROLES.SCHOOL_KITCHEN_STAFF) return <Navigate to={ROUTER.SCHOOL_KITCHEN_COOKING} replace />
   if (role === ROLES.SCHOOL_HEALTH_OFFICER) return <Navigate to={ROUTER.SCHOOL_HEALTH_OVERVIEW} replace />
+  if (role === ROLES.HOMEROOM_TEACHER) return <Navigate to={ROUTER.SCHOOL_HOMEROOM_OVERVIEW} replace />
 
   return (
     <div className="schoolOverviewPage">
@@ -51,7 +52,6 @@ function SchoolOverview() {
       {loading && <Skeleton variant="rounded" height={300} />}
       {error && <Alert severity="error" action={<Button color="inherit" onClick={() => setAttempt(value => value + 1)}>Thử lại</Button>}>{error}</Alert>}
       {data && <>
-        <div className="overview-data-heading"><span>{data.school.name}</span><small>Cập nhật {new Date(data.updatedAt).toLocaleString("vi-VN")}</small></div>
         <section className="overview-kpis" aria-label="Chỉ số vận hành">
           {[
             ["Thực đơn cần duyệt", data.menus?.filter(item => item.status === "PENDING_APPROVAL").length, "thực đơn"],
