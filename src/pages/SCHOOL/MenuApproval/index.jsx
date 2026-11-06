@@ -100,22 +100,17 @@ function MenuApproval() {
     submitLock.current = true
     setSubmitting(true)
     try {
-      const response = type === "approve"
-        ? await MenuService.approveMenu(menu.id, {})
-        : await MenuService.requestRevision(menu.id, { reason: text })
-      const result = response.data
-      setWeeks(current =>
-        current.map(week => (week.id === menu.id ? { ...week, status: result.status } : week)),
+      const response = await MenuService.reviewMenu(
+        menu.id,
+        type === "approve"
+          ? { decision: "APPROVED" }
+          : { decision: "REVISION_REQUESTED", feedback: text },
       )
-      setMenu(current => ({
-        ...current,
-        status: result.status,
-        days: current.days.map(day => {
-          const changed = result.days.find(item => item.id === day.id)
-          return changed ? { ...day, status: changed.status } : day
-        }),
-        canDecide: false,
-      }))
+      const status = response.data.weeklyStatus
+      setWeeks(current =>
+        current.map(week => (week.id === menu.id ? { ...week, status } : week)),
+      )
+      setMenu(current => ({ ...current, status, canDecide: false }))
       setDialog(null)
       notice({
         msg: type === "approve" ? "Đã phê duyệt thực đơn tuần" : "Đã yêu cầu Y tế chỉnh sửa thực đơn",
