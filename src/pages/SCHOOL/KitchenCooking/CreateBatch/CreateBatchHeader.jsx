@@ -22,7 +22,6 @@ export default function CreateBatchHeader() {
             <ArrowLeft size={20} />
           </button>
 
-          <h1 className={styles.heading}>Tạo lô chế biến</h1>
         </div>
 
         <div

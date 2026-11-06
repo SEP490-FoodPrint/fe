@@ -18,13 +18,6 @@ function KitchenCooking() {
   return (
     <div className={styles.dashboardContainer}>
       {/* Section A: Tiêu đề & Tổng quan */}
-      <div className={styles.titleSection}>
-        <h1 className={styles.title}>Vận hành Bếp ăn</h1>
-        <p className={styles.subtitle}>
-          Theo dõi tiến độ chế biến, phân bổ khẩu phần theo lớp và ghi nhận lưu mẫu thực phẩm trong ngày.
-        </p>
-      </div>
-
       {/* Section B: Truy cập nhanh (4 Cards) */}
       <QuickAccessCards />
 

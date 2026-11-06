@@ -58,7 +58,6 @@ function CookingMode() {
           <span>/</span>
           <strong>Chế độ nấu</strong>
         </nav>
-        <h1 className="cooking-mode-page__title">Cấu hình chế độ nấu</h1>
       </header>
 
       {loading && <Skeleton variant="rounded" height={160} />}

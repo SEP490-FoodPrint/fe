@@ -73,14 +73,13 @@ export default function RegistrationDetail() {
   ]
 
   return (
-    <section className={styles.page} aria-labelledby="request-detail-title">
+    <section className={styles.page} aria-label="Chi tiết hồ sơ đăng ký">
       <div className={styles.heading}>
         <IconButton component={Link} to={listUrl} className={styles.back} aria-label="Quay lại danh sách"><KeyboardArrowLeftIcon /></IconButton>
         <span>Xem chi tiết</span>
       </div>
       <header className={styles.headingContent}>
         <div className={styles.titleRow}>
-          <h1 id="request-detail-title">{name}</h1>
           <div className={styles.requestStatus}><RequestStatus status={request.status} variant="badge" /></div>
         </div>
         <dl className={styles.metadata}>

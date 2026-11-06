@@ -37,8 +37,8 @@ export default function RegistrationResult({ user, onUpdate }) {
   const profile = request?.profileData || {}
   const state = states[request?.status] || { label: request?.status || "—", tone: "pending" }
   const editable = ["PENDING", "REJECTED"].includes(request?.status) && user.onboardingRequired
-  return <section className={styles.page} aria-labelledby="registration-list-title" aria-busy={loading}>
-    <div className={styles.heading}><div><h1 id="registration-list-title">Hồ sơ đăng ký</h1><span>Theo dõi và cập nhật thông tin đăng ký đơn vị của bạn.</span></div><Button variant="outlined" startIcon={<RefreshOutlinedIcon />} onClick={() => setRetry(value => value + 1)} disabled={loading}>Làm mới</Button></div>
+  return <section className={styles.page} aria-label="Hồ sơ đăng ký" aria-busy={loading}>
+    <div className={styles.heading}><div><span>Theo dõi và cập nhật thông tin đăng ký đơn vị của bạn.</span></div><Button variant="outlined" startIcon={<RefreshOutlinedIcon />} onClick={() => setRetry(value => value + 1)} disabled={loading}>Làm mới</Button></div>
     {error && <Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{error}</Alert>}
     {loading ? <div className={styles.loading}><CircularProgress size={28} aria-label="Đang tải hồ sơ đăng ký" /></div> : !error && request && <>
       <article className={styles.record} aria-label="Hồ sơ đăng ký đơn vị">

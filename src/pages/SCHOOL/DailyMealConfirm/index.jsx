@@ -106,7 +106,6 @@ function DailyMealConfirm() {
           <nav className="daily-meal-page__breadcrumb" aria-label="Đường dẫn trang">
             <span>Giáo viên chủ nhiệm</span><span>/</span><strong>Suất ăn hằng ngày</strong>
           </nav>
-          <h1>Chốt số suất ăn của lớp</h1>
           <p>Khai báo tổng số suất và nhu cầu tránh nguyên liệu theo dữ liệu dị ứng của lớp.</p>
         </div>
         <div className="daily-meal-page__filters">

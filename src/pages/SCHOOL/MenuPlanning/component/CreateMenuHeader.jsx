@@ -8,7 +8,6 @@ export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = f
       <div className={styles.titleRow}>
         <div className={styles.titleBlock}>
           <div className={styles.titleWithBadge}>
-            <h1 className={styles.pageTitle}>{readOnly ? "Xem thực đơn" : hasMeal ? "Chỉnh sửa thực đơn" : "Tạo thực đơn"}</h1>
             <span className={styles.statusPill}>
               <span className={styles.statusDot}></span>
               {hasMeal ? statusLabel : "Bản nháp mới"}

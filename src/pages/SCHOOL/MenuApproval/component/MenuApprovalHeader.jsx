@@ -41,11 +41,10 @@ function MenuApprovalHeader({
             <span>/</span>
             <strong>Phê duyệt thực đơn</strong>
           </nav>
-          <h1 id="menu-approval-title" className={styles.title}>Phê duyệt thực đơn</h1>
         </div>
       </header>
 
-      <section className={styles.decisionBar} aria-labelledby="menu-approval-title">
+      <section className={styles.decisionBar} aria-label="Thao tác phê duyệt thực đơn">
         <div className={styles.decisionInfo}>
           <span className={`${styles.status} ${status.className}`}>
             {status.icon}

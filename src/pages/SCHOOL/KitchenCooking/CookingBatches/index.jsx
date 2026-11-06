@@ -221,7 +221,6 @@ export default function CookingBatches() {
     <div className={styles.batchesContainer}>
       <div className={styles.pageHeader}>
         <div className={styles.titleWrap}>
-          <h1 className={styles.title}>Quản lý lô chế biến</h1>
           <div className={styles.shiftBadge}>
             <Clock size={14} aria-hidden="true" />
             <span>

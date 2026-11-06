@@ -27,7 +27,6 @@ export default function HealthHeader() {
         </nav>
 
         {/* Title & Subtitle */}
-        <h1 className={styles.title}>Tổng quan</h1>
         <p className={styles.subtitle}>
           Theo dõi thực đơn, thông tin dị ứng và đánh giá nguyên liệu giao nhận.
         </p>

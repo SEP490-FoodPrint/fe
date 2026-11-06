@@ -32,9 +32,6 @@ export default function EditBatchHeader({
 
           <div className={styles.headingWrap}>
             <div className={styles.titleLine}>
-              <h1 className={styles.heading}>
-                {isCombineLots ? "Chỉnh sửa lô nấu chung" : "Chỉnh sửa lô riêng"}
-              </h1>
               <span className={styles.codeBadge}>{batchCode}</span>
               <span className={styles.statusDraftBadge}>
                 <span className={styles.pulseDot} />

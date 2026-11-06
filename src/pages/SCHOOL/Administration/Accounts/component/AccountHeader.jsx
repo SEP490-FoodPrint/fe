@@ -23,7 +23,6 @@ function AccountHeader({ onCreateAccount, totalAccounts = 0 }) {
           </span>
         </div>
 
-        <h1 className={styles.mainTitle}>Quản lý tài khoản các ban</h1>
         <p className={styles.subDescription}>
           Danh sách, phân quyền và quản lý thông tin tài khoản cho cán bộ Ban Giám Hiệu, Y tế học đường,
           Nhân viên bếp, Giáo viên chủ nhiệm, Ban đại diện phụ huynh và Bộ phận quản lý nguyên liệu.

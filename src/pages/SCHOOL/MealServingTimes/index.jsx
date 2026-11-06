@@ -53,7 +53,6 @@ function MealServingTimes() {
       <nav className="meal-times-page__breadcrumb" aria-label="Đường dẫn trang">
         <span>Ban Giám hiệu</span><span>/</span><strong>Giờ phục vụ</strong>
       </nav>
-      <h1>Giờ phục vụ bữa ăn</h1>
       <p>Thời điểm nhà trường dự kiến phục vụ từng ca ăn cho học sinh.</p>
     </header>
     {loading && <Skeleton variant="rounded" height={220} />}

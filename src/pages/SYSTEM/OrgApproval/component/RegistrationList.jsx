@@ -84,9 +84,8 @@ export default function RegistrationList() {
   const range = `Hiển thị ${result.data.length ? start + 1 : 0}–${result.data.length ? start + result.data.length : 0}${result.total === null ? "" : ` trong ${result.total} hồ sơ`}`
 
   return (
-    <section className={styles.page} aria-labelledby="registration-title">
+    <section className={styles.page} aria-label="Danh sách hồ sơ đăng ký">
       <div className={styles.heading}>
-        <h1 id="registration-title">Danh sách hồ sơ đăng ký</h1>
         <p>Tiếp nhận và theo dõi hồ sơ đăng ký của trường học và nhà cung cấp.</p>
       </div>
       <div className={styles.stats}>

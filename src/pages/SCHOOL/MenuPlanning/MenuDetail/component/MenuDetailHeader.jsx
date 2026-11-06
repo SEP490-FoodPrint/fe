@@ -38,7 +38,6 @@ export default function MenuDetailHeader({
               Ngày ăn: {menu.date}
             </span>
           </div>
-          <h1 className={styles.pageTitle}>{menu.name}</h1>
           <p className={styles.pageSubtitle}>
             Kế hoạch thực đơn dinh dưỡng bán trú đã được lập và đối soát an toàn theo quy chuẩn y tế học đường.
           </p>

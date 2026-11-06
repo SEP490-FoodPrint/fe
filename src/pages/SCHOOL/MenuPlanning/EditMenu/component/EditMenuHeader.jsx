@@ -43,7 +43,6 @@ export default function EditMenuHeader({ menu, onBack }) {
       <div className={styles.titleRow}>
         <div className={styles.titleBlock}>
           <div className={styles.titleWithBadge}>
-            <h1 className={styles.pageTitle}>Chỉnh sửa thực đơn</h1>
             <span className={styles.codePill}>{menu.code}</span>
             {getStatusBadge(menu.status)}
           </div>

@@ -51,8 +51,6 @@ function HomeroomOverview() {
     <div className="homeroom-overview">
       <header className="homeroom-overview__header">
         <div>
-          <span className="homeroom-overview__eyebrow">Giáo viên chủ nhiệm</span>
-          <h1>Tổng quan lớp hôm nay</h1>
           <p><CalendarDays size={16} /> {dayjs(today).format("DD/MM/YYYY")}</p>
         </div>
       </header>

@@ -12,7 +12,6 @@ function ClassAssignmentHeader({ years, academicYear, currentYear, onYearChange 
           <span>/</span>
           <strong>Phân công GVCN</strong>
         </nav>
-        <h1 className={styles.title}>Phân công giáo viên chủ nhiệm</h1>
       </div>
 
       <TextField

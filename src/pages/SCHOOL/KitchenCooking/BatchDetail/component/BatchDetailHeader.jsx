@@ -51,7 +51,6 @@ export default function BatchDetailHeader({ batchData }) {
 
           <div className={styles.headingWrap}>
             <div className={styles.titleLine}>
-              <h1 className={styles.heading}>Chi tiết lô chế biến</h1>
               {getStatusBadge()}
             </div>
             <p className={styles.subTitle}>

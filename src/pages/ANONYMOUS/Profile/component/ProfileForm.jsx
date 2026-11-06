@@ -56,8 +56,8 @@ export default function ProfileForm({ user, onUpdated }) {
     } catch (error) { setMessage([404, 405].includes(error.response?.status) ? "Máy chủ chưa hỗ trợ cập nhật profile. Thay đổi của bạn chưa được lưu." : error.message || "Không thể lưu profile. Vui lòng thử lại.") }
     finally { locked.current = false; setLoading(false) }
   }
-  return <section className={styles.page} aria-labelledby="personal-profile-title">
-    <div className={styles.heading}><div><h1 id="personal-profile-title">Profile</h1><span>Quản lý thông tin cá nhân và liên hệ của bạn.</span></div></div>
+  return <section className={styles.page} aria-label="Thông tin cá nhân">
+    <div className={styles.heading}><div><span>Quản lý thông tin cá nhân và liên hệ của bạn.</span></div></div>
     <Card component="form" onSubmit={submit} noValidate variant="outlined" className={styles.card} aria-busy={loading}>
       <div className={styles.identity}><UserAvatar user={user} className={styles.avatar} /><div><h2>{name}</h2><p>{user.email || user.username}</p></div></div>
       <div className={styles.formBody}>

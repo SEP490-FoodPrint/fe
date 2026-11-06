@@ -16,7 +16,6 @@ function CreateAccountHeader({ onBack }) {
           <span>Quay lại</span>
         </button>
         <div className={styles.titleGroup}>
-          <h1 className={styles.mainTitle}>Tạo tài khoản phòng ban</h1>
           <p className={styles.subTitle}>
             Khởi tạo tài khoản mới cho cán bộ, giáo viên và nhân viên các ban chuyên trách
           </p>

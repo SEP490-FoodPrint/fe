@@ -16,7 +16,6 @@ function EditAccountHeader({ onBack, account }) {
           <span>Quay lại</span>
         </button>
         <div className={styles.titleGroup}>
-          <h1 className={styles.mainTitle}>Chỉnh sửa tài khoản phòng ban</h1>
           {account && (
             <p className={styles.subTitle}>
               Đang chỉnh sửa: <strong>{account.fullName}</strong> ({account.code})

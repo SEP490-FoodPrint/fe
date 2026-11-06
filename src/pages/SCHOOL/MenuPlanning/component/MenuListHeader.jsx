@@ -24,7 +24,6 @@ export default function MenuListHeader({ onNavigateCreate }) {
 
         {/* Primary Title & Subtitle */}
         <div className={styles.headingGroup}>
-          <h1 className={styles.pageTitle}>Danh sách thực đơn</h1>
           <p className={styles.pageSubtitle}>
             Quản lý thực đơn theo ngày, bữa ăn và trạng thái phê duyệt.
           </p>
