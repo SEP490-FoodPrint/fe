@@ -352,7 +352,7 @@ export default function DishCatalogPage() {
                           title="Chỉnh sửa món ăn"
                           aria-label="Chỉnh sửa món ăn"
                         >
-                          <Pencil size={15} />
+                          <Pencil size={16} />
                         </button>
                         <button
                           type="button"
@@ -361,7 +361,7 @@ export default function DishCatalogPage() {
                           title="Xóa món ăn"
                           aria-label="Xóa món ăn"
                         >
-                          <Trash2 size={15} />
+                          <Trash2 size={16} />
                         </button>
                       </div>
                     </td>

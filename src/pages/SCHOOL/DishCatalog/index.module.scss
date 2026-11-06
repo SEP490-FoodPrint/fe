@@ -367,12 +367,12 @@
   border: 1px solid #ded3cd;
 }
 
-/* Nút thao tác dạng Icon chuẩn mực */
+/* Nút thao tác dạng Icon thuần túy, không nền */
 .actionBtns {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 10px;
 }
 
 .iconEditBtn,
@@ -380,40 +380,33 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 1px solid transparent;
+  background: transparent;
+  border: none;
   cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
   transition: all 0.15s ease;
-  padding: 0;
 
   &:active {
-    transform: scale(0.92);
+    transform: scale(0.9);
   }
 }
 
 .iconEditBtn {
-  background-color: #e8f5f1;
   color: #0a8066;
-  border-color: #c9e8de;
 
   &:hover {
-    background-color: #0a8066;
-    color: #ffffff;
-    border-color: #0a8066;
+    color: #08604d;
+    transform: scale(1.15);
   }
 }
 
 .iconDeleteBtn {
-  background-color: #fef2f2;
   color: #dc2626;
-  border-color: #fecaca;
 
   &:hover {
-    background-color: #dc2626;
-    color: #ffffff;
-    border-color: #dc2626;
+    color: #991b1b;
+    transform: scale(1.15);
   }
 }
 
