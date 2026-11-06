@@ -52,7 +52,6 @@ function SchoolOverview() {
       {loading && <Skeleton variant="rounded" height={300} />}
       {error && <Alert severity="error" action={<Button color="inherit" onClick={() => setAttempt(value => value + 1)}>Thử lại</Button>}>{error}</Alert>}
       {data && <>
-        <div className="overview-data-heading"><span>{data.school.name}</span><small>Cập nhật {new Date(data.updatedAt).toLocaleString("vi-VN")}</small></div>
         <section className="overview-kpis" aria-label="Chỉ số vận hành">
           {[
             ["Thực đơn cần duyệt", data.menus?.filter(item => item.status === "PENDING_APPROVAL").length, "thực đơn"],
