@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react"
+import { Pencil, Trash2 } from "lucide-react"
 import {
   DISH_CATEGORIES,
   CATALOG_SUPPLIERS,
@@ -342,18 +343,21 @@ export default function DishCatalogPage() {
                       <div className={styles.actionBtns}>
                         <button
                           type="button"
-                          className={styles.textEditBtn}
+                          className={styles.iconEditBtn}
                           onClick={() => openEdit(dish)}
+                          title="Chỉnh sửa món ăn"
+                          aria-label="Chỉnh sửa món ăn"
                         >
-                          Sửa
+                          <Pencil size={15} />
                         </button>
-                        <span className={styles.actionDivider}>|</span>
                         <button
                           type="button"
-                          className={styles.textDeleteBtn}
+                          className={styles.iconDeleteBtn}
                           onClick={() => setDeletingDish(dish)}
+                          title="Xóa món ăn"
+                          aria-label="Xóa món ăn"
                         >
-                          Xóa
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
