@@ -18,7 +18,7 @@
     flex-wrap: wrap;
   }
 
-  @media (min-width: 1280px) {
+  @media (min-width: 1400px) {
     flex-wrap: nowrap;
   }
 }
@@ -26,7 +26,7 @@
 .searchWrapper {
   position: relative;
   flex: 1 1 200px;
-  min-width: 180px;
+  min-width: 170px;
   display: flex;
   align-items: center;
 }
@@ -48,6 +48,7 @@
   background-color: #f8fafc;
   color: #0f172a;
   font-size: 13px;
+  font-family: "Be Vietnam Pro", sans-serif;
   outline: none;
   transition: all 0.15s ease;
   box-sizing: border-box;
@@ -98,34 +99,39 @@
   }
 }
 
-/* Đảm bảo chiều rộng đủ hiển thị trọn vẹn nội dung, không bị che/cắt chữ */
+/* Kích thước co giãn chuẩn, không bị cắt bớt nội dung chữ */
 .selectWrapperYear {
   @media (min-width: 1024px) {
-    width: 145px;
+    min-width: 125px;
+    flex: 0 0 auto;
   }
 }
 
 .selectWrapperWeek {
   @media (min-width: 1024px) {
-    width: 275px;
+    min-width: 295px;
+    flex: 0 0 auto;
   }
 }
 
 .selectWrapper {
   @media (min-width: 1024px) {
-    width: 220px;
+    min-width: 200px;
+    flex: 0 0 auto;
   }
 }
 
 .selectWrapperSm {
   @media (min-width: 1024px) {
-    width: 150px;
+    min-width: 130px;
+    flex: 0 0 auto;
   }
 }
 
 .selectWrapperMd {
   @media (min-width: 1024px) {
-    width: 195px;
+    min-width: 185px;
+    flex: 0 0 auto;
   }
 }
 
@@ -140,13 +146,14 @@
 .selectInput {
   width: 100%;
   height: 40px;
-  padding: 0 26px 0 32px;
+  padding: 0 24px 0 32px;
   border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
   color: #0f172a;
   font-size: 13px;
   font-weight: 500;
+  font-family: "Be Vietnam Pro", sans-serif;
   outline: none;
   appearance: none;
   cursor: pointer;

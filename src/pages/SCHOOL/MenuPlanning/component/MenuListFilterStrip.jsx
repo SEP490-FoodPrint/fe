@@ -42,13 +42,14 @@ export default function MenuListFilterStrip({
             className={styles.clearSearchBtn}
             onClick={() => onChangeFilter("searchKeyword", "")}
             title="Xóa tìm kiếm"
+            aria-label="Xóa từ khóa tìm kiếm"
           >
             <span className="material-symbols-outlined text-[16px]">close</span>
           </button>
         )}
       </div>
 
-      {/* 2. Bộ lọc Năm (Thêm theo yêu cầu) */}
+      {/* 2. Bộ lọc Năm (Đủ rộng, không bị cắt chữ) */}
       <div className={styles.selectWrapperYear}>
         <span className={`material-symbols-outlined ${styles.selectIcon}`}>calendar_month</span>
         <select
@@ -66,7 +67,7 @@ export default function MenuListFilterStrip({
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 3. Bộ lọc Tuần (Lọc theo các tuần cho mọi năm, mặc định là tuần này) */}
+      {/* 3. Bộ lọc Tuần (Đủ rộng hiển thị trọn vẹn Tuần 45 (02/11 – 06/11/2026)) */}
       <div className={styles.selectWrapperWeek}>
         <span className={`material-symbols-outlined ${styles.selectIcon}`}>view_week</span>
         <select
@@ -106,7 +107,7 @@ export default function MenuListFilterStrip({
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 5. Bộ lọc Trạng thái */}
+      {/* 5. Bộ lọc Trạng thái (Đủ rộng không bị che Tất cả trạng thái) */}
       <div className={styles.selectWrapperMd}>
         <span className={`material-symbols-outlined ${styles.selectIcon}`}>verified_user</span>
         <select
@@ -124,7 +125,7 @@ export default function MenuListFilterStrip({
         <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
       </div>
 
-      {/* 6. Nút Đặt lại bộ lọc: Icon-only theo yêu cầu */}
+      {/* 6. Nút Đặt lại bộ lọc: Icon-only theo yêu cầu của người dùng */}
       <button
         type="button"
         className={styles.resetBtn}

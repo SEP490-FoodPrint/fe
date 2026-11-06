@@ -84,7 +84,7 @@ export default function MenuPlanning() {
     setToast({ message, type })
     setTimeout(() => {
       setToast(null)
-    }, 3000)
+    }, 3500)
   }
 
   // Filter changes
@@ -96,7 +96,7 @@ export default function MenuPlanning() {
           next.week = currentWeek
         }
       }
-      // Trạng thái theo tuần: Khi đổi trạng thái, tự chuyển sang tuần tương ứng
+      // Trạng thái theo tuần: Khi đổi trạng thái, tự chuyển sang tuần tương ứng minh họa
       if (field === "status") {
         if (value === "REVISION_REQUESTED") next.week = 44
         else if (value === "PENDING_APPROVAL") next.week = 46
@@ -283,6 +283,72 @@ export default function MenuPlanning() {
     return filteredMenus.slice(start, start + pageSize)
   }, [filteredMenus, currentPage, pageSize])
 
+  // Xử lý gửi BGH duyệt thực đơn tuần (khi DRAFT)
+  const handleSubmitWeeklyMenu = () => {
+    // Kiểm tra xem cả 5 ngày đã đủ cả 2 ca trưa và xế chưa
+    let missingDays = []
+    weekSchoolDays.forEach((sd) => {
+      const dayMenus = filteredMenus.filter(
+        (m) => m.rawDate === sd.dateISO || m.date === sd.dateVN
+      )
+      const hasLunch = dayMenus.some((m) => m.mealType === "LUNCH")
+      const hasAfternoon = dayMenus.some((m) => m.mealType === "AFTERNOON")
+      if (!hasLunch || !hasAfternoon) {
+        missingDays.push(sd.dayLabel)
+      }
+    })
+
+    if (missingDays.length > 0) {
+      showToast(
+        `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa hoàn tất đủ 2 ca (trưa & xế). Vui lòng tạo đủ 5 ngày trước khi gửi BGH!`,
+        "warning"
+      )
+      return
+    }
+
+    // Đủ 5 ngày: Cập nhật trạng thái tuần và các thực đơn sang PENDING_APPROVAL
+    const targetWeek = Number(filters.week)
+    setMenus((prev) =>
+      prev.map((m) => {
+        const mWeek = getMenuISOWeek(m)
+        if (mWeek === targetWeek) {
+          return {
+            ...m,
+            status: "PENDING_APPROVAL",
+            statusLabel: "Chờ BGH duyệt",
+          }
+        }
+        return m
+      })
+    )
+    showToast(
+      `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
+      "success"
+    )
+  }
+
+  // Xử lý gửi lại BGH duyệt (khi REVISION_REQUESTED)
+  const handleResubmitWeeklyMenu = () => {
+    const targetWeek = Number(filters.week)
+    setMenus((prev) =>
+      prev.map((m) => {
+        const mWeek = getMenuISOWeek(m)
+        if (mWeek === targetWeek) {
+          return {
+            ...m,
+            status: "PENDING_APPROVAL",
+            statusLabel: "Chờ BGH duyệt",
+          }
+        }
+        return m
+      })
+    )
+    showToast(
+      `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu phê duyệt!`,
+      "success"
+    )
+  }
+
   // Navigation handlers
   const handleNavigateCreate = () => {
     navigate(ROUTER.SCHOOL_MENU_CREATE)
@@ -352,6 +418,10 @@ export default function MenuPlanning() {
           onChangeViewMode={setViewMode}
           selectedWeekLabel={selectedWeekLabel}
           isCurrentWeek={isCurrentWeek}
+          weekStatus={weekStatusInfo.status}
+          weekFeedback={weekStatusInfo.feedback}
+          onSubmitWeeklyMenu={handleSubmitWeeklyMenu}
+          onResubmitWeeklyMenu={handleResubmitWeeklyMenu}
         />
       ) : (
         <div className={styles.tableCard}>
