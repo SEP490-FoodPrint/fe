@@ -1,7 +1,7 @@
 .verticalWeeklyContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -15,9 +15,11 @@
   flex-wrap: wrap;
   gap: 10px;
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   padding: 8px 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .weekTitleWrap {
@@ -177,6 +179,8 @@
   border: 1px solid #fecaca;
   border-radius: 8px;
   padding: 10px 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .feedbackIcon {
@@ -291,20 +295,21 @@
 }
 
 /* ========================================================
-   3. LƯỚI 5 CỘT THỰC ĐƠN DỌC - CÁC HÀNG BỮA THẲNG TẮP
+   3. LƯỚI 5 CỘT THỰC ĐƠN DỌC - DÃN ĐỀU 100%, TUYỆT ĐỐI KHÔNG CÓ THANH LƯỚT
    ======================================================== */
 .weeklyGridWrapper {
   width: 100%;
-  overflow-x: auto;
-  padding: 4px 6px 14px 6px;
+  overflow: visible; /* Hoàn toàn không có thanh cuộn ngang */
   box-sizing: border-box;
 }
 
 .weeklyGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(215px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr)); /* Dãn đều 100% theo chiều ngang */
+  gap: 12px;
   align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dayColItem {
@@ -327,7 +332,7 @@
 
   &:hover {
     border-color: #cbd5e1;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
   }
 }
 
@@ -356,7 +361,7 @@
   min-height: 64px;
   max-height: 64px;
   box-sizing: border-box;
-  padding: 8px 12px;
+  padding: 8px 10px;
   background-color: #ffffff;
   border-bottom: 1px solid #f1f5f9;
   gap: 4px;
@@ -367,31 +372,34 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
   width: 100%;
 }
 
 .dayTitleLeft {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
+  min-width: 0;
 }
 
 .dayLabel {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .todayPill {
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 700;
   color: #ffffff;
   background-color: #0a8066;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 3px;
+  white-space: nowrap;
 }
 
 /* Badge tiến độ ngày */
@@ -399,12 +407,13 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 5px;
   border-radius: 9999px;
   line-height: 1.2;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .badgeCompleted {
@@ -447,27 +456,29 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
 }
 
 .dayDateText {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #64748b;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .allergyTag {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  font-size: 10px;
+  gap: 2px;
+  font-size: 9.5px;
   font-weight: 600;
   color: #b45309;
   background-color: #fef3c7;
   border: 1px solid #fde68a;
-  padding: 1px 5px;
+  padding: 1px 4px;
   border-radius: 3px;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 /* Thân thực đơn */
@@ -495,7 +506,7 @@
   min-height: 36px;
   max-height: 36px;
   box-sizing: border-box;
-  padding: 0 8px 0 12px;
+  padding: 0 8px 0 10px;
   background-color: #fff7ed;
   border-top: 1px solid #ffedd5;
   border-bottom: 1px solid #fed7aa;
@@ -504,7 +515,7 @@
 .bannerLeft {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .lunchIcon {
@@ -516,7 +527,7 @@
   font-size: 11px;
   font-weight: 700;
   color: #9a3412;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .bannerActions {
@@ -563,7 +574,7 @@
 
 /* ========================================================
    DANH SÁCH MÓN BỮA TRƯA: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 250px
-   (5 món x 50px = 250px)
+   KHÔNG CÓ THANH LƯỚT DỌC
    ======================================================== */
 .dishesListLunch {
   display: flex;
@@ -573,10 +584,10 @@
   min-height: 250px;
   max-height: 250px;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: hidden; /* Tuyệt đối không có thanh lướt */
 }
 
-/* Khi ngày chưa có bữa trưa: Ô trống cao đúng 250px giữ nhịp thẳng hàng */
+/* Khi ngày chưa có bữa trưa: Ô trống cao đúng 250px giữ nhịp bằng nhau */
 .emptySingleMealBox {
   height: 250px;
   min-height: 250px;
@@ -594,7 +605,6 @@
 /* ========================================================
    DẢI BỮA XẾ: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 36px
    TẤT CẢ 5 NGÀY ĐỀU BẮT ĐẦU TẠI Y = 64px + 36px + 250px = 350px!
-   THẲNG HÀNG NHAU TUYỆT ĐỐI!
    ======================================================== */
 .afternoonBanner {
   display: flex;
@@ -604,7 +614,7 @@
   min-height: 36px;
   max-height: 36px;
   box-sizing: border-box;
-  padding: 0 8px 0 12px;
+  padding: 0 8px 0 10px;
   background-color: #eff6ff;
   border-top: 1px solid #dbeafe;
   border-bottom: 1px solid #bfdbfe;
@@ -619,7 +629,7 @@
   font-size: 11px;
   font-weight: 700;
   color: #1e40af;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
 }
 
 .afternoonIconBtn {
@@ -652,7 +662,7 @@
 
 /* ========================================================
    DANH SÁCH MÓN BỮA XẾ: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 100px
-   (2 món x 50px = 100px)
+   KHÔNG CÓ THANH LƯỚT DỌC
    ======================================================== */
 .dishesListAfternoon {
   display: flex;
@@ -662,10 +672,10 @@
   min-height: 100px;
   max-height: 100px;
   box-sizing: border-box;
-  overflow-y: auto;
+  overflow: hidden; /* Tuyệt đối không có thanh lướt */
 }
 
-/* Khi ngày chưa có bữa xế: Ô trống cao đúng 100px giữ nhịp thẳng hàng */
+/* Khi ngày chưa có bữa xế: Ô trống cao đúng 100px giữ nhịp bằng nhau */
 .emptySingleMealBoxSm {
   height: 100px;
   min-height: 100px;
@@ -680,16 +690,17 @@
 }
 
 .emptyMealText {
-  font-size: 11.5px;
+  font-size: 11px;
   color: #94a3b8;
   font-style: italic;
+  text-align: center;
 }
 
 .addSingleMealBtn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 4px 9px;
   font-size: 11px;
   font-weight: 600;
   border-radius: 5px;
@@ -698,6 +709,7 @@
   color: #475569;
   cursor: pointer;
   transition: all 0.12s ease;
+  white-space: nowrap;
 
   &:hover {
     background-color: #ecfdf5;
@@ -712,12 +724,12 @@
 .lunchDishRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   height: 50px;
   min-height: 50px;
   max-height: 50px;
   box-sizing: border-box;
-  padding: 0 12px;
+  padding: 0 10px;
   border-bottom: 1px solid #f8fafc;
   background-color: #ffffff;
   cursor: pointer;
@@ -750,12 +762,12 @@
 .afternoonDishRow {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   height: 50px;
   min-height: 50px;
   max-height: 50px;
   box-sizing: border-box;
-  padding: 0 12px;
+  padding: 0 10px;
   border-bottom: 1px solid #f8fafc;
   background-color: #ffffff;
   cursor: pointer;
@@ -805,7 +817,7 @@
 
 .dishName {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   color: #1e293b;
   line-height: 1.35;
