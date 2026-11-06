@@ -1,41 +1,11 @@
 import React from "react"
 import { Link } from "react-router-dom"
-import { Building2, School } from "lucide-react"
+import { ArrowRight } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./RegisterCta.module.scss"
-
-function RegisterCta() {
-  return (
-    <section id="register" className={styles.section}>
-      <div className={styles.patternOverlay} />
-
-      <div className={styles.container}>
-        <div className={styles.contentWrapper}>
-          <span className={styles.sectionBadge}>Tham gia hệ sinh thái</span>
-
-          <h2 className={styles.sectionTitle}>Đồng hành cùng FoodPrint</h2>
-
-          <p className={styles.sectionDesc}>
-            Đăng ký tham gia nền tảng số để chuẩn hóa thực đơn, quản lý kiểm
-            thực nguyên liệu 3 bước và minh bạch thông tin bữa ăn học đường cho
-            cộng đồng phụ huynh.
-          </p>
-
-          <div className={styles.btnGroup}>
-            <Link to={`${ROUTER.REGISTER}?type=SCHOOL`} className={styles.schoolBtn}>
-              <School size={18} />
-              <span>Đăng ký trường học</span>
-            </Link>
-
-            <Link to={`${ROUTER.REGISTER}?type=SUPPLIER`} className={styles.supplierBtn}>
-              <Building2 size={18} />
-              <span>Đăng ký nhà cung cấp</span>
-            </Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
+export default function RegisterCta() {
+  return <section id="register" className={styles.section}><div className={styles.container}>
+    <div><h2>Đồng hành cùng FoodPrint.</h2><p>Đăng ký tham gia để quản lý thực đơn, kiểm thực nguyên liệu và chia sẻ thông tin bữa ăn học đường.</p></div>
+    <div className={styles.links}><Link to={`${ROUTER.REGISTER}?type=SCHOOL`}>Đăng ký trường học <ArrowRight size={20} /></Link><Link to={`${ROUTER.REGISTER}?type=SUPPLIER`}>Đăng ký nhà cung cấp <ArrowRight size={20} /></Link></div>
+  </div></section>
 }
-
-export default RegisterCta
