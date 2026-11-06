@@ -26,6 +26,8 @@ export default function MenuListWeeklyVerticalView({
   onEditMenu,
   onNavigateCreate,
   selectedWeekLabel = "",
+  weeklyMenuTitle = "",
+  targetScope = "",
   isCurrentWeek = false,
   weekStatus: propWeekStatus,
   weekFeedback: propWeekFeedback,
@@ -287,30 +289,46 @@ export default function MenuListWeeklyVerticalView({
 
   return (
     <div className={styles.verticalWeeklyContainer}>
-      {/* 1. Bar điều khiển tuần & Thao tác tối giản */}
+      {/* 1. Bar điều khiển tuần có Tiêu đề Thực đơn rõ nét */}
       <div className={styles.topControlBar}>
-        <div className={styles.weekTitleWrap}>
-          <div className={styles.weekIconBox}>
-            <Calendar size={16} />
-          </div>
-          <span className={styles.weekLabelText}>
-            {selectedWeekLabel || "Thực đơn tuần học đường"}
-          </span>
-          {isCurrentWeek && (
-            <span className={styles.currentWeekTag}>Tuần này</span>
-          )}
-          {/* Badge trạng thái tuần */}
-          {renderWeekStatusBadge(weekStatus)}
-
-          {/* Pill tiến độ khi DRAFT */}
-          {weekStatus === "DRAFT" && (
-            <div className={styles.weekProgressPill}>
-              <CalendarCheck size={13} />
-              <span>
-                Tiến độ: <strong>{weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày</strong> đủ ca
-              </span>
+        <div className={styles.menuMetaBlock}>
+          {/* Dòng 1: Tiêu đề thực đơn tuần + Trạng thái */}
+          <div className={styles.menuTitleRow}>
+            <div className={styles.menuIconBadge}>
+              <Utensils size={15} />
             </div>
-          )}
+            <h2 className={styles.weeklyMenuTitle}>
+              {weeklyMenuTitle || `Thực đơn ${selectedWeekLabel || "học đường"}`}
+            </h2>
+            {renderWeekStatusBadge(weekStatus)}
+            {isCurrentWeek && (
+              <span className={styles.currentWeekTag}>Tuần này</span>
+            )}
+          </div>
+
+          {/* Dòng 2: Chi tiết tuần, đối tượng áp dụng & tiến độ hoàn thiện */}
+          <div className={styles.menuSubInfoRow}>
+            <div className={styles.weekDateBadge}>
+              <Calendar size={13} />
+              <span>{selectedWeekLabel}</span>
+            </div>
+
+            {targetScope && (
+              <span className={styles.targetScopeBadge}>
+                {targetScope}
+              </span>
+            )}
+
+            {/* Pill tiến độ khi DRAFT */}
+            {weekStatus === "DRAFT" && (
+              <div className={styles.weekProgressPill}>
+                <CalendarCheck size={12} />
+                <span>
+                  Tiến độ: <strong>{weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày</strong> đủ ca
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Cụm nút thao tác bên phải */}

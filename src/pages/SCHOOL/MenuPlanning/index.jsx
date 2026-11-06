@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { CheckCircle2, AlertTriangle, Info } from "lucide-react"
+import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { MOCK_MENU_LIST, getWeeklyMenuStatus } from "./mockMenuListData"
@@ -248,6 +248,48 @@ export default function MenuPlanning() {
     return getWeeklyMenuStatus(filters.week, filters.year, menus)
   }, [filters.week, filters.year, menus])
 
+  // Tiêu đề của thực đơn tuần được chọn (đảm bảo luôn có tiêu đề thực đơn rõ ràng)
+  const weeklyMenuTitle = useMemo(() => {
+    const weekNum = Number(filters.week)
+    // 1. Tìm menu trong tuần này có trường name
+    const weekMenus = menus.filter((m) => {
+      const w = getMenuISOWeek(m)
+      return w === weekNum
+    })
+
+    if (weekMenus.length > 0 && weekMenus[0]?.name) {
+      // Nếu name có dạng "Thực đơn Tiêu chuẩn Tuần 45 — Bữa trưa Thứ Hai", lấy phần trước " — "
+      const fullName = weekMenus[0].name
+      const prefix = fullName.split(" — ")[0]
+      if (prefix && prefix.trim().length > 0) {
+        return prefix.trim()
+      }
+    }
+
+    // 2. Tra cứu theo bản đồ tuần chuẩn
+    const titlesByWeek = {
+      42: "Thực đơn Năng lượng Thể chất Tuần 42",
+      43: "Thực đơn Dinh dưỡng Tăng trưởng Tuần 43",
+      44: "Thực đơn Cân bằng Khẩu phần Tuần 44",
+      45: "Thực đơn Tiêu chuẩn Tuần 45",
+      46: "Thực đơn Cải thiện Năng lượng Tuần 46",
+      47: "Thực đơn Soạn thảo Tuần 47",
+    }
+
+    if (titlesByWeek[weekNum]) {
+      return titlesByWeek[weekNum]
+    }
+
+    return `Thực đơn Dinh dưỡng Tuần ${weekNum}`
+  }, [menus, filters.week])
+
+  // Đối tượng áp dụng của thực đơn tuần
+  const weeklyTargetScope = useMemo(() => {
+    const weekNum = Number(filters.week)
+    const weekMenus = menus.filter((m) => getMenuISOWeek(m) === weekNum)
+    return weekMenus[0]?.targetScope || "Toàn trường (Khối 6 – 9)"
+  }, [menus, filters.week])
+
   const isCurrentWeek = useMemo(() => {
     return (
       Number(filters.year) === currentYear &&
@@ -354,13 +396,31 @@ export default function MenuPlanning() {
         </div>
       )}
 
-      {/* Dải Quick Status Pills & Nút Tạo thực đơn */}
+      {/* 1. Tiêu đề màn hình chuẩn mực (Clean, hiện đại, không rườm rà) */}
+      <div className={styles.pageHeader}>
+        <div className={styles.headerTitleWrap}>
+          <h1 className={styles.pageTitle}>Danh sách thực đơn</h1>
+          <p className={styles.pageSubtitle}>
+            Kế hoạch dinh dưỡng bán trú và theo dõi phê duyệt thực đơn tuần
+          </p>
+        </div>
+        <button
+          type="button"
+          className={styles.createBtn}
+          onClick={handleNavigateCreate}
+          title="Tạo thực đơn mới"
+        >
+          <Plus size={16} />
+          <span>Tạo thực đơn</span>
+        </button>
+      </div>
+
+      {/* 2. Dải Quick Status Pills */}
       <MenuListStatsRail
         stats={stats}
         year={filters.year}
         activeStatus={filters.status}
         onFilterByStatus={handleFilterByStatus}
-        onNavigateCreate={handleNavigateCreate}
       />
 
       {/* Section 3: Bộ lọc Phẳng (Năm, Tuần, Ca ăn) */}
@@ -379,6 +439,8 @@ export default function MenuPlanning() {
         onEditMenu={handleEditMenu}
         onNavigateCreate={handleNavigateCreateWithDate}
         selectedWeekLabel={selectedWeekLabel}
+        weeklyMenuTitle={weeklyMenuTitle}
+        targetScope={weeklyTargetScope}
         isCurrentWeek={isCurrentWeek}
         weekStatus={weekStatusInfo.status}
         weekFeedback={weekStatusInfo.feedback}
