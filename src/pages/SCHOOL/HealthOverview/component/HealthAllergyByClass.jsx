@@ -1,28 +1,33 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import ROUTER from "src/router/ROUTER"
 import styles from "./HealthAllergyByClass.module.scss"
 
 const ALLERGY_DATA = [
   {
-    id: "ALLERGY-6A1",
-    className: "Lớp 6A1 — Khối 6",
-    allergyType: "Dị ứng hải sản có vỏ",
+    id: "ca-1a",
+    className: "Lớp 1A — Khối 1",
+    allergyType: "Giáp xác & Đậu phộng",
+    casesCount: 4,
+  },
+  {
+    id: "ca-2b",
+    className: "Lớp 2B — Khối 2",
+    allergyType: "Tôm sú, cua biển",
+    casesCount: 5,
+  },
+  {
+    id: "ca-3c",
+    className: "Lớp 3C — Khối 3",
+    allergyType: "Giáp xác & Mực tươi",
+    casesCount: 4,
+  },
+  {
+    id: "ca-4d",
+    className: "Lớp 4D — Khối 4",
+    allergyType: "Trứng gà & Sữa bò",
     casesCount: 2,
-  },
-  {
-    id: "ALLERGY-7A2",
-    className: "Lớp 7A2 — Khối 7",
-    allergyType: "Dị ứng đậu phộng/lạc",
-    casesCount: 1,
-  },
-  {
-    id: "ALLERGY-8B3",
-    className: "Lớp 8B3 — Khối 8",
-    allergyType: "Dị ứng trứng gà, sữa bò",
-    casesCount: 3,
   },
 ]
 
@@ -38,13 +43,14 @@ export default function HealthAllergyByClass() {
       <div className={styles.cardTopArea}>
         {/* Header */}
         <div className={styles.cardHeader}>
-          <h2 className={styles.title}>Thông tin dị ứng theo lớp</h2>
+          <h2 className={styles.title}>Cảnh báo dị ứng theo lớp</h2>
           <button
             type="button"
             className={styles.viewAllBtn}
             onClick={handleViewAllergy}
+            title="Xem chi tiết danh sách dị ứng học sinh"
           >
-            <span>Xem chi tiết</span>
+            <span>Xem tất cả</span>
             <ArrowForwardIcon className={styles.arrowIcon} />
           </button>
         </div>
@@ -71,21 +77,12 @@ export default function HealthAllergyByClass() {
               </div>
 
               <div className={styles.caseBadge}>
-                <span>{item.casesCount} trường hợp</span>
+                <span>{item.casesCount} ca</span>
               </div>
             </div>
           ))}
         </div>
       </div>
-
-      {/* Footer Informative Note */}
-      <div className={styles.footerNote}>
-        <InfoOutlinedIcon className={styles.infoIcon} />
-        <p className={styles.noteText}>
-          Dữ liệu tổng hợp từ khai báo y tế học đường đầu năm nhằm đối chiếu thực đơn an toàn.
-        </p>
-      </div>
     </div>
   )
 }
-

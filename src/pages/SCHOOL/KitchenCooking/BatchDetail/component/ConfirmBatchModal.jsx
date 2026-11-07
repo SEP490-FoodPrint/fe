@@ -6,7 +6,8 @@ export default function ConfirmBatchModal({
   isOpen,
   onClose,
   onConfirm,
-  batchData = {}
+  batchData = {},
+  loading = false,
 }) {
   if (!isOpen) return null
 
@@ -24,7 +25,13 @@ export default function ConfirmBatchModal({
               <p className={styles.modalSub}>Chốt phương án và chuyển trạng thái sẵn sàng nấu</p>
             </div>
           </div>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
+          <button
+            type="button"
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Đóng"
+            disabled={loading}
+          >
             <X size={18} />
           </button>
         </div>
@@ -43,31 +50,43 @@ export default function ConfirmBatchModal({
             <div className={styles.briefRow}>
               <span className={styles.briefLabel}>Số suất chế biến:</span>
               <span className={styles.briefValuePrimary}>
-                {(batchData.portions || 1250).toLocaleString("vi-VN")} suất
+                {(batchData.portions || 0).toLocaleString("vi-VN")} suất
               </span>
             </div>
             <div className={styles.briefRow}>
-              <span className={styles.briefLabel}>Nguyên liệu:</span>
-              <span className={styles.briefValue}>4 nguyên liệu đạt chuẩn an toàn</span>
+              <span className={styles.briefLabel}>Phương thức:</span>
+              <span className={styles.briefValue}>
+                {batchData.method === "SEPARATE" ? "Nấu riêng theo lô" : "Nấu chung"}
+              </span>
             </div>
           </div>
 
           <div className={styles.warningBox}>
             <ShieldCheck size={18} className={styles.warningIcon} />
             <p className={styles.warningText}>
-              Sau khi xác nhận, phương án và danh mục lô nguyên liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc FoodPrint. Bạn có chắc chắn muốn duyệt phương án này?
+              Sau khi xác nhận, phương án chế biến và danh mục nguyên liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc FoodPrint. Bạn có chắc chắn muốn duyệt phương án này?
             </p>
           </div>
         </div>
 
         {/* Footer */}
         <div className={styles.modalFooter}>
-          <button type="button" className={styles.btnCancel} onClick={onClose}>
+          <button
+            type="button"
+            className={styles.btnCancel}
+            onClick={onClose}
+            disabled={loading}
+          >
             Xem lại
           </button>
-          <button type="button" className={styles.btnConfirm} onClick={onConfirm}>
+          <button
+            type="button"
+            className={styles.btnConfirm}
+            onClick={onConfirm}
+            disabled={loading}
+          >
             <CheckCircle2 size={16} />
-            <span>Xác nhận duyệt phương án</span>
+            <span>{loading ? "Đang xác nhận…" : "Xác nhận duyệt phương án"}</span>
           </button>
         </div>
       </div>

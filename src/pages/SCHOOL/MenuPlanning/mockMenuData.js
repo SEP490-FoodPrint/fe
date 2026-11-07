@@ -4,7 +4,8 @@ export const INGREDIENT_CATEGORIES = [
   "Thủy hải sản",
   "Rau củ quả",
   "Trứng gia cầm",
-  "Tinh bột & Ngũ cốc"
+  "Tinh bột & Ngũ cốc",
+  "Sữa & Tráng miệng"
 ]
 
 // 2. Danh sách Nhà cung cấp đang liên kết hợp lệ (ACTIVE) với trường
@@ -44,6 +45,12 @@ export const LINKED_SUPPLIERS = [
     name: "Gạo Sạch Hải Hậu",
     badge: "OCOP 4 sao",
     categories: ["Tinh bột & Ngũ cốc"]
+  },
+  {
+    id: "sup-milk",
+    name: "Sữa Tươi TH True Milk",
+    badge: "Chuẩn Organic",
+    categories: ["Sữa & Tráng miệng"]
   }
 ]
 

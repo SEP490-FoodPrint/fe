@@ -1,0 +1,124 @@
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+}
+
+.table thead tr {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.thSupplier {
+  min-width: 240px;
+}
+
+.thDate {
+  min-width: 190px;
+}
+
+.thStatus {
+  min-width: 150px;
+}
+
+.thAction {
+  width: 80px;
+  text-align: center;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.table td {
+  padding: 13px 16px;
+  font-size: 13.5px;
+  color: #0f172a;
+  vertical-align: middle;
+}
+
+.supplierNameBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0f172a;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: #0a8066;
+    text-decoration: underline;
+  }
+}
+
+.tdDate {
+  color: #475569;
+}
+
+.dateText {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.tdStatus {
+  white-space: nowrap;
+}
+
+.tdAction {
+  text-align: center;
+}
+
+.iconActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #0a8066;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+  &:hover {
+    background-color: #f0fdf4;
+    border-color: #0a8066;
+    color: #00654f;
+    transform: translateY(-1px);
+  }
+}

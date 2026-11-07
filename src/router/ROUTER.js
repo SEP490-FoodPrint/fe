@@ -45,6 +45,7 @@ const ROUTER = {
   // Phân hệ Y tế học đường (Nhân viên Y tế)
   SCHOOL_HEALTH_OVERVIEW: "/school/health-overview",       // Trang chủ / Tổng quan Y tế
   SCHOOL_HEALTH_ALLERGY: "/school/health-allergy",         // Thông tin dị ứng
+  SCHOOL_DISH_CATALOG: "/school/dish-catalog",             // Kho Món Ăn Master Data
   // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)
   SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Trang chủ Bếp
   SCHOOL_KITCHEN_MENU: "/school/kitchen-cooking/menu",     // Thực đơn đã lên

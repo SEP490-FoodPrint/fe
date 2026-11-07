@@ -41,11 +41,7 @@ export default function EditBatchHeader({
                 Chưa xác nhận
               </span>
             </div>
-            <p className={styles.subTitle}>
-              {isCombineLots
-                ? "Rà soát và điều chỉnh tỷ lệ phối trộn nguyên liệu mẻ nấu chung trước khi phê duyệt."
-                : "Rà soát nguyên liệu và thay thế nguồn lô hợp chuẩn cho mẻ nấu riêng trước khi phê duyệt."}
-            </p>
+            
           </div>
         </div>
 

@@ -1,0 +1,137 @@
+.gridContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+/* 1. Mobile Day Selector Bar */
+.mobileDayBar {
+  display: none;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.mobileDayList {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.mobileDayPill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #dce5e0);
+  background-color: #ffffff;
+  color: var(--text-secondary, #52635c);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  position: relative;
+
+  .pillIndex {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--text-primary, #1d2b26);
+  }
+
+  .pillDate {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted, #6b7c74);
+    line-height: 1.2;
+  }
+
+  .pillDot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--color-primary, #0a8066);
+  }
+
+  &:hover {
+    background-color: var(--bg-muted, #f1f5f3);
+    border-color: var(--color-primary, #0a8066);
+  }
+
+  &.mobileDayPillActive {
+    background-color: var(--color-primary, #0a8066);
+    border-color: var(--color-primary, #0a8066);
+    color: #ffffff;
+
+    .pillIndex {
+      color: #ffffff;
+    }
+
+    .pillDate {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .pillDot {
+      background-color: #ffffff;
+    }
+  }
+
+  &.mobileDayPillToday:not(.mobileDayPillActive) {
+    border-color: var(--color-primary, #0a8066);
+    background-color: rgba(10, 128, 102, 0.06);
+
+    .pillIndex {
+      color: var(--color-primary, #0a8066);
+    }
+  }
+}
+
+/* 2. Days Grid (5 cột rộng rãi, khoảng cách 16px thoáng mắt không bị dính sát) */
+.daysGridWrapper {
+  width: 100%;
+  overflow-x: auto;
+  padding: 4px 4px 12px 4px;
+  margin: -4px -4px 0 -4px;
+}
+
+.daysGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(215px, 1fr));
+  gap: 16px; /* Khoảng cách 16px giữa 5 cột ngày */
+  align-items: stretch;
+}
+
+.dayColItem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+/* 3. Responsive */
+@media (max-width: 900px) {
+  .mobileDayBar {
+    display: block;
+  }
+
+  .daysGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .mobileHidden {
+    display: none !important;
+  }
+}

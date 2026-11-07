@@ -24,9 +24,7 @@ export default function ProposedBatchSection({
             <div className={styles.numberBadge}>3</div>
             <div>
               <h2 className={styles.sectionTitle}>3. Phương án chế biến</h2>
-              <p className={styles.sectionSubtitle}>
-                Hợp nhất lô nấu theo quy chuẩn, tự động liên kết nguồn gốc đa lô
-              </p>
+              
             </div>
           </div>
         </div>
@@ -36,10 +34,7 @@ export default function ProposedBatchSection({
             <CookingPot size={26} />
           </div>
           <h3 className={styles.emptyTitle}>Chưa có phương án chế biến</h3>
-          <p className={styles.emptyDesc}>
-            Phương án gộp lô nấu chung sẽ được tạo tự động ngay khi chọn món ăn
-            và hoàn tất đối soát nguyên liệu.
-          </p>
+          <p className={styles.emptyDesc}>Phương án chế biến sẽ hiển thị tự động sau khi chọn món.</p>
           <div className={styles.emptyHintBadge}>
             <Sparkles size={12} />
             <span>Tự động tối ưu số lượng mẻ nấu tối thiểu</span>
@@ -63,10 +58,7 @@ export default function ProposedBatchSection({
             <h2 className={styles.sectionTitle}>
               3. Phương án chế biến (Nấu chung)
             </h2>
-            <p className={styles.sectionSubtitle}>
-              Hệ thống tự động dùng thuật toán hợp nhất lô: gộp thành 01 mẻ nấu
-              duy nhất để tối ưu nhân lực bếp
-            </p>
+            
           </div>
         </div>
       </div>

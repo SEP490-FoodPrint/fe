@@ -45,8 +45,8 @@ function BrandLogo({
           src={logo}
           alt={isIconOnly ? "FoodPrint" : ""}
           className={styles.logoImage}
-          width={36}
-          height={36}
+          width={42}
+          height={42}
         />
       </div>
 

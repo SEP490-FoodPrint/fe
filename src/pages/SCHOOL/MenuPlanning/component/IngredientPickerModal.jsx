@@ -10,6 +10,7 @@ const getCategoryIcon = (cat) => {
     case "Rau củ quả": return "eco"
     case "Trứng gia cầm": return "egg"
     case "Tinh bột & Ngũ cốc": return "grain"
+    case "Sữa & Tráng miệng": return "icecream"
     default: return "restaurant"
   }
 }

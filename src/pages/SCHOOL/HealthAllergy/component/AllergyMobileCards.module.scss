@@ -1,0 +1,123 @@
+.mobileCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.classCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.classTitleGroup {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.iconPrimary {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.className {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.headerRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.yearPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #475569;
+  background-color: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.iconActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  background-color: #eaf7f0;
+  color: #00654f;
+  border: 1px solid #c7eedd;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #0a8066;
+    color: #ffffff;
+  }
+}
+
+.allergiesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.ingredientRow {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.sectionLabel {
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.ingredientText {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.affectedRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.countText {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0a8066;
+}

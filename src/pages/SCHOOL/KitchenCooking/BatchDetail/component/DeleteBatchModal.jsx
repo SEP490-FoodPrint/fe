@@ -6,7 +6,8 @@ export default function DeleteBatchModal({
   isOpen,
   onClose,
   onConfirm,
-  batchCode
+  batchCode,
+  loading = false,
 }) {
   if (!isOpen) return null
 
@@ -24,7 +25,13 @@ export default function DeleteBatchModal({
               <p className={styles.modalSub}>Hành động này không thể hoàn tác</p>
             </div>
           </div>
-          <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">
+          <button
+            type="button"
+            className={styles.closeBtn}
+            onClick={onClose}
+            aria-label="Đóng"
+            disabled={loading}
+          >
             <X size={18} />
           </button>
         </div>
@@ -41,16 +48,25 @@ export default function DeleteBatchModal({
 
         {/* Footer */}
         <div className={styles.modalFooter}>
-          <button type="button" className={styles.btnCancel} onClick={onClose}>
+          <button
+            type="button"
+            className={styles.btnCancel}
+            onClick={onClose}
+            disabled={loading}
+          >
             Hủy bỏ
           </button>
-          <button type="button" className={styles.btnDelete} onClick={onConfirm}>
+          <button
+            type="button"
+            className={styles.btnDelete}
+            onClick={onConfirm}
+            disabled={loading}
+          >
             <Trash2 size={16} />
-            <span>Xóa lô chế biến</span>
+            <span>{loading ? "Đang xóa…" : "Xóa lô chế biến"}</span>
           </button>
         </div>
       </div>
     </div>
   )
 }
-
