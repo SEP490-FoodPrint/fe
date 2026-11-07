@@ -8,20 +8,26 @@ const ALLERGY_DATA = [
   {
     id: "ca-1a",
     className: "Lớp 1A — Khối 1",
-    allergyType: "Giáp xác & Đậu phộng (4 ca)",
+    allergyType: "Giáp xác & Đậu phộng",
     casesCount: 4,
   },
   {
     id: "ca-2b",
     className: "Lớp 2B — Khối 2",
-    allergyType: "Dị ứng tôm sú, cua biển (5 ca)",
+    allergyType: "Tôm sú, cua biển",
     casesCount: 5,
   },
   {
     id: "ca-3c",
     className: "Lớp 3C — Khối 3",
-    allergyType: "Giáp xác & Mực tươi (4 ca)",
+    allergyType: "Giáp xác & Mực tươi",
     casesCount: 4,
+  },
+  {
+    id: "ca-4d",
+    className: "Lớp 4D — Khối 4",
+    allergyType: "Trứng gà & Sữa bò",
+    casesCount: 2,
   },
 ]
 
@@ -37,13 +43,14 @@ export default function HealthAllergyByClass() {
       <div className={styles.cardTopArea}>
         {/* Header */}
         <div className={styles.cardHeader}>
-          <h2 className={styles.title}>Thông tin dị ứng theo lớp</h2>
+          <h2 className={styles.title}>Cảnh báo dị ứng theo lớp</h2>
           <button
             type="button"
             className={styles.viewAllBtn}
             onClick={handleViewAllergy}
+            title="Xem chi tiết danh sách dị ứng học sinh"
           >
-            <span>Xem chi tiết</span>
+            <span>Xem tất cả</span>
             <ArrowForwardIcon className={styles.arrowIcon} />
           </button>
         </div>
@@ -70,7 +77,7 @@ export default function HealthAllergyByClass() {
               </div>
 
               <div className={styles.caseBadge}>
-                <span>{item.casesCount} trường hợp</span>
+                <span>{item.casesCount} ca</span>
               </div>
             </div>
           ))}

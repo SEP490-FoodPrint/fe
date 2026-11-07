@@ -1,20 +1,18 @@
 import React from "react"
 import HealthHeader from "./component/HealthHeader"
 import HealthKPICards from "./component/HealthKPICards"
-import HealthMasterDataCard from "./component/HealthMasterDataCard"
 import HealthPendingTasksTable from "./component/HealthPendingTasksTable"
-import HealthRecentMenus from "./component/HealthRecentMenus"
 import HealthAllergyByClass from "./component/HealthAllergyByClass"
 import styles from "./index.module.scss"
 
 /**
- * HealthOverview - Màn hình Bảng điều khiển / Tổng quan dành riêng cho Nhân viên Y tế
- * Thiết kế chuẩn UI/UX Pro Max, đồng bộ theo Design System của FoodPrint:
- * 1. Header: Breadcrumb, tiêu đề trang, mô tả và nhãn ngày tháng
- * 2. Section A: 4 Thẻ KPI chỉ số hoạt động chính
- * 3. Section B: Master Data Kho Món Ăn Bán Trú Học Đường
- * 4. Section C: Bảng công việc cần xử lý
- * 5. Section D: Bố cục 2 cột (Thực đơn gần đây 60% & Thông tin dị ứng theo lớp 40%)
+ * HealthOverview - Màn hình Tổng quan dành cho Chuyên viên Y tế học đường
+ * Thiết kế tinh gọn, tối giản, loại bỏ hoàn toàn các phần tử thừa & trùng lặp:
+ * 1. Header: Tiêu đề, ngày làm việc, nút tác vụ nhanh "Tạo thực đơn tuần"
+ * 2. 3 Thẻ chỉ số hoạt động cốt lõi (KPIs)
+ * 3. Bố cục 2 cột vận hành cân xứng:
+ *    - Trái (65%): Bảng công việc cần xử lý hôm nay (Pending Tasks)
+ *    - Phải (35%): Cảnh báo dị ứng theo lớp (Allergy Alerts by Class)
  */
 export default function HealthOverview() {
   return (
@@ -23,19 +21,13 @@ export default function HealthOverview() {
         {/* Header trang */}
         <HealthHeader />
 
-        {/* Khu vực A: 4 Thẻ KPI */}
+        {/* Khu vực 1: 3 Thẻ chỉ số cốt lõi */}
         <HealthKPICards />
 
-        {/* Khu vực B: Master Data Kho Món Ăn (Nhân viên y tế nhập trước & định lượng chuẩn) */}
-        <HealthMasterDataCard />
-
-        {/* Khu vực C: Bảng công việc cần xử lý */}
-        <HealthPendingTasksTable />
-
-        {/* Khu vực D: Bố cục 2 cột ngang */}
+        {/* Khu vực 2: Bố cục 2 cột cân xứng */}
         <div className={styles.twoColumnGrid}>
           <div className={styles.leftCol}>
-            <HealthRecentMenus />
+            <HealthPendingTasksTable />
           </div>
           <div className={styles.rightCol}>
             <HealthAllergyByClass />

@@ -20,7 +20,7 @@
   font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
   font-size: 22px;
   font-weight: 700;
-  color: var(--text-primary, #111827);
+  color: #0f172a;
   letter-spacing: -0.02em;
   line-height: 1.25;
 
@@ -32,7 +32,8 @@
 .rightGroup {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .dateBadge {
@@ -43,6 +44,7 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
+  font-family: "Inter", sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: #475569;
@@ -51,5 +53,31 @@
 
 .dateIcon {
   font-size: 17px !important;
-  color: var(--color-primary, #0a8066);
+  color: #0a8066;
+}
+
+.createBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background-color: #00654f;
+  color: #ffffff;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #00513f;
+    box-shadow: 0 2px 4px rgba(0, 101, 79, 0.2);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
 }
