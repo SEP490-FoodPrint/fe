@@ -6,68 +6,14 @@
 }
 
 /* ========================================================
-   1. HEADER BAR & BREADCRUMB
+   1. HEADER BAR & TIÊU ĐỀ (Đã bỏ thanh breadcrumb)
    ======================================================== */
 .headerBar {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
-}
-
-.headerLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.breadcrumb {
-  display: flex;
   align-items: center;
-  gap: 6px;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-}
-
-.breadcrumbLink {
-  background: none;
-  border: none;
-  padding: 0;
-  color: #64748b;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: #0a8066;
-  }
-}
-
-.breadIcon {
-  color: #0a8066;
-  flex-shrink: 0;
-}
-
-.breadSep {
-  color: #cbd5e1;
-}
-
-.breadCurrent {
-  color: #0f172a;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .titleRow {
@@ -134,11 +80,6 @@
   cursor: pointer;
   transition: all 0.15s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  align-self: flex-start;
-
-  @media (min-width: 768px) {
-    align-self: center;
-  }
 
   &:hover {
     background-color: #f8fafc;

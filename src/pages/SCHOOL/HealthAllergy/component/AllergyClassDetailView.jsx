@@ -8,8 +8,6 @@ import {
   AlertTriangle,
   Users,
   ShieldCheck,
-  ShieldAlert,
-  Eye,
 } from "lucide-react"
 import styles from "./AllergyClassDetailView.module.scss"
 
@@ -20,36 +18,18 @@ export default function AllergyClassDetailView({ classData, onBack }) {
 
   return (
     <div className={styles.detailWrapper}>
-      {/* 1. Header & Điều hướng */}
+      {/* 1. Header & Điều hướng (Đã bỏ thanh breadcrumb theo yêu cầu) */}
       <div className={styles.headerBar}>
-        <div className={styles.headerLeft}>
-          <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
-            <button
-              type="button"
-              className={styles.breadcrumbLink}
-              onClick={onBack}
-            >
-              <ShieldAlert size={14} className={styles.breadIcon} />
-              <span>Thông tin dị ứng</span>
-            </button>
-            <span className={styles.breadSep}>/</span>
-            <span className={styles.breadCurrent}>
-              <Eye size={14} className={styles.breadIcon} />
-              <span>Chi tiết dị ứng</span>
-            </span>
-          </nav>
-
-          <div className={styles.titleRow}>
-            <h1 className={styles.pageTitle}>Chi tiết dị ứng theo lớp</h1>
-            <span className={styles.classPill}>
-              <School size={13} />
-              <span>{classData.className}</span>
-            </span>
-            <span className={styles.yearPill}>
-              <Calendar size={13} />
-              <span>Năm học {classData.academicYear}</span>
-            </span>
-          </div>
+        <div className={styles.titleRow}>
+          <h1 className={styles.pageTitle}>Chi tiết dị ứng theo lớp</h1>
+          <span className={styles.classPill}>
+            <School size={13} />
+            <span>{classData.className}</span>
+          </span>
+          <span className={styles.yearPill}>
+            <Calendar size={13} />
+            <span>Năm học {classData.academicYear}</span>
+          </span>
         </div>
 
         <button
@@ -199,7 +179,6 @@ AllergyClassDetailView.propTypes = {
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         ingredientName: PropTypes.string.isRequired,
-        ingredientCode: PropTypes.string,
         category: PropTypes.string.isRequired,
         affectedCount: PropTypes.number.isRequired,
       })
