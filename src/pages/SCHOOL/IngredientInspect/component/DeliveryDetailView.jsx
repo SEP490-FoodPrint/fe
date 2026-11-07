@@ -34,7 +34,7 @@ export default function DeliveryDetailView({
 
   // Kiểm tra đánh giá của Cán bộ Y tế
   const healthApproval = delivery.deliveryApprovals?.find(
-    (a) => a.roleCode === "SCHOOL_NUTRITION_OFFICER" || a.roleCode === "SCHOOL_HEALTH_OFFICER"
+    (a) => a.roleCode === "SCHOOL_NUTRITION_OFFICER"
   )
 
   // Format date helper (dd/mm/yyyy)

@@ -26,7 +26,7 @@ export default function DeliveryKPICards({ deliveries = [] }) {
   const pendingInspectCount = deliveries.filter(
     (d) =>
       (d.status === "ARRIVED" || d.status === "PENDING_APPROVAL") &&
-      !d.deliveryApprovals?.some((a) => a.roleCode === "SCHOOL_NUTRITION_OFFICER" || a.roleCode === "SCHOOL_HEALTH_OFFICER")
+      !d.deliveryApprovals?.some((a) => a.roleCode === "SCHOOL_NUTRITION_OFFICER")
   ).length
 
   return (
