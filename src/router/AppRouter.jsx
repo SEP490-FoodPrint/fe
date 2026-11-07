@@ -43,12 +43,16 @@ const CreateMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/CreateMenu")
 const MenuDetail = lazy(() => import("src/pages/SCHOOL/MenuPlanning/MenuDetail"))
 const EditMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/EditMenu"))
 const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
+const HealthAllergy = lazy(() => import("src/pages/SCHOOL/HealthAllergy"))
+const DishCatalog = lazy(() => import("src/pages/SCHOOL/DishCatalog"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
+const KitchenMenu = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenMenu"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
 const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatchSeparate"))
 const KitchenBatchDetail = lazy(() => import("src/pages/SCHOOL/KitchenCooking/BatchDetail"))
 const KitchenEditBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/EditBatch"))
+const KitchenSamples = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenSamples"))
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
@@ -222,13 +226,14 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_HEALTH_OVERVIEW, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthAllergy /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_DISH_CATALOG, element: <LazyWrapper><DishCatalog /></LazyWrapper> },
             ],
           },
 
           // Lập thực đơn & cảnh báo dị ứng: Ban Y tế
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
               { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },
@@ -250,7 +255,7 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_KITCHEN_COOKING, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MENU, element: <LazyWrapper><KitchenMenu /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCHES, element: <LazyWrapper><KitchenBatches /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE, element: <LazyWrapper><KitchenCreateBatch /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH, element: <LazyWrapper><KitchenCreateBatch /></LazyWrapper> },
@@ -260,7 +265,7 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_EDIT, element: <LazyWrapper><KitchenEditBatch /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_INGREDIENTS, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
             ],

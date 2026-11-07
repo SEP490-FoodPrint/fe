@@ -321,3 +321,37 @@
     padding: 16px;
   }
 }
+
+.thBatchQty {
+  width: 220px;
+}
+
+.tdBatchQty {
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+
+.batchQtyBadge {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.batchValue {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #15803d;
+  line-height: 1.2;
+}
+
+.batchSub {
+  font-size: 10px;
+  color: #166534;
+  font-weight: 500;
+  line-height: 1.1;
+}

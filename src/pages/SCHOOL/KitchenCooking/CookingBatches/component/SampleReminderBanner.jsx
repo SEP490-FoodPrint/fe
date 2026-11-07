@@ -18,9 +18,9 @@ function SampleReminderBanner({ pendingSamples }) {
       <div className={styles.tipLeft}>
         <ShieldCheck size={16} className={styles.tipIcon} aria-hidden="true" />
         <p className={styles.tipText}>
-          <strong className={styles.boldText}>Chưa lưu mẫu:</strong> Có{" "}
-          {pendingSamples.toLocaleString("vi-VN")} lô đã hoàn thành chưa có mẫu
-          lưu theo bộ lọc hiện tại.
+          <strong className={styles.boldText}>
+            {pendingSamples.toLocaleString("vi-VN")} lô đã xong chưa lưu mẫu 24h
+          </strong>
         </p>
       </div>
 

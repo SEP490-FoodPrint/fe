@@ -1,0 +1,27 @@
+.modalTitle {
+  font-size: var(--text-base) !important;
+  font-weight: var(--font-bold) !important;
+  color: var(--text-primary);
+  padding-bottom: var(--space-2) !important;
+}
+
+.modalContent {
+  padding-top: var(--space-3) !important;
+}
+
+.modalDesc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+  line-height: var(--leading-normal);
+
+  strong {
+    color: var(--text-primary);
+  }
+}
+
+.modalActions {
+  padding: var(--space-3) var(--space-4) !important;
+  border-top: 1px solid var(--border-default);
+}
+

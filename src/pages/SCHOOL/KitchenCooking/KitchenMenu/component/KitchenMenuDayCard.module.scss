@@ -1,0 +1,201 @@
+.dayColumn {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid var(--border-default, #e2e8f0);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  min-width: 0;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  }
+}
+
+.todayColumn {
+  border: 2px solid var(--color-primary, #0a8066) !important;
+  box-shadow: 0 4px 16px rgba(10, 128, 102, 0.14) !important;
+  position: relative;
+  z-index: 2;
+
+  .dayHeader {
+    background-color: #f0fdf4;
+  }
+}
+
+/* 1. Header Cột Ngày (Thứ Hai, Thứ Ba...) - Chiều cao cố định 66px căn đều tuyệt đối cả 5 cột */
+.dayHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 66px;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--border-default, #e2e8f0);
+  gap: 3px;
+}
+
+.dayTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.dayCalendarIcon {
+  color: var(--color-primary, #0a8066);
+  flex-shrink: 0;
+}
+
+.dayLabel {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary, #0a8066);
+  line-height: 1.2;
+}
+
+.todayPill {
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: var(--color-primary, #0a8066);
+  padding: 1px 6px;
+  border-radius: 4px;
+  letter-spacing: -0.01em;
+}
+
+.dayDateText {
+  font-size: 12px;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+  text-align: center;
+}
+
+/* 2. Thân danh sách món ăn */
+.dishesBody {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+}
+
+.mealSection {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================================
+   DẢI BỮA TRƯA: Chiều cao chuẩn 38px gióng thẳng hàng 5 cột
+   ======================================================== */
+.lunchBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  background-color: #fff7ed;
+  border-top: 1px solid #ffedd5;
+  border-bottom: 1px solid #fed7aa;
+}
+
+.mealBannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lunchIcon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.lunchTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9a3412;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.lunchBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #c2410c;
+  background-color: #ffedd5;
+  border: 1px solid #fed7aa;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+/* Danh sách món Bữa Trưa: Chiều cao chuẩn 5 x 54px = 270px để Bữa Xế bằng chằn chặn */
+.dishesListLunch {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  min-height: 270px;
+}
+
+/* ========================================================
+   DẢI BỮA XẾ: Chiều cao chuẩn 38px gióng thẳng hàng 5 cột
+   ======================================================== */
+.afternoonBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 38px;
+  box-sizing: border-box;
+  padding: 0 14px;
+  background-color: #eff6ff;
+  border-top: 1px solid #dbeafe;
+  border-bottom: 1px solid #bfdbfe;
+}
+
+.afternoonIcon {
+  color: #2563eb;
+  flex-shrink: 0;
+}
+
+.afternoonTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e40af;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.afternoonBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1d4ed8;
+  background-color: #dbeafe;
+  border: 1px solid #bfdbfe;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+/* Danh sách món Bữa Xế: Chiều cao chuẩn 1 x 54px = 54px */
+.dishesListAfternoon {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  min-height: 54px;
+}
+
+.emptyNotice {
+  padding: 28px 14px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted, #94a3b8);
+  font-style: italic;
+  min-height: 270px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

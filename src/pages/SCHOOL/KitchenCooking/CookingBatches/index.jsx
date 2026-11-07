@@ -14,9 +14,9 @@ import {
   localDateISO,
   schoolClock,
 } from "src/services/KitchenService/adapter"
-import CookingBatchesKPI from "./CookingBatchesKPI"
-import CookingBatchesFilter from "./CookingBatchesFilter"
-import CookingBatchesTable from "./CookingBatchesTable"
+import CookingBatchesKPI from "./component/CookingBatchesKPI"
+import CookingBatchesFilter from "./component/CookingBatchesFilter"
+import CookingBatchesTable from "./component/CookingBatchesTable"
 import styles from "./index.module.scss"
 
 export default function CookingBatches() {
