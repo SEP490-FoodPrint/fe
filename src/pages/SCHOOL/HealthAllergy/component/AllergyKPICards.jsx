@@ -23,7 +23,7 @@ export default function AllergyKPICards({ summary }) {
         </div>
       </div>
 
-      {/* KPI 2: Số loại nguyên liệu được ghi nhận dị ứng */}
+      {/* KPI 2: Số nguyên liệu dị ứng (Đổi tên theo đúng yêu cầu) */}
       <div className={styles.statCard}>
         <div className={styles.statIconWrap}>
           <Layers size={20} className={styles.iconIngredient} />
@@ -31,9 +31,9 @@ export default function AllergyKPICards({ summary }) {
         <div className={styles.statContent}>
           <div className={styles.statValueRow}>
             <span className={styles.statNum}>{formatNumber(totalIngredients)}</span>
-            <span className={styles.statUnit}>loại</span>
+            <span className={styles.statUnit}>nguyên liệu</span>
           </div>
-          <span className={styles.statLabel}>Số loại nguyên liệu dị ứng</span>
+          <span className={styles.statLabel}>Số nguyên liệu dị ứng</span>
         </div>
       </div>
     </div>

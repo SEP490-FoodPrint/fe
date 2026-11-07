@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { School, Clock, Calendar, UtensilsCrossed, Users, Eye } from "lucide-react"
+import { School, Calendar, UtensilsCrossed, Users, Eye } from "lucide-react"
 import styles from "./AllergyMobileCards.module.scss"
 
 export default function AllergyMobileCards({ classList, onSelectClass }) {
@@ -8,56 +8,53 @@ export default function AllergyMobileCards({ classList, onSelectClass }) {
     <div className={styles.mobileCardList}>
       {classList.map((cls) => {
         const allergies = cls.allergies || []
+        const totalAffected = allergies.reduce(
+          (sum, alg) => sum + (alg.affectedCount || 0),
+          0
+        )
 
         return (
           <div key={cls.id} className={styles.classCard}>
-            {/* Header: Class Name, Grade, Year */}
+            {/* Header: Class Name, Year & Action icon */}
             <div className={styles.cardHeader}>
               <div className={styles.classTitleGroup}>
-                <School size={18} className={styles.iconPrimary} />
-                <div>
-                  <h3 className={styles.className}>{cls.className}</h3>
-                  <span className={styles.gradeSubtitle}>
-                    Khối {cls.grade}
-                  </span>
-                </div>
+                <School size={16} className={styles.iconPrimary} />
+                <h3 className={styles.className}>{cls.className}</h3>
               </div>
-              <span className={styles.yearPill}>
-                <Calendar size={11} />
-                <span>{cls.academicYear}</span>
-              </span>
+              <div className={styles.headerRight}>
+                <span className={styles.yearPill}>
+                  <Calendar size={11} />
+                  <span>{cls.academicYear}</span>
+                </span>
+                <button
+                  type="button"
+                  className={styles.iconActionBtn}
+                  onClick={() => onSelectClass(cls)}
+                  title={`Xem chi tiết ${cls.className}`}
+                  aria-label={`Xem chi tiết ${cls.className}`}
+                >
+                  <Eye size={16} />
+                </button>
+              </div>
             </div>
 
             {/* Allergens & Affected count */}
             <div className={styles.allergiesSection}>
-              {allergies.map((alg) => (
-                <div key={alg.id} className={styles.allergyItemRow}>
-                  <div className={styles.allergenBadge}>
-                    <UtensilsCrossed size={12} className={styles.chipIcon} />
-                    <span className={styles.allergenName}>{alg.ingredientName}</span>
-                  </div>
-                  <span className={styles.affectedCountBadge}>
-                    <Users size={12} />
-                    <span>{alg.affectedCount} học sinh</span>
+              <div className={styles.chipsRow}>
+                {allergies.map((alg) => (
+                  <span key={alg.id} className={styles.allergenBadge}>
+                    <UtensilsCrossed size={11} className={styles.chipIcon} />
+                    <span>{alg.ingredientName}</span>
                   </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Footer with Last updated & Detail action */}
-            <div className={styles.cardFooter}>
-              <div className={styles.updatedWrap}>
-                <Clock size={12} className={styles.clockIcon} />
-                <span>{allergies[0]?.updatedAt || cls.updatedAt}</span>
+                ))}
               </div>
-              <button
-                type="button"
-                className={styles.detailBtn}
-                onClick={() => onSelectClass(cls)}
-              >
-                <Eye size={13} />
-                <span>Xem chi tiết</span>
-              </button>
+              <div className={styles.affectedRow}>
+                <span className={styles.affectedLabel}>Học sinh ảnh hưởng:</span>
+                <span className={styles.countBadge}>
+                  <Users size={12} />
+                  <span>{totalAffected}</span>
+                </span>
+              </div>
             </div>
           </div>
         )
@@ -71,7 +68,6 @@ AllergyMobileCards.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       className: PropTypes.string.isRequired,
-      grade: PropTypes.number.isRequired,
       academicYear: PropTypes.string.isRequired,
       allergies: PropTypes.array.isRequired,
     })

@@ -7,7 +7,7 @@ export default function AllergyHeader() {
     <div className={styles.pageHeader}>
       <div className={styles.titleWrap}>
         <div className={styles.titleRow}>
-          <HeartPulse size={24} className={styles.headerIcon} />
+          <HeartPulse size={22} className={styles.headerIcon} />
           <h1 className={styles.pageTitle}>Thông tin dị ứng</h1>
           <span className={styles.badgeReadonly}>
             <ShieldCheck size={13} />

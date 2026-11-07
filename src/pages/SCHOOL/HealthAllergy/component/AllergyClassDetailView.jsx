@@ -9,7 +9,6 @@ import {
   UtensilsCrossed,
   Tag,
   Users,
-  Clock,
   ShieldCheck,
   ShieldAlert,
   Eye,
@@ -23,7 +22,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
 
   return (
     <div className={styles.detailWrapper}>
-      {/* 1. Header & Breadcrumb */}
+      {/* 1. Header & Điều hướng */}
       <div className={styles.headerBar}>
         <div className={styles.headerLeft}>
           <nav aria-label="Breadcrumb" className={styles.breadcrumb}>
@@ -46,7 +45,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
             <h1 className={styles.pageTitle}>Chi tiết dị ứng theo lớp</h1>
             <span className={styles.classPill}>
               <School size={13} />
-              <span>{classData.className} — Khối {classData.grade}</span>
+              <span>{classData.className}</span>
             </span>
             <span className={styles.yearPill}>
               <Calendar size={13} />
@@ -65,15 +64,13 @@ export default function AllergyClassDetailView({ classData, onBack }) {
         </button>
       </div>
 
-      {/* 2. Class Information Bar (FoodPrint Summary Bar chuẩn) */}
+      {/* 2. Thanh tóm tắt thông tin lớp (Chuẩn FoodPrint) */}
       <div className={styles.summaryBar}>
         <div className={styles.summaryCol}>
           <span className={styles.summaryLabel}>Lớp học</span>
           <div className={styles.summaryValueRow}>
             <School size={16} className={styles.iconPrimary} />
-            <span className={styles.summaryValue}>
-              {classData.className} — Khối {classData.grade}
-            </span>
+            <span className={styles.summaryValue}>{classData.className}</span>
           </div>
         </div>
 
@@ -102,18 +99,19 @@ export default function AllergyClassDetailView({ classData, onBack }) {
 
         <div className={styles.summaryDivider}></div>
 
+        {/* Đổi thành "Số nguyên liệu dị ứng" theo đúng yêu cầu */}
         <div className={styles.summaryCol}>
-          <span className={styles.summaryLabel}>Nguyên liệu ghi nhận</span>
+          <span className={styles.summaryLabel}>Số nguyên liệu dị ứng</span>
           <div className={styles.summaryValueRow}>
             <AlertTriangle size={16} className={styles.iconWarning} />
             <span className={`${styles.summaryValue} ${styles.warningValue}`}>
-              {allergies.length} loại nguyên liệu
+              {allergies.length} nguyên liệu
             </span>
           </div>
         </div>
       </div>
 
-      {/* 3. Bảng Danh sách nguyên liệu dị ứng */}
+      {/* 3. Bảng Danh sách nguyên liệu dị ứng (Bỏ cột thời gian cập nhật) */}
       <div className={styles.tableCard}>
         <div className={styles.cardHeader}>
           <div className={styles.cardHeaderLeft}>
@@ -138,13 +136,13 @@ export default function AllergyClassDetailView({ classData, onBack }) {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th style={{ width: "30%" }}>
+                    <th style={{ width: "40%" }}>
                       <span className={styles.thContent}>
                         <UtensilsCrossed size={13} />
                         <span>Tên nguyên liệu</span>
                       </span>
                     </th>
-                    <th style={{ width: "25%" }}>
+                    <th style={{ width: "35%" }}>
                       <span className={styles.thContent}>
                         <Tag size={13} />
                         <span>Nhóm nguyên liệu</span>
@@ -153,13 +151,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                     <th style={{ width: "25%" }}>
                       <span className={styles.thContent}>
                         <Users size={13} />
-                        <span>Số lượng học sinh bị ảnh hưởng</span>
-                      </span>
-                    </th>
-                    <th style={{ width: "20%" }}>
-                      <span className={styles.thContent}>
-                        <Clock size={13} />
-                        <span>Cập nhật gần nhất</span>
+                        <span>Học sinh ảnh hưởng</span>
                       </span>
                     </th>
                   </tr>
@@ -178,7 +170,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                         </div>
                       </td>
 
-                      {/* Nhóm nguyên liệu */}
+                      {/* Nhóm nguyên liệu (Badge bo nhẹ) */}
                       <td>
                         <span className={styles.categoryBadge}>
                           <Tag size={12} />
@@ -186,20 +178,12 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                         </span>
                       </td>
 
-                      {/* Số lượng học sinh bị ảnh hưởng */}
+                      {/* Học sinh ảnh hưởng (Chỉ đếm số, không liệt kê rõ, badge bo nhẹ) */}
                       <td>
                         <span className={styles.countBadge}>
-                          <Users size={13} />
-                          <span>{alg.affectedCount} học sinh</span>
+                          <Users size={12} />
+                          <span>{alg.affectedCount}</span>
                         </span>
-                      </td>
-
-                      {/* Cập nhật gần nhất */}
-                      <td>
-                        <div className={styles.dateCell}>
-                          <Clock size={13} className={styles.clockIcon} />
-                          <span>{alg.updatedAt || classData.updatedAt}</span>
-                        </div>
                       </td>
                     </tr>
                   ))}
@@ -218,7 +202,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                     </div>
                     <span className={styles.countBadge}>
                       <Users size={12} />
-                      <span>{alg.affectedCount} hs</span>
+                      <span>{alg.affectedCount}</span>
                     </span>
                   </div>
                   <div className={styles.mobileMetaRow}>
@@ -226,13 +210,6 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                     <span className={styles.categoryBadge}>
                       <Tag size={11} />
                       <span>{alg.category}</span>
-                    </span>
-                  </div>
-                  <div className={styles.mobileMetaRow}>
-                    <span className={styles.metaLabel}>Cập nhật:</span>
-                    <span className={styles.dateCell}>
-                      <Clock size={12} className={styles.clockIcon} />
-                      <span>{alg.updatedAt || classData.updatedAt}</span>
                     </span>
                   </div>
                 </div>
@@ -249,10 +226,8 @@ AllergyClassDetailView.propTypes = {
   classData: PropTypes.shape({
     id: PropTypes.string.isRequired,
     className: PropTypes.string.isRequired,
-    grade: PropTypes.number.isRequired,
     academicYear: PropTypes.string.isRequired,
     homeroomTeacher: PropTypes.string,
-    updatedAt: PropTypes.string,
     allergies: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
@@ -260,7 +235,6 @@ AllergyClassDetailView.propTypes = {
         ingredientCode: PropTypes.string,
         category: PropTypes.string.isRequired,
         affectedCount: PropTypes.number.isRequired,
-        updatedAt: PropTypes.string,
       })
     ).isRequired,
   }).isRequired,

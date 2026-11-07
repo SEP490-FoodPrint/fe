@@ -1,6 +1,6 @@
 .tableCard {
   background-color: #ffffff;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   overflow: hidden;
@@ -40,29 +40,28 @@
 }
 
 .thClass {
-  min-width: 130px;
+  min-width: 140px;
 }
 
 .thYear {
-  min-width: 100px;
+  min-width: 120px;
 }
 
 .thIngredients {
-  min-width: 200px;
+  min-width: 240px;
 }
 
 .thCount {
-  min-width: 170px;
-}
-
-.thUpdated {
-  min-width: 130px;
+  min-width: 150px;
 }
 
 .thAction {
-  min-width: 120px;
-  text-align: right;
-  padding-right: 18px !important;
+  width: 80px;
+  text-align: center;
+}
+
+.thActionText {
+  display: inline-block;
 }
 
 .tableRow {
@@ -97,23 +96,11 @@
   flex-shrink: 0;
 }
 
-.classNameGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
 .className {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: #0f172a;
-}
-
-.gradeBadge {
-  font-size: 11.5px;
-  color: #64748b;
-  font-weight: 500;
 }
 
 /* Academic Year */
@@ -122,12 +109,12 @@
   padding: 2px 7px;
   background-color: #f1f5f9;
   color: #475569;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
   font-weight: 500;
 }
 
-/* Chips Container */
+/* Chips Container (Bo nhẹ border-radius: 6px) */
 .chipsContainer {
   display: flex;
   flex-wrap: wrap;
@@ -152,7 +139,7 @@
   flex-shrink: 0;
 }
 
-/* Affected Count */
+/* Affected Count (Chỉ đếm số, bo nhẹ 6px) */
 .countBadge {
   display: inline-flex;
   align-items: center;
@@ -161,76 +148,27 @@
   background-color: #eaf7f0;
   color: #00654f;
   border-radius: 6px;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
   font-family: "Be Vietnam Pro", sans-serif;
   border: 1px solid #c7eedd;
 }
 
-.multiCountList {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.multiCountItem {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12.5px;
-}
-
-.multiIngName {
-  color: #475569;
-  font-weight: 500;
-}
-
-.countBadgeSmall {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  padding: 1px 6px;
-  background-color: #eaf7f0;
-  color: #00654f;
-  border-radius: 4px;
-  font-size: 11.5px;
-  font-weight: 700;
-  border: 1px solid #c7eedd;
-}
-
-/* Updated time */
-.updatedCell {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #64748b;
-  font-size: 12.5px;
-}
-
-.clockIcon {
-  color: #94a3b8;
-  flex-shrink: 0;
-}
-
-/* Action button */
+/* Thao tác (Chuyển thành icon button) */
 .tdAction {
-  text-align: right;
-  padding-right: 18px !important;
+  text-align: center;
 }
 
-.viewDetailBtn {
+.iconActionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  justify-content: center;
+  width: 32px;
   height: 32px;
   border-radius: 6px;
   background-color: #ffffff;
   color: #0a8066;
-  border: 1px solid #c7eedd;
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  font-weight: 600;
+  border: 1px solid #e2e8f0;
   cursor: pointer;
   transition: all 0.15s ease;
 
@@ -238,5 +176,6 @@
     background-color: #0a8066;
     color: #ffffff;
     border-color: #0a8066;
+    box-shadow: 0 2px 4px rgba(10, 128, 102, 0.2);
   }
 }

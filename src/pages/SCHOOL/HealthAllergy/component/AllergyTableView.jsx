@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Eye, Clock, School, Calendar, UtensilsCrossed, Users } from "lucide-react"
+import { Eye, School, Calendar, UtensilsCrossed, Users } from "lucide-react"
 import styles from "./AllergyTableView.module.scss"
 
 export default function AllergyTableView({ classList, onSelectClass }) {
@@ -34,29 +34,27 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                   <span>Học sinh ảnh hưởng</span>
                 </span>
               </th>
-              <th className={styles.thUpdated}>
-                <span className={styles.thContent}>
-                  <Clock size={13} />
-                  <span>Cập nhật</span>
-                </span>
+              <th className={styles.thAction}>
+                <span className={styles.thActionText}>Thao tác</span>
               </th>
-              <th className={styles.thAction}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
             {classList.map((cls) => {
               const allergies = cls.allergies || []
+              // Đếm số học sinh ảnh hưởng
+              const totalAffected = allergies.reduce(
+                (sum, alg) => sum + (alg.affectedCount || 0),
+                0
+              )
 
               return (
                 <tr key={cls.id} className={styles.tableRow}>
-                  {/* Cột 1: Lớp */}
+                  {/* Cột 1: Lớp (Bỏ khối lớp theo DB) */}
                   <td className={styles.tdClass}>
                     <div className={styles.classInfo}>
-                      <School size={16} className={styles.iconPrimary} />
-                      <div className={styles.classNameGroup}>
-                        <span className={styles.className}>{cls.className}</span>
-                        <span className={styles.gradeBadge}>Khối {cls.grade}</span>
-                      </div>
+                      <School size={15} className={styles.iconPrimary} />
+                      <span className={styles.className}>{cls.className}</span>
                     </div>
                   </td>
 
@@ -65,7 +63,7 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                     <span className={styles.yearText}>{cls.academicYear}</span>
                   </td>
 
-                  {/* Cột 3: Nguyên liệu dị ứng */}
+                  {/* Cột 3: Nguyên liệu dị ứng (Badge bo nhẹ) */}
                   <td className={styles.tdIngredients}>
                     <div className={styles.chipsContainer}>
                       {allergies.map((alg) => (
@@ -77,46 +75,24 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                     </div>
                   </td>
 
-                  {/* Cột 4: Số lượng học sinh bị ảnh hưởng */}
+                  {/* Cột 4: Học sinh ảnh hưởng (Chỉ đếm số, không liệt kê rõ) */}
                   <td className={styles.tdCount}>
-                    {allergies.length === 1 ? (
-                      <span className={styles.countBadge}>
-                        <Users size={13} />
-                        <span>{allergies[0].affectedCount} học sinh</span>
-                      </span>
-                    ) : (
-                      <div className={styles.multiCountList}>
-                        {allergies.map((alg) => (
-                          <div key={alg.id} className={styles.multiCountItem}>
-                            <span className={styles.multiIngName}>{alg.ingredientName}:</span>
-                            <span className={styles.countBadgeSmall}>
-                              <Users size={11} />
-                              <span>{alg.affectedCount} hs</span>
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    <span className={styles.countBadge}>
+                      <Users size={12} />
+                      <span>{totalAffected}</span>
+                    </span>
                   </td>
 
-                  {/* Cột 5: Cập nhật gần nhất */}
-                  <td className={styles.tdUpdated}>
-                    <div className={styles.updatedCell}>
-                      <Clock size={13} className={styles.clockIcon} />
-                      <span>{allergies[0]?.updatedAt || cls.updatedAt}</span>
-                    </div>
-                  </td>
-
-                  {/* Cột 6: Thao tác Xem chi tiết */}
+                  {/* Cột 5: Thao tác (Chuyển thành Icon Button) */}
                   <td className={styles.tdAction}>
                     <button
                       type="button"
-                      className={styles.viewDetailBtn}
+                      className={styles.iconActionBtn}
                       onClick={() => onSelectClass(cls)}
-                      title={`Xem chi tiết dị ứng ${cls.className}`}
+                      title={`Xem chi tiết ${cls.className}`}
+                      aria-label={`Xem chi tiết ${cls.className}`}
                     >
-                      <Eye size={14} />
-                      <span>Xem chi tiết</span>
+                      <Eye size={16} />
                     </button>
                   </td>
                 </tr>
@@ -134,7 +110,6 @@ AllergyTableView.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       className: PropTypes.string.isRequired,
-      grade: PropTypes.number.isRequired,
       academicYear: PropTypes.string.isRequired,
       allergies: PropTypes.array.isRequired,
     })
