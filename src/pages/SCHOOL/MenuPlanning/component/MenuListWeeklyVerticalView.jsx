@@ -506,16 +506,15 @@ export default function MenuListWeeklyVerticalView({
                     </div>
                   </div>
 
-                  {/* THÂN THỰC ĐƠN HOẶC THẺ NGÀY NGHỈ THEO SETUP BGH */}
+                  {/* THÂN THỰC ĐƠN HOẶC THẺ NGÀY NGHỈ */}
                   {sd.isHoliday ? (
                     <div className={styles.holidayCardBody}>
                       <div className={styles.holidayIconWrap}>
                         <CalendarOff size={24} className={styles.holidayIcon} />
                       </div>
-                      <span className={styles.holidayTag}>Nghỉ theo lịch BGH</span>
                       <div className={styles.holidayReasonBox}>
                         <span className={styles.holidayReasonText}>
-                          {sd.holidayReason || "Nghỉ theo kế hoạch nhà trường"}
+                          {sd.holidayReason || "Ngày nghỉ toàn trường"}
                         </span>
                       </div>
                       <span className={styles.holidaySubText}>Không phục vụ ăn bán trú</span>

@@ -119,7 +119,7 @@ export const MOCK_SCHOOL_ACADEMIC_YEARS = [
       },
       {
         date: "2026-11-06",
-        reason: "Nghỉ theo kế hoạch BGH: Hội thao học sinh toàn trường",
+        reason: "Hội thao học sinh toàn trường",
         type: "BGH_EVENT",
       },
       {
