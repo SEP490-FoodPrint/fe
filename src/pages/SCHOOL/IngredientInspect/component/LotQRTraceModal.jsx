@@ -54,11 +54,6 @@ export default function LotQRTraceModal({
 
         {/* Thẻ mô phỏng Tem nhãn dán trên lô hàng thực tế */}
         <div className={styles.physicalTag}>
-          <div className={styles.tagHeader}>
-            <span className={styles.tagBrand}>FoodPrint Traceability Tag</span>
-            <span className={styles.tagLotPill}>{lot.lotCode}</span>
-          </div>
-
           <div className={styles.tagContent}>
             {/* Khung QR Code đồ họa */}
             <div className={styles.qrVisualWrap}>
@@ -111,7 +106,6 @@ export default function LotQRTraceModal({
                   <rect x="100" y="96" width="8" height="8" fill="#00654f" />
                 </svg>
               </div>
-              <span className={styles.qrTokenText}>{lot.qrToken || "FP-DEMO-QR-TOKEN"}</span>
             </div>
 
             {/* Thông tin truy xuất chi tiết từ mã */}
@@ -122,7 +116,7 @@ export default function LotQRTraceModal({
               </div>
 
               <div className={styles.infoRow}>
-                <span className={styles.infoLabel}>Mã lô (Lot Code):</span>
+                <span className={styles.infoLabel}>Mã lô:</span>
                 <span className={styles.infoValMono}>{lot.lotCode}</span>
               </div>
 

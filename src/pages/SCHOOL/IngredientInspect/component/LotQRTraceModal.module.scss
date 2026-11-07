@@ -101,33 +101,6 @@
   gap: 12px;
 }
 
-.tagHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 10px;
-  border-bottom: 1px dashed #cbd5e1;
-}
-
-.tagBrand {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #00654f;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.tagLotPill {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12px;
-  font-weight: 700;
-  color: #0a8066;
-  background-color: #eaf7f0;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
 .tagContent {
   display: flex;
   gap: 16px;
@@ -159,15 +132,6 @@
 .qrSvg {
   width: 100%;
   height: 100%;
-}
-
-.qrTokenText {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 10.5px;
-  color: #64748b;
-  text-align: center;
-  max-width: 130px;
-  word-break: break-all;
 }
 
 .tagInfoCol {
