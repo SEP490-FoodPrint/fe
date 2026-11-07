@@ -1,26 +1,37 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Truck, MessageSquareText } from "lucide-react"
+import { Truck, ShieldCheck } from "lucide-react"
 import styles from "./DeliveryKPICards.module.scss"
 
-export default function DeliveryKPICards({
-  deliveries = [],
-  feedbacks = [],
-}) {
-  // Thống kê chuyến giao
+export default function DeliveryKPICards({ deliveries = [] }) {
+  // Thống kê tiến độ chuyến giao
   const totalDeliveries = deliveries.length
   const receivedCount = deliveries.filter((d) => d.status === "RECEIVED").length
   const inTransitCount = deliveries.filter((d) => d.status === "IN_TRANSIT").length
   const arrivedCount = deliveries.filter((d) => d.status === "ARRIVED").length
 
-  // Thống kê phản hồi chất lượng
-  const totalFeedbacks = feedbacks.length
-  const pendingCount = feedbacks.filter((f) => f.status === "SUBMITTED").length
-  const respondedCount = feedbacks.filter((f) => f.status === "RESPONDED").length
+  // Thống kê kiểm thực của Cán bộ Y tế
+  const rejectedCount = deliveries.filter(
+    (d) =>
+      d.status === "REJECTED" ||
+      d.deliveryApprovals?.some((a) => a.decision === "REJECT")
+  ).length
+
+  const approvedCount = deliveries.filter(
+    (d) =>
+      (d.status === "RECEIVED" || d.status === "APPROVED") &&
+      !d.deliveryApprovals?.some((a) => a.decision === "REJECT")
+  ).length
+
+  const pendingInspectCount = deliveries.filter(
+    (d) =>
+      (d.status === "ARRIVED" || d.status === "PENDING_APPROVAL") &&
+      !d.deliveryApprovals?.some((a) => a.roleCode === "SCHOOL_HEALTH_OFFICER")
+  ).length
 
   return (
     <div className={styles.kpiGrid}>
-      {/* Thẻ 1: Đợt giao hôm nay */}
+      {/* Thẻ 1: Tiến độ giao hàng */}
       <div className={styles.card}>
         <div className={styles.cardTop}>
           <div className={styles.metaCol}>
@@ -51,31 +62,35 @@ export default function DeliveryKPICards({
         </div>
       </div>
 
-      {/* Thẻ 2: Phản hồi chất lượng (viết ngắn gọn, dễ hiểu) */}
+      {/* Thẻ 2: Kiểm thực an toàn thực phẩm */}
       <div className={styles.card}>
         <div className={styles.cardTop}>
           <div className={styles.metaCol}>
-            <span className={styles.cardLabel}>Phản hồi chất lượng</span>
+            <span className={styles.cardLabel}>Kiểm thực an toàn thực phẩm</span>
             <div className={styles.valueRow}>
-              <span className={`${styles.mainValue} ${styles.blueValue}`}>
-                {String(totalFeedbacks).padStart(2, "0")}
+              <span className={styles.mainValue}>
+                {String(approvedCount + rejectedCount).padStart(2, "0")}
               </span>
-              <span className={styles.unitText}>phản hồi gửi nhà cung cấp</span>
+              <span className={styles.unitText}>đợt đã kiểm tra</span>
             </div>
           </div>
-          <div className={`${styles.iconWrap} ${styles.iconBlue}`}>
-            <MessageSquareText size={22} />
+          <div className={`${styles.iconWrap} ${styles.iconGreen}`}>
+            <ShieldCheck size={22} />
           </div>
         </div>
 
         <div className={styles.cardBottom}>
           <div className={styles.subItem}>
-            <span className={`${styles.subDot} ${styles.dotBlue}`} />
-            <span><strong>{pendingCount}</strong> đang chờ trả lời</span>
+            <span className={`${styles.subDot} ${styles.dotGreen}`} />
+            <span><strong>{approvedCount}</strong> đạt chuẩn</span>
           </div>
           <div className={styles.subItem}>
-            <span className={`${styles.subDot} ${styles.dotGreen}`} />
-            <span><strong>{respondedCount}</strong> đã phản hồi</span>
+            <span className={`${styles.subDot} ${styles.dotRed}`} />
+            <span><strong>{rejectedCount}</strong> từ chối</span>
+          </div>
+          <div className={styles.subItem}>
+            <span className={`${styles.subDot} ${styles.dotOrange}`} />
+            <span><strong>{pendingInspectCount}</strong> chờ kiểm thực</span>
           </div>
         </div>
       </div>
@@ -85,5 +100,4 @@ export default function DeliveryKPICards({
 
 DeliveryKPICards.propTypes = {
   deliveries: PropTypes.array.isRequired,
-  feedbacks: PropTypes.array.isRequired,
 }

@@ -1,9 +1,6 @@
 import React, { useState, useMemo } from "react"
 import { CheckCircle2, X } from "lucide-react"
-import {
-  INITIAL_DELIVERIES,
-  INITIAL_FEEDBACKS,
-} from "./mockDeliveryData"
+import { INITIAL_DELIVERIES } from "./mockDeliveryData"
 
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryKPICards from "./component/DeliveryKPICards"
@@ -13,36 +10,23 @@ import DeliveryMobileCards from "./component/DeliveryMobileCards"
 import DeliveryEmptyState from "./component/DeliveryEmptyState"
 import DeliveryDetailView from "./component/DeliveryDetailView"
 import DeliveryApprovalModal from "./component/DeliveryApprovalModal"
-import FeedbackSubmitModal from "./component/FeedbackSubmitModal"
-import FeedbackListView from "./component/FeedbackListView"
-import FeedbackDetailView from "./component/FeedbackDetailView"
 
 import styles from "./index.module.scss"
 
 const VIEW_MODES = {
-  DELIVERY_LIST: "DELIVERY_LIST",       // SCREEN 01
-  DELIVERY_DETAIL: "DELIVERY_DETAIL",   // SCREEN 02
-  FEEDBACK_LIST: "FEEDBACK_LIST",       // SCREEN 04
-  FEEDBACK_DETAIL: "FEEDBACK_DETAIL",   // SCREEN 05
+  DELIVERY_LIST: "DELIVERY_LIST",       // SCREEN 01: Danh sách đợt giao
+  DELIVERY_DETAIL: "DELIVERY_DETAIL",   // SCREEN 02: Chi tiết đợt giao & Kiểm thực
 }
 
 export default function IngredientInspect() {
   // Quản lý dữ liệu mock state
   const [deliveries, setDeliveries] = useState(INITIAL_DELIVERIES)
-  const [feedbacks, setFeedbacks] = useState(INITIAL_FEEDBACKS)
 
   // Điều hướng màn hình
   const [currentView, setCurrentView] = useState(VIEW_MODES.DELIVERY_LIST)
   const [selectedDelivery, setSelectedDelivery] = useState(null)
-  const [selectedFeedback, setSelectedFeedback] = useState(null)
-  const [previousView, setPreviousView] = useState(VIEW_MODES.DELIVERY_LIST)
 
-  // Modal gửi phản hồi (SCREEN 03)
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false)
-  const [deliveryForFeedback, setDeliveryForFeedback] = useState(null)
-  const [initialFeedbackLotId, setInitialFeedbackLotId] = useState("")
-
-  // Modal phê duyệt / từ chối kiểm thực giao hàng (4 bên)
+  // Modal phê duyệt / từ chối kiểm thực giao hàng
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false)
   const [deliveryForApproval, setDeliveryForApproval] = useState(null)
   const [currentApprovalToEdit, setCurrentApprovalToEdit] = useState(null)
@@ -103,25 +87,6 @@ export default function IngredientInspect() {
     setCurrentView(VIEW_MODES.DELIVERY_DETAIL)
   }
 
-  // Điều hướng tới SCREEN 04 (Danh sách phản hồi đã gửi)
-  const handleOpenFeedbackList = () => {
-    setCurrentView(VIEW_MODES.FEEDBACK_LIST)
-  }
-
-  // Điều hướng tới SCREEN 05 (Chi tiết phản hồi)
-  const handleSelectFeedback = (feedback) => {
-    setPreviousView(currentView)
-    setSelectedFeedback(feedback)
-    setCurrentView(VIEW_MODES.FEEDBACK_DETAIL)
-  }
-
-  // Mở modal gửi phản hồi (SCREEN 03)
-  const handleOpenSubmitModal = (delivery, lotId = "") => {
-    setDeliveryForFeedback(delivery)
-    setInitialFeedbackLotId(lotId)
-    setIsSubmitModalOpen(true)
-  }
-
   // Mở modal kiểm thực / phê duyệt giao nhận (Duyệt vs Từ chối)
   const handleOpenApprovalModal = (delivery, currentApproval = null) => {
     setDeliveryForApproval(delivery)
@@ -154,10 +119,6 @@ export default function IngredientInspect() {
         )
         const newApprovals = [...filteredApprovals, updatedApproval]
 
-        // Tính toán trạng thái chuyến giao theo quy chuẩn FoodPrint 4 bên:
-        // - 1 reject => REJECTED
-        // - Đủ 4 approve => RECEIVED
-        // - Có approve nhưng chưa đủ 4 => APPROVED / PENDING_APPROVAL
         let newStatus = d.status
         if (decision === "REJECT") {
           newStatus = "REJECTED"
@@ -165,10 +126,8 @@ export default function IngredientInspect() {
           const hasAnyReject = newApprovals.some((a) => a.decision === "REJECT")
           if (hasAnyReject) {
             newStatus = "REJECTED"
-          } else if (newApprovals.length >= 4 && newApprovals.every((a) => a.decision === "APPROVE")) {
-            newStatus = "RECEIVED"
           } else {
-            newStatus = "APPROVED"
+            newStatus = "RECEIVED"
           }
         }
 
@@ -208,22 +167,6 @@ export default function IngredientInspect() {
     }, 6000)
   }
 
-  // Xử lý gửi phản hồi thành công (SCREEN 03)
-  const handleSubmitFeedback = (newFeedback) => {
-    setFeedbacks((prev) => [newFeedback, ...prev])
-    setIsSubmitModalOpen(false)
-    setDeliveryForFeedback(null)
-    setInitialFeedbackLotId("")
-
-    // Hiển thị toast thành công
-    setSuccessToast(
-      `Đã gửi phản hồi thành công đến ${newFeedback.supplierName}! Trạng thái hiện tại: Đang chờ phản hồi.`
-    )
-    setTimeout(() => {
-      setSuccessToast("")
-    }, 6000)
-  }
-
   return (
     <div className={styles.pageContainer}>
       {/* Toast thông báo thành công */}
@@ -237,6 +180,7 @@ export default function IngredientInspect() {
             type="button"
             className={styles.toastCloseBtn}
             onClick={() => setSuccessToast("")}
+            aria-label="Đóng thông báo"
           >
             <X size={15} />
           </button>
@@ -246,15 +190,9 @@ export default function IngredientInspect() {
       {/* SCREEN 01: DANH SÁCH GIAO HÀNG */}
       {currentView === VIEW_MODES.DELIVERY_LIST && (
         <div className={styles.viewContent}>
-          <DeliveryHeader
-            feedbackCount={feedbacks.length}
-            onOpenFeedbackList={handleOpenFeedbackList}
-          />
+          <DeliveryHeader />
 
-          <DeliveryKPICards
-            deliveries={deliveries}
-            feedbacks={feedbacks}
-          />
+          <DeliveryKPICards deliveries={deliveries} />
 
           <DeliveryFilterStrip
             searchTerm={searchTerm}
@@ -290,43 +228,13 @@ export default function IngredientInspect() {
         </div>
       )}
 
-      {/* SCREEN 02: CHI TIẾT GIAO HÀNG */}
+      {/* SCREEN 02: CHI TIẾT GIAO HÀNG & KIỂM THỰC */}
       {currentView === VIEW_MODES.DELIVERY_DETAIL && selectedDelivery && (
         <div className={styles.viewContent}>
           <DeliveryDetailView
             delivery={selectedDelivery}
-            feedbacks={feedbacks}
             onBack={() => setCurrentView(VIEW_MODES.DELIVERY_LIST)}
-            onOpenSubmitFeedback={handleOpenSubmitModal}
             onOpenApprovalModal={handleOpenApprovalModal}
-            onSelectFeedback={handleSelectFeedback}
-          />
-        </div>
-      )}
-
-      {/* SCREEN 04: DANH SÁCH PHẢN HỒI ĐÃ GỬI */}
-      {currentView === VIEW_MODES.FEEDBACK_LIST && (
-        <div className={styles.viewContent}>
-          <FeedbackListView
-            feedbacks={feedbacks}
-            onBackToDeliveries={() => setCurrentView(VIEW_MODES.DELIVERY_LIST)}
-            onSelectFeedback={handleSelectFeedback}
-          />
-        </div>
-      )}
-
-      {/* SCREEN 05: CHI TIẾT PHẢN HỒI */}
-      {currentView === VIEW_MODES.FEEDBACK_DETAIL && selectedFeedback && (
-        <div className={styles.viewContent}>
-          <FeedbackDetailView
-            feedback={selectedFeedback}
-            onBack={() => {
-              if (previousView === VIEW_MODES.DELIVERY_DETAIL) {
-                setCurrentView(VIEW_MODES.DELIVERY_DETAIL)
-              } else {
-                setCurrentView(VIEW_MODES.FEEDBACK_LIST)
-              }
-            }}
           />
         </div>
       )}
@@ -342,20 +250,6 @@ export default function IngredientInspect() {
             setCurrentApprovalToEdit(null)
           }}
           onSubmitApproval={handleSubmitApproval}
-        />
-      )}
-
-      {/* SCREEN 03: MODAL GỬI PHẢN HỒI CHẤT LƯỢNG NGUYÊN LIỆU */}
-      {isSubmitModalOpen && deliveryForFeedback && (
-        <FeedbackSubmitModal
-          delivery={deliveryForFeedback}
-          initialLotId={initialFeedbackLotId}
-          onClose={() => {
-            setIsSubmitModalOpen(false)
-            setDeliveryForFeedback(null)
-            setInitialFeedbackLotId("")
-          }}
-          onSubmitFeedback={handleSubmitFeedback}
         />
       )}
     </div>

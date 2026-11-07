@@ -235,26 +235,6 @@
   border-top: 1px solid #f1f5f9;
 }
 
-.feedbackBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 6px;
-  background-color: #eaf7f0;
-  border: 1px solid #bbf0da;
-  color: #00654f;
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #d1fae5;
-  }
-}
-
 .closeActionBtn {
   padding: 7px 14px;
   border-radius: 6px;

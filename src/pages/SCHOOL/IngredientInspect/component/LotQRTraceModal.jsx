@@ -6,7 +6,6 @@ import {
   Building,
   Calendar,
   Layers,
-  Send,
   ShieldCheck,
   Package,
 } from "lucide-react"
@@ -17,7 +16,6 @@ export default function LotQRTraceModal({
   ingredientName,
   supplierName,
   onClose,
-  onFeedbackThisLot,
 }) {
   if (!lot) return null
 
@@ -162,19 +160,6 @@ export default function LotQRTraceModal({
         <div className={styles.modalFooter}>
           <button
             type="button"
-            className={styles.feedbackBtn}
-            onClick={() => {
-              onClose()
-              if (onFeedbackThisLot) onFeedbackThisLot(lot)
-            }}
-            title="Gửi phản hồi nếu tem mờ, bao bì rách hoặc thông tin không khớp"
-          >
-            <Send size={15} />
-            <span>Gửi phản hồi chất lượng cho lô này</span>
-          </button>
-
-          <button
-            type="button"
             className={styles.closeActionBtn}
             onClick={onClose}
           >
@@ -191,6 +176,5 @@ LotQRTraceModal.propTypes = {
   ingredientName: PropTypes.string.isRequired,
   supplierName: PropTypes.string.isRequired,
   onClose: PropTypes.func.isRequired,
-  onFeedbackThisLot: PropTypes.func,
 }
 

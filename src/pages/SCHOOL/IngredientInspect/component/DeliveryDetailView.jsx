@@ -3,7 +3,6 @@ import PropTypes from "prop-types"
 import {
   ArrowLeft,
   QrCode,
-  Send,
   Eye,
   Store,
   Clock,
@@ -14,19 +13,13 @@ import {
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import LotQRTraceModal from "./LotQRTraceModal"
-import {
-  LOT_STATUS_CONFIG,
-  FEEDBACK_STATUS_CONFIG,
-} from "../mockDeliveryData"
+import { LOT_STATUS_CONFIG } from "../mockDeliveryData"
 import styles from "./DeliveryDetailView.module.scss"
 
 export default function DeliveryDetailView({
   delivery,
-  feedbacks = [],
   onBack,
-  onOpenSubmitFeedback,
   onOpenApprovalModal,
-  onSelectFeedback,
 }) {
   // State xem tem nhãn QR của lô
   const [activeQRLot, setActiveQRLot] = useState(null)
@@ -36,9 +29,6 @@ export default function DeliveryDetailView({
     setActiveQRLot(lot)
     setActiveQRIngredient(ingredientName)
   }
-
-  // Lọc danh sách phản hồi liên quan đến delivery này
-  const deliveryFeedbacks = feedbacks.filter((f) => f.deliveryId === delivery.id)
 
   // Kiểm tra đánh giá của Cán bộ Y tế
   const healthApproval = delivery.deliveryApprovals?.find(
@@ -198,16 +188,6 @@ export default function DeliveryDetailView({
               <span>Đánh giá kiểm thực</span>
             </button>
           )}
-
-          <button
-            type="button"
-            className={styles.feedbackActionBtn}
-            onClick={() => onOpenSubmitFeedback(delivery)}
-            title="Gửi phản hồi chất lượng, nhãn mác tới nhà cung cấp"
-          >
-            <Send size={15} />
-            <span>Gửi phản hồi chất lượng</span>
-          </button>
         </div>
       </div>
 
@@ -390,92 +370,6 @@ export default function DeliveryDetailView({
         </div>
       </div>
 
-      {/* 4. Phản hồi chất lượng nguyên liệu */}
-      <div className={styles.contentSection}>
-        <div className={styles.sectionHeading}>
-          <h2 className={styles.sectionTitle}>
-            Phản hồi chất lượng nguyên liệu gửi Supplier
-          </h2>
-          <span className={styles.countText}>
-            {deliveryFeedbacks.length} phản hồi
-          </span>
-        </div>
-
-        {deliveryFeedbacks.length > 0 ? (
-          <div className={styles.tableResponsive}>
-            <table className={styles.flatTable}>
-              <thead>
-                <tr>
-                  <th>Tiêu đề phản hồi</th>
-                  <th>Lô liên quan</th>
-                  <th>Thời gian gửi</th>
-                  <th>Trạng thái</th>
-                  <th className={styles.thAction}>Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {deliveryFeedbacks.map((fb) => {
-                  const statusCfg = FEEDBACK_STATUS_CONFIG[fb.status] || {
-                    label: fb.status,
-                    bg: "#eff6ff",
-                    color: "#1d4ed8",
-                  }
-
-                  return (
-                    <tr key={fb.id}>
-                      <td>
-                        <span className={styles.feedbackTitleText}>{fb.title}</span>
-                      </td>
-                      <td>
-                        {fb.lotCode ? (
-                          <div className={styles.feedbackLotTargetCol}>
-                            <span className={styles.targetIngredientName}>
-                              {fb.ingredientName}
-                            </span>
-                            <span className={styles.monoCode}>{fb.lotCode}</span>
-                          </div>
-                        ) : (
-                          <span className={styles.emptyText}>Toàn bộ đợt giao</span>
-                        )}
-                      </td>
-                      <td className={styles.timeText}>
-                        {formatDateTime(fb.createdAt)}
-                      </td>
-                      <td>
-                        <span
-                          className={styles.statusPill}
-                          style={{
-                            backgroundColor: statusCfg.bg,
-                            color: statusCfg.color,
-                          }}
-                        >
-                          {statusCfg.label}
-                        </span>
-                      </td>
-                      <td className={styles.tdAction}>
-                        <button
-                          type="button"
-                          className={styles.tableActionIconBtn}
-                          onClick={() => onSelectFeedback(fb)}
-                          title="Xem chi tiết trao đổi phản hồi"
-                          aria-label="Xem chi tiết trao đổi phản hồi"
-                        >
-                          <Eye size={16} />
-                        </button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className={styles.emptyInlineNotice}>
-            Chưa có phản hồi chất lượng nào cho đợt giao này.
-          </div>
-        )}
-      </div>
-
       {/* Modal Xem / Quét tem QR truy xuất nguồn gốc */}
       {activeQRLot && (
         <LotQRTraceModal
@@ -483,10 +377,6 @@ export default function DeliveryDetailView({
           ingredientName={activeQRIngredient}
           supplierName={delivery.supplierName}
           onClose={() => setActiveQRLot(null)}
-          onFeedbackThisLot={(lot) => {
-            setActiveQRLot(null)
-            onOpenSubmitFeedback(delivery, lot.id)
-          }}
         />
       )}
     </div>
@@ -495,9 +385,6 @@ export default function DeliveryDetailView({
 
 DeliveryDetailView.propTypes = {
   delivery: PropTypes.object.isRequired,
-  feedbacks: PropTypes.array.isRequired,
   onBack: PropTypes.func.isRequired,
-  onOpenSubmitFeedback: PropTypes.func.isRequired,
   onOpenApprovalModal: PropTypes.func.isRequired,
-  onSelectFeedback: PropTypes.func.isRequired,
 }
