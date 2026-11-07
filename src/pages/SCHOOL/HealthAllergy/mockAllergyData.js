@@ -1,340 +1,245 @@
 /**
- * Dữ liệu Thông tin Dị ứng Học sinh do Giáo viên Chủ nhiệm thu thập (FoodPrint)
- * Ánh xạ với Cơ sở dữ liệu:
- * - classes: id, name (Lớp 1A, 2B...), academic_year, registered_meal_portions
- * - class_homeroom_assignments & users: teacher_user_id -> full_name (Cô Nguyễn Thị Mai), phone, email
- * - class_allergies: class_id, ingredient_entry_id, affected_count, updated_by_user_id, updated_at
- * - ingredients & ingredient_entries: name (Tôm sú, Đậu phộng, Trứng gà...), category
- * - daily_meal_portions: allergy_notes (Ghi chú báo ăn & danh sách suất riêng hàng ngày của GVCN)
+ * mockAllergyData.js
+ * Dữ liệu mẫu tra cứu thông tin dị ứng cho School Health Officer (FoodPrint).
+ * 
+ * Bám sát nghiệp vụ FoodPrint & DB PostgreSQL v5.4:
+ * - Không có Student entity, không có thông tin cá nhân/hồ sơ học sinh.
+ * - Thông tin dị ứng được tổng hợp theo Class và IngredientEntry.
+ * - Mỗi bản ghi dị ứng có số lượng học sinh bị ảnh hưởng (affected_count).
+ * - Tên nguyên liệu lấy từ danh mục nội bộ của trường.
  */
 
-export const ALLERGEN_OPTIONS = [
-  { id: "ing-shrimp", name: "Tôm / Giáp xác", category: "Thủy hải sản", severityDefault: "HIGH" },
-  { id: "ing-crab", name: "Cua / Ghẹ", category: "Thủy hải sản", severityDefault: "HIGH" },
-  { id: "ing-peanut", name: "Đậu phộng / Lạc", category: "Hạt & Khô", severityDefault: "HIGH" },
-  { id: "ing-egg", name: "Trứng gà / Trứng vịt", category: "Trứng gia cầm", severityDefault: "MEDIUM" },
-  { id: "ing-milk", name: "Sữa bò tươi / Phô mai", category: "Sữa & Chế phẩm", severityDefault: "MEDIUM" },
-  { id: "ing-fish", name: "Cá biển", category: "Thủy hải sản", severityDefault: "MEDIUM" },
-  { id: "ing-soy", name: "Đậu nành / Đậu phụ", category: "Đậu & Ngũ cốc", severityDefault: "LOW" },
-  { id: "ing-wheat", name: "Bột mì / Gluten", category: "Tinh bột", severityDefault: "LOW" },
+export const MOCK_ACADEMIC_YEARS = [
+  { value: "ALL", label: "Tất cả năm học" },
+  { value: "2026-2027", label: "Năm học 2026 - 2027" },
+  { value: "2025-2026", label: "Năm học 2025 - 2026" },
 ]
 
-export const SCHOOL_CLASSES_MASTER = [
-  { id: "cls-1a", name: "Lớp 1A", grade: "1", teacherName: "Cô Nguyễn Thị Mai", teacherPhone: "0912.456.789", totalStudents: 38 },
-  { id: "cls-1b", name: "Lớp 1B", grade: "1", teacherName: "Thầy Lê Minh Quân", teacherPhone: "0983.123.456", totalStudents: 36 },
-  { id: "cls-1c", name: "Lớp 1C", grade: "1", teacherName: "Cô Trần Bích Loan", teacherPhone: "0912.888.999", totalStudents: 35 },
-  { id: "cls-2a", name: "Lớp 2A", grade: "2", teacherName: "Cô Hoàng Lan Anh", teacherPhone: "0977.654.321", totalStudents: 37 },
-  { id: "cls-2b", name: "Lớp 2B", grade: "2", teacherName: "Cô Phạm Thanh Hằng", teacherPhone: "0904.789.321", totalStudents: 39 },
-  { id: "cls-3a", name: "Lớp 3A", grade: "3", teacherName: "Thầy Đỗ Văn Cường", teacherPhone: "0915.998.877", totalStudents: 40 },
-  { id: "cls-4a", name: "Lớp 4A", grade: "4", teacherName: "Cô Bùi Bích Phương", teacherPhone: "0936.112.233", totalStudents: 35 },
-  { id: "cls-4b", name: "Lớp 4B", grade: "4", teacherName: "Thầy Trần Đức Nam", teacherPhone: "0944.556.677", totalStudents: 38 },
-  { id: "cls-5a", name: "Lớp 5A", grade: "5", teacherName: "Cô Vũ Thu Hằng", teacherPhone: "0909.887.766", totalStudents: 41 },
-]
-
-// Danh sách học sinh cụ thể do Giáo viên chủ nhiệm thu thập từ phụ huynh
-export const INITIAL_STUDENT_ALLERGIES = [
+export const MOCK_CLASS_ALLERGIES = [
   {
-    id: "stu-1",
-    studentName: "Nguyễn Minh An",
-    gender: "Nam",
-    className: "Lớp 1A",
-    grade: "1",
-    homeroomTeacher: "Cô Nguyễn Thị Mai",
-    teacherPhone: "0912.456.789",
-    allergenName: "Tôm sú, Cua đồng",
-    allergenCategory: "Thủy hải sản",
-    symptoms: "Nổi mề đay đỏ quanh miệng và cổ, ngứa nhiều sau khi ăn 15 phút.",
-    severity: "HIGH", // HIGH: Nặng, MEDIUM: Trung bình, LOW: Nhẹ
-    dietaryNote: "Suất ăn riêng: Đổi sang thịt heo rim hoặc thịt gà. Tuyệt đối không dùng chung chảo rán tôm.",
-    parentPhone: "0903.111.222 (Mẹ em An)",
-    reportedDate: "2026-10-15",
-    teacherNotes: "Phụ huynh đã nộp giấy khám của BV Nhi Trung ương đầu năm học.",
-    hasEmergencyMedicine: true,
-    emergencyMedicineNote: "Gửi 1 vỉ Siro Desloratadine tại tủ y tế trường.",
+    id: "cls-3b",
+    className: "Lớp 3B",
+    grade: 3,
+    academicYear: "2026-2027",
+    schoolName: "Trường THCS & Tiểu học Đoàn Thị Điểm",
+    roomLocation: "Phòng 302",
+    roomBuilding: "Tầng 3, Dãy A",
+    semester: "Học kỳ 1",
+    totalStudents: 34,
+    registeredPortions: 34,
+    homeroomTeacher: "Cô Trần Thu Trang",
+    profileStatus: "Chuẩn hóa",
+    verificationStatus: "Đã đối chiếu BGH",
+    updatedAt: "2026-10-25 09:10",
+    allergies: [
+      {
+        id: "alg-3b-1",
+        ingredientId: "ing-peanuts",
+        ingredientCode: "ING-NUT-004",
+        ingredientName: "Đậu phộng (Lạc)",
+        category: "Các loại hạt (Nuts & Seeds)",
+        handlingType: "DRY_STOCK",
+        affectedCount: 2,
+        updatedAt: "18/10/2026",
+        commonSources: "Hạt khô, dầu đậu phộng, bơ đậu phộng",
+        commonSourcesDetail: "Thường có trong các loại sốt chấm, bánh nướng",
+        safeSubstitutes: "Hạt hướng dương, hạt bí ngô đã kiểm định",
+        safeSubstitutesDetail: "Đã được chứng nhận trong danh mục nhà trường",
+        verificationNote: "Hồ sơ y tế đầu năm hoàn tất",
+        verificationSubnote: "Xác nhận phối hợp giữa GVCN & Phụ huynh",
+        kitchenNote:
+          "Cần đối soát và loại trừ đậu phộng khi lên thực đơn hoặc phân bổ suất ăn cho lớp 3B. Đối với khay ăn định suất phục vụ tại phòng ăn số 2, nhân viên phục vụ bếp cần gắn thẻ đánh dấu riêng biệt nhằm đảm bảo an toàn tuyệt đối cho bàn ăn khối 3B.",
+      },
+    ],
   },
   {
-    id: "stu-2",
-    studentName: "Trần Bảo Ngọc",
-    gender: "Nữ",
-    className: "Lớp 1A",
-    grade: "1",
-    homeroomTeacher: "Cô Nguyễn Thị Mai",
-    teacherPhone: "0912.456.789",
-    allergenName: "Đậu phộng / Lạc",
-    allergenCategory: "Hạt & Khô",
-    symptoms: "Ngứa rát cổ họng, buồn nôn, sưng môi nhẹ.",
-    severity: "HIGH",
-    dietaryNote: "Không ăn món có rắc lạc, bơ lạc hoặc dầu lạc.",
-    parentPhone: "0918.222.333 (Bố em Ngọc)",
-    reportedDate: "2026-10-15",
-    teacherNotes: "Gia đình dặn rất kỹ khi có món xào rắc đậu phộng.",
-    hasEmergencyMedicine: true,
-    emergencyMedicineNote: "Có bút tiêm dị ứng mang theo balo cá nhân.",
-  },
-  {
-    id: "stu-3",
-    studentName: "Lê Hoàng Long",
-    gender: "Nam",
-    className: "Lớp 1A",
-    grade: "1",
-    homeroomTeacher: "Cô Nguyễn Thị Mai",
-    teacherPhone: "0912.456.789",
-    allergenName: "Tôm, Tép biển",
-    allergenCategory: "Thủy hải sản",
-    symptoms: "Mẩn đỏ vùng bụng và tay, gãi nhiều.",
-    severity: "MEDIUM",
-    dietaryNote: "Báo bếp nấu canh riêng không nêm tôm/tép khô.",
-    parentPhone: "0972.333.444 (Mẹ em Long)",
-    reportedDate: "2026-10-18",
-    teacherNotes: "Ăn tôm đồng ít bị, nhưng tôm biển bị ngứa nhiều.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
-  },
-  {
-    id: "stu-4",
-    studentName: "Phạm Thùy Linh",
-    gender: "Nữ",
-    className: "Lớp 1B",
-    grade: "1",
-    homeroomTeacher: "Thầy Lê Minh Quân",
-    teacherPhone: "0983.123.456",
-    allergenName: "Trứng gà, Trứng vịt",
-    allergenCategory: "Trứng gia cầm",
-    symptoms: "Đỏ quanh miệng, ngứa mí mắt sau khi ăn trứng cuộn hoặc trứng ốp.",
-    severity: "MEDIUM",
-    dietaryNote: "Suất ăn riêng: Đổi sang chả lụa heo hoặc thịt kho nạc.",
-    parentPhone: "0934.444.555 (Mẹ em Linh)",
-    reportedDate: "2026-10-16",
-    teacherNotes: "Không ăn được cả bánh bông lan có trứng.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
-  },
-  {
-    id: "stu-5",
-    studentName: "Đặng Tuấn Kiệt",
-    gender: "Nam",
-    className: "Lớp 1B",
-    grade: "1",
-    homeroomTeacher: "Thầy Lê Minh Quân",
-    teacherPhone: "0983.123.456",
-    allergenName: "Trứng gà",
-    allergenCategory: "Trứng gia cầm",
-    symptoms: "Nổi mẩn sần li ti hai bên má.",
-    severity: "LOW",
-    dietaryNote: "Tránh các món trứng rán, trứng kho.",
-    parentPhone: "0908.555.666 (Bố em Kiệt)",
-    reportedDate: "2026-10-20",
-    teacherNotes: "Nếu ăn một lượng nhỏ thì không sao, ăn nhiều sẽ mẩn đỏ.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
-  },
-  {
-    id: "stu-6",
-    studentName: "Vũ Gia Huy",
-    gender: "Nam",
-    className: "Lớp 2B",
-    grade: "2",
-    homeroomTeacher: "Cô Phạm Thanh Hằng",
-    teacherPhone: "0904.789.321",
-    allergenName: "Tôm sú, Ghẹ biển",
-    allergenCategory: "Thủy hải sản",
-    symptoms: "Phù môi trên, nổi ban đỏ ngực và lưng, khó chịu vùng họng.",
-    severity: "HIGH",
-    dietaryNote: "Suất ăn riêng 100%: Thay bằng thịt bò xào hoặc sườn rim.",
-    parentPhone: "0915.666.777 (Mẹ em Huy)",
-    reportedDate: "2026-10-14",
-    teacherNotes: "Tiền sử dị ứng nặng, cô giáo kiểm tra khay ăn trước khi cho ăn.",
-    hasEmergencyMedicine: true,
-    emergencyMedicineNote: "Thuốc Aerius gửi tại phòng y tế trường.",
-  },
-  {
-    id: "stu-7",
-    studentName: "Bùi Khánh Vy",
-    gender: "Nữ",
-    className: "Lớp 2B",
-    grade: "2",
-    homeroomTeacher: "Cô Phạm Thanh Hằng",
-    teacherPhone: "0904.789.321",
-    allergenName: "Tôm biển",
-    allergenCategory: "Thủy hải sản",
-    symptoms: "Nổi mẩn ngứa vùng cổ tay và mí mắt.",
-    severity: "MEDIUM",
-    dietaryNote: "Đổi món canh tôm sang canh thịt băm nấu rau ngót.",
-    parentPhone: "0989.777.888 (Mẹ em Vy)",
-    reportedDate: "2026-10-15",
-    teacherNotes: "Phụ huynh ghi chú trong sổ liên lạc điện tử.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
-  },
-  {
-    id: "stu-8",
-    studentName: "Ngô Đức Phúc",
-    gender: "Nam",
+    id: "cls-3a",
     className: "Lớp 3A",
-    grade: "3",
-    homeroomTeacher: "Thầy Đỗ Văn Cường",
-    teacherPhone: "0915.998.877",
-    allergenName: "Sữa bò tươi, Phô mai",
-    allergenCategory: "Sữa & Chế phẩm",
-    symptoms: "Đau quặn bụng, tiêu chảy sau uống sữa tươi 20–30 phút (bất dung nạp lactose).",
-    severity: "MEDIUM",
-    dietaryNote: "Bữa phụ chiều: Đổi sang sữa hạt hoặc nước hoa quả ép tươi.",
-    parentPhone: "0902.888.999 (Bố em Phúc)",
-    reportedDate: "2026-10-17",
-    teacherNotes: "Học sinh uống sữa hạt bình thường, không được phát sữa chua hoặc sữa tươi hộp.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
+    grade: 3,
+    academicYear: "2026-2027",
+    schoolName: "Trường THCS & Tiểu học Đoàn Thị Điểm",
+    roomLocation: "Phòng 301",
+    roomBuilding: "Tầng 3, Dãy A",
+    semester: "Học kỳ 1",
+    totalStudents: 35,
+    registeredPortions: 35,
+    homeroomTeacher: "Cô Nguyễn Thị Hoa",
+    profileStatus: "Chuẩn hóa",
+    verificationStatus: "Đã đối chiếu BGH",
+    updatedAt: "2026-10-24 09:00",
+    allergies: [
+      {
+        id: "alg-3a-1",
+        ingredientId: "ing-peanuts",
+        ingredientCode: "ING-NUT-004",
+        ingredientName: "Đậu phộng (Lạc)",
+        category: "Các loại hạt (Nuts & Seeds)",
+        handlingType: "DRY_STOCK",
+        affectedCount: 1,
+        updatedAt: "24/10/2026",
+        commonSources: "Hạt rang, bơ đậu phộng, bánh kẹo hạt",
+        commonSourcesDetail: "Cần chú ý trong các món chè, salad hoặc sốt gia vị",
+        safeSubstitutes: "Hạt vừng trắng, hạt hạnh nhân lát kiểm định",
+        safeSubstitutesDetail: "Đã được kiểm duyệt trong danh mục nguyên liệu trường",
+        verificationNote: "Hồ sơ y tế đầu năm hoàn tất",
+        verificationSubnote: "GVCN thu thập từ phiếu khai báo sức khỏe bán trú",
+        kitchenNote:
+          "Loại trừ đậu phộng trong toàn bộ món phụ và gia vị sốt của khay ăn dành cho lớp 3A. Bàn ăn được phân bổ tại dãy số 1 nhà ăn tiểu học.",
+      },
+    ],
   },
   {
-    id: "stu-9",
-    studentName: "Hoàng Mai Chi",
-    gender: "Nữ",
+    id: "cls-4a",
     className: "Lớp 4A",
-    grade: "4",
-    homeroomTeacher: "Cô Bùi Bích Phương",
-    teacherPhone: "0936.112.233",
-    allergenName: "Trứng gà",
-    allergenCategory: "Trứng gia cầm",
-    symptoms: "Ngứa da quanh miệng, đầy bụng.",
-    severity: "LOW",
-    dietaryNote: "Tránh món trứng đúc thịt hoặc chả trứng.",
-    parentPhone: "0913.999.000 (Mẹ em Chi)",
-    reportedDate: "2026-10-19",
-    teacherNotes: "Cô giáo nhắc nhở em khi ăn tại nhà ăn.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
+    grade: 4,
+    academicYear: "2026-2027",
+    schoolName: "Trường THCS & Tiểu học Đoàn Thị Điểm",
+    roomLocation: "Phòng 401",
+    roomBuilding: "Tầng 4, Dãy B",
+    semester: "Học kỳ 1",
+    totalStudents: 38,
+    registeredPortions: 38,
+    homeroomTeacher: "Thầy Lê Anh Tuấn",
+    profileStatus: "Chuẩn hóa",
+    verificationStatus: "Đã đối chiếu BGH",
+    updatedAt: "2026-10-26 08:30",
+    allergies: [
+      {
+        id: "alg-4a-1",
+        ingredientId: "ing-peanuts",
+        ingredientCode: "ING-NUT-004",
+        ingredientName: "Đậu phộng (Lạc)",
+        category: "Các loại hạt (Nuts & Seeds)",
+        handlingType: "DRY_STOCK",
+        affectedCount: 1,
+        updatedAt: "26/10/2026",
+        commonSources: "Hạt khô, kẹo lạc, dầu phộng tinh luyện",
+        commonSourcesDetail: "Cảnh báo chéo trong dây chuyền chế biến bánh ăn phụ",
+        safeSubstitutes: "Hạt điều nguyên vị hoặc đậu tương hữu cơ đã duyệt",
+        safeSubstitutesDetail: "Theo quy chuẩn nguyên liệu an toàn thực phẩm",
+        verificationNote: "Hồ sơ y tế đầu năm hoàn tất",
+        verificationSubnote: "Đã xác thực chữ ký phụ huynh và GVCN",
+        kitchenNote:
+          "Bộ phận chia suất lưu ý dán nhãn suất ăn riêng không chứa hạt cho học sinh lớp 4A. Kiểm tra dầu ăn dùng cho món chiên xào.",
+      },
+    ],
   },
   {
-    id: "stu-10",
-    studentName: "Dương Quốc Bảo",
-    gender: "Nam",
-    className: "Lớp 4B",
-    grade: "4",
-    homeroomTeacher: "Thầy Trần Đức Nam",
-    teacherPhone: "0944.556.677",
-    allergenName: "Cá biển (Cá ngừ, cá nục)",
-    allergenCategory: "Thủy hải sản",
-    symptoms: "Chóng mặt nhẹ, nổi ban đỏ hai bên thái dương và cổ.",
-    severity: "MEDIUM",
-    dietaryNote: "Đổi sang thịt nạc kho củ cải hoặc gà chiên mắm.",
-    parentPhone: "0988.000.111 (Mẹ em Bảo)",
-    reportedDate: "2026-10-16",
-    teacherNotes: "Cá đồng ăn bình thường, chỉ bị cá ngừ/cá nục.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
+    id: "cls-2b",
+    className: "Lớp 2B",
+    grade: 2,
+    academicYear: "2026-2027",
+    schoolName: "Trường THCS & Tiểu học Đoàn Thị Điểm",
+    roomLocation: "Phòng 202",
+    roomBuilding: "Tầng 2, Dãy A",
+    semester: "Học kỳ 1",
+    totalStudents: 34,
+    registeredPortions: 34,
+    homeroomTeacher: "Cô Hoàng Thảo My",
+    profileStatus: "Chuẩn hóa",
+    verificationStatus: "Đã đối chiếu BGH",
+    updatedAt: "2026-10-27 10:15",
+    allergies: [
+      {
+        id: "alg-2b-1",
+        ingredientId: "ing-shrimp",
+        ingredientCode: "ING-SEA-002",
+        ingredientName: "Tôm sú",
+        category: "Thủy hải sản (Seafood)",
+        handlingType: "COLD_STORAGE",
+        affectedCount: 3,
+        updatedAt: "27/10/2026",
+        commonSources: "Tôm tươi, chả tôm, nước dùng nấu từ vỏ tôm",
+        commonSourcesDetail: "Phổ biến trong các món canh chua, bún hải sản, tôm rim",
+        safeSubstitutes: "Thịt nạc heo, phi lê cá ba sa tươi kiểm định",
+        safeSubstitutesDetail: "Nguồn thịt tươi đạt chuẩn chuỗi VietGAP",
+        verificationNote: "Hồ sơ y tế đầu năm hoàn tất",
+        verificationSubnote: "Xác nhận phối hợp giữa GVCN & Phụ huynh",
+        kitchenNote:
+          "Lớp 2B có 3 học sinh dị ứng tôm sú. Khi thực đơn có món tôm, bếp trưởng chủ động thay thế bằng suất thịt heo rim nấm hoặc cá ba sa áp chảo cho 3 phần ăn này.",
+      },
+      {
+        id: "alg-2b-2",
+        ingredientId: "ing-egg",
+        ingredientCode: "ING-EGG-001",
+        ingredientName: "Trứng gà",
+        category: "Trứng & Gia cầm (Eggs & Poultry)",
+        handlingType: "DIRECT_USE",
+        affectedCount: 1,
+        updatedAt: "27/10/2026",
+        commonSources: "Trứng luộc, trứng rán, bánh trứng, sốt kem",
+        commonSourcesDetail: "Cần lưu ý trứng dùng làm chất kết dính trong chả viên",
+        safeSubstitutes: "Đậu hũ non sốt cà chua, thịt băm viên mộc nhĩ",
+        safeSubstitutesDetail: "Đã chứng nhận an toàn trong danh mục nhà trường",
+        verificationNote: "Hồ sơ y tế đầu năm hoàn tất",
+        verificationSubnote: "Đã cập nhật phiếu dinh dưỡng từ GVCN",
+        kitchenNote:
+          "Tránh sử dụng bột tẩm có trứng hoặc sốt mayonnaise cho phần ăn dị ứng trứng của lớp 2B.",
+      },
+    ],
   },
   {
-    id: "stu-11",
-    studentName: "Lý Gia Hân",
-    gender: "Nữ",
+    id: "cls-5a",
     className: "Lớp 5A",
-    grade: "5",
-    homeroomTeacher: "Cô Vũ Thu Hằng",
-    teacherPhone: "0909.887.766",
-    allergenName: "Đậu phộng / Lạc",
-    allergenCategory: "Hạt & Khô",
-    symptoms: "Khó nuốt, cảm giác nghẹn họng, nổi mề đay toàn thân.",
-    severity: "HIGH",
-    dietaryNote: "Khay ăn riêng biệt, kiểm tra kỹ nguồn sốt và gia vị.",
-    parentPhone: "0905.111.333 (Mẹ em Hân)",
-    reportedDate: "2026-10-14",
-    teacherNotes: "Học sinh tự ý thức được việc hỏi cô giáo xem thức ăn có lạc không.",
-    hasEmergencyMedicine: true,
-    emergencyMedicineNote: "Có thuốc dị ứng tại phòng Y tế trường.",
-  },
-  {
-    id: "stu-12",
-    studentName: "Trịnh Thảo Nguyên",
-    gender: "Nữ",
-    className: "Lớp 5A",
-    grade: "5",
-    homeroomTeacher: "Cô Vũ Thu Hằng",
-    teacherPhone: "0909.887.766",
-    allergenName: "Bột mì / Gluten",
-    allergenCategory: "Tinh bột",
-    symptoms: "Chướng bụng, đầy hơi sau ăn bánh mì hoặc đồ tẩm bột chiên xù.",
-    severity: "LOW",
-    dietaryNote: "Ưu tiên cơm trắng, không cho ăn đồ chiên xù.",
-    parentPhone: "0938.222.444 (Bố em Nguyên)",
-    reportedDate: "2026-10-21",
-    teacherNotes: "Cô giáo nhắc nhở khi đến bữa có món tẩm bột rán.",
-    hasEmergencyMedicine: false,
-    emergencyMedicineNote: "",
+    grade: 5,
+    academicYear: "2026-2027",
+    schoolName: "Trường THCS & Tiểu học Đoàn Thị Điểm",
+    roomLocation: "Phòng 501",
+    roomBuilding: "Tầng 5, Dãy B",
+    semester: "Học kỳ 1",
+    totalStudents: 35,
+    registeredPortions: 35,
+    homeroomTeacher: "Cô Đặng Thu Hà",
+    profileStatus: "Chuẩn hóa",
+    verificationStatus: "Đã đối chiếu BGH",
+    updatedAt: "2026-10-28 14:20",
+    allergies: [
+      {
+        id: "alg-5a-1",
+        ingredientId: "ing-cow-milk",
+        ingredientCode: "ING-DRY-008",
+        ingredientName: "Sữa bò tươi",
+        category: "Sữa & Sản phẩm từ sữa (Dairy)",
+        handlingType: "COLD_STORAGE",
+        affectedCount: 2,
+        updatedAt: "28/10/2026",
+        commonSources: "Sữa tươi, sữa chua, phô mai lát, bơ lạt",
+        commonSourcesDetail: "Thường xuyên có trong bữa phụ xế chiều của học sinh",
+        safeSubstitutes: "Sữa hạt đậu nành tiệt trùng, sữa yến mạch FOS",
+        safeSubstitutesDetail: "Nguồn sữa thực vật tiêu chuẩn dinh dưỡng học đường",
+        verificationNote: "Hồ sơ y tế đầu năm hoàn tất",
+        verificationSubnote: "Đã kiểm tra chứng chỉ y bạ dị ứng đạm sữa bò",
+        kitchenNote:
+          "Bữa phụ chiều chuyển đổi sang sữa yến mạch cho 2 học sinh lớp 5A. Quản lý kho bếp xuất đúng số lượng sữa hạt theo tem dán lớp.",
+      },
+    ],
   },
 ]
 
-const STORAGE_KEY = "foodprint_student_allergies_collected_v2"
+/**
+ * Tính toán 2 chỉ số KPI:
+ * 1. Số lớp có ghi nhận dị ứng
+ * 2. Số loại nguyên liệu được ghi nhận dị ứng
+ * 
+ * Lưu ý: TUYỆT ĐỐI không cộng gộp các affectedCount của các nguyên liệu
+ * để tính "tổng số học sinh dị ứng toàn trường" (vì 1 học sinh có thể dị ứng nhiều loại).
+ */
+export function computeAllergySummary(classList = MOCK_CLASS_ALLERGIES) {
+  const classesWithAllergies = classList.filter(
+    (cls) => Array.isArray(cls.allergies) && cls.allergies.length > 0
+  )
 
-export function getStoredStudentAllergies() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed
-    }
-  } catch (e) {
-    console.error("Lỗi đọc dữ liệu dị ứng học sinh từ localStorage:", e)
-  }
-  return INITIAL_STUDENT_ALLERGIES
-}
-
-export function saveStoredStudentAllergies(data) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-  } catch (e) {
-    console.error("Lỗi ghi dữ liệu dị ứng học sinh vào localStorage:", e)
-  }
-}
-
-// Hàm tính toán thống kê tổng hợp phục vụ nhân viên y tế
-export function computeStudentAllergyStats(list) {
-  const totalStudents = list.length
-  let highSeverityCount = 0
-  let mediumSeverityCount = 0
-  let lowSeverityCount = 0
-
-  const classSet = new Set()
-  const allergenCountMap = {}
-
-  list.forEach((item) => {
-    classSet.add(item.className)
-    if (item.severity === "HIGH") highSeverityCount += 1
-    else if (item.severity === "MEDIUM") mediumSeverityCount += 1
-    else lowSeverityCount += 1
-
-    const cat = item.allergenCategory || "Khác"
-    allergenCountMap[cat] = (allergenCountMap[cat] || 0) + 1
+  const ingredientSet = new Set()
+  classesWithAllergies.forEach((cls) => {
+    cls.allergies.forEach((alg) => {
+      if (alg.ingredientName) {
+        ingredientSet.add(alg.ingredientName.trim().toLowerCase())
+      }
+    })
   })
-
-  const topAllergens = Object.entries(allergenCountMap)
-    .sort((a, b) => b[1] - a[1])
-    .map(([category, count]) => ({ category, count }))
 
   return {
-    totalStudents,
-    totalClasses: classSet.size,
-    highSeverityCount,
-    mediumSeverityCount,
-    lowSeverityCount,
-    topAllergens,
+    totalClasses: classesWithAllergies.length,
+    totalIngredients: ingredientSet.size,
   }
-}
-
-// Nhóm danh sách học sinh theo từng Lớp học
-export function groupAllergiesByClass(list) {
-  const map = {}
-  list.forEach((item) => {
-    if (!map[item.className]) {
-      map[item.className] = {
-        className: item.className,
-        grade: item.grade,
-        homeroomTeacher: item.homeroomTeacher,
-        teacherPhone: item.teacherPhone,
-        students: [],
-      }
-    }
-    map[item.className].students.push(item)
-  })
-
-  return Object.values(map).sort((a, b) => a.className.localeCompare(b.className))
 }

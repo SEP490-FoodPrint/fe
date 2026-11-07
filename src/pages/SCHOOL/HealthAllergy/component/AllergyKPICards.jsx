@@ -1,69 +1,63 @@
 import React from "react"
-import PeopleAltOutlinedIcon from "@mui/icons-material/PeopleAltOutlined"
-import ClassOutlinedIcon from "@mui/icons-material/ClassOutlined"
-import WarningAmberOutlinedIcon from "@mui/icons-material/WarningAmberOutlined"
-import SetMealOutlinedIcon from "@mui/icons-material/SetMealOutlined"
+import PropTypes from "prop-types"
+import { School, Layers, CheckCircle2 } from "lucide-react"
 import styles from "./AllergyKPICards.module.scss"
 
-export default function AllergyKPICards({ stats }) {
-  const cards = [
-    {
-      id: "total-students",
-      label: "Học sinh có thông tin dị ứng",
-      value: `${stats.totalStudents || 0}`,
-      unit: "học sinh",
-      meta: "Do các GVCN thu thập từ phụ huynh",
-      icon: <PeopleAltOutlinedIcon className={styles.icon} />,
-      variant: "primary",
-    },
-    {
-      id: "total-classes",
-      label: "Số Lớp ghi nhận dị ứng",
-      value: `${stats.totalClasses || 0}`,
-      unit: "lớp học",
-      meta: "Có học sinh cần lưu ý bữa ăn",
-      icon: <ClassOutlinedIcon className={styles.icon} />,
-      variant: "info",
-    },
-    {
-      id: "high-severity",
-      label: "Dị ứng nặng / Cần theo dõi sát",
-      value: `${stats.highSeverityCount || 0}`,
-      unit: "trường hợp",
-      meta: "Tiền sử mề đay cấp, phù môi hoặc khó thở",
-      icon: <WarningAmberOutlinedIcon className={styles.icon} />,
-      variant: "danger",
-    },
-    {
-      id: "top-allergen",
-      label: "Nhóm dị nguyên nhiều nhất",
-      value: stats.topAllergens?.[0]?.category || "Thủy hải sản",
-      unit: `(${stats.topAllergens?.[0]?.count || 0} học sinh)`,
-      meta: "Chủ yếu là tôm biển, cua đồng, ghẹ",
-      icon: <SetMealOutlinedIcon className={styles.icon} />,
-      variant: "warning",
-    },
-  ]
+export default function AllergyKPICards({ summary }) {
+  const { totalClasses = 0, totalIngredients = 0 } = summary || {}
+
+  const formatNumber = (num) => (num < 10 ? `0${num}` : `${num}`)
 
   return (
-    <section aria-label="Thống kê dị ứng học sinh" className={styles.kpiGrid}>
-      {cards.map((card) => (
-        <div key={card.id} className={`${styles.kpiCard} ${styles[card.variant]}`}>
-          <div className={styles.topContent}>
-            <span className={styles.cardLabel}>{card.label}</span>
-            <div className={styles.iconWrapper}>{card.icon}</div>
+    <div className={styles.kpiGrid}>
+      {/* KPI 1: Số lớp có ghi nhận dị ứng */}
+      <div className={styles.kpiCard}>
+        <div className={styles.kpiHeader}>
+          <div className={`${styles.iconWrap} ${styles.iconWrapSchool}`}>
+            <School size={22} />
           </div>
-
-          <div className={styles.valueRow}>
-            <span className={styles.mainValue}>{card.value}</span>
-            {card.unit && <span className={styles.unitText}>{card.unit}</span>}
-          </div>
-
-          <div className={styles.footerRow}>
-            <span className={styles.metaText}>{card.meta}</span>
+          <span className={styles.kpiBadge}>Dữ liệu theo lớp</span>
+        </div>
+        <div className={styles.kpiBody}>
+          <span className={styles.kpiLabel}>Số lớp có ghi nhận dị ứng</span>
+          <div className={styles.kpiValueRow}>
+            <span className={styles.kpiValue}>{formatNumber(totalClasses)}</span>
+            <span className={styles.kpiUnit}>lớp học</span>
           </div>
         </div>
-      ))}
-    </section>
+        <div className={styles.kpiFooter}>
+          <CheckCircle2 size={14} className={styles.footerIcon} />
+          <span>Tổng hợp từ phiếu thu thập y bạ đầu năm</span>
+        </div>
+      </div>
+
+      {/* KPI 2: Số loại nguyên liệu được ghi nhận dị ứng */}
+      <div className={styles.kpiCard}>
+        <div className={styles.kpiHeader}>
+          <div className={`${styles.iconWrap} ${styles.iconWrapIngredient}`}>
+            <Layers size={22} />
+          </div>
+          <span className={styles.kpiBadge}>Danh mục nguyên liệu</span>
+        </div>
+        <div className={styles.kpiBody}>
+          <span className={styles.kpiLabel}>Số loại nguyên liệu được ghi nhận</span>
+          <div className={styles.kpiValueRow}>
+            <span className={styles.kpiValue}>{formatNumber(totalIngredients)}</span>
+            <span className={styles.kpiUnit}>loại nguyên liệu</span>
+          </div>
+        </div>
+        <div className={styles.kpiFooter}>
+          <CheckCircle2 size={14} className={styles.footerIcon} />
+          <span>Căn cứ cảnh báo khi lập và phê duyệt thực đơn</span>
+        </div>
+      </div>
+    </div>
   )
+}
+
+AllergyKPICards.propTypes = {
+  summary: PropTypes.shape({
+    totalClasses: PropTypes.number,
+    totalIngredients: PropTypes.number,
+  }),
 }

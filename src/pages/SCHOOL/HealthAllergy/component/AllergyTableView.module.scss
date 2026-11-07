@@ -1,0 +1,246 @@
+.tableCard {
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+.tableResponsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+}
+
+.table thead tr {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table th {
+  padding: 14px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.thClass {
+  min-width: 140px;
+}
+
+.thYear {
+  min-width: 110px;
+}
+
+.thIngredients {
+  min-width: 220px;
+}
+
+.thCount {
+  min-width: 190px;
+}
+
+.thUpdated {
+  min-width: 140px;
+}
+
+.thAction {
+  min-width: 130px;
+  text-align: right;
+  padding-right: 20px !important;
+}
+
+.tableRow {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: #f8faf9;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.table td {
+  padding: 16px;
+  font-size: 13.5px;
+  color: #1e293b;
+  vertical-align: middle;
+}
+
+/* Class Column */
+.classInfo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.classAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #eaf7f0;
+  color: #00654f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.classNameGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.className {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.gradeBadge {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* Academic Year */
+.yearText {
+  display: inline-block;
+  padding: 3px 8px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Chips Container */
+.chipsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.allergenChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #fef3c7;
+  color: #92400e;
+  border-radius: 9999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border: 1px solid #fde68a;
+}
+
+.chipDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #d97706;
+}
+
+/* Affected Count */
+.singleCount {
+  display: flex;
+  align-items: center;
+}
+
+.countBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  background-color: #eaf7f0;
+  color: #00654f;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-family: "Be Vietnam Pro", sans-serif;
+  border: 1px solid #c7eedd;
+}
+
+.multiCountList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.multiCountItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+}
+
+.multiIngName {
+  color: #475569;
+  font-weight: 500;
+}
+
+.multiCountBadge {
+  display: inline-block;
+  padding: 2px 7px;
+  background-color: #eaf7f0;
+  color: #00654f;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #c7eedd;
+}
+
+/* Updated time */
+.updatedCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.clockIcon {
+  color: #94a3b8;
+}
+
+/* Action button */
+.tdAction {
+  text-align: right;
+  padding-right: 20px !important;
+}
+
+.viewDetailBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #f0fdf4;
+  color: #00654f;
+  border: 1px solid #bbf7d0;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #00654f;
+    color: #ffffff;
+    border-color: #00654f;
+    box-shadow: 0 2px 6px rgba(0, 101, 79, 0.25);
+  }
+}
