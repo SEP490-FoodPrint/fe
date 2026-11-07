@@ -252,7 +252,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_MEAL_TIMES,
-    label: "Giờ phục vụ",
+    label: "Khung giờ vận hành",
     icon: <ScheduleOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },

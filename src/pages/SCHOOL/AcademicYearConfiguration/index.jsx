@@ -19,6 +19,7 @@ import {
 } from "@mui/material";
 import notice from "src/components/Notice";
 import AcademicYearService from "src/services/AcademicYearService";
+import DateFieldVN from "src/components/Common/DateFieldVN";
 import AcademicYearList from "./component/AcademicYearList";
 import HolidayEditor from "./component/HolidayEditor";
 import "./style.scss";
@@ -270,37 +271,34 @@ function AcademicYearConfiguration() {
                     }))
                   }
                 />
-                <TextField
+                <DateFieldVN
                   fullWidth
-                  type="date"
                   label="Ngày bắt đầu"
                   value={form.startDate}
                   disabled={saving}
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  onChange={(event) =>
+                  onChange={(startDate) =>
                     setForm((current) => ({
                       ...current,
-                      startDate: event.target.value,
+                      startDate,
                     }))
                   }
                 />
-                <TextField
+                <DateFieldVN
                   fullWidth
-                  type="date"
                   label="Ngày kết thúc"
                   value={form.endDate}
                   disabled={saving}
+                  min={form.startDate}
                   error={dateRangeInvalid}
                   helperText={
                     dateRangeInvalid
                       ? "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu."
                       : " "
                   }
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  onChange={(event) =>
+                  onChange={(endDate) =>
                     setForm((current) => ({
                       ...current,
-                      endDate: event.target.value,
+                      endDate,
                     }))
                   }
                 />

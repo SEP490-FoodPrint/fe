@@ -22,6 +22,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import PropTypes from "prop-types";
+import DateFieldVN from "src/components/Common/DateFieldVN";
 import styles from "./HolidayEditor.module.scss";
 
 const blank = { mode: "single", startDate: "", endDate: "", reason: "" };
@@ -241,42 +242,40 @@ function HolidayEditor({ holidays, startDate, endDate, disabled, onChange }) {
           <div
             className={draft.mode === "range" ? styles.dateFields : undefined}
           >
-            <TextField
+            <DateFieldVN
               fullWidth
-              type="date"
               label={draft.mode === "single" ? "Ngày nghỉ" : "Từ ngày"}
               value={draft.startDate}
               disabled={disabled}
-              inputProps={{ min: startDate, max: endDate }}
-              slotProps={{ inputLabel: { shrink: true } }}
+              min={startDate}
+              max={endDate}
               error={outsideAcademicYear || overlap}
               helperText={draft.mode === "single" ? rangeError : " "}
-              onChange={(event) =>
+              onChange={(nextStartDate) =>
                 setDraft((current) => ({
                   ...current,
-                  startDate: event.target.value,
+                  startDate: nextStartDate,
                   endDate:
                     current.mode === "single"
-                      ? event.target.value
+                      ? nextStartDate
                       : current.endDate,
                 }))
               }
             />
             {draft.mode === "range" && (
-              <TextField
+              <DateFieldVN
                 fullWidth
-                type="date"
                 label="Đến ngày"
                 value={draft.endDate}
                 disabled={disabled}
-                inputProps={{ min: draft.startDate || startDate, max: endDate }}
-                slotProps={{ inputLabel: { shrink: true } }}
+                min={draft.startDate || startDate}
+                max={endDate}
                 error={outsideAcademicYear || reversedRange || overlap}
                 helperText={rangeError}
-                onChange={(event) =>
+                onChange={(nextEndDate) =>
                   setDraft((current) => ({
                     ...current,
-                    endDate: event.target.value,
+                    endDate: nextEndDate,
                   }))
                 }
               />
