@@ -70,7 +70,6 @@ export default function KitchenMenu() {
   // 4. Thống kê tổng số món theo ca ăn đang chọn
   const stats = useMemo(() => {
     let totalDishes = 0
-    let portions = 1250
 
     processedDays.forEach((day) => {
       const lunchDishes = day?.meals?.LUNCH?.dishes || []
@@ -83,15 +82,10 @@ export default function KitchenMenu() {
       } else if (mealTypeFilter === "AFTERNOON") {
         totalDishes += afternoonDishes.length
       }
-
-      if (lunchDishes[0]?.portions) {
-        portions = lunchDishes[0].portions
-      }
     })
 
     return {
       totalDishes,
-      portions,
     }
   }, [processedDays, mealTypeFilter])
 
@@ -125,7 +119,6 @@ export default function KitchenMenu() {
         onNextWeek={handleNextWeek}
         onCurrentWeek={handleCurrentWeek}
         totalDishes={stats.totalDishes}
-        portions={stats.portions}
         mealTypeFilter={mealTypeFilter}
         onMealTypeFilterChange={setMealTypeFilter}
       />

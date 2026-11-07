@@ -5,7 +5,6 @@ import {
   ChevronRight,
   Calendar,
   CookingPot,
-  Users,
   Check,
   ArrowRight,
 } from "lucide-react"
@@ -19,7 +18,6 @@ export default function KitchenMenuHeader({
   onNextWeek,
   onCurrentWeek,
   totalDishes = 30,
-  portions = 1250,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
 }) {
@@ -147,19 +145,12 @@ export default function KitchenMenuHeader({
 
           <span className={styles.inlineDivider} />
 
-          {/* Các KPI hiển thị ngang theo đúng hình mẫu */}
+          {/* KPI hiển thị ngang: tổng số món */}
           <div className={styles.kpiInlineGroup}>
             <div className={styles.kpiInlineItem}>
               <CookingPot size={14} className={styles.kpiIcon} />
               <span className={styles.kpiText}>
                 <strong>{totalDishes}</strong> món
-              </span>
-            </div>
-
-            <div className={styles.kpiInlineItem}>
-              <Users size={14} className={styles.kpiIcon} />
-              <span className={styles.kpiText}>
-                <strong>{portions.toLocaleString("vi-VN")}</strong> suất/ngày
               </span>
             </div>
           </div>

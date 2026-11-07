@@ -5,7 +5,6 @@ import OutdoorGrillOutlinedIcon from "@mui/icons-material/OutdoorGrillOutlined"
 import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined"
 import SanitizerOutlinedIcon from "@mui/icons-material/SanitizerOutlined"
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined"
-import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined"
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined"
@@ -185,12 +184,6 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_KITCHEN_MENU,
     label: "Thực đơn tuần học đường",
     icon: <RestaurantMenuOutlinedIcon />,
-    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
-  },
-  {
-    key: ROUTER.SCHOOL_MENU_PLANNING,
-    label: "Danh sách thực đơn",
-    icon: <DescriptionOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {

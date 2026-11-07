@@ -231,9 +231,9 @@ const routes = [
             ],
           },
 
-          // Lập thực đơn & cảnh báo dị ứng: Ban Y tế
+          // Lập thực đơn & cảnh báo dị ứng: Nhân viên Dinh dưỡng
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_KITCHEN_STAFF]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
               { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },
