@@ -15,7 +15,7 @@ export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = f
             </span>
           </div>
           <p className={styles.pageSubtitle}>
-            Chọn món ăn từ Kho món ăn bán trú để thiết lập cơ cấu dinh dưỡng và hoàn thiện thực đơn theo tuần học đường.
+            Chọn món từ danh sách món ăn bán trú để thiết lập cơ cấu dinh dưỡng và hoàn thiện thực đơn tuần học đường.
           </p>
         </div>
 

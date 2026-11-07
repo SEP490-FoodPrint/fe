@@ -13,7 +13,7 @@ const KPI_ITEMS = [
     id: "menus-todo",
     title: "Thực đơn cần xử lý",
     count: "02",
-    description: "Cần hoàn thiện hoặc sửa theo ý kiến BGH",
+    description: "Ý kiến BGH & bản nháp",
     icon: <EditNoteOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_MENU_PLANNING,
     colorScheme: "primary",
@@ -22,7 +22,7 @@ const KPI_ITEMS = [
     id: "pending-approval",
     title: "Chờ BGH duyệt",
     count: "01",
-    description: "Đã gửi duyệt tuần 46",
+    description: "Thực đơn tuần 46",
     icon: <PendingActionsOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_MENU_PLANNING,
     colorScheme: "primary",
@@ -31,7 +31,7 @@ const KPI_ITEMS = [
     id: "delivery-inspection",
     title: "Giao hàng cần đánh giá",
     count: "03",
-    description: "Đợt giao ca sáng cần kiểm thực",
+    description: "Đợt giao ca sáng",
     icon: <LocalShippingOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     colorScheme: "primary",
@@ -40,7 +40,7 @@ const KPI_ITEMS = [
     id: "allergy-alerts",
     title: "Lớp có thông tin dị ứng",
     count: "06",
-    description: "Tổng hợp số liệu từ các khối",
+    description: "Theo dõi học sinh",
     icon: <HealthAndSafetyOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_HEALTH_ALLERGY,
     colorScheme: "primary",
@@ -94,4 +94,3 @@ export default function HealthKPICards({ onSelectCard }) {
     </section>
   )
 }
-

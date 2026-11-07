@@ -1,7 +1,6 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined"
 import ROUTER from "src/router/ROUTER"
 import styles from "./HealthAllergyByClass.module.scss"
 
@@ -77,15 +76,6 @@ export default function HealthAllergyByClass() {
           ))}
         </div>
       </div>
-
-      {/* Footer Informative Note */}
-      <div className={styles.footerNote}>
-        <InfoOutlinedIcon className={styles.infoIcon} />
-        <p className={styles.noteText}>
-          Dữ liệu tổng hợp từ khai báo y tế học đường đầu năm nhằm đối chiếu thực đơn an toàn.
-        </p>
-      </div>
     </div>
   )
 }
-

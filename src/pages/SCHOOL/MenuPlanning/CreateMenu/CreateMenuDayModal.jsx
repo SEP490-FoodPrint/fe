@@ -258,7 +258,7 @@ export default function CreateMenuDayModal({
                 <div className={styles.previewDishesList}>
                   {lunchDishes.length === 0 ? (
                     <div className={styles.emptyNotice}>
-                      <span>Chưa có món trưa. Chọn món từ kho bên phải để thêm.</span>
+                      <span>Chưa có món trưa. Chọn món từ danh sách bên phải để thêm.</span>
                     </div>
                   ) : (
                     lunchDishes.map((dish) => (
@@ -413,7 +413,7 @@ export default function CreateMenuDayModal({
                 onClick={() => setActiveTab("DISHES")}
               >
                 <Utensils size={14} />
-                <span>Chọn món từ Kho món ăn</span>
+                <span>Chọn món từ Danh sách món ăn</span>
                 <span className={styles.tabBadge}>
                   {currentMealDishes.length}
                 </span>

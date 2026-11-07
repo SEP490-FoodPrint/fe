@@ -31,7 +31,7 @@ export default function MenuDishesTable({
           <div>
             <h2 className={styles.cardTitle}>Món ăn trong thực đơn</h2>
             <p className={styles.cardSubtitle}>
-              Chọn món ăn từ <strong>Kho món ăn học đường</strong> (đã định lượng sẵn). Gạo được quản lý là món ăn chính.
+              Chọn món từ <strong>Danh sách món ăn học đường</strong> (đã định lượng sẵn theo suất).
             </p>
           </div>
         </div>
@@ -40,10 +40,10 @@ export default function MenuDishesTable({
             type="button"
             className={styles.addDishBtn}
             onClick={() => onOpenDishPicker && onOpenDishPicker(null)}
-            title="Mở kho món ăn để chọn món"
+            title="Mở danh sách món ăn để chọn món"
           >
             <span className="material-symbols-outlined">add_circle</span>
-            <span>+ Chọn món từ Kho món ăn</span>
+            <span>+ Chọn món từ Danh sách món ăn</span>
           </button>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function MenuDishesTable({
           <thead>
             <tr>
               <th className={styles.thOrder}>STT</th>
-              <th className={styles.thDishName}>Tên món ăn (Kho món ăn)</th>
+              <th className={styles.thDishName}>Tên món ăn</th>
               <th className={styles.thIngredientFlow}>
                 Thành phần chính (NCC liên kết) & Đối soát dị ứng
               </th>
@@ -65,7 +65,7 @@ export default function MenuDishesTable({
             {dishes.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ textAlign: "center", padding: "30px 14px", color: "#64748b" }}>
-                  Chưa có món ăn nào trong ca này. Hãy bấm <strong>"+ Chọn món từ Kho món ăn"</strong> để bắt đầu.
+                  Chưa có món ăn nào trong ca này. Hãy bấm <strong>"+ Chọn món từ Danh sách món ăn"</strong> để bắt đầu.
                 </td>
               </tr>
             ) : (

@@ -13,9 +13,6 @@ export default function HealthHeader() {
     <header className={styles.header}>
       <div className={styles.leftCol}>
         <h1 className={styles.title}>Tổng quan Ban Y tế</h1>
-        <p className={styles.subtitle}>
-          Theo dõi thực đơn, kho món ăn chuẩn hóa, thông tin dị ứng học sinh và đánh giá giao nhận.
-        </p>
       </div>
 
       <div className={styles.rightGroup}>
@@ -23,10 +20,10 @@ export default function HealthHeader() {
           type="button"
           className={styles.dishCatalogBtn}
           onClick={() => navigate(ROUTER.SCHOOL_DISH_CATALOG)}
-          title="Mở Kho Món Ăn Master Data"
+          title="Mở Danh sách món ăn"
         >
           <MenuBookOutlinedIcon className={styles.btnIcon} />
-          <span>Kho Món Ăn</span>
+          <span>Danh sách món ăn</span>
         </button>
 
         <div className={styles.dateBadge}>

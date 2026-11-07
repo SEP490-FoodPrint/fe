@@ -91,9 +91,6 @@ export default function HealthPendingTasksTable() {
       <div className={styles.cardHeader}>
         <div className={styles.headerTitleWrap}>
           <h2 className={styles.heading}>Công việc cần xử lý</h2>
-          <p className={styles.subheading}>
-            Những hạng mục đang chờ ý kiến chuyên môn và thao tác từ Nhân viên y tế.
-          </p>
         </div>
 
         <div className={styles.headerRight}>
@@ -216,4 +213,3 @@ export default function HealthPendingTasksTable() {
     </section>
   )
 }
-

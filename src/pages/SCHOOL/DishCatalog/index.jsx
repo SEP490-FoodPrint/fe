@@ -263,7 +263,7 @@ export default function DishCatalogPage() {
       {/* Header (Không có icon) */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
-          <h1 className={styles.title}>Kho Món Ăn Bán Trú</h1>
+          <h1 className={styles.title}>Danh Sách Món Ăn Bán Trú</h1>
           <p className={styles.subtitle}>
             Cán bộ Y tế quản lý danh mục món ăn chuẩn, định lượng theo suất và nguyên liệu từ Nhà cung cấp
           </p>
@@ -618,7 +618,7 @@ export default function DishCatalogPage() {
           <div className={styles.confirmBox}>
             <h3 className={styles.confirmTitle}>Xác nhận xóa món ăn</h3>
             <p className={styles.confirmMsg}>
-              Bạn có chắc chắn muốn xóa món <strong>"{deletingDish.name}"</strong> khỏi kho món ăn?
+              Bạn có chắc chắn muốn xóa món <strong>"{deletingDish.name}"</strong> khỏi danh sách món ăn?
               Thao tác này sẽ không thể hoàn tác.
             </p>
             <div className={styles.confirmActions}>

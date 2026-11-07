@@ -13,31 +13,27 @@ export default function HealthMasterDataCard() {
   const stats = [
     { key: "RICE_STARCH", label: "Cơm & Tinh bột", count: catalog.filter((d) => d.category === "RICE_STARCH").length },
     { key: "MAIN_DISH", label: "Món mặn & Súp", count: catalog.filter((d) => d.category === "MAIN_DISH").length },
-    { key: "VEGETABLE", label: "Món xào / Rau củ", count: catalog.filter((d) => d.category === "VEGETABLE").length },
+    { key: "VEGETABLE", label: "Rau củ & Xào", count: catalog.filter((d) => d.category === "VEGETABLE").length },
     { key: "SOUP", label: "Canh dinh dưỡng", count: catalog.filter((d) => d.category === "SOUP").length },
-    { key: "DESSERT", label: "Món tráng miệng", count: catalog.filter((d) => d.category === "DESSERT").length },
+    { key: "DESSERT", label: "Tráng miệng", count: catalog.filter((d) => d.category === "DESSERT").length },
   ]
 
   return (
     <div className={styles.masterDataCard}>
       <div className={styles.leftInfo}>
         <div className={styles.iconWrap}>
-          <BookOpen size={24} />
+          <BookOpen size={20} />
         </div>
         <div className={styles.textWrap}>
-          <div className={styles.badgeRow}>
-            <span className={styles.highlightBadge}>Master Data Y Tế</span>
+          <div className={styles.headerRow}>
+            <h2 className={styles.title}>Danh sách món ăn</h2>
             <span className={styles.countBadge}>
               <CheckCircle2 size={13} className={styles.miniCheck} />
-              {catalog.length} món đã chuẩn hóa
+              {catalog.length} món chuẩn hóa
             </span>
           </div>
-          <h2 className={styles.title}>Kho Món Ăn Bán Trú Học Đường</h2>
-          <p className={styles.desc}>
-            Cán bộ Y tế nhập trước danh mục món ăn & định lượng chuẩn (suất/g/ml). Gạo được quản lý như món tinh bột chính. Khi lập thực đơn, chỉ cần chọn nhanh từ kho mà không phải gõ tay.
-          </p>
 
-          {/* Dải thống kê các nhóm món ăn */}
+          {/* Dải thống kê 5 nhóm dinh dưỡng tinh gọn */}
           <div className={styles.categoryPills}>
             {stats.map((s) => (
               <div key={s.key} className={styles.pillItem}>
@@ -55,8 +51,8 @@ export default function HealthMasterDataCard() {
           className={styles.primaryActionBtn}
           onClick={() => navigate(ROUTER.SCHOOL_DISH_CATALOG)}
         >
-          <span>Quản lý Kho Món Ăn</span>
-          <ArrowRight size={16} className={styles.btnArrow} />
+          <span>Danh sách món ăn</span>
+          <ArrowRight size={15} className={styles.btnArrow} />
         </button>
 
         <button
@@ -65,7 +61,7 @@ export default function HealthMasterDataCard() {
           onClick={() => navigate(ROUTER.SCHOOL_MENU_CREATE)}
         >
           <PlusCircle size={15} className={styles.btnPlus} />
-          <span>Lập thực đơn từ Kho</span>
+          <span>Tạo thực đơn tuần</span>
         </button>
       </div>
     </div>

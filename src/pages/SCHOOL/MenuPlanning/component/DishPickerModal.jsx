@@ -152,9 +152,9 @@ export default function DishPickerModal({
               <Utensils size={18} />
             </div>
             <div>
-              <h3 className={styles.modalTitle}>Kho món ăn học đường (Master Data)</h3>
+              <h3 className={styles.modalTitle}>Danh sách món ăn học đường</h3>
               <p className={styles.modalSubtitle}>
-                Chọn món ăn dinh dưỡng đã định lượng sẵn để thêm vào thực đơn (Gạo là món ăn chính)
+                Chọn món ăn dinh dưỡng đã định lượng sẵn để thêm vào thực đơn
               </p>
             </div>
           </div>
