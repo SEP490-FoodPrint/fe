@@ -29,48 +29,10 @@
   }
 }
 
-.subtitle {
-  margin: 0;
-  font-size: 14px;
-  color: var(--text-secondary, #52635c);
-  line-height: 1.5;
-}
-
 .rightGroup {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
-}
-
-.dishCatalogBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background-color: #0a8066;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 2px 5px rgba(10, 128, 102, 0.2);
-
-  &:hover {
-    background-color: #086d57;
-    transform: translateY(-1px);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-}
-
-.btnIcon {
-  font-size: 17px !important;
 }
 
 .dateBadge {
