@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { IconButton, MenuItem, TextField, Tooltip, Typography } from "@mui/material"
-import { CalendarRange, ChevronLeft, ChevronRight, Cookie, Users, Utensils } from "lucide-react"
+import { FormControl, IconButton, MenuItem, Select, Tooltip, Typography } from "@mui/material"
+import { Calendar, CalendarRange, ChevronLeft, ChevronRight, Cookie, Users, Utensils } from "lucide-react"
 import styles from "./MenuSchedule.module.scss"
 
 const WEEK_STATUS_CONFIG = {
@@ -79,33 +79,34 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
           <CalendarRange size={21} /> Thực đơn tuần
         </Typography>
 
-        <div className={styles.weekPickerContainer}>
-          {weeks.length > 1 && (
-            <Tooltip title={prevWeek ? `Tuần trước (${formatWeekRange(prevWeek.weekStartDate)})` : ""}>
-              <span>
-                <IconButton
-                  size="small"
-                  disabled={disabled || !prevWeek}
-                  onClick={() => prevWeek && onWeekChange(prevWeek.id)}
-                  aria-label="Tuần trước"
-                  className={styles.navButton}
-                >
-                  <ChevronLeft size={18} />
-                </IconButton>
-              </span>
-            </Tooltip>
-          )}
+        <div className={styles.weekNavigator}>
+          <Tooltip title={prevWeek ? `Tuần trước (${formatWeekRange(prevWeek.weekStartDate)})` : ""}>
+            <span>
+              <IconButton
+                size="small"
+                disabled={disabled || !prevWeek}
+                onClick={() => prevWeek && onWeekChange(prevWeek.id)}
+                aria-label="Tuần trước"
+                className={styles.navButton}
+              >
+                <ChevronLeft size={16} />
+              </IconButton>
+            </span>
+          </Tooltip>
 
-          <TextField
-            select
-            size="small"
-            label="Tuần thực đơn"
-            value={selectedWeekId || ""}
-            onChange={(event) => onWeekChange(event.target.value)}
-            disabled={disabled}
-            className={styles.weekSelect}
-            SelectProps={{
-              renderValue: (selectedId) => {
+          <FormControl size="small" className={styles.weekFormControl}>
+            <Select
+              value={selectedWeekId || ""}
+              onChange={(event) => onWeekChange(event.target.value)}
+              disabled={disabled}
+              className={styles.weekSelect}
+              displayEmpty
+              MenuProps={{
+                PaperProps: {
+                  className: styles.dropdownPaper,
+                },
+              }}
+              renderValue={(selectedId) => {
                 const selectedWeek = weeks.find((w) => w.id === selectedId)
                 if (!selectedWeek) return "Chọn tuần"
                 const st =
@@ -114,8 +115,9 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
                     className: styles.statusDraft,
                   }
                 return (
-                  <div className={styles.weekSelectValue}>
-                    <span className={styles.weekSelectText}>
+                  <div className={styles.selectedValue}>
+                    <Calendar size={15} className={styles.calendarIcon} />
+                    <span className={styles.weekDateText}>
                       Tuần {formatWeekRange(selectedWeek.weekStartDate)}
                     </span>
                     <span className={`${styles.statusBadge} ${st.className}`}>
@@ -124,48 +126,46 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
                     </span>
                   </div>
                 )
-              },
-            }}
-          >
-            {weeks.map((week) => {
-              const st =
-                WEEK_STATUS_CONFIG[week.status] || {
-                  label: week.status,
-                  className: styles.statusDraft,
-                }
-              return (
-                <MenuItem
-                  key={week.id}
-                  value={week.id}
-                  className={styles.weekMenuItem}
-                >
-                  <span className={styles.weekMenuItemText}>
-                    Tuần {formatWeekRange(week.weekStartDate)}
-                  </span>
-                  <span className={`${styles.statusBadge} ${st.className}`}>
-                    <span className={styles.statusDot} />
-                    {st.label}
-                  </span>
-                </MenuItem>
-              )
-            })}
-          </TextField>
+              }}
+            >
+              {weeks.map((week) => {
+                const st =
+                  WEEK_STATUS_CONFIG[week.status] || {
+                    label: week.status,
+                    className: styles.statusDraft,
+                  }
+                return (
+                  <MenuItem
+                    key={week.id}
+                    value={week.id}
+                    className={styles.menuItem}
+                  >
+                    <span className={styles.menuItemText}>
+                      Tuần {formatWeekRange(week.weekStartDate)}
+                    </span>
+                    <span className={`${styles.statusBadge} ${st.className}`}>
+                      <span className={styles.statusDot} />
+                      {st.label}
+                    </span>
+                  </MenuItem>
+                )
+              })}
+            </Select>
+          </FormControl>
 
-          {weeks.length > 1 && (
-            <Tooltip title={nextWeek ? `Tuần kế tiếp (${formatWeekRange(nextWeek.weekStartDate)})` : ""}>
-              <span>
-                <IconButton
-                  size="small"
-                  disabled={disabled || !nextWeek}
-                  onClick={() => nextWeek && onWeekChange(nextWeek.id)}
-                  aria-label="Tuần kế tiếp"
-                  className={styles.navButton}
-                >
-                  <ChevronRight size={18} />
-                </IconButton>
-              </span>
-            </Tooltip>
-          )}
+          <Tooltip title={nextWeek ? `Tuần kế tiếp (${formatWeekRange(nextWeek.weekStartDate)})` : ""}>
+            <span>
+              <IconButton
+                size="small"
+                disabled={disabled || !nextWeek}
+                onClick={() => nextWeek && onWeekChange(nextWeek.id)}
+                aria-label="Tuần kế tiếp"
+                className={styles.navButton}
+              >
+                <ChevronRight size={16} />
+              </IconButton>
+            </span>
+          </Tooltip>
         </div>
       </div>
 
