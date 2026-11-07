@@ -396,14 +396,9 @@ export default function MenuPlanning() {
         </div>
       )}
 
-      {/* 1. Tiêu đề màn hình chuẩn mực (Clean, hiện đại, không rườm rà) */}
+      {/* 1. Tiêu đề màn hình chuẩn mực (Clean, tối giản) */}
       <div className={styles.pageHeader}>
-        <div className={styles.headerTitleWrap}>
-          <h1 className={styles.pageTitle}>Danh sách thực đơn</h1>
-          <p className={styles.pageSubtitle}>
-            Kế hoạch dinh dưỡng bán trú và theo dõi phê duyệt thực đơn tuần
-          </p>
-        </div>
+        <h1 className={styles.pageTitle}>Danh sách thực đơn</h1>
         <button
           type="button"
           className={styles.createBtn}

@@ -22,12 +22,12 @@ export default function MenuListStatsRail({
   const items = [
     {
       key: "all",
-      label: `Tất cả (${displayYear})`,
+      label: "Tất cả",
       count: total,
       icon: LayoutGrid,
       className: styles.pillAll,
       activeClass: styles.activeAll,
-      tooltip: `Xem toàn bộ ${total} thực đơn năm ${displayYear}`,
+      tooltip: `Xem toàn bộ ${total} thực đơn`,
     },
     {
       key: "DRAFT",

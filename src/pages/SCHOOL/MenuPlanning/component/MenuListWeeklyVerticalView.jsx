@@ -305,26 +305,18 @@ export default function MenuListWeeklyVerticalView({
           {/* Badge trạng thái tuần */}
           {renderWeekStatusBadge(weekStatus)}
 
-          {/* Tag tuần này */}
-          {isCurrentWeek && (
-            <span className={styles.currentWeekTag}>Tuần này</span>
-          )}
-
-          {/* Đối tượng áp dụng */}
+          {/* Đối tượng áp dụng (dạng text tinh gọn) */}
           {targetScope && (
-            <span className={styles.targetScopeBadge}>
-              {targetScope}
+            <span className={styles.targetScopeText}>
+              • {targetScope}
             </span>
           )}
 
-          {/* Pill tiến độ khi DRAFT */}
+          {/* Tiến độ khi DRAFT (dạng text tinh gọn) */}
           {weekStatus === "DRAFT" && (
-            <div className={styles.weekProgressPill}>
-              <CalendarCheck size={12} />
-              <span>
-                Tiến độ: <strong>{weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày</strong>
-              </span>
-            </div>
+            <span className={styles.weekProgressText}>
+              • Tiến độ: <strong>{weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày</strong>
+            </span>
           )}
         </div>
 

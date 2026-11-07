@@ -1,23 +1,19 @@
 .filterStrip {
   width: 100%;
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #e8eeeb;
   padding: 8px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   box-sizing: border-box;
 
-  @media (min-width: 1024px) {
+  @media (min-width: 900px) {
     flex-direction: row;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  @media (min-width: 1400px) {
+    gap: 10px;
     flex-wrap: nowrap;
   }
 }
@@ -83,45 +79,29 @@
 }
 
 .selectWrapper,
-.selectWrapperYear,
 .selectWrapperWeek,
-.selectWrapperSm,
-.selectWrapperMd {
+.selectWrapperSm {
   position: relative;
   display: flex;
   align-items: center;
   flex-shrink: 0;
   width: 100%;
 
-  @media (min-width: 1024px) {
+  @media (min-width: 900px) {
     width: auto;
   }
 }
 
-.selectWrapperYear {
-  @media (min-width: 1024px) {
-    min-width: 120px;
-    flex: 0 0 auto;
-  }
-}
-
 .selectWrapperWeek {
-  @media (min-width: 1024px) {
+  @media (min-width: 900px) {
     min-width: 290px;
     flex: 0 0 auto;
   }
 }
 
 .selectWrapperSm {
-  @media (min-width: 1024px) {
+  @media (min-width: 900px) {
     min-width: 125px;
-    flex: 0 0 auto;
-  }
-}
-
-.selectWrapperMd {
-  @media (min-width: 1024px) {
-    min-width: 175px;
     flex: 0 0 auto;
   }
 }

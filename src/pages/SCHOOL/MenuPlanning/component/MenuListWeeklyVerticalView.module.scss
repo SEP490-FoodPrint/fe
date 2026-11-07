@@ -59,6 +59,27 @@
   margin: 0 4px;
 }
 
+.targetScopeText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.weekProgressText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+
+  strong {
+    font-weight: 600;
+    color: #0a8066;
+  }
+}
+
 .targetScopeBadge {
   display: inline-flex;
   align-items: center;

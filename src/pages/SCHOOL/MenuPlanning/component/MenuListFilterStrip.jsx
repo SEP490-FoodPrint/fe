@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { Search, Calendar, CalendarDays, Utensils, ShieldCheck, RotateCcw, X, ChevronDown } from "lucide-react"
+import { Search, CalendarDays, Utensils, RotateCcw, X, ChevronDown } from "lucide-react"
 import styles from "./MenuListFilterStrip.module.scss"
 import { getWeeksOfYear, getISOWeekNumber } from "src/services/MenuService/adapter"
 
@@ -7,14 +7,12 @@ export default function MenuListFilterStrip({
   filters,
   onChangeFilter,
   onResetFilters,
-  availableYears = [2024, 2025, 2026, 2027],
 }) {
   const {
     searchKeyword = "",
     year = new Date().getFullYear(),
     week = getISOWeekNumber(new Date()),
     mealType = "all",
-    status = "all",
   } = filters
 
   const currentYear = new Date().getFullYear()
@@ -50,25 +48,7 @@ export default function MenuListFilterStrip({
         )}
       </div>
 
-      {/* 2. Bộ lọc Năm */}
-      <div className={styles.selectWrapperYear}>
-        <Calendar size={15} className={styles.selectIcon} />
-        <select
-          className={styles.selectInput}
-          value={year}
-          onChange={(e) => onChangeFilter("year", Number(e.target.value))}
-          title="Chọn năm"
-        >
-          {availableYears.map((y) => (
-            <option key={y} value={y}>
-              Năm {y}
-            </option>
-          ))}
-        </select>
-        <ChevronDown size={14} className={styles.chevronIcon} />
-      </div>
-
-      {/* 3. Bộ lọc Tuần */}
+      {/* 2. Bộ lọc Tuần */}
       <div className={styles.selectWrapperWeek}>
         <CalendarDays size={15} className={styles.selectIcon} />
         <select
@@ -91,7 +71,7 @@ export default function MenuListFilterStrip({
         <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 4. Bộ lọc Ca ăn */}
+      {/* 3. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>
         <Utensils size={14} className={styles.selectIcon} />
         <select
@@ -107,25 +87,7 @@ export default function MenuListFilterStrip({
         <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 5. Bộ lọc Trạng thái */}
-      <div className={styles.selectWrapperMd}>
-        <ShieldCheck size={15} className={styles.selectIcon} />
-        <select
-          className={styles.selectInput}
-          value={status}
-          onChange={(e) => onChangeFilter("status", e.target.value)}
-          title="Chọn trạng thái phê duyệt"
-        >
-          <option value="all">Tất cả trạng thái</option>
-          <option value="APPROVED">Đã duyệt</option>
-          <option value="PENDING_APPROVAL">Chờ BGH duyệt</option>
-          <option value="DRAFT">Bản nháp</option>
-          <option value="REVISION_REQUESTED">Cần chỉnh sửa</option>
-        </select>
-        <ChevronDown size={14} className={styles.chevronIcon} />
-      </div>
-
-      {/* 6. Nút Đặt lại: Icon-only tinh tế */}
+      {/* 4. Nút Đặt lại: Icon-only tinh tế */}
       <button
         type="button"
         className={styles.resetBtn}
