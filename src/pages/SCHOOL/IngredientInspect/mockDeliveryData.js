@@ -285,7 +285,9 @@ export const INITIAL_FEEDBACKS = [
     supplierResponse:
       "VinaFresh Farm trân trọng cảm ơn phản hồi của Ban Y tế nhà trường. Chúng tôi đã ghi nhận và bổ sung tem phủ nilon chống ẩm cho toàn bộ các lô giao từ ngày mai, đồng thời gửi mã lô điện tử đối soát kèm theo biên bản giao nhận.",
     respondedByUserId: "924bad15-e1a9-5d47-8c04-9258d4884771",
-    respondedByName: "Nguyễn Văn Tuấn (Bộ phận CSKH & QC VinaFresh)",
+    respondedByName: "Nguyễn Văn Tuấn",
+    respondedByRole: "Nhân viên",
+    respondedByRoleCode: "INGREDIENT_SUPPLIER_STAFF",
     respondedAt: "2026-10-24T07:40:00+07:00",
     createdAt: "2026-10-24T07:20:00+07:00",
   },

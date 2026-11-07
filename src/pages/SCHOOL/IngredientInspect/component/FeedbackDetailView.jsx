@@ -40,6 +40,19 @@ export default function FeedbackDetailView({ feedback, onBack }) {
     }
   }
 
+  // Định dạng hiển thị người phản hồi từ Nhà cung cấp theo chuẩn: Tên - Role (Nhân viên / Quản lý)
+  const getSupplierResponderText = () => {
+    if (!feedback.respondedByName) return feedback.supplierName
+    if (feedback.respondedByName.includes(" - ")) return feedback.respondedByName
+
+    const role =
+      feedback.respondedByRole ||
+      (feedback.respondedByRoleCode === "INGREDIENT_SUPPLIER_ADMIN" ? "Quản lý" : "Nhân viên")
+
+    const cleanName = feedback.respondedByName.replace(/\s*\(.*?\)\s*/g, "").trim()
+    return `${cleanName} - ${role}`
+  }
+
   return (
     <div className={styles.wrapper}>
       {/* 1. Header Bar */}
@@ -130,10 +143,10 @@ export default function FeedbackDetailView({ feedback, onBack }) {
               </div>
               <div className={styles.senderTextCol}>
                 <span className={styles.senderNameSupplier}>
-                  {feedback.respondedByName || feedback.supplierName}
+                  {getSupplierResponderText()}
                 </span>
                 <span className={styles.senderRoleSupplier}>
-                  Đại diện Nhà cung cấp • Bộ phận Đảm bảo chất lượng (QC)
+                  {feedback.supplierName}
                 </span>
               </div>
             </div>
