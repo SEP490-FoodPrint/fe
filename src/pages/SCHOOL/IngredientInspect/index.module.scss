@@ -1,0 +1,140 @@
+.pageContainer {
+  width: 100%;
+  padding: 20px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  background-color: #fbfcfd;
+  min-height: 100%;
+
+  @media (max-width: 768px) {
+    padding: 12px 14px 28px;
+    gap: 12px;
+  }
+}
+
+.viewContent {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.desktopViewWrap {
+  display: block;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.mobileViewWrap {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+}
+
+/* Success Toast */
+.toastSuccess {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: #eaf7f0;
+  border: 1px solid #bbf0da;
+  border-radius: 8px;
+  color: #00654f;
+  box-shadow: 0 2px 6px rgba(10, 128, 102, 0.08);
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.toastContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.toastIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.toastCloseBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #0a8066;
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    background-color: rgba(10, 128, 102, 0.1);
+  }
+}
+
+/* Role Notice Card */
+.roleNoticeCard {
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 14px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.roleIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background-color: #eaf7f0;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.roleNoticeContent {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.roleNoticeTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.roleNoticeDesc {
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.45;
+}

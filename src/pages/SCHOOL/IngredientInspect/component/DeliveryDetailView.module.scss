@@ -1,0 +1,596 @@
+.detailWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Header Bar */
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.deliveryPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+}
+
+/* Section Card */
+.sectionCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 18px 20px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sectionIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.sectionSubTitle {
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+.badgeCount {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #eaf7f0;
+  padding: 3px 10px;
+  border-radius: 9999px;
+}
+
+/* Overview Grid */
+.overviewGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px 18px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.infoBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fullWidthBlock {
+  grid-column: 1 / -1;
+  background-color: #f8fafc;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #f1f5f9;
+}
+
+.infoLabel {
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+}
+
+.infoValue {
+  font-family: "Inter", sans-serif;
+  font-size: 13.5px;
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.infoValueHighlight {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0a8066;
+}
+
+.infoValueMono {
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.infoSubText {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* Ingredient list & hierarchical lot views */
+.ingredientsList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ingredientCard {
+  background-color: #ffffff;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: border-color 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
+}
+
+.ingredientSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background-color: #f8fafc;
+  cursor: pointer;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+}
+
+.ingredientMain {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.expandToggleBtn {
+  background: none;
+  border: none;
+  padding: 2px;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.nameGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ingredientName {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.categoryPill {
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  color: #475569;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 1px 7px;
+  border-radius: 9999px;
+}
+
+.qtyGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.qtyBlock {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+}
+
+.qtyLabel {
+  color: #64748b;
+}
+
+.qtyVal {
+  color: #334155;
+}
+
+.qtyValStrong {
+  font-weight: 600;
+  color: #0a8066;
+}
+
+.lotsCounter {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0369a1;
+  background-color: #e0f2fe;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.ingredientNote {
+  padding: 6px 14px 10px;
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  color: #64748b;
+  background-color: #f8fafc;
+  border-top: 1px dashed #e2e8f0;
+
+  span {
+    font-weight: 600;
+    color: #475569;
+  }
+}
+
+/* Lots table */
+.lotsContainer {
+  padding: 12px 14px;
+  background-color: #ffffff;
+  overflow-x: auto;
+}
+
+.lotsTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+
+  thead tr {
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    padding: 8px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+  }
+
+  td {
+    padding: 9px 10px;
+    font-size: 12.5px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.thRight {
+  text-align: right;
+}
+
+.tdRight {
+  text-align: right;
+}
+
+.thCenter {
+  text-align: center;
+}
+
+.tdCenter {
+  text-align: center;
+}
+
+.tdLotCode {
+  font-family: ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
+}
+
+.tdFacility {
+  color: #475569;
+}
+
+.lotStatusTag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.emptyLotsNotice {
+  padding: 12px;
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Quality Feedback Section */
+.feedbackSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.submitFeedbackBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #0a8066;
+  border: 1px solid transparent;
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.2);
+
+  &:hover {
+    background-color: #00654f;
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+.feedbackListWrap {
+  width: 100%;
+}
+
+.feedbackGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.feedbackCard {
+  background-color: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feedbackTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.feedbackTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.feedbackTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+}
+
+.feedbackLotTarget {
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  color: #0369a1;
+  font-weight: 500;
+}
+
+.fbStatusTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fbStatusDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.feedbackDesc {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.feedbackFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+}
+
+.feedbackTime {
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  color: #94a3b8;
+}
+
+.viewFeedbackBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #0a8066;
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    color: #00654f;
+    text-decoration: underline;
+  }
+}
+
+.emptyFeedbackBox {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background-color: #f8fafc;
+  border-radius: 6px;
+  border: 1px dashed #cbd5e1;
+}
+
+.emptyFbIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #eaf7f0;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.emptyFbText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.emptyFbTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.emptyFbDesc {
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+
+  strong {
+    color: #0a8066;
+    font-weight: 600;
+  }
+}
