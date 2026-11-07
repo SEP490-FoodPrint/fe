@@ -100,3 +100,4 @@ DeliveryFilterStrip.propTypes = {
   onResetFilters: PropTypes.func.isRequired,
   hasActiveFilters: PropTypes.bool.isRequired,
 }
+

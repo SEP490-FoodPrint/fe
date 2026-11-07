@@ -395,3 +395,4 @@ DeliveryDetailView.propTypes = {
   onOpenSubmitFeedback: PropTypes.func.isRequired,
   onSelectFeedback: PropTypes.func.isRequired,
 }
+

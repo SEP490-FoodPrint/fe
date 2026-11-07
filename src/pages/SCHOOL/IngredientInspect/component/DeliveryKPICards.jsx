@@ -117,3 +117,4 @@ DeliveryKPICards.propTypes = {
   deliveries: PropTypes.array.isRequired,
   feedbacks: PropTypes.array.isRequired,
 }
+

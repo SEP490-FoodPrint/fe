@@ -255,3 +255,4 @@ FeedbackSubmitModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onSubmitFeedback: PropTypes.func.isRequired,
 }
+

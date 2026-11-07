@@ -1,30 +1,21 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Eye, Truck, Store, Calendar, Clock } from "lucide-react"
+import { Eye } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import styles from "./DeliveryMobileCards.module.scss"
 
 export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
-  const formatDate = (isoString) => {
-    if (!isoString) return "--"
+  const formatDateTime = (expectedAt, arrivedAt) => {
+    const timeSrc = arrivedAt || expectedAt
+    if (!timeSrc) return "--"
     try {
-      const d = new Date(isoString)
+      const d = new Date(timeSrc)
       const day = String(d.getDate()).padStart(2, "0")
       const month = String(d.getMonth() + 1).padStart(2, "0")
       const year = d.getFullYear()
-      return `${day}/${month}/${year}`
-    } catch {
-      return "--"
-    }
-  }
-
-  const formatTime = (isoString) => {
-    if (!isoString) return "--"
-    try {
-      const d = new Date(isoString)
       const hours = String(d.getHours()).padStart(2, "0")
       const minutes = String(d.getMinutes()).padStart(2, "0")
-      return `${hours}:${minutes}`
+      return `${hours}:${minutes} • ${day}/${month}/${year}`
     } catch {
       return "--"
     }
@@ -46,25 +37,11 @@ export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
             </div>
 
             <div className={styles.infoRow}>
-              <span className={styles.label}>Ngày giao:</span>
+              <span className={styles.label}>Thời gian giao:</span>
               <span className={styles.value}>
-                {formatDate(item.expectedArrivalAt)} ({formatTime(item.expectedArrivalAt)})
+                {formatDateTime(item.expectedArrivalAt, item.arrivedAt)}
               </span>
             </div>
-
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Đến thực tế:</span>
-              <span className={styles.value}>
-                {item.arrivedAt ? formatTime(item.arrivedAt) : "Chưa đến"}
-              </span>
-            </div>
-
-            {item.vehiclePlate && (
-              <div className={styles.infoRow}>
-                <span className={styles.label}>Biển số xe:</span>
-                <span className={styles.plate}>{item.vehiclePlate}</span>
-              </div>
-            )}
           </div>
 
           <div className={styles.cardFooter}>
@@ -72,8 +49,9 @@ export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
               type="button"
               className={styles.viewBtn}
               onClick={() => onSelectDelivery(item)}
+              aria-label={`Xem chi tiết ${item.deliveryNo}`}
             >
-              <Eye size={15} />
+              <Eye size={16} />
               <span>Xem chi tiết</span>
             </button>
           </div>

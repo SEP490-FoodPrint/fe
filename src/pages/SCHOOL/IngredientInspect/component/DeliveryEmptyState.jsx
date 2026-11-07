@@ -31,3 +31,4 @@ DeliveryEmptyState.propTypes = {
   message: PropTypes.string,
   onResetFilters: PropTypes.func,
 }
+

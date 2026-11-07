@@ -415,3 +415,4 @@ export const LOT_STATUS_CONFIG = {
     color: "#b91c1c",
   },
 }
+

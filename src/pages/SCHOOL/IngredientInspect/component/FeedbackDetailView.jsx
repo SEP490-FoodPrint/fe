@@ -172,3 +172,4 @@ FeedbackDetailView.propTypes = {
   feedback: PropTypes.object.isRequired,
   onBack: PropTypes.func.isRequired,
 }
+

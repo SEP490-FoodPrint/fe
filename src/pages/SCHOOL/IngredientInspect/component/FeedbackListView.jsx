@@ -167,12 +167,12 @@ export default function FeedbackListView({
                     <td className={styles.tdAction}>
                       <button
                         type="button"
-                        className={styles.actionBtn}
+                        className={styles.iconActionBtn}
                         onClick={() => onSelectFeedback(fb)}
                         title="Xem chi tiết trao đổi"
+                        aria-label={`Xem chi tiết phản hồi ${fb.title}`}
                       >
-                        <Eye size={15} />
-                        <span>Xem chi tiết</span>
+                        <Eye size={16} />
                       </button>
                     </td>
                   </tr>
@@ -199,3 +199,4 @@ FeedbackListView.propTypes = {
   onBackToDeliveries: PropTypes.func.isRequired,
   onSelectFeedback: PropTypes.func.isRequired,
 }
+

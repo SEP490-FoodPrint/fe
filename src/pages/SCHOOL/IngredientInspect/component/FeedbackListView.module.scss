@@ -177,9 +177,8 @@
 }
 
 .thAction {
-  width: 120px;
-  text-align: right;
-  padding-right: 18px;
+  width: 80px;
+  text-align: center;
 }
 
 .tableRow {
@@ -287,29 +286,28 @@
 }
 
 .tdAction {
-  text-align: right;
-  padding-right: 18px;
+  text-align: center;
 }
 
-.actionBtn {
+.iconActionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  border-radius: 5px;
-  border: 1px solid #cbd5e1;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
   background-color: #ffffff;
   color: #0a8066;
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 
   &:hover {
     background-color: #f0fdf4;
     border-color: #0a8066;
     color: #00654f;
+    transform: translateY(-1px);
   }
 }
 
@@ -346,3 +344,4 @@
   max-width: 420px;
   margin: 0;
 }
+

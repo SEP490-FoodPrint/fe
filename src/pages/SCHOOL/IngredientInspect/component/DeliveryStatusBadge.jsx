@@ -33,3 +33,4 @@ export default function DeliveryStatusBadge({ status }) {
 DeliveryStatusBadge.propTypes = {
   status: PropTypes.string.isRequired,
 }
+

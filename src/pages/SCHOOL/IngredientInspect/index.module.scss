@@ -93,48 +93,5 @@
   }
 }
 
-/* Role Notice Card */
-.roleNoticeCard {
-  background-color: #f8fafc;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 14px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  margin-top: 4px;
-}
 
-.roleIconWrap {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background-color: #eaf7f0;
-  color: #0a8066;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 1px;
-}
 
-.roleNoticeContent {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.roleNoticeTitle {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.roleNoticeDesc {
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.45;
-}

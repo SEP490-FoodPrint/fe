@@ -36,3 +36,4 @@ DeliveryHeader.propTypes = {
   feedbackCount: PropTypes.number.isRequired,
   onOpenFeedbackList: PropTypes.func.isRequired,
 }
+

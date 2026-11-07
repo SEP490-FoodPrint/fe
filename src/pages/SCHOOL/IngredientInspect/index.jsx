@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react"
-import { CheckCircle2, X, Info } from "lucide-react"
+import { CheckCircle2, X } from "lucide-react"
 import {
   INITIAL_DELIVERIES,
   INITIAL_FEEDBACKS,
@@ -193,21 +193,6 @@ export default function IngredientInspect() {
               onResetFilters={hasActiveFilters ? handleResetFilters : null}
             />
           )}
-
-          {/* Hộp thông tin phân quyền chuyên viên y tế (Chỉ xem & Gửi phản hồi) */}
-          <div className={styles.roleNoticeCard}>
-            <div className={styles.roleIconWrap}>
-              <Info size={18} />
-            </div>
-            <div className={styles.roleNoticeContent}>
-              <span className={styles.roleNoticeTitle}>
-                Phạm vi nghiệp vụ: Chuyên viên Y tế học đường (Giám sát & Đánh giá)
-              </span>
-              <p className={styles.roleNoticeDesc}>
-                Nhân viên y tế có thẩm quyền tra cứu thông tin nguồn gốc lô hàng, đối chiếu điều kiện giao nhận và gửi phản hồi chất lượng trực tiếp đến nhà cung cấp. Các thao tác phê duyệt nhập kho, nghiệm thu hoặc từ chối lô hàng thuộc trách nhiệm của Bếp trưởng và Ban Quản lý Bán trú.
-              </p>
-            </div>
-          </div>
         </div>
       )}
 
