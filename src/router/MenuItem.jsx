@@ -22,7 +22,6 @@ import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
 import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
-import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -155,12 +154,6 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Đánh giá giao hàng",
     icon: <FactCheckOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
-  },
-  {
-    key: ROUTER.SCHOOL_MEAL_FEEDBACK,
-    label: "Khiếu nại",
-    icon: <ReportProblemOutlinedIcon />,
     roles: [ROLES.SCHOOL_HEALTH_OFFICER],
   },
   {
