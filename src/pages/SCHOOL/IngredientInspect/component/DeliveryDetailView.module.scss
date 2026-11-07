@@ -1,35 +1,40 @@
 .detailWrapper {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 20px;
   width: 100%;
 }
 
-/* 1. Header Bar tích hợp thông tin meta */
+/* 1. Header Bar: Tiêu đề bên trái, nút hành động bên phải */
 .headerBar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  flex-wrap: wrap;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e2e8f0;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .headerLeft {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .backBtn {
-  width: 34px;
-  height: 34px;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
   background-color: #ffffff;
   color: #475569;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -38,18 +43,12 @@
 
   &:hover {
     background-color: #f8fafc;
-    color: #0f172a;
+    color: #00654f;
     border-color: #cbd5e1;
   }
 }
 
-.headerTextGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.titleRow {
+.titleGroup {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -67,50 +66,20 @@
 
 .deliveryCode {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
   color: #0a8066;
   background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
   padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.metaRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  color: #475569;
-}
-
-.metaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-
-  strong {
-    color: #0f172a;
-    font-weight: 600;
-  }
-}
-
-.metaDot {
-  color: #cbd5e1;
-  font-size: 12px;
-}
-
-.metaNote {
-  color: #64748b;
-  font-style: italic;
+  border-radius: 6px;
 }
 
 .feedbackActionBtn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   border-radius: 6px;
   background-color: #00654f;
   color: #ffffff;
@@ -119,11 +88,13 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  flex-shrink: 0;
   transition: all 0.15s ease;
   white-space: nowrap;
 
   &:hover {
     background-color: #00513f;
+    box-shadow: 0 1px 3px rgba(0, 101, 79, 0.2);
   }
 
   &:active {
@@ -136,11 +107,87 @@
   }
 }
 
-/* 2. Content Section */
+/* 2. Thanh tóm tắt thông tin chuyến giao (Summary Bar) */
+.summaryBar {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+.summaryCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.noteCol {
+  flex: 1;
+  min-width: 200px;
+}
+
+.summaryLabel {
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.summaryValRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.summaryIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.summaryValue {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.summaryNote {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.summaryDivider {
+  width: 1px;
+  height: 32px;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+/* 3. Khối nội dung danh sách & bảng */
 .contentSection {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   width: 100%;
 }
 
@@ -169,7 +216,7 @@
   font-weight: 500;
 }
 
-/* 3. Bảng dữ liệu phẳng, thuần chữ, tối giản */
+/* 4. Bảng dữ liệu phẳng, thuần chữ, tối giản */
 .tableResponsive {
   width: 100%;
   overflow-x: auto;
@@ -186,7 +233,7 @@
   }
 
   th {
-    padding: 8px 10px;
+    padding: 9px 10px;
     font-size: 11.5px;
     font-weight: 600;
     color: #64748b;
@@ -196,7 +243,7 @@
   }
 
   td {
-    padding: 10px;
+    padding: 11px 10px;
     font-size: 13px;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;

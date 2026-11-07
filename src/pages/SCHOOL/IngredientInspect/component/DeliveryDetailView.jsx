@@ -5,9 +5,9 @@ import {
   QrCode,
   Send,
   Eye,
-  CheckCircle2,
-  AlertCircle,
+  Store,
   Clock,
+  FileText,
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import LotQRTraceModal from "./LotQRTraceModal"
@@ -107,7 +107,7 @@ export default function DeliveryDetailView({
 
   return (
     <div className={styles.detailWrapper}>
-      {/* 1. Header Bar tích hợp thông tin tinh gọn */}
+      {/* 1. Header Bar: Tiêu đề + Nút thao tác nằm ngang hàng 2 bên */}
       <div className={styles.headerBar}>
         <div className={styles.headerLeft}>
           <button
@@ -119,29 +119,10 @@ export default function DeliveryDetailView({
           >
             <ArrowLeft size={18} />
           </button>
-          <div className={styles.headerTextGroup}>
-            <div className={styles.titleRow}>
-              <h1 className={styles.pageTitle}>Chi tiết giao hàng</h1>
-              <span className={styles.deliveryCode}>{delivery.deliveryNo}</span>
-              <DeliveryStatusBadge status={delivery.status} />
-            </div>
-            <div className={styles.metaRow}>
-              <span className={styles.metaItem}>
-                Nhà cung cấp: <strong>{delivery.supplierName}</strong>
-              </span>
-              <span className={styles.metaDot}>•</span>
-              <span className={styles.metaItem}>
-                Thời gian giao: <strong>{formatDateTime(deliveryTime)}</strong>
-              </span>
-              {delivery.note && (
-                <>
-                  <span className={styles.metaDot}>•</span>
-                  <span className={styles.metaNote}>
-                    Ghi chú: {delivery.note}
-                  </span>
-                </>
-              )}
-            </div>
+          <div className={styles.titleGroup}>
+            <h1 className={styles.pageTitle}>Chi tiết giao hàng</h1>
+            <span className={styles.deliveryCode}>{delivery.deliveryNo}</span>
+            <DeliveryStatusBadge status={delivery.status} />
           </div>
         </div>
 
@@ -155,7 +136,41 @@ export default function DeliveryDetailView({
         </button>
       </div>
 
-      {/* 2. Bảng Danh sách Nguyên liệu & Lô hàng (Thuần chữ, tối giản, phẳng) */}
+      {/* 2. Thanh tóm tắt thông tin chuyến giao (Rõ ràng, phân cột dễ đọc) */}
+      <div className={styles.summaryBar}>
+        <div className={styles.summaryCol}>
+          <span className={styles.summaryLabel}>Nhà cung cấp</span>
+          <div className={styles.summaryValRow}>
+            <Store size={15} className={styles.summaryIcon} />
+            <span className={styles.summaryValue}>{delivery.supplierName}</span>
+          </div>
+        </div>
+
+        <div className={styles.summaryDivider} />
+
+        <div className={styles.summaryCol}>
+          <span className={styles.summaryLabel}>Thời gian giao</span>
+          <div className={styles.summaryValRow}>
+            <Clock size={15} className={styles.summaryIcon} />
+            <span className={styles.summaryValue}>{formatDateTime(deliveryTime)}</span>
+          </div>
+        </div>
+
+        {delivery.note && (
+          <>
+            <div className={styles.summaryDivider} />
+            <div className={`${styles.summaryCol} ${styles.noteCol}`}>
+              <span className={styles.summaryLabel}>Ghi chú giao hàng</span>
+              <div className={styles.summaryValRow}>
+                <FileText size={15} className={styles.summaryIcon} />
+                <span className={styles.summaryNote}>{delivery.note}</span>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* 3. Bảng Danh sách Nguyên liệu & Lô hàng (Thuần chữ, phẳng, rõ ràng) */}
       <div className={styles.contentSection}>
         <div className={styles.sectionHeading}>
           <h2 className={styles.sectionTitle}>
@@ -264,7 +279,7 @@ export default function DeliveryDetailView({
         </div>
       </div>
 
-      {/* 3. Phản hồi chất lượng nguyên liệu (Tối giản) */}
+      {/* 4. Phản hồi chất lượng nguyên liệu (Tối giản) */}
       <div className={styles.contentSection}>
         <div className={styles.sectionHeading}>
           <h2 className={styles.sectionTitle}>
