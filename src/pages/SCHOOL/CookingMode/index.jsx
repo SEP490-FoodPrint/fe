@@ -9,11 +9,10 @@ import {
   DialogTitle,
   Skeleton,
 } from "@mui/material"
-import { Info } from "lucide-react"
 import notice from "src/components/Notice"
 import SchoolService from "src/services/SchoolService"
-import CookingModeExample from "./component/CookingModeExample"
 import CookingModeOptions from "./component/CookingModeOptions"
+import CookingModeProcess from "./component/CookingModeProcess"
 import { cookingModeLabel } from "./component/cookingModeConfig"
 import "./style.scss"
 
@@ -59,7 +58,7 @@ function CookingMode() {
       setSaved(response.data.cookingMode)
       setSelected(response.data.cookingMode)
       setConfirmOpen(false)
-      notice({ msg: "Đã lưu chế độ nấu cho nhà trường" })
+      notice({ msg: "Đã lưu chế độ dùng khi hệ thống lập mẻ mới" })
     } catch (failure) {
       notice({
         msg: "Không thể lưu chế độ nấu",
@@ -110,7 +109,7 @@ function CookingMode() {
           <p className="cooking-mode-page__status" aria-live="polite">
             <span aria-hidden="true" />
             {saved ? (
-              <>Chế độ đang áp dụng: <strong>{cookingModeLabel(saved)}</strong></>
+              <>Đang áp dụng khi lập phương án mới: <strong>{cookingModeLabel(saved)}</strong></>
             ) : (
               "Nhà trường chưa thiết lập chế độ nấu."
             )}
@@ -118,26 +117,12 @@ function CookingMode() {
 
           <CookingModeOptions value={selected} disabled={saving} onChange={setSelected} />
 
-          <CookingModeExample mode={selected} />
-
-          <section className="cooking-mode-page__information" aria-labelledby="cooking-mode-information-title">
-            <Info size={20} aria-hidden="true" />
-            <div>
-              <h2 id="cooking-mode-information-title">Lưu ý khi thay đổi chế độ</h2>
-              <ul>
-                <li>Chế độ được áp dụng cho toàn bộ nhà bếp của trường.</li>
-                <li>Các mẻ đã lập vẫn giữ nguyên chế độ tại thời điểm được tạo.</li>
-                <li>
-                  Kế hoạch mới tuân theo chế độ đang áp dụng; kế hoạch đã có mẻ có thể tiếp tục giữ chế độ cũ
-                  để bảo đảm nhất quán.
-                </li>
-                <li>Mọi lô nguyên liệu sử dụng vẫn được ghi nhận để truy xuất nguồn gốc.</li>
-              </ul>
-            </div>
-          </section>
+          <CookingModeProcess mode={selected} />
 
           <div className="cooking-mode-page__footer">
-            <span className="cooking-mode-page__hint">Chỉ Ban Giám hiệu có quyền thay đổi cấu hình áp dụng cho nhà trường.</span>
+            <span className="cooking-mode-page__hint">
+              Sau khi lưu, hệ thống tự dùng chế độ này khi nhà bếp lập phương án mới.
+            </span>
             <Button
               variant="contained"
               disabled={saving || !changed}
@@ -156,8 +141,8 @@ function CookingMode() {
             <DialogTitle>Xác nhận thay đổi chế độ nấu</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Bạn đang thay đổi chế độ nấu của nhà trường từ {cookingModeLabel(saved)} sang {cookingModeLabel(selected)}.{" "}
-                Các mẻ đã lập sẽ không bị thay đổi.
+                Đổi từ {cookingModeLabel(saved)} sang {cookingModeLabel(selected)}. Sau khi lưu, hệ thống dùng chế độ mới
+                khi nhà bếp lập phương án mới; các mẻ đã lập không thay đổi.
               </DialogContentText>
             </DialogContent>
             <DialogActions>

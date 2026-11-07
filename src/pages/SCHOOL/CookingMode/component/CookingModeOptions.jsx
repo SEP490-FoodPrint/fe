@@ -12,8 +12,8 @@ const ICONS = {
 function CookingModeOptions({ value, disabled, onChange }) {
   return (
     <fieldset className={styles.options} disabled={disabled}>
-      <legend>Chọn chế độ áp dụng cho nhà bếp</legend>
-      {COOKING_MODES.map(({ value: option, label, description, benefit, tradeoff }) => {
+      <legend>Chọn cách hệ thống tự lập mẻ</legend>
+      {COOKING_MODES.map(({ value: option, label, description }) => {
         const Icon = ICONS[option]
         return (
           <label
@@ -31,8 +31,6 @@ function CookingModeOptions({ value, disabled, onChange }) {
             <span className={styles.content}>
               <strong className={styles.label}>{label}</strong>
               <span className={styles.description}>{description}</span>
-              <span className={styles.detail}><b>Lợi ích</b>{benefit}</span>
-              <span className={styles.detail}><b>Cần lưu ý</b>{tradeoff}</span>
             </span>
           </label>
         )

@@ -87,25 +87,6 @@
   font-size: var(--text-sm);
 }
 
-.detail {
-  display: grid;
-  grid-template-columns: 5.25rem minmax(0, 1fr);
-  gap: var(--space-2);
-  margin-top: var(--space-3);
-  color: var(--text-secondary);
-  font-size: var(--text-xs);
-  line-height: var(--leading-normal);
-
-  + .detail {
-    margin-top: var(--space-2);
-  }
-
-  b {
-    color: var(--text-primary);
-    font-weight: var(--font-semibold);
-  }
-}
-
 @media (max-width: 760px) {
   .options {
     grid-template-columns: minmax(0, 1fr);
@@ -115,10 +96,5 @@
 @media (max-width: 480px) {
   .option {
     padding: var(--space-4);
-  }
-
-  .detail {
-    grid-template-columns: minmax(0, 1fr);
-    gap: var(--space-1);
   }
 }
