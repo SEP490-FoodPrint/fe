@@ -6,22 +6,22 @@ import styles from "./HealthAllergyByClass.module.scss"
 
 const ALLERGY_DATA = [
   {
-    id: "ALLERGY-6A1",
-    className: "Lớp 6A1 — Khối 6",
-    allergyType: "Dị ứng hải sản có vỏ",
-    casesCount: 2,
+    id: "ca-1a",
+    className: "Lớp 1A — Khối 1",
+    allergyType: "Giáp xác & Đậu phộng (4 ca)",
+    casesCount: 4,
   },
   {
-    id: "ALLERGY-7A2",
-    className: "Lớp 7A2 — Khối 7",
-    allergyType: "Dị ứng đậu phộng/lạc",
-    casesCount: 1,
+    id: "ca-2b",
+    className: "Lớp 2B — Khối 2",
+    allergyType: "Dị ứng tôm sú, cua biển (5 ca)",
+    casesCount: 5,
   },
   {
-    id: "ALLERGY-8B3",
-    className: "Lớp 8B3 — Khối 8",
-    allergyType: "Dị ứng trứng gà, sữa bò",
-    casesCount: 3,
+    id: "ca-3c",
+    className: "Lớp 3C — Khối 3",
+    allergyType: "Giáp xác & Mực tươi (4 ca)",
+    casesCount: 4,
   },
 ]
 

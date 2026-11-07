@@ -42,6 +42,7 @@ const CreateMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/CreateMenu")
 const MenuDetail = lazy(() => import("src/pages/SCHOOL/MenuPlanning/MenuDetail"))
 const EditMenu = lazy(() => import("src/pages/SCHOOL/MenuPlanning/EditMenu"))
 const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
+const HealthAllergy = lazy(() => import("src/pages/SCHOOL/HealthAllergy"))
 const DishCatalog = lazy(() => import("src/pages/SCHOOL/DishCatalog"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
 const KitchenMenu = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenMenu"))
@@ -217,7 +218,7 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_HEALTH_OVERVIEW, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthAllergy /></LazyWrapper> },
               { path: ROUTER.SCHOOL_DISH_CATALOG, element: <LazyWrapper><DishCatalog /></LazyWrapper> },
             ],
           },
