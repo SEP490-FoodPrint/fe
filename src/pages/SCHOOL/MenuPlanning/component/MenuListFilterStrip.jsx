@@ -1,37 +1,30 @@
 import React from "react"
+import { Search, GraduationCap, CalendarDays, Utensils, RotateCcw, X, ChevronDown } from "lucide-react"
 import styles from "./MenuListFilterStrip.module.scss"
-
-const weekRangeLabel = (offset) => {
-  const monday = new Date()
-  monday.setHours(0, 0, 0, 0)
-  monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7) + offset * 7)
-  const sunday = new Date(monday)
-  sunday.setDate(sunday.getDate() + 6)
-  const format = (date) => `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`
-  return `${format(monday)} - ${format(sunday)}`
-}
 
 export default function MenuListFilterStrip({
   filters,
   onChangeFilter,
-  onResetFilters
+  onResetFilters,
+  academicYearOptions = [],
+  weeks = [],
 }) {
   const {
     searchKeyword = "",
-    dateFilter = "all",
+    academicYear = "2026-2027",
+    week = 45,
     mealType = "all",
-    status = "all"
   } = filters
 
   return (
     <div className={styles.filterStrip}>
-      {/* 1. Search Input */}
+      {/* 1. Tìm kiếm theo tên hoặc mã thực đơn */}
       <div className={styles.searchWrapper}>
-        <span className={`material-symbols-outlined ${styles.searchIcon}`}>search</span>
+        <Search size={16} className={styles.searchIcon} />
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Tìm tên thực đơn hoặc mã TD..."
+          placeholder="Tìm tên món ăn, thực đơn hoặc mã TD..."
           value={searchKeyword}
           onChange={(e) => onChangeFilter("searchKeyword", e.target.value)}
         />
@@ -41,71 +34,75 @@ export default function MenuListFilterStrip({
             className={styles.clearSearchBtn}
             onClick={() => onChangeFilter("searchKeyword", "")}
             title="Xóa tìm kiếm"
+            aria-label="Xóa từ khóa tìm kiếm"
           >
-            <span className="material-symbols-outlined text-[16px]">close</span>
+            <X size={14} />
           </button>
         )}
       </div>
 
-      {/* 2. Date Filter */}
-      <div className={styles.selectWrapper}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>calendar_today</span>
+      {/* 2. Bộ lọc Năm học (Setup từ BGH) */}
+      <div className={styles.selectWrapperAcademicYear}>
+        <GraduationCap size={15} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
-          value={dateFilter}
-          onChange={(e) => onChangeFilter("dateFilter", e.target.value)}
+          value={academicYear}
+          onChange={(e) => onChangeFilter("academicYear", e.target.value)}
+          title="Chọn năm học"
         >
-          <option value="all">Tất cả các ngày</option>
-          <option value="current">Tuần này: {weekRangeLabel(0)}</option>
-          <option value="next">Tuần tới: {weekRangeLabel(1)}</option>
-          <option value="prev">Tuần trước: {weekRangeLabel(-1)}</option>
+          {academicYearOptions.map((ay) => (
+            <option key={ay.academicYear} value={ay.academicYear}>
+              {ay.label || `Năm học ${ay.academicYear}`}
+            </option>
+          ))}
         </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+        <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 3. Meal Type Filter */}
+      {/* 3. Bộ lọc Tuần (Chạy từ ngày bắt đầu đến kết thúc năm học) */}
+      <div className={styles.selectWrapperWeek}>
+        <CalendarDays size={15} className={styles.selectIcon} />
+        <select
+          className={styles.selectInput}
+          value={String(week)}
+          onChange={(e) => onChangeFilter("week", Number(e.target.value))}
+          title="Chọn tuần học trong năm học"
+        >
+          {weeks.map((w) => (
+            <option key={w.key || w.isoWeek} value={w.isoWeek}>
+              {w.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown size={14} className={styles.chevronIcon} />
+      </div>
+
+      {/* 4. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>restaurant</span>
+        <Utensils size={14} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
           value={mealType}
           onChange={(e) => onChangeFilter("mealType", e.target.value)}
+          title="Chọn ca ăn"
         >
-          <option value="all">Tất cả bữa</option>
+          <option value="all">Tất cả ca</option>
           <option value="LUNCH">Bữa trưa</option>
-          <option value="AFTERNOON">Bữa chiều</option>
+          <option value="AFTERNOON">Bữa xế</option>
         </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
+        <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 4. Status Filter */}
-      <div className={styles.selectWrapperMd}>
-        <span className={`material-symbols-outlined ${styles.selectIcon}`}>verified_user</span>
-        <select
-          className={styles.selectInput}
-          value={status}
-          onChange={(e) => onChangeFilter("status", e.target.value)}
-        >
-          <option value="all">Tất cả trạng thái</option>
-          <option value="DRAFT">Bản nháp</option>
-          <option value="PENDING_APPROVAL">Chờ BGH duyệt</option>
-          <option value="APPROVED">Đã duyệt</option>
-          <option value="REVISION_REQUESTED">Yêu cầu chỉnh sửa</option>
-        </select>
-        <span className={`material-symbols-outlined ${styles.chevronIcon}`}>expand_more</span>
-      </div>
-
-      {/* 5. Reset Filter Button */}
+      {/* 5. Nút Đặt lại: Icon-only tinh tế */}
       <button
         type="button"
         className={styles.resetBtn}
         onClick={onResetFilters}
-        title="Đặt lại bộ lọc về mặc định"
+        title="Đặt lại bộ lọc về Tuần này"
+        aria-label="Đặt lại bộ lọc"
       >
-        <span className={`material-symbols-outlined ${styles.resetIcon}`}>restart_alt</span>
-        <span className={styles.resetLabel}>Đặt lại</span>
+        <RotateCcw size={15} />
       </button>
     </div>
   )
 }
-

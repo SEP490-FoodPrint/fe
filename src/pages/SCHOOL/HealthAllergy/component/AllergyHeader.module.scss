@@ -1,0 +1,62 @@
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 2px;
+}
+
+.titleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.titleRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.headerIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  margin: 0;
+  line-height: 1.25;
+
+  @media (max-width: 640px) {
+    font-size: 19px;
+  }
+}
+
+.badgeReadonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: #eaf7f0;
+  color: #00654f;
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid #c7eedd;
+}
+
+.pageSubtitle {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}

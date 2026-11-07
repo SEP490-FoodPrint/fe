@@ -1,0 +1,255 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalCard {
+  width: 100%;
+  max-width: 560px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qrBadge {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #eaf7f0;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.title {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.subTitle {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  color: #64748b;
+  margin: 2px 0 0;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+  }
+}
+
+/* Thẻ mô phỏng Tem in vật lý dán trên kiện hàng */
+.physicalTag {
+  margin: 16px 20px;
+  background-color: #ffffff;
+  border: 2px solid #0a8066;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(10, 128, 102, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tagContent {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+
+  @media (max-width: 500px) {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+.qrVisualWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.qrFrame {
+  width: 120px;
+  height: 120px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 4px;
+  background-color: #ffffff;
+}
+
+.qrSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.tagInfoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+.infoRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+}
+
+.infoLabel {
+  color: #64748b;
+  font-size: 12px;
+}
+
+.infoVal {
+  color: #0f172a;
+  font-weight: 500;
+  text-align: right;
+}
+
+.infoValHighlight {
+  font-family: "Be Vietnam Pro", sans-serif;
+  color: #00654f;
+  font-weight: 700;
+  text-align: right;
+}
+
+.infoValMono {
+  font-family: ui-monospace, monospace;
+  color: #0a8066;
+  font-weight: 600;
+  text-align: right;
+}
+
+.infoValStrong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.dateGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 6px 8px;
+  background-color: #f8fafc;
+  border-radius: 4px;
+  margin: 2px 0;
+}
+
+.dateBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.infoValDate {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.tagFooter {
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.verifyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Inter", sans-serif;
+  font-size: 11.5px;
+  color: #0a8066;
+  font-weight: 500;
+}
+
+.verifyIcon {
+  color: #0a8066;
+}
+
+/* Modal Footer */
+.modalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.closeActionBtn {
+  padding: 7px 14px;
+  border-radius: 6px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-family: "Inter", sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+  }
+}
+

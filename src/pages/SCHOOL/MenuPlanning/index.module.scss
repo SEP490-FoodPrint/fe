@@ -1,53 +1,108 @@
 .menuListPage {
   width: 100%;
-  padding: 24px 32px 48px;
+  padding: 16px 20px 32px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   box-sizing: border-box;
-  background-color: #ffffff;
+  background-color: #fbfcfd;
   min-height: 100%;
 
   @media (max-width: 768px) {
-    padding: 16px 16px 32px;
+    padding: 12px 12px 24px;
+    gap: 10px;
   }
 }
 
-.tableCard {
-  width: 100%;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(36, 49, 45, 0.04), 0 4px 12px rgba(36, 49, 45, 0.03);
-  border: 1px solid rgba(189, 201, 195, 0.35);
-  overflow: hidden;
+/* ========================================================
+   1. TIÊU ĐỀ MÀN HÌNH (Clean, Tối giản, Hiện đại)
+   ======================================================== */
+.pageHeader {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 2px;
 }
 
+.headerTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pageTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.015em;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.pageSubtitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.createBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.2);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #086b55;
+    box-shadow: 0 4px 10px rgba(10, 128, 102, 0.25);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+/* Toast Notification tinh tế */
 .toastNotice {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  top: 20px;
+  right: 20px;
   z-index: 2000;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 20px;
-  border-radius: 10px;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  font-size: 14px;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
   font-weight: 600;
-  animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: slideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes slideIn {
   from {
-    transform: translateY(-20px);
+    transform: translateY(-16px);
     opacity: 0;
   }
   to {
     transform: translateY(0);
-    opacity: 1;
   }
 }
 
@@ -56,12 +111,12 @@
   color: #ffffff;
 }
 
-.info {
-  background-color: #0369a1;
+.warning {
+  background-color: #b45309;
   color: #ffffff;
 }
 
-.warning {
-  background-color: #b45309;
+.info {
+  background-color: #175b92;
   color: #ffffff;
 }

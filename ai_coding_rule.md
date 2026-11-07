@@ -7,6 +7,7 @@
 > 2. Đúng kỹ thuật: Material UI v6 + Module SCSS + Domain-Driven Services.
 > 3. Tận dụng tối đa tài nguyên có sẵn trong Base (Tokens, MUI Theme, Utilities).
 > 4. Không phá vỡ bộ khung Layout (Header & Sidebar) sẵn có.
+> 5. Luôn đối soát Cơ sở dữ liệu (Database Schema First) trước khi thêm/sửa bất kỳ trường thông tin, bộ lọc nào trên giao diện.
 
 ---
 
@@ -313,6 +314,7 @@ Trước khi hoàn thành bất kỳ yêu cầu code màn hình nào, AI phải 
 - [ ] **Tên Module SCSS:** Mọi component con trong `component/` có file `.module.scss` trùng tên 100% không?
 - [ ] **Biến Tokens:** Toàn bộ màu sắc, font chữ, spacing, radius có dùng `var(--...)` từ `globals.css` không? Có mã màu hex/px tùy tiện nào không?
 - [ ] **Services:** Mọi cuộc gọi API có tách `urls` và `index` trong `src/services/` không?
+- [ ] **Database Schema First:** Đã kiểm tra `be/prisma/schema.prisma` xem có trường dữ liệu này trong CSDL trước khi thêm vào UI/bộ lọc không? Tuyệt đối không tự ý thêm trường không có trong DB.
 - [ ] **Build:** Đảm bảo `npm run build` không phát sinh lỗi biên dịch.
 
 ---
@@ -327,3 +329,21 @@ Trước khi hoàn thành bất kỳ yêu cầu code màn hình nào, AI phải 
 - **Cấu trúc Service:** [src/services/AuthService](file:///C:/MERN/FoodPrint/FoodPrintFE/src/services/AuthService)
   - `urls.js`
   - `index.js`
+
+---
+
+## 9. Nguyên Tắc Bắt Buộc Về Đối Soát Cơ Sở Dữ Liệu (Database Schema First)
+
+> [!IMPORTANT]
+> **QUY TẮC BẤT DI BẤT DỊCH KHI SỬA HOẶC LÀM MỚI GIAO DIỆN:**
+> Tuyệt đối **PHẢI ĐỐI SOÁT CƠ SỞ DỮ LIỆU (`be/prisma/schema.prisma`)** trước khi thêm bất kỳ trường thông tin, cột dữ liệu, bộ lọc (filter), hay ô nhập liệu (input) nào trên giao diện.
+
+1. **Nguyên tắc tồn tại của dữ liệu:**
+   - Chỉ được phép render, lọc, hoặc cho phép người dùng thao tác với các trường thông tin **thực sự tồn tại trong CSDL PostgreSQL** (`be/prisma/schema.prisma`).
+   - Tuyệt đối **KHÔNG tự ý suy diễn, giả lập hoặc hardcode thêm các trường không có trong CSDL** (Ví dụ: Bảng `Dish` không có trường `category` thì không được tự ý tạo bộ lọc phân loại nhóm món trên UI bếp).
+2. **Quy trình chuẩn khi gặp trường thông tin chưa có trong DB:**
+   - **Bước 1:** Kiểm tra kỹ `be/prisma/schema.prisma` và các models/migrations Prisma tương ứng trong backend.
+   - **Bước 2:** Nếu mockup/yêu cầu giao diện cần một trường thông tin chưa có trong DB, AI phải chủ động trao đổi và hỏi ý kiến người dùng trước.
+   - **Bước 3:** Chỉ thêm trường đó lên giao diện sau khi:
+     - Đã tạo Migration bổ sung cột vào CSDL BE thành công.
+     - HOẶC người dùng có chỉ đạo đích danh về phương án xử lý cụ thể.

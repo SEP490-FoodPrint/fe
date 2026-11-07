@@ -1,10 +1,10 @@
 import React, { useEffect, useRef, useState } from "react"
-import { Alert, Button, CircularProgress, IconButton } from "@mui/material"
+import { Alert, Button, Card, CircularProgress, IconButton } from "@mui/material"
 import AddIcon from "@mui/icons-material/Add"
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlineOutlined"
 import { Link } from "react-router-dom"
 import ROUTER from "src/router/ROUTER"
-import AuthCard, { AuthHeading } from "src/components/Auth/AuthCard"
+import AuthCard from "src/components/Auth/AuthCard"
 import AuthField from "src/components/Auth/AuthField"
 import FormErrors from "src/components/Auth/FormErrors"
 import { validEmail } from "src/lib/authValidation"
@@ -101,25 +101,26 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
   if (prefilling) return <AuthCard><CircularProgress size={28} aria-label="Đang tải hồ sơ" /></AuthCard>
   if (loadError) return <AuthCard><Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{loadError}</Alert></AuthCard>
 
-  return <AuthCard size="profile" component="form" noValidate onSubmit={submit} aria-busy={loading} aria-label={supplier ? "Hồ sơ nhà cung cấp" : "Hồ sơ nhà trường"}>
-    <AuthHeading eyebrow="Hồ sơ đăng ký" title={editing ? (supplier ? "Chỉnh sửa hồ sơ nhà cung cấp" : "Chỉnh sửa hồ sơ nhà trường") : (supplier ? "Hoàn thiện hồ sơ nhà cung cấp" : "Hoàn thiện hồ sơ nhà trường")} description="Kiểm tra thông tin trước khi gửi hồ sơ xét duyệt." />
+  return <section className={styles.page} aria-labelledby="organization-profile-title">
+    <div className={styles.heading}><h1 id="organization-profile-title">{editing ? (supplier ? "Chỉnh sửa hồ sơ nhà cung cấp" : "Chỉnh sửa hồ sơ nhà trường") : (supplier ? "Hoàn thiện hồ sơ nhà cung cấp" : "Hoàn thiện hồ sơ nhà trường")}</h1><span>Kiểm tra thông tin trước khi gửi hồ sơ xét duyệt.</span></div>
+    <Card component="form" variant="outlined" className={styles.card} noValidate onSubmit={submit} aria-busy={loading} aria-label={supplier ? "Hồ sơ nhà cung cấp" : "Hồ sơ nhà trường"}>
     <FormErrors errors={errors} message={message} />
     {editing && <p className={form.hint}>Các tệp đã tải lên được giữ lại. Chọn thêm nhiều tệp mới hoặc bấm dấu × cạnh từng tệp để bỏ khỏi hồ sơ.</p>}
     <fieldset className={styles.fields} disabled={loading}>
     <div className={form.grid}>
       <div className={form.full}><AuthField id="name" label={supplier ? "Tên nhà cung cấp" : "Tên trường"} required placeholder={supplier ? "Nhập tên nhà cung cấp" : "Nhập tên trường"} value={values.name} onChange={change("name")} error={errors.name} autoComplete="organization" inputProps={{ maxLength: 255 }} /></div>
-      <AuthField id={supplier ? "taxCode" : "code"} label={supplier ? "Mã số thuế" : "Mã trường (nếu có)"} placeholder={supplier ? "Nhập mã số thuế" : "Nhập mã trường"} value={supplier ? values.taxCode : values.code} onChange={change(supplier ? "taxCode" : "code")} inputProps={{ maxLength: 80 }} />
-      <AuthField id="email" label={supplier ? "Email doanh nghiệp" : "Email liên hệ"} placeholder={supplier ? "Nhập email doanh nghiệp" : "Nhập email liên hệ"} type="email" value={values.email} onChange={change("email")} error={errors.email} inputProps={{ maxLength: 254 }} />
-      <div className={!supplier ? form.full : undefined}><AuthField id="phone" label={supplier ? "Số điện thoại liên hệ" : "Số điện thoại"} placeholder="Nhập số điện thoại" type="tel" value={values.phone} onChange={change("phone")} error={errors.phone} inputProps={{ maxLength: 30 }} /></div>
-      <div className={!supplier ? form.full : undefined}><AuthField id="address" label={supplier ? "Địa chỉ kinh doanh" : "Địa chỉ trường"} placeholder={supplier ? "Nhập địa chỉ kinh doanh" : "Nhập địa chỉ trường"} value={values.address} onChange={change("address")} autoComplete="street-address" inputProps={{ maxLength: 4000 }} /></div>
+      <AuthField id={supplier ? "taxCode" : "code"} label={supplier ? "Mã số thuế" : "Mã trường (nếu có)"} required placeholder={supplier ? "Nhập mã số thuế" : "Nhập mã trường"} value={supplier ? values.taxCode : values.code} onChange={change(supplier ? "taxCode" : "code")} inputProps={{ maxLength: 80 }} />
+      <AuthField id="email" label={supplier ? "Email doanh nghiệp" : "Email liên hệ"} required placeholder={supplier ? "Nhập email doanh nghiệp" : "Nhập email liên hệ"} type="email" value={values.email} onChange={change("email")} error={errors.email} inputProps={{ maxLength: 254 }} />
+      <div className={!supplier ? form.full : undefined}><AuthField id="phone" label={supplier ? "Số điện thoại liên hệ" : "Số điện thoại"} required placeholder="Nhập số điện thoại" type="tel" value={values.phone} onChange={change("phone")} error={errors.phone} inputProps={{ maxLength: 30 }} /></div>
+      <div className={!supplier ? form.full : undefined}><AuthField id="address" label={supplier ? "Địa chỉ kinh doanh" : "Địa chỉ trường"} required placeholder={supplier ? "Nhập địa chỉ kinh doanh" : "Nhập địa chỉ trường"} value={values.address} onChange={change("address")} autoComplete="street-address" inputProps={{ maxLength: 4000 }} /></div>
     </div>
     {supplier ? <section className={styles.certifications} aria-labelledby="certifications-title">
-      <div className={styles.sectionHeading}><h2 id="certifications-title">Giấy phép & chứng nhận</h2><p className={form.hint}>Bạn có thể thêm nhiều giấy chứng nhận. Mỗi giấy có thông tin và tệp đính kèm riêng.</p></div>
+      <div className={styles.sectionHeading}><span className={styles.headingRequired}><h2 id="certifications-title">Giấy phép & chứng nhận</h2><span className={styles.required}>*</span></span><p className={form.hint}>Bạn có thể thêm nhiều giấy chứng nhận. Mỗi giấy có thông tin và tệp đính kèm riêng.</p></div>
       {certifications.map((row, index) => <section key={row.id} className={styles.certificate} aria-labelledby={`${row.id}-title`}>
         <div className={styles.certificateHeading}><h3 id={`${row.id}-title`}>Giấy chứng nhận {index + 1}</h3><IconButton type="button" onClick={() => removeCertificate(row.id)} aria-label={`Xóa giấy chứng nhận ${index + 1}`}><DeleteOutlineIcon /></IconButton></div>
         <div className={form.grid}>
-          <AuthField id={`${row.id}-certificationType`} label="Loại giấy phép / chứng nhận" placeholder="Nhập loại chứng nhận" value={row.certificationType} onChange={event => updateCertificate(row.id, "certificationType", event.target.value)} error={errors[`${row.id}-certificationType`]} inputProps={{ maxLength: 120 }} />
-          <AuthField id={`${row.id}-certificateNo`} label="Số giấy phép / chứng nhận" placeholder="Nhập số chứng nhận" value={row.certificateNo} onChange={event => updateCertificate(row.id, "certificateNo", event.target.value)} error={errors[`${row.id}-certificateNo`]} inputProps={{ maxLength: 120 }} />
+          <AuthField id={`${row.id}-certificationType`} label="Loại giấy phép / chứng nhận" required={usedCertification(row)} placeholder="Nhập loại chứng nhận" value={row.certificationType} onChange={event => updateCertificate(row.id, "certificationType", event.target.value)} error={errors[`${row.id}-certificationType`]} inputProps={{ maxLength: 120 }} />
+          <AuthField id={`${row.id}-certificateNo`} label="Số giấy phép / chứng nhận" required={usedCertification(row)} placeholder="Nhập số chứng nhận" value={row.certificateNo} onChange={event => updateCertificate(row.id, "certificateNo", event.target.value)} error={errors[`${row.id}-certificateNo`]} inputProps={{ maxLength: 120 }} />
           <AuthField id={`${row.id}-issuedDate`} label="Ngày cấp" type="date" value={row.issuedDate} onChange={event => updateCertificate(row.id, "issuedDate", event.target.value)} inputProps={{ max: row.expiryDate || undefined }} />
           <AuthField id={`${row.id}-expiryDate`} label="Ngày hết hạn" type="date" value={row.expiryDate} onChange={event => updateCertificate(row.id, "expiryDate", event.target.value)} error={errors[`${row.id}-expiryDate`]} inputProps={{ min: row.issuedDate || undefined }} />
         </div>
@@ -131,11 +132,10 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
       <Button id="add-certification" type="button" variant="outlined" startIcon={<AddIcon />} className={form.secondary} onClick={addCertificate} disabled={loading || certifications.length >= 20}>Thêm giấy chứng nhận</Button>
       <p className={form.hint}>Khi bổ sung một giấy chứng nhận, cần nhập loại và số chứng nhận.</p>
     </section> : <DocumentUpload id="school-documents" title="Tài liệu pháp lý nhà trường" label="Chọn tệp tài liệu" files={documents} existingDocuments={existingDocuments} disabled={loading} error={errors["school-documents"]} onChange={setDocuments} onRemoveExisting={id => setExistingDocuments(previous => previous.filter(document => document.id !== id))} />}
-    <p className={form.hint}>{supplier ? "* Chỉ tên nhà cung cấp là bắt buộc. Chứng nhận được bổ sung theo hồ sơ hiện có." : "* Chỉ tên trường là bắt buộc. Các trường khác được bổ sung theo hồ sơ hiện có."}</p>
     </fieldset>
     <div className={styles.actions}>
       {editing && <Button component={Link} to={ROUTER.REGISTRATION_STATUS} variant="outlined" className={form.secondary} disabled={loading}>Hủy thay đổi</Button>}
       <Button type="submit" variant="contained" className={form.primary} disabled={loading}>{loading ? <CircularProgress size={22} color="inherit" aria-label="Đang gửi hồ sơ" /> : editing ? (requestStatus === "REJECTED" ? "Gửi lại hồ sơ" : "Lưu thay đổi") : "Gửi hồ sơ xét duyệt"}</Button>
     </div>
-  </AuthCard>
+  </Card></section>
 }

@@ -10,7 +10,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    margin-bottom: var(--space-3);
+    margin-bottom: var(--space-4);
     color: var(--text-muted);
     font-size: var(--text-xs);
 
@@ -20,12 +20,26 @@
     }
   }
 
-  &__title {
+  &__status {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     margin: 0;
-    color: var(--text-primary);
-    font-size: var(--text-2xl);
-    font-weight: var(--font-semibold);
-    line-height: var(--leading-tight);
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+
+    > span {
+      width: var(--space-2);
+      height: var(--space-2);
+      flex-shrink: 0;
+      border-radius: var(--radius-full);
+      background: var(--color-primary);
+    }
+
+    strong {
+      color: var(--text-primary);
+      font-weight: var(--font-semibold);
+    }
   }
 
   &__footer {
@@ -36,18 +50,21 @@
   }
 
   &__hint {
+    max-width: 44rem;
     color: var(--text-muted);
     font-size: var(--text-sm);
   }
 
   @media (max-width: 600px) {
-    &__title {
-      font-size: var(--text-xl);
-    }
+    gap: var(--space-5);
 
     &__footer {
       align-items: stretch;
       flex-direction: column;
+
+      .MuiButton-root {
+        min-height: var(--control-height-lg);
+      }
     }
   }
 }

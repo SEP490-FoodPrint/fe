@@ -3,7 +3,7 @@ import { ClipboardCheck, Hourglass, CheckCircle2, Timer } from "lucide-react"
 import styles from "./BatchCookingResultCard.module.scss"
 
 export default function BatchCookingResultCard({ batchData = {} }) {
-  const isDraft = batchData.status === "DRAFT"
+  const isDraft = batchData.status === "DRAFT" || batchData.status === "UNCONFIRMED"
   const isConfirmed = batchData.status === "CONFIRMED"
   const isCompleted = batchData.status === "COMPLETED"
 
@@ -62,13 +62,13 @@ export default function BatchCookingResultCard({ batchData = {} }) {
         </div>
       )}
 
-      {/* Chỉ số vận hành (Grid 2x2 Mobile / 4 Cols Desktop - Mỗi chỉ số 1 giá trị duy nhất) */}
+      {/* Chỉ số vận hành */}
       <div className={styles.kpiGrid}>
         {/* KPI 1: Số suất chế biến */}
         <div className={styles.kpiBox}>
           <span className={styles.kpiLabel}>Số suất chế biến</span>
           <span className={`${styles.kpiValueBold} ${styles.primaryVal}`}>
-            {(batchData.portions || 1250).toLocaleString("vi-VN")}
+            {(batchData.portions || 0).toLocaleString("vi-VN")}
           </span>
           <span className={styles.kpiSub}>suất (Khớp sĩ số GVCN)</span>
         </div>
@@ -98,11 +98,11 @@ export default function BatchCookingResultCard({ batchData = {} }) {
         {/* KPI 4: Thời điểm hoàn thành */}
         <div className={styles.kpiBox}>
           <span className={styles.kpiLabel}>Thời điểm hoàn thành</span>
-          <span className={`${styles.kpiTimeText} ${!batchData.completedAt ? styles.mutedVal : ""}`}>
+          <span className={styles.kpiValueBold}>
             {batchData.completedAt || "—"}
           </span>
           <span className={styles.kpiSub}>
-            {batchData.completedAt ? "Đã ra khay" : "Chưa hoàn tất"}
+            {isCompleted ? "Đã ra khay" : "Dự kiến 10:30"}
           </span>
         </div>
       </div>

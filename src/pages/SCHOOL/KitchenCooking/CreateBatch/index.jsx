@@ -1,15 +1,14 @@
 import React, { useState } from "react";
-import CreateBatchHeader from "./CreateBatchHeader";
-import BasicInfoSection from "./BasicInfoSection";
-import IngredientAllocationSection from "./IngredientAllocationSection";
-import ProposedBatchSection from "./ProposedBatchSection";
-import CreateBatchFooter from "./CreateBatchFooter";
+import CreateBatchHeader from "./component/CreateBatchHeader";
+import BasicInfoSection from "./component/BasicInfoSection";
+import IngredientAllocationSection from "./component/IngredientAllocationSection";
+import ProposedBatchSection from "./component/ProposedBatchSection";
+import CreateBatchFooter from "./component/CreateBatchFooter";
 import styles from "./index.module.scss";
 
 /**
  * CreateBatch - Màn hình Khởi tạo Lô Chế Biến Thực Phẩm - Nấu Chung (Nhân viên Bếp)
- * Khởi đầu ở trạng thái trống, nhân viên chọn món ăn từ thực đơn hôm nay,
- * hệ thống tự động đối soát tồn kho và tính toán phương án gộp lô tối ưu (ít mẻ nhất).
+ * Tuân thủ quy chuẩn ai_coding_rule: Cấu trúc component/, token màu, mobile-first touch >= 44px
  */
 export default function CreateBatch() {
   const [selectedDish, setSelectedDish] = useState(null);

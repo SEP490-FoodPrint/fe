@@ -1,0 +1,890 @@
+/*
+ * FOODPRINT DESIGN SYSTEM - KHO MÓN ĂN MASTER DATA
+ * Tuân thủ màu sắc chuẩn: Brand #0a8066 (green), #ded3cd (beige), #1d2b26 (neutral dark)
+ * Tối giản, thanh lịch, hoàn toàn không sử dụng icon/emoji
+ */
+
+.page {
+  padding: 20px 24px;
+  max-width: 1360px;
+  margin: 0 auto;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  color: var(--text-primary, #1d2b26);
+}
+
+/* ─── Header ─────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.titleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1d2b26;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #52635c;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 18px;
+  background-color: #0a8066;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #08735c;
+  }
+
+  &:active {
+    background-color: #08604d;
+  }
+}
+
+/* ─── Stats row (Không icon/emoji, 3 thẻ số liệu trọng tâm) ── */
+.statsRow {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.statCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e8eeeb;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.statNum {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0a8066;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #52635c;
+  font-weight: 500;
+}
+
+/* ─── Filter bar ─────────────────────────────────── */
+.filterBar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #e8eeeb;
+}
+
+.searchInput {
+  flex: 1 1 240px;
+  min-width: 200px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1d2b26;
+  background-color: #f8faf9;
+  box-sizing: border-box;
+  transition: all 0.15s ease;
+
+  &:focus {
+    outline: none;
+    background-color: #ffffff;
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
+  }
+
+  &::placeholder {
+    color: #84958b;
+  }
+}
+
+.supplierFilter {
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1d2b26;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+  min-width: 210px;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+  }
+}
+
+.catTabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+  padding-top: 4px;
+  border-top: 1px dashed #e8eeeb;
+}
+
+.catTab {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid #dce5e0;
+  background-color: #ffffff;
+  color: #52635c;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  font-family: inherit;
+  white-space: nowrap;
+
+  &:hover {
+    border-color: #0a8066;
+    color: #0a8066;
+    background-color: #f8faf9;
+  }
+
+  &.active {
+    background-color: #0a8066;
+    border-color: #0a8066;
+    color: #ffffff;
+    font-weight: 600;
+  }
+}
+
+/* ─── Table ──────────────────────────────────────── */
+.tableWrap {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e8eeeb;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 900px;
+}
+
+.table th {
+  background-color: #f8faf9;
+  padding: 11px 14px;
+  text-align: left;
+  font-weight: 600;
+  color: #52635c;
+  border-bottom: 1px solid #e8eeeb;
+  white-space: nowrap;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f3;
+  vertical-align: middle;
+  color: #1d2b26;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background-color: #f8faf9;
+}
+
+.dishName {
+  font-weight: 600;
+  color: #1d2b26;
+  font-size: 13.5px;
+}
+
+.dishDesc {
+  font-size: 11.5px;
+  color: #6b7c74;
+  margin-top: 2px;
+  line-height: 1.4;
+  max-width: 300px;
+}
+
+/* Nhóm món badges (màu chuẩn FoodPrint, bo tròn mềm mại) */
+.catBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid;
+  line-height: 1.25;
+}
+
+.catRice {
+  background-color: #faf7f5;
+  color: #584b46;
+  border-color: #eae1db;
+}
+
+.catMain {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.catVeg {
+  background-color: #e8f5f1;
+  color: #08604d;
+  border-color: #c9e8de;
+}
+
+.catSoup {
+  background-color: #f0fdfa;
+  color: #0f766e;
+  border-color: #ccfbf1;
+}
+
+.catDessert {
+  background-color: #f4eeea;
+  color: #75635c;
+  border-color: #ded3cd;
+}
+
+/* Ca ăn badges */
+.mealBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  border: 1px solid;
+}
+
+.mealLunch {
+  background-color: #e8f5f1;
+  color: #0a8066;
+  border-color: #c9e8de;
+}
+
+.mealAfter {
+  background-color: #faf7f5;
+  color: #75635c;
+  border-color: #ded3cd;
+}
+
+.mealBoth {
+  background-color: #f1f5f3;
+  color: #34443c;
+  border-color: #dce5e0;
+}
+
+.portionCell {
+  font-weight: 700;
+  color: #0a8066;
+  white-space: nowrap;
+}
+
+/* Cột Nguyên liệu chính & NCC */
+.mainIngredientName {
+  font-weight: 600;
+  color: #1d2b26;
+  font-size: 13px;
+}
+
+.supplierText {
+  font-size: 11.5px;
+  color: #52635c;
+  margin-top: 2px;
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.supplierBadgePill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background-color: #f4eeea;
+  color: #584b46;
+  border: 1px solid #ded3cd;
+}
+
+/* Nút thao tác dạng Icon thuần túy, không nền */
+.actionBtns {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.iconEditBtn,
+.iconDeleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+.iconEditBtn {
+  color: #0a8066;
+
+  &:hover {
+    color: #08604d;
+    transform: scale(1.15);
+  }
+}
+
+.iconDeleteBtn {
+  color: #dc2626;
+
+  &:hover {
+    color: #991b1b;
+    transform: scale(1.15);
+  }
+}
+
+/* Empty */
+.empty {
+  text-align: center;
+  padding: 44px 20px;
+  color: #6b7c74;
+
+  p {
+    margin: 0;
+    font-size: 13.5px;
+  }
+}
+
+/* ─── Modal (Không icon) ─────────────────────────── */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(29, 43, 38, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal {
+  background-color: #ffffff;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #dce5e0;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8eeeb;
+  position: sticky;
+  top: 0;
+  background-color: #ffffff;
+  z-index: 1;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1d2b26;
+  margin: 0;
+}
+
+.closeBtn {
+  padding: 5px 10px;
+  border: 1px solid #dce5e0;
+  background-color: #f8faf9;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #52635c;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background-color: #e8eeeb;
+    color: #1d2b26;
+  }
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 520px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.formFullRow {
+  grid-column: 1 / -1;
+}
+
+.formLabel {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #52635c;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.required {
+  color: #d64545;
+  margin-left: 2px;
+}
+
+.formInput,
+.formSelect,
+.formTextarea {
+  width: 100%;
+  padding: 8px 11px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1d2b26;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease;
+  background-color: #ffffff;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
+  }
+}
+
+.formTextarea {
+  resize: vertical;
+  min-height: 65px;
+}
+
+.portionRow {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.portionInput {
+  flex: 1;
+}
+
+.unitSelect {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+
+/* ─── Ingredients section in Add / Edit Modal ───── */
+.ingredientsSection {
+  grid-column: 1 / -1;
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sectionTitle {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1d2b26;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.sectionSub {
+  font-size: 12px;
+  color: #52635c;
+  margin: 2px 0 0;
+}
+
+.openPickerBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  border: 1px solid #c9e8de;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #0a8066;
+    color: #ffffff;
+    border-color: #0a8066;
+  }
+}
+
+.emptyIngredientBox {
+  border: 1.5px dashed #c9e8de;
+  border-radius: 8px;
+  background-color: #f8faf9;
+  padding: 24px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    border-color: #0a8066;
+    background-color: #e8f5f1;
+  }
+}
+
+.emptyPromptTitle {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1d2b26;
+  margin: 0;
+}
+
+.emptyPromptSub {
+  font-size: 12px;
+  color: #52635c;
+  margin: 0;
+}
+
+.emptyAddBtn {
+  margin-top: 4px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #0a8066;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ingTableWrap {
+  border: 1px solid #e8eeeb;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #ffffff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.ingTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+
+.ingTable th {
+  background-color: #f8faf9;
+  color: #52635c;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e8eeeb;
+  text-align: left;
+}
+
+.ingTable td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #f1f5f3;
+  color: #1d2b26;
+  vertical-align: middle;
+}
+
+.ingTable tr:last-child td {
+  border-bottom: none;
+}
+
+.ingTableNameText {
+  color: #1d2b26;
+  font-weight: 600;
+}
+
+.ingTableCatBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
+  white-space: nowrap;
+}
+
+.ingTableSupplierWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: #52635c;
+}
+
+.ingTableSupplierBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  font-size: 10.5px;
+  font-weight: 600;
+  background-color: #f4eeea;
+  color: #584b46;
+  border: 1px solid #ded3cd;
+}
+
+.ingTableRemoveBtn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #991b1b;
+    transform: scale(1.15);
+  }
+}
+
+.modalFooterHint {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.footerWarning {
+  font-size: 12px;
+  color: #d97706;
+  font-weight: 500;
+}
+
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid #e8eeeb;
+  background-color: #f8faf9;
+}
+
+.cancelBtn {
+  padding: 8px 16px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #52635c;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background-color: #f1f5f3;
+    color: #1d2b26;
+  }
+}
+
+.saveBtn {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 6px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #08735c;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* Confirm */
+.confirmOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(29, 43, 38, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+}
+
+.confirmBox {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 22px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 1px solid #dce5e0;
+}
+
+.confirmTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1d2b26;
+  margin: 0 0 8px;
+}
+
+.confirmMsg {
+  font-size: 13px;
+  color: #52635c;
+  margin: 0 0 18px;
+  line-height: 1.5;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.confirmCancel {
+  padding: 7px 15px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #52635c;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #f1f5f3;
+  }
+}
+
+.confirmDelete {
+  padding: 7px 15px;
+  border: none;
+  border-radius: 6px;
+  background-color: #d64545;
+  color: #ffffff;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #b91c1c;
+  }
+}

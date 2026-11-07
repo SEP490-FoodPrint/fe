@@ -1,0 +1,99 @@
+.cardsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.supplierName {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+}
+
+.label {
+  color: #64748b;
+}
+
+.value {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+.valueStrong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.plate {
+  font-family: monospace;
+  font-size: 12px;
+  background-color: #f8fafc;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+}
+
+.cardFooter {
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.viewBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  border-radius: 6px;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf0da;
+  color: #0a8066;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #dcfce7;
+    color: #00654f;
+  }
+}

@@ -1,0 +1,518 @@
+.detailWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+/* 1. Header Bar: Tiêu đề bên trái, nút hành động bên phải */
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.headerLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.backBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #00654f;
+    border-color: #cbd5e1;
+  }
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.deliveryCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+/* 2. Thanh tóm tắt thông tin chuyến giao (Summary Bar) */
+.summaryBar {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+.summaryCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.noteCol {
+  flex: 1;
+  min-width: 200px;
+}
+
+.summaryLabel {
+  font-family: "Inter", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+}
+
+.summaryValRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.summaryIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.summaryValue {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.summaryNote {
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.summaryDivider {
+  width: 1px;
+  height: 32px;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+/* 3. Khối nội dung danh sách & bảng */
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.sectionTitle {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.countText {
+  font-family: "Inter", sans-serif;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* 4. Bảng dữ liệu phẳng, thuần chữ, tối giản */
+.tableResponsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.flatTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+
+  thead tr {
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    padding: 9px 10px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 11px 10px;
+    font-size: 13px;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background-color: #fafbfc;
+  }
+}
+
+.thIngredient,
+.tdIngredient {
+  min-width: 150px;
+}
+
+.ingredientName {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 13.5px;
+  display: block;
+}
+
+.categorySubText {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+  margin-top: 1px;
+}
+
+.thLotCode,
+.tdLotCode {
+  min-width: 140px;
+}
+
+.monoCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
+}
+
+.thFacility,
+.tdFacility {
+  color: #475569;
+  font-size: 12.5px;
+  min-width: 160px;
+}
+
+.thExpiry,
+.tdExpiry {
+  color: #334155;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.thQuantity,
+.tdQuantity {
+  color: #0f172a;
+  font-size: 13px;
+  white-space: nowrap;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.thStatus,
+.tdStatus {
+  white-space: nowrap;
+}
+
+.statusPill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.thAction,
+.tdAction {
+  text-align: center;
+  width: 50px;
+}
+
+.qrIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #bbf7d0;
+  background-color: #f0fdf4;
+  color: #166534;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #dcfce7;
+    color: #14532d;
+    border-color: #86efac;
+    transform: scale(1.06);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.tableActionIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #00654f;
+    border-color: #cbd5e1;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.emptyText {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 12px;
+}
+
+/* ========================================================
+   NÚT HÀNH ĐỘNG DUYỆT KIỂM THỰC TRÊN HEADER & THÔNG BÁO TỪ CHỐI
+   ======================================================== */
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
+}
+
+.approvalPrimaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #086a55;
+    box-shadow: 0 1px 3px rgba(10, 128, 102, 0.25);
+  }
+
+  @media (max-width: 640px) {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+.approvalEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #f0fdf7;
+  color: #0a8066;
+  border: 1px solid #bbf7d0;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #dcfce7;
+    border-color: #86efac;
+  }
+
+  @media (max-width: 640px) {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+.approvalDisabledBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: not-allowed;
+  flex-shrink: 0;
+  white-space: nowrap;
+  user-select: none;
+
+  @media (max-width: 640px) {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Banner cảnh báo khi đợt giao bị từ chối */
+.rejectedBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: -4px;
+}
+
+.rejectedBannerIcon {
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.rejectedBannerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rejectedReasonText {
+  font-size: 12.5px;
+  color: #b91c1c;
+}
+
+/* Thông báo chỉ dẫn kiểm thực theo trạng thái xe */
+.transitNotice,
+.createdNotice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  margin-top: -4px;
+}
+
+.transitNotice {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  color: #0369a1;
+
+  .transitNoticeIcon {
+    color: #0284c7;
+    flex-shrink: 0;
+  }
+}
+
+.createdNotice {
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+
+  .createdNoticeIcon {
+    color: #64748b;
+    flex-shrink: 0;
+  }
+}

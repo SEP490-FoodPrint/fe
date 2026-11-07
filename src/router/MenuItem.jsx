@@ -13,6 +13,7 @@ import SchoolOutlinedIcon from "@mui/icons-material/SchoolOutlined"
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined"
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined"
 import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlined"
+import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined"
 import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
 import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
@@ -142,6 +143,12 @@ export const MenuItemSchool = () => [
     roles: [ROLES.SCHOOL_HEALTH_OFFICER],
   },
   {
+    key: ROUTER.SCHOOL_DISH_CATALOG,
+    label: "Danh sách món ăn",
+    icon: <MenuBookOutlinedIcon />,
+    roles: [ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION],
+  },
+  {
     key: ROUTER.SCHOOL_HEALTH_ALLERGY,
     label: "Thông tin dị ứng",
     icon: <HealthAndSafetyOutlinedIcon />,
@@ -151,12 +158,6 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Đánh giá giao hàng",
     icon: <FactCheckOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
-  },
-  {
-    key: ROUTER.SCHOOL_MEAL_FEEDBACK,
-    label: "Khiếu nại",
-    icon: <ReportProblemOutlinedIcon />,
     roles: [ROLES.SCHOOL_HEALTH_OFFICER],
   },
   {
@@ -176,8 +177,14 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_MENU,
-    label: "Thực đơn đã lên",
+    label: "Thực đơn tuần học đường",
     icon: <RestaurantMenuOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_MENU_PLANNING,
+    label: "Danh sách thực đơn",
+    icon: <DescriptionOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {

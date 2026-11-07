@@ -113,6 +113,78 @@ export function adaptCookingBatch(batch) {
   }
 }
 
+export function adaptBatchDetail(batch) {
+  if (!batch) return null
+  const rawDate =
+    typeof batch.MenuDay?.menuDate === "string"
+      ? batch.MenuDay.menuDate.slice(0, 10)
+      : ""
+  const menuDate = /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+    ? rawDate.split("-").reverse().join("/")
+    : "Chưa có ngày"
+  const mealType =
+    { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" }[batch.mealType] ||
+    batch.mealType ||
+    "Bữa trưa"
+  const method =
+    batch.cookingModeApplied === "SEPARATE_BY_LOT" ? "SEPARATE" : "COMMON"
+
+  const formatDateTime = (val) => {
+    if (!val) return null
+    const d = new Date(val)
+    if (isNaN(d.getTime())) return String(val)
+    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  }
+  const formatTimeOnly = (val) => {
+    if (!val) return null
+    const d = new Date(val)
+    if (isNaN(d.getTime())) return String(val)
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
+  }
+
+  const status = batch.status === "DRAFT" ? "UNCONFIRMED" : batch.status
+
+  const ingredients = (batch.cookingBatchLots || []).map((lot, idx) => ({
+    id: lot.ingredientLotId || idx + 1,
+    name: lot.ingredientName || lot.name || `Lô nguyên liệu #${idx + 1}`,
+    lotCode:
+      lot.lotCode ||
+      (lot.ingredientLotId
+        ? `LOT-${lot.ingredientLotId.slice(0, 8).toUpperCase()}`
+        : `LOT-00${idx + 1}`),
+    quantity: lot.quantityUsed || "—",
+    unit: lot.unit || "kg",
+    expiryDate: lot.expirationDate || "Đã kiểm thực",
+    expiryNote: "Đạt chuẩn an toàn",
+    noteType: "default",
+  }))
+
+  return {
+    id: batch.id,
+    code: batch.batchCode || batch.id,
+    status,
+    statusLabel: BATCH_STATUSES[status] || "Chưa xác định",
+    dishName: batch.Dish?.name || "Chưa có tên món",
+    dishCategory: "Món ăn bán trú",
+    menuDate,
+    mealType,
+    servingTime: batch.mealType === "LUNCH" ? "11:15" : "14:30",
+    portions: Number.isSafeInteger(batch.plannedPortions)
+      ? batch.plannedPortions
+      : 0,
+    method,
+    cookingModeApplied: batch.cookingModeApplied,
+    note: batch.note || "",
+    createdAt: formatDateTime(batch.createdAt) || "Chưa ghi nhận",
+    confirmedAt: formatDateTime(batch.confirmedAt),
+    completedAt: formatTimeOnly(batch.completedAt),
+    completedAtFull: formatDateTime(batch.completedAt),
+    ingredients,
+    rawBatchLots: batch.cookingBatchLots || [],
+    rawMealSeasonings: batch.mealSeasonings || [],
+  }
+}
+
 export function batchCSV(rows) {
   const escape = (value) => {
     let cell = String(value ?? "")

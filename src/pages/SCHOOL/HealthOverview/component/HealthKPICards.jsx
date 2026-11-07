@@ -1,7 +1,6 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import EditNoteOutlinedIcon from "@mui/icons-material/EditNoteOutlined"
-import PendingActionsOutlinedIcon from "@mui/icons-material/PendingActionsOutlined"
 import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined"
 import HealthAndSafetyOutlinedIcon from "@mui/icons-material/HealthAndSafetyOutlined"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
@@ -13,34 +12,25 @@ const KPI_ITEMS = [
     id: "menus-todo",
     title: "Thực đơn cần xử lý",
     count: "02",
-    description: "Cần hoàn thiện hoặc sửa theo ý kiến BGH",
+    description: "Ý kiến BGH & bản nháp cần gửi",
     icon: <EditNoteOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_MENU_PLANNING,
     colorScheme: "primary",
   },
   {
-    id: "pending-approval",
-    title: "Chờ BGH duyệt",
-    count: "01",
-    description: "Đã gửi duyệt tuần 46",
-    icon: <PendingActionsOutlinedIcon className={styles.kpiIcon} />,
-    route: ROUTER.SCHOOL_MENU_PLANNING,
-    colorScheme: "primary",
-  },
-  {
     id: "delivery-inspection",
-    title: "Giao hàng cần đánh giá",
+    title: "Giao hàng chờ kiểm tra",
     count: "03",
-    description: "Đợt giao ca sáng cần kiểm thực",
+    description: "Đợt giao ca sáng cần đánh giá",
     icon: <LocalShippingOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     colorScheme: "primary",
   },
   {
     id: "allergy-alerts",
-    title: "Lớp có thông tin dị ứng",
+    title: "Cảnh báo dị ứng theo lớp",
     count: "06",
-    description: "Tổng hợp số liệu từ các khối",
+    description: "Lớp có học sinh cần theo dõi",
     icon: <HealthAndSafetyOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_HEALTH_ALLERGY,
     colorScheme: "primary",
@@ -94,4 +84,3 @@ export default function HealthKPICards({ onSelectCard }) {
     </section>
   )
 }
-

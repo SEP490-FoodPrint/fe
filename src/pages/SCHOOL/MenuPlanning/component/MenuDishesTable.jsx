@@ -15,12 +15,13 @@ const getCategoryIcon = (cat) => {
 }
 
 export default function MenuDishesTable({
-  dishes,
+  dishes = [],
   onUpdateDish,
   onAddDishRow,
   onRemoveDish,
   onOpenPicker,
-  onRemoveIngredientFromDish
+  onRemoveIngredientFromDish,
+  onOpenDishPicker,
 }) {
   return (
     <div className={styles.tableCard}>
@@ -29,17 +30,22 @@ export default function MenuDishesTable({
           <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant</span>
           <div>
             <h2 className={styles.cardTitle}>Món ăn trong thực đơn</h2>
-
+            <p className={styles.cardSubtitle}>
+              Chọn món từ <strong>Danh sách món ăn học đường</strong> (đã định lượng sẵn theo suất).
+            </p>
           </div>
         </div>
-        <button
-          type="button"
-          className={styles.addDishBtn}
-          onClick={onAddDishRow}
-        >
-          <span className="material-symbols-outlined">add_circle</span>
-          <span>Thêm món vào thực đơn</span>
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={styles.addDishBtn}
+            onClick={() => onOpenDishPicker && onOpenDishPicker(null)}
+            title="Mở danh sách món ăn để chọn món"
+          >
+            <span className="material-symbols-outlined">add_circle</span>
+            <span>+ Chọn món từ Danh sách món ăn</span>
+          </button>
+        </div>
       </div>
 
       <div className={styles.tableWrapper}>
@@ -56,216 +62,176 @@ export default function MenuDishesTable({
             </tr>
           </thead>
           <tbody>
-            {dishes.map((dish, index) => {
-              // Hỗ trợ mảng nhiều nguyên liệu
-              const ingredientIds = dish.ingredientIds || (dish.ingredientId ? [dish.ingredientId] : [])
-              const selectedIngs = ingredientIds
-                .map(id => ALL_INGREDIENTS.find(i => i.id === id) || dish.ingredientDetails?.find(i => i.id === id))
-                .filter(Boolean)
+            {dishes.length === 0 ? (
+              <tr>
+                <td colSpan={5} style={{ textAlign: "center", padding: "30px 14px", color: "#64748b" }}>
+                  Chưa có món ăn nào trong ca này. Hãy bấm <strong>"+ Chọn món từ Danh sách món ăn"</strong> để bắt đầu.
+                </td>
+              </tr>
+            ) : (
+              dishes.map((dish, index) => {
+                // Hỗ trợ mảng nhiều nguyên liệu
+                const ingredientIds = dish.ingredientIds || (dish.ingredientId ? [dish.ingredientId] : [])
+                const selectedIngs = ingredientIds
+                  .map(id => ALL_INGREDIENTS.find(i => i.id === id) || dish.ingredientDetails?.find(i => i.id === id))
+                  .filter(Boolean)
 
-              // Kiểm tra dị ứng trên tất cả các nguyên liệu đã chọn
-              const conflictIngs = selectedIngs.filter(i => Boolean(i.allergen))
-              const hasAllergyConflict = conflictIngs.length > 0
+                // Kiểm tra dị ứng trên tất cả các nguyên liệu đã chọn hoặc trên chính dish.allergen
+                const conflictIngs = selectedIngs.filter(i => Boolean(i.allergen))
+                const hasAllergyConflict = conflictIngs.length > 0 || Boolean(dish.allergen)
 
-              return (
-                <tr key={dish.id} className={`${styles.dishRow} ${hasAllergyConflict ? styles.rowConflict : ""}`}>
-                  {/* STT */}
-                  <td className={styles.tdOrder}>
-                    <span className={styles.orderNumber}>{index + 1}</span>
-                  </td>
+                return (
+                  <tr key={dish.id} className={`${styles.dishRow} ${hasAllergyConflict ? styles.rowConflict : ""}`}>
+                    {/* STT */}
+                    <td className={styles.tdOrder}>
+                      <span className={styles.orderNumber}>{index + 1}</span>
+                    </td>
 
-                  {/* Tên món ăn (Tự do nhập text) */}
-                  <td className={styles.tdDishName}>
-                    <input
-                      type="text"
-                      className={styles.dishNameInput}
-                      value={dish.name}
-                      onChange={(e) => onUpdateDish(dish.id, { name: e.target.value })}
-                      placeholder="Nhập tên món ăn..."
-                    />
-                  </td>
+                    {/* Tên món ăn: Chọn từ Kho món ăn (KHÔNG NHẬP TEXT TỰ DO) */}
+                    <td className={styles.tdDishName}>
+                      {dish.name ? (
+                        <div className={styles.dishPickedCard}>
+                          <div className={styles.dishTitleRow}>
+                            <strong className={styles.dishPickedName}>{dish.name}</strong>
+                            <button
+                              type="button"
+                              className={styles.changeDishBtn}
+                              onClick={() => onOpenDishPicker && onOpenDishPicker(dish.id)}
+                              title="Đổi sang món khác trong kho"
+                            >
+                              <span className="material-symbols-outlined" style={{ fontSize: "13px" }}>sync</span>
+                              <span>Đổi</span>
+                            </button>
+                          </div>
+                          {dish.categoryLabel && (
+                            <span className={styles.categoryPill}>{dish.categoryLabel}</span>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.pickDishBtn}
+                          onClick={() => onOpenDishPicker && onOpenDishPicker(dish.id)}
+                        >
+                          <span className="material-symbols-outlined">add_circle_outline</span>
+                          <span>Chọn món từ Kho</span>
+                        </button>
+                      )}
+                    </td>
 
-                  {/* Thành phần chính (chọn được nhiều nguyên liệu) & Đối soát dị ứng */}
-                  <td className={styles.tdIngredientFlow}>
-                    {selectedIngs.length === 0 ? (
-                      /* Trường hợp chưa có nguyên liệu nào */
-                      <button
-                        type="button"
-                        className={styles.pickIngredientBtn}
-                        onClick={() => onOpenPicker(dish.id)}
-                      >
-                        <span className="material-symbols-outlined">add_circle_outline</span>
-                        <span>Chọn nguyên liệu từ NCC liên kết</span>
-                      </button>
-                    ) : (
-                      /* Trường hợp đã chọn 1 hoặc nhiều nguyên liệu: Khối thống nhất */
-                      <div className={`${styles.ingUnifiedCard} ${hasAllergyConflict ? styles.cardConflict : styles.cardSafe}`}>
-                        <div className={styles.ingTopRow}>
-                          <div className={styles.ingChipsContainer}>
-                            {selectedIngs.map((ing) => {
-                              const supplier = LINKED_SUPPLIERS.find(s => s.id === ing.supplierId)
-                              return (
-                                <div key={ing.id} className={styles.ingChipItem}>
-                                  <div className={styles.iconBox}>
-                                    <span className={`material-symbols-outlined ${styles.ingIcon}`}>
-                                      {getCategoryIcon(ing.category)}
-                                    </span>
-                                  </div>
-                                  <div className={styles.nameAndTags}>
-                                    <div className={styles.titleWrap}>
-                                      <strong className={styles.ingName}>{ing.name}</strong>
-                                      <span className={styles.categoryBadge}>{ing.category}</span>
+                    {/* Thành phần chính & Đối soát dị ứng */}
+                    <td className={styles.tdIngredientFlow}>
+                      {selectedIngs.length === 0 ? (
+                        <button
+                          type="button"
+                          className={styles.pickIngredientBtn}
+                          onClick={() => onOpenPicker(dish.id)}
+                        >
+                          <span className="material-symbols-outlined">add_circle_outline</span>
+                          <span>Chọn nguyên liệu từ NCC liên kết</span>
+                        </button>
+                      ) : (
+                        <div className={`${styles.ingUnifiedCard} ${hasAllergyConflict ? styles.cardConflict : styles.cardSafe}`}>
+                          <div className={styles.ingTopRow}>
+                            <div className={styles.ingChipsContainer}>
+                              {selectedIngs.map((ing) => {
+                                const supplier = LINKED_SUPPLIERS.find(s => s.id === ing.supplierId)
+                                return (
+                                  <div key={ing.id} className={styles.ingChipItem}>
+                                    <div className={styles.iconBox}>
+                                      <span className={`material-symbols-outlined ${styles.ingIcon}`}>
+                                        {getCategoryIcon(ing.category)}
+                                      </span>
                                     </div>
-                                    <div className={styles.supplierWrap}>
-                                      <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
-                                      <span className={styles.supplierName}>{supplier?.name || ing.supplierName || "NCC"}</span>
-                                      {supplier?.badge && (
-                                        <span className={styles.supplierBadge}>{supplier.badge}</span>
-                                      )}
+                                    <div className={styles.nameAndTags}>
+                                      <div className={styles.titleWrap}>
+                                        <strong className={styles.ingName}>{ing.name}</strong>
+                                        <span className={styles.categoryBadge}>{ing.category}</span>
+                                      </div>
+                                      <div className={styles.supplierWrap}>
+                                        <span className={`material-symbols-outlined ${styles.verifyIcon}`}>verified</span>
+                                        <span className={styles.supplierName}>{supplier?.name || ing.supplierName || "NCC"}</span>
+                                        {supplier?.badge && (
+                                          <span className={styles.supplierBadge}>{supplier.badge}</span>
+                                        )}
+                                      </div>
                                     </div>
-                                  </div>
 
-                                  {/* Nút xóa nhanh nguyên liệu đơn lẻ */}
-                                  <button
-                                    type="button"
-                                    className={styles.removeChipBtn}
-                                    onClick={() => onRemoveIngredientFromDish && onRemoveIngredientFromDish(dish.id, ing.id)}
-                                    title={`Xóa ${ing.name} khỏi món này`}
-                                    aria-label="Xóa nguyên liệu"
-                                  >
-                                    <span className="material-symbols-outlined">close</span>
-                                  </button>
-                                </div>
-                              )
-                            })}
+                                    {/* Nút xóa nguyên liệu */}
+                                    <button
+                                      type="button"
+                                      className={styles.removeChipBtn}
+                                      onClick={() => onRemoveIngredientFromDish && onRemoveIngredientFromDish(dish.id, ing.id)}
+                                      title={`Xóa ${ing.name} khỏi món này`}
+                                      aria-label="Xóa nguyên liệu"
+                                    >
+                                      <span className="material-symbols-outlined">close</span>
+                                    </button>
+                                  </div>
+                                )
+                              })}
+                            </div>
+
+                            <button
+                              type="button"
+                              className={styles.iconChangeBtn}
+                              onClick={() => onOpenPicker(dish.id)}
+                              title="Thay đổi / Thêm nguyên liệu"
+                              aria-label="Thay đổi nguyên liệu"
+                            >
+                              <span className="material-symbols-outlined">edit</span>
+                            </button>
                           </div>
 
-                          {/* Nút THAY ĐỔI / THÊM: CHỈ ĐỂ ICON CHO DỄ NHÌN theo yêu cầu */}
-                          <button
-                            type="button"
-                            className={styles.iconChangeBtn}
-                            onClick={() => onOpenPicker(dish.id)}
-                            title="Thay đổi / Thêm nguyên liệu"
-                            aria-label="Thay đổi nguyên liệu"
-                          >
-                            <span className="material-symbols-outlined">edit_note</span>
-                          </button>
-                        </div>
-
-                        {/* Hàng đối soát dị ứng: CHỈ HIỆN KHI ĐÃ CHỌN XONG NGUYÊN LIỆU */}
-                        <div className={styles.allergySection}>
-                          {hasAllergyConflict ? (
-                            <div className={styles.allergyBanner}>
-                              <span className={`material-symbols-outlined ${styles.alertIcon}`}>warning</span>
-                              <div className={styles.alertContent}>
-                                <span className={styles.alertMainText}>
-                                  <strong>Cảnh báo dị ứng ({conflictIngs.length} thành phần):</strong>{" "}
-                                  {conflictIngs.map(ci => ci.allergyWarning || `${ci.name} (${ci.allergen})`).join(" • ")}
-                                </span>
-                                <span className={styles.alertSubText}>
-                                  → Tự động kích hoạt tạo suất ăn riêng thay thế ở mục bên dưới
+                          {/* Cảnh báo dị ứng */}
+                          {hasAllergyConflict && (
+                            <div className={styles.ingConflictBanner}>
+                              <div className={styles.conflictLeft}>
+                                <span className={`material-symbols-outlined ${styles.warnIcon}`}>warning</span>
+                                <span>
+                                  {dish.allergen
+                                    ? `Món chứa dị nguyên: ${dish.allergen}`
+                                    : `Chứa dị nguyên: ${conflictIngs.map(i => i.allergen).join(", ")}`}
                                 </span>
                               </div>
-                            </div>
-                          ) : (
-                            <div className={styles.safeBanner}>
-                              <span className={`material-symbols-outlined ${styles.safeIcon}`}>check_circle</span>
-                              <span className={styles.safeText}>
-                                An toàn: Không phát hiện học sinh dị ứng các thành phần này
-                              </span>
+                              <span className={styles.conflictStudentsTag}>Cần suất ăn riêng</span>
                             </div>
                           )}
                         </div>
-                      </div>
-                    )}
-                  </td>
+                      )}
+                    </td>
 
-                  {/* Định lượng / Suất */}
-                  <td className={styles.tdQty}>
-                    {selectedIngs.length > 0 ? (
-                      <div className={styles.qtyStandardsList}>
-                        {selectedIngs.map((ingredient) => {
-                          const standard = dish.ingredientStandards?.find((line) => line.ingredientId === ingredient.id) || {
-                            ingredientId: ingredient.id,
-                            quantityPerPortion: dish.portionQty || 50,
-                            unit: dish.unit || "g",
-                          }
-                          const updateStandard = (field, value) => onUpdateDish(dish.id, {
-                            ingredientStandards: (dish.ingredientStandards || selectedIngs.map((item) => ({
-                              ingredientId: item.id,
-                              quantityPerPortion: dish.portionQty || 50,
-                              unit: dish.unit || "g",
-                            }))).map((line) => line.ingredientId === ingredient.id ? { ...line, [field]: value } : line),
-                          })
-                          return (
-                            <div className={styles.qtyStandardRow} key={ingredient.id}>
-                              <span className={styles.qtyIngredientName}>{ingredient.name}</span>
-                              <div className={styles.qtyControlGroup}>
-                                <input type="number" min="0.001" step="0.001" className={styles.qtyInput}
-                                  aria-label={`Định lượng ${ingredient.name} mỗi suất`}
-                                  value={standard.quantityPerPortion}
-                                  onChange={(event) => updateStandard("quantityPerPortion", event.target.value)} />
-                                <select className={styles.unitSelect} aria-label={`Đơn vị ${ingredient.name}`}
-                                  value={standard.unit} onChange={(event) => updateStandard("unit", event.target.value)}>
-                                  <option value="g">g</option><option value="kg">kg</option><option value="ml">ml</option><option value="quả">quả</option><option value="cái">cái</option>
-                                </select>
-                                <span className={styles.portionLabel}>/suất</span>
-                              </div>
-                            </div>
-                          )
-                        })}
+                    {/* Định lượng / Suất */}
+                    <td className={styles.tdQty}>
+                      <div className={styles.qtyControlGroup}>
+                        <input
+                          type="number"
+                          className={styles.qtyInput}
+                          value={dish.portionQty || 50}
+                          onChange={(e) => onUpdateDish(dish.id, { portionQty: Number(e.target.value) || 0 })}
+                          min="1"
+                        />
+                        <span className={styles.unitBadge}>{dish.unit || "g"} / suất</span>
                       </div>
-                    ) : <div className={styles.qtyControlGroup}>
-                      <input
-                        type="number"
-                        min="1"
-                        className={styles.qtyInput}
-                        value={dish.portionQty}
-                        onChange={(e) => onUpdateDish(dish.id, { portionQty: Number(e.target.value) || 0 })}
-                      />
-                      <select
-                        className={styles.unitSelect}
-                        value={dish.unit}
-                        onChange={(e) => onUpdateDish(dish.id, { unit: e.target.value })}
+                    </td>
+
+                    {/* Thao tác xóa */}
+                    <td className={styles.tdAction}>
+                      <button
+                        type="button"
+                        className={styles.deleteBtn}
+                        onClick={() => onRemoveDish(dish.id)}
+                        title="Xóa món ăn"
                       >
-                        <option value="g">g</option>
-                        <option value="kg">kg</option>
-                        <option value="ml">ml</option>
-                        <option value="quả">quả</option>
-                        <option value="cái">cái</option>
-                      </select>
-                      <span className={styles.portionLabel}>/suất</span>
-                    </div>}
-                  </td>
-
-                  {/* Thao tác xóa món */}
-                  <td className={styles.tdAction}>
-                    <button
-                      type="button"
-                      className={styles.deleteBtn}
-                      onClick={() => onRemoveDish(dish.id)}
-                      title="Xóa món khỏi thực đơn"
-                    >
-                      <span className="material-symbols-outlined">delete_outline</span>
-                    </button>
-                  </td>
-                </tr>
-              )
-            })}
+                        <span className="material-symbols-outlined">delete_outline</span>
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })
+            )}
           </tbody>
         </table>
-      </div>
-
-      {/* Footer bảng */}
-      <div className={styles.tableFooter}>
-        <button
-          type="button"
-          className={styles.addInlineBtn}
-          onClick={onAddDishRow}
-        >
-          <span className="material-symbols-outlined">add</span>
-          <span>Thêm món ăn khác vào thực đơn</span>
-        </button>
       </div>
     </div>
   )

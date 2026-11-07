@@ -1,6 +1,6 @@
 .pageContainer {
-  padding: 24px 32px 100px 32px;
-  background-color: #ffffff; /* Nền trắng tinh toàn trang */
+  padding: 20px 32px 100px 32px;
+  background-color: #f8fafc;
   min-height: calc(100dvh - var(--header-height, 64px));
   box-sizing: border-box;
   width: 100%;
@@ -8,40 +8,177 @@
 
 .contentWrapper {
   width: 100%;
-  max-width: 100%; /* Lấp đầy toàn màn hình, không bị thừa khoảng cách ngoài */
-  margin: 0;
+  max-width: 1440px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
-.menuStatusNotice {
-  margin: 0 0 16px;
-  padding: 12px 16px;
+/* ========================================================
+   TOP CONTROLS BAR: TUẦN & THÔNG TIN THỰC ĐƠN
+   ======================================================== */
+.topControlsCard {
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.controlsTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.weekStepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
   border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  background: #f8fafc;
-  color: #334155;
-  font-size: 14px;
+}
+
+.weekNavBtn {
+  background: transparent;
+  border: none;
+  color: #475569;
+  width: 26px;
+  height: 26px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+
+  &:hover {
+    background-color: #ffffff;
+    color: #0f172a;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.weekRangeText {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.weekQuickStats {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.statPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
+  color: #475569;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 3px 9px;
+  border-radius: 6px;
+
+  strong {
+    color: #0a8066;
+  }
 }
 
-.editorFieldset {
-  min-width: 0;
+/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Đã bỏ Quy mô 1,250 học sinh) */
+.controlsInputsRow {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.6fr) minmax(220px, 1.2fr);
+  gap: 14px;
+  align-items: flex-end;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.inputLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.textInput {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13.5px;
+  color: #0f172a;
+  background-color: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+  }
+}
+
+/* ========================================================
+   KHU VỰC HÀNG DÀI THỰC ĐƠN TUẦN
+   ======================================================== */
+.weeklySectionWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sectionHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
   margin: 0;
-  padding: 0;
-  border: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
+/* TOAST */
 .toastNotice {
   position: fixed;
   top: 24px;
   right: 24px;
-  z-index: 2000;
+  z-index: 2500;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 12px 20px;
-  border-radius: 10px;
+  border-radius: 8px;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
   font-size: 14px;
   font-weight: 600;
@@ -76,7 +213,6 @@
 
 @media (max-width: 768px) {
   .pageContainer {
-    padding: 16px 16px 110px 16px;
+    padding: 14px 14px 110px 14px;
   }
 }
-

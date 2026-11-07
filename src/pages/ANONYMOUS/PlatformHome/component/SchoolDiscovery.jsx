@@ -1,12 +1,65 @@
-import React from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
-import { ArrowRight, Search, SearchX } from "lucide-react"
+import { ArrowLeft, ArrowRight, Search, SearchX } from "lucide-react"
+import { Swiper, SwiperSlide } from "swiper/react"
+import { Autoplay } from "swiper/modules"
+import "swiper/css"
 import ROUTER from "src/router/ROUTER"
 import SchoolCard from "./SchoolCard"
 import styles from "./SchoolDiscovery.module.scss"
 
 function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
+  const track = useRef(null)
+  const [swiper, setSwiper] = useState(null)
+  const [scrollState, setScrollState] = useState({ overflow: false, previous: false, next: false })
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [visible, setVisible] = useState(false)
+  const [pageVisible, setPageVisible] = useState(!document.hidden)
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false)
+  const updateScrollState = useCallback(instance => {
+    if (!instance || instance.destroyed) return
+    setScrollState({ overflow: !instance.isLocked, previous: !instance.isBeginning, next: !instance.isEnd })
+  }, [])
+
+  useEffect(() => {
+    if (!swiper || swiper.destroyed) return
+    swiper.slideTo(0, 0)
+    swiper.update()
+    updateScrollState(swiper)
+  }, [swiper, schools, searchQuery, updateScrollState])
+
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-reduced-motion: reduce)")
+    const updateMotion = () => setReducedMotion(media?.matches ?? false)
+    const updateVisibility = () => setPageVisible(!document.hidden)
+    media?.addEventListener?.("change", updateMotion)
+    document.addEventListener("visibilitychange", updateVisibility)
+    return () => {
+      media?.removeEventListener?.("change", updateMotion)
+      document.removeEventListener("visibilitychange", updateVisibility)
+    }
+  }, [])
+
+  useEffect(() => {
+    const element = track.current
+    if (!element) return
+    if (typeof IntersectionObserver === "undefined") {
+      setVisible(true)
+      return
+    }
+    const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting))
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [schools])
+
+  useEffect(() => {
+    if (!swiper || swiper.destroyed) return
+    if (scrollState.overflow && !hovered && !focused && visible && pageVisible && !reducedMotion) swiper.autoplay.start()
+    else swiper.autoplay.stop()
+    return () => { if (!swiper.destroyed) swiper.autoplay.stop() }
+  }, [swiper, scrollState.overflow, hovered, focused, visible, pageVisible, reducedMotion])
   const handleSubmit = e => {
     e.preventDefault()
   }
@@ -38,7 +91,7 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
               placeholder="Tìm kiếm theo tên trường, quận/huyện hoặc mã cơ sở..."
               value={searchQuery}
               onChange={e => onSearchChange(e.target.value)}
-              aria-label="Search schools"
+              aria-label="Tìm trường học"
             />
             <button type="submit" className={styles.searchBtn}>
               <span>Tìm trường</span>
@@ -47,13 +100,22 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
           </form>
         </div>
 
-        {/* Lưới danh sách các trường học */}
-        <div className={styles.schoolsGrid}>
-          {schools.length > 0 ? (
-            schools.slice(0, 6).map(school => (
-              <SchoolCard key={school.id} school={school} />
-            ))
-          ) : (
+        {schools.length > 0 ? <div ref={track}
+          onPointerEnter={event => { if (event.pointerType === "mouse") setHovered(true) }}
+          onPointerLeave={event => { if (event.pointerType === "mouse") setHovered(false) }}
+          onFocus={() => setFocused(true)}
+          onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false) }}
+        >
+          <Swiper id="school-carousel" className={styles.schoolsGrid} modules={[Autoplay]} slidesPerView={1} spaceBetween={16} breakpoints={{ 701: { slidesPerView: 2 }, 851: { slidesPerView: 3 } }} rewind watchOverflow autoplay={{ delay: 5000, disableOnInteraction: false }} speed={reducedMotion ? 0 : 400} onSwiper={instance => { instance.autoplay.stop(); setSwiper(instance); updateScrollState(instance) }} onSlideChange={updateScrollState} onResize={updateScrollState} onLock={updateScrollState} onUnlock={updateScrollState} role="region" aria-label="Danh sách trường học">
+            {schools.slice(0, 6).map(school => (
+              <SwiperSlide key={school.id}><SchoolCard school={school} /></SwiperSlide>
+            ))}
+          </Swiper>
+          {scrollState.overflow && <div className={styles.carouselControls}>
+            <button type="button" onClick={() => swiper?.slidePrev()} disabled={!scrollState.previous} aria-label="Xem trường trước" aria-controls="school-carousel"><ArrowLeft size={19} aria-hidden="true" /></button>
+            <button type="button" onClick={() => swiper?.slideNext()} disabled={!scrollState.next} aria-label="Xem trường tiếp theo" aria-controls="school-carousel"><ArrowRight size={19} aria-hidden="true" /></button>
+          </div>}
+        </div> : (
             <div className={styles.emptyState}>
               <SearchX size={48} color="var(--text-muted)" />
               <div className={styles.emptyTitle}>
@@ -76,13 +138,11 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
               </p>
             </div>
           )}
-        </div>
 
         {/* Nút điều hướng xem toàn bộ trường học */}
         <div className={styles.viewAllWrapper}>
           <Link to={ROUTER.SCHOOL_LIST} className={styles.viewAllBtn}>
-            <span>Xem tất cả danh sách trường học</span>
-            <ArrowRight size={18} />
+            <span>Xem tất cả</span>
           </Link>
         </div>
       </div>

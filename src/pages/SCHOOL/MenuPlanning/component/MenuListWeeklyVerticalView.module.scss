@@ -1,0 +1,982 @@
+.verticalWeeklyContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+/* ========================================================
+   1. BAR ĐIỀU KHIỂN TUẦN TỐI GIẢN
+   ======================================================== */
+.topControlBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e8eeeb;
+  padding: 8px 16px;
+  min-height: 48px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.menuMetaGroup {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menuIconBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.weeklyMenuTitle {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: #1d2b26;
+  letter-spacing: -0.01em;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.metaDivider {
+  width: 1px;
+  height: 16px;
+  background-color: #dce5e0;
+  margin: 0 4px;
+}
+
+.targetScopeText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.weekProgressText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+
+  strong {
+    font-weight: 600;
+    color: #0a8066;
+  }
+}
+
+.targetScopeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 9px;
+  border-radius: 9999px;
+  background-color: #f4eeea;
+  color: #584b46;
+  font-size: 11.5px;
+  font-weight: 600;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  border: 1px solid #ded3cd;
+  line-height: 1.2;
+}
+
+.currentWeekTag {
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2.5px 8px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+/* Badge trạng thái tuần */
+.weekStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2.5px 9px;
+  border-radius: 9999px;
+  line-height: 1.2;
+}
+
+.statusApproved {
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
+}
+
+.statusPending {
+  background-color: #fef9ee;
+  color: #8f5b00;
+  border: 1px solid #fae1a7;
+}
+
+.statusRevision {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.statusDraft {
+  background-color: #f8faf9;
+  color: #52635c;
+  border: 1px solid #e8eeeb;
+}
+
+/* Pill tiến độ tuần DRAFT */
+.weekProgressPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #e8f5f1;
+  color: #08604d;
+  border: 1px solid #c9e8de;
+  padding: 2.5px 9px;
+  border-radius: 9999px;
+  font-size: 11.5px;
+  font-weight: 500;
+
+  strong {
+    font-weight: 700;
+    color: #0a8066;
+  }
+}
+
+.topActionsGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.submitWeekBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: none;
+}
+
+.submitActive {
+  background-color: #0a8066;
+  color: #ffffff;
+
+  &:hover {
+    background-color: #08735c;
+  }
+}
+
+.submitDisabled {
+  background-color: #f8faf9;
+  color: #adbbb3;
+  border: 1px solid #e8eeeb;
+  cursor: not-allowed;
+}
+
+.resubmitWeekBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  background-color: #dc2626;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #b91c1c;
+  }
+}
+
+/* Banner phản hồi BGH */
+.weekFeedbackBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.feedbackIcon {
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.feedbackContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.feedbackTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.feedbackTitle {
+  font-weight: 700;
+  color: #991b1b;
+}
+
+.feedbackSub {
+  font-size: 11.5px;
+  color: #b91c1c;
+}
+
+.feedbackText {
+  color: #7f1d1d;
+  font-size: 12.5px;
+  margin: 2px 0 0;
+}
+
+/* ========================================================
+   2. DẢI CHỌN NGÀY TRÊN MOBILE
+   ======================================================== */
+.mobileDayBar {
+  display: none;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.mobileDayList {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: max-content;
+}
+
+.mobileDayPill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px;
+  min-height: 42px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  position: relative;
+
+  .pillIndex {
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  .pillDate {
+    font-size: 10.5px;
+    color: #64748b;
+  }
+
+  .pillDot {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: #0a8066;
+  }
+
+  &.mobileDayPillActive {
+    background-color: #0a8066;
+    border-color: #0a8066;
+    color: #ffffff;
+
+    .pillIndex,
+    .pillDate {
+      color: #ffffff;
+    }
+
+    .pillDot {
+      background-color: #ffffff;
+    }
+  }
+}
+
+/* ========================================================
+   3. LƯỚI 5 CỘT THỰC ĐƠN DỌC - DÃN ĐỀU 100%, TUYỆT ĐỐI KHÔNG CÓ THANH LƯỚT
+   ======================================================== */
+.weeklyGridWrapper {
+  width: 100%;
+  overflow: visible; /* Hoàn toàn không có thanh cuộn ngang */
+  box-sizing: border-box;
+}
+
+.weeklyGrid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr)); /* Dãn đều 100% theo chiều ngang */
+  gap: 12px;
+  align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dayColItem {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+}
+
+.dayCard {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  height: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* Cột Hôm nay: Sắc nét, đồng đều */
+.todayDayCard {
+  border: 2px solid #0a8066 !important;
+  box-shadow: inset 0 0 0 1px #0a8066, 0 3px 12px rgba(10, 128, 102, 0.12) !important;
+  box-sizing: border-box !important;
+  position: relative;
+  z-index: 2;
+
+  .dayHeader {
+    background-color: #f0fdf4;
+  }
+}
+
+/* ========================================================
+   HEADER CỘT NGÀY: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 64px
+   ======================================================== */
+.dayHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.dayTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  width: 100%;
+}
+
+.dayTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.dayLabel {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.todayPill {
+  font-size: 9px;
+  font-weight: 700;
+  color: #ffffff;
+  background-color: #0a8066;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* Badge tiến độ ngày */
+.dayProgressBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 5px;
+  border-radius: 9999px;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.badgeCompleted {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.badgeApproved {
+  background-color: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.badgePending {
+  background-color: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+.badgePartial {
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+
+.badgeEmpty {
+  background-color: #f8fafc;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.badgeRevision {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.dayDateRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.dayDateText {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.allergyTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #b45309;
+  background-color: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 1px 4px;
+  border-radius: 3px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Thân thực đơn */
+.dayMealsBody {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  flex: 1;
+}
+
+.mealBlock {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================================
+   DẢI BỮA TRƯA: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 36px
+   TẤT CẢ 5 NGÀY ĐỀU BẮT ĐẦU TẠI Y = 64px
+   ======================================================== */
+.lunchBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  box-sizing: border-box;
+  padding: 0 8px 0 10px;
+  background-color: #e8f5f1;
+  border-top: 1px solid #c9e8de;
+  border-bottom: 1px solid #bce6cf;
+}
+
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.lunchIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.lunchTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #08604d;
+  letter-spacing: 0.04em;
+}
+
+.bannerActions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.mealIconBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 0;
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+.lunchIconBtn {
+  color: #08604d;
+
+  &:hover {
+    background-color: #c9e8de;
+    border-color: #0a8066;
+  }
+}
+
+.lunchEditBtn {
+  color: #0a8066;
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #0a8066;
+  }
+}
+
+/* ========================================================
+   DANH SÁCH MÓN BỮA TRƯA: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 250px
+   KHÔNG CÓ THANH LƯỚT DỌC
+   ======================================================== */
+.dishesListLunch {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  height: 250px;
+  min-height: 250px;
+  max-height: 250px;
+  box-sizing: border-box;
+  overflow: hidden; /* Tuyệt đối không có thanh lướt */
+}
+
+/* Khi ngày chưa có bữa trưa: Ô trống cao đúng 250px giữ nhịp bằng nhau */
+.emptySingleMealBox {
+  height: 250px;
+  min-height: 250px;
+  max-height: 250px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #fafbfc;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* ========================================================
+   DẢI BỮA XẾ: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 36px
+   TẤT CẢ 5 NGÀY ĐỀU BẮT ĐẦU TẠI Y = 64px + 36px + 250px = 350px!
+   ======================================================== */
+.afternoonBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
+  box-sizing: border-box;
+  padding: 0 8px 0 10px;
+  background-color: #f4eeea;
+  border-top: 1px solid #eae1db;
+  border-bottom: 1px solid #ded3cd;
+}
+
+.afternoonIcon {
+  color: #75635c;
+  flex-shrink: 0;
+}
+
+.afternoonTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: #584b46;
+  letter-spacing: 0.04em;
+}
+
+.afternoonIconBtn {
+  color: #584b46;
+
+  &:hover {
+    background-color: #ded3cd;
+    border-color: #75635c;
+  }
+}
+
+.afternoonEditBtn {
+  color: #0a8066;
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #0a8066;
+  }
+}
+
+.revisionEditBtn {
+  border-color: #fca5a5 !important;
+  color: #dc2626 !important;
+
+  &:hover {
+    background-color: #fee2e2 !important;
+    border-color: #dc2626 !important;
+  }
+}
+
+/* ========================================================
+   DANH SÁCH MÓN BỮA XẾ: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 100px
+   KHÔNG CÓ THANH LƯỚT DỌC
+   ======================================================== */
+.dishesListAfternoon {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  height: 100px;
+  min-height: 100px;
+  max-height: 100px;
+  box-sizing: border-box;
+  overflow: hidden; /* Tuyệt đối không có thanh lướt */
+}
+
+/* Khi ngày chưa có bữa xế: Ô trống cao đúng 100px giữ nhịp bằng nhau */
+.emptySingleMealBoxSm {
+  height: 100px;
+  min-height: 100px;
+  max-height: 100px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background-color: #fafbfc;
+}
+
+.emptyMealText {
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  text-align: center;
+}
+
+.addSingleMealBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 5px;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #ecfdf5;
+    color: #0a8066;
+    border-color: #a7f3d0;
+  }
+}
+
+/* ========================================================
+   DÒNG MÓN ĂN: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 50px
+   ======================================================== */
+.lunchDishRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 50px;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid #f8fafc;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #fffaf5;
+
+    .dishDotLunch {
+      background-color: #ea580c;
+    }
+
+    .dishName {
+      color: #ea580c;
+    }
+  }
+
+  @media (max-width: 768px) {
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+    padding: 0 10px;
+  }
+}
+
+.afternoonDishRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 50px;
+  min-height: 50px;
+  max-height: 50px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  border-bottom: 1px solid #f8fafc;
+  background-color: #ffffff;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: #f8faff;
+
+    .dishDotAfternoon {
+      background-color: #2563eb;
+    }
+
+    .dishName {
+      color: #2563eb;
+    }
+  }
+
+  @media (max-width: 768px) {
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+    padding: 0 10px;
+  }
+}
+
+.dishDotLunch {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #fed7aa;
+  flex-shrink: 0;
+  transition: background-color 0.12s ease;
+}
+
+.dishDotAfternoon {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #bfdbfe;
+  flex-shrink: 0;
+  transition: background-color 0.12s ease;
+}
+
+.dishName {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #1e293b;
+  line-height: 1.35;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  letter-spacing: -0.01em;
+  transition: color 0.12s ease;
+}
+
+/* ========================================================
+   THẺ NGÀY NGHỈ THEO LỊCH SETUP BAN GIÁM HIỆU
+   ======================================================== */
+.badgeHoliday {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.holidayCardBody {
+  min-height: 422px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 14px;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+  text-align: center;
+  box-sizing: border-box;
+  gap: 10px;
+}
+
+.holidayIconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background-color: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  margin-bottom: 2px;
+}
+
+.holidayIcon {
+  color: #475569;
+}
+
+.holidayTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background-color: #e2e8f0;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.holidayReasonBox {
+  padding: 8px 12px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.holidayReasonText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.4;
+  display: block;
+}
+
+.holidaySubText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.mobileDayPillHoliday {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #475569 !important;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .mobileDayBar {
+    display: block;
+  }
+
+  .weeklyGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .mobileHidden {
+    display: none !important;
+  }
+}

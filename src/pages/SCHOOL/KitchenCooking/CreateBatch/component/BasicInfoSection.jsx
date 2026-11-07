@@ -265,9 +265,7 @@ export default function BasicInfoSection({
           <div className={styles.numberBadge}>1</div>
           <div>
             <h2 className={styles.sectionTitle}>1. Thông tin cơ bản</h2>
-            <p className={styles.sectionSubtitle}>
-              Bắt buộc — Ca ăn, thực đơn và số lượng học sinh phục vụ
-            </p>
+            
           </div>
         </div>
         <span className={styles.requiredTag}>Bắt buộc</span>

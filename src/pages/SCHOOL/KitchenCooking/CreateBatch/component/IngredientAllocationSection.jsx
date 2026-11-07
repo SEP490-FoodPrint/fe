@@ -23,9 +23,7 @@ export default function IngredientAllocationSection({
               <h2 className={styles.sectionTitle}>
                 2. Phân bổ lô nguyên liệu & Đối soát định mức
               </h2>
-              <p className={styles.sectionSubtitle}>
-                Tự động kiểm tra tồn kho lô nguyên liệu theo số suất ăn
-              </p>
+              
             </div>
           </div>
         </div>
@@ -35,11 +33,7 @@ export default function IngredientAllocationSection({
             <PackageCheck size={26} />
           </div>
           <h3 className={styles.emptyTitle}>Chưa chọn món ăn cần chế biến</h3>
-          <p className={styles.emptyDesc}>
-            Vui lòng chọn món ăn ở <strong>Bước 1</strong>. Hệ thống sẽ tự động
-            đối soát tồn kho, áp dụng định mức và phân bổ các lô nguyên liệu đạt
-            chuẩn kiểm thực.
-          </p>
+          <p className={styles.emptyDesc}>Chọn món ăn ở Bước 1 để kiểm tra và đối soát nguyên liệu.</p>
           <div className={styles.emptyHintBadge}>
             <Sparkles size={12} />
             <span>Đang chờ chọn món ăn ở Bước 1</span>
@@ -62,10 +56,7 @@ export default function IngredientAllocationSection({
               2. Phân bổ lô nguyên liệu & Đối soát định mức ({selectedDish.name}
               )
             </h2>
-            <p className={styles.sectionSubtitle}>
-              Tự động kiểm tra tồn kho lô nguyên liệu theo quy mô{" "}
-              {portions.toLocaleString("vi-VN")} suất ăn
-            </p>
+            
           </div>
         </div>
 

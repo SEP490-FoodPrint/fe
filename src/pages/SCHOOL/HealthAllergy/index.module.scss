@@ -1,0 +1,35 @@
+.healthAllergyPage {
+  width: 100%;
+  padding: 20px 24px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  background-color: #fbfcfd;
+  min-height: 100%;
+
+  @media (max-width: 768px) {
+    padding: 12px 14px 28px;
+    gap: 12px;
+  }
+}
+
+.listWrapper {
+  width: 100%;
+}
+
+.desktopTableWrap {
+  display: block;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.mobileCardsWrap {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: block;
+  }
+}

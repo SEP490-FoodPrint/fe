@@ -1,34 +1,36 @@
 import React from "react"
-import { History, ShieldCheck } from "lucide-react"
+import { History, ChevronDown } from "lucide-react"
 import styles from "./BatchAuditCard.module.scss"
 
 export default function BatchAuditCard({ auditData = {} }) {
   return (
-    <section className={styles.auditCard}>
-      {/* Header Thẻ */}
-      <div className={styles.cardHeader}>
-        <History size={18} className={styles.headerIcon} />
-        <h2 className={styles.cardTitle}>Theo dõi kiểm toán</h2>
-      </div>
+    <details className={styles.auditCard}>
+      <summary className={styles.cardSummary}>
+        <div className={styles.summaryLeft}>
+          <History size={16} className={styles.headerIcon} />
+          <span className={styles.cardTitle}>Lịch sử thao tác & kiểm toán</span>
+        </div>
+        <ChevronDown size={16} className={styles.chevronIcon} />
+      </summary>
 
       <div className={styles.auditList}>
         {/* 1. Người tạo phương án */}
         <div className={styles.auditItem}>
-          <span className={styles.auditLabel}>Người tạo phương án</span>
-          <span className={styles.auditValueBold}>{auditData.createdBy || "Nguyễn Văn Vận (Bếp chính)"}</span>
+          <span className={styles.auditLabel}>Người tạo</span>
+          <span className={styles.auditValueBold}>{auditData.createdBy || "Nhân viên Bếp (Bếp chính)"}</span>
         </div>
 
         {/* 2. Thời điểm tạo */}
         <div className={styles.auditItem}>
           <span className={styles.auditLabel}>Thời điểm tạo</span>
-          <span className={styles.auditValue}>{auditData.createdAt || "10/11/2024 07:15"}</span>
+          <span className={styles.auditValue}>{auditData.createdAt || "—"}</span>
         </div>
 
         {/* 3. Người xác nhận phương án */}
         <div className={styles.auditItem}>
-          <span className={styles.auditLabel}>Người xác nhận phương án</span>
+          <span className={styles.auditLabel}>Người xác nhận</span>
           <span className={auditData.confirmedBy ? styles.auditValueBold : styles.auditValueMuted}>
-            {auditData.confirmedBy || "Chưa có (Chờ bếp trưởng duyệt)"}
+            {auditData.confirmedBy || "Chưa có"}
           </span>
         </div>
 
@@ -42,7 +44,7 @@ export default function BatchAuditCard({ auditData = {} }) {
 
         {/* 5. Người ghi nhận hoàn thành */}
         <div className={styles.auditItem}>
-          <span className={styles.auditLabel}>Người ghi nhận hoàn thành</span>
+          <span className={styles.auditLabel}>Người hoàn thành</span>
           <span className={auditData.completedBy ? styles.auditValueBold : styles.auditValueMuted}>
             {auditData.completedBy || "Chưa ghi nhận"}
           </span>
@@ -56,7 +58,6 @@ export default function BatchAuditCard({ auditData = {} }) {
           </span>
         </div>
       </div>
-    </section>
+    </details>
   )
 }
-
