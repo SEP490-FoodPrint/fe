@@ -135,12 +135,7 @@ export default function DeliveryApprovalModal({
                 <div className={styles.cardRadioCircle}>
                   <CheckCircle2 size={18} />
                 </div>
-                <div className={styles.cardContent}>
-                  <div className={styles.cardTitle}>Duyệt tiếp nhận (Đạt chuẩn ATTP)</div>
-                  <div className={styles.cardDesc}>
-                    Nguyên liệu tươi mới, cảm quan tốt, nhiệt độ xe lạnh và tem QR hợp lệ. Cho phép nhập vào bếp ăn sơ chế.
-                  </div>
-                </div>
+                <div className={styles.cardTitle}>Duyệt tiếp nhận (Đạt chuẩn ATTP)</div>
               </button>
 
               {/* Card 2: Từ chối tiếp nhận */}
@@ -156,12 +151,7 @@ export default function DeliveryApprovalModal({
                 <div className={styles.cardRadioCircle}>
                   <XCircle size={18} />
                 </div>
-                <div className={styles.cardContent}>
-                  <div className={styles.cardTitle}>Từ chối tiếp nhận (Không đạt chuẩn)</div>
-                  <div className={styles.cardDesc}>
-                    Nguyên liệu không đạt tiêu chuẩn (dập nát, có mùi lạ, rách tem niêm phong...). Yêu cầu đổi trả ngay.
-                  </div>
-                </div>
+                <div className={styles.cardTitle}>Từ chối tiếp nhận (Không đạt chuẩn)</div>
               </button>
             </div>
           </div>
