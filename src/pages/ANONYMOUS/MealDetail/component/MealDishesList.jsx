@@ -27,9 +27,6 @@ function MealDishesList({
           </div>
           <span className={styles.selectTip}>Chọn món</span>
         </div>
-        <p className={styles.cardSubtitle}>
-          Chọn một món ăn để xem thành phần nguyên liệu định lượng chi tiết bên phải.
-        </p>
       </div>
 
       {/* Tabs */}

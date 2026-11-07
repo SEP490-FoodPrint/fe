@@ -23,10 +23,6 @@ function DishIngredientsDetail({ selectedDish, onTraceIngredient }) {
           </div>
           <div className={styles.currentDishPill}>{dishName}</div>
         </div>
-        <p className={styles.headerDescription}>
-          Danh sách nguyên liệu định lượng cho mỗi khẩu phần học sinh theo chuẩn
-          thực đơn đã phê duyệt.
-        </p>
       </div>
 
       {/* Ingredient Rows */}
