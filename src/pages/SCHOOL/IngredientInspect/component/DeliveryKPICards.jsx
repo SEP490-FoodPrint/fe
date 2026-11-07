@@ -1,37 +1,33 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Truck, Store, ShieldCheck } from "lucide-react"
+import { Truck, MessageSquareText } from "lucide-react"
 import styles from "./DeliveryKPICards.module.scss"
 
 export default function DeliveryKPICards({
   deliveries = [],
   feedbacks = [],
 }) {
-  // Đếm chuyến giao
+  // Thống kê chuyến giao
   const totalDeliveries = deliveries.length
   const receivedCount = deliveries.filter((d) => d.status === "RECEIVED").length
   const inTransitCount = deliveries.filter((d) => d.status === "IN_TRANSIT").length
   const arrivedCount = deliveries.filter((d) => d.status === "ARRIVED").length
 
-  // Đếm nhà cung cấp duy nhất
-  const uniqueSuppliers = Array.from(
-    new Set(deliveries.map((d) => d.supplierName).filter(Boolean))
-  )
-
-  // Đếm phản hồi
+  // Thống kê phản hồi chất lượng
   const totalFeedbacks = feedbacks.length
-  const pendingFeedbacks = feedbacks.filter((f) => f.status === "SUBMITTED").length
+  const pendingCount = feedbacks.filter((f) => f.status === "SUBMITTED").length
+  const respondedCount = feedbacks.filter((f) => f.status === "RESPONDED").length
 
   return (
     <div className={styles.kpiGrid}>
-      {/* Card 1: Chuyến giao */}
+      {/* Thẻ 1: Đợt giao hôm nay */}
       <div className={styles.card}>
         <div className={styles.cardTop}>
           <div className={styles.metaCol}>
-            <span className={styles.cardLabel}>Hôm nay • Đợt giao hàng</span>
+            <span className={styles.cardLabel}>Đợt giao hôm nay</span>
             <div className={styles.valueRow}>
               <span className={styles.mainValue}>{String(totalDeliveries).padStart(2, "0")}</span>
-              <span className={styles.unitText}>chuyến giao</span>
+              <span className={styles.unitText}>đợt giao</span>
             </div>
           </div>
           <div className={`${styles.iconWrap} ${styles.iconGreen}`}>
@@ -55,57 +51,31 @@ export default function DeliveryKPICards({
         </div>
       </div>
 
-      {/* Card 2: Nhà cung cấp */}
+      {/* Thẻ 2: Phản hồi chất lượng (viết ngắn gọn, dễ hiểu) */}
       <div className={styles.card}>
         <div className={styles.cardTop}>
           <div className={styles.metaCol}>
-            <span className={styles.cardLabel}>Đối tác cung ứng</span>
-            <div className={styles.valueRow}>
-              <span className={styles.mainValue}>{String(uniqueSuppliers.length).padStart(2, "0")}</span>
-              <span className={styles.unitText}>nhà cung cấp hoạt động</span>
-            </div>
-          </div>
-          <div className={`${styles.iconWrap} ${styles.iconNeutral}`}>
-            <Store size={22} />
-          </div>
-        </div>
-
-        <div className={styles.cardBottomSupplier}>
-          {uniqueSuppliers.slice(0, 2).map((name) => (
-            <span key={name} className={styles.supplierTag}>
-              {name}
-            </span>
-          ))}
-          {uniqueSuppliers.length > 2 && (
-            <span className={styles.supplierMoreTag}>+{uniqueSuppliers.length - 2}</span>
-          )}
-        </div>
-      </div>
-
-      {/* Card 3: Phản hồi chất lượng */}
-      <div className={styles.card}>
-        <div className={styles.cardTop}>
-          <div className={styles.metaCol}>
-            <span className={styles.cardLabel}>Giám sát & An toàn</span>
+            <span className={styles.cardLabel}>Phản hồi chất lượng</span>
             <div className={styles.valueRow}>
               <span className={`${styles.mainValue} ${styles.blueValue}`}>
                 {String(totalFeedbacks).padStart(2, "0")}
               </span>
-              <span className={styles.unitText}>phản hồi chất lượng</span>
+              <span className={styles.unitText}>phản hồi gửi nhà cung cấp</span>
             </div>
           </div>
           <div className={`${styles.iconWrap} ${styles.iconBlue}`}>
-            <ShieldCheck size={22} />
+            <MessageSquareText size={22} />
           </div>
         </div>
 
         <div className={styles.cardBottom}>
-          <div className={styles.feedbackStat}>
-            <span className={styles.feedbackStatusText}>
-              {pendingFeedbacks > 0
-                ? `${pendingFeedbacks} phản hồi đang chờ xử lý`
-                : "Tất cả phản hồi đã được giải quyết"}
-            </span>
+          <div className={styles.subItem}>
+            <span className={`${styles.subDot} ${styles.dotBlue}`} />
+            <span><strong>{pendingCount}</strong> đang chờ trả lời</span>
+          </div>
+          <div className={styles.subItem}>
+            <span className={`${styles.subDot} ${styles.dotGreen}`} />
+            <span><strong>{respondedCount}</strong> đã phản hồi</span>
           </div>
         </div>
       </div>
@@ -117,4 +87,3 @@ DeliveryKPICards.propTypes = {
   deliveries: PropTypes.array.isRequired,
   feedbacks: PropTypes.array.isRequired,
 }
-

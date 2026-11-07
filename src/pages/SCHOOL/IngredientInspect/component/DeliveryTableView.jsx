@@ -5,7 +5,7 @@ import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import styles from "./DeliveryTableView.module.scss"
 
 export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
-  // Format date helper: DD/MM/YYYY HH:mm
+  // Format date helper: HH:mm • DD/MM/YYYY
   const formatDateTime = (expectedAt, arrivedAt) => {
     const timeSrc = arrivedAt || expectedAt
     if (!timeSrc) return "--"
@@ -27,8 +27,7 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
       <table className={styles.table}>
         <thead>
           <tr>
-            <th className={styles.thDeliveryNo}>Mã giao hàng</th>
-            <th className={styles.thSupplier}>Nhà cung cấp</th>
+            <th className={styles.thSupplier}>Nhà cung cấp & Mã đợt giao</th>
             <th className={styles.thDate}>Thời gian giao</th>
             <th className={styles.thStatus}>Trạng thái</th>
             <th className={styles.thAction}>Thao tác</th>
@@ -37,36 +36,34 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
         <tbody>
           {deliveries.map((item) => (
             <tr key={item.id} className={styles.tableRow}>
-              {/* 1. Mã giao hàng */}
-              <td className={styles.tdDeliveryNo}>
-                <button
-                  type="button"
-                  className={styles.linkNo}
-                  onClick={() => onSelectDelivery(item)}
-                  title="Xem chi tiết đợt giao này"
-                >
-                  {item.deliveryNo}
-                </button>
-              </td>
-
-              {/* 2. Nhà cung cấp */}
+              {/* 1. Nhà cung cấp & Mã giao hàng tích hợp */}
               <td className={styles.tdSupplier}>
-                <span className={styles.supplierText}>{item.supplierName}</span>
+                <div className={styles.supplierBlock}>
+                  <button
+                    type="button"
+                    className={styles.supplierNameBtn}
+                    onClick={() => onSelectDelivery(item)}
+                    title="Nhấn để xem chi tiết đợt giao này"
+                  >
+                    {item.supplierName}
+                  </button>
+                  <span className={styles.deliveryCode}>{item.deliveryNo}</span>
+                </div>
               </td>
 
-              {/* 3. Thời gian giao */}
+              {/* 2. Thời gian giao */}
               <td className={styles.tdDate}>
                 <span className={styles.dateText}>
                   {formatDateTime(item.expectedArrivalAt, item.arrivedAt)}
                 </span>
               </td>
 
-              {/* 4. Trạng thái */}
+              {/* 3. Trạng thái */}
               <td className={styles.tdStatus}>
                 <DeliveryStatusBadge status={item.status} />
               </td>
 
-              {/* 5. Thao tác: Chỉ để Icon theo quy chuẩn FoodPrint */}
+              {/* 4. Thao tác: Chỉ để Icon */}
               <td className={styles.tdAction}>
                 <button
                   type="button"
