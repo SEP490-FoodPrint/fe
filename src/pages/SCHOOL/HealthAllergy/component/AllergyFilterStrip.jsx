@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Search, Filter, RotateCcw, Calendar } from "lucide-react"
+import { Search, RotateCcw, Calendar } from "lucide-react"
 import styles from "./AllergyFilterStrip.module.scss"
 
 export default function AllergyFilterStrip({
@@ -15,11 +15,11 @@ export default function AllergyFilterStrip({
   return (
     <div className={styles.filterStripContainer}>
       <div className={styles.searchWrap}>
-        <Search size={18} className={styles.searchIcon} />
+        <Search size={16} className={styles.searchIcon} />
         <input
           type="text"
           className={styles.searchInput}
-          placeholder="Tìm theo tên lớp (3A, 3B...) hoặc nguyên liệu (đậu phộng, tôm...)"
+          placeholder="Tìm theo tên lớp, nguyên liệu dị ứng..."
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
         />
@@ -37,7 +37,7 @@ export default function AllergyFilterStrip({
 
       <div className={styles.filterActions}>
         <div className={styles.selectWrap}>
-          <Calendar size={16} className={styles.selectIcon} />
+          <Calendar size={15} className={styles.selectIcon} />
           <select
             className={styles.selectInput}
             value={academicYear}
@@ -56,10 +56,10 @@ export default function AllergyFilterStrip({
             type="button"
             className={styles.resetBtn}
             onClick={onResetFilters}
-            title="Xóa tất cả bộ lọc"
+            title="Xóa bộ lọc"
           >
-            <RotateCcw size={14} />
-            <span>Xóa bộ lọc</span>
+            <RotateCcw size={13} />
+            <span>Xóa lọc</span>
           </button>
         )}
       </div>

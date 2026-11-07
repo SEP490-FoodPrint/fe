@@ -6,9 +6,9 @@
 }
 
 /* ========================================================
-   1. TOP HEADER & BREADCRUMB
+   1. HEADER BAR & BREADCRUMB
    ======================================================== */
-.topHeader {
+.headerBar {
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -20,7 +20,7 @@
   }
 }
 
-.breadcrumbAndTitle {
+.headerLeft {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -42,67 +42,82 @@
   font-family: "Inter", sans-serif;
   font-size: 13px;
   font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   cursor: pointer;
   transition: color 0.15s ease;
 
   &:hover {
-    color: #00654f;
-    text-decoration: underline;
+    color: #0a8066;
   }
 }
 
-.separator {
+.breadIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.breadSep {
   color: #cbd5e1;
 }
 
-.currentCrumb {
+.breadCurrent {
   color: #0f172a;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.headingRow {
+.titleRow {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.title {
+.pageTitle {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 700;
   color: #0f172a;
-  margin: 0;
   letter-spacing: -0.015em;
+  margin: 0;
+  line-height: 1.25;
 
   @media (max-width: 640px) {
-    font-size: 19px;
+    font-size: 18px;
   }
 }
 
-.classBadge {
-  display: inline-block;
+.classPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 10px;
   border-radius: 9999px;
   background-color: #eaf7f0;
   color: #00654f;
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
 }
 
-.yearBadge {
-  display: inline-block;
+.yearPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   padding: 3px 10px;
   border-radius: 9999px;
   background-color: #f1f5f9;
   color: #475569;
   font-family: "Inter", sans-serif;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
 }
 
-.backBtn {
+.backButton {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -132,9 +147,9 @@
 }
 
 /* ========================================================
-   2. CLASS INFORMATION (Gọn gàng, vừa đủ)
+   2. SUMMARY BAR (Gọn gàng theo chuẩn MenuDetailBasicInfo)
    ======================================================== */
-.classInfoCard {
+.summaryBar {
   background-color: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
@@ -154,36 +169,13 @@
   }
 }
 
-.infoCol {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.iconCircle {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: #f1f5f9;
-  color: #475569;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.alertIconCircle {
-  background-color: #eaf7f0;
-  color: #00654f;
-}
-
-.infoText {
+.summaryCol {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 4px;
 }
 
-.infoLabel {
+.summaryLabel {
   font-family: "Inter", sans-serif;
   font-size: 11px;
   font-weight: 600;
@@ -192,20 +184,36 @@
   color: #64748b;
 }
 
-.infoValue {
+.summaryValueRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summaryValue {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 14.5px;
   font-weight: 600;
   color: #0f172a;
 }
 
-.alertValue {
-  color: #00654f;
+.iconPrimary {
+  color: #0a8066;
+  flex-shrink: 0;
 }
 
-.infoDivider {
+.iconWarning {
+  color: #d97706;
+  flex-shrink: 0;
+}
+
+.warningValue {
+  color: #d97706;
+}
+
+.summaryDivider {
   width: 1px;
-  height: 32px;
+  height: 34px;
   background-color: #e2e8f0;
 
   @media (max-width: 768px) {
@@ -214,35 +222,46 @@
 }
 
 /* ========================================================
-   3. ALLERGY INFORMATION (Trực quan, dễ quét mắt)
+   3. TABLE CARD & CONTENT
    ======================================================== */
-.allergySection {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.tableCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
 }
 
-.sectionHeader {
+.cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  background-color: #fafbfc;
 }
 
-.sectionTitle {
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cardTitle {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
 }
 
-.badgeReadonly {
+.readonlyBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 9px;
-  border-radius: 9999px;
+  padding: 3px 8px;
+  border-radius: 6px;
   background-color: #f1f5f9;
   color: #475569;
   font-family: "Inter", sans-serif;
@@ -250,29 +269,31 @@
   font-weight: 500;
 }
 
-.emptyCard {
-  background-color: #ffffff;
-  border-radius: 10px;
-  border: 1px dashed #cbd5e1;
-  padding: 24px;
-  text-align: center;
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 20px;
   color: #64748b;
+  gap: 8px;
   font-size: 13.5px;
 }
 
-.tableCard {
-  background-color: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  overflow: hidden;
+.emptyIcon {
+  color: #0a8066;
+}
+
+.tableResponsive {
+  width: 100%;
+  overflow-x: auto;
 
   @media (max-width: 768px) {
     display: none;
   }
 }
 
-.allergyTable {
+.table {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
@@ -306,22 +327,33 @@
   }
 
   td {
-    padding: 16px 18px;
+    padding: 14px 18px;
     font-size: 13.5px;
     color: #1e293b;
     vertical-align: middle;
   }
 }
 
-.ingredientNameRow {
+.thContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ingredientCell {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
+.ingCellIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
 .ingredientName {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 600;
   color: #0f172a;
 }
@@ -348,19 +380,16 @@
   border: 1px solid #e2e8f0;
 }
 
-.countWrap {
-  display: flex;
-  align-items: center;
-}
-
 .countBadge {
-  display: inline-block;
-  padding: 5px 12px;
-  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 6px;
   background-color: #eaf7f0;
   color: #00654f;
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 700;
   border: 1px solid #c7eedd;
 }
@@ -375,14 +404,16 @@
 
 .clockIcon {
   color: #94a3b8;
+  flex-shrink: 0;
 }
 
 /* ========================================================
-   MOBILE ALLERGY CARDS (< 768px)
+   4. MOBILE LIST (< 768px)
    ======================================================== */
-.mobileAllergyCards {
+.mobileList {
   display: none;
   flex-direction: column;
+  padding: 12px;
   gap: 10px;
 
   @media (max-width: 768px) {
@@ -390,28 +421,30 @@
   }
 }
 
-.mobileCard {
-  background-color: #ffffff;
-  border-radius: 10px;
+.mobileItem {
+  background-color: #f8fafc;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
-  padding: 14px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.mobileCardHeader {
+.mobileItemHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-bottom: 6px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-.mobileIngredientName {
+.mobileIngName {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #0f172a;
 }
@@ -423,36 +456,7 @@
   font-size: 12.5px;
 }
 
-.mobileMetaLabel {
+.metaLabel {
   color: #64748b;
-}
-
-.mobileMetaVal {
-  color: #0f172a;
-  font-weight: 500;
-}
-
-/* ========================================================
-   4. COMPACT NOTE BOX
-   ======================================================== */
-.compactNoteBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px 14px;
-}
-
-.noteIcon {
-  color: #00654f;
-  flex-shrink: 0;
-}
-
-.noteText {
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #64748b;
-  line-height: 1.45;
+  font-size: 12px;
 }

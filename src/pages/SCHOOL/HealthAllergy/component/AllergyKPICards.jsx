@@ -1,54 +1,39 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { School, Layers, CheckCircle2 } from "lucide-react"
+import { School, Layers } from "lucide-react"
 import styles from "./AllergyKPICards.module.scss"
 
 export default function AllergyKPICards({ summary }) {
   const { totalClasses = 0, totalIngredients = 0 } = summary || {}
-
   const formatNumber = (num) => (num < 10 ? `0${num}` : `${num}`)
 
   return (
-    <div className={styles.kpiGrid}>
+    <div className={styles.statsRow}>
       {/* KPI 1: Số lớp có ghi nhận dị ứng */}
-      <div className={styles.kpiCard}>
-        <div className={styles.kpiHeader}>
-          <div className={`${styles.iconWrap} ${styles.iconWrapSchool}`}>
-            <School size={22} />
-          </div>
-          <span className={styles.kpiBadge}>Dữ liệu theo lớp</span>
+      <div className={styles.statCard}>
+        <div className={styles.statIconWrap}>
+          <School size={20} className={styles.iconSchool} />
         </div>
-        <div className={styles.kpiBody}>
-          <span className={styles.kpiLabel}>Số lớp có ghi nhận dị ứng</span>
-          <div className={styles.kpiValueRow}>
-            <span className={styles.kpiValue}>{formatNumber(totalClasses)}</span>
-            <span className={styles.kpiUnit}>lớp học</span>
+        <div className={styles.statContent}>
+          <div className={styles.statValueRow}>
+            <span className={styles.statNum}>{formatNumber(totalClasses)}</span>
+            <span className={styles.statUnit}>lớp</span>
           </div>
-        </div>
-        <div className={styles.kpiFooter}>
-          <CheckCircle2 size={14} className={styles.footerIcon} />
-          <span>Tổng hợp từ phiếu thu thập y bạ đầu năm</span>
+          <span className={styles.statLabel}>Số lớp có ghi nhận dị ứng</span>
         </div>
       </div>
 
       {/* KPI 2: Số loại nguyên liệu được ghi nhận dị ứng */}
-      <div className={styles.kpiCard}>
-        <div className={styles.kpiHeader}>
-          <div className={`${styles.iconWrap} ${styles.iconWrapIngredient}`}>
-            <Layers size={22} />
-          </div>
-          <span className={styles.kpiBadge}>Danh mục nguyên liệu</span>
+      <div className={styles.statCard}>
+        <div className={styles.statIconWrap}>
+          <Layers size={20} className={styles.iconIngredient} />
         </div>
-        <div className={styles.kpiBody}>
-          <span className={styles.kpiLabel}>Số loại nguyên liệu được ghi nhận</span>
-          <div className={styles.kpiValueRow}>
-            <span className={styles.kpiValue}>{formatNumber(totalIngredients)}</span>
-            <span className={styles.kpiUnit}>loại nguyên liệu</span>
+        <div className={styles.statContent}>
+          <div className={styles.statValueRow}>
+            <span className={styles.statNum}>{formatNumber(totalIngredients)}</span>
+            <span className={styles.statUnit}>loại</span>
           </div>
-        </div>
-        <div className={styles.kpiFooter}>
-          <CheckCircle2 size={14} className={styles.footerIcon} />
-          <span>Căn cứ cảnh báo khi lập và phê duyệt thực đơn</span>
+          <span className={styles.statLabel}>Số loại nguyên liệu dị ứng</span>
         </div>
       </div>
     </div>

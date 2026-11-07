@@ -4,58 +4,58 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 48px 24px;
+  padding: 40px 20px;
   background-color: #ffffff;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px dashed #cbd5e1;
-  margin: 8px 0;
+  margin: 4px 0;
 }
 
 .iconCircle {
-  width: 68px;
-  height: 68px;
+  width: 56px;
+  height: 56px;
   border-radius: 50%;
   background-color: #f0fdf4;
   border: 1px solid #dcfce7;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .emptyIcon {
-  color: #00654f;
+  color: #0a8066;
 }
 
 .emptyTitle {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 600;
   color: #1e293b;
-  margin: 0 0 6px 0;
+  margin: 0 0 4px 0;
 }
 
 .emptyDescription {
   font-family: "Inter", sans-serif;
-  font-size: 13.5px;
+  font-size: 13px;
   color: #64748b;
-  max-width: 480px;
-  line-height: 1.5;
-  margin: 0 0 18px 0;
+  max-width: 420px;
+  line-height: 1.45;
+  margin: 0 0 14px 0;
 }
 
 .resetBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  height: 38px;
-  padding: 0 18px;
-  border-radius: 8px;
-  background-color: #00654f;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 6px;
+  background-color: #0a8066;
   color: #ffffff;
   border: none;
   font-family: "Inter", sans-serif;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -64,4 +64,3 @@
     background-color: #00513f;
   }
 }
-

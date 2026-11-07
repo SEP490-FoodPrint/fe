@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { School, Clock, Eye, ArrowRight } from "lucide-react"
+import { School, Clock, Calendar, UtensilsCrossed, Users, Eye } from "lucide-react"
 import styles from "./AllergyMobileCards.module.scss"
 
 export default function AllergyMobileCards({ classList, onSelectClass }) {
@@ -14,37 +14,34 @@ export default function AllergyMobileCards({ classList, onSelectClass }) {
             {/* Header: Class Name, Grade, Year */}
             <div className={styles.cardHeader}>
               <div className={styles.classTitleGroup}>
-                <div className={styles.classIcon}>
-                  <School size={18} />
-                </div>
+                <School size={18} className={styles.iconPrimary} />
                 <div>
                   <h3 className={styles.className}>{cls.className}</h3>
                   <span className={styles.gradeSubtitle}>
-                    Khối {cls.grade} • {cls.academicYear}
+                    Khối {cls.grade}
                   </span>
                 </div>
               </div>
-              <span className={styles.countSummaryPill}>
-                {allergies.length} loại NL
+              <span className={styles.yearPill}>
+                <Calendar size={11} />
+                <span>{cls.academicYear}</span>
               </span>
             </div>
 
             {/* Allergens & Affected count */}
             <div className={styles.allergiesSection}>
-              <span className={styles.sectionLabel}>Nguyên liệu & Số lượng ảnh hưởng:</span>
-              <div className={styles.allergiesList}>
-                {allergies.map((alg) => (
-                  <div key={alg.id} className={styles.allergyItemRow}>
-                    <div className={styles.allergenBadge}>
-                      <span className={styles.badgeDot}></span>
-                      <span className={styles.allergenName}>{alg.ingredientName}</span>
-                    </div>
-                    <span className={styles.affectedCountBadge}>
-                      {alg.affectedCount < 10 ? `0${alg.affectedCount}` : alg.affectedCount} học sinh
-                    </span>
+              {allergies.map((alg) => (
+                <div key={alg.id} className={styles.allergyItemRow}>
+                  <div className={styles.allergenBadge}>
+                    <UtensilsCrossed size={12} className={styles.chipIcon} />
+                    <span className={styles.allergenName}>{alg.ingredientName}</span>
                   </div>
-                ))}
-              </div>
+                  <span className={styles.affectedCountBadge}>
+                    <Users size={12} />
+                    <span>{alg.affectedCount} học sinh</span>
+                  </span>
+                </div>
+              ))}
             </div>
 
             {/* Footer with Last updated & Detail action */}
@@ -58,8 +55,8 @@ export default function AllergyMobileCards({ classList, onSelectClass }) {
                 className={styles.detailBtn}
                 onClick={() => onSelectClass(cls)}
               >
+                <Eye size={13} />
                 <span>Xem chi tiết</span>
-                <ArrowRight size={14} />
               </button>
             </div>
           </div>
@@ -81,4 +78,3 @@ AllergyMobileCards.propTypes = {
   ).isRequired,
   onSelectClass: PropTypes.func.isRequired,
 }
-

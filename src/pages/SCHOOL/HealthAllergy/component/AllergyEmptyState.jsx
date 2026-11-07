@@ -8,22 +8,20 @@ export default function AllergyEmptyState({ isSearching, onResetFilters }) {
     <div className={styles.emptyContainer}>
       <div className={styles.iconCircle}>
         {isSearching ? (
-          <SearchX size={36} className={styles.emptyIcon} />
+          <SearchX size={32} className={styles.emptyIcon} />
         ) : (
-          <ShieldCheck size={36} className={styles.emptyIcon} />
+          <ShieldCheck size={32} className={styles.emptyIcon} />
         )}
       </div>
 
       <h3 className={styles.emptyTitle}>
-        {isSearching
-          ? "Không tìm thấy kết quả phù hợp"
-          : "Chưa có thông tin dị ứng nào được ghi nhận"}
+        {isSearching ? "Không tìm thấy kết quả phù hợp" : "Chưa có thông tin dị ứng"}
       </h3>
 
       <p className={styles.emptyDescription}>
         {isSearching
-          ? "Không tìm thấy lớp học hoặc nguyên liệu dị ứng nào khớp với từ khóa và bộ lọc hiện tại. Vui lòng thử tìm kiếm khác hoặc đặt lại bộ lọc."
-          : "Toàn bộ các lớp học hiện tại chưa có ghi nhận dị ứng nào từ phiếu y bạ đầu năm của phụ huynh và giáo viên chủ nhiệm."}
+          ? "Thử thay đổi từ khóa tìm kiếm hoặc đặt lại bộ lọc"
+          : "Hiện tại chưa có lớp học nào ghi nhận thông tin dị ứng"}
       </p>
 
       {isSearching && onResetFilters && (
@@ -32,8 +30,8 @@ export default function AllergyEmptyState({ isSearching, onResetFilters }) {
           className={styles.resetBtn}
           onClick={onResetFilters}
         >
-          <RotateCcw size={16} />
-          <span>Đặt lại bộ lọc tìm kiếm</span>
+          <RotateCcw size={14} />
+          <span>Đặt lại bộ lọc</span>
         </button>
       )}
     </div>
@@ -44,4 +42,3 @@ AllergyEmptyState.propTypes = {
   isSearching: PropTypes.bool,
   onResetFilters: PropTypes.func,
 }
-

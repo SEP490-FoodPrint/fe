@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Eye, Clock, School, AlertCircle } from "lucide-react"
+import { Eye, Clock, School, Calendar, UtensilsCrossed, Users } from "lucide-react"
 import styles from "./AllergyTableView.module.scss"
 
 export default function AllergyTableView({ classList, onSelectClass }) {
@@ -10,11 +10,36 @@ export default function AllergyTableView({ classList, onSelectClass }) {
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.thClass}>Lớp</th>
-              <th className={styles.thYear}>Năm học</th>
-              <th className={styles.thIngredients}>Nguyên liệu dị ứng</th>
-              <th className={styles.thCount}>Số lượng học sinh bị ảnh hưởng</th>
-              <th className={styles.thUpdated}>Cập nhật gần nhất</th>
+              <th className={styles.thClass}>
+                <span className={styles.thContent}>
+                  <School size={13} />
+                  <span>Lớp</span>
+                </span>
+              </th>
+              <th className={styles.thYear}>
+                <span className={styles.thContent}>
+                  <Calendar size={13} />
+                  <span>Năm học</span>
+                </span>
+              </th>
+              <th className={styles.thIngredients}>
+                <span className={styles.thContent}>
+                  <UtensilsCrossed size={13} />
+                  <span>Nguyên liệu dị ứng</span>
+                </span>
+              </th>
+              <th className={styles.thCount}>
+                <span className={styles.thContent}>
+                  <Users size={13} />
+                  <span>Học sinh ảnh hưởng</span>
+                </span>
+              </th>
+              <th className={styles.thUpdated}>
+                <span className={styles.thContent}>
+                  <Clock size={13} />
+                  <span>Cập nhật</span>
+                </span>
+              </th>
               <th className={styles.thAction}>Thao tác</th>
             </tr>
           </thead>
@@ -27,9 +52,7 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                   {/* Cột 1: Lớp */}
                   <td className={styles.tdClass}>
                     <div className={styles.classInfo}>
-                      <div className={styles.classAvatar}>
-                        <School size={16} />
-                      </div>
+                      <School size={16} className={styles.iconPrimary} />
                       <div className={styles.classNameGroup}>
                         <span className={styles.className}>{cls.className}</span>
                         <span className={styles.gradeBadge}>Khối {cls.grade}</span>
@@ -42,13 +65,13 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                     <span className={styles.yearText}>{cls.academicYear}</span>
                   </td>
 
-                  {/* Cột 3: Nguyên liệu dị ứng (Chips) */}
+                  {/* Cột 3: Nguyên liệu dị ứng */}
                   <td className={styles.tdIngredients}>
                     <div className={styles.chipsContainer}>
                       {allergies.map((alg) => (
                         <span key={alg.id} className={styles.allergenChip}>
-                          <span className={styles.chipDot}></span>
-                          {alg.ingredientName}
+                          <UtensilsCrossed size={12} className={styles.chipIcon} />
+                          <span>{alg.ingredientName}</span>
                         </span>
                       ))}
                     </div>
@@ -57,21 +80,18 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                   {/* Cột 4: Số lượng học sinh bị ảnh hưởng */}
                   <td className={styles.tdCount}>
                     {allergies.length === 1 ? (
-                      <div className={styles.singleCount}>
-                        <span className={styles.countBadge}>
-                          {allergies[0].affectedCount < 10
-                            ? `0${allergies[0].affectedCount}`
-                            : allergies[0].affectedCount}{" "}
-                          học sinh
-                        </span>
-                      </div>
+                      <span className={styles.countBadge}>
+                        <Users size={13} />
+                        <span>{allergies[0].affectedCount} học sinh</span>
+                      </span>
                     ) : (
                       <div className={styles.multiCountList}>
                         {allergies.map((alg) => (
                           <div key={alg.id} className={styles.multiCountItem}>
                             <span className={styles.multiIngName}>{alg.ingredientName}:</span>
-                            <span className={styles.multiCountBadge}>
-                              {alg.affectedCount < 10 ? `0${alg.affectedCount}` : alg.affectedCount} hs
+                            <span className={styles.countBadgeSmall}>
+                              <Users size={11} />
+                              <span>{alg.affectedCount} hs</span>
                             </span>
                           </div>
                         ))}
@@ -95,7 +115,7 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                       onClick={() => onSelectClass(cls)}
                       title={`Xem chi tiết dị ứng ${cls.className}`}
                     >
-                      <Eye size={15} />
+                      <Eye size={14} />
                       <span>Xem chi tiết</span>
                     </button>
                   </td>
@@ -121,4 +141,3 @@ AllergyTableView.propTypes = {
   ).isRequired,
   onSelectClass: PropTypes.func.isRequired,
 }
-
