@@ -1,108 +1,124 @@
 import React, { useState, useMemo, useCallback } from "react"
 import {
-  getStoredAllergies,
-  saveStoredAllergies,
-  computeAllergyStatistics,
-  CURRENT_WEEK_MENU_ALLERGY_CHECK,
+  getStoredStudentAllergies,
+  saveStoredStudentAllergies,
+  computeStudentAllergyStats,
+  groupAllergiesByClass,
 } from "./mockAllergyData"
 import AllergyHeader from "./component/AllergyHeader"
 import AllergyKPICards from "./component/AllergyKPICards"
-import AllergyAlertBanner from "./component/AllergyAlertBanner"
 import AllergyFilterStrip from "./component/AllergyFilterStrip"
-import AllergyClassCardView from "./component/AllergyClassCardView"
-import AllergyTableView from "./component/AllergyTableView"
-import AllergyDetailDrawer from "./component/AllergyDetailDrawer"
-import AllergyFormModal from "./component/AllergyFormModal"
+import AllergyStudentListView from "./component/AllergyStudentListView"
+import AllergyClassGroupedView from "./component/AllergyClassGroupedView"
+import AllergyStudentDetailModal from "./component/AllergyStudentDetailModal"
+import AllergyStudentFormModal from "./component/AllergyStudentFormModal"
 import AllergyPrintModal from "./component/AllergyPrintModal"
+import notice from "src/components/Notice"
 import styles from "./index.module.scss"
 
 export default function HealthAllergyPage() {
-  const [classes, setClasses] = useState(() => getStoredAllergies())
+  const [students, setStudents] = useState(() => getStoredStudentAllergies())
 
   // Bộ lọc & Tìm kiếm
   const [search, setSearch] = useState("")
   const [selectedGrade, setSelectedGrade] = useState("ALL")
-  const [selectedAllergen, setSelectedAllergen] = useState("ALL")
+  const [selectedClass, setSelectedClass] = useState("ALL")
+  const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [selectedSeverity, setSelectedSeverity] = useState("ALL")
-  const [viewMode, setViewMode] = useState("card") // "card" | "table"
+  const [viewMode, setViewMode] = useState("student") // "student" | "class"
 
-  // Drawer chi tiết & Modal biểu mẫu
-  const [detailClass, setDetailClass] = useState(null)
-  const [editClass, setEditClass] = useState(null)
+  // Modals & Drawers
+  const [detailStudent, setDetailStudent] = useState(null)
+  const [editStudent, setEditStudent] = useState(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
 
-  // Tính toán thống kê KPI
-  const stats = useMemo(() => computeAllergyStatistics(classes), [classes])
+  // Thống kê nhanh
+  const stats = useMemo(() => computeStudentAllergyStats(students), [students])
 
-  // Lọc danh sách lớp học
-  const filteredClasses = useMemo(() => {
-    let result = [...classes]
+  // Lọc danh sách học sinh
+  const filteredStudents = useMemo(() => {
+    let result = [...students]
 
     if (selectedGrade !== "ALL") {
-      result = result.filter((c) => String(c.grade) === String(selectedGrade))
+      result = result.filter((s) => String(s.grade) === String(selectedGrade))
     }
 
-    if (selectedAllergen !== "ALL") {
-      result = result.filter((c) =>
-        c.allergies.some((a) => a.allergenId === selectedAllergen)
-      )
+    if (selectedClass !== "ALL") {
+      result = result.filter((s) => s.className === selectedClass)
+    }
+
+    if (selectedCategory !== "ALL") {
+      result = result.filter((s) => s.allergenCategory === selectedCategory)
     }
 
     if (selectedSeverity !== "ALL") {
-      result = result.filter((c) =>
-        c.allergies.some((a) => a.severity === selectedSeverity)
-      )
+      result = result.filter((s) => s.severity === selectedSeverity)
     }
 
     if (search.trim()) {
       const q = search.trim().toLowerCase()
-      result = result.filter((c) => {
-        const matchClass = c.className.toLowerCase().includes(q)
-        const matchTeacher = (c.homeroomTeacher || "").toLowerCase().includes(q)
-        const matchAllergy = c.allergies.some(
-          (a) =>
-            a.allergenName.toLowerCase().includes(q) ||
-            a.symptoms.toLowerCase().includes(q) ||
-            a.ingredients.some((ing) => ing.toLowerCase().includes(q))
-        )
-        return matchClass || matchTeacher || matchAllergy
+      result = result.filter((s) => {
+        const matchName = s.studentName.toLowerCase().includes(q)
+        const matchClass = s.className.toLowerCase().includes(q)
+        const matchTeacher = (s.homeroomTeacher || "").toLowerCase().includes(q)
+        const matchAllergen = s.allergenName.toLowerCase().includes(q)
+        const matchSymptoms = (s.symptoms || "").toLowerCase().includes(q)
+        return matchName || matchClass || matchTeacher || matchAllergen || matchSymptoms
       })
     }
 
     return result
-  }, [classes, selectedGrade, selectedAllergen, selectedSeverity, search])
+  }, [students, selectedGrade, selectedClass, selectedCategory, selectedSeverity, search])
 
-  // Lưu bản ghi lớp học (thêm mới hoặc cập nhật)
-  const handleSaveClass = useCallback((updatedRecord) => {
-    setClasses((prev) => {
-      const existsIndex = prev.findIndex((c) => c.id === updatedRecord.id)
+  // Gom nhóm theo lớp
+  const groupedClasses = useMemo(() => {
+    return groupAllergiesByClass(filteredStudents)
+  }, [filteredStudents])
+
+  // Lưu học sinh (thêm mới hoặc cập nhật)
+  const handleSaveStudent = useCallback((savedRecord) => {
+    setStudents((prev) => {
+      const existsIndex = prev.findIndex((s) => s.id === savedRecord.id)
       let nextList = []
       if (existsIndex >= 0) {
         nextList = [...prev]
-        nextList[existsIndex] = updatedRecord
+        nextList[existsIndex] = savedRecord
       } else {
-        nextList = [updatedRecord, ...prev]
+        nextList = [savedRecord, ...prev]
       }
-      saveStoredAllergies(nextList)
+      saveStoredStudentAllergies(nextList)
       return nextList
     })
   }, [])
 
+  // Xóa học sinh
+  const handleDeleteStudent = useCallback((id, name) => {
+    if (window.confirm(`Bạn có chắc muốn xóa thông tin dị ứng của em ${name}?`)) {
+      setStudents((prev) => {
+        const nextList = prev.filter((s) => s.id !== id)
+        saveStoredStudentAllergies(nextList)
+        return nextList
+      })
+      notice({ msg: `Đã xóa thông tin dị ứng của em ${name}`, isSuccess: true })
+    }
+  }, [])
+
   const handleOpenCreateModal = () => {
-    setEditClass(null)
+    setEditStudent(null)
     setIsFormModalOpen(true)
   }
 
-  const handleOpenEditModal = (classData) => {
-    setEditClass(classData)
+  const handleOpenEditModal = (studentData) => {
+    setEditStudent(studentData)
     setIsFormModalOpen(true)
   }
 
   const handleResetFilters = () => {
     setSearch("")
     setSelectedGrade("ALL")
-    setSelectedAllergen("ALL")
+    setSelectedClass("ALL")
+    setSelectedCategory("ALL")
     setSelectedSeverity("ALL")
   }
 
@@ -118,66 +134,65 @@ export default function HealthAllergyPage() {
         {/* 2. Thẻ KPI chỉ số an toàn y tế */}
         <AllergyKPICards stats={stats} />
 
-        {/* 3. Banner đối soát thời gian thực với Thực đơn tuần đang chạy */}
-        <AllergyAlertBanner menuCheck={CURRENT_WEEK_MENU_ALLERGY_CHECK} />
-
-        {/* 4. Thanh tìm kiếm, Bộ lọc đa chiều & View Mode */}
+        {/* 3. Thanh tìm kiếm, Bộ lọc đa chiều & Chuyển đổi View */}
         <AllergyFilterStrip
           search={search}
           setSearch={setSearch}
           selectedGrade={selectedGrade}
           setSelectedGrade={setSelectedGrade}
-          selectedAllergen={selectedAllergen}
-          setSelectedAllergen={setSelectedAllergen}
+          selectedClass={selectedClass}
+          setSelectedClass={setSelectedClass}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
           selectedSeverity={selectedSeverity}
           setSelectedSeverity={setSelectedSeverity}
           viewMode={viewMode}
           setViewMode={setViewMode}
-          totalResults={filteredClasses.length}
+          totalResults={filteredStudents.length}
           onResetFilters={handleResetFilters}
         />
 
-        {/* 5. Khu vực hiển thị danh sách hồ sơ: Thẻ theo lớp hoặc Bảng dữ liệu */}
+        {/* 4. Nội dung chính: Xem Danh sách từng học sinh hoặc Gom nhóm theo Lớp */}
         <main className={styles.mainDataArea}>
-          {viewMode === "card" ? (
-            <AllergyClassCardView
-              classes={filteredClasses}
-              onOpenDetail={(cls) => setDetailClass(cls)}
+          {viewMode === "student" ? (
+            <AllergyStudentListView
+              students={filteredStudents}
+              onOpenDetail={(stu) => setDetailStudent(stu)}
               onOpenEdit={handleOpenEditModal}
+              onDeleteStudent={handleDeleteStudent}
             />
           ) : (
-            <AllergyTableView
-              classes={filteredClasses}
-              onOpenDetail={(cls) => setDetailClass(cls)}
+            <AllergyClassGroupedView
+              groupedClasses={groupedClasses}
+              onOpenDetail={(stu) => setDetailStudent(stu)}
               onOpenEdit={handleOpenEditModal}
             />
           )}
         </main>
       </div>
 
-      {/* Drawer xem chi tiết hồ sơ y bạ lớp */}
-      <AllergyDetailDrawer
-        isOpen={Boolean(detailClass)}
-        onClose={() => setDetailClass(null)}
-        classData={detailClass}
+      {/* Modal xem chi tiết phiếu dị ứng học sinh */}
+      <AllergyStudentDetailModal
+        isOpen={Boolean(detailStudent)}
+        onClose={() => setDetailStudent(null)}
+        student={detailStudent}
         onOpenEdit={handleOpenEditModal}
       />
 
-      {/* Modal biểu mẫu thêm mới / chỉnh sửa hồ sơ dị ứng */}
-      <AllergyFormModal
+      {/* Modal biểu mẫu thêm mới / chỉnh sửa học sinh */}
+      <AllergyStudentFormModal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
-        initialData={editClass}
-        onSave={handleSaveClass}
+        initialData={editStudent}
+        onSave={handleSaveStudent}
       />
 
-      {/* Modal xem trước bản in khổ A4 giao Bếp ăn */}
+      {/* Modal xem trước bản in khổ A4 gửi Bếp ăn */}
       <AllergyPrintModal
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
-        classes={filteredClasses}
+        students={filteredStudents}
       />
     </div>
   )
 }
-
