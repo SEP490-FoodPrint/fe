@@ -23,6 +23,8 @@ const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
 const RoleRoute = lazy(() => import("src/pages/SUPPORTPAGES/RoleRoute"))
 
 // SYSTEM pages
+const DirectoryList = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory").then(module => ({ default: module.DirectoryList })))
+const DirectoryDetail = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory").then(module => ({ default: module.DirectoryDetail })))
 const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
 const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
 
@@ -157,6 +159,10 @@ const routes = [
         children: [
           { path: ROUTER.SYSTEM_ORG_APPROVAL, element: <LazyWrapper><OrgApproval /></LazyWrapper> },
           { path: ROUTER.SYSTEM_ORG_APPROVAL_DETAIL, element: <LazyWrapper><OrgApprovalDetail /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_SCHOOL_LIST, element: <LazyWrapper><DirectoryList kind="school" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_SCHOOL_DETAIL, element: <LazyWrapper><DirectoryDetail kind="school" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_SUPPLIER_LIST, element: <LazyWrapper><DirectoryList kind="supplier" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_SUPPLIER_DETAIL, element: <LazyWrapper><DirectoryDetail kind="supplier" /></LazyWrapper> },
         ],
       },
     ],
