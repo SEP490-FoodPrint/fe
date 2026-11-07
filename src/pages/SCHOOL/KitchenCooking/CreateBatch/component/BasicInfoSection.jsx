@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Lock,
   Calendar,
@@ -110,38 +110,38 @@ export const DISH_OPTIONS = [
     portionStandard: 1250,
     ingredients: [
       {
-        id: "ing-21",
-        name: "Sườn heo non tươi",
-        supplier: "Hợp tác xã Nam Hà",
-        totalRequired: "62.5 kg",
+        id: "ing-201",
+        name: "Sườn non heo sạch",
+        supplier: "Công ty Thực phẩm Sạch Hà Nội",
+        totalRequired: "65.0 kg",
         portionNote: "1.250 suất",
         isMultiLot: false,
-        statusText: "Đủ 62.5 / 62.5 kg",
+        statusText: "Đủ 65.0 / 65.0 kg",
         statusType: "success",
         lots: [
           {
-            code: "LOT-SUON-301",
-            exp: "12/11/2026",
+            code: "LOT-SUON-102",
+            exp: "15/11/2026",
             available: "80.0 kg",
-            allocated: "62.5 kg",
+            allocated: "65.0 kg",
           },
         ],
       },
       {
-        id: "ing-22",
-        name: "Củ quả tươi (Cà rốt, ngô ngọt)",
-        supplier: "Hợp tác xã Nông sản Ba Vì",
-        totalRequired: "75.0 kg",
+        id: "ing-202",
+        name: "Củ quả tươi thập cẩm",
+        supplier: "HTX Rau Củ Quả Mộc Châu",
+        totalRequired: "45.0 kg",
         portionNote: "1.250 suất",
         isMultiLot: false,
-        statusText: "Đủ 75.0 / 75.0 kg",
+        statusText: "Đủ 45.0 / 45.0 kg",
         statusType: "success",
         lots: [
           {
-            code: "LOT-CUQUA-112",
-            exp: "15/11/2026",
-            available: "100.0 kg",
-            allocated: "75.0 kg",
+            code: "LOT-CQ-551",
+            exp: "10/11/2026",
+            available: "50.0 kg",
+            allocated: "45.0 kg",
           },
         ],
       },
@@ -155,20 +155,20 @@ export const DISH_OPTIONS = [
     portionStandard: 1250,
     ingredients: [
       {
-        id: "ing-31",
+        id: "ing-301",
         name: "Gạo đặc sản ST25",
-        supplier: "Tập đoàn Nông sản Vinaseed",
-        totalRequired: "150.0 kg",
+        supplier: "Tổng công ty Lương thực Miền Bắc",
+        totalRequired: "95.0 kg",
         portionNote: "1.250 suất",
         isMultiLot: false,
-        statusText: "Đủ 150.0 / 150.0 kg",
+        statusText: "Đủ 95.0 / 95.0 kg",
         statusType: "success",
         lots: [
           {
-            code: "LOT-GAO-ST25-99",
-            exp: "30/12/2026",
-            available: "500.0 kg",
-            allocated: "150.0 kg",
+            code: "LOT-GAO-901",
+            exp: "25/12/2026",
+            available: "200.0 kg",
+            allocated: "95.0 kg",
           },
         ],
       },
@@ -182,20 +182,20 @@ export const DISH_OPTIONS = [
     portionStandard: 1250,
     ingredients: [
       {
-        id: "ing-41",
+        id: "ing-401",
         name: "Thanh long ruột đỏ VietGAP",
-        supplier: "Hợp tác xã Trái cây Bình Thuận",
-        totalRequired: "125.0 kg",
+        supplier: "HTX Nông nghiệp Phan Thiết",
+        totalRequired: "120.0 kg",
         portionNote: "1.250 suất",
         isMultiLot: false,
-        statusText: "Đủ 125.0 / 125.0 kg",
+        statusText: "Đủ 120.0 / 120.0 kg",
         statusType: "success",
         lots: [
           {
-            code: "LOT-THANHLONG-05",
+            code: "LOT-TL-304",
             exp: "08/11/2026",
             available: "150.0 kg",
-            allocated: "125.0 kg",
+            allocated: "120.0 kg",
           },
         ],
       },
@@ -215,6 +215,14 @@ export default function BasicInfoSection({
   const [searchQuery, setSearchQuery] = useState("");
 
   const dropdownRef = useRef(null);
+
+  const todayDateStr = useMemo(() => {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }, []);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -264,8 +272,7 @@ export default function BasicInfoSection({
         <div className={styles.titleWithBadge}>
           <div className={styles.numberBadge}>1</div>
           <div>
-            <h2 className={styles.sectionTitle}>1. Thông tin cơ bản</h2>
-            
+            <h2 className={styles.sectionTitle}>1. Thông tin phiên nấu</h2>
           </div>
         </div>
         <span className={styles.requiredTag}>Bắt buộc</span>
@@ -290,8 +297,8 @@ export default function BasicInfoSection({
             <div className={styles.lockedValue}>
               <Calendar size={15} className={styles.calIcon} />
               <div className={styles.dateMeta}>
-                <span className={styles.lockedDate}>01/11/2026</span>
-                <span className={styles.lockedSub}>• Hôm nay (Tuần 45)</span>
+                <span className={styles.lockedDate}>{todayDateStr}</span>
+                <span className={styles.lockedSub}>• Hôm nay (Thực đơn đã duyệt)</span>
               </div>
             </div>
             <span className={styles.lockedBadge}>Đã duyệt</span>
@@ -308,8 +315,8 @@ export default function BasicInfoSection({
               onChange={(e) => setSelectedMeal?.(e.target.value)}
               aria-label="Chọn bữa ăn phục vụ"
             >
-              <option value="lunch">Bữa trưa học đường (11:00 – 12:00)</option>
-              <option value="afternoon">Bữa phụ chiều (14:30 – 15:00)</option>
+              <option value="lunch">Bữa trưa học đường (11:00 – 12:30)</option>
+              <option value="afternoon">Bữa phụ chiều (14:30 – 15:30)</option>
               <option value="breakfast">
                 Bữa sáng bán trú (06:45 – 07:30)
               </option>
@@ -325,7 +332,7 @@ export default function BasicInfoSection({
 
       {/* Row 2: Món cần chế biến & Số suất dự kiến */}
       <div className={styles.gridRow}>
-        {/* Món cần chế biến (Searchable Dropdown) */}
+        {/* Món cần chế biến (Searchable Dropdown + Quick Chips) */}
         <div className={styles.formGroup} ref={dropdownRef}>
           <label className={styles.label}>
             Món cần chế biến (Thực đơn hôm nay)
@@ -369,6 +376,25 @@ export default function BasicInfoSection({
                 <ChevronDown size={16} className={styles.arrowIcon} />
               )}
             </div>
+          </div>
+
+          {/* Quick select chips */}
+          <div className={styles.quickDishRow}>
+            {DISH_OPTIONS.map((dish) => {
+              const isSelected = selectedDish?.id === dish.id;
+              return (
+                <button
+                  key={dish.id}
+                  type="button"
+                  className={`${styles.quickDishChip} ${
+                    isSelected ? styles.quickDishChipActive : ""
+                  }`}
+                  onClick={() => handleSelectDish(dish)}
+                >
+                  {dish.name}
+                </button>
+              );
+            })}
           </div>
 
           {/* Dropdown Menu Popup */}

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   Lock,
   Calendar,
@@ -58,6 +58,14 @@ export default function BasicInfoSeparateSection({
 
   const dropdownRef = useRef(null);
 
+  const todayDateStr = useMemo(() => {
+    const d = new Date();
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = d.getFullYear();
+    return `${dd}/${mm}/${yyyy}`;
+  }, []);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -105,7 +113,6 @@ export default function BasicInfoSeparateSection({
           <div className={styles.numberBadge}>1</div>
           <div>
             <h2 className={styles.sectionTitle}>1. Thông tin phiên nấu</h2>
-            
           </div>
         </div>
         <span className={styles.requiredTag}>Bắt buộc</span>
@@ -130,15 +137,15 @@ export default function BasicInfoSeparateSection({
             <div className={styles.lockedValue}>
               <Calendar size={15} className={styles.calIcon} />
               <div className={styles.dateMeta}>
-                <span className={styles.lockedDate}>01/11/2026</span>
-                <span className={styles.lockedSub}>• Hôm nay (Tuần 45)</span>
+                <span className={styles.lockedDate}>{todayDateStr}</span>
+                <span className={styles.lockedSub}>• Hôm nay (Thực đơn đã duyệt)</span>
               </div>
             </div>
             <span className={styles.lockedBadge}>Đã duyệt</span>
           </div>
         </div>
 
-        {/* Bữa ăn phục vụ - Giờ ca ăn 11:30 cấu hình cho Trường DEMO */}
+        {/* Bữa ăn phục vụ */}
         <div className={styles.formGroup}>
           <label className={styles.label}>Bữa ăn phục vụ</label>
           <div className={styles.selectWrapper}>
@@ -165,7 +172,7 @@ export default function BasicInfoSeparateSection({
 
       {/* Row 2: Món cần chế biến & Số suất dự kiến */}
       <div className={styles.gridRow}>
-        {/* Món cần chế biến (Searchable Dropdown) */}
+        {/* Món cần chế biến (Searchable Dropdown + Quick Chips) */}
         <div className={styles.formGroup} ref={dropdownRef}>
           <label className={styles.label}>
             Món cần chế biến (Thực đơn hôm nay)
@@ -209,6 +216,25 @@ export default function BasicInfoSeparateSection({
                 <ChevronDown size={16} className={styles.arrowIcon} />
               )}
             </div>
+          </div>
+
+          {/* Quick select chips */}
+          <div className={styles.quickDishRow}>
+            {SEPARATE_DISH_OPTIONS.map((dish) => {
+              const isSelected = selectedDish?.id === dish.id;
+              return (
+                <button
+                  key={dish.id}
+                  type="button"
+                  className={`${styles.quickDishChip} ${
+                    isSelected ? styles.quickDishChipActive : ""
+                  }`}
+                  onClick={() => handleSelectDish(dish)}
+                >
+                  {dish.name}
+                </button>
+              );
+            })}
           </div>
 
           {/* Dropdown Menu Popup */}

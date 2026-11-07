@@ -531,3 +531,38 @@
   color: var(--text-muted, #6b7280);
   pointer-events: none;
 }
+
+.quickDishRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.quickDishChip {
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  color: var(--text-secondary, #4b5563);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #e5e7eb;
+    color: var(--text-primary, #111827);
+  }
+}
+
+.quickDishChipActive {
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  border-color: var(--color-primary, #0a8066);
+  font-weight: 600;
+}

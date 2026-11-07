@@ -4,8 +4,6 @@ import {
   Layers,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 import styles from "./ProposedBatchSection.module.scss";
 
@@ -21,10 +19,9 @@ export default function ProposedBatchSection({
       <section className={styles.sectionContainer}>
         <div className={styles.sectionHeader}>
           <div className={styles.titleWithBadge}>
-            <div className={styles.numberBadge}>3</div>
+            <div className={styles.numberBadge}>2</div>
             <div>
-              <h2 className={styles.sectionTitle}>3. Phương án chế biến</h2>
-              
+              <h2 className={styles.sectionTitle}>2. Phương án chế biến</h2>
             </div>
           </div>
         </div>
@@ -33,12 +30,10 @@ export default function ProposedBatchSection({
           <div className={styles.emptyIconBox}>
             <CookingPot size={26} />
           </div>
-          <h3 className={styles.emptyTitle}>Chưa có phương án chế biến</h3>
-          <p className={styles.emptyDesc}>Phương án chế biến sẽ hiển thị tự động sau khi chọn món.</p>
-          <div className={styles.emptyHintBadge}>
-            <Sparkles size={12} />
-            <span>Tự động tối ưu số lượng mẻ nấu tối thiểu</span>
-          </div>
+          <h3 className={styles.emptyTitle}>Chưa chọn món cần chế biến</h3>
+          <p className={styles.emptyDesc}>
+            Vui lòng chọn món ăn ở Bước 1 để hiển thị phương án chế biến.
+          </p>
         </div>
       </section>
     );
@@ -53,12 +48,11 @@ export default function ProposedBatchSection({
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
         <div className={styles.titleWithBadge}>
-          <div className={styles.numberBadge}>3</div>
+          <div className={styles.numberBadge}>2</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              3. Phương án chế biến (Nấu chung)
+              2. Phương án chế biến (Nấu chung) ({selectedDish.name})
             </h2>
-            
           </div>
         </div>
       </div>

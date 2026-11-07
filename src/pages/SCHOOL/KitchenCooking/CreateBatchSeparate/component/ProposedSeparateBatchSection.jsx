@@ -1,12 +1,8 @@
 import React, { useState } from "react";
 import {
   CookingPot,
-  ShieldCheck,
   ChevronDown,
   ChevronUp,
-  CheckCircle2,
-  Utensils,
-  Sparkles,
 } from "lucide-react";
 import styles from "./ProposedSeparateBatchSection.module.scss";
 
@@ -23,12 +19,11 @@ export default function ProposedSeparateBatchSection({
       <section className={styles.sectionContainer}>
         <div className={styles.sectionHeader}>
           <div className={styles.titleWithBadge}>
-            <div className={styles.numberBadge}>3</div>
+            <div className={styles.numberBadge}>2</div>
             <div>
               <h2 className={styles.sectionTitle}>
-                3. Phương án tách lô chế biến (Nấu riêng)
+                2. Phương án tách lô chế biến
               </h2>
-              
             </div>
           </div>
         </div>
@@ -37,12 +32,10 @@ export default function ProposedSeparateBatchSection({
           <div className={styles.emptyIconBox}>
             <CookingPot size={26} />
           </div>
-          <h3 className={styles.emptyTitle}>Chưa có phương án tách lô</h3>
-          <p className={styles.emptyDesc}>Phương án tách lô sẽ hiển thị tự động sau khi chọn món.</p>
-          <div className={styles.emptyHintBadge}>
-            <Sparkles size={12} />
-            <span>Phân tách 1:1 theo từng nguồn nguyên liệu</span>
-          </div>
+          <h3 className={styles.emptyTitle}>Chưa chọn món cần chế biến</h3>
+          <p className={styles.emptyDesc}>
+            Vui lòng chọn món ăn ở Bước 1 để hiển thị phương án phân tách lô nấu độc lập theo nguồn gốc.
+          </p>
         </div>
       </section>
     );
@@ -57,12 +50,11 @@ export default function ProposedSeparateBatchSection({
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
         <div className={styles.titleWithBadge}>
-          <div className={styles.numberBadge}>3</div>
+          <div className={styles.numberBadge}>2</div>
           <div>
             <h2 className={styles.sectionTitle}>
-              3. Phương án tách lô chế biến ({selectedDish.name})
+              2. Phương án tách lô chế biến ({selectedDish.name})
             </h2>
-            
           </div>
         </div>
       </div>
@@ -76,14 +68,13 @@ export default function ProposedSeparateBatchSection({
           <div className={styles.summaryMainInfo}>
             <div className={styles.batchTitleRow}>
               <span className={styles.batchMainName}>
-                Đề xuất: 02 lô chế biến độc lập song song
+                Đề xuất: 02 lô chế biến độc lập (Nấu riêng 1:1)
               </span>
-              <span className={styles.statusPill}>Nấu riêng 1:1</span>
+              <span className={styles.statusPill}>Nấu riêng</span>
             </div>
             <p className={styles.summaryText}>
-              {shiftLabel} • Tổng quy mô:{" "}
-              <strong>{portions.toLocaleString("vi-VN")} suất</strong> (100% nhu
-              cầu điểm danh) • Tách biệt nghiêm ngặt theo 02 nguồn gốc thịt heo
+              {shiftLabel} • Quy mô:{" "}
+              <strong>{portions.toLocaleString("vi-VN")} suất</strong> • Tách làm 02 mẻ độc lập theo nguồn nguyên liệu
             </p>
           </div>
         </div>
@@ -127,7 +118,7 @@ export default function ProposedSeparateBatchSection({
               onClick={() => setShowDetail1(!showDetail1)}
             >
               <span>
-                {showDetail1 ? "Thu gọn thành phần" : "Xem định lượng chi tiết"}
+                {showDetail1 ? "Thu gọn định lượng" : "Xem định lượng chi tiết"}
               </span>
               {showDetail1 ? (
                 <ChevronUp size={14} />
@@ -195,7 +186,7 @@ export default function ProposedSeparateBatchSection({
               onClick={() => setShowDetail2(!showDetail2)}
             >
               <span>
-                {showDetail2 ? "Thu gọn thành phần" : "Xem định lượng chi tiết"}
+                {showDetail2 ? "Thu gọn định lượng" : "Xem định lượng chi tiết"}
               </span>
               {showDetail2 ? (
                 <ChevronUp size={14} />
