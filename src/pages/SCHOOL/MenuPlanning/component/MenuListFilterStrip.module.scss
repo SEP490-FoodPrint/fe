@@ -79,6 +79,7 @@
 }
 
 .selectWrapper,
+.selectWrapperAcademicYear,
 .selectWrapperWeek,
 .selectWrapperSm {
   position: relative;
@@ -89,6 +90,13 @@
 
   @media (min-width: 900px) {
     width: auto;
+  }
+}
+
+.selectWrapperAcademicYear {
+  @media (min-width: 900px) {
+    min-width: 175px;
+    flex: 0 0 auto;
   }
 }
 

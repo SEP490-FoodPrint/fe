@@ -1,27 +1,20 @@
-import React, { useMemo } from "react"
-import { Search, CalendarDays, Utensils, RotateCcw, X, ChevronDown } from "lucide-react"
+import React from "react"
+import { Search, GraduationCap, CalendarDays, Utensils, RotateCcw, X, ChevronDown } from "lucide-react"
 import styles from "./MenuListFilterStrip.module.scss"
-import { getWeeksOfYear, getISOWeekNumber } from "src/services/MenuService/adapter"
 
 export default function MenuListFilterStrip({
   filters,
   onChangeFilter,
   onResetFilters,
+  academicYearOptions = [],
+  weeks = [],
 }) {
   const {
     searchKeyword = "",
-    year = new Date().getFullYear(),
-    week = getISOWeekNumber(new Date()),
+    academicYear = "2026-2027",
+    week = 45,
     mealType = "all",
   } = filters
-
-  const currentYear = new Date().getFullYear()
-  const currentWeek = getISOWeekNumber(new Date())
-
-  // Danh sách các tuần của năm đã chọn
-  const weeks = useMemo(() => {
-    return getWeeksOfYear(Number(year) || currentYear)
-  }, [year, currentYear])
 
   return (
     <div className={styles.filterStrip}>
@@ -48,30 +41,43 @@ export default function MenuListFilterStrip({
         )}
       </div>
 
-      {/* 2. Bộ lọc Tuần */}
+      {/* 2. Bộ lọc Năm học (Setup từ BGH) */}
+      <div className={styles.selectWrapperAcademicYear}>
+        <GraduationCap size={15} className={styles.selectIcon} />
+        <select
+          className={styles.selectInput}
+          value={academicYear}
+          onChange={(e) => onChangeFilter("academicYear", e.target.value)}
+          title="Chọn năm học"
+        >
+          {academicYearOptions.map((ay) => (
+            <option key={ay.academicYear} value={ay.academicYear}>
+              {ay.label || `Năm học ${ay.academicYear}`}
+            </option>
+          ))}
+        </select>
+        <ChevronDown size={14} className={styles.chevronIcon} />
+      </div>
+
+      {/* 3. Bộ lọc Tuần (Chạy từ ngày bắt đầu đến kết thúc năm học) */}
       <div className={styles.selectWrapperWeek}>
         <CalendarDays size={15} className={styles.selectIcon} />
         <select
           className={styles.selectInput}
           value={String(week)}
           onChange={(e) => onChangeFilter("week", Number(e.target.value))}
-          title="Chọn tuần trong năm"
+          title="Chọn tuần học trong năm học"
         >
-          {weeks.map((w) => {
-            const isThisWeek = Number(year) === currentYear && w.weekNumber === currentWeek
-            return (
-              <option key={w.weekNumber} value={w.weekNumber}>
-                {isThisWeek
-                  ? `Tuần ${w.weekNumber} (${w.startVN} – ${w.endVN}) — Tuần này`
-                  : `Tuần ${w.weekNumber} (${w.startVN} – ${w.endVN})`}
-              </option>
-            )
-          })}
+          {weeks.map((w) => (
+            <option key={w.key || w.isoWeek} value={w.isoWeek}>
+              {w.label}
+            </option>
+          ))}
         </select>
         <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 3. Bộ lọc Ca ăn */}
+      {/* 4. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>
         <Utensils size={14} className={styles.selectIcon} />
         <select
@@ -87,7 +93,7 @@ export default function MenuListFilterStrip({
         <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      {/* 4. Nút Đặt lại: Icon-only tinh tế */}
+      {/* 5. Nút Đặt lại: Icon-only tinh tế */}
       <button
         type="button"
         className={styles.resetBtn}

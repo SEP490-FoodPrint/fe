@@ -12,6 +12,8 @@ import {
   getMenuISOWeek,
   getISOWeekNumber,
   SCHOOL_DAY_LABELS,
+  MOCK_SCHOOL_ACADEMIC_YEARS,
+  getWeeksOfAcademicYear,
 } from "src/services/MenuService/adapter"
 
 import MenuListStatsRail from "./component/MenuListStatsRail"
@@ -30,14 +32,38 @@ export default function MenuPlanning() {
   const [menusAreMock, setMenusAreMock] = useState(true)
   const [loading, setLoading] = useState(false)
 
-  // Filter state: Mặc định lọc năm hiện tại và Tuần này!
+  // Danh sách năm học từ cấu hình toàn trường
+  const availableAcademicYears = MOCK_SCHOOL_ACADEMIC_YEARS
+
+  // Filter state: Mặc định lọc Năm học 2026 - 2027 và Tuần này!
   const [filters, setFilters] = useState({
     searchKeyword: "",
-    year: currentYear,
+    academicYear: "2026-2027",
     week: currentWeek, // Mặc định luôn là tuần này!
     mealType: "all",
     status: "all",
   })
+
+  // Cấu hình năm học hiện tại do BGH setup (chứa startDate, endDate và ngày nghỉ)
+  const currentAcademicYearConfig = useMemo(() => {
+    return (
+      availableAcademicYears.find((ay) => ay.academicYear === filters.academicYear) ||
+      availableAcademicYears[0]
+    )
+  }, [availableAcademicYears, filters.academicYear])
+
+  // Danh sách các tuần học thực tế trong năm học (chạy từ lúc bắt đầu học đến kết thúc)
+  const schoolWeeks = useMemo(() => {
+    return getWeeksOfAcademicYear(currentAcademicYearConfig)
+  }, [currentAcademicYearConfig])
+
+  // Tuần đang được chọn
+  const selectedWeekObj = useMemo(() => {
+    const found = schoolWeeks.find((w) => w.isoWeek === Number(filters.week))
+    if (found) return found
+    const currentW = schoolWeeks.find((w) => w.isCurrentWeek)
+    return currentW || schoolWeeks[0]
+  }, [schoolWeeks, filters.week])
 
   // Tải dữ liệu thực tế từ backend hoặc fallback mock
   useEffect(() => {
@@ -82,10 +108,13 @@ export default function MenuPlanning() {
   const handleChangeFilter = (field, value) => {
     setFilters((prev) => {
       const next = { ...prev, [field]: value }
-      if (field === "year") {
-        if (Number(value) === currentYear) {
-          next.week = currentWeek
-        }
+      if (field === "academicYear") {
+        const targetConfig =
+          availableAcademicYears.find((ay) => ay.academicYear === value) ||
+          availableAcademicYears[0]
+        const nextWeeks = getWeeksOfAcademicYear(targetConfig)
+        const defaultWeek = nextWeeks.find((w) => w.isCurrentWeek) || nextWeeks[0]
+        next.week = defaultWeek ? defaultWeek.isoWeek : currentWeek
       }
       // Khi lọc trạng thái: chuyển sang tuần tương ứng minh họa
       if (field === "status") {
@@ -96,7 +125,8 @@ export default function MenuPlanning() {
       }
       // Khi đổi tuần: nếu bộ lọc trạng thái không khớp với tuần mới, tự động bỏ lọc trạng thái
       if (field === "week") {
-        const info = getWeeklyMenuStatus(value, next.year, menus)
+        const yearOfSelectedWeek = selectedWeekObj?.year || currentYear
+        const info = getWeeklyMenuStatus(value, yearOfSelectedWeek, menus)
         if (next.status !== "all" && next.status !== info.status) {
           next.status = "all"
         }
@@ -108,12 +138,12 @@ export default function MenuPlanning() {
   const handleResetFilters = () => {
     setFilters({
       searchKeyword: "",
-      year: currentYear,
+      academicYear: "2026-2027",
       week: currentWeek,
       mealType: "all",
       status: "all",
     })
-    showToast("Đã đặt lại bộ lọc về Tuần này", "info")
+    showToast("Đã đặt lại bộ lọc về Năm học 2026 - 2027 (Tuần này)", "info")
   }
 
   const handleFilterByStatus = (statusValue) => {
@@ -136,8 +166,7 @@ export default function MenuPlanning() {
 
   // Thống kê cho Quick Status Pills
   const stats = useMemo(() => {
-    const targetYear = Number(filters.year) || currentYear
-    if (targetYear === 2026) {
+    if (filters.academicYear === "2026-2027") {
       return {
         total: 6,
         draft: 1,
@@ -146,7 +175,7 @@ export default function MenuPlanning() {
         revisionRequested: 1,
       }
     }
-    const yearMenus = menus.filter((m) => getMenuYear(m) === targetYear)
+    const yearMenus = menus.filter((m) => getMenuYear(m) === 2025)
     const total = yearMenus.length
     const draft = yearMenus.filter((m) => m.status === "DRAFT").length
     const pendingApproval = yearMenus.filter(
@@ -158,7 +187,7 @@ export default function MenuPlanning() {
     ).length
 
     return { total, draft, pendingApproval, approved, revisionRequested }
-  }, [menus, filters.year, currentYear])
+  }, [menus, filters.academicYear])
 
   // Lọc danh sách thực đơn
   const filteredMenus = useMemo(() => {
@@ -172,48 +201,47 @@ export default function MenuPlanning() {
         if (!matchName && !matchCode && !matchDish) return false
       }
 
-      // 2. Lọc theo Năm
-      const mYear = getMenuYear(menu)
-      if (filters.year && mYear !== Number(filters.year)) {
-        return false
+      // 2. Lọc theo Tuần trong năm học
+      if (selectedWeekObj) {
+        if (menu.rawDate) {
+          if (
+            menu.rawDate < selectedWeekObj.startDateISO ||
+            menu.rawDate > selectedWeekObj.endDateISO
+          ) {
+            return false
+          }
+        } else {
+          const mWeek = getMenuISOWeek(menu)
+          if (mWeek !== selectedWeekObj.isoWeek) return false
+        }
       }
 
-      // 3. Lọc theo Tuần
-      const targetWeek = Number(filters.week)
-      const mWeek = getMenuISOWeek(menu)
-      if (mWeek !== targetWeek) {
-        const isMatchRelative =
-          (targetWeek === currentWeek && menu.week === "current") ||
-          (targetWeek === currentWeek - 1 && menu.week === "prev") ||
-          (targetWeek === currentWeek + 1 && menu.week === "next")
-        if (!isMatchRelative) return false
-      }
-
-      // 4. Lọc theo Ca ăn
+      // 3. Lọc theo Ca ăn
       if (filters.mealType !== "all") {
         if (menu.mealType !== filters.mealType) return false
       }
 
-      // 5. Lọc theo Trạng thái
+      // 4. Lọc theo Trạng thái
       if (filters.status !== "all") {
         if (menu.status !== filters.status) return false
       }
 
       return true
     })
-  }, [menus, filters, currentWeek])
+  }, [menus, filters, selectedWeekObj])
 
-  // Danh sách các ngày trong tuần được chọn
+  // Danh sách các ngày trong tuần được chọn (Thứ 2 đến Thứ 6)
+  // Tích hợp ngày nghỉ do BGH setup
   const weekSchoolDays = useMemo(() => {
-    const monday = getDateOfISOWeek(
-      Number(filters.week),
-      Number(filters.year) || currentYear
-    )
+    if (!selectedWeekObj?.startDate) return []
+    const monday = selectedWeekObj.startDate
     const pad = (n) => String(n).padStart(2, "0")
     const now = new Date()
     const todayISO = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
       now.getDate()
     )}`
+
+    const holidays = currentAcademicYearConfig?.holidays || []
 
     const days = []
     for (let i = 0; i < 5; i++) {
@@ -225,30 +253,35 @@ export default function MenuPlanning() {
       const dateISO = `${d.getUTCFullYear()}-${pad(
         d.getUTCMonth() + 1
       )}-${pad(d.getUTCDate())}`
+
+      // Kiểm tra ngày nghỉ do BGH cấu hình
+      const holidayMatch = holidays.find((h) => h.date === dateISO)
+
       days.push({
         dayOfWeek: i + 1,
         dayLabel: SCHOOL_DAY_LABELS[i + 1] || `Thứ ${i + 2}`,
         dateVN,
         dateISO,
         isToday: dateISO === todayISO,
+        isHoliday: Boolean(holidayMatch),
+        holidayReason: holidayMatch ? holidayMatch.reason : null,
       })
     }
     return days
-  }, [filters.week, filters.year, currentYear])
+  }, [selectedWeekObj, currentAcademicYearConfig])
 
   // Nhãn tuần được chọn
   const selectedWeekLabel = useMemo(() => {
-    const weeks = getWeeksOfYear(Number(filters.year) || currentYear)
-    const found = weeks.find((w) => w.weekNumber === Number(filters.week))
-    return found ? found.label : `Tuần ${filters.week}/${filters.year}`
-  }, [filters.week, filters.year, currentYear])
+    return selectedWeekObj?.label || `Tuần ${filters.week}`
+  }, [selectedWeekObj, filters.week])
 
   // Thông tin trạng thái của CẢ TUẦN
   const weekStatusInfo = useMemo(() => {
-    return getWeeklyMenuStatus(filters.week, filters.year, menus)
-  }, [filters.week, filters.year, menus])
+    const yearOfSelectedWeek = selectedWeekObj?.year || currentYear
+    return getWeeklyMenuStatus(filters.week, yearOfSelectedWeek, menus)
+  }, [filters.week, selectedWeekObj, currentYear, menus])
 
-  // Tiêu đề của thực đơn tuần được chọn (đảm bảo luôn có tiêu đề thực đơn rõ ràng)
+  // Tiêu đề của thực đơn tuần được chọn
   const weeklyMenuTitle = useMemo(() => {
     const weekNum = Number(filters.week)
     // 1. Tìm menu trong tuần này có trường name
@@ -258,7 +291,6 @@ export default function MenuPlanning() {
     })
 
     if (weekMenus.length > 0 && weekMenus[0]?.name) {
-      // Nếu name có dạng "Thực đơn Tiêu chuẩn Tuần 45 — Bữa trưa Thứ Hai", lấy phần trước " — "
       const fullName = weekMenus[0].name
       const prefix = fullName.split(" — ")[0]
       if (prefix && prefix.trim().length > 0) {
@@ -280,8 +312,8 @@ export default function MenuPlanning() {
       return titlesByWeek[weekNum]
     }
 
-    return `Thực đơn Dinh dưỡng Tuần ${weekNum}`
-  }, [menus, filters.week])
+    return `Thực đơn Dinh dưỡng Tuần ${selectedWeekObj?.weekIndex || weekNum}`
+  }, [menus, filters.week, selectedWeekObj])
 
   // Đối tượng áp dụng của thực đơn tuần
   const weeklyTargetScope = useMemo(() => {
@@ -291,16 +323,16 @@ export default function MenuPlanning() {
   }, [menus, filters.week])
 
   const isCurrentWeek = useMemo(() => {
-    return (
-      Number(filters.year) === currentYear &&
-      Number(filters.week) === currentWeek
-    )
-  }, [filters.year, filters.week, currentYear, currentWeek])
+    return Boolean(selectedWeekObj?.isCurrentWeek)
+  }, [selectedWeekObj])
 
   // Xử lý gửi BGH duyệt tuần (khi DRAFT)
   const handleSubmitWeeklyMenu = () => {
     let missingDays = []
     weekSchoolDays.forEach((sd) => {
+      // Ngày nghỉ theo lịch BGH không tính là thiếu ca
+      if (sd.isHoliday) return
+
       const dayMenus = filteredMenus.filter(
         (m) => m.rawDate === sd.dateISO || m.date === sd.dateVN
       )
@@ -313,7 +345,7 @@ export default function MenuPlanning() {
 
     if (missingDays.length > 0) {
       showToast(
-        `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa đủ 2 ca (trưa & xế). Vui lòng hoàn tất 5 ngày trước khi gửi!`,
+        `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa đủ 2 ca (trưa & xế). Vui lòng hoàn tất trước khi gửi!`,
         "warning"
       )
       return
@@ -413,14 +445,16 @@ export default function MenuPlanning() {
       {/* 2. Dải Quick Status Pills */}
       <MenuListStatsRail
         stats={stats}
-        year={filters.year}
+        year={selectedWeekObj?.year || currentYear}
         activeStatus={filters.status}
         onFilterByStatus={handleFilterByStatus}
       />
 
-      {/* Section 3: Bộ lọc Phẳng (Năm, Tuần, Ca ăn) */}
+      {/* Section 3: Bộ lọc (Năm học, Tuần học theo BGH, Ca ăn) */}
       <MenuListFilterStrip
         filters={filters}
+        academicYearOptions={availableAcademicYears}
+        weeks={schoolWeeks}
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
       />

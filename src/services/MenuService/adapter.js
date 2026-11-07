@@ -97,6 +97,157 @@ export function getWeeksOfYear(year) {
   return weeks;
 }
 
+/**
+ * Cấu hình năm học toàn trường & ngày nghỉ do BGH thiết lập
+ * Bám sát DB PostgreSQL FoodPrint v5.4: bảng `foodprint.school_academic_years`
+ * (id, school_id, academic_year, start_date, end_date, holidays JSONB)
+ */
+export const MOCK_SCHOOL_ACADEMIC_YEARS = [
+  {
+    id: "ay-2026-2027",
+    schoolId: "sch-foodprint-001",
+    academicYear: "2026-2027",
+    label: "Năm học 2026 - 2027",
+    startDate: "2026-09-07", // Thứ Hai, 07/09/2026
+    endDate: "2027-05-28",   // Thứ Sáu, 28/05/2027
+    isCurrent: true,
+    holidays: [
+      {
+        date: "2026-09-02",
+        reason: "Nghỉ lễ: Quốc khánh (02/09)",
+        type: "NATIONAL_HOLIDAY",
+      },
+      {
+        date: "2026-11-06",
+        reason: "Nghỉ theo kế hoạch BGH: Hội thao học sinh toàn trường",
+        type: "BGH_EVENT",
+      },
+      {
+        date: "2026-11-20",
+        reason: "Nghỉ lễ: Ngày Nhà giáo Việt Nam (20/11)",
+        type: "NATIONAL_HOLIDAY",
+      },
+      {
+        date: "2027-01-01",
+        reason: "Nghỉ lễ: Tết Dương lịch 2027",
+        type: "NATIONAL_HOLIDAY",
+      },
+      {
+        date: "2027-04-30",
+        reason: "Nghỉ lễ: Ngày Giải phóng miền Nam (30/04)",
+        type: "NATIONAL_HOLIDAY",
+      },
+      {
+        date: "2027-05-01",
+        reason: "Nghỉ lễ: Quốc tế Lao động (01/05)",
+        type: "NATIONAL_HOLIDAY",
+      },
+    ],
+  },
+  {
+    id: "ay-2025-2026",
+    schoolId: "sch-foodprint-001",
+    academicYear: "2025-2026",
+    label: "Năm học 2025 - 2026",
+    startDate: "2025-09-08",
+    endDate: "2026-05-29",
+    isCurrent: false,
+    holidays: [
+      {
+        date: "2025-09-02",
+        reason: "Nghỉ lễ: Quốc khánh",
+        type: "NATIONAL_HOLIDAY",
+      },
+      {
+        date: "2025-11-20",
+        reason: "Nghỉ lễ: Ngày Nhà giáo Việt Nam",
+        type: "NATIONAL_HOLIDAY",
+      },
+      {
+        date: "2026-01-01",
+        reason: "Nghỉ lễ: Tết Dương lịch",
+        type: "NATIONAL_HOLIDAY",
+      },
+    ],
+  },
+];
+
+/**
+ * Tạo danh sách tuần học thực tế trong một năm học dựa trên khoảng thời gian
+ * BGH đã setup (từ startDate đến endDate).
+ */
+export function getWeeksOfAcademicYear(academicYearConfig) {
+  if (!academicYearConfig || !academicYearConfig.startDate || !academicYearConfig.endDate) {
+    return [];
+  }
+
+  const pad = (n) => String(n).padStart(2, "0");
+  const weeks = [];
+
+  const startParts = academicYearConfig.startDate.split("-").map(Number);
+  const endParts = academicYearConfig.endDate.split("-").map(Number);
+
+  let currentMonday = new Date(Date.UTC(startParts[0], startParts[1] - 1, startParts[2]));
+  const dayOfWeek = currentMonday.getUTCDay();
+  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  currentMonday.setUTCDate(currentMonday.getUTCDate() + diffToMonday);
+
+  const endLimit = new Date(Date.UTC(endParts[0], endParts[1] - 1, endParts[2]));
+  const endDow = endLimit.getUTCDay();
+  if (endDow !== 5) {
+    const diffToFriday = endDow === 0 ? -2 : (5 - endDow);
+    endLimit.setUTCDate(endLimit.getUTCDate() + diffToFriday);
+  }
+
+  const now = new Date();
+  const currentWeekISO = getISOWeekNumber(now);
+  const currentYearNum = now.getFullYear();
+
+  let weekIndex = 1;
+
+  while (currentMonday <= endLimit) {
+    const monday = new Date(currentMonday);
+    const friday = new Date(currentMonday);
+    friday.setUTCDate(friday.getUTCDate() + 4);
+
+    const mStr = `${pad(monday.getUTCDate())}/${pad(monday.getUTCMonth() + 1)}`;
+    const fStr = `${pad(friday.getUTCDate())}/${pad(friday.getUTCMonth() + 1)}`;
+    const mYear = monday.getUTCFullYear();
+    const fYear = friday.getUTCFullYear();
+    const yearDisplay = mYear === fYear ? String(mYear) : `${mYear}–${fYear}`;
+
+    const isoWeek = getISOWeekNumber(monday);
+    const isThisWeek = (isoWeek === currentWeekISO && mYear === currentYearNum);
+
+    const mondayISO = `${monday.getUTCFullYear()}-${pad(monday.getUTCMonth() + 1)}-${pad(monday.getUTCDate())}`;
+    const fridayISO = `${friday.getUTCFullYear()}-${pad(friday.getUTCMonth() + 1)}-${pad(friday.getUTCDate())}`;
+
+    weeks.push({
+      weekIndex,
+      isoWeek,
+      weekNumber: isoWeek,
+      year: mYear,
+      startDate: monday,
+      fridayDate: friday,
+      startDateISO: mondayISO,
+      endDateISO: fridayISO,
+      startVN: mStr,
+      endVN: fStr,
+      isCurrentWeek: isThisWeek,
+      label: isThisWeek
+        ? `Tuần ${weekIndex} (${mStr} – ${fStr}/${yearDisplay}) — Tuần này`
+        : `Tuần ${weekIndex} (${mStr} – ${fStr}/${yearDisplay})`,
+      shortLabel: `Tuần ${weekIndex}`,
+      key: `AYW_${weekIndex}_${mYear}_${isoWeek}`,
+    });
+
+    currentMonday.setUTCDate(currentMonday.getUTCDate() + 7);
+    weekIndex++;
+  }
+
+  return weeks;
+}
+
 export function getMenuDateObj(menu) {
   if (!menu) return new Date();
   if (menu.rawDate) {
