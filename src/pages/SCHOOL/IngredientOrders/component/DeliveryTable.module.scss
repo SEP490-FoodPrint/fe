@@ -197,3 +197,26 @@
     background-color: var(--color-primary-soft, #e6f4ea);
   }
 }
+
+.actionCellWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.addBatch2Btn {
+  background-color: #f59e0b;
+  color: #ffffff;
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #d97706;
+  }
+}
