@@ -1,8 +1,59 @@
 /**
  * Dữ liệu mẫu (Mock Data) chuẩn hóa theo Database Schema PostgreSQL v5.4
- * Bảng: deliveries, delivery_items, ingredient_lots, suppliers, ingredient_quality_feedback
+ * Bảng: deliveries, delivery_approvals, delivery_items, ingredient_lots, suppliers, ingredient_quality_feedback
  * Phục vụ nghiệp vụ Theo dõi & Đánh giá chất lượng giao hàng - School Health Officer
  */
+
+export const REQUIRED_INSPECTION_ROLES = [
+  {
+    roleCode: "SCHOOL_HEALTH_OFFICER",
+    roleName: "Cán bộ Y tế",
+    shortTitle: "Y tế trường học",
+    desc: "Kiểm tra cảm quan, an toàn vệ sinh thực phẩm, nhiệt độ thùng lạnh",
+  },
+  {
+    roleCode: "SCHOOL_KITCHEN_STAFF",
+    roleName: "Nhân viên Bếp",
+    shortTitle: "Bếp trưởng",
+    desc: "Kiểm tra quy cách sơ chế, độ tươi ngon, định lượng thực tế",
+  },
+  {
+    roleCode: "PARENTS_COMMITTEE",
+    roleName: "Ban Phụ huynh",
+    shortTitle: "Đại diện Phụ huynh",
+    desc: "Giám sát độc lập nguồn gốc xuất xứ, tem QR, niêm phong lô hàng",
+  },
+  {
+    roleCode: "INGREDIENT_MANAGEMENT_DEPARTMENT",
+    roleName: "Quản lý Kho",
+    shortTitle: "Thủ kho",
+    desc: "Kiểm đếm số lượng, quy cách đóng gói và nhập kho lưu trữ",
+  },
+]
+
+export const APPROVAL_DECISION_CONFIG = {
+  APPROVE: {
+    label: "Duyệt tiếp nhận",
+    badgeLabel: "Đạt chuẩn",
+    bg: "#eaf7f0",
+    color: "#0a8066",
+    border: "#bbf0da",
+  },
+  REJECT: {
+    label: "Từ chối tiếp nhận",
+    badgeLabel: "Từ chối",
+    bg: "#fee2e2",
+    color: "#b91c1c",
+    border: "#fecaca",
+  },
+  PENDING: {
+    label: "Chờ đánh giá",
+    badgeLabel: "Chờ kiểm thực",
+    bg: "#fffbeb",
+    color: "#b45309",
+    border: "#fde68a",
+  },
+}
 
 export const INITIAL_DELIVERIES = [
   {
@@ -20,6 +71,44 @@ export const INITIAL_DELIVERIES = [
     receivedAt: "2026-10-24T07:10:00+07:00",
     vehiclePlate: "29B-441.90",
     note: "Giao nguyên liệu chuẩn bị bữa trưa và bữa phụ chiều. Xe thùng lạnh 4°C.",
+    deliveryApprovals: [
+      {
+        id: "appr-001-health",
+        roleCode: "SCHOOL_HEALTH_OFFICER",
+        roleName: "Cán bộ Y tế",
+        userName: "BS. Nguyễn Thu Trang",
+        decision: "APPROVE",
+        reason: "Thực phẩm tươi sống đạt cảm quan, nhiệt độ xe lạnh 4°C đúng tiêu chuẩn ATTP.",
+        decidedAt: "2026-10-24T07:05:00+07:00",
+      },
+      {
+        id: "appr-001-kitchen",
+        roleCode: "SCHOOL_KITCHEN_STAFF",
+        roleName: "Nhân viên Bếp",
+        userName: "Đỗ Thị Mùi",
+        decision: "APPROVE",
+        reason: "Đủ định lượng 8kg gạo và 3kg cà rốt tươi ngon, không dập nát.",
+        decidedAt: "2026-10-24T07:05:00+07:00",
+      },
+      {
+        id: "appr-001-parents",
+        roleCode: "PARENTS_COMMITTEE",
+        roleName: "Ban Phụ huynh",
+        userName: "Trần Anh Tuấn",
+        decision: "APPROVE",
+        reason: "Đã kiểm tra tem QR và niêm phong thùng hàng, khớp với thực đơn tuần.",
+        decidedAt: "2026-10-24T07:05:00+07:00",
+      },
+      {
+        id: "appr-001-warehouse",
+        roleCode: "INGREDIENT_MANAGEMENT_DEPARTMENT",
+        roleName: "Quản lý Kho",
+        userName: "Lê Văn Bằng",
+        decision: "APPROVE",
+        reason: "Đã nhập kho số 1, phân lô lưu kho theo quy định.",
+        decidedAt: "2026-10-24T07:10:00+07:00",
+      },
+    ],
     deliveryItems: [
       {
         id: "54f9e458-951a-593b-8523-9c716fef1c67",
@@ -103,7 +192,27 @@ export const INITIAL_DELIVERIES = [
     arrivedAt: "2026-10-24T07:10:00+07:00",
     receivedAt: null,
     vehiclePlate: "29C-882.15",
-    note: "Xe đang đỗ tại cổng phụ số 2. Chờ đại diện trường tiếp nhận.",
+    note: "Xe đang đỗ tại cổng phụ số 2. Chờ Cán bộ Y tế và đại diện trường kiểm thực.",
+    deliveryApprovals: [
+      {
+        id: "appr-002-warehouse",
+        roleCode: "INGREDIENT_MANAGEMENT_DEPARTMENT",
+        roleName: "Quản lý Kho",
+        userName: "Lê Văn Bằng",
+        decision: "APPROVE",
+        reason: "Số lượng cân thực tế đủ 15kg rau muống và 12kg thịt nạc vai.",
+        decidedAt: "2026-10-24T07:12:00+07:00",
+      },
+      {
+        id: "appr-002-kitchen",
+        roleCode: "SCHOOL_KITCHEN_STAFF",
+        roleName: "Nhân viên Bếp",
+        userName: "Đỗ Thị Mùi",
+        decision: "APPROVE",
+        reason: "Thịt tươi sáng màu, thớ đàn hồi tốt, rau muống non sạch.",
+        decidedAt: "2026-10-24T07:14:00+07:00",
+      },
+    ],
     deliveryItems: [
       {
         id: "71e5481b-a912-4c28-9844-315f6291a823",
@@ -166,6 +275,7 @@ export const INITIAL_DELIVERIES = [
     receivedAt: null,
     vehiclePlate: "29D-119.42",
     note: "Đang trên hành trình từ kho trung chuyển Gia Lâm đến trường.",
+    deliveryApprovals: [],
     deliveryItems: [
       {
         id: "e492bb1a-5512-4c77-9812-74823901ba83",
@@ -206,6 +316,44 @@ export const INITIAL_DELIVERIES = [
     receivedAt: "2026-10-23T06:40:00+07:00",
     vehiclePlate: "71B-302.88",
     note: "Đã giao hoa quả tráng miệng tuần học thứ 8.",
+    deliveryApprovals: [
+      {
+        id: "appr-004-health",
+        roleCode: "SCHOOL_HEALTH_OFFICER",
+        roleName: "Cán bộ Y tế",
+        userName: "BS. Nguyễn Thu Trang",
+        decision: "APPROVE",
+        reason: "Bưởi da xanh vỏ mỏng, tươi mới, không trầy xước.",
+        decidedAt: "2026-10-23T06:35:00+07:00",
+      },
+      {
+        id: "appr-004-kitchen",
+        roleCode: "SCHOOL_KITCHEN_STAFF",
+        roleName: "Nhân viên Bếp",
+        userName: "Đỗ Thị Mùi",
+        decision: "APPROVE",
+        reason: "Đủ 25kg quả loại 1.",
+        decidedAt: "2026-10-23T06:35:00+07:00",
+      },
+      {
+        id: "appr-004-parents",
+        roleCode: "PARENTS_COMMITTEE",
+        roleName: "Ban Phụ huynh",
+        userName: "Trần Anh Tuấn",
+        decision: "APPROVE",
+        reason: "Đồng thuận tiếp nhận tráng miệng.",
+        decidedAt: "2026-10-23T06:38:00+07:00",
+      },
+      {
+        id: "appr-004-warehouse",
+        roleCode: "INGREDIENT_MANAGEMENT_DEPARTMENT",
+        roleName: "Quản lý Kho",
+        userName: "Lê Văn Bằng",
+        decision: "APPROVE",
+        reason: "Đã nhập kho bảo quản mát.",
+        decidedAt: "2026-10-23T06:40:00+07:00",
+      },
+    ],
     deliveryItems: [
       {
         id: "2284910b-1928-4821-ba38-192837465920",
@@ -246,6 +394,7 @@ export const INITIAL_DELIVERIES = [
     receivedAt: null,
     vehiclePlate: null,
     note: "Lịch giao theo đơn đặt hàng trước ngày Chủ nhật. Chưa xuất phát.",
+    deliveryApprovals: [],
     deliveryItems: [
       {
         id: "91823746-1294-4821-bb38-482910382911",
@@ -425,4 +574,3 @@ export const LOT_STATUS_CONFIG = {
     color: "#b91c1c",
   },
 }
-

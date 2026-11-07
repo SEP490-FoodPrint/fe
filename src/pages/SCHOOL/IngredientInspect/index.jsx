@@ -12,6 +12,7 @@ import DeliveryTableView from "./component/DeliveryTableView"
 import DeliveryMobileCards from "./component/DeliveryMobileCards"
 import DeliveryEmptyState from "./component/DeliveryEmptyState"
 import DeliveryDetailView from "./component/DeliveryDetailView"
+import DeliveryApprovalModal from "./component/DeliveryApprovalModal"
 import FeedbackSubmitModal from "./component/FeedbackSubmitModal"
 import FeedbackListView from "./component/FeedbackListView"
 import FeedbackDetailView from "./component/FeedbackDetailView"
@@ -40,6 +41,11 @@ export default function IngredientInspect() {
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false)
   const [deliveryForFeedback, setDeliveryForFeedback] = useState(null)
   const [initialFeedbackLotId, setInitialFeedbackLotId] = useState("")
+
+  // Modal phê duyệt / từ chối kiểm thực giao hàng (4 bên)
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false)
+  const [deliveryForApproval, setDeliveryForApproval] = useState(null)
+  const [currentApprovalToEdit, setCurrentApprovalToEdit] = useState(null)
 
   // Toast thông báo thành công
   const [successToast, setSuccessToast] = useState("")
@@ -79,7 +85,6 @@ export default function IngredientInspect() {
 
       // 3. Lọc theo thời gian (giả định theo mock data)
       if (timeFilter === "today") {
-        // Chỉ lấy các chuyến có ngày 2026-10-24
         return (
           item.expectedArrivalAt?.startsWith("2026-10-24") ||
           item.arrivedAt?.startsWith("2026-10-24")
@@ -115,6 +120,92 @@ export default function IngredientInspect() {
     setDeliveryForFeedback(delivery)
     setInitialFeedbackLotId(lotId)
     setIsSubmitModalOpen(true)
+  }
+
+  // Mở modal kiểm thực / phê duyệt giao nhận (Duyệt vs Từ chối)
+  const handleOpenApprovalModal = (delivery, currentApproval = null) => {
+    setDeliveryForApproval(delivery)
+    setCurrentApprovalToEdit(currentApproval)
+    setIsApprovalModalOpen(true)
+  }
+
+  // Xử lý lưu quyết định kiểm thực (APPROVE vs REJECT)
+  const handleSubmitApproval = (decision, reason) => {
+    if (!deliveryForApproval) return
+
+    const now = new Date().toISOString()
+    const updatedApproval = {
+      id: currentApprovalToEdit?.id || `appr-${Date.now()}`,
+      roleCode: "SCHOOL_HEALTH_OFFICER",
+      roleName: "Cán bộ Y tế",
+      userName: "BS. Nguyễn Thu Trang",
+      decision,
+      reason,
+      decidedAt: now,
+    }
+
+    setDeliveries((prev) =>
+      prev.map((d) => {
+        if (d.id !== deliveryForApproval.id) return d
+
+        const existingApprovals = d.deliveryApprovals || []
+        const filteredApprovals = existingApprovals.filter(
+          (a) => a.roleCode !== "SCHOOL_HEALTH_OFFICER"
+        )
+        const newApprovals = [...filteredApprovals, updatedApproval]
+
+        // Tính toán trạng thái chuyến giao theo quy chuẩn FoodPrint 4 bên:
+        // - 1 reject => REJECTED
+        // - Đủ 4 approve => RECEIVED
+        // - Có approve nhưng chưa đủ 4 => APPROVED / PENDING_APPROVAL
+        let newStatus = d.status
+        if (decision === "REJECT") {
+          newStatus = "REJECTED"
+        } else if (decision === "APPROVE") {
+          const hasAnyReject = newApprovals.some((a) => a.decision === "REJECT")
+          if (hasAnyReject) {
+            newStatus = "REJECTED"
+          } else if (newApprovals.length >= 4 && newApprovals.every((a) => a.decision === "APPROVE")) {
+            newStatus = "RECEIVED"
+          } else {
+            newStatus = "APPROVED"
+          }
+        }
+
+        const updated = {
+          ...d,
+          status: newStatus,
+          deliveryApprovals: newApprovals,
+          receivedAt: newStatus === "RECEIVED" ? (d.receivedAt || now) : d.receivedAt,
+        }
+
+        // Cập nhật selectedDelivery nếu đang mở chi tiết
+        if (selectedDelivery && selectedDelivery.id === d.id) {
+          setSelectedDelivery(updated)
+        }
+
+        return updated
+      })
+    )
+
+    setIsApprovalModalOpen(false)
+    setDeliveryForApproval(null)
+    setCurrentApprovalToEdit(null)
+
+    // Hiển thị toast thông báo
+    if (decision === "APPROVE") {
+      setSuccessToast(
+        `Đã ghi nhận Cán bộ Y tế PHÊ DUYỆT tiếp nhận đợt giao ${deliveryForApproval.deliveryNo}!`
+      )
+    } else {
+      setSuccessToast(
+        `Đã ghi nhận Cán bộ Y tế TỪ CHỐI tiếp nhận đợt giao ${deliveryForApproval.deliveryNo}. Lý do: ${reason}`
+      )
+    }
+
+    setTimeout(() => {
+      setSuccessToast("")
+    }, 6000)
   }
 
   // Xử lý gửi phản hồi thành công (SCREEN 03)
@@ -207,6 +298,7 @@ export default function IngredientInspect() {
             feedbacks={feedbacks}
             onBack={() => setCurrentView(VIEW_MODES.DELIVERY_LIST)}
             onOpenSubmitFeedback={handleOpenSubmitModal}
+            onOpenApprovalModal={handleOpenApprovalModal}
             onSelectFeedback={handleSelectFeedback}
           />
         </div>
@@ -237,6 +329,20 @@ export default function IngredientInspect() {
             }}
           />
         </div>
+      )}
+
+      {/* MODAL PHÊ DUYỆT / TỪ CHỐI KIỂM THỰC GIAO NHẬN */}
+      {isApprovalModalOpen && deliveryForApproval && (
+        <DeliveryApprovalModal
+          delivery={deliveryForApproval}
+          currentApproval={currentApprovalToEdit}
+          onClose={() => {
+            setIsApprovalModalOpen(false)
+            setDeliveryForApproval(null)
+            setCurrentApprovalToEdit(null)
+          }}
+          onSubmitApproval={handleSubmitApproval}
+        />
       )}
 
       {/* SCREEN 03: MODAL GỬI PHẢN HỒI CHẤT LƯỢNG NGUYÊN LIỆU */}

@@ -8,10 +8,21 @@ import {
   Store,
   Clock,
   FileText,
+  ShieldCheck,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  Users,
+  CheckSquare,
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import LotQRTraceModal from "./LotQRTraceModal"
-import { LOT_STATUS_CONFIG, FEEDBACK_STATUS_CONFIG } from "../mockDeliveryData"
+import {
+  LOT_STATUS_CONFIG,
+  FEEDBACK_STATUS_CONFIG,
+  REQUIRED_INSPECTION_ROLES,
+  APPROVAL_DECISION_CONFIG,
+} from "../mockDeliveryData"
 import styles from "./DeliveryDetailView.module.scss"
 
 export default function DeliveryDetailView({
@@ -19,6 +30,7 @@ export default function DeliveryDetailView({
   feedbacks = [],
   onBack,
   onOpenSubmitFeedback,
+  onOpenApprovalModal,
   onSelectFeedback,
 }) {
   // State xem tem nhãn QR của lô
@@ -32,6 +44,11 @@ export default function DeliveryDetailView({
 
   // Lọc danh sách phản hồi liên quan đến delivery này
   const deliveryFeedbacks = feedbacks.filter((f) => f.deliveryId === delivery.id)
+
+  // Kiểm tra đánh giá của Cán bộ Y tế
+  const healthApproval = delivery.deliveryApprovals?.find(
+    (a) => a.roleCode === "SCHOOL_HEALTH_OFFICER"
+  )
 
   // Format date helper (dd/mm/yyyy)
   const formatDate = (isoString) => {
@@ -105,6 +122,12 @@ export default function DeliveryDetailView({
   // Thời gian giao nhận chuẩn (ưu tiên arrivedAt hoặc receivedAt, fallback expectedArrivalAt)
   const deliveryTime = delivery.arrivedAt || delivery.receivedAt || delivery.expectedArrivalAt
 
+  // Tính toán tiến độ đánh giá 4 bên
+  const approvalsList = delivery.deliveryApprovals || []
+  const hasRejection = approvalsList.some((a) => a.decision === "REJECT")
+  const approveCount = approvalsList.filter((a) => a.decision === "APPROVE").length
+  const isFullyApproved = approveCount === REQUIRED_INSPECTION_ROLES.length && !hasRejection
+
   return (
     <div className={styles.detailWrapper}>
       {/* 1. Header Bar: Tiêu đề + Nút thao tác nằm ngang hàng 2 bên */}
@@ -126,17 +149,43 @@ export default function DeliveryDetailView({
           </div>
         </div>
 
-        <button
-          type="button"
-          className={styles.feedbackActionBtn}
-          onClick={() => onOpenSubmitFeedback(delivery)}
-        >
-          <Send size={15} />
-          <span>Gửi phản hồi chất lượng</span>
-        </button>
+        {/* Action Buttons: Đánh giá & Gửi phản hồi */}
+        <div className={styles.headerActions}>
+          {healthApproval ? (
+            <button
+              type="button"
+              className={styles.approvalEditBtn}
+              onClick={() => onOpenApprovalModal(delivery, healthApproval)}
+              title="Cập nhật lại kết quả đánh giá của Cán bộ Y tế"
+            >
+              <ShieldCheck size={15} />
+              <span>Sửa đánh giá Y tế</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles.approvalPrimaryBtn}
+              onClick={() => onOpenApprovalModal(delivery, null)}
+              title="Đánh giá cảm quan và ra quyết định duyệt hoặc từ chối"
+            >
+              <ShieldCheck size={16} />
+              <span>Đánh giá kiểm thực</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            className={styles.feedbackActionBtn}
+            onClick={() => onOpenSubmitFeedback(delivery)}
+            title="Gửi phản hồi chất lượng, nhãn mác tới nhà cung cấp"
+          >
+            <Send size={15} />
+            <span>Gửi phản hồi chất lượng</span>
+          </button>
+        </div>
       </div>
 
-      {/* 2. Thanh tóm tắt thông tin chuyến giao (Rõ ràng, phân cột dễ đọc) */}
+      {/* 2. Thanh tóm tắt thông tin chuyến giao */}
       <div className={styles.summaryBar}>
         <div className={styles.summaryCol}>
           <span className={styles.summaryLabel}>Nhà cung cấp</span>
@@ -170,7 +219,158 @@ export default function DeliveryDetailView({
         )}
       </div>
 
-      {/* 3. Bảng Danh sách Nguyên liệu & Lô hàng (Thuần chữ, phẳng, rõ ràng) */}
+      {/* ========================================================
+          3. BIÊN BẢN ĐÁNH GIÁ KIỂM THỰC GIAO NHẬN (4 BÊN)
+          ======================================================== */}
+      <div className={styles.contentSection}>
+        <div className={styles.sectionHeadingWrap}>
+          <div className={styles.sectionHeading}>
+            <div className={styles.titleIconBadge}>
+              <ShieldCheck size={17} />
+            </div>
+            <div>
+              <h2 className={styles.sectionTitle}>
+                Biên bản kiểm thực & Phê duyệt tiếp nhận (4 Bên)
+              </h2>
+              <p className={styles.sectionSubDesc}>
+                Quy trình kiểm thực độc lập 4 vai trò (Cán bộ Y tế, Bếp trưởng, Ban Phụ huynh, Quản lý Kho) theo quy chuẩn ATTP học đường.
+              </p>
+            </div>
+          </div>
+
+          {!healthApproval && (
+            <button
+              type="button"
+              className={styles.quickInspectBtn}
+              onClick={() => onOpenApprovalModal(delivery, null)}
+            >
+              <CheckSquare size={14} />
+              <span>Đánh giá ngay</span>
+            </button>
+          )}
+        </div>
+
+        {/* Banner tóm tắt tiến trình 4 bên */}
+        {hasRejection ? (
+          <div className={styles.bannerRejected}>
+            <AlertTriangle size={18} className={styles.bannerIcon} />
+            <div className={styles.bannerText}>
+              <strong>Đợt giao hàng có quyết định TỪ CHỐI tiếp nhận!</strong> Nguyên liệu không đạt chuẩn kiểm thực và bị từ chối nhập vào bếp ăn học đường.
+            </div>
+          </div>
+        ) : isFullyApproved ? (
+          <div className={styles.bannerApproved}>
+            <CheckCircle2 size={18} className={styles.bannerIcon} />
+            <div className={styles.bannerText}>
+              <strong>Đã hoàn tất kiểm thực 4/4 bên!</strong> Đợt giao hàng đủ điều kiện an toàn thực phẩm và đã được tiếp nhận nhập kho phục vụ sơ chế.
+            </div>
+          </div>
+        ) : (
+          <div className={styles.bannerPending}>
+            <Clock size={18} className={styles.bannerIcon} />
+            <div className={styles.bannerText}>
+              <strong>Đang trong tiến trình kiểm thực:</strong> Đã có <strong>{approvalsList.length}/4</strong> bên ghi nhận đánh giá. Chờ các bên còn lại hoàn tất biên bản giao nhận.
+            </div>
+          </div>
+        )}
+
+        {/* Lưới 4 Card cho 4 vai trò */}
+        <div className={styles.approvalsGrid}>
+          {REQUIRED_INSPECTION_ROLES.map((roleDef) => {
+            const approval = approvalsList.find((a) => a.roleCode === roleDef.roleCode)
+            const isHealthOfficer = roleDef.roleCode === "SCHOOL_HEALTH_OFFICER"
+            const decisionCfg = approval
+              ? APPROVAL_DECISION_CONFIG[approval.decision]
+              : APPROVAL_DECISION_CONFIG.PENDING
+
+            return (
+              <div
+                key={roleDef.roleCode}
+                className={`${styles.approvalCard} ${
+                  approval?.decision === "REJECT"
+                    ? styles.cardRejected
+                    : approval?.decision === "APPROVE"
+                    ? styles.cardApproved
+                    : styles.cardPending
+                } ${isHealthOfficer ? styles.cardHighlightCurrent : ""}`}
+              >
+                {/* Header vai trò */}
+                <div className={styles.cardHeaderRow}>
+                  <div className={styles.roleTitleGroup}>
+                    <span className={styles.roleName}>{roleDef.roleName}</span>
+                    <span className={styles.roleShortTitle}>({roleDef.shortTitle})</span>
+                  </div>
+
+                  <span
+                    className={styles.decisionBadge}
+                    style={{
+                      backgroundColor: decisionCfg.bg,
+                      color: decisionCfg.color,
+                      borderColor: decisionCfg.border,
+                    }}
+                  >
+                    {approval?.decision === "APPROVE" && <CheckCircle2 size={12} />}
+                    {approval?.decision === "REJECT" && <XCircle size={12} />}
+                    {!approval && <Clock size={12} />}
+                    <span>{decisionCfg.badgeLabel}</span>
+                  </span>
+                </div>
+
+                <div className={styles.roleDutyText}>{roleDef.desc}</div>
+
+                {/* Nội dung kết quả đánh giá */}
+                {approval ? (
+                  <div className={styles.approvalResultBlock}>
+                    <div className={styles.reviewerMetaRow}>
+                      <span className={styles.reviewerName}>
+                        {approval.userName || "Đại diện ký duyệt"}
+                      </span>
+                      <span className={styles.decidedTime}>
+                        {formatDateTime(approval.decidedAt)}
+                      </span>
+                    </div>
+
+                    {approval.reason ? (
+                      <div
+                        className={
+                          approval.decision === "REJECT"
+                            ? styles.rejectReasonCallout
+                            : styles.approveReasonCallout
+                        }
+                      >
+                        <span className={styles.reasonLabel}>
+                          {approval.decision === "REJECT" ? "Lý do từ chối:" : "Ghi chú:"}
+                        </span>
+                        <p className={styles.reasonContent}>{approval.reason}</p>
+                      </div>
+                    ) : (
+                      <div className={styles.noReasonNote}>
+                        (Đã xác nhận đạt chuẩn, không có ghi chú thêm)
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles.pendingActionBlock}>
+                    <span className={styles.waitingText}>Chưa thực hiện đánh giá</span>
+                    {isHealthOfficer && (
+                      <button
+                        type="button"
+                        className={styles.cardActionBtn}
+                        onClick={() => onOpenApprovalModal(delivery, null)}
+                      >
+                        <ShieldCheck size={14} />
+                        <span>Duyệt / Từ chối ngay</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* 4. Bảng Danh sách Nguyên liệu & Lô hàng */}
       <div className={styles.contentSection}>
         <div className={styles.sectionHeading}>
           <h2 className={styles.sectionTitle}>
@@ -279,11 +479,11 @@ export default function DeliveryDetailView({
         </div>
       </div>
 
-      {/* 4. Phản hồi chất lượng nguyên liệu (Tối giản) */}
+      {/* 5. Phản hồi chất lượng nguyên liệu */}
       <div className={styles.contentSection}>
         <div className={styles.sectionHeading}>
           <h2 className={styles.sectionTitle}>
-            Phản hồi chất lượng
+            Phản hồi chất lượng nguyên liệu gửi Supplier
           </h2>
           <span className={styles.countText}>
             {deliveryFeedbacks.length} phản hồi
@@ -387,5 +587,6 @@ DeliveryDetailView.propTypes = {
   feedbacks: PropTypes.array.isRequired,
   onBack: PropTypes.func.isRequired,
   onOpenSubmitFeedback: PropTypes.func.isRequired,
+  onOpenApprovalModal: PropTypes.func.isRequired,
   onSelectFeedback: PropTypes.func.isRequired,
 }
