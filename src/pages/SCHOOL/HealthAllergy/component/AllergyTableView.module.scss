@@ -34,6 +34,14 @@
   gap: 5px;
 }
 
+.thContentCenter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
 .thClass {
   min-width: 120px;
 }
@@ -46,8 +54,23 @@
   min-width: 260px;
 }
 
+/* Header và Cột Học sinh ảnh hưởng căn giữa */
 .thCount {
-  min-width: 160px;
+  min-width: 170px;
+  text-align: center;
+}
+
+.tdCount {
+  text-align: center;
+}
+
+.countText {
+  display: inline-block;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a8066;
+  text-align: center;
 }
 
 .thAction {
@@ -75,7 +98,7 @@
   vertical-align: middle;
 }
 
-/* Cột Lớp: Thuần chữ */
+/* Cột Lớp */
 .className {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 14px;
@@ -83,27 +106,19 @@
   color: #0f172a;
 }
 
-/* Cột Năm học: Thuần chữ, không nền, không viền bo */
+/* Cột Năm học */
 .yearText {
   color: #475569;
   font-size: 13.5px;
   font-weight: 400;
 }
 
-/* Cột Nguyên liệu: Thuần chữ, không nền, không viền bo */
+/* Cột Nguyên liệu */
 .ingredientText {
   color: #0f172a;
   font-size: 13.5px;
   font-weight: 500;
   line-height: 1.4;
-}
-
-/* Cột Học sinh ảnh hưởng: Thuần số, không nền, không viền bo */
-.countText {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0a8066;
 }
 
 /* Thao tác (Icon button) */

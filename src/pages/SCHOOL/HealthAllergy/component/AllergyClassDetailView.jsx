@@ -108,7 +108,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
         </div>
       </div>
 
-      {/* 3. Bảng Danh sách nguyên liệu dị ứng (Bỏ viền bo, bỏ nền, bỏ icon ở nguyên liệu dị ứng - chỉ để chữ) */}
+      {/* 3. Bảng Danh sách nguyên liệu dị ứng (Thuần chữ, Học sinh ảnh hưởng căn giữa) */}
       <div className={styles.tableCard}>
         <div className={styles.cardHeader}>
           <h2 className={styles.cardTitle}>Danh sách nguyên liệu dị ứng</h2>
@@ -125,20 +125,19 @@ export default function AllergyClassDetailView({ classData, onBack }) {
           </div>
         ) : (
           <>
-            {/* Desktop / Tablet Table: Thuần chữ, không nền, không viền bo bên trong cells */}
+            {/* Desktop / Tablet Table */}
             <div className={styles.tableResponsive}>
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    {/* Bỏ icon ở Nguyên liệu dị ứng */}
                     <th style={{ width: "45%" }}>
                       <span>Tên nguyên liệu</span>
                     </th>
                     <th style={{ width: "35%" }}>
                       <span>Nhóm nguyên liệu</span>
                     </th>
-                    <th style={{ width: "20%" }}>
-                      <span className={styles.thContent}>
+                    <th className={styles.thCount} style={{ width: "20%" }}>
+                      <span className={styles.thContentCenter}>
                         <Users size={13} />
                         <span>Học sinh ảnh hưởng</span>
                       </span>
@@ -148,18 +147,18 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                 <tbody>
                   {allergies.map((alg) => (
                     <tr key={alg.id}>
-                      {/* Tên nguyên liệu: Thuần chữ, không icon, không nền bo */}
+                      {/* Tên nguyên liệu */}
                       <td>
                         <span className={styles.ingredientName}>{alg.ingredientName}</span>
                       </td>
 
-                      {/* Nhóm nguyên liệu: Thuần chữ, không icon, không nền bo */}
+                      {/* Nhóm nguyên liệu */}
                       <td>
                         <span className={styles.categoryText}>{alg.category}</span>
                       </td>
 
-                      {/* Học sinh ảnh hưởng: Thuần số, không nền, không viền */}
-                      <td>
+                      {/* Học sinh ảnh hưởng (Căn giữa ra giữa) */}
+                      <td className={styles.tdCount}>
                         <span className={styles.countText}>{alg.affectedCount}</span>
                       </td>
                     </tr>
@@ -168,7 +167,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
               </table>
             </div>
 
-            {/* Mobile View: Thuần chữ, gọn gàng */}
+            {/* Mobile View */}
             <div className={styles.mobileList}>
               {allergies.map((alg) => (
                 <div key={alg.id} className={styles.mobileItem}>

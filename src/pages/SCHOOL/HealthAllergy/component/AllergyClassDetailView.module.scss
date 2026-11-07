@@ -223,7 +223,7 @@
 }
 
 /* ========================================================
-   3. TABLE CARD & CONTENT (Thuần chữ, bỏ hết viền bo và nền bên trong cells)
+   3. TABLE CARD & CONTENT (Căn giữa Học sinh ảnh hưởng)
    ======================================================== */
 .tableCard {
   background-color: #ffffff;
@@ -328,13 +328,33 @@
   }
 }
 
-.thContent {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.thCount {
+  text-align: center;
 }
 
-/* Tên nguyên liệu: Thuần chữ, không nền, không viền bo */
+.thContentCenter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+/* Cột Học sinh ảnh hưởng căn giữa */
+.tdCount {
+  text-align: center;
+}
+
+.countText {
+  display: inline-block;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a8066;
+  text-align: center;
+}
+
+/* Tên nguyên liệu */
 .ingredientName {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 14px;
@@ -342,19 +362,11 @@
   color: #0f172a;
 }
 
-/* Nhóm nguyên liệu: Thuần chữ, không nền, không viền bo */
+/* Nhóm nguyên liệu */
 .categoryText {
   font-family: "Inter", sans-serif;
   font-size: 13.5px;
   color: #475569;
-}
-
-/* Học sinh ảnh hưởng: Thuần số, không nền, không viền bo */
-.countText {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0a8066;
 }
 
 /* ========================================================

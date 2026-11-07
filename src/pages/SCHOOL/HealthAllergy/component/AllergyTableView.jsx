@@ -21,12 +21,11 @@ export default function AllergyTableView({ classList, onSelectClass }) {
                 <span>Năm học</span>
               </span>
             </th>
-            {/* Bỏ icon ở Nguyên liệu dị ứng theo yêu cầu */}
             <th className={styles.thIngredients}>
               <span>Nguyên liệu dị ứng</span>
             </th>
             <th className={styles.thCount}>
-              <span className={styles.thContent}>
+              <span className={styles.thContentCenter}>
                 <Users size={13} />
                 <span>Học sinh ảnh hưởng</span>
               </span>
@@ -41,27 +40,26 @@ export default function AllergyTableView({ classList, onSelectClass }) {
               (sum, alg) => sum + (alg.affectedCount || 0),
               0
             )
-            // Chuỗi tên nguyên liệu thuần chữ
             const ingredientNames = allergies.map((a) => a.ingredientName).join(", ")
 
             return (
               <tr key={cls.id} className={styles.tableRow}>
-                {/* Cột 1: Lớp (Thuần chữ) */}
+                {/* Cột 1: Lớp */}
                 <td className={styles.tdClass}>
                   <span className={styles.className}>{cls.className}</span>
                 </td>
 
-                {/* Cột 2: Năm học (Thuần chữ, bỏ nền và viền) */}
+                {/* Cột 2: Năm học */}
                 <td className={styles.tdYear}>
                   <span className={styles.yearText}>{cls.academicYear}</span>
                 </td>
 
-                {/* Cột 3: Nguyên liệu dị ứng (Bỏ icon, bỏ nền, bỏ viền bo - chỉ để chữ) */}
+                {/* Cột 3: Nguyên liệu dị ứng (Thuần chữ) */}
                 <td className={styles.tdIngredients}>
                   <span className={styles.ingredientText}>{ingredientNames}</span>
                 </td>
 
-                {/* Cột 4: Học sinh ảnh hưởng (Thuần số, bỏ nền và viền) */}
+                {/* Cột 4: Học sinh ảnh hưởng (Căn giữa ra giữa theo yêu cầu) */}
                 <td className={styles.tdCount}>
                   <span className={styles.countText}>{totalAffected}</span>
                 </td>
