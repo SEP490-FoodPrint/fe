@@ -20,7 +20,9 @@ const ROUTER = {
   SYSTEM_ORG_APPROVAL: "/system/organization-approval",
   SYSTEM_ORG_APPROVAL_DETAIL: "/system/organization-approval/:requestId",
   SYSTEM_SCHOOL_LIST: "/system/school-list",
+  SYSTEM_SCHOOL_DETAIL: "/system/school-list/:id",
   SYSTEM_SUPPLIER_LIST: "/system/supplier-list",
+  SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
   SYSTEM_CONFIG: "/system/config",
 
