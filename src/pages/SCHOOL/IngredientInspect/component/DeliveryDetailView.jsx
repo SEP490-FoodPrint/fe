@@ -10,6 +10,8 @@ import {
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import LotQRTraceModal from "./LotQRTraceModal"
@@ -141,9 +143,27 @@ export default function DeliveryDetailView({
           </div>
         </div>
 
-        {/* Action Buttons: Đánh giá & Gửi phản hồi */}
+        {/* Action Buttons: Đánh giá kiểm thực (Khi đã đánh giá sẽ khóa vĩnh viễn không cho sửa) */}
         <div className={styles.headerActions}>
-          {isCancelled ? (
+          {healthApproval ? (
+            healthApproval.decision === "APPROVE" ? (
+              <div
+                className={styles.inspectedApprovedBadge}
+                title={`Đã duyệt đạt chuẩn lúc ${formatDateTime(healthApproval.decidedAt)} (Biên bản kiểm thực không thể sửa đổi)`}
+              >
+                <CheckCircle2 size={15} />
+                <span>Y tế đã duyệt tiếp nhận</span>
+              </div>
+            ) : (
+              <div
+                className={styles.inspectedRejectedBadge}
+                title={`Đã từ chối tiếp nhận lúc ${formatDateTime(healthApproval.decidedAt)} (Biên bản kiểm thực không thể sửa đổi)`}
+              >
+                <XCircle size={15} />
+                <span>Y tế đã từ chối tiếp nhận</span>
+              </div>
+            )
+          ) : isCancelled ? (
             <button
               type="button"
               className={styles.approvalDisabledBtn}
@@ -167,21 +187,11 @@ export default function DeliveryDetailView({
               <ShieldCheck size={15} />
               <span>Chờ xe đến trường</span>
             </button>
-          ) : healthApproval ? (
-            <button
-              type="button"
-              className={styles.approvalEditBtn}
-              onClick={() => onOpenApprovalModal(delivery, healthApproval)}
-              title="Cập nhật lại kết quả đánh giá của Cán bộ Y tế"
-            >
-              <ShieldCheck size={15} />
-              <span>Sửa đánh giá Y tế</span>
-            </button>
           ) : (
             <button
               type="button"
               className={styles.approvalPrimaryBtn}
-              onClick={() => onOpenApprovalModal(delivery, null)}
+              onClick={() => onOpenApprovalModal(delivery)}
               title="Đánh giá cảm quan và ra quyết định duyệt hoặc từ chối"
             >
               <ShieldCheck size={16} />

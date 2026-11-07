@@ -14,7 +14,6 @@ import styles from "./DeliveryApprovalModal.module.scss"
 
 export default function DeliveryApprovalModal({
   delivery,
-  currentApproval = null,
   onClose,
   onSubmitApproval,
 }) {
@@ -24,8 +23,8 @@ export default function DeliveryApprovalModal({
     .join(", ")
 
   // State quyết định & lý do
-  const [decision, setDecision] = useState(currentApproval?.decision || "APPROVE")
-  const [reason, setReason] = useState(currentApproval?.reason || "")
+  const [decision, setDecision] = useState("APPROVE")
+  const [reason, setReason] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
 
   // State popup xác nhận bước 2
@@ -255,10 +254,14 @@ export default function DeliveryApprovalModal({
                 ) : (
                   <>
                     Ghi nhận kết quả đánh giá <strong className={styles.successText}>ĐẠT CHUẨN</strong> từ Cán bộ Y tế cho chuyến giao{" "}
-                    <strong>{delivery.deliveryNo}</strong>. Biên bản sẽ được lưu vào lịch sử kiểm thực 4 bên.
+                    <strong>{delivery.deliveryNo}</strong>. Biên bản sẽ được lưu vào lịch sử kiểm thực giao nhận.
                   </>
                 )}
               </p>
+
+              <div className={styles.confirmWarningNote}>
+                Lưu ý: Quyết định kiểm thực sau khi xác nhận sẽ được lưu chính thức và không thể sửa đổi.
+              </div>
 
               <div className={styles.confirmActions}>
                 <button
@@ -288,7 +291,6 @@ export default function DeliveryApprovalModal({
 
 DeliveryApprovalModal.propTypes = {
   delivery: PropTypes.object.isRequired,
-  currentApproval: PropTypes.object,
   onClose: PropTypes.func.isRequired,
   onSubmitApproval: PropTypes.func.isRequired,
 }

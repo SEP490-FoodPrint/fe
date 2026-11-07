@@ -29,7 +29,6 @@ export default function IngredientInspect() {
   // Modal phê duyệt / từ chối kiểm thực giao hàng
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false)
   const [deliveryForApproval, setDeliveryForApproval] = useState(null)
-  const [currentApprovalToEdit, setCurrentApprovalToEdit] = useState(null)
 
   // Toast thông báo thành công
   const [successToast, setSuccessToast] = useState("")
@@ -88,9 +87,8 @@ export default function IngredientInspect() {
   }
 
   // Mở modal kiểm thực / phê duyệt giao nhận (Duyệt vs Từ chối)
-  const handleOpenApprovalModal = (delivery, currentApproval = null) => {
+  const handleOpenApprovalModal = (delivery) => {
     setDeliveryForApproval(delivery)
-    setCurrentApprovalToEdit(currentApproval)
     setIsApprovalModalOpen(true)
   }
 
@@ -99,8 +97,8 @@ export default function IngredientInspect() {
     if (!deliveryForApproval) return
 
     const now = new Date().toISOString()
-    const updatedApproval = {
-      id: currentApprovalToEdit?.id || `appr-${Date.now()}`,
+    const newApproval = {
+      id: `appr-${Date.now()}`,
       roleCode: "SCHOOL_HEALTH_OFFICER",
       roleName: "Cán bộ Y tế",
       userName: "BS. Nguyễn Thu Trang",
@@ -114,10 +112,7 @@ export default function IngredientInspect() {
         if (d.id !== deliveryForApproval.id) return d
 
         const existingApprovals = d.deliveryApprovals || []
-        const filteredApprovals = existingApprovals.filter(
-          (a) => a.roleCode !== "SCHOOL_HEALTH_OFFICER"
-        )
-        const newApprovals = [...filteredApprovals, updatedApproval]
+        const newApprovals = [...existingApprovals, newApproval]
 
         let newStatus = d.status
         if (decision === "REJECT") {
@@ -149,7 +144,6 @@ export default function IngredientInspect() {
 
     setIsApprovalModalOpen(false)
     setDeliveryForApproval(null)
-    setCurrentApprovalToEdit(null)
 
     // Hiển thị toast thông báo
     if (decision === "APPROVE") {
@@ -243,11 +237,9 @@ export default function IngredientInspect() {
       {isApprovalModalOpen && deliveryForApproval && (
         <DeliveryApprovalModal
           delivery={deliveryForApproval}
-          currentApproval={currentApprovalToEdit}
           onClose={() => {
             setIsApprovalModalOpen(false)
             setDeliveryForApproval(null)
-            setCurrentApprovalToEdit(null)
           }}
           onSubmitApproval={handleSubmitApproval}
         />
