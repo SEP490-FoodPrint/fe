@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
 import { Alert, Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Skeleton, TextField } from "@mui/material"
 import notice from "src/components/Notice"
 import AcademicYearService from "src/services/AcademicYearService"
@@ -79,9 +78,7 @@ function AcademicYearConfiguration() {
   }
 
   return <div className="academic-year-page">
-    <header className="academic-year-page__header"><nav aria-label="Đường dẫn trang"><span>Ban Giám hiệu</span><span>/</span><strong>Thiết lập niên khóa</strong></nav>
-      <div className="academic-year-page__title-row"><div><h1>Thiết lập niên khóa</h1><p>Quản lý thời gian năm học và các ngày nghỉ chung của nhà trường. Lịch được áp dụng ở cấp trường và lưu riêng cho từng niên khóa.</p></div><span className="academic-year-page__title-icon" aria-hidden="true"><CalendarMonthOutlinedIcon /></span></div>
-    </header>
+    <nav className="academic-year-page__breadcrumb" aria-label="Đường dẫn trang"><span>Ban Giám hiệu</span><span>/</span><strong>Thiết lập niên khóa</strong></nav>
     {error && <Alert severity="error" action={<Button color="inherit" onClick={() => loadList(selectedId)}>Thử lại</Button>}>{error}</Alert>}
     <main className="academic-year-page__workspace">
       <AcademicYearList years={years} selectedId={selectedId} loading={loadingList} onCreate={() => requestAction(startCreate)} onSelect={id => requestAction(() => loadDetail(id))} />
