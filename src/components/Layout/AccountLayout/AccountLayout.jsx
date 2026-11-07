@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react"
-import { Avatar, Drawer, IconButton, useMediaQuery } from "@mui/material"
+import { Drawer, IconButton, useMediaQuery } from "@mui/material"
+import UserAvatar from "src/components/Common/UserAvatar"
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
 import CloseOutlinedIcon from "@mui/icons-material/CloseOutlined"
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined"
@@ -26,7 +27,7 @@ export default function AccountLayout() {
   const pageTitle = location.pathname === ROUTER.CHANGE_PASSWORD ? "Đổi mật khẩu" : registrationActive ? "Hồ sơ đăng ký" : "Profile"
   const navigation = <>
     <div className={styles.identity}>
-      <Avatar src={user.avatarUrl || user.avatar || undefined} alt="" className={styles.avatar}>{name.trim().split(/\s+/).slice(-2).map(word => word[0]).join("").toUpperCase()}</Avatar>
+      <UserAvatar user={user} className={styles.avatar} />
       <div><strong>{name}</strong><span>{user.email || user.username}</span></div>
     </div>
     <nav id="account-navigation" aria-label="Quản lý tài khoản" className={styles.navigation}>

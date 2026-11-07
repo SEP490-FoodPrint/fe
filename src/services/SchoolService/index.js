@@ -1,15 +1,13 @@
 import http from "../01_axios";
 import {
-  MOCK_DAILY_MEAL_MENUS,
-  MOCK_WEEKLY_MENUS,
-} from "./mockData";
-import {
   apiGetPublicSchools,
   apiGetPublicLocations,
   apiGetSchoolDetail,
   apiGetSchoolDetailByCode,
   apiGetDailyMealMenu,
   apiGetWeeklyMenu,
+  apiCookingMode,
+  apiMealTimes,
 } from "./urls";
 
 /**
@@ -50,6 +48,7 @@ const getSchoolDetailByIdApi = async (id) => {
 
 /**
  * 3. Thực đơn ngày của trường học
+ * Trả về dữ liệu thực tế từ API, trả về null nếu trường chưa có thực đơn hoặc lỗi.
  */
 const getDailyMealMenuApi = async (schoolCode, date) => {
   try {
@@ -57,18 +56,15 @@ const getDailyMealMenuApi = async (schoolCode, date) => {
       skipAuthRedirect: true,
       notifyOnError: false,
     });
-    if (res?.data) return res;
+    return res;
   } catch (err) {
-    // Endpoint backend chưa sẵn sàng, fallback mock an toàn để không chặn hiển thị trang
+    return { data: null };
   }
-  const upperCode = (schoolCode || "SCH_ANH_DUONG").toUpperCase();
-  return {
-    data: MOCK_DAILY_MEAL_MENUS[upperCode] || MOCK_DAILY_MEAL_MENUS.SCH_ANH_DUONG,
-  };
 };
 
 /**
  * 4. Thực đơn tuần của trường học
+ * Trả về dữ liệu thực tế từ API, trả về null nếu trường chưa có thực đơn hoặc lỗi.
  */
 const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
   try {
@@ -76,18 +72,10 @@ const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
       skipAuthRedirect: true,
       notifyOnError: false,
     });
-    if (res?.data) return res;
+    return res;
   } catch (err) {
-    // Endpoint backend chưa sẵn sàng, fallback mock an toàn để không chặn hiển thị trang
+    return { data: null };
   }
-  const upperCode = (schoolCode || "SCH_ANH_DUONG").toUpperCase();
-  const baseWeekly = MOCK_WEEKLY_MENUS[upperCode] || MOCK_WEEKLY_MENUS.SCH_ANH_DUONG;
-  return {
-    data: {
-      ...baseWeekly,
-      selected_grade: grade || "GRADE_1_2",
-    },
-  };
 };
 
 /**
@@ -98,6 +86,11 @@ const getPublicLocationsApi = async () => {
   return res;
 };
 
+const getCookingMode = () => http.get(apiCookingMode);
+const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMode });
+const getMealTimes = () => http.get(apiMealTimes, { notifyOnError: false });
+const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnError: false });
+
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getPublicLocations: getPublicLocationsApi,
@@ -105,6 +98,10 @@ const SchoolService = {
   getSchoolDetailById: getSchoolDetailByIdApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
+  getCookingMode,
+  updateCookingMode,
+  getMealTimes,
+  updateMealTimes,
 };
 
 export default SchoolService;

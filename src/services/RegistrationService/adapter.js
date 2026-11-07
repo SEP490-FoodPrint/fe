@@ -1,6 +1,18 @@
 // The API uses camelCase; these adapters keep the page's view model stable.
 const object = value => value && typeof value === "object" && !Array.isArray(value) ? value : {}
 
+export function isRegistrationSearch(value) {
+  const search = value.trim().toUpperCase()
+  if (!search) return true
+  if (!/^FP-REG-(?:[0-9]{5}|[1-9][0-9]{5,18})$/.test(search)) return false
+  const number = BigInt(search.slice(7))
+  return number > 0n && number <= 9223372036854775807n
+}
+
+export function isInvalidRegistrationCodeSearch(value) {
+  return /^FP-REG-/i.test(value.trim()) && !isRegistrationSearch(value)
+}
+
 export function registrationQuery({ search = "", type, status, from, to, page = 1, pageSize = 5 } = {}) {
   return Object.fromEntries(Object.entries({
     page, limit: pageSize, search: search.trim(), requestType: type, status, fromDate: from, toDate: to,
@@ -29,6 +41,7 @@ export function registrationRequest(value) {
   const reviewer = object(value.reviewedByUser)
   return {
     id: value.id,
+    registrationID: value.registrationID,
     applicant_user_id: value.applicantUserId,
     request_type: value.requestType,
     status: value.status,

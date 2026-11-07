@@ -5,6 +5,7 @@ import DefaultAction from "./components/Layout/DefaultAction/DefaultAction"
 import Providers from "./components/Providers/providers"
 import AppRouter from "./router/AppRouter"
 import GlobalThemeConfig from "./theme/GlobalThemeConfig"
+import CompleteRegistrationDialog from "./components/Auth/CompleteRegistrationDialog"
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <ErrorBoundary>
             <DefaultAction>
               <AppRouter />
+              <CompleteRegistrationDialog />
             </DefaultAction>
           </ErrorBoundary>
         </BrowserRouter>

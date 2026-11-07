@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react"
-import { Alert, Avatar, Button, Card, CircularProgress } from "@mui/material"
+import { Alert, Button, Card, CircularProgress } from "@mui/material"
+import UserAvatar from "src/components/Common/UserAvatar"
 import { Link } from "react-router-dom"
 import ArrowBackOutlinedIcon from "@mui/icons-material/ArrowBackOutlined"
 import AuthField from "src/components/Auth/AuthField"
@@ -56,9 +57,10 @@ export default function ProfileForm({ user, onUpdated }) {
     finally { locked.current = false; setLoading(false) }
   }
   return <section className={styles.page} aria-labelledby="personal-profile-title">
-    <div className={styles.heading}><div><p>Tài khoản của bạn</p><h1 id="personal-profile-title">Profile</h1><span>Quản lý thông tin cá nhân và liên hệ của bạn.</span></div><Button component={Link} to={ROUTER.DEFAULT} startIcon={<ArrowBackOutlinedIcon />}>Trang chủ</Button></div>
+    <div className={styles.heading}><div><h1 id="personal-profile-title">Profile</h1><span>Quản lý thông tin cá nhân và liên hệ của bạn.</span></div></div>
     <Card component="form" onSubmit={submit} noValidate variant="outlined" className={styles.card} aria-busy={loading}>
-      <div className={styles.identity}><Avatar src={user.avatarUrl || user.avatar || undefined} alt="" className={styles.avatar}>{name.trim().split(/\s+/).slice(-2).map(word => word[0]).join("").toUpperCase()}</Avatar><div><h2>{name}</h2><p>{user.email || user.username}</p></div></div>
+      <div className={styles.identity}><UserAvatar user={user} className={styles.avatar} /><div><h2>{name}</h2><p>{user.email || user.username}</p></div></div>
+      <div className={styles.formBody}>
       <FormErrors errors={errors} message={message} />
       {fetching && <CircularProgress size={24} aria-label="Đang tải profile" />}
       {loadError && <Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{loadError}</Alert>}
@@ -70,6 +72,7 @@ export default function ProfileForm({ user, onUpdated }) {
         <AuthField id="profile-email" label="Email tài khoản" type="email" value={user.email || ""} placeholder="Chưa có thông tin" inputProps={{ readOnly: true }} />
       </div>
       <div className={styles.actions}><Button type="button" variant="outlined" onClick={reset} disabled={loading || fetching || !dirty}>Hủy thay đổi</Button><Button type="submit" variant="contained" disabled={loading || fetching || Boolean(loadError) || !dirty}>{loading ? <CircularProgress color="inherit" size={22} aria-label="Đang lưu profile" /> : "Lưu thay đổi"}</Button></div>
+      </div>
     </Card>
   </section>
 }

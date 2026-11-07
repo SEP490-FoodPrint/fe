@@ -8,7 +8,7 @@ export default function AuthCard({ children, size = "default", centered = false,
 
 export function AuthHeading({ eyebrow, title, description }) {
   return <div className={styles.heading}>
-    <p className={styles.eyebrow}>{eyebrow}</p>
+    {eyebrow && <p className={styles.eyebrow}>{eyebrow}</p>}
     <h1>{title}</h1>
     {description && <p className={styles.description}>{description}</p>}
   </div>

@@ -85,14 +85,6 @@ export default function RegisterForm() {
     <div className={styles.registerWrapper}>
       {/* 1. Main Register Card */}
       <div className={styles.card}>
-        {/* Progress Pill Badge */}
-        <div className={styles.topBadgeWrapper}>
-          <div className={styles.pillBadge}>
-            <span className={styles.pulseDot} />
-            <span>BƯỚC 1/4 · TẠO TÀI KHOẢN</span>
-          </div>
-        </div>
-
         {/* Header Content */}
         <div className={styles.headingGroup}>
           <h1 className={styles.title}>
@@ -208,7 +200,6 @@ export default function RegisterForm() {
               label="Số điện thoại liên hệ"
               type="tel"
               span="half"
-              hint="Không bắt buộc"
               placeholder="0912 345 678"
               value={values.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
@@ -265,7 +256,7 @@ export default function RegisterForm() {
               </>
             ) : (
               <>
-                <span>Tiếp tục: Xác thực email</span>
+                <span>Tiếp tục</span>
                 <ArrowRight size={18} className={styles.arrowIcon} />
               </>
             )}

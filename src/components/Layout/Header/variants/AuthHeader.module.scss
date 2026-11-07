@@ -64,6 +64,13 @@
   letter-spacing: 0.06em;
 }
 
+.minimal {
+  background: var(--bg-surface);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
+}
+
 .navGroup {
   display: flex;
   align-items: center;

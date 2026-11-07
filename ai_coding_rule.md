@@ -26,14 +26,85 @@
 
 ---
 
-## 2. Nguyên Tắc Sử Dụng Màu Sắc, Font Chữ & Kích Thước (Design Tokens First)
+## 2. Global Design System — Strict Enforcement
 
-Mọi style trong dự án bắt buộc phải kế thừa từ hệ thống Design Tokens toàn cục đã được khai báo tại [src/assets/css/globals.css](file:///src/assets/css/globals.css).
+### 2.1. Single Source of Truth
 
-### Quy tắc ưu tiên 3 cấp độ (3-Tier Priority):
-1. **Ưu tiên 1 (Bắt buộc số 1):** Luôn tìm và sử dụng các biến CSS có sẵn trong `globals.css` (`var(--tên-biến)`).
-2. **Ưu tiên 2 (Tìm giá trị tương đương):** Nếu trên mockup/yêu cầu có màu sắc, cỡ chữ hoặc khoảng cách hơi lệch nhẹ so với biến sẵn có, **AI PHẢI tìm biến tương đương/gần nhất trong `globals.css`** để quy về chuẩn chung của Design System FoodPrint, không tự ý viết mã hex hoặc pixel tự do.
-3. **Ưu tiên 3 (Khai báo biến mới):** Chỉ khi màu sắc/kích thước đó hoàn toàn không có giá trị tương đương trong `globals.css` và mang tính chất đặc thù của nghiệp vụ mới, AI mới được phép khai báo thêm biến (phải đặt tên có nghĩa theo chuẩn Semantic Token, tuyệt đối không hardcode giá trị thô vào component).
+`src/assets/css/globals.css` là nguồn chuẩn duy nhất (Single Source of Truth) cho toàn bộ Design Tokens của dự án FoodPrint FE.
+
+**BẮT BUỘC:**
+
+1. Trước khi code hoặc chỉnh sửa UI, AI phải đọc `globals.css` thực tế trong source code.
+2. Không tự suy đoán hoặc định nghĩa lại các token đã tồn tại.
+3. Mọi màu sắc, font family, font size, font weight, line-height, spacing, border-radius và shadow phải ưu tiên sử dụng token được định nghĩa trong `globals.css`.
+4. Không được tạo Design System riêng cho từng Page hoặc Component.
+5. Không được tự ý sửa `globals.css` hoặc MUI Theme khi chỉ được yêu cầu triển khai một màn hình.
+
+### 2.2. Stitch AI Design Adaptation
+
+Khi nhận thiết kế từ Stitch AI (ảnh, HTML, CSS hoặc mockup), AI phải phân biệt:
+
+**Được kế thừa từ Stitch AI:**
+- Cấu trúc và bố cục màn hình.
+- Phân cấp và thứ tự thông tin.
+- Vị trí các thành phần UI.
+- Cách tổ chức Card, Table, Form, Modal.
+- Hành vi tương tác và responsive layout.
+
+**Bắt buộc chuẩn hóa theo FoodPrint Design System:**
+- Color palette.
+- Font family, font size, font weight và line-height.
+- Spacing scale.
+- Border-radius.
+- Shadow và border styles.
+- Các thuộc tính giao diện đã được chuẩn hóa bởi MUI Theme.
+
+Không được sao chép nguyên trạng CSS từ Stitch AI nếu xung đột với Design System hiện tại.
+
+### 2.3. Token Usage Priority
+
+**Priority 1 — Existing Tokens**
+
+Luôn tìm và sử dụng token phù hợp trong `globals.css`.
+
+**Priority 2 — Semantic Mapping**
+
+Nếu thiết kế Stitch sử dụng một giá trị không khớp chính xác với token hiện tại, phải chọn token có vai trò ngữ nghĩa tương đương, đồng thời giữ bố cục và phân cấp thị giác hợp lý.
+
+Không được tùy tiện làm tròn kích thước gây phá vỡ layout.
+
+**Priority 3 — Exception Handling**
+
+Nếu không có token phù hợp:
+
+- Không được tự ý tạo global token mới.
+- Được sử dụng giá trị cục bộ cho các kích thước kỹ thuật đặc thù như `width`, `min-height`, grid tracks hoặc kích thước phụ thuộc layout khi thật sự cần thiết.
+- Các giá trị mới liên quan đến màu sắc, typography và visual style phải được báo cáo để người phát triển quyết định.
+- Chỉ cập nhật `globals.css` khi có yêu cầu hoặc được phê duyệt rõ ràng.
+
+### 2.4. MUI Theme Consistency
+
+Mọi MUI Component phải tuân thủ MUI Theme hiện tại của dự án.
+
+- Ưu tiên sử dụng `variant`, `color`, `size` theo MUI Theme.
+- Không ghi đè font, màu sắc hoặc kích thước bằng `sx` tùy tiện.
+- Nếu MUI Theme xung đột với `globals.css`, phải báo cáo xung đột thay vì tự ý sửa.
+- Không sử dụng `!important` như giải pháp mặc định để ghi đè MUI.
+- Chỉ sử dụng SCSS Modules để styling riêng khi các API hoặc theme hiện có không đáp ứng.
+
+### 2.5. Mandatory Self-Validation
+
+Trước khi bàn giao màn hình, AI phải kiểm tra:
+
+- [ ] Đã đọc `globals.css` thực tế.
+- [ ] Font family thống nhất với toàn hệ thống.
+- [ ] Typography tuân thủ token và MUI Theme.
+- [ ] Không có màu HEX/RGB hardcode trái quy định.
+- [ ] Không tạo token hoặc hệ thống styling trùng lặp.
+- [ ] Không sao chép CSS Stitch AI một cách máy móc.
+- [ ] Không thay đổi Header, Sidebar hoặc global styles ngoài phạm vi.
+- [ ] Các component tương tự có phong cách hiển thị nhất quán.
+- [ ] Responsive không bị phá vỡ sau khi chuẩn hóa token.
 
 ---
 

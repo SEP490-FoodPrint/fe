@@ -10,7 +10,7 @@ function SchoolCard({ school }) {
       <div>
         <div className={styles.topRow}>
           <div className={`${styles.avatarBox} ${styles.avatarEmerald}`}>
-            {school.short_name || school.code?.slice(0, 2) || "TH"}
+            {school.shortName || school.code?.slice(0, 2) || "TH"}
           </div>
 
           <div className={styles.statusPill}>
@@ -49,10 +49,10 @@ SchoolCard.propTypes = {
     id: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     code: PropTypes.string,
-    short_name: PropTypes.string,
+    shortName: PropTypes.string,
     address: PropTypes.string,
     status: PropTypes.string,
-    badge_color: PropTypes.string,
+    badgeColor: PropTypes.string,
   }).isRequired,
 }
 

@@ -84,3 +84,34 @@
   margin: 0;
   font-size: 11px;
 }
+
+/* The authentication flow shares one quiet surface; other auth pages keep their existing layout. */
+.redesigned {
+  background: var(--bg-page);
+
+  .haloTop, .haloBottom { display: none; }
+
+  .authContent {
+    padding-top: calc(64px + var(--space-10));
+    padding-bottom: var(--space-10);
+  }
+
+  .authContent :global(.MuiCard-root) {
+    border-radius: var(--radius-xl);
+    box-shadow: none;
+    padding: var(--space-8);
+    gap: var(--space-5);
+
+    h1 { order: -1; font-size: var(--text-2xl); line-height: var(--leading-tight); }
+    h1 + p { order: 0; }
+    p:first-child { order: 1; }
+  }
+
+  .authContent label { font-size: var(--text-sm); }
+  .authContent input::placeholder { color: var(--text-secondary); opacity: 1; }
+
+  @media (max-width: 600px) {
+    .authContent { padding: calc(64px + var(--space-6)) var(--space-4) var(--space-8); justify-content: flex-start; }
+    .authContent :global(.MuiCard-root) { padding: var(--space-6); }
+  }
+}

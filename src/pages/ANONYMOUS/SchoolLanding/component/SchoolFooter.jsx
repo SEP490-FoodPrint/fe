@@ -3,16 +3,18 @@ import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
 import {
   ArrowRight,
-  CheckCircle2,
   Mail,
   MapPin,
   Phone,
   Sun,
 } from "lucide-react"
+import { NO_DATA_TEXT } from "src/constants/ui"
 import ROUTER from "src/router/ROUTER"
 import styles from "./SchoolFooter.module.scss"
 
 function SchoolFooter({ school }) {
+  const schoolAddress = school?.address || NO_DATA_TEXT
+
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
@@ -24,7 +26,7 @@ function SchoolFooter({ school }) {
                 <Sun size={20} />
               </div>
               <span className={styles.brandName}>
-                {school?.name || "Trường Tiểu học Ánh Dương"}
+                {school?.name || NO_DATA_TEXT}
               </span>
             </div>
 
@@ -36,20 +38,15 @@ function SchoolFooter({ school }) {
             <div className={styles.contactList}>
               <div className={styles.contactItem}>
                 <MapPin size={16} className={styles.icon} />
-                <span>
-                  {school?.address ||
-                    school?.addressLine ||
-                    school?.address_line ||
-                    "Hà Nội"}
-                </span>
+                <span>{schoolAddress}</span>
               </div>
               <div className={styles.contactItem}>
                 <Phone size={16} className={styles.icon} />
-                <span>{school?.hotline || school?.phone || "(024) 3756 8989"}</span>
+                <span>{school?.phone || school?.hotline || NO_DATA_TEXT}</span>
               </div>
               <div className={styles.contactItem}>
                 <Mail size={16} className={styles.icon} />
-                <span>{school?.email || "contact@foodprint.edu.vn"}</span>
+                <span>{school?.email || NO_DATA_TEXT}</span>
               </div>
             </div>
           </div>
@@ -70,11 +67,6 @@ function SchoolFooter({ school }) {
               </li>
               <li>
                 <a href="#thuc-don-ngay" className={styles.link}>
-                  Tháp dinh dưỡng & Calo
-                </a>
-              </li>
-              <li>
-                <a href="#gop-y" className={styles.link}>
                   Ý kiến phụ huynh & Học sinh
                 </a>
               </li>
@@ -127,7 +119,7 @@ function SchoolFooter({ school }) {
         {/* Bottom Bar */}
         <div className={styles.bottomBar}>
           <p className={styles.copyrightText}>
-            © 2026 {school?.name || "Trường Tiểu học"}. Đồng hành cùng Nền tảng
+            © 2026 {school?.name || NO_DATA_TEXT}. Đồng hành cùng Nền tảng
             Quản lý bữa ăn học đường FoodPrint.
           </p>
         </div>

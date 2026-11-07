@@ -9,7 +9,8 @@ import {
   apiAllergyCheck,
   apiIngredientOptions,
   apiPortionGroups,
-} from "./urls";
+  apiGetMenuApprovalDetail
+} from "./urls"
 import {
   adaptWeeklyMenuToCardList,
   adaptBackendMenuDetailToView,
@@ -576,6 +577,25 @@ const MenuService = {
       return { isOk: false, error: err.message };
     }
   },
-};
+
+  /**
+   * Danh sách tuần thực đơn Y tế đã gửi (bỏ bản nháp), mới nhất trước
+   */
+  getApprovalWeeks: async () => {
+    const response = await http.get(apiMenus, { params: { limit: 50 } })
+    const items = response?.data?.items || []
+    return items.filter(week => week.status !== "DRAFT")
+  },
+
+  /**
+   * Hồ sơ duyệt thực đơn tuần cho Ban Giám Hiệu
+   */
+  getApprovalDetail: menuId => http.get(apiGetMenuApprovalDetail(menuId)),
+
+  /**
+   * Quyết định cho cả tuần (body: { decision: "APPROVED" | "REVISION_REQUESTED", feedback? })
+   */
+  reviewMenu: (menuId, body) => http.post(apiReviewMenu(menuId), body)
+}
 
 export default MenuService;

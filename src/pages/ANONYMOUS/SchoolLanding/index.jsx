@@ -18,7 +18,7 @@ function SchoolLanding() {
   const [dailyMeal, setDailyMeal] = useState(null);
   const [weeklyMenu, setWeeklyMenu] = useState(null);
   const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -50,7 +50,7 @@ function SchoolLanding() {
           } else if (schoolResult.status === "rejected") {
             console.error(
               "Lỗi khi tải chi tiết trường học:",
-              schoolResult.reason
+              schoolResult.reason,
             );
           }
 
@@ -91,6 +91,56 @@ function SchoolLanding() {
     };
   }, [activeCode]);
 
+  const handleWeekChange = async (weekValue, groupId) => {
+    try {
+      let targetDateStr;
+      if (typeof weekValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(weekValue)) {
+        targetDateStr = weekValue;
+      } else {
+        const offset = Number(weekValue) || 0;
+        const target = new Date();
+        target.setDate(target.getDate() + offset * 7);
+        targetDateStr = target.toISOString().slice(0, 10);
+      }
+      const res = await SchoolService.getWeeklyMenu(
+        activeCode,
+        targetDateStr,
+        groupId,
+      );
+      const data =
+        res?.data && !res.data.data ? res.data : res?.data?.data || res;
+      setWeeklyMenu(data || null);
+    } catch (err) {
+      console.error("Lỗi khi chuyển đổi tuần:", err);
+    }
+  };
+
+  const handleGroupChange = async (groupId, weekValue) => {
+    try {
+      let targetDateStr;
+      if (typeof weekValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(weekValue)) {
+        targetDateStr = weekValue;
+      } else {
+        const offset = Number(weekValue) || 0;
+        const target = new Date();
+        if (offset !== 0) {
+          target.setDate(target.getDate() + offset * 7);
+        }
+        targetDateStr = target.toISOString().slice(0, 10);
+      }
+      const res = await SchoolService.getWeeklyMenu(
+        activeCode,
+        targetDateStr,
+        groupId,
+      );
+      const data =
+        res?.data && !res.data.data ? res.data : res?.data?.data || res;
+      setWeeklyMenu(data || null);
+    } catch (err) {
+      console.error("Lỗi khi chuyển đổi nhóm bán trú:", err);
+    }
+  };
+
   return (
     <div className="school-landing-wrapper">
       {/* 1. School Header cố định trên cùng */}
@@ -111,7 +161,11 @@ function SchoolLanding() {
         />
 
         {/* Thực đơn bán trú theo tuần */}
-        <WeeklyMenuSection weeklyMenu={weeklyMenu} />
+        <WeeklyMenuSection
+          weeklyMenu={weeklyMenu}
+          onWeekChange={handleWeekChange}
+          onGroupChange={handleGroupChange}
+        />
       </main>
 
       {/* 3. Footer của riêng trường */}

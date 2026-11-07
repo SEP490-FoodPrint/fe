@@ -16,6 +16,7 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
   const user = userStore?.user
   const orgType = type || user?.orgType
   const portalLabel = ORG_LABELS[orgType] || "FoodPrint"
+  const organizationLabel = orgType === "SCHOOL" && user?.orgName ? user.orgName : portalLabel
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)")
   const menuItems = useMemo(() => {
     const items = orgType === "SYSTEM" ? MenuItemSystem()
@@ -24,18 +25,18 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
   }, [orgType, user?.role])
 
   const content = (
-    <aside className={[styles.sidebar, iconOnly && styles.iconOnly, mobile && styles.isMobile].filter(Boolean).join(" ")} aria-label={portalLabel}>
+    <aside className={[styles.sidebar, iconOnly && styles.iconOnly, mobile && styles.isMobile].filter(Boolean).join(" ")} aria-label={organizationLabel}>
       {mobile ? (
         <>
           <div className={styles.drawerHeading}>
             <span>FoodPrint</span>
             <IconButton onClick={onClose} aria-label="Đóng điều hướng" autoFocus><CloseIcon /></IconButton>
           </div>
-          <p className={styles.portalLabel}>{portalLabel}</p>
+          <p className={styles.portalLabel}>{organizationLabel}</p>
         </>
       ) : (
-        <Link to={user ? getDefaultRedirectByUser(user) : getDefaultRedirectByOrg(orgType)} className={styles.brandLink} aria-label={"FoodPrint — " + portalLabel}>
-          <BrandLogo theme="light" variant="dashboard" iconOnly={iconOnly} subtitle={portalLabel} />
+        <Link to={user ? getDefaultRedirectByUser(user) : getDefaultRedirectByOrg(orgType)} className={styles.brandLink} aria-label={"FoodPrint — " + organizationLabel}>
+          <BrandLogo theme="light" variant="dashboard" iconOnly={iconOnly} subtitle={organizationLabel} />
         </Link>
       )}
       <nav className={styles.navList} aria-label="Menu chức năng">
@@ -45,7 +46,17 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
             <NavLink
               key={item.key}
               to={item.key}
-              end={item.end !== undefined ? item.end : (item.key === ROUTER.SCHOOL_KITCHEN_COOKING || item.key === ROUTER.SCHOOL_HEALTH_OVERVIEW || item.key === ROUTER.SCHOOL_OVERVIEW || item.key === ROUTER.SUPPLIER_OVERVIEW)}
+              end={
+                item.end !== undefined
+                  ? item.end
+                  : (
+                      item.key === ROUTER.SCHOOL_KITCHEN_COOKING ||
+                      item.key === ROUTER.SCHOOL_HEALTH_OVERVIEW ||
+                      item.key === ROUTER.SCHOOL_OVERVIEW ||
+                      item.key === ROUTER.SUPPLIER_OVERVIEW ||
+                      item.key === ROUTER.SCHOOL_INGREDIENT_OVERVIEW
+                    )
+              }
               onClick={mobile ? onClose : undefined}
               aria-label={tooltipTitle}
               className={({ isActive }) => [styles.navItem, isActive && styles.isActive].filter(Boolean).join(" ")}
