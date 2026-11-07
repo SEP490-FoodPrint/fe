@@ -1,17 +1,17 @@
-.detailContainer {
+.detailWrapper {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
 }
 
 /* ========================================================
-   1. TOP NAVIGATION & BREADCRUMBS
+   1. TOP HEADER & BREADCRUMB
    ======================================================== */
-.topNavSection {
+.topHeader {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 
   @media (min-width: 768px) {
     flex-direction: row;
@@ -23,25 +23,21 @@
 .breadcrumbAndTitle {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-family: "Inter", sans-serif;
   font-size: 13px;
-  color: #64748b;
 }
 
 .breadcrumbLink {
   background: none;
   border: none;
   padding: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
   color: #64748b;
   font-family: "Inter", sans-serif;
   font-size: 13px;
@@ -51,920 +47,412 @@
 
   &:hover {
     color: #00654f;
+    text-decoration: underline;
   }
 }
 
-.breadcrumbSeparator {
-  color: #bdc9c3;
+.separator {
+  color: #cbd5e1;
 }
 
-.breadcrumbCurrent {
-  color: #131e1a;
+.currentCrumb {
+  color: #0f172a;
   font-weight: 600;
 }
 
-.titleRow {
+.headingRow {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
 }
 
-.pageTitle {
+.title {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 700;
-  color: #131e1a;
-  letter-spacing: -0.015em;
+  color: #0f172a;
   margin: 0;
-  line-height: 1.25;
+  letter-spacing: -0.015em;
 
   @media (max-width: 640px) {
-    font-size: 20px;
+    font-size: 19px;
   }
 }
 
-.classPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
+.classBadge {
+  display: inline-block;
+  padding: 3px 10px;
   border-radius: 9999px;
   background-color: #eaf7f0;
   color: #00654f;
-  font-family: "Inter", sans-serif;
+  font-family: "Be Vietnam Pro", sans-serif;
   font-size: 13px;
   font-weight: 600;
 }
 
-.pulsingDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: #00654f;
-}
-
-.yearPill {
+.yearBadge {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 3px 10px;
   border-radius: 9999px;
-  background-color: #e4f1ea;
-  color: #655d58;
+  background-color: #f1f5f9;
+  color: #475569;
   font-family: "Inter", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 500;
 }
 
-.backButtonTop {
+.backBtn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 9px 16px;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: 8px;
   background-color: #ffffff;
-  color: #131e1a;
+  color: #334155;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   font-family: "Inter", sans-serif;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #eaf7f0;
-    color: #00654f;
-    border-color: #c7eedd;
-  }
-}
-
-/* ========================================================
-   2. BENTO GRID: CLASS PROFILE & AGGREGATE STATS
-   ======================================================== */
-.bentoGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 16px;
-
-  @media (min-width: 900px) {
-    grid-template-columns: 8fr 4fr;
-  }
-}
-
-.profileCard {
-  background-color: #ffffff;
-  border-radius: 14px;
-  padding: 22px 24px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.profileHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.schoolInfoGroup {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.schoolIconWrap {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
-  background-color: #eaf7f0;
-  color: #00654f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.schoolTextGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.classNameBig {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: #131e1a;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.schoolSubName {
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  color: #64748b;
-}
-
-.badgeLookupMode {
-  padding: 4px 12px;
-  border-radius: 9999px;
-  background-color: #eaf7f0;
-  color: #00654f;
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.metaGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding-top: 14px;
-
-  @media (min-width: 600px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.metaBox {
-  display: flex;
-  flex-direction: column;
-  background-color: #f8fafc;
-  border-radius: 10px;
-  padding: 12px 14px;
-  gap: 3px;
-}
-
-.metaLabel {
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6e7a74;
-}
-
-.metaMainVal {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #131e1a;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.verifiedColor {
-  color: #00654f;
-}
-
-.metaSubVal {
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
-  color: #64748b;
-}
-
-.profileFooterNote {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #64748b;
-  padding-top: 8px;
-}
-
-.infoIcon {
-  color: #6e7a74;
-  flex-shrink: 0;
-}
-
-/* Stats Card (4 cols) */
-.statsCard {
-  background: linear-gradient(135deg, #00654f 0%, #0a8066 100%);
-  color: #ffffff;
-  border-radius: 14px;
-  padding: 22px 24px;
-  box-shadow: 0 4px 14px rgba(0, 101, 79, 0.2);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  position: relative;
-  overflow: hidden;
-  min-height: 200px;
-}
-
-.decorCircle1 {
-  position: absolute;
-  right: -32px;
-  bottom: -32px;
-  width: 160px;
-  height: 160px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.06);
-  pointer-events: none;
-}
-
-.decorCircle2 {
-  position: absolute;
-  right: -10px;
-  top: -40px;
-  width: 120px;
-  height: 120px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.06);
-  pointer-events: none;
-}
-
-.statsContent {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.statsHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.statsSubtitle {
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #d9ffef;
-}
-
-.statsIconHeader {
-  color: #d9ffef;
-}
-
-.statsPrompt {
-  font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  color: #d9ffef;
-  margin-top: 6px;
-}
-
-.statsBigValueRow {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 2px;
-}
-
-.statsBigNum {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 38px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-  color: #ffffff;
-}
-
-.statsBigUnit {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: #d9ffef;
-}
-
-.statsBottomBanner {
-  position: relative;
-  z-index: 2;
-  margin-top: 18px;
-  background-color: rgba(0, 0, 0, 0.12);
-  border-radius: 10px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.usersIconWrap {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background-color: rgba(255, 255, 255, 0.16);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ffffff;
-  flex-shrink: 0;
-}
-
-.usersTextGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.usersLabel {
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #d9ffef;
-  font-weight: 600;
-}
-
-.usersVal {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-/* ========================================================
-   3. OPERATIONAL PROTOCOL BANNER
-   ======================================================== */
-.protocolBanner {
-  background-color: #eaf7f0;
-  border-radius: 12px;
-  padding: 14px 18px;
-  border: 1px solid #c7eedd;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  align-self: flex-start;
 
   @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    align-self: center;
+  }
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
   }
 }
 
-.protocolLeft {
+/* ========================================================
+   2. CLASS INFORMATION (Gọn gàng, vừa đủ)
+   ======================================================== */
+.classInfoCard {
+  background-color: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  padding: 14px 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    padding: 14px;
+  }
 }
 
-.protocolIconWrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background-color: #ffffff;
-  color: #00654f;
+.infoCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.iconCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background-color: #f1f5f9;
+  color: #475569;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-.protocolTextGroup {
+.alertIconCircle {
+  background-color: #eaf7f0;
+  color: #00654f;
+}
+
+.infoText {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
-.protocolTitle {
+.infoLabel {
   font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #131e1a;
-}
-
-.protocolDesc {
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  color: #3e4944;
-  margin: 0;
-  line-height: 1.45;
-}
-
-.protocolRight {
-  flex-shrink: 0;
-}
-
-.badgeViewOnly {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  border-radius: 9999px;
-  background-color: #ffffff;
-  color: #00654f;
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: #64748b;
+}
+
+.infoValue {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 14.5px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.alertValue {
+  color: #00654f;
+}
+
+.infoDivider {
+  width: 1px;
+  height: 32px;
+  background-color: #e2e8f0;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
 }
 
 /* ========================================================
-   4. ALLERGY INFORMATION DETAIL CARDS
+   3. ALLERGY INFORMATION (Trực quan, dễ quét mắt)
    ======================================================== */
 .allergySection {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
-.sectionHeadingRow {
+.sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
-.sectionTitleGroup {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.accentBar {
-  width: 6px;
-  height: 22px;
-  border-radius: 9999px;
-  background-color: #00654f;
-  flex-shrink: 0;
-}
-
-.sectionHeading {
+.sectionTitle {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 18px;
-  font-weight: 600;
-  color: #131e1a;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
   margin: 0;
 }
 
-.itemCountText {
+.badgeReadonly {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #475569;
   font-family: "Inter", sans-serif;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
-  color: #64748b;
 }
 
-.ingredientCard {
+.emptyCard {
   background-color: #ffffff;
-  border-radius: 14px;
-  padding: 22px;
+  border-radius: 10px;
+  border: 1px dashed #cbd5e1;
+  padding: 24px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13.5px;
+}
+
+.tableCard {
+  background-color: #ffffff;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
+  overflow: hidden;
 
-.upperCardRow {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
-
-  @media (min-width: 900px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+  @media (max-width: 768px) {
+    display: none;
   }
 }
 
-.ingredientMainInfo {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
+.allergyTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-family: "Inter", sans-serif;
+
+  thead tr {
+    background-color: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  th {
+    padding: 12px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #f1f5f9;
+    transition: background-color 0.15s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: #f8faf9;
+    }
+  }
+
+  td {
+    padding: 16px 18px;
+    font-size: 13.5px;
+    color: #1e293b;
+    vertical-align: middle;
+  }
 }
 
-.ingredientIconWrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  background-color: #ece0da;
-  color: #00654f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.ingredientDetails {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.ingredientTitleWrap {
+.ingredientNameRow {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
 }
 
 .ingredientName {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 19px;
-  font-weight: 700;
-  color: #131e1a;
-  margin: 0;
-}
-
-.codePill {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 9999px;
-  background-color: #eaf7f0;
-  color: #00654f;
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
-  font-weight: 600;
-}
-
-.datePill {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 9999px;
-  background-color: #ece0da;
-  color: #201b17;
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
-  font-weight: 600;
-}
-
-.categoryRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-}
-
-.categoryLabel {
-  color: #6e7a74;
-  font-weight: 600;
-}
-
-.categoryValue {
-  color: #131e1a;
-  font-weight: 500;
-}
-
-/* Affected count highlight box */
-.affectedCountBox {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  background-color: #eaf7f0;
-  border-radius: 12px;
-  padding: 10px 16px;
-  align-self: flex-start;
-
-  @media (min-width: 900px) {
-    align-self: center;
-  }
-}
-
-.countTextWrap {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-  gap: 2px;
-
-  @media (max-width: 640px) {
-    text-align: left;
-  }
-}
-
-.countMainLabel {
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #6e7a74;
-}
-
-.countRatio {
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #3e4944;
-}
-
-.countBadgeSquare {
-  width: 54px;
-  height: 54px;
-  border-radius: 12px;
-  background-color: #00654f;
-  color: #ffffff;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(0, 101, 79, 0.2);
-}
-
-.squareNumber {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.squareUnit {
-  font-family: "Inter", sans-serif;
-  font-size: 10.5px;
-  font-weight: 600;
-  color: #d9ffef;
-  line-height: 1;
-  margin-top: 3px;
-}
-
-/* Attributes Grid (3 cols) */
-.attributesGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-.attrItem {
-  background-color: #f8fafc;
-  border-radius: 10px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.attrLabel {
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6e7a74;
-}
-
-.attrMainVal {
-  font-family: "Inter", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #131e1a;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  line-height: 1.4;
-}
-
-.safeValColor {
-  color: #00654f;
-}
-
-.greenDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #00654f;
-  flex-shrink: 0;
-}
-
-.attrSubVal {
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
-  color: #64748b;
-  line-height: 1.4;
-}
-
-/* Operational Kitchen Note Callout */
-.kitchenCallout {
-  background-color: #e4f1ea;
-  border-radius: 12px;
-  padding: 14px 18px;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.kitchenIconWrap {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #00654f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  margin-top: 2px;
-}
-
-.kitchenContent {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.kitchenTitle {
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: #131e1a;
-}
-
-.kitchenText {
-  font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  color: #131e1a;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* ========================================================
-   5. HISTORICAL & COMPLIANCE SAFETY NOTICE BOX
-   ======================================================== */
-.complianceNoticeBox {
-  background-color: #ffffff;
-  border-radius: 14px;
-  padding: 20px 22px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-
-  @media (min-width: 640px) {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-}
-
-.shieldIconWrap {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background-color: #eaf7f0;
-  color: #00654f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.complianceContent {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex: 1;
-}
-
-.complianceTitle {
-  font-family: "Be Vietnam Pro", sans-serif;
   font-size: 15px;
-  font-weight: 700;
-  color: #131e1a;
-  margin: 0;
+  font-weight: 600;
+  color: #0f172a;
 }
 
-.complianceDesc {
+.codeTag {
   font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  color: #3e4944;
-  margin: 0;
-  line-height: 1.55;
+  font-size: 11px;
+  color: #64748b;
+  background-color: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
 }
 
-.compliancePillsRow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 6px;
-  padding-top: 8px;
-  border-top: 1px dashed #e2e8f0;
-}
-
-.compliancePill {
+.categoryBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background-color: #f8fafc;
+  color: #475569;
+  font-size: 12.5px;
   font-weight: 500;
-  color: #6e7a74;
+  border: 1px solid #e2e8f0;
 }
 
-.complianceSeparator {
-  color: #bdc9c3;
-  font-size: 10px;
+.countWrap {
+  display: flex;
+  align-items: center;
+}
+
+.countBadge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background-color: #eaf7f0;
+  color: #00654f;
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13.5px;
+  font-weight: 700;
+  border: 1px solid #c7eedd;
+}
+
+.dateCell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.clockIcon {
+  color: #94a3b8;
 }
 
 /* ========================================================
-   6. BOTTOM ACTION FOOTER (READ-ONLY)
+   MOBILE ALLERGY CARDS (< 768px)
    ======================================================== */
-.bottomFooter {
-  display: flex;
+.mobileAllergyCards {
+  display: none;
   flex-direction: column;
-  gap: 14px;
-  padding: 12px 0 24px;
-  border-top: 1px solid #e2e8f0;
+  gap: 10px;
 
-  @media (min-width: 768px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+  @media (max-width: 768px) {
+    display: flex;
   }
 }
 
-.lockNotice {
+.mobileCard {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mobileCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.mobileIngredientName {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.mobileMetaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12.5px;
+}
+
+.mobileMetaLabel {
+  color: #64748b;
+}
+
+.mobileMetaVal {
+  color: #0f172a;
+  font-weight: 500;
+}
+
+/* ========================================================
+   4. COMPACT NOTE BOX
+   ======================================================== */
+.compactNoteBox {
   display: flex;
   align-items: center;
   gap: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.noteIcon {
+  color: #00654f;
+  flex-shrink: 0;
+}
+
+.noteText {
   font-family: "Inter", sans-serif;
   font-size: 12.5px;
   color: #64748b;
   line-height: 1.45;
-}
-
-.lockIcon {
-  color: #00654f;
-  flex-shrink: 0;
-}
-
-.backButtonBottom {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 22px;
-  border-radius: 8px;
-  background-color: #e4f1ea;
-  color: #131e1a;
-  border: 1px solid #c7eedd;
-  font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #deebe5;
-    color: #00654f;
-  }
-
-  @media (max-width: 640px) {
-    width: 100%;
-  }
 }

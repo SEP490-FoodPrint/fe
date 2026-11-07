@@ -44,3 +44,4 @@ AllergyEmptyState.propTypes = {
   isSearching: PropTypes.bool,
   onResetFilters: PropTypes.func,
 }
+

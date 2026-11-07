@@ -121,3 +121,4 @@ AllergyTableView.propTypes = {
   ).isRequired,
   onSelectClass: PropTypes.func.isRequired,
 }
+

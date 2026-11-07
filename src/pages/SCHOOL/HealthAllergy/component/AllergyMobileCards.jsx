@@ -81,3 +81,4 @@ AllergyMobileCards.propTypes = {
   ).isRequired,
   onSelectClass: PropTypes.func.isRequired,
 }
+
