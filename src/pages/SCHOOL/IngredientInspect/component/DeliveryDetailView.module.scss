@@ -1,17 +1,52 @@
 .detailWrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 22px;
   width: 100%;
 }
 
-/* Header Bar */
+/* 1. Header Bar tích hợp thông tin meta */
 .headerBar {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   flex-wrap: wrap;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.headerLeft {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.backBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
+  }
+}
+
+.headerTextGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .titleRow {
@@ -30,297 +65,117 @@
   margin: 0;
 }
 
-.deliveryPill {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13px;
+.deliveryCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #334155;
+  color: #0a8066;
+  background-color: #f0fdf4;
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
-.backBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 6px;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #f8fafc;
-    color: #0f172a;
-    border-color: #94a3b8;
-  }
-}
-
-/* Section Card */
-.sectionCard {
-  background-color: #ffffff;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  padding: 18px 20px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.sectionTitleRow {
+.metaRow {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  color: #475569;
 }
 
-.sectionIcon {
-  color: #0a8066;
-  flex-shrink: 0;
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  strong {
+    color: #0f172a;
+    font-weight: 600;
+  }
+}
+
+.metaDot {
+  color: #cbd5e1;
+  font-size: 12px;
+}
+
+.metaNote {
+  color: #64748b;
+  font-style: italic;
+}
+
+.feedbackActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background-color: #00654f;
+  color: #ffffff;
+  border: none;
+  font-family: "Inter", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #00513f;
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* 2. Content Section */
+.contentSection {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .sectionTitle {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   color: #0f172a;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
-.sectionSubTitle {
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #64748b;
-  margin: 2px 0 0;
-}
-
-.badgeCount {
+.countText {
   font-family: "Inter", sans-serif;
   font-size: 12px;
-  font-weight: 600;
-  color: #0a8066;
-  background-color: #eaf7f0;
-  padding: 3px 10px;
-  border-radius: 9999px;
-}
-
-/* Overview Grid */
-.overviewGrid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 12px 18px;
-
-  @media (min-width: 640px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-.infoBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.fullWidthBlock {
-  grid-column: 1 / -1;
-  background-color: #f8fafc;
-  padding: 10px 12px;
-  border-radius: 6px;
-  border: 1px solid #f1f5f9;
-}
-
-.infoLabel {
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
   color: #64748b;
-}
-
-.infoValue {
-  font-family: "Inter", sans-serif;
-  font-size: 13.5px;
-  color: #0f172a;
   font-weight: 500;
 }
 
-.infoValueHighlight {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  color: #0a8066;
-}
-
-.infoValueMono {
-  font-family: ui-monospace, monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-}
-
-.infoSubText {
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
-  color: #64748b;
-}
-
-/* Ingredient list & hierarchical lot views */
-.ingredientsList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.ingredientCard {
-  background-color: #ffffff;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  transition: border-color 0.15s ease;
-
-  &:hover {
-    border-color: #cbd5e1;
-  }
-}
-
-.ingredientSummary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 14px;
-  background-color: #f8fafc;
-  cursor: pointer;
-  gap: 12px;
-  flex-wrap: wrap;
-
-  &:hover {
-    background-color: #f1f5f9;
-  }
-}
-
-.ingredientMain {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.expandToggleBtn {
-  background: none;
-  border: none;
-  padding: 2px;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.nameGroup {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.ingredientName {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.categoryPill {
-  font-family: "Inter", sans-serif;
-  font-size: 11px;
-  color: #475569;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  padding: 1px 7px;
-  border-radius: 9999px;
-}
-
-.qtyGroup {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.qtyBlock {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-}
-
-.qtyLabel {
-  color: #64748b;
-}
-
-.qtyVal {
-  color: #334155;
-}
-
-.qtyValStrong {
-  font-weight: 600;
-  color: #0a8066;
-}
-
-.lotsCounter {
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0369a1;
-  background-color: #e0f2fe;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.ingredientNote {
-  padding: 6px 14px 10px;
-  font-family: "Inter", sans-serif;
-  font-size: 12px;
-  color: #64748b;
-  background-color: #f8fafc;
-  border-top: 1px dashed #e2e8f0;
-
-  span {
-    font-weight: 600;
-    color: #475569;
-  }
-}
-
-/* Lots table */
-.lotsContainer {
-  padding: 12px 14px;
-  background-color: #ffffff;
+/* 3. Bảng dữ liệu phẳng, thuần chữ, tối giản */
+.tableResponsive {
+  width: 100%;
   overflow-x: auto;
 }
 
-.lotsTable {
+.flatTable {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
@@ -336,76 +191,89 @@
     font-weight: 600;
     color: #64748b;
     text-transform: uppercase;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
   }
 
   td {
-    padding: 9px 10px;
-    font-size: 12.5px;
+    padding: 10px;
+    font-size: 13px;
     color: #334155;
     border-bottom: 1px solid #f1f5f9;
+    vertical-align: middle;
   }
 
-  tr:last-child td {
+  tbody tr:last-child td {
     border-bottom: none;
   }
+
+  tbody tr:hover {
+    background-color: #fafbfc;
+  }
 }
 
-.thRight {
-  text-align: right;
+.thIngredient,
+.tdIngredient {
+  min-width: 150px;
 }
 
-.tdRight {
-  text-align: right;
+.ingredientName {
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 13.5px;
+  display: block;
 }
 
-.thCenter {
-  text-align: center;
+.categorySubText {
+  font-size: 11px;
+  color: #64748b;
+  display: block;
+  margin-top: 1px;
 }
 
-.tdCenter {
-  text-align: center;
-}
-
+.thLotCode,
 .tdLotCode {
-  font-family: ui-monospace, monospace;
+  min-width: 140px;
+}
+
+.monoCode {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   font-weight: 600;
   color: #0a8066;
 }
 
-.qrActionBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #166534;
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #dcfce7;
-    border-color: #86efac;
-    color: #14532d;
-    box-shadow: 0 1px 3px rgba(22, 101, 52, 0.1);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
-
+.thFacility,
 .tdFacility {
   color: #475569;
+  font-size: 12.5px;
+  min-width: 160px;
 }
 
-.lotStatusTag {
+.thExpiry,
+.tdExpiry {
+  color: #334155;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.thQuantity,
+.tdQuantity {
+  color: #0f172a;
+  font-size: 13px;
+  white-space: nowrap;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.thStatus,
+.tdStatus {
+  white-space: nowrap;
+}
+
+.statusPill {
   display: inline-block;
   padding: 2px 7px;
   border-radius: 4px;
@@ -413,212 +281,83 @@
   font-weight: 600;
 }
 
-.emptyLotsNotice {
-  padding: 12px;
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #94a3b8;
-  font-style: italic;
+.thAction,
+.tdAction {
   text-align: center;
+  width: 50px;
 }
 
-/* Quality Feedback Section */
-.feedbackSectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.submitFeedbackBtn {
+.qrIconBtn {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 8px 14px;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   border-radius: 6px;
-  background-color: #0a8066;
-  border: 1px solid transparent;
-  color: #ffffff;
-  font-family: "Inter", sans-serif;
-  font-size: 13px;
-  font-weight: 600;
+  border: 1px solid #bbf7d0;
+  background-color: #f0fdf4;
+  color: #166534;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.2);
 
   &:hover {
-    background-color: #00654f;
+    background-color: #dcfce7;
+    color: #14532d;
+    border-color: #86efac;
+    transform: scale(1.06);
   }
 
-  @media (max-width: 640px) {
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-.feedbackListWrap {
-  width: 100%;
-}
-
-.feedbackGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
+  &:active {
+    transform: scale(0.96);
   }
 }
 
-.feedbackCard {
-  background-color: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.feedbackTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.feedbackTitleWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.feedbackTitle {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: #0f172a;
-  margin: 0;
-}
-
-.feedbackLotTarget {
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
-  color: #0369a1;
-  font-weight: 500;
-}
-
-.fbStatusTag {
+.tableActionIconBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  border: 1px solid transparent;
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f8fafc;
+    color: #00654f;
+    border-color: #cbd5e1;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+.feedbackTitleText {
   font-weight: 600;
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.timeText {
+  color: #64748b;
+  font-size: 12px;
   white-space: nowrap;
 }
 
-.fbStatusDot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-
-.feedbackDesc {
+.emptyInlineNotice {
+  padding: 12px 0;
   font-family: "Inter", sans-serif;
   font-size: 13px;
-  color: #475569;
-  line-height: 1.45;
-  margin: 0;
-}
-
-.feedbackFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #e2e8f0;
-  flex-wrap: wrap;
-}
-
-.feedbackTime {
-  font-family: "Inter", sans-serif;
-  font-size: 11.5px;
   color: #94a3b8;
+  font-style: italic;
 }
 
-.viewFeedbackBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background: none;
-  border: none;
-  padding: 0;
-  color: #0a8066;
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  font-weight: 600;
-  cursor: pointer;
-
-  &:hover {
-    color: #00654f;
-    text-decoration: underline;
-  }
+.emptyText {
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 12px;
 }
-
-.emptyFeedbackBox {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  background-color: #f8fafc;
-  border-radius: 6px;
-  border: 1px dashed #cbd5e1;
-}
-
-.emptyFbIconWrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background-color: #eaf7f0;
-  color: #0a8066;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.emptyFbText {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.emptyFbTitle {
-  font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.emptyFbDesc {
-  font-family: "Inter", sans-serif;
-  font-size: 12.5px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
-
-  strong {
-    color: #0a8066;
-    font-weight: 600;
-  }
-}
-

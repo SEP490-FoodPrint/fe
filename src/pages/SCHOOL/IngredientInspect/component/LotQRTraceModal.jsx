@@ -204,3 +204,4 @@ LotQRTraceModal.propTypes = {
   onClose: PropTypes.func.isRequired,
   onFeedbackThisLot: PropTypes.func,
 }
+
