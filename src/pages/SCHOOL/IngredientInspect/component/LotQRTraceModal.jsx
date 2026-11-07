@@ -40,12 +40,7 @@ export default function LotQRTraceModal({
             <div className={styles.qrBadge}>
               <QrCode size={18} />
             </div>
-            <div>
-              <h3 className={styles.title}>Tem nhãn QR & Truy xuất nguồn gốc</h3>
-              <p className={styles.subTitle}>
-                Tem QR in dán trên kiện hàng — Dùng cho Hội đồng 4 bên quét đối chiếu khi giao nhận
-              </p>
-            </div>
+            <h3 className={styles.title}>Tem nhãn QR & Truy xuất nguồn gốc</h3>
           </div>
           <button
             type="button"
