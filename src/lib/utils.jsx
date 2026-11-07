@@ -15,7 +15,10 @@ export const hasPermission = (allowedRoles, userRole) => {
   if (!userRole || typeof userRole !== "string") return false
 
   // Kiểm tra role của user có nằm trong danh sách được phép không
-  return allowedRoles.includes(userRole)
+  // Hỗ trợ đồng thời SCHOOL_NUTRITION_OFFICER và SCHOOL_HEALTH_OFFICER (tương thích ngược)
+  const normUserRole = userRole === "SCHOOL_HEALTH_OFFICER" ? "SCHOOL_NUTRITION_OFFICER" : userRole
+  const normAllowed = allowedRoles.map(r => r === "SCHOOL_HEALTH_OFFICER" ? "SCHOOL_NUTRITION_OFFICER" : r)
+  return normAllowed.includes(normUserRole) || allowedRoles.includes(userRole)
 }
 
 /**
@@ -45,7 +48,12 @@ export const getDefaultRedirectByUser = user => {
   if (user.role === "SCHOOL_KITCHEN_STAFF" || user.role === ROLES?.SCHOOL_KITCHEN_STAFF) {
     return ROUTER.SCHOOL_KITCHEN_COOKING
   }
-  if (user.role === "SCHOOL_HEALTH_OFFICER" || user.role === ROLES?.SCHOOL_HEALTH_OFFICER) {
+  if (
+    user.role === "SCHOOL_NUTRITION_OFFICER" ||
+    user.role === ROLES?.SCHOOL_NUTRITION_OFFICER ||
+    user.role === "SCHOOL_HEALTH_OFFICER" ||
+    user.role === ROLES?.SCHOOL_HEALTH_OFFICER
+  ) {
     return ROUTER.SCHOOL_HEALTH_OVERVIEW
   }
   if (user.role === "HOMEROOM_TEACHER") {

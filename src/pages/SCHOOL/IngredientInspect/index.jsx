@@ -99,9 +99,9 @@ export default function IngredientInspect() {
     const now = new Date().toISOString()
     const newApproval = {
       id: `appr-${Date.now()}`,
-      roleCode: "SCHOOL_HEALTH_OFFICER",
-      roleName: "Cán bộ Y tế",
-      userName: "BS. Nguyễn Thu Trang",
+      roleCode: "SCHOOL_NUTRITION_OFFICER",
+      roleName: "Nhân viên Dinh dưỡng",
+      userName: "Nguyễn Thu Trang (Nhân viên Dinh dưỡng)",
       decision,
       reason,
       decidedAt: now,

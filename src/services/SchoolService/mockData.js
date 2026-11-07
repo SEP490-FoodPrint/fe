@@ -324,11 +324,11 @@ export const MOCK_ACCOUNTS = [
   {
     userId: "fp_demo_health",
     username: "fp_demo_health",
-    fullName: "Nhân viên y tế Demo",
+    fullName: "Nhân viên dinh dưỡng Demo",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
     orgName: "Trường Tiểu học FoodPrint (DEMO)",
-    role: ROLES.SCHOOL_HEALTH_OFFICER,
+    role: ROLES.SCHOOL_NUTRITION_OFFICER,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=HealthOfficer",
   },
   {

@@ -133,36 +133,36 @@ export const MenuItemSchool = () => [
     icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
-  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN Y TẾ (SCHOOL_HEALTH_OFFICER) - 5 MỤC QUY CHUẨN ===
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN DINH DƯỠNG (SCHOOL_NUTRITION_OFFICER) - 5 MỤC QUY CHUẨN ===
   {
     key: ROUTER.SCHOOL_HEALTH_OVERVIEW,
     label: "Tổng quan",
     icon: <DashboardOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+    roles: [ROLES.SCHOOL_NUTRITION_OFFICER],
   },
   {
     key: ROUTER.SCHOOL_MENU_PLANNING,
     label: "Thực đơn",
     icon: <RestaurantMenuOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+    roles: [ROLES.SCHOOL_NUTRITION_OFFICER],
   },
   {
     key: ROUTER.SCHOOL_DISH_CATALOG,
     label: "Danh sách món ăn",
     icon: <MenuBookOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION],
+    roles: [ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_ADMINISTRATION],
   },
   {
     key: ROUTER.SCHOOL_HEALTH_ALLERGY,
     label: "Thông tin dị ứng",
     icon: <HealthAndSafetyOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+    roles: [ROLES.SCHOOL_NUTRITION_OFFICER],
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Đánh giá giao hàng",
     icon: <FactCheckOutlinedIcon />,
-    roles: [ROLES.SCHOOL_HEALTH_OFFICER],
+    roles: [ROLES.SCHOOL_NUTRITION_OFFICER],
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
