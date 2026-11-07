@@ -1,47 +1,43 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Combine, GitFork } from "lucide-react"
+import { COOKING_MODES } from "./cookingModeConfig"
 import styles from "./CookingModeOptions.module.scss"
 
-const OPTIONS = [
-  {
-    value: "SEPARATE_BY_LOT",
-    label: "Nấu riêng theo lô",
-    description: "Mỗi mẻ chỉ dùng một lô cho từng nguyên liệu.",
-    Icon: GitFork,
-  },
-  {
-    value: "COMBINE_LOTS",
-    label: "Nấu chung nhiều lô",
-    description: "Một mẻ có thể gộp nhiều lô của cùng nguyên liệu.",
-    Icon: Combine,
-  },
-]
+const ICONS = {
+  SEPARATE_BY_LOT: GitFork,
+  COMBINE_LOTS: Combine,
+}
 
 function CookingModeOptions({ value, disabled, onChange }) {
   return (
-    <div className={styles.options} role="radiogroup" aria-label="Chế độ nấu">
-      {OPTIONS.map(({ value: option, label, description, Icon }) => (
-        <label
-          key={option}
-          className={`${styles.option} ${value === option ? styles.selected : ""}`}
-        >
-          <input
-            type="radio"
-            name="cookingMode"
-            value={option}
-            checked={value === option}
-            disabled={disabled}
-            onChange={() => onChange(option)}
-          />
-          <span className={styles.icon}><Icon size={20} /></span>
-          <span>
-            <strong className={styles.label}>{label}</strong>
-            <span className={styles.description}>{description}</span>
-          </span>
-        </label>
-      ))}
-    </div>
+    <fieldset className={styles.options} disabled={disabled}>
+      <legend>Chọn chế độ áp dụng cho nhà bếp</legend>
+      {COOKING_MODES.map(({ value: option, label, description, benefit, tradeoff }) => {
+        const Icon = ICONS[option]
+        return (
+          <label
+            key={option}
+            className={`${styles.option} ${value === option ? styles.selected : ""} ${disabled ? styles.disabled : ""}`}
+          >
+            <input
+              type="radio"
+              name="cookingMode"
+              value={option}
+              checked={value === option}
+              onChange={() => onChange(option)}
+            />
+            <span className={styles.icon}><Icon size={20} /></span>
+            <span className={styles.content}>
+              <strong className={styles.label}>{label}</strong>
+              <span className={styles.description}>{description}</span>
+              <span className={styles.detail}><b>Lợi ích</b>{benefit}</span>
+              <span className={styles.detail}><b>Cần lưu ý</b>{tradeoff}</span>
+            </span>
+          </label>
+        )
+      })}
+    </fieldset>
   )
 }
 
