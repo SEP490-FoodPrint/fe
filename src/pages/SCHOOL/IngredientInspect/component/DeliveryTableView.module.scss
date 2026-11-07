@@ -29,7 +29,7 @@
 }
 
 .thSupplier {
-  min-width: 250px;
+  min-width: 240px;
 }
 
 .thDate {
@@ -59,16 +59,10 @@
 }
 
 .table td {
-  padding: 12px 16px;
+  padding: 13px 16px;
   font-size: 13.5px;
   color: #0f172a;
   vertical-align: middle;
-}
-
-.supplierBlock {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
 }
 
 .supplierNameBtn {
@@ -87,13 +81,6 @@
     color: #0a8066;
     text-decoration: underline;
   }
-}
-
-.deliveryCode {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 11.5px;
-  color: #64748b;
-  letter-spacing: 0.01em;
 }
 
 .tdDate {

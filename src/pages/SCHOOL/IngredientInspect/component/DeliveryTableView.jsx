@@ -27,7 +27,7 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
       <table className={styles.table}>
         <thead>
           <tr>
-            <th className={styles.thSupplier}>Nhà cung cấp & Mã đợt giao</th>
+            <th className={styles.thSupplier}>Nhà cung cấp</th>
             <th className={styles.thDate}>Thời gian giao</th>
             <th className={styles.thStatus}>Trạng thái</th>
             <th className={styles.thAction}>Thao tác</th>
@@ -36,19 +36,16 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
         <tbody>
           {deliveries.map((item) => (
             <tr key={item.id} className={styles.tableRow}>
-              {/* 1. Nhà cung cấp & Mã giao hàng tích hợp */}
+              {/* 1. Nhà cung cấp (Thuần chữ, bỏ mã kỹ thuật thừa) */}
               <td className={styles.tdSupplier}>
-                <div className={styles.supplierBlock}>
-                  <button
-                    type="button"
-                    className={styles.supplierNameBtn}
-                    onClick={() => onSelectDelivery(item)}
-                    title="Nhấn để xem chi tiết đợt giao này"
-                  >
-                    {item.supplierName}
-                  </button>
-                  <span className={styles.deliveryCode}>{item.deliveryNo}</span>
-                </div>
+                <button
+                  type="button"
+                  className={styles.supplierNameBtn}
+                  onClick={() => onSelectDelivery(item)}
+                  title="Xem chi tiết đợt giao này"
+                >
+                  {item.supplierName}
+                </button>
               </td>
 
               {/* 2. Thời gian giao */}
@@ -63,14 +60,14 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
                 <DeliveryStatusBadge status={item.status} />
               </td>
 
-              {/* 4. Thao tác: Chỉ để Icon */}
+              {/* 4. Thao tác: Chỉ để Icon theo quy chuẩn FoodPrint */}
               <td className={styles.tdAction}>
                 <button
                   type="button"
                   className={styles.iconActionBtn}
                   onClick={() => onSelectDelivery(item)}
                   title="Xem chi tiết đợt giao"
-                  aria-label={`Xem chi tiết đợt giao ${item.deliveryNo}`}
+                  aria-label={`Xem chi tiết đợt giao của ${item.supplierName}`}
                 >
                   <Eye size={16} />
                 </button>

@@ -26,16 +26,11 @@ export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
       {deliveries.map((item) => (
         <div key={item.id} className={styles.card}>
           <div className={styles.cardHeader}>
-            <span className={styles.deliveryNo}>{item.deliveryNo}</span>
+            <span className={styles.supplierName}>{item.supplierName}</span>
             <DeliveryStatusBadge status={item.status} />
           </div>
 
           <div className={styles.cardBody}>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Nhà cung cấp:</span>
-              <span className={styles.valueStrong}>{item.supplierName}</span>
-            </div>
-
             <div className={styles.infoRow}>
               <span className={styles.label}>Thời gian giao:</span>
               <span className={styles.value}>
@@ -49,7 +44,7 @@ export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
               type="button"
               className={styles.viewBtn}
               onClick={() => onSelectDelivery(item)}
-              aria-label={`Xem chi tiết ${item.deliveryNo}`}
+              aria-label={`Xem chi tiết đợt giao của ${item.supplierName}`}
             >
               <Eye size={16} />
               <span>Xem chi tiết</span>
