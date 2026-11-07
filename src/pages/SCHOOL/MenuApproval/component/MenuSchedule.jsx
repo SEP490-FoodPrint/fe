@@ -66,11 +66,14 @@ function DishCell({ dishes }) {
 // Bảng cả tuần: cột là ngày, hàng là bữa ăn — BGH xem và duyệt toàn bộ thực đơn một lần
 function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
   const currentIndex = weeks.findIndex((w) => w.id === selectedWeekId)
-  const prevWeek = currentIndex > 0 ? weeks[currentIndex - 1] : null
-  const nextWeek =
+  // Danh sách weeks được xếp từ mới nhất đến cũ nhất (giảm dần theo ngày)
+  // Tuần trước (earlier date, lùi về trước) nằm ở index sau (currentIndex + 1)
+  const prevWeek =
     currentIndex >= 0 && currentIndex < weeks.length - 1
       ? weeks[currentIndex + 1]
       : null
+  // Tuần kế tiếp (later date, tiến về sau) nằm ở index trước (currentIndex - 1)
+  const nextWeek = currentIndex > 0 ? weeks[currentIndex - 1] : null
 
   return (
     <section className={styles.wrapper} aria-labelledby="menu-schedule-title">

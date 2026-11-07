@@ -584,7 +584,9 @@ const MenuService = {
   getApprovalWeeks: async () => {
     const response = await http.get(apiMenus, { params: { limit: 50 } })
     const items = response?.data?.items || []
-    return items.filter(week => week.status !== "DRAFT")
+    return items
+      .filter(week => week.status !== "DRAFT")
+      .sort((a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime())
   },
 
   /**
