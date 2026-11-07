@@ -9,6 +9,7 @@ import {
   Clock,
   FileText,
   ShieldCheck,
+  ShieldAlert,
   AlertTriangle,
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
@@ -122,6 +123,13 @@ export default function DeliveryDetailView({
   )
   const isRejected = delivery.status === "REJECTED" || Boolean(rejectApproval)
 
+  // Kiểm tra điều kiện thực hiện kiểm thực:
+  // Xe chưa đến trường (CREATED hoặc IN_TRANSIT) -> Chưa thể kiểm thực
+  const isBeforeArrival =
+    delivery.status === "CREATED" || delivery.status === "IN_TRANSIT"
+  const isCancelled =
+    delivery.status === "CANCELLED" || delivery.status === "CANCELLED_MEAL"
+
   return (
     <div className={styles.detailWrapper}>
       {/* 1. Header Bar: Tiêu đề + Nút thao tác nằm ngang hàng 2 bên */}
@@ -145,7 +153,31 @@ export default function DeliveryDetailView({
 
         {/* Action Buttons: Đánh giá & Gửi phản hồi */}
         <div className={styles.headerActions}>
-          {healthApproval ? (
+          {isCancelled ? (
+            <button
+              type="button"
+              className={styles.approvalDisabledBtn}
+              disabled
+              title="Đợt giao hàng đã bị hủy, không thể thực hiện kiểm thực"
+            >
+              <ShieldAlert size={15} />
+              <span>Đợt giao đã hủy</span>
+            </button>
+          ) : isBeforeArrival ? (
+            <button
+              type="button"
+              className={styles.approvalDisabledBtn}
+              disabled
+              title={
+                delivery.status === "IN_TRANSIT"
+                  ? "Xe hàng đang trên đường vận chuyển, chỉ có thể kiểm thực khi xe đã đến trường"
+                  : "Đợt giao hàng mới được tạo tại kho, chưa xuất phát đến trường"
+              }
+            >
+              <ShieldCheck size={15} />
+              <span>Chờ xe đến trường</span>
+            </button>
+          ) : healthApproval ? (
             <button
               type="button"
               className={styles.approvalEditBtn}
@@ -227,6 +259,25 @@ export default function DeliveryDetailView({
               </span>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Hướng dẫn khi xe đang vận chuyển hoặc mới tạo */}
+      {delivery.status === "IN_TRANSIT" && (
+        <div className={styles.transitNotice}>
+          <Clock size={15} className={styles.transitNoticeIcon} />
+          <span>
+            Xe hàng đang trên đường vận chuyển đến trường. Cán bộ Y tế sẽ tiến hành kiểm thực (nhiệt độ thùng lạnh, cảm quan, niêm phong tem QR) ngay khi xe đến nơi.
+          </span>
+        </div>
+      )}
+
+      {delivery.status === "CREATED" && (
+        <div className={styles.createdNotice}>
+          <Clock size={15} className={styles.createdNoticeIcon} />
+          <span>
+            Đơn giao hàng mới được lập phiếu xuất kho tại nhà cung cấp, xe chưa xuất phát đến trường.
+          </span>
         </div>
       )}
 
