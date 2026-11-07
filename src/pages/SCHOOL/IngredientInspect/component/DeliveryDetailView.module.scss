@@ -389,6 +389,19 @@
   font-size: 13px;
 }
 
+.feedbackLotTargetCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.targetIngredientName {
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
 .timeText {
   color: #64748b;
   font-size: 12px;

@@ -316,9 +316,16 @@ export default function DeliveryDetailView({
                         <span className={styles.feedbackTitleText}>{fb.title}</span>
                       </td>
                       <td>
-                        <span className={styles.monoCode}>
-                          {fb.lotCode ? fb.lotCode : "Toàn bộ đợt giao"}
-                        </span>
+                        {fb.lotCode ? (
+                          <div className={styles.feedbackLotTargetCol}>
+                            <span className={styles.targetIngredientName}>
+                              {fb.ingredientName}
+                            </span>
+                            <span className={styles.monoCode}>{fb.lotCode}</span>
+                          </div>
+                        ) : (
+                          <span className={styles.emptyText}>Toàn bộ đợt giao</span>
+                        )}
                       </td>
                       <td className={styles.timeText}>
                         {formatDateTime(fb.createdAt)}
