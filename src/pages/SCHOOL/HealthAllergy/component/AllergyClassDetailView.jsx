@@ -6,8 +6,6 @@ import {
   Calendar,
   UserCheck,
   AlertTriangle,
-  UtensilsCrossed,
-  Tag,
   Users,
   ShieldCheck,
   ShieldAlert,
@@ -99,7 +97,6 @@ export default function AllergyClassDetailView({ classData, onBack }) {
 
         <div className={styles.summaryDivider}></div>
 
-        {/* Đổi thành "Số nguyên liệu dị ứng" theo đúng yêu cầu */}
         <div className={styles.summaryCol}>
           <span className={styles.summaryLabel}>Số nguyên liệu dị ứng</span>
           <div className={styles.summaryValueRow}>
@@ -111,13 +108,10 @@ export default function AllergyClassDetailView({ classData, onBack }) {
         </div>
       </div>
 
-      {/* 3. Bảng Danh sách nguyên liệu dị ứng (Bỏ cột thời gian cập nhật) */}
+      {/* 3. Bảng Danh sách nguyên liệu dị ứng (Bỏ viền bo, bỏ nền, bỏ icon ở nguyên liệu dị ứng - chỉ để chữ) */}
       <div className={styles.tableCard}>
         <div className={styles.cardHeader}>
-          <div className={styles.cardHeaderLeft}>
-            <UtensilsCrossed size={16} className={styles.iconPrimary} />
-            <h2 className={styles.cardTitle}>Danh sách nguyên liệu dị ứng</h2>
-          </div>
+          <h2 className={styles.cardTitle}>Danh sách nguyên liệu dị ứng</h2>
           <span className={styles.readonlyBadge}>
             <ShieldCheck size={14} />
             <span>Dữ liệu tổng hợp theo lớp</span>
@@ -131,24 +125,19 @@ export default function AllergyClassDetailView({ classData, onBack }) {
           </div>
         ) : (
           <>
-            {/* Desktop / Tablet Table */}
+            {/* Desktop / Tablet Table: Thuần chữ, không nền, không viền bo bên trong cells */}
             <div className={styles.tableResponsive}>
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th style={{ width: "40%" }}>
-                      <span className={styles.thContent}>
-                        <UtensilsCrossed size={13} />
-                        <span>Tên nguyên liệu</span>
-                      </span>
+                    {/* Bỏ icon ở Nguyên liệu dị ứng */}
+                    <th style={{ width: "45%" }}>
+                      <span>Tên nguyên liệu</span>
                     </th>
                     <th style={{ width: "35%" }}>
-                      <span className={styles.thContent}>
-                        <Tag size={13} />
-                        <span>Nhóm nguyên liệu</span>
-                      </span>
+                      <span>Nhóm nguyên liệu</span>
                     </th>
-                    <th style={{ width: "25%" }}>
+                    <th style={{ width: "20%" }}>
                       <span className={styles.thContent}>
                         <Users size={13} />
                         <span>Học sinh ảnh hưởng</span>
@@ -159,31 +148,19 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                 <tbody>
                   {allergies.map((alg) => (
                     <tr key={alg.id}>
-                      {/* Tên nguyên liệu */}
+                      {/* Tên nguyên liệu: Thuần chữ, không icon, không nền bo */}
                       <td>
-                        <div className={styles.ingredientCell}>
-                          <UtensilsCrossed size={14} className={styles.ingCellIcon} />
-                          <span className={styles.ingredientName}>{alg.ingredientName}</span>
-                          {alg.ingredientCode && (
-                            <span className={styles.codeTag}>{alg.ingredientCode}</span>
-                          )}
-                        </div>
+                        <span className={styles.ingredientName}>{alg.ingredientName}</span>
                       </td>
 
-                      {/* Nhóm nguyên liệu (Badge bo nhẹ) */}
+                      {/* Nhóm nguyên liệu: Thuần chữ, không icon, không nền bo */}
                       <td>
-                        <span className={styles.categoryBadge}>
-                          <Tag size={12} />
-                          <span>{alg.category}</span>
-                        </span>
+                        <span className={styles.categoryText}>{alg.category}</span>
                       </td>
 
-                      {/* Học sinh ảnh hưởng (Chỉ đếm số, không liệt kê rõ, badge bo nhẹ) */}
+                      {/* Học sinh ảnh hưởng: Thuần số, không nền, không viền */}
                       <td>
-                        <span className={styles.countBadge}>
-                          <Users size={12} />
-                          <span>{alg.affectedCount}</span>
-                        </span>
+                        <span className={styles.countText}>{alg.affectedCount}</span>
                       </td>
                     </tr>
                   ))}
@@ -191,26 +168,17 @@ export default function AllergyClassDetailView({ classData, onBack }) {
               </table>
             </div>
 
-            {/* Mobile View */}
+            {/* Mobile View: Thuần chữ, gọn gàng */}
             <div className={styles.mobileList}>
               {allergies.map((alg) => (
                 <div key={alg.id} className={styles.mobileItem}>
                   <div className={styles.mobileItemHeader}>
-                    <div className={styles.mobileIngName}>
-                      <UtensilsCrossed size={15} className={styles.iconPrimary} />
-                      <span>{alg.ingredientName}</span>
-                    </div>
-                    <span className={styles.countBadge}>
-                      <Users size={12} />
-                      <span>{alg.affectedCount}</span>
-                    </span>
+                    <span className={styles.mobileIngName}>{alg.ingredientName}</span>
+                    <span className={styles.countText}>{alg.affectedCount} hs</span>
                   </div>
                   <div className={styles.mobileMetaRow}>
-                    <span className={styles.metaLabel}>Nhóm:</span>
-                    <span className={styles.categoryBadge}>
-                      <Tag size={11} />
-                      <span>{alg.category}</span>
-                    </span>
+                    <span className={styles.metaLabel}>Nhóm nguyên liệu:</span>
+                    <span className={styles.categoryText}>{alg.category}</span>
                   </div>
                 </div>
               ))}

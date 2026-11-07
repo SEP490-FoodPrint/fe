@@ -91,7 +91,6 @@
   }
 }
 
-/* Badge bo nhẹ (border-radius: 6px) */
 .classPill {
   display: inline-flex;
   align-items: center;
@@ -149,7 +148,7 @@
 }
 
 /* ========================================================
-   2. SUMMARY BAR (Gọn gàng theo chuẩn MenuDetailBasicInfo)
+   2. SUMMARY BAR
    ======================================================== */
 .summaryBar {
   background-color: #ffffff;
@@ -224,13 +223,12 @@
 }
 
 /* ========================================================
-   3. TABLE CARD & CONTENT
+   3. TABLE CARD & CONTENT (Thuần chữ, bỏ hết viền bo và nền bên trong cells)
    ======================================================== */
 .tableCard {
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
@@ -242,12 +240,6 @@
   padding: 12px 16px;
   border-bottom: 1px solid #e2e8f0;
   background-color: #fafbfc;
-}
-
-.cardHeaderLeft {
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
 .cardTitle {
@@ -324,14 +316,14 @@
     }
 
     &:hover {
-      background-color: #f8faf9;
+      background-color: #f8fafc;
     }
   }
 
   td {
     padding: 14px 16px;
     font-size: 13.5px;
-    color: #1e293b;
+    color: #0f172a;
     vertical-align: middle;
   }
 }
@@ -339,20 +331,10 @@
 .thContent {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
-.ingredientCell {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.ingCellIcon {
-  color: #0a8066;
-  flex-shrink: 0;
-}
-
+/* Tên nguyên liệu: Thuần chữ, không nền, không viền bo */
 .ingredientName {
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 14px;
@@ -360,42 +342,19 @@
   color: #0f172a;
 }
 
-.codeTag {
+/* Nhóm nguyên liệu: Thuần chữ, không nền, không viền bo */
+.categoryText {
   font-family: "Inter", sans-serif;
-  font-size: 11px;
-  color: #64748b;
-  background-color: #f1f5f9;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-/* Badge bo nhẹ (border-radius: 6px) */
-.categoryBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background-color: #f8fafc;
+  font-size: 13.5px;
   color: #475569;
-  font-size: 12px;
-  font-weight: 500;
-  border: 1px solid #e2e8f0;
 }
 
-/* Affected count: chỉ đếm số, bo nhẹ 6px */
-.countBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  background-color: #eaf7f0;
-  color: #00654f;
+/* Học sinh ảnh hưởng: Thuần số, không nền, không viền bo */
+.countText {
   font-family: "Be Vietnam Pro", sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  border: 1px solid #c7eedd;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0a8066;
 }
 
 /* ========================================================
@@ -413,41 +372,39 @@
 }
 
 .mobileItem {
-  background-color: #f8fafc;
-  border-radius: 6px;
-  border: 1px solid #e2e8f0;
-  padding: 10px 12px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
+  padding: 10px 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
 .mobileItemHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 4px;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .mobileIngName {
-  display: flex;
-  align-items: center;
-  gap: 6px;
   font-family: "Be Vietnam Pro", sans-serif;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f172a;
 }
 
 .mobileMetaRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 12.5px;
 }
 
 .metaLabel {
   color: #64748b;
-  font-size: 11.5px;
+  font-size: 12px;
 }

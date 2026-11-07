@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { School, Calendar, UtensilsCrossed, Users, Eye } from "lucide-react"
+import { School, Calendar, Users, Eye } from "lucide-react"
 import styles from "./AllergyMobileCards.module.scss"
 
 export default function AllergyMobileCards({ classList, onSelectClass }) {
@@ -12,6 +12,7 @@ export default function AllergyMobileCards({ classList, onSelectClass }) {
           (sum, alg) => sum + (alg.affectedCount || 0),
           0
         )
+        const ingredientNames = allergies.map((a) => a.ingredientName).join(", ")
 
         return (
           <div key={cls.id} className={styles.classCard}>
@@ -38,19 +39,15 @@ export default function AllergyMobileCards({ classList, onSelectClass }) {
               </div>
             </div>
 
-            {/* Allergens & Affected count */}
+            {/* Allergens & Affected count: Thuần chữ, bỏ nền và viền bo */}
             <div className={styles.allergiesSection}>
-              <div className={styles.chipsRow}>
-                {allergies.map((alg) => (
-                  <span key={alg.id} className={styles.allergenBadge}>
-                    <UtensilsCrossed size={11} className={styles.chipIcon} />
-                    <span>{alg.ingredientName}</span>
-                  </span>
-                ))}
+              <div className={styles.ingredientRow}>
+                <span className={styles.sectionLabel}>Nguyên liệu dị ứng:</span>
+                <span className={styles.ingredientText}>{ingredientNames}</span>
               </div>
               <div className={styles.affectedRow}>
-                <span className={styles.affectedLabel}>Học sinh ảnh hưởng:</span>
-                <span className={styles.countBadge}>
+                <span className={styles.sectionLabel}>Học sinh ảnh hưởng:</span>
+                <span className={styles.countText}>
                   <Users size={12} />
                   <span>{totalAffected}</span>
                 </span>
