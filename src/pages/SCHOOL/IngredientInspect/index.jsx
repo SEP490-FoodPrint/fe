@@ -39,6 +39,7 @@ export default function IngredientInspect() {
   // Modal gửi phản hồi (SCREEN 03)
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false)
   const [deliveryForFeedback, setDeliveryForFeedback] = useState(null)
+  const [initialFeedbackLotId, setInitialFeedbackLotId] = useState("")
 
   // Toast thông báo thành công
   const [successToast, setSuccessToast] = useState("")
@@ -110,8 +111,9 @@ export default function IngredientInspect() {
   }
 
   // Mở modal gửi phản hồi (SCREEN 03)
-  const handleOpenSubmitModal = (delivery) => {
+  const handleOpenSubmitModal = (delivery, lotId = "") => {
     setDeliveryForFeedback(delivery)
+    setInitialFeedbackLotId(lotId)
     setIsSubmitModalOpen(true)
   }
 
@@ -120,6 +122,7 @@ export default function IngredientInspect() {
     setFeedbacks((prev) => [newFeedback, ...prev])
     setIsSubmitModalOpen(false)
     setDeliveryForFeedback(null)
+    setInitialFeedbackLotId("")
 
     // Hiển thị toast thành công
     setSuccessToast(
@@ -240,9 +243,11 @@ export default function IngredientInspect() {
       {isSubmitModalOpen && deliveryForFeedback && (
         <FeedbackSubmitModal
           delivery={deliveryForFeedback}
+          initialLotId={initialFeedbackLotId}
           onClose={() => {
             setIsSubmitModalOpen(false)
             setDeliveryForFeedback(null)
+            setInitialFeedbackLotId("")
           }}
           onSubmitFeedback={handleSubmitFeedback}
         />

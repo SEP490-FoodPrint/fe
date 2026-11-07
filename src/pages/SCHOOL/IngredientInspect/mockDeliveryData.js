@@ -33,6 +33,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "2c098c77-f3a9-5dc9-9ff7-3ee52227dbfe",
             lotCode: "FP-DEMO-LOT-RICE-001",
+            qrToken: "FP-DEMO-QR-RICE-001",
             sourceFacility: "Nhà máy Chế biến Lương thực Sóc Trăng",
             manufactureDate: "2026-10-18",
             expiryDate: "2027-04-18",
@@ -43,6 +44,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "3ace7f45-c86f-5688-8ff8-1c83f4922818",
             lotCode: "FP-DEMO-LOT-RICE-002",
+            qrToken: "FP-DEMO-QR-RICE-002",
             sourceFacility: "Nhà máy Chế biến Lương thực Sóc Trăng",
             manufactureDate: "2026-10-20",
             expiryDate: "2027-04-20",
@@ -64,6 +66,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "c011bab5-a260-5a10-9ab2-fbc8ca44b570",
             lotCode: "FP-DEMO-LOT-CARROT-001",
+            qrToken: "FP-DEMO-QR-CARROT-001",
             sourceFacility: "Hợp tác xã Rau sạch Đơn Dương - Lâm Đồng",
             manufactureDate: "2026-10-22",
             expiryDate: "2026-10-28",
@@ -74,6 +77,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "da65b954-2916-5e64-92da-dfcdf439c35d",
             lotCode: "FP-DEMO-LOT-CARROT-002",
+            qrToken: "FP-DEMO-QR-CARROT-002",
             sourceFacility: "Hợp tác xã Rau sạch Đơn Dương - Lâm Đồng",
             manufactureDate: "2026-10-22",
             expiryDate: "2026-10-28",
@@ -113,6 +117,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "a143891b-8521-4d32-8cb2-463991823901",
             lotCode: "FP-DEMO-LOT-SPIN-001",
+            qrToken: "FP-DEMO-QR-SPIN-001",
             sourceFacility: "Cánh đồng Rau hữu cơ Ba Vì Lô A3",
             manufactureDate: "2026-10-24",
             expiryDate: "2026-10-26",
@@ -134,6 +139,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "f83910c2-7744-42b1-91a3-289551bc4428",
             lotCode: "FP-DEMO-LOT-PORK-001",
+            qrToken: "FP-DEMO-QR-PORK-001",
             sourceFacility: "Trang trại Heo an toàn sinh học Ba Vì",
             manufactureDate: "2026-10-24",
             expiryDate: "2026-10-25",
@@ -173,6 +179,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "d9182374-1294-49ab-8113-582910482b99",
             lotCode: "FP-DEMO-LOT-POTATO-001",
+            qrToken: "FP-DEMO-QR-POTATO-001",
             sourceFacility: "Hợp tác xã Nông sản Lạc Dương",
             manufactureDate: "2026-10-21",
             expiryDate: "2026-11-10",
@@ -212,6 +219,7 @@ export const INITIAL_DELIVERIES = [
           {
             id: "55910283-4819-4820-aa38-192837461928",
             lotCode: "FP-DEMO-LOT-POMELO-001",
+            qrToken: "FP-DEMO-QR-POMELO-001",
             sourceFacility: "Vùng trồng Bưởi đặc sản Giồng Trôm",
             manufactureDate: "2026-10-21",
             expiryDate: "2026-11-05",

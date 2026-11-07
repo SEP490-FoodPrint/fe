@@ -14,6 +14,7 @@ import styles from "./FeedbackSubmitModal.module.scss"
 
 export default function FeedbackSubmitModal({
   delivery,
+  initialLotId = "",
   onClose,
   onSubmitFeedback,
 }) {
@@ -31,7 +32,7 @@ export default function FeedbackSubmitModal({
   })
 
   // State form
-  const [selectedLotId, setSelectedLotId] = useState("")
+  const [selectedLotId, setSelectedLotId] = useState(initialLotId || "")
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
@@ -252,6 +253,7 @@ export default function FeedbackSubmitModal({
 
 FeedbackSubmitModal.propTypes = {
   delivery: PropTypes.object.isRequired,
+  initialLotId: PropTypes.string,
   onClose: PropTypes.func.isRequired,
   onSubmitFeedback: PropTypes.func.isRequired,
 }

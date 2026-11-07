@@ -17,8 +17,10 @@ import {
   Info,
   CalendarDays,
   ShieldAlert,
+  QrCode,
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
+import LotQRTraceModal from "./LotQRTraceModal"
 import { LOT_STATUS_CONFIG, FEEDBACK_STATUS_CONFIG } from "../mockDeliveryData"
 import styles from "./DeliveryDetailView.module.scss"
 
@@ -38,11 +40,20 @@ export default function DeliveryDetailView({
     return init
   })
 
+  // State xem tem nhãn QR của lô
+  const [activeQRLot, setActiveQRLot] = useState(null)
+  const [activeQRIngredient, setActiveQRIngredient] = useState("")
+
   const toggleExpand = (itemId) => {
     setExpandedItems((prev) => ({
       ...prev,
       [itemId]: !prev[itemId],
     }))
+  }
+
+  const handleOpenQRModal = (lot, ingredientName) => {
+    setActiveQRLot(lot)
+    setActiveQRIngredient(ingredientName)
   }
 
   // Lọc danh sách phản hồi liên quan đến delivery này
@@ -158,12 +169,17 @@ export default function DeliveryDetailView({
         </div>
       </div>
 
-      {/* 3. Ingredient Delivery Details (Phân cấp: Delivery -> Ingredient -> IngredientLot) */}
+      {/* 3. Ingredient Delivery Details (Phân cấp: Delivery -> Ingredient -> IngredientLot kèm Tem QR) */}
       <div className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div className={styles.sectionTitleRow}>
             <Layers size={17} className={styles.sectionIcon} />
-            <h2 className={styles.sectionTitle}>Danh sách nguyên liệu & Lô thực tế</h2>
+            <div>
+              <h2 className={styles.sectionTitle}>Danh sách nguyên liệu & Lô thực tế</h2>
+              <p className={styles.sectionSubTitle}>
+                Mỗi lô nguyên liệu có tem QR in dán trên kiện hàng — Hội đồng 4 bên quét mã để đối chiếu nguồn gốc và chất lượng.
+              </p>
+            </div>
           </div>
           <span className={styles.badgeCount}>
             {delivery.deliveryItems?.length || 0} nguyên liệu
@@ -236,6 +252,7 @@ export default function DeliveryDetailView({
                         <thead>
                           <tr>
                             <th>Mã lô (Lot code)</th>
+                            <th className={styles.thCenter}>Tem QR đối chiếu</th>
                             <th>Cơ sở nguồn</th>
                             <th>Ngày SX</th>
                             <th>Hạn dùng</th>
@@ -254,6 +271,21 @@ export default function DeliveryDetailView({
                             return (
                               <tr key={lot.id}>
                                 <td className={styles.tdLotCode}>{lot.lotCode}</td>
+                                
+                                {/* Cột Tem QR đối chiếu */}
+                                <td className={styles.tdCenter}>
+                                  <button
+                                    type="button"
+                                    className={styles.qrActionBtn}
+                                    onClick={() => handleOpenQRModal(lot, item.ingredientName)}
+                                    title="Quét & Xem thông tin truy xuất nguồn gốc từ mã QR"
+                                    aria-label={`Xem mã QR của lô ${lot.lotCode}`}
+                                  >
+                                    <QrCode size={15} />
+                                    <span>Xem tem QR</span>
+                                  </button>
+                                </td>
+
                                 <td className={styles.tdFacility}>
                                   {lot.sourceFacility || "Nhà cung cấp trực tiếp"}
                                 </td>
@@ -291,7 +323,7 @@ export default function DeliveryDetailView({
         </div>
       </div>
 
-      {/* 4. Quality Feedback Section (Khu vực quan trọng: Phản hồi chất lượng) */}
+      {/* 4. Quality Feedback Section */}
       <div className={styles.sectionCard}>
         <div className={styles.feedbackSectionHeader}>
           <div className={styles.sectionTitleRow}>
@@ -299,7 +331,7 @@ export default function DeliveryDetailView({
             <div>
               <h2 className={styles.sectionTitle}>Phản hồi chất lượng nguyên liệu</h2>
               <p className={styles.sectionSubTitle}>
-                Ghi nhận các phản hồi về quy cách, tem nhãn, bao bì hoặc chất lượng nguyên liệu gửi đến Nhà cung cấp.
+                Ghi nhận các phản hồi về quy cách tem nhãn QR, bao bì hoặc chất lượng nguyên liệu gửi đến Nhà cung cấp.
               </p>
             </div>
           </div>
@@ -377,13 +409,27 @@ export default function DeliveryDetailView({
               <div className={styles.emptyFbText}>
                 <span className={styles.emptyFbTitle}>Chưa có phản hồi chất lượng nào</span>
                 <p className={styles.emptyFbDesc}>
-                  Chuyến giao này chưa phát hiện vấn đề nào cần phản hồi. Bạn có thể nhấn nút <strong>"Gửi phản hồi chất lượng"</strong> nếu cần nhà cung cấp đối soát lại tem mác hoặc chất lượng.
+                  Chuyến giao này chưa phát hiện vấn đề nào cần phản hồi. Bạn có thể quét mã QR trên lô hàng để kiểm tra thông tin, hoặc nhấn nút <strong>"Gửi phản hồi chất lượng"</strong> nếu phát hiện tem mác mờ, rách hoặc nguyên liệu không đạt chuẩn.
                 </p>
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Modal Xem / Quét tem QR truy xuất nguồn gốc */}
+      {activeQRLot && (
+        <LotQRTraceModal
+          lot={activeQRLot}
+          ingredientName={activeQRIngredient}
+          supplierName={delivery.supplierName}
+          onClose={() => setActiveQRLot(null)}
+          onFeedbackThisLot={(lot) => {
+            setActiveQRLot(null)
+            onOpenSubmitFeedback(delivery, lot.id)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -395,4 +441,3 @@ DeliveryDetailView.propTypes = {
   onOpenSubmitFeedback: PropTypes.func.isRequired,
   onSelectFeedback: PropTypes.func.isRequired,
 }
-
