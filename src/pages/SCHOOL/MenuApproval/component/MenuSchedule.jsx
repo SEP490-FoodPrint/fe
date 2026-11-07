@@ -1,22 +1,35 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { MenuItem, TextField, Tooltip, Typography } from "@mui/material"
-import { CalendarRange, Cookie, Users, Utensils } from "lucide-react"
+import { IconButton, MenuItem, TextField, Tooltip, Typography } from "@mui/material"
+import { CalendarRange, ChevronLeft, ChevronRight, Cookie, Users, Utensils } from "lucide-react"
 import styles from "./MenuSchedule.module.scss"
 
-const WEEK_STATUS_LABEL = {
-  PENDING_APPROVAL: "Chờ duyệt",
-  APPROVED: "Đã duyệt",
-  REVISION_REQUIRED: "Yêu cầu điều chỉnh",
+const WEEK_STATUS_CONFIG = {
+  PENDING_APPROVAL: {
+    label: "Chờ duyệt",
+    className: styles.statusPending,
+  },
+  APPROVED: {
+    label: "Đã duyệt",
+    className: styles.statusApproved,
+  },
+  REVISION_REQUIRED: {
+    label: "Yêu cầu chỉnh sửa",
+    className: styles.statusRejected,
+  },
+  DRAFT: {
+    label: "Bản nháp",
+    className: styles.statusDraft,
+  },
 }
 
 // weekStartDate là ngày thứ Hai (YYYY-MM-DD...), tuần học từ thứ Hai đến thứ Sáu
-const formatWeekRange = weekStartDate => {
+const formatWeekRange = (weekStartDate) => {
   const [year, month, day] = String(weekStartDate).slice(0, 10).split("-").map(Number)
   const start = new Date(Date.UTC(year, month - 1, day))
   const end = new Date(Date.UTC(year, month - 1, day + 4))
-  const pad = value => String(value).padStart(2, "0")
-  const short = date => `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}`
+  const pad = (value) => String(value).padStart(2, "0")
+  const short = (date) => `${pad(date.getUTCDate())}/${pad(date.getUTCMonth() + 1)}`
   return `${short(start)} – ${short(end)}/${end.getUTCFullYear()}`
 }
 
@@ -52,27 +65,108 @@ function DishCell({ dishes }) {
 
 // Bảng cả tuần: cột là ngày, hàng là bữa ăn — BGH xem và duyệt toàn bộ thực đơn một lần
 function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
+  const currentIndex = weeks.findIndex((w) => w.id === selectedWeekId)
+  const prevWeek = currentIndex > 0 ? weeks[currentIndex - 1] : null
+  const nextWeek =
+    currentIndex >= 0 && currentIndex < weeks.length - 1
+      ? weeks[currentIndex + 1]
+      : null
+
   return (
     <section className={styles.wrapper} aria-labelledby="menu-schedule-title">
       <div className={styles.sectionHeader}>
         <Typography component="h2" id="menu-schedule-title" className={styles.sectionTitle}>
           <CalendarRange size={21} /> Thực đơn tuần
         </Typography>
-        <TextField
-          select
-          size="small"
-          label="Tuần thực đơn"
-          value={selectedWeekId || ""}
-          onChange={event => onWeekChange(event.target.value)}
-          disabled={disabled}
-          className={styles.weekSelect}
-        >
-          {weeks.map(week => (
-            <MenuItem key={week.id} value={week.id}>
-              Tuần {formatWeekRange(week.weekStartDate)} · {WEEK_STATUS_LABEL[week.status] || week.status}
-            </MenuItem>
-          ))}
-        </TextField>
+
+        <div className={styles.weekPickerContainer}>
+          {weeks.length > 1 && (
+            <Tooltip title={prevWeek ? `Tuần trước (${formatWeekRange(prevWeek.weekStartDate)})` : ""}>
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={disabled || !prevWeek}
+                  onClick={() => prevWeek && onWeekChange(prevWeek.id)}
+                  aria-label="Tuần trước"
+                  className={styles.navButton}
+                >
+                  <ChevronLeft size={18} />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+
+          <TextField
+            select
+            size="small"
+            label="Tuần thực đơn"
+            value={selectedWeekId || ""}
+            onChange={(event) => onWeekChange(event.target.value)}
+            disabled={disabled}
+            className={styles.weekSelect}
+            SelectProps={{
+              renderValue: (selectedId) => {
+                const selectedWeek = weeks.find((w) => w.id === selectedId)
+                if (!selectedWeek) return "Chọn tuần"
+                const st =
+                  WEEK_STATUS_CONFIG[selectedWeek.status] || {
+                    label: selectedWeek.status,
+                    className: styles.statusDraft,
+                  }
+                return (
+                  <div className={styles.weekSelectValue}>
+                    <span className={styles.weekSelectText}>
+                      Tuần {formatWeekRange(selectedWeek.weekStartDate)}
+                    </span>
+                    <span className={`${styles.statusBadge} ${st.className}`}>
+                      <span className={styles.statusDot} />
+                      {st.label}
+                    </span>
+                  </div>
+                )
+              },
+            }}
+          >
+            {weeks.map((week) => {
+              const st =
+                WEEK_STATUS_CONFIG[week.status] || {
+                  label: week.status,
+                  className: styles.statusDraft,
+                }
+              return (
+                <MenuItem
+                  key={week.id}
+                  value={week.id}
+                  className={styles.weekMenuItem}
+                >
+                  <span className={styles.weekMenuItemText}>
+                    Tuần {formatWeekRange(week.weekStartDate)}
+                  </span>
+                  <span className={`${styles.statusBadge} ${st.className}`}>
+                    <span className={styles.statusDot} />
+                    {st.label}
+                  </span>
+                </MenuItem>
+              )
+            })}
+          </TextField>
+
+          {weeks.length > 1 && (
+            <Tooltip title={nextWeek ? `Tuần kế tiếp (${formatWeekRange(nextWeek.weekStartDate)})` : ""}>
+              <span>
+                <IconButton
+                  size="small"
+                  disabled={disabled || !nextWeek}
+                  onClick={() => nextWeek && onWeekChange(nextWeek.id)}
+                  aria-label="Tuần kế tiếp"
+                  className={styles.navButton}
+                >
+                  <ChevronRight size={18} />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+        </div>
       </div>
 
       <div className={styles.scroller}>
@@ -80,7 +174,7 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
           <thead>
             <tr>
               <th scope="col" className={styles.corner} aria-label="Bữa ăn" />
-              {days.map(day => (
+              {days.map((day) => (
                 <th scope="col" key={day.id} className={styles.dayHead}>
                   <span className={styles.dayName}>{day.shortLabel}</span>
                   <span className={styles.dayDate}>{day.date}</span>
@@ -94,7 +188,7 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
                 <th scope="row" className={styles.mealHead}>
                   <Icon size={16} /> {label}
                 </th>
-                {days.map(day => (
+                {days.map((day) => (
                   <td key={day.id} className={day[key].length ? undefined : styles.emptyCell}>
                     <DishCell dishes={day[key]} />
                   </td>
@@ -105,7 +199,7 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
               <th scope="row" className={styles.mealHead}>
                 <Users size={16} /> Số suất
               </th>
-              {days.map(day => (
+              {days.map((day) => (
                 <td key={day.id}>{(Number(day.portions) || 0).toLocaleString("vi-VN")}</td>
               ))}
             </tr>

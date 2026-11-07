@@ -25,19 +25,130 @@
   }
 }
 
+.weekPickerContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.navButton {
+  color: var(--text-secondary) !important;
+  border: 1px solid var(--border-default) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--bg-surface) !important;
+  padding: 7px !important;
+  &:hover:not(:disabled) {
+    background: var(--bg-muted) !important;
+    color: var(--color-primary) !important;
+    border-color: var(--color-primary) !important;
+  }
+}
+
 .weekSelect {
   width: 23rem;
   max-width: 100%;
   background: var(--bg-surface);
 }
 
+.weekSelectValue {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--space-2);
+}
+
+.weekSelectText {
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.weekMenuItem {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: 8px 16px !important;
+  width: 100%;
+}
+
+.weekMenuItemText {
+  font-weight: var(--font-medium);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusPending {
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+  .statusDot {
+    background: #f59e0b;
+  }
+}
+
+.statusApproved {
+  color: #047857;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  .statusDot {
+    background: #10b981;
+  }
+}
+
+.statusRejected {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+  .statusDot {
+    background: #ef4444;
+  }
+}
+
+.statusDraft {
+  color: #4b5563;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  .statusDot {
+    background: #9ca3af;
+  }
+}
+
 @media (max-width: 600px) {
+  .weekPickerContainer {
+    width: 100%;
+  }
   .weekSelect {
     width: 100%;
+    flex: 1;
   }
 }
 
 @media print {
+  .weekPickerContainer,
   .weekSelect {
     display: none;
   }
