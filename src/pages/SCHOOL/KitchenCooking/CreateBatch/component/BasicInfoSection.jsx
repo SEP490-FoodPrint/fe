@@ -378,25 +378,6 @@ export default function BasicInfoSection({
             </div>
           </div>
 
-          {/* Quick select chips */}
-          <div className={styles.quickDishRow}>
-            {DISH_OPTIONS.map((dish) => {
-              const isSelected = selectedDish?.id === dish.id;
-              return (
-                <button
-                  key={dish.id}
-                  type="button"
-                  className={`${styles.quickDishChip} ${
-                    isSelected ? styles.quickDishChipActive : ""
-                  }`}
-                  onClick={() => handleSelectDish(dish)}
-                >
-                  {dish.name}
-                </button>
-              );
-            })}
-          </div>
-
           {/* Dropdown Menu Popup */}
           {isDropdownOpen && (
             <div className={styles.dropdownPopup}>
@@ -458,10 +439,10 @@ export default function BasicInfoSection({
           )}
         </div>
 
-        {/* Số suất dự kiến (Tự động từ điểm danh GVCN) */}
+        {/* Số suất ăn (Tự động từ điểm danh GVCN) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label} htmlFor="planned-portions-combine">Số suất dự kiến chế biến</label>
+            <label className={styles.label} htmlFor="planned-portions-combine">Số suất ăn</label>
             <span
               className={styles.lockHint}
               title="Đối soát tự động từ điểm danh"
@@ -479,14 +460,10 @@ export default function BasicInfoSection({
               value={Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "—"}
               readOnly
               aria-readonly="true"
-              aria-describedby="planned-portions-combine-hint"
-              aria-label="Số suất dự kiến chế biến"
+              aria-label="Số suất ăn"
             />
             <span className={styles.unitSuffix}>suất</span>
           </div>
-          <span id="planned-portions-combine-hint" className={styles.helperText}>
-            Số suất do giáo viên chốt sau điểm danh. Nhân viên bếp không chỉnh sửa.
-          </span>
         </div>
       </div>
     </section>
