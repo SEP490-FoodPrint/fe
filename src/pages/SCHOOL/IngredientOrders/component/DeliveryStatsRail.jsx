@@ -10,33 +10,25 @@ export default function DeliveryStatsRail({ stats, onFilterBatchType, activeBatc
       id: "all",
       label: "Tổng phiếu giao nhận",
       count: stats.total || 0,
-      icon: <Package size={22} />,
-      color: "var(--color-primary, #1e7e34)",
-      bg: "var(--color-primary-soft, #e6f4ea)",
+
     },
     {
       id: "BATCH_1",
       label: "Đợt 1 (50% Suất tối đa)",
       count: stats.batch1Count || 0,
-      icon: <Sunrise size={22} />,
-      color: "#0284c7",
-      bg: "#e0f2fe",
+
     },
     {
       id: "WAITING_ATTENDANCE",
       label: "Đợt 2: Chờ sĩ số GVCN",
       count: stats.waitingAttendanceCount || 0,
-      icon: <Users size={22} />,
-      color: "#d97706",
-      bg: "#fffbeb",
+
     },
     {
       id: "COMPLETED",
       label: "Đã duyệt 4/4 & Vào bếp",
       count: stats.completedCount || 0,
-      icon: <CheckCircle2 size={22} />,
-      color: "#059669",
-      bg: "#ecfdf5",
+
     },
   ]
 

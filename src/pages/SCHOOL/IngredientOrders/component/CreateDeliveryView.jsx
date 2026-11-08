@@ -33,7 +33,7 @@ import {
   Sparkles,
   CalendarCheck,
 } from "lucide-react"
-import { MOCK_APPROVED_MENUS } from "../mockData"
+import { MOCK_APPROVED_MENUS, MOCK_DRY_STOCK_MONTHLY_CYCLES } from "../mockData"
 import styles from "./CreateDeliveryView.module.scss"
 
 export default function CreateDeliveryView({
@@ -56,7 +56,7 @@ export default function CreateDeliveryView({
   // Sĩ số GVCN báo cho Đợt 2 (mặc định để trống để test validate)
   const [actualAttendance, setActualAttendance] = useState("")
 
-  // Checkbox đồ khô giao kèm xe Đợt 1
+  // Checkbox đồ khô giao cùng xe Đợt 1
   const [attachedDryIds, setAttachedDryIds] = useState([])
 
   // =========================================================================
@@ -104,6 +104,11 @@ export default function CreateDeliveryView({
   const dryIngredients = useMemo(() => {
     return currentMenu?.ingredients?.filter(it => it.handlingType === "DRY_STOCK") || []
   }, [currentMenu])
+
+  // Danh sách supplierId của các món tươi sống (Đợt 1) để nhận diện đồ khô cùng xe tươi sống hay NCC đồ khô riêng
+  const freshSupplierIds = useMemo(() => {
+    return new Set(freshIngredients.map(f => f.supplierId).filter(Boolean))
+  }, [freshIngredients])
 
   // Toggle đồ khô
   const handleToggleAttached = id => {
@@ -171,48 +176,15 @@ export default function CreateDeliveryView({
 
           <Box className={styles.titleInfo}>
             <Box className={styles.titleWithIcon}>
-              <ChefHat size={22} className={styles.titleIcon} />
               <Typography variant="h5" className={styles.mainTitle}>
-                {mode === "BATCH_1" && "Tạo Yêu Cầu Mua Hàng Đợt 1 (Giao Sớm 05:30 Sáng)"}
-                {mode === "BATCH_2" && "Tạo Đơn Giao Hàng Đợt 2 (Cân Đối Theo Sĩ Số GVCN)"}
+                {mode === "BATCH_1" && "Tạo Yêu Cầu Mua Hàng Đợt 1"}
+                {mode === "BATCH_2" && "Tạo Đơn Giao Hàng Đợt 2"}
                 {mode === "COMPLETED" && "Trạng Thái Đơn Hàng Theo Ngày"}
               </Typography>
             </Box>
-            <Typography variant="body2" className={styles.subTitle}>
-              {mode === "BATCH_1" && "Tự động phân bổ 50% suất ăn cho ca sớm. Đồ khô nhập định kỳ 3 lần/tháng, mặc định dùng tồn kho."}
-              {mode === "BATCH_2" && "Bê nguyên danh mục tươi sống của Đợt 1. Chờ GVCN chốt sĩ số để tính số kg cần giao bù."}
-              {mode === "COMPLETED" && `Ngày ${orderDate} đã hoàn thành đầy đủ cả 2 đợt giao nhận.`}
-            </Typography>
           </Box>
         </Box>
 
-        {/* Badge nhận diện trạng thái tự động */}
-        <Box className={styles.modeBadgeWrap}>
-          {mode === "BATCH_1" && (
-            <Chip
-              icon={<Sunrise size={16} />}
-              label="Đợt 1: 50% Suất tối đa"
-              color="primary"
-              className={styles.stepBadge1}
-            />
-          )}
-          {mode === "BATCH_2" && (
-            <Chip
-              icon={<Users size={16} />}
-              label="Đợt 2: Cân đối sĩ số GVCN"
-              color="warning"
-              className={styles.stepBadge2}
-            />
-          )}
-          {mode === "COMPLETED" && (
-            <Chip
-              icon={<CheckCircle2 size={16} />}
-              label="Đã hoàn tất cả 2 đợt"
-              color="success"
-              className={styles.stepBadgeCompleted}
-            />
-          )}
-        </Box>
       </Box>
 
       {/* 2. Thanh chọn Ngày giao & Thực đơn */}
@@ -258,26 +230,6 @@ export default function CreateDeliveryView({
             />
           )}
         </Box>
-
-        {/* Các món trong thực đơn */}
-        {currentMenu?.dishes && currentMenu.dishes.length > 0 && (
-          <Box className={styles.dishListWrap}>
-            <Typography variant="caption" className={styles.dishListLabel}>
-              Món ăn ca nấu:
-            </Typography>
-            <Box className={styles.dishChips}>
-              {currentMenu.dishes.map((dish, idx) => (
-                <Chip
-                  key={idx}
-                  label={dish}
-                  size="small"
-                  icon={<Flame size={14} color="#ea580c" />}
-                  className={styles.dishChip}
-                />
-              ))}
-            </Box>
-          </Box>
-        )}
       </Paper>
 
       {/* =====================================================================
@@ -319,17 +271,12 @@ export default function CreateDeliveryView({
           {/* Card tóm tắt Đợt 1 */}
           <Box className={styles.batch1SummaryCard}>
             <Box className={styles.batchCardHeader}>
-              <Sunrise size={22} className={styles.batch1Icon} />
               <Typography variant="subtitle1" className={styles.batchCardTitle}>
                 Quy Chuẩn Giao Hàng Đợt 1: Cố Định 50% Suất Tối Đa
               </Typography>
-              <Chip label="50% Suất Chuẩn" size="small" className={styles.fixedChip} />
             </Box>
             <Typography variant="h4" className={styles.batchPortionCount}>
               {batch1Portions} <span className={styles.portionUnit}>suất ăn</span>
-            </Typography>
-            <Typography variant="body2" className={styles.batchCardDesc}>
-              Xe lạnh chuyên dụng giao sớm lúc <strong>05:00 - 05:30 sáng</strong> để Nhà bếp kịp nổi lửa ninh xương, nấu nước dùng và sơ chế đợt 1. Sau khi tạo xong Đợt 1, hệ thống sẽ mở tạo Đợt 2 chờ GVCN chốt sĩ số.
             </Typography>
           </Box>
 
@@ -337,13 +284,9 @@ export default function CreateDeliveryView({
           <Paper className={styles.tableCard} elevation={0}>
             <Box className={styles.tableCardHeader}>
               <Box className={styles.tableTitleGroup}>
-                <Package size={18} className={styles.tableIcon} />
                 <Box>
                   <Typography variant="subtitle1" className={styles.tableHeading}>
                     A. Thực Phẩm Tươi Sống Đợt 1 (50% Suất - Giao Sớm 05:30 Sáng)
-                  </Typography>
-                  <Typography variant="caption" className={styles.tableSubheading}>
-                    Thịt, cá, rau củ quả dùng trong ngày, chuyển thẳng vào Bếp nấu, không lưu kho
                   </Typography>
                 </Box>
               </Box>
@@ -408,37 +351,32 @@ export default function CreateDeliveryView({
             </Box>
           </Paper>
 
-          {/* BẢNG 2: GIA VỊ & ĐỒ KHÔ (CHỈ CÓ Ở ĐỢT 1 - CHU KỲ 3 LẦN/THÁNG) */}
+          {/* BẢNG 2: GIA VỊ & ĐỒ KHÔ (CHỈ CÓ Ở ĐỢT 1 - CHU KỲ 3 LẦN/THÁNG THEO TỪNG NGUYÊN LIỆU) */}
           <Paper className={styles.dryTableCard} elevation={0}>
             <Box className={styles.dryHeaderRow}>
               <Box className={styles.tableTitleGroup}>
-                <Boxes size={20} className={styles.warehouseIcon} />
                 <Box>
                   <Typography variant="subtitle1" className={styles.tableHeading}>
-                    B. Gia Vị &amp; Lương Thực Khô (Chỉ Đi Kèm Đợt 1 — Mặc Định Dùng Tồn Kho)
-                  </Typography>
-                  <Typography variant="caption" className={styles.drySubheading}>
-                    Trường nhập định kỳ 3 lần/tháng nên kho luôn dồi dào. Mặc định chưa tích = Bếp tự xuất kho; tích chọn nếu chuyến xe sáng mai này chở kèm đợt nhập tháng.
+                    B. Gia Vị &amp; Lương Thực Khô (Chỉ Giao Cùng Đợt 1 — Mặc Định Dùng Tồn Kho)
                   </Typography>
                 </Box>
               </Box>
 
-              {/* Badge chu kỳ 3 lần/tháng theo khảo sát */}
+              {/* Định mức chu kỳ 3 lần/tháng cho từng nguyên liệu */}
               <Chip
                 icon={<Clock size={14} />}
-                label="Chu kỳ nhập đồ khô: 3 lần / tháng (Đã giao: 1/3)"
+                label="Định mức kho: Tối đa 3 lần / tháng / mặt hàng"
                 size="small"
-                color="secondary"
-                className={styles.cycleBadge}
+                className={styles.cycleRuleBadge}
               />
             </Box>
 
             <Box className={styles.tableWrapper}>
-              <Table size="small" className={styles.ingTable}>
+              <Table size="small" className={styles.dryTable}>
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell padding="checkbox">
-                      <Tooltip title={isAllAttached ? "Bỏ chọn tất cả" : "Chọn giao kèm tất cả"}>
+                      <Tooltip title={isAllAttached ? "Bỏ chọn tất cả" : "Chọn giao cùng tất cả"}>
                         <Checkbox
                           size="small"
                           checked={isAllAttached}
@@ -449,16 +387,28 @@ export default function CreateDeliveryView({
                       </Tooltip>
                     </TableCell>
                     <TableCell>Tên nguyên liệu / Gia vị</TableCell>
+                    <TableCell>Nhà cung cấp (NCC)</TableCell>
+                    <TableCell align="center">Chu kỳ tháng (3 lần/tháng)</TableCell>
                     <TableCell align="center">Quy cách kho</TableCell>
                     <TableCell align="center">Định lượng / Suất</TableCell>
                     <TableCell align="right">Tổng nhu cầu ca nấu</TableCell>
-                    <TableCell align="center">Giao kèm chuyến xe Đợt 1</TableCell>
+                    <TableCell align="center">Giao cùng xe Đợt 1</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {dryIngredients.map(ing => {
                     const totalQty = (ing.qtyPerPortion * maxPortions).toFixed(2)
                     const isAttached = attachedDryIds.includes(ing.id)
+
+                    // 1. Kiểm tra NCC: Cùng xe với đồ tươi hay NCC đồ khô riêng
+                    const isSharedWithFresh = freshSupplierIds.has(ing.supplierId)
+
+                    // 2. Chu kỳ 3 lần/tháng tính trên từng nguyên liệu
+                    const cycleInfo = ing.monthlyCycle || MOCK_DRY_STOCK_MONTHLY_CYCLES[ing.id] || {
+                      currentOrders: 1,
+                      maxOrders: 3,
+                      lastDate: "10/10/2026",
+                    }
 
                     return (
                       <TableRow
@@ -481,6 +431,63 @@ export default function CreateDeliveryView({
                           <Typography variant="subtitle2" className={styles.ingName}>
                             {ing.name}
                           </Typography>
+                        </TableCell>
+
+                        {/* Cột NCC: Hiển thị NCC và nhận diện xe tươi sống hay NCC riêng */}
+                        <TableCell>
+                          <Box className={styles.supplierCol}>
+                            <Typography variant="body2" className={styles.supplierName}>
+                              {ing.supplierName || "Tổng kho Lương thực & Gia vị"}
+                            </Typography>
+                            {isSharedWithFresh ? (
+                              <Chip
+                                size="small"
+                                icon={<Truck size={12} />}
+                                label="Chung NCC xe tươi sống"
+                                className={styles.sharedSupplierChip}
+                              />
+                            ) : (
+                              <Chip
+                                size="small"
+                                icon={<Boxes size={12} />}
+                                label="NCC đồ khô riêng"
+                                className={styles.separateSupplierChip}
+                              />
+                            )}
+                          </Box>
+                        </TableCell>
+
+                        {/* Cột Chu kỳ tháng: Tính riêng cho từng nguyên liệu (3 lần/tháng) */}
+                        <TableCell align="center">
+                          <Box className={styles.cycleCellWrap}>
+                            <Chip
+                              size="small"
+                              icon={<Clock size={12} />}
+                              label={
+                                isAttached
+                                  ? `Giao lần ${Math.min(3, cycleInfo.currentOrders + 1)}/3`
+                                  : `Đã đặt ${cycleInfo.currentOrders}/3 lần`
+                              }
+                              className={
+                                isAttached
+                                  ? styles.cycleChipAttached
+                                  : cycleInfo.currentOrders === 0
+                                    ? styles.cycleChip0
+                                    : cycleInfo.currentOrders === 1
+                                      ? styles.cycleChip1
+                                      : cycleInfo.currentOrders === 2
+                                        ? styles.cycleChip2
+                                        : styles.cycleChip3
+                              }
+                            />
+                            <Typography variant="caption" className={styles.cycleSubtext}>
+                              {isAttached
+                                ? "Tính vào chỉ tiêu tháng"
+                                : cycleInfo.currentOrders === 0
+                                  ? "Tháng này chưa đặt"
+                                  : `Lần gần nhất: ${cycleInfo.lastDate}`}
+                            </Typography>
+                          </Box>
                         </TableCell>
 
                         <TableCell align="center">
@@ -508,7 +515,7 @@ export default function CreateDeliveryView({
                           {isAttached ? (
                             <Chip
                               icon={<Truck size={14} />}
-                              label="Giao kèm Đợt 1 (05:30)"
+                              label="Giao cùng Đợt 1"
                               size="small"
                               color="warning"
                               className={styles.attachedChip}
@@ -551,13 +558,13 @@ export default function CreateDeliveryView({
               />
               {attachedDryIds.length > 0 ? (
                 <Chip
-                  label={`${attachedDryIds.length} món khô giao kèm Đợt 1`}
+                  label={`${attachedDryIds.length} món khô giao cùng Đợt 1`}
                   size="small"
                   className={styles.summaryAttachedBadge}
                 />
               ) : (
                 <Chip
-                  label="Đồ khô: Dùng tồn kho (Không giao kèm)"
+                  label="Đồ khô: Dùng tồn kho (Không giao cùng)"
                   size="small"
                   variant="outlined"
                   className={styles.summaryWarehouseBadge}

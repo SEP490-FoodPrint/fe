@@ -48,6 +48,17 @@ export const MOCK_SUPPLIERS = [
   },
 ]
 
+export const MOCK_DRY_STOCK_MONTHLY_CYCLES = {
+  "ing-gao-09": { currentOrders: 1, maxOrders: 3, lastDate: "10/10/2026" },
+  "ing-dau-10": { currentOrders: 2, maxOrders: 3, lastDate: "18/10/2026" },
+  "ing-nuocmam-11": { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
+  "ing-muoi-12": { currentOrders: 1, maxOrders: 3, lastDate: "05/10/2026" },
+  "ing-duong-13": { currentOrders: 1, maxOrders: 3, lastDate: "08/10/2026" },
+  "ing-hatnem-14": { currentOrders: 2, maxOrders: 3, lastDate: "20/10/2026" },
+  "ing-tieu-15": { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
+  "ing-mien-16": { currentOrders: 3, maxOrders: 3, lastDate: "22/10/2026" },
+}
+
 export const MOCK_MASTER_INGREDIENT_CATALOG = [
   // ========================================================
   // 1. NHÓM KHO KHÔ (DRY_STOCK: Gạo, ngũ cốc, gia vị lưu kho dài ngày)
@@ -341,6 +352,7 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 28000,
+        monthlyCycle: { currentOrders: 1, maxOrders: 3, lastDate: "10/10/2026" },
       },
       {
         id: "ing-dau-10",
@@ -352,6 +364,7 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 32500,
+        monthlyCycle: { currentOrders: 2, maxOrders: 3, lastDate: "18/10/2026" },
       },
       {
         id: "ing-nuocmam-11",
@@ -363,6 +376,7 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 75000,
+        monthlyCycle: { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
       },
       {
         id: "ing-muoi-12",
@@ -371,9 +385,10 @@ export const MOCK_APPROVED_MENUS = [
         handlingType: "DRY_STOCK",
         unit: "kg",
         qtyPerPortion: 0.003, // 3g / suất
-        supplierId: "sup-kho-04",
-        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        supplierId: "sup-bavi-01",
+        supplierName: "HTX Chăn nuôi Sạch Ba Vì",
         unitPrice: 8000,
+        monthlyCycle: { currentOrders: 1, maxOrders: 3, lastDate: "05/10/2026" },
       },
     ],
   },

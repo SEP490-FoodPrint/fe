@@ -170,7 +170,7 @@ const IngredientOrderService = {
   /**
    * 1. TẠO ĐƠN MUA HÀNG ĐỢT 1 (Giao sớm 05:30 sáng)
    * - Chỉ tạo Đợt 1 (50% Suất tối đa)
-   * - Đồ khô: Chỉ có ở Đợt 1, kèm danh sách các món được tick giao kèm (nếu có)
+   * - Đồ khô: Chỉ có ở Đợt 1, kèm danh sách các món được tick giao cùng (nếu có)
    * - KHÔNG tạo Đợt 2 ngay
    */
   async createBatch1Order({ menuId, note, orderDate, attachedDryIds = [] }) {
@@ -191,11 +191,11 @@ const IngredientOrderService = {
         status: "WAITING",
       }))
 
-    // 2. Đồ khô được tick chọn giao kèm xe Đợt 1
+    // 2. Đồ khô được tick chọn giao cùng xe Đợt 1
     const attachedDryItems = targetMenu.ingredients
       .filter(it => it.handlingType === "DRY_STOCK" && attachedDryIds.includes(it.id))
       .map(it => ({
-        ingredientName: `${it.name} (Giao kèm nguyên kiện)`,
+        ingredientName: `${it.name} (Giao cùng nguyên kiện)`,
         handlingType: "DRY_STOCK",
         isAttachedDryStock: true,
         unit: it.unit,
@@ -213,7 +213,7 @@ const IngredientOrderService = {
       deliveryDate: orderDate || targetMenu.mealDate,
       deliveryTime: "05:30",
       batchType: "BATCH_1",
-      batchLabel: "Đợt 1 (50% Tươi sống" + (attachedDryItems.length > 0 ? ` + ${attachedDryItems.length} hàng khô giao kèm)` : ")"),
+      batchLabel: "Đợt 1 (50% Tươi sống" + (attachedDryItems.length > 0 ? ` + ${attachedDryItems.length} hàng khô giao cùng)` : ")"),
       maxPortions,
       plannedPortions: batch1Portions,
       supplierId: targetMenu.ingredients[0]?.supplierId || "sup-bavi-01",
