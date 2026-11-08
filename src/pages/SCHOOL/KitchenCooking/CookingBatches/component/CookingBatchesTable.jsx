@@ -47,11 +47,25 @@ export default function CookingBatchesTable({
       <Utensils size={size} aria-hidden="true" />
     )
   const statusBadge = (row, mobile = false) => (
-    <span
-      className={`${mobile ? styles.mobileStatusBadge : styles.statusBadge} ${styles[`status_${row.statusType}`]}`}
-    >
-      <span>{row.statusLabel}</span>
-    </span>
+    <div className={styles.statusCellWrap}>
+      <span
+        className={`${mobile ? styles.mobileStatusBadge : styles.statusBadge} ${styles[`status_${row.statusType}`]}`}
+      >
+        <span>{row.statusLabel}</span>
+      </span>
+      {row.status === "COMPLETED" && (
+        <span
+          className={`${styles.sampleSubBadge} ${row.hasSample ? styles.sampleDone : styles.samplePending}`}
+          title={
+            row.hasSample
+              ? "Đã lấy và niêm phong mẫu lưu 24h"
+              : "Mẻ nấu đã hoàn thành, cần lấy mẫu lưu thực phẩm 24h"
+          }
+        >
+          {row.hasSample ? "Đã lưu mẫu (24h)" : "Chưa lưu mẫu"}
+        </span>
+      )}
+    </div>
   )
 
   const handleViewDetail = (row) => {
