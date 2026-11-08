@@ -14,6 +14,10 @@ import {
   localDateISO,
   schoolClock,
 } from "src/services/KitchenService/adapter"
+import {
+  MOCK_SCHOOL_ACADEMIC_YEARS,
+  getWeeksOfAcademicYear,
+} from "src/services/MenuService/adapter"
 import CookingBatchesKPI from "./component/CookingBatchesKPI"
 import CookingBatchesFilter from "./component/CookingBatchesFilter"
 import CookingBatchesTable from "./component/CookingBatchesTable"
@@ -24,7 +28,14 @@ export default function CookingBatches() {
   const { userStore } = useContext(StoreContext) || {}
   const user = userStore?.user || getStorage(STORAGE.USER_INFO) || {}
   const schoolId = user.schoolId || user.orgId
-  const [filters, setFilters] = useState({ ...EMPTY_BATCH_FILTERS })
+
+  const availableAcademicYears = MOCK_SCHOOL_ACADEMIC_YEARS
+
+  const [filters, setFilters] = useState({
+    ...EMPTY_BATCH_FILTERS,
+    academicYear: "2026-2027",
+    week: "current",
+  })
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [paging, setPaging] = useState({ page: 1, limit: 10 })
   const [refresh, setRefresh] = useState(0)
@@ -45,14 +56,73 @@ export default function CookingBatches() {
   })
   const [exporting, setExporting] = useState(false)
   const [exportError, setExportError] = useState("")
+
+  // 1. Cấu hình năm học được chọn
+  const currentAcademicYearConfig = useMemo(() => {
+    return (
+      availableAcademicYears.find(
+        (ay) => ay.academicYear === filters.academicYear,
+      ) || availableAcademicYears[0]
+    )
+  }, [availableAcademicYears, filters.academicYear])
+
+  // 2. Danh sách tuần học thực tế trong năm học theo BGH
+  const schoolWeeks = useMemo(() => {
+    return getWeeksOfAcademicYear(currentAcademicYearConfig)
+  }, [currentAcademicYearConfig])
+
+  // 3. Tuần hiện tại
+  const currentWeekObj = useMemo(() => {
+    return schoolWeeks.find((w) => w.isCurrentWeek) || schoolWeeks[0]
+  }, [schoolWeeks])
+
+  // 4. Đối tượng tuần đang chọn
+  const selectedWeekObj = useMemo(() => {
+    if (filters.week === "all") return null
+    if (filters.week === "current" || !filters.week) return currentWeekObj
+    return (
+      schoolWeeks.find((w) => w.isoWeek === Number(filters.week)) ||
+      currentWeekObj
+    )
+  }, [schoolWeeks, filters.week, currentWeekObj])
+
+  // 5. Khoảng ngày tương ứng với tuần đang chọn
+  const effectiveDateRange = useMemo(() => {
+    if (filters.week === "all") {
+      return { startDate: "", endDate: "" }
+    }
+    if (selectedWeekObj?.startDateISO && selectedWeekObj?.endDateISO) {
+      return {
+        startDate: selectedWeekObj.startDateISO,
+        endDate: selectedWeekObj.endDateISO,
+      }
+    }
+    return { startDate: "", endDate: "" }
+  }, [filters.week, selectedWeekObj])
+
+  // 6. Params chuẩn hóa để gửi tới KitchenService (list & stats)
+  const effectiveFilterParams = useMemo(() => {
+    const params = {
+      search: debouncedSearch || undefined,
+      mealType: filters.mealType || undefined,
+      status: filters.status || undefined,
+      cookingModeApplied: filters.cookingModeApplied || undefined,
+    }
+    if (effectiveDateRange.startDate && effectiveDateRange.endDate) {
+      params.startDate = effectiveDateRange.startDate
+      params.endDate = effectiveDateRange.endDate
+    }
+    return params
+  }, [debouncedSearch, effectiveDateRange, filters.mealType, filters.status, filters.cookingModeApplied])
+
   const scope = `${user.id || ""}:${schoolId || ""}`
   const statsKey = JSON.stringify({
     scope,
-    query: { ...filters, search: debouncedSearch },
+    query: effectiveFilterParams,
   })
   const queryKey = JSON.stringify({
     scope,
-    query: { ...filters, search: debouncedSearch, ...paging },
+    query: { ...effectiveFilterParams, ...paging },
   })
   const searchPending = debouncedSearch !== filters.search.trim()
 
@@ -178,11 +248,23 @@ export default function CookingBatches() {
     .filter(Boolean)
     .join(" · ")
 
-  const changeFilters = (value) => {
-    setFilters(value)
+  const changeFilters = (newFilters) => {
+    if (newFilters.academicYear !== filters.academicYear) {
+      const nextConfig =
+        availableAcademicYears.find(
+          (ay) => ay.academicYear === newFilters.academicYear,
+        ) || availableAcademicYears[0]
+      const nextWeeks = getWeeksOfAcademicYear(nextConfig)
+      const nextCurrent =
+        nextWeeks.find((w) => w.isCurrentWeek) || nextWeeks[0]
+      newFilters.week = nextCurrent ? nextCurrent.isoWeek : "current"
+    }
+    setFilters(newFilters)
     setPaging((current) => ({ ...current, page: 1 }))
   }
+
   const reload = () => setRefresh((value) => value + 1)
+
   const navigateCreate = () => {
     if (canCreate)
       navigate(
@@ -191,6 +273,7 @@ export default function CookingBatches() {
           : ROUTER.SCHOOL_KITCHEN_BATCH_CREATE,
       )
   }
+
   const exportReport = async () => {
     setExporting(true)
     setExportError("")
@@ -205,7 +288,10 @@ export default function CookingBatches() {
       )
       const link = document.createElement("a")
       link.href = url
-      link.download = `lo-che-bien-${filters.date || localDateISO()}.csv`
+      const weekLabelForFile = selectedWeekObj
+        ? `tuan-${selectedWeekObj.weekIndex || selectedWeekObj.isoWeek}`
+        : "tat-ca-tuan"
+      link.download = `lo-che-bien-${filters.academicYear || "2026-2027"}-${weekLabelForFile}.csv`
       document.body.appendChild(link)
       link.click()
       link.remove()
@@ -287,7 +373,15 @@ export default function CookingBatches() {
           {exportError}
         </Alert>
       )}
-      <CookingBatchesKPI stats={stats} loading={statsLoading} />
+
+      {/* KPI Cards: hiển thị số lượng lô theo tuần (tuần này đã tạo bao nhiêu lô) */}
+      <CookingBatchesKPI
+        stats={stats}
+        loading={statsLoading}
+        selectedWeekObj={selectedWeekObj}
+        isAllWeeks={filters.week === "all"}
+      />
+
       {statsState.key === statsKey && statsState.error && (
         <Alert
           severity="warning"
@@ -300,11 +394,24 @@ export default function CookingBatches() {
           Chưa tải được thống kê: {statsState.error}
         </Alert>
       )}
+
+      {/* Bộ lọc: Năm học + Tuần học + Bữa ăn + Trạng thái */}
       <CookingBatchesFilter
         filters={filters}
         onChange={changeFilters}
         onRefresh={reload}
+        onReset={() => {
+          setFilters({
+            ...EMPTY_BATCH_FILTERS,
+            academicYear: "2026-2027",
+            week: "current",
+          })
+          setPaging((current) => ({ ...current, page: 1 }))
+        }}
+        academicYearOptions={availableAcademicYears}
+        weeks={schoolWeeks}
       />
+
       <CookingBatchesTable
         rows={rows}
         pagination={pagination}
@@ -314,6 +421,7 @@ export default function CookingBatches() {
         onPageChange={(page) => setPaging((current) => ({ ...current, page }))}
         onPageSizeChange={(limit) => setPaging({ page: 1, limit })}
       />
+
       <div className={styles.mobileStickyBar}>
         <Button
           variant="contained"

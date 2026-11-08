@@ -27,22 +27,26 @@
 }
 .searchField {
   flex: 1;
-  min-width: 180px;
+  min-width: 200px;
 }
 .filterControls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(140px, 1fr)) 44px;
+  grid-template-columns: minmax(130px, 150px) minmax(240px, 1.8fr) minmax(125px, 1fr) minmax(135px, 1fr) 44px;
   align-items: center;
   gap: var(--space-3);
-  @media (max-width: 1200px) {
+  @media (max-width: 1400px) {
     flex-basis: 100%;
-    grid-template-columns: repeat(3, minmax(0, 1fr)) 44px;
+    grid-template-columns: minmax(130px, 1fr) minmax(220px, 1.6fr) minmax(120px, 1fr) minmax(130px, 1fr) 44px;
+  }
+  @media (max-width: 960px) {
+    flex-basis: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) 44px;
   }
   @media (max-width: 768px) {
     display: none;
     &.controlsExpanded {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr;
     }
   }
 }
