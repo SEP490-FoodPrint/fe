@@ -2,6 +2,13 @@ import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box, Typography } from "@mui/material"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
+import { adaptCatalogItem } from "src/services/IngredientOrderService/adapter"
+import {
+  MOCK_MASTER_INGREDIENT_CATALOG,
+  MOCK_SUPPLIERS,
+  MOCK_APPROVED_MENUS,
+  MOCK_DELIVERIES,
+} from "./mockData"
 
 import OrderListHeader from "./component/OrderListHeader"
 import OrderTabViews from "./component/OrderTabViews"
@@ -22,18 +29,21 @@ import styles from "./index.module.scss"
 const PAGE_SIZE = 10
 
 export default function IngredientOrders() {
-  // Tab 1: Danh mục nguyên liệu
-  const [catalog, setCatalog] = useState([])
-  const [suppliers, setSuppliers] = useState([])
+  // Tab 1: Danh mục nguyên liệu (Khởi tạo sẵn Mock Data để hiển thị tức thì, không bị rỗng)
+  const [catalog, setCatalog] = useState(() => MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem))
+  const [suppliers, setSuppliers] = useState(() => MOCK_SUPPLIERS)
   const [loading, setLoading] = useState(false)
 
   // Tab 2: Phiếu giao nhận & Nhập hàng
-  const [deliveries, setDeliveries] = useState([])
-  const [approvedMenus, setApprovedMenus] = useState([])
+  const [deliveries, setDeliveries] = useState(() => MOCK_DELIVERIES)
+  const [approvedMenus, setApprovedMenus] = useState(() => MOCK_APPROVED_MENUS)
 
   // Sub-view trong Tab 2: "list" (mặc định) | "create" | "detail"
   const [deliverySubView, setDeliverySubView] = useState("list")
   const [selectedDelivery, setSelectedDelivery] = useState(null)
+
+  // Ngày được chọn khi mở màn hình Tạo đơn (để tự động nhận diện Đợt 1 / Đợt 2)
+  const [createTargetDate, setCreateTargetDate] = useState("2026-10-27")
 
   // Active tab: "catalog" (mặc định) | "deliveries" | "orders"
   const [activeTab, setActiveTab] = useState("catalog")
@@ -55,7 +65,7 @@ export default function IngredientOrders() {
   // Pagination state
   const [page, setPage] = useState(1)
 
-  // Tải dữ liệu ban đầu 1 lần duy nhất khi mount
+  // Tải dữ liệu ban đầu khi mount
   const fetchData = useCallback(async () => {
     setLoading(true)
     try {
@@ -95,7 +105,7 @@ export default function IngredientOrders() {
     return {
       total: deliveries.length,
       batch1Count: deliveries.filter(d => d.batchType === "BATCH_1").length,
-      waitingAttendanceCount: deliveries.filter(d => d.status === "WAITING_ATTENDANCE").length,
+      batch2Count: deliveries.filter(d => d.batchType === "BATCH_2").length,
       completedCount: deliveries.filter(d => d.status === "COMPLETED").length,
     }
   }, [deliveries])
@@ -205,21 +215,38 @@ export default function IngredientOrders() {
     setSelectedDelivery(null)
   }
 
-  // Tạo đơn mua hàng từ Thực đơn
-  const handleCreateOrder = async orderData => {
-    const res = await IngredientOrderService.createSupplyOrder(orderData)
+  // 1. TẠO ĐƠN MUA HÀNG ĐỢT 1
+  const handleCreateBatch1Order = async orderData => {
+    const res = await IngredientOrderService.createBatch1Order(orderData)
     if (res?.success) {
       const refreshed = await IngredientOrderService.getDeliveries()
       if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
       setDeliverySubView("list")
+
+      const attachedText = res.attachedDryCount > 0 ? ` (giao cùng ${res.attachedDryCount} món khô)` : ""
       notice({
-        msg: `Đã tạo thành công Đơn mua hàng ${res.orderNo} gồm 2 đợt giao nhận!`,
+        msg: `Đã tạo Đơn mua hàng Đợt 1 ${res.orderNo}${attachedText}! Bạn có thể tiếp tục tạo Đợt 2 khi GVCN chốt sĩ số sáng.`,
         isSuccess: true,
       })
     }
   }
 
-  // Cập nhật sĩ số GVCN cho Đợt 2
+  // 2. TẠO ĐƠN GIAO HÀNG ĐỢT 2 (THEO SĨ SỐ GVCN)
+  const handleCreateBatch2Order = async orderData => {
+    const res = await IngredientOrderService.createBatch2Order(orderData)
+    if (res?.success) {
+      const refreshed = await IngredientOrderService.getDeliveries()
+      if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
+      setDeliverySubView("list")
+
+      notice({
+        msg: `Đã chốt và tạo Đơn giao hàng Đợt 2 theo sĩ số (${res.actualAttendance} HS) — Giao bù ${res.remainingPortions} suất!`,
+        isSuccess: true,
+      })
+    }
+  }
+
+  // Cập nhật sĩ số GVCN cho Đợt 2 (trong màn xem chi tiết)
   const handleConfirmAttendance = async (deliveryId, actualCount) => {
     const res = await IngredientOrderService.updateBatch2Attendance(deliveryId, actualCount)
     if (res?.success) {
@@ -305,13 +332,20 @@ export default function IngredientOrders() {
                 filters={deliveryFilters}
                 onFilterChange={handleDeliveryFilterChange}
                 onResetFilters={handleResetDeliveryFilters}
-                onOpenCreate={() => setDeliverySubView("create")}
+                onOpenCreate={() => {
+                  setCreateTargetDate("2026-10-27")
+                  setDeliverySubView("create")
+                }}
               />
 
               {/* Bảng Phiếu giao nhận */}
               <DeliveryTable
                 deliveries={paginatedDeliveries}
                 onViewDetail={handleViewDetail}
+                onAddBatch2={item => {
+                  setCreateTargetDate(item.deliveryDate)
+                  setDeliverySubView("create")
+                }}
               />
 
               {/* Phân trang */}
@@ -325,12 +359,15 @@ export default function IngredientOrders() {
             </>
           )}
 
-          {/* Sub-view 2: Tạo Đơn Mua Hàng Từ Thực Đơn (Thay thế nội dung bên dưới 3 tab) */}
+          {/* Sub-view 2: Tạo Đơn Mua Hàng Từ Thực Đơn (Tự động nhận diện Đợt 1 / Đợt 2 theo Ngày) */}
           {deliverySubView === "create" && (
             <CreateDeliveryView
               menus={approvedMenus}
+              deliveries={deliveries}
+              initialDate={createTargetDate}
               onBack={handleBackToList}
-              onSubmit={handleCreateOrder}
+              onSubmitBatch1={handleCreateBatch1Order}
+              onSubmitBatch2={handleCreateBatch2Order}
             />
           )}
 

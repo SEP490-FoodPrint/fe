@@ -48,6 +48,17 @@ export const MOCK_SUPPLIERS = [
   },
 ]
 
+export const MOCK_DRY_STOCK_MONTHLY_CYCLES = {
+  "ing-gao-09": { currentOrders: 1, maxOrders: 3, lastDate: "10/10/2026" },
+  "ing-dau-10": { currentOrders: 2, maxOrders: 3, lastDate: "18/10/2026" },
+  "ing-nuocmam-11": { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
+  "ing-muoi-12": { currentOrders: 1, maxOrders: 3, lastDate: "05/10/2026" },
+  "ing-duong-13": { currentOrders: 1, maxOrders: 3, lastDate: "08/10/2026" },
+  "ing-hatnem-14": { currentOrders: 2, maxOrders: 3, lastDate: "20/10/2026" },
+  "ing-tieu-15": { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
+  "ing-mien-16": { currentOrders: 3, maxOrders: 3, lastDate: "22/10/2026" },
+}
+
 export const MOCK_MASTER_INGREDIENT_CATALOG = [
   // ========================================================
   // 1. NHÓM KHO KHÔ (DRY_STOCK: Gạo, ngũ cốc, gia vị lưu kho dài ngày)
@@ -341,6 +352,7 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 28000,
+        monthlyCycle: { currentOrders: 1, maxOrders: 3, lastDate: "10/10/2026" },
       },
       {
         id: "ing-dau-10",
@@ -352,6 +364,7 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 32500,
+        monthlyCycle: { currentOrders: 2, maxOrders: 3, lastDate: "18/10/2026" },
       },
       {
         id: "ing-nuocmam-11",
@@ -363,6 +376,7 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 75000,
+        monthlyCycle: { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
       },
       {
         id: "ing-muoi-12",
@@ -371,9 +385,10 @@ export const MOCK_APPROVED_MENUS = [
         handlingType: "DRY_STOCK",
         unit: "kg",
         qtyPerPortion: 0.003, // 3g / suất
-        supplierId: "sup-kho-04",
-        supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
+        supplierId: "sup-bavi-01",
+        supplierName: "HTX Chăn nuôi Sạch Ba Vì",
         unitPrice: 8000,
+        monthlyCycle: { currentOrders: 1, maxOrders: 3, lastDate: "05/10/2026" },
       },
     ],
   },
@@ -625,60 +640,6 @@ export const MOCK_DELIVERIES = [
     ],
   },
   {
-    id: "deliv-20261026-02",
-    deliveryNo: "PN-20261026-D2",
-    orderNo: "PO-20261026-01",
-    menuId: "menu-20261026",
-    menuName: "Thực đơn Cải thiện Năng lượng Ngày 26/10/2026",
-    deliveryDate: "2026-10-26",
-    deliveryTime: "07:45",
-    batchType: "BATCH_2",
-    batchLabel: "Đợt 2 (Chờ GVCN chốt sĩ số)",
-    maxPortions: 850,
-    batch1Portions: 425,
-    actualAttendance: null, // Chưa có sĩ số
-    plannedPortions: 425, // Dự kiến tạm tính
-    supplierId: "sup-chilinh-02",
-    supplierName: "Nông trại Gà đồi Chí Linh & Đà Lạt Green",
-    driverName: "--",
-    deliveryQr: "--",
-    refrigerationTemp: "--",
-    status: "WAITING_ATTENDANCE",
-    statusLabel: "Chờ GVCN báo sĩ số sáng",
-    approvals: {
-      ingredientManagement: { approved: null },
-      healthOfficer: { approved: null },
-      parentsCommittee: { approved: null },
-      kitchenStaff: { approved: null },
-    },
-    items: [
-      {
-        ingredientName: "Thịt gà đồi làm sạch VietGAP",
-        handlingType: "DIRECT_USE",
-        unit: "kg",
-        orderedQty: 34.0,
-        deliveredQty: 0,
-        status: "WAITING",
-      },
-      {
-        ingredientName: "Cà rốt tươi loại 1",
-        handlingType: "DIRECT_USE",
-        unit: "kg",
-        orderedQty: 17.0,
-        deliveredQty: 0,
-        status: "WAITING",
-      },
-      {
-        ingredientName: "Bắp cải trắng Đà Lạt",
-        handlingType: "DIRECT_USE",
-        unit: "kg",
-        orderedQty: 25.5,
-        deliveredQty: 0,
-        status: "WAITING",
-      },
-    ],
-  },
-  {
     id: "deliv-20261024-REJ",
     deliveryNo: "PN-20261024-D1-REJ",
     orderNo: "PO-20261024-00",
@@ -695,10 +656,10 @@ export const MOCK_DELIVERIES = [
     driverName: "Đặng Văn Nam (Xe 29B-441.90)",
     deliveryQr: "QR-LOT-20261024-DL01",
     refrigerationTemp: "14.5°C (Quá ngưỡng quy định)",
-    status: "REJECTED",
-    statusLabel: "Từ chối 1 trong 4 bên (Yêu cầu giao lại)",
+    status: "CANCELLED",
+    statusLabel: "Đã hủy đơn (2 bên từ chối)",
     rejectionReason:
-      "BS. Lê Thu Nga (Y tế) & Bác Phạm Văn Hùng (Ban PH) từ chối: Thùng xe lạnh bị hỏng máy lạnh (14.5°C), rau cải bị dập nát > 25% và có mùi úng. Yêu cầu NCC đổi xe khác trước 06h15.",
+      "BS. Lê Thu Nga (Y tế) & Bác Phạm Văn Hùng (Ban PH) từ chối: Thùng xe lạnh bị hỏng máy lạnh (14.5°C), rau cải bị dập nát > 25% và có mùi úng. Đơn hàng bị hủy toàn bộ theo quy chế từ 2 bên từ chối trở lên.",
     approvals: {
       ingredientManagement: { approved: true, name: "Trần Hữu Kiên (Ban QL NL)" },
       healthOfficer: { approved: false, name: "BS. Lê Thu Nga (Y tế) - TỪ CHỐI" },
@@ -712,6 +673,44 @@ export const MOCK_DELIVERIES = [
         unit: "kg",
         orderedQty: 17.0,
         deliveredQty: 17.0,
+        status: "REJECTED",
+      },
+    ],
+  },
+  {
+    id: "deliv-20261023-REDELIVER",
+    deliveryNo: "PN-20261023-D1",
+    orderNo: "PO-20261023-01",
+    menuId: "menu-20261025",
+    menuName: "Thực đơn Ngày 23/10/2026",
+    deliveryDate: "2026-10-23",
+    deliveryTime: "05:20",
+    batchType: "BATCH_1",
+    batchLabel: "Đợt 1 (50% Suất tối đa)",
+    maxPortions: 850,
+    plannedPortions: 425,
+    supplierId: "sup-bavi-01",
+    supplierName: "HTX Chăn nuôi Sạch Ba Vì",
+    driverName: "Lê Hữu Đạt (Xe 29C-338.12)",
+    deliveryQr: "QR-LOT-20261023-BV01",
+    refrigerationTemp: "8.8°C (Vượt mức 5°C)",
+    status: "RE_DELIVER",
+    statusLabel: "Yêu cầu giao lại (1 bên từ chối)",
+    rejectionReason:
+      "BS. Lê Thu Nga (Y tế) từ chối nhận: Nhiệt độ thùng xe 8.8°C (vượt ngưỡng ATTP < 5°C). Yêu cầu NCC giao lại lô khác đạt chuẩn trước 06:15.",
+    approvals: {
+      ingredientManagement: { approved: true, name: "Trần Hữu Kiên (Ban QL NL)" },
+      healthOfficer: { approved: false, name: "BS. Lê Thu Nga (Y tế) - TỪ CHỐI" },
+      parentsCommittee: { approved: true, name: "Bác Phạm Văn Hùng (Ban PH)" },
+      kitchenStaff: { approved: null, name: "Bên Bếp" },
+    },
+    items: [
+      {
+        ingredientName: "Thịt lợn nạc mông VietGAP",
+        handlingType: "DIRECT_USE",
+        unit: "kg",
+        orderedQty: 21.25,
+        deliveredQty: 21.25,
         status: "REJECTED",
       },
     ],
