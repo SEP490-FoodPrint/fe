@@ -1,41 +1,12 @@
 import React from "react";
-import { CookingPot, Layers } from "lucide-react";
+import { CookingPot, Layers, CheckCircle2, ArrowRight } from "lucide-react";
 import styles from "./ProposedBatchSection.module.scss";
 
-const TRACE_LOTS = [
-  {
-    code: "LOT-HEO-892",
-    name: "Thịt ba chỉ heo tươi",
-    amount: "50.0 kg",
-    cert: "VietGAP",
-  },
-  {
-    code: "LOT-HEO-893",
-    name: "Thịt ba chỉ heo tươi",
-    amount: "35.5 kg",
-    cert: "VietGAP",
-  },
-  {
-    code: "LOT-CUT-224",
-    name: "Trứng cút tươi sạch",
-    amount: "2.500 quả",
-    cert: "HACCP",
-  },
-  {
-    code: "LOT-DUA-018",
-    name: "Nước dừa tươi nguyên chất",
-    amount: "80.0 lít",
-    cert: "Chuẩn ATTP",
-  },
-  {
-    code: "LOT-GVI-045",
-    name: "Gia vị kho an toàn",
-    amount: "4.2 kg",
-    cert: "OCOP 4 sao",
-  },
-];
-
-export default function ProposedBatchSection({ selectedDish }) {
+export default function ProposedBatchSection({
+  selectedDish,
+  dishes = [],
+  setSelectedDish,
+}) {
   if (!selectedDish) {
     return (
       <section className={styles.sectionContainer}>
@@ -46,30 +17,77 @@ export default function ProposedBatchSection({ selectedDish }) {
         <div className={styles.emptyState}>
           <CookingPot size={22} className={styles.emptyIcon} />
           <p className={styles.emptyDesc}>
-            Vui lòng chọn món ăn ở trên để xem danh sách nguyên liệu xuất kho.
+            Vui lòng chọn món ăn ở trên để xem danh sách nguyên liệu và phương án nấu.
           </p>
         </div>
       </section>
     );
   }
 
+  const ingredients = selectedDish.ingredients || [];
+  const isCreated = selectedDish.isBatchCreated;
+  const nextPendingDish = dishes.find((d) => !d.isBatchCreated && d.id !== selectedDish.id);
+
   return (
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
         <div className={styles.titleWrap}>
-          <h2 className={styles.sectionTitle}>Phương án chế biến dự kiến</h2>
-          <span className={styles.lotCodeBadge}>LÔ-THK-01</span>
+          <h2 className={styles.sectionTitle}>Phương án chế biến: {selectedDish.name}</h2>
+          <span className={styles.lotCodeBadge}>
+            {selectedDish.batchCode || "LÔ-DỰ-KIẾN"}
+          </span>
           <span className={styles.modeTag}>Nấu chung</span>
         </div>
+
+        {isCreated ? (
+          <span className={styles.badgeSuccess}>
+            <CheckCircle2 size={13} />
+            <span>Đã tạo lô</span>
+          </span>
+        ) : (
+          <span className={styles.badgePending}>
+            <span>Chờ tạo lô</span>
+          </span>
+        )}
       </div>
 
-      {/* Danh sách nguyên liệu & Lô xuất kho */}
+      {/* Banner thông báo nếu món này đã được tạo lô */}
+      {isCreated && (
+        <div className={styles.alreadyCreatedBanner}>
+          <div className={styles.createdInfoLeft}>
+            <CheckCircle2 size={18} className={styles.createdCheckIcon} />
+            <div className={styles.createdTextWrap}>
+              <span className={styles.createdTitle}>
+                Món ăn này đã có lô chế biến ({selectedDish.batchCode})
+              </span>
+              <span className={styles.createdSubtitle}>
+                Nguyên liệu đã được phân bổ sẵn sàng cho bếp chế biến.
+              </span>
+            </div>
+          </div>
+
+          {nextPendingDish && setSelectedDish && (
+            <button
+              type="button"
+              className={styles.jumpNextBtn}
+              onClick={() => setSelectedDish(nextPendingDish)}
+            >
+              <span>Tiếp tục tạo: {nextPendingDish.name}</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Danh sách nguyên liệu & Lô xuất kho (Đã bỏ gia vị an toàn & bỏ cột tiêu chuẩn) */}
       <div className={styles.ingredientsSection}>
         <div className={styles.ingHeaderRow}>
           <div className={styles.ingTitleLeft}>
             <Layers size={14} className={styles.ingIcon} />
             <span className={styles.ingTitle}>Lô nguyên liệu xuất kho</span>
-            <span className={styles.ingCountBadge}>05 lô liên kết</span>
+            <span className={styles.ingCountBadge}>
+              {ingredients.length.toString().padStart(2, "0")} lô nguyên liệu
+            </span>
           </div>
         </div>
 
@@ -77,23 +95,21 @@ export default function ProposedBatchSection({ selectedDish }) {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Mã lô nguồn</th>
+                <th scope="col" style={{ width: "160px" }}>Mã lô nguồn</th>
                 <th scope="col">Tên nguyên liệu</th>
-                <th scope="col" style={{ textAlign: "right" }}>Định lượng</th>
-                <th scope="col" style={{ textAlign: "center" }}>Tiêu chuẩn</th>
+                <th scope="col" style={{ textAlign: "right", width: "160px" }}>
+                  Định lượng xuất kho
+                </th>
               </tr>
             </thead>
             <tbody>
-              {TRACE_LOTS.map((lot) => (
-                <tr key={lot.code}>
+              {ingredients.map((lot) => (
+                <tr key={lot.code || lot.name}>
                   <td>
                     <span className={styles.lotCode}>{lot.code}</span>
                   </td>
                   <td className={styles.lotName}>{lot.name}</td>
                   <td className={styles.lotAmount}>{lot.amount}</td>
-                  <td style={{ textAlign: "center" }}>
-                    <span className={styles.certBadge}>{lot.cert}</span>
-                  </td>
                 </tr>
               ))}
             </tbody>

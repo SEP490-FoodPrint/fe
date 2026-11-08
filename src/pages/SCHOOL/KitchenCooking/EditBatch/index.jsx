@@ -85,18 +85,6 @@ const COMBINE_SUB_INGREDIENTS_INITIAL = [
     unit: "kg",
     quantity: 0.35,
     quotaPerPortion: "3.5g / suất"
-  },
-  {
-    id: 4,
-    name: "Gia vị kho tổng hợp",
-    lotCode: "LOT-GVI-045",
-    supplier: "Masan Consumer",
-    cert: "ISO 22000 & HACCP Codex",
-    expiryDate: "30/12/2026",
-    stock: 20.0,
-    unit: "kg",
-    quantity: 0.8,
-    quotaPerPortion: "8g / suất"
   }
 ]
 
@@ -152,18 +140,6 @@ const SEPARATE_SUB_INITIAL = [
     unit: "kg",
     quantity: 0.2,
     quotaPerPortion: "3.3g / suất"
-  },
-  {
-    id: 4,
-    name: "Gia vị kho tổng hợp",
-    lotCode: "LOT-GVI-045",
-    supplier: "Masan Consumer",
-    cert: "ISO 22000 & HACCP Codex",
-    expiryDate: "30/12/2026",
-    stock: 20.0,
-    unit: "kg",
-    quantity: 0.5,
-    quotaPerPortion: "8.3g / suất"
   }
 ]
 

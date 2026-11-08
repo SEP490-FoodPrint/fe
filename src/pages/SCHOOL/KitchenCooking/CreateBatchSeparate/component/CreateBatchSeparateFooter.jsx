@@ -5,15 +5,26 @@ import {
   CheckCircle2,
   AlertCircle,
   PlusCircle,
+  ArrowRight,
 } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import styles from "./CreateBatchSeparateFooter.module.scss";
 
-export default function CreateBatchSeparateFooter({ selectedDish }) {
+export default function CreateBatchSeparateFooter({
+  selectedDish,
+  dishes = [],
+  onBatchCreated,
+  onSelectNextDish,
+}) {
   const navigate = useNavigate();
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isError, setIsError] = useState(false);
+
+  const isCreated = selectedDish?.isBatchCreated;
+  const nextPendingDish = dishes.find(
+    (d) => !d.isBatchCreated && d.id !== selectedDish?.id
+  );
 
   const handleCreateBatch = () => {
     if (!selectedDish) {
@@ -23,13 +34,37 @@ export default function CreateBatchSeparateFooter({ selectedDish }) {
       setTimeout(() => setShowToast(false), 2500);
       return;
     }
-    setIsError(false);
-    setToastMessage(`Khởi tạo 02 lô nấu riêng ${selectedDish.name} thành công!`);
-    setShowToast(true);
-    setTimeout(() => {
-      setShowToast(false);
+
+    if (isCreated) {
+      if (nextPendingDish && onSelectNextDish) {
+        onSelectNextDish(nextPendingDish);
+        return;
+      }
       navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
-    }, 1200);
+      return;
+    }
+
+    setIsError(false);
+    const dishCode = selectedDish.batchCode || "02 LÔ TÁCH";
+    
+    if (onBatchCreated) {
+      onBatchCreated(selectedDish.id);
+    }
+
+    if (nextPendingDish) {
+      setToastMessage(`✓ Đã tạo 02 lô (${dishCode}) cho "${selectedDish.name}". Đang chuyển sang món tiếp theo...`);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+      }, 2000);
+    } else {
+      setToastMessage(`✓ Đã hoàn tất tạo lô cho tất cả ${dishes.length} món ăn hôm nay!`);
+      setShowToast(true);
+      setTimeout(() => {
+        setShowToast(false);
+        navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
+      }, 1500);
+    }
   };
 
   return (
@@ -43,18 +78,46 @@ export default function CreateBatchSeparateFooter({ selectedDish }) {
           aria-label="Quay lại danh sách lô"
         >
           <ArrowLeft size={16} />
-          <span>Quay lại</span>
+          <span>Danh sách lô</span>
         </button>
 
-        <button
-          type="button"
-          className={styles.createBtn}
-          onClick={handleCreateBatch}
-          disabled={!selectedDish}
-        >
-          <PlusCircle size={17} />
-          <span>Tạo lô chế biến (02 lô)</span>
-        </button>
+        <div className={styles.rightActions}>
+          {isCreated ? (
+            nextPendingDish ? (
+              <button
+                type="button"
+                className={styles.createBtn}
+                onClick={handleCreateBatch}
+              >
+                <span>Chuyển sang: {nextPendingDish.name}</span>
+                <ArrowRight size={17} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.finishBtn}
+                onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+              >
+                <CheckCircle2 size={17} />
+                <span>Hoàn tất & Về danh sách</span>
+              </button>
+            )
+          ) : (
+            <button
+              type="button"
+              className={styles.createBtn}
+              onClick={handleCreateBatch}
+              disabled={!selectedDish}
+            >
+              <PlusCircle size={17} />
+              <span>
+                {nextPendingDish
+                  ? `Tạo 02 lô tách & Tiếp tục`
+                  : `Tạo 02 lô tách`}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* 2. Mobile Sticky Bottom Bar */}
@@ -64,11 +127,26 @@ export default function CreateBatchSeparateFooter({ selectedDish }) {
             type="button"
             className={styles.mobCreateBtn}
             onClick={handleCreateBatch}
-            aria-label="Khởi tạo lô chế biến mới"
             disabled={!selectedDish}
           >
-            <PlusCircle size={18} />
-            <span>Tạo 02 lô chế biến</span>
+            {isCreated ? (
+              nextPendingDish ? (
+                <>
+                  <span>Tiếp tục: {nextPendingDish.name}</span>
+                  <ArrowRight size={18} />
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={18} />
+                  <span>Hoàn tất & Về danh sách</span>
+                </>
+              )
+            ) : (
+              <>
+                <PlusCircle size={18} />
+                <span>Tạo 02 lô tách</span>
+              </>
+            )}
           </button>
         </div>
       </div>

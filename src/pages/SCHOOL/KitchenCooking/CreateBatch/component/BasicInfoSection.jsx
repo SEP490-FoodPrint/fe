@@ -1,34 +1,46 @@
-import React, { useState, useRef, useEffect } from "react";
+import React from "react";
 import {
   Calendar,
   ChevronDown,
-  ChevronUp,
   Beef,
   Soup,
   Utensils,
   Apple,
   CheckCircle2,
-  Search,
-  X,
-  Users,
   Clock,
+  Users,
 } from "lucide-react";
 import styles from "./BasicInfoSection.module.scss";
 
-export const DISH_OPTIONS = [
+export const INITIAL_DISHES = [
   {
     id: "dish-1",
     name: "Thịt heo kho nước dừa",
-    type: "Món mặn chính • Giàu đạm, canxi",
+    type: "Món mặn chính • Giàu đạm",
     icon: Beef,
     portionStandard: 1250,
+    isBatchCreated: false,
+    batchCode: "LÔ-THK-01",
+    ingredients: [
+      { code: "LOT-HEO-892", name: "Thịt ba chỉ heo tươi", amount: "50.0 kg" },
+      { code: "LOT-HEO-893", name: "Thịt ba chỉ heo tươi", amount: "35.5 kg" },
+      { code: "LOT-CUT-224", name: "Trứng cút tươi sạch", amount: "2.500 quả" },
+      { code: "LOT-DUA-018", name: "Nước dừa tươi nguyên chất", amount: "80.0 lít" },
+    ],
   },
   {
     id: "dish-2",
     name: "Canh sườn hầm củ quả thập cẩm",
-    type: "Món canh • Bổ sung vitamin, chất xơ",
+    type: "Món canh • Vitamin, chất xơ",
     icon: Soup,
     portionStandard: 1250,
+    isBatchCreated: false,
+    batchCode: "LÔ-CSH-01",
+    ingredients: [
+      { code: "LOT-SUON-102", name: "Sườn non heo sạch", amount: "65.0 kg" },
+      { code: "LOT-CQ-551", name: "Củ quả tươi thập cẩm (cà rốt, ngô, khoai tây)", amount: "45.0 kg" },
+      { code: "LOT-HANH-088", name: "Hành hoa & ngò rí tươi", amount: "3.5 kg" },
+    ],
   },
   {
     id: "dish-3",
@@ -36,6 +48,11 @@ export const DISH_OPTIONS = [
     type: "Món cơm / Tinh bột sạch",
     icon: Utensils,
     portionStandard: 1250,
+    isBatchCreated: true,
+    batchCode: "LÔ-COM-01",
+    ingredients: [
+      { code: "LOT-GAO-304", name: "Gạo đặc sản ST25 Sóc Trăng", amount: "110.0 kg" },
+    ],
   },
   {
     id: "dish-4",
@@ -43,10 +60,18 @@ export const DISH_OPTIONS = [
     type: "Tráng miệng • Trái cây tươi",
     icon: Apple,
     portionStandard: 1250,
+    isBatchCreated: false,
+    batchCode: "LÔ-TL-01",
+    ingredients: [
+      { code: "LOT-TL-092", name: "Thanh long ruột đỏ tươi", amount: "125.0 kg" },
+    ],
   },
 ];
 
+export const DISH_OPTIONS = INITIAL_DISHES;
+
 export default function BasicInfoSection({
+  dishes = INITIAL_DISHES,
   selectedDish,
   setSelectedDish,
   portions = 1250,
@@ -54,10 +79,6 @@ export default function BasicInfoSection({
   selectedMeal = "lunch",
   setSelectedMeal,
 }) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const dropdownRef = useRef(null);
-
   const today = new Date();
   const dayNames = [
     "Chủ Nhật",
@@ -74,45 +95,14 @@ export default function BasicInfoSection({
   const yyyy = today.getFullYear();
   const todayDateStr = `${dayOfWeek}, ${dd}/${mm}/${yyyy}`;
 
-  useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    function handleKeyDown(event) {
-      if (event.key === "Escape") {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  const filteredDishes = DISH_OPTIONS.filter((dish) =>
-    dish.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  const handleClearSelection = (e) => {
-    e.stopPropagation();
-    setSelectedDish(null);
-    setIsDropdownOpen(true);
-  };
+  const createdCount = dishes.filter((d) => d.isBatchCreated).length;
 
   const handleSelectDish = (dish) => {
     setSelectedDish(dish);
     if (dish.portionStandard && setPortions) {
       setPortions(dish.portionStandard);
     }
-    setIsDropdownOpen(false);
   };
-
-  const DishIcon = selectedDish?.icon || Utensils;
 
   return (
     <section className={styles.sectionContainer}>
@@ -166,117 +156,75 @@ export default function BasicInfoSection({
 
       <div className={styles.divider} />
 
-      {/* 2. Thao tác chính: Chọn món ăn cần chế biến */}
-      <div className={styles.dishSelectGroup} ref={dropdownRef}>
-        <div className={styles.dishLabelRow}>
-          <label className={styles.mainLabel} htmlFor="dish-dropdown-trigger">
-            Món ăn cần chế biến
-          </label>
-          <span className={styles.menuSourceHint}>
-            Thực đơn hôm nay ({DISH_OPTIONS.length} món)
-          </span>
-        </div>
-
-        <div
-          id="dish-dropdown-trigger"
-          className={`${styles.dropdownTrigger} ${
-            isDropdownOpen ? styles.dropdownOpen : ""
-          } ${selectedDish ? styles.triggerSelected : ""}`}
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          role="button"
-          tabIndex={0}
-          aria-label="Chọn món cần chế biến"
-          aria-expanded={isDropdownOpen}
-        >
-          <div className={styles.selectedContent}>
-            <div className={`${styles.dishIconBox} ${selectedDish ? styles.iconBoxActive : ""}`}>
-              <DishIcon size={18} />
-            </div>
-            <div className={styles.selectedTextWrap}>
-              <span className={selectedDish ? styles.dishNameActive : styles.dishNamePlaceholder}>
-                {selectedDish ? selectedDish.name : "Bấm vào đây để chọn món ăn cần chế biến..."}
-              </span>
-              {selectedDish && (
-                <span className={styles.dishTypeSub}>{selectedDish.type}</span>
-              )}
-            </div>
+      {/* 2. Dải chọn món ăn & Trạng thái tạo lô (Nhìn là thấy món nào đã tạo / chưa tạo) */}
+      <div className={styles.dishSelectionArea}>
+        <div className={styles.dishHeaderRow}>
+          <div className={styles.dishTitleLeft}>
+            <label className={styles.mainLabel}>
+              Món ăn cần chế biến
+            </label>
+            <span className={styles.menuSourceHint}>
+              Thực đơn hôm nay ({dishes.length} món)
+            </span>
           </div>
 
-          <div className={styles.triggerActions}>
-            {selectedDish && (
+          <div className={styles.progressBadge}>
+            <span className={styles.progressDot} />
+            <span>
+              Tiến độ: <strong>{createdCount}/{dishes.length}</strong> món đã tạo lô
+            </span>
+          </div>
+        </div>
+
+        {/* 4 Card món ăn chọn nhanh 1 chạm, nhảy giao diện tại chỗ */}
+        <div className={styles.dishGrid} role="radiogroup" aria-label="Danh sách món ăn hôm nay">
+          {dishes.map((dish) => {
+            const isSelected = selectedDish?.id === dish.id;
+            const ItemIcon = dish.icon || Utensils;
+            const isCreated = dish.isBatchCreated;
+
+            return (
               <button
+                key={dish.id}
                 type="button"
-                className={styles.clearBtn}
-                onClick={handleClearSelection}
-                title="Chọn lại món khác"
-                aria-label="Xóa món đã chọn"
+                className={`${styles.dishCard} ${isSelected ? styles.dishCardActive : ""} ${
+                  isCreated ? styles.dishCardCreated : ""
+                }`}
+                onClick={() => handleSelectDish(dish)}
+                role="radio"
+                aria-checked={isSelected}
               >
-                <X size={15} />
+                <div className={styles.dishCardHeader}>
+                  <div className={`${styles.dishIconBox} ${isSelected ? styles.iconBoxActive : ""}`}>
+                    <ItemIcon size={16} />
+                  </div>
+                  {isCreated ? (
+                    <span className={styles.statusBadgeCreated} title={`Đã tạo mã lô ${dish.batchCode}`}>
+                      <CheckCircle2 size={12} />
+                      <span>{dish.batchCode || "Đã tạo"}</span>
+                    </span>
+                  ) : (
+                    <span className={styles.statusBadgePending} title="Chưa tạo lô chế biến">
+                      <Clock size={12} />
+                      <span>Chưa tạo</span>
+                    </span>
+                  )}
+                </div>
+
+                <div className={styles.dishCardBody}>
+                  <span className={styles.dishName}>{dish.name}</span>
+                  <span className={styles.dishMeta}>{dish.type}</span>
+                </div>
+
+                {isSelected && (
+                  <div className={styles.activeIndicator}>
+                    <span>Đang chọn</span>
+                  </div>
+                )}
               </button>
-            )}
-            {isDropdownOpen ? (
-              <ChevronUp size={18} className={styles.arrowIcon} />
-            ) : (
-              <ChevronDown size={18} className={styles.arrowIcon} />
-            )}
-          </div>
+            );
+          })}
         </div>
-
-        {/* Dropdown Menu Popup */}
-        {isDropdownOpen && (
-          <div className={styles.dropdownPopup}>
-            <div className={styles.searchBox}>
-              <Search size={15} className={styles.searchIcon} />
-              <input
-                type="text"
-                className={styles.searchInput}
-                placeholder="Tìm nhanh tên món ăn..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-            </div>
-
-            <div className={styles.itemsList} role="listbox">
-              {filteredDishes.length === 0 ? (
-                <div className={styles.emptySearch}>Không tìm thấy món ăn phù hợp</div>
-              ) : (
-                filteredDishes.map((dish) => {
-                  const isSelected = selectedDish?.id === dish.id;
-                  const ItemIcon = dish.icon;
-                  return (
-                    <div
-                      key={dish.id}
-                      className={`${styles.itemRow} ${
-                        isSelected ? styles.itemSelected : ""
-                      }`}
-                      onClick={() => handleSelectDish(dish)}
-                      role="option"
-                      aria-selected={isSelected}
-                    >
-                      <div className={styles.itemInfo}>
-                        <div
-                          className={`${styles.itemIconWrap} ${
-                            isSelected ? styles.itemIconWrapActive : ""
-                          }`}
-                        >
-                          <ItemIcon size={16} />
-                        </div>
-                        <div className={styles.textContainer}>
-                          <span className={styles.itemName}>{dish.name}</span>
-                          <span className={styles.itemMeta}>{dish.type}</span>
-                        </div>
-                      </div>
-                      {isSelected && (
-                        <CheckCircle2 size={16} className={styles.checkIcon} />
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );

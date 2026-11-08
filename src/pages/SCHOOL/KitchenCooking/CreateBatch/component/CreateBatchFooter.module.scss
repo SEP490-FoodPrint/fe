@@ -74,6 +74,32 @@
   }
 }
 
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.finishBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+  background-color: #f0fdf4;
+  color: #15803d;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #dcfce7;
+  }
+}
+
 /* 2. Mobile Sticky Bottom Bar (< 768px) */
 .mobileStickyBar {
   display: none;
