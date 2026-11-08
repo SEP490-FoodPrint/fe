@@ -2,15 +2,15 @@
   background-color: #ffffff;
   border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 8px;
-  padding: 16px 18px;
+  padding: 14px 16px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 
   @media (max-width: 768px) {
     padding: 12px;
-    gap: 12px;
+    gap: 10px;
   }
 }
 
@@ -18,22 +18,22 @@
 .sessionBar {
   display: grid;
   grid-template-columns: 1.2fr 1.3fr 1fr;
-  gap: 14px;
+  gap: 12px;
 
   @media (max-width: 820px) {
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
   }
 }
 
 .sessionItem {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   background-color: #f9fafb;
   border: 1px solid #f3f4f6;
-  border-radius: 8px;
-  padding: 9px 12px;
+  border-radius: 6px;
+  padding: 8px 12px;
 }
 
 .sessionItemHeader {
@@ -47,7 +47,7 @@
 }
 
 .sessionLabel {
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   color: var(--text-muted, #6b7280);
   text-transform: uppercase;
@@ -62,25 +62,25 @@
 }
 
 .sessionVal {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--text-primary, #111827);
 }
 
 .portionVal {
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--color-primary, #0a8066);
 }
 
 .unitText {
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 500;
   color: var(--text-muted, #6b7280);
 }
 
 .todayBadge {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 3px;
@@ -89,7 +89,7 @@
 }
 
 .lockBadge {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   padding: 1px 5px;
   border-radius: 3px;
@@ -106,12 +106,12 @@
 
 .selectInput {
   width: 100%;
-  height: 30px;
-  border-radius: 6px;
+  height: 28px;
+  border-radius: 5px;
   border: 1px solid var(--border-default, #e5e7eb);
   background-color: #ffffff;
-  padding: 0 26px 0 8px;
-  font-size: 12px;
+  padding: 0 24px 0 8px;
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-primary, #111827);
   cursor: pointer;
@@ -126,119 +126,71 @@
 
 .selectArrow {
   position: absolute;
-  right: 7px;
+  right: 6px;
   color: var(--text-muted, #6b7280);
   pointer-events: none;
 }
 
 .divider {
   height: 1px;
-  background-color: #f3f4f6;
+  background-color: #f1f5f9;
   margin: 0;
 }
 
-/* 2. Dải chọn món ăn tinh gọn */
-.dishSelectionArea {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+/* 2. Thực đơn chia đôi 2 cột (Bữa trưa & Bữa phụ chiều) */
+.splitMenuContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
 }
 
-/* 1 Hàng điều khiển duy nhất: Gọn, thoáng, không tầng lớp */
-.singleControlRow {
+.mealColumn {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+}
+
+.columnHeader {
+  padding: 6px 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
 }
 
-.mealTabsGroup {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  background-color: #f1f5f9;
-  padding: 2.5px;
-  border-radius: 6px;
-}
-
-.mealTab {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #475569;
-  padding: 4px 10px;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    color: #0f172a;
-  }
-}
-
-.mealTabActive {
-  background-color: #ffffff !important;
-  color: var(--color-primary, #0a8066) !important;
-  font-weight: 700;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-
-  .tabCount {
-    background-color: var(--color-primary-soft, #e8f5f1);
-    color: var(--color-primary, #0a8066);
-  }
-}
-
-.tabCount {
-  font-size: 10px;
-  font-weight: 700;
-  background-color: #e2e8f0;
-  color: #475569;
-  padding: 0.5px 5px;
-  border-radius: 8px;
-}
-
-.rightFilterGroup {
+.columnTitleWrap {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: baseline;
+  gap: 6px;
 }
 
-.onlyPendingBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #b45309;
-  background-color: #fffbeb;
-  border: 1px solid #fef3c7;
-  padding: 2.5px 8px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    border-color: #fde68a;
-  }
+.columnTitle {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.onlyPendingActive {
-  background-color: #f59e0b !important;
-  color: #ffffff !important;
-  border-color: #f59e0b !important;
-}
-
-.progressText {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
+.timeTag {
+  font-size: 10.5px;
+  font-weight: 500;
   color: #64748b;
+}
+
+.progressTag {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
 
   strong {
     color: var(--color-primary, #0a8066);
@@ -246,137 +198,88 @@
   }
 }
 
-.progressDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: var(--color-primary, #0a8066);
-}
+/* Bảng món ăn tinh gọn - 2 Cột */
+.dishTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
 
-/* Lưới thẻ món ăn: Đồng đều, chiều cao gọn gàng, phẳng phiu */
-.dishGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 10px;
-}
+  thead {
+    background-color: #ffffff;
+    border-bottom: 1px solid #f1f5f9;
 
-.dishCard {
-  border: 1px solid #e2e8f0;
-  border-radius: 7px;
-  padding: 10px 12px;
-  background-color: #ffffff;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  text-align: left;
-  transition: all 0.15s ease;
-
-  &:hover {
-    border-color: var(--color-primary, #0a8066);
-    background-color: #fafbfc;
+    th {
+      padding: 6px 12px;
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #64748b;
+      text-align: left;
+    }
   }
 
-  &:focus-visible {
-    outline: none;
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
+  tbody tr {
+    border-bottom: 1px solid #f8fafc;
+    cursor: pointer;
+    transition: background-color 0.12s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: #f8fafc;
+    }
   }
 }
 
-.dishCardActive {
-  border: 2px solid var(--color-primary, #0a8066) !important;
+.dishRow {
+  position: relative;
+}
+
+.rowSelected {
   background-color: #f4faf8 !important;
-  box-shadow: 0 1px 4px rgba(10, 128, 102, 0.08);
+
+  td:first-child {
+    border-left: 3px solid var(--color-primary, #0a8066);
+  }
+
+  .dishName {
+    color: var(--color-primary, #0a8066) !important;
+    font-weight: 700 !important;
+  }
 }
 
-.dishCardCreated {
-  border-color: #e2e8f0;
+.dishNameCell {
+  padding: 7px 12px;
 }
 
-.cardTopRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 6px;
-}
-
-.iconWrap {
-  width: 25px;
-  height: 25px;
-  border-radius: 5px;
-  background-color: #f1f5f9;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.iconWrapActive {
-  background-color: #e6f4ea;
-  color: var(--color-primary, #0a8066);
-}
-
-.topRightWrap {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.mealBadgeSmall {
-  font-size: 9.5px;
+.dishName {
+  font-size: 12.5px;
   font-weight: 600;
-  color: #1e40af;
-  background-color: #eff6ff;
-  padding: 1px 4px;
-  border-radius: 3px;
+  color: #1e293b;
+  line-height: 1.3;
 }
 
-.badgeCreated {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+.statusCreated {
+  display: inline-block;
   font-size: 10.5px;
   font-weight: 600;
   color: #15803d;
   background-color: #dcfce7;
   border: 1px solid #bbf7d0;
-  padding: 1.5px 5.5px;
-  border-radius: 4px;
+  padding: 1.5px 6px;
+  border-radius: 3px;
   white-space: nowrap;
 }
 
-.badgePending {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
+.statusPending {
+  display: inline-block;
   font-size: 10.5px;
   font-weight: 600;
   color: #b45309;
   background-color: #fffbeb;
   border: 1px solid #fef3c7;
-  padding: 1.5px 5.5px;
-  border-radius: 4px;
+  padding: 1.5px 6px;
+  border-radius: 3px;
   white-space: nowrap;
-}
-
-.cardContent {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.dishName {
-  font-size: 13px;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.35;
-}
-
-.dishCategory {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 500;
 }

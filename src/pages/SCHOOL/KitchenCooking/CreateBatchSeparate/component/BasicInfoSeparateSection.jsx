@@ -1,12 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import {
   Calendar,
   ChevronDown,
-  Beef,
-  Soup,
-  Utensils,
-  Apple,
-  CheckCircle2,
   Clock,
   Users,
 } from "lucide-react";
@@ -17,10 +12,8 @@ export const INITIAL_SEPARATE_DISHES = [
   {
     id: "dish-1",
     mealType: "lunch",
-    mealName: "Trưa",
+    mealName: "Bữa trưa",
     name: "Thịt heo kho nước dừa",
-    type: "Món mặn chính",
-    icon: Beef,
     portionStandard: 1250,
     isBatchCreated: false,
     batchCode: "LÔ-THK-01 & 02",
@@ -28,10 +21,8 @@ export const INITIAL_SEPARATE_DISHES = [
   {
     id: "dish-2",
     mealType: "lunch",
-    mealName: "Trưa",
+    mealName: "Bữa trưa",
     name: "Canh sườn hầm củ quả thập cẩm",
-    type: "Món canh dinh dưỡng",
-    icon: Soup,
     portionStandard: 1250,
     isBatchCreated: false,
     batchCode: "LÔ-CSH-01",
@@ -39,10 +30,8 @@ export const INITIAL_SEPARATE_DISHES = [
   {
     id: "dish-3",
     mealType: "lunch",
-    mealName: "Trưa",
+    mealName: "Bữa trưa",
     name: "Cơm gạo ST25 dẻo thơm",
-    type: "Món cơm / Tinh bột",
-    icon: Utensils,
     portionStandard: 1250,
     isBatchCreated: true,
     batchCode: "LÔ-COM-01",
@@ -50,10 +39,8 @@ export const INITIAL_SEPARATE_DISHES = [
   {
     id: "dish-4",
     mealType: "lunch",
-    mealName: "Trưa",
+    mealName: "Bữa trưa",
     name: "Thanh long ruột đỏ Bình Thuận",
-    type: "Tráng miệng trái cây",
-    icon: Apple,
     portionStandard: 1250,
     isBatchCreated: false,
     batchCode: "LÔ-TL-01",
@@ -63,10 +50,8 @@ export const INITIAL_SEPARATE_DISHES = [
   {
     id: "dish-5",
     mealType: "afternoon",
-    mealName: "Xế",
+    mealName: "Bữa phụ chiều",
     name: "Bánh bao hấp nhân thịt xá xíu",
-    type: "Món xế chiều",
-    icon: Utensils,
     portionStandard: 1250,
     isBatchCreated: false,
     batchCode: "LÔ-BB-01",
@@ -74,10 +59,8 @@ export const INITIAL_SEPARATE_DISHES = [
   {
     id: "dish-6",
     mealType: "afternoon",
-    mealName: "Xế",
+    mealName: "Bữa phụ chiều",
     name: "Sữa chua tiệt trùng Ba Vì",
-    type: "Tráng miệng xế",
-    icon: Apple,
     portionStandard: 1250,
     isBatchCreated: true,
     batchCode: "LÔ-SC-01",
@@ -95,8 +78,6 @@ export default function BasicInfoSeparateSection({
   selectedMeal = "lunch",
   setSelectedMeal,
 }) {
-  const [onlyPending, setOnlyPending] = useState(false);
-
   const today = new Date();
   const dayNames = [
     "Chủ Nhật",
@@ -113,45 +94,29 @@ export default function BasicInfoSeparateSection({
   const yyyy = today.getFullYear();
   const todayDateStr = `${dayOfWeek}, ${dd}/${mm}/${yyyy}`;
 
-  const dishesByMeal = dishes.filter((dish) => {
-    if (selectedMeal === "all") return true;
-    return dish.mealType === selectedMeal;
-  });
+  const lunchDishes = dishes.filter((d) => d.mealType === "lunch");
+  const afternoonDishes = dishes.filter((d) => d.mealType === "afternoon");
 
-  const totalInMeal = dishesByMeal.length;
-  const createdInMeal = dishesByMeal.filter((d) => d.isBatchCreated).length;
-  const pendingInMeal = totalInMeal - createdInMeal;
-
-  const lunchCount = dishes.filter((d) => d.mealType === "lunch").length;
-  const afternoonCount = dishes.filter((d) => d.mealType === "afternoon").length;
-
-  const displayedDishes = dishesByMeal.filter((dish) => {
-    if (onlyPending) return !dish.isBatchCreated;
-    return true;
-  });
-
-  useEffect(() => {
-    if (!selectedDish || (selectedMeal !== "all" && selectedDish.mealType !== selectedMeal)) {
-      const firstCandidate =
-        dishesByMeal.find((d) => !d.isBatchCreated) || dishesByMeal[0];
-      if (firstCandidate) {
-        setSelectedDish(firstCandidate);
-        if (firstCandidate.portionStandard && setPortions) {
-          setPortions(firstCandidate.portionStandard);
-        }
-      }
-    }
-  }, [selectedMeal, dishesByMeal]);
+  const lunchCreated = lunchDishes.filter((d) => d.isBatchCreated).length;
+  const afternoonCreated = afternoonDishes.filter((d) => d.isBatchCreated).length;
 
   const handleSelectDish = (dish) => {
     setSelectedDish(dish);
+    if (dish.mealType && setSelectedMeal) {
+      setSelectedMeal(dish.mealType);
+    }
     if (dish.portionStandard && setPortions) {
       setPortions(dish.portionStandard);
     }
   };
 
-  const handleMealChange = (newMeal) => {
+  const handleMealSelectChange = (newMeal) => {
     setSelectedMeal?.(newMeal);
+    const targetGroup = newMeal === "afternoon" ? afternoonDishes : lunchDishes;
+    const candidate = targetGroup.find((d) => !d.isBatchCreated) || targetGroup[0];
+    if (candidate) {
+      handleSelectDish(candidate);
+    }
   };
 
   return (
@@ -160,7 +125,7 @@ export default function BasicInfoSeparateSection({
       <div className={styles.sessionBar}>
         <div className={styles.sessionItem}>
           <div className={styles.sessionItemHeader}>
-            <Calendar size={14} className={styles.sessionIcon} />
+            <Calendar size={13} className={styles.sessionIcon} />
             <span className={styles.sessionLabel}>Ngày chế biến</span>
           </div>
           <div className={styles.sessionValRow}>
@@ -171,27 +136,26 @@ export default function BasicInfoSeparateSection({
 
         <div className={styles.sessionItem}>
           <div className={styles.sessionItemHeader}>
-            <Clock size={14} className={styles.sessionIcon} />
-            <span className={styles.sessionLabel}>Bữa ăn phục vụ</span>
+            <Clock size={13} className={styles.sessionIcon} />
+            <span className={styles.sessionLabel}>Ca ăn đang xem</span>
           </div>
           <div className={styles.selectWrapper}>
             <select
               className={styles.selectInput}
               value={selectedMeal}
-              onChange={(e) => handleMealChange(e.target.value)}
-              aria-label="Chọn bữa ăn phục vụ"
+              onChange={(e) => handleMealSelectChange(e.target.value)}
+              aria-label="Chọn ca ăn"
             >
-              <option value="lunch">Bữa trưa học đường ({lunchCount} món)</option>
-              <option value="afternoon">Bữa phụ chiều ({afternoonCount} món)</option>
-              <option value="all">Tất cả ca trong ngày ({dishes.length} món)</option>
+              <option value="lunch">Bữa trưa học đường (11:00)</option>
+              <option value="afternoon">Bữa phụ chiều (14:30)</option>
             </select>
-            <ChevronDown size={15} className={styles.selectArrow} aria-hidden="true" />
+            <ChevronDown size={14} className={styles.selectArrow} aria-hidden="true" />
           </div>
         </div>
 
         <div className={styles.sessionItem}>
           <div className={styles.sessionItemHeader}>
-            <Users size={14} className={styles.sessionIcon} />
+            <Users size={13} className={styles.sessionIcon} />
             <span className={styles.sessionLabel}>Số suất ăn</span>
           </div>
           <div className={styles.sessionValRow}>
@@ -206,133 +170,106 @@ export default function BasicInfoSeparateSection({
 
       <div className={styles.divider} />
 
-      {/* 2. Dải chọn món ăn tinh gọn - 1 hàng điều khiển duy nhất */}
-      <div className={styles.dishSelectionArea}>
-        <div className={styles.singleControlRow}>
-          <div className={styles.mealTabsGroup} role="tablist" aria-label="Chọn ca ăn">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={selectedMeal === "lunch"}
-              className={`${styles.mealTab} ${
-                selectedMeal === "lunch" ? styles.mealTabActive : ""
-              }`}
-              onClick={() => handleMealChange("lunch")}
-            >
-              <span>Bữa trưa</span>
-              <span className={styles.tabCount}>{lunchCount}</span>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={selectedMeal === "afternoon"}
-              className={`${styles.mealTab} ${
-                selectedMeal === "afternoon" ? styles.mealTabActive : ""
-              }`}
-              onClick={() => handleMealChange("afternoon")}
-            >
-              <span>Bữa phụ chiều</span>
-              <span className={styles.tabCount}>{afternoonCount}</span>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={selectedMeal === "all"}
-              className={`${styles.mealTab} ${
-                selectedMeal === "all" ? styles.mealTabActive : ""
-              }`}
-              onClick={() => handleMealChange("all")}
-            >
-              <span>Cả ngày</span>
-              <span className={styles.tabCount}>{dishes.length}</span>
-            </button>
-          </div>
-
-          <div className={styles.rightFilterGroup}>
-            <button
-              type="button"
-              className={`${styles.onlyPendingBtn} ${
-                onlyPending ? styles.onlyPendingActive : ""
-              }`}
-              onClick={() => setOnlyPending(!onlyPending)}
-              title="Nhấn để chỉ xem các món chưa tạo lô"
-            >
-              <Clock size={12} />
-              <span>Chưa tạo: {pendingInMeal}</span>
-            </button>
-
-            <div className={styles.progressText}>
-              <span className={styles.progressDot} />
-              <span>
-                Đã tạo: <strong>{createdInMeal}/{totalInMeal}</strong> món
-              </span>
+      {/* 2. Thực đơn chia đôi 2 cột (Bữa trưa & Bữa xế): Cực kỳ tinh gọn, không icon, không cột loại/suất */}
+      <div className={styles.splitMenuContainer}>
+        {/* CỘT TRÁI: BỮA TRƯA */}
+        <div className={styles.mealColumn}>
+          <div className={styles.columnHeader}>
+            <div className={styles.columnTitleWrap}>
+              <span className={styles.columnTitle}>Bữa trưa</span>
+              <span className={styles.timeTag}>11:00</span>
             </div>
+            <span className={styles.progressTag}>
+              Đã tạo: <strong>{lunchCreated}/{lunchDishes.length}</strong>
+            </span>
           </div>
+
+          <table className={styles.dishTable}>
+            <thead>
+              <tr>
+                <th scope="col">Tên món ăn</th>
+                <th scope="col" style={{ width: "110px", textAlign: "center" }}>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lunchDishes.map((dish) => {
+                const isSelected = selectedDish?.id === dish.id;
+                const isCreated = dish.isBatchCreated;
+                return (
+                  <tr
+                    key={dish.id}
+                    className={`${styles.dishRow} ${isSelected ? styles.rowSelected : ""}`}
+                    onClick={() => handleSelectDish(dish)}
+                  >
+                    <td className={styles.dishNameCell}>
+                      <span className={styles.dishName}>{dish.name}</span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      {isCreated ? (
+                        <span className={styles.statusCreated}>
+                          {dish.batchCode || "Đã tạo"}
+                        </span>
+                      ) : (
+                        <span className={styles.statusPending}>
+                          Chưa tạo
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
 
-        <div
-          className={styles.dishGrid}
-          role="radiogroup"
-          aria-label="Danh sách món ăn cần tách lô"
-        >
-          {displayedDishes.map((dish) => {
-            const isSelected = selectedDish?.id === dish.id;
-            const ItemIcon = dish.icon || Utensils;
-            const isCreated = dish.isBatchCreated;
+        {/* CỘT PHẢI: BỮA PHỤ CHIỀU */}
+        <div className={styles.mealColumn}>
+          <div className={styles.columnHeader}>
+            <div className={styles.columnTitleWrap}>
+              <span className={styles.columnTitle}>Bữa phụ chiều</span>
+              <span className={styles.timeTag}>14:30</span>
+            </div>
+            <span className={styles.progressTag}>
+              Đã tạo: <strong>{afternoonCreated}/{afternoonDishes.length}</strong>
+            </span>
+          </div>
 
-            return (
-              <button
-                key={dish.id}
-                type="button"
-                className={`${styles.dishCard} ${
-                  isSelected ? styles.dishCardActive : ""
-                } ${isCreated ? styles.dishCardCreated : ""}`}
-                onClick={() => handleSelectDish(dish)}
-                role="radio"
-                aria-checked={isSelected}
-              >
-                <div className={styles.cardTopRow}>
-                  <div
-                    className={`${styles.iconWrap} ${
-                      isSelected ? styles.iconWrapActive : ""
-                    }`}
+          <table className={styles.dishTable}>
+            <thead>
+              <tr>
+                <th scope="col">Tên món ăn</th>
+                <th scope="col" style={{ width: "110px", textAlign: "center" }}>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {afternoonDishes.map((dish) => {
+                const isSelected = selectedDish?.id === dish.id;
+                const isCreated = dish.isBatchCreated;
+                return (
+                  <tr
+                    key={dish.id}
+                    className={`${styles.dishRow} ${isSelected ? styles.rowSelected : ""}`}
+                    onClick={() => handleSelectDish(dish)}
                   >
-                    <ItemIcon size={15} />
-                  </div>
-
-                  <div className={styles.topRightWrap}>
-                    {selectedMeal === "all" && (
-                      <span className={styles.mealBadgeSmall}>{dish.mealName}</span>
-                    )}
-                    {isCreated ? (
-                      <span
-                        className={styles.badgeCreated}
-                        title={`Đã tạo mã lô ${dish.batchCode}`}
-                      >
-                        <CheckCircle2 size={11} />
-                        <span>{dish.batchCode || "Đã tạo"}</span>
-                      </span>
-                    ) : (
-                      <span
-                        className={styles.badgePending}
-                        title="Chưa tạo lô chế biến"
-                      >
-                        <Clock size={11} />
-                        <span>Chưa tạo</span>
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className={styles.cardContent}>
-                  <span className={styles.dishName}>{dish.name}</span>
-                  <span className={styles.dishCategory}>{dish.type}</span>
-                </div>
-              </button>
-            );
-          })}
+                    <td className={styles.dishNameCell}>
+                      <span className={styles.dishName}>{dish.name}</span>
+                    </td>
+                    <td style={{ textAlign: "center" }}>
+                      {isCreated ? (
+                        <span className={styles.statusCreated}>
+                          {dish.batchCode || "Đã tạo"}
+                        </span>
+                      ) : (
+                        <span className={styles.statusPending}>
+                          Chưa tạo
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
