@@ -7,12 +7,7 @@ import {
   CheckCircle2,
   Edit3,
   Trash2,
-  Thermometer,
-  Calendar,
-  Layers,
   ArrowUpRight,
-  ShieldCheck,
-  User,
 } from "lucide-react"
 import { get24hRetainedStatus, formatSampleDateTime } from "../mockSamplesData"
 import styles from "./SampleDetailModal.module.scss"
@@ -38,36 +33,26 @@ export default function SampleDetailModal({
   return (
     <div className={styles.overlay} onClick={onClose} role="dialog" aria-modal="true">
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
+        {/* Header tối giản */}
         <div className={styles.header}>
-          <div className={styles.headerTitleCol}>
-            <div className={styles.breadcrumb}>
-              <span>Sổ lưu mẫu 24 giờ</span>
-              <span>/</span>
-              <span className={styles.breadcrumbActive}>Chi tiết mẫu lưu</span>
-            </div>
-            <div className={styles.titleRow}>
-              <h2 className={styles.title}>
-                Chi tiết mẫu lưu SMP-{sample.id?.slice(0, 8).toUpperCase() || sample.id}
-              </h2>
-
-              {info24h.isDisposed ? (
-                <span className={styles.badgeDisposed}>
-                  <CheckCircle2 size={12} />
-                  <span>Đã tiêu hủy (DISPOSED)</span>
-                </span>
-              ) : info24h.isReadyToDispose ? (
-                <span className={styles.badgeReady}>
-                  <AlertTriangle size={12} />
-                  <span>Đã đủ 24 giờ (Chờ hủy)</span>
-                </span>
-              ) : (
-                <span className={styles.badgeStored}>
-                  <Clock size={12} />
-                  <span>Đang lưu mẫu (STORED)</span>
-                </span>
-              )}
-            </div>
+          <div className={styles.titleRow}>
+            <h2 className={styles.title}>Chi tiết mẫu lưu 24h</h2>
+            {info24h.isDisposed ? (
+              <span className={styles.badgeDisposed}>
+                <CheckCircle2 size={12} />
+                <span>Đã tiêu hủy</span>
+              </span>
+            ) : info24h.isReadyToDispose ? (
+              <span className={styles.badgeReady}>
+                <AlertTriangle size={12} />
+                <span>Đã đủ 24 giờ</span>
+              </span>
+            ) : (
+              <span className={styles.badgeStored}>
+                <Clock size={12} />
+                <span>Đang lưu mẫu</span>
+              </span>
+            )}
           </div>
 
           <button
@@ -82,192 +67,123 @@ export default function SampleDetailModal({
 
         {/* Modal Body */}
         <div className={styles.body}>
-          {/* KHU VỰC THEO DÕI 24 GIỜ (NỔI BẬT NHẤT) */}
+          {/* Dải tiến trình lưu 24h tinh gọn */}
           <div
-            className={`${styles.trackingBox} ${
+            className={`${styles.trackingStrip} ${
               info24h.isDisposed
-                ? styles.trackingDisposed
+                ? styles.stripDisposed
                 : info24h.isReadyToDispose
-                ? styles.trackingReady
-                : styles.trackingStored
+                ? styles.stripReady
+                : styles.stripStored
             }`}
           >
             {info24h.isDisposed ? (
-              <div className={styles.trackingContent}>
-                <div className={styles.trackingHeaderRow}>
-                  <div className={styles.trackingTitleWrap}>
-                    <CheckCircle2 size={22} className={styles.iconDisposed} />
-                    <div>
-                      <h3 className={styles.trackingHeading}>ĐÃ KẾT THÚC CHU KỲ LƯU 24 GIỜ</h3>
-                      <p className={styles.trackingSub}>
-                        Mẫu đã được tiêu hủy và hoàn tất biên bản lưu trữ an toàn thực phẩm.
-                      </p>
-                    </div>
-                  </div>
+              <div className={styles.stripContent}>
+                <div className={styles.stripTextRow}>
+                  <span className={styles.stripTitle}>Đã tiêu hủy mẫu lưu</span>
+                  <span className={styles.stripMuted}>
+                    Lúc {disposedDisplay?.time} · {disposedDisplay?.date}
+                  </span>
                 </div>
-
-                <div className={styles.trackingDetailsGrid}>
-                  <div className={styles.trackingDetailItem}>
-                    <span className={styles.trackingDetailLabel}>Thời điểm lấy mẫu:</span>
-                    <span className={styles.trackingDetailVal}>{sampledDisplay.full}</span>
+                {sample.disposalNote && (
+                  <div className={styles.disposalNoteText}>
+                    <strong>Ghi chú:</strong> {sample.disposalNote}
                   </div>
-                  <div className={styles.trackingDetailItem}>
-                    <span className={styles.trackingDetailLabel}>Thời điểm tiêu hủy:</span>
-                    <span className={styles.trackingDetailValHighlight}>
-                      {disposedDisplay?.full || "—"}
-                    </span>
-                  </div>
-                  {sample.disposalNote && (
-                    <div className={`${styles.trackingDetailItem} ${styles.fullWidthItem}`}>
-                      <span className={styles.trackingDetailLabel}>Ghi chú tiêu hủy:</span>
-                      <span className={styles.trackingDetailNote}>{sample.disposalNote}</span>
-                    </div>
-                  )}
-                </div>
+                )}
               </div>
             ) : info24h.isReadyToDispose ? (
-              <div className={styles.trackingContent}>
-                <div className={styles.trackingHeaderRow}>
-                  <div className={styles.trackingTitleWrap}>
-                    <AlertTriangle size={22} className={styles.iconReady} />
-                    <div>
-                      <h3 className={styles.trackingHeadingWarning}>ĐÃ ĐỦ 24 GIỜ BẢO QUẢN MẪU</h3>
-                      <p className={styles.trackingSub}>
-                        Mẫu đã đạt thời gian lưu trữ quy định của Bộ Y Tế. Vui lòng tiến hành lập biên bản tiêu hủy.
-                      </p>
-                    </div>
+              <div className={styles.stripContent}>
+                <div className={styles.stripTextRow}>
+                  <div className={styles.readyTextGroup}>
+                    <span className={styles.stripTitleWarning}>Đã đạt thời gian lưu 24 giờ</span>
+                    <span className={styles.stripMuted}>Mốc 24h: {expiresDisplay.time} · {expiresDisplay.date}</span>
                   </div>
                   <button
                     type="button"
                     className={styles.quickDisposeBtn}
-                    onClick={() => onOpenDisposeModal(sample)}
+                    onClick={() => {
+                      onClose()
+                      onOpenDisposeModal(sample)
+                    }}
                   >
-                    <Trash2 size={15} />
-                    <span>Ghi nhận tiêu hủy ngay</span>
+                    <Trash2 size={13} />
+                    <span>Tiêu hủy</span>
                   </button>
-                </div>
-
-                <div className={styles.trackingDetailsGrid}>
-                  <div className={styles.trackingDetailItem}>
-                    <span className={styles.trackingDetailLabel}>Thời điểm lấy mẫu:</span>
-                    <span className={styles.trackingDetailVal}>{sampledDisplay.full}</span>
-                  </div>
-                  <div className={styles.trackingDetailItem}>
-                    <span className={styles.trackingDetailLabel}>Mốc hoàn thành 24h:</span>
-                    <span className={styles.trackingDetailValWarning}>{expiresDisplay.full}</span>
-                  </div>
                 </div>
               </div>
             ) : (
-              <div className={styles.trackingContent}>
-                <div className={styles.trackingHeaderRow}>
-                  <div className={styles.trackingTitleWrap}>
-                    <Clock size={22} className={styles.iconStored} />
-                    <div>
-                      <h3 className={styles.trackingHeadingPrimary}>ĐANG LƯU MẪU THEO QUY CHUẨN 24H</h3>
-                      <p className={styles.trackingSub}>
-                        Bảo quản tủ chuyên dụng 2°C - 8°C. Không mở niêm phong khi không có sự cố.
-                      </p>
-                    </div>
+              <div className={styles.stripContent}>
+                <div className={styles.stripTextRow}>
+                  <div className={styles.countdownGroup}>
+                    <span className={styles.stripLabel}>Thời gian lưu còn lại:</span>
+                    <span className={styles.countdownVal}>{info24h.timeText}</span>
                   </div>
-                  <div className={styles.countdownBigBadge}>
-                    <span className={styles.countdownBigLabel}>Thời gian còn lại:</span>
-                    <span className={styles.countdownBigValue}>{info24h.timeText}</span>
-                  </div>
+                  <span className={styles.stripMuted}>
+                    Mốc đủ 24h: {expiresDisplay.time} · {expiresDisplay.date}
+                  </span>
                 </div>
-
-                {/* Thanh tiến trình % thời gian trôi qua */}
-                <div className={styles.progressContainer}>
-                  <div className={styles.progressLabelRow}>
-                    <span>Tiến trình lưu: {info24h.percent}% hoàn tất</span>
-                    <span>Mốc đủ 24h: {expiresDisplay.full}</span>
-                  </div>
-                  <div className={styles.progressBarBg}>
-                    <div
-                      className={styles.progressBarFill}
-                      style={{ width: `${info24h.percent}%` }}
-                    />
-                  </div>
+                <div className={styles.progressBarBg}>
+                  <div
+                    className={styles.progressBarFill}
+                    style={{ width: `${info24h.percent}%` }}
+                  />
                 </div>
               </div>
             )}
           </div>
 
-          {/* KHỐI 1: THÔNG TIN LÔ CHẾ BIẾN (COOKING BATCH) */}
-          <div className={styles.cardSection}>
-            <div className={styles.cardSectionHeader}>
-              <div className={styles.sectionTitleRow}>
-                <Layers size={16} className={styles.sectionIcon} />
-                <h4 className={styles.sectionTitle}>Thông tin Lô chế biến liên quan</h4>
-              </div>
-              <button
-                type="button"
-                className={styles.viewBatchLink}
-                onClick={() => onNavigateBatch(sample.cookingBatchId)}
-                title="Mở toàn bộ hồ sơ mẻ nấu"
-              >
-                <span>Xem mẻ nấu</span>
-                <ArrowUpRight size={14} />
-              </button>
+          {/* Lưới thông tin cốt lõi (2 cột, phẳng, gọn gàng) */}
+          <div className={styles.infoGrid}>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Tên món ăn</span>
+              <span className={styles.infoValueBold}>{sample.dishName}</span>
             </div>
 
-            <div className={styles.grid2}>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Mã lô chế biến:</span>
-                <span className={styles.infoValMono}>{sample.batchCode || sample.cookingBatchId}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Món ăn:</span>
-                <span className={styles.infoValBold}>{sample.dishName}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Bữa ăn & Ca:</span>
-                <span className={styles.infoVal}>
-                  {sample.mealLabel || (sample.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")}
-                  {sample.portions ? ` • ${sample.portions} suất` : ""}
-                </span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Phân loại món:</span>
-                <span className={styles.infoVal}>{sample.dishCategory || "Món ăn bán trú chuẩn"}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* KHỐI 2: THÔNG TIN MẪU LƯU (RETAINED SAMPLE) */}
-          <div className={styles.cardSection}>
-            <div className={styles.cardSectionHeader}>
-              <div className={styles.sectionTitleRow}>
-                <ShieldCheck size={16} className={styles.sectionIcon} />
-                <h4 className={styles.sectionTitle}>Thông số mẫu thức ăn lưu trữ</h4>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Mã lô chế biến</span>
+              <div className={styles.batchLinkWrap}>
+                <span className={styles.batchCode}>{sample.batchCode || sample.cookingBatchId}</span>
+                <button
+                  type="button"
+                  className={styles.viewBatchBtn}
+                  onClick={() => onNavigateBatch(sample.cookingBatchId)}
+                  title="Xem chi tiết lô nấu"
+                >
+                  <span>Xem mẻ</span>
+                  <ArrowUpRight size={12} />
+                </button>
               </div>
             </div>
 
-            <div className={styles.grid2}>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Thời điểm lấy mẫu:</span>
-                <span className={styles.infoVal}>{sampledDisplay.full}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Khối lượng mẫu lưu:</span>
-                <span className={styles.infoValBold}>
-                  {sample.quantity} {sample.unit}
-                </span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Vị trí bảo quản:</span>
-                <span className={styles.infoVal}>{sample.storageLocation}</span>
-              </div>
-              <div className={styles.infoRow}>
-                <span className={styles.infoKey}>Quy cách bao bì:</span>
-                <span className={styles.infoVal}>{sample.packaging || "Lọ thủy tinh tiệt trùng có tem niêm phong"}</span>
-              </div>
-              <div className={`${styles.infoRow} ${styles.fullWidthGrid}`}>
-                <span className={styles.infoKey}>Người thực hiện ghi nhận:</span>
-                <span className={styles.infoVal}>
-                  {sample.recordedByName || "Nguyễn Văn Vận (Bếp trưởng)"}
-                </span>
-              </div>
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Bữa ăn</span>
+              <span className={styles.infoValue}>
+                {sample.mealLabel || (sample.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")}
+              </span>
+            </div>
+
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Thời điểm lấy mẫu</span>
+              <span className={styles.infoValue}>{sampledDisplay.time} · {sampledDisplay.date}</span>
+            </div>
+
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Lượng mẫu lưu</span>
+              <span className={styles.infoValueBold}>
+                {sample.quantity} {sample.unit}
+              </span>
+            </div>
+
+            <div className={styles.infoItem}>
+              <span className={styles.infoLabel}>Vị trí tủ lưu</span>
+              <span className={styles.infoValue}>{sample.storageLocation || "Tủ lưu mẫu"}</span>
+            </div>
+
+            <div className={`${styles.infoItem} ${styles.fullWidthItem}`}>
+              <span className={styles.infoLabel}>Người ghi nhận</span>
+              <span className={styles.infoValue}>
+                {sample.recordedByName || "Nguyễn Văn Vận (Bếp trưởng)"}
+              </span>
             </div>
           </div>
         </div>
@@ -288,8 +204,8 @@ export default function SampleDetailModal({
                   onOpenUpdateModal(sample)
                 }}
               >
-                <Edit3 size={15} />
-                <span>Cập nhật thông tin</span>
+                <Edit3 size={14} />
+                <span>Cập nhật</span>
               </button>
 
               <button
@@ -302,7 +218,7 @@ export default function SampleDetailModal({
                   onOpenDisposeModal(sample)
                 }}
               >
-                <Trash2 size={15} />
+                <Trash2 size={14} />
                 <span>Ghi nhận tiêu hủy</span>
               </button>
             </div>
