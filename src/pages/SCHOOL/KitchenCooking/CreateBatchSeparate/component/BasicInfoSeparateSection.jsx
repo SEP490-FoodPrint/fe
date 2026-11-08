@@ -112,10 +112,9 @@ export default function BasicInfoSeparateSection({
         <div className={styles.titleWithBadge}>
           <div className={styles.numberBadge}>1</div>
           <div>
-            <h2 className={styles.sectionTitle}>1. Thông tin phiên nấu</h2>
+            <h2 className={styles.sectionTitle}>Thông tin phiên nấu</h2>
           </div>
         </div>
-        <span className={styles.requiredTag}>Bắt buộc</span>
       </div>
 
       {/* Row 1: Ngày ăn & Bữa ăn */}
@@ -123,25 +122,22 @@ export default function BasicInfoSeparateSection({
         {/* Ngày ăn (Khóa) */}
         <div className={styles.formGroup}>
           <div className={styles.labelRow}>
-            <label className={styles.label}>Ngày ăn / Chế biến</label>
+            <label className={styles.label}>Ngày chế biến</label>
             <span
               className={styles.lockHint}
-              title="Đồng bộ tự động từ thực đơn"
+              title="Khóa theo thực đơn hôm nay"
             >
               <Lock size={12} />
-              <span>Đã khóa theo thực đơn</span>
+              <span>Theo thực đơn</span>
             </span>
           </div>
 
           <div className={styles.lockedField}>
             <div className={styles.lockedValue}>
               <Calendar size={15} className={styles.calIcon} />
-              <div className={styles.dateMeta}>
-                <span className={styles.lockedDate}>{todayDateStr}</span>
-                <span className={styles.lockedSub}>• Hôm nay (Thực đơn đã duyệt)</span>
-              </div>
+              <span className={styles.lockedDate}>{todayDateStr}</span>
             </div>
-            <span className={styles.lockedBadge}>Đã duyệt</span>
+            <span className={styles.lockedBadge}>Hôm nay</span>
           </div>
         </div>
 
@@ -170,12 +166,12 @@ export default function BasicInfoSeparateSection({
         </div>
       </div>
 
-      {/* Row 2: Món cần chế biến & Số suất dự kiến */}
+      {/* Row 2: Món cần chế biến & Số suất ăn */}
       <div className={styles.gridRow}>
-        {/* Món cần chế biến (Searchable Dropdown + Quick Chips) */}
+        {/* Món cần chế biến (Searchable Dropdown) */}
         <div className={styles.formGroup} ref={dropdownRef}>
           <label className={styles.label}>
-            Món cần chế biến (Thực đơn hôm nay)
+            Món ăn cần chế biến
           </label>
           <div
             className={`${styles.dropdownTrigger} ${
@@ -194,7 +190,7 @@ export default function BasicInfoSeparateSection({
               <span className={styles.dishName}>
                 {selectedDish
                   ? selectedDish.name
-                  : "-- Chọn món ăn trong thực đơn hôm nay --"}
+                  : "-- Chọn món trong thực đơn hôm nay --"}
               </span>
             </div>
 
@@ -288,7 +284,7 @@ export default function BasicInfoSeparateSection({
               title="Đối soát tự động từ điểm danh"
             >
               <Lock size={12} />
-              <span>Chốt theo điểm danh</span>
+              <span>Theo điểm danh</span>
             </span>
           </div>
 

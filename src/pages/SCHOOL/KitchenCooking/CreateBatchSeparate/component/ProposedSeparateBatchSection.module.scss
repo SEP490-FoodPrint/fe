@@ -2,15 +2,15 @@
   background-color: #ffffff;
   border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 12px;
-  padding: 16px 18px;
+  padding: 18px 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 
   @media (max-width: 768px) {
     padding: 14px;
-    gap: 12px;
+    gap: 14px;
   }
 }
 
@@ -31,12 +31,12 @@
 }
 
 .numberBadge {
-  width: 26px;
-  height: 26px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background-color: var(--color-primary-soft, #e8f5f1);
   color: var(--color-primary, #0a8066);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -52,491 +52,223 @@
   line-height: 1.3;
 }
 
-.sectionSubtitle {
-  margin: 2px 0 0 0;
-  font-size: 12px;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.3;
+.modeBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
-  @media (max-width: 768px) {
-    display: none;
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px dashed var(--border-default, #e5e7eb);
+  text-align: center;
+  gap: 8px;
+}
+
+.emptyIcon {
+  color: var(--text-muted, #9ca3af);
+}
+
+.emptyDesc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted, #6b7280);
+  max-width: 380px;
+  line-height: 1.5;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 500px) {
+    grid-template-columns: 1fr;
   }
 }
 
-/* 1. Thẻ tóm tắt đề xuất */
-.summaryCard {
+.metricCard {
   background-color: #f9fafb;
   border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 10px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.summaryLeft {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.hubIconBox {
-  width: 38px;
-  height: 38px;
   border-radius: 8px;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.summaryMainInfo {
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  min-width: 0;
 }
 
-.batchTitleRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-
-  @media (max-width: 480px) {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
+.metricLabel {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted, #6b7280);
 }
 
-.batchMainName {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.statusPill {
-  font-size: 11px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 9999px;
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.summaryText {
-  margin: 0;
-  font-size: 12px;
-  color: var(--text-secondary, #4b5563);
-  line-height: 1.4;
-
-  strong {
-    color: var(--color-primary, #0a8066);
-  }
-}
-
-/* 2. Grid 2 Thẻ Lô Chế Biến Song Song */
-.batchesGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 12px;
-
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-}
-
-.batchCard {
-  background-color: #ffffff;
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 10px;
-  padding: 12px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: all 0.15s ease;
-
-  &:hover {
-    border-color: #d1d5db;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  }
-}
-
-.cardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.headerLeft {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.batchIndexBadge {
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.batchTitles {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.batchName {
+.metricValue {
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary, #111827);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.dishName {
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-}
-
-.lotOriginTag {
-  font-family: ui-monospace, monospace;
-  font-size: 11px;
+.metricValueHighlight {
+  font-size: 14.5px;
   font-weight: 700;
-  padding: 2px 7px;
-  border-radius: 4px;
-  background-color: var(--color-primary-soft, #e8f5f1);
   color: var(--color-primary, #0a8066);
-  flex-shrink: 0;
 }
 
-.portionBox {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 8px 10px;
-  background-color: #f9fafb;
-  border-radius: 6px;
-}
-
-.portionMain {
-  display: flex;
-  align-items: baseline;
-  gap: 4px;
-}
-
-.portionNum {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--text-primary, #111827);
-  line-height: 1;
-}
-
-.portionUnit {
-  font-size: 12px;
+.metricUnit {
+  font-size: 11.5px;
+  font-weight: 500;
   color: var(--text-muted, #6b7280);
 }
 
-.portionPercent {
-  font-size: 11.5px;
+.metricValueMono {
+  font-family: var(--font-mono, monospace);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-primary, #0a8066);
+  color: #374151;
 }
 
-/* Nguyên liệu */
-.ingredientSummary {
+/* 2 Batches Grid */
+.batchesGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.batchCard {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 10px;
+  background-color: #ffffff;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 11.5px;
-  color: var(--text-secondary, #4b5563);
-  padding: 6px 0;
-  border-top: 1px dashed #f3f4f6;
-  border-bottom: 1px dashed #f3f4f6;
+  gap: 10px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.ingSummaryItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-
-  strong {
-    color: var(--text-primary, #111827);
-  }
-}
-
-.ingIcon {
-  color: var(--text-muted, #9ca3af);
-  flex-shrink: 0;
-}
-
-.toggleDetailBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 0;
-  background: none;
-  border: none;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--color-primary, #0a8066);
-  cursor: pointer;
-  transition: color 0.15s ease;
-
-  &:hover {
-    color: var(--color-primary-hover, #086b55);
-  }
-}
-
-.detailBox {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background-color: #f9fafb;
-  font-size: 11.5px;
-  animation: fadeIn 0.15s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.detailRow {
+.batchCardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  color: var(--text-secondary, #4b5563);
-
-  strong {
-    color: var(--text-primary, #111827);
-  }
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f3f4f6;
 }
 
-/* Dòng ghi nhận chuẩn */
-.noteBox {
+.batchTitleWrap {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 8px;
-  padding: 9px 12px;
-  border-radius: 8px;
-  background-color: #f0fdf4;
-  border: 1px solid rgba(22, 163, 74, 0.2);
 }
 
-.noteIcon {
-  color: #16a34a;
-  flex-shrink: 0;
+.batchCode {
+  font-family: var(--font-mono, monospace);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
 }
 
-.noteText {
-  font-size: 11.5px;
-  color: #15803d;
-  font-weight: 500;
-  line-height: 1.4;
+.batchSub {
+  font-size: 12px;
+  color: var(--text-muted, #6b7280);
 }
 
-/* Empty State chuẩn Design System */
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 42px 20px;
-  background-color: #f9fafb;
-  border: 1px dashed var(--border-default, #d1d5db);
-  border-radius: 12px;
-  text-align: center;
-  gap: 10px;
-  margin: 6px 0;
-  transition: all 0.2s ease;
-
-  .emptyIconBox {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background-color: var(--color-primary-soft, #e8f5f1);
-    color: var(--color-primary, #0a8066);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2px;
-  }
-
-  .emptyTitle {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--text-primary, #111827);
-    margin: 0;
-  }
-
-  .emptyDesc {
-    font-size: 13px;
-    color: var(--text-muted, #6b7280);
-    max-width: 460px;
-    margin: 0;
-    line-height: 1.5;
-  }
-
-  .emptyHintBadge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 4px 10px;
-    border-radius: 9999px;
-    background-color: #ffffff;
-    border: 1px solid var(--border-default, #e5e7eb);
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--color-primary, #0a8066);
-    margin-top: 4px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  }
-}
-
-/* Missing component styling for ProposedSeparateBatchSection */
-.batchSizeBadge {
+.batchPortionBadge {
   font-size: 12px;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 2.5px 8px;
   border-radius: 6px;
   background-color: var(--color-primary-soft, #e8f5f1);
   color: var(--color-primary, #0a8066);
-  white-space: nowrap;
 }
 
-.cardBody {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.deviceRow {
+.batchMetaRow {
   display: flex;
   align-items: center;
   gap: 6px;
   font-size: 12.5px;
 }
 
-.deviceLabel {
+.metaLabel {
   color: var(--text-muted, #6b7280);
   font-weight: 500;
 }
 
-.deviceVal {
+.metaVal {
   color: var(--text-primary, #111827);
   font-weight: 600;
 }
 
-.sourceBox {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  background-color: #f9fafb;
-  border: 1px solid #f3f4f6;
+.metaLotBadge {
+  font-family: var(--font-mono, monospace);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e40af;
+  background-color: #eff6ff;
+  padding: 1.5px 6px;
+  border-radius: 4px;
 }
 
-.sourceLabel {
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-  font-weight: 500;
+/* Mini Table */
+.miniTableWrap {
+  border: 1px solid var(--border-default, #e5e7eb);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 2px;
 }
 
-.sourcePillPrimary {
-  font-size: 12px;
-  color: var(--color-primary, #0a8066);
-  strong {
-    font-family: ui-monospace, monospace;
-    font-weight: 700;
-  }
-}
-
-.sourcePillSecondary {
-  font-size: 12px;
-  color: #2563eb;
-  strong {
-    font-family: ui-monospace, monospace;
-    font-weight: 700;
-  }
-}
-
-.detailToggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.miniTable {
   width: 100%;
-  padding: 6px 8px;
-  background: transparent;
-  border: 1px dashed var(--border-default, #e5e7eb);
-  border-radius: 6px;
+  border-collapse: collapse;
   font-size: 12px;
-  font-weight: 500;
-  color: var(--text-secondary, #4b5563);
-  cursor: pointer;
-  transition: all 0.15s ease;
 
-  &:hover {
+  thead {
     background-color: #f9fafb;
-    color: var(--text-primary, #111827);
-  }
-}
+    border-bottom: 1px solid var(--border-default, #e5e7eb);
 
-.detailsContent {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px 10px;
-  background-color: #f9fafb;
-  border-radius: 6px;
-  font-size: 12px;
-}
-
-.itemRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-
-  span {
-    color: var(--text-secondary, #4b5563);
+    th {
+      padding: 6px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted, #6b7280);
+      text-align: left;
+    }
   }
 
-  strong {
+  tbody tr {
+    border-bottom: 1px solid #f3f4f6;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: 7px 10px;
     color: var(--text-primary, #111827);
-    font-weight: 600;
   }
 }

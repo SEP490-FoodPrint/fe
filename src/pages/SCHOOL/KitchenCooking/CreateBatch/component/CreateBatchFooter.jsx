@@ -17,9 +17,7 @@ export default function CreateBatchFooter({ selectedDish }) {
 
   const handleCreateBatch = () => {
     if (!selectedDish) {
-      setToastMessage(
-        "Vui lòng chọn món ăn ở Bước 1 trước khi tạo lô chế biến.",
-      );
+      setToastMessage("Vui lòng chọn món ăn trước khi tạo lô chế biến.");
       setIsError(true);
       setShowToast(true);
       setTimeout(() => setShowToast(false), 2500);
@@ -36,7 +34,7 @@ export default function CreateBatchFooter({ selectedDish }) {
 
   return (
     <>
-      {/* 1. Desktop Footer Bar (Hiện trên Desktop >= 768px) */}
+      {/* 1. Desktop Footer Bar */}
       <div className={styles.desktopFooterBar}>
         <button
           type="button"
@@ -45,24 +43,18 @@ export default function CreateBatchFooter({ selectedDish }) {
           aria-label="Quay lại danh sách lô"
         >
           <ArrowLeft size={16} />
-          <span>Quay lại danh sách</span>
+          <span>Quay lại</span>
         </button>
 
-        <div className={styles.actionGroup}>
-          
-
-          <div className={styles.buttonsWrap}>
-            <button
-              type="button"
-              className={styles.createBtn}
-              onClick={handleCreateBatch}
-              style={{ opacity: selectedDish ? 1 : 0.6 }}
-            >
-              <PlusCircle size={17} />
-              <span>Tạo lô chế biến</span>
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          className={styles.createBtn}
+          onClick={handleCreateBatch}
+          disabled={!selectedDish}
+        >
+          <PlusCircle size={17} />
+          <span>Tạo lô chế biến</span>
+        </button>
       </div>
 
       {/* 2. Mobile Sticky Bottom Bar */}
@@ -73,7 +65,7 @@ export default function CreateBatchFooter({ selectedDish }) {
             className={styles.mobCreateBtn}
             onClick={handleCreateBatch}
             aria-label="Khởi tạo lô chế biến mới"
-            style={{ opacity: selectedDish ? 1 : 0.6 }}
+            disabled={!selectedDish}
           >
             <PlusCircle size={18} />
             <span>Tạo lô chế biến</span>

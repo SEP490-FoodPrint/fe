@@ -42,23 +42,6 @@
   }
 }
 
-.actionGroup {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.footerNote {
-  font-size: 12px;
-  color: var(--text-muted, #6b7280);
-}
-
-.buttonsWrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .createBtn {
   display: inline-flex;
   align-items: center;
@@ -75,12 +58,18 @@
   box-shadow: 0 1px 3px rgba(10, 128, 102, 0.2);
   transition: all 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--color-primary-hover, #086b55);
     box-shadow: 0 2px 6px rgba(10, 128, 102, 0.3);
   }
 
-  &:active {
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  &:active:not(:disabled) {
     transform: scale(0.98);
   }
 }
@@ -113,7 +102,7 @@
 
 .mobCreateBtn {
   flex: 1;
-  height: 48px; font-size: 15px; font-weight: 700; border-radius: 10px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -122,15 +111,21 @@
   border: none;
   background-color: var(--color-primary, #0a8066);
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(10, 128, 102, 0.25);
   transition: all 0.15s ease;
 
-  &:active {
+  &:active:not(:disabled) {
     background-color: var(--color-primary-hover, #086b55);
     transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 }
 

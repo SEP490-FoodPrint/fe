@@ -1,9 +1,5 @@
-import React, { useState } from "react";
-import {
-  CookingPot,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import React from "react";
+import { CookingPot } from "lucide-react";
 import styles from "./ProposedSeparateBatchSection.module.scss";
 
 export default function ProposedSeparateBatchSection({
@@ -11,30 +7,20 @@ export default function ProposedSeparateBatchSection({
   portions = 1250,
   selectedMeal = "lunch",
 }) {
-  const [showDetail1, setShowDetail1] = useState(false);
-  const [showDetail2, setShowDetail2] = useState(false);
-
   if (!selectedDish) {
     return (
       <section className={styles.sectionContainer}>
         <div className={styles.sectionHeader}>
           <div className={styles.titleWithBadge}>
             <div className={styles.numberBadge}>2</div>
-            <div>
-              <h2 className={styles.sectionTitle}>
-                2. Phương án tách lô chế biến
-              </h2>
-            </div>
+            <h2 className={styles.sectionTitle}>Phương án tách lô chế biến</h2>
           </div>
         </div>
 
         <div className={styles.emptyState}>
-          <div className={styles.emptyIconBox}>
-            <CookingPot size={26} />
-          </div>
-          <h3 className={styles.emptyTitle}>Chưa chọn món cần chế biến</h3>
+          <CookingPot size={24} className={styles.emptyIcon} />
           <p className={styles.emptyDesc}>
-            Vui lòng chọn món ăn ở Bước 1 để hiển thị phương án phân tách lô nấu độc lập theo nguồn gốc.
+            Vui lòng chọn món ăn ở trên để hệ thống tự động phân tách thành các lô nấu độc lập theo nguồn nguyên liệu.
           </p>
         </div>
       </section>
@@ -43,178 +29,140 @@ export default function ProposedSeparateBatchSection({
 
   const shiftLabel =
     selectedMeal === "afternoon"
-      ? "Bữa phụ chiều (15:00)"
-      : "Bữa trưa học đường (11:30)";
+      ? "Bữa phụ chiều (15:00 – 15:30)"
+      : selectedMeal === "breakfast"
+        ? "Bữa sáng bán trú (06:45 – 07:30)"
+        : "Bữa trưa học đường (11:30 – 12:30)";
 
   return (
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
         <div className={styles.titleWithBadge}>
           <div className={styles.numberBadge}>2</div>
-          <div>
-            <h2 className={styles.sectionTitle}>
-              2. Phương án tách lô chế biến ({selectedDish.name})
-            </h2>
-          </div>
+          <h2 className={styles.sectionTitle}>Phương án tách lô chế biến</h2>
+        </div>
+        <span className={styles.modeBadge}>Nấu riêng (02 lô)</span>
+      </div>
+
+      {/* Thông số tổng quan */}
+      <div className={styles.metricsGrid}>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Món chế biến</span>
+          <span className={styles.metricValue}>{selectedDish.name}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Tổng quy mô</span>
+          <span className={styles.metricValueHighlight}>
+            {portions.toLocaleString("vi-VN")} <span className={styles.metricUnit}>suất</span>
+          </span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Ca phục vụ</span>
+          <span className={styles.metricValue}>{shiftLabel}</span>
+        </div>
+        <div className={styles.metricCard}>
+          <span className={styles.metricLabel}>Số lô phân tách</span>
+          <span className={styles.metricValueMono}>02 lô độc lập</span>
         </div>
       </div>
 
-      {/* Thẻ tóm tắt đề xuất */}
-      <div className={styles.summaryCard}>
-        <div className={styles.summaryLeft}>
-          <div className={styles.hubIconBox} aria-hidden="true">
-            <CookingPot size={22} />
-          </div>
-          <div className={styles.summaryMainInfo}>
-            <div className={styles.batchTitleRow}>
-              <span className={styles.batchMainName}>
-                Đề xuất: 02 lô chế biến độc lập (Nấu riêng 1:1)
-              </span>
-              <span className={styles.statusPill}>Nấu riêng</span>
-            </div>
-            <p className={styles.summaryText}>
-              {shiftLabel} • Quy mô:{" "}
-              <strong>{portions.toLocaleString("vi-VN")} suất</strong> • Tách làm 02 mẻ độc lập theo nguồn nguyên liệu
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* 2 Thẻ Lô Chế Biến Song Song */}
+      {/* 2 Lô Chế Biến Song Song */}
       <div className={styles.batchesGrid}>
         {/* Lô 1 */}
         <div className={styles.batchCard}>
-          <div className={styles.cardHeader}>
-            <div className={styles.headerLeft}>
-              <div className={styles.batchIndexBadge}>01</div>
-              <div className={styles.batchTitles}>
-                <span className={styles.batchName}>
-                  Lô nấu riêng 1 (LÔ-THK-01)
-                </span>
-                <span className={styles.dishName}>{selectedDish.name}</span>
-              </div>
+          <div className={styles.batchCardHeader}>
+            <div className={styles.batchTitleWrap}>
+              <span className={styles.batchCode}>LÔ-THK-01</span>
+              <span className={styles.batchSub}>Lô nấu riêng 1</span>
             </div>
-            <span className={styles.batchSizeBadge}>731 suất</span>
+            <span className={styles.batchPortionBadge}>731 suất</span>
           </div>
 
-          <div className={styles.cardBody}>
-            <div className={styles.deviceRow}>
-              <span className={styles.deviceLabel}>Thiết bị:</span>
-              <span className={styles.deviceVal}>
-                Nồi hầm công nghiệp A (200L)
-              </span>
-            </div>
+          <div className={styles.batchMetaRow}>
+            <span className={styles.metaLabel}>Thiết bị:</span>
+            <span className={styles.metaVal}>Nồi hầm công nghiệp A (200L)</span>
+          </div>
+          <div className={styles.batchMetaRow}>
+            <span className={styles.metaLabel}>Nguồn thịt:</span>
+            <span className={styles.metaLotBadge}>LOT-HEO-892 (50.0 kg)</span>
+          </div>
 
-            <div className={styles.sourceBox}>
-              <div className={styles.sourceLabel}>Nguồn gốc độc quyền:</div>
-              <div className={styles.sourcePillPrimary}>
-                <strong>LOT-HEO-892</strong> • Thịt heo Nam Hà (50.0 kg)
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className={styles.detailToggle}
-              onClick={() => setShowDetail1(!showDetail1)}
-            >
-              <span>
-                {showDetail1 ? "Thu gọn định lượng" : "Xem định lượng chi tiết"}
-              </span>
-              {showDetail1 ? (
-                <ChevronUp size={14} />
-              ) : (
-                <ChevronDown size={14} />
-              )}
-            </button>
-
-            {showDetail1 && (
-              <div className={styles.detailsContent}>
-                <div className={styles.itemRow}>
-                  <span>Thịt ba chỉ heo (LOT-HEO-892):</span>
-                  <strong>50.0 kg (100%)</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span>Trứng cút tươi:</span>
-                  <strong>1.462 quả</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span>Nước dừa nguyên chất:</span>
-                  <strong>46.8 lít</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span>Gia vị an toàn:</span>
-                  <strong>2.46 kg</strong>
-                </div>
-              </div>
-            )}
+          <div className={styles.miniTableWrap}>
+            <table className={styles.miniTable}>
+              <thead>
+                <tr>
+                  <th>Nguyên liệu</th>
+                  <th style={{ textAlign: "right" }}>Định lượng</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Thịt ba chỉ heo (LOT-HEO-892)</td>
+                  <td style={{ textAlign: "right" }}><strong>50.0 kg</strong></td>
+                </tr>
+                <tr>
+                  <td>Trứng cút tươi sạch</td>
+                  <td style={{ textAlign: "right" }}>1.462 quả</td>
+                </tr>
+                <tr>
+                  <td>Nước dừa nguyên chất</td>
+                  <td style={{ textAlign: "right" }}>46.8 lít</td>
+                </tr>
+                <tr>
+                  <td>Gia vị an toàn</td>
+                  <td style={{ textAlign: "right" }}>2.46 kg</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         {/* Lô 2 */}
         <div className={styles.batchCard}>
-          <div className={styles.cardHeader}>
-            <div className={styles.headerLeft}>
-              <div className={styles.batchIndexBadge}>02</div>
-              <div className={styles.batchTitles}>
-                <span className={styles.batchName}>
-                  Lô nấu riêng 2 (LÔ-THK-02)
-                </span>
-                <span className={styles.dishName}>{selectedDish.name}</span>
-              </div>
+          <div className={styles.batchCardHeader}>
+            <div className={styles.batchTitleWrap}>
+              <span className={styles.batchCode}>LÔ-THK-02</span>
+              <span className={styles.batchSub}>Lô nấu riêng 2</span>
             </div>
-            <span className={styles.batchSizeBadge}>519 suất</span>
+            <span className={styles.batchPortionBadge}>519 suất</span>
           </div>
 
-          <div className={styles.cardBody}>
-            <div className={styles.deviceRow}>
-              <span className={styles.deviceLabel}>Thiết bị:</span>
-              <span className={styles.deviceVal}>
-                Nồi hầm công nghiệp B (150L)
-              </span>
-            </div>
+          <div className={styles.batchMetaRow}>
+            <span className={styles.metaLabel}>Thiết bị:</span>
+            <span className={styles.metaVal}>Nồi hầm công nghiệp B (150L)</span>
+          </div>
+          <div className={styles.batchMetaRow}>
+            <span className={styles.metaLabel}>Nguồn thịt:</span>
+            <span className={styles.metaLotBadge}>LOT-HEO-893 (35.5 kg)</span>
+          </div>
 
-            <div className={styles.sourceBox}>
-              <div className={styles.sourceLabel}>Nguồn gốc độc quyền:</div>
-              <div className={styles.sourcePillSecondary}>
-                <strong>LOT-HEO-893</strong> • Thịt heo Nam Hà (35.5 kg)
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className={styles.detailToggle}
-              onClick={() => setShowDetail2(!showDetail2)}
-            >
-              <span>
-                {showDetail2 ? "Thu gọn định lượng" : "Xem định lượng chi tiết"}
-              </span>
-              {showDetail2 ? (
-                <ChevronUp size={14} />
-              ) : (
-                <ChevronDown size={14} />
-              )}
-            </button>
-
-            {showDetail2 && (
-              <div className={styles.detailsContent}>
-                <div className={styles.itemRow}>
-                  <span>Thịt ba chỉ heo (LOT-HEO-893):</span>
-                  <strong>35.5 kg (100%)</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span>Trứng cút tươi:</span>
-                  <strong>1.038 quả</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span>Nước dừa nguyên chất:</span>
-                  <strong>33.2 lít</strong>
-                </div>
-                <div className={styles.itemRow}>
-                  <span>Gia vị an toàn:</span>
-                  <strong>1.74 kg</strong>
-                </div>
-              </div>
-            )}
+          <div className={styles.miniTableWrap}>
+            <table className={styles.miniTable}>
+              <thead>
+                <tr>
+                  <th>Nguyên liệu</th>
+                  <th style={{ textAlign: "right" }}>Định lượng</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Thịt ba chỉ heo (LOT-HEO-893)</td>
+                  <td style={{ textAlign: "right" }}><strong>35.5 kg</strong></td>
+                </tr>
+                <tr>
+                  <td>Trứng cút tươi sạch</td>
+                  <td style={{ textAlign: "right" }}>1.038 quả</td>
+                </tr>
+                <tr>
+                  <td>Nước dừa nguyên chất</td>
+                  <td style={{ textAlign: "right" }}>33.2 lít</td>
+                </tr>
+                <tr>
+                  <td>Gia vị an toàn</td>
+                  <td style={{ textAlign: "right" }}>1.74 kg</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
