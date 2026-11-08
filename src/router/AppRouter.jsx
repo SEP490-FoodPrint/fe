@@ -183,6 +183,7 @@ const routes = [
         children: [
           { path: ROUTER.SUPPLIER_OVERVIEW, element: <LazyWrapper><SupplierOverview /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_INGREDIENTS, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_INGREDIENT_DETAIL, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_ORDERS, element: <LazyWrapper><SupplyOrders /></LazyWrapper> },
         ],
       },
