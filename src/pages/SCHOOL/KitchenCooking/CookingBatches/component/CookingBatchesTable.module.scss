@@ -725,38 +725,6 @@
 }
 
 
-.statusCellWrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.sampleSubBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 1.5px 6px;
-  border-radius: 4px;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
-.sampleDone {
-  background-color: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
-}
-
-.samplePending {
-  background-color: #fffbeb;
-  color: #d97706;
-  border: 1px solid #fde68a;
-}
-
-
 .framelessActionBtn {
   width: 34px !important;
   height: 34px !important;
@@ -786,12 +754,35 @@
 .samplePill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
+  gap: 5px;
+  padding: 3px 6px;
   border-radius: 6px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
+  background: transparent !important;
+  border: none !important;
+  line-height: 1.3;
+}
+
+.sampleDone {
+  background: transparent !important;
+  border: none !important;
+  color: #059669 !important;
+
+  svg {
+    color: #059669 !important;
+  }
+}
+
+.samplePending {
+  background: transparent !important;
+  border: none !important;
+  color: #d97706 !important;
+
+  svg {
+    color: #d97706 !important;
+  }
 }
 
 .sampleMuted {
@@ -813,9 +804,11 @@
 .mobileSampleBadge {
   display: inline-flex;
   align-items: center;
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 1px 4px;
   border-radius: 4px;
   line-height: 1.2;
+  background: transparent !important;
+  border: none !important;
 }
