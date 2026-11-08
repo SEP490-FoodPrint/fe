@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined"
 import { Plus } from "lucide-react"
@@ -7,12 +7,27 @@ import styles from "./HealthHeader.module.scss"
 
 export default function HealthHeader() {
   const navigate = useNavigate()
-  const dateStr = "Thứ Hai, 24/10/2026"
+
+  const dateStr = useMemo(() => {
+    const days = [
+      "Chủ Nhật",
+      "Thứ Hai",
+      "Thứ Ba",
+      "Thứ Tư",
+      "Thứ Năm",
+      "Thứ Sáu",
+      "Thứ Bảy",
+    ]
+    const now = new Date()
+    const dayName = days[now.getDay()]
+    const pad = (n) => String(n).padStart(2, "0")
+    return `${dayName}, ${pad(now.getDate())}/${pad(now.getMonth() + 1)}/${now.getFullYear()}`
+  }, [])
 
   return (
     <header className={styles.header}>
       <div className={styles.leftCol}>
-        <h1 className={styles.title}>Tổng quan Ban Y tế</h1>
+        <h1 className={styles.title}>Tổng quan</h1>
       </div>
 
       <div className={styles.rightGroup}>

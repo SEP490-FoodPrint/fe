@@ -138,3 +138,17 @@
     font-size: 11px;
   }
 }
+
+.kpiSubHint {
+  font-size: 10.5px;
+  color: var(--text-muted, #6b7280);
+  font-weight: 400;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}

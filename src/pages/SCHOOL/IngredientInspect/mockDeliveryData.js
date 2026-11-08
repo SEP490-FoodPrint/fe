@@ -6,9 +6,9 @@
 
 export const REQUIRED_INSPECTION_ROLES = [
   {
-    roleCode: "SCHOOL_HEALTH_OFFICER",
+    roleCode: "SCHOOL_NUTRITION_OFFICER",
     roleName: "Cán bộ Y tế",
-    shortTitle: "Y tế trường học",
+    shortTitle: "Nhân viên Dinh dưỡng",
     desc: "Kiểm tra cảm quan, an toàn vệ sinh thực phẩm, nhiệt độ thùng lạnh",
   },
   {
@@ -74,7 +74,7 @@ export const INITIAL_DELIVERIES = [
     deliveryApprovals: [
       {
         id: "appr-001-health",
-        roleCode: "SCHOOL_HEALTH_OFFICER",
+        roleCode: "SCHOOL_NUTRITION_OFFICER",
         roleName: "Cán bộ Y tế",
         userName: "BS. Nguyễn Thu Trang",
         decision: "APPROVE",
@@ -319,7 +319,7 @@ export const INITIAL_DELIVERIES = [
     deliveryApprovals: [
       {
         id: "appr-004-health",
-        roleCode: "SCHOOL_HEALTH_OFFICER",
+        roleCode: "SCHOOL_NUTRITION_OFFICER",
         roleName: "Cán bộ Y tế",
         userName: "BS. Nguyễn Thu Trang",
         decision: "APPROVE",

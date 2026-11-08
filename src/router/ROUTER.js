@@ -21,7 +21,9 @@ const ROUTER = {
   SYSTEM_ORG_APPROVAL: "/system/organization-approval",
   SYSTEM_ORG_APPROVAL_DETAIL: "/system/organization-approval/:requestId",
   SYSTEM_SCHOOL_LIST: "/system/school-list",
+  SYSTEM_SCHOOL_DETAIL: "/system/school-list/:id",
   SYSTEM_SUPPLIER_LIST: "/system/supplier-list",
+  SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
   SYSTEM_CONFIG: "/system/config",
 
@@ -29,6 +31,7 @@ const ROUTER = {
   SUPPLIER: "/supplier",
   SUPPLIER_OVERVIEW: "/supplier/overview",
   SUPPLIER_INGREDIENTS: "/supplier/ingredient-catalog",
+  SUPPLIER_INGREDIENT_DETAIL: "/supplier/ingredient-catalog/:id",
   SUPPLIER_ORDERS: "/supplier/supply-orders",
 
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)

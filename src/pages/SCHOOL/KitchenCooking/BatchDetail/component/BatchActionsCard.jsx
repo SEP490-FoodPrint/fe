@@ -3,10 +3,8 @@ import { useNavigate } from "react-router-dom"
 import {
   Zap,
   CheckCircle2,
-  Edit3,
   Trash2,
   CookingPot,
-  MoreVertical,
   FlaskConical,
   Check,
 } from "lucide-react"
@@ -21,19 +19,15 @@ export default function BatchActionsCard({
   hasSample = false,
   onOpenConfirmModal,
   onOpenDeleteModal,
-  onOpenCompleteModal,
+  onCompleteBatch,
+  actionLoading = false,
   onOpenSampleModal,
 }) {
   const navigate = useNavigate()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
-
-  const handleEdit = () => {
-    navigate(ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", batchId || batchCode))
-  }
 
   return (
     <>
@@ -45,7 +39,7 @@ export default function BatchActionsCard({
         </div>
 
         <div className={styles.btnStack}>
-          {/* Nút 1: Xác nhận phương án (chỉ khi Draft) */}
+          {/* Nút 1: Xác nhận nấu (khi trạng thái là Chưa xác nhận nấu) */}
           {isDraft && (
             <button
               type="button"
@@ -53,19 +47,20 @@ export default function BatchActionsCard({
               onClick={onOpenConfirmModal}
             >
               <CheckCircle2 size={18} />
-              <span>Xác nhận phương án</span>
+              <span>Xác nhận nấu</span>
             </button>
           )}
 
-          {/* Nút 2: Ghi nhận hoàn thành chế biến (khi đã xác nhận) */}
+          {/* Nút 2: Ghi nhận nấu xong - chạy trực tiếp không popup */}
           {isConfirmed && (
             <button
               type="button"
               className={styles.btnPrimary}
-              onClick={onOpenCompleteModal}
+              onClick={onCompleteBatch}
+              disabled={actionLoading}
             >
               <CookingPot size={18} />
-              <span>Ghi nhận hoàn thành chế biến</span>
+              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
             </button>
           )}
 
@@ -103,29 +98,17 @@ export default function BatchActionsCard({
             </div>
           )}
 
-          {/* Các nút chỉnh sửa / xóa (chỉ khi Draft) */}
+          {/* Nút xóa (chỉ khi Chưa xác nhận nấu) */}
           {isDraft && (
-            <>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={handleEdit}
-                title="Chỉnh sửa phương án"
-              >
-                <Edit3 size={16} />
-                <span>Chỉnh sửa lô chế biến</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.btnDanger}
-                onClick={onOpenDeleteModal}
-                title="Xóa lô chế biến"
-              >
-                <Trash2 size={16} />
-                <span>Xóa lô chế biến</span>
-              </button>
-            </>
+            <button
+              type="button"
+              className={styles.btnDanger}
+              onClick={onOpenDeleteModal}
+              title="Xóa lô chế biến"
+            >
+              <Trash2 size={16} />
+              <span>Xóa lô chế biến</span>
+            </button>
           )}
         </div>
       </section>
@@ -141,46 +124,18 @@ export default function BatchActionsCard({
                 onClick={onOpenConfirmModal}
               >
                 <CheckCircle2 size={19} />
-                <span>Xác nhận phương án</span>
+                <span>Xác nhận nấu</span>
               </button>
 
-              <div className={styles.mobileMenuAnchor}>
-                <button
-                  type="button"
-                  className={styles.mobileMoreBtn}
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-label="Thao tác khác"
-                >
-                  <MoreVertical size={20} />
-                </button>
-
-                {mobileMenuOpen && (
-                  <div className={styles.mobileDropdownMenu}>
-                    <button
-                      type="button"
-                      className={styles.mobileMenuItem}
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        handleEdit()
-                      }}
-                    >
-                      <Edit3 size={16} />
-                      <span>Chỉnh sửa</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.mobileMenuItem} ${styles.itemDanger}`}
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        onOpenDeleteModal()
-                      }}
-                    >
-                      <Trash2 size={16} />
-                      <span>Xóa lô</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                className={styles.mobileDangerBtn || styles.mobileMoreBtn}
+                onClick={onOpenDeleteModal}
+                aria-label="Xóa lô chế biến"
+                title="Xóa lô chế biến"
+              >
+                <Trash2 size={18} color="#dc2626" />
+              </button>
             </>
           )}
 
@@ -188,10 +143,11 @@ export default function BatchActionsCard({
             <button
               type="button"
               className={styles.mobilePrimaryBtn}
-              onClick={onOpenCompleteModal}
+              onClick={onCompleteBatch}
+              disabled={actionLoading}
             >
               <CookingPot size={19} />
-              <span>Ghi nhận hoàn thành</span>
+              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
             </button>
           )}
 

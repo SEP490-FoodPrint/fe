@@ -4,11 +4,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 16px 20px;
+  padding: 14px 18px;
   background-color: #ffffff;
   border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   margin-top: 4px;
 
   @media (max-width: 768px) {
@@ -42,23 +42,6 @@
   }
 }
 
-.actionGroup {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.footerNote {
-  font-size: 12px;
-  color: var(--text-muted, #6b7280);
-}
-
-.buttonsWrap {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
 .createBtn {
   display: inline-flex;
   align-items: center;
@@ -75,13 +58,45 @@
   box-shadow: 0 1px 3px rgba(10, 128, 102, 0.2);
   transition: all 0.15s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: var(--color-primary-hover, #086b55);
     box-shadow: 0 2px 6px rgba(10, 128, 102, 0.3);
   }
 
-  &:active {
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  &:active:not(:disabled) {
     transform: scale(0.98);
+  }
+}
+
+.rightActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.finishBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+  background-color: #f0fdf4;
+  color: #15803d;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #dcfce7;
   }
 }
 
@@ -122,15 +137,21 @@
   border: none;
   background-color: var(--color-primary, #0a8066);
   color: #ffffff;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(10, 128, 102, 0.25);
   transition: all 0.15s ease;
 
-  &:active {
+  &:active:not(:disabled) {
     background-color: var(--color-primary-hover, #086b55);
     transform: scale(0.97);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 }
 

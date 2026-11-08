@@ -2,32 +2,52 @@ import React from "react"
 import { CookingPot, Clock, CheckCircle2 } from "lucide-react"
 import styles from "./CookingBatchesKPI.module.scss"
 
-const KPIS = [
-  {
-    id: "total",
-    label: "Lô theo bộ lọc",
-    field: "total",
-    unit: "lô",
-    icon: <CookingPot size={16} />,
-    iconTheme: "primary",
-  },
-  {
-    id: "pending",
-    label: "Chờ nấu",
-    field: "confirmed",
-    icon: <Clock size={16} />,
-    iconTheme: "warning",
-  },
-  {
-    id: "completed",
-    label: "Đã xong",
-    field: "completed",
-    icon: <CheckCircle2 size={16} />,
-    iconTheme: "success",
-  },
-]
+function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false }) {
+  const isCurrentWeek = Boolean(selectedWeekObj?.isCurrentWeek && !isAllWeeks)
+  const weekLabel = isAllWeeks
+    ? "Tổng lô cả năm"
+    : isCurrentWeek
+      ? "Lô tuần này"
+      : selectedWeekObj?.shortLabel
+        ? `Lô ${selectedWeekObj.shortLabel}`
+        : "Tổng lô trong tuần"
 
-function CookingBatchesKPI({ stats, loading }) {
+  const weekTooltip = isAllWeeks
+    ? "Tổng số lô chế biến trong cả năm học"
+    : isCurrentWeek
+      ? "Tổng số lô chế biến đã tạo trong tuần này"
+      : `Tổng số lô chế biến trong ${selectedWeekObj?.shortLabel || "tuần"}`
+
+  const kpiList = [
+    {
+      id: "total",
+      label: weekLabel,
+      field: "total",
+      unit: "lô",
+      tooltip: weekTooltip,
+      icon: <CookingPot size={16} />,
+      iconTheme: "primary",
+    },
+    {
+      id: "pending",
+      label: "Chờ nấu",
+      field: "confirmed",
+      unit: "lô",
+      tooltip: "Số lô đang ở trạng thái chờ nấu",
+      icon: <Clock size={16} />,
+      iconTheme: "warning",
+    },
+    {
+      id: "completed",
+      label: "Đã hoàn thành",
+      field: "completed",
+      unit: "lô",
+      tooltip: "Số lô đã nấu xong hoàn thành",
+      icon: <CheckCircle2 size={16} />,
+      iconTheme: "success",
+    },
+  ]
+
   return (
     <div
       className={styles.kpiGrid}
@@ -35,7 +55,7 @@ function CookingBatchesKPI({ stats, loading }) {
       aria-label="Thống kê lô chế biến theo bộ lọc"
       aria-busy={loading}
     >
-      {KPIS.map((kpi) => (
+      {kpiList.map((kpi) => (
         <div key={kpi.id} className={styles.kpiCard}>
           <div
             className={`${styles.iconBox} ${styles[`icon_${kpi.iconTheme}`] || ""}`}
@@ -61,7 +81,9 @@ function CookingBatchesKPI({ stats, loading }) {
                 </span>
               )}
             </div>
-            <span className={styles.kpiLabel}>{kpi.label}</span>
+            <span className={styles.kpiLabel} title={kpi.tooltip || kpi.label}>
+              {kpi.label}
+            </span>
           </div>
         </div>
       ))}

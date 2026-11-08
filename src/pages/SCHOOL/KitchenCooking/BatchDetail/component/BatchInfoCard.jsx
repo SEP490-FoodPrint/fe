@@ -42,7 +42,7 @@ export default function BatchInfoCard({ batchData = {} }) {
               </span>
             ) : (
               <span className={styles.statusDraftPill}>
-                Chờ xác nhận
+                Chưa xác nhận nấu
               </span>
             )}
           </div>
