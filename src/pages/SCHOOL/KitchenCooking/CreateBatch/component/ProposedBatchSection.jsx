@@ -40,16 +40,13 @@ export default function ProposedBatchSection({ selectedDish }) {
     return (
       <section className={styles.sectionContainer}>
         <div className={styles.sectionHeader}>
-          <div className={styles.titleWithBadge}>
-            <div className={styles.numberBadge}>2</div>
-            <h2 className={styles.sectionTitle}>Phương án chế biến dự kiến</h2>
-          </div>
+          <h2 className={styles.sectionTitle}>Phương án chế biến dự kiến</h2>
         </div>
 
         <div className={styles.emptyState}>
-          <CookingPot size={24} className={styles.emptyIcon} />
+          <CookingPot size={22} className={styles.emptyIcon} />
           <p className={styles.emptyDesc}>
-            Vui lòng chọn món ăn ở trên để xem phương án chế biến và danh sách nguyên liệu.
+            Vui lòng chọn món ăn ở trên để xem danh sách nguyên liệu xuất kho.
           </p>
         </div>
       </section>
@@ -59,13 +56,10 @@ export default function ProposedBatchSection({ selectedDish }) {
   return (
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
-        <div className={styles.titleWithBadge}>
-          <div className={styles.numberBadge}>2</div>
+        <div className={styles.titleWrap}>
           <h2 className={styles.sectionTitle}>Phương án chế biến dự kiến</h2>
-        </div>
-        <div className={styles.headerBadges}>
           <span className={styles.lotCodeBadge}>LÔ-THK-01</span>
-          <span className={styles.modeBadge}>Nấu chung</span>
+          <span className={styles.modeTag}>Nấu chung</span>
         </div>
       </div>
 
@@ -73,9 +67,9 @@ export default function ProposedBatchSection({ selectedDish }) {
       <div className={styles.ingredientsSection}>
         <div className={styles.ingHeaderRow}>
           <div className={styles.ingTitleLeft}>
-            <Layers size={15} className={styles.ingIcon} />
+            <Layers size={14} className={styles.ingIcon} />
             <span className={styles.ingTitle}>Lô nguyên liệu xuất kho</span>
-            <span className={styles.ingCountBadge}>05 lô</span>
+            <span className={styles.ingCountBadge}>05 lô liên kết</span>
           </div>
         </div>
 
@@ -83,7 +77,7 @@ export default function ProposedBatchSection({ selectedDish }) {
           <table className={styles.table}>
             <thead>
               <tr>
-                <th scope="col">Mã lô</th>
+                <th scope="col">Mã lô nguồn</th>
                 <th scope="col">Tên nguyên liệu</th>
                 <th scope="col" style={{ textAlign: "right" }}>Định lượng</th>
                 <th scope="col" style={{ textAlign: "center" }}>Tiêu chuẩn</th>

@@ -1,16 +1,16 @@
 .sectionContainer {
   background-color: #ffffff;
   border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 12px;
-  padding: 18px 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 
   @media (max-width: 768px) {
-    padding: 14px;
-    gap: 14px;
+    padding: 12px;
+    gap: 12px;
   }
 }
 
@@ -19,65 +19,43 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding-bottom: 12px;
+  padding-bottom: 10px;
   border-bottom: 1px solid #f3f4f6;
   flex-wrap: wrap;
 }
 
-.titleWithBadge {
+.titleWrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.numberBadge {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  font-size: 12.5px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .sectionTitle {
   margin: 0;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-primary, #111827);
   line-height: 1.3;
 }
 
-.headerBadges {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .lotCodeBadge {
   font-family: var(--font-mono, monospace);
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 700;
   color: var(--color-primary, #0a8066);
   background-color: var(--color-primary-soft, #e8f5f1);
-  padding: 2.5px 8px;
-  border-radius: 6px;
+  padding: 2px 7px;
+  border-radius: 4px;
 }
 
-.modeBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 8px;
-  border-radius: 9999px;
-  background-color: #f3f4f6;
-  color: #374151;
+.modeTag {
   font-size: 11px;
   font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background-color: #f3f4f6;
+  color: #374151;
   white-space: nowrap;
 }
 
@@ -87,12 +65,12 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px 16px;
+  padding: 28px 16px;
   background-color: #fafafa;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px dashed var(--border-default, #e5e7eb);
   text-align: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .emptyIcon {
@@ -103,7 +81,7 @@
   margin: 0;
   font-size: 13px;
   color: var(--text-muted, #6b7280);
-  max-width: 380px;
+  max-width: 420px;
   line-height: 1.5;
 }
 
@@ -137,17 +115,14 @@
 }
 
 .ingCountBadge {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 1.5px 6px;
-  border-radius: 9999px;
-  background-color: #f3f4f6;
+  font-size: 11px;
+  font-weight: 500;
   color: var(--text-muted, #6b7280);
 }
 
 .tableWrap {
   border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   background-color: #ffffff;
 }
@@ -162,8 +137,8 @@
     border-bottom: 1px solid var(--border-default, #e5e7eb);
 
     th {
-      padding: 9px 12px;
-      font-size: 11.5px;
+      padding: 8px 12px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text-muted, #6b7280);
       text-align: left;
@@ -180,12 +155,12 @@
     }
 
     &:hover {
-      background-color: #f9fafb;
+      background-color: #fafbfc;
     }
   }
 
   td {
-    padding: 10px 12px;
+    padding: 8px 12px;
     vertical-align: middle;
   }
 }
@@ -197,8 +172,8 @@
   font-weight: 600;
   color: #1f2937;
   background-color: #f3f4f6;
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 1.5px 6px;
+  border-radius: 3px;
 }
 
 .lotName {
@@ -218,7 +193,7 @@
   font-size: 10.5px;
   font-weight: 600;
   padding: 1.5px 6px;
-  border-radius: 9999px;
+  border-radius: 4px;
   background-color: #ecfdf5;
   color: #047857;
   white-space: nowrap;
