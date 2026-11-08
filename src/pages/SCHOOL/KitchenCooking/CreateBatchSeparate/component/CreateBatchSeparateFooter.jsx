@@ -13,6 +13,7 @@ import styles from "./CreateBatchSeparateFooter.module.scss";
 export default function CreateBatchSeparateFooter({
   selectedDish,
   dishes = [],
+  selectedMeal = "lunch",
   onBatchCreated,
   onSelectNextDish,
 }) {
@@ -22,9 +23,15 @@ export default function CreateBatchSeparateFooter({
   const [isError, setIsError] = useState(false);
 
   const isCreated = selectedDish?.isBatchCreated;
-  const nextPendingDish = dishes.find(
-    (d) => !d.isBatchCreated && d.id !== selectedDish?.id
-  );
+  
+  const nextPendingDish =
+    dishes.find(
+      (d) =>
+        !d.isBatchCreated &&
+        d.id !== selectedDish?.id &&
+        (selectedMeal === "all" || d.mealType === selectedMeal)
+    ) ||
+    dishes.find((d) => !d.isBatchCreated && d.id !== selectedDish?.id);
 
   const handleCreateBatch = () => {
     if (!selectedDish) {
@@ -46,19 +53,23 @@ export default function CreateBatchSeparateFooter({
 
     setIsError(false);
     const dishCode = selectedDish.batchCode || "02 LÔ TÁCH";
-    
+
     if (onBatchCreated) {
       onBatchCreated(selectedDish.id);
     }
 
     if (nextPendingDish) {
-      setToastMessage(`✓ Đã tạo 02 lô (${dishCode}) cho "${selectedDish.name}". Đang chuyển sang món tiếp theo...`);
+      setToastMessage(
+        `✓ Đã tạo 02 lô (${dishCode}) cho "${selectedDish.name}". Đang chuyển sang món tiếp theo...`
+      );
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);
       }, 2000);
     } else {
-      setToastMessage(`✓ Đã hoàn tất tạo lô cho tất cả ${dishes.length} món ăn hôm nay!`);
+      setToastMessage(
+        `✓ Đã hoàn tất tạo lô cho tất cả ${dishes.length} món ăn hôm nay!`
+      );
       setShowToast(true);
       setTimeout(() => {
         setShowToast(false);

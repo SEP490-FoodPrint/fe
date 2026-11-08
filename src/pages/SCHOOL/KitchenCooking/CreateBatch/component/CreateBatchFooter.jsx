@@ -13,6 +13,7 @@ import styles from "./CreateBatchFooter.module.scss";
 export default function CreateBatchFooter({
   selectedDish,
   dishes = [],
+  selectedMeal = "lunch",
   onBatchCreated,
   onSelectNextDish,
 }) {
@@ -22,9 +23,16 @@ export default function CreateBatchFooter({
   const [isError, setIsError] = useState(false);
 
   const isCreated = selectedDish?.isBatchCreated;
-  const nextPendingDish = dishes.find(
-    (d) => !d.isBatchCreated && d.id !== selectedDish?.id
-  );
+  
+  // Ưu tiên món chưa tạo trong cùng ca ăn
+  const nextPendingDish =
+    dishes.find(
+      (d) =>
+        !d.isBatchCreated &&
+        d.id !== selectedDish?.id &&
+        (selectedMeal === "all" || d.mealType === selectedMeal)
+    ) ||
+    dishes.find((d) => !d.isBatchCreated && d.id !== selectedDish?.id);
 
   const handleCreateBatch = () => {
     if (!selectedDish) {
@@ -47,7 +55,7 @@ export default function CreateBatchFooter({
     // Tạo lô cho món hiện tại
     setIsError(false);
     const dishCode = selectedDish.batchCode || "LÔ-CHẾ-BIẾN";
-    
+
     if (onBatchCreated) {
       onBatchCreated(selectedDish.id);
     }

@@ -9,18 +9,24 @@ import styles from "./index.module.scss";
 
 /**
  * CreateBatchSeparate - Màn hình Khởi tạo Lô Chế Biến - Nấu Riêng Từng Lô (Nhân viên Bếp)
- * Giao diện tinh gọn, trực quan, hỗ trợ nhân viên bếp thao tác nhanh:
- * 1. Nhìn thấy ngay danh sách món trong thực đơn hôm nay, món nào đã tạo, món nào chưa tạo.
- * 2. Chọn món là giao diện tự động cập nhật mẻ nấu tại chỗ, không cần vào ra nhiều lần.
- * 3. Đã loại bỏ "Gia vị an toàn" và các khung bo rườm rà.
+ * Hỗ trợ đa ca ăn (Bữa trưa / Bữa xế / Tất cả trong ngày) và thực đơn nhiều món:
+ * 1. Chuyển đổi linh hoạt giữa các ca ăn và trạng thái tạo lô.
+ * 2. Lưới thẻ tự co giãn (Responsive Auto-fill Grid).
+ * 3. Tự động chuyển tiếp thông minh giữa các món chưa tạo lô.
  */
 export default function CreateBatchSeparate() {
   const [dishes, setDishes] = useState(INITIAL_SEPARATE_DISHES);
+  const [selectedMeal, setSelectedMeal] = useState("lunch");
   const [selectedDish, setSelectedDish] = useState(() => {
-    return INITIAL_SEPARATE_DISHES.find((d) => !d.isBatchCreated) || INITIAL_SEPARATE_DISHES[0];
+    return (
+      INITIAL_SEPARATE_DISHES.find(
+        (d) => !d.isBatchCreated && d.mealType === "lunch"
+      ) ||
+      INITIAL_SEPARATE_DISHES.find((d) => !d.isBatchCreated) ||
+      INITIAL_SEPARATE_DISHES[0]
+    );
   });
   const [portions, setPortions] = useState(1250);
-  const [selectedMeal, setSelectedMeal] = useState("lunch");
 
   const handleBatchCreated = (dishId) => {
     const updatedDishes = dishes.map((d) => {
@@ -36,8 +42,23 @@ export default function CreateBatchSeparate() {
 
     setDishes(updatedDishes);
 
-    const nextPending = updatedDishes.find((d) => !d.isBatchCreated && d.id !== dishId);
+    const nextInSameMeal = updatedDishes.find(
+      (d) =>
+        !d.isBatchCreated &&
+        d.id !== dishId &&
+        (selectedMeal === "all" || d.mealType === selectedMeal)
+    );
+
+    const nextAnyPending = updatedDishes.find(
+      (d) => !d.isBatchCreated && d.id !== dishId
+    );
+
+    const nextPending = nextInSameMeal || nextAnyPending;
+
     if (nextPending) {
+      if (nextPending.mealType !== selectedMeal && selectedMeal !== "all") {
+        setSelectedMeal(nextPending.mealType);
+      }
       setSelectedDish(nextPending);
       if (nextPending.portionStandard) {
         setPortions(nextPending.portionStandard);
@@ -64,11 +85,13 @@ export default function CreateBatchSeparate() {
         <ProposedSeparateBatchSection
           selectedDish={selectedDish}
           dishes={dishes}
+          selectedMeal={selectedMeal}
           setSelectedDish={setSelectedDish}
         />
         <CreateBatchSeparateFooter
           selectedDish={selectedDish}
           dishes={dishes}
+          selectedMeal={selectedMeal}
           onBatchCreated={handleBatchCreated}
           onSelectNextDish={setSelectedDish}
         />

@@ -137,14 +137,14 @@
   margin: 0;
 }
 
-/* 2. Dải chọn món ăn & Trạng thái tạo lô */
+/* 2. Dải chọn món ăn & Điều hướng Ca ăn */
 .dishSelectionArea {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.dishHeaderRow {
+.controlsHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -152,22 +152,52 @@
   flex-wrap: wrap;
 }
 
-.dishTitleLeft {
+.mealTabsRow {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 4px;
+  background-color: #f3f4f6;
+  padding: 3px;
+  border-radius: 8px;
 }
 
-.mainLabel {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-}
-
-.menuSourceHint {
+.mealTabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7280);
+  font-weight: 600;
+  color: #4b5563;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: var(--text-primary, #111827);
+  }
+}
+
+.mealTabActive {
+  background-color: #ffffff !important;
+  color: var(--color-primary, #0a8066) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+
+  .tabBadge {
+    background-color: var(--color-primary-soft, #e8f5f1);
+    color: var(--color-primary, #0a8066);
+  }
+}
+
+.tabBadge {
+  font-size: 10.5px;
+  font-weight: 700;
+  background-color: #e5e7eb;
+  color: #374151;
+  padding: 1px 6px;
+  border-radius: 10px;
 }
 
 .progressBadge {
@@ -176,7 +206,7 @@
   gap: 6px;
   font-size: 12px;
   color: #374151;
-  background-color: #f3f4f6;
+  background-color: #f9fafb;
   padding: 4px 10px;
   border-radius: 20px;
   border: 1px solid #e5e7eb;
@@ -194,19 +224,91 @@
   background-color: var(--color-primary, #0a8066);
 }
 
-/* Grid 4 món ăn trực quan */
+/* Hàng lọc trạng thái & Tìm kiếm */
+.subFilterRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.statusPills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filterPill {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3.5px 10px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background-color: #ffffff;
+  color: #4b5563;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #d1d5db;
+    background-color: #f9fafb;
+  }
+}
+
+.filterPillActive {
+  border-color: var(--color-primary, #0a8066) !important;
+  background-color: var(--color-primary-soft, #e8f5f1) !important;
+  color: var(--color-primary, #0a8066) !important;
+}
+
+.pillPending {
+  color: #c2410c;
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+}
+
+.pillCreated {
+  color: #15803d;
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.searchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 8px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.searchField {
+  height: 28px;
+  padding: 0 10px 0 28px;
+  font-size: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+  width: 170px;
+  transition: all 0.15s ease;
+
+  &:focus {
+    border-color: var(--color-primary, #0a8066);
+    width: 200px;
+  }
+}
+
+/* Lưới thẻ món ăn co giãn thông minh (Responsive Auto-fill Grid) */
 .dishGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: 12px;
-
-  @media (max-width: 1100px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-  }
 }
 
 .dishCard {
@@ -250,6 +352,21 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.headerBadges {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.mealTagSmall {
+  font-size: 10px;
+  font-weight: 600;
+  color: #1e40af;
+  background-color: #dbeafe;
+  padding: 1.5px 5px;
+  border-radius: 3px;
 }
 
 .dishIconBox {
@@ -325,4 +442,38 @@
   padding: 1.5px 6px;
   border-radius: 3px;
   margin-top: 2px;
+}
+
+/* Empty filter box */
+.emptyFilterBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 16px;
+  background-color: #fafafa;
+  border: 1px dashed #e5e7eb;
+  border-radius: 8px;
+  gap: 8px;
+  text-align: center;
+}
+
+.emptyFilterIcon {
+  color: var(--color-primary, #0a8066);
+}
+
+.emptyFilterText {
+  font-size: 13px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.resetFilterBtn {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-primary, #0a8066);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
 }

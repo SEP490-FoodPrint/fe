@@ -7,19 +7,24 @@ import styles from "./index.module.scss";
 
 /**
  * CreateBatch - Màn hình Khởi tạo Lô Chế Biến Thực Phẩm - Nấu Chung (Nhân viên Bếp)
- * Giao diện tinh gọn, trực quan, hỗ trợ nhân viên bếp thao tác nhanh:
- * 1. Nhìn thấy ngay danh sách món trong thực đơn hôm nay, món nào đã tạo, món nào chưa tạo.
- * 2. Chọn món là giao diện tự động cập nhật mẻ nấu tại chỗ, không cần vào ra nhiều lần.
- * 3. Đã loại bỏ "Gia vị an toàn" và các cột tiêu chuẩn rườm rà.
+ * Hỗ trợ đa ca ăn (Bữa trưa / Bữa xế / Tất cả trong ngày) và thực đơn nhiều món:
+ * 1. Chuyển đổi linh hoạt giữa các bữa ăn và trạng thái tạo lô.
+ * 2. Lưới thẻ tự co giãn (Responsive Auto-fill Grid).
+ * 3. Tự động chuyển tiếp thông minh giữa các món chưa tạo lô.
  */
 export default function CreateBatch() {
   const [dishes, setDishes] = useState(INITIAL_DISHES);
-  // Mặc định chọn món đầu tiên chưa tạo lô
+  const [selectedMeal, setSelectedMeal] = useState("lunch");
+
+  // Mặc định chọn món đầu tiên chưa tạo lô trong ca ăn hiện tại
   const [selectedDish, setSelectedDish] = useState(() => {
-    return INITIAL_DISHES.find((d) => !d.isBatchCreated) || INITIAL_DISHES[0];
+    return (
+      INITIAL_DISHES.find((d) => !d.isBatchCreated && d.mealType === "lunch") ||
+      INITIAL_DISHES.find((d) => !d.isBatchCreated) ||
+      INITIAL_DISHES[0]
+    );
   });
   const [portions, setPortions] = useState(1250);
-  const [selectedMeal, setSelectedMeal] = useState("lunch");
 
   // Xử lý tạo lô thành công và chuyển ngay sang món chưa tạo tiếp theo
   const handleBatchCreated = (dishId) => {
@@ -36,15 +41,30 @@ export default function CreateBatch() {
 
     setDishes(updatedDishes);
 
-    // Tìm món tiếp theo chưa tạo
-    const nextPending = updatedDishes.find((d) => !d.isBatchCreated && d.id !== dishId);
+    // Ưu tiên tìm món tiếp theo chưa tạo trong cùng ca ăn
+    const nextInSameMeal = updatedDishes.find(
+      (d) =>
+        !d.isBatchCreated &&
+        d.id !== dishId &&
+        (selectedMeal === "all" || d.mealType === selectedMeal)
+    );
+
+    // Nếu ca hiện tại đã xong hết, tìm món chưa tạo ở ca khác
+    const nextAnyPending = updatedDishes.find(
+      (d) => !d.isBatchCreated && d.id !== dishId
+    );
+
+    const nextPending = nextInSameMeal || nextAnyPending;
+
     if (nextPending) {
+      if (nextPending.mealType !== selectedMeal && selectedMeal !== "all") {
+        setSelectedMeal(nextPending.mealType);
+      }
       setSelectedDish(nextPending);
       if (nextPending.portionStandard) {
         setPortions(nextPending.portionStandard);
       }
     } else {
-      // Nếu đã tạo hết, giữ nguyên món hiện tại ở trạng thái isBatchCreated: true
       const current = updatedDishes.find((d) => d.id === dishId);
       if (current) setSelectedDish(current);
     }
@@ -56,7 +76,7 @@ export default function CreateBatch() {
         {/* Header Bar: Breadcrumb + Action Mode Tag */}
         <CreateBatchHeader />
 
-        {/* PHẦN 1: THÔNG TIN PHIÊN NẤU & BỘ CHỌN MÓN KÈM TRẠNG THÁI */}
+        {/* PHẦN 1: THÔNG TIN PHIÊN NẤU & BỘ CHỌN MÓN ĐA CA ĂN */}
         <BasicInfoSection
           dishes={dishes}
           selectedDish={selectedDish}
@@ -71,6 +91,7 @@ export default function CreateBatch() {
         <ProposedBatchSection
           selectedDish={selectedDish}
           dishes={dishes}
+          selectedMeal={selectedMeal}
           setSelectedDish={setSelectedDish}
         />
 
@@ -78,6 +99,7 @@ export default function CreateBatch() {
         <CreateBatchFooter
           selectedDish={selectedDish}
           dishes={dishes}
+          selectedMeal={selectedMeal}
           onBatchCreated={handleBatchCreated}
           onSelectNextDish={setSelectedDish}
         />
