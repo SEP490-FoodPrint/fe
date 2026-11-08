@@ -276,7 +276,8 @@ export default function CreateDeliveryView({
               </Typography>
             </Box>
             <Typography variant="h4" className={styles.batchPortionCount}>
-              {batch1Portions} <span className={styles.portionUnit}>suất ăn</span>
+              {batch1Portions} <span className={styles.portionTotal}>/ {maxPortions}</span>{" "}
+              <span className={styles.portionUnit}>suất ăn</span>
             </Typography>
           </Box>
 
@@ -523,7 +524,7 @@ export default function CreateDeliveryView({
                             />
                           ) : (
                             <Typography variant="caption" className={styles.notAttachedText}>
-                              Chưa giao (Dùng kho)
+                              Chưa giao
                             </Typography>
                           )}
                         </TableCell>
