@@ -4,7 +4,7 @@ export const COOKING_MODES = {
 }
 
 export const BATCH_STATUSES = {
-  UNCONFIRMED: "Chưa tạo",
+  UNCONFIRMED: "Chưa xác nhận nấu",
   CONFIRMED: "Chờ nấu",
   COMPLETED: "Đã hoàn thành",
 }

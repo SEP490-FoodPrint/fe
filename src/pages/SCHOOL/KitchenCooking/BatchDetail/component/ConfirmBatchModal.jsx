@@ -21,8 +21,8 @@ export default function ConfirmBatchModal({
               <CheckCircle2 size={22} />
             </div>
             <div>
-              <h3 className={styles.modalTitle}>Xác nhận tạo lô chế biến</h3>
-              <p className={styles.modalSub}>Chốt phương án và chuyển sang trạng thái chờ nấu</p>
+              <h3 className={styles.modalTitle}>Xác nhận nấu</h3>
+              <p className={styles.modalSub}>Xác nhận và chuyển lô sang trạng thái chờ nấu</p>
             </div>
           </div>
           <button
@@ -58,7 +58,7 @@ export default function ConfirmBatchModal({
           <div className={styles.warningBox}>
             <ShieldCheck size={18} className={styles.warningIcon} />
             <p className={styles.warningText}>
-              Sau khi xác nhận tạo lô, mẻ nấu sẽ chính thức được khởi tạo và chuyển sang danh sách chờ nấu để nhân viên bếp thực hiện chế biến.
+              Sau khi xác nhận nấu, mẻ nấu sẽ chính thức chuyển sang danh sách chờ nấu để nhân viên bếp thực hiện chế biến.
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function ConfirmBatchModal({
             disabled={loading}
           >
             <CheckCircle2 size={16} />
-            <span>{loading ? "Đang tạo lô…" : "Xác nhận tạo lô"}</span>
+            <span>{loading ? "Đang xác nhận…" : "Xác nhận nấu"}</span>
           </button>
         </div>
       </div>

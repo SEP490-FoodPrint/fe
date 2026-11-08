@@ -39,7 +39,7 @@ export default function BatchActionsCard({
         </div>
 
         <div className={styles.btnStack}>
-          {/* Nút 1: Tạo lô chế biến (khi trạng thái là Chưa tạo) */}
+          {/* Nút 1: Xác nhận nấu (khi trạng thái là Chưa xác nhận nấu) */}
           {isDraft && (
             <button
               type="button"
@@ -47,7 +47,7 @@ export default function BatchActionsCard({
               onClick={onOpenConfirmModal}
             >
               <CheckCircle2 size={18} />
-              <span>Tạo lô chế biến</span>
+              <span>Xác nhận nấu</span>
             </button>
           )}
 
@@ -98,7 +98,7 @@ export default function BatchActionsCard({
             </div>
           )}
 
-          {/* Nút xóa (chỉ khi Chưa tạo) */}
+          {/* Nút xóa (chỉ khi Chưa xác nhận nấu) */}
           {isDraft && (
             <button
               type="button"
@@ -124,7 +124,7 @@ export default function BatchActionsCard({
                 onClick={onOpenConfirmModal}
               >
                 <CheckCircle2 size={19} />
-                <span>Tạo lô chế biến</span>
+                <span>Xác nhận nấu</span>
               </button>
 
               <button

@@ -240,7 +240,7 @@ export default function CookingBatches() {
   const mealTimes = [
     schoolClock(school?.lunchTime) && `Trưa ${schoolClock(school.lunchTime)}`,
     schoolClock(school?.afternoonMealTime) &&
-      `Xế ${schoolClock(school.afternoonMealTime)}`,
+    `Xế ${schoolClock(school.afternoonMealTime)}`,
   ]
     .filter(Boolean)
     .join(" · ")

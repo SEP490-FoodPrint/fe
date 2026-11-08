@@ -29,7 +29,7 @@ export default function BatchDetailHeader({ batchData }) {
         return (
           <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
             <span className={styles.pulseDot} />
-            Chờ xác nhận
+            Chưa xác nhận nấu
           </span>
         )
     }

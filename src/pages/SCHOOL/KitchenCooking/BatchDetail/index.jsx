@@ -71,14 +71,14 @@ export default function KitchenBatchDetail() {
     try {
       await KitchenService.confirmBatch(id)
       notice({
-        msg: "Khởi tạo lô chế biến thành công!",
+        msg: "Xác nhận nấu thành công!",
         isSuccess: true,
       })
       setIsConfirmOpen(false)
       fetchBatch()
     } catch (err) {
       notice({
-        msg: err.message || "Không thể tạo lô chế biến.",
+        msg: err.message || "Không thể xác nhận nấu.",
         isSuccess: false,
       })
     } finally {

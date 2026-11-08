@@ -11,7 +11,7 @@ export default function BatchTimelineCard({ status = "UNCONFIRMED" }) {
     {
       id: "draft",
       number: 1,
-      title: "Chưa tạo",
+      title: "Chưa xác nhận nấu",
       isCurrent: isDraft,
       isDone: !isDraft,
     },
