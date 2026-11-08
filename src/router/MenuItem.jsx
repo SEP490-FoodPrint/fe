@@ -173,7 +173,7 @@ export const MenuItemSchool = () => [
     ],
   },
 
-  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN BẾP (SCHOOL_KITCHEN_STAFF) - 8 MỤC GỐC ===
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN BẾP (SCHOOL_KITCHEN_STAFF) - 7 MỤC QUY CHUẨN ===
   {
     key: ROUTER.SCHOOL_KITCHEN_COOKING,
     label: "Trang chủ",
@@ -196,12 +196,6 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
     label: "Phân bổ suất ăn",
     icon: <RoomServiceOutlinedIcon />,
-    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
-  },
-  {
-    key: ROUTER.SCHOOL_KITCHEN_INGREDIENTS,
-    label: "Danh sách nguyên liệu",
-    icon: <Inventory2OutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {

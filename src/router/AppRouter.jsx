@@ -264,7 +264,6 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL, element: <LazyWrapper><KitchenBatchDetail /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_EDIT, element: <LazyWrapper><KitchenEditBatch /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_INGREDIENTS, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
