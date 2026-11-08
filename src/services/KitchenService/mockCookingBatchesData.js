@@ -8,17 +8,20 @@
  * 5. COMPLETED - Đã tiêu hủy mẫu
  */
 
-const today = new Date()
-const pad = (n) => String(n).padStart(2, "0")
-const todayISO = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
-const yesterdayISO = new Date(today.getTime() - 86400000).toISOString().slice(0, 10)
+const today = new Date();
+const pad = (n) => String(n).padStart(2, "0");
+const todayISO = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
+const yesterdayISO = new Date(today.getTime() - 86400000)
+  .toISOString()
+  .slice(0, 10);
 
-const ms = (hours) => hours * 3600000
+const ms = (hours) => hours * 3600000;
 
 export let IN_MEMORY_MOCK_BATCHES = [
   // LÔ 1: UNCONFIRMED - Chưa xác nhận (Ca trưa hôm nay)
   {
-    id: "cb-20261108-001",
+    id: "b0000001-0000-0000-0000-000000000001",
+    legacyId: "cb-20261108-001",
     batchCode: "CB-20261108-001",
     mealType: "LUNCH",
     cookingModeApplied: "COMBINE_LOTS",
@@ -69,7 +72,8 @@ export let IN_MEMORY_MOCK_BATCHES = [
 
   // LÔ 2: CONFIRMED - Chờ nấu (Ca trưa hôm nay)
   {
-    id: "cb-20261108-002",
+    id: "b0000001-0000-0000-0000-000000000002",
+    legacyId: "cb-20261108-002",
     batchCode: "CB-20261108-002",
     mealType: "LUNCH",
     cookingModeApplied: "SEPARATE_BY_LOT",
@@ -120,7 +124,8 @@ export let IN_MEMORY_MOCK_BATCHES = [
 
   // LÔ 3: COMPLETED - Đã nấu xong, CHƯA LƯU MẪU (Sẵn sàng để thử nghiệm bấm Lưu Mẫu!)
   {
-    id: "cb-20261108-003",
+    id: "b0000001-0000-0000-0000-000000000003",
+    legacyId: "cb-20261108-003",
     batchCode: "CB-20261108-003",
     mealType: "LUNCH",
     cookingModeApplied: "COMBINE_LOTS",
@@ -171,7 +176,8 @@ export let IN_MEMORY_MOCK_BATCHES = [
 
   // LÔ 4: COMPLETED - Đã nấu xong và ĐANG LƯU MẪU (24h)
   {
-    id: "cb-20261108-004",
+    id: "b0000001-0000-0000-0000-000000000004",
+    legacyId: "cb-20261108-004",
     batchCode: "CB-20261108-004",
     mealType: "AFTERNOON",
     cookingModeApplied: "COMBINE_LOTS",
@@ -274,7 +280,8 @@ export let IN_MEMORY_MOCK_BATCHES = [
 
   // LÔ 6: CONFIRMED - Bữa xế chiều hôm nay
   {
-    id: "cb-20261108-006",
+    id: "b0000001-0000-0000-0000-000000000006",
+    legacyId: "cb-20261108-006",
     batchCode: "CB-20261108-006",
     mealType: "AFTERNOON",
     cookingModeApplied: "COMBINE_LOTS",
@@ -314,44 +321,44 @@ export let IN_MEMORY_MOCK_BATCHES = [
     ],
     retainedFoodSample: null,
   },
-]
+];
 
 /**
  * Lọc danh sách lô theo các tiêu chí (search, status, mealType, date)
  */
 export function getMockBatchesPage(filters = {}) {
-  const page = Number(filters.page) || 1
-  const limit = Number(filters.limit) || 10
-  const search = (filters.search || "").trim().toLowerCase()
-  const mealType = filters.mealType
-  const status = filters.status
-  const cookingMode = filters.cookingModeApplied
+  const page = Number(filters.page) || 1;
+  const limit = Number(filters.limit) || 10;
+  const search = (filters.search || "").trim().toLowerCase();
+  const mealType = filters.mealType;
+  const status = filters.status;
+  const cookingMode = filters.cookingModeApplied;
 
-  let list = [...IN_MEMORY_MOCK_BATCHES]
+  let list = [...IN_MEMORY_MOCK_BATCHES];
 
   if (search) {
     list = list.filter((b) => {
-      const code = (b.batchCode || "").toLowerCase()
-      const dish = (b.Dish?.name || "").toLowerCase()
-      return code.includes(search) || dish.includes(search)
-    })
+      const code = (b.batchCode || "").toLowerCase();
+      const dish = (b.Dish?.name || "").toLowerCase();
+      return code.includes(search) || dish.includes(search);
+    });
   }
 
   if (mealType) {
-    list = list.filter((b) => b.mealType === mealType)
+    list = list.filter((b) => b.mealType === mealType);
   }
 
   if (status) {
-    list = list.filter((b) => b.status === status)
+    list = list.filter((b) => b.status === status);
   }
 
   if (cookingMode) {
-    list = list.filter((b) => b.cookingModeApplied === cookingMode)
+    list = list.filter((b) => b.cookingModeApplied === cookingMode);
   }
 
-  const totalItems = list.length
-  const startIndex = (page - 1) * limit
-  const items = list.slice(startIndex, startIndex + limit)
+  const totalItems = list.length;
+  const startIndex = (page - 1) * limit;
+  const items = list.slice(startIndex, startIndex + limit);
 
   return {
     items,
@@ -361,36 +368,36 @@ export function getMockBatchesPage(filters = {}) {
       totalItems,
       totalPages: Math.max(1, Math.ceil(totalItems / limit)),
     },
-  }
+  };
 }
 
 /**
  * Thống kê KPI lô chế biến
  */
 export function getMockBatchStats(filters = {}) {
-  const list = IN_MEMORY_MOCK_BATCHES
+  const list = IN_MEMORY_MOCK_BATCHES;
 
-  let total = list.length
-  let unconfirmed = 0
-  let confirmed = 0
-  let completed = 0
-  let storedSamples = 0
-  let disposedSamples = 0
-  let pendingSamples = 0
+  let total = list.length;
+  let unconfirmed = 0;
+  let confirmed = 0;
+  let completed = 0;
+  let storedSamples = 0;
+  let disposedSamples = 0;
+  let pendingSamples = 0;
 
   list.forEach((b) => {
-    if (b.status === "UNCONFIRMED" || b.status === "DRAFT") unconfirmed++
-    if (b.status === "CONFIRMED") confirmed++
+    if (b.status === "UNCONFIRMED" || b.status === "DRAFT") unconfirmed++;
+    if (b.status === "CONFIRMED") confirmed++;
     if (b.status === "COMPLETED") {
-      completed++
+      completed++;
       if (b.retainedFoodSample) {
-        if (b.retainedFoodSample.status === "STORED") storedSamples++
-        if (b.retainedFoodSample.status === "DISPOSED") disposedSamples++
+        if (b.retainedFoodSample.status === "STORED") storedSamples++;
+        if (b.retainedFoodSample.status === "DISPOSED") disposedSamples++;
       } else {
-        pendingSamples++
+        pendingSamples++;
       }
     }
-  })
+  });
 
   return {
     total,
@@ -400,7 +407,7 @@ export function getMockBatchStats(filters = {}) {
     storedSamples,
     disposedSamples,
     pendingSamples,
-  }
+  };
 }
 
 /**
@@ -409,37 +416,44 @@ export function getMockBatchStats(filters = {}) {
 const matchId = (b, targetId) => {
   if (!b || !targetId) return false;
   const t = String(targetId).toLowerCase().trim();
-  return String(b.id).toLowerCase().trim() === t || String(b.batchCode).toLowerCase().trim() === t;
+  return (
+    String(b.id).toLowerCase().trim() === t ||
+    String(b.batchCode).toLowerCase().trim() === t ||
+    String(b.legacyId || '').toLowerCase().trim() === t
+  );
 };
 
 export function findMockBatchDetail(id) {
-  if (!id) return null
-  return IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, id)) || IN_MEMORY_MOCK_BATCHES[0]
+  if (!id) return null;
+  return (
+    IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, id)) ||
+    IN_MEMORY_MOCK_BATCHES[0]
+  );
 }
 
 /**
  * Cập nhật trạng thái lô trong bộ nhớ (ví dụ Xác nhận hoặc Hoàn thành)
  */
 export function updateMockBatchStatus(id, newStatus) {
-  const found = IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, id))
+  const found = IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, id));
   if (found) {
-    found.status = newStatus
+    found.status = newStatus;
     if (newStatus === "CONFIRMED") {
-      found.confirmedAt = new Date().toISOString()
+      found.confirmedAt = new Date().toISOString();
     } else if (newStatus === "COMPLETED") {
-      found.completedAt = new Date().toISOString()
-      found.preparedPortions = found.plannedPortions
+      found.completedAt = new Date().toISOString();
+      found.preparedPortions = found.plannedPortions;
     }
-    return { ...found }
+    return { ...found };
   }
-  return null
+  return null;
 }
 
 /**
  * Tạo mẫu lưu cho một lô
  */
 export function createMockBatchSample(batchId, sampleData) {
-  const found = IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, batchId))
+  const found = IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, batchId));
   if (found) {
     found.retainedFoodSample = {
       id: `smp-${Date.now().toString().slice(-4)}`,
@@ -449,16 +463,16 @@ export function createMockBatchSample(batchId, sampleData) {
       unit: sampleData.unit || "g",
       storageLocation: sampleData.storageLocation || "Tủ lưu mẫu Bếp 01",
       status: "STORED",
-    }
-    return { ...found.retainedFoodSample }
+    };
+    return { ...found.retainedFoodSample };
   }
-  return null
+  return null;
 }
 
 /**
  * Lấy mẫu lưu của một lô
  */
 export function getMockBatchSample(batchId) {
-  const found = IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, batchId))
-  return found?.retainedFoodSample || null
+  const found = IN_MEMORY_MOCK_BATCHES.find((b) => matchId(b, batchId));
+  return found?.retainedFoodSample || null;
 }

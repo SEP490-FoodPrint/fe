@@ -10,7 +10,9 @@ import styles from "./BasicInfoSection.module.scss";
 export const INITIAL_DISHES = [
   // --- BỮA TRƯA (LUNCH) ---
   {
-    id: "dish-1",
+    id: "d0000001-0000-0000-0000-000000000001",
+    legacyId: "dish-1",
+    menuDayId: "m0000001-0000-0000-0000-000000000001",
     mealType: "lunch",
     mealName: "Bữa trưa",
     name: "Thịt heo kho nước dừa",
@@ -25,7 +27,9 @@ export const INITIAL_DISHES = [
     ],
   },
   {
-    id: "dish-2",
+    id: "d0000001-0000-0000-0000-000000000002",
+    legacyId: "dish-2",
+    menuDayId: "m0000001-0000-0000-0000-000000000001",
     mealType: "lunch",
     mealName: "Bữa trưa",
     name: "Canh sườn hầm củ quả thập cẩm",
@@ -39,7 +43,9 @@ export const INITIAL_DISHES = [
     ],
   },
   {
-    id: "dish-3",
+    id: "d0000001-0000-0000-0000-000000000003",
+    legacyId: "dish-3",
+    menuDayId: "m0000001-0000-0000-0000-000000000001",
     mealType: "lunch",
     mealName: "Bữa trưa",
     name: "Cơm gạo ST25 dẻo thơm",
@@ -51,7 +57,9 @@ export const INITIAL_DISHES = [
     ],
   },
   {
-    id: "dish-4",
+    id: "d0000001-0000-0000-0000-000000000004",
+    legacyId: "dish-4",
+    menuDayId: "m0000001-0000-0000-0000-000000000001",
     mealType: "lunch",
     mealName: "Bữa trưa",
     name: "Thanh long ruột đỏ Bình Thuận",
@@ -65,7 +73,9 @@ export const INITIAL_DISHES = [
 
   // --- BỮA PHỤ CHIỀU (AFTERNOON) ---
   {
-    id: "dish-5",
+    id: "d0000001-0000-0000-0000-000000000005",
+    legacyId: "dish-5",
+    menuDayId: "m0000001-0000-0000-0000-000000000001",
     mealType: "afternoon",
     mealName: "Bữa phụ chiều",
     name: "Bánh bao hấp nhân thịt xá xíu",
@@ -79,7 +89,9 @@ export const INITIAL_DISHES = [
     ],
   },
   {
-    id: "dish-6",
+    id: "d0000001-0000-0000-0000-000000000006",
+    legacyId: "dish-6",
+    menuDayId: "m0000001-0000-0000-0000-000000000001",
     mealType: "afternoon",
     mealName: "Bữa phụ chiều",
     name: "Sữa chua tiệt trùng Ba Vì",

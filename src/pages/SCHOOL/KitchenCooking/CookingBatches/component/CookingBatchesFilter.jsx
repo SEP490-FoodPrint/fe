@@ -1,14 +1,14 @@
-import React, { useState } from "react"
+import React, { useState } from "react";
 import {
   TextField,
   MenuItem,
   InputAdornment,
   IconButton,
   Tooltip,
-} from "@mui/material"
-import { Search, RotateCcw, SlidersHorizontal } from "lucide-react"
-import { BATCH_STATUSES } from "src/services/KitchenService/adapter"
-import styles from "./CookingBatchesFilter.module.scss"
+} from "@mui/material";
+import { Search, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { BATCH_STATUSES } from "src/services/KitchenService/adapter";
+import styles from "./CookingBatchesFilter.module.scss";
 
 export default function CookingBatchesFilter({
   filters,
@@ -18,15 +18,15 @@ export default function CookingBatchesFilter({
   academicYearOptions = [],
   weeks = [],
 }) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(false);
   const filterCount = [
     filters.academicYear && filters.academicYear !== "2026-2027",
     filters.week && filters.week !== "current" && filters.week !== "all",
     filters.mealType,
     filters.status,
-  ].filter(Boolean).length
+  ].filter(Boolean).length;
 
-  const update = (field, value) => onChange({ ...filters, [field]: value })
+  const update = (field, value) => onChange({ ...filters, [field]: value });
 
   return (
     <div className={styles.filterSection}>
@@ -136,7 +136,7 @@ export default function CookingBatchesFilter({
               aria-label="Đặt lại bộ lọc về tuần này"
               onClick={() => {
                 if (onReset) {
-                  onReset()
+                  onReset();
                 } else {
                   onChange({
                     search: "",
@@ -145,9 +145,9 @@ export default function CookingBatchesFilter({
                     mealType: "",
                     cookingModeApplied: "",
                     status: "",
-                  })
+                  });
                 }
-                onRefresh()
+                onRefresh();
               }}
             >
               <RotateCcw size={18} />
@@ -156,5 +156,5 @@ export default function CookingBatchesFilter({
         </div>
       </div>
     </div>
-  )
+  );
 }
