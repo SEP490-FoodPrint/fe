@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom"
 import {
   Zap,
   CheckCircle2,
-  Edit3,
   Trash2,
   CookingPot,
   MoreVertical,
@@ -30,10 +29,6 @@ export default function BatchActionsCard({
   const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
-
-  const handleEdit = () => {
-    navigate(ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", batchId || batchCode))
-  }
 
   return (
     <>
@@ -103,29 +98,17 @@ export default function BatchActionsCard({
             </div>
           )}
 
-          {/* Các nút chỉnh sửa / xóa (chỉ khi Draft) */}
+          {/* Nút xóa (chỉ khi Draft) */}
           {isDraft && (
-            <>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={handleEdit}
-                title="Chỉnh sửa phương án"
-              >
-                <Edit3 size={16} />
-                <span>Chỉnh sửa lô chế biến</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.btnDanger}
-                onClick={onOpenDeleteModal}
-                title="Xóa lô chế biến"
-              >
-                <Trash2 size={16} />
-                <span>Xóa lô chế biến</span>
-              </button>
-            </>
+            <button
+              type="button"
+              className={styles.btnDanger}
+              onClick={onOpenDeleteModal}
+              title="Xóa lô chế biến"
+            >
+              <Trash2 size={16} />
+              <span>Xóa lô chế biến</span>
+            </button>
           )}
         </div>
       </section>
@@ -144,43 +127,15 @@ export default function BatchActionsCard({
                 <span>Xác nhận phương án</span>
               </button>
 
-              <div className={styles.mobileMenuAnchor}>
-                <button
-                  type="button"
-                  className={styles.mobileMoreBtn}
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  aria-label="Thao tác khác"
-                >
-                  <MoreVertical size={20} />
-                </button>
-
-                {mobileMenuOpen && (
-                  <div className={styles.mobileDropdownMenu}>
-                    <button
-                      type="button"
-                      className={styles.mobileMenuItem}
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        handleEdit()
-                      }}
-                    >
-                      <Edit3 size={16} />
-                      <span>Chỉnh sửa</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.mobileMenuItem} ${styles.itemDanger}`}
-                      onClick={() => {
-                        setMobileMenuOpen(false)
-                        onOpenDeleteModal()
-                      }}
-                    >
-                      <Trash2 size={16} />
-                      <span>Xóa lô</span>
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button
+                type="button"
+                className={styles.mobileDangerBtn || styles.mobileMoreBtn}
+                onClick={onOpenDeleteModal}
+                aria-label="Xóa lô chế biến"
+                title="Xóa lô chế biến"
+              >
+                <Trash2 size={18} color="#dc2626" />
+              </button>
             </>
           )}
 

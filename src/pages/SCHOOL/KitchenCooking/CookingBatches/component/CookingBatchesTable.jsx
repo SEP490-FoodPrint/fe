@@ -2,7 +2,6 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Eye,
-  Edit3,
   ChevronLeft,
   ChevronRight,
   Check,
@@ -49,21 +48,7 @@ export default function CookingBatchesTable({
     )
   }
 
-  const handleEditBatch = (row) => {
-    navigate(
-      ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", row.id || row.code),
-    )
-  }
-
   const renderActions = (row, mobile = false) => {
-    const canEdit = row.status === "UNCONFIRMED"
-    const editDisabledTooltip =
-      row.status === "CONFIRMED"
-        ? "Lô đã xác nhận chế biến, không thể chỉnh sửa"
-        : row.status === "COMPLETED"
-          ? "Lô đã hoàn thành chế biến, không thể chỉnh sửa"
-          : "Chỉnh sửa lô chế biến"
-
     if (mobile) {
       return (
         <div className={styles.mobileActionBox} onClick={(e) => e.stopPropagation()}>
@@ -77,18 +62,6 @@ export default function CookingBatchesTable({
               <Eye size={18} />
             </IconButton>
           </Tooltip>
-          {canEdit && (
-            <Tooltip title="Chỉnh sửa lô" arrow>
-              <IconButton
-                size="small"
-                className={styles.framelessActionBtn}
-                onClick={() => handleEditBatch(row)}
-                aria-label={`Chỉnh sửa ${row.dishName}`}
-              >
-                <Edit3 size={17} />
-              </IconButton>
-            </Tooltip>
-          )}
         </div>
       )
     }
@@ -105,19 +78,6 @@ export default function CookingBatchesTable({
             <Eye size={18} />
           </IconButton>
         </Tooltip>
-
-        {canEdit && (
-          <Tooltip title={editDisabledTooltip} arrow>
-            <IconButton
-              size="small"
-              className={styles.framelessActionBtn}
-              onClick={() => handleEditBatch(row)}
-              aria-label={`Chỉnh sửa lô ${row.code}`}
-            >
-              <Edit3 size={17} />
-            </IconButton>
-          </Tooltip>
-        )}
       </div>
     )
   }
