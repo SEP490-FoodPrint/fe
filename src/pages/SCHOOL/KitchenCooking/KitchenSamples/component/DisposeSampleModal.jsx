@@ -12,7 +12,7 @@ export default function DisposeSampleModal({
   submitting = false,
 }) {
   const [disposalNote, setDisposalNote] = useState(
-    "Mẫu lưu đã đủ 24 giờ bảo quản theo quy định Bộ Y Tế, cảm quan đạt chuẩn. Tiến hành tiêu hủy và vệ sinh khử khuẩn dụng cụ."
+    "Đã đủ 24h, cảm quan bình thường, tiêu hủy theo quy định."
   )
   const [disposedAt, setDisposedAt] = useState(() => {
     const d = new Date()
@@ -93,11 +93,11 @@ export default function DisposeSampleModal({
             </div>
           </div>
 
-          {/* Cảnh báo quy trình tiêu hủy */}
+          {/* Cảnh báo tiêu hủy */}
           <div className={styles.alertWarning}>
-            <AlertTriangle size={16} className={styles.warningIcon} />
+            <AlertTriangle size={15} className={styles.warningIcon} />
             <div className={styles.warningText}>
-              <span>Quy trình tiêu hủy mẫu một chiều:</span> Sau khi xác nhận, mẫu sẽ chuyển sang trạng thái <strong>DISPOSED (Đã tiêu hủy)</strong> và ghi nhận vĩnh viễn vào nhật ký kiểm thực bếp ăn.
+              Mẫu sau khi xác nhận sẽ chuyển sang trạng thái <strong>Đã tiêu hủy</strong> và không thể hoàn tác.
             </div>
           </div>
 
@@ -119,13 +119,13 @@ export default function DisposeSampleModal({
 
           <div className={styles.formGroup}>
             <label className={styles.fieldLabel} htmlFor="disposal-note">
-              Ghi chú tiêu hủy mẫu lưu
+              Ghi chú tiêu hủy
             </label>
             <textarea
               id="disposal-note"
-              rows={3}
+              rows={2}
               className={styles.textarea}
-              placeholder="Ghi chú về tình trạng mẫu lúc hủy (ngoại quan, màu sắc, mùi vị bình thường...)"
+              placeholder="Nhập ghi chú hoặc lý do tiêu hủy..."
               value={disposalNote}
               onChange={(e) => setDisposalNote(e.target.value)}
               disabled={submitting}
