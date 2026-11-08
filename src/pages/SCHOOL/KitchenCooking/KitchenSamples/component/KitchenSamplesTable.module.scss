@@ -360,36 +360,34 @@
   }
 }
 
-.disposeBtn {
+.disposeIconBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #ef4444;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  height: 28px;
-  padding: 0 9px;
-  border-radius: 5px;
-  border: 1px solid #fee2e2;
-  background-color: #fef2f2;
-  color: #dc2626;
-  font-size: 11.5px;
-  font-weight: 600;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.12s ease;
-  white-space: nowrap;
 
   &:hover {
     background-color: #fee2e2;
-    color: #b91c1c;
+    color: #dc2626;
     border-color: #fca5a5;
   }
 }
 
-.disposeBtnHighlight {
-  background-color: #ea580c;
-  color: #ffffff;
-  border-color: #c2410c;
+.disposeIconBtnHighlight {
+  background-color: #fff7ed;
+  color: #ea580c;
+  border-color: #fed7aa;
 
   &:hover {
-    background-color: #c2410c;
+    background-color: #ea580c;
     color: #ffffff;
+    border-color: #c2410c;
   }
 }

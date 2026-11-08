@@ -184,18 +184,22 @@ export default function KitchenSamplesTable({
                         </button>
                       )}
 
-                      {/* Nút Tiêu hủy nếu đã đủ 24h hoặc mẫu STORED */}
+                      {/* Nút Tiêu hủy nếu mẫu đang lưu */}
                       {row.status === "STORED" && (
                         <button
                           type="button"
-                          className={`${styles.disposeBtn} ${
-                            info24h.isReadyToDispose ? styles.disposeBtnHighlight : ""
+                          className={`${styles.disposeIconBtn} ${
+                            info24h.isReadyToDispose ? styles.disposeIconBtnHighlight : ""
                           }`}
                           onClick={() => onOpenDisposeModal(row)}
-                          title="Ghi nhận tiêu hủy mẫu lưu"
+                          title={
+                            info24h.isReadyToDispose
+                              ? "Đã đủ 24h - Tiêu hủy mẫu lưu ngay"
+                              : "Ghi nhận tiêu hủy mẫu lưu"
+                          }
+                          aria-label="Tiêu hủy mẫu lưu"
                         >
-                          <Trash2 size={13} />
-                          <span>Hủy mẫu</span>
+                          <Trash2 size={15} />
                         </button>
                       )}
                     </div>
