@@ -1,0 +1,161 @@
+.filterCard {
+  background: #ffffff;
+  border: 1px solid var(--border-default, #e2e8f0);
+  border-radius: 8px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    min-width: 100%;
+  }
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 28px 0 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #e2e8f0);
+  background-color: #f8fafc;
+  color: var(--text-primary, #0f172a);
+  font-size: 13px;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+
+  &:focus {
+    background-color: #ffffff;
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
+    font-size: 12.5px;
+  }
+}
+
+.clearSearchBtn {
+  position: absolute;
+  right: 6px;
+  background: none;
+  border: none;
+  padding: 3px;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+
+  &:hover {
+    color: #0f172a;
+    background-color: #e2e8f0;
+  }
+}
+
+.filtersGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    gap: 8px;
+  }
+}
+
+.selectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 140px;
+
+  @media (max-width: 640px) {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+}
+
+.selectIcon {
+  position: absolute;
+  left: 9px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.selectInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 22px 0 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #e2e8f0);
+  background-color: #f8fafc;
+  color: var(--text-primary, #1e293b);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:focus {
+    background-color: #ffffff;
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
+  }
+}
+
+.chevronIcon {
+  position: absolute;
+  right: 6px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #e2e8f0);
+  background-color: #ffffff;
+  color: var(--text-secondary, #64748b);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+  }
+}

@@ -1,193 +1,231 @@
 import React from "react"
-import { useNavigate } from "react-router-dom"
-import { Button, Tooltip, IconButton } from "@mui/material"
-import { Trash2, Check, Clock, Eye, FlaskConical } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
+import PropTypes from "prop-types"
+import { Eye, Trash2, Edit3, ArrowUpRight } from "lucide-react"
+import { get24hRetainedStatus, formatSampleDateTime } from "../mockSamplesData"
 import styles from "./KitchenSamplesTable.module.scss"
 
 export default function KitchenSamplesTable({
   samples = [],
+  onViewDetail,
   onOpenDisposeModal,
+  onOpenUpdateModal,
+  onNavigateBatch,
 }) {
-  const navigate = useNavigate()
-
-  const formatDateTime = (val) => {
-    if (!val) return "—"
-    const d = new Date(val)
-    if (isNaN(d.getTime())) return String(val)
-    return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`
-  }
-
-  if (samples.length === 0) {
-    return (
-      <div className={styles.emptyCard}>
-        <FlaskConical size={36} className={styles.emptyIcon} />
-        <h3 className={styles.emptyTitle}>Chưa có mẫu lưu thực phẩm nào</h3>
-        <p className={styles.emptyDesc}>
-          Mẫu lưu sẽ được ghi nhận tại trang chi tiết lô chế biến sau khi hoàn
-          thành nấu.
-        </p>
-        <Button
-          variant="contained"
-          className={styles.emptyBtn}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-        >
-          Xem danh sách lô chế biến
-        </Button>
-      </div>
-    )
-  }
-
   return (
     <div className={styles.tableCard}>
-      {/* 1. Desktop Table (>= 640px) */}
-      <div className={styles.desktopTableWrap}>
+      <div className={styles.tableResponsiveWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th}>Mã mẫu lưu</th>
-              <th className={styles.th}>Lô chế biến</th>
-              <th className={styles.th}>Lượng mẫu</th>
-              <th className={styles.th}>Vị trí bảo quản</th>
+              <th className={styles.th}>Mã Lô Nấu</th>
+              <th className={styles.th}>Tên món ăn</th>
+              <th className={styles.th}>Bữa ăn</th>
               <th className={styles.th}>Thời điểm lấy mẫu</th>
+              <th className={styles.th}>Thời gian lưu 24h</th>
+              <th className={styles.th}>Khối lượng</th>
+              <th className={styles.th}>Vị trí lưu</th>
               <th className={styles.th}>Trạng thái</th>
-              <th className={styles.th} style={{ textAlign: "right" }}>
-                Thao tác
-              </th>
+              <th className={`${styles.th} ${styles.thActions}`}>Thao tác</th>
             </tr>
           </thead>
           <tbody>
-            {samples.map((row) => (
-              <tr key={row.id}>
-                <td className={styles.tdCode}>
-                  SMP-{row.id.slice(0, 8).toUpperCase()}
-                </td>
-                <td className={styles.td}>
-                  <Button
-                    variant="text"
-                    size="small"
-                    className={styles.viewBatchLink}
-                    onClick={() =>
-                      navigate(
-                        ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(
-                          ":id",
-                          row.cookingBatchId,
-                        ),
-                      )
-                    }
-                  >
-                    Xem mẻ nấu
-                  </Button>
-                </td>
-                <td className={styles.td}>
-                  <strong>{row.quantity}</strong> {row.unit}
-                </td>
-                <td className={styles.td}>{row.storageLocation}</td>
-                <td className={styles.td}>{formatDateTime(row.sampledAt)}</td>
-                <td className={styles.td}>
-                  {row.status === "STORED" ? (
-                    <span className={styles.statusStored}>
-                      <Clock size={12} />
-                      Đang lưu (24h)
-                    </span>
-                  ) : (
-                    <span className={styles.statusDisposed}>
-                      <Check size={12} />
-                      Đã tiêu hủy
-                    </span>
-                  )}
-                </td>
-                <td className={styles.td} style={{ textAlign: "right" }}>
-                  {row.status === "STORED" && (
+            {samples.map((row) => {
+              const info24h = get24hRetainedStatus(row.sampledAt, row.status)
+              const timeDisplay = formatSampleDateTime(row.sampledAt)
+
+              return (
+                <tr
+                  key={row.id}
+                  className={`${styles.tr} ${
+                    info24h.isReadyToDispose ? styles.trWarning : ""
+                  }`}
+                  onClick={() => onViewDetail(row)}
+                >
+                  {/* 1. Mã Lô Nấu */}
+                  <td className={styles.td}>
                     <button
                       type="button"
-                      className={styles.disposeBtn}
-                      onClick={() => onOpenDisposeModal(row)}
+                      className={styles.batchLinkBtn}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onNavigateBatch(row.cookingBatchId)
+                      }}
+                      title="Xem chi tiết lô chế biến"
                     >
-                      <Trash2 size={13} />
-                      <span>Hủy mẫu</span>
+                      <span>{row.batchCode || row.cookingBatchId}</span>
+                      <ArrowUpRight size={13} />
                     </button>
-                  )}
-                </td>
-              </tr>
-            ))}
+                  </td>
+
+                  {/* 2. Tên món ăn */}
+                  <td className={styles.td}>
+                    <div className={styles.dishCol}>
+                      <span className={styles.dishName}>{row.dishName}</span>
+                      <span className={styles.dishSub}>
+                        {row.dishCategory || "Món ăn bán trú"}
+                        {row.portions ? ` • ${row.portions} suất` : ""}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* 3. Bữa ăn */}
+                  <td className={styles.td}>
+                    <span
+                      className={`${styles.mealBadge} ${
+                        row.mealType === "AFTERNOON"
+                          ? styles.mealAfternoon
+                          : styles.mealLunch
+                      }`}
+                    >
+                      {row.mealLabel || (row.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")}
+                    </span>
+                  </td>
+
+                  {/* 4. Thời điểm lấy mẫu */}
+                  <td className={styles.td}>
+                    <div className={styles.timeCol}>
+                      <span className={styles.timeBold}>{timeDisplay.time}</span>
+                      <span className={styles.dateMuted}>{timeDisplay.date}</span>
+                    </div>
+                  </td>
+
+                  {/* 5. Thời gian lưu 24h */}
+                  <td className={styles.td}>
+                    <div className={styles.countdownCol}>
+                      <div className={styles.countdownHeader}>
+                        <span
+                          className={`${styles.countdownText} ${
+                            info24h.isReadyToDispose
+                              ? styles.countdownReady
+                              : info24h.isDisposed
+                              ? styles.countdownDisposed
+                              : styles.countdownActive
+                          }`}
+                        >
+                          {info24h.timeText}
+                        </span>
+                        {!info24h.isDisposed && (
+                          <span className={styles.countdownPercent}>
+                            {info24h.percent}%
+                          </span>
+                        )}
+                      </div>
+                      <div className={styles.progressBarBg}>
+                        <div
+                          className={`${styles.progressBarFill} ${
+                            info24h.isReadyToDispose
+                              ? styles.fillWarning
+                              : info24h.isDisposed
+                              ? styles.fillMuted
+                              : styles.fillPrimary
+                          }`}
+                          style={{ width: `${info24h.percent}%` }}
+                        />
+                      </div>
+                    </div>
+                  </td>
+
+                  {/* 6. Khối lượng */}
+                  <td className={styles.td}>
+                    <div className={styles.qtyCol}>
+                      <span className={styles.qtyText}>
+                        <strong>{row.quantity}</strong> {row.unit}
+                      </span>
+                      <span className={styles.packagingText}>
+                        {row.packaging || "Lọ tiệt trùng"}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* 7. Vị trí lưu */}
+                  <td className={styles.td}>
+                    <div className={styles.storageLoc}>
+                      <span className={styles.storageText}>
+                        {row.storageLocation || "Tủ lưu mẫu"}
+                      </span>
+                    </div>
+                  </td>
+
+                  {/* 8. Trạng thái */}
+                  <td className={styles.td}>
+                    {info24h.isDisposed ? (
+                      <span className={styles.badgeDisposed}>
+                        <span className={styles.statusDotMuted} />
+                        <span>Đã tiêu hủy</span>
+                      </span>
+                    ) : info24h.isReadyToDispose ? (
+                      <span className={styles.badgeReady}>
+                        <span className={styles.statusDotWarning} />
+                        <span>Đã đủ 24 giờ</span>
+                      </span>
+                    ) : (
+                      <span className={styles.badgeStored}>
+                        <span className={styles.statusDotPrimary} />
+                        <span>Đang lưu mẫu</span>
+                      </span>
+                    )}
+                  </td>
+
+                  {/* 9. Thao tác */}
+                  <td className={`${styles.td} ${styles.tdActions}`}>
+                    <div
+                      className={styles.actionGroup}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Nút Xem chi tiết */}
+                      <button
+                        type="button"
+                        className={styles.actionIconBtn}
+                        onClick={() => onViewDetail(row)}
+                        title="Xem chi tiết mẫu lưu"
+                        aria-label="Xem chi tiết"
+                      >
+                        <Eye size={16} />
+                      </button>
+
+                      {/* Nút Cập nhật nếu mẫu đang lưu */}
+                      {row.status === "STORED" && (
+                        <button
+                          type="button"
+                          className={styles.actionIconBtn}
+                          onClick={() => onOpenUpdateModal(row)}
+                          title="Cập nhật thông tin mẫu lưu"
+                          aria-label="Cập nhật"
+                        >
+                          <Edit3 size={15} />
+                        </button>
+                      )}
+
+                      {/* Nút Tiêu hủy nếu đã đủ 24h hoặc mẫu STORED */}
+                      {row.status === "STORED" && (
+                        <button
+                          type="button"
+                          className={`${styles.disposeBtn} ${
+                            info24h.isReadyToDispose ? styles.disposeBtnHighlight : ""
+                          }`}
+                          onClick={() => onOpenDisposeModal(row)}
+                          title="Ghi nhận tiêu hủy mẫu lưu"
+                        >
+                          <Trash2 size={13} />
+                          <span>Hủy mẫu</span>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
-      </div>
-
-      {/* 2. Mobile Cards List (< 640px, chuẩn Mobile-First Rule 6) */}
-      <div className={styles.mobileCardsList} role="list">
-        {samples.map((row) => (
-          <article
-            key={row.id}
-            className={styles.mobileSampleCard}
-            role="listitem"
-          >
-            {/* Hàng 1: Lượng mẫu + Vị trí & Trạng thái */}
-            <div className={styles.mobileTopRow}>
-              <div className={styles.sampleMainInfo}>
-                <span className={styles.sampleQtyBold}>
-                  {row.quantity} {row.unit}
-                </span>
-                <span className={styles.metaDot}>•</span>
-                <span className={styles.storageLoc}>{row.storageLocation}</span>
-              </div>
-              {row.status === "STORED" ? (
-                <span className={styles.statusStored}>
-                  <Clock size={11} />
-                  Đang lưu
-                </span>
-              ) : (
-                <span className={styles.statusDisposed}>
-                  <Check size={11} />
-                  Đã hủy
-                </span>
-              )}
-            </div>
-
-            {/* Hàng 2: Thời gian + Nút thao tác Icon-First */}
-            <div className={styles.mobileBottomRow}>
-              <div className={styles.timeScheduleText}>
-                {formatDateTime(row.sampledAt)}
-              </div>
-
-              <div className={styles.mobileActionGroup}>
-                <Tooltip title="Xem chi tiết mẻ nấu" arrow>
-                  <IconButton
-                    size="small"
-                    className={styles.mobileActionBtn}
-                    onClick={() =>
-                      navigate(
-                        ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(
-                          ":id",
-                          row.cookingBatchId,
-                        ),
-                      )
-                    }
-                    aria-label="Xem chi tiết mẻ nấu"
-                  >
-                    <Eye size={16} />
-                  </IconButton>
-                </Tooltip>
-
-                {row.status === "STORED" && (
-                  <Tooltip title="Tiêu hủy mẫu" arrow>
-                    <IconButton
-                      size="small"
-                      className={styles.mobileDisposeBtn}
-                      onClick={() => onOpenDisposeModal(row)}
-                      aria-label="Tiêu hủy mẫu lưu"
-                    >
-                      <Trash2 size={15} />
-                    </IconButton>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
-          </article>
-        ))}
       </div>
     </div>
   )
 }
 
+KitchenSamplesTable.propTypes = {
+  samples: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onViewDetail: PropTypes.func.isRequired,
+  onOpenDisposeModal: PropTypes.func.isRequired,
+  onOpenUpdateModal: PropTypes.func.isRequired,
+  onNavigateBatch: PropTypes.func.isRequired,
+}
