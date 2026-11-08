@@ -126,7 +126,7 @@ function DailyMealConfirm() {
         <Paper variant="outlined" className="daily-meal-page__summary">
           <div><span>Lớp được phân công</span><strong>{context.class.name}</strong><small>Niên khóa {context.class.academicYear}</small></div>
           <div><span>Số suất đăng ký</span><strong>{context.class.registeredMealPortions}</strong><small>Giới hạn tối đa trong ngày</small></div>
-          <div><span>Trạng thái</span><Chip size="small" color={finalized ? "success" : "warning"}
+          <div className="daily-meal-page__summary-status"><span>Trạng thái</span><Chip size="small" color={finalized ? "success" : "warning"}
             label={submission ? statusLabel(submission.status) : "Chưa khai báo"} /></div>
         </Paper>
 
