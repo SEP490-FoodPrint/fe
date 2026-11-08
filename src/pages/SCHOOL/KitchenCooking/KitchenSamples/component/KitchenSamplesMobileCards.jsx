@@ -25,22 +25,9 @@ export default function KitchenSamplesMobileCards({
             }`}
             onClick={() => onViewDetail(row)}
           >
-            {/* Hàng 1: Mã Lô Nấu + Bữa ăn + Badge trạng thái */}
+            {/* Hàng 1: Bữa ăn + Badge trạng thái */}
             <div className={styles.topRow}>
-              <div className={styles.batchWrap}>
-                <button
-                  type="button"
-                  className={styles.batchLinkBtn}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onNavigateBatch(row.cookingBatchId)
-                  }}
-                  title="Xem chi tiết mẻ nấu"
-                >
-                  <span>{row.batchCode || row.cookingBatchId}</span>
-                  <ArrowUpRight size={13} />
-                </button>
-
+              <div>
                 <span
                   className={`${styles.mealBadge} ${
                     row.mealType === "AFTERNOON"
@@ -72,13 +59,21 @@ export default function KitchenSamplesMobileCards({
               </div>
             </div>
 
-            {/* Hàng 2: Tên món ăn & Thông tin phụ */}
+            {/* Hàng 2: Tên món ăn & Mã lô nấu phía dưới */}
             <div className={styles.dishSection}>
               <h3 className={styles.dishName}>{row.dishName}</h3>
-              <p className={styles.dishSub}>
-                {row.dishCategory || "Món ăn bán trú"}
-                {row.portions ? ` • Lô ${row.portions} suất` : ""}
-              </p>
+              <button
+                type="button"
+                className={styles.batchLinkBtn}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onNavigateBatch(row.cookingBatchId)
+                }}
+                title="Xem chi tiết mẻ nấu"
+              >
+                <span>{row.batchCode || row.cookingBatchId}</span>
+                <ArrowUpRight size={12} />
+              </button>
             </div>
 
             {/* Hàng 3: Cụm thông tin Khối lượng + Vị trí + Thời điểm lấy */}

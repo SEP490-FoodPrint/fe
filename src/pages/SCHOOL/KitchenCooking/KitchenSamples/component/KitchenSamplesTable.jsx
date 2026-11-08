@@ -17,7 +17,6 @@ export default function KitchenSamplesTable({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th className={styles.th}>Mã Lô Nấu</th>
               <th className={styles.th}>Tên món ăn</th>
               <th className={styles.th}>Bữa ăn</th>
               <th className={styles.th}>Thời điểm lấy mẫu</th>
@@ -41,34 +40,26 @@ export default function KitchenSamplesTable({
                   }`}
                   onClick={() => onViewDetail(row)}
                 >
-                  {/* 1. Mã Lô Nấu */}
-                  <td className={styles.td}>
-                    <button
-                      type="button"
-                      className={styles.batchLinkBtn}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        onNavigateBatch(row.cookingBatchId)
-                      }}
-                      title="Xem chi tiết lô chế biến"
-                    >
-                      <span>{row.batchCode || row.cookingBatchId}</span>
-                      <ArrowUpRight size={13} />
-                    </button>
-                  </td>
-
-                  {/* 2. Tên món ăn */}
+                  {/* 1. Tên món ăn & Mã lô nấu phía dưới */}
                   <td className={styles.td}>
                     <div className={styles.dishCol}>
                       <span className={styles.dishName}>{row.dishName}</span>
-                      <span className={styles.dishSub}>
-                        {row.dishCategory || "Món ăn bán trú"}
-                        {row.portions ? ` • ${row.portions} suất` : ""}
-                      </span>
+                      <button
+                        type="button"
+                        className={styles.batchSubCode}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          onNavigateBatch(row.cookingBatchId)
+                        }}
+                        title="Xem chi tiết lô chế biến"
+                      >
+                        <span>{row.batchCode || row.cookingBatchId}</span>
+                        <ArrowUpRight size={11} />
+                      </button>
                     </div>
                   </td>
 
-                  {/* 3. Bữa ăn */}
+                  {/* 2. Bữa ăn */}
                   <td className={styles.td}>
                     <span
                       className={`${styles.mealBadge} ${
@@ -81,7 +72,7 @@ export default function KitchenSamplesTable({
                     </span>
                   </td>
 
-                  {/* 4. Thời điểm lấy mẫu */}
+                  {/* 3. Thời điểm lấy mẫu */}
                   <td className={styles.td}>
                     <div className={styles.timeCol}>
                       <span className={styles.timeBold}>{timeDisplay.time}</span>
@@ -89,7 +80,7 @@ export default function KitchenSamplesTable({
                     </div>
                   </td>
 
-                  {/* 5. Thời gian lưu 24h */}
+                  {/* 4. Thời gian lưu 24h */}
                   <td className={styles.td}>
                     <div className={styles.countdownCol}>
                       <div className={styles.countdownHeader}>
@@ -125,19 +116,16 @@ export default function KitchenSamplesTable({
                     </div>
                   </td>
 
-                  {/* 6. Khối lượng */}
+                  {/* 5. Khối lượng */}
                   <td className={styles.td}>
                     <div className={styles.qtyCol}>
                       <span className={styles.qtyText}>
                         <strong>{row.quantity}</strong> {row.unit}
                       </span>
-                      <span className={styles.packagingText}>
-                        {row.packaging || "Lọ tiệt trùng"}
-                      </span>
                     </div>
                   </td>
 
-                  {/* 7. Vị trí lưu */}
+                  {/* 6. Vị trí lưu */}
                   <td className={styles.td}>
                     <div className={styles.storageLoc}>
                       <span className={styles.storageText}>
@@ -146,7 +134,7 @@ export default function KitchenSamplesTable({
                     </div>
                   </td>
 
-                  {/* 8. Trạng thái */}
+                  {/* 7. Trạng thái */}
                   <td className={styles.td}>
                     {info24h.isDisposed ? (
                       <span className={styles.badgeDisposed}>

@@ -33,7 +33,7 @@ export default function KitchenSamples() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
-  const [timeFilter, setTimeFilter] = useState("ALL")
+  const [dateFilter, setDateFilter] = useState("")
 
   // 3. Modal / Popup States
   const [isCreateOpen, setIsCreateOpen] = useState(false)
@@ -123,34 +123,33 @@ export default function KitchenSamples() {
         return false
       }
 
-      // Lọc ngày
-      if (timeFilter !== "ALL") {
+      // Lọc ngày (chọn từ lịch ngày/tháng/năm)
+      if (dateFilter) {
         const d = new Date(s.sampledAt)
-        const today = new Date()
-        const isToday =
-          d.getDate() === today.getDate() &&
-          d.getMonth() === today.getMonth() &&
-          d.getFullYear() === today.getFullYear()
-
-        if (timeFilter === "TODAY" && !isToday) return false
-        if (timeFilter === "YESTERDAY" && isToday) return false
+        const yyyy = d.getFullYear()
+        const mm = String(d.getMonth() + 1).padStart(2, "0")
+        const dd = String(d.getDate()).padStart(2, "0")
+        const itemDateStr = `${yyyy}-${mm}-${dd}`
+        if (itemDateStr !== dateFilter) {
+          return false
+        }
       }
 
       return true
     })
-  }, [samples, searchTerm, statusFilter, mealTypeFilter, timeFilter])
+  }, [samples, searchTerm, statusFilter, mealTypeFilter, dateFilter])
 
   const hasActiveFilters =
     Boolean(searchTerm.trim()) ||
     statusFilter !== "ALL" ||
     mealTypeFilter !== "ALL" ||
-    timeFilter !== "ALL"
+    Boolean(dateFilter)
 
   const handleResetFilters = () => {
     setSearchTerm("")
     setStatusFilter("ALL")
     setMealTypeFilter("ALL")
-    setTimeFilter("ALL")
+    setDateFilter("")
   }
 
   // 7. Xử lý Tạo mẫu lưu mới (SCREEN 02)
@@ -266,17 +265,11 @@ export default function KitchenSamples() {
     }
   }
 
-  // 11. In sổ kiểm thực
-  const handlePrint = () => {
-    window.print()
-  }
-
   return (
     <div className={styles.pageContainer}>
       {/* 1. Tiêu đề trang & Phím tác vụ */}
       <KitchenSamplesHeader
         onOpenCreateModal={() => setIsCreateOpen(true)}
-        onPrint={handlePrint}
       />
 
       {/* 2. 3 Thẻ chỉ số tổng quan tinh gọn */}
@@ -294,8 +287,8 @@ export default function KitchenSamples() {
         onStatusChange={setStatusFilter}
         mealTypeFilter={mealTypeFilter}
         onMealTypeChange={setMealTypeFilter}
-        timeFilter={timeFilter}
-        onTimeChange={setTimeFilter}
+        dateFilter={dateFilter}
+        onDateChange={setDateFilter}
         onResetFilters={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
       />

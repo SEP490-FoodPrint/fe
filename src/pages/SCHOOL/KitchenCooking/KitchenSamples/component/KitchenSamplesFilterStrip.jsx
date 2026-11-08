@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Search, ChevronDown, RotateCcw, X, Utensils, Filter } from "lucide-react"
+import { Search, ChevronDown, RotateCcw, X, Utensils, Filter, Calendar } from "lucide-react"
 import styles from "./KitchenSamplesFilterStrip.module.scss"
 
 export default function KitchenSamplesFilterStrip({
@@ -10,8 +10,8 @@ export default function KitchenSamplesFilterStrip({
   onStatusChange,
   mealTypeFilter = "ALL",
   onMealTypeChange,
-  timeFilter = "ALL",
-  onTimeChange,
+  dateFilter = "",
+  onDateChange,
   onResetFilters,
   hasActiveFilters = false,
 }) {
@@ -40,7 +40,7 @@ export default function KitchenSamplesFilterStrip({
         )}
       </div>
 
-      {/* 2. Nhóm bộ lọc Dropdown */}
+      {/* 2. Nhóm bộ lọc Dropdown & Lịch */}
       <div className={styles.filtersGroup}>
         {/* Lọc Trạng thái */}
         <div className={styles.selectWrapper}>
@@ -75,19 +75,28 @@ export default function KitchenSamplesFilterStrip({
           <ChevronDown size={14} className={styles.chevronIcon} />
         </div>
 
-        {/* Lọc Ngày */}
-        <div className={styles.selectWrapper}>
-          <select
-            className={styles.selectInput}
-            value={timeFilter}
-            onChange={(e) => onTimeChange?.(e.target.value)}
-            title="Lọc theo ngày lưu mẫu"
-          >
-            <option value="ALL">Tất cả thời gian</option>
-            <option value="TODAY">Hôm nay</option>
-            <option value="YESTERDAY">Hôm qua</option>
-          </select>
-          <ChevronDown size={14} className={styles.chevronIcon} />
+        {/* Lọc Lịch (ngày tháng năm) */}
+        <div className={styles.datePickerWrapper}>
+          <Calendar size={14} className={styles.dateIcon} />
+          <input
+            type="date"
+            className={styles.dateInput}
+            value={dateFilter}
+            onChange={(e) => onDateChange?.(e.target.value)}
+            title="Chọn ngày tháng năm lưu mẫu"
+            aria-label="Chọn ngày lưu mẫu"
+          />
+          {dateFilter && (
+            <button
+              type="button"
+              className={styles.clearDateBtn}
+              onClick={() => onDateChange?.("")}
+              title="Xem tất cả các ngày"
+              aria-label="Xem tất cả các ngày"
+            >
+              <X size={13} />
+            </button>
+          )}
         </div>
 
         {/* Nút Xóa bộ lọc */}
@@ -114,8 +123,8 @@ KitchenSamplesFilterStrip.propTypes = {
   onStatusChange: PropTypes.func.isRequired,
   mealTypeFilter: PropTypes.string,
   onMealTypeChange: PropTypes.func.isRequired,
-  timeFilter: PropTypes.string,
-  onTimeChange: PropTypes.func.isRequired,
+  dateFilter: PropTypes.string,
+  onDateChange: PropTypes.func.isRequired,
   onResetFilters: PropTypes.func.isRequired,
   hasActiveFilters: PropTypes.bool,
 }

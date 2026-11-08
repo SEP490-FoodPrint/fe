@@ -90,6 +90,26 @@
   }
 }
 
+.batchSubCode {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  width: fit-content;
+  color: var(--color-primary, #0a8066);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    text-decoration: underline;
+    color: #086a54;
+  }
+}
+
 /* 2. Món ăn */
 .dishCol {
   display: flex;
