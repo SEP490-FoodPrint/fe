@@ -322,11 +322,6 @@ export default function CookingBatches() {
           Trường chưa có cấu hình phương thức chế biến hợp lệ để tạo lô mới.
         </Alert>
       )}
-      {exportError && (
-        <Alert severity="error" onClose={() => setExportError("")}>
-          {exportError}
-        </Alert>
-      )}
 
       {/* KPI Cards: hiển thị số lượng lô theo tuần (tuần này đã tạo bao nhiêu lô) */}
       <CookingBatchesKPI
