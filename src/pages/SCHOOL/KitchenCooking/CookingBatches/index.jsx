@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import { Alert, Button } from "@mui/material"
-import { Plus, FileDown, Clock } from "lucide-react"
+import { Plus, Clock } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import STORAGE, { getStorage } from "src/lib/storage"
 import { StoreContext } from "src/contexts"
@@ -10,7 +10,6 @@ import {
   EMPTY_BATCH_FILTERS,
   COOKING_MODES,
   adaptCookingBatch,
-  batchCSV,
   localDateISO,
   schoolClock,
 } from "src/services/KitchenService/adapter"
@@ -54,8 +53,6 @@ export default function CookingBatches() {
     value: null,
     error: "",
   })
-  const [exporting, setExporting] = useState(false)
-  const [exportError, setExportError] = useState("")
 
   // 1. Cấu hình năm học được chọn
   const currentAcademicYearConfig = useMemo(() => {
@@ -274,35 +271,6 @@ export default function CookingBatches() {
       )
   }
 
-  const exportReport = async () => {
-    setExporting(true)
-    setExportError("")
-    try {
-      const items = await KitchenService.getAllBatches(
-        JSON.parse(statsKey).query,
-      )
-      const url = URL.createObjectURL(
-        new Blob([batchCSV(items.map(adaptCookingBatch))], {
-          type: "text/csv;charset=utf-8;",
-        }),
-      )
-      const link = document.createElement("a")
-      link.href = url
-      const weekLabelForFile = selectedWeekObj
-        ? `tuan-${selectedWeekObj.weekIndex || selectedWeekObj.isoWeek}`
-        : "tat-ca-tuan"
-      link.download = `lo-che-bien-${filters.academicYear || "2026-2027"}-${weekLabelForFile}.csv`
-      document.body.appendChild(link)
-      link.click()
-      link.remove()
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
-    } catch (error) {
-      setExportError(error.message)
-    } finally {
-      setExporting(false)
-    }
-  }
-
   return (
     <div className={styles.batchesContainer}>
       <div className={styles.pageHeader}>
@@ -320,20 +288,6 @@ export default function CookingBatches() {
           </div>
         </div>
         <div className={styles.actionBtns}>
-          <Button
-            variant="outlined"
-            className={styles.exportBtn}
-            onClick={exportReport}
-            disabled={
-              exporting ||
-              loading ||
-              !pagination.totalItems ||
-              Boolean(listError)
-            }
-            startIcon={<FileDown size={16} />}
-          >
-            {exporting ? "Đang xuất…" : "Xuất báo cáo"}
-          </Button>
           <Button
             variant="contained"
             className={styles.createBtn}
