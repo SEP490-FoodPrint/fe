@@ -33,13 +33,13 @@ export default function MenuListHeader({ onNavigateCreate }) {
           <span className={styles.breadcrumbActive}>Thực đơn học đường</span>
         </nav>
 
-        {/* Tiêu đề trang sạch & Tag nghiệp vụ Y tế */}
+        {/* Tiêu đề trang sạch & Tag nghiệp vụ Dinh dưỡng */}
         <div className={styles.headingGroup}>
           <div className={styles.titleWithBadge}>
             <h1 className={styles.pageTitle}>Thực đơn học đường</h1>
             <span className={styles.roleBadge}>
               <ShieldCheck size={13} />
-              <span>Ban Y tế</span>
+              <span>Nhân viên Dinh dưỡng</span>
             </span>
           </div>
           <p className={styles.pageSubtitle}>

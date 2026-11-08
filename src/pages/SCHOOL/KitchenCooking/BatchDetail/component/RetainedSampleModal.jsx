@@ -1,5 +1,5 @@
 import React, { useState } from "react"
-import { FlaskConical, X, ShieldCheck, Check } from "lucide-react"
+import { FlaskConical, X, ShieldCheck, Check, Clock } from "lucide-react"
 import styles from "./RetainedSampleModal.module.scss"
 
 export default function RetainedSampleModal({
@@ -136,6 +136,17 @@ export default function RetainedSampleModal({
               </div>
             </div>
 
+            {/* Thời điểm lấy mẫu tự động */}
+            <div className={styles.autoTimeBox}>
+              <Clock size={16} className={styles.autoTimeIcon} />
+              <div className={styles.autoTimeContent}>
+                <span className={styles.autoTimeLabel}>Thời điểm lấy mẫu:</span>
+                <span className={styles.autoTimeValue}>
+                  Tự động ghi nhận lúc ấn nút (Khoảng {new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })})
+                </span>
+              </div>
+            </div>
+
             {errorMsg && (
               <div style={{ color: "#dc2626", fontSize: "0.8125rem", fontWeight: 500 }}>
                 {errorMsg}
@@ -175,4 +186,3 @@ export default function RetainedSampleModal({
     </div>
   )
 }
-

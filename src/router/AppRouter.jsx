@@ -53,7 +53,6 @@ const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/Cookin
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
 const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatchSeparate"))
 const KitchenBatchDetail = lazy(() => import("src/pages/SCHOOL/KitchenCooking/BatchDetail"))
-const KitchenEditBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/EditBatch"))
 const KitchenSamples = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenSamples"))
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
@@ -228,9 +227,9 @@ const routes = [
             ],
           },
 
-          // Phân hệ Y tế học đường: Ban Y tế, School Admin
+          // Phân hệ Dinh dưỡng học đường: Nhân viên Dinh dưỡng, School Admin
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_ADMINISTRATION]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_ADMINISTRATION]} />,
             children: [
               { path: ROUTER.SCHOOL_HEALTH_OVERVIEW, element: <LazyWrapper><HealthOverview /></LazyWrapper> },
               { path: ROUTER.SCHOOL_HEALTH_ALLERGY, element: <LazyWrapper><HealthAllergy /></LazyWrapper> },
@@ -238,9 +237,9 @@ const routes = [
             ],
           },
 
-          // Lập thực đơn & cảnh báo dị ứng: Ban Y tế
+          // Lập thực đơn & cảnh báo dị ứng: Nhân viên Dinh dưỡng
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.SCHOOL_KITCHEN_STAFF]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
               { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },
@@ -251,7 +250,7 @@ const routes = [
 
           // Kiểm tra nguyên liệu đầu vào: Y tế, Ban Phụ huynh, Kho, Nhân viên Bếp (Đánh giá nguyên liệu)
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_HEALTH_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT, ROLES.SCHOOL_KITCHEN_STAFF]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.PARENTS_COMMITTEE, ROLES.INGREDIENT_MANAGEMENT, ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_INGREDIENT_INSPECT, element: <LazyWrapper><IngredientInspect /></LazyWrapper> },
             ],
@@ -269,9 +268,7 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE, element: <LazyWrapper><KitchenCreateBatchSeparate /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE, element: <LazyWrapper><KitchenCreateBatchSeparate /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL, element: <LazyWrapper><KitchenBatchDetail /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_BATCH_EDIT, element: <LazyWrapper><KitchenEditBatch /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_INGREDIENTS, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },

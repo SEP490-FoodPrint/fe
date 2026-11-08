@@ -9,7 +9,6 @@ export default function CreateBatchSeparateHeader() {
 
   return (
     <div className={styles.headerBar}>
-      {/* Title Row: Nút quay lại icon không viền + Tiêu đề + Chip Chế độ trên cùng 1 hàng */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -30,10 +29,8 @@ export default function CreateBatchSeparateHeader() {
           title="Chế độ nấu riêng 1:1: Mỗi lô nguyên liệu đầu vào được tự động tách thành một lô chế biến độc lập"
         >
           <span className={styles.pulseDot} />
-          <span className={styles.modeMobileText}>Nấu riêng 1:1</span>
-          <span className={styles.modeDesktopText}>
-            Chế độ: Nấu riêng 1:1 (Tách lô nguyên liệu)
-          </span>
+          <span className={styles.modeMobileText}>Nấu riêng</span>
+          <span className={styles.modeDesktopText}>Chế độ: Nấu riêng</span>
         </div>
       </div>
     </div>

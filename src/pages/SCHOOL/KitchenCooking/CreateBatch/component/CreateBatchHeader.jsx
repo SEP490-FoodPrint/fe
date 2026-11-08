@@ -9,7 +9,6 @@ export default function CreateBatchHeader() {
 
   return (
     <div className={styles.headerBar}>
-      {/* Title Row: Nút quay lại icon không viền + Tiêu đề + Chip Chế độ trên cùng 1 hàng */}
       <div className={styles.titleRow}>
         <div className={styles.titleLeft}>
           <button
@@ -31,9 +30,7 @@ export default function CreateBatchHeader() {
         >
           <span className={styles.pulseDot} />
           <span className={styles.modeMobileText}>Nấu chung</span>
-          <span className={styles.modeDesktopText}>
-            Chế độ: Nấu chung (Đa lô nguyên liệu)
-          </span>
+          <span className={styles.modeDesktopText}>Chế độ: Nấu chung</span>
         </div>
       </div>
     </div>

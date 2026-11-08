@@ -4,14 +4,17 @@ export const COOKING_MODES = {
 }
 
 export const BATCH_STATUSES = {
-  UNCONFIRMED: "Chưa xác nhận",
+  UNCONFIRMED: "Chưa xác nhận nấu",
   CONFIRMED: "Chờ nấu",
   COMPLETED: "Đã hoàn thành",
 }
 
 export const EMPTY_BATCH_FILTERS = {
   search: "",
-  date: "",
+  academicYear: "2026-2027",
+  week: "current",
+  startDate: "",
+  endDate: "",
   mealType: "",
   cookingModeApplied: "",
   status: "",
@@ -38,6 +41,8 @@ export function batchQuery(filters = {}) {
   const search = (filters.search || "").trim()
   if (search.length > 100) throw new Error("Từ khóa tìm kiếm tối đa 100 ký tự.")
   if (search) query.search = search
+  if (filters.startDate) query.startDate = filters.startDate
+  if (filters.endDate) query.endDate = filters.endDate
   if (filters.date) query.date = filters.date
   if (filters.mealType) {
     if (!["LUNCH", "AFTERNOON"].includes(filters.mealType))

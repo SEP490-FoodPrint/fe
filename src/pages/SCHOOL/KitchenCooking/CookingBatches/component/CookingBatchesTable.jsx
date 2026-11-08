@@ -2,11 +2,10 @@ import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import {
   Eye,
-  Edit3,
   ChevronLeft,
   ChevronRight,
-  Utensils,
-  Split,
+  Check,
+  AlertCircle,
 } from "lucide-react"
 import {
   Alert,
@@ -34,18 +33,7 @@ export default function CookingBatchesTable({
   const navigate = useNavigate()
   const [selectedBatch, setSelectedBatch] = useState(null)
   const { page, limit, totalItems, totalPages } = pagination
-  const methodClass = (row) =>
-    row.methodType === "separate"
-      ? styles.methodSeparate
-      : row.methodType === "common"
-        ? styles.methodCommon
-        : styles.methodUnknown
-  const methodIcon = (row, size = 14) =>
-    row.methodType === "separate" ? (
-      <Split size={size} aria-hidden="true" />
-    ) : (
-      <Utensils size={size} aria-hidden="true" />
-    )
+
   const statusBadge = (row, mobile = false) => (
     <span
       className={`${mobile ? styles.mobileStatusBadge : styles.statusBadge} ${styles[`status_${row.statusType}`]}`}
@@ -60,46 +48,20 @@ export default function CookingBatchesTable({
     )
   }
 
-  const handleEditBatch = (row) => {
-    navigate(
-      ROUTER.SCHOOL_KITCHEN_BATCH_EDIT.replace(":id", row.id || row.code),
-    )
-  }
-
   const renderActions = (row, mobile = false) => {
-    const canEdit = row.status === "UNCONFIRMED"
-    const editDisabledTooltip =
-      row.status === "CONFIRMED"
-        ? "Lô đã xác nhận chế biến, không thể chỉnh sửa"
-        : row.status === "COMPLETED"
-          ? "Lô đã hoàn thành chế biến, không thể chỉnh sửa"
-          : "Chỉnh sửa lô chế biến"
-
     if (mobile) {
       return (
         <div className={styles.mobileActionBox} onClick={(e) => e.stopPropagation()}>
           <Tooltip title="Xem chi tiết" arrow>
             <IconButton
               size="small"
-              className={styles.mobileActionIconBtn}
+              className={styles.framelessActionBtn}
               onClick={() => handleViewDetail(row)}
               aria-label={`Xem chi tiết ${row.dishName}`}
             >
-              <Eye size={16} />
+              <Eye size={18} />
             </IconButton>
           </Tooltip>
-          {canEdit && (
-            <Tooltip title="Chỉnh sửa lô" arrow>
-              <IconButton
-                size="small"
-                className={styles.mobileEditIconBtn}
-                onClick={() => handleEditBatch(row)}
-                aria-label={`Chỉnh sửa ${row.dishName}`}
-              >
-                <Edit3 size={15} />
-              </IconButton>
-            </Tooltip>
-          )}
         </div>
       )
     }
@@ -107,30 +69,14 @@ export default function CookingBatchesTable({
     return (
       <div className={styles.actionButtonsGroup}>
         <Tooltip title="Xem chi tiết lô chế biến" arrow>
-          <button
-            type="button"
-            className={styles.btnActionView}
+          <IconButton
+            size="small"
+            className={styles.framelessActionBtn}
             onClick={() => handleViewDetail(row)}
             aria-label={`Xem chi tiết lô ${row.code}`}
           >
-            <Eye size={14} />
-            <span>Chi tiết</span>
-          </button>
-        </Tooltip>
-
-        <Tooltip title={editDisabledTooltip} arrow>
-          <span>
-            <button
-              type="button"
-              className={styles.btnActionEdit}
-              disabled={!canEdit}
-              onClick={() => handleEditBatch(row)}
-              aria-label={`Chỉnh sửa lô ${row.code}`}
-            >
-              <Edit3 size={14} />
-              <span>Sửa</span>
-            </button>
-          </span>
+            <Eye size={18} />
+          </IconButton>
         </Tooltip>
       </div>
     )
@@ -166,11 +112,11 @@ export default function CookingBatchesTable({
             <table className={styles.table} aria-label="Danh sách lô chế biến">
               <thead>
                 <tr>
-                  <th scope="col">Mã lô</th>
+                  <th scope="col" style={{ width: 130 }}>Mã lô</th>
                   <th scope="col">Món ăn &amp; Ca ăn</th>
-                  <th scope="col">Phương thức</th>
-                  <th scope="col">Số suất</th>
-                  <th scope="col">Trạng thái</th>
+                  <th scope="col" style={{ width: 100 }}>Số suất</th>
+                  <th scope="col" style={{ width: 130 }}>Trạng thái</th>
+                  <th scope="col" style={{ width: 160 }}>Lưu mẫu</th>
                   <th scope="col" className={styles.thActions}>Thao tác</th>
                 </tr>
               </thead>
@@ -186,16 +132,25 @@ export default function CookingBatchesTable({
                         </span>
                       </div>
                     </td>
-                    <td>
-                      <span
-                        className={`${styles.methodBadge} ${methodClass(row)}`}
-                      >
-                        {methodIcon(row)}
-                        <span>{row.methodLabel}</span>
-                      </span>
-                    </td>
                     <td className={styles.portionBold}>{row.portion}</td>
                     <td>{statusBadge(row)}</td>
+                    <td>
+                      {row.status === "COMPLETED" ? (
+                        row.hasSample ? (
+                          <span className={`${styles.samplePill} ${styles.sampleDone}`}>
+                            <Check size={13} aria-hidden="true" />
+                            <span>Đã lưu mẫu (24h)</span>
+                          </span>
+                        ) : (
+                          <span className={`${styles.samplePill} ${styles.samplePending}`}>
+                            <AlertCircle size={13} aria-hidden="true" />
+                            <span>Chưa lưu mẫu</span>
+                          </span>
+                        )
+                      ) : (
+                        <span className={styles.sampleMuted}>—</span>
+                      )}
+                    </td>
                     <td className={styles.tdActions}>{renderActions(row)}</td>
                   </tr>
                 ))}
@@ -217,14 +172,11 @@ export default function CookingBatchesTable({
               >
                 <div className={styles.mobileTopRow}>
                   <div className={styles.dishTitleWrap}>
-                    <span
-                      className={styles.methodIconBox}
-                      title={row.methodLabel}
-                    >
-                      {methodIcon(row)}
-                    </span>
                     <span className={styles.mobileDishName}>
                       {row.dishName}
+                    </span>
+                    <span className={styles.mobileBatchCode}>
+                      {row.code}
                     </span>
                   </div>
                   {statusBadge(row, true)}
@@ -243,13 +195,14 @@ export default function CookingBatchesTable({
                           ? "Xế"
                           : "—"}
                     </span>
-                    <span
-                      className={`${styles.mobileMethod} ${methodClass(row)}`}
-                    >
-                      {row.methodType === "separate"
-                        ? "Nấu riêng"
-                        : row.methodLabel}
-                    </span>
+                    {row.status === "COMPLETED" && (
+                      <>
+                        <span className={styles.metaDot}>•</span>
+                        <span className={`${styles.mobileSampleBadge} ${row.hasSample ? styles.sampleDone : styles.samplePending}`}>
+                          {row.hasSample ? "Đã lưu 24h" : "Chưa lưu mẫu"}
+                        </span>
+                      </>
+                    )}
                   </div>
                   {renderActions(row, true)}
                 </div>
@@ -325,16 +278,16 @@ export default function CookingBatchesTable({
               <dd>{selectedBatch?.mealLabel}</dd>
             </div>
             <div>
-              <dt>Phương thức</dt>
-              <dd>{selectedBatch?.methodLabel}</dd>
-            </div>
-            <div>
               <dt>Số suất</dt>
               <dd>{selectedBatch?.portion}</dd>
             </div>
             <div>
               <dt>Trạng thái</dt>
               <dd>{selectedBatch?.statusLabel}</dd>
+            </div>
+            <div>
+              <dt>Lưu mẫu</dt>
+              <dd>{selectedBatch?.sampleLabel || "Chưa lưu mẫu"}</dd>
             </div>
             {selectedBatch?.note && (
               <div className={styles.batchNote}>
