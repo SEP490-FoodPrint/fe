@@ -5,7 +5,6 @@ import {
   CheckCircle2,
   Trash2,
   CookingPot,
-  MoreVertical,
   FlaskConical,
   Check,
 } from "lucide-react"
@@ -20,11 +19,11 @@ export default function BatchActionsCard({
   hasSample = false,
   onOpenConfirmModal,
   onOpenDeleteModal,
-  onOpenCompleteModal,
+  onCompleteBatch,
+  actionLoading = false,
   onOpenSampleModal,
 }) {
   const navigate = useNavigate()
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
   const isConfirmed = status === "CONFIRMED"
@@ -40,7 +39,7 @@ export default function BatchActionsCard({
         </div>
 
         <div className={styles.btnStack}>
-          {/* Nút 1: Xác nhận phương án (chỉ khi Draft) */}
+          {/* Nút 1: Tạo lô chế biến (khi trạng thái là Chưa tạo) */}
           {isDraft && (
             <button
               type="button"
@@ -48,19 +47,20 @@ export default function BatchActionsCard({
               onClick={onOpenConfirmModal}
             >
               <CheckCircle2 size={18} />
-              <span>Xác nhận phương án</span>
+              <span>Tạo lô chế biến</span>
             </button>
           )}
 
-          {/* Nút 2: Ghi nhận hoàn thành chế biến (khi đã xác nhận) */}
+          {/* Nút 2: Ghi nhận nấu xong - chạy trực tiếp không popup */}
           {isConfirmed && (
             <button
               type="button"
               className={styles.btnPrimary}
-              onClick={onOpenCompleteModal}
+              onClick={onCompleteBatch}
+              disabled={actionLoading}
             >
               <CookingPot size={18} />
-              <span>Ghi nhận hoàn thành chế biến</span>
+              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
             </button>
           )}
 
@@ -98,7 +98,7 @@ export default function BatchActionsCard({
             </div>
           )}
 
-          {/* Nút xóa (chỉ khi Draft) */}
+          {/* Nút xóa (chỉ khi Chưa tạo) */}
           {isDraft && (
             <button
               type="button"
@@ -124,7 +124,7 @@ export default function BatchActionsCard({
                 onClick={onOpenConfirmModal}
               >
                 <CheckCircle2 size={19} />
-                <span>Xác nhận phương án</span>
+                <span>Tạo lô chế biến</span>
               </button>
 
               <button
@@ -143,10 +143,11 @@ export default function BatchActionsCard({
             <button
               type="button"
               className={styles.mobilePrimaryBtn}
-              onClick={onOpenCompleteModal}
+              onClick={onCompleteBatch}
+              disabled={actionLoading}
             >
               <CookingPot size={19} />
-              <span>Ghi nhận hoàn thành</span>
+              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
             </button>
           )}
 

@@ -21,8 +21,8 @@ export default function ConfirmBatchModal({
               <CheckCircle2 size={22} />
             </div>
             <div>
-              <h3 className={styles.modalTitle}>Xác nhận phương án chế biến</h3>
-              <p className={styles.modalSub}>Chốt phương án và chuyển trạng thái sẵn sàng nấu</p>
+              <h3 className={styles.modalTitle}>Xác nhận tạo lô chế biến</h3>
+              <p className={styles.modalSub}>Chốt phương án và chuyển sang trạng thái chờ nấu</p>
             </div>
           </div>
           <button
@@ -53,18 +53,12 @@ export default function ConfirmBatchModal({
                 {(batchData.portions || 0).toLocaleString("vi-VN")} suất
               </span>
             </div>
-            <div className={styles.briefRow}>
-              <span className={styles.briefLabel}>Phương thức:</span>
-              <span className={styles.briefValue}>
-                {batchData.method === "SEPARATE" ? "Nấu riêng theo lô" : "Nấu chung"}
-              </span>
-            </div>
           </div>
 
           <div className={styles.warningBox}>
             <ShieldCheck size={18} className={styles.warningIcon} />
             <p className={styles.warningText}>
-              Sau khi xác nhận, phương án chế biến và danh mục nguyên liệu sẽ được khóa để đảm bảo an toàn truy xuất nguồn gốc FoodPrint. Bạn có chắc chắn muốn duyệt phương án này?
+              Sau khi xác nhận tạo lô, mẻ nấu sẽ chính thức được khởi tạo và chuyển sang danh sách chờ nấu để nhân viên bếp thực hiện chế biến.
             </p>
           </div>
         </div>
@@ -77,7 +71,7 @@ export default function ConfirmBatchModal({
             onClick={onClose}
             disabled={loading}
           >
-            Xem lại
+            Hủy
           </button>
           <button
             type="button"
@@ -86,7 +80,7 @@ export default function ConfirmBatchModal({
             disabled={loading}
           >
             <CheckCircle2 size={16} />
-            <span>{loading ? "Đang xác nhận…" : "Xác nhận duyệt phương án"}</span>
+            <span>{loading ? "Đang tạo lô…" : "Xác nhận tạo lô"}</span>
           </button>
         </div>
       </div>

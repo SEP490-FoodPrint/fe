@@ -13,7 +13,6 @@ import BatchTimelineCard from "./component/BatchTimelineCard"
 import BatchActionsCard from "./component/BatchActionsCard"
 import ConfirmBatchModal from "./component/ConfirmBatchModal"
 import DeleteBatchModal from "./component/DeleteBatchModal"
-import CompleteBatchModal from "./component/CompleteBatchModal"
 import RetainedSampleModal from "./component/RetainedSampleModal"
 import styles from "./index.module.scss"
 
@@ -30,7 +29,6 @@ export default function KitchenBatchDetail() {
   // Modals
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [isCompleteOpen, setIsCompleteOpen] = useState(false)
   const [isSampleOpen, setIsSampleOpen] = useState(false)
 
   const fetchBatch = useCallback(
@@ -67,20 +65,20 @@ export default function KitchenBatchDetail() {
     return () => controller.abort()
   }, [fetchBatch])
 
-  // Xử lý xác nhận phương án chế biến (Chuyển sang CONFIRMED)
+  // Xử lý tạo lô chế biến (Chuyển sang CONFIRMED)
   const handleConfirmBatch = async () => {
     setActionLoading(true)
     try {
       await KitchenService.confirmBatch(id)
       notice({
-        msg: "Xác nhận phương án chế biến thành công!",
+        msg: "Khởi tạo lô chế biến thành công!",
         isSuccess: true,
       })
       setIsConfirmOpen(false)
       fetchBatch()
     } catch (err) {
       notice({
-        msg: err.message || "Không thể xác nhận phương án chế biến.",
+        msg: err.message || "Không thể tạo lô chế biến.",
         isSuccess: false,
       })
     } finally {
@@ -88,20 +86,21 @@ export default function KitchenBatchDetail() {
     }
   }
 
-  // Xử lý ghi nhận hoàn thành chế biến (Chuyển sang COMPLETED)
-  const handleCompleteBatch = async (payload) => {
+  // Xử lý ghi nhận nấu xong (Chuyển sang COMPLETED) - Chạy trực tiếp không mở popup
+  const handleCompleteBatch = async () => {
     setActionLoading(true)
     try {
-      await KitchenService.completeBatch(id, payload)
+      await KitchenService.completeBatch(id, {
+        preparedPortions: batchData?.portions || 0,
+      })
       notice({
-        msg: "Ghi nhận hoàn thành mẻ nấu thành công!",
+        msg: "Ghi nhận nấu xong thành công!",
         isSuccess: true,
       })
-      setIsCompleteOpen(false)
       fetchBatch()
     } catch (err) {
       notice({
-        msg: err.message || "Không thể ghi nhận hoàn thành mẻ nấu.",
+        msg: err.message || "Không thể ghi nhận nấu xong.",
         isSuccess: false,
       })
     } finally {
@@ -226,7 +225,8 @@ export default function KitchenBatchDetail() {
             hasSample={Boolean(sampleData)}
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
-            onOpenCompleteModal={() => setIsCompleteOpen(true)}
+            onCompleteBatch={handleCompleteBatch}
+            actionLoading={actionLoading}
             onOpenSampleModal={() => setIsSampleOpen(true)}
           />
         </div>
@@ -246,14 +246,6 @@ export default function KitchenBatchDetail() {
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDeleteBatch}
         batchCode={batchData.code}
-        loading={actionLoading}
-      />
-
-      <CompleteBatchModal
-        isOpen={isCompleteOpen}
-        onClose={() => setIsCompleteOpen(false)}
-        onConfirm={handleCompleteBatch}
-        batchData={batchData}
         loading={actionLoading}
       />
 
