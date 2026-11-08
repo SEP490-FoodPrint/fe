@@ -30,6 +30,7 @@ const ROUTER = {
   SUPPLIER: "/supplier",
   SUPPLIER_OVERVIEW: "/supplier/overview",
   SUPPLIER_INGREDIENTS: "/supplier/ingredient-catalog",
+  SUPPLIER_INGREDIENT_DETAIL: "/supplier/ingredient-catalog/:id",
   SUPPLIER_ORDERS: "/supplier/supply-orders",
 
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
