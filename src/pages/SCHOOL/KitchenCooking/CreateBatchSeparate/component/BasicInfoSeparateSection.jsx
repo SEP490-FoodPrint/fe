@@ -1,6 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
-  Lock,
   Calendar,
   ChevronDown,
   ChevronUp,
@@ -11,6 +10,8 @@ import {
   CheckCircle2,
   Search,
   X,
+  Users,
+  Clock,
 } from "lucide-react";
 import styles from "./BasicInfoSeparateSection.module.scss";
 
@@ -18,28 +19,28 @@ export const SEPARATE_DISH_OPTIONS = [
   {
     id: "dish-1",
     name: "Thịt heo kho nước dừa",
-    type: "Món mặn chính • Giàu đạm, canxi (Tách 2 nguồn thịt heo)",
+    type: "Món mặn chính • Giàu đạm, canxi",
     icon: Beef,
     portionStandard: 1250,
   },
   {
     id: "dish-2",
     name: "Canh sườn hầm củ quả thập cẩm",
-    type: "Món canh dinh dưỡng",
+    type: "Món canh • Bổ sung vitamin, chất xơ",
     icon: Soup,
     portionStandard: 1250,
   },
   {
     id: "dish-3",
     name: "Cơm gạo ST25 dẻo thơm",
-    type: "Món chính • Năng lượng sạch",
+    type: "Món cơm / Tinh bột sạch",
     icon: Utensils,
     portionStandard: 1250,
   },
   {
     id: "dish-4",
     name: "Thanh long ruột đỏ Bình Thuận",
-    type: "Món tráng miệng",
+    type: "Tráng miệng • Trái cây tươi",
     icon: Apple,
     portionStandard: 1250,
   },
@@ -55,16 +56,23 @@ export default function BasicInfoSeparateSection({
 }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
   const dropdownRef = useRef(null);
 
-  const todayDateStr = useMemo(() => {
-    const d = new Date();
-    const dd = String(d.getDate()).padStart(2, "0");
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const yyyy = d.getFullYear();
-    return `${dd}/${mm}/${yyyy}`;
-  }, []);
+  const today = new Date();
+  const dayNames = [
+    "Chủ Nhật",
+    "Thứ Hai",
+    "Thứ Ba",
+    "Thứ Tư",
+    "Thứ Năm",
+    "Thứ Sáu",
+    "Thứ Bảy",
+  ];
+  const dayOfWeek = dayNames[today.getDay()];
+  const dd = String(today.getDate()).padStart(2, "0");
+  const mm = String(today.getMonth() + 1).padStart(2, "0");
+  const yyyy = today.getFullYear();
+  const todayDateStr = `${dayOfWeek}, ${dd}/${mm}/${yyyy}`;
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -108,42 +116,24 @@ export default function BasicInfoSeparateSection({
 
   return (
     <section className={styles.sectionContainer}>
-      <div className={styles.sectionHeader}>
-        <div className={styles.titleWithBadge}>
-          <div className={styles.numberBadge}>1</div>
-          <div>
-            <h2 className={styles.sectionTitle}>Thông tin phiên nấu</h2>
+      {/* 1. Dải thông tin phiên nấu hôm nay (Nắm bắt thông tin trong 1 giây) */}
+      <div className={styles.sessionBar}>
+        <div className={styles.sessionItem}>
+          <div className={styles.sessionItemHeader}>
+            <Calendar size={14} className={styles.sessionIcon} />
+            <span className={styles.sessionLabel}>Ngày chế biến</span>
           </div>
-        </div>
-      </div>
-
-      {/* Row 1: Ngày ăn & Bữa ăn */}
-      <div className={styles.gridRow}>
-        {/* Ngày ăn (Khóa) */}
-        <div className={styles.formGroup}>
-          <div className={styles.labelRow}>
-            <label className={styles.label}>Ngày chế biến</label>
-            <span
-              className={styles.lockHint}
-              title="Khóa theo thực đơn hôm nay"
-            >
-              <Lock size={12} />
-              <span>Theo thực đơn</span>
-            </span>
-          </div>
-
-          <div className={styles.lockedField}>
-            <div className={styles.lockedValue}>
-              <Calendar size={15} className={styles.calIcon} />
-              <span className={styles.lockedDate}>{todayDateStr}</span>
-            </div>
-            <span className={styles.lockedBadge}>Hôm nay</span>
+          <div className={styles.sessionValRow}>
+            <span className={styles.sessionVal}>{todayDateStr}</span>
+            <span className={styles.todayBadge}>Hôm nay</span>
           </div>
         </div>
 
-        {/* Bữa ăn phục vụ */}
-        <div className={styles.formGroup}>
-          <label className={styles.label}>Bữa ăn phục vụ</label>
+        <div className={styles.sessionItem}>
+          <div className={styles.sessionItemHeader}>
+            <Clock size={14} className={styles.sessionIcon} />
+            <span className={styles.sessionLabel}>Bữa ăn phục vụ</span>
+          </div>
           <div className={styles.selectWrapper}>
             <select
               className={styles.selectInput}
@@ -153,84 +143,105 @@ export default function BasicInfoSeparateSection({
             >
               <option value="lunch">Bữa trưa học đường (11:30 – 12:30)</option>
               <option value="afternoon">Bữa phụ chiều (15:00 – 15:30)</option>
-              <option value="breakfast">
-                Bữa sáng bán trú (06:45 – 07:30)
-              </option>
+              <option value="breakfast">Bữa sáng bán trú (06:45 – 07:30)</option>
             </select>
-            <ChevronDown
-              size={16}
-              className={styles.selectArrow}
-              aria-hidden="true"
-            />
+            <ChevronDown size={15} className={styles.selectArrow} aria-hidden="true" />
+          </div>
+        </div>
+
+        <div className={styles.sessionItem}>
+          <div className={styles.sessionItemHeader}>
+            <Users size={14} className={styles.sessionIcon} />
+            <span className={styles.sessionLabel}>Số suất ăn</span>
+          </div>
+          <div className={styles.sessionValRow}>
+            <span className={styles.portionVal}>
+              {Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "—"}{" "}
+              <span className={styles.unitText}>suất</span>
+            </span>
+            <span className={styles.lockBadge}>Theo điểm danh</span>
           </div>
         </div>
       </div>
 
-      {/* Row 2: Món cần chế biến & Số suất ăn */}
-      <div className={styles.gridRow}>
-        {/* Món cần chế biến (Searchable Dropdown) */}
-        <div className={styles.formGroup} ref={dropdownRef}>
-          <label className={styles.label}>
+      <div className={styles.divider} />
+
+      {/* 2. Thao tác chính: Chọn món ăn cần chế biến */}
+      <div className={styles.dishSelectGroup} ref={dropdownRef}>
+        <div className={styles.dishLabelRow}>
+          <label className={styles.mainLabel} htmlFor="dish-dropdown-separate">
             Món ăn cần chế biến
           </label>
-          <div
-            className={`${styles.dropdownTrigger} ${
-              isDropdownOpen ? styles.dropdownOpen : ""
-            }`}
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            role="button"
-            tabIndex={0}
-            aria-label="Chọn món cần chế biến"
-            aria-expanded={isDropdownOpen}
-          >
-            <div className={styles.selectedContent}>
-              <div className={styles.dishIconBox}>
-                <DishIcon size={16} />
-              </div>
-              <span className={styles.dishName}>
-                {selectedDish
-                  ? selectedDish.name
-                  : "-- Chọn món trong thực đơn hôm nay --"}
-              </span>
-            </div>
+          <span className={styles.menuSourceHint}>
+            Thực đơn hôm nay ({SEPARATE_DISH_OPTIONS.length} món)
+          </span>
+        </div>
 
-            <div className={styles.triggerActions}>
+        <div
+          id="dish-dropdown-separate"
+          className={`${styles.dropdownTrigger} ${
+            isDropdownOpen ? styles.dropdownOpen : ""
+          } ${selectedDish ? styles.triggerSelected : ""}`}
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          role="button"
+          tabIndex={0}
+          aria-label="Chọn món cần chế biến"
+          aria-expanded={isDropdownOpen}
+        >
+          <div className={styles.selectedContent}>
+            <div className={`${styles.dishIconBox} ${selectedDish ? styles.iconBoxActive : ""}`}>
+              <DishIcon size={18} />
+            </div>
+            <div className={styles.selectedTextWrap}>
+              <span className={selectedDish ? styles.dishNameActive : styles.dishNamePlaceholder}>
+                {selectedDish ? selectedDish.name : "Bấm vào đây để chọn món ăn cần chế biến..."}
+              </span>
               {selectedDish && (
-                <button
-                  type="button"
-                  className={styles.clearBtn}
-                  onClick={handleClearSelection}
-                  title="Xóa lựa chọn"
-                  aria-label="Xóa món đã chọn"
-                >
-                  <X size={14} />
-                </button>
-              )}
-              {isDropdownOpen ? (
-                <ChevronUp size={16} className={styles.arrowIcon} />
-              ) : (
-                <ChevronDown size={16} className={styles.arrowIcon} />
+                <span className={styles.dishTypeSub}>{selectedDish.type}</span>
               )}
             </div>
           </div>
 
-          {/* Dropdown Menu Popup */}
-          {isDropdownOpen && (
-            <div className={styles.dropdownPopup}>
-              <div className={styles.searchBox}>
-                <Search size={15} className={styles.searchIcon} />
-                <input
-                  type="text"
-                  className={styles.searchInput}
-                  placeholder="Tìm món trong thực đơn hôm nay..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  autoFocus
-                />
-              </div>
+          <div className={styles.triggerActions}>
+            {selectedDish && (
+              <button
+                type="button"
+                className={styles.clearBtn}
+                onClick={handleClearSelection}
+                title="Chọn lại món khác"
+                aria-label="Xóa món đã chọn"
+              >
+                <X size={15} />
+              </button>
+            )}
+            {isDropdownOpen ? (
+              <ChevronUp size={18} className={styles.arrowIcon} />
+            ) : (
+              <ChevronDown size={18} className={styles.arrowIcon} />
+            )}
+          </div>
+        </div>
 
-              <div className={styles.itemsList} role="listbox">
-                {filteredDishes.map((dish) => {
+        {/* Dropdown Menu Popup */}
+        {isDropdownOpen && (
+          <div className={styles.dropdownPopup}>
+            <div className={styles.searchBox}>
+              <Search size={15} className={styles.searchIcon} />
+              <input
+                type="text"
+                className={styles.searchInput}
+                placeholder="Tìm nhanh tên món ăn..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className={styles.itemsList} role="listbox">
+              {filteredDishes.length === 0 ? (
+                <div className={styles.emptySearch}>Không tìm thấy món ăn phù hợp</div>
+              ) : (
+                filteredDishes.map((dish) => {
                   const isSelected = selectedDish?.id === dish.id;
                   const ItemIcon = dish.icon;
                   return (
@@ -245,23 +256,15 @@ export default function BasicInfoSeparateSection({
                     >
                       <div className={styles.itemInfo}>
                         <div
-                          className={`${styles.iconWrap} ${
-                            isSelected ? styles.iconWrapActive : ""
+                          className={`${styles.itemIconWrap} ${
+                            isSelected ? styles.itemIconWrapActive : ""
                           }`}
                         >
                           <ItemIcon size={16} />
                         </div>
                         <div className={styles.textContainer}>
-                          <span
-                            className={
-                              isSelected
-                                ? styles.selectedName
-                                : styles.regularName
-                            }
-                          >
-                            {dish.name}
-                          </span>
-                          <span className={styles.dishMeta}>{dish.type}</span>
+                          <span className={styles.itemName}>{dish.name}</span>
+                          <span className={styles.itemMeta}>{dish.type}</span>
                         </div>
                       </div>
                       {isSelected && (
@@ -269,38 +272,11 @@ export default function BasicInfoSeparateSection({
                       )}
                     </div>
                   );
-                })}
-              </div>
+                })
+              )}
             </div>
-          )}
-        </div>
-
-        {/* Số suất ăn (Tự động từ điểm danh GVCN) */}
-        <div className={styles.formGroup}>
-          <div className={styles.labelRow}>
-            <label className={styles.label} htmlFor="planned-portions-separate">Số suất ăn</label>
-            <span
-              className={styles.lockHint}
-              title="Đối soát tự động từ điểm danh"
-            >
-              <Lock size={12} />
-              <span>Theo điểm danh</span>
-            </span>
           </div>
-
-          <div className={styles.inputInner}>
-            <input
-              id="planned-portions-separate"
-              type="text"
-              className={styles.portionInput}
-              value={Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "—"}
-              readOnly
-              aria-readonly="true"
-              aria-label="Số suất ăn"
-            />
-            <span className={styles.unitSuffix}>suất</span>
-          </div>
-        </div>
+        )}
       </div>
     </section>
   );

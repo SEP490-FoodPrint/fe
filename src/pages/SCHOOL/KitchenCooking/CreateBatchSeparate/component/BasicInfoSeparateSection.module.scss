@@ -2,7 +2,7 @@
   background-color: #ffffff;
   border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 12px;
-  padding: 16px 18px;
+  padding: 20px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
@@ -14,163 +14,90 @@
   }
 }
 
-.sectionHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.titleWithBadge {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.numberBadge {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.sectionTitle {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-  line-height: 1.3;
-}
-
-.sectionSubtitle {
-  margin: 2px 0 0 0;
-  font-size: 12px;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.3;
-
-  @media (max-width: 768px) {
-    display: none;
-  }
-}
-
-.requiredTag {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background-color: #fef2f2;
-  color: #dc2626;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.gridRow {
+/* 1. Dải thông tin phiên nấu */
+.sessionBar {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 14px;
+  grid-template-columns: 1.2fr 1.3fr 1fr;
+  gap: 16px;
 
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 18px;
+  @media (max-width: 820px) {
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 }
 
-.formGroup {
+.sessionItem {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  position: relative;
-}
-
-.labelRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.label {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-}
-
-.lockHint {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 11px;
-  color: var(--text-muted, #6b7280);
-}
-
-/* 1. Ô Ngày ăn đã khóa */
-.lockedField {
-  height: 44px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
+  gap: 6px;
   background-color: #f9fafb;
-  padding: 0 12px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  border: 1px solid #f3f4f6;
+  border-radius: 8px;
+  padding: 10px 14px;
 }
 
-.lockedValue {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.calIcon {
-  color: var(--color-primary, #0a8066);
-  flex-shrink: 0;
-}
-
-.dateMeta {
+.sessionItemHeader {
   display: flex;
   align-items: center;
   gap: 6px;
-  min-width: 0;
 }
 
-.lockedDate {
+.sessionIcon {
+  color: var(--color-primary, #0a8066);
+}
+
+.sessionLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted, #6b7280);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sessionValRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sessionVal {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--text-primary, #111827);
 }
 
-.lockedSub {
+.portionVal {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary, #0a8066);
+}
+
+.unitText {
   font-size: 12px;
+  font-weight: 500;
   color: var(--text-muted, #6b7280);
-  white-space: nowrap;
-
-  @media (max-width: 480px) {
-    display: none;
-  }
 }
 
-.lockedBadge {
-  font-size: 11px;
+.todayBadge {
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background-color: #f3f4f6;
-  color: #4b5563;
-  flex-shrink: 0;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background-color: #e5e7eb;
+  color: #374151;
 }
 
-/* 2. Select Input */
+.lockBadge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+}
+
+/* Select Ca ăn */
 .selectWrapper {
   position: relative;
   display: flex;
@@ -179,13 +106,13 @@
 
 .selectInput {
   width: 100%;
-  height: 44px;
-  border-radius: 8px;
+  height: 32px;
+  border-radius: 6px;
   border: 1px solid var(--border-default, #e5e7eb);
   background-color: #ffffff;
-  padding: 0 36px 0 12px;
-  font-size: 13.5px;
-  font-weight: 500;
+  padding: 0 28px 0 8px;
+  font-size: 12.5px;
+  font-weight: 600;
   color: var(--text-primary, #111827);
   cursor: pointer;
   appearance: none;
@@ -194,64 +121,128 @@
   &:focus {
     outline: none;
     border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
   }
 }
 
 .selectArrow {
   position: absolute;
-  right: 12px;
+  right: 8px;
   color: var(--text-muted, #6b7280);
   pointer-events: none;
 }
 
-/* 3. Searchable Dropdown Món ăn */
-.dropdownTrigger {
-  height: 44px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #ffffff;
-  padding: 0 12px;
+.divider {
+  height: 1px;
+  background-color: #f3f4f6;
+  margin: 2px 0;
+}
+
+/* 2. Mục chọn món ăn */
+.dishSelectGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.dishLabelRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+}
+
+.mainLabel {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.menuSourceHint {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--color-primary, #0a8066);
+}
+
+.dropdownTrigger {
+  min-height: 52px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-default, #d1d5db);
+  background-color: #ffffff;
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
 
   &:hover {
-    border-color: #d1d5db;
+    border-color: var(--color-primary, #0a8066);
+    background-color: #fafbfc;
   }
 
   &.dropdownOpen {
     border-color: var(--color-primary, #0a8066);
     box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
   }
+
+  &.triggerSelected {
+    border-color: rgba(10, 128, 102, 0.4);
+    background-color: #fafdfc;
+  }
 }
 
 .selectedContent {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   min-width: 0;
+  flex: 1;
 }
 
 .dishIconBox {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background-color: #f3f4f6;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
-.dishName {
-  font-size: 13.5px;
-  font-weight: 600;
+.iconBoxActive {
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+}
+
+.selectedTextWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dishNameActive {
+  font-size: 15px;
+  font-weight: 700;
   color: var(--text-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dishNamePlaceholder {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted, #9ca3af);
+}
+
+.dishTypeSub {
+  font-size: 11.5px;
+  color: var(--text-muted, #6b7280);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -260,25 +251,26 @@
 .triggerActions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   flex-shrink: 0;
 }
 
 .clearBtn {
-  width: 24px;
-  height: 24px;
-  border-radius: 4px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: none;
-  background: transparent;
-  color: var(--text-muted, #6b7280);
+  background-color: #f3f4f6;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.12s ease;
 
   &:hover {
-    background-color: #f3f4f6;
-    color: var(--text-primary, #111827);
+    background-color: #fee2e2;
+    color: #dc2626;
   }
 }
 
@@ -286,29 +278,39 @@
   color: var(--text-muted, #6b7280);
 }
 
+/* Dropdown Popup */
 .dropdownPopup {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0;
   right: 0;
   z-index: 50;
   background-color: #ffffff;
   border: 1px solid var(--border-default, #e5e7eb);
   border-radius: 10px;
-  box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.1),
-    0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
+  animation: popupSlide 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popupSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .searchBox {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-bottom: 1px solid #f3f4f6;
+  background-color: #fafafa;
 }
 
 .searchIcon {
@@ -317,12 +319,15 @@
 }
 
 .searchInput {
-  flex: 1;
+  width: 100%;
   border: none;
   background: transparent;
-  font-size: 13px;
+  font-size: 13.5px;
   color: var(--text-primary, #111827);
-  outline: none;
+
+  &:focus {
+    outline: none;
+  }
 
   &::placeholder {
     color: var(--text-muted, #9ca3af);
@@ -330,59 +335,59 @@
 }
 
 .itemsList {
-  max-height: 220px;
+  max-height: 260px;
   overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+  padding: 6px;
+}
+
+.emptySearch {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted, #9ca3af);
 }
 
 .itemRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-  min-height: 48px;
   gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f3f4f6;
   }
+}
 
-  &.itemSelected {
-    background-color: var(--color-primary-soft, #e8f5f1);
-  }
+.itemSelected {
+  background-color: var(--color-primary-soft, #e8f5f1) !important;
 }
 
 .itemInfo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex: 1;
+  gap: 10px;
   min-width: 0;
 }
 
-.iconWrap {
+.itemIconWrap {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  background-color: #f1f5f9;
-  color: var(--text-secondary, #475569);
+  border-radius: 6px;
+  background-color: #f3f4f6;
+  color: #6b7280;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-
-  &.iconWrapActive {
-    background-color: #dcfce7;
-    color: #15803d;
-  }
 }
 
-.checkIcon {
-  color: #16a34a;
-  flex-shrink: 0;
+.itemIconWrapActive {
+  background-color: #ffffff;
+  color: var(--color-primary, #0a8066);
 }
 
 .textContainer {
@@ -390,173 +395,26 @@
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  flex: 1;
 }
 
-.regularName {
-  display: block;
+.itemName {
   font-size: 13.5px;
   font-weight: 600;
-  color: var(--text-primary, #0f172a);
-  line-height: 1.35;
-}
-
-.selectedName {
-  display: block;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-  line-height: 1.35;
-}
-
-.dishMeta {
-  display: block;
-  font-size: 11.5px;
-  color: var(--text-muted, #64748b);
-  line-height: 1.35;
-}
-
-.activeTag {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-primary, #0a8066);
-  flex-shrink: 0;
-}
-
-.chooseAction {
-  font-size: 11.5px;
-  color: var(--text-muted, #9ca3af);
-  flex-shrink: 0;
-}
-
-.emptyState {
-  padding: 16px;
-  text-align: center;
-  font-size: 12.5px;
-  color: var(--text-muted, #6b7280);
-}
-
-/* 4. Stepper Số suất */
-.rosterHint {
-  font-size: 11.5px;
-  color: var(--color-primary, #0a8066);
-  font-weight: 500;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  padding: 2px 8px;
-  border-radius: 9999px;
-  white-space: nowrap;
-}
-
-.stepperWrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.stepBtn {
-  height: 44px;
-  min-width: 58px;
-  padding: 0 8px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #f9fafb;
-  color: var(--text-secondary, #4b5563);
-  font-size: 12.5px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  user-select: none;
-  flex-shrink: 0;
-
-  &:hover {
-    background-color: #f3f4f6;
-    color: var(--text-primary, #111827);
-    border-color: #d1d5db;
-  }
-
-  &:active {
-    background-color: #e5e7eb;
-    transform: scale(0.96);
-  }
-}
-
-.inputInner {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.portionInput {
-  width: 100%;
-  height: 44px;
-  border-radius: 8px;
-  border: 1px solid var(--border-default, #e5e7eb);
-  background-color: #ffffff;
-  padding: 0 62px 0 14px;
-  font-size: 15px;
-  font-weight: 700;
   color: var(--text-primary, #111827);
-  transition: all 0.15s ease;
-
-  &[readonly] {
-    background-color: var(--bg-muted);
-    cursor: default;
-  }
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
-  }
-}
-
-.unitSuffix {
-  position: absolute;
-  right: 12px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7280);
-  pointer-events: none;
-}
-
-.quickDishRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.quickDishChip {
-  display: inline-flex;
-  align-items: center;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 500;
-  padding: 5px 10px;
-  border-radius: 6px;
-  background-color: #f3f4f6;
-  color: var(--text-secondary, #4b5563);
-  border: 1px solid #e5e7eb;
-  cursor: pointer;
-  transition: all 0.15s ease;
   white-space: nowrap;
-
-  &:hover {
-    background-color: #e5e7eb;
-    color: var(--text-primary, #111827);
-  }
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.quickDishChipActive {
-  background-color: var(--color-primary-soft, #e8f5f1);
+.itemMeta {
+  font-size: 11.5px;
+  color: var(--text-muted, #6b7280);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.checkIcon {
   color: var(--color-primary, #0a8066);
-  border-color: var(--color-primary, #0a8066);
-  font-weight: 600;
+  flex-shrink: 0;
 }

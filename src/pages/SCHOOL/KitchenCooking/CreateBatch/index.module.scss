@@ -2,14 +2,14 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-width: 1440px;
+  max-width: 900px;
   width: 100%;
   margin: 0 auto;
-  padding: 4px 0 36px;
+  padding: 8px 16px 40px;
 
   @media (max-width: 768px) {
     gap: 12px;
-    padding-bottom: 74px; /* Tránh bị che bởi thanh sticky action bar */
+    padding: 4px 12px 80px;
   }
 }
 
@@ -17,9 +17,9 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-  gap: 20px;
+  gap: 16px;
 
   @media (max-width: 768px) {
-    gap: 14px;
+    gap: 12px;
   }
 }
