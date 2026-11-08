@@ -19,7 +19,6 @@ import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlin
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined"
 import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
-import QrCodeScannerOutlinedIcon from "@mui/icons-material/QrCodeScannerOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
@@ -211,13 +210,7 @@ export const MenuItemSchool = () => [
     badge: "1",
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
-  {
-    key: ROUTER.SCHOOL_KITCHEN_TRACEABILITY,
-    label: "Truy xuất nguồn gốc",
-    icon: <QrCodeScannerOutlinedIcon />,
-    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
-  },
-
+  
   {
     key: ROUTER.SCHOOL_SUPPLIERS,
     label: "Nhà cung cấp",
