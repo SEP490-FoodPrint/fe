@@ -105,7 +105,7 @@ export default function IngredientOrders() {
     return {
       total: deliveries.length,
       batch1Count: deliveries.filter(d => d.batchType === "BATCH_1").length,
-      waitingAttendanceCount: deliveries.filter(d => d.status === "WAITING_ATTENDANCE").length,
+      batch2Count: deliveries.filter(d => d.batchType === "BATCH_2").length,
       completedCount: deliveries.filter(d => d.status === "COMPLETED").length,
     }
   }, [deliveries])

@@ -15,8 +15,6 @@ import {
   Button,
 } from "@mui/material"
 import {
-  QrCode,
-  Users,
   CheckCircle2,
   Clock,
   AlertTriangle,
@@ -26,6 +24,7 @@ import {
   Utensils,
   Eye,
   PlusCircle,
+  RotateCcw,
 } from "lucide-react"
 import styles from "./DeliveryTable.module.scss"
 
@@ -67,7 +66,39 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
     )
   }
 
+  // Đếm số bên từ chối trong hội đồng nghiệm thu 4 bên
+  const getRejectCount = approvals => {
+    if (!approvals) return 0
+    return Object.values(approvals).filter(a => a?.approved === false).length
+  }
+
   const getStatusBadge = item => {
+    const rejectCount = getRejectCount(item.approvals)
+
+    // Quy tắc nghiệm thu: >= 2 bên từ chối -> Hủy luôn
+    if (item.status === "CANCELLED" || rejectCount >= 2) {
+      return (
+        <Chip
+          icon={<AlertTriangle size={14} />}
+          label="Đã hủy (≥ 2 bên từ chối)"
+          size="small"
+          className={styles.statusCancelled}
+        />
+      )
+    }
+
+    // Quy tắc nghiệm thu: 1 bên từ chối -> Giao lại
+    if (item.status === "RE_DELIVER" || rejectCount === 1) {
+      return (
+        <Chip
+          icon={<RotateCcw size={14} />}
+          label="Yêu cầu giao lại (1 bên từ chối)"
+          size="small"
+          className={styles.statusRedeliver}
+        />
+      )
+    }
+
     switch (item.status) {
       case "COMPLETED":
         return (
@@ -87,35 +118,17 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusWarning}
           />
         )
-      case "WAITING_ATTENDANCE":
-        return (
-          <Chip
-            icon={<Users size={14} />}
-            label="Chờ GVCN báo sĩ số"
-            size="small"
-            className={styles.statusPending}
-          />
-        )
       case "CONFIRMED":
         return (
           <Chip
             icon={<Clock size={14} />}
-            label={item.statusLabel || "NCC đang chuẩn bị"}
+            label={item.statusLabel || "NCC chuẩn bị giao"}
             size="small"
             className={styles.statusConfirmed}
           />
         )
-      case "REJECTED":
-        return (
-          <Chip
-            icon={<AlertTriangle size={14} />}
-            label="Từ chối nhận hàng"
-            size="small"
-            className={styles.statusRejected}
-          />
-        )
       default:
-        return <Chip label={item.status} size="small" />
+        return <Chip label={item.statusLabel || item.status} size="small" />
     }
   }
 
@@ -126,7 +139,6 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
           <TableRow className={styles.headerRow}>
             <TableCell>Số phiếu / Đơn hàng</TableCell>
             <TableCell>Đợt giao &amp; Thời gian</TableCell>
-            <TableCell>Thực đơn áp dụng</TableCell>
             <TableCell>Nhà cung cấp</TableCell>
             <TableCell align="center">Hội đồng 4 bên</TableCell>
             <TableCell>Trạng thái</TableCell>
@@ -137,7 +149,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         <TableBody>
           {deliveries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} align="center" className={styles.emptyCell}>
+              <TableCell colSpan={6} align="center" className={styles.emptyCell}>
                 <Typography variant="body2" color="text.secondary">
                   Không tìm thấy phiếu giao nhận nào phù hợp với bộ lọc.
                 </Typography>
@@ -150,6 +162,15 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
               const hasBatch2ForDate = deliveries.some(
                 d => d.deliveryDate === item.deliveryDate && d.batchType === "BATCH_2"
               )
+              // Đợt 1 "đi tong" (bị hủy do >= 2 bên từ chối hoặc đang bị yêu cầu giao lại)
+              const rejectCount = getRejectCount(item.approvals)
+              const isBatch1Failed =
+                item.status === "CANCELLED" ||
+                item.status === "REJECTED" ||
+                item.status === "RE_DELIVER" ||
+                rejectCount > 0
+
+              const canAddBatch2 = isBatch1 && !hasBatch2ForDate && !isBatch1Failed
 
               return (
                 <TableRow
@@ -182,20 +203,6 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                     </Box>
                   </TableCell>
 
-                  {/* Thực đơn */}
-                  <TableCell>
-                    <Typography variant="body2" className={styles.menuName}>
-                      {item.menuName}
-                    </Typography>
-                    <Typography variant="caption" className={styles.portionsText}>
-                      {isBatch1
-                        ? `Giao: ${item.plannedPortions} / ${item.maxPortions} suất`
-                        : item.actualAttendance
-                          ? `Sĩ số chốt: ${item.actualAttendance} HS (Giao bù: ${item.plannedPortions} suất)`
-                          : `Dự kiến: ${item.plannedPortions} suất`}
-                    </Typography>
-                  </TableCell>
-
                   {/* Nhà cung cấp */}
                   <TableCell>
                     <Typography variant="body2" className={styles.supplierText}>
@@ -224,8 +231,8 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                         Chi tiết
                       </Button>
 
-                      {/* Nút Tạo Đợt 2 nếu phiếu này là Đợt 1 và ngày đó chưa có Đợt 2 */}
-                      {isBatch1 && !hasBatch2ForDate && (
+                      {/* Nút Tạo Đợt 2 nếu phiếu này là Đợt 1, ngày đó chưa có Đợt 2, và Đợt 1 không bị hủy/từ chối */}
+                      {canAddBatch2 && (
                         <Button
                           variant="contained"
                           size="small"

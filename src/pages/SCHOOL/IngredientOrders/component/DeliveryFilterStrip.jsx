@@ -52,11 +52,11 @@ export default function DeliveryFilterStrip({
           className={styles.selectInput}
         >
           <MenuItem value="all">Tất cả trạng thái</MenuItem>
-          <MenuItem value="CONFIRMED">NCC đang chuẩn bị</MenuItem>
+          <MenuItem value="CONFIRMED">NCC chuẩn bị giao</MenuItem>
           <MenuItem value="INSPECTING">Đang kiểm tra 4 bên</MenuItem>
-          <MenuItem value="WAITING_ATTENDANCE">Chờ GVCN chốt sĩ số</MenuItem>
           <MenuItem value="COMPLETED">Đã duyệt 4/4 & Vào bếp</MenuItem>
-          <MenuItem value="REJECTED">Từ chối (Yêu cầu giao lại)</MenuItem>
+          <MenuItem value="RE_DELIVER">Yêu cầu giao lại (1 bên từ chối)</MenuItem>
+          <MenuItem value="CANCELLED">Đã hủy (≥ 2 bên từ chối)</MenuItem>
         </TextField>
       </Box>
 

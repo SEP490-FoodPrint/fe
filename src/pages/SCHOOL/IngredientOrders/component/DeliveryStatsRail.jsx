@@ -19,10 +19,9 @@ export default function DeliveryStatsRail({ stats, onFilterBatchType, activeBatc
 
     },
     {
-      id: "WAITING_ATTENDANCE",
-      label: "Đợt 2: Chờ sĩ số GVCN",
-      count: stats.waitingAttendanceCount || 0,
-
+      id: "BATCH_2",
+      label: "Đợt 2 (Cân đối sĩ số)",
+      count: stats.batch2Count || 0,
     },
     {
       id: "COMPLETED",

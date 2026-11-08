@@ -53,6 +53,14 @@ export default function CreateDeliveryView({
   const [note, setNote] = useState("Vận chuyển bằng xe lạnh chuyên dụng, kiểm tra niêm phong nhiệt độ.")
   const [submitting, setSubmitting] = useState(false)
 
+  // Đồng bộ ngày khi initialDate thay đổi (ví dụ bấm Thêm Đợt 2 từ bảng)
+  useEffect(() => {
+    if (initialDate) {
+      setOrderDate(initialDate)
+      setActualAttendance("")
+    }
+  }, [initialDate])
+
   // Sĩ số GVCN báo cho Đợt 2 (mặc định để trống để test validate)
   const [actualAttendance, setActualAttendance] = useState("")
 
@@ -67,9 +75,14 @@ export default function CreateDeliveryView({
     const b1 = forDate.find(d => d.batchType === "BATCH_1")
     const b2 = forDate.find(d => d.batchType === "BATCH_2")
 
+    const rejectCount = Object.values(b1?.approvals || {}).filter(a => a?.approved === false).length
+    const b1Failed = b1 && (b1.status === "CANCELLED" || b1.status === "REJECTED" || rejectCount >= 2)
+
     let m = "BATCH_1"
     if (b1 && b2) {
       m = "COMPLETED"
+    } else if (b1 && b1Failed) {
+      m = "BATCH_1_CANCELLED"
     } else if (b1 && !b2) {
       m = "BATCH_2"
     } else {
@@ -258,6 +271,31 @@ export default function CreateDeliveryView({
               onClick={() => setOrderDate("2026-10-28")}
             >
               Chọn ngày tiếp theo (28/10/2026)
+            </Button>
+          </Box>
+        </Paper>
+      )}
+
+      {/* =====================================================================
+          CASE 4: ĐỢT 1 ĐÃ BỊ HỦY (TỪ 2 BÊN TỪ CHỐI TRỞ LÊN)
+          ===================================================================== */}
+      {mode === "BATCH_1_CANCELLED" && (
+        <Paper className={styles.completedCard} elevation={0}>
+          <Box className={styles.completedHeader}>
+            <AlertTriangle size={36} color="#dc2626" />
+            <Box>
+              <Typography variant="h6" sx={{ color: "#dc2626", fontWeight: 700 }}>
+                Đợt 1 Ngày {orderDate} Đã Bị Hủy Nghiệm Thu!
+              </Typography>
+              <Typography variant="body2" sx={{ color: "#475569", mt: 0.5 }}>
+                Đợt 1 của ngày này đã bị từ chối từ 2 bên trở lên trong Hội đồng 4 bên nên đã hủy toàn bộ đơn. Không thể lập đơn giao hàng Đợt 2 khi Đợt 1 không được nghiệm thu đạt chuẩn.
+              </Typography>
+            </Box>
+          </Box>
+
+          <Box className={styles.completedActions}>
+            <Button variant="outlined" onClick={onBack}>
+              Quay lại danh sách phiếu
             </Button>
           </Box>
         </Paper>
