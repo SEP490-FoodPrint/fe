@@ -10,7 +10,6 @@ import BatchDetailHeader from "./component/BatchDetailHeader"
 import BatchInfoCard from "./component/BatchInfoCard"
 import BatchIngredientsCard from "./component/BatchIngredientsCard"
 import BatchTimelineCard from "./component/BatchTimelineCard"
-import BatchAuditCard from "./component/BatchAuditCard"
 import BatchActionsCard from "./component/BatchActionsCard"
 import ConfirmBatchModal from "./component/ConfirmBatchModal"
 import DeleteBatchModal from "./component/DeleteBatchModal"
@@ -194,15 +193,6 @@ export default function KitchenBatchDetail() {
     )
   }
 
-  const auditData = {
-    createdBy: "Nhân viên Bếp (Bếp chính)",
-    createdAt: batchData.createdAt,
-    confirmedBy: batchData.confirmedAt ? "Bếp trưởng cơ sở" : null,
-    confirmedAt: batchData.confirmedAt,
-    completedBy: batchData.completedAt ? "Nhân viên Bếp (Bếp chính)" : null,
-    completedAt: batchData.completedAtFull || batchData.completedAt,
-  }
-
   return (
     <div className={styles.batchDetailPage}>
       {/* 1. Header Trang */}
@@ -239,9 +229,6 @@ export default function KitchenBatchDetail() {
             onOpenCompleteModal={() => setIsCompleteOpen(true)}
             onOpenSampleModal={() => setIsSampleOpen(true)}
           />
-
-          {/* Thẻ 3: Lịch sử thao tác & kiểm toán (Dạng đóng gọn, chỉ mở khi cần xem) */}
-          <BatchAuditCard auditData={auditData} />
         </div>
       </div>
 
