@@ -5,27 +5,18 @@ import styles from "./CookingBatchesKPI.module.scss"
 function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false }) {
   const isCurrentWeek = Boolean(selectedWeekObj?.isCurrentWeek && !isAllWeeks)
   const weekLabel = isAllWeeks
-    ? "Tổng lô năm học"
+    ? "Tổng lô cả năm"
     : isCurrentWeek
       ? "Lô tuần này"
       : selectedWeekObj?.shortLabel
         ? `Lô ${selectedWeekObj.shortLabel}`
-        : "Lô trong tuần"
+        : "Tổng lô trong tuần"
 
-  const weekBadge = isAllWeeks
-    ? "Cả năm"
+  const weekTooltip = isAllWeeks
+    ? "Tổng số lô chế biến trong cả năm học"
     : isCurrentWeek
-      ? "Tuần này"
-      : selectedWeekObj?.shortLabel || "Theo tuần"
-
-  const total = stats?.total ?? 0
-  const totalCreatedHint = stats && !loading
-    ? (isCurrentWeek
-        ? `Tuần này đã tạo ${total.toLocaleString("vi-VN")} lô`
-        : isAllWeeks
-          ? `Năm học đã tạo ${total.toLocaleString("vi-VN")} lô`
-          : `${selectedWeekObj?.shortLabel || "Tuần"} đã tạo ${total.toLocaleString("vi-VN")} lô`)
-    : undefined
+      ? "Tổng số lô chế biến đã tạo trong tuần này"
+      : `Tổng số lô chế biến trong ${selectedWeekObj?.shortLabel || "tuần"}`
 
   const kpiList = [
     {
@@ -33,9 +24,7 @@ function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false
       label: weekLabel,
       field: "total",
       unit: "lô",
-      badge: weekBadge,
-      badgeType: "primary",
-      hint: totalCreatedHint,
+      tooltip: weekTooltip,
       icon: <CookingPot size={16} />,
       iconTheme: "primary",
     },
@@ -44,6 +33,7 @@ function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false
       label: "Chờ nấu",
       field: "confirmed",
       unit: "lô",
+      tooltip: "Số lô đang ở trạng thái chờ nấu",
       icon: <Clock size={16} />,
       iconTheme: "warning",
     },
@@ -52,6 +42,7 @@ function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false
       label: "Đã hoàn thành",
       field: "completed",
       unit: "lô",
+      tooltip: "Số lô đã nấu xong hoàn thành",
       icon: <CheckCircle2 size={16} />,
       iconTheme: "success",
     },
@@ -90,14 +81,9 @@ function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false
                 </span>
               )}
             </div>
-            <span className={styles.kpiLabel} title={kpi.hint || kpi.label}>
+            <span className={styles.kpiLabel} title={kpi.tooltip || kpi.label}>
               {kpi.label}
             </span>
-            {kpi.hint && (
-              <span className={styles.kpiSubHint} title={kpi.hint}>
-                {kpi.hint}
-              </span>
-            )}
           </div>
         </div>
       ))}
