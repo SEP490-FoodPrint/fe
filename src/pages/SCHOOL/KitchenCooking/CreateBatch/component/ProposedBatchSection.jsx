@@ -35,11 +35,7 @@ const TRACE_LOTS = [
   },
 ];
 
-export default function ProposedBatchSection({
-  selectedDish,
-  portions = 1250,
-  selectedMeal = "lunch",
-}) {
+export default function ProposedBatchSection({ selectedDish }) {
   if (!selectedDish) {
     return (
       <section className={styles.sectionContainer}>
@@ -60,13 +56,6 @@ export default function ProposedBatchSection({
     );
   }
 
-  const shiftLabel =
-    selectedMeal === "afternoon"
-      ? "Bữa phụ chiều (14:30 – 15:30)"
-      : selectedMeal === "breakfast"
-        ? "Bữa sáng bán trú (06:45 – 07:30)"
-        : "Bữa trưa học đường (11:00 – 12:30)";
-
   return (
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
@@ -74,28 +63,9 @@ export default function ProposedBatchSection({
           <div className={styles.numberBadge}>2</div>
           <h2 className={styles.sectionTitle}>Phương án chế biến dự kiến</h2>
         </div>
-        <span className={styles.modeBadge}>Nấu chung</span>
-      </div>
-
-      {/* Thông số tổng quan lô */}
-      <div className={styles.metricsGrid}>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Món chế biến</span>
-          <span className={styles.metricValue}>{selectedDish.name}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Quy mô chế biến</span>
-          <span className={styles.metricValueHighlight}>
-            {portions.toLocaleString("vi-VN")} <span className={styles.metricUnit}>suất</span>
-          </span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Ca phục vụ</span>
-          <span className={styles.metricValue}>{shiftLabel}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Mã lô dự kiến</span>
-          <span className={styles.metricValueMono}>LÔ-THK-01</span>
+        <div className={styles.headerBadges}>
+          <span className={styles.lotCodeBadge}>LÔ-THK-01</span>
+          <span className={styles.modeBadge}>Nấu chung</span>
         </div>
       </div>
 

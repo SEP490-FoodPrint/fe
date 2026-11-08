@@ -2,11 +2,7 @@ import React from "react";
 import { CookingPot } from "lucide-react";
 import styles from "./ProposedSeparateBatchSection.module.scss";
 
-export default function ProposedSeparateBatchSection({
-  selectedDish,
-  portions = 1250,
-  selectedMeal = "lunch",
-}) {
+export default function ProposedSeparateBatchSection({ selectedDish }) {
   if (!selectedDish) {
     return (
       <section className={styles.sectionContainer}>
@@ -27,13 +23,6 @@ export default function ProposedSeparateBatchSection({
     );
   }
 
-  const shiftLabel =
-    selectedMeal === "afternoon"
-      ? "Bữa phụ chiều (15:00 – 15:30)"
-      : selectedMeal === "breakfast"
-        ? "Bữa sáng bán trú (06:45 – 07:30)"
-        : "Bữa trưa học đường (11:30 – 12:30)";
-
   return (
     <section className={styles.sectionContainer}>
       <div className={styles.sectionHeader}>
@@ -42,28 +31,6 @@ export default function ProposedSeparateBatchSection({
           <h2 className={styles.sectionTitle}>Phương án tách lô chế biến</h2>
         </div>
         <span className={styles.modeBadge}>Nấu riêng (02 lô)</span>
-      </div>
-
-      {/* Thông số tổng quan */}
-      <div className={styles.metricsGrid}>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Món chế biến</span>
-          <span className={styles.metricValue}>{selectedDish.name}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Tổng quy mô</span>
-          <span className={styles.metricValueHighlight}>
-            {portions.toLocaleString("vi-VN")} <span className={styles.metricUnit}>suất</span>
-          </span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Ca phục vụ</span>
-          <span className={styles.metricValue}>{shiftLabel}</span>
-        </div>
-        <div className={styles.metricCard}>
-          <span className={styles.metricLabel}>Số lô phân tách</span>
-          <span className={styles.metricValueMono}>02 lô độc lập</span>
-        </div>
       </div>
 
       {/* 2 Lô Chế Biến Song Song */}
@@ -76,15 +43,6 @@ export default function ProposedSeparateBatchSection({
               <span className={styles.batchSub}>Lô nấu riêng 1</span>
             </div>
             <span className={styles.batchPortionBadge}>731 suất</span>
-          </div>
-
-          <div className={styles.batchMetaRow}>
-            <span className={styles.metaLabel}>Thiết bị:</span>
-            <span className={styles.metaVal}>Nồi hầm công nghiệp A (200L)</span>
-          </div>
-          <div className={styles.batchMetaRow}>
-            <span className={styles.metaLabel}>Nguồn thịt:</span>
-            <span className={styles.metaLotBadge}>LOT-HEO-892 (50.0 kg)</span>
           </div>
 
           <div className={styles.miniTableWrap}>
@@ -125,15 +83,6 @@ export default function ProposedSeparateBatchSection({
               <span className={styles.batchSub}>Lô nấu riêng 2</span>
             </div>
             <span className={styles.batchPortionBadge}>519 suất</span>
-          </div>
-
-          <div className={styles.batchMetaRow}>
-            <span className={styles.metaLabel}>Thiết bị:</span>
-            <span className={styles.metaVal}>Nồi hầm công nghiệp B (150L)</span>
-          </div>
-          <div className={styles.batchMetaRow}>
-            <span className={styles.metaLabel}>Nguồn thịt:</span>
-            <span className={styles.metaLotBadge}>LOT-HEO-893 (35.5 kg)</span>
           </div>
 
           <div className={styles.miniTableWrap}>

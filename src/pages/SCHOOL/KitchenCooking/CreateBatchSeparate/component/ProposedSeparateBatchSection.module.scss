@@ -90,65 +90,6 @@
   line-height: 1.5;
 }
 
-/* Metrics Grid */
-.metricsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  @media (max-width: 500px) {
-    grid-template-columns: 1fr;
-  }
-}
-
-.metricCard {
-  background-color: #f9fafb;
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 8px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.metricLabel {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7280);
-}
-
-.metricValue {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.metricValueHighlight {
-  font-size: 14.5px;
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-}
-
-.metricUnit {
-  font-size: 11.5px;
-  font-weight: 500;
-  color: var(--text-muted, #6b7280);
-}
-
-.metricValueMono {
-  font-family: var(--font-mono, monospace);
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-}
-
 /* 2 Batches Grid */
 .batchesGrid {
   display: grid;
@@ -204,33 +145,6 @@
   border-radius: 6px;
   background-color: var(--color-primary-soft, #e8f5f1);
   color: var(--color-primary, #0a8066);
-}
-
-.batchMetaRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12.5px;
-}
-
-.metaLabel {
-  color: var(--text-muted, #6b7280);
-  font-weight: 500;
-}
-
-.metaVal {
-  color: var(--text-primary, #111827);
-  font-weight: 600;
-}
-
-.metaLotBadge {
-  font-family: var(--font-mono, monospace);
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #1e40af;
-  background-color: #eff6ff;
-  padding: 1.5px 6px;
-  border-radius: 4px;
 }
 
 /* Mini Table */
