@@ -14,7 +14,6 @@ import {
   schoolClock,
 } from "src/services/KitchenService/adapter";
 import {
-  MOCK_SCHOOL_ACADEMIC_YEARS,
   getWeeksOfAcademicYear,
 } from "src/services/MenuService/adapter";
 import CookingBatchesKPI from "./component/CookingBatchesKPI";
@@ -26,13 +25,25 @@ export default function CookingBatches() {
   const navigate = useNavigate();
   const { userStore } = useContext(StoreContext) || {};
   const user = userStore?.user || getStorage(STORAGE.USER_INFO) || {};
-  const schoolId =
-    user.schoolId ||
-    user.orgId ||
-    user.school_id ||
-    "4eabb820-f445-52db-8aeb-2fd0f6cb882a";
+  const schoolId = user.schoolId || user.orgId || user.school_id || "";
 
-  const availableAcademicYears = MOCK_SCHOOL_ACADEMIC_YEARS;
+  const [school, setSchool] = useState(null);
+  const [schoolError, setSchoolError] = useState("");
+
+  const availableAcademicYears = useMemo(() => {
+    if (Array.isArray(school?.academicYears) && school.academicYears.length > 0) {
+      return school.academicYears;
+    }
+    return [
+      {
+        id: "ay-default",
+        academicYear: "2026-2027",
+        startDate: "2026-09-05",
+        endDate: "2027-05-31",
+        holidays: [],
+      },
+    ];
+  }, [school?.academicYears]);
 
   const [filters, setFilters] = useState({
     ...EMPTY_BATCH_FILTERS,
@@ -43,8 +54,6 @@ export default function CookingBatches() {
   const [paging, setPaging] = useState({ page: 1, limit: 10 });
   const [refresh, setRefresh] = useState(0);
   const [schoolAttempt, setSchoolAttempt] = useState(0);
-  const [school, setSchool] = useState(null);
-  const [schoolError, setSchoolError] = useState("");
   const [listState, setListState] = useState({
     key: "",
     loading: true,
@@ -146,25 +155,18 @@ export default function CookingBatches() {
     const controller = new AbortController();
     setSchool(null);
     setSchoolError("");
-    if (!schoolId) {
-      setSchoolError("Tài khoản chưa có trường để tải cấu hình chế biến.");
-      return () => {
-        active = false;
-        controller.abort();
-      };
-    }
-    KitchenService.getSchool(schoolId, { signal: controller.signal })
+    KitchenService.getContext({ signal: controller.signal })
       .then((value) => {
         if (active) setSchool(value);
       })
       .catch((error) => {
-        if (active) setSchoolError(error.message);
+        if (active) setSchoolError(error.message || "Không thể tải cấu hình bếp từ máy chủ.");
       });
     return () => {
       active = false;
       controller.abort();
     };
-  }, [schoolId, schoolAttempt]);
+  }, [schoolAttempt]);
 
   useEffect(() => {
     let active = true;
@@ -202,7 +204,7 @@ export default function CookingBatches() {
       active = false;
       controller.abort();
     };
-  }, [queryKey, refresh, schoolId]);
+  }, [queryKey, refresh]);
 
   useEffect(() => {
     let active = true;
