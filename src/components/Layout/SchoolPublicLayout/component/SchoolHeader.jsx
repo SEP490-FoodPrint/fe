@@ -62,7 +62,6 @@ function SchoolHeader({ school }) {
   }, []);
 
   const homeHref = isDailyMenuPage ? `/school/${schoolCode}` : "#";
-  const aboutHref = isDailyMenuPage ? `/school/${schoolCode}#gioi-thieu` : "#gioi-thieu";
   const dailyHref = `/school/${schoolCode}/daily-menu`;
 
   return (
@@ -99,9 +98,6 @@ function SchoolHeader({ school }) {
             className={`${styles.navItem} ${!isDailyMenuPage ? styles.isActive : ""}`}
           >
             Trang chủ
-          </a>
-          <a href={aboutHref} className={styles.navItem}>
-            Giới thiệu trường
           </a>
           <Link
             to={dailyHref}

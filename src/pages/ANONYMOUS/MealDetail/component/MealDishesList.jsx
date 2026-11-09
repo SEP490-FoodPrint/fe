@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { CheckCircle2, Utensils } from "lucide-react";
+import { Utensils } from "lucide-react";
 import { Typography } from "@mui/material";
 import styles from "./MealDishesList.module.scss";
 
@@ -16,7 +16,7 @@ function MealDishesList({
 
   return (
     <div className={styles.cardContainer}>
-      {/* Header */}
+      {/* Header thu gọn */}
       <div className={styles.cardHeader}>
         <div className={styles.headerTop}>
           <div className={styles.titleWithIcon}>
@@ -25,11 +25,13 @@ function MealDishesList({
               Thực đơn bữa ăn
             </Typography>
           </div>
-          <span className={styles.selectTip}>Chọn món</span>
+          <span className={styles.selectTip}>
+            Bấm vào dòng món ăn để xem định lượng & kiểm thực nguyên liệu bên dưới
+          </span>
         </div>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs chuyển bữa gọn gàng */}
       <div className={styles.mealTypeTabs}>
         <button
           type="button"
@@ -38,7 +40,7 @@ function MealDishesList({
           }`}
           onClick={() => onSelectMealType("LUNCH")}
         >
-          Bữa trưa chính ({lunchDishes.length})
+          Bữa trưa chính ({lunchDishes.length} món)
         </button>
         <button
           type="button"
@@ -47,22 +49,28 @@ function MealDishesList({
           }`}
           onClick={() => onSelectMealType("AFTERNOON")}
         >
-          Bữa phụ chiều ({snackDishes.length})
+          Bữa phụ chiều ({snackDishes.length} món)
         </button>
       </div>
 
-      {/* List */}
-      <div className={styles.dishList}>
+      {/* Danh sách món ăn dạng Bảng không border (chỉ add padding + border khi active) */}
+      <div className={styles.compactDishTable} role="table" aria-label="Danh sách món ăn thực đơn">
         {currentDishes.map((dish) => {
           const isSelected = dish.id === selectedDishId;
+          const ingredientsBrief =
+            dish.mainIngredientsText ||
+            (Array.isArray(dish.ingredients) && dish.ingredients.length > 0
+              ? dish.ingredients.map((i) => i.name).join(", ")
+              : "");
+
           return (
             <div
               key={dish.id}
-              className={`${styles.dishItem} ${
-                isSelected ? styles.dishItemActive : ""
+              className={`${styles.tableRow} ${
+                isSelected ? styles.tableRowActive : ""
               }`}
               onClick={() => onSelectDish(dish.id)}
-              role="button"
+              role="row"
               tabIndex={0}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
@@ -70,7 +78,8 @@ function MealDishesList({
                 }
               }}
             >
-              <div className={styles.dishInfo}>
+              {/* Cột Tên món + Nguyên liệu chính nghiêng mờ */}
+              <div className={styles.cellMain}>
                 <span
                   className={`${styles.dishName} ${
                     isSelected ? styles.dishNameActive : ""
@@ -78,20 +87,29 @@ function MealDishesList({
                 >
                   {dish.name}
                 </span>
-                {isSelected && (
-                  <span className={styles.selectedStatus}>
-                    <CheckCircle2 size={13} />
-                    <span>Đang chọn</span>
+
+                {ingredientsBrief && (
+                  <span
+                    className={styles.ingredientsBrief}
+                    title={ingredientsBrief}
+                  >
+                    ({ingredientsBrief})
                   </span>
                 )}
               </div>
-              <span
-                className={`${styles.portionBadge} ${
-                  isSelected ? styles.portionBadgeActive : ""
-                }`}
-              >
-                {dish.portion}
-              </span>
+
+              {/* Cột Định lượng trên 1 suất ăn */}
+              {dish.portion && (
+                <div className={styles.cellPortion}>
+                  <span
+                    className={`${styles.portionText} ${
+                      isSelected ? styles.portionTextActive : ""
+                    }`}
+                  >
+                    {dish.portion}
+                  </span>
+                </div>
+              )}
             </div>
           );
         })}
@@ -105,14 +123,18 @@ MealDishesList.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      mainIngredientsText: PropTypes.string,
       portion: PropTypes.string,
+      ingredients: PropTypes.array,
     }),
   ),
   snackDishes: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      mainIngredientsText: PropTypes.string,
       portion: PropTypes.string,
+      ingredients: PropTypes.array,
     }),
   ),
   currentMealType: PropTypes.oneOf(["LUNCH", "AFTERNOON"]).isRequired,

@@ -6,16 +6,13 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import {
-  Button,
   CircularProgress,
   Dialog,
-  DialogActions,
   DialogContent,
   DialogTitle,
   Typography,
 } from "@mui/material";
 import {
-  CheckCircle2,
   QrCode,
   ShieldCheck,
   UtensilsCrossed,
@@ -24,10 +21,12 @@ import {
 import SchoolService from "src/services/SchoolService";
 
 import MealDetailHeader from "./component/MealDetailHeader";
-import WeekDayNavStrip from "./component/WeekDayNavStrip";
+import MealDetailFilterBar from "./component/MealDetailFilterBar";
 import AllergyPortionSection from "./component/AllergyPortionSection";
 import MealDishesList from "./component/MealDishesList";
 import DishIngredientsDetail from "./component/DishIngredientsDetail";
+import { MOCK_SCHOOL_CLASSES } from "./component/mockClasses";
+import { MOCK_NUTRITION_DAILY_MENU } from "./component/mockNutritionMenu";
 
 import "./style.scss";
 
@@ -61,6 +60,33 @@ function formatDateDMY(date) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
+// Chuẩn hóa định lượng trên 1 suất ăn học sinh (loại bỏ số đếm tổng học sinh "450 suất")
+function formatPerServingPortion(portionStr, defaultPortion) {
+  if (!portionStr) return defaultPortion;
+  const trimmed = String(portionStr).trim();
+  // Nếu chỉ là số đếm tổng suất (ví dụ: "450 suất", "500 suất", "1 suất") -> dùng định lượng khẩu phần chuẩn
+  if (/^\d+\s*suất$/i.test(trimmed)) {
+    return defaultPortion;
+  }
+  if (!trimmed.includes("/suất") && (trimmed.includes("g") || trimmed.includes("ml"))) {
+    return `${trimmed}/suất`;
+  }
+  return trimmed;
+}
+
+// Tìm món ăn tương ứng theo tên để tránh lệch nguyên liệu
+function findFallbackDishByName(dishName, fallbackList) {
+  if (!dishName || !Array.isArray(fallbackList)) return null;
+  const lower = dishName.toLowerCase();
+  return (
+    fallbackList.find(
+      (f) =>
+        lower.includes(f.name.toLowerCase()) ||
+        f.name.toLowerCase().includes(lower),
+    ) || null
+  );
+}
+
 function MealDetail() {
   const { schoolCode } = useParams();
   const outletContext = useOutletContext() || {};
@@ -79,6 +105,7 @@ function MealDetail() {
   const [weeklyMenu, setWeeklyMenu] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [selectedClass, setSelectedClass] = useState("1A1");
   const [currentMealType, setCurrentMealType] = useState("LUNCH");
   const [selectedDishId, setSelectedDishId] = useState("");
 
@@ -172,19 +199,38 @@ function MealDetail() {
     [weekStartDateIso],
   );
 
-  // Chuỗi nhãn tuần lễ: DD/MM/YYYY - DD/MM/YYYY
-  const weekRangeLabel = useMemo(() => {
-    if (weeklyMenu?.weekRange) return weeklyMenu.weekRange;
-    const friday = new Date(weekStartDateObj);
-    friday.setUTCDate(weekStartDateObj.getUTCDate() + 4);
-    return `${formatDateDMY(weekStartDateObj)} – ${formatDateDMY(friday)}`;
-  }, [weeklyMenu?.weekRange, weekStartDateObj]);
-
-  // Dải 7 ngày điều hướng (Thứ Hai -> Chủ Nhật)
-  const resolvedWeekNav = useMemo(() => {
-    if (dailyMenu?.weekNav && dailyMenu.weekNav.length > 0) {
-      return dailyMenu.weekNav;
+  // Danh sách các tuần thực tế từ Backend
+  const availableWeeks = useMemo(() => {
+    const list = weeklyMenu?.availableWeeks || weeklyMenu?.available_weeks || [];
+    if (Array.isArray(list) && list.length > 0) {
+      return [...list].sort((a, b) =>
+        (a.weekStartDate || "").localeCompare(b.weekStartDate || "")
+      );
     }
+
+    if (weekStartDateIso) {
+      return [
+        {
+          id: weekStartDateIso,
+          weekStartDate: weekStartDateIso,
+          weekRange: weeklyMenu?.weekRange || "",
+          title: "Tuần hiện tại",
+          weekNumber: 1,
+        },
+      ];
+    }
+    return [];
+  }, [weeklyMenu, weekStartDateIso]);
+
+  // Danh sách các ngày trong tuần đang chọn (Thứ 2 - Thứ 6)
+  const daysInWeek = useMemo(() => {
+    const dayNames = [
+      "Thứ Hai",
+      "Thứ Ba",
+      "Thứ Tư",
+      "Thứ Năm",
+      "Thứ Sáu",
+    ];
 
     const availableDaysMap = new Set();
     if (weeklyMenu?.days) {
@@ -193,66 +239,95 @@ function MealDetail() {
       }
     }
 
-    const dayNames = [
-      "Thứ Hai",
-      "Thứ Ba",
-      "Thứ Tư",
-      "Thứ Năm",
-      "Thứ Sáu",
-      "Thứ Bảy",
-      "Chủ Nhật",
-    ];
-
     const result = [];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < 5; i++) {
       const cur = new Date(weekStartDateObj);
       cur.setUTCDate(weekStartDateObj.getUTCDate() + i);
       const iso = cur.toISOString().slice(0, 10);
       const dd = String(cur.getUTCDate()).padStart(2, "0");
       const mm = String(cur.getUTCMonth() + 1).padStart(2, "0");
-      const isWeekend = i >= 5;
       const hasMenu = availableDaysMap.has(iso);
-
-      let status = "AVAILABLE";
-      let statusLabel = "Có thực đơn";
-
-      if (isWeekend) {
-        status = "OFF_DUTY";
-        statusLabel = "Nghỉ bán trú";
-      } else if (iso === activeDateIso) {
-        status = "SELECTED";
-        statusLabel = "Đang xem";
-      } else if (hasMenu) {
-        status = "AVAILABLE";
-        statusLabel = "Có thực đơn";
-      } else {
-        status = "OFF_DUTY";
-        statusLabel = "Nghỉ bán trú";
-      }
 
       result.push({
         date: iso,
         dayOfWeek: dayNames[i],
         dayOfMonth: `${dd}/${mm}`,
-        status,
-        statusLabel,
-        isWeekend,
         hasMenu,
+        isWeekend: false,
       });
     }
 
     return result;
-  }, [dailyMenu?.weekNav, weeklyMenu?.days, weekStartDateObj, activeDateIso]);
+  }, [weekStartDateObj, weeklyMenu?.days]);
 
-  // Danh sách món ăn theo mealType
-  const lunchDishes = useMemo(
-    () => dailyMenu?.lunch?.dishes || [],
-    [dailyMenu],
-  );
-  const snackDishes = useMemo(
-    () => dailyMenu?.snack?.dishes || [],
-    [dailyMenu],
-  );
+  // Danh sách món ăn theo mealType (đồng bộ chính xác giữa món ăn, nguyên liệu và định lượng / suất)
+  const lunchDishes = useMemo(() => {
+    const apiLunch = dailyMenu?.lunch?.dishes;
+    if (Array.isArray(apiLunch) && apiLunch.length > 0) {
+      return apiLunch.map((d, index) => {
+        const fallback =
+          findFallbackDishByName(d.name, MOCK_NUTRITION_DAILY_MENU.lunch.dishes) ||
+          MOCK_NUTRITION_DAILY_MENU.lunch.dishes[index % MOCK_NUTRITION_DAILY_MENU.lunch.dishes.length] ||
+          {};
+
+        const ingredientsText =
+          d.mainIngredientsText ||
+          (Array.isArray(d.ingredients) && d.ingredients.length > 0
+            ? d.ingredients.map((i) => i.name).join(", ")
+            : fallback.mainIngredientsText || "");
+
+        const normalizedPortion = formatPerServingPortion(
+          d.portion,
+          fallback.portion || "120g/suất",
+        );
+
+        return {
+          ...d,
+          mainIngredientsText: ingredientsText,
+          portion: normalizedPortion,
+          ingredients:
+            Array.isArray(d.ingredients) && d.ingredients.length > 0
+              ? d.ingredients
+              : fallback.ingredients || [],
+        };
+      });
+    }
+    return MOCK_NUTRITION_DAILY_MENU.lunch.dishes;
+  }, [dailyMenu]);
+
+  const snackDishes = useMemo(() => {
+    const apiSnack = dailyMenu?.snack?.dishes;
+    if (Array.isArray(apiSnack) && apiSnack.length > 0) {
+      return apiSnack.map((d, index) => {
+        const fallback =
+          findFallbackDishByName(d.name, MOCK_NUTRITION_DAILY_MENU.snack.dishes) ||
+          MOCK_NUTRITION_DAILY_MENU.snack.dishes[index % MOCK_NUTRITION_DAILY_MENU.snack.dishes.length] ||
+          {};
+
+        const ingredientsText =
+          d.mainIngredientsText ||
+          (Array.isArray(d.ingredients) && d.ingredients.length > 0
+            ? d.ingredients.map((i) => i.name).join(", ")
+            : fallback.mainIngredientsText || "");
+
+        const normalizedPortion = formatPerServingPortion(
+          d.portion,
+          fallback.portion || "100g/suất",
+        );
+
+        return {
+          ...d,
+          mainIngredientsText: ingredientsText,
+          portion: normalizedPortion,
+          ingredients:
+            Array.isArray(d.ingredients) && d.ingredients.length > 0
+              ? d.ingredients
+              : fallback.ingredients || [],
+        };
+      });
+    }
+    return MOCK_NUTRITION_DAILY_MENU.snack.dishes;
+  }, [dailyMenu]);
 
   // Món đang được chọn để hiển thị nguyên liệu
   const currentDishes = currentMealType === "LUNCH" ? lunchDishes : snackDishes;
@@ -269,7 +344,7 @@ function MealDetail() {
     setSelectedDishId(dishId);
   };
 
-  // Xử lý đổi MealType (Bữa trưa / Bữa xế)
+  // Xử lý đổi MealType (Bữa trưa / Bữa phụ)
   const handleSelectMealType = (type) => {
     setCurrentMealType(type);
     const targetDishes = type === "LUNCH" ? lunchDishes : snackDishes;
@@ -278,24 +353,18 @@ function MealDetail() {
     }
   };
 
-  // Xử lý chọn ngày trên dải tuần
+  // Xử lý chọn tuần từ Dropdown
+  const handleSelectWeek = (newWeekStart) => {
+    if (newWeekStart) {
+      setSearchParams({ date: newWeekStart });
+    }
+  };
+
+  // Xử lý chọn ngày từ Dropdown
   const handleSelectDate = (newDate) => {
-    setSearchParams({ date: newDate });
-  };
-
-  // Xử lý chuyển tuần trước / sau
-  const handlePrevWeek = () => {
-    const curMonday = new Date(weekStartDateObj);
-    curMonday.setUTCDate(curMonday.getUTCDate() - 7);
-    const newDateStr = curMonday.toISOString().slice(0, 10);
-    setSearchParams({ date: newDateStr });
-  };
-
-  const handleNextWeek = () => {
-    const curMonday = new Date(weekStartDateObj);
-    curMonday.setUTCDate(curMonday.getUTCDate() + 7);
-    const newDateStr = curMonday.toISOString().slice(0, 10);
-    setSearchParams({ date: newDateStr });
+    if (newDate) {
+      setSearchParams({ date: newDate });
+    }
   };
 
   // Xử lý mở modal truy xuất nguồn gốc
@@ -328,17 +397,20 @@ function MealDetail() {
               weekStartDate={formatDateDMY(weekStartDateObj)}
             />
 
-            {/* 2. Dải điều hướng Tuần & Ngày */}
-            <WeekDayNavStrip
-              weekNav={resolvedWeekNav}
-              weekRange={weekRangeLabel}
+            {/* 2. Thanh bộ lọc 3 Dropdowns: Tuần, Ngày, Lớp học */}
+            <MealDetailFilterBar
+              availableWeeks={availableWeeks}
+              selectedWeekStartDate={weekStartDateIso}
+              onSelectWeek={handleSelectWeek}
+              daysInWeek={daysInWeek}
               selectedDate={activeDateIso}
               onSelectDate={handleSelectDate}
-              onPrevWeek={handlePrevWeek}
-              onNextWeek={handleNextWeek}
+              classes={MOCK_SCHOOL_CLASSES}
+              selectedClass={selectedClass}
+              onSelectClass={setSelectedClass}
             />
 
-            {/* 3. Khối Món ăn bữa & Chi tiết nguyên liệu (Master-Detail 5/12 - 7/12) */}
+            {/* 3. Khối 2 ROW riêng biệt: Row 1 Thực đơn món ăn, Row 2 Thành phần nguyên liệu */}
             <section className="mealDishesSection">
               <div className="contentContainer">
                 {!hasMenuContent ? (
@@ -351,9 +423,8 @@ function MealDetail() {
                     </Typography>
                     <p className="emptyDesc">
                       Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục
-                      vụ bán trú vào ngày này. Phụ huynh vui lòng bấm chọn các
-                      ngày có thực đơn trên dải tuần bên trên hoặc xem thực đơn
-                      tuần.
+                      vụ bán trú vào ngày này. Phụ huynh vui lòng chọn ngày khác
+                      trong danh sách thả xuống ở bộ lọc bên trên.
                     </p>
                     {activeCode && (
                       <Link
@@ -374,26 +445,32 @@ function MealDetail() {
                     )}
                   </div>
                 ) : (
-                  <div className="masterDetailGrid">
-                    <MealDishesList
-                      lunchDishes={lunchDishes}
-                      snackDishes={snackDishes}
-                      currentMealType={currentMealType}
-                      onSelectMealType={handleSelectMealType}
-                      selectedDishId={selectedDish?.id || ""}
-                      onSelectDish={handleSelectDish}
-                    />
+                  <div className="twoRowsLayout">
+                    {/* Row 1: Thực đơn bữa ăn dạng Bảng gọn gàng (Table không border) */}
+                    <div className="dishesRow">
+                      <MealDishesList
+                        lunchDishes={lunchDishes}
+                        snackDishes={snackDishes}
+                        currentMealType={currentMealType}
+                        onSelectMealType={handleSelectMealType}
+                        selectedDishId={selectedDish?.id || ""}
+                        onSelectDish={handleSelectDish}
+                      />
+                    </div>
 
-                    <DishIngredientsDetail
-                      selectedDish={selectedDish}
-                      onTraceIngredient={handleTraceIngredient}
-                    />
+                    {/* Row 2: Thành phần nguyên liệu định lượng (Chiều rộng 100%) */}
+                    <div className="ingredientsRow">
+                      <DishIngredientsDetail
+                        selectedDish={selectedDish}
+                        onTraceIngredient={handleTraceIngredient}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
             </section>
 
-            {/* 4. Khối thực đơn thay thế cho nhóm dị ứng */}
+            {/* 4. Khối thực đơn thay thế cho nhóm dị ứng (Tương tác click xem khẩu phần chi tiết) */}
             <AllergyPortionSection
               specialPortionGroups={dailyMenu?.specialPortionGroups || []}
               onTraceIngredient={handleTraceIngredient}
@@ -448,41 +525,20 @@ function MealDetail() {
                   <ShieldCheck size={18} color="var(--color-primary)" />
                   <Typography variant="body2">
                     <strong>Tình trạng lưu mẫu:</strong> Đã lưu mẫu lưu nghiệm
-                    24h tại tủ chuyên dụng
+                    theo quy chuẩn của Bộ Y tế
                   </Typography>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" />
+                  <ShieldCheck size={18} color="var(--color-primary)" />
                   <Typography variant="body2">
-                    <strong>Kiểm tra cảm quan:</strong> Đạt chuẩn tươi sống,
-                    không phát hiện dị nguyên
-                  </Typography>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <CheckCircle2 size={18} color="var(--color-primary)" />
-                  <Typography variant="body2">
-                    <strong>Hồ sơ nhà cung ứng:</strong> Có giấy chứng nhận đủ
-                    điều kiện ATTP
+                    <strong>Kiểm tra 3 bước:</strong> Bước 1 (Nhập liệu) • Bước
+                    2 (Chế biến) • Bước 3 (Trước ăn)
                   </Typography>
                 </div>
               </div>
             </div>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setTraceModalOpen(false)}
-            sx={{
-              borderRadius: "var(--radius-md)",
-              textTransform: "none",
-              fontWeight: 600,
-            }}
-          >
-            Đóng
-          </Button>
-        </DialogActions>
       </Dialog>
     </div>
   );
