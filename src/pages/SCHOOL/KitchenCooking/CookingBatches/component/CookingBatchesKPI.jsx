@@ -1,22 +1,27 @@
-import React from "react"
-import { CookingPot, Clock, CheckCircle2 } from "lucide-react"
-import styles from "./CookingBatchesKPI.module.scss"
+import React from "react";
+import { CookingPot, Clock, CheckCircle2 } from "lucide-react";
+import styles from "./CookingBatchesKPI.module.scss";
 
-function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false }) {
-  const isCurrentWeek = Boolean(selectedWeekObj?.isCurrentWeek && !isAllWeeks)
+function CookingBatchesKPI({
+  stats,
+  loading,
+  selectedWeekObj,
+  isAllWeeks = false,
+}) {
+  const isCurrentWeek = Boolean(selectedWeekObj?.isCurrentWeek && !isAllWeeks);
   const weekLabel = isAllWeeks
     ? "Tổng lô cả năm"
     : isCurrentWeek
       ? "Lô tuần này"
       : selectedWeekObj?.shortLabel
         ? `Lô ${selectedWeekObj.shortLabel}`
-        : "Tổng lô trong tuần"
+        : "Tổng lô trong tuần";
 
   const weekTooltip = isAllWeeks
     ? "Tổng số lô chế biến trong cả năm học"
     : isCurrentWeek
       ? "Tổng số lô chế biến đã tạo trong tuần này"
-      : `Tổng số lô chế biến trong ${selectedWeekObj?.shortLabel || "tuần"}`
+      : `Tổng số lô chế biến trong ${selectedWeekObj?.shortLabel || "tuần"}`;
 
   const kpiList = [
     {
@@ -46,7 +51,7 @@ function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false
       icon: <CheckCircle2 size={16} />,
       iconTheme: "success",
     },
-  ]
+  ];
 
   return (
     <div
@@ -88,7 +93,7 @@ function CookingBatchesKPI({ stats, loading, selectedWeekObj, isAllWeeks = false
         </div>
       ))}
     </div>
-  )
+  );
 }
 
-export default CookingBatchesKPI
+export default CookingBatchesKPI;

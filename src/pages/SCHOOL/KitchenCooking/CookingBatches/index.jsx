@@ -1,58 +1,71 @@
-import React, { useState, useContext, useEffect, useMemo } from "react"
-import { useNavigate } from "react-router-dom"
-import { Alert, Button } from "@mui/material"
-import { Plus, Clock } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
-import STORAGE, { getStorage } from "src/lib/storage"
-import { StoreContext } from "src/contexts"
-import KitchenService from "src/services/KitchenService"
+import React, { useState, useContext, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { Alert, Button } from "@mui/material";
+import { Plus, Clock } from "lucide-react";
+import ROUTER from "src/router/ROUTER";
+import STORAGE, { getStorage } from "src/lib/storage";
+import { StoreContext } from "src/contexts";
+import KitchenService from "src/services/KitchenService";
 import {
   EMPTY_BATCH_FILTERS,
   COOKING_MODES,
   adaptCookingBatch,
   localDateISO,
   schoolClock,
-} from "src/services/KitchenService/adapter"
+} from "src/services/KitchenService/adapter";
 import {
-  MOCK_SCHOOL_ACADEMIC_YEARS,
   getWeeksOfAcademicYear,
-} from "src/services/MenuService/adapter"
-import CookingBatchesKPI from "./component/CookingBatchesKPI"
-import CookingBatchesFilter from "./component/CookingBatchesFilter"
-import CookingBatchesTable from "./component/CookingBatchesTable"
-import styles from "./index.module.scss"
+} from "src/services/MenuService/adapter";
+import CookingBatchesKPI from "./component/CookingBatchesKPI";
+import CookingBatchesFilter from "./component/CookingBatchesFilter";
+import CookingBatchesTable from "./component/CookingBatchesTable";
+import styles from "./index.module.scss";
 
 export default function CookingBatches() {
-  const navigate = useNavigate()
-  const { userStore } = useContext(StoreContext) || {}
-  const user = userStore?.user || getStorage(STORAGE.USER_INFO) || {}
-  const schoolId = user.schoolId || user.orgId
+  const navigate = useNavigate();
+  const { userStore } = useContext(StoreContext) || {};
+  const user = userStore?.user || getStorage(STORAGE.USER_INFO) || {};
+  const schoolId = user.schoolId || user.orgId || user.school_id || "";
 
-  const availableAcademicYears = MOCK_SCHOOL_ACADEMIC_YEARS
+  const [school, setSchool] = useState(null);
+  const [schoolError, setSchoolError] = useState("");
+
+  const availableAcademicYears = useMemo(() => {
+    if (Array.isArray(school?.academicYears) && school.academicYears.length > 0) {
+      return school.academicYears;
+    }
+    return [
+      {
+        id: "ay-default",
+        academicYear: "2026-2027",
+        startDate: "2026-09-05",
+        endDate: "2027-05-31",
+        holidays: [],
+      },
+    ];
+  }, [school?.academicYears]);
 
   const [filters, setFilters] = useState({
     ...EMPTY_BATCH_FILTERS,
     academicYear: "2026-2027",
     week: "current",
-  })
-  const [debouncedSearch, setDebouncedSearch] = useState("")
-  const [paging, setPaging] = useState({ page: 1, limit: 10 })
-  const [refresh, setRefresh] = useState(0)
-  const [schoolAttempt, setSchoolAttempt] = useState(0)
-  const [school, setSchool] = useState(null)
-  const [schoolError, setSchoolError] = useState("")
+  });
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [paging, setPaging] = useState({ page: 1, limit: 10 });
+  const [refresh, setRefresh] = useState(0);
+  const [schoolAttempt, setSchoolAttempt] = useState(0);
   const [listState, setListState] = useState({
     key: "",
     loading: true,
     items: [],
     error: "",
-  })
+  });
   const [statsState, setStatsState] = useState({
     key: "",
     loading: true,
     value: null,
     error: "",
-  })
+  });
 
   // 1. Cấu hình năm học được chọn
   const currentAcademicYearConfig = useMemo(() => {
@@ -60,42 +73,42 @@ export default function CookingBatches() {
       availableAcademicYears.find(
         (ay) => ay.academicYear === filters.academicYear,
       ) || availableAcademicYears[0]
-    )
-  }, [availableAcademicYears, filters.academicYear])
+    );
+  }, [availableAcademicYears, filters.academicYear]);
 
   // 2. Danh sách tuần học thực tế trong năm học theo BGH
   const schoolWeeks = useMemo(() => {
-    return getWeeksOfAcademicYear(currentAcademicYearConfig)
-  }, [currentAcademicYearConfig])
+    return getWeeksOfAcademicYear(currentAcademicYearConfig);
+  }, [currentAcademicYearConfig]);
 
   // 3. Tuần hiện tại
   const currentWeekObj = useMemo(() => {
-    return schoolWeeks.find((w) => w.isCurrentWeek) || schoolWeeks[0]
-  }, [schoolWeeks])
+    return schoolWeeks.find((w) => w.isCurrentWeek) || schoolWeeks[0];
+  }, [schoolWeeks]);
 
   // 4. Đối tượng tuần đang chọn
   const selectedWeekObj = useMemo(() => {
-    if (filters.week === "all") return null
-    if (filters.week === "current" || !filters.week) return currentWeekObj
+    if (filters.week === "all") return null;
+    if (filters.week === "current" || !filters.week) return currentWeekObj;
     return (
       schoolWeeks.find((w) => w.isoWeek === Number(filters.week)) ||
       currentWeekObj
-    )
-  }, [schoolWeeks, filters.week, currentWeekObj])
+    );
+  }, [schoolWeeks, filters.week, currentWeekObj]);
 
   // 5. Khoảng ngày tương ứng với tuần đang chọn
   const effectiveDateRange = useMemo(() => {
     if (filters.week === "all") {
-      return { startDate: "", endDate: "" }
+      return { startDate: "", endDate: "" };
     }
     if (selectedWeekObj?.startDateISO && selectedWeekObj?.endDateISO) {
       return {
         startDate: selectedWeekObj.startDateISO,
         endDate: selectedWeekObj.endDateISO,
-      }
+      };
     }
-    return { startDate: "", endDate: "" }
-  }, [filters.week, selectedWeekObj])
+    return { startDate: "", endDate: "" };
+  }, [filters.week, selectedWeekObj]);
 
   // 6. Params chuẩn hóa để gửi tới KitchenService (list & stats)
   const effectiveFilterParams = useMemo(() => {
@@ -104,72 +117,71 @@ export default function CookingBatches() {
       mealType: filters.mealType || undefined,
       status: filters.status || undefined,
       cookingModeApplied: filters.cookingModeApplied || undefined,
-    }
+    };
     if (effectiveDateRange.startDate && effectiveDateRange.endDate) {
-      params.startDate = effectiveDateRange.startDate
-      params.endDate = effectiveDateRange.endDate
+      params.startDate = effectiveDateRange.startDate;
+      params.endDate = effectiveDateRange.endDate;
     }
-    return params
-  }, [debouncedSearch, effectiveDateRange, filters.mealType, filters.status, filters.cookingModeApplied])
+    return params;
+  }, [
+    debouncedSearch,
+    effectiveDateRange,
+    filters.mealType,
+    filters.status,
+    filters.cookingModeApplied,
+  ]);
 
-  const scope = `${user.id || ""}:${schoolId || ""}`
+  const scope = `${user.id || ""}:${schoolId || ""}`;
   const statsKey = JSON.stringify({
     scope,
     query: effectiveFilterParams,
-  })
+  });
   const queryKey = JSON.stringify({
     scope,
     query: { ...effectiveFilterParams, ...paging },
-  })
-  const searchPending = debouncedSearch !== filters.search.trim()
+  });
+  const searchPending = debouncedSearch !== filters.search.trim();
 
   useEffect(() => {
     const timer = setTimeout(
       () => setDebouncedSearch(filters.search.trim()),
       300,
-    )
-    return () => clearTimeout(timer)
-  }, [filters.search])
+    );
+    return () => clearTimeout(timer);
+  }, [filters.search]);
 
   useEffect(() => {
-    let active = true
-    const controller = new AbortController()
-    setSchool(null)
-    setSchoolError("")
-    if (!schoolId) {
-      setSchoolError("Tài khoản chưa có trường để tải cấu hình chế biến.")
-      return () => {
-        active = false
-        controller.abort()
-      }
-    }
-    KitchenService.getSchool(schoolId, { signal: controller.signal })
+    let active = true;
+    const controller = new AbortController();
+    setSchool(null);
+    setSchoolError("");
+    KitchenService.getContext({ signal: controller.signal })
       .then((value) => {
-        if (active) setSchool(value)
+        if (active) setSchool(value);
       })
       .catch((error) => {
-        if (active) setSchoolError(error.message)
-      })
+        if (active) setSchoolError(error.message || "Không thể tải cấu hình bếp từ máy chủ.");
+      });
     return () => {
-      active = false
-      controller.abort()
-    }
-  }, [schoolId, schoolAttempt])
+      active = false;
+      controller.abort();
+    };
+  }, [schoolAttempt]);
 
   useEffect(() => {
-    let active = true
-    const controller = new AbortController()
-    const query = JSON.parse(queryKey).query
-    setListState({ key: queryKey, loading: true, items: [], error: "" })
+    let active = true;
+    const controller = new AbortController();
+    const query = JSON.parse(queryKey).query;
+    setListState({ key: queryKey, loading: true, items: [], error: "" });
     KitchenService.getBatches(query, { signal: controller.signal })
       .then((result) => {
-        if (!active) return
+        if (!active) return;
         if (query.page > result.pagination.totalPages) {
           setPaging((current) => ({
             ...current,
             page: result.pagination.totalPages,
-          }))
-          return
+          }));
+          return;
         }
         setListState({
           key: queryKey,
@@ -177,7 +189,7 @@ export default function CookingBatches() {
           items: result.items,
           pagination: result.pagination,
           error: "",
-        })
+        });
       })
       .catch((error) => {
         if (active)
@@ -186,24 +198,24 @@ export default function CookingBatches() {
             loading: false,
             items: [],
             error: error.message,
-          })
-      })
+          });
+      });
     return () => {
-      active = false
-      controller.abort()
-    }
-  }, [queryKey, refresh, schoolId])
+      active = false;
+      controller.abort();
+    };
+  }, [queryKey, refresh]);
 
   useEffect(() => {
-    let active = true
-    const controller = new AbortController()
-    setStatsState({ key: statsKey, loading: true, value: null, error: "" })
+    let active = true;
+    const controller = new AbortController();
+    setStatsState({ key: statsKey, loading: true, value: null, error: "" });
     KitchenService.getStats(JSON.parse(statsKey).query, {
       signal: controller.signal,
     })
       .then((value) => {
         if (active)
-          setStatsState({ key: statsKey, loading: false, value, error: "" })
+          setStatsState({ key: statsKey, loading: false, value, error: "" });
       })
       .catch((error) => {
         if (active)
@@ -212,55 +224,55 @@ export default function CookingBatches() {
             loading: false,
             value: null,
             error: error.message,
-          })
-      })
+          });
+      });
     return () => {
-      active = false
-      controller.abort()
-    }
-  }, [statsKey, refresh, schoolId])
+      active = false;
+      controller.abort();
+    };
+  }, [statsKey, refresh, schoolId]);
 
   const loading =
-    listState.key !== queryKey || listState.loading || searchPending
+    listState.key !== queryKey || listState.loading || searchPending;
   const statsLoading =
-    statsState.key !== statsKey || statsState.loading || searchPending
-  const stats = statsState.key === statsKey ? statsState.value : null
+    statsState.key !== statsKey || statsState.loading || searchPending;
+  const stats = statsState.key === statsKey ? statsState.value : null;
   const rows = useMemo(
     () =>
       listState.key === queryKey ? listState.items.map(adaptCookingBatch) : [],
     [listState, queryKey],
-  )
+  );
   const pagination =
     listState.key === queryKey && listState.pagination
       ? listState.pagination
-      : { ...paging, totalItems: 0, totalPages: 1 }
-  const listError = listState.key === queryKey ? listState.error : ""
-  const canCreate = Boolean(COOKING_MODES[school?.cookingMode])
-  const isSeparateMode = school?.cookingMode === "SEPARATE_BY_LOT"
+      : { ...paging, totalItems: 0, totalPages: 1 };
+  const listError = listState.key === queryKey ? listState.error : "";
+  const canCreate = Boolean(COOKING_MODES[school?.cookingMode]);
+  const isSeparateMode = school?.cookingMode === "SEPARATE_BY_LOT";
   const mealTimes = [
     schoolClock(school?.lunchTime) && `Trưa ${schoolClock(school.lunchTime)}`,
     schoolClock(school?.afternoonMealTime) &&
-    `Xế ${schoolClock(school.afternoonMealTime)}`,
+      `Xế ${schoolClock(school.afternoonMealTime)}`,
   ]
     .filter(Boolean)
-    .join(" · ")
+    .join(" · ");
 
   const changeFilters = (newFilters) => {
     if (newFilters.academicYear !== filters.academicYear) {
       const nextConfig =
         availableAcademicYears.find(
           (ay) => ay.academicYear === newFilters.academicYear,
-        ) || availableAcademicYears[0]
-      const nextWeeks = getWeeksOfAcademicYear(nextConfig)
+        ) || availableAcademicYears[0];
+      const nextWeeks = getWeeksOfAcademicYear(nextConfig);
       const nextCurrent =
-        nextWeeks.find((w) => w.isCurrentWeek) || nextWeeks[0]
-      newFilters.week = nextCurrent ? nextCurrent.isoWeek : "current"
+        nextWeeks.find((w) => w.isCurrentWeek) || nextWeeks[0];
+      newFilters.week = nextCurrent ? nextCurrent.isoWeek : "current";
     }
-    setFilters(newFilters)
-    setPaging((current) => ({ ...current, page: 1 }))
-  }
+    setFilters(newFilters);
+    setPaging((current) => ({ ...current, page: 1 }));
+  };
 
-  const reload = () => setRefresh((value) => value + 1)
+  const reload = () => setRefresh((value) => value + 1);
 
   const navigateCreate = () => {
     if (canCreate)
@@ -268,8 +280,8 @@ export default function CookingBatches() {
         isSeparateMode
           ? ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE
           : ROUTER.SCHOOL_KITCHEN_BATCH_CREATE,
-      )
-  }
+      );
+  };
 
   return (
     <div className={styles.batchesContainer}>
@@ -354,8 +366,8 @@ export default function CookingBatches() {
             ...EMPTY_BATCH_FILTERS,
             academicYear: "2026-2027",
             week: "current",
-          })
-          setPaging((current) => ({ ...current, page: 1 }))
+          });
+          setPaging((current) => ({ ...current, page: 1 }));
         }}
         academicYearOptions={availableAcademicYears}
         weeks={schoolWeeks}
@@ -383,5 +395,5 @@ export default function CookingBatches() {
         </Button>
       </div>
     </div>
-  )
+  );
 }

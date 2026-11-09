@@ -31,12 +31,18 @@
 }
 .filterControls {
   display: grid;
-  grid-template-columns: minmax(130px, 150px) minmax(240px, 1.8fr) minmax(125px, 1fr) minmax(135px, 1fr) 44px;
+  grid-template-columns: minmax(130px, 150px) minmax(240px, 1.8fr) minmax(
+      125px,
+      1fr
+    ) minmax(135px, 1fr) 44px;
   align-items: center;
   gap: var(--space-3);
   @media (max-width: 1400px) {
     flex-basis: 100%;
-    grid-template-columns: minmax(130px, 1fr) minmax(220px, 1.6fr) minmax(120px, 1fr) minmax(130px, 1fr) 44px;
+    grid-template-columns: minmax(130px, 1fr) minmax(220px, 1.6fr) minmax(
+        120px,
+        1fr
+      ) minmax(130px, 1fr) 44px;
   }
   @media (max-width: 960px) {
     flex-basis: 100%;

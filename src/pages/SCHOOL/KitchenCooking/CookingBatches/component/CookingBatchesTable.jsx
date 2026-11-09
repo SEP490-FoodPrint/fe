@@ -1,12 +1,12 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Eye,
   ChevronLeft,
   ChevronRight,
   Check,
   AlertCircle,
-} from "lucide-react"
+} from "lucide-react";
 import {
   Alert,
   Button,
@@ -17,9 +17,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-} from "@mui/material"
-import ROUTER from "src/router/ROUTER"
-import styles from "./CookingBatchesTable.module.scss"
+} from "@mui/material";
+import ROUTER from "src/router/ROUTER";
+import styles from "./CookingBatchesTable.module.scss";
 
 export default function CookingBatchesTable({
   rows = [],
@@ -30,9 +30,9 @@ export default function CookingBatchesTable({
   onPageChange,
   onPageSizeChange,
 }) {
-  const navigate = useNavigate()
-  const [selectedBatch, setSelectedBatch] = useState(null)
-  const { page, limit, totalItems, totalPages } = pagination
+  const navigate = useNavigate();
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const { page, limit, totalItems, totalPages } = pagination;
 
   const statusBadge = (row, mobile = false) => (
     <span
@@ -40,18 +40,21 @@ export default function CookingBatchesTable({
     >
       <span>{row.statusLabel}</span>
     </span>
-  )
+  );
 
   const handleViewDetail = (row) => {
     navigate(
       ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", row.id || row.code),
-    )
-  }
+    );
+  };
 
   const renderActions = (row, mobile = false) => {
     if (mobile) {
       return (
-        <div className={styles.mobileActionBox} onClick={(e) => e.stopPropagation()}>
+        <div
+          className={styles.mobileActionBox}
+          onClick={(e) => e.stopPropagation()}
+        >
           <Tooltip title="Xem chi tiết" arrow>
             <IconButton
               size="small"
@@ -63,7 +66,7 @@ export default function CookingBatchesTable({
             </IconButton>
           </Tooltip>
         </div>
-      )
+      );
     }
 
     return (
@@ -79,8 +82,8 @@ export default function CookingBatchesTable({
           </IconButton>
         </Tooltip>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className={styles.tableCard} aria-busy={loading}>
@@ -112,12 +115,22 @@ export default function CookingBatchesTable({
             <table className={styles.table} aria-label="Danh sách lô chế biến">
               <thead>
                 <tr>
-                  <th scope="col" style={{ width: 130 }}>Mã lô</th>
+                  <th scope="col" style={{ width: 130 }}>
+                    Mã lô
+                  </th>
                   <th scope="col">Món ăn &amp; Ca ăn</th>
-                  <th scope="col" style={{ width: 100 }}>Số suất</th>
-                  <th scope="col" style={{ width: 130 }}>Trạng thái</th>
-                  <th scope="col" style={{ width: 160 }}>Lưu mẫu</th>
-                  <th scope="col" className={styles.thActions}>Thao tác</th>
+                  <th scope="col" style={{ width: 100 }}>
+                    Số suất
+                  </th>
+                  <th scope="col" style={{ width: 130 }}>
+                    Trạng thái
+                  </th>
+                  <th scope="col" style={{ width: 160 }}>
+                    Lưu mẫu
+                  </th>
+                  <th scope="col" className={styles.thActions}>
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -137,12 +150,16 @@ export default function CookingBatchesTable({
                     <td>
                       {row.status === "COMPLETED" ? (
                         row.hasSample ? (
-                          <span className={`${styles.samplePill} ${styles.sampleDone}`}>
+                          <span
+                            className={`${styles.samplePill} ${styles.sampleDone}`}
+                          >
                             <Check size={13} aria-hidden="true" />
                             <span>Đã lưu mẫu (24h)</span>
                           </span>
                         ) : (
-                          <span className={`${styles.samplePill} ${styles.samplePending}`}>
+                          <span
+                            className={`${styles.samplePill} ${styles.samplePending}`}
+                          >
                             <AlertCircle size={13} aria-hidden="true" />
                             <span>Chưa lưu mẫu</span>
                           </span>
@@ -175,9 +192,7 @@ export default function CookingBatchesTable({
                     <span className={styles.mobileDishName}>
                       {row.dishName}
                     </span>
-                    <span className={styles.mobileBatchCode}>
-                      {row.code}
-                    </span>
+                    <span className={styles.mobileBatchCode}>{row.code}</span>
                   </div>
                   {statusBadge(row, true)}
                 </div>
@@ -198,7 +213,9 @@ export default function CookingBatchesTable({
                     {row.status === "COMPLETED" && (
                       <>
                         <span className={styles.metaDot}>•</span>
-                        <span className={`${styles.mobileSampleBadge} ${row.hasSample ? styles.sampleDone : styles.samplePending}`}>
+                        <span
+                          className={`${styles.mobileSampleBadge} ${row.hasSample ? styles.sampleDone : styles.samplePending}`}
+                        >
                           {row.hasSample ? "Đã lưu 24h" : "Chưa lưu mẫu"}
                         </span>
                       </>
@@ -302,5 +319,5 @@ export default function CookingBatchesTable({
         </DialogActions>
       </Dialog>
     </div>
-  )
+  );
 }
