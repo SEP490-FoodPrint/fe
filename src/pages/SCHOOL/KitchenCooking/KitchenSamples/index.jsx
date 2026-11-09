@@ -3,11 +3,7 @@ import { useNavigate } from "react-router-dom"
 import ROUTER from "src/router/ROUTER"
 import notice from "src/components/Notice"
 import KitchenService from "src/services/KitchenService"
-import {
-  MOCK_RETAINED_SAMPLES,
-  MOCK_UNSAMPLED_BATCHES,
-  get24hRetainedStatus,
-} from "./mockSamplesData"
+import { get24hRetainedStatus } from "./mockSamplesData"
 import KitchenSamplesHeader from "./component/KitchenSamplesHeader"
 import KitchenSamplesKPICards from "./component/KitchenSamplesKPICards"
 import KitchenSamplesFilterStrip from "./component/KitchenSamplesFilterStrip"
@@ -23,11 +19,12 @@ import styles from "./index.module.scss"
 export default function KitchenSamples() {
   const navigate = useNavigate()
 
-  // 1. Data States
-  const [samples, setSamples] = useState(MOCK_RETAINED_SAMPLES)
-  const [unsampledBatches, setUnsampledBatches] = useState(MOCK_UNSAMPLED_BATCHES)
-  const [loading, setLoading] = useState(false)
+  // 1. Data States: Không khởi tạo bằng Mock, mặc định rỗng
+  const [samples, setSamples] = useState([])
+  const [unsampledBatches, setUnsampledBatches] = useState([])
+  const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [loadError, setLoadError] = useState("")
 
   // 2. Filter States
   const [searchTerm, setSearchTerm] = useState("")
@@ -41,27 +38,52 @@ export default function KitchenSamples() {
   const [updateSample, setUpdateSample] = useState(null)
   const [disposeSample, setDisposeSample] = useState(null)
 
-  // 4. Tải dữ liệu từ backend nếu có, fallback sang mock chuẩn
+  // 4. Tải dữ liệu thực từ backend API
   const fetchSamples = useCallback(async (signal) => {
     try {
       setLoading(true)
-      const res = await KitchenService.getRetainedSamples({}, { signal })
-      if (res?.items && Array.isArray(res.items) && res.items.length > 0) {
-        // Map backend DTO sang format hiển thị
-        const mapped = res.items.map((item) => ({
-          ...item,
-          dishName: item.dishName || item.CookingBatch?.Dish?.name || "Món ăn bán trú",
-          batchCode: item.batchCode || item.CookingBatch?.batchCode || item.cookingBatchId,
-          mealType: item.mealType || item.CookingBatch?.mealType || "LUNCH",
-          mealLabel: item.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa",
-          portions: item.CookingBatch?.plannedPortions || 400,
-        }))
-        setSamples(mapped)
+      setLoadError("")
+      const [samplesRes, batchesRes] = await Promise.all([
+        KitchenService.getRetainedSamples({}, { signal }),
+        KitchenService.getBatches({ status: "COMPLETED", hasSample: false, limit: 50 }, { signal }).catch(() => ({ items: [] })),
+      ])
+
+      const rawItems = samplesRes?.items || []
+      const mapped = rawItems.map((item) => ({
+        ...item,
+        dishName: item.dishName || item.CookingBatch?.Dish?.name || "Món ăn bán trú",
+        batchCode: item.batchCode || item.CookingBatch?.batchCode || item.cookingBatchId,
+        mealType: item.mealType || item.CookingBatch?.mealType || "LUNCH",
+        mealLabel: (item.mealType || item.CookingBatch?.mealType) === "AFTERNOON" ? "Bữa xế" : "Bữa trưa",
+        portions: item.CookingBatch?.plannedPortions || 0,
+      }))
+      setSamples(mapped)
+
+      // Lấy danh sách các mẻ nấu đã hoàn thành nhưng chưa lưu mẫu thật
+      const unsampled = (batchesRes?.items || []).map((b) => ({
+        id: b.id,
+        cookingBatchId: b.id,
+        batchCode: b.batchCode,
+        dishName: b.Dish?.name || "Món ăn bán trú",
+        dishCategory: "Món ăn bán trú",
+        mealType: b.mealType,
+        mealLabel: b.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa",
+        portions: b.plannedPortions || 0,
+        completedAt: b.completedAt || b.createdAt,
+        defaultQuantity: "150",
+        defaultUnit: "g",
+        defaultStorage: "Tủ A1 - Ngăn 01",
+      }))
+      setUnsampledBatches(unsampled)
+    } catch (err) {
+      if (!signal?.aborted) {
+        setLoadError(err.message || "Không thể tải danh sách mẫu lưu từ hệ thống.")
+        setSamples([])
       }
-    } catch {
-      // Backend offline hoặc chưa có dữ liệu, giữ mock chuẩn để demo mượt mà
     } finally {
-      setLoading(false)
+      if (!signal?.aborted) {
+        setLoading(false)
+      }
     }
   }, [])
 
@@ -98,24 +120,26 @@ export default function KitchenSamples() {
     return samples.filter((s) => {
       // Tìm kiếm từ khóa
       if (searchLower) {
-        const code = (s.batchCode || s.cookingBatchId || "").toLowerCase()
-        const dish = (s.dishName || "").toLowerCase()
-        const id = (s.id || "").toLowerCase()
-        if (!code.includes(searchLower) && !dish.includes(searchLower) && !id.includes(searchLower)) {
+        const dishMatch = s.dishName?.toLowerCase().includes(searchLower)
+        const codeMatch = s.batchCode?.toLowerCase().includes(searchLower)
+        const locationMatch = s.storageLocation?.toLowerCase().includes(searchLower)
+        if (!dishMatch && !codeMatch && !locationMatch) {
           return false
         }
       }
 
       // Lọc trạng thái
-      const info = get24hRetainedStatus(s.sampledAt, s.status)
-      if (statusFilter === "STORED" && (info.isDisposed || info.isReadyToDispose)) {
-        return false
-      }
-      if (statusFilter === "READY" && (!info.isReadyToDispose || info.isDisposed)) {
-        return false
-      }
-      if (statusFilter === "DISPOSED" && !info.isDisposed) {
-        return false
+      if (statusFilter !== "ALL") {
+        const info = get24hRetainedStatus(s.sampledAt, s.status)
+        if (statusFilter === "STORED" && (info.isDisposed || info.isReadyToDispose)) {
+          return false
+        }
+        if (statusFilter === "READY_TO_DISPOSE" && !info.isReadyToDispose) {
+          return false
+        }
+        if (statusFilter === "DISPOSED" && !info.isDisposed) {
+          return false
+        }
       }
 
       // Lọc ca ăn
@@ -156,41 +180,13 @@ export default function KitchenSamples() {
   const handleCreateSampleSubmit = async (formData) => {
     setSubmitting(true)
     try {
-      // Cố gắng gọi API
-      try {
-        await KitchenService.createBatchSample(formData.cookingBatchId, {
-          quantity: formData.quantity,
-          unit: formData.unit,
-          storageLocation: formData.storageLocation,
-          sampledAt: formData.sampledAt,
-        })
-      } catch {
-        // Tiếp tục cập nhật UI cục bộ
-      }
-
-      const newSample = {
-        id: `smp-${Date.now().toString().slice(-4)}`,
-        cookingBatchId: formData.cookingBatchId,
-        batchCode: formData.batchData?.batchCode || formData.cookingBatchId,
-        dishName: formData.batchData?.dishName || "Món ăn bán trú",
-        dishCategory: formData.batchData?.dishCategory || "Món ăn",
-        mealType: formData.batchData?.mealType || "LUNCH",
-        mealLabel: formData.batchData?.mealLabel || "Bữa trưa",
-        portions: formData.batchData?.portions || 420,
-        sampledAt: formData.sampledAt,
+      await KitchenService.createBatchSample(formData.cookingBatchId, {
         quantity: formData.quantity,
         unit: formData.unit,
         storageLocation: formData.storageLocation,
-        status: "STORED",
-        packaging: "Lọ thủy tinh tiệt trùng",
-        recordedByName: "Nguyễn Văn Vận (Bếp trưởng)",
-        recordedByUserId: "usr-chef-01",
-        disposedAt: null,
-        disposalNote: "",
-      }
-
-      setSamples((prev) => [newSample, ...prev])
-      setUnsampledBatches((prev) => prev.filter((b) => b.id !== formData.cookingBatchId))
+        sampledAt: formData.sampledAt,
+      })
+      await fetchSamples()
       setIsCreateOpen(false)
       notice({ msg: "Ghi nhận mẫu lưu thực phẩm 24h thành công!", isSuccess: true })
     } catch (err) {
@@ -217,38 +213,14 @@ export default function KitchenSamples() {
     if (!disposeSample) return
     setSubmitting(true)
     try {
-      try {
-        await KitchenService.disposeRetainedSample(disposeSample.id, {
-          disposedAt,
-          disposalNote,
-        })
-      } catch {
-        // Cập nhật UI
-      }
-
-      setSamples((prev) =>
-        prev.map((s) =>
-          s.id === disposeSample.id
-            ? {
-                ...s,
-                status: "DISPOSED",
-                disposedAt,
-                disposalNote,
-                storageLocation: `${s.storageLocation} (Đã giải phóng)`,
-              }
-            : s
-        )
-      )
-
+      await KitchenService.disposeRetainedSample(disposeSample.id, {
+        disposedAt,
+        disposalNote,
+      })
+      await fetchSamples()
       if (detailSample?.id === disposeSample.id) {
-        setDetailSample((prev) => ({
-          ...prev,
-          status: "DISPOSED",
-          disposedAt,
-          disposalNote,
-        }))
+        setDetailSample(null)
       }
-
       setDisposeSample(null)
       notice({ msg: "Ghi nhận tiêu hủy mẫu lưu thành công!", isSuccess: true })
     } catch (err) {
@@ -294,7 +266,15 @@ export default function KitchenSamples() {
       />
 
       {/* 4. Bảng mẫu lưu (Desktop) & Danh sách Card (Mobile) */}
-      {filteredSamples.length > 0 ? (
+      {loading ? (
+        <div className="py-12 text-center text-slate-500 font-medium">
+          Đang tải danh sách mẫu lưu thực phẩm 24h...
+        </div>
+      ) : loadError ? (
+        <div className="p-4 my-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+          {loadError}
+        </div>
+      ) : filteredSamples.length > 0 ? (
         <>
           <div className={styles.desktopWrap}>
             <KitchenSamplesTable

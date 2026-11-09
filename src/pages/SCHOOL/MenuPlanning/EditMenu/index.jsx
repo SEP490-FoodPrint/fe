@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import styles from "./EditMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { getMenuById } from "../mockMenuListData"
 import { ALL_INGREDIENTS } from "../mockMenuData"
 import MenuService from "src/services/MenuService"
 
@@ -43,7 +42,7 @@ export default function EditMenu() {
     const loadMenu = async () => {
       try {
         const res = await MenuService.getMenuDetail(id)
-        const rawMenu = res?.data || getMenuById(id)
+        const rawMenu = res?.data
         if (!isMounted || !rawMenu) return
         setMenu(rawMenu)
 

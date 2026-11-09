@@ -5,101 +5,58 @@ import {
   apiRetainedSamples,
 } from "./urls";
 import { batchQuery, isUuid } from "./adapter";
-import {
-  getMockBatchesPage,
-  getMockBatchStats,
-  findMockBatchDetail,
-  updateMockBatchStatus,
-  createMockBatchSample,
-  getMockBatchSample,
-  IN_MEMORY_MOCK_BATCHES,
-} from "./mockCookingBatchesData";
 
 const KitchenService = {
   async getBatches(filters = {}, { signal } = {}) {
     const params = batchQuery(filters);
-    try {
-      const response = await http.get(apiCookingBatches, {
-        params,
-        signal,
-        notifyOnError: false,
-      });
-      const data = response?.data || response;
-      if (
-        Array.isArray(data?.items) &&
-        Number.isSafeInteger(data.pagination?.totalItems) &&
-        data.pagination.totalItems >= 0
-      ) {
-        return {
-          ...data,
-          pagination: {
-            page: params.page,
-            limit: params.limit,
-            ...data.pagination,
-            totalPages: Math.max(
-              1,
-              Math.ceil(data.pagination.totalItems / params.limit),
-            ),
-          },
-        };
-      }
-      return getMockBatchesPage(filters);
-    } catch {
-      return getMockBatchesPage(filters);
-    }
+    const response = await http.get(apiCookingBatches, {
+      params,
+      signal,
+      notifyOnError: false,
+    });
+    const data = response?.data || response;
+    const items = Array.isArray(data?.items) ? data.items : [];
+    const pagination = data?.pagination || {
+      page: params.page || 1,
+      limit: params.limit || 10,
+      totalItems: items.length,
+    };
+    return {
+      items,
+      pagination: {
+        page: params.page || 1,
+        limit: params.limit || 10,
+        ...pagination,
+        totalPages: Math.max(
+          1,
+          Math.ceil((pagination.totalItems || 0) / (params.limit || 10)),
+        ),
+      },
+    };
   },
 
   async getStats(filters = {}, { signal } = {}) {
     const params = batchQuery(filters);
     delete params.page;
     delete params.limit;
-    try {
-      const response = await http.get(apiCookingBatchStats, {
-        params,
-        signal,
-        notifyOnError: false,
-      });
-      const data = response?.data || response;
-      if (
-        [
-          "total",
-          "unconfirmed",
-          "confirmed",
-          "completed",
-          "storedSamples",
-          "disposedSamples",
-          "pendingSamples",
-        ].every((key) => Number.isSafeInteger(data?.[key]) && data[key] >= 0)
-      ) {
-        return data;
-      }
-      return getMockBatchStats(filters);
-    } catch {
-      return getMockBatchStats(filters);
-    }
+    const response = await http.get(apiCookingBatchStats, {
+      params,
+      signal,
+      notifyOnError: false,
+    });
+    return response?.data || response;
+  },
+
+  async getContext({ signal } = {}) {
+    const response = await http.get("/v1/kitchen/context", {
+      signal,
+      notifyOnError: false,
+    });
+    return response?.data || response;
   },
 
   async getSchool(schoolId, { signal } = {}) {
-    if (schoolId && isUuid(schoolId)) {
-      try {
-        const response = await http.get(`/schools/${schoolId}`, {
-          signal,
-          notifyOnError: false,
-        });
-        const data = response?.data || response;
-        if (data?.id) return data;
-      } catch {
-        // continue to public fallback
-      }
-    }
-    // Always return safe default so UI is never blocked
-    return {
-      id: schoolId || "4eabb820-f445-52db-8aeb-2fd0f6cb882a",
-      name: "Trường Tiểu học Thực Nghiệm FoodPrint",
-      cookingMode: "COMBINE_LOTS",
-      lunchTime: "10:45",
-      afternoonMealTime: "14:15",
-    };
+    return KitchenService.getContext({ signal });
   },
 
   async getAllBatches(filters = {}) {
@@ -113,7 +70,7 @@ const KitchenService = {
         limit: 100,
       });
       items.push(...data.items);
-      total = data.pagination.totalItems;
+      total = data.pagination?.totalItems || 0;
       if (!data.items.length) break;
       page += 1;
     } while (items.length < total);
@@ -122,20 +79,12 @@ const KitchenService = {
 
   async getBatchDetail(id, { signal } = {}) {
     if (!id) throw new Error("Thiếu mã định danh lô chế biến.");
-    if (isUuid(id)) {
-      try {
-        const response = await http.get(`${apiCookingBatches}/${id}`, {
-          signal,
-          notifyOnError: false,
-        });
-        const data = response?.data || response;
-        if (data?.id) return data;
-      } catch {
-        // fallback to mock
-      }
-    }
-    const mock = findMockBatchDetail(id);
-    if (mock) return mock;
+    const response = await http.get(`${apiCookingBatches}/${id}`, {
+      signal,
+      notifyOnError: false,
+    });
+    const data = response?.data || response;
+    if (data?.id) return data;
     throw new Error("Không tìm thấy dữ liệu lô chế biến.");
   },
 
@@ -144,162 +93,93 @@ const KitchenService = {
     const menuDayId = payload.menuDayId;
     const mealType = String(payload.mealType || "LUNCH").toUpperCase();
 
-    if (isUuid(dishId) && isUuid(menuDayId)) {
-      try {
-        const response = await http.post(
-          apiCookingBatches,
-          {
-            dishId,
-            menuDayId,
-            mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
-          },
-          { notifyOnError: false },
-        );
-        return response?.data || response;
-      } catch {
-        // fallback to mock creation
-      }
+    if (!dishId || !menuDayId) {
+      throw new Error("Thiếu thông tin món ăn hoặc ngày thực đơn để lập phương án chế biến.");
     }
 
-    return {
-      id: "b0000001-0000-0000-0000-" + String(Date.now()).slice(-12).padStart(12, "0"),
-      batchCode: `CB-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-001`,
-      status: "UNCONFIRMED",
-      mealType,
-      created: true,
-    };
+    const response = await http.post(
+      apiCookingBatches,
+      {
+        dishId,
+        menuDayId,
+        mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
+      },
+      { notifyOnError: false },
+    );
+    return response?.data || response;
   },
 
   async confirmBatch(id) {
     if (!id) throw new Error("Thiếu mã định danh lô chế biến.");
-    if (isUuid(id)) {
-      try {
-        const response = await http.post(
-          `${apiCookingBatches}/${id}/confirm`,
-          null,
-          {
-            notifyOnError: false,
-          },
-        );
-        return response?.data || response;
-      } catch {
-        // fallback to mock
-      }
-    }
-    const updated = updateMockBatchStatus(id, "CONFIRMED");
-    if (updated) return updated;
-    throw new Error("Không thể xác nhận lô chế biến.");
+    const response = await http.post(
+      `${apiCookingBatches}/${id}/confirm`,
+      null,
+      { notifyOnError: false },
+    );
+    return response?.data || response;
   },
 
   async completeBatch(id, payload = {}) {
     if (!id) throw new Error("Thiếu mã định danh lô chế biến.");
-    if (isUuid(id)) {
-      try {
-        const response = await http.post(
-          `${apiCookingBatches}/${id}/complete`,
-          payload,
-          {
-            notifyOnError: false,
-          },
-        );
-        return response?.data || response;
-      } catch {
-        // fallback to mock
-      }
-    }
-    const updated = updateMockBatchStatus(id, "COMPLETED");
-    if (updated) return updated;
-    throw new Error("Không thể hoàn thành mẻ nấu.");
+    const response = await http.post(
+      `${apiCookingBatches}/${id}/complete`,
+      payload,
+      { notifyOnError: false },
+    );
+    return response?.data || response;
   },
 
   async deleteBatch(id) {
     if (!id) throw new Error("Thiếu mã định danh lô chế biến.");
-    if (isUuid(id)) {
-      try {
-        const response = await http.delete(`${apiCookingBatches}/${id}`, {
-          notifyOnError: false,
-        });
-        return response?.data || response;
-      } catch {
-        // fallback to mock deletion
-      }
-    }
-    const idx = IN_MEMORY_MOCK_BATCHES.findIndex(
-      (b) => String(b.id) === String(id) || String(b.batchCode) === String(id),
-    );
-    if (idx !== -1) {
-      IN_MEMORY_MOCK_BATCHES.splice(idx, 1);
-    }
-    return { success: true };
+    const response = await http.delete(`${apiCookingBatches}/${id}`, {
+      notifyOnError: false,
+    });
+    return response?.data || response;
   },
 
   async getBatchSample(batchId, { signal } = {}) {
     if (!batchId) return null;
-    if (isUuid(batchId)) {
-      try {
-        const response = await http.get(
-          `${apiCookingBatches}/${batchId}/food-samples`,
-          {
-            signal,
-            notifyOnError: false,
-          },
-        );
-        const data = response?.data || response;
-        if (data?.id) return data;
-      } catch {
-        // fallback
-      }
-    }
-    return getMockBatchSample(batchId);
+    const response = await http.get(
+      `${apiCookingBatches}/${batchId}/food-samples`,
+      {
+        signal,
+        notifyOnError: false,
+      },
+    );
+    return response?.data ?? response ?? null;
   },
 
   async createBatchSample(batchId, sampleData) {
     if (!batchId) throw new Error("Thiếu mã định danh lô chế biến.");
-    if (isUuid(batchId)) {
-      try {
-        const response = await http.post(
-          `${apiCookingBatches}/${batchId}/food-samples`,
-          sampleData,
-          { notifyOnError: false },
-        );
-        return response?.data || response;
-      } catch {
-        // fallback
-      }
-    }
-    const mockSample = createMockBatchSample(batchId, sampleData);
-    if (mockSample) return mockSample;
-    throw new Error("Không thể tạo mẫu lưu thực phẩm.");
+    const response = await http.post(
+      `${apiCookingBatches}/${batchId}/food-samples`,
+      sampleData,
+      { notifyOnError: false },
+    );
+    return response?.data || response;
   },
 
   async getRetainedSamples(query = {}, { signal } = {}) {
-    try {
-      const response = await http.get(apiRetainedSamples, {
-        params: query,
-        signal,
-        notifyOnError: false,
-      });
-      return response?.data || response;
-    } catch {
-      return { items: [], pagination: { totalItems: 0 } };
-    }
+    const response = await http.get(apiRetainedSamples, {
+      params: query,
+      signal,
+      notifyOnError: false,
+    });
+    const data = response?.data || response;
+    return {
+      items: Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [],
+      pagination: data?.pagination || { totalItems: 0 },
+    };
   },
 
   async disposeRetainedSample(sampleId, payload = {}) {
     if (!sampleId) throw new Error("Thiếu mã mẫu lưu.");
-    if (isUuid(sampleId)) {
-      try {
-        const response = await http.post(
-          `${apiRetainedSamples}/${sampleId}/dispose`,
-          payload,
-          { notifyOnError: false },
-        );
-        return response?.data || response;
-      } catch {
-        // fallback
-      }
-    }
-    return { success: true, message: "Đã ghi nhận tiêu hủy mẫu lưu" };
+    const response = await http.post(
+      `${apiRetainedSamples}/${sampleId}/dispose`,
+      payload,
+      { notifyOnError: false },
+    );
+    return response?.data || response;
   },
 };
 

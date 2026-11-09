@@ -5,7 +5,6 @@ import ROUTER from "src/router/ROUTER"
 
 export default function MenuDetailHeader({
   menu,
-  onPrint,
   onSubmitApproval
 }) {
   const navigate = useNavigate()
@@ -54,17 +53,6 @@ export default function MenuDetailHeader({
           >
             <span className="material-symbols-outlined text-[18px]">arrow_back</span>
             <span>Danh sách</span>
-          </button>
-
-          {/* Nút In thực đơn */}
-          <button
-            type="button"
-            className={styles.btnSecondary}
-            onClick={onPrint}
-            title="In biểu mẫu thực đơn học đường"
-          >
-            <span className="material-symbols-outlined text-[18px]">print</span>
-            <span>In thực đơn</span>
           </button>
 
           {/* Nút Chỉnh sửa: CHỈ hiển thị nếu status là DRAFT hoặc REVISION_REQUESTED */}
