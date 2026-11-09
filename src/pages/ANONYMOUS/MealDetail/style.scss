@@ -33,18 +33,7 @@
   margin-right: auto;
 }
 
-.twoRowsLayout {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  width: 100%;
-}
-
-.dishesRow {
-  width: 100%;
-}
-
-.ingredientsRow {
+.tableLayoutWrapper {
   width: 100%;
 }
 

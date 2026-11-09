@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import SchoolService from "src/services/SchoolService";
+import { getPublicMealData } from "src/utils/publicMeal";
+import { resolveWeekStartDate } from "src/utils/weeklyMenu";
 import SchoolHero from "./component/SchoolHero";
 import QuickStatsStrip from "./component/QuickStatsStrip";
 import DailyMealSection from "./component/DailyMealSection";
@@ -19,6 +21,7 @@ function SchoolLanding() {
   const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false);
   const [, setLoading] = useState(true);
 
+  // Khi vào trang hoặc đổi trường, tải thực đơn ngày và tuần cho trường đang xem.
   useEffect(() => {
     let isMounted = true;
 
@@ -26,7 +29,7 @@ function SchoolLanding() {
       try {
         setLoading(true);
 
-        // Nạp song song thực đơn ngày và thực đơn tuần
+        // Hiển thị phần tải thành công kể cả khi request còn lại lỗi.
         const [dailyResult, weeklyResult] = await Promise.allSettled([
           SchoolService.getDailyMealMenu(activeCode),
           SchoolService.getWeeklyMenu(activeCode),
@@ -35,22 +38,12 @@ function SchoolLanding() {
         if (isMounted) {
           // Xử lý thực đơn ngày
           if (dailyResult.status === "fulfilled" && dailyResult.value) {
-            const rawDaily = dailyResult.value;
-            const dailyData =
-              rawDaily?.data && !rawDaily.data.data
-                ? rawDaily.data
-                : rawDaily?.data?.data || rawDaily;
-            setDailyMeal(dailyData || null);
+            setDailyMeal(getPublicMealData(dailyResult.value));
           }
 
           // Xử lý thực đơn tuần
           if (weeklyResult.status === "fulfilled" && weeklyResult.value) {
-            const rawWeekly = weeklyResult.value;
-            const weeklyData =
-              rawWeekly?.data && !rawWeekly.data.data
-                ? rawWeekly.data
-                : rawWeekly?.data?.data || rawWeekly;
-            setWeeklyMenu(weeklyData || null);
+            setWeeklyMenu(getPublicMealData(weeklyResult.value));
           }
         }
       } catch (err) {
@@ -62,7 +55,7 @@ function SchoolLanding() {
 
     loadData();
 
-    // Scroll to top on page or school code change
+    // Đưa người dùng về phần giới thiệu khi chuyển sang trường khác.
     window.scrollTo({ top: 0, behavior: "smooth" });
 
     return () => {
@@ -70,53 +63,23 @@ function SchoolLanding() {
     };
   }, [activeCode]);
 
-  const handleWeekChange = async (weekValue, groupId) => {
-    try {
-      let targetDateStr;
-      if (typeof weekValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(weekValue)) {
-        targetDateStr = weekValue;
-      } else {
-        const offset = Number(weekValue) || 0;
-        const target = new Date();
-        target.setDate(target.getDate() + offset * 7);
-        targetDateStr = target.toISOString().slice(0, 10);
-      }
-      const res = await SchoolService.getWeeklyMenu(
-        activeCode,
-        targetDateStr,
-        groupId,
-      );
-      const data =
-        res?.data && !res.data.data ? res.data : res?.data?.data || res;
-      setWeeklyMenu(data || null);
-    } catch (err) {
-      console.error("Lỗi khi chuyển đổi tuần:", err);
-    }
-  };
+  // Hai thao tác của WeeklyMenuSection chỉ tải lại phần thực đơn tuần.
+  const handleWeekChange = (weekValue, groupId) =>
+    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi tuần:");
 
-  const handleGroupChange = async (groupId, weekValue) => {
+  const handleGroupChange = (groupId, weekValue) =>
+    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi nhóm bán trú:");
+
+  const loadWeeklyMenu = async (weekValue, groupId, errorMessage) => {
     try {
-      let targetDateStr;
-      if (typeof weekValue === "string" && /^\d{4}-\d{2}-\d{2}$/.test(weekValue)) {
-        targetDateStr = weekValue;
-      } else {
-        const offset = Number(weekValue) || 0;
-        const target = new Date();
-        if (offset !== 0) {
-          target.setDate(target.getDate() + offset * 7);
-        }
-        targetDateStr = target.toISOString().slice(0, 10);
-      }
       const res = await SchoolService.getWeeklyMenu(
         activeCode,
-        targetDateStr,
+        resolveWeekStartDate(weekValue),
         groupId,
       );
-      const data =
-        res?.data && !res.data.data ? res.data : res?.data?.data || res;
-      setWeeklyMenu(data || null);
+      setWeeklyMenu(getPublicMealData(res));
     } catch (err) {
-      console.error("Lỗi khi chuyển đổi nhóm bán trú:", err);
+      console.error(errorMessage, err);
     }
   };
 

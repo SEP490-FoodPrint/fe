@@ -18,11 +18,14 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
   const [visible, setVisible] = useState(false)
   const [pageVisible, setPageVisible] = useState(!document.hidden)
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ?? false)
+
+  // Đồng bộ trạng thái nút trước/sau từ Swiper khi slide hoặc kích thước đổi.
   const updateScrollState = useCallback(instance => {
     if (!instance || instance.destroyed) return
     setScrollState({ overflow: !instance.isLocked, previous: !instance.isBeginning, next: !instance.isEnd })
   }, [])
 
+  // Đưa carousel về đầu khi danh sách trường hoặc từ khóa thay đổi.
   useEffect(() => {
     if (!swiper || swiper.destroyed) return
     swiper.slideTo(0, 0)
@@ -30,6 +33,7 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
     updateScrollState(swiper)
   }, [swiper, schools, searchQuery, updateScrollState])
 
+  // Theo dõi trạng thái tab và tùy chọn giảm chuyển động để quyết định autoplay.
   useEffect(() => {
     const media = window.matchMedia?.("(prefers-reduced-motion: reduce)")
     const updateMotion = () => setReducedMotion(media?.matches ?? false)
@@ -42,6 +46,7 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
     }
   }, [])
 
+  // Theo dõi vùng hiển thị của carousel. Danh sách rỗng có thể gỡ vùng này khỏi DOM.
   useEffect(() => {
     const element = track.current
     if (!element) return
@@ -54,12 +59,15 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
     return () => observer.disconnect()
   }, [schools])
 
+  // Chỉ tự chạy khi có thể cuộn, carousel và tab đang hiển thị, không hover, focus hay bật giảm chuyển động.
   useEffect(() => {
     if (!swiper || swiper.destroyed) return
     if (scrollState.overflow && !hovered && !focused && visible && pageVisible && !reducedMotion) swiper.autoplay.start()
     else swiper.autoplay.stop()
     return () => { if (!swiper.destroyed) swiper.autoplay.stop() }
   }, [swiper, scrollState.overflow, hovered, focused, visible, pageVisible, reducedMotion])
+
+  // Page đã lọc theo từng lần nhập. Submit chỉ chặn tải lại trang.
   const handleSubmit = e => {
     e.preventDefault()
   }

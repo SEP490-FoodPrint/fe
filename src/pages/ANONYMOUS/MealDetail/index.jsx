@@ -7,29 +7,418 @@ import {
 } from "react-router-dom";
 import {
   CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
   Typography,
 } from "@mui/material";
-import {
-  QrCode,
-  ShieldCheck,
-  UtensilsCrossed,
-} from "lucide-react";
+import { UtensilsCrossed } from "lucide-react";
 
 import SchoolService from "src/services/SchoolService";
 
 import MealDetailHeader from "./component/MealDetailHeader";
 import MealDetailFilterBar from "./component/MealDetailFilterBar";
-import AllergyPortionSection from "./component/AllergyPortionSection";
-import MealDishesList from "./component/MealDishesList";
-import DishIngredientsDetail from "./component/DishIngredientsDetail";
-import { MOCK_SCHOOL_CLASSES } from "./component/mockClasses";
-import { MOCK_NUTRITION_DAILY_MENU } from "./component/mockNutritionMenu";
+import MealDishesTable from "./component/MealDishesTable";
+import DishIngredientsModal from "./component/DishIngredientsModal";
+import {
+  MOCK_GRADE_BLOCKS,
+  resolveSchoolGradeBlocks,
+} from "./component/mockGradeBlocks";
+import {
+  MOCK_NUTRITION_DAILY_MENU,
+  resolveDishNutritionInfo,
+} from "./component/mockNutritionMenu";
 
 import "./style.scss";
 
+function MealDetail() {
+  const { schoolCode } = useParams();
+  const outletContext = useOutletContext() || {};
+  const school = outletContext.school || null;
+  const activeCode = (
+    outletContext.schoolCode ||
+    schoolCode ||
+    school?.code ||
+    "SCH_ANH_DUONG"
+  ).toUpperCase();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const dateParam = searchParams.get("date") || "";
+
+  const [dailyMenu, setDailyMenu] = useState(null);
+  const [weeklyMenu, setWeeklyMenu] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Khối hiện chỉ là lựa chọn trên giao diện. Request thực đơn dùng mã trường và ngày.
+  const gradeBlocks = useMemo(() => {
+    return resolveSchoolGradeBlocks(
+      school?.gradeBlocks || outletContext.gradeBlocks,
+      school?.defaultGradeBlock || "Khối 1 - 3",
+    );
+  }, [school, outletContext.gradeBlocks]);
+
+  const [selectedBlockId, setSelectedBlockId] = useState(
+    () => MOCK_GRADE_BLOCKS[0]?.id || "BLOCK_1_3",
+  );
+
+  const [currentMealType, setCurrentMealType] = useState("LUNCH");
+
+  // Quản lý Popup Modal xem chi tiết nguyên liệu món ăn
+  const [modalDish, setModalDish] = useState(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Luồng tải chính: đồng bộ thực đơn ngày và tuần theo mã trường và ?date=.
+  useEffect(() => {
+    // Cleanup chặn phản hồi từ lượt tải cũ cập nhật state sau khi đổi trường hoặc ngày.
+    let isMounted = true;
+    const fetchData = async () => {
+      if (!activeCode) return;
+      setLoading(true);
+      try {
+        const [dailyRes, weeklyRes] = await Promise.all([
+          SchoolService.getDailyMealMenu(activeCode, dateParam),
+          SchoolService.getWeeklyMenu(activeCode, dateParam),
+        ]);
+
+        if (isMounted) {
+          const dailyData =
+            dailyRes?.data && !dailyRes.data.data
+              ? dailyRes.data
+              : dailyRes?.data?.data || dailyRes?.data || null;
+
+          const weeklyData =
+            weeklyRes?.data && !weeklyRes.data.data
+              ? weeklyRes.data
+              : weeklyRes?.data?.data || weeklyRes?.data || null;
+
+          setDailyMenu(dailyData);
+          setWeeklyMenu(weeklyData);
+        }
+      } catch (err) {
+        console.error("Lỗi khi tải dữ liệu thực đơn:", err);
+        if (isMounted) {
+          setDailyMenu(null);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchData();
+    return () => {
+      isMounted = false;
+    };
+  }, [activeCode, dateParam]);
+
+  // Chọn tuần hoặc ngày sẽ đổi ?date=, kích hoạt lại Effect tải thực đơn.
+  const handleSelectWeek = (newWeekStart) => {
+    if (newWeekStart) {
+      setSearchParams({ date: newWeekStart });
+    }
+  };
+
+  const handleSelectDate = (newDate) => {
+    if (newDate) {
+      setSearchParams({ date: newDate });
+    }
+  };
+
+  // Dữ liệu cho tiêu đề và bộ lọc tuần/ngày.
+  // Ưu tiên ngày API trả về, sau đó dùng ngày trên URL hoặc ngày hiện tại.
+  const activeDateIso = useMemo(() => {
+    if (dailyMenu?.date) return dailyMenu.date;
+    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return dateParam;
+    const now = new Date();
+    return now.toISOString().slice(0, 10);
+  }, [dailyMenu?.date, dateParam]);
+
+  const activeDateObj = useMemo(
+    () => parseIsoDate(activeDateIso),
+    [activeDateIso],
+  );
+
+  const dayOfWeekName = useMemo(
+    () => getDayOfWeekName(activeDateObj),
+    [activeDateObj],
+  );
+
+  const formattedActiveDate = useMemo(
+    () => formatDateDMY(activeDateObj),
+    [activeDateObj],
+  );
+
+  // Xác định ngày Thứ 2 đầu tuần đang xem
+  const weekStartDateIso = useMemo(() => {
+    if (dailyMenu?.weekStartDate) return dailyMenu.weekStartDate;
+    if (weeklyMenu?.weekStartDate) return weeklyMenu.weekStartDate;
+    const day = activeDateObj.getUTCDay();
+    const diff = (day === 0 ? -6 : 1) - day;
+    const monday = new Date(activeDateObj);
+    monday.setUTCDate(activeDateObj.getUTCDate() + diff);
+    return monday.toISOString().slice(0, 10);
+  }, [dailyMenu?.weekStartDate, weeklyMenu?.weekStartDate, activeDateObj]);
+
+  const weekStartDateObj = useMemo(
+    () => parseIsoDate(weekStartDateIso),
+    [weekStartDateIso],
+  );
+
+  // Danh sách các tuần thực tế từ Backend
+  const availableWeeks = useMemo(() => {
+    const list = weeklyMenu?.availableWeeks || weeklyMenu?.available_weeks || [];
+    if (Array.isArray(list) && list.length > 0) {
+      return [...list].sort((a, b) =>
+        (a.weekStartDate || "").localeCompare(b.weekStartDate || ""),
+      );
+    }
+
+    if (weekStartDateIso) {
+      return [
+        {
+          id: weekStartDateIso,
+          weekStartDate: weekStartDateIso,
+          weekRange: weeklyMenu?.weekRange || "",
+          title: "Tuần 1",
+          weekNumber: 1,
+        },
+      ];
+    }
+    return [];
+  }, [weeklyMenu, weekStartDateIso]);
+
+  // Tiêu đề tuần đang chọn (VD: "Tuần 1" hoặc "Tuần 42")
+  const currentWeekTitle = useMemo(() => {
+    const found = availableWeeks.find(
+      (w) => w.weekStartDate === weekStartDateIso,
+    );
+    if (found?.title) return found.title;
+    if (weeklyMenu?.weekNumber) return `Tuần ${weeklyMenu.weekNumber}`;
+    return "Tuần 1";
+  }, [availableWeeks, weekStartDateIso, weeklyMenu]);
+
+  // Danh sách các ngày trong tuần đang chọn (Thứ 2 - Thứ 6)
+  const daysInWeek = useMemo(() => {
+    const dayNames = [
+      "Thứ Hai",
+      "Thứ Ba",
+      "Thứ Tư",
+      "Thứ Năm",
+      "Thứ Sáu",
+    ];
+
+    const availableDaysMap = new Set();
+    if (weeklyMenu?.days) {
+      for (const d of weeklyMenu.days) {
+        if (d.dateIso) availableDaysMap.add(d.dateIso);
+      }
+    }
+
+    const result = [];
+    for (let i = 0; i < 5; i++) {
+      const cur = new Date(weekStartDateObj);
+      cur.setUTCDate(weekStartDateObj.getUTCDate() + i);
+      const iso = cur.toISOString().slice(0, 10);
+      const dd = String(cur.getUTCDate()).padStart(2, "0");
+      const mm = String(cur.getUTCMonth() + 1).padStart(2, "0");
+      const hasMenu = availableDaysMap.has(iso);
+
+      result.push({
+        date: iso,
+        dayOfWeek: dayNames[i],
+        dayOfMonth: `${dd}/${mm}`,
+        hasMenu,
+        isWeekend: false,
+      });
+    }
+
+    return result;
+  }, [weekStartDateObj, weeklyMenu?.days]);
+
+  // Chuẩn bị món theo từng bữa. Dữ liệu mẫu bổ sung chi tiết theo tên món.
+  const lunchDishes = useMemo(() => {
+    const apiLunch = dailyMenu?.lunch?.dishes;
+    if (Array.isArray(apiLunch) && apiLunch.length > 0) {
+      return apiLunch.map((d) => {
+        const resolved = resolveDishNutritionInfo(d.name, "LUNCH") || {};
+
+        const ingredientsText =
+          d.mainIngredientsText ||
+          (Array.isArray(d.ingredients) && d.ingredients.length > 0
+            ? d.ingredients.map((i) => i.name).join(", ")
+            : resolved.mainIngredientsText || "");
+
+        const normalizedPortion = formatPerServingPortion(
+          d.portion,
+          resolved.portion || "120g/suất",
+        );
+
+        return {
+          ...d,
+          portion: normalizedPortion,
+          mainIngredientsText: ingredientsText,
+          category: d.category || resolved.category || "Món ăn chính",
+          ingredients:
+            Array.isArray(d.ingredients) && d.ingredients.length > 0
+              ? d.ingredients
+              : resolved.ingredients || [],
+          alternativeDish: resolved.alternativeDish || null,
+        };
+      });
+    }
+    // Nếu API thiếu danh sách bữa trưa, hiển thị thực đơn mẫu.
+    return MOCK_NUTRITION_DAILY_MENU.lunch.dishes;
+  }, [dailyMenu]);
+
+  const snackDishes = useMemo(() => {
+    const apiSnack = dailyMenu?.snack?.dishes;
+    if (Array.isArray(apiSnack) && apiSnack.length > 0) {
+      return apiSnack.map((d) => {
+        const resolved = resolveDishNutritionInfo(d.name, "AFTERNOON") || {};
+
+        const ingredientsText =
+          d.mainIngredientsText ||
+          (Array.isArray(d.ingredients) && d.ingredients.length > 0
+            ? d.ingredients.map((i) => i.name).join(", ")
+            : resolved.mainIngredientsText || "");
+
+        const normalizedPortion = formatPerServingPortion(
+          d.portion,
+          resolved.portion || "100g/suất",
+        );
+
+        return {
+          ...d,
+          portion: normalizedPortion,
+          mainIngredientsText: ingredientsText,
+          category: d.category || resolved.category || "Bữa phụ dinh dưỡng",
+          ingredients:
+            Array.isArray(d.ingredients) && d.ingredients.length > 0
+              ? d.ingredients
+              : resolved.ingredients || [],
+          alternativeDish: resolved.alternativeDish || null,
+        };
+      });
+    }
+    // Nếu API thiếu danh sách bữa phụ, hiển thị thực đơn mẫu.
+    return MOCK_NUTRITION_DAILY_MENU.snack.dishes;
+  }, [dailyMenu]);
+
+  // Cùng một modal nhận món được bấm trong bảng, gồm cả món thay thế.
+  const handleOpenDishModal = (dish) => {
+    if (!dish) return;
+    setModalDish(dish);
+    setModalOpen(true);
+  };
+
+  const handleCloseDishModal = () => {
+    setModalOpen(false);
+    setModalDish(null);
+  };
+
+  const handleSelectMealType = (type) => {
+    setCurrentMealType(type);
+  };
+
+  const hasMenuContent = Boolean(
+    lunchDishes.length > 0 || snackDishes.length > 0,
+  );
+
+  return (
+    <div className="mealDetailPage">
+      <main className="mainContent">
+        {loading ? (
+          <div className="loadingWrapper">
+            <CircularProgress
+              size={36}
+              sx={{ color: "var(--color-primary)" }}
+            />
+            <span>Đang tải thông tin chi tiết thực đơn...</span>
+          </div>
+        ) : (
+          <>
+            {/* Tiêu đề lấy ngày và tuần đang xem */}
+            <MealDetailHeader
+              weekTitle={currentWeekTitle}
+              dayOfWeek={dayOfWeekName}
+              formattedDate={formattedActiveDate}
+            />
+
+            {/* 2. Thanh bộ lọc 3 Dropdowns: Tuần học, Ngày trong tuần, Khối */}
+            <MealDetailFilterBar
+              availableWeeks={availableWeeks}
+              selectedWeekStartDate={weekStartDateIso}
+              onSelectWeek={handleSelectWeek}
+              daysInWeek={daysInWeek}
+              selectedDate={activeDateIso}
+              onSelectDate={handleSelectDate}
+              gradeBlocks={gradeBlocks}
+              selectedBlockId={selectedBlockId}
+              onSelectBlock={setSelectedBlockId}
+            />
+
+            {/* 3. Bảng Thực Đơn Học Đường Tích Hợp (Món chính + Món thay thế dị ứng) */}
+            <section className="mealDishesSection">
+              <div className="contentContainer">
+                {!hasMenuContent ? (
+                  <div className="emptyStateCard">
+                    <div className="emptyIconBox">
+                      <UtensilsCrossed size={32} />
+                    </div>
+                    <Typography variant="h2" className="emptyTitle">
+                      Chưa có thực đơn cho {dayOfWeekName} ({formattedActiveDate})
+                    </Typography>
+                    <p className="emptyDesc">
+                      Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục
+                      vụ bán trú vào ngày này. Phụ huynh vui lòng chọn ngày khác
+                      trong danh sách thả xuống ở bộ lọc bên trên.
+                    </p>
+                    {activeCode && (
+                      <Link
+                        to={`/school/${activeCode}#thuc-don-tuan`}
+                        style={{
+                          marginTop: 12,
+                          padding: "8px 16px",
+                          borderRadius: "var(--radius-md)",
+                          backgroundColor: "var(--color-primary)",
+                          color: "var(--text-on-primary)",
+                          fontWeight: 600,
+                          fontSize: "var(--text-sm)",
+                          textDecoration: "none",
+                        }}
+                      >
+                        Xem thực đơn toàn tuần của trường
+                      </Link>
+                    )}
+                  </div>
+                ) : (
+                  <div className="tableLayoutWrapper">
+                    <MealDishesTable
+                      lunchDishes={lunchDishes}
+                      snackDishes={snackDishes}
+                      currentMealType={currentMealType}
+                      onSelectMealType={handleSelectMealType}
+                      onOpenDishModal={handleOpenDishModal}
+                    />
+                  </div>
+                )}
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+
+      {/* Chi tiết nguyên liệu của món đang chọn */}
+      <DishIngredientsModal
+        open={modalOpen}
+        onClose={handleCloseDishModal}
+        dish={modalDish}
+      />
+    </div>
+  );
+}
+
+export default MealDetail;
+
+// Hàm phụ định dạng ngày hiển thị và định lượng từng món.
 function parseIsoDate(isoStr) {
   if (!isoStr) return new Date();
   const parts = isoStr.split("-").map(Number);
@@ -73,475 +462,3 @@ function formatPerServingPortion(portionStr, defaultPortion) {
   }
   return trimmed;
 }
-
-// Tìm món ăn tương ứng theo tên để tránh lệch nguyên liệu
-function findFallbackDishByName(dishName, fallbackList) {
-  if (!dishName || !Array.isArray(fallbackList)) return null;
-  const lower = dishName.toLowerCase();
-  return (
-    fallbackList.find(
-      (f) =>
-        lower.includes(f.name.toLowerCase()) ||
-        f.name.toLowerCase().includes(lower),
-    ) || null
-  );
-}
-
-function MealDetail() {
-  const { schoolCode } = useParams();
-  const outletContext = useOutletContext() || {};
-  const school = outletContext.school || null;
-  const activeCode = (
-    outletContext.schoolCode ||
-    schoolCode ||
-    school?.code ||
-    "SCH_ANH_DUONG"
-  ).toUpperCase();
-
-  const [searchParams, setSearchParams] = useSearchParams();
-  const dateParam = searchParams.get("date") || "";
-
-  const [dailyMenu, setDailyMenu] = useState(null);
-  const [weeklyMenu, setWeeklyMenu] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  const [selectedClass, setSelectedClass] = useState("1A1");
-  const [currentMealType, setCurrentMealType] = useState("LUNCH");
-  const [selectedDishId, setSelectedDishId] = useState("");
-
-  const [traceModalOpen, setTraceModalOpen] = useState(false);
-  const [tracingIngredient, setTracingIngredient] = useState(null);
-
-  // Tải thực đơn ngày theo date query và tuần liên quan
-  useEffect(() => {
-    let isMounted = true;
-    const fetchData = async () => {
-      if (!activeCode) return;
-      setLoading(true);
-      try {
-        const [dailyRes, weeklyRes] = await Promise.all([
-          SchoolService.getDailyMealMenu(activeCode, dateParam),
-          SchoolService.getWeeklyMenu(activeCode, dateParam),
-        ]);
-
-        if (isMounted) {
-          const dailyData =
-            dailyRes?.data && !dailyRes.data.data
-              ? dailyRes.data
-              : dailyRes?.data?.data || dailyRes?.data || null;
-
-          const weeklyData =
-            weeklyRes?.data && !weeklyRes.data.data
-              ? weeklyRes.data
-              : weeklyRes?.data?.data || weeklyRes?.data || null;
-
-          setDailyMenu(dailyData);
-          setWeeklyMenu(weeklyData);
-
-          const firstDish = dailyData?.lunch?.dishes?.[0];
-          if (firstDish) {
-            setSelectedDishId(firstDish.id);
-          }
-        }
-      } catch (err) {
-        console.error("Lỗi khi tải dữ liệu thực đơn:", err);
-        if (isMounted) {
-          setDailyMenu(null);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchData();
-    return () => {
-      isMounted = false;
-    };
-  }, [activeCode, dateParam]);
-
-  // Xác định ngày đang xem thực tế
-  const activeDateIso = useMemo(() => {
-    if (dailyMenu?.date) return dailyMenu.date;
-    if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return dateParam;
-    const now = new Date();
-    return now.toISOString().slice(0, 10);
-  }, [dailyMenu?.date, dateParam]);
-
-  const activeDateObj = useMemo(
-    () => parseIsoDate(activeDateIso),
-    [activeDateIso],
-  );
-
-  // Nhãn ngày tiêu đề: "Thứ Ba, 03/11/2026"
-  const dateLabel = useMemo(() => {
-    if (dailyMenu?.dateLabel) return dailyMenu.dateLabel;
-    const dayName = getDayOfWeekName(activeDateObj);
-    const dmy = formatDateDMY(activeDateObj);
-    return `${dayName}, ${dmy}`;
-  }, [dailyMenu?.dateLabel, activeDateObj]);
-
-  // Ngày bắt đầu tuần (Thứ Hai)
-  const weekStartDateIso = useMemo(() => {
-    if (dailyMenu?.weekStartDate) return dailyMenu.weekStartDate;
-    if (weeklyMenu?.weekStartDate) return weeklyMenu.weekStartDate;
-
-    const day = activeDateObj.getUTCDay();
-    const diff = (day === 0 ? -6 : 1) - day;
-    const monday = new Date(activeDateObj);
-    monday.setUTCDate(activeDateObj.getUTCDate() + diff);
-    return monday.toISOString().slice(0, 10);
-  }, [dailyMenu?.weekStartDate, weeklyMenu?.weekStartDate, activeDateObj]);
-
-  const weekStartDateObj = useMemo(
-    () => parseIsoDate(weekStartDateIso),
-    [weekStartDateIso],
-  );
-
-  // Danh sách các tuần thực tế từ Backend
-  const availableWeeks = useMemo(() => {
-    const list = weeklyMenu?.availableWeeks || weeklyMenu?.available_weeks || [];
-    if (Array.isArray(list) && list.length > 0) {
-      return [...list].sort((a, b) =>
-        (a.weekStartDate || "").localeCompare(b.weekStartDate || "")
-      );
-    }
-
-    if (weekStartDateIso) {
-      return [
-        {
-          id: weekStartDateIso,
-          weekStartDate: weekStartDateIso,
-          weekRange: weeklyMenu?.weekRange || "",
-          title: "Tuần hiện tại",
-          weekNumber: 1,
-        },
-      ];
-    }
-    return [];
-  }, [weeklyMenu, weekStartDateIso]);
-
-  // Danh sách các ngày trong tuần đang chọn (Thứ 2 - Thứ 6)
-  const daysInWeek = useMemo(() => {
-    const dayNames = [
-      "Thứ Hai",
-      "Thứ Ba",
-      "Thứ Tư",
-      "Thứ Năm",
-      "Thứ Sáu",
-    ];
-
-    const availableDaysMap = new Set();
-    if (weeklyMenu?.days) {
-      for (const d of weeklyMenu.days) {
-        if (d.dateIso) availableDaysMap.add(d.dateIso);
-      }
-    }
-
-    const result = [];
-    for (let i = 0; i < 5; i++) {
-      const cur = new Date(weekStartDateObj);
-      cur.setUTCDate(weekStartDateObj.getUTCDate() + i);
-      const iso = cur.toISOString().slice(0, 10);
-      const dd = String(cur.getUTCDate()).padStart(2, "0");
-      const mm = String(cur.getUTCMonth() + 1).padStart(2, "0");
-      const hasMenu = availableDaysMap.has(iso);
-
-      result.push({
-        date: iso,
-        dayOfWeek: dayNames[i],
-        dayOfMonth: `${dd}/${mm}`,
-        hasMenu,
-        isWeekend: false,
-      });
-    }
-
-    return result;
-  }, [weekStartDateObj, weeklyMenu?.days]);
-
-  // Danh sách món ăn theo mealType (đồng bộ chính xác giữa món ăn, nguyên liệu và định lượng / suất)
-  const lunchDishes = useMemo(() => {
-    const apiLunch = dailyMenu?.lunch?.dishes;
-    if (Array.isArray(apiLunch) && apiLunch.length > 0) {
-      return apiLunch.map((d, index) => {
-        const fallback =
-          findFallbackDishByName(d.name, MOCK_NUTRITION_DAILY_MENU.lunch.dishes) ||
-          MOCK_NUTRITION_DAILY_MENU.lunch.dishes[index % MOCK_NUTRITION_DAILY_MENU.lunch.dishes.length] ||
-          {};
-
-        const ingredientsText =
-          d.mainIngredientsText ||
-          (Array.isArray(d.ingredients) && d.ingredients.length > 0
-            ? d.ingredients.map((i) => i.name).join(", ")
-            : fallback.mainIngredientsText || "");
-
-        const normalizedPortion = formatPerServingPortion(
-          d.portion,
-          fallback.portion || "120g/suất",
-        );
-
-        return {
-          ...d,
-          mainIngredientsText: ingredientsText,
-          portion: normalizedPortion,
-          ingredients:
-            Array.isArray(d.ingredients) && d.ingredients.length > 0
-              ? d.ingredients
-              : fallback.ingredients || [],
-        };
-      });
-    }
-    return MOCK_NUTRITION_DAILY_MENU.lunch.dishes;
-  }, [dailyMenu]);
-
-  const snackDishes = useMemo(() => {
-    const apiSnack = dailyMenu?.snack?.dishes;
-    if (Array.isArray(apiSnack) && apiSnack.length > 0) {
-      return apiSnack.map((d, index) => {
-        const fallback =
-          findFallbackDishByName(d.name, MOCK_NUTRITION_DAILY_MENU.snack.dishes) ||
-          MOCK_NUTRITION_DAILY_MENU.snack.dishes[index % MOCK_NUTRITION_DAILY_MENU.snack.dishes.length] ||
-          {};
-
-        const ingredientsText =
-          d.mainIngredientsText ||
-          (Array.isArray(d.ingredients) && d.ingredients.length > 0
-            ? d.ingredients.map((i) => i.name).join(", ")
-            : fallback.mainIngredientsText || "");
-
-        const normalizedPortion = formatPerServingPortion(
-          d.portion,
-          fallback.portion || "100g/suất",
-        );
-
-        return {
-          ...d,
-          mainIngredientsText: ingredientsText,
-          portion: normalizedPortion,
-          ingredients:
-            Array.isArray(d.ingredients) && d.ingredients.length > 0
-              ? d.ingredients
-              : fallback.ingredients || [],
-        };
-      });
-    }
-    return MOCK_NUTRITION_DAILY_MENU.snack.dishes;
-  }, [dailyMenu]);
-
-  // Món đang được chọn để hiển thị nguyên liệu
-  const currentDishes = currentMealType === "LUNCH" ? lunchDishes : snackDishes;
-  const selectedDish = useMemo(() => {
-    return (
-      currentDishes.find((d) => d.id === selectedDishId) ||
-      currentDishes[0] ||
-      null
-    );
-  }, [currentDishes, selectedDishId]);
-
-  // Xử lý đổi món
-  const handleSelectDish = (dishId) => {
-    setSelectedDishId(dishId);
-  };
-
-  // Xử lý đổi MealType (Bữa trưa / Bữa phụ)
-  const handleSelectMealType = (type) => {
-    setCurrentMealType(type);
-    const targetDishes = type === "LUNCH" ? lunchDishes : snackDishes;
-    if (targetDishes.length > 0) {
-      setSelectedDishId(targetDishes[0].id);
-    }
-  };
-
-  // Xử lý chọn tuần từ Dropdown
-  const handleSelectWeek = (newWeekStart) => {
-    if (newWeekStart) {
-      setSearchParams({ date: newWeekStart });
-    }
-  };
-
-  // Xử lý chọn ngày từ Dropdown
-  const handleSelectDate = (newDate) => {
-    if (newDate) {
-      setSearchParams({ date: newDate });
-    }
-  };
-
-  // Xử lý mở modal truy xuất nguồn gốc
-  const handleTraceIngredient = (ingredient) => {
-    setTracingIngredient(ingredient);
-    setTraceModalOpen(true);
-  };
-
-  const hasMenuContent = Boolean(
-    lunchDishes.length > 0 || snackDishes.length > 0,
-  );
-
-  return (
-    <div className="mealDetailPage">
-      <main className="mainContent">
-        {loading ? (
-          <div className="loadingWrapper">
-            <CircularProgress
-              size={36}
-              sx={{ color: "var(--color-primary)" }}
-            />
-            <span>Đang tải thông tin chi tiết thực đơn...</span>
-          </div>
-        ) : (
-          <>
-            {/* 1. Tiêu đề trang & Ngữ cảnh */}
-            <MealDetailHeader
-              school={school}
-              dateLabel={dateLabel}
-              weekStartDate={formatDateDMY(weekStartDateObj)}
-            />
-
-            {/* 2. Thanh bộ lọc 3 Dropdowns: Tuần, Ngày, Lớp học */}
-            <MealDetailFilterBar
-              availableWeeks={availableWeeks}
-              selectedWeekStartDate={weekStartDateIso}
-              onSelectWeek={handleSelectWeek}
-              daysInWeek={daysInWeek}
-              selectedDate={activeDateIso}
-              onSelectDate={handleSelectDate}
-              classes={MOCK_SCHOOL_CLASSES}
-              selectedClass={selectedClass}
-              onSelectClass={setSelectedClass}
-            />
-
-            {/* 3. Khối 2 ROW riêng biệt: Row 1 Thực đơn món ăn, Row 2 Thành phần nguyên liệu */}
-            <section className="mealDishesSection">
-              <div className="contentContainer">
-                {!hasMenuContent ? (
-                  <div className="emptyStateCard">
-                    <div className="emptyIconBox">
-                      <UtensilsCrossed size={32} />
-                    </div>
-                    <Typography variant="h2" className="emptyTitle">
-                      Chưa có thực đơn cho {dateLabel}
-                    </Typography>
-                    <p className="emptyDesc">
-                      Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục
-                      vụ bán trú vào ngày này. Phụ huynh vui lòng chọn ngày khác
-                      trong danh sách thả xuống ở bộ lọc bên trên.
-                    </p>
-                    {activeCode && (
-                      <Link
-                        to={`/school/${activeCode}#thuc-don-tuan`}
-                        style={{
-                          marginTop: 12,
-                          padding: "8px 16px",
-                          borderRadius: "var(--radius-md)",
-                          backgroundColor: "var(--color-primary)",
-                          color: "var(--text-on-primary)",
-                          fontWeight: 600,
-                          fontSize: "var(--text-sm)",
-                          textDecoration: "none",
-                        }}
-                      >
-                        Xem thực đơn toàn tuần của trường
-                      </Link>
-                    )}
-                  </div>
-                ) : (
-                  <div className="twoRowsLayout">
-                    {/* Row 1: Thực đơn bữa ăn dạng Bảng gọn gàng (Table không border) */}
-                    <div className="dishesRow">
-                      <MealDishesList
-                        lunchDishes={lunchDishes}
-                        snackDishes={snackDishes}
-                        currentMealType={currentMealType}
-                        onSelectMealType={handleSelectMealType}
-                        selectedDishId={selectedDish?.id || ""}
-                        onSelectDish={handleSelectDish}
-                      />
-                    </div>
-
-                    {/* Row 2: Thành phần nguyên liệu định lượng (Chiều rộng 100%) */}
-                    <div className="ingredientsRow">
-                      <DishIngredientsDetail
-                        selectedDish={selectedDish}
-                        onTraceIngredient={handleTraceIngredient}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            </section>
-
-            {/* 4. Khối thực đơn thay thế cho nhóm dị ứng (Tương tác click xem khẩu phần chi tiết) */}
-            <AllergyPortionSection
-              specialPortionGroups={dailyMenu?.specialPortionGroups || []}
-              onTraceIngredient={handleTraceIngredient}
-            />
-          </>
-        )}
-      </main>
-
-      {/* Modal Truy xuất nguồn gốc nguyên liệu */}
-      <Dialog
-        open={traceModalOpen}
-        onClose={() => setTraceModalOpen(false)}
-        maxWidth="sm"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: "var(--radius-xl)",
-            padding: "var(--space-2)",
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontFamily: "var(--font-sans)", fontWeight: 700 }}>
-          Hồ sơ kiểm thực & Truy xuất nguồn gốc
-        </DialogTitle>
-        <DialogContent dividers>
-          {tracingIngredient && (
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: 12,
-                  borderRadius: "var(--radius-lg)",
-                  backgroundColor: "var(--color-primary-soft)",
-                }}
-              >
-                <QrCode size={36} color="var(--color-primary)" />
-                <div>
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                    {tracingIngredient.name}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Khẩu phần: {tracingIngredient.portion} •{" "}
-                    {tracingIngredient.category}
-                  </Typography>
-                </div>
-              </div>
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <ShieldCheck size={18} color="var(--color-primary)" />
-                  <Typography variant="body2">
-                    <strong>Tình trạng lưu mẫu:</strong> Đã lưu mẫu lưu nghiệm
-                    theo quy chuẩn của Bộ Y tế
-                  </Typography>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <ShieldCheck size={18} color="var(--color-primary)" />
-                  <Typography variant="body2">
-                    <strong>Kiểm tra 3 bước:</strong> Bước 1 (Nhập liệu) • Bước
-                    2 (Chế biến) • Bước 3 (Trước ăn)
-                  </Typography>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-export default MealDetail;

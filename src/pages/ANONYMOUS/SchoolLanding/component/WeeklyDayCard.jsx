@@ -15,6 +15,7 @@ function WeeklyDayCard({ day, schoolCode }) {
   const lunchDishes = day.lunchDishes || [];
   const snackSummary = day.snackSummary || NO_DATA_TEXT;
 
+  // Truyền ngày qua URL để MealDetail mở đúng thực đơn từ thẻ tuần.
   const detailTarget = schoolCode
     ? `/school/${schoolCode}/daily-menu${day.dateIso ? `?date=${day.dateIso}` : ""}`
     : "#thuc-don-ngay";

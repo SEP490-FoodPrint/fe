@@ -1,6 +1,7 @@
 /**
- * Mock Data: Thực đơn mẫu học đường chuẩn hóa đồng bộ 100% giữa Món ăn và Nguyên liệu
- * Kế thừa cấu trúc từ src/pages/SCHOOL/MenuPlanning/dishCatalogData.js
+ * Mock Data: Thực đơn học đường chuẩn hóa
+ * Tích hợp song song Món ăn tiêu chuẩn & Món ăn thay thế cho nhóm dị ứng
+ * Cung cấp dữ liệu chi tiết nguyên liệu, định lượng và nhà cung cấp VietGAP/OCOP
  */
 
 export const MOCK_NUTRITION_DAILY_MENU = {
@@ -8,156 +9,261 @@ export const MOCK_NUTRITION_DAILY_MENU = {
     dishes: [
       {
         id: "dish-lunch-01",
-        name: "Cơm tám thơm Hải Hậu",
-        mainIngredientsText: "Gạo tám thơm Hải Hậu, nước tinh khiết",
-        portion: "150g/suất",
+        name: "Gà rim gừng",
+        portion: "95g/suất",
+        category: "Món mặn chính",
+        mainIngredientsText: "Thịt đùi gà phi lê CP, gừng tươi non, nước mắm cá cơm, hành tím",
         ingredients: [
           {
-            id: "ing-01-1",
-            name: "Gạo tám thơm Hải Hậu",
-            category: "Tinh bột & Ngũ cốc",
-            portion: "120g",
-            supplierName: "Gạo Sạch Hải Hậu (OCOP 4 sao)",
+            id: "ing-1-1",
+            name: "Thịt đùi gà phi lê sạch CP",
+            portion: "75g",
+            category: "Thịt & Gia cầm",
+            supplierName: "CP Foods Việt Nam (Chứng nhận VietGAP)",
           },
           {
-            id: "ing-01-2",
-            name: "Nước lọc tinh khiết",
-            category: "Nước uống & Chế biến",
-            portion: "180ml",
-            supplierName: "Nước sạch thành phố",
+            id: "ing-1-2",
+            name: "Gừng non tươi",
+            portion: "10g",
+            category: "Rau thơm & Gia vị",
+            supplierName: "Nông sản sạch Mộc Châu",
+          },
+          {
+            id: "ing-1-3",
+            name: "Nước mắm cá cơm truyền thống",
+            portion: "5ml",
+            category: "Gia vị tự nhiên",
+            supplierName: "Nước mắm Phú Quốc",
+          },
+          {
+            id: "ing-1-4",
+            name: "Hành tím & Tiêu sọ",
+            portion: "5g",
+            category: "Gia vị tự nhiên",
+            supplierName: "HTX Nông nghiệp sạch",
           },
         ],
+        alternativeDish: {
+          id: "alt-lunch-01",
+          name: "Thịt heo rim mật mía",
+          portion: "90g/suất",
+          allergyGroup: "Dị ứng thịt gà & gia cầm",
+          tag: "Thay món gà",
+          category: "Món mặn thay thế",
+          mainIngredientsText: "Thịt nạc thăn heo CP, mật mía Nghệ An, nước mắm truyền thống",
+          ingredients: [
+            {
+              id: "alt-ing-1-1",
+              name: "Thịt nạc thăn heo tươi CP",
+              portion: "75g",
+              category: "Thịt tươi sống",
+              supplierName: "CP Foods Việt Nam (VietGAP)",
+            },
+            {
+              id: "alt-ing-1-2",
+              name: "Mật mía Nghệ An nguyên chất",
+              portion: "8ml",
+              category: "Gia vị tự nhiên",
+              supplierName: "Nông sản sạch Nghệ An",
+            },
+            {
+              id: "alt-ing-1-3",
+              name: "Nước mắm cá cơm truyền thống",
+              portion: "5ml",
+              category: "Gia vị tự nhiên",
+              supplierName: "Nước mắm Phú Quốc",
+            },
+            {
+              id: "alt-ing-1-4",
+              name: "Hành khô & Dầu đậu nành tinh luyện",
+              portion: "2g",
+              category: "Gia vị tự nhiên",
+              supplierName: "Dầu Simply an toàn",
+            },
+          ],
+        },
       },
       {
         id: "dish-lunch-02",
-        name: "Thịt kho tàu trứng cút",
-        mainIngredientsText: "Thịt ba chỉ heo CP, trứng cút Ba Huân, nước dừa Bến Tre, tiêu Phú Quốc",
-        portion: "110g/suất",
+        name: "Canh bí đỏ hầm tôm sú",
+        portion: "180ml/suất",
+        category: "Canh dinh dưỡng",
+        mainIngredientsText: "Bí đỏ hồ lô Mộc Châu, tôm sú biển Vũng Tàu, hành hoa",
         ingredients: [
           {
-            id: "ing-02-1",
-            name: "Thịt ba chỉ heo sạch CP",
-            category: "Thịt & Gia cầm",
-            portion: "75g",
-            supplierName: "CP Foods Việt Nam (VietGAP)",
+            id: "ing-2-1",
+            name: "Bí đỏ hồ lô Mộc Châu",
+            portion: "60g",
+            category: "Rau củ quả",
+            supplierName: "Nông sản sạch Mộc Châu",
           },
           {
-            id: "ing-02-2",
-            name: "Trứng cút sạch Ba Huân",
-            category: "Trứng gia cầm",
-            portion: "25g (2 quả)",
-            supplierName: "Công ty Ba Huân (Kiểm dịch ATTP)",
-          },
-          {
-            id: "ing-02-3",
-            name: "Nước dừa tươi Bến Tre",
-            category: "Gia vị tự nhiên",
-            portion: "20ml",
-            supplierName: "Nông sản Bến Tre",
-          },
-          {
-            id: "ing-02-4",
-            name: "Gia vị kho truyền thống (nước mắm, đường mía, tiêu sọ)",
-            category: "Gia vị tự nhiên",
-            portion: "5g",
-            supplierName: "Nước mắm Phú Quốc",
-          },
-        ],
-      },
-      {
-        id: "dish-lunch-03",
-        name: "Tôm sú biển rim mặn ngọt",
-        mainIngredientsText: "Tôm sú tươi Vũng Tàu, đường mía, dầu hạt điều, tỏi Lý Sơn",
-        portion: "85g/suất",
-        ingredients: [
-          {
-            id: "ing-03-1",
-            name: "Tôm sú biển tươi Vũng Tàu",
+            id: "ing-2-2",
+            name: "Tôm sú tươi bóc nõn",
+            portion: "30g",
             category: "Thủy hải sản",
-            portion: "70g",
             supplierName: "Hải sản Sạch Vũng Tàu (Đánh bắt tự nhiên)",
           },
           {
-            id: "ing-03-2",
-            name: "Dầu hạt điều & Đường mía",
-            category: "Gia vị tự nhiên",
-            portion: "6g",
-            supplierName: "Gia vị sạch",
-          },
-          {
-            id: "ing-03-3",
-            name: "Tỏi cô đơn Lý Sơn & Tiêu",
-            category: "Gia vị thảo mộc",
-            portion: "4g",
-            supplierName: "Hợp tác xã Lý Sơn",
-          },
-        ],
-      },
-      {
-        id: "dish-lunch-04",
-        name: "Cải thìa xào nấm hương",
-        mainIngredientsText: "Cải thìa non VietGAP Nam Hà, nấm hương tươi Mộc Châu, dầu hào",
-        portion: "80g/suất",
-        ingredients: [
-          {
-            id: "ing-04-1",
-            name: "Cải thìa non VietGAP Nam Hà",
-            category: "Rau củ quả",
-            portion: "65g",
-            supplierName: "HTX Rau sạch Nam Hà (VietGAP Organic)",
-          },
-          {
-            id: "ing-04-2",
-            name: "Nấm hương tươi Mộc Châu",
-            category: "Rau củ quả",
-            portion: "15g",
-            supplierName: "Nông sản sạch Mộc Châu",
-          },
-        ],
-      },
-      {
-        id: "dish-lunch-05",
-        name: "Canh sườn hầm bí đỏ",
-        mainIngredientsText: "Sườn non heo CP, bí đỏ hồ lô Mộc Châu, hành lá, ngò rí",
-        portion: "180ml/suất",
-        ingredients: [
-          {
-            id: "ing-05-1",
-            name: "Sườn non heo sạch CP",
-            category: "Thịt & Gia cầm",
-            portion: "50g",
-            supplierName: "CP Foods Việt Nam (VietGAP)",
-          },
-          {
-            id: "ing-05-2",
-            name: "Bí đỏ hồ lô Mộc Châu",
-            category: "Rau củ quả",
-            portion: "60g",
-            supplierName: "Nông sản sạch Mộc Châu",
-          },
-          {
-            id: "ing-05-3",
-            name: "Hành lá & Ngò rí VietGAP",
-            category: "Rau thơm & Gia vị",
+            id: "ing-2-3",
+            name: "Hành hoa & Ngò rí",
             portion: "5g",
+            category: "Rau thơm & Gia vị",
             supplierName: "HTX Rau sạch Nam Hà",
           },
         ],
+        alternativeDish: {
+          id: "alt-lunch-02",
+          name: "Canh bí đỏ thịt nạc bằm CP",
+          portion: "180ml/suất",
+          allergyGroup: "Dị ứng tôm & Thủy hải sản",
+          tag: "Thay món tôm",
+          category: "Canh thay thế",
+          mainIngredientsText: "Bí đỏ hồ lô Mộc Châu, thịt nạc thăn bằm CP, hành hoa",
+          ingredients: [
+            {
+              id: "alt-ing-2-1",
+              name: "Bí đỏ hồ lô Mộc Châu",
+              portion: "60g",
+              category: "Rau củ quả",
+              supplierName: "Nông sản sạch Mộc Châu",
+            },
+            {
+              id: "alt-ing-2-2",
+              name: "Thịt nạc thăn heo bằm CP",
+              portion: "35g",
+              category: "Thịt tươi sống",
+              supplierName: "CP Foods Việt Nam (VietGAP)",
+            },
+            {
+              id: "alt-ing-2-3",
+              name: "Hành hoa & Gia vị thảo mộc",
+              portion: "5g",
+              category: "Rau thơm & Gia vị",
+              supplierName: "HTX Rau sạch Nam Hà",
+            },
+          ],
+        },
+      },
+      {
+        id: "dish-lunch-03",
+        name: "Trứng cuộn rau củ Ba Huân",
+        portion: "80g/suất",
+        category: "Món phụ giàu đạm",
+        mainIngredientsText: "Trứng gà tươi sạch Ba Huân, cà rốt Đà Lạt, bắp ngọt non",
+        ingredients: [
+          {
+            id: "ing-3-1",
+            name: "Trứng gà tươi sạch Ba Huân",
+            portion: "50g (1 quả)",
+            category: "Trứng gia cầm",
+            supplierName: "Công ty Ba Huân (Kiểm dịch ATTP)",
+          },
+          {
+            id: "ing-3-2",
+            name: "Cà rốt Đà Lạt & Bắp ngọt non",
+            portion: "30g",
+            category: "Rau củ quả",
+            supplierName: "Nông sản sạch Đà Lạt (VietGAP)",
+          },
+        ],
+        alternativeDish: {
+          id: "alt-lunch-03",
+          name: "Đậu hũ non sốt thịt nạc cà chua",
+          portion: "95g/suất",
+          allergyGroup: "Dị ứng trứng gia cầm",
+          tag: "Thay món trứng",
+          category: "Món phụ thay thế",
+          mainIngredientsText: "Đậu hũ non tươi VietGAP, thịt nạc heo bằm CP, cà chua chín",
+          ingredients: [
+            {
+              id: "alt-ing-3-1",
+              name: "Đậu hũ non sạch VietGAP",
+              portion: "60g",
+              category: "Đạm thực vật",
+              supplierName: "HTX Đậu sạch Nam Hà",
+            },
+            {
+              id: "alt-ing-3-2",
+              name: "Thịt nạc heo bằm CP",
+              portion: "25g",
+              category: "Thịt tươi sống",
+              supplierName: "CP Foods Việt Nam (VietGAP)",
+            },
+            {
+              id: "alt-ing-3-3",
+              name: "Cà chua chín tự nhiên & Hành lá",
+              portion: "10g",
+              category: "Rau củ quả",
+              supplierName: "Nông sản Đà Lạt",
+            },
+          ],
+        },
+      },
+      {
+        id: "dish-lunch-04",
+        name: "Rau cải luộc",
+        portion: "70g/suất",
+        category: "Rau xanh & Chất xơ",
+        mainIngredientsText: "Cải ngọt non VietGAP Nam Hà, muối tinh sạch",
+        ingredients: [
+          {
+            id: "ing-4-1",
+            name: "Cải ngọt non VietGAP Nam Hà",
+            portion: "70g",
+            category: "Rau củ quả",
+            supplierName: "HTX Rau sạch Nam Hà (VietGAP Organic)",
+          },
+          {
+            id: "ing-4-2",
+            name: "Muối tinh sạch",
+            portion: "1g",
+            category: "Gia vị tự nhiên",
+            supplierName: "Muối sạch Bạc Liêu",
+          },
+        ],
+        alternativeDish: null, // Dùng chung cho mọi đối tượng
+      },
+      {
+        id: "dish-lunch-05",
+        name: "Cơm trắng ST25",
+        portion: "150g/suất",
+        category: "Tinh bột & Năng lượng",
+        mainIngredientsText: "Gạo thơm ST25 Sóc Trăng, nước tinh khiết",
+        ingredients: [
+          {
+            id: "ing-5-1",
+            name: "Gạo thơm ST25 Sóc Trăng",
+            portion: "120g",
+            category: "Tinh bột & Ngũ cốc",
+            supplierName: "Gạo ST25 Sóc Trăng (OCOP 5 sao)",
+          },
+          {
+            id: "ing-5-2",
+            name: "Nước lọc tinh khiết",
+            portion: "180ml",
+            category: "Nước uống & Chế biến",
+            supplierName: "Nước sạch thành phố",
+          },
+        ],
+        alternativeDish: null, // Dùng chung cho mọi đối tượng
       },
       {
         id: "dish-lunch-06",
-        name: "Dưa hấu Long An ngọt mát",
-        mainIngredientsText: "Dưa hấu ruột đỏ Long An chín ngọt tự nhiên",
-        portion: "100g/suất",
+        name: "Cam ngọt tráng miệng",
+        portion: "120g/suất",
+        category: "Trái cây tráng miệng",
+        mainIngredientsText: "Cam sành Hàm Yên mọng nước chín ngọt tự nhiên",
         ingredients: [
           {
-            id: "ing-06-1",
-            name: "Dưa hấu đỏ Long An VietGAP",
-            category: "Trái cây tráng miệng",
-            portion: "100g",
-            supplierName: "Nông sản sạch Long An",
+            id: "ing-6-1",
+            name: "Cam sành Hàm Yên VietGAP",
+            portion: "1 quả (120g)",
+            category: "Trái cây tươi",
+            supplierName: "Nông sản Hàm Yên (Chứng nhận VietGAP)",
           },
         ],
+        alternativeDish: null, // Dùng chung cho mọi đối tượng
       },
     ],
   },
@@ -165,411 +271,173 @@ export const MOCK_NUTRITION_DAILY_MENU = {
     dishes: [
       {
         id: "dish-snack-01",
-        name: "Súp gà ngô non nấm tuyết",
-        mainIngredientsText: "Thịt ức gà tươi CP, ngô ngọt Đà Lạt, nấm tuyết, trứng gà Ba Huân",
-        portion: "180ml/suất",
+        name: "Bánh flan caramen mềm mịn",
+        portion: "1 hũ 80g/suất",
+        category: "Bữa phụ dinh dưỡng",
+        mainIngredientsText: "Trứng gà tươi Ba Huân, sữa bò tươi TH True Milk, đường caramen",
         ingredients: [
           {
             id: "ing-sn-1",
-            name: "Thịt ức gà tươi xé CP",
-            category: "Thịt & Gia cầm",
-            portion: "40g",
-            supplierName: "CP Foods Việt Nam (VietGAP)",
+            name: "Trứng gà tươi Ba Huân",
+            portion: "35g",
+            category: "Trứng gia cầm",
+            supplierName: "Công ty Ba Huân (Kiểm dịch ATTP)",
           },
           {
             id: "ing-sn-2",
-            name: "Ngô ngọt non Đà Lạt",
-            category: "Rau củ quả",
-            portion: "30g",
-            supplierName: "Nông sản Đà Lạt",
-          },
-          {
-            id: "ing-sn-3",
-            name: "Nấm tuyết & Nấm hương tươi",
-            category: "Rau củ quả",
-            portion: "20g",
-            supplierName: "Nông sản sạch Mộc Châu",
-          },
-          {
-            id: "ing-sn-4",
-            name: "Trứng gà tươi Ba Huân",
-            category: "Trứng gia cầm",
-            portion: "15g",
-            supplierName: "Công ty Ba Huân (Kiểm dịch ATTP)",
-          },
-        ],
-      },
-      {
-        id: "dish-snack-02",
-        name: "Sữa chua tự nhiên TH True Milk",
-        mainIngredientsText: "Sữa bò tươi nguyên chất lên men tự nhiên, bổ sung Canxi & Vitamin D3",
-        portion: "1 hộp 100g/suất",
-        ingredients: [
-          {
-            id: "ing-sn-5",
-            name: "Sữa bò tươi nguyên chất TH True Milk",
-            category: "Sữa & Chế phẩm sữa",
-            portion: "100g",
-            supplierName: "Công ty CP Chuỗi Thực Phẩm TH (Chuẩn Organic)",
-          },
-        ],
-      },
-      {
-        id: "dish-snack-03",
-        name: "Bánh flan caramen mềm mịn",
-        mainIngredientsText: "Trứng gà Ba Huân, sữa đặc có đường, sữa tươi, đường caramen",
-        portion: "1 hũ 80g/suất",
-        ingredients: [
-          {
-            id: "ing-sn-6",
-            name: "Trứng gà tươi Ba Huân",
-            category: "Trứng gia cầm",
-            portion: "35g",
-            supplierName: "Công ty Ba Huân (Kiểm dịch ATTP)",
-          },
-          {
-            id: "ing-sn-7",
-            name: "Sữa tươi & Sữa đặc cao cấp",
-            category: "Sữa & Chế phẩm sữa",
+            name: "Sữa bò tươi TH True Milk",
             portion: "40ml",
+            category: "Sữa & Chế phẩm sữa",
             supplierName: "Công ty CP Chuỗi Thực Phẩm TH",
           },
           {
-            id: "ing-sn-8",
+            id: "ing-sn-3",
             name: "Đường mía nấu caramen",
-            category: "Gia vị tự nhiên",
             portion: "5g",
+            category: "Gia vị tự nhiên",
             supplierName: "Đường Biên Hòa",
           },
         ],
+        alternativeDish: {
+          id: "alt-snack-01",
+          name: "Chè hạt sen long nhãn Huế",
+          portion: "150ml/suất",
+          allergyGroup: "Dị ứng trứng & Sữa bò",
+          tag: "Thay bánh flan",
+          category: "Món phụ thay thế",
+          mainIngredientsText: "Hạt sen tươi Huế, long nhãn Hưng Yên, đường phèn",
+          ingredients: [
+            {
+              id: "alt-sn-1",
+              name: "Hạt sen tươi Huế",
+              portion: "35g",
+              category: "Hạt & Nông sản khô",
+              supplierName: "Đặc sản Huế",
+            },
+            {
+              id: "alt-sn-2",
+              name: "Long nhãn Hưng Yên",
+              portion: "25g",
+              category: "Nông sản",
+              supplierName: "Nông sản Hưng Yên",
+            },
+            {
+              id: "alt-sn-3",
+              name: "Đường phèn tự nhiên",
+              portion: "10g",
+              category: "Gia vị tự nhiên",
+              supplierName: "Đường Biên Hòa",
+            },
+          ],
+        },
+      },
+      {
+        id: "dish-snack-02",
+        name: "Sữa tươi tiệt trùng TH True Milk",
+        portion: "1 hộp 180ml/suất",
+        category: "Sữa dinh dưỡng học đường",
+        mainIngredientsText: "Sữa bò tươi nguyên chất 100% bổ sung Canxi & Vitamin D3",
+        ingredients: [
+          {
+            id: "ing-sn-4",
+            name: "Sữa bò tươi nguyên chất TH True Milk",
+            portion: "180ml",
+            category: "Sữa & Chế phẩm sữa",
+            supplierName: "Công ty CP Chuỗi Thực Phẩm TH (Chuẩn Organic)",
+          },
+        ],
+        alternativeDish: {
+          id: "alt-snack-02",
+          name: "Sữa hạt đậu nành hữu cơ Vinasoy",
+          portion: "1 hộp 180ml/suất",
+          allergyGroup: "Dị ứng đạm sữa bò (Lactose)",
+          tag: "Thay thế sữa bò",
+          category: "Sữa hạt thay thế",
+          mainIngredientsText: "100% hạt đậu nành hữu cơ chọn lọc, không chứa lactose sữa bò",
+          ingredients: [
+            {
+              id: "alt-sn-5",
+              name: "Hạt đậu nành hữu cơ nguyên chất",
+              portion: "160ml",
+              category: "Sữa hạt thực vật",
+              supplierName: "Công ty Sữa Đậu Nành Vinasoy",
+            },
+            {
+              id: "alt-sn-6",
+              name: "Đường mía tự nhiên & Nước tinh khiết",
+              portion: "20ml",
+              category: "Nước & Gia vị",
+              supplierName: "Vinasoy",
+            },
+          ],
+        },
       },
     ],
   },
 };
 
 /**
- * Mock Data: Nhóm Dị Ứng Học Đường Đồng Bộ Tuyệt Đối
+ * Hàm semantic matcher: Khớp món ăn từ API với từ điển dinh dưỡng và cặp món dị ứng thay thế
+ * Tuyệt đối không fallback theo số thứ tự mảng (index modulo)
  */
-export const MOCK_ALLERGY_GROUPS_INTERACTIVE = [
-  {
-    id: "poultry",
-    name: "Dị ứng thịt gà & Gia cầm (Đang áp dụng thực đơn thay thế)",
-    shortName: "Dị ứng thịt gà & Gia cầm",
-    dishes: [
+export function resolveDishNutritionInfo(dishName, mealType = "LUNCH") {
+  if (!dishName || typeof dishName !== "string") {
+    return null;
+  }
+  const cleanName = dishName.trim().toLowerCase();
+  const pool =
+    mealType === "AFTERNOON" || mealType === "SNACK"
+      ? MOCK_NUTRITION_DAILY_MENU.snack.dishes
+      : MOCK_NUTRITION_DAILY_MENU.lunch.dishes;
+
+  // 1. Khớp chính xác tên
+  const exact = pool.find(
+    (d) => d.name.toLowerCase() === cleanName || cleanName.includes(d.name.toLowerCase())
+  );
+  if (exact) return exact;
+
+  // 2. Nhận diện từ khóa thông minh
+  if (cleanName.includes("gà") || cleanName.includes("ga")) {
+    return pool.find((d) => d.id === "dish-lunch-01") || pool[0];
+  }
+  if (cleanName.includes("canh") || cleanName.includes("bí đỏ")) {
+    return pool.find((d) => d.id === "dish-lunch-02") || pool[1];
+  }
+  if (cleanName.includes("trứng") || cleanName.includes("trung")) {
+    return pool.find((d) => d.id === "dish-lunch-03") || pool[2];
+  }
+  if (cleanName.includes("cải") || cleanName.includes("rau") || cleanName.includes("luộc")) {
+    return pool.find((d) => d.id === "dish-lunch-04") || pool[3];
+  }
+  if (cleanName.includes("cơm") || cleanName.includes("gạo") || cleanName.includes("st25")) {
+    return pool.find((d) => d.id === "dish-lunch-05") || pool[4];
+  }
+  if (cleanName.includes("cam") || cleanName.includes("trái cây") || cleanName.includes("tráng miệng")) {
+    return pool.find((d) => d.id === "dish-lunch-06") || pool[5];
+  }
+  if (cleanName.includes("flan") || cleanName.includes("bánh")) {
+    return MOCK_NUTRITION_DAILY_MENU.snack.dishes[0];
+  }
+  if (cleanName.includes("sữa") || cleanName.includes("sua")) {
+    return MOCK_NUTRITION_DAILY_MENU.snack.dishes[1];
+  }
+
+  // 3. Fallback an toàn tự sinh theo chính tên món (không tráo món khác)
+  return {
+    id: `dish-custom-${cleanName.replace(/\s+/g, "-")}`,
+    name: dishName,
+    portion: mealType === "AFTERNOON" ? "100g/suất" : "120g/suất",
+    category: "Món ăn học đường",
+    mainIngredientsText: "Nguyên liệu kiểm thực tươi sạch theo chuẩn an toàn thực phẩm học đường",
+    ingredients: [
       {
-        id: "all-dish-p1",
-        name: "Thịt heo rim mật mía",
-        portion: "90g/suất",
-        tag: "Thay món gà",
-        mainIngredientsText: "Thịt nạc thăn heo CP, mật mía Nghệ An, nước mắm",
-        ingredients: [
-          {
-            id: "all-ing-p1-1",
-            name: "Thịt nạc thăn heo tươi CP",
-            portion: "75g",
-            category: "Thịt tươi sống (Chứng nhận VietGAP)",
-            supplierName: "CP Foods Việt Nam",
-            note: "Kiểm nghiệm âm tính dị nguyên gia cầm",
-          },
-          {
-            id: "all-ing-p1-2",
-            name: "Mật mía Nghệ An nguyên chất",
-            portion: "8ml",
-            category: "Gia vị tự nhiên",
-            supplierName: "Nông sản sạch Nghệ An",
-            note: "100% tự nhiên không phụ gia",
-          },
-          {
-            id: "all-ing-p1-3",
-            name: "Nước mắm cá cơm truyền thống",
-            portion: "5ml",
-            category: "Gia vị tự nhiên",
-            supplierName: "Nước mắm Phú Quốc",
-            note: "Ủ chượp tự nhiên",
-          },
-        ],
-      },
-      {
-        id: "all-dish-p2",
-        name: "Cơm tám thơm Hải Hậu",
-        portion: "150g/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Gạo tám thơm Hải Hậu, nước tinh khiết",
-        ingredients: [
-          {
-            id: "all-ing-p2-1",
-            name: "Gạo tám thơm Hải Hậu OCOP 4 sao",
-            portion: "120g",
-            category: "Tinh bột & Ngũ cốc",
-            supplierName: "Gạo Sạch Hải Hậu",
-            note: "Nấu tại nồi cơm độc lập",
-          },
-        ],
-      },
-      {
-        id: "all-dish-p3",
-        name: "Canh sườn hầm bí đỏ",
-        portion: "180ml/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Sườn non heo CP, bí đỏ hồ lô, hành ngò",
-        ingredients: [
-          {
-            id: "all-ing-p3-1",
-            name: "Sườn non heo sạch CP",
-            portion: "50g",
-            category: "Thịt tươi sống",
-            supplierName: "CP Foods Việt Nam",
-            note: "Nấu nước hầm xương heo, không dùng nước dùng gà",
-          },
-          {
-            id: "all-ing-p3-2",
-            name: "Bí đỏ hồ lô Mộc Châu",
-            portion: "60g",
-            category: "Rau củ quả",
-            supplierName: "Nông sản Mộc Châu",
-            note: "Chuẩn VietGAP",
-          },
-        ],
-      },
-      {
-        id: "all-dish-p4",
-        name: "Dưa hấu Long An ngọt mát",
-        portion: "100g/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Dưa hấu ruột đỏ Long An chín tự nhiên",
-        ingredients: [
-          {
-            id: "all-ing-p4-1",
-            name: "Dưa hấu Long An VietGAP",
-            portion: "100g",
-            category: "Trái cây tươi",
-            supplierName: "Nông sản Long An",
-            note: "Gọt bằng dao và thớt sạch kháng khuẩn riêng biệt",
-          },
-        ],
+        id: `ing-custom-${cleanName}`,
+        name: dishName,
+        portion: "100g",
+        category: "Món ăn chính",
+        supplierName: "Nhà cung cấp thực phẩm học đường VietGAP",
       },
     ],
-  },
-  {
-    id: "seafood",
-    name: "Dị ứng hải sản & Giáp xác (Tôm, Cua, Mực)",
-    shortName: "Dị ứng hải sản & Giáp xác",
-    dishes: [
-      {
-        id: "all-dish-s1",
-        name: "Thịt bò Úc xào rau củ",
-        portion: "95g/suất",
-        tag: "Thay tôm/hải sản",
-        mainIngredientsText: "Thịt bò nạc Vissan, cà rốt Đà Lạt, cần tây, tỏi Lý Sơn",
-        ingredients: [
-          {
-            id: "all-ing-s1-1",
-            name: "Thịt bò nạc mềm Vissan",
-            portion: "75g",
-            category: "Thịt tươi sống (ISO 22000)",
-            supplierName: "Thực phẩm Vissan",
-            note: "Kiểm tra âm tính dị nguyên tôm cua giáp xác",
-          },
-          {
-            id: "all-ing-s1-2",
-            name: "Cà rốt & Cần tây hữu cơ Đà Lạt",
-            portion: "40g",
-            category: "Rau củ quả",
-            supplierName: "HTX Rau sạch Nam Hà",
-            note: "Chuẩn VietGAP Organic",
-          },
-        ],
-      },
-      {
-        id: "all-dish-s2",
-        name: "Cơm tám thơm Hải Hậu",
-        portion: "150g/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Gạo sạch hữu cơ Hải Hậu",
-        ingredients: [
-          {
-            id: "all-ing-s2-1",
-            name: "Gạo sạch hữu cơ Hải Hậu",
-            portion: "120g",
-            category: "Tinh bột & Ngũ cốc",
-            supplierName: "Gạo Sạch Hải Hậu",
-            note: "Line chế biến tinh bột an toàn",
-          },
-        ],
-      },
-      {
-        id: "all-dish-s3",
-        name: "Canh sườn hầm bí xanh",
-        portion: "180ml/suất",
-        tag: "Thay canh ngao/cua",
-        mainIngredientsText: "Sườn non heo CP, bí xanh non Nam Hà, hành hoa",
-        ingredients: [
-          {
-            id: "all-ing-s3-1",
-            name: "Sườn non heo sạch CP",
-            portion: "50g",
-            category: "Thịt tươi sống",
-            supplierName: "CP Foods Việt Nam",
-            note: "Nấu nước hầm xương heo, không dùng cốt tôm ngao",
-          },
-          {
-            id: "all-ing-s3-2",
-            name: "Bí xanh non VietGAP",
-            portion: "60g",
-            category: "Rau củ quả",
-            supplierName: "HTX Rau sạch Nam Hà",
-            note: "Kiểm thực 3 bước ATTP",
-          },
-        ],
-      },
-      {
-        id: "all-dish-s4",
-        name: "Chuối tiêu Nam Định tráng miệng",
-        portion: "100g/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Chuối tiêu quả chín tự nhiên ngọt thanh",
-        ingredients: [
-          {
-            id: "all-ing-s4-1",
-            name: "Chuối tiêu chín tự nhiên",
-            portion: "100g",
-            category: "Trái cây tươi",
-            supplierName: "Nông sản Nam Định",
-            note: "Chín cây tự nhiên không ủ hóa chất",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "egg-milk",
-    name: "Dị ứng trứng & Sữa bò",
-    shortName: "Dị ứng trứng & Sữa bò",
-    dishes: [
-      {
-        id: "all-dish-e1",
-        name: "Đậu hũ non sốt thịt nạc cà chua",
-        portion: "110g/suất",
-        tag: "Thay món trứng",
-        mainIngredientsText: "Đậu hũ non hữu cơ, thịt nạc vai heo CP, cà chua Đà Lạt",
-        ingredients: [
-          {
-            id: "all-ing-e1-1",
-            name: "Đậu hũ non sạch hữu cơ",
-            portion: "50g",
-            category: "Đậu đỗ & Đạm thực vật",
-            supplierName: "Công ty Ba Huân",
-            note: "100% đậu nành không biến đổi gen, không dùng trứng",
-          },
-          {
-            id: "all-ing-e1-2",
-            name: "Thịt nạc vai heo sạch CP",
-            portion: "50g",
-            category: "Thịt tươi sống",
-            supplierName: "CP Foods Việt Nam",
-            note: "Không tẩm ướp phụ gia chứa sữa/bơ",
-          },
-          {
-            id: "all-ing-e1-3",
-            name: "Cà chua tươi Đà Lạt",
-            portion: "25g",
-            category: "Rau củ quả",
-            supplierName: "Nông sản Đà Lạt",
-            note: "Sốt cà chua tự nhiên",
-          },
-        ],
-      },
-      {
-        id: "all-dish-e2",
-        name: "Cơm tám thơm Hải Hậu",
-        portion: "150g/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Gạo sạch hữu cơ Hải Hậu",
-        ingredients: [
-          {
-            id: "all-ing-e2-1",
-            name: "Gạo tám thơm Hải Hậu",
-            portion: "120g",
-            category: "Tinh bột & Ngũ cốc",
-            supplierName: "Gạo Sạch Hải Hậu",
-            note: "An toàn tuyệt đối",
-          },
-        ],
-      },
-      {
-        id: "all-dish-e3",
-        name: "Chè hạt sen long nhãn",
-        portion: "150ml/suất",
-        tag: "Thay sữa chua/sữa bò",
-        mainIngredientsText: "Hạt sen tươi Huế, long nhãn Hưng Yên, đường phèn",
-        ingredients: [
-          {
-            id: "all-ing-e3-1",
-            name: "Hạt sen tươi Huế",
-            portion: "35g",
-            category: "Hạt & Nông sản khô",
-            supplierName: "Đặc sản Huế",
-            note: "Thay thế món sữa/bánh kem tráng miệng",
-          },
-          {
-            id: "all-ing-e3-2",
-            name: "Long nhãn Hưng Yên & Đường phèn",
-            portion: "25g",
-            category: "Gia vị tự nhiên",
-            supplierName: "Nông sản Hưng Yên",
-            note: "Ngọt thanh tự nhiên",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    id: "peanut-nuts",
-    name: "Dị ứng đậu phộng & Các loại hạt",
-    shortName: "Dị ứng đậu phộng & Hạt",
-    dishes: [
-      {
-        id: "all-dish-n1",
-        name: "Thịt thăn áp chảo dầu đậu nành",
-        portion: "90g/suất",
-        tag: "Không dùng dầu lạc",
-        mainIngredientsText: "Thịt thăn heo CP, mật ong rừng, dầu đậu nành tinh luyện 100%",
-        ingredients: [
-          {
-            id: "all-ing-n1-1",
-            name: "Thịt thăn heo sạch CP",
-            portion: "75g",
-            category: "Thịt tươi sống",
-            supplierName: "CP Foods Việt Nam",
-            note: "Line bếp độc lập không có hạt lạc/hạt điều",
-          },
-          {
-            id: "all-ing-n1-2",
-            name: "Dầu đậu nành Simply tinh luyện 100%",
-            portion: "8ml",
-            category: "Dầu thực vật an toàn",
-            supplierName: "Công ty Dầu thực vật",
-            note: "Chứng nhận không nhiễm chéo dầu lạc",
-          },
-        ],
-      },
-      {
-        id: "all-dish-n2",
-        name: "Cơm trắng dẻo & Canh sườn bí đỏ",
-        portion: "330g/suất",
-        tag: "Món an toàn",
-        mainIngredientsText: "Gạo tám thơm, sườn non heo CP, bí đỏ hồ lô",
-        ingredients: [
-          {
-            id: "all-ing-n2-1",
-            name: "Gạo sạch Hải Hậu & Sườn non CP",
-            portion: "170g",
-            category: "Ngũ cốc & Thịt tươi",
-            supplierName: "CP Foods & Gạo Hải Hậu",
-            note: "Quy trình kiểm định 3 bước ATTP",
-          },
-        ],
-      },
-    ],
-  },
-];
+    alternativeDish: null,
+  };
+}

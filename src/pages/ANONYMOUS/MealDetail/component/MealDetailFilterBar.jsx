@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import {
   Calendar,
   CalendarDays,
-  GraduationCap,
+  Layers,
 } from "lucide-react";
 import {
   FormControl,
@@ -21,21 +21,24 @@ function MealDetailFilterBar({
   daysInWeek,
   selectedDate,
   onSelectDate,
-  classes,
-  selectedClass,
-  onSelectClass,
+  gradeBlocks,
+  selectedBlockId,
+  onSelectBlock,
 }) {
+  // Page quản lý lựa chọn. Thanh lọc chỉ gửi giá trị từ từng dropdown qua callback.
+  const hasBlocks = Array.isArray(gradeBlocks) && gradeBlocks.length > 0;
+
   return (
     <section className={styles.filterSection}>
       <div className={styles.filterContainer}>
         {/* Nhãn thanh công cụ */}
         <div className={styles.filterTitleArea}>
           <Typography variant="subtitle2" className={styles.filterLabel}>
-            Bộ lọc thực đơn & Lớp học:
+            Bộ lọc thực đơn học đường:
           </Typography>
         </div>
 
-        {/* Cụm 3 Dropdowns */}
+        {/* Cụm 3 Dropdowns: Tuần học, Ngày trong tuần, Khối */}
         <div className={styles.dropdownsGroup}>
           {/* Dropdown 1: Chọn Tuần */}
           <div className={styles.filterItem}>
@@ -125,30 +128,40 @@ function MealDetailFilterBar({
             </FormControl>
           </div>
 
-          {/* Dropdown 3: Chọn Lớp học */}
+          {/* Chọn khối từ danh sách do page cung cấp */}
           <div className={styles.filterItem}>
-            <span className={styles.itemLabel}>Lớp học</span>
+            <span className={styles.itemLabel}>Khối</span>
             <FormControl size="small" className={styles.formControl}>
               <Select
-                id="class-select"
-                value={selectedClass || ""}
-                onChange={(e) => onSelectClass && onSelectClass(e.target.value)}
+                id="block-select"
+                value={hasBlocks ? selectedBlockId || "" : ""}
+                onChange={(e) => onSelectBlock && onSelectBlock(e.target.value)}
                 displayEmpty
+                disabled={!hasBlocks}
                 className={styles.muiSelect}
                 startAdornment={
                   <InputAdornment position="start" className={styles.adornment}>
-                    <GraduationCap size={16} />
+                    <Layers size={16} />
                   </InputAdornment>
                 }
                 MenuProps={{
                   PaperProps: { className: styles.dropdownPaper },
                 }}
               >
-                {classes.map((c) => (
-                  <MenuItem key={c.id} value={c.id} className={styles.menuItem}>
-                    {c.name}
+                {!hasBlocks ? (
+                  <MenuItem value="" disabled className={styles.emptyItem}>
+                    Không có khối nào
                   </MenuItem>
-                ))}
+                ) : (
+                  gradeBlocks.map((b) => (
+                    <MenuItem key={b.id} value={b.id} className={styles.menuItem}>
+                      <span className={styles.blockTitle}>{b.name}</span>
+                      {b.description && (
+                        <span className={styles.blockDesc}>({b.description})</span>
+                      )}
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
           </div>
@@ -181,14 +194,16 @@ MealDetailFilterBar.propTypes = {
   ),
   selectedDate: PropTypes.string,
   onSelectDate: PropTypes.func.isRequired,
-  classes: PropTypes.arrayOf(
+  gradeBlocks: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       name: PropTypes.string.isRequired,
+      description: PropTypes.string,
+      isDefault: PropTypes.bool,
     }),
   ),
-  selectedClass: PropTypes.string,
-  onSelectClass: PropTypes.func.isRequired,
+  selectedBlockId: PropTypes.string,
+  onSelectBlock: PropTypes.func.isRequired,
 };
 
 MealDetailFilterBar.defaultProps = {
@@ -196,8 +211,8 @@ MealDetailFilterBar.defaultProps = {
   selectedWeekStartDate: "",
   daysInWeek: [],
   selectedDate: "",
-  classes: [],
-  selectedClass: "1A1",
+  gradeBlocks: [],
+  selectedBlockId: "BLOCK_1_3",
 };
 
 export default MealDetailFilterBar;

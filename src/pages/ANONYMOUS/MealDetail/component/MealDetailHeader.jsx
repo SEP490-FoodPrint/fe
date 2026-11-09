@@ -1,38 +1,26 @@
-import React from "react";
+import React, { useMemo } from "react";
 import PropTypes from "prop-types";
-import { Calendar, School } from "lucide-react";
 import { Typography } from "@mui/material";
 import styles from "./MealDetailHeader.module.scss";
 
-function MealDetailHeader({ school, dateLabel, weekStartDate }) {
-  const schoolName = school?.name || "Trường học";
+function MealDetailHeader({ weekTitle, dayOfWeek, formattedDate }) {
+  // Ghép thông tin đã được page xác định để hiển thị tiêu đề.
+  const displayTitle = useMemo(() => {
+    const parts = [];
+    if (weekTitle) parts.push(weekTitle);
+    if (dayOfWeek) parts.push(dayOfWeek);
+    const prefix = parts.length > 0 ? parts.join(" - ") : "";
+    const dateStr = formattedDate ? ` (${formattedDate})` : "";
+    return `Chi tiết thực đơn ${prefix ? `${prefix}${dateStr}` : "ngày"}`;
+  }, [weekTitle, dayOfWeek, formattedDate]);
 
   return (
     <section className={styles.headerWrapper}>
       <div className={styles.innerContainer}>
-        {/* Title and Meta */}
         <div className={styles.titleRow}>
-          <div className={styles.titleArea}>
-            <div className={styles.schoolTag}>
-              <School size={16} />
-              <span>{schoolName}</span>
-            </div>
-            <Typography variant="h1" className={styles.mainTitle}>
-              Chi tiết thực đơn ngày
-            </Typography>
-            <div className={styles.metaRow}>
-              <span className={styles.dateHighlight}>{dateLabel}</span>
-              {weekStartDate && (
-                <>
-                  <span className={styles.dividerDot}>•</span>
-                  <div className={styles.weekBadge}>
-                    <Calendar size={14} />
-                    <span>Tuần bắt đầu: {weekStartDate}</span>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          <Typography variant="h1" className={styles.mainTitle}>
+            {displayTitle}
+          </Typography>
         </div>
       </div>
     </section>
@@ -40,18 +28,15 @@ function MealDetailHeader({ school, dateLabel, weekStartDate }) {
 }
 
 MealDetailHeader.propTypes = {
-  school: PropTypes.shape({
-    name: PropTypes.string,
-    code: PropTypes.string,
-  }),
-  dateLabel: PropTypes.string,
-  weekStartDate: PropTypes.string,
+  weekTitle: PropTypes.string,
+  dayOfWeek: PropTypes.string,
+  formattedDate: PropTypes.string,
 };
 
 MealDetailHeader.defaultProps = {
-  school: null,
-  dateLabel: "Hôm nay",
-  weekStartDate: "",
+  weekTitle: "",
+  dayOfWeek: "",
+  formattedDate: "",
 };
 
 export default MealDetailHeader;

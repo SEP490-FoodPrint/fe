@@ -2,6 +2,7 @@ import React from "react";
 import { Eye, ShieldCheck, Utensils } from "lucide-react";
 import styles from "./QuickStatsStrip.module.scss";
 
+// Các giá trị giới thiệu dùng chung cho mọi trường, độc lập với dữ liệu tải từ API.
 const HIGHLIGHT_ITEMS = [
   {
     id: "nutrition",
