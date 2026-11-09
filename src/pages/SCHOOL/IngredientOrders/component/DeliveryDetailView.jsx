@@ -126,15 +126,6 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           </Box>
         </Box>
 
-        <Box className={styles.navRight}>
-          <Button
-            variant="outlined"
-            startIcon={<Printer size={16} />}
-            className={styles.printBtn}
-          >
-            In biên bản nghiệm thu
-          </Button>
-        </Box>
       </Box>
 
       {/* 2. Cảnh báo Từ chối / Hủy đơn theo quy tắc nghiệm thu */}
