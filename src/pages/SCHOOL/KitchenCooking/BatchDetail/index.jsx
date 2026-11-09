@@ -90,9 +90,7 @@ export default function KitchenBatchDetail() {
   const handleCompleteBatch = async () => {
     setActionLoading(true)
     try {
-      await KitchenService.completeBatch(id, {
-        preparedPortions: batchData?.portions || 0,
-      })
+      await KitchenService.completeBatch(id)
       notice({
         msg: "Ghi nhận nấu xong thành công!",
         isSuccess: true,

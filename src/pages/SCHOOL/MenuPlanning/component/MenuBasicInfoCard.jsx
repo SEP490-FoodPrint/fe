@@ -1,9 +1,6 @@
-import React, { useContext, useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { TextField } from "@mui/material";
 import styles from "./MenuBasicInfoCard.module.scss";
-import { StoreContext } from "src/contexts";
-import STORAGE, { getStorage } from "src/lib/storage";
-import SchoolService from "src/services/SchoolService";
 import MenuService from "src/services/MenuService";
 import {
   getSchoolWeekScheduleFromDate,
@@ -16,9 +13,6 @@ export default function MenuBasicInfoCard({
   onChangeField,
   readOnly = false,
 }) {
-  const store = useContext(StoreContext);
-  const user = store?.userStore?.user || getStorage(STORAGE.USER_INFO) || {};
-  const schoolId = user.schoolId || user.orgId;
   const [mealTimes, setMealTimes] = useState({ lunch: null, afternoon: null });
   const [weekSchedule, setWeekSchedule] = useState(null);
   const [loadingSchedule, setLoadingSchedule] = useState(false);
@@ -28,15 +22,9 @@ export default function MenuBasicInfoCard({
   // Tải cấu hình giờ ăn từ trường
   useEffect(() => {
     let active = true;
-    if (!schoolId)
-      return () => {
-        active = false;
-      };
-
-    SchoolService.getSchoolDetailById(schoolId)
-      .then((response) => {
+    MenuService.getContext()
+      .then((school) => {
         if (!active) return;
-        const school = response?.data;
         setMealTimes({
           lunch: school?.lunchTime || school?.lunch_time || null,
           afternoon:
@@ -50,7 +38,7 @@ export default function MenuBasicInfoCard({
     return () => {
       active = false;
     };
-  }, [schoolId]);
+  }, []);
 
   const formatTime = (value) => (value ? String(value).slice(0, 5) : null);
   const lunchTime = formatTime(mealTimes.lunch);
@@ -84,6 +72,7 @@ export default function MenuBasicInfoCard({
     if (!weekStartDate) return;
 
     setLoadingSchedule(true);
+    setWeekSchedule(null);
     MenuService.getWeekSchedule(weekStartDate)
       .then((res) => {
         if (!active) return;
@@ -145,7 +134,7 @@ export default function MenuBasicInfoCard({
         formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa";
       onChangeField(
         "name",
-        `Thực đơn ${newWeekInfo.dayIndexLabel || "T2"} (Tuần ${newWeekInfo.weekNumber}) - ${mealName}`,
+        `Thực đơn ${newWeekInfo.dayIndexLabel || "T2"} (${formatted}) - ${mealName}`,
       );
     }
   };
@@ -176,7 +165,7 @@ export default function MenuBasicInfoCard({
         formState.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa";
       onChangeField(
         "name",
-        `Thực đơn ${day.dayIndexLabel} (Tuần ${weekInfo.weekNumber}) - ${mealName}`,
+        `Thực đơn ${day.dayIndexLabel} (${day.dateVN}) - ${mealName}`,
       );
     }
   };
@@ -337,7 +326,7 @@ export default function MenuBasicInfoCard({
                       date_range
                     </span>
                     <span className={styles.weekRangeText}>
-                      Tuần {weekInfo.weekNumber} • {weekRange}
+                      {weekSchedule?.weekLabel ? `${weekSchedule.weekLabel} • ` : ""}{weekRange}
                     </span>
                   </div>
 

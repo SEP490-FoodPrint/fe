@@ -14,7 +14,9 @@ import {
   adaptWeeklyMenuToCardList,
   adaptBackendMenuDetailToView,
   adaptFormToBackendWrite,
-  getSchoolWeekScheduleFromDate,
+  mergeMenuMealWrite,
+  menuWeekMeals,
+  SCHOOL_DAY_LABELS,
   parseDateVNToISO,
 } from "./adapter";
 
@@ -43,21 +45,47 @@ export const invalidateMenuListCache = () => {
  * Gọi 100% API thực từ Backend, không dùng Mock Data fallback.
  */
 const MenuService = {
+  getContext: async () => {
+    const response = await http.get(`${apiMenus}/context`, { notifyOnError: false });
+    if (!response?.data?.id) throw new Error("Không tải được cấu hình trường.");
+    return response.data;
+  },
+  getMealRequirements: async (menuDayId, mealType) => {
+    const response = await http.get(`${apiMenus}/days/${menuDayId}/meals/${mealType}/requirements`, { notifyOnError: false });
+    if (!response?.data) throw new Error("Không tải được nhu cầu suất ăn đã chốt.");
+    return response.data;
+  },
   invalidateMenuCache: () => {
     invalidateWeekScheduleCache();
     invalidateMenuListCache();
+  },
+
+  getAcademicCalendar: async () => {
+    const response = await http.get(`${apiMenus}/academic-calendar`, {
+      notifyOnError: false,
+    });
+    if (!Array.isArray(response?.data?.academicYears)) {
+      throw new Error("Không tải được cấu hình năm học từ hệ thống.");
+    }
+    return response.data;
   },
 
   /**
    * Lấy danh sách thực đơn tuần từ Backend API
    */
   getMenus: async (params = {}) => {
+    const identity = getStorage(STORAGE.USER_INFO);
+    const status = params.status === "REVISION_REQUESTED" ? "REVISION_REQUIRED" : params.status;
     const cacheKey = JSON.stringify({
+      userId: identity?.id || identity?._id || "",
+      schoolId: identity?.schoolId || identity?.orgId || "",
       status:
-        params.status && params.status !== "all"
-          ? params.status
+        status && status !== "all"
+          ? status
           : "all",
       weekStartDate: params.weekStartDate || "all",
+      date: params.date || "",
+      search: params.search?.trim() || "",
       page: params.page || 1,
       limit: params.limit || 50,
       gen: menuListGeneration,
@@ -79,10 +107,12 @@ const MenuService = {
             limit: params.limit || 50,
             page: params.page || 1,
             status:
-              params.status && params.status !== "all"
-                ? params.status
+              status && status !== "all"
+                ? status
                 : undefined,
             weekStartDate: params.weekStartDate || undefined,
+            date: params.date || undefined,
+            search: params.search?.trim() || undefined,
           },
           notifyOnError: false,
         });
@@ -158,22 +188,25 @@ const MenuService = {
     const isoDate =
       typeof date === "string" && date.includes("/")
         ? parseDateVNToISO(date)
-        : date || new Date().toISOString().slice(0, 10);
+        : date || new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
-    const weekInfo = getSchoolWeekScheduleFromDate(isoDate);
+    const targetDate = new Date(`${isoDate}T00:00:00Z`);
+    const targetDay = targetDate.getUTCDay();
+    const monday = new Date(targetDate);
+    monday.setUTCDate(monday.getUTCDate() - ((targetDay + 6) % 7));
     const user = getStorage(STORAGE.USER_INFO);
     const schoolId = user?.schoolId || user?.orgId || user?.school_id || "";
     const userId = user?.id || user?._id || "school_user";
-    const weekStartDate = weekInfo.schoolDays?.[0]?.dateISO || isoDate;
+    const weekStartDate = monday.toISOString().slice(0, 10);
     const weekKey = `${userId}:${schoolId}:${weekStartDate}`;
     const personalize = (result) => ({
       ...result,
       data: {
         ...result.data,
         targetDate: isoDate,
-        targetDayOfWeek: weekInfo.dayOfWeek,
-        targetDayLabel: weekInfo.dayLabel,
-        isTargetSchoolDay: weekInfo.isSchoolDay,
+        targetDayOfWeek: targetDay || 7,
+        targetDayLabel: SCHOOL_DAY_LABELS[targetDay],
+        isTargetSchoolDay: targetDay >= 1 && targetDay <= 5,
       },
     });
 
@@ -188,7 +221,14 @@ const MenuService = {
         notifyOnError: false,
       });
       if (response?.data) {
-        return { isOk: true, success: true, data: response.data, isMock: false };
+        const schedule = response.data;
+        let mealDays = [];
+        if (schedule.weeklyMenuId) {
+          const detail = await http.get(apiMenuDetail(schedule.weeklyMenuId), { notifyOnError: false });
+          if (!detail?.data?.id) throw new Error("Không tải được nội dung thực đơn tuần.");
+          mealDays = menuWeekMeals(detail.data);
+        }
+        return { isOk: true, success: true, data: { ...schedule, days: (schedule.days || []).map(day => ({ ...day, ...mealDays.find(mealDay => mealDay.date === day.date) })) }, isMock: false };
       }
       throw new Error("Không tải được lịch thực đơn tuần từ hệ thống.");
     })();
@@ -263,7 +303,7 @@ const MenuService = {
       weeklyId = id.split("_")[0];
     }
 
-    const payload = adaptFormToBackendWrite({
+    const edited = adaptFormToBackendWrite({
       name: formState.name,
       date: formState.date,
       mealType: formState.mealType || "LUNCH",
@@ -272,6 +312,10 @@ const MenuService = {
       seasonings,
     });
 
+    // PUT replaces the week. Re-read and preserve every untouched day/meal.
+    const snapshotResponse = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false });
+    const snapshot = snapshotResponse?.data;
+    const payload = mergeMenuMealWrite(snapshot, edited, id);
     const response = await http.put(apiMenuDetail(weeklyId), payload, { notifyOnError: false });
     invalidateWeekScheduleCache();
     invalidateMenuListCache();

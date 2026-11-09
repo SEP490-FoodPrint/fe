@@ -1,6 +1,5 @@
 import React from "react"
 import styles from "./MenuDishesTable.module.scss"
-import { LINKED_SUPPLIERS, ALL_INGREDIENTS } from "../mockMenuData"
 
 // Helper icon cho phân loại
 const getCategoryIcon = (cat) => {
@@ -73,7 +72,7 @@ export default function MenuDishesTable({
                 // Hỗ trợ mảng nhiều nguyên liệu
                 const ingredientIds = dish.ingredientIds || (dish.ingredientId ? [dish.ingredientId] : [])
                 const selectedIngs = ingredientIds
-                  .map(id => ALL_INGREDIENTS.find(i => i.id === id) || dish.ingredientDetails?.find(i => i.id === id))
+                  .map(id => dish.ingredientDetails?.find(i => i.id === id))
                   .filter(Boolean)
 
                 // Kiểm tra dị ứng trên tất cả các nguyên liệu đã chọn hoặc trên chính dish.allergen
@@ -135,7 +134,7 @@ export default function MenuDishesTable({
                           <div className={styles.ingTopRow}>
                             <div className={styles.ingChipsContainer}>
                               {selectedIngs.map((ing) => {
-                                const supplier = LINKED_SUPPLIERS.find(s => s.id === ing.supplierId)
+                                const supplier = ing.supplierName ? { name: ing.supplierName } : null
                                 return (
                                   <div key={ing.id} className={styles.ingChipItem}>
                                     <div className={styles.iconBox}>
@@ -203,16 +202,21 @@ export default function MenuDishesTable({
 
                     {/* Định lượng / Suất */}
                     <td className={styles.tdQty}>
-                      <div className={styles.qtyControlGroup}>
+                      {(dish.ingredientStandards || []).map((line, lineIndex) => (
+                      <div key={line.ingredientId} className={styles.qtyControlGroup}>
+                        <span>{dish.ingredientDetails?.find(item => item.id === line.ingredientId)?.name || "Nguyên liệu"}</span>
                         <input
                           type="number"
                           className={styles.qtyInput}
-                          value={dish.portionQty || 50}
-                          onChange={(e) => onUpdateDish(dish.id, { portionQty: Number(e.target.value) || 0 })}
-                          min="1"
+                          value={line.quantityPerPortion ?? ""}
+                          aria-label={`Định lượng ${dish.ingredientDetails?.find(item => item.id === line.ingredientId)?.name || "nguyên liệu"} mỗi suất`}
+                          onChange={(e) => onUpdateDish(dish.id, { ingredientStandards: dish.ingredientStandards.map((item, index) => index === lineIndex ? { ...item, quantityPerPortion: e.target.value } : item) })}
+                          min="0.001"
+                          step="0.001"
                         />
-                        <span className={styles.unitBadge}>{dish.unit || "g"} / suất</span>
+                        <span className={styles.unitBadge}>{line.unit} / suất</span>
                       </div>
+                      ))}
                     </td>
 
                     {/* Thao tác xóa */}

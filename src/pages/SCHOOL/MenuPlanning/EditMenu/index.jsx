@@ -47,59 +47,28 @@ export default function EditMenu() {
           date: rawMenu.date,
           mealType: rawMenu.mealType === "AFTERNOON_SNACK" ? "AFTERNOON" : rawMenu.mealType,
           targetScope: rawMenu.targetScope || "Toàn trường",
-          notes: rawMenu.feedback || ""
+          notes: rawMenu.notes || ""
         })
 
         // Map dishes
         if (rawMenu.dishes && rawMenu.dishes.length > 0) {
           const mappedDishes = rawMenu.dishes.map((d, idx) => {
-            const qtyMatch = (d.qty || "50g").match(/(\d+)/)
-            const qtyNum = qtyMatch ? parseInt(qtyMatch[1], 10) : 50
-
-            // Tìm matching ingredient IDs từ danh mục ALL_INGREDIENTS hoặc ingredientIds có sẵn
-            let matchedIds = d.ingredientIds || []
-            if (matchedIds.length === 0 && d.ingredients && Array.isArray(d.ingredients)) {
-              d.ingredients.forEach(ingName => {
-                const found = ALL_INGREDIENTS.find(ai =>
-                  ai.name.toLowerCase().includes(ingName.toLowerCase().split("(")[0].trim()) ||
-                  ingName.toLowerCase().includes(ai.name.toLowerCase())
-                )
-                if (found && !matchedIds.includes(found.id)) {
-                  matchedIds.push(found.id)
-                }
-              })
-            }
-
-            // Nếu không khớp, gán default ingredient
-            if (matchedIds.length === 0) {
-              if (idx === 0) matchedIds.push("ing-sea-1")
-              else if (idx === 1) matchedIds.push("ing-cp-1")
-              else if (idx === 2) matchedIds.push("ing-veg-2")
-              else matchedIds.push("ing-rice-1")
-            }
-
             return {
+              ...d,
               id: `dish-edit-${idx + 1}`,
               dishId: d.dishId || undefined,
               name: d.name,
-              ingredientIds: matchedIds,
-              portionQty: qtyNum,
-              unit: "g"
+              ingredientIds: d.ingredientIds || [],
+              ingredientStandards: (d.ingredientStandards || []).map(line => ({ ...line })),
+              portionQty: d.portionQty ?? "",
+              unit: d.unit || ""
             }
           })
           setDishes(mappedDishes)
         }
 
         // Map substitute dish
-        if (rawMenu.substituteDish) {
-          const subQtyMatch = (rawMenu.substituteDish.qty || "45g").match(/(\d+)/)
-          setSubstituteDish({
-            name: rawMenu.substituteDish.name || "Thịt bò xào rau củ",
-            ingredientId: "ing-vis-1",
-            portionQty: subQtyMatch ? parseInt(subQtyMatch[1], 10) : 45,
-            unit: "g"
-          })
-        }
+        setSubstituteDish(rawMenu.substituteDish || null)
 
         // Map seasonings
         {
@@ -169,7 +138,11 @@ export default function EditMenu() {
     if (!targetDish) return
     const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
     const newIds = currentIds.filter(id => id !== ingredientId)
-    handleUpdateDish(dishId, { ingredientIds: newIds })
+    handleUpdateDish(dishId, {
+      ingredientIds: newIds,
+      ingredientStandards: (targetDish.ingredientStandards || []).filter(line => line.ingredientId !== ingredientId),
+      ingredientDetails: (targetDish.ingredientDetails || []).filter(line => line.id !== ingredientId),
+    })
     showToast("Đã xóa nguyên liệu khỏi món", "info")
   }
 
@@ -223,7 +196,11 @@ export default function EditMenu() {
         ? currentIds.filter(id => id !== ingredient.id)
         : [...currentIds, ingredient.id]
 
-      handleUpdateDish(pickerContext.dishId, { ingredientIds: newIds })
+      handleUpdateDish(pickerContext.dishId, {
+        ingredientIds: newIds,
+        ingredientDetails: exists ? (targetDish.ingredientDetails || []).filter(item => item.id !== ingredient.id) : [...(targetDish.ingredientDetails || []), ingredient],
+        ingredientStandards: exists ? (targetDish.ingredientStandards || []).filter(item => item.ingredientId !== ingredient.id) : [...(targetDish.ingredientStandards || []), { ingredientId: ingredient.id, quantityPerPortion: "", unit: ingredient.defaultUnit }],
+      })
 
       if (exists) {
         showToast(`Đã bỏ nguyên liệu "${ingredient.name}"`, "info")
@@ -399,7 +376,7 @@ export default function EditMenu() {
         onClose={() => setIsPickerOpen(false)}
         selectedIngredientIds={selectedIngredientIds}
         onToggleIngredient={handleToggleIngredient}
-        dishContextName={pickerContext.type === "dish" ? (currentTargetDish?.name || "Món ăn") : (substituteDish.name || "Món thay thế")}
+        dishContextName={pickerContext.type === "dish" ? (currentTargetDish?.name || "Món ăn") : (substituteDish?.name || "Món thay thế")}
         onlySafe={pickerContext.type === "substitute"}
       />
 

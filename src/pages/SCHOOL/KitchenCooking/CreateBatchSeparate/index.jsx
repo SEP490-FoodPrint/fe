@@ -16,10 +16,11 @@ import styles from "./index.module.scss";
 export default function CreateBatchSeparate() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [dishes, setDishes] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState("lunch");
   const [selectedDish, setSelectedDish] = useState(null);
-  const [portions, setPortions] = useState(400);
+  const [portions, setPortions] = useState(0);
 
   // Tải danh sách món ăn từ thực đơn đã duyệt hôm nay
   useEffect(() => {
@@ -34,19 +35,21 @@ export default function CreateBatchSeparate() {
         const todayISO = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
         const [scheduleRes, batchesRes] = await Promise.all([
-          MenuService.getWeekSchedule(todayISO).catch(() => null),
-          KitchenService.getBatches({ date: todayISO, limit: 100 }, { signal: controller.signal }).catch(() => ({ items: [] })),
+          MenuService.getWeekSchedule(todayISO),
+          KitchenService.getBatches({ date: todayISO, limit: 100 }, { signal: controller.signal }),
         ]);
 
         if (!active) return;
 
         const existingBatches = batchesRes?.items || [];
-        const todayDay =
-          scheduleRes?.data?.days?.find((d) => d.date === todayISO || d.rawDate === todayISO) ||
-          scheduleRes?.data?.days?.[0];
-
+        const todayDay = scheduleRes?.data?.days?.find(d => d.date === todayISO);
+        const demandByMeal = {};
         const loadedDishes = [];
-        if (todayDay && todayDay.meals) {
+        if (todayDay?.status === "APPROVED" && todayDay.meals) {
+          await Promise.all(["LUNCH", "AFTERNOON"].filter(type => todayDay.meals[type]?.dishes?.length).map(async type => {
+            demandByMeal[type] = await MenuService.getMealRequirements(todayDay.menuDayId, type);
+          }));
+          if (!active) return;
           const lunchDishes = todayDay.meals.LUNCH?.dishes || [];
           lunchDishes.forEach((d, idx) => {
             const matchedBatch = existingBatches.find(
@@ -59,7 +62,7 @@ export default function CreateBatchSeparate() {
               mealType: "lunch",
               mealName: "Bữa trưa",
               name: d.name,
-              portionStandard: d.portionStandard || 400,
+              portionStandard: demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
               isBatchCreated: Boolean(matchedBatch),
               batchCode: matchedBatch?.batchCode || "",
               ingredients: d.ingredients || [],
@@ -78,7 +81,7 @@ export default function CreateBatchSeparate() {
               mealType: "afternoon",
               mealName: "Bữa xế",
               name: d.name,
-              portionStandard: d.portionStandard || 400,
+              portionStandard: demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
               isBatchCreated: Boolean(matchedBatch),
               batchCode: matchedBatch?.batchCode || "",
               ingredients: d.ingredients || [],
@@ -99,7 +102,7 @@ export default function CreateBatchSeparate() {
         }
       } catch (err) {
         console.warn("Lỗi tải món ăn hôm nay:", err);
-        setDishes([]);
+        if (active) { setDishes([]); setLoadError(err.message); }
       } finally {
         if (active) setLoading(false);
       }
@@ -158,7 +161,7 @@ export default function CreateBatchSeparate() {
       <div className={styles.formContainer}>
         <CreateBatchSeparateHeader />
 
-        {loading ? (
+        {loadError ? <p role="alert">{loadError}</p> : loading ? (
           <div className="py-16 text-center text-slate-500 font-medium">
             Đang tải thực đơn và phương án chế biến hôm nay...
           </div>

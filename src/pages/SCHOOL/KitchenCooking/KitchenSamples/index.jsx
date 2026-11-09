@@ -44,8 +44,8 @@ export default function KitchenSamples() {
       setLoading(true)
       setLoadError("")
       const [samplesRes, batchesRes] = await Promise.all([
-        KitchenService.getRetainedSamples({}, { signal }),
-        KitchenService.getBatches({ status: "COMPLETED", hasSample: false, limit: 50 }, { signal }).catch(() => ({ items: [] })),
+        KitchenService.getAllRetainedSamples({ signal }),
+        KitchenService.getBatches({ status: "COMPLETED", hasSample: false, limit: 100 }, { signal }),
       ])
 
       const rawItems = samplesRes?.items || []

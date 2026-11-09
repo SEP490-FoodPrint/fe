@@ -146,7 +146,7 @@ const KitchenService = {
         notifyOnError: false,
       },
     );
-    return response?.data ?? response ?? null;
+    return response && Object.hasOwn(response, "data") ? response.data : response ?? null;
   },
 
   async createBatchSample(batchId, sampleData) {
@@ -170,6 +170,20 @@ const KitchenService = {
       items: Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [],
       pagination: data?.pagination || { totalItems: 0 },
     };
+  },
+
+  async getAllRetainedSamples({ signal } = {}) {
+    const items = [];
+    let page = 1;
+    let totalItems;
+    do {
+      const result = await KitchenService.getRetainedSamples({ page, limit: 100 }, { signal });
+      items.push(...result.items);
+      totalItems = result.pagination.totalItems;
+      if (!result.items.length) break;
+      page += 1;
+    } while (Number.isSafeInteger(totalItems) && items.length < totalItems);
+    return { items };
   },
 
   async disposeRetainedSample(sampleId, payload = {}) {
