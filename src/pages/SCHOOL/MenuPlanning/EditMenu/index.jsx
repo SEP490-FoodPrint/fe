@@ -22,12 +22,7 @@ export default function EditMenu() {
   const [menu, setMenu] = useState(null)
   const [formState, setFormState] = useState(null)
   const [dishes, setDishes] = useState([])
-  const [substituteDish, setSubstituteDish] = useState({
-    name: "Thịt bò xào rau củ thập cẩm",
-    ingredientId: "ing-vis-1",
-    portionQty: 45,
-    unit: "g"
-  })
+  const [substituteDish, setSubstituteDish] = useState(null)
   const [seasonings, setSeasonings] = useState([])
 
   // Modals & Context
@@ -252,7 +247,7 @@ export default function EditMenu() {
 
   const selectedIngredientIds = pickerContext.type === "dish"
     ? (currentTargetDish?.ingredientIds || (currentTargetDish?.ingredientId ? [currentTargetDish.ingredientId] : []))
-    : (substituteDish.ingredientId ? [substituteDish.ingredientId] : [])
+    : (substituteDish?.ingredientId ? [substituteDish.ingredientId] : [])
 
   // Kiểm tra xung đột dị ứng
   const conflictDishes = dishes.filter(d => {

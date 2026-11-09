@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom"
 import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { getWeeklyMenuStatus } from "./mockMenuListData"
 import MenuService from "src/services/MenuService"
 import {
   getDateOfISOWeek,
@@ -233,10 +232,34 @@ export default function MenuPlanning() {
     return selectedWeekObj?.label || `Tuần ${filters.week}`
   }, [selectedWeekObj, filters.week])
 
-  // Thông tin trạng thái của CẢ TUẦN
+  // Thông tin trạng thái của CẢ TUẦN dựa 100% trên dữ liệu thực tế
   const weekStatusInfo = useMemo(() => {
+    const targetWeek = Number(filters.week)
     const yearOfSelectedWeek = selectedWeekObj?.year || currentYear
-    return getWeeklyMenuStatus(filters.week, yearOfSelectedWeek, menus)
+    const weekMenus = (Array.isArray(menus) ? menus : []).filter((m) => {
+      const w = getMenuISOWeek(m)
+      const y = getMenuYear(m)
+      return w === targetWeek && y === yearOfSelectedWeek
+    })
+
+    if (weekMenus.length === 0) {
+      return { status: "DRAFT", statusLabel: "Bản nháp", feedback: "" }
+    }
+    if (weekMenus.some((m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")) {
+      const rev = weekMenus.find((m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")
+      return {
+        status: "REVISION_REQUESTED",
+        statusLabel: "Yêu cầu chỉnh sửa",
+        feedback: rev?.feedback || "Ban Giám Hiệu yêu cầu chỉnh sửa thực đơn tuần này.",
+      }
+    }
+    if (weekMenus.some((m) => m.status === "PENDING_APPROVAL")) {
+      return { status: "PENDING_APPROVAL", statusLabel: "Chờ BGH duyệt", feedback: "" }
+    }
+    if (weekMenus.some((m) => m.status === "DRAFT")) {
+      return { status: "DRAFT", statusLabel: "Bản nháp", feedback: "" }
+    }
+    return { status: "APPROVED", statusLabel: "Đã duyệt BGH", feedback: "" }
   }, [filters.week, selectedWeekObj, currentYear, menus])
 
   // Tiêu đề của thực đơn tuần được chọn

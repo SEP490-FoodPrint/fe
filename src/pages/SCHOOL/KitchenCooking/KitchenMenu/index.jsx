@@ -23,7 +23,7 @@ export default function KitchenMenu() {
   })
   const [selectedWeek, setSelectedWeek] = useState(currentWeekNumber)
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [apiWeekData, setApiWeekData] = useState(null)
 
   // Cấu hình năm học đang chọn
@@ -201,11 +201,17 @@ export default function KitchenMenu() {
       />
 
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
-      <KitchenMenuWeeklyGrid
-        schoolDays={processedDays}
-        mealTypeFilter={mealTypeFilter}
-        todayISO={todayISO}
-      />
+      {loading ? (
+        <div style={{ padding: "64px 0", textAlign: "center", color: "#64748b", fontWeight: 500 }}>
+          Đang tải thực đơn tuần học từ hệ thống...
+        </div>
+      ) : (
+        <KitchenMenuWeeklyGrid
+          schoolDays={processedDays}
+          mealTypeFilter={mealTypeFilter}
+          todayISO={todayISO}
+        />
+      )}
     </div>
   )
 }
