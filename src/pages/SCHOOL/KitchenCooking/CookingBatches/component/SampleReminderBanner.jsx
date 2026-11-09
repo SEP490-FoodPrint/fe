@@ -1,13 +1,13 @@
-import React, { useState } from "react"
-import { ShieldCheck, ChevronRight, X } from "lucide-react"
-import { Link } from "react-router-dom"
-import ROUTER from "src/router/ROUTER"
-import styles from "./SampleReminderBanner.module.scss"
+import React, { useState } from "react";
+import { ShieldCheck, ChevronRight, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import ROUTER from "src/router/ROUTER";
+import styles from "./SampleReminderBanner.module.scss";
 
 function SampleReminderBanner({ pendingSamples }) {
-  const [closed, setClosed] = useState(false)
+  const [closed, setClosed] = useState(false);
 
-  if (closed || !pendingSamples) return null
+  if (closed || !pendingSamples) return null;
 
   return (
     <div
@@ -40,7 +40,7 @@ function SampleReminderBanner({ pendingSamples }) {
         </button>
       </div>
     </div>
-  )
+  );
 }
 
-export default SampleReminderBanner
+export default SampleReminderBanner;
