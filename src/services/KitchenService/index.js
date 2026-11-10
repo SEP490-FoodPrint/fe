@@ -6,6 +6,15 @@ import {
 } from "./urls";
 import { batchQuery, isUuid } from "./adapter";
 
+let kitchenContextCache = null;
+let kitchenContextCacheTime = 0;
+const KITCHEN_CONTEXT_CACHE_MS = 300000; // 5 phút cache cấu hình bếp trường học
+
+export const invalidateKitchenContextCache = () => {
+  kitchenContextCache = null;
+  kitchenContextCacheTime = 0;
+};
+
 const KitchenService = {
   async getBatches(filters = {}, { signal } = {}) {
     const params = batchQuery(filters);
@@ -47,16 +56,22 @@ const KitchenService = {
     return response?.data || response;
   },
 
-  async getContext({ signal } = {}) {
+  async getContext({ signal, forceRefresh = false } = {}) {
+    if (!forceRefresh && kitchenContextCache && (Date.now() - kitchenContextCacheTime < KITCHEN_CONTEXT_CACHE_MS)) {
+      return kitchenContextCache;
+    }
     const response = await http.get("/v1/kitchen/context", {
       signal,
       notifyOnError: false,
     });
-    return response?.data || response;
+    const result = response?.data || response;
+    kitchenContextCache = result;
+    kitchenContextCacheTime = Date.now();
+    return result;
   },
 
-  async getSchool(schoolId, { signal } = {}) {
-    return KitchenService.getContext({ signal });
+  async getSchool(schoolId, { signal, forceRefresh = false } = {}) {
+    return KitchenService.getContext({ signal, forceRefresh });
   },
 
   async getAllBatches(filters = {}) {
@@ -194,6 +209,10 @@ const KitchenService = {
       { notifyOnError: false },
     );
     return response?.data || response;
+  },
+
+  invalidateCache() {
+    invalidateKitchenContextCache();
   },
 };
 

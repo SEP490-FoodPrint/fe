@@ -40,14 +40,27 @@ export const invalidateMenuListCache = () => {
   menuListRequests.clear();
 };
 
+let academicCalendarCache = null;
+let academicCalendarCacheTime = 0;
+const ACADEMIC_CALENDAR_CACHE_MS = 600000; // 10 phút cache bộ nhớ
+
+let menuContextCache = null;
+let menuContextCacheTime = 0;
+const MENU_CONTEXT_CACHE_MS = 300000; // 5 phút cache cấu hình trường
+
 /**
  * MenuService: Kết nối Frontend với Backend API (/api/v1/menus)
  * Gọi 100% API thực từ Backend, không dùng Mock Data fallback.
  */
 const MenuService = {
-  getContext: async () => {
+  getContext: async ({ forceRefresh = false } = {}) => {
+    if (!forceRefresh && menuContextCache && (Date.now() - menuContextCacheTime < MENU_CONTEXT_CACHE_MS)) {
+      return menuContextCache;
+    }
     const response = await http.get(`${apiMenus}/context`, { notifyOnError: false });
     if (!response?.data?.id) throw new Error("Không tải được cấu hình trường.");
+    menuContextCache = response.data;
+    menuContextCacheTime = Date.now();
     return response.data;
   },
   getMealRequirements: async (menuDayId, mealType) => {
@@ -56,17 +69,24 @@ const MenuService = {
     return response.data;
   },
   invalidateMenuCache: () => {
+    academicCalendarCache = null;
+    menuContextCache = null;
     invalidateWeekScheduleCache();
     invalidateMenuListCache();
   },
 
-  getAcademicCalendar: async () => {
+  getAcademicCalendar: async ({ forceRefresh = false } = {}) => {
+    if (!forceRefresh && academicCalendarCache && (Date.now() - academicCalendarCacheTime < ACADEMIC_CALENDAR_CACHE_MS)) {
+      return academicCalendarCache;
+    }
     const response = await http.get(`${apiMenus}/academic-calendar`, {
       notifyOnError: false,
     });
     if (!Array.isArray(response?.data?.academicYears)) {
       throw new Error("Không tải được cấu hình năm học từ hệ thống.");
     }
+    academicCalendarCache = response.data;
+    academicCalendarCacheTime = Date.now();
     return response.data;
   },
 
