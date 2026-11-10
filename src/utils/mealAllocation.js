@@ -23,7 +23,7 @@ export function getMealAllocationView(data) {
     const batch = batchesById.get(row.cookingBatchId)
     demand.remaining -= row.allocatedPortions
     batch.remaining -= row.allocatedPortions
-    batch.entries.push({ id: demand.id, name: demand.name, portions: row.allocatedPortions })
+    batch.entries.push({ id: demand.id, name: demand.name, portions: row.allocatedPortions, total: demand.total })
   }
 
   for (const batch of batches) {
@@ -42,10 +42,25 @@ export function withoutBatchAllocation(data, batchId) {
 
 export function replaceBatchAllocation(data, batchId, orderedIds, now, createId) {
   const cleared = withoutBatchAllocation(data, batchId)
-  const updated = applyBatchAllocation(cleared, batchId, orderedIds, now, createId)
-  const usedIds = new Set(updated.mealAllocationBatches.map(row => row.mealAllocationId))
+  return removeUnusedAllocations(applyBatchAllocation(cleared, batchId, orderedIds, now, createId))
+}
 
-  return { ...updated, mealAllocations: updated.mealAllocations.filter(row => usedIds.has(row.id)) }
+export function removeClassFromBatch(data, batchId, dailyMealPortionId) {
+  const allocation = data.mealAllocations.find(row => row.dailyMealPortionId === dailyMealPortionId)
+  if (!allocation) return data
+
+  const mealAllocationBatches = data.mealAllocationBatches.filter(
+    row => row.cookingBatchId !== batchId || row.mealAllocationId !== allocation.id,
+  )
+  if (mealAllocationBatches.length === data.mealAllocationBatches.length) return data
+
+  return removeUnusedAllocations({ ...data, mealAllocationBatches })
+}
+
+function removeUnusedAllocations(data) {
+  const usedIds = new Set(data.mealAllocationBatches.map(row => row.mealAllocationId))
+
+  return { ...data, mealAllocations: data.mealAllocations.filter(row => usedIds.has(row.id)) }
 }
 
 export function formatRemainingPortions({ remaining, total }) {

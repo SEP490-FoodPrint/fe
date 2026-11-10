@@ -1,12 +1,16 @@
 import React from "react"
-import { Button, ButtonBase, Chip, Collapse } from "@mui/material"
-import { ChevronDown, Package, Plus } from "lucide-react"
+import { Button, ButtonBase, Chip, Collapse, IconButton } from "@mui/material"
+import { ChevronDown, Package, Plus, X } from "lucide-react"
 import styles from "./BatchAllocationPanel.module.scss"
 
-export default function BatchAllocationPanel({ batch, expanded, canAddClasses, onToggle, onAddClasses }) {
+export default function BatchAllocationPanel({ batch, expanded, canAddClasses, onToggle, onAddClasses, onRemoveClass }) {
   const contentId = `batch-classes-${batch.id}`
   const hasEntries = batch.entries.length > 0
-  const status = hasEntries ? "Đã chế biến xong" : "Chưa phân bổ"
+  const status = !hasEntries
+    ? { label: "Chưa phân lô", color: "default" }
+    : batch.remaining === 0
+      ? { label: "Đã phân lô", color: "success" }
+      : { label: "Đang phân bổ", color: "warning" }
   const availability = batch.remaining === 0
     ? `Lô đã phân bổ hết (0/${batch.total} suất còn lại)`
     : hasEntries
@@ -22,13 +26,12 @@ export default function BatchAllocationPanel({ batch, expanded, canAddClasses, o
         aria-controls={contentId}
         onClick={onToggle}
       >
-        <span className={styles.batchIcon} data-assigned={hasEntries}><Package size={16} /></span>
+        <span className={styles.batchIcon} data-status={status.color}><Package size={16} /></span>
         <span className={styles.batchInfo}>
           <span className={styles.batchTitle}>
             <strong>{batch.name}</strong>
-            <Chip component="span" size="small" label={status} color={hasEntries ? "success" : "default"} variant="outlined" />
+            <Chip component="span" size="small" label={status.label} color={status.color} variant="outlined" />
           </span>
-          <span className={styles.note}>{batch.note}</span>
         </span>
         <span className={styles.counter}>
           <span>{hasEntries ? "Suất khả dụng / Tổng" : "Khả dụng"}</span>
@@ -53,7 +56,15 @@ export default function BatchAllocationPanel({ batch, expanded, canAddClasses, o
                     <strong>{entry.name}</strong>
                     <span>·</span>
                     <b>{entry.portions}</b>
-                    <span>suất{entry.remaining > 0 ? ` (còn thiếu ${entry.remaining})` : ""}</span>
+                    {entry.portions < entry.total && <span> / {entry.total}</span>}
+                    <IconButton
+                      className={styles.removeButton}
+                      size="small"
+                      aria-label={`Bỏ lớp ${entry.name} khỏi ${batch.name}`}
+                      onClick={() => onRemoveClass(entry.id)}
+                    >
+                      <X size={16} />
+                    </IconButton>
                   </li>
                 ))}
               </ul>
