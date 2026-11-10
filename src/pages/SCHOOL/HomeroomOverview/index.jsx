@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
-import { Alert, Button, Chip, CircularProgress } from "@mui/material"
+import { Alert, Button, Chip } from "@mui/material"
 import dayjs from "dayjs"
 import { AlertTriangle, ArrowRight, CalendarDays, MessageSquareText, Users } from "lucide-react"
 import { Link } from "react-router-dom"
@@ -52,13 +52,16 @@ function HomeroomOverview() {
     <div className="homeroom-overview">
       <header className="homeroom-overview__header">
         <div>
-          <span className="homeroom-overview__eyebrow">Giáo viên chủ nhiệm</span>
           <h1>Tổng quan lớp hôm nay</h1>
-          <p><CalendarDays size={16} /> {dayjs(today).format("DD/MM/YYYY")}</p>
+          <p>Theo dõi và hoàn tất các đầu việc trong ngày của lớp phụ trách.</p>
+        </div>
+        <div className="homeroom-overview__date" aria-label={`Ngày ${dayjs(today).format("DD/MM/YYYY")}`}>
+          <CalendarDays size={18} aria-hidden="true" />
+          <span>{dayjs(today).format("DD/MM/YYYY")}</span>
         </div>
       </header>
 
-      {loading && <div style={{ padding: "48px 0", display: "flex", justifyContent: "center" }}><FoodPrintLoading size="medium" /></div>}
+      {loading && <div className="homeroom-overview__loading" role="status" aria-live="polite"><FoodPrintLoading size="medium" /></div>}
       {!loading && error && <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>}
 
       {!loading && data && <>
@@ -81,6 +84,7 @@ function HomeroomOverview() {
               const status = statusMeta(submission)
               return (
                 <Link className="homeroom-overview__meal-card" key={meal.type}
+                  aria-label={`${meal.label}: ${status.label}`}
                   to={`${ROUTER.SCHOOL_DAILY_CONFIRM}?date=${today}&mealType=${meal.type}`}>
                   <div>
                     <span>{meal.label}</span>
@@ -88,7 +92,7 @@ function HomeroomOverview() {
                   </div>
                   <div className="homeroom-overview__meal-action">
                     <Chip size="small" color={status.color} label={status.label} />
-                    <ArrowRight size={20} aria-hidden="true" />
+                    <span className="homeroom-overview__meal-arrow"><ArrowRight size={20} aria-hidden="true" /></span>
                   </div>
                 </Link>
               )
@@ -111,7 +115,8 @@ function HomeroomOverview() {
           </div>
         </section>
 
-        <Link className="homeroom-overview__feedback" to={ROUTER.SCHOOL_MEAL_FEEDBACK}>
+        <Link className="homeroom-overview__feedback" to={ROUTER.SCHOOL_MEAL_FEEDBACK}
+          aria-label="Mở trang phản ánh bữa ăn">
           <MessageSquareText size={22} />
           <span><strong>Phản ánh bữa ăn</strong><small>Gửi hoặc theo dõi phản ánh của lớp</small></span>
           <ArrowRight size={20} aria-hidden="true" />
