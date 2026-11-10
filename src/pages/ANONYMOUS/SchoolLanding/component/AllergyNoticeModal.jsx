@@ -31,6 +31,7 @@ function AllergyNoticeModal({ isOpen, onClose, schoolName }) {
       return
     }
 
+    // Mô phỏng gửi thành công bằng timer. Luồng này chưa gọi API báo dị ứng.
     setIsSubmitting(true)
     setTimeout(() => {
       setIsSubmitting(false)

@@ -9,10 +9,16 @@ import {
 } from "lucide-react";
 import { FormControl, Select, MenuItem, InputAdornment } from "@mui/material";
 import { NO_DATA_TEXT } from "src/constants/ui";
+import {
+  formatWeekRange,
+  getAvailableWeeks,
+  getWeekLabel,
+  isDateInMenuWeek,
+} from "src/utils/weeklyMenu";
 import WeeklyDayCard from "./WeeklyDayCard";
 import styles from "./WeeklyMenuSection.module.scss";
 
-function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
+function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode }) {
   const groups =
     weeklyMenu?.portionGroups ||
     weeklyMenu?.gradeGroups ||
@@ -27,6 +33,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
 
   const [activeGroupId, setActiveGroupId] = useState(defaultGroupId);
 
+  // Giữ nhóm đang chọn nếu nhóm đó vẫn có trong dữ liệu tuần mới.
   useEffect(() => {
     if (groups.length > 0) {
       const exists = groups.some((g) => (g.id || g.key) === activeGroupId);
@@ -36,29 +43,23 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
     }
   }, [groups, defaultGroupId, activeGroupId]);
 
-  // Danh sách các tuần thực tế có menu từ Backend
-  const availableWeeks = useMemo(() => {
-    const list = weeklyMenu?.availableWeeks || weeklyMenu?.available_weeks || [];
-    if (!Array.isArray(list) || list.length === 0) return [];
-    // Sắp xếp các tuần theo thứ tự thời gian tăng dần
-    return [...list].sort((a, b) =>
-      (a.weekStartDate || "").localeCompare(b.weekStartDate || "")
-    );
-  }, [weeklyMenu]);
+  // Điều hướng theo các tuần API công bố, kể cả khi lịch có tuần bị bỏ trống.
+  const availableWeeks = useMemo(() => getAvailableWeeks(weeklyMenu), [weeklyMenu]);
 
   // Ngày bắt đầu của tuần đang xem
   const currentWeekDate = weeklyMenu?.weekStartDate || (availableWeeks[0]?.weekStartDate || "");
 
-  // Tìm index tuần hiện tại trong danh sách các tuần có sẵn
   const currentWeekIndex = useMemo(() => {
     if (availableWeeks.length === 0 || !currentWeekDate) return -1;
     return availableWeeks.findIndex((w) => w.weekStartDate === currentWeekDate);
   }, [availableWeeks, currentWeekDate]);
+  const currentWeek = availableWeeks[currentWeekIndex];
 
   const canGoPrev = currentWeekIndex > 0;
   const canGoNext =
     currentWeekIndex >= 0 && currentWeekIndex < availableWeeks.length - 1;
 
+  // Đổi tuần giữ nguyên nhóm đang chọn. Page cha chịu trách nhiệm gọi API.
   const handlePrevWeek = () => {
     if (!canGoPrev || !onWeekChange) return;
     const prevWeek = availableWeeks[currentWeekIndex - 1];
@@ -78,6 +79,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
     }
   };
 
+  // Đổi nhóm giữ nguyên tuần đang xem.
   const handleSelectGroup = (groupId) => {
     setActiveGroupId(groupId);
     if (onGroupChange) {
@@ -88,7 +90,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
   const days = weeklyMenu?.days || [];
   const hasDays = days.length > 0;
 
-  // Xác định tuần hiện tại theo thời gian thực (realtime)
+  // Nhãn Tuần này dựa trên ngày hiện tại, độc lập với tuần đang xem.
   const todayIso = new Date().toISOString().slice(0, 10);
 
   return (
@@ -116,12 +118,15 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
               <ChevronLeft size={18} />
             </button>
 
-            {/* Dropdown chọn tuần từ MUI v6 */}
+            {/* Chọn trực tiếp một tuần có trong lịch đã công bố */}
             <FormControl size="small" className={styles.weekFormControl}>
               <Select
                 id="weekSelect"
-                value={currentWeekDate || ""}
+                value={currentWeek?.weekStartDate || ""}
                 onChange={handleSelectWeek}
+                renderValue={() =>
+                  currentWeek ? `Thực đơn ${getWeekLabel(currentWeek)}` : NO_DATA_TEXT
+                }
                 displayEmpty
                 disabled={availableWeeks.length === 0}
                 className={styles.weekMuiSelect}
@@ -142,16 +147,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
                   </MenuItem>
                 ) : (
                   availableWeeks.map((w) => {
-                    // Kiểm tra xem tuần này có bao trùm ngày hôm nay không
-                    const isRealtimeCurrentWeek =
-                      todayIso >= w.weekStartDate &&
-                      todayIso <=
-                        new Date(
-                          new Date(w.weekStartDate).getTime() +
-                            4 * 24 * 60 * 60 * 1000
-                        )
-                          .toISOString()
-                          .slice(0, 10);
+                    const isRealtimeCurrentWeek = isDateInMenuWeek(todayIso, w.weekStartDate);
 
                     return (
                       <MenuItem
@@ -160,11 +156,13 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
                         className={styles.weekMenuItem}
                       >
                         <span className={styles.weekItemTitle}>
-                          {w.title || `Tuần ${w.weekNumber}`}
+                          {getWeekLabel(w)}
                         </span>
-                        <span className={styles.weekItemRange}>
-                          ({w.weekRange})
-                        </span>
+                        {w.weekRange && (
+                          <span className={styles.weekItemRange}>
+                            {formatWeekRange(w.weekRange)}
+                          </span>
+                        )}
                         {isRealtimeCurrentWeek && (
                           <span className={styles.currentTag}>Tuần này</span>
                         )}
@@ -237,7 +235,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
         ) : (
           <div className={styles.daysGrid}>
             {days.map((day, idx) => (
-              <WeeklyDayCard key={day.date || day.id || idx} day={day} />
+              <WeeklyDayCard key={day.date || day.id || idx} day={day} schoolCode={schoolCode} />
             ))}
           </div>
         )}
@@ -247,6 +245,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange }) {
 }
 
 WeeklyMenuSection.propTypes = {
+  schoolCode: PropTypes.string,
   weeklyMenu: PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,

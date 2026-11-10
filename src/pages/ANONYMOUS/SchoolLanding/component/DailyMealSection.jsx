@@ -10,15 +10,11 @@ import {
   UtensilsCrossed,
 } from "lucide-react";
 import { NO_DATA_TEXT } from "src/constants/ui";
+import { getSnackItems, hasDailyMealDishes } from "src/utils/publicMeal";
 import styles from "./DailyMealSection.module.scss";
 
 function DailyMealSection({ dailyMeal }) {
-  const hasData = Boolean(
-    dailyMeal &&
-      ((dailyMeal.lunch?.dishes && dailyMeal.lunch.dishes.length > 0) ||
-        (dailyMeal.snack?.dishes && dailyMeal.snack.dishes.length > 0) ||
-        (dailyMeal.snack?.items && dailyMeal.snack.items.length > 0)),
-  );
+  const hasData = hasDailyMealDishes(dailyMeal);
 
   const lunch = dailyMeal?.lunch;
   const snack = dailyMeal?.snack;
@@ -26,20 +22,8 @@ function DailyMealSection({ dailyMeal }) {
   const dateLabel = dailyMeal?.dateLabel || NO_DATA_TEXT;
   const updatedAt = dailyMeal?.updatedAt || NO_DATA_TEXT;
 
-  const snackItems =
-    snack?.items && snack.items.length > 0
-      ? snack.items
-      : (snack?.dishes || []).map((d) => ({
-          id: d.id,
-          name: d.name,
-          desc: d.portion || NO_DATA_TEXT,
-          icon:
-            d.name.toLowerCase().includes("sữa") ||
-            d.name.toLowerCase().includes("nước") ||
-            d.name.toLowerCase().includes("chè")
-              ? "coffee"
-              : "cake",
-        }));
+  // API có thể trả bữa phụ dưới dạng items hoặc dishes. Helper đưa cả hai về cùng dạng hiển thị.
+  const snackItems = getSnackItems(snack);
 
   return (
     <section id="thuc-don-ngay" className={styles.section}>
