@@ -49,6 +49,7 @@ const HealthOverview = lazy(() => import("src/pages/SCHOOL/HealthOverview"))
 const HealthAllergy = lazy(() => import("src/pages/SCHOOL/HealthAllergy"))
 const DishCatalog = lazy(() => import("src/pages/SCHOOL/DishCatalog"))
 const KitchenCooking = lazy(() => import("src/pages/SCHOOL/KitchenCooking"))
+const KitchenMealAllocation = lazy(() => import("src/pages/SCHOOL/KitchenMealAllocation"))
 const KitchenMenu = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenMenu"))
 const KitchenBatches = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CookingBatches"))
 const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatch"))
@@ -282,7 +283,7 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE, element: <LazyWrapper><KitchenCreateBatchSeparate /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE, element: <LazyWrapper><KitchenCreateBatchSeparate /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL, element: <LazyWrapper><KitchenBatchDetail /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenMealAllocation /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
