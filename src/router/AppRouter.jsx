@@ -68,13 +68,7 @@ const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
 
 function LazyWrapper({ children }) {
   return (
-    <Suspense
-      fallback={
-        <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <SpinCustom />
-        </div>
-      }
-    >
+    <Suspense fallback={null}>
       {children}
     </Suspense>
   )

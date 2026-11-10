@@ -16,7 +16,6 @@ import {
   CalendarCheck,
   CalendarOff,
 } from "lucide-react"
-import { DEFAULT_WEEKLY_MENU } from "src/pages/SCHOOL/KitchenCooking/KitchenMenu/component/mockWeeklyMenuData"
 import styles from "./MenuListWeeklyVerticalView.module.scss"
 
 export default function MenuListWeeklyVerticalView({
@@ -55,7 +54,7 @@ export default function MenuListWeeklyVerticalView({
     if (dayStatuses.includes("PENDING_APPROVAL")) return "PENDING_APPROVAL"
     if (dayStatuses.includes("DRAFT")) return "DRAFT"
     if (dayStatuses.length > 0) return dayStatuses[0]
-    return "APPROVED"
+    return "DRAFT"
   }, [propWeekStatus, menus])
 
   // Phản hồi chỉnh sửa từ BGH nếu tuần có yêu cầu sửa
@@ -112,7 +111,6 @@ export default function MenuListWeeklyVerticalView({
         return
       }
 
-      const defaultDay = DEFAULT_WEEKLY_MENU[sd.dayOfWeek] || {}
       const dayMenus = menus.filter(
         (m) => m.rawDate === sd.dateISO || m.date === sd.dateVN
       )
@@ -199,41 +197,8 @@ export default function MenuListWeeklyVerticalView({
         }
       }
 
-      // Fallback thực đơn khi đã duyệt hoặc đang chờ duyệt mà không có dữ liệu riêng
-      const fallbackLunch = (weekStatus === "APPROVED" || weekStatus === "PENDING_APPROVAL")
-        ? {
-            id: `menu-${sd.dateISO}-lunch`,
-            name: `Thực đơn Bữa trưa (${sd.dayLabel})`,
-            code: `TD-${sd.dateISO.replace(/-/g, "")}-01`,
-            date: sd.dateVN,
-            rawDate: sd.dateISO,
-            mealType: "LUNCH",
-            mealTypeLabel: "Trưa",
-            status: weekStatus,
-            statusLabel: getWeekStatusLabel(weekStatus),
-            portionCount: 1250,
-            dishes: defaultDay?.meals?.LUNCH?.dishes || [],
-          }
-        : null
-
-      const fallbackAfternoon = (weekStatus === "APPROVED" || weekStatus === "PENDING_APPROVAL")
-        ? {
-            id: `menu-${sd.dateISO}-afternoon`,
-            name: `Thực đơn Bữa xế (${sd.dayLabel})`,
-            code: `TD-${sd.dateISO.replace(/-/g, "")}-02`,
-            date: sd.dateVN,
-            rawDate: sd.dateISO,
-            mealType: "AFTERNOON",
-            mealTypeLabel: "Chiều",
-            status: weekStatus,
-            statusLabel: getWeekStatusLabel(weekStatus),
-            portionCount: 1250,
-            dishes: defaultDay?.meals?.AFTERNOON?.dishes || [],
-          }
-        : null
-
-      const resolvedLunch = lunchMenu || fallbackLunch
-      const resolvedAfternoon = afternoonMenu || fallbackAfternoon
+      const resolvedLunch = lunchMenu || null
+      const resolvedAfternoon = afternoonMenu || null
 
       map[sd.dayOfWeek] = {
         hasLunch: Boolean(resolvedLunch),

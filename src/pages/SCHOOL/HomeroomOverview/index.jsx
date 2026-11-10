@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import { Alert, Button, Chip, CircularProgress } from "@mui/material"
 import dayjs from "dayjs"
 import { AlertTriangle, ArrowRight, CalendarDays, MessageSquareText, Users } from "lucide-react"
@@ -57,7 +58,7 @@ function HomeroomOverview() {
         </div>
       </header>
 
-      {loading && <div className="homeroom-overview__loading"><CircularProgress size={28} /> Đang tải thông tin lớp...</div>}
+      {loading && <div style={{ padding: "48px 0", display: "flex", justifyContent: "center" }}><FoodPrintLoading size="medium" /></div>}
       {!loading && error && <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>}
 
       {!loading && data && <>

@@ -51,6 +51,10 @@ export function batchQuery(filters = {}) {
   if (filters.startDate) query.startDate = filters.startDate;
   if (filters.endDate) query.endDate = filters.endDate;
   if (filters.date) query.date = filters.date;
+  if (filters.hasSample !== undefined) {
+    if (typeof filters.hasSample !== "boolean") throw new Error("Bộ lọc mẫu lưu không hợp lệ.");
+    query.hasSample = String(filters.hasSample);
+  }
   if (filters.mealType) {
     if (!["LUNCH", "AFTERNOON"].includes(filters.mealType))
       throw new Error("Bữa ăn không hợp lệ.");

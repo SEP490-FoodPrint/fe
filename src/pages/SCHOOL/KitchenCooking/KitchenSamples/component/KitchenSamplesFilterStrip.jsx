@@ -53,7 +53,7 @@ export default function KitchenSamplesFilterStrip({
           >
             <option value="ALL">Tất cả trạng thái</option>
             <option value="STORED">Đang lưu mẫu</option>
-            <option value="READY">Đã đủ 24 giờ (chờ hủy)</option>
+            <option value="READY_TO_DISPOSE">Đã đủ 24 giờ (chờ hủy)</option>
             <option value="DISPOSED">Đã tiêu hủy</option>
           </select>
           <ChevronDown size={14} className={styles.chevronIcon} />

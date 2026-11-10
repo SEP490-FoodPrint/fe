@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
 import {
   MOCK_SCHOOL_ACADEMIC_YEARS,
@@ -23,7 +24,7 @@ export default function KitchenMenu() {
   })
   const [selectedWeek, setSelectedWeek] = useState(currentWeekNumber)
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [apiWeekData, setApiWeekData] = useState(null)
 
   // Cấu hình năm học đang chọn
@@ -201,11 +202,17 @@ export default function KitchenMenu() {
       />
 
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
-      <KitchenMenuWeeklyGrid
-        schoolDays={processedDays}
-        mealTypeFilter={mealTypeFilter}
-        todayISO={todayISO}
-      />
+      {loading ? (
+        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading />
+        </div>
+      ) : (
+        <KitchenMenuWeeklyGrid
+          schoolDays={processedDays}
+          mealTypeFilter={mealTypeFilter}
+          todayISO={todayISO}
+        />
+      )}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import { Alert, Button, Skeleton } from "@mui/material"
 import { ArrowLeft } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
@@ -90,9 +91,7 @@ export default function KitchenBatchDetail() {
   const handleCompleteBatch = async () => {
     setActionLoading(true)
     try {
-      await KitchenService.completeBatch(id, {
-        preparedPortions: batchData?.portions || 0,
-      })
+      await KitchenService.completeBatch(id)
       notice({
         msg: "Ghi nhận nấu xong thành công!",
         isSuccess: true,
@@ -153,12 +152,8 @@ export default function KitchenBatchDetail() {
   if (loading) {
     return (
       <div className={styles.batchDetailPage} aria-busy="true">
-        <div style={{ padding: "24px 0", display: "flex", flexDirection: "column", gap: 16 }}>
-          <Skeleton variant="rounded" height={60} />
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: 16 }}>
-            <Skeleton variant="rounded" height={360} />
-            <Skeleton variant="rounded" height={360} />
-          </div>
+        <div style={{ padding: "96px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading />
         </div>
       </div>
     )

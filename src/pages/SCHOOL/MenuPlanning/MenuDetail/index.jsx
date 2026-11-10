@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import MenuService from "src/services/MenuService"
@@ -73,10 +74,7 @@ export default function MenuDetail() {
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <span className="material-symbols-outlined text-[36px] text-[#0a8066] animate-spin">
-          progress_activity
-        </span>
-        <p className="text-slate-600 font-medium mt-2">Đang tải thông tin chi tiết thực đơn...</p>
+        <FoodPrintLoading />
       </div>
     )
   }
