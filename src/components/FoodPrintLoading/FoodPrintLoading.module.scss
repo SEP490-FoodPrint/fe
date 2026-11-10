@@ -1,0 +1,129 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.fullscreenOverlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(246, 247, 240, 0.92);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: all;
+}
+
+.creamBg {
+  background-color: #f6f7f0;
+}
+
+.transparentBg {
+  background-color: transparent;
+}
+
+.svgLoader {
+  display: block;
+  overflow: visible;
+  user-select: none;
+}
+
+/* Vòng tròn viền xanh sage */
+.outerRing {
+  stroke: #98b49e;
+  stroke-width: 2.2px;
+  fill: none;
+  stroke-linecap: round;
+  transform-origin: 50px 50px;
+  animation: ringBreathe 3.6s ease-in-out infinite;
+}
+
+/* Cụm 5 chấm tròn xoay nhẹ nhàng quanh tâm */
+.dotsCluster {
+  transform-origin: 50px 50px;
+  animation: clusterRotate 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Từng chấm tròn nhấp nháy / co giãn nhẹ nhàng */
+.dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+.dot1 {
+  animation-delay: 0s;
+}
+
+.dot2 {
+  animation-delay: 0.35s;
+}
+
+.dot3 {
+  animation-delay: 0.7s;
+}
+
+.dot4 {
+  animation-delay: 1.05s;
+}
+
+.dot5 {
+  animation-delay: 1.4s;
+}
+
+@keyframes clusterRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ringBreathe {
+  0%, 100% {
+    stroke-opacity: 0.72;
+    stroke: #98b49e;
+    stroke-width: 2px;
+  }
+  50% {
+    stroke-opacity: 1;
+    stroke: #779a7c;
+    stroke-width: 2.3px;
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    transform: scale(0.85);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.14);
+    opacity: 1;
+  }
+}
+
+/* Kích thước */
+.sizeSmall {
+  width: 36px;
+  height: 36px;
+}
+
+.sizeMedium {
+  width: 56px;
+  height: 56px;
+}
+
+.sizeLarge {
+  width: 76px;
+  height: 76px;
+}

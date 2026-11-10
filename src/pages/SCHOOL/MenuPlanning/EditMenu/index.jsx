@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./EditMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
 import { ALL_INGREDIENTS } from "../mockMenuData"
@@ -263,10 +264,7 @@ export default function EditMenu() {
   if (!menu || !formState) {
     return (
       <div className={styles.loadingContainer}>
-        <span className="material-symbols-outlined text-[36px] text-[#0a8066] animate-spin">
-          progress_activity
-        </span>
-        <p className="text-slate-600 font-medium mt-2">Đang tải dữ liệu thực đơn để chỉnh sửa...</p>
+        <FoodPrintLoading size="large" />
       </div>
     )
   }

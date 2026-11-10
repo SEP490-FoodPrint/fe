@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import {
   Alert, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
   DialogContentText, DialogTitle, MenuItem, Paper, Table, TableBody, TableCell,
@@ -120,7 +121,7 @@ function DailyMealConfirm() {
         </div>
       </header>
 
-      {loading && <div className="daily-meal-page__loading"><CircularProgress size={28} /> Đang tải dữ liệu lớp...</div>}
+      {loading && <div style={{ padding: "48px 0", display: "flex", justifyContent: "center" }}><FoodPrintLoading size="medium" /></div>}
       {!loading && error && <Alert severity="warning">{error}</Alert>}
       {!loading && context && <>
         <Paper variant="outlined" className="daily-meal-page__summary">

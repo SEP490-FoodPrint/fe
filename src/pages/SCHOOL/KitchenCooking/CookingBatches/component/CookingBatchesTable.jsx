@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import FoodPrintLoading from "src/components/FoodPrintLoading";
 import {
   Eye,
   ChevronLeft,
@@ -88,11 +89,8 @@ export default function CookingBatchesTable({
   return (
     <div className={styles.tableCard} aria-busy={loading}>
       {loading ? (
-        <div className={styles.listState} role="status">
-          <span>Đang tải lô chế biến…</span>
-          {[1, 2, 3].map((key) => (
-            <Skeleton key={key} variant="rounded" height={60} />
-          ))}
+        <div style={{ padding: "64px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : error ? (
         <Alert

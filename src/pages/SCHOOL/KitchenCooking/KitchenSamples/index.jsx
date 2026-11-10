@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import ROUTER from "src/router/ROUTER"
 import notice from "src/components/Notice"
 import KitchenService from "src/services/KitchenService"
@@ -267,8 +268,8 @@ export default function KitchenSamples() {
 
       {/* 4. Bảng mẫu lưu (Desktop) & Danh sách Card (Mobile) */}
       {loading ? (
-        <div className="py-12 text-center text-slate-500 font-medium">
-          Đang tải danh sách mẫu lưu thực phẩm 24h...
+        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : loadError ? (
         <div className="p-4 my-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">

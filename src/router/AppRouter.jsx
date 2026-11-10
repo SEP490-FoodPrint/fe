@@ -1,6 +1,7 @@
 import React, { lazy, Suspense } from "react"
 import { useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
+import FoodPrintLoading, { RouteTransitionLoader } from "src/components/FoodPrintLoading"
 import MainLayout, { AuthLayout, PublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
 import { ORG_TYPES, ROLES } from "src/constants/roles"
@@ -68,13 +69,7 @@ const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
 
 function LazyWrapper({ children }) {
   return (
-    <Suspense
-      fallback={
-        <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <SpinCustom />
-        </div>
-      }
-    >
+    <Suspense fallback={<FoodPrintLoading fullscreen background="cream" />}>
       {children}
     </Suspense>
   )
@@ -329,7 +324,12 @@ const routes = [
 
 function AppRouter() {
   const element = useRoutes(routes)
-  return element
+  return (
+    <>
+      <RouteTransitionLoader />
+      {element}
+    </>
+  )
 }
 
 export default AppRouter

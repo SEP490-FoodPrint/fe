@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import MenuService from "src/services/MenuService"
@@ -418,8 +419,8 @@ export default function MenuPlanning() {
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
       {calendarLoading || loading ? (
-        <div className="py-16 text-center text-slate-500 font-medium">
-          Đang tải dữ liệu thực đơn tuần...
+        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : calendarError || loadError ? (
         <p role="alert">{calendarError || loadError}</p>

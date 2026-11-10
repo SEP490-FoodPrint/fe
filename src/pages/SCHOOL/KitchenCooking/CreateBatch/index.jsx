@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import FoodPrintLoading from "src/components/FoodPrintLoading";
 import ROUTER from "src/router/ROUTER";
 import MenuService from "src/services/MenuService";
 import KitchenService from "src/services/KitchenService";
@@ -164,8 +165,8 @@ export default function CreateBatch() {
         <CreateBatchHeader />
 
         {loadError ? <p role="alert">{loadError}</p> : loading ? (
-          <div className="py-16 text-center text-slate-500 font-medium">
-            Đang tải thực đơn và phương án chế biến hôm nay...
+          <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <FoodPrintLoading size="large" />
           </div>
         ) : dishes.length === 0 ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">

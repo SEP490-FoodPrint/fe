@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
 import {
   MOCK_SCHOOL_ACADEMIC_YEARS,
@@ -202,8 +203,8 @@ export default function KitchenMenu() {
 
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
       {loading ? (
-        <div style={{ padding: "64px 0", textAlign: "center", color: "#64748b", fontWeight: 500 }}>
-          Đang tải thực đơn tuần học từ hệ thống...
+        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : (
         <KitchenMenuWeeklyGrid

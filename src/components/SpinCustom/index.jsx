@@ -1,28 +1,23 @@
 import React from "react"
-import { Box, CircularProgress } from "@mui/material"
-import LoadingOverlay from "../LoadingOverlay"
+import { Box } from "@mui/material"
+import FoodPrintLoading from "../FoodPrintLoading"
 
 const SpinCustom = ({ spinning = true, fullscreen, children, sx, ...props }) => {
   if (!children) {
+    if (fullscreen) {
+      return <FoodPrintLoading fullscreen background="cream" />
+    }
     return (
       <Box
         sx={{
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          ...(fullscreen && {
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 9999,
-          }),
           ...sx,
         }}
         {...props}
       >
-        <LoadingOverlay isLoadingTable sizeSmall />
+        <FoodPrintLoading size="medium" />
       </Box>
     )
   }
@@ -41,11 +36,12 @@ const SpinCustom = ({ spinning = true, fullscreen, children, sx, ...props }) => 
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            bgcolor: "rgba(255, 255, 255, 0.6)",
+            bgcolor: "rgba(246, 247, 240, 0.75)",
+            backdropFilter: "blur(2px)",
             zIndex: 10,
           }}
         >
-          <CircularProgress size={32} color="primary" />
+          <FoodPrintLoading size="small" />
         </Box>
       )}
     </Box>
