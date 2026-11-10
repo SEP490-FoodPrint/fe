@@ -120,8 +120,8 @@ function DailyMealConfirm() {
         </div>
       </header>
 
-      {loading && <div className="daily-meal-page__loading"><CircularProgress size={28} /> Đang tải dữ liệu lớp...</div>}
-      {!loading && error && <Alert severity="warning">{error}</Alert>}
+      {loading && <div className="daily-meal-page__loading" role="status" aria-live="polite"><CircularProgress size={28} /> Đang tải dữ liệu lớp...</div>}
+      {!loading && error && <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>}
       {!loading && context && <>
         <Paper variant="outlined" className="daily-meal-page__summary">
           <div><span>Lớp được phân công</span><strong>{context.class.name}</strong><small>Niên khóa {context.class.academicYear}</small></div>
@@ -130,7 +130,7 @@ function DailyMealConfirm() {
             label={submission ? statusLabel(submission.status) : "Chưa khai báo"} /></div>
         </Paper>
 
-        <Paper variant="outlined" className="daily-meal-page__form">
+        <Paper variant="outlined" className="daily-meal-page__form" aria-busy={saving}>
           <div className="daily-meal-page__section-title"><ClipboardList size={20} /><div>
             <h2>Số suất {mealLabel(mealType).toLowerCase()}</h2><p>Được phép sửa khi còn là bản nháp.</p>
           </div></div>
@@ -164,7 +164,7 @@ function DailyMealConfirm() {
 
         <section className="daily-meal-page__history">
           <div><h2>Lịch sử khai báo gần đây</h2><p>Dữ liệu của lớp đang được phân công, lấy trực tiếp từ hệ thống.</p></div>
-          <TableContainer component={Paper} variant="outlined"><Table size="small">
+          <TableContainer component={Paper} variant="outlined" className="daily-meal-page__history-table"><Table size="small">
             <TableHead><TableRow><TableCell>Ngày</TableCell><TableCell>Ca ăn</TableCell><TableCell>Lớp</TableCell><TableCell align="right">Số suất</TableCell><TableCell>Trạng thái</TableCell></TableRow></TableHead>
             <TableBody>
               {history.map(item => <TableRow key={item.id}>
@@ -172,7 +172,7 @@ function DailyMealConfirm() {
                 <TableCell>{item.Class?.name || context.class.name}</TableCell><TableCell align="right">{item.totalPortions}</TableCell>
                 <TableCell><Chip size="small" color={item.status === "FINALIZED" ? "success" : "warning"} label={statusLabel(item.status)} /></TableCell>
               </TableRow>)}
-              {!history.length && <TableRow><TableCell colSpan={5} align="center">Chưa có lịch sử khai báo.</TableCell></TableRow>}
+              {!history.length && <TableRow><TableCell className="daily-meal-page__empty-history" colSpan={5} align="center">Chưa có lịch sử khai báo cho lớp này.</TableCell></TableRow>}
             </TableBody>
           </Table></TableContainer>
         </section>
