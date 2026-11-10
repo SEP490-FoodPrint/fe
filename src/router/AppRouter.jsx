@@ -1,7 +1,7 @@
 import React, { lazy, Suspense } from "react"
 import { useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
-import FoodPrintLoading, { RouteTransitionLoader } from "src/components/FoodPrintLoading"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MainLayout, { AuthLayout, PublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
 import { ORG_TYPES, ROLES } from "src/constants/roles"
@@ -324,12 +324,7 @@ const routes = [
 
 function AppRouter() {
   const element = useRoutes(routes)
-  return (
-    <>
-      <RouteTransitionLoader />
-      {element}
-    </>
-  )
+  return element
 }
 
 export default AppRouter
