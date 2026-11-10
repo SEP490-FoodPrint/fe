@@ -205,7 +205,7 @@ export const MenuItemSchool = () => [
     badge: "1",
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
-  
+
   {
     key: ROUTER.SCHOOL_SUPPLIERS,
     label: "Nhà cung cấp",
@@ -237,11 +237,17 @@ export const MenuItemSchool = () => [
     roles: [ROLES.HOMEROOM_TEACHER],
   },
 
-  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO BỘ PHẬN QUẢN LÝ KHO & NGUYÊN LIỆU (INGREDIENT_MANAGEMENT) - 5 MỤC QUY CHUẨN ===
+  // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO BỘ PHẬN QUẢN LÝ KHO & NGUYÊN LIỆU (INGREDIENT_MANAGEMENT) - 7 MỤC QUY CHUẨN ===
   {
     key: ROUTER.SCHOOL_INGREDIENT_OVERVIEW,
     label: "Tổng quan",
     icon: <DashboardOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_CATALOG,
+    label: "Danh mục nguyên liệu",
+    icon: <Inventory2OutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {
@@ -252,8 +258,14 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_ORDERS,
-    label: "Phiếu nhập & Đơn hàng",
+    label: "Phiếu nhập hàng",
     icon: <ReceiptLongOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+  {
+    key: ROUTER.SCHOOL_ORDER_TRACKING,
+    label: "Theo dõi đơn hàng",
+    icon: <LocalShippingOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {

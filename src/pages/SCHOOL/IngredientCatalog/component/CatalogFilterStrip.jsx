@@ -1,0 +1,73 @@
+import React from "react"
+import PropTypes from "prop-types"
+import { Box, TextField, MenuItem, InputAdornment } from "@mui/material"
+import { Search } from "lucide-react"
+import styles from "./CatalogFilterStrip.module.scss"
+
+export default function CatalogFilterStrip({
+  filters,
+  onFilterChange,
+  suppliers = [],
+}) {
+  return (
+    <Box className={styles.filterBar}>
+      <Box className={styles.filterInputs}>
+        <TextField
+          size="small"
+          placeholder="Tìm theo tên nguyên liệu, danh mục hoặc nhà cung cấp..."
+          value={filters.search}
+          onChange={e => onFilterChange("search", e.target.value)}
+          className={styles.searchInput}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search size={18} className={styles.searchIcon} />
+                </InputAdornment>
+              ),
+            },
+          }}
+        />
+
+        <TextField
+          select
+          size="small"
+          label="Phân loại kho"
+          value={filters.handlingType}
+          onChange={e => onFilterChange("handlingType", e.target.value)}
+          className={styles.selectInput}
+        >
+          <MenuItem value="all">Tất cả phân loại</MenuItem>
+          <MenuItem value="DIRECT_USE">Tươi sống (Dùng trong ngày)</MenuItem>
+          <MenuItem value="DRY_STOCK">Kho khô (Lưu kho dài ngày)</MenuItem>
+        </TextField>
+
+        <TextField
+          select
+          size="small"
+          label="Nhà cung cấp"
+          value={filters.supplierId}
+          onChange={e => onFilterChange("supplierId", e.target.value)}
+          className={styles.selectInput}
+        >
+          <MenuItem value="all">Tất cả nhà cung cấp</MenuItem>
+          {suppliers.map(sup => (
+            <MenuItem key={sup.id} value={sup.id}>
+              {sup.name}
+            </MenuItem>
+          ))}
+        </TextField>
+      </Box>
+    </Box>
+  )
+}
+
+CatalogFilterStrip.propTypes = {
+  filters: PropTypes.shape({
+    search: PropTypes.string,
+    handlingType: PropTypes.string,
+    supplierId: PropTypes.string,
+  }).isRequired,
+  onFilterChange: PropTypes.func.isRequired,
+  suppliers: PropTypes.array,
+}

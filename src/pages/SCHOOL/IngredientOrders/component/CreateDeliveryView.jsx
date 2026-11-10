@@ -29,11 +29,12 @@ import {
   Flame,
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   Clock,
   Sparkles,
   CalendarCheck,
 } from "lucide-react"
-import { MOCK_APPROVED_MENUS, MOCK_DRY_STOCK_MONTHLY_CYCLES } from "../mockData"
+import { MOCK_APPROVED_MENUS, MOCK_DRY_STOCK_INVENTORY } from "../mockData"
 import styles from "./CreateDeliveryView.module.scss"
 
 export default function CreateDeliveryView({
@@ -139,6 +140,59 @@ export default function CreateDeliveryView({
     } else {
       setAttachedDryIds(dryIngredients.map(it => it.id))
     }
+  }
+
+  // Đánh giá tồn kho & Nhu cầu ca nấu cho từng nguyên liệu khô
+  const dryStockEvaluation = useMemo(() => {
+    return dryIngredients.map(ing => {
+      const totalDemand = Number((ing.qtyPerPortion * maxPortions).toFixed(2))
+      const stockInfo = MOCK_DRY_STOCK_INVENTORY[ing.id] || {}
+      const currentStock = ing.currentStock ?? stockInfo.currentStock ?? 50
+      const safetyStock = ing.safetyStock ?? stockInfo.safetyStock ?? 20
+      const stockAfter = Number((currentStock - totalDemand).toFixed(2))
+
+      let status = "PLENTY" // "DEFICIT" | "LOW" | "PLENTY"
+      let statusLabel = ""
+      let statusSubtext = ""
+
+      if (currentStock < totalDemand) {
+        status = "DEFICIT"
+        const deficitQty = Number((totalDemand - currentStock).toFixed(2))
+        statusLabel = `Thiếu ${deficitQty} ${ing.unit}`
+        statusSubtext = `Kho còn ${currentStock}/${totalDemand} ${ing.unit} (Không đủ ca nấu)`
+      } else if (stockAfter < safetyStock) {
+        status = "LOW"
+        statusLabel = `Sắp hết`
+        statusSubtext = `Sau nấu còn ${stockAfter} ${ing.unit} (Định mức an toàn: ≥${safetyStock} ${ing.unit})`
+      } else {
+        status = "PLENTY"
+        statusLabel = `Đủ dùng trong kho`
+        statusSubtext = `Sau nấu còn dư ${stockAfter} ${ing.unit}`
+      }
+
+      return {
+        ...ing,
+        totalDemand,
+        currentStock,
+        safetyStock,
+        stockAfter,
+        status,
+        statusLabel,
+        statusSubtext,
+        needsDelivery: status !== "PLENTY",
+      }
+    })
+  }, [dryIngredients, maxPortions])
+
+  // Danh sách các món kho thiếu hụt hoặc sắp cạn cần gợi ý tích giao thêm
+  const lowOrDeficitItems = useMemo(() => {
+    return dryStockEvaluation.filter(it => it.needsDelivery)
+  }, [dryStockEvaluation])
+
+  // Chọn nhanh tất cả các món kho thiếu / sắp cạn
+  const handleAutoSelectLowStock = () => {
+    const lowIds = lowOrDeficitItems.map(it => it.id)
+    setAttachedDryIds(prev => Array.from(new Set([...prev, ...lowIds])))
   }
 
   // Submit Đợt 1
@@ -390,24 +444,16 @@ export default function CreateDeliveryView({
             </Box>
           </Paper>
 
-          {/* BẢNG 2: GIA VỊ & ĐỒ KHÔ (CHỈ CÓ Ở ĐỢT 1 - CHU KỲ 3 LẦN/THÁNG THEO TỪNG NGUYÊN LIỆU) */}
+          {/* BẢNG 2: GIA VỊ & ĐỒ KHÔ (CHỈ CÓ Ở ĐỢT 1 — MẶC ĐỊNH DÙNG TỒN KHO) */}
           <Paper className={styles.dryTableCard} elevation={0}>
             <Box className={styles.dryHeaderRow}>
               <Box className={styles.tableTitleGroup}>
                 <Box>
                   <Typography variant="subtitle1" className={styles.tableHeading}>
-                    B. Gia Vị &amp; Lương Thực Khô (Chỉ Giao Cùng Đợt 1 — Mặc Định Dùng Tồn Kho)
+                    B. Gia Vị &amp; Lương Thực Khô
                   </Typography>
                 </Box>
               </Box>
-
-              {/* Định mức chu kỳ 3 lần/tháng cho từng nguyên liệu */}
-              <Chip
-                icon={<Clock size={14} />}
-                label="Định mức kho: Tối đa 3 lần / tháng / mặt hàng"
-                size="small"
-                className={styles.cycleRuleBadge}
-              />
             </Box>
 
             <Box className={styles.tableWrapper}>
@@ -427,27 +473,18 @@ export default function CreateDeliveryView({
                     </TableCell>
                     <TableCell>Tên nguyên liệu / Gia vị</TableCell>
                     <TableCell>Nhà cung cấp (NCC)</TableCell>
-                    <TableCell align="center">Chu kỳ tháng (3 lần/tháng)</TableCell>
-                    <TableCell align="center">Quy cách kho</TableCell>
-                    <TableCell align="center">Định lượng / Suất</TableCell>
-                    <TableCell align="right">Tổng nhu cầu ca nấu</TableCell>
+                    <TableCell align="right">Nhu cầu ca nấu</TableCell>
+                    <TableCell align="right">Tồn kho hiện tại</TableCell>
+                    <TableCell align="center">Mức tồn kho &amp; So sánh</TableCell>
                     <TableCell align="center">Giao cùng xe Đợt 1</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {dryIngredients.map(ing => {
-                    const totalQty = (ing.qtyPerPortion * maxPortions).toFixed(2)
+                  {dryStockEvaluation.map(ing => {
                     const isAttached = attachedDryIds.includes(ing.id)
 
-                    // 1. Kiểm tra NCC: Cùng xe với đồ tươi hay NCC đồ khô riêng
+                    // Kiểm tra NCC: Cùng xe với đồ tươi hay NCC đồ khô riêng
                     const isSharedWithFresh = freshSupplierIds.has(ing.supplierId)
-
-                    // 2. Chu kỳ 3 lần/tháng tính trên từng nguyên liệu
-                    const cycleInfo = ing.monthlyCycle || MOCK_DRY_STOCK_MONTHLY_CYCLES[ing.id] || {
-                      currentOrders: 1,
-                      maxOrders: 3,
-                      lastDate: "10/10/2026",
-                    }
 
                     return (
                       <TableRow
@@ -496,60 +533,67 @@ export default function CreateDeliveryView({
                           </Box>
                         </TableCell>
 
-                        {/* Cột Chu kỳ tháng: Tính riêng cho từng nguyên liệu (3 lần/tháng) */}
-                        <TableCell align="center">
-                          <Box className={styles.cycleCellWrap}>
-                            <Chip
-                              size="small"
-                              icon={<Clock size={12} />}
-                              label={
-                                isAttached
-                                  ? `Giao lần ${Math.min(3, cycleInfo.currentOrders + 1)}/3`
-                                  : `Đã đặt ${cycleInfo.currentOrders}/3 lần`
-                              }
-                              className={
-                                isAttached
-                                  ? styles.cycleChipAttached
-                                  : cycleInfo.currentOrders === 0
-                                    ? styles.cycleChip0
-                                    : cycleInfo.currentOrders === 1
-                                      ? styles.cycleChip1
-                                      : cycleInfo.currentOrders === 2
-                                        ? styles.cycleChip2
-                                        : styles.cycleChip3
-                              }
-                            />
-                            <Typography variant="caption" className={styles.cycleSubtext}>
-                              {isAttached
-                                ? "Tính vào chỉ tiêu tháng"
-                                : cycleInfo.currentOrders === 0
-                                  ? "Tháng này chưa đặt"
-                                  : `Lần gần nhất: ${cycleInfo.lastDate}`}
+                        {/* Cột Nhu cầu ca nấu: Tổng số lượng và định lượng/suất */}
+                        <TableCell align="right">
+                          <Box className={styles.demandCol}>
+                            <Typography variant="subtitle2" className={styles.demandTotal}>
+                              {ing.totalDemand} {ing.unit}
+                            </Typography>
+                            <Typography variant="caption" className={styles.demandPerPortion}>
+                              ({ing.qtyPerPortion} {ing.unit}/suất)
                             </Typography>
                           </Box>
                         </TableCell>
 
-                        <TableCell align="center">
-                          <Chip
-                            label="Can/Bao/Thùng"
-                            size="small"
-                            variant="outlined"
-                            className={styles.packChip}
-                          />
-                        </TableCell>
-
-                        <TableCell align="center">
-                          <Typography variant="body2" className={styles.unitText}>
-                            {ing.qtyPerPortion} {ing.unit}
-                          </Typography>
-                        </TableCell>
-
+                        {/* Cột Tồn kho hiện tại: Số lượng và ngưỡng an toàn */}
                         <TableCell align="right">
-                          <Typography variant="subtitle2" className={styles.totalDryQtyText}>
-                            {totalQty} {ing.unit}
-                          </Typography>
+                          <Box className={styles.stockCol}>
+                            <Typography variant="subtitle2" className={styles.stockQty}>
+                              {ing.currentStock} {ing.unit}
+                            </Typography>
+                            <Typography variant="caption" className={styles.safetyStockText}>
+                              (An toàn: ≥{ing.safetyStock} {ing.unit})
+                            </Typography>
+                          </Box>
                         </TableCell>
 
+                        {/* Cột Mức tồn kho & So sánh: Phân loại DEFICIT / LOW / PLENTY */}
+                        <TableCell align="center">
+                          <Box className={styles.evaluationCol}>
+                            {ing.status === "DEFICIT" && (
+                              <Tooltip title={ing.statusSubtext}>
+                                <Chip
+                                  size="small"
+                                  label={ing.statusLabel}
+                                  className={styles.stockDeficitChip}
+                                />
+                              </Tooltip>
+                            )}
+                            {ing.status === "LOW" && (
+                              <Tooltip title={ing.statusSubtext}>
+                                <Chip
+                                  size="small"
+                                  label={ing.statusLabel}
+                                  className={styles.stockLowChip}
+                                />
+                              </Tooltip>
+                            )}
+                            {ing.status === "PLENTY" && (
+                              <Tooltip title={ing.statusSubtext}>
+                                <Chip
+                                  size="small"
+                                  label={ing.statusLabel}
+                                  className={styles.stockPlentyChip}
+                                />
+                              </Tooltip>
+                            )}
+                            <Typography variant="caption" className={styles.evalSubtext}>
+                              {ing.statusSubtext}
+                            </Typography>
+                          </Box>
+                        </TableCell>
+
+                        {/* Cột Trạng thái Giao cùng xe Đợt 1 */}
                         <TableCell align="center" onClick={e => e.stopPropagation()}>
                           {isAttached ? (
                             <Chip
@@ -560,9 +604,18 @@ export default function CreateDeliveryView({
                               className={styles.attachedChip}
                               onDelete={() => handleToggleAttached(ing.id)}
                             />
+                          ) : ing.status !== "PLENTY" ? (
+                            <Chip
+                              size="small"
+                              variant="outlined"
+                              color="warning"
+                              label="+ Tích giao cùng"
+                              className={styles.suggestAttachChip}
+                              onClick={() => handleToggleAttached(ing.id)}
+                            />
                           ) : (
                             <Typography variant="caption" className={styles.notAttachedText}>
-                              Chưa giao
+                              Dùng kho (Không giao)
                             </Typography>
                           )}
                         </TableCell>
@@ -634,14 +687,6 @@ export default function CreateDeliveryView({
           ===================================================================== */}
       {mode === "BATCH_2" && (
         <>
-          {/* Banner phát hiện Đợt 1 đã có */}
-          <Alert severity="info" className={styles.batch2DetectedAlert}>
-            <Typography variant="body2">
-              <strong>Tự động nhận diện:</strong> Ngày <strong>{orderDate}</strong> đã tạo thành công{" "}
-              <strong>Đợt 1 ({batch1ForDate?.deliveryNo} — {batch1ForDate?.plannedPortions} suất lúc 05:30)</strong>.
-              Hệ thống tự động chuyển sang lập <strong>Đơn giao hàng Đợt 2</strong>.
-            </Typography>
-          </Alert>
 
           {/* KHỐI ĐIỂM DANH & CHỐT SĨ SỐ GVCN (ĐIỀU KIỆN TIÊN QUYẾT ĐỂ CHỐT ĐỢT 2) */}
           <Paper className={styles.attendanceCard} elevation={0}>
@@ -652,22 +697,8 @@ export default function CreateDeliveryView({
                   <Typography variant="subtitle1" className={styles.attendanceHeading}>
                     Cập Nhật Sĩ Số Học Sinh Từ Giáo Viên Chủ Nhiệm (GVCN)
                   </Typography>
-                  <Typography variant="caption" className={styles.attendanceSubheading}>
-                    GVCN điểm danh và báo sĩ số lúc 07:30 sáng để Nhà bếp chốt lượng thực phẩm Đợt 2, chống lãng phí.
-                  </Typography>
                 </Box>
               </Box>
-
-              {/* Nút hỗ trợ test nhanh */}
-              <Button
-                size="small"
-                variant="outlined"
-                startIcon={<Sparkles size={14} />}
-                onClick={() => setActualAttendance("820")}
-                className={styles.mockAttendanceBtn}
-              >
-                ⚡ Mô phỏng GVCN báo sĩ số (820 HS)
-              </Button>
             </Box>
 
             <Box className={styles.attendanceBody}>
@@ -708,7 +739,7 @@ export default function CreateDeliveryView({
                   </Typography>
                   <Box className={styles.formulaItemResult}>
                     <Typography variant="caption" color="text.secondary">
-                      Cần giao bù Đợt 2:
+                      Cần giao thêm Đợt 2:
                     </Typography>
                     <Typography variant="h6" className={styles.resultPortions}>
                       {parsedAttendance > 0 ? remainingPortions : "~425"} suất
@@ -717,21 +748,6 @@ export default function CreateDeliveryView({
                 </Box>
               </Box>
 
-              {/* Cảnh báo khi CHƯA có sĩ số */}
-              {parsedAttendance <= 0 ? (
-                <Alert severity="warning" className={styles.waitingAlert} icon={<AlertTriangle size={18} />}>
-                  <Typography variant="body2">
-                    <strong>Chưa có sĩ số điểm danh:</strong> Nút chốt đơn Đợt 2 đang bị khóa. Vui lòng nhập sĩ số thực tế do GVCN báo sáng (hoặc bấm nút mô phỏng ở trên) để mở khóa chốt đơn.
-                  </Typography>
-                </Alert>
-              ) : (
-                <Alert severity="success" className={styles.readyAlert} icon={<CheckCircle2 size={18} />}>
-                  <Typography variant="body2">
-                    <strong>Đã có sĩ số ({parsedAttendance} học sinh):</strong> Đợt 2 sẽ giao bù chính xác{" "}
-                    <strong>{remainingPortions} suất ăn</strong>. Bảng nguyên liệu bên dưới đã được tính lại theo đúng số lượng này.
-                  </Typography>
-                </Alert>
-              )}
             </Box>
           </Paper>
 
@@ -742,7 +758,7 @@ export default function CreateDeliveryView({
                 <Package size={18} className={styles.tableIcon} />
                 <Box>
                   <Typography variant="subtitle1" className={styles.tableHeading}>
-                    Bảng Thực Phẩm Tươi Sống Đợt 2 (Kế Thừa Từ Đợt 1 — Giao Bù Lúc 07:45)
+                    Bảng Thực Phẩm Tươi Sống Đợt 2
                   </Typography>
                   <Typography variant="caption" className={styles.tableSubheading}>
                     Tự động tính số lượng kg theo số suất giao bù ({parsedAttendance > 0 ? remainingPortions : 425} suất). Hoàn toàn không có đồ khô.
