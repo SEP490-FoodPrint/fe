@@ -6,17 +6,19 @@
   max-width: var(--content-max-width);
   margin: 0 auto;
 
-  &__header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-6); }
+  &__header { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--space-6); padding-bottom: var(--space-2); }
   &__breadcrumb { display: flex; gap: var(--space-2); margin-bottom: var(--space-3); color: var(--text-muted); font-size: var(--text-xs); }
   &__breadcrumb strong { color: var(--text-secondary); }
   h1 { margin: 0; color: var(--text-primary); font-size: var(--text-2xl); line-height: var(--leading-tight); }
+  &__header p { max-width: 44rem; margin: var(--space-2) 0 0; color: var(--text-muted); line-height: 1.6; }
+  &__loading { display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-height: 14rem; color: var(--text-muted); }
   h2, h3, p { margin: 0; }
   header p, &__section-title p, &__allergies p, &__history p { margin-top: var(--space-2); color: var(--text-muted); }
   &__filters { display: grid; grid-template-columns: 11rem 10rem; gap: var(--space-3); }
   &__loading { display: flex; align-items: center; justify-content: center; gap: var(--space-3); min-height: 12rem; color: var(--text-muted); }
   &__summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; overflow: hidden; }
   &__summary > div { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); padding: var(--space-5); border-right: 1px solid var(--border-default); }
-  &__summary > &__summary-status { flex-direction: row; align-items: center; gap: var(--space-3); }
+  &__summary > &__summary-status { flex-direction: row; align-items: center; align-content: center; flex-wrap: wrap; gap: var(--space-3); }
   &__summary-status > span::after { content: ":"; }
   &__summary > div:last-child { border-right: 0; }
   &__summary span, &__summary small { color: var(--text-muted); }
@@ -32,6 +34,12 @@
   &__allergy-row .MuiTextField-root { width: 9rem; }
   &__actions { display: flex; justify-content: flex-end; gap: var(--space-3); padding-top: var(--space-2); }
   &__history { display: flex; flex-direction: column; gap: var(--space-4); }
+  &__history > div > h2 { margin: 0; color: var(--text-primary); }
+  &__history > div > p { margin: var(--space-1) 0 0; color: var(--text-muted); }
+  &__history-table { border-radius: var(--radius-xl); }
+  &__history-table th { color: var(--text-secondary); background: var(--bg-muted); font-weight: 700; white-space: nowrap; }
+  &__history-table td { font-variant-numeric: tabular-nums; }
+  &__empty-history { height: 7rem; color: var(--text-muted); }
 
   @media (max-width: 800px) {
     &__header { align-items: stretch; flex-direction: column; }
@@ -46,5 +54,7 @@
     &__allergy-row { align-items: stretch; flex-direction: column; }
     &__allergy-row .MuiTextField-root { width: 100%; }
     &__actions { flex-direction: column-reverse; }
+    &__actions .MuiButton-root { width: 100%; min-height: 2.75rem; }
+    &__history-table { overflow-x: auto; }
   }
 }
