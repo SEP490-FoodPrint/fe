@@ -19,7 +19,6 @@ import {
 } from "../dishCatalogData"
 import {
   WAREHOUSE_SEASONINGS_CATALOG,
-  INITIAL_SEASONINGS,
 } from "../mockMenuData"
 
 export default function CreateMenuDayModal({
@@ -63,7 +62,7 @@ export default function CreateMenuDayModal({
       if (Array.isArray(dayMenu?.seasonings) && dayMenu.seasonings.length > 0) {
         setSeasonings(dayMenu.seasonings.map((s) => ({ ...s })))
       } else {
-        setSeasonings(INITIAL_SEASONINGS.map((s) => ({ ...s })))
+        setSeasonings([])
       }
 
       setDishCatalog(getStoredDishCatalog())

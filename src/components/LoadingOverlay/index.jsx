@@ -1,6 +1,6 @@
+import React from "react"
 import PropTypes from "prop-types"
-import cn from "src/lib/classnames"
-import styles from "./styles.module.scss"
+import FoodPrintLoading from "../FoodPrintLoading"
 
 export default function LoadingOverlay({
   isOverlay,
@@ -8,21 +8,14 @@ export default function LoadingOverlay({
   sizeSmall,
 }) {
   return (
-    <div
-      className={cn(styles.appChangeRouterProgress, {
-        [styles.overlay]: isOverlay,
-        [styles.loadingTable]: isLoadingTable,
-        [styles.sizeSmall]: sizeSmall,
-      })}
-    >
-      <div className={styles.loader}>
-        <div className={`${styles.inner} ${styles.one}`} />
-        <div className={`${styles.inner} ${styles.two}`} />
-        <div className={`${styles.inner} ${styles.three}`} />
-      </div>
-    </div>
+    <FoodPrintLoading
+      size={sizeSmall ? "small" : "medium"}
+      fullscreen={isOverlay}
+      background={isLoadingTable ? "transparent" : isOverlay ? "white" : "transparent"}
+    />
   )
 }
+
 LoadingOverlay.propTypes = {
   isOverlay: PropTypes.bool,
   isLoadingTable: PropTypes.bool,

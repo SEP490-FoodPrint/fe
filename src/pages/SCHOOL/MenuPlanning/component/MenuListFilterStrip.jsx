@@ -11,8 +11,8 @@ export default function MenuListFilterStrip({
 }) {
   const {
     searchKeyword = "",
-    academicYear = "2026-2027",
-    week = 45,
+    academicYear = "",
+    week = "",
     mealType = "all",
   } = filters
 
@@ -49,7 +49,9 @@ export default function MenuListFilterStrip({
           value={academicYear}
           onChange={(e) => onChangeFilter("academicYear", e.target.value)}
           title="Chọn năm học"
+          disabled={academicYearOptions.length === 0}
         >
+          {academicYearOptions.length === 0 && <option value="">Chưa có năm học</option>}
           {academicYearOptions.map((ay) => (
             <option key={ay.academicYear} value={ay.academicYear}>
               {ay.label || `Năm học ${ay.academicYear}`}
@@ -65,11 +67,13 @@ export default function MenuListFilterStrip({
         <select
           className={styles.selectInput}
           value={String(week)}
-          onChange={(e) => onChangeFilter("week", Number(e.target.value))}
+          onChange={(e) => onChangeFilter("week", e.target.value)}
           title="Chọn tuần học trong năm học"
+          disabled={weeks.length === 0}
         >
+          {weeks.length === 0 && <option value="">Chưa có tuần học</option>}
           {weeks.map((w) => (
-            <option key={w.key || w.isoWeek} value={w.isoWeek}>
+            <option key={w.weekStartDate} value={w.weekStartDate}>
               {w.label}
             </option>
           ))}

@@ -1,0 +1,129 @@
+.container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-sizing: border-box;
+}
+
+.fullscreenOverlay {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: all;
+}
+
+.whiteBg {
+  background-color: #ffffff;
+}
+
+.transparentBg {
+  background-color: transparent;
+}
+
+.svgLoader {
+  display: block;
+  overflow: visible;
+  user-select: none;
+}
+
+/* Vòng tròn viền xanh sage theo hệ nhận diện FoodPrint */
+.outerRing {
+  stroke: #84baa9;
+  stroke-width: 2.6px;
+  fill: none;
+  stroke-linecap: round;
+  transform-origin: 50px 50px;
+  animation: ringBreathe 3.6s ease-in-out infinite;
+}
+
+/* Cụm 5 chấm tròn xoay nhẹ nhàng quanh tâm */
+.dotsCluster {
+  transform-origin: 50px 50px;
+  animation: clusterRotate 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+}
+
+/* Từng chấm tròn nhấp nháy / co giãn nhẹ nhàng */
+.dot {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+.dot1 {
+  animation-delay: 0s;
+}
+
+.dot2 {
+  animation-delay: 0.35s;
+}
+
+.dot3 {
+  animation-delay: 0.7s;
+}
+
+.dot4 {
+  animation-delay: 1.05s;
+}
+
+.dot5 {
+  animation-delay: 1.4s;
+}
+
+@keyframes clusterRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ringBreathe {
+  0%, 100% {
+    stroke-opacity: 0.65;
+    stroke: #84baa9;
+    stroke-width: 2.4px;
+  }
+  50% {
+    stroke-opacity: 0.95;
+    stroke: #52b299;
+    stroke-width: 2.8px;
+  }
+}
+
+@keyframes dotPulse {
+  0%, 100% {
+    transform: scale(0.88);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.12);
+    opacity: 1;
+  }
+}
+
+/* Kích thước chuẩn hóa nhỏ gọn, tinh tế thống nhất toàn hệ thống FoodPrint */
+.sizeSmall {
+  width: 24px;
+  height: 24px;
+}
+
+.sizeMedium {
+  width: 36px;
+  height: 36px;
+}
+
+.sizeLarge {
+  width: 36px;
+  height: 36px;
+}

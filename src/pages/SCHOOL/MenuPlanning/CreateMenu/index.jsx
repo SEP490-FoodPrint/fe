@@ -58,19 +58,20 @@ export default function CreateMenu() {
     return getSchoolWeekScheduleFromDate(currentDateVN)
   }, [currentDateVN])
   const schoolDays = weekInfo?.schoolDays || []
+  const [academicWeek, setAcademicWeek] = useState(null)
 
   // 2. Thông tin thực đơn tuần
   const [menuTitle, setMenuTitle] = useState("")
   const [targetScope, setTargetScope] = useState("Toàn trường (Khối 1 – 5)")
 
-  // Đặt tên thực đơn mặc định theo tuần
+  // Chỉ dùng số tuần và năm học được API tính từ cấu hình của trường.
   useEffect(() => {
-    if (!menuTitle) {
+    if (!menuTitle && academicWeek?.weekNumber != null) {
       setMenuTitle(
-        `Thực đơn Tiêu chuẩn Tuần ${weekInfo?.weekNumber || 45} (Năm học 2026 – 2027)`
+        `Thực đơn tuần ${academicWeek.weekNumber}`
       )
     }
-  }, [weekInfo?.weekNumber, menuTitle])
+  }, [academicWeek, menuTitle])
 
   // 3. Dữ liệu thực đơn của cả tuần (5 ngày x 2 ca + gia vị của ngày)
   const [weeklyMeals, setWeeklyMeals] = useState({})
@@ -102,9 +103,11 @@ export default function CreateMenu() {
     if (!weekStart) return
 
     setLoadingSchedule(true)
+    setAcademicWeek(null)
     MenuService.getWeekSchedule(weekStart)
       .then((res) => {
         if (!active) return
+        setAcademicWeek(res.data)
         const days = res?.data?.days || []
         const mapped = {}
         days.forEach((day) => {
@@ -113,6 +116,7 @@ export default function CreateMenu() {
               LUNCH: day.meals?.LUNCH?.dishes || [],
               AFTERNOON: day.meals?.AFTERNOON?.dishes || [],
               seasonings: Array.isArray(day.seasonings) ? day.seasonings : [],
+              seasoningsByMeal: day.seasoningsByMeal || { LUNCH: [], AFTERNOON: [] },
             }
           }
         })
@@ -150,6 +154,7 @@ export default function CreateMenu() {
     curDate.setDate(curDate.getDate() + offset * 7)
     const newDateVN = formatDateVN(curDate.toISOString().slice(0, 10))
     setCurrentDateVN(newDateVN)
+    setAcademicWeek(null)
     setMenuTitle("")
   }, [currentDateVN])
 
@@ -218,10 +223,9 @@ export default function CreateMenu() {
 
       const lunchDishes = (dayData.LUNCH || [])
         .filter((d) => (d.name || "").trim().length > 0)
-        .map((d, idx) => ({
+        .map((d) => ({
           ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
-          displayOrder: idx + 1,
-          ingredients: (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
+          ingredients: Array.isArray(d.ingredientStandards) ? d.ingredientStandards : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
             ingredientId: id,
             quantityPerPortion: String(d.portionQty || 50),
             unit: (d.unit || "g").trim().toLowerCase(),
@@ -230,10 +234,9 @@ export default function CreateMenu() {
 
       const afternoonDishes = (dayData.AFTERNOON || [])
         .filter((d) => (d.name || "").trim().length > 0)
-        .map((d, idx) => ({
+        .map((d) => ({
           ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
-          displayOrder: idx + 1,
-          ingredients: (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
+          ingredients: Array.isArray(d.ingredientStandards) ? d.ingredientStandards : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
             ingredientId: id,
             quantityPerPortion: String(d.portionQty || 50),
             unit: (d.unit || "g").trim().toLowerCase(),
@@ -333,9 +336,8 @@ export default function CreateMenu() {
     try {
       const createRes = await http.post("/v1/menus", payload, { notifyOnError: false })
       const menuId = createRes?.data?.id || createRes?.id
-      if (menuId) {
-        await MenuService.submitMenu(menuId)
-      }
+      if (!menuId) throw new Error("Đã gửi yêu cầu lưu nhưng phản hồi thiếu mã thực đơn; chưa thể gửi duyệt.")
+      await MenuService.submitMenu(menuId)
       MenuService.invalidateMenuCache()
       showToast(
         "Đã gửi thực đơn tuần lên Ban Giám hiệu phê duyệt thành công!",
@@ -388,7 +390,7 @@ export default function CreateMenu() {
                 <ChevronLeft size={16} />
               </button>
               <span className={styles.weekRangeText}>
-                Tuần {weekInfo?.weekNumber || 45} • {weekRangeText}
+                {academicWeek?.weekLabel ? `${academicWeek.weekLabel} • ` : ""}{weekRangeText}
               </span>
               <button
                 type="button"

@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "test:registration": "node --test tests/registration-api.test.mjs",
+    "test:kitchen-nutrition": "node --test tests/kitchen-nutrition-api.test.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

@@ -63,10 +63,11 @@ export default function CreateBatchSeparateFooter({
       });
 
       setIsError(false);
-      const dishCode = res?.batchCode || selectedDish.batchCode || "LÔ-TÁCH";
+      if (!Array.isArray(res?.batches) || !res.batches.length) throw new Error("Phản hồi thiếu phương án lô; vui lòng tải lại danh sách.");
+      const dishCode = res.batches.map(batch => batch.batchCode).join(", ");
 
       if (onBatchCreated) {
-        onBatchCreated(selectedDish.id, res);
+        onBatchCreated(selectedDish.id, { ...res, batchCode: dishCode });
       }
 
       if (nextPendingDish) {

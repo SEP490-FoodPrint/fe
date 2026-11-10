@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from "react"
-import { Alert, Box, Button, CircularProgress } from "@mui/material"
+import { Alert, Box, Button } from "@mui/material"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import { StoreContext } from "src/contexts"
 import AuthService from "src/services/AuthService"
 import { useLocation } from "react-router-dom"
@@ -41,10 +42,16 @@ const DefaultAction = ({ children }) => {
     return () => { active = false; controller.abort() }
   }, [setIsLoginContext, setUser, retry, isLoginContext])
 
-  if (!ready && !publicAuth) return <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
-    {error ? <Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{error}</Alert>
-      : <CircularProgress size={28} aria-label="Đang khôi phục phiên đăng nhập" />}
-  </Box>
+  if (!ready && !publicAuth) {
+    if (error) {
+      return (
+        <Box sx={{ p: 3, display: "flex", justifyContent: "center" }}>
+          <Alert severity="error" action={<Button onClick={() => setRetry(value => value + 1)}>Thử lại</Button>}>{error}</Alert>
+        </Box>
+      )
+    }
+    return <FoodPrintLoading fullscreen background="white" />
+  }
 
   return <>{children}</>
 }

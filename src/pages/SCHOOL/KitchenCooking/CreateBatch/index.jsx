@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import FoodPrintLoading from "src/components/FoodPrintLoading";
 import ROUTER from "src/router/ROUTER";
 import MenuService from "src/services/MenuService";
 import KitchenService from "src/services/KitchenService";
@@ -16,10 +17,11 @@ import styles from "./index.module.scss";
 export default function CreateBatch() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [dishes, setDishes] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState("lunch");
   const [selectedDish, setSelectedDish] = useState(null);
-  const [portions, setPortions] = useState(400);
+  const [portions, setPortions] = useState(0);
 
   // Tải danh sách món ăn từ thực đơn đã duyệt hôm nay
   useEffect(() => {
@@ -34,19 +36,21 @@ export default function CreateBatch() {
         const todayISO = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
         const [scheduleRes, batchesRes] = await Promise.all([
-          MenuService.getWeekSchedule(todayISO).catch(() => null),
-          KitchenService.getBatches({ date: todayISO, limit: 100 }, { signal: controller.signal }).catch(() => ({ items: [] })),
+          MenuService.getWeekSchedule(todayISO),
+          KitchenService.getBatches({ date: todayISO, limit: 100 }, { signal: controller.signal }),
         ]);
 
         if (!active) return;
 
         const existingBatches = batchesRes?.items || [];
-        const todayDay =
-          scheduleRes?.data?.days?.find((d) => d.date === todayISO || d.rawDate === todayISO) ||
-          scheduleRes?.data?.days?.[0];
-
+        const todayDay = scheduleRes?.data?.days?.find(d => d.date === todayISO);
+        const demandByMeal = {};
         const loadedDishes = [];
-        if (todayDay && todayDay.meals) {
+        if (todayDay?.status === "APPROVED" && todayDay.meals) {
+          await Promise.all(["LUNCH", "AFTERNOON"].filter(type => todayDay.meals[type]?.dishes?.length).map(async type => {
+            demandByMeal[type] = await MenuService.getMealRequirements(todayDay.menuDayId, type);
+          }));
+          if (!active) return;
           const lunchDishes = todayDay.meals.LUNCH?.dishes || [];
           lunchDishes.forEach((d, idx) => {
             const matchedBatch = existingBatches.find(
@@ -59,7 +63,7 @@ export default function CreateBatch() {
               mealType: "lunch",
               mealName: "Bữa trưa",
               name: d.name,
-              portionStandard: d.portionStandard || 400,
+              portionStandard: demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
               isBatchCreated: Boolean(matchedBatch),
               batchCode: matchedBatch?.batchCode || "",
               ingredients: d.ingredients || [],
@@ -78,7 +82,7 @@ export default function CreateBatch() {
               mealType: "afternoon",
               mealName: "Bữa xế",
               name: d.name,
-              portionStandard: d.portionStandard || 400,
+              portionStandard: demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
               isBatchCreated: Boolean(matchedBatch),
               batchCode: matchedBatch?.batchCode || "",
               ingredients: d.ingredients || [],
@@ -99,7 +103,7 @@ export default function CreateBatch() {
         }
       } catch (err) {
         console.warn("Lỗi tải món ăn hôm nay:", err);
-        setDishes([]);
+        if (active) { setDishes([]); setLoadError(err.message); }
       } finally {
         if (active) setLoading(false);
       }
@@ -160,9 +164,9 @@ export default function CreateBatch() {
         {/* Header Bar */}
         <CreateBatchHeader />
 
-        {loading ? (
-          <div className="py-16 text-center text-slate-500 font-medium">
-            Đang tải thực đơn và phương án chế biến hôm nay...
+        {loadError ? <p role="alert">{loadError}</p> : loading ? (
+          <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+            <FoodPrintLoading />
           </div>
         ) : dishes.length === 0 ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">

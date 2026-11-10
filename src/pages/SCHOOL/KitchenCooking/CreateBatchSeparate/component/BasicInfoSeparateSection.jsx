@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import styles from "./BasicInfoSeparateSection.module.scss";
 
-export const INITIAL_SEPARATE_DISHES = [
+export const INITIAL_SEPARATE_DISHES = [];
+const OBSOLETE_DISHES = [
   // --- BỮA TRƯA ---
   {
     id: "d0000001-0000-0000-0000-000000000001",
@@ -79,10 +80,10 @@ export const INITIAL_SEPARATE_DISHES = [
   },
 ];
 
-export const SEPARATE_DISH_OPTIONS = INITIAL_SEPARATE_DISHES;
+export const SEPARATE_DISH_OPTIONS = [];
 
 export default function BasicInfoSeparateSection({
-  dishes = INITIAL_SEPARATE_DISHES,
+  dishes = [],
   selectedDish,
   setSelectedDish,
   portions = 1250,
