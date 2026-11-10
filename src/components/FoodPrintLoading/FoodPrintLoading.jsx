@@ -16,14 +16,14 @@ export default function FoodPrintLoading({
   className = "",
   style = {},
 }) {
-  let dimension = 50
+  let dimension = 36
   let sizeClass = styles.sizeMedium
 
   if (size === "small") {
-    dimension = 32
+    dimension = 24
     sizeClass = styles.sizeSmall
   } else if (size === "large") {
-    dimension = 50
+    dimension = 36
     sizeClass = styles.sizeLarge
   } else if (typeof size === "number") {
     dimension = size

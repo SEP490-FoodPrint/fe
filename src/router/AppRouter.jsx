@@ -1,7 +1,6 @@
 import React, { lazy, Suspense } from "react"
 import { useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
-import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MainLayout, { AuthLayout, PublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
 import { ORG_TYPES, ROLES } from "src/constants/roles"

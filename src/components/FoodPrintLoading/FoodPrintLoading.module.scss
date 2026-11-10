@@ -39,7 +39,7 @@
 /* Vòng tròn viền xanh sage theo hệ nhận diện FoodPrint */
 .outerRing {
   stroke: #84baa9;
-  stroke-width: 2.2px;
+  stroke-width: 2.6px;
   fill: none;
   stroke-linecap: round;
   transform-origin: 50px 50px;
@@ -92,12 +92,12 @@
   0%, 100% {
     stroke-opacity: 0.65;
     stroke: #84baa9;
-    stroke-width: 2px;
+    stroke-width: 2.4px;
   }
   50% {
     stroke-opacity: 0.95;
     stroke: #52b299;
-    stroke-width: 2.4px;
+    stroke-width: 2.8px;
   }
 }
 
@@ -112,18 +112,18 @@
   }
 }
 
-/* Kích thước chuẩn hóa thống nhất toàn hệ thống FoodPrint */
+/* Kích thước chuẩn hóa nhỏ gọn, tinh tế thống nhất toàn hệ thống FoodPrint */
 .sizeSmall {
-  width: 32px;
-  height: 32px;
+  width: 24px;
+  height: 24px;
 }
 
 .sizeMedium {
-  width: 50px;
-  height: 50px;
+  width: 36px;
+  height: 36px;
 }
 
 .sizeLarge {
-  width: 50px;
-  height: 50px;
+  width: 36px;
+  height: 36px;
 }
