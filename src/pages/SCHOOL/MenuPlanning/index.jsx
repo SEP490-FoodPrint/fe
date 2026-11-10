@@ -1,20 +1,11 @@
 import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { MOCK_MENU_LIST, getWeeklyMenuStatus } from "./mockMenuListData"
 import MenuService from "src/services/MenuService"
-import {
-  getDateOfISOWeek,
-  getWeeksOfYear,
-  getMenuYear,
-  getMenuISOWeek,
-  getISOWeekNumber,
-  SCHOOL_DAY_LABELS,
-  MOCK_SCHOOL_ACADEMIC_YEARS,
-  getWeeksOfAcademicYear,
-} from "src/services/MenuService/adapter"
+import { SCHOOL_DAY_LABELS } from "src/services/MenuService/adapter"
 
 import MenuListStatsRail from "./component/MenuListStatsRail"
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
@@ -24,62 +15,94 @@ import MenuListWeeklyVerticalView from "./component/MenuListWeeklyVerticalView"
 export default function MenuPlanning() {
   const navigate = useNavigate()
 
-  const currentYear = useMemo(() => new Date().getFullYear(), [])
-  const currentWeek = useMemo(() => getISOWeekNumber(new Date()), [])
-
-  // Master data
-  const [menus, setMenus] = useState(MOCK_MENU_LIST)
-  const [menusAreMock, setMenusAreMock] = useState(true)
-  const [loading, setLoading] = useState(false)
+  // Master data: Ban đầu rỗng, tải 100% từ API thật
+  const [menus, setMenus] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
 
   // Danh sách năm học từ cấu hình toàn trường
-  const availableAcademicYears = MOCK_SCHOOL_ACADEMIC_YEARS
+  const [availableAcademicYears, setAvailableAcademicYears] = useState([])
+  const [calendarLoading, setCalendarLoading] = useState(true)
+  const [calendarError, setCalendarError] = useState("")
 
-  // Filter state: Mặc định lọc Năm học 2026 - 2027 và Tuần này!
+  // Năm học và số tuần đều do BE cung cấp từ cấu hình của trường.
   const [filters, setFilters] = useState({
     searchKeyword: "",
-    academicYear: "2026-2027",
-    week: currentWeek, // Mặc định luôn là tuần này!
+    academicYear: "",
+    week: "",
     mealType: "all",
     status: "all",
   })
 
-  // Cấu hình năm học hiện tại do BGH setup (chứa startDate, endDate và ngày nghỉ)
+  // Cấu hình năm học hiện tại do BGH setup
   const currentAcademicYearConfig = useMemo(() => {
     return (
-      availableAcademicYears.find((ay) => ay.academicYear === filters.academicYear) ||
-      availableAcademicYears[0]
+      availableAcademicYears.find((ay) => ay.academicYear === filters.academicYear)
     )
   }, [availableAcademicYears, filters.academicYear])
 
-  // Danh sách các tuần học thực tế trong năm học (chạy từ lúc bắt đầu học đến kết thúc)
+  // Danh sách các tuần học thực tế trong năm học
   const schoolWeeks = useMemo(() => {
-    return getWeeksOfAcademicYear(currentAcademicYearConfig)
+    return currentAcademicYearConfig?.weeks || []
   }, [currentAcademicYearConfig])
 
   // Tuần đang được chọn
   const selectedWeekObj = useMemo(() => {
-    const found = schoolWeeks.find((w) => w.isoWeek === Number(filters.week))
-    if (found) return found
-    const currentW = schoolWeeks.find((w) => w.isCurrentWeek)
-    return currentW || schoolWeeks[0]
+    return schoolWeeks.find((w) => w.weekStartDate === filters.week)
   }, [schoolWeeks, filters.week])
 
-  // Tải dữ liệu thực tế từ backend hoặc fallback mock
+  const defaultYear = (years) =>
+    years.find((year) => year.isCurrent) || years[0]
+  const defaultWeek = (year) =>
+    year?.weeks?.find((week) => week.isCurrentWeek) || year?.weeks?.[0]
+
+  useEffect(() => {
+    let active = true
+    MenuService.getAcademicCalendar()
+      .then(({ academicYears }) => {
+        if (!active) return
+        setAvailableAcademicYears(academicYears)
+        const year = defaultYear(academicYears)
+        setFilters((prev) => ({
+          ...prev,
+          academicYear: year?.academicYear || "",
+          week: defaultWeek(year)?.weekStartDate || "",
+        }))
+      })
+      .catch((error) => {
+        if (active) setCalendarError(error.message || "Không tải được năm học.")
+      })
+      .finally(() => {
+        if (active) setCalendarLoading(false)
+      })
+    return () => { active = false }
+  }, [])
+
+  // Tải dữ liệu thực tế từ backend API
   useEffect(() => {
     let isMounted = true
+    if (!selectedWeekObj) {
+      setMenus([])
+      setLoading(false)
+      return
+    }
     const fetchMenus = async () => {
       setLoading(true)
+      setLoadError("")
       try {
         const res = await MenuService.getMenus({
           status: filters.status,
+          weekStartDate: selectedWeekObj.weekStartDate,
         })
         if (isMounted && Array.isArray(res?.data)) {
           setMenus(res.data)
-          setMenusAreMock(Boolean(res.isMock))
         }
       } catch (err) {
         console.warn("Lỗi tải thực đơn:", err)
+        if (isMounted) {
+          setMenus([])
+          setLoadError(err.message || "Không tải được thực đơn tuần.")
+        }
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -88,7 +111,7 @@ export default function MenuPlanning() {
     return () => {
       isMounted = false
     }
-  }, [filters.status])
+  }, [filters.status, selectedWeekObj])
 
   // Detail Modal state
   const [selectedMenu, setSelectedMenu] = useState(null)
@@ -110,120 +133,68 @@ export default function MenuPlanning() {
       const next = { ...prev, [field]: value }
       if (field === "academicYear") {
         const targetConfig =
-          availableAcademicYears.find((ay) => ay.academicYear === value) ||
-          availableAcademicYears[0]
-        const nextWeeks = getWeeksOfAcademicYear(targetConfig)
-        const defaultWeek = nextWeeks.find((w) => w.isCurrentWeek) || nextWeeks[0]
-        next.week = defaultWeek ? defaultWeek.isoWeek : currentWeek
-      }
-      // Khi lọc trạng thái: chuyển sang tuần tương ứng minh họa
-      if (field === "status") {
-        if (value === "REVISION_REQUESTED") next.week = 44
-        else if (value === "PENDING_APPROVAL") next.week = 46
-        else if (value === "DRAFT") next.week = 47
-        else if (value === "APPROVED" && next.week !== 45 && next.week !== 43 && next.week !== 42) next.week = 45
-      }
-      // Khi đổi tuần: nếu bộ lọc trạng thái không khớp với tuần mới, tự động bỏ lọc trạng thái
-      if (field === "week") {
-        const yearOfSelectedWeek = selectedWeekObj?.year || currentYear
-        const info = getWeeklyMenuStatus(value, yearOfSelectedWeek, menus)
-        if (next.status !== "all" && next.status !== info.status) {
-          next.status = "all"
-        }
+          availableAcademicYears.find((ay) => ay.academicYear === value)
+        next.week = defaultWeek(targetConfig)?.weekStartDate || ""
       }
       return next
     })
   }
 
   const handleResetFilters = () => {
+    const year = defaultYear(availableAcademicYears)
     setFilters({
       searchKeyword: "",
-      academicYear: "2026-2027",
-      week: currentWeek,
+      academicYear: year?.academicYear || "",
+      week: defaultWeek(year)?.weekStartDate || "",
       mealType: "all",
       status: "all",
     })
-    showToast("Đã đặt lại bộ lọc về Năm học 2026 - 2027 (Tuần này)", "info")
   }
 
-  const handleFilterByStatus = (statusValue) => {
-    setFilters((prev) => {
-      const next = { ...prev, status: statusValue }
-      if (statusValue === "REVISION_REQUESTED") {
-        next.week = 44
-      } else if (statusValue === "PENDING_APPROVAL") {
-        next.week = 46
-      } else if (statusValue === "DRAFT") {
-        next.week = 47
-      } else if (statusValue === "APPROVED") {
-        next.week = 45
-      } else if (statusValue === "all") {
-        next.week = currentWeek
-      }
-      return next
-    })
+  const handleFilterByStatus = (statusKey) => {
+    handleChangeFilter("status", statusKey)
   }
 
-  // Thống kê cho Quick Status Pills
+  // Thống kê nhanh theo trạng thái tuần
   const stats = useMemo(() => {
-    if (filters.academicYear === "2026-2027") {
-      return {
-        total: 6,
-        draft: 1,
-        pendingApproval: 1,
-        approved: 3,
-        revisionRequested: 1,
-      }
-    }
-    const yearMenus = menus.filter((m) => getMenuYear(m) === 2025)
-    const total = yearMenus.length
-    const draft = yearMenus.filter((m) => m.status === "DRAFT").length
-    const pendingApproval = yearMenus.filter(
-      (m) => m.status === "PENDING_APPROVAL"
-    ).length
-    const approved = yearMenus.filter((m) => m.status === "APPROVED").length
-    const revisionRequested = yearMenus.filter(
-      (m) => m.status === "REVISION_REQUESTED"
-    ).length
+    const list = Array.isArray(menus) ? menus : []
+    const total = list.length
+    const draft = list.filter((m) => m.status === "DRAFT").length
+    const pending = list.filter((m) => m.status === "PENDING_APPROVAL").length
+    const revision = list.filter((m) => m.status === "REVISION_REQUESTED").length
+    const approved = list.filter((m) => m.status === "APPROVED").length
 
-    return { total, draft, pendingApproval, approved, revisionRequested }
-  }, [menus, filters.academicYear])
+    return { total, draft, pending, revision, approved }
+  }, [menus])
 
-  // Lọc danh sách thực đơn
+  // Lọc thực đơn theo các tiêu chí
   const filteredMenus = useMemo(() => {
-    return menus.filter((menu) => {
-      // 1. Tìm kiếm tên món, tên thực đơn hoặc mã
-      if (filters.searchKeyword.trim()) {
-        const kw = filters.searchKeyword.trim().toLowerCase()
-        const matchName = menu.name.toLowerCase().includes(kw)
-        const matchCode = menu.code.toLowerCase().includes(kw)
-        const matchDish = menu.dishes?.some((d) => d.name?.toLowerCase().includes(kw))
-        if (!matchName && !matchCode && !matchDish) return false
-      }
+    const list = Array.isArray(menus) ? menus : []
+    const search = filters.searchKeyword.trim().toLowerCase()
+    return list.filter((item) => {
+      if (!selectedWeekObj || item.rawDate < selectedWeekObj.weekStartDate ||
+        item.rawDate > selectedWeekObj.weekEndDate) return false
 
-      // 2. Lọc theo Tuần trong năm học
-      if (selectedWeekObj) {
-        if (menu.rawDate) {
-          if (
-            menu.rawDate < selectedWeekObj.startDateISO ||
-            menu.rawDate > selectedWeekObj.endDateISO
-          ) {
-            return false
-          }
-        } else {
-          const mWeek = getMenuISOWeek(menu)
-          if (mWeek !== selectedWeekObj.isoWeek) return false
+      if (filters.mealType !== "all") {
+        if (item.mealType !== filters.mealType) {
+          return false
         }
       }
 
-      // 3. Lọc theo Ca ăn
-      if (filters.mealType !== "all") {
-        if (menu.mealType !== filters.mealType) return false
+      if (filters.status !== "all") {
+        if (item.status !== filters.status) {
+          return false
+        }
       }
 
-      // 4. Lọc theo Trạng thái
-      if (filters.status !== "all") {
-        if (menu.status !== filters.status) return false
+      if (search) {
+        const nameMatch = item.name?.toLowerCase().includes(search)
+        const dishMatch = item.dishes?.some((d) =>
+          d.name?.toLowerCase().includes(search)
+        )
+        if (!nameMatch && !dishMatch) {
+          return false
+        }
       }
 
       return true
@@ -231,10 +202,9 @@ export default function MenuPlanning() {
   }, [menus, filters, selectedWeekObj])
 
   // Danh sách các ngày trong tuần được chọn (Thứ 2 đến Thứ 6)
-  // Tích hợp ngày nghỉ do BGH setup
   const weekSchoolDays = useMemo(() => {
-    if (!selectedWeekObj?.startDate) return []
-    const monday = selectedWeekObj.startDate
+    if (!selectedWeekObj?.weekStartDate) return []
+    const monday = new Date(`${selectedWeekObj.weekStartDate}T00:00:00Z`)
     const pad = (n) => String(n).padStart(2, "0")
     const now = new Date()
     const todayISO = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
@@ -254,7 +224,6 @@ export default function MenuPlanning() {
         d.getUTCMonth() + 1
       )}-${pad(d.getUTCDate())}`
 
-      // Kiểm tra ngày nghỉ do BGH cấu hình
       const holidayMatch = holidays.find((h) => h.date === dateISO)
 
       days.push({
@@ -272,65 +241,51 @@ export default function MenuPlanning() {
 
   // Nhãn tuần được chọn
   const selectedWeekLabel = useMemo(() => {
-    return selectedWeekObj?.label || `Tuần ${filters.week}`
-  }, [selectedWeekObj, filters.week])
+    return selectedWeekObj?.weekLabel || ""
+  }, [selectedWeekObj])
 
-  // Thông tin trạng thái của CẢ TUẦN
+  // Thông tin trạng thái của CẢ TUẦN dựa 100% trên dữ liệu thực tế
   const weekStatusInfo = useMemo(() => {
-    const yearOfSelectedWeek = selectedWeekObj?.year || currentYear
-    return getWeeklyMenuStatus(filters.week, yearOfSelectedWeek, menus)
-  }, [filters.week, selectedWeekObj, currentYear, menus])
+    const weekMenus = menus
+
+    if (weekMenus.length === 0) {
+      return { status: "DRAFT", statusLabel: "Bản nháp", feedback: "" }
+    }
+    if (weekMenus.some((m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")) {
+      const rev = weekMenus.find((m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")
+      return {
+        status: "REVISION_REQUESTED",
+        statusLabel: "Yêu cầu chỉnh sửa",
+        feedback: rev?.feedback || "Ban Giám Hiệu yêu cầu chỉnh sửa thực đơn tuần này.",
+      }
+    }
+    if (weekMenus.some((m) => m.status === "PENDING_APPROVAL")) {
+      return { status: "PENDING_APPROVAL", statusLabel: "Chờ BGH duyệt", feedback: "" }
+    }
+    if (weekMenus.some((m) => m.status === "DRAFT")) {
+      return { status: "DRAFT", statusLabel: "Bản nháp", feedback: "" }
+    }
+    return { status: "APPROVED", statusLabel: "Đã duyệt BGH", feedback: "" }
+  }, [menus])
 
   // Tiêu đề của thực đơn tuần được chọn
   const weeklyMenuTitle = useMemo(() => {
-    const weekNum = Number(filters.week)
-    // 1. Tìm menu trong tuần này có trường name
-    const weekMenus = menus.filter((m) => {
-      const w = getMenuISOWeek(m)
-      return w === weekNum
-    })
-
-    if (weekMenus.length > 0 && weekMenus[0]?.name) {
-      const fullName = weekMenus[0].name
-      const prefix = fullName.split(" — ")[0]
-      if (prefix && prefix.trim().length > 0) {
-        return prefix.trim()
-      }
-    }
-
-    // 2. Tra cứu theo bản đồ tuần chuẩn
-    const titlesByWeek = {
-      42: "Thực đơn Năng lượng Thể chất Tuần 42",
-      43: "Thực đơn Dinh dưỡng Tăng trưởng Tuần 43",
-      44: "Thực đơn Cân bằng Khẩu phần Tuần 44",
-      45: "Thực đơn Tiêu chuẩn Tuần 45",
-      46: "Thực đơn Cải thiện Năng lượng Tuần 46",
-      47: "Thực đơn Soạn thảo Tuần 47",
-    }
-
-    if (titlesByWeek[weekNum]) {
-      return titlesByWeek[weekNum]
-    }
-
-    return `Thực đơn Dinh dưỡng Tuần ${selectedWeekObj?.weekIndex || weekNum}`
-  }, [menus, filters.week, selectedWeekObj])
+    return selectedWeekObj ? `Thực đơn tuần ${selectedWeekObj.weekNumber}` : "Thực đơn"
+  }, [selectedWeekObj])
 
   // Đối tượng áp dụng của thực đơn tuần
   const weeklyTargetScope = useMemo(() => {
-    const weekNum = Number(filters.week)
-    const weekMenus = menus.filter((m) => getMenuISOWeek(m) === weekNum)
-    return weekMenus[0]?.targetScope || "Toàn trường (Khối 6 – 9)"
-  }, [menus, filters.week])
+    return menus[0]?.targetScope || "Toàn trường"
+  }, [menus])
 
   const isCurrentWeek = useMemo(() => {
     return Boolean(selectedWeekObj?.isCurrentWeek)
   }, [selectedWeekObj])
 
   // Xử lý gửi BGH duyệt tuần (khi DRAFT)
-  const handleSubmitWeeklyMenu = () => {
+  const handleSubmitWeeklyMenu = async () => {
     let missingDays = []
     weekSchoolDays.forEach((sd) => {
-      // Ngày nghỉ theo lịch BGH không tính là thiếu ca
       if (sd.isHoliday) return
 
       const dayMenus = filteredMenus.filter(
@@ -351,46 +306,49 @@ export default function MenuPlanning() {
       return
     }
 
-    const targetWeek = Number(filters.week)
-    setMenus((prev) =>
-      prev.map((m) => {
-        const mWeek = getMenuISOWeek(m)
-        if (mWeek === targetWeek) {
-          return {
-            ...m,
-            status: "PENDING_APPROVAL",
-            statusLabel: "Chờ BGH duyệt",
-          }
-        }
-        return m
-      })
-    )
-    showToast(
-      `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
-      "success"
-    )
+    const weekMenus = menus
+    const weeklyId = weekMenus[0]?.weeklyMenuId || weekMenus[0]?.id
+
+    if (!weeklyId) {
+      showToast("Chưa xác định được mã tuần thực đơn để gửi duyệt.", "warning")
+      return
+    }
+
+    try {
+      await MenuService.submitMenu(weeklyId)
+      showToast(
+        `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
+        "success"
+      )
+      // Tải lại danh sách từ API
+      const res = await MenuService.getMenus({ status: filters.status, weekStartDate: filters.week })
+      if (Array.isArray(res?.data)) setMenus(res.data)
+    } catch (err) {
+      showToast(err.message || "Không thể gửi duyệt thực đơn.", "warning")
+    }
   }
 
   // Xử lý gửi lại BGH duyệt (khi REVISION_REQUESTED)
-  const handleResubmitWeeklyMenu = () => {
-    const targetWeek = Number(filters.week)
-    setMenus((prev) =>
-      prev.map((m) => {
-        const mWeek = getMenuISOWeek(m)
-        if (mWeek === targetWeek) {
-          return {
-            ...m,
-            status: "PENDING_APPROVAL",
-            statusLabel: "Chờ BGH duyệt",
-          }
-        }
-        return m
-      })
-    )
-    showToast(
-      `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
-      "success"
-    )
+  const handleResubmitWeeklyMenu = async () => {
+    const weekMenus = menus
+    const weeklyId = weekMenus[0]?.weeklyMenuId || weekMenus[0]?.id
+
+    if (!weeklyId) {
+      showToast("Chưa xác định được mã tuần thực đơn để gửi duyệt lại.", "warning")
+      return
+    }
+
+    try {
+      await MenuService.submitMenu(weeklyId)
+      showToast(
+        `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
+        "success"
+      )
+      const res = await MenuService.getMenus({ status: filters.status, weekStartDate: filters.week })
+      if (Array.isArray(res?.data)) setMenus(res.data)
+    } catch (err) {
+      showToast(err.message || "Không thể gửi lại thực đơn.", "warning")
+    }
   }
 
   // Navigation handlers
@@ -445,7 +403,7 @@ export default function MenuPlanning() {
       {/* 2. Dải Quick Status Pills */}
       <MenuListStatsRail
         stats={stats}
-        year={selectedWeekObj?.year || currentYear}
+        year={filters.academicYear}
         activeStatus={filters.status}
         onFilterByStatus={handleFilterByStatus}
       />
@@ -460,22 +418,32 @@ export default function MenuPlanning() {
       />
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
-      <MenuListWeeklyVerticalView
-        schoolDays={weekSchoolDays}
-        menus={filteredMenus}
-        mealTypeFilter={filters.mealType}
-        onViewDetail={handleViewDetail}
-        onEditMenu={handleEditMenu}
-        onNavigateCreate={handleNavigateCreateWithDate}
-        selectedWeekLabel={selectedWeekLabel}
-        weeklyMenuTitle={weeklyMenuTitle}
-        targetScope={weeklyTargetScope}
-        isCurrentWeek={isCurrentWeek}
-        weekStatus={weekStatusInfo.status}
-        weekFeedback={weekStatusInfo.feedback}
-        onSubmitWeeklyMenu={handleSubmitWeeklyMenu}
-        onResubmitWeeklyMenu={handleResubmitWeeklyMenu}
-      />
+      {calendarLoading || loading ? (
+        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading />
+        </div>
+      ) : calendarError || loadError ? (
+        <p role="alert">{calendarError || loadError}</p>
+      ) : !selectedWeekObj ? (
+        <p role="status">Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
+      ) : (
+        <MenuListWeeklyVerticalView
+          schoolDays={weekSchoolDays}
+          menus={filteredMenus}
+          mealTypeFilter={filters.mealType}
+          onViewDetail={handleViewDetail}
+          onEditMenu={handleEditMenu}
+          onNavigateCreate={handleNavigateCreateWithDate}
+          selectedWeekLabel={selectedWeekLabel}
+          weeklyMenuTitle={weeklyMenuTitle}
+          targetScope={weeklyTargetScope}
+          isCurrentWeek={isCurrentWeek}
+          weekStatus={weekStatusInfo.status}
+          weekFeedback={weekStatusInfo.feedback}
+          onSubmitWeeklyMenu={handleSubmitWeeklyMenu}
+          onResubmitWeeklyMenu={handleResubmitWeeklyMenu}
+        />
+      )}
 
       {/* Detail Modal */}
       <MenuDetailModal

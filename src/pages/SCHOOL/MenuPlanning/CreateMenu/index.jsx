@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import styles from "./CreateMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
+import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
 import {
   parseDateVNToISO,
@@ -23,7 +24,6 @@ import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
 
 import CreateMenuWeeklyGrid from "./CreateMenuWeeklyGrid"
 import CreateMenuDayModal from "./CreateMenuDayModal"
-import { INITIAL_SEASONINGS } from "../mockMenuData"
 
 export default function CreateMenu() {
   const navigate = useNavigate()
@@ -58,19 +58,20 @@ export default function CreateMenu() {
     return getSchoolWeekScheduleFromDate(currentDateVN)
   }, [currentDateVN])
   const schoolDays = weekInfo?.schoolDays || []
+  const [academicWeek, setAcademicWeek] = useState(null)
 
   // 2. Thông tin thực đơn tuần
   const [menuTitle, setMenuTitle] = useState("")
   const [targetScope, setTargetScope] = useState("Toàn trường (Khối 1 – 5)")
 
-  // Đặt tên thực đơn mặc định theo tuần
+  // Chỉ dùng số tuần và năm học được API tính từ cấu hình của trường.
   useEffect(() => {
-    if (!menuTitle) {
+    if (!menuTitle && academicWeek?.weekNumber != null) {
       setMenuTitle(
-        `Thực đơn Tiêu chuẩn Tuần ${weekInfo?.weekNumber || 45} (Năm học 2026 – 2027)`
+        `Thực đơn tuần ${academicWeek.weekNumber}`
       )
     }
-  }, [weekInfo?.weekNumber, menuTitle])
+  }, [academicWeek, menuTitle])
 
   // 3. Dữ liệu thực đơn của cả tuần (5 ngày x 2 ca + gia vị của ngày)
   const [weeklyMeals, setWeeklyMeals] = useState({})
@@ -95,16 +96,18 @@ export default function CreateMenu() {
     }, 3500)
   }
 
-  // Nạp lịch tuần từ backend / mock
+  // Nạp lịch tuần từ backend API
   useEffect(() => {
     let active = true
     const weekStart = schoolDays[0]?.dateISO
     if (!weekStart) return
 
     setLoadingSchedule(true)
+    setAcademicWeek(null)
     MenuService.getWeekSchedule(weekStart)
       .then((res) => {
         if (!active) return
+        setAcademicWeek(res.data)
         const days = res?.data?.days || []
         const mapped = {}
         days.forEach((day) => {
@@ -112,37 +115,26 @@ export default function CreateMenu() {
             mapped[day.date] = {
               LUNCH: day.meals?.LUNCH?.dishes || [],
               AFTERNOON: day.meals?.AFTERNOON?.dishes || [],
-              seasonings:
-                Array.isArray(day.seasonings) && day.seasonings.length > 0
-                  ? day.seasonings
-                  : INITIAL_SEASONINGS,
+              seasonings: Array.isArray(day.seasonings) ? day.seasonings : [],
+              seasoningsByMeal: day.seasoningsByMeal || { LUNCH: [], AFTERNOON: [] },
             }
           }
         })
 
-        // Gán gia vị mặc định cho các ngày chưa có dữ liệu trong tuần
         schoolDays.forEach((sd) => {
           if (!mapped[sd.dateISO]) {
             mapped[sd.dateISO] = {
               LUNCH: [],
               AFTERNOON: [],
-              seasonings: INITIAL_SEASONINGS,
+              seasonings: [],
             }
-          } else if (
-            !Array.isArray(mapped[sd.dateISO].seasonings) ||
-            mapped[sd.dateISO].seasonings.length === 0
-          ) {
-            mapped[sd.dateISO].seasonings = INITIAL_SEASONINGS
           }
         })
 
-        setWeeklyMeals((prev) => ({
-          ...mapped,
-          ...prev,
-        }))
+        setWeeklyMeals(mapped)
       })
       .catch((err) => {
-        console.warn("Lỗi nạp lịch tuần:", err)
+        console.warn("Lỗi tải lịch thực đơn tuần:", err)
       })
       .finally(() => {
         if (active) setLoadingSchedule(false)
@@ -162,7 +154,8 @@ export default function CreateMenu() {
     curDate.setDate(curDate.getDate() + offset * 7)
     const newDateVN = formatDateVN(curDate.toISOString().slice(0, 10))
     setCurrentDateVN(newDateVN)
-    setMenuTitle("") // Cho phép đặt lại tiêu đề tuần mới
+    setAcademicWeek(null)
+    setMenuTitle("")
   }, [currentDateVN])
 
   // Mở Popup Modal Chi tiết ngày (50/50)
@@ -219,21 +212,102 @@ export default function CreateMenu() {
     return count
   }, [schoolDays, weeklyMeals])
 
-  // Xử lý Lưu bản nháp
+  // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
+  const buildWeeklyMenuPayload = () => {
+    const weekStartDate = schoolDays[0]?.dateISO
+    const days = []
+
+    schoolDays.forEach((sd) => {
+      const dayData = weeklyMeals[sd.dateISO]
+      if (!dayData) return
+
+      const lunchDishes = (dayData.LUNCH || [])
+        .filter((d) => (d.name || "").trim().length > 0)
+        .map((d) => ({
+          ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
+          ingredients: Array.isArray(d.ingredientStandards) ? d.ingredientStandards : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
+            ingredientId: id,
+            quantityPerPortion: String(d.portionQty || 50),
+            unit: (d.unit || "g").trim().toLowerCase(),
+          })),
+        }))
+
+      const afternoonDishes = (dayData.AFTERNOON || [])
+        .filter((d) => (d.name || "").trim().length > 0)
+        .map((d) => ({
+          ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
+          ingredients: Array.isArray(d.ingredientStandards) ? d.ingredientStandards : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
+            ingredientId: id,
+            quantityPerPortion: String(d.portionQty || 50),
+            unit: (d.unit || "g").trim().toLowerCase(),
+          })),
+        }))
+
+      const isEntryId = (val) =>
+        /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(val || "")
+
+      const seasonings = (dayData.seasonings || [])
+        .filter((s) => s && (s.ingredientEntryId || s.catalogId || isEntryId(s.id)))
+        .map((s) => ({
+          ingredientEntryId: s.ingredientEntryId || s.catalogId || s.id,
+          quantityPerPortion: String(s.portionQty ?? s.quantityPerPortion ?? s.defaultQty ?? 5),
+          unit: (s.unit || "g").trim().toLowerCase(),
+        }))
+
+      const meals = []
+      if (lunchDishes.length > 0 || seasonings.length > 0) {
+        meals.push({
+          mealType: "LUNCH",
+          dishes: lunchDishes,
+          seasonings,
+        })
+      }
+      if (afternoonDishes.length > 0) {
+        meals.push({
+          mealType: "AFTERNOON",
+          dishes: afternoonDishes,
+          seasonings: [],
+        })
+      }
+
+      if (meals.length > 0) {
+        days.push({
+          menuDate: sd.dateISO,
+          note: null,
+          meals,
+        })
+      }
+    })
+
+    return {
+      weekStartDate,
+      title: menuTitle.trim(),
+      days,
+    }
+  }
+
+  // Xử lý Lưu bản nháp (gọi API thực tế)
   const handleSaveDraft = async () => {
     if (!menuTitle.trim()) {
       showToast("Vui lòng nhập tên thực đơn trước khi lưu", "warning")
       return
     }
 
+    const payload = buildWeeklyMenuPayload()
+    if (!payload.days.length) {
+      showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần trước khi lưu", "warning")
+      return
+    }
+
     try {
-      // Giả lập lưu thực đơn tuần
-      showToast("Đã lưu bản nháp thực đơn tuần thành công!", "success")
+      await http.post("/v1/menus", payload, { notifyOnError: false })
+      MenuService.invalidateMenuCache()
+      showToast("Đã lưu bản nháp thực đơn tuần thành công trên hệ thống!", "success")
       setTimeout(() => {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1000)
     } catch (err) {
-      showToast("Không thể lưu bản nháp: " + err.message, "warning")
+      showToast("Không thể lưu bản nháp: " + (err.message || "Lỗi máy chủ"), "warning")
     }
   }
 
@@ -250,10 +324,21 @@ export default function CreateMenu() {
     setIsConfirmModalOpen(true)
   }
 
-  // Xác nhận gửi Ban Giám Hiệu duyệt
+  // Xác nhận gửi Ban Giám Hiệu duyệt (gọi API thực tế)
   const handleConfirmSubmit = async () => {
     setIsConfirmModalOpen(false)
+    const payload = buildWeeklyMenuPayload()
+    if (!payload.days.length) {
+      showToast("Vui lòng thêm ít nhất một món ăn trước khi gửi duyệt", "warning")
+      return
+    }
+
     try {
+      const createRes = await http.post("/v1/menus", payload, { notifyOnError: false })
+      const menuId = createRes?.data?.id || createRes?.id
+      if (!menuId) throw new Error("Đã gửi yêu cầu lưu nhưng phản hồi thiếu mã thực đơn; chưa thể gửi duyệt.")
+      await MenuService.submitMenu(menuId)
+      MenuService.invalidateMenuCache()
       showToast(
         "Đã gửi thực đơn tuần lên Ban Giám hiệu phê duyệt thành công!",
         "success"
@@ -262,7 +347,7 @@ export default function CreateMenu() {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1200)
     } catch (err) {
-      showToast("Lỗi gửi duyệt: " + err.message, "warning")
+      showToast("Lỗi gửi duyệt: " + (err.message || "Không thể gửi thực đơn"), "warning")
     }
   }
 
@@ -305,7 +390,7 @@ export default function CreateMenu() {
                 <ChevronLeft size={16} />
               </button>
               <span className={styles.weekRangeText}>
-                Tuần {weekInfo?.weekNumber || 45} • {weekRangeText}
+                {academicWeek?.weekLabel ? `${academicWeek.weekLabel} • ` : ""}{weekRangeText}
               </span>
               <button
                 type="button"

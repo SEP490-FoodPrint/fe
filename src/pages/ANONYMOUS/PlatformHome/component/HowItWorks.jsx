@@ -1,6 +1,7 @@
 import React from "react"
 import styles from "./HowItWorks.module.scss"
 
+// Trình tự theo luồng của phụ huynh, từ tìm trường đến xem thực đơn.
 const steps = [
   { title: "Tìm trường học", desc: "Sử dụng thanh tìm kiếm hoặc danh sách trường học để lựa chọn cơ sở bạn muốn theo dõi." },
   { title: "Truy cập trang trường", desc: "Khám phá thông tin bếp ăn bán trú và những thông tin nhà trường công khai." },

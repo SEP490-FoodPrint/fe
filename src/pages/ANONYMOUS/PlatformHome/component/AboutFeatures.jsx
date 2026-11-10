@@ -1,6 +1,7 @@
 import React from "react"
 import styles from "./AboutFeatures.module.scss"
 
+// Nội dung giới thiệu nền tảng được khai báo tĩnh để hiển thị trước khi có dữ liệu trường.
 const features = [
   { title: "Thực đơn rõ ràng", desc: "Theo dõi thực đơn bán trú theo ngày và tuần, giúp phụ huynh và học sinh dễ dàng tra cứu." },
   { title: "Thông tin nguồn gốc", desc: "Theo dõi nguồn gốc nguyên liệu và các chứng nhận an toàn do nhà cung cấp cung cấp." },

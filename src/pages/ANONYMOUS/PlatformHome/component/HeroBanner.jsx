@@ -4,6 +4,7 @@ import heroImage from "src/assets/images/school-meal-service.png"
 import styles from "./HeroBanner.module.scss"
 
 export default function HeroBanner() {
+  // Cuộn đến SchoolDiscovery khi tìm thấy vùng #schools, giữ hành vi của liên kết nếu vùng này chưa có.
   const handleScrollToSchools = e => {
     const target = document.getElementById("schools")
     if (target) {

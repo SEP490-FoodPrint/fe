@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { getMenuById } from "../mockMenuListData"
 import MenuService from "src/services/MenuService"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
@@ -12,7 +12,6 @@ import MenuDetailDishesTable from "./component/MenuDetailDishesTable"
 import MenuDetailAllergyCard from "./component/MenuDetailAllergyCard"
 import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
 import MenuDetailTimeline from "./component/MenuDetailTimeline"
-import MenuDetailPrintModal from "./component/MenuDetailPrintModal"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
 
 export default function MenuDetail() {
@@ -21,7 +20,7 @@ export default function MenuDetail() {
 
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
+  const [loadError, setLoadError] = useState("")
   const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = useState(false)
   const [toast, setToast] = useState(null)
 
@@ -29,16 +28,17 @@ export default function MenuDetail() {
     let isMounted = true
     const fetchDetail = async () => {
       setLoading(true)
+      setLoadError("")
       try {
         const res = await MenuService.getMenuDetail(id)
         if (isMounted && res?.data) {
           setMenu(res.data)
-        } else if (isMounted) {
-          setMenu(getMenuById(id))
         }
       } catch (err) {
-        console.warn("Lỗi tải chi tiết thực đơn:", err)
-        if (isMounted) setMenu(getMenuById(id))
+        if (isMounted) {
+          setLoadError(err.message || "Không thể tải thông tin chi tiết thực đơn.")
+          setMenu(null)
+        }
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -60,24 +60,38 @@ export default function MenuDetail() {
     const targetId = menu.weeklyMenuId || menu.id
     try {
       await MenuService.submitMenu(targetId)
+      setMenu(prev => ({
+        ...prev,
+        status: "PENDING_APPROVAL",
+        statusLabel: "Chờ BGH duyệt"
+      }))
+      showToast("Đã gửi hồ sơ thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
     } catch (e) {
-      console.warn("Submit menu API:", e)
+      showToast(e.message || "Không thể gửi duyệt thực đơn.", "warning")
     }
-    setMenu(prev => ({
-      ...prev,
-      status: "PENDING_APPROVAL",
-      statusLabel: "Chờ BGH duyệt"
-    }))
-    showToast("Đã gửi hồ sơ thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
   }
 
-  if (!menu) {
+  if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <span className="material-symbols-outlined text-[36px] text-[#0a8066] animate-spin">
-          progress_activity
-        </span>
-        <p className="text-slate-600 font-medium mt-2">Đang tải thông tin chi tiết thực đơn...</p>
+        <FoodPrintLoading />
+      </div>
+    )
+  }
+
+  if (loadError || !menu) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className="p-8 text-center">
+          <p className="text-red-600 font-medium mb-4">{loadError || "Không tìm thấy thực đơn yêu cầu."}</p>
+          <button
+            type="button"
+            className="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-medium hover:bg-emerald-800 transition"
+            onClick={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+          >
+            Về danh sách thực đơn
+          </button>
+        </div>
       </div>
     )
   }
@@ -98,7 +112,6 @@ export default function MenuDetail() {
         {/* Header với Tiêu đề, Mã thực đơn, Trạng thái và Nút Thao tác */}
         <MenuDetailHeader
           menu={menu}
-          onPrint={() => setIsPrintModalOpen(true)}
           onSubmitApproval={() => setIsConfirmSubmitOpen(true)}
         />
 
@@ -121,13 +134,6 @@ export default function MenuDetail() {
         <MenuDetailTimeline menu={menu} />
       </div>
 
-      {/* Modal xem trước & In biểu mẫu thực đơn */}
-      <MenuDetailPrintModal
-        isOpen={isPrintModalOpen}
-        onClose={() => setIsPrintModalOpen(false)}
-        menu={menu}
-      />
-
       {/* Modal xác nhận gửi BGH duyệt */}
       <ConfirmSubmitModal
         isOpen={isConfirmSubmitOpen}
@@ -148,4 +154,3 @@ export default function MenuDetail() {
     </div>
   )
 }
-

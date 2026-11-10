@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import {
-  Alert, Button, Chip, CircularProgress, Dialog, DialogActions, DialogContent,
+  Alert, Button, Chip, Dialog, DialogActions, DialogContent,
   DialogContentText, DialogTitle, MenuItem, Paper, Table, TableBody, TableCell,
   TableContainer, TableHead, TableRow, TextField,
 } from "@mui/material"
@@ -14,6 +15,18 @@ import "./style.scss"
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
 const statusLabel = status => (status === "FINALIZED" ? "Đã chốt" : "Bản nháp")
 const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa phụ" : "Bữa trưa")
+const statusTone = status => {
+  if (!status) return "neutral"
+  return status === "FINALIZED" ? "success" : "warning"
+}
+
+const StatusChip = ({ status }) => (
+  <Chip
+    size="small"
+    label={status ? statusLabel(status) : "Chưa khai báo"}
+    className={`daily-meal-page__status daily-meal-page__status--${statusTone(status)}`}
+  />
+)
 
 function DailyMealConfirm() {
   const [searchParams] = useSearchParams()
@@ -120,17 +133,19 @@ function DailyMealConfirm() {
         </div>
       </header>
 
-      {loading && <div className="daily-meal-page__loading"><CircularProgress size={28} /> Đang tải dữ liệu lớp...</div>}
-      {!loading && error && <Alert severity="warning">{error}</Alert>}
+      {loading && <div className="daily-meal-page__loading" role="status" aria-live="polite"><FoodPrintLoading size="medium" /></div>}
+      {!loading && error && <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>}
       {!loading && context && <>
         <Paper variant="outlined" className="daily-meal-page__summary">
           <div><span>Lớp được phân công</span><strong>{context.class.name}</strong><small>Niên khóa {context.class.academicYear}</small></div>
           <div><span>Số suất đăng ký</span><strong>{context.class.registeredMealPortions}</strong><small>Giới hạn tối đa trong ngày</small></div>
-          <div><span>Trạng thái</span><Chip size="small" color={finalized ? "success" : "warning"}
-            label={submission ? statusLabel(submission.status) : "Chưa khai báo"} /></div>
+          <div className="daily-meal-page__summary-status">
+            <span>Trạng thái</span>
+            <StatusChip status={submission?.status} />
+          </div>
         </Paper>
 
-        <Paper variant="outlined" className="daily-meal-page__form">
+        <Paper variant="outlined" className="daily-meal-page__form" aria-busy={saving}>
           <div className="daily-meal-page__section-title"><ClipboardList size={20} /><div>
             <h2>Số suất {mealLabel(mealType).toLowerCase()}</h2><p>Được phép sửa khi còn là bản nháp.</p>
           </div></div>
@@ -164,15 +179,15 @@ function DailyMealConfirm() {
 
         <section className="daily-meal-page__history">
           <div><h2>Lịch sử khai báo gần đây</h2><p>Dữ liệu của lớp đang được phân công, lấy trực tiếp từ hệ thống.</p></div>
-          <TableContainer component={Paper} variant="outlined"><Table size="small">
+          <TableContainer component={Paper} variant="outlined" className="daily-meal-page__history-table"><Table size="small">
             <TableHead><TableRow><TableCell>Ngày</TableCell><TableCell>Ca ăn</TableCell><TableCell>Lớp</TableCell><TableCell align="right">Số suất</TableCell><TableCell>Trạng thái</TableCell></TableRow></TableHead>
             <TableBody>
               {history.map(item => <TableRow key={item.id}>
                 <TableCell>{dayjs(item.mealDate).format("DD/MM/YYYY")}</TableCell><TableCell>{mealLabel(item.mealType)}</TableCell>
                 <TableCell>{item.Class?.name || context.class.name}</TableCell><TableCell align="right">{item.totalPortions}</TableCell>
-                <TableCell><Chip size="small" color={item.status === "FINALIZED" ? "success" : "warning"} label={statusLabel(item.status)} /></TableCell>
+                <TableCell><StatusChip status={item.status} /></TableCell>
               </TableRow>)}
-              {!history.length && <TableRow><TableCell colSpan={5} align="center">Chưa có lịch sử khai báo.</TableCell></TableRow>}
+              {!history.length && <TableRow><TableCell className="daily-meal-page__empty-history" colSpan={5} align="center">Chưa có lịch sử khai báo cho lớp này.</TableCell></TableRow>}
             </TableBody>
           </Table></TableContainer>
         </section>

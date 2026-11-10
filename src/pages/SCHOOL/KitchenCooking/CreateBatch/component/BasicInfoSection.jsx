@@ -7,7 +7,8 @@ import {
 } from "lucide-react";
 import styles from "./BasicInfoSection.module.scss";
 
-export const INITIAL_DISHES = [
+export const INITIAL_DISHES = [];
+const OBSOLETE_DISHES = [
   // --- BỮA TRƯA (LUNCH) ---
   {
     id: "d0000001-0000-0000-0000-000000000001",
@@ -104,10 +105,10 @@ export const INITIAL_DISHES = [
   },
 ];
 
-export const DISH_OPTIONS = INITIAL_DISHES;
+export const DISH_OPTIONS = [];
 
 export default function BasicInfoSection({
-  dishes = INITIAL_DISHES,
+  dishes = [],
   selectedDish,
   setSelectedDish,
   portions = 1250,

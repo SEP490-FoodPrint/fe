@@ -186,7 +186,7 @@ function PublicHeader() {
           </Link>
 
           <Link to={ROUTER.REGISTER} className={styles.registerBtn}>
-            <span>Đăng ký tham gia</span>
+            <span>Đăng ký</span>
           </Link>
         </>
       )}

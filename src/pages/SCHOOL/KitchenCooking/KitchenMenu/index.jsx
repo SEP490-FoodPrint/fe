@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
 import {
   MOCK_SCHOOL_ACADEMIC_YEARS,
@@ -6,7 +7,6 @@ import {
   getISOWeekNumber,
   getSchoolWeekScheduleFromDate,
 } from "src/services/MenuService/adapter"
-import { DEFAULT_WEEKLY_MENU } from "./component/mockWeeklyMenuData"
 import KitchenMenuHeader from "./component/KitchenMenuHeader"
 import KitchenMenuWeeklyGrid from "./component/KitchenMenuWeeklyGrid"
 import styles from "./index.module.scss"
@@ -24,7 +24,7 @@ export default function KitchenMenu() {
   })
   const [selectedWeek, setSelectedWeek] = useState(currentWeekNumber)
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [apiWeekData, setApiWeekData] = useState(null)
 
   // Cấu hình năm học đang chọn
@@ -64,7 +64,7 @@ export default function KitchenMenu() {
     return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
   }, [])
 
-  // 4. Tải dữ liệu thực đơn từ MenuService hoặc Mock
+  // 4. Tải dữ liệu thực đơn từ MenuService API thực tế
   useEffect(() => {
     let isMounted = true
     const fetchWeekMenu = async () => {
@@ -76,7 +76,7 @@ export default function KitchenMenu() {
           setApiWeekData(res.data)
         }
       } catch (err) {
-        console.warn("Không tải được thực đơn từ API, áp dụng thực đơn tuần chuẩn:", err?.message)
+        console.warn("Không tải được thực đơn từ API:", err?.message)
       } finally {
         if (isMounted) setLoading(false)
       }
@@ -88,22 +88,18 @@ export default function KitchenMenu() {
     }
   }, [weekInfo])
 
-  // 5. Kết hợp schoolDays với dữ liệu món ăn theo từng ngày
+  // 5. Kết hợp schoolDays với dữ liệu món ăn theo từng ngày từ API thực
   const processedDays = useMemo(() => {
     if (!weekInfo?.schoolDays) return []
 
     return weekInfo.schoolDays.map((sd) => {
-      // Lấy mock chuẩn theo dayOfWeek (1: Thứ Hai -> 5: Thứ Sáu)
-      const defaultDay = DEFAULT_WEEKLY_MENU[sd.dayOfWeek] || {}
-
-      // Nếu có API data map theo dateVN hoặc dateISO thì ưu tiên
       const apiDay = apiWeekData?.days?.find(
-        (d) => d.date === sd.dateVN || d.rawDate === sd.dateISO
+        (d) => d.date === sd.dateVN || d.rawDate === sd.dateISO || d.date === sd.dateISO
       )
 
       return {
         ...sd,
-        meals: apiDay?.meals || defaultDay.meals || { LUNCH: { dishes: [] }, AFTERNOON: { dishes: [] } },
+        meals: apiDay?.meals || { LUNCH: { dishes: [] }, AFTERNOON: { dishes: [] } },
       }
     })
   }, [weekInfo, apiWeekData])
@@ -206,11 +202,17 @@ export default function KitchenMenu() {
       />
 
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
-      <KitchenMenuWeeklyGrid
-        schoolDays={processedDays}
-        mealTypeFilter={mealTypeFilter}
-        todayISO={todayISO}
-      />
+      {loading ? (
+        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <FoodPrintLoading />
+        </div>
+      ) : (
+        <KitchenMenuWeeklyGrid
+          schoolDays={processedDays}
+          mealTypeFilter={mealTypeFilter}
+          todayISO={todayISO}
+        />
+      )}
     </div>
   )
 }

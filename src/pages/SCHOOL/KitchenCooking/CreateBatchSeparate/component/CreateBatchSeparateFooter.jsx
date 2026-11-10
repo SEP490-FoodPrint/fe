@@ -8,6 +8,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
+import KitchenService from "src/services/KitchenService";
 import styles from "./CreateBatchSeparateFooter.module.scss";
 
 export default function CreateBatchSeparateFooter({
@@ -21,9 +22,10 @@ export default function CreateBatchSeparateFooter({
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isError, setIsError] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const isCreated = selectedDish?.isBatchCreated;
-  
+
   const nextPendingDish =
     dishes.find(
       (d) =>
@@ -33,7 +35,7 @@ export default function CreateBatchSeparateFooter({
     ) ||
     dishes.find((d) => !d.isBatchCreated && d.id !== selectedDish?.id);
 
-  const handleCreateBatch = () => {
+  const handleCreateBatch = async () => {
     if (!selectedDish) {
       setToastMessage("Vui lòng chọn món ăn trước khi tạo lô chế biến.");
       setIsError(true);
@@ -51,30 +53,48 @@ export default function CreateBatchSeparateFooter({
       return;
     }
 
-    setIsError(false);
-    const dishCode = selectedDish.batchCode || "02 LÔ TÁCH";
+    setSubmitting(true);
+    try {
+      const mealType = String(selectedDish.mealType || selectedMeal || "LUNCH").toUpperCase();
+      const res = await KitchenService.planBatch({
+        dishId: selectedDish.dishId || selectedDish.id,
+        menuDayId: selectedDish.menuDayId,
+        mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
+      });
 
-    if (onBatchCreated) {
-      onBatchCreated(selectedDish.id);
-    }
+      setIsError(false);
+      if (!Array.isArray(res?.batches) || !res.batches.length) throw new Error("Phản hồi thiếu phương án lô; vui lòng tải lại danh sách.");
+      const dishCode = res.batches.map(batch => batch.batchCode).join(", ");
 
-    if (nextPendingDish) {
-      setToastMessage(
-        `✓ Đã tạo 02 lô (${dishCode}) cho "${selectedDish.name}". Đang chuyển sang món tiếp theo...`
-      );
+      if (onBatchCreated) {
+        onBatchCreated(selectedDish.id, { ...res, batchCode: dishCode });
+      }
+
+      if (nextPendingDish) {
+        setToastMessage(
+          `✓ Đã lập phương án lô (${dishCode}) cho "${selectedDish.name}". Đang chuyển sang món tiếp theo...`
+        );
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+        }, 2000);
+      } else {
+        setToastMessage(
+          `✓ Đã hoàn tất tạo lô cho tất cả ${dishes.length} món ăn hôm nay!`
+        );
+        setShowToast(true);
+        setTimeout(() => {
+          setShowToast(false);
+          navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
+        }, 1500);
+      }
+    } catch (err) {
+      setToastMessage(err.message || "Không thể tạo lô nấu riêng. Vui lòng kiểm tra lại nguyên liệu.");
+      setIsError(true);
       setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-      }, 2000);
-    } else {
-      setToastMessage(
-        `✓ Đã hoàn tất tạo lô cho tất cả ${dishes.length} món ăn hôm nay!`
-      );
-      setShowToast(true);
-      setTimeout(() => {
-        setShowToast(false);
-        navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
-      }, 1500);
+      setTimeout(() => setShowToast(false), 3500);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -118,13 +138,15 @@ export default function CreateBatchSeparateFooter({
               type="button"
               className={styles.createBtn}
               onClick={handleCreateBatch}
-              disabled={!selectedDish}
+              disabled={!selectedDish || submitting}
             >
               <PlusCircle size={17} />
               <span>
-                {nextPendingDish
-                  ? `Tạo 02 lô tách & Tiếp tục`
-                  : `Tạo 02 lô tách`}
+                {submitting
+                  ? "Đang lập phương án..."
+                  : nextPendingDish
+                    ? `Tạo các lô nấu riêng & Tiếp tục`
+                    : `Tạo các lô nấu riêng`}
               </span>
             </button>
           )}
@@ -138,7 +160,7 @@ export default function CreateBatchSeparateFooter({
             type="button"
             className={styles.mobCreateBtn}
             onClick={handleCreateBatch}
-            disabled={!selectedDish}
+            disabled={!selectedDish || submitting}
           >
             {isCreated ? (
               nextPendingDish ? (
@@ -155,7 +177,9 @@ export default function CreateBatchSeparateFooter({
             ) : (
               <>
                 <PlusCircle size={18} />
-                <span>Tạo 02 lô tách</span>
+                <span>
+                  {submitting ? "Đang lập phương án..." : "Tạo các lô nấu riêng"}
+                </span>
               </>
             )}
           </button>
