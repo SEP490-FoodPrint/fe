@@ -21,9 +21,9 @@ const meals = [
 ]
 
 const statusMeta = submission => {
-  if (!submission) return { label: "Cần khai báo", color: "warning", action: "Khai báo" }
-  if (submission.status === "FINALIZED") return { label: "Đã chốt", color: "success", action: "Xem lại" }
-  return { label: "Cần chốt", color: "warning", action: "Tiếp tục" }
+  if (!submission) return { label: "Cần khai báo", tone: "neutral", action: "Khai báo" }
+  if (submission.status === "FINALIZED") return { label: "Đã chốt", tone: "success", action: "Xem lại" }
+  return { label: "Cần chốt", tone: "warning", action: "Tiếp tục" }
 }
 
 function HomeroomOverview() {
@@ -102,7 +102,11 @@ function HomeroomOverview() {
                       : `${data.class.registeredMealPortions} suất đăng ký`}</span>
                   </div>
                   <div className="homeroom-overview__meal-action">
-                    <Chip size="small" color={status.color} label={status.label} />
+                    <Chip
+                      size="small"
+                      label={status.label}
+                      className={`homeroom-overview__status homeroom-overview__status--${status.tone}`}
+                    />
                     <span className="homeroom-overview__meal-link">
                       {status.action}<ArrowRight size={18} aria-hidden="true" />
                     </span>
