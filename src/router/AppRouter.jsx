@@ -60,13 +60,17 @@ const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
 const IngredientOverview = lazy(() => import("src/pages/SCHOOL/IngredientOverview"))
+const SchoolIngredientCatalog = lazy(() => import("src/pages/SCHOOL/IngredientCatalog"))
 const IngredientOrders = lazy(() => import("src/pages/SCHOOL/IngredientOrders"))
+const OrderTracking = lazy(() => import("src/pages/SCHOOL/OrderTracking"))
+
 const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
 const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
 const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
 const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
+const AcademicYearConfiguration = lazy(() => import("src/pages/SCHOOL/AcademicYearConfiguration"))
 
 function LazyWrapper({ children }) {
   return (
@@ -298,8 +302,11 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.INGREDIENT_MANAGEMENT]} />,
             children: [
               { path: ROUTER.SCHOOL_INGREDIENT_OVERVIEW, element: <LazyWrapper><IngredientOverview /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_INGREDIENT_CATALOG, element: <LazyWrapper><SchoolIngredientCatalog /></LazyWrapper> },
               { path: ROUTER.SCHOOL_WAREHOUSE, element: <LazyWrapper><WarehouseManage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_INGREDIENT_ORDERS, element: <LazyWrapper><IngredientOrders /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ORDER_TRACKING, element: <LazyWrapper><OrderTracking /></LazyWrapper> },
+
               { path: ROUTER.SCHOOL_INGREDIENT_REPORTS, element: <LazyWrapper><IngredientReports /></LazyWrapper> },
             ],
           },
@@ -312,10 +319,11 @@ const routes = [
               { path: ROUTER.SCHOOL_CLASS_ASSIGNMENT, element: <LazyWrapper><ClassAssignment /></LazyWrapper> },
               { path: ROUTER.SCHOOL_COOKING_MODE, element: <LazyWrapper><CookingMode /></LazyWrapper> },
               { path: ROUTER.SCHOOL_MEAL_TIMES, element: <LazyWrapper><MealServingTimes /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ACADEMIC_YEARS, element: <LazyWrapper><AcademicYearConfiguration /></LazyWrapper> },
             ],
           },
           {
-            element: <RoleRoute allowedRoles={[ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MEAL_FEEDBACK, element: <LazyWrapper><MealFeedback /></LazyWrapper> },
             ],

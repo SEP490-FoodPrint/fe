@@ -69,13 +69,16 @@ const ROUTER = {
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho, Bếp
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
   SCHOOL_INGREDIENT_OVERVIEW: "/school/ingredient-overview", // Tổng quan Kho & Nguyên liệu
+  SCHOOL_INGREDIENT_CATALOG: "/school/ingredient-catalog",   // Danh mục Nguyên liệu Master Data
   SCHOOL_INGREDIENT_ORDERS: "/school/ingredient-orders",     // Phiếu nhập & Đơn hàng
+  SCHOOL_ORDER_TRACKING: "/school/order-tracking",           // Theo dõi đơn hàng
   SCHOOL_INGREDIENT_REPORTS: "/school/ingredient-reports",   // Thống kê & Báo cáo
   SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
   SCHOOL_SUPPLIERS: "/school/suppliers",
   SCHOOL_CLASS_ASSIGNMENT: "/school/class-assignment",   // BGH phân công GVCN
   SCHOOL_COOKING_MODE: "/school/cooking-mode",             // BGH cấu hình chế độ nấu
   SCHOOL_MEAL_TIMES: "/school/meal-serving-times",          // BGH cấu hình giờ phục vụ
+  SCHOOL_ACADEMIC_YEARS: "/school/academic-years",
 
   // Common/Error
   FORBIDDEN: "/403",
