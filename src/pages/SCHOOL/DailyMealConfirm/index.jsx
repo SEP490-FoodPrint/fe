@@ -15,6 +15,18 @@ import "./style.scss"
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
 const statusLabel = status => (status === "FINALIZED" ? "Đã chốt" : "Bản nháp")
 const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa phụ" : "Bữa trưa")
+const statusTone = status => {
+  if (!status) return "neutral"
+  return status === "FINALIZED" ? "success" : "warning"
+}
+
+const StatusChip = ({ status }) => (
+  <Chip
+    size="small"
+    label={status ? statusLabel(status) : "Chưa khai báo"}
+    className={`daily-meal-page__status daily-meal-page__status--${statusTone(status)}`}
+  />
+)
 
 function DailyMealConfirm() {
   const [searchParams] = useSearchParams()
@@ -127,8 +139,10 @@ function DailyMealConfirm() {
         <Paper variant="outlined" className="daily-meal-page__summary">
           <div><span>Lớp được phân công</span><strong>{context.class.name}</strong><small>Niên khóa {context.class.academicYear}</small></div>
           <div><span>Số suất đăng ký</span><strong>{context.class.registeredMealPortions}</strong><small>Giới hạn tối đa trong ngày</small></div>
-          <div><span>Trạng thái</span><Chip size="small" color={finalized ? "success" : "warning"}
-            label={submission ? statusLabel(submission.status) : "Chưa khai báo"} /></div>
+          <div className="daily-meal-page__summary-status">
+            <span>Trạng thái</span>
+            <StatusChip status={submission?.status} />
+          </div>
         </Paper>
 
         <Paper variant="outlined" className="daily-meal-page__form" aria-busy={saving}>
@@ -171,7 +185,7 @@ function DailyMealConfirm() {
               {history.map(item => <TableRow key={item.id}>
                 <TableCell>{dayjs(item.mealDate).format("DD/MM/YYYY")}</TableCell><TableCell>{mealLabel(item.mealType)}</TableCell>
                 <TableCell>{item.Class?.name || context.class.name}</TableCell><TableCell align="right">{item.totalPortions}</TableCell>
-                <TableCell><Chip size="small" color={item.status === "FINALIZED" ? "success" : "warning"} label={statusLabel(item.status)} /></TableCell>
+                <TableCell><StatusChip status={item.status} /></TableCell>
               </TableRow>)}
               {!history.length && <TableRow><TableCell className="daily-meal-page__empty-history" colSpan={5} align="center">Chưa có lịch sử khai báo cho lớp này.</TableCell></TableRow>}
             </TableBody>

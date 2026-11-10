@@ -81,6 +81,7 @@ MainLayout.propTypes = { type: PropTypes.string };
 
 export { default as PublicLayout } from "./PublicLayout/PublicLayout";
 export { default as AuthLayout } from "./AuthLayout/AuthLayout";
+export { default as SchoolPublicLayout } from "./SchoolPublicLayout";
 export { default as Sidebar } from "./Sidebar";
 export * from "./Header";
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react"
 import SchoolService from "src/services/SchoolService"
+import { filterPublicSchools, getPublicSchoolItems } from "src/utils/publicSchool"
 import HeroBanner from "./component/HeroBanner"
 import SchoolDiscovery from "./component/SchoolDiscovery"
 import AboutFeatures from "./component/AboutFeatures"
@@ -11,6 +12,7 @@ function PlatformHome() {
   const [schools, setSchools] = useState([])
   const [searchQuery, setSearchQuery] = useState("")
 
+  // Tải một lần danh sách trường giới thiệu. Tìm kiếm bên dưới dùng lại danh sách này.
   useEffect(() => {
     let isMounted = true
 
@@ -18,10 +20,7 @@ function PlatformHome() {
       try {
         const res = await SchoolService.getPublicSchools({ limit: 6, page: 1 })
         if (isMounted) {
-          const schoolList = Array.isArray(res?.data)
-            ? res.data
-            : (Array.isArray(res?.data?.items) ? res.data.items : [])
-          setSchools(schoolList.slice(0, 6))
+          setSchools(getPublicSchoolItems(res).slice(0, 6))
         }
       } catch (err) {
         console.error("Lỗi khi tải danh sách trường tại PlatformHome:", err)
@@ -35,20 +34,11 @@ function PlatformHome() {
     }
   }, [])
 
-  // Tìm kiếm trường học tức thì theo tên, địa chỉ, quận hoặc mã
-  const filteredSchools = useMemo(() => {
-    if (!Array.isArray(schools)) return []
-    if (!searchQuery.trim()) return schools
-
-    const query = searchQuery.toLowerCase().trim()
-    return schools.filter(
-      item =>
-        item.name?.toLowerCase().includes(query) ||
-        item.address?.toLowerCase().includes(query) ||
-        item.district?.toLowerCase().includes(query) ||
-        item.code?.toLowerCase().includes(query),
-    )
-  }, [schools, searchQuery])
+  // Lọc ngay khi người dùng nhập vào ô tìm kiếm của SchoolDiscovery.
+  const filteredSchools = useMemo(
+    () => filterPublicSchools(schools, searchQuery),
+    [schools, searchQuery],
+  )
 
   return (
     <div className="platform-home-wrapper">
@@ -65,7 +55,7 @@ function PlatformHome() {
       {/* 3. Phần Tính năng Nổi bật */}
       <AboutFeatures />
 
-      {/* 4. Quy trình Vận hành 4 bước */}
+      {/* 4. Các bước tra cứu thực đơn */}
       <HowItWorks />
 
       {/* 5. Khối Kêu gọi Đăng ký Onboarding */}

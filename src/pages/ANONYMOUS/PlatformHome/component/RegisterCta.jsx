@@ -3,6 +3,7 @@ import { Link } from "react-router-dom"
 import { ArrowRight } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./RegisterCta.module.scss"
+// Tham số type xác định nhóm đăng ký mà người dùng chọn từ trang chủ.
 export default function RegisterCta() {
   return <section id="register" className={styles.section}><div className={styles.container}>
     <div><h2>Đồng hành cùng FoodPrint.</h2><p>Đăng ký tham gia để quản lý thực đơn, kiểm thực nguyên liệu và chia sẻ thông tin bữa ăn học đường.</p></div>

@@ -1,0 +1,214 @@
+.filterSection {
+  width: 100%;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+  padding: var(--space-4) 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.filterContainer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 var(--space-4);
+  }
+}
+
+.filterTitleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filterLabel {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-secondary);
+}
+
+.dropdownsGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-3);
+  }
+}
+
+.filterItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: flex-start;
+    width: 100%;
+  }
+}
+
+.itemLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  white-space: nowrap;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.formControl {
+  min-width: 200px;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    min-width: 100%;
+  }
+}
+
+.muiSelect {
+  height: 40px;
+  background-color: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md) !important;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  transition: all 0.2s ease;
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border: none !important;
+  }
+
+  :global(.MuiSelect-select) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 6px !important;
+    padding-right: 36px !important;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--text-xs);
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+  }
+
+  :global(.MuiSelect-icon) {
+    color: var(--color-primary);
+    right: 8px;
+  }
+
+  &:hover {
+    border-color: rgba(10, 128, 102, 0.4);
+    background-color: var(--bg-surface);
+  }
+
+  &:focus-within,
+  &:global(.Mui-focused) {
+    border-color: var(--color-primary) !important;
+    background-color: var(--bg-surface) !important;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
+  }
+}
+
+.adornment {
+  color: var(--color-primary);
+  margin-left: 6px;
+  margin-right: 4px;
+}
+
+.dropdownPaper {
+  border-radius: var(--radius-lg) !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: var(--shadow-md) !important;
+  max-height: 280px !important;
+  padding: 4px !important;
+}
+
+.emptyItem {
+  color: var(--text-muted) !important;
+  font-size: var(--text-xs) !important;
+  font-style: italic;
+}
+
+.menuItem {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: var(--space-3) !important;
+  padding: 8px 12px !important;
+  border-radius: var(--radius-sm) !important;
+  font-size: var(--text-xs) !important;
+  font-family: var(--font-sans) !important;
+
+  &:hover {
+    background-color: var(--color-primary-soft) !important;
+  }
+
+  &:global(.Mui-selected) {
+    background-color: var(--color-primary-soft) !important;
+    color: var(--color-primary) !important;
+    font-weight: var(--font-bold) !important;
+  }
+}
+
+.weekTitle {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.weekRange {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.dayText {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.dayBadge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+  font-weight: var(--font-medium);
+}
+
+.dayBadgeAvailable {
+  background-color: var(--color-success-bg);
+  color: var(--color-success);
+  border: 1px solid var(--color-success-border);
+}
+
+.dayBadgeOff {
+  background-color: var(--bg-muted);
+  color: var(--text-muted);
+  border: 1px solid var(--border-default);
+}
+
+.blockTitle {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.blockDesc {
+  font-size: 11px;
+  color: var(--text-muted);
+}
