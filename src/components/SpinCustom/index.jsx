@@ -5,7 +5,7 @@ import FoodPrintLoading from "../FoodPrintLoading"
 const SpinCustom = ({ spinning = true, fullscreen, children, sx, ...props }) => {
   if (!children) {
     if (fullscreen) {
-      return <FoodPrintLoading fullscreen background="cream" />
+      return <FoodPrintLoading fullscreen background="white" />
     }
     return (
       <Box
@@ -36,7 +36,7 @@ const SpinCustom = ({ spinning = true, fullscreen, children, sx, ...props }) => 
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            bgcolor: "rgba(246, 247, 240, 0.75)",
+            bgcolor: "rgba(255, 255, 255, 0.85)",
             backdropFilter: "blur(2px)",
             zIndex: 10,
           }}

@@ -90,7 +90,7 @@ export default function CookingBatchesTable({
     <div className={styles.tableCard} aria-busy={loading}>
       {loading ? (
         <div style={{ padding: "64px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <FoodPrintLoading size="large" />
+          <FoodPrintLoading />
         </div>
       ) : error ? (
         <Alert

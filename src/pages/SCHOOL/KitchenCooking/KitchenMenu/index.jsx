@@ -204,7 +204,7 @@ export default function KitchenMenu() {
       {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
       {loading ? (
         <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <FoodPrintLoading size="large" />
+          <FoodPrintLoading />
         </div>
       ) : (
         <KitchenMenuWeeklyGrid

@@ -264,7 +264,7 @@ export default function EditMenu() {
   if (!menu || !formState) {
     return (
       <div className={styles.loadingContainer}>
-        <FoodPrintLoading size="large" />
+        <FoodPrintLoading />
       </div>
     )
   }

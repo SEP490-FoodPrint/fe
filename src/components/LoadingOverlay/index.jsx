@@ -11,7 +11,7 @@ export default function LoadingOverlay({
     <FoodPrintLoading
       size={sizeSmall ? "small" : "medium"}
       fullscreen={isOverlay}
-      background={isLoadingTable ? "transparent" : isOverlay ? "cream" : "transparent"}
+      background={isLoadingTable ? "transparent" : isOverlay ? "white" : "transparent"}
     />
   )
 }

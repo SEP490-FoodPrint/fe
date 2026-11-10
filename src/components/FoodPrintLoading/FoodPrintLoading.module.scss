@@ -15,15 +15,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(246, 247, 240, 0.92);
+  background-color: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: all;
 }
 
-.creamBg {
-  background-color: #f6f7f0;
+.whiteBg {
+  background-color: #ffffff;
 }
 
 .transparentBg {
@@ -36,9 +36,9 @@
   user-select: none;
 }
 
-/* Vòng tròn viền xanh sage */
+/* Vòng tròn viền xanh sage theo hệ nhận diện FoodPrint */
 .outerRing {
-  stroke: #98b49e;
+  stroke: #84baa9;
   stroke-width: 2.2px;
   fill: none;
   stroke-linecap: round;
@@ -90,41 +90,40 @@
 
 @keyframes ringBreathe {
   0%, 100% {
-    stroke-opacity: 0.72;
-    stroke: #98b49e;
+    stroke-opacity: 0.65;
+    stroke: #84baa9;
     stroke-width: 2px;
   }
   50% {
-    stroke-opacity: 1;
-    stroke: #779a7c;
-    stroke-width: 2.3px;
+    stroke-opacity: 0.95;
+    stroke: #52b299;
+    stroke-width: 2.4px;
   }
 }
 
 @keyframes dotPulse {
   0%, 100% {
-    transform: scale(0.85);
-    opacity: 0.7;
+    transform: scale(0.88);
+    opacity: 0.75;
   }
   50% {
-    transform: scale(1.14);
+    transform: scale(1.12);
     opacity: 1;
   }
 }
 
-/* Kích thước */
+/* Kích thước chuẩn hóa thống nhất toàn hệ thống FoodPrint */
 .sizeSmall {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
 }
 
 .sizeMedium {
-  width: 56px;
-  height: 56px;
+  width: 50px;
+  height: 50px;
 }
 
 .sizeLarge {
-  width: 76px;
-  height: 76px;
+  width: 50px;
+  height: 50px;
 }
-

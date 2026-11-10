@@ -153,7 +153,7 @@ export default function KitchenBatchDetail() {
     return (
       <div className={styles.batchDetailPage} aria-busy="true">
         <div style={{ padding: "96px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <FoodPrintLoading size="large" />
+          <FoodPrintLoading />
         </div>
       </div>
     )

@@ -420,7 +420,7 @@ export default function MenuPlanning() {
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
       {calendarLoading || loading ? (
         <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <FoodPrintLoading size="large" />
+          <FoodPrintLoading />
         </div>
       ) : calendarError || loadError ? (
         <p role="alert">{calendarError || loadError}</p>

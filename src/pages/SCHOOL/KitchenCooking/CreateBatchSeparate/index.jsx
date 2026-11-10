@@ -164,7 +164,7 @@ export default function CreateBatchSeparate() {
 
         {loadError ? <p role="alert">{loadError}</p> : loading ? (
           <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
-            <FoodPrintLoading size="large" />
+            <FoodPrintLoading />
           </div>
         ) : dishes.length === 0 ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">

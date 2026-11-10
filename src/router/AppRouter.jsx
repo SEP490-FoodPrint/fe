@@ -69,7 +69,7 @@ const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
 
 function LazyWrapper({ children }) {
   return (
-    <Suspense fallback={<FoodPrintLoading fullscreen background="cream" />}>
+    <Suspense fallback={null}>
       {children}
     </Suspense>
   )

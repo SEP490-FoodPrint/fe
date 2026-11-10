@@ -74,7 +74,7 @@ export default function MenuDetail() {
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <FoodPrintLoading size="large" />
+        <FoodPrintLoading />
       </div>
     )
   }

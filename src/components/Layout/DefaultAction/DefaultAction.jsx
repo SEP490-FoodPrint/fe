@@ -50,7 +50,7 @@ const DefaultAction = ({ children }) => {
         </Box>
       )
     }
-    return <FoodPrintLoading fullscreen background="cream" />
+    return <FoodPrintLoading fullscreen background="white" />
   }
 
   return <>{children}</>
