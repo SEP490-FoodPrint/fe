@@ -1,9 +1,6 @@
 import React from "react"
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined"
 import SoupKitchenOutlinedIcon from "@mui/icons-material/SoupKitchenOutlined"
-import OutdoorGrillOutlinedIcon from "@mui/icons-material/OutdoorGrillOutlined"
-import GroupsOutlinedIcon from "@mui/icons-material/GroupsOutlined"
-import SanitizerOutlinedIcon from "@mui/icons-material/SanitizerOutlined"
 import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined"
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
 import ChatBubbleOutlineOutlinedIcon from "@mui/icons-material/ChatBubbleOutlineOutlined"
@@ -61,7 +58,7 @@ export const MenuItemSystem = () => [
     icon: <SettingsOutlinedIcon />,
     roles: [ROLES.SYSTEM_ADMIN],
   },
-]
+];
 
 /**
  * Menu dành cho phân hệ Nhà cung cấp (SUPPLIER)
@@ -97,7 +94,7 @@ export const MenuItemSupplier = () => [
       ROLES.INGREDIENT_SUPPLIER,
     ],
   },
-]
+];
 
 /**
  * Menu dành cho phân hệ Nhà trường (SCHOOL) - Tự động lọc theo các roles của trường
@@ -167,9 +164,7 @@ export const MenuItemSchool = () => [
     label: "Kiểm tra Nguyên liệu",
     icon: <HealthAndSafetyOutlinedIcon />,
     // Màn hình dùng cho Phụ huynh
-    roles: [
-      ROLES.PARENTS_COMMITTEE,
-    ],
+    roles: [ROLES.PARENTS_COMMITTEE],
   },
 
   // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN BẾP (SCHOOL_KITCHEN_STAFF) - 7 MỤC QUY CHUẨN ===
@@ -220,7 +215,7 @@ export const MenuItemSchool = () => [
   {
     key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
     label: "Phân công GVCN",
-    icon: <AssignmentIndOutlinedIcon />,
+    icon: <LocalShippingOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
@@ -278,6 +273,10 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_MEAL_FEEDBACK,
     label: "Ý kiến & Phản ánh Bữa ăn",
     icon: <ChatBubbleOutlineOutlinedIcon />,
-    roles: [ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD],
+    roles: [
+      ROLES.PARENTS_COMMITTEE,
+      ROLES.HOMEROOM_TEACHER,
+      ROLES.SCHOOL_MANAGEMENT_BOARD,
+    ],
   },
-]
+];
