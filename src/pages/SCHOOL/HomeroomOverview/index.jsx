@@ -2,7 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import { Alert, Button, Chip } from "@mui/material"
 import dayjs from "dayjs"
-import { AlertTriangle, ArrowRight, CalendarDays, MessageSquareText, Users } from "lucide-react"
+import {
+  AlertTriangle,
+  ArrowRight,
+  CalendarDays,
+  MessageSquareText,
+  ShieldCheck,
+  Users,
+} from "lucide-react"
 import { Link } from "react-router-dom"
 import MealPortionService from "src/services/MealPortionService"
 import ROUTER from "src/router/ROUTER"
@@ -14,9 +21,9 @@ const meals = [
 ]
 
 const statusMeta = submission => {
-  if (!submission) return { label: "Chưa khai báo", color: "default" }
-  if (submission.status === "FINALIZED") return { label: "Đã chốt", color: "success" }
-  return { label: "Bản nháp", color: "warning" }
+  if (!submission) return { label: "Cần khai báo", color: "warning", action: "Khai báo" }
+  if (submission.status === "FINALIZED") return { label: "Đã chốt", color: "success", action: "Xem lại" }
+  return { label: "Cần chốt", color: "warning", action: "Tiếp tục" }
 }
 
 function HomeroomOverview() {
@@ -47,36 +54,38 @@ function HomeroomOverview() {
   useEffect(() => { load() }, [load])
 
   const allergies = data?.class?.classAllergies || []
+  const pendingMeals = data
+    ? meals.filter(meal => data.submissions[meal.type]?.status !== "FINALIZED").length
+    : 0
 
   return (
     <div className="homeroom-overview">
-      <header className="homeroom-overview__header">
-        <div>
-          <h1>Tổng quan lớp hôm nay</h1>
-          <p>Theo dõi và hoàn tất các đầu việc trong ngày của lớp phụ trách.</p>
-        </div>
-        <div className="homeroom-overview__date" aria-label={`Ngày ${dayjs(today).format("DD/MM/YYYY")}`}>
-          <CalendarDays size={18} aria-hidden="true" />
-          <span>{dayjs(today).format("DD/MM/YYYY")}</span>
-        </div>
-      </header>
-
       {loading && <div className="homeroom-overview__loading" role="status" aria-live="polite"><FoodPrintLoading size="medium" /></div>}
       {!loading && error && <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>}
 
       {!loading && data && <>
-        <section className="homeroom-overview__class-card" aria-label="Lớp được phân công">
-          <div className="homeroom-overview__class-icon"><Users size={24} /></div>
-          <div>
-            <span>Lớp đang phụ trách</span>
-            <h2>{data.class.name}</h2>
-            <p>Niên khóa {data.class.academicYear} · {data.class.registeredMealPortions} suất đăng ký</p>
+        <header className="homeroom-overview__header">
+          <div className="homeroom-overview__class">
+            <span className="homeroom-overview__class-icon"><Users size={22} aria-hidden="true" /></span>
+            <div>
+              <h1>{data.class.name}</h1>
+              <p>Niên khóa {data.class.academicYear} · {data.class.registeredMealPortions} suất đăng ký</p>
+            </div>
           </div>
-        </section>
+          <time className="homeroom-overview__date" dateTime={today}>
+            <CalendarDays size={18} aria-hidden="true" />
+            <span>{dayjs(today).format("DD/MM/YYYY")}</span>
+          </time>
+        </header>
 
         <section className="homeroom-overview__section">
           <div className="homeroom-overview__section-heading">
-            <div><h2>Suất ăn hôm nay</h2><p>Kiểm tra và chốt số suất theo từng bữa.</p></div>
+            <div>
+              <h2>Suất ăn hôm nay</h2>
+              <p>{pendingMeals
+                ? `${pendingMeals} bữa cần hoàn tất khai báo.`
+                : "Đã hoàn tất khai báo cho cả hai bữa."}</p>
+            </div>
           </div>
           <div className="homeroom-overview__meal-list">
             {meals.map(meal => {
@@ -86,13 +95,17 @@ function HomeroomOverview() {
                 <Link className="homeroom-overview__meal-card" key={meal.type}
                   aria-label={`${meal.label}: ${status.label}`}
                   to={`${ROUTER.SCHOOL_DAILY_CONFIRM}?date=${today}&mealType=${meal.type}`}>
-                  <div>
-                    <span>{meal.label}</span>
-                    <strong>{submission ? `${submission.totalPortions} suất` : "Chưa có số liệu"}</strong>
+                  <div className="homeroom-overview__meal-info">
+                    <strong>{meal.label}</strong>
+                    <span>{submission
+                      ? `${submission.totalPortions}/${data.class.registeredMealPortions} suất`
+                      : `${data.class.registeredMealPortions} suất đăng ký`}</span>
                   </div>
                   <div className="homeroom-overview__meal-action">
                     <Chip size="small" color={status.color} label={status.label} />
-                    <span className="homeroom-overview__meal-arrow"><ArrowRight size={20} aria-hidden="true" /></span>
+                    <span className="homeroom-overview__meal-link">
+                      {status.action}<ArrowRight size={18} aria-hidden="true" />
+                    </span>
                   </div>
                 </Link>
               )
@@ -100,10 +113,15 @@ function HomeroomOverview() {
           </div>
         </section>
 
-        <section className="homeroom-overview__notice" aria-label="Lưu ý dị ứng của lớp">
-          <AlertTriangle size={22} />
+        <section
+          className={`homeroom-overview__notice ${allergies.length ? "homeroom-overview__notice--warning" : "homeroom-overview__notice--clear"}`}
+          aria-label="Thông tin dị ứng của lớp"
+        >
+          {allergies.length
+            ? <AlertTriangle size={20} aria-hidden="true" />
+            : <ShieldCheck size={20} aria-hidden="true" />}
           <div>
-            <h2>Lưu ý dị ứng</h2>
+            <h2>Dị ứng của lớp</h2>
             <p>{allergies.length
               ? `${allergies.length} nguyên liệu cần lưu ý khi xác nhận suất ăn.`
               : "Lớp chưa có nguyên liệu dị ứng được ghi nhận."}</p>
