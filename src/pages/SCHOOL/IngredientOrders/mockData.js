@@ -59,6 +59,17 @@ export const MOCK_DRY_STOCK_MONTHLY_CYCLES = {
   "ing-mien-16": { currentOrders: 3, maxOrders: 3, lastDate: "22/10/2026" },
 }
 
+export const MOCK_DRY_STOCK_INVENTORY = {
+  "ing-gao-09": { currentStock: 450, safetyStock: 100, unit: "kg" },
+  "ing-dau-10": { currentStock: 10, safetyStock: 20, unit: "lít" },
+  "ing-nuocmam-11": { currentStock: 3, safetyStock: 10, unit: "lít" },
+  "ing-muoi-12": { currentStock: 25, safetyStock: 10, unit: "kg" },
+  "ing-duong-13": { currentStock: 80, safetyStock: 50, unit: "kg" },
+  "ing-hatnem-14": { currentStock: 6, safetyStock: 10, unit: "kg" },
+  "ing-tieu-15": { currentStock: 12, safetyStock: 5, unit: "hũ" },
+  "ing-mien-16": { currentStock: 20, safetyStock: 15, unit: "kg" },
+}
+
 export const MOCK_MASTER_INGREDIENT_CATALOG = [
   // ========================================================
   // 1. NHÓM KHO KHÔ (DRY_STOCK: Gạo, ngũ cốc, gia vị lưu kho dài ngày)
@@ -352,7 +363,8 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 28000,
-        monthlyCycle: { currentOrders: 1, maxOrders: 3, lastDate: "10/10/2026" },
+        currentStock: 450,
+        safetyStock: 100,
       },
       {
         id: "ing-dau-10",
@@ -364,7 +376,8 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 32500,
-        monthlyCycle: { currentOrders: 2, maxOrders: 3, lastDate: "18/10/2026" },
+        currentStock: 10,
+        safetyStock: 20,
       },
       {
         id: "ing-nuocmam-11",
@@ -376,7 +389,8 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-kho-04",
         supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
         unitPrice: 75000,
-        monthlyCycle: { currentOrders: 0, maxOrders: 3, lastDate: "Chưa đặt" },
+        currentStock: 3,
+        safetyStock: 10,
       },
       {
         id: "ing-muoi-12",
@@ -388,7 +402,8 @@ export const MOCK_APPROVED_MENUS = [
         supplierId: "sup-bavi-01",
         supplierName: "HTX Chăn nuôi Sạch Ba Vì",
         unitPrice: 8000,
-        monthlyCycle: { currentOrders: 1, maxOrders: 3, lastDate: "05/10/2026" },
+        currentStock: 25,
+        safetyStock: 10,
       },
     ],
   },

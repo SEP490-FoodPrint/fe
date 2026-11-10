@@ -485,16 +485,51 @@
   display: block;
 }
 
-.cycleRuleBadge {
-  background-color: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fde68a;
-  font-weight: 600;
+.autoSelectHeaderBtn {
   font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 8px;
+  border-color: #f59e0b;
+  color: #b45309;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #fef3c7;
+    border-color: #d97706;
+  }
+}
+
+.stockNoticeBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 9px 14px;
+  margin-bottom: 14px;
+  color: #92400e;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.stockNoticeIcon {
+  flex-shrink: 0;
+  color: #d97706;
+}
+
+.stockNoticeText {
+  flex: 1;
+
+  strong {
+    color: #b45309;
+    font-weight: 700;
+  }
 }
 
 .dryTable {
-  min-width: 960px;
+  min-width: 980px;
 }
 
 .supplierCol {
@@ -529,73 +564,104 @@
   height: 22px;
 }
 
-.cycleCellWrap {
+/* Cột Nhu cầu ca nấu */
+.demandCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.demandTotal {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.88rem;
+}
+
+.demandPerPortion {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* Cột Tồn kho hiện tại */
+.stockCol {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.stockQty {
+  font-weight: 700;
+  color: #1e293b;
+  font-size: 0.88rem;
+}
+
+.safetyStockText {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+/* Cột Mức tồn kho & So sánh */
+.evaluationCol {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 3px;
+  gap: 4px;
 }
 
-.cycleSubtext {
-  font-size: 0.7rem;
-  color: #64748b;
-  white-space: nowrap;
+.stockDeficitChip {
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  font-weight: 700;
+  font-size: 0.72rem;
+  height: 24px;
 }
 
-.cycleChipAttached {
+.stockLowChip {
   background-color: #fef3c7;
   color: #b45309;
   border: 1px solid #fcd34d;
   font-weight: 700;
-  font-size: 0.73rem;
+  font-size: 0.72rem;
+  height: 24px;
 }
 
-.cycleChip0 {
-  background-color: #f1f5f9;
+.stockPlentyChip {
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-weight: 600;
+  font-size: 0.72rem;
+  height: 24px;
+}
+
+.evalSubtext {
+  font-size: 0.68rem;
   color: #64748b;
-  border: 1px solid #e2e8f0;
-  font-weight: 600;
-  font-size: 0.72rem;
-}
-
-.cycleChip1 {
-  background-color: #e0f2fe;
-  color: #0369a1;
-  border: 1px solid #bae6fd;
-  font-weight: 600;
-  font-size: 0.72rem;
-}
-
-.cycleChip2 {
-  background-color: #fef9c3;
-  color: #a16207;
-  border: 1px solid #fde047;
-  font-weight: 600;
-  font-size: 0.72rem;
-}
-
-.cycleChip3 {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
-  font-weight: 600;
-  font-size: 0.72rem;
-}
-
-.packChip {
-  font-size: 0.72rem;
-  color: #64748b;
-  border-color: #cbd5e1;
-}
-
-.totalDryQtyText {
-  color: #0f172a;
-  font-weight: 700;
+  text-align: center;
+  max-width: 200px;
+  line-height: 1.25;
 }
 
 .attachedChip {
   font-weight: 600;
   font-size: 0.75rem;
+}
+
+.suggestAttachChip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  height: 24px;
+  cursor: pointer;
+  background-color: #fffbeb;
+  border-color: #f59e0b;
+  color: #b45309;
+
+  &:hover {
+    background-color: #fef3c7;
+  }
 }
 
 .notAttachedText {

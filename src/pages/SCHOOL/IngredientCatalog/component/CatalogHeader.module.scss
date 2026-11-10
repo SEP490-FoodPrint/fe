@@ -1,0 +1,42 @@
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: 12px;
+  padding: 20px 24px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.titleGroup {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.iconBadge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background-color: var(--color-primary-soft, #e6f4ea);
+  color: var(--color-primary, #1e7e34);
+}
+
+.pageTitle {
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+
+.pageSubtitle {
+  color: var(--text-secondary, #6b7280);
+  margin-top: 4px;
+  font-size: 0.875rem;
+}
