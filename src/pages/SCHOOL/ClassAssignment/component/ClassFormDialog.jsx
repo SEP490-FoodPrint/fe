@@ -12,6 +12,7 @@ import {
   Typography,
 } from "@mui/material"
 import ClassService from "src/services/ClassService"
+import TeacherAutocomplete from "./TeacherAutocomplete"
 import styles from "./ClassFormDialog.module.scss"
 
 const NAME_MAX_LENGTH = 120
@@ -26,7 +27,38 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
   const [errors, setErrors] = useState({})
   const [error, setError] = useState("")
   const [submitting, setSubmitting] = useState(false)
+  const [teachers, setTeachers] = useState([])
+  const [teachersLoading, setTeachersLoading] = useState(false)
+  const [teachersError, setTeachersError] = useState("")
+  const [teacherId, setTeacherId] = useState("")
   const submitLock = useRef(false)
+
+  // GVCN chỉ chọn khi tạo lớp; danh sách phụ thuộc niên khóa vì mỗi GVCN chủ nhiệm một lớp mỗi năm.
+  useEffect(() => {
+    setTeacherId("")
+    if (!open || isEdit || !year) {
+      setTeachers([])
+      return undefined
+    }
+    let active = true
+    setTeachersLoading(true)
+    setTeachersError("")
+    ClassService.getEligibleTeachers(year)
+      .then(response => {
+        if (active) setTeachers(response.data.items)
+      })
+      .catch(failure => {
+        if (!active) return
+        setTeachers([])
+        setTeachersError(errorMessage(failure, "Không thể tải danh sách GVCN."))
+      })
+      .finally(() => {
+        if (active) setTeachersLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [open, isEdit, year])
 
   useEffect(() => {
     if (!open) return
@@ -67,8 +99,17 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
         await ClassService.updateClass(item.id, changes)
         onDone(`Đã cập nhật lớp ${payload.name}`)
       } else {
-        await ClassService.createClass({ ...payload, academicYear: year })
-        onDone(`Đã tạo lớp ${payload.name} niên khóa ${year}`)
+        const teacher = teachers.find(option => option.id === teacherId)
+        await ClassService.createClass({
+          ...payload,
+          academicYear: year,
+          ...(teacher ? { homeroomTeacherUserId: teacher.id } : {}),
+        })
+        onDone(
+          teacher
+            ? `Đã tạo lớp ${payload.name} niên khóa ${year} và phân công ${teacher.fullName} làm GVCN`
+            : `Đã tạo lớp ${payload.name} niên khóa ${year}`,
+        )
       }
     } catch (failure) {
       setError(errorMessage(failure, "Không thể lưu lớp học. Vui lòng thử lại."))
@@ -144,6 +185,23 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
             disabled={submitting}
             inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
           />
+          {!isEdit && (
+            <TeacherAutocomplete
+              teachers={teachers}
+              value={teacherId}
+              onChange={setTeacherId}
+              label="Giáo viên chủ nhiệm (không bắt buộc)"
+              helperText={
+                teachersError ||
+                (!teachersLoading && year && !teachers.length
+                  ? "Trường chưa có tài khoản GVCN đang hoạt động; có thể phân công sau."
+                  : "Có thể bỏ trống và phân công sau.")
+              }
+              error={Boolean(teachersError)}
+              loading={teachersLoading}
+              disabled={submitting || !year}
+            />
+          )}
           {error && <Alert severity="error">{error}</Alert>}
         </DialogContent>
         <DialogActions className={styles.actions}>

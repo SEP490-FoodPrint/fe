@@ -1,0 +1,16 @@
+.option {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.name {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.meta {
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+}
