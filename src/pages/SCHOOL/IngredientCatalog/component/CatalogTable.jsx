@@ -24,7 +24,6 @@ export default function CatalogTable({ catalog = [] }) {
             <TableCell>Nhóm mặt hàng</TableCell>
             <TableCell>Phân loại kho</TableCell>
             <TableCell align="center">Đơn vị</TableCell>
-            <TableCell align="center">Hạn dùng tối đa</TableCell>
             <TableCell align="right">Đơn giá tham chiếu</TableCell>
             <TableCell>Nhà cung cấp đối tác</TableCell>
             <TableCell>Yêu cầu bảo quản & Quy cách</TableCell>
@@ -63,11 +62,6 @@ export default function CatalogTable({ catalog = [] }) {
                   <TableCell align="center">
                     <Typography variant="body2" className={styles.unitText}>
                       {item.defaultUnit}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="center">
-                    <Typography variant="body2" className={styles.shelfLifeText}>
-                      {item.shelfLifeDays ? `${item.shelfLifeDays} ngày` : "--"}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">

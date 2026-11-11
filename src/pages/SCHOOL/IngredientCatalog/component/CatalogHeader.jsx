@@ -14,9 +14,6 @@ export default function CatalogHeader() {
           <Typography variant="h5" className={styles.pageTitle}>
             Danh Mục Nguyên Liệu Chuẩn
           </Typography>
-          <Typography variant="body2" className={styles.pageSubtitle}>
-            Master data nguyên liệu học đường, tiêu chuẩn bảo quản và nhà cung cấp đối tác
-          </Typography>
         </Box>
       </Box>
     </Box>

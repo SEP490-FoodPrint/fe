@@ -33,8 +33,9 @@ import {
   Clock,
   Sparkles,
   CalendarCheck,
+  Archive,
 } from "lucide-react"
-import { MOCK_APPROVED_MENUS, MOCK_DRY_STOCK_INVENTORY } from "../mockData"
+import { MOCK_APPROVED_MENUS } from "../mockData"
 import styles from "./CreateDeliveryView.module.scss"
 
 export default function CreateDeliveryView({
@@ -64,9 +65,6 @@ export default function CreateDeliveryView({
 
   // Sĩ số GVCN báo cho Đợt 2 (mặc định để trống để test validate)
   const [actualAttendance, setActualAttendance] = useState("")
-
-  // Checkbox đồ khô giao cùng xe Đợt 1
-  const [attachedDryIds, setAttachedDryIds] = useState([])
 
   // =========================================================================
   // TỰ ĐỘNG NHẬN DIỆN CHẾ ĐỘ THEO NGÀY (VALIDATE THEO ORDER_DATE)
@@ -114,88 +112,7 @@ export default function CreateDeliveryView({
     return currentMenu?.ingredients?.filter(it => it.handlingType === "DIRECT_USE") || []
   }, [currentMenu])
 
-  // Nguyên liệu khô (DRY_STOCK) - Chỉ dùng ở Đợt 1
-  const dryIngredients = useMemo(() => {
-    return currentMenu?.ingredients?.filter(it => it.handlingType === "DRY_STOCK") || []
-  }, [currentMenu])
-
-  // Danh sách supplierId của các món tươi sống (Đợt 1) để nhận diện đồ khô cùng xe tươi sống hay NCC đồ khô riêng
-  const freshSupplierIds = useMemo(() => {
-    return new Set(freshIngredients.map(f => f.supplierId).filter(Boolean))
-  }, [freshIngredients])
-
-  // Toggle đồ khô
-  const handleToggleAttached = id => {
-    setAttachedDryIds(prev =>
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    )
-  }
-
-  const isAllAttached =
-    dryIngredients.length > 0 && attachedDryIds.length === dryIngredients.length
-
-  const handleToggleSelectAll = () => {
-    if (isAllAttached) {
-      setAttachedDryIds([])
-    } else {
-      setAttachedDryIds(dryIngredients.map(it => it.id))
-    }
-  }
-
-  // Đánh giá tồn kho & Nhu cầu ca nấu cho từng nguyên liệu khô
-  const dryStockEvaluation = useMemo(() => {
-    return dryIngredients.map(ing => {
-      const totalDemand = Number((ing.qtyPerPortion * maxPortions).toFixed(2))
-      const stockInfo = MOCK_DRY_STOCK_INVENTORY[ing.id] || {}
-      const currentStock = ing.currentStock ?? stockInfo.currentStock ?? 50
-      const safetyStock = ing.safetyStock ?? stockInfo.safetyStock ?? 20
-      const stockAfter = Number((currentStock - totalDemand).toFixed(2))
-
-      let status = "PLENTY" // "DEFICIT" | "LOW" | "PLENTY"
-      let statusLabel = ""
-      let statusSubtext = ""
-
-      if (currentStock < totalDemand) {
-        status = "DEFICIT"
-        const deficitQty = Number((totalDemand - currentStock).toFixed(2))
-        statusLabel = `Thiếu ${deficitQty} ${ing.unit}`
-        statusSubtext = `Kho còn ${currentStock}/${totalDemand} ${ing.unit} (Không đủ ca nấu)`
-      } else if (stockAfter < safetyStock) {
-        status = "LOW"
-        statusLabel = `Sắp hết`
-        statusSubtext = `Sau nấu còn ${stockAfter} ${ing.unit} (Định mức an toàn: ≥${safetyStock} ${ing.unit})`
-      } else {
-        status = "PLENTY"
-        statusLabel = `Đủ dùng trong kho`
-        statusSubtext = `Sau nấu còn dư ${stockAfter} ${ing.unit}`
-      }
-
-      return {
-        ...ing,
-        totalDemand,
-        currentStock,
-        safetyStock,
-        stockAfter,
-        status,
-        statusLabel,
-        statusSubtext,
-        needsDelivery: status !== "PLENTY",
-      }
-    })
-  }, [dryIngredients, maxPortions])
-
-  // Danh sách các món kho thiếu hụt hoặc sắp cạn cần gợi ý tích giao thêm
-  const lowOrDeficitItems = useMemo(() => {
-    return dryStockEvaluation.filter(it => it.needsDelivery)
-  }, [dryStockEvaluation])
-
-  // Chọn nhanh tất cả các món kho thiếu / sắp cạn
-  const handleAutoSelectLowStock = () => {
-    const lowIds = lowOrDeficitItems.map(it => it.id)
-    setAttachedDryIds(prev => Array.from(new Set([...prev, ...lowIds])))
-  }
-
-  // Submit Đợt 1
+  // Submit Đợt 1 (Chuyên biệt thực phẩm tươi sống trong ngày)
   const handleSubmitBatch1 = async () => {
     if (!currentMenu) return
     setSubmitting(true)
@@ -204,7 +121,6 @@ export default function CreateDeliveryView({
         menuId: currentMenu.id,
         orderDate,
         note,
-        attachedDryIds,
       })
     } finally {
       setSubmitting(false)
@@ -444,189 +360,6 @@ export default function CreateDeliveryView({
             </Box>
           </Paper>
 
-          {/* BẢNG 2: GIA VỊ & ĐỒ KHÔ (CHỈ CÓ Ở ĐỢT 1 — MẶC ĐỊNH DÙNG TỒN KHO) */}
-          <Paper className={styles.dryTableCard} elevation={0}>
-            <Box className={styles.dryHeaderRow}>
-              <Box className={styles.tableTitleGroup}>
-                <Box>
-                  <Typography variant="subtitle1" className={styles.tableHeading}>
-                    B. Gia Vị &amp; Lương Thực Khô
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-
-            <Box className={styles.tableWrapper}>
-              <Table size="small" className={styles.dryTable}>
-                <TableHead>
-                  <TableRow className={styles.tableHeaderRow}>
-                    <TableCell padding="checkbox">
-                      <Tooltip title={isAllAttached ? "Bỏ chọn tất cả" : "Chọn giao cùng tất cả"}>
-                        <Checkbox
-                          size="small"
-                          checked={isAllAttached}
-                          indeterminate={attachedDryIds.length > 0 && !isAllAttached}
-                          onChange={handleToggleSelectAll}
-                          color="warning"
-                        />
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell>Tên nguyên liệu / Gia vị</TableCell>
-                    <TableCell>Nhà cung cấp (NCC)</TableCell>
-                    <TableCell align="right">Nhu cầu ca nấu</TableCell>
-                    <TableCell align="right">Tồn kho hiện tại</TableCell>
-                    <TableCell align="center">Mức tồn kho &amp; So sánh</TableCell>
-                    <TableCell align="center">Giao cùng xe Đợt 1</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {dryStockEvaluation.map(ing => {
-                    const isAttached = attachedDryIds.includes(ing.id)
-
-                    // Kiểm tra NCC: Cùng xe với đồ tươi hay NCC đồ khô riêng
-                    const isSharedWithFresh = freshSupplierIds.has(ing.supplierId)
-
-                    return (
-                      <TableRow
-                        key={ing.id}
-                        hover
-                        className={`${styles.tableRow} ${isAttached ? styles.rowAttached : ""}`}
-                        onClick={() => handleToggleAttached(ing.id)}
-                        style={{ cursor: "pointer" }}
-                      >
-                        <TableCell padding="checkbox" onClick={e => e.stopPropagation()}>
-                          <Checkbox
-                            size="small"
-                            checked={isAttached}
-                            onChange={() => handleToggleAttached(ing.id)}
-                            color="warning"
-                          />
-                        </TableCell>
-
-                        <TableCell>
-                          <Typography variant="subtitle2" className={styles.ingName}>
-                            {ing.name}
-                          </Typography>
-                        </TableCell>
-
-                        {/* Cột NCC: Hiển thị NCC và nhận diện xe tươi sống hay NCC riêng */}
-                        <TableCell>
-                          <Box className={styles.supplierCol}>
-                            <Typography variant="body2" className={styles.supplierName}>
-                              {ing.supplierName || "Tổng kho Lương thực & Gia vị"}
-                            </Typography>
-                            {isSharedWithFresh ? (
-                              <Chip
-                                size="small"
-                                icon={<Truck size={12} />}
-                                label="Chung NCC xe tươi sống"
-                                className={styles.sharedSupplierChip}
-                              />
-                            ) : (
-                              <Chip
-                                size="small"
-                                icon={<Boxes size={12} />}
-                                label="NCC đồ khô riêng"
-                                className={styles.separateSupplierChip}
-                              />
-                            )}
-                          </Box>
-                        </TableCell>
-
-                        {/* Cột Nhu cầu ca nấu: Tổng số lượng và định lượng/suất */}
-                        <TableCell align="right">
-                          <Box className={styles.demandCol}>
-                            <Typography variant="subtitle2" className={styles.demandTotal}>
-                              {ing.totalDemand} {ing.unit}
-                            </Typography>
-                            <Typography variant="caption" className={styles.demandPerPortion}>
-                              ({ing.qtyPerPortion} {ing.unit}/suất)
-                            </Typography>
-                          </Box>
-                        </TableCell>
-
-                        {/* Cột Tồn kho hiện tại: Số lượng và ngưỡng an toàn */}
-                        <TableCell align="right">
-                          <Box className={styles.stockCol}>
-                            <Typography variant="subtitle2" className={styles.stockQty}>
-                              {ing.currentStock} {ing.unit}
-                            </Typography>
-                            <Typography variant="caption" className={styles.safetyStockText}>
-                              (An toàn: ≥{ing.safetyStock} {ing.unit})
-                            </Typography>
-                          </Box>
-                        </TableCell>
-
-                        {/* Cột Mức tồn kho & So sánh: Phân loại DEFICIT / LOW / PLENTY */}
-                        <TableCell align="center">
-                          <Box className={styles.evaluationCol}>
-                            {ing.status === "DEFICIT" && (
-                              <Tooltip title={ing.statusSubtext}>
-                                <Chip
-                                  size="small"
-                                  label={ing.statusLabel}
-                                  className={styles.stockDeficitChip}
-                                />
-                              </Tooltip>
-                            )}
-                            {ing.status === "LOW" && (
-                              <Tooltip title={ing.statusSubtext}>
-                                <Chip
-                                  size="small"
-                                  label={ing.statusLabel}
-                                  className={styles.stockLowChip}
-                                />
-                              </Tooltip>
-                            )}
-                            {ing.status === "PLENTY" && (
-                              <Tooltip title={ing.statusSubtext}>
-                                <Chip
-                                  size="small"
-                                  label={ing.statusLabel}
-                                  className={styles.stockPlentyChip}
-                                />
-                              </Tooltip>
-                            )}
-                            <Typography variant="caption" className={styles.evalSubtext}>
-                              {ing.statusSubtext}
-                            </Typography>
-                          </Box>
-                        </TableCell>
-
-                        {/* Cột Trạng thái Giao cùng xe Đợt 1 */}
-                        <TableCell align="center" onClick={e => e.stopPropagation()}>
-                          {isAttached ? (
-                            <Chip
-                              icon={<Truck size={14} />}
-                              label="Giao cùng Đợt 1"
-                              size="small"
-                              color="warning"
-                              className={styles.attachedChip}
-                              onDelete={() => handleToggleAttached(ing.id)}
-                            />
-                          ) : ing.status !== "PLENTY" ? (
-                            <Chip
-                              size="small"
-                              variant="outlined"
-                              color="warning"
-                              label="+ Tích giao cùng"
-                              className={styles.suggestAttachChip}
-                              onClick={() => handleToggleAttached(ing.id)}
-                            />
-                          ) : (
-                            <Typography variant="caption" className={styles.notAttachedText}>
-                              Dùng kho (Không giao)
-                            </Typography>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                </TableBody>
-              </Table>
-            </Box>
-          </Paper>
-
           {/* Ghi chú & Footer Submit Đợt 1 */}
           <Paper className={styles.noteCard} elevation={0}>
             <TextField
@@ -644,24 +377,16 @@ export default function CreateDeliveryView({
           <Box className={styles.footerWrap}>
             <Box className={styles.summaryBadges}>
               <Chip
-                label={`${freshIngredients.length} mặt hàng tươi sống (Đợt 1: 50%)`}
+                label={`${freshIngredients.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`}
                 size="small"
                 className={styles.summaryFreshBadge}
               />
-              {attachedDryIds.length > 0 ? (
-                <Chip
-                  label={`${attachedDryIds.length} món khô giao cùng Đợt 1`}
-                  size="small"
-                  className={styles.summaryAttachedBadge}
-                />
-              ) : (
-                <Chip
-                  label="Đồ khô: Dùng tồn kho (Không giao cùng)"
-                  size="small"
-                  variant="outlined"
-                  className={styles.summaryWarehouseBadge}
-                />
-              )}
+              <Chip
+                label="Đồ khô: Tách riêng tại Quản lý kho (Giao tối/cuối tuần)"
+                size="small"
+                variant="outlined"
+                className={styles.summaryWarehouseBadge}
+              />
             </Box>
 
             <Box className={styles.footerActions}>

@@ -144,9 +144,8 @@ export default function IngredientOrders() {
       if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
       setDeliverySubView("list")
 
-      const attachedText = res.attachedDryCount > 0 ? ` (giao cùng ${res.attachedDryCount} món khô)` : ""
       notice({
-        msg: `Đã tạo Đơn mua hàng Đợt 1 ${res.orderNo}${attachedText}! Bạn có thể tiếp tục tạo Đợt 2 khi GVCN chốt sĩ số sáng.`,
+        msg: `Đã tạo Đơn mua hàng Đợt 1 ${res.orderNo} (Thực phẩm tươi sống ca sáng)! Bạn có thể tiếp tục tạo Đợt 2 khi GVCN chốt sĩ số sáng.`,
         isSuccess: true,
       })
     }
