@@ -225,23 +225,54 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
               </Box>
               <Box className={styles.infoField}>
                 <span className={styles.label}>Ngưỡng an toàn tối thiểu:</span>
-                <span className={styles.value}>{item.safetyStock} {item.unit} (100% định mức)</span>
+                <span className={styles.value}>{item.safetyStock} {item.unit}</span>
               </Box>
               <Box className={styles.infoField}>
-                <span className={styles.label}>Tỷ lệ đạt định mức an toàn:</span>
+                <span className={styles.label}>Trạng thái định mức:</span>
                 {(() => {
                   const pct = Math.round((item.currentStock / item.safetyStock) * 100)
-                  const isCrit = pct < 50
-                  const isWarn = pct >= 50 && pct < 100
+                  if (pct < 50) {
+                    return (
+                      <Chip
+                        label="Dưới 50%"
+                        size="small"
+                        style={{
+                          width: "fit-content",
+                          backgroundColor: "#fee2e2",
+                          color: "#b91c1c",
+                          fontWeight: 700,
+                          border: "1px solid #fca5a5",
+                        }}
+                      />
+                    )
+                  }
+                  if (pct < 100) {
+                    return (
+                      <Chip
+                        label="Trên 50%"
+                        size="small"
+                        style={{
+                          width: "fit-content",
+                          backgroundColor: "#fef3c7",
+                          color: "#b45309",
+                          fontWeight: 700,
+                          border: "1px solid #fde68a",
+                        }}
+                      />
+                    )
+                  }
                   return (
-                    <span
+                    <Chip
+                      label="Đủ"
+                      size="small"
                       style={{
+                        width: "fit-content",
+                        backgroundColor: "#ecfdf5",
+                        color: "#047857",
                         fontWeight: 700,
-                        color: isCrit ? "#dc2626" : isWarn ? "#d97706" : "#16a34a",
+                        border: "1px solid #a7f3d0",
                       }}
-                    >
-                      Đạt {pct}% — {isCrit ? `Thiếu ${item.safetyStock - item.currentStock} ${item.unit} (Cần nhập khẩn cấp)` : isWarn ? `Thiếu ${item.safetyStock - item.currentStock} ${item.unit} (Cần nhập thêm)` : "Tồn kho an toàn (Đủ dùng)"}
-                    </span>
+                    />
                   )
                 })()}
               </Box>

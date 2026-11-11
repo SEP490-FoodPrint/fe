@@ -38,15 +38,17 @@ export default function WarehouseManage() {
   // Pagination state
   const [page, setPage] = useState(1)
 
-  // Thống kê nhanh cho StatsRail (Tổng, Thiếu kho, An toàn, Chờ giao)
+  // Thống kê nhanh cho StatsRail (Tổng, Dưới 50%, Trên 50%, Đủ)
   const stats = useMemo(() => {
     return {
       total: inventory.length,
-      lowStockCount: inventory.filter(it => it.currentStock < it.safetyStock).length,
+      criticalLowCount: inventory.filter(it => it.currentStock / it.safetyStock < 0.5).length,
+      warningCount: inventory.filter(
+        it => it.currentStock / it.safetyStock >= 0.5 && it.currentStock / it.safetyStock < 1
+      ).length,
       safeStockCount: inventory.filter(it => it.currentStock >= it.safetyStock).length,
-      pendingDeliveryCount: orders.filter(o => o.status === "WAITING_DELIVERY").length,
     }
-  }, [inventory, orders])
+  }, [inventory])
 
   // Danh mục nhóm hàng độc nhất
   const categories = useMemo(() => {
@@ -55,8 +57,9 @@ export default function WarehouseManage() {
 
   // Xác định active rail filter
   const activeRailFilter = useMemo(() => {
-    if (filters.viewMode === "orders") return "ORDERS"
-    if (filters.status === "LOW_STOCK") return "LOW_STOCK"
+    if (filters.viewMode === "orders") return "all"
+    if (filters.status === "CRITICAL_LOW") return "CRITICAL_LOW"
+    if (filters.status === "WARNING") return "WARNING"
     if (filters.status === "SAFE") return "SAFE"
     return "all"
   }, [filters.viewMode, filters.status])
@@ -129,13 +132,7 @@ export default function WarehouseManage() {
 
   const handleFilterStat = statId => {
     setPage(1)
-    if (statId === "ORDERS") {
-      setFilters(prev => ({
-        ...prev,
-        viewMode: "orders",
-        orderStatus: "WAITING_DELIVERY",
-      }))
-    } else if (statId === "all") {
+    if (statId === "all") {
       setFilters(prev => ({
         ...prev,
         viewMode: "inventory",
@@ -145,7 +142,7 @@ export default function WarehouseManage() {
       setFilters(prev => ({
         ...prev,
         viewMode: "inventory",
-        status: statId, // "LOW_STOCK" | "SAFE"
+        status: statId, // "CRITICAL_LOW" | "WARNING" | "SAFE"
       }))
     }
   }

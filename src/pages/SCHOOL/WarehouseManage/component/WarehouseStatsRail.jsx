@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Box, Card, Typography } from "@mui/material"
-import { Package, AlertTriangle, CheckCircle2, Truck } from "lucide-react"
+import { Package, AlertTriangle, AlertCircle, CheckCircle2 } from "lucide-react"
 import styles from "./WarehouseStatsRail.module.scss"
 
 export default function WarehouseStatsRail({ stats, activeFilter, onFilterChange }) {
@@ -10,25 +10,21 @@ export default function WarehouseStatsRail({ stats, activeFilter, onFilterChange
       id: "all",
       label: "Tổng mặt hàng",
       count: stats.total || 0,
-
     },
     {
-      id: "LOW_STOCK",
-      label: "Dưới mức an toàn (<100%)",
-      count: stats.lowStockCount || 0,
-
+      id: "CRITICAL_LOW",
+      label: "Dưới 50% tồn kho",
+      count: stats.criticalLowCount || 0,
+    },
+    {
+      id: "WARNING",
+      label: "Trên 50% tồn kho",
+      count: stats.warningCount || 0,
     },
     {
       id: "SAFE",
-      label: "Tồn kho an toàn (≥100%)",
+      label: "Tồn kho an toàn",
       count: stats.safeStockCount || 0,
-
-    },
-    {
-      id: "ORDERS",
-      label: "Phiếu nhập chờ giao",
-      count: stats.pendingDeliveryCount || 0,
-
     },
   ]
 
@@ -70,9 +66,9 @@ export default function WarehouseStatsRail({ stats, activeFilter, onFilterChange
 WarehouseStatsRail.propTypes = {
   stats: PropTypes.shape({
     total: PropTypes.number,
-    lowStockCount: PropTypes.number,
+    criticalLowCount: PropTypes.number,
+    warningCount: PropTypes.number,
     safeStockCount: PropTypes.number,
-    pendingDeliveryCount: PropTypes.number,
   }).isRequired,
   activeFilter: PropTypes.string,
   onFilterChange: PropTypes.func.isRequired,

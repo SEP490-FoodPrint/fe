@@ -55,12 +55,12 @@ export default function WarehouseFilterStrip({
               value={filters.status}
               onChange={e => onFilterChange("status", e.target.value)}
               className={styles.selectInput}
-              sx={{ minWidth: 260 }}
+              sx={{ minWidth: 200 }}
             >
               <MenuItem value="all">Tất cả trạng thái</MenuItem>
-              <MenuItem value="LOW_STOCK">&lt;100% định mức — Cần nhập thêm</MenuItem>
-              <MenuItem value="CRITICAL_LOW">&lt;50% định mức — Cần nhập gấp</MenuItem>
-              <MenuItem value="SAFE">≥100% định mức — Đủ dùng</MenuItem>
+              <MenuItem value="CRITICAL_LOW">Dưới 50% (Màu đỏ)</MenuItem>
+              <MenuItem value="WARNING">Trên 50% (Màu vàng)</MenuItem>
+              <MenuItem value="SAFE">Đủ (Màu xanh)</MenuItem>
             </TextField>
 
             <TextField

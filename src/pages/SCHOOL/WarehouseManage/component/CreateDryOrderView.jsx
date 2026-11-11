@@ -364,24 +364,33 @@ export default function CreateDryOrderView({
                     <TableCell align="center">
                       <Typography
                         variant="body2"
-                        className={isLow ? styles.lowStockAlert : styles.normalStock}
+                        className={
+                          stockPct < 50
+                            ? styles.lowStockAlert
+                            : stockPct < 100
+                              ? styles.warningStock
+                              : styles.normalStock
+                        }
                       >
                         {item.currentStock} / {item.safetyStock} {item.unit}
                       </Typography>
-                      {isLow ? (
+                      {stockPct < 50 ? (
                         <Chip
-                          label={`Còn ${stockPct}% định mức (Thiếu ${deficitQty} ${item.unit})`}
+                          label="Dưới 50%"
                           size="small"
-                          color={stockPct < 50 ? "error" : "warning"}
-                          className={styles.miniAlert}
+                          className={styles.miniAlertRed}
+                        />
+                      ) : stockPct < 100 ? (
+                        <Chip
+                          label="Trên 50%"
+                          size="small"
+                          className={styles.miniAlertYellow}
                         />
                       ) : (
                         <Chip
-                          label={`Đạt ${stockPct}% định mức (Đủ dùng)`}
+                          label="Đủ dùng"
                           size="small"
-                          color="success"
-                          variant="outlined"
-                          className={styles.miniAlert}
+                          className={styles.miniAlertGreen}
                         />
                       )}
                     </TableCell>
