@@ -47,6 +47,28 @@
   gap: var(--space-2);
 }
 
+.inactiveRow {
+  background: var(--bg-muted);
+
+  .className,
+  .teacher {
+    color: var(--text-muted);
+  }
+}
+
+.menuButton {
+  color: var(--text-secondary) !important;
+
+  &:hover {
+    background: var(--bg-muted) !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+.dangerItem {
+  color: var(--color-error) !important;
+}
+
 .emptyState {
   padding: var(--space-10) var(--space-5);
   color: var(--text-secondary);
