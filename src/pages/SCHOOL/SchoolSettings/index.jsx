@@ -9,7 +9,7 @@ import "./style.scss";
 
 const tabs = [
   { id: "cooking-mode", label: "Chế độ nấu", Page: CookingMode },
-  { id: "meal-serving-times", label: "Giờ phục vụ", Page: MealServingTimes },
+  { id: "meal-serving-times", label: "Khung giờ vận hành", Page: MealServingTimes },
   {
     id: "academic-year",
     label: "Thiết lập niên khóa",
