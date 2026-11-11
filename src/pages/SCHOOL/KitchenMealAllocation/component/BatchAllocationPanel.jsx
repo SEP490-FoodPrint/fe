@@ -57,14 +57,14 @@ export default function BatchAllocationPanel({ batch, expanded, canAddClasses, o
                     <span>·</span>
                     <b>{entry.portions}</b>
                     {entry.portions < entry.total && <span> / {entry.total}</span>}
-                    <IconButton
+                    {entry.locked ? <span>Đã khóa</span> : <IconButton
                       className={styles.removeButton}
                       size="small"
                       aria-label={`Bỏ lớp ${entry.name} khỏi ${batch.name}`}
                       onClick={() => onRemoveClass(entry.id)}
                     >
                       <X size={16} />
-                    </IconButton>
+                    </IconButton>}
                   </li>
                 ))}
               </ul>

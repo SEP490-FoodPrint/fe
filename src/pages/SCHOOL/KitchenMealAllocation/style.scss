@@ -179,3 +179,6 @@
   .kitchen-meal-allocation__context { width: 100%; }
   .kitchen-meal-allocation__tip strong { padding-inline-start: var(--space-3); }
 }
+
+.kitchen-meal-allocation__action.MuiButton-root { min-height: 44px; }
+.kitchen-meal-allocation__locked { opacity: 0.45; }

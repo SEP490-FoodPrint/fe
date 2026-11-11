@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, LockKeyhole, X } from "lucide-react"
 import { formatRemainingPortions, previewBatchAllocation } from "src/utils/mealAllocation"
 import styles from "./SelectClassesDialog.module.scss"
 
-export default function SelectClassesDialog({ batch, classes, dishName, onClose, onApply }) {
+export default function SelectClassesDialog({ batch, classes, onClose, onApply }) {
   const [orderedIds, setOrderedIds] = useState(() => batch.entries.map(entry => entry.id))
   const preview = previewBatchAllocation(batch.total, classes, orderedIds)
   const used = batch.total - preview.remaining
@@ -138,7 +138,7 @@ export default function SelectClassesDialog({ batch, classes, dishName, onClose,
         <div>
           <Button variant="outlined" onClick={onClose}>Hủy</Button>
           <Button variant="contained" startIcon={<Check size={16} />} disabled={!preview.entries.length && !batch.entries.length} onClick={() => onApply(orderedIds)}>
-            Áp dụng phân bổ
+            Xong
           </Button>
         </div>
       </DialogActions>
