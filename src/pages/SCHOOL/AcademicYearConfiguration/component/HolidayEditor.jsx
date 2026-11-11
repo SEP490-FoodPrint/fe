@@ -40,7 +40,7 @@ const dayCount = (startDate, endDate) =>
           86400000,
       ) + 1;
 
-function HolidayEditor({ holidays, startDate, endDate, disabled, onChange }) {
+function HolidayEditor({ active, holidays, startDate, endDate, disabled, onChange }) {
   const [dialog, setDialog] = useState(null);
   const [draft, setDraft] = useState(blank);
   const openCreate = () => {
@@ -211,7 +211,7 @@ function HolidayEditor({ holidays, startDate, endDate, disabled, onChange }) {
         </>
       )}
       <Dialog
-        open={Boolean(dialog)}
+        open={active && Boolean(dialog)}
         onClose={() => !disabled && setDialog(null)}
         fullWidth
         maxWidth="sm"
@@ -247,8 +247,10 @@ function HolidayEditor({ holidays, startDate, endDate, disabled, onChange }) {
               label={draft.mode === "single" ? "Ngày nghỉ" : "Từ ngày"}
               value={draft.startDate}
               disabled={disabled}
-              inputProps={{ min: startDate, max: endDate }}
-              slotProps={{ inputLabel: { shrink: true } }}
+              slotProps={{
+                htmlInput: { min: startDate, max: endDate },
+                inputLabel: { shrink: true },
+              }}
               error={outsideAcademicYear || overlap}
               helperText={draft.mode === "single" ? rangeError : " "}
               onChange={(event) =>
@@ -269,8 +271,10 @@ function HolidayEditor({ holidays, startDate, endDate, disabled, onChange }) {
                 label="Đến ngày"
                 value={draft.endDate}
                 disabled={disabled}
-                inputProps={{ min: draft.startDate || startDate, max: endDate }}
-                slotProps={{ inputLabel: { shrink: true } }}
+                slotProps={{
+                  htmlInput: { min: draft.startDate || startDate, max: endDate },
+                  inputLabel: { shrink: true },
+                }}
                 error={outsideAcademicYear || reversedRange || overlap}
                 helperText={rangeError}
                 onChange={(event) =>
@@ -295,7 +299,7 @@ function HolidayEditor({ holidays, startDate, endDate, disabled, onChange }) {
             label="Lý do"
             value={draft.reason}
             disabled={disabled}
-            inputProps={{ maxLength: 255 }}
+            slotProps={{ htmlInput: { maxLength: 255 } }}
             onChange={(event) =>
               setDraft((current) => ({
                 ...current,

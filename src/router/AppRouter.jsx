@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react"
-import { useRoutes } from "react-router-dom"
+import { Navigate, useRoutes } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
 import MainLayout, { AuthLayout, PublicLayout, SchoolPublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
@@ -68,9 +68,7 @@ const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
 const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
-const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
-const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
-const AcademicYearConfiguration = lazy(() => import("src/pages/SCHOOL/AcademicYearConfiguration"))
+const SchoolSettings = lazy(() => import("src/pages/SCHOOL/SchoolSettings"))
 
 function LazyWrapper({ children }) {
   return (
@@ -317,9 +315,10 @@ const routes = [
             children: [
               { path: ROUTER.SCHOOL_SUPPLIERS, element: <LazyWrapper><SupplierRelationships /></LazyWrapper> },
               { path: ROUTER.SCHOOL_CLASS_ASSIGNMENT, element: <LazyWrapper><ClassAssignment /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_COOKING_MODE, element: <LazyWrapper><CookingMode /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_MEAL_TIMES, element: <LazyWrapper><MealServingTimes /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_ACADEMIC_YEARS, element: <LazyWrapper><AcademicYearConfiguration /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_SETTINGS, element: <LazyWrapper><SchoolSettings /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_COOKING_MODE, element: <Navigate to={`${ROUTER.SCHOOL_SETTINGS}?tab=cooking-mode`} replace /> },
+              { path: ROUTER.SCHOOL_MEAL_TIMES, element: <Navigate to={`${ROUTER.SCHOOL_SETTINGS}?tab=meal-serving-times`} replace /> },
+              { path: ROUTER.SCHOOL_ACADEMIC_YEARS, element: <Navigate to={`${ROUTER.SCHOOL_SETTINGS}?tab=academic-year`} replace /> },
             ],
           },
           {

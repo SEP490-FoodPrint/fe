@@ -42,7 +42,7 @@ const normalize = (value) => ({
   })),
 });
 
-function AcademicYearConfiguration() {
+function AcademicYearConfiguration({ active }) {
   const [years, setYears] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [saved, setSaved] = useState(emptyForm);
@@ -193,14 +193,6 @@ function AcademicYearConfiguration() {
 
   return (
     <div className="academic-year-page">
-      <nav
-        className="academic-year-page__breadcrumb"
-        aria-label="Đường dẫn trang"
-      >
-        <span>Ban Giám hiệu</span>
-        <span>/</span>
-        <strong>Thiết lập niên khóa</strong>
-      </nav>
       {error && (
         <Alert
           severity="error"
@@ -213,7 +205,7 @@ function AcademicYearConfiguration() {
           {error}
         </Alert>
       )}
-      <main className="academic-year-page__workspace">
+      <div className="academic-year-page__workspace">
         <AcademicYearList
           years={years}
           selectedId={selectedId}
@@ -262,7 +254,7 @@ function AcademicYearConfiguration() {
                         ? "Không bắt buộc theo một định dạng cố định."
                         : "Tên niên khóa không thể đổi sau khi tạo."
                   }
-                  inputProps={{ maxLength: 30 }}
+                  slotProps={{ htmlInput: { maxLength: 30 } }}
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
@@ -312,6 +304,7 @@ function AcademicYearConfiguration() {
                 </Alert>
               )}
               <HolidayEditor
+                active={active}
                 holidays={form.holidays}
                 startDate={form.startDate}
                 endDate={form.endDate}
@@ -351,9 +344,9 @@ function AcademicYearConfiguration() {
             </>
           )}
         </section>
-      </main>
+      </div>
       <Dialog
-        open={Boolean(pendingAction)}
+        open={active && Boolean(pendingAction)}
         onClose={() => setPendingAction(null)}
         maxWidth="xs"
         fullWidth

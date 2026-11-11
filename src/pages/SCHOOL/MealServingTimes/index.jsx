@@ -50,10 +50,7 @@ function MealServingTimes() {
 
   return <div className="meal-times-page">
     <header>
-      <nav className="meal-times-page__breadcrumb" aria-label="Đường dẫn trang">
-        <span>Ban Giám hiệu</span><span>/</span><strong>Giờ phục vụ</strong>
-      </nav>
-      <h1>Giờ phục vụ bữa ăn</h1>
+      <h2>Giờ phục vụ bữa ăn</h2>
       <p>Thời điểm nhà trường dự kiến phục vụ từng ca ăn cho học sinh.</p>
     </header>
     {loading && <Skeleton variant="rounded" height={220} />}
@@ -61,7 +58,7 @@ function MealServingTimes() {
     {!loading && !error && <>
       <Alert severity="info">Đây là giờ phục vụ bữa ăn, không phải lịch giao nguyên liệu của nhà cung cấp. Bếp dùng cấu hình này khi lập kế hoạch mẻ.</Alert>
       <Paper variant="outlined" className="meal-times-page__card">
-        <div className="meal-times-page__title"><Clock3 size={21} /><div><h2>Khung giờ trong ngày</h2><p>Để trống ca mà trường không tổ chức.</p></div></div>
+        <div className="meal-times-page__title"><Clock3 size={21} /><div><h3>Khung giờ trong ngày</h3><p>Để trống ca mà trường không tổ chức.</p></div></div>
         <div className="meal-times-page__fields">
           <TextField type="time" label="Bữa trưa" value={form.lunchTime} disabled={saving}
             onChange={event => setForm(current => ({ ...current, lunchTime: event.target.value }))}

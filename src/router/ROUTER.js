@@ -76,7 +76,8 @@ const ROUTER = {
   SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
   SCHOOL_SUPPLIERS: "/school/suppliers",
   SCHOOL_CLASS_ASSIGNMENT: "/school/class-assignment",   // BGH phân công GVCN
-  SCHOOL_COOKING_MODE: "/school/cooking-mode",             // BGH cấu hình chế độ nấu
+  SCHOOL_SETTINGS: "/school/settings",
+  SCHOOL_COOKING_MODE: "/school/cooking-mode",             // Link cũ đến tab Chế độ nấu
   SCHOOL_MEAL_TIMES: "/school/meal-serving-times",          // BGH cấu hình giờ phục vụ
   SCHOOL_ACADEMIC_YEARS: "/school/academic-years",
 

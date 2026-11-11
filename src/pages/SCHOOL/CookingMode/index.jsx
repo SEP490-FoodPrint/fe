@@ -83,14 +83,6 @@ function CookingMode() {
 
   return (
     <div className="cooking-mode-page">
-      <header>
-        <nav className="cooking-mode-page__breadcrumb" aria-label="Đường dẫn trang">
-          <span>Ban Giám hiệu</span>
-          <span>/</span>
-          <strong>Chế độ nấu</strong>
-        </nav>
-      </header>
-
       {loading && <Skeleton variant="rounded" height={360} />}
       {!loading && error && (
         <Alert
