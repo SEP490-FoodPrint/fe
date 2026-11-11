@@ -1,168 +1,190 @@
-import React, { useState, useEffect, useCallback } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import FoodPrintLoading from "src/components/FoodPrintLoading"
-import { Alert, Button, Skeleton } from "@mui/material"
-import { ArrowLeft } from "lucide-react"
-import ROUTER from "src/router/ROUTER"
-import notice from "src/components/Notice"
-import KitchenService from "src/services/KitchenService"
-import { adaptBatchDetail } from "src/services/KitchenService/adapter"
-import BatchDetailHeader from "./component/BatchDetailHeader"
-import BatchInfoCard from "./component/BatchInfoCard"
-import BatchIngredientsCard from "./component/BatchIngredientsCard"
-import BatchTimelineCard from "./component/BatchTimelineCard"
-import BatchActionsCard from "./component/BatchActionsCard"
-import ConfirmBatchModal from "./component/ConfirmBatchModal"
-import DeleteBatchModal from "./component/DeleteBatchModal"
-import RetainedSampleModal from "./component/RetainedSampleModal"
-import styles from "./index.module.scss"
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import FoodPrintLoading from "src/components/FoodPrintLoading";
+import { Alert, Button, Skeleton } from "@mui/material";
+import { ArrowLeft } from "lucide-react";
+import ROUTER from "src/router/ROUTER";
+import notice from "src/components/Notice";
+import KitchenService from "src/services/KitchenService";
+import { adaptBatchDetail } from "src/services/KitchenService/adapter";
+import BatchDetailHeader from "./component/BatchDetailHeader";
+import BatchInfoCard from "./component/BatchInfoCard";
+import BatchIngredientsCard from "./component/BatchIngredientsCard";
+import BatchTimelineCard from "./component/BatchTimelineCard";
+import BatchActionsCard from "./component/BatchActionsCard";
+import ConfirmBatchModal from "./component/ConfirmBatchModal";
+import DeleteBatchModal from "./component/DeleteBatchModal";
+import RetainedSampleModal from "./component/RetainedSampleModal";
+import styles from "./index.module.scss";
 
 export default function KitchenBatchDetail() {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [batchData, setBatchData] = useState(null)
-  const [sampleData, setSampleData] = useState(null)
-  const [actionLoading, setActionLoading] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [batchData, setBatchData] = useState(null);
+  const [sampleData, setSampleData] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   // Modals
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false)
-  const [isSampleOpen, setIsSampleOpen] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  const [isSampleOpen, setIsSampleOpen] = useState(false);
 
   const fetchBatch = useCallback(
     async (signal) => {
-      if (!id) return
-      setLoading(true)
-      setError("")
+      if (!id) return;
+      setLoading(true);
+      setError("");
       try {
-        const rawBatch = await KitchenService.getBatchDetail(id, { signal })
-        const adapted = adaptBatchDetail(rawBatch)
-        setBatchData(adapted)
+        const rawBatch = await KitchenService.getBatchDetail(id, { signal });
+        const adapted = adaptBatchDetail(rawBatch);
+        setBatchData(adapted);
 
         // Tải thông tin mẫu lưu nếu mẻ đã hoàn thành
         if (adapted.status === "COMPLETED") {
-          const sample = await KitchenService.getBatchSample(id, { signal })
-          setSampleData(sample)
+          const samples = await KitchenService.getBatchSample(id, { signal });
+          const sampleList = Array.isArray(samples)
+            ? samples
+            : samples
+              ? [samples]
+              : [];
+          setSampleData(sampleList.length > 0 ? sampleList[0] : null);
+          adapted.retainedFoodSamples = sampleList;
+          setBatchData({ ...adapted });
         }
       } catch (err) {
         if (!signal?.aborted) {
-          setError(err.message || "Không thể tải thông tin lô chế biến.")
+          setError(err.message || "Không thể tải thông tin lô chế biến.");
         }
       } finally {
         if (!signal?.aborted) {
-          setLoading(false)
+          setLoading(false);
         }
       }
     },
     [id],
-  )
+  );
 
   useEffect(() => {
-    const controller = new AbortController()
-    fetchBatch(controller.signal)
-    return () => controller.abort()
-  }, [fetchBatch])
+    const controller = new AbortController();
+    fetchBatch(controller.signal);
+    return () => controller.abort();
+  }, [fetchBatch]);
 
   // Xử lý tạo lô chế biến (Chuyển sang CONFIRMED)
   const handleConfirmBatch = async () => {
-    setActionLoading(true)
+    setActionLoading(true);
     try {
-      await KitchenService.confirmBatch(id)
+      await KitchenService.confirmBatch(id);
       notice({
         msg: "Xác nhận nấu thành công!",
         isSuccess: true,
-      })
-      setIsConfirmOpen(false)
-      fetchBatch()
+      });
+      setIsConfirmOpen(false);
+      fetchBatch();
     } catch (err) {
       notice({
         msg: err.message || "Không thể xác nhận nấu.",
         isSuccess: false,
-      })
+      });
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   // Xử lý ghi nhận nấu xong (Chuyển sang COMPLETED) - Chạy trực tiếp không mở popup
   const handleCompleteBatch = async () => {
-    setActionLoading(true)
+    setActionLoading(true);
     try {
-      await KitchenService.completeBatch(id)
+      await KitchenService.completeBatch(id);
       notice({
         msg: "Ghi nhận nấu xong thành công!",
         isSuccess: true,
-      })
-      fetchBatch()
+      });
+      fetchBatch();
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận nấu xong.",
         isSuccess: false,
-      })
+      });
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   // Xử lý xóa lô chế biến
   const handleDeleteBatch = async () => {
-    setActionLoading(true)
+    setActionLoading(true);
     try {
-      await KitchenService.deleteBatch(id)
+      await KitchenService.deleteBatch(id);
       notice({
         msg: "Đã xóa lô chế biến thành công!",
         isSuccess: true,
-      })
-      setIsDeleteOpen(false)
-      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)
+      });
+      setIsDeleteOpen(false);
+      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
     } catch (err) {
       notice({
         msg: err.message || "Không thể xóa lô chế biến.",
         isSuccess: false,
-      })
+      });
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   // Xử lý lưu mẫu thực phẩm 24h
   const handleSaveSample = async (samplePayload) => {
-    setActionLoading(true)
+    setActionLoading(true);
     try {
-      const created = await KitchenService.createBatchSample(id, samplePayload)
-      setSampleData(created)
+      const created = await KitchenService.createBatchSample(id, samplePayload);
+      setSampleData(created);
       notice({
         msg: "Niêm phong lưu mẫu thực phẩm 24h thành công!",
         isSuccess: true,
-      })
-      setIsSampleOpen(false)
+      });
+      setIsSampleOpen(false);
+      fetchBatch();
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận lưu mẫu thực phẩm.",
         isSuccess: false,
-      })
+      });
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className={styles.batchDetailPage} aria-busy="true">
-        <div style={{ padding: "96px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div
+          style={{
+            padding: "96px 0",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <FoodPrintLoading />
         </div>
       </div>
-    )
+    );
   }
 
   if (error || !batchData) {
     return (
       <div className={styles.batchDetailPage}>
-        <div style={{ padding: "32px 0", display: "flex", flexDirection: "column", gap: 16 }}>
+        <div
+          style={{
+            padding: "32px 0",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+          }}
+        >
           <Alert
             severity="error"
             action={
@@ -184,7 +206,7 @@ export default function KitchenBatchDetail() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -218,6 +240,16 @@ export default function KitchenBatchDetail() {
             batchCode={batchData.code}
             dishName={batchData.dishName}
             hasSample={Boolean(sampleData)}
+            allSamplesDone={
+              batchData.dishes?.length > 1
+                ? (batchData.retainedFoodSamples?.length || 0) >=
+                  batchData.dishes.length
+                : Boolean(sampleData)
+            }
+            sampledCount={
+              batchData.retainedFoodSamples?.length || (sampleData ? 1 : 0)
+            }
+            totalDishes={batchData.dishes?.length || 1}
             onOpenConfirmModal={() => setIsConfirmOpen(true)}
             onOpenDeleteModal={() => setIsDeleteOpen(true)}
             onCompleteBatch={handleCompleteBatch}
@@ -252,5 +284,5 @@ export default function KitchenBatchDetail() {
         loading={actionLoading}
       />
     </div>
-  )
+  );
 }

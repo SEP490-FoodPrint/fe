@@ -52,7 +52,8 @@ export function batchQuery(filters = {}) {
   if (filters.endDate) query.endDate = filters.endDate;
   if (filters.date) query.date = filters.date;
   if (filters.hasSample !== undefined) {
-    if (typeof filters.hasSample !== "boolean") throw new Error("Bộ lọc mẫu lưu không hợp lệ.");
+    if (typeof filters.hasSample !== "boolean")
+      throw new Error("Bộ lọc mẫu lưu không hợp lệ.");
     query.hasSample = String(filters.hasSample);
   }
   if (filters.mealType) {
@@ -89,15 +90,63 @@ export function adaptCookingBatch(batch) {
   const mealLabel =
     { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" }[batch.mealType] ||
     "Chưa có bữa ăn";
-  const sample = batch.retainedFoodSample;
-  const sampleLabel = sample
-    ? { STORED: "Đang lưu mẫu", DISPOSED: "Đã hủy mẫu" }[sample.status] ||
-      "Chưa rõ trạng thái mẫu"
-    : "Chưa lưu mẫu";
+
+  const batchGroupId = batch.batchGroupId || batch.BatchGroup?.id || null;
+  const batchGroupCode = batch.BatchGroup?.batchCode || "";
+
+  const rawDishes = Array.isArray(batch.dishes) ? batch.dishes : [];
+  const dishes = rawDishes.map((d) => ({
+    dishId: d.dishId || d.id,
+    name: d.name || d.Dish?.name || "Món ăn",
+    plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+    cookingBatchLots: d.cookingBatchLots || [],
+  }));
+
+  let dishName = batch.Dish?.name || "";
+  if (dishes.length > 0) {
+    dishName = dishes
+      .map((d) => d.name)
+      .filter(Boolean)
+      .join(", ");
+  }
+  if (!dishName) dishName = "Chưa có tên món";
+
+  const samples = Array.isArray(batch.retainedFoodSamples)
+    ? batch.retainedFoodSamples
+    : batch.retainedFoodSample
+      ? [batch.retainedFoodSample]
+      : [];
+
+  const totalDishesCount = dishes.length || 1;
+  const sampledDishesCount = samples.length;
+  const hasSample = sampledDishesCount > 0;
+  const allSamplesDone =
+    totalDishesCount > 1 ? sampledDishesCount >= totalDishesCount : hasSample;
+
+  let sampleLabel = "Chưa lưu mẫu";
+  if (hasSample) {
+    if (totalDishesCount > 1) {
+      if (allSamplesDone) {
+        sampleLabel = `Đã lưu đủ (${sampledDishesCount}/${totalDishesCount} món)`;
+      } else {
+        sampleLabel = `Đã lưu ${sampledDishesCount}/${totalDishesCount} món`;
+      }
+    } else {
+      const sample = samples[0];
+      sampleLabel =
+        { STORED: "Đã lưu mẫu (24h)", DISPOSED: "Đã hủy mẫu" }[
+          sample?.status
+        ] || "Đã lưu mẫu (24h)";
+    }
+  }
+
   return {
     id: batch.id,
     code: batch.batchCode || "—",
-    dishName: batch.Dish?.name || "Chưa có tên món",
+    batchGroupId,
+    batchGroupCode,
+    dishes,
+    dishName,
     dateLabel,
     mealType: batch.mealType,
     mealLabel,
@@ -115,7 +164,11 @@ export function adaptCookingBatch(batch) {
       ? `${batch.plannedPortions.toLocaleString("vi-VN")} suất`
       : "Chưa có số suất",
     sampleLabel,
-    hasSample: Boolean(sample),
+    hasSample,
+    allSamplesDone,
+    totalDishesCount,
+    sampledDishesCount,
+    retainedFoodSamples: samples,
     status: batch.status,
     statusLabel: BATCH_STATUSES[batch.status] || "Chưa xác định",
     statusType:
@@ -160,8 +213,43 @@ export function adaptBatchDetail(batch) {
 
   const status = batch.status === "DRAFT" ? "UNCONFIRMED" : batch.status;
 
-  const ingredients = (batch.cookingBatchLots || []).map((lot, idx) => ({
+  const rawDishes = Array.isArray(batch.dishes) ? batch.dishes : [];
+  const dishes = rawDishes.map((d) => ({
+    dishId: d.dishId || d.id,
+    name: d.name || d.Dish?.name || "Món ăn",
+    plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+    cookingBatchLots: d.cookingBatchLots || [],
+  }));
+
+  let dishName = batch.Dish?.name || "";
+  if (dishes.length > 0) {
+    dishName = dishes
+      .map((d) => d.name)
+      .filter(Boolean)
+      .join(", ");
+  }
+  if (!dishName) dishName = "Chưa có tên món";
+
+  const samples = Array.isArray(batch.retainedFoodSamples)
+    ? batch.retainedFoodSamples
+    : batch.retainedFoodSample
+      ? [batch.retainedFoodSample]
+      : [];
+
+  const combinedLots =
+    batch.cookingBatchLots && batch.cookingBatchLots.length > 0
+      ? batch.cookingBatchLots
+      : dishes.flatMap((d) =>
+          (d.cookingBatchLots || []).map((lot) => ({
+            ...lot,
+            dishName: d.name,
+          })),
+        );
+
+  const ingredients = combinedLots.map((lot, idx) => ({
     id: lot.ingredientLotId || idx + 1,
+    dishId: lot.dishId,
+    dishName: lot.dishName,
     name: lot.ingredientName || lot.name || `Lô nguyên liệu #${idx + 1}`,
     lotCode:
       lot.lotCode ||
@@ -170,7 +258,7 @@ export function adaptBatchDetail(batch) {
         : `LOT-00${idx + 1}`),
     quantity: lot.quantityUsed || "—",
     unit: lot.unit || "kg",
-    expiryDate: lot.expirationDate || "Đã kiểm thực",
+    expiryDate: lot.expirationDate || lot.expiryDate || "Đã kiểm thực",
     expiryNote: "Đạt chuẩn an toàn",
     noteType: "default",
   }));
@@ -178,9 +266,12 @@ export function adaptBatchDetail(batch) {
   return {
     id: batch.id,
     code: batch.batchCode || batch.id,
+    batchGroupId: batch.batchGroupId || batch.BatchGroup?.id || null,
+    batchGroupCode: batch.BatchGroup?.batchCode || "",
     status,
     statusLabel: BATCH_STATUSES[status] || "Chưa xác định",
-    dishName: batch.Dish?.name || "Chưa có tên món",
+    dishName,
+    dishes,
     dishCategory: "Món ăn bán trú",
     menuDate,
     mealType,
@@ -196,6 +287,7 @@ export function adaptBatchDetail(batch) {
     completedAt: formatTimeOnly(batch.completedAt),
     completedAtFull: formatDateTime(batch.completedAt),
     ingredients,
+    retainedFoodSamples: samples,
     rawBatchLots: batch.cookingBatchLots || [],
     rawMealSeasonings: batch.mealSeasonings || [],
   };
