@@ -1,0 +1,240 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--card-bg, #ffffff);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.backBtn {
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.subtitle {
+  color: var(--text-secondary, #64748b);
+  margin-top: 2px;
+}
+
+.alertBanner {
+  border-radius: 10px;
+  font-size: 0.875rem;
+}
+
+.formCard {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionTitle {
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.formGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scheduleBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presetHeader {
+  display: flex;
+  align-items: center;
+}
+
+.fieldLabel {
+  font-weight: 600;
+  color: #475569;
+}
+
+.presetButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.dateRow {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.tableHeaderBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.autoSelectBtn {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.tableWrap {
+  border-radius: 8px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  overflow-x: auto;
+}
+
+.tableHead {
+  background-color: #f8fafc;
+
+  :global(.MuiTableCell-head) {
+    font-weight: 600;
+    color: var(--text-secondary, #475569);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+}
+
+.selectedRow {
+  background-color: #f0fdf4 !important;
+}
+
+.tableItemName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.tableItemMeta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.tableCode {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.catChip {
+  font-size: 0.7rem;
+  height: 18px;
+}
+
+.lowStockAlert {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.normalStock {
+  color: #1e7e34;
+  font-weight: 600;
+}
+
+.miniAlert {
+  height: 18px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.qtyInputWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.qtyField {
+  width: 80px;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 6px;
+    height: 32px;
+  }
+}
+
+.unitText {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.lineTotal {
+  font-weight: 700;
+  color: #1e7e34;
+}
+
+.footerWrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  padding: 16px 24px;
+}
+
+.summaryBadges {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.countBadge {
+  font-weight: 600;
+}
+
+.totalText {
+  color: #1e293b;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.submitBtn {
+  background-color: var(--color-primary, #1e7e34);
+  color: #ffffff;
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  box-shadow: 0 2px 6px rgba(30, 126, 52, 0.25);
+
+  &:hover {
+    background-color: var(--color-primary-dark, #166527);
+  }
+}

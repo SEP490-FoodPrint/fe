@@ -10,33 +10,25 @@ export default function CatalogStatsRail({ stats, onFilterHandlingType }) {
       id: "all",
       label: "Tổng nguyên liệu chuẩn",
       count: stats.total || 0,
-      icon: <BookOpen size={22} />,
-      color: "#1e7e34",
-      bg: "#e6f4ea",
+
     },
     {
       id: "DIRECT_USE",
       label: "Tươi sống (dùng trong ngày)",
       count: stats.directUse || 0,
-      icon: <Leaf size={22} />,
-      color: "#059669",
-      bg: "#d1fae5",
+
     },
     {
       id: "DRY_STOCK",
       label: "Kho khô (lưu kho)",
       count: stats.dryStock || 0,
-      icon: <Archive size={22} />,
-      color: "#d97706",
-      bg: "#fef3c7",
+
     },
     {
       id: "suppliers",
       label: "Nhà cung cấp đối tác",
       count: stats.suppliersCount || 0,
-      icon: <Building2 size={22} />,
-      color: "#2563eb",
-      bg: "#dbeafe",
+
     },
   ]
 

@@ -173,13 +173,13 @@ const IngredientOrderService = {
    * - Đồ khô: Chỉ có ở Đợt 1, kèm danh sách các món được tick giao cùng (nếu có)
    * - KHÔNG tạo Đợt 2 ngay
    */
-  async createBatch1Order({ menuId, note, orderDate, attachedDryIds = [] }) {
+  async createBatch1Order({ menuId, note, orderDate }) {
     const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === menuId) || MOCK_APPROVED_MENUS[0]
     const orderNo = `PO-${orderDate ? orderDate.replace(/-/g, "") : "20261027"}-${Math.floor(10 + Math.random() * 90)}`
     const maxPortions = targetMenu.maxPortions || 850
-    const batch1Portions = Math.floor(maxPortions / 2) // 50%
+    const batch1Portions = Math.floor(maxPortions * 0.7) // 70% định lượng sáng
 
-    // 1. Tươi sống Đợt 1: 50% suất
+    // 1. Tươi sống Đợt 1 (100% thực phẩm tươi sống, giao sáng sớm kiểm tra cảm quan)
     const freshItemsBatch1 = targetMenu.ingredients
       .filter(it => it.handlingType === "DIRECT_USE")
       .map(it => ({
@@ -187,19 +187,6 @@ const IngredientOrderService = {
         handlingType: it.handlingType,
         unit: it.unit,
         orderedQty: Number((batch1Portions * it.qtyPerPortion).toFixed(2)),
-        deliveredQty: 0,
-        status: "WAITING",
-      }))
-
-    // 2. Đồ khô được tick chọn giao cùng xe Đợt 1
-    const attachedDryItems = targetMenu.ingredients
-      .filter(it => it.handlingType === "DRY_STOCK" && attachedDryIds.includes(it.id))
-      .map(it => ({
-        ingredientName: `${it.name} (Giao cùng nguyên kiện)`,
-        handlingType: "DRY_STOCK",
-        isAttachedDryStock: true,
-        unit: it.unit,
-        orderedQty: Number((maxPortions * it.qtyPerPortion).toFixed(2)),
         deliveredQty: 0,
         status: "WAITING",
       }))
@@ -213,7 +200,7 @@ const IngredientOrderService = {
       deliveryDate: orderDate || targetMenu.mealDate,
       deliveryTime: "05:30",
       batchType: "BATCH_1",
-      batchLabel: "Đợt 1 (50% Tươi sống" + (attachedDryItems.length > 0 ? ` + ${attachedDryItems.length} hàng khô giao cùng)` : ")"),
+      batchLabel: "Đợt 1 (70% Thực phẩm tươi sống sáng)",
       maxPortions,
       plannedPortions: batch1Portions,
       supplierId: targetMenu.ingredients[0]?.supplierId || "sup-bavi-01",
@@ -230,7 +217,7 @@ const IngredientOrderService = {
         parentsCommittee: { approved: null, name: "Ban PH" },
         kitchenStaff: { approved: null, name: "Bên Bếp" },
       },
-      items: [...freshItemsBatch1, ...attachedDryItems],
+      items: freshItemsBatch1,
     }
 
     localDeliveries = [deliveryBatch1, ...localDeliveries]
@@ -238,7 +225,7 @@ const IngredientOrderService = {
       success: true,
       orderNo,
       delivery: deliveryBatch1,
-      attachedDryCount: attachedDryItems.length,
+      attachedDryCount: 0,
     }
   },
 

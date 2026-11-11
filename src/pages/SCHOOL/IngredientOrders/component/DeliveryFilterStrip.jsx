@@ -68,7 +68,7 @@ export default function DeliveryFilterStrip({
             onClick={onOpenCreate}
             className={styles.createBtn}
           >
-            Tạo yêu cầu mua hàng
+            Tạo yêu cầu nhập hàng
           </Button>
         </Box>
       )}
