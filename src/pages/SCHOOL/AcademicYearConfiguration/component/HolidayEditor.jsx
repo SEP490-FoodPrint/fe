@@ -147,7 +147,7 @@ function HolidayEditor({ active, holidays, startDate, endDate, disabled, onChang
                   <TableRow key={`${holiday.startDate}-${holiday.endDate}`}>
                     <TableCell className={styles.date}>
                       <strong>{displayPeriod(holiday)}</strong>
-                      <span>
+                      <span className={styles.dayBadge}>
                         {dayCount(holiday.startDate, holiday.endDate)} ngày
                       </span>
                     </TableCell>

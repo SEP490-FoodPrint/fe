@@ -274,20 +274,17 @@ const KitchenService = {
   async planBatch(payload = {}) {
     const { dishId, menuDayId } = payload;
     const mealType = String(payload.mealType || "LUNCH").toUpperCase();
-    if (
-      !isUuid(dishId) ||
-      !isUuid(menuDayId) ||
-      !["LUNCH", "AFTERNOON"].includes(mealType)
-    ) {
-      throw new Error("Món ăn, ngày thực đơn hoặc ca ăn không hợp lệ.");
+    if (!isUuid(menuDayId) || !["LUNCH", "AFTERNOON"].includes(mealType)) {
+      throw new Error("Ngày thực đơn hoặc ca ăn không hợp lệ.");
     }
-    const response = await http.post(
-      apiCookingBatches,
-      { dishId, menuDayId, mealType },
-      {
-        notifyOnError: false,
-      },
-    );
+    if (dishId && !isUuid(dishId)) {
+      throw new Error("Món ăn không hợp lệ.");
+    }
+    const body = { menuDayId, mealType };
+    if (dishId) body.dishId = dishId;
+    const response = await http.post(apiCookingBatches, body, {
+      notifyOnError: false,
+    });
     invalidateKitchenBatchCache();
     return response?.data || response;
   },
