@@ -1,0 +1,184 @@
+.kitchen-meal-allocation {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--layout-max-width);
+  min-width: 0;
+  margin-inline: auto;
+  color: var(--text-primary);
+}
+
+.kitchen-meal-allocation__header,
+.kitchen-meal-allocation__scenarios {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+
+  p {
+    margin: var(--space-1) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+}
+
+.kitchen-meal-allocation__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+
+  h1 {
+    margin: 0;
+    font-size: var(--text-xl);
+    font-weight: var(--font-bold);
+    letter-spacing: var(--tracking-tight);
+  }
+}
+
+.kitchen-meal-allocation__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.kitchen-meal-allocation__role.MuiChip-root {
+  height: auto;
+  padding-block: var(--space-1);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+}
+
+.kitchen-meal-allocation__context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+  font-size: var(--text-sm);
+
+  div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-1);
+  }
+
+  dt {
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+    text-transform: uppercase;
+  }
+
+  dd {
+    margin: 0;
+    font-weight: var(--font-medium);
+  }
+
+  div:last-child dd {
+    color: var(--color-primary);
+    font-weight: var(--font-semibold);
+  }
+}
+
+.kitchen-meal-allocation__tip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-success-border);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+
+  span::before {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-inline-end: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--color-primary);
+    content: "";
+    vertical-align: middle;
+  }
+
+  strong {
+    color: var(--color-primary);
+    font-weight: var(--font-semibold);
+  }
+}
+
+.kitchen-meal-allocation__batches {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.kitchen-meal-allocation__scenarios {
+  gap: var(--space-2);
+
+  p { margin: 0; font-size: var(--text-xs); }
+  strong { color: var(--text-primary); margin-inline-end: var(--space-1); }
+
+  > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .MuiButton-root {
+    min-height: 44px;
+    text-transform: none;
+  }
+
+  .MuiButton-root[aria-pressed="false"] {
+    border-color: var(--border-default);
+    color: var(--text-primary);
+  }
+
+  .MuiButton-root[aria-pressed="true"] {
+    background: var(--color-primary-soft);
+  }
+}
+
+@media (min-width: 768px) {
+  .kitchen-meal-allocation { gap: var(--space-6); }
+  .kitchen-meal-allocation__header { padding: var(--space-5); }
+  .kitchen-meal-allocation__context div + div {
+    border-inline-start: 1px solid var(--border-default);
+    padding-inline-start: var(--space-3);
+  }
+}
+
+@media (max-width: 600px) {
+  .kitchen-meal-allocation__header,
+  .kitchen-meal-allocation__scenarios {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .kitchen-meal-allocation__context { width: 100%; }
+  .kitchen-meal-allocation__tip strong { padding-inline-start: var(--space-3); }
+}
+
+.kitchen-meal-allocation__action.MuiButton-root { min-height: 44px; }
+.kitchen-meal-allocation__locked { opacity: 0.45; }
