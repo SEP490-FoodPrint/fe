@@ -1,4 +1,4 @@
-import React from "react"
+import React from "react";
 import {
   CookingPot,
   Utensils,
@@ -7,16 +7,16 @@ import {
   Hash,
   CheckCircle2,
   Clock,
-} from "lucide-react"
-import styles from "./BatchInfoCard.module.scss"
+} from "lucide-react";
+import styles from "./BatchInfoCard.module.scss";
 
 export default function BatchInfoCard({ batchData = {} }) {
-  const portions = (batchData.portions || 0).toLocaleString("vi-VN")
+  const portions = (batchData.portions || 0).toLocaleString("vi-VN");
   const methodLabel =
-    batchData.method === "SEPARATE" ? "Nấu riêng theo lô" : "Nấu chung"
+    batchData.method === "SEPARATE" ? "Nấu riêng theo lô" : "Nấu chung";
 
-  const isCompleted = batchData.status === "COMPLETED"
-  const isConfirmed = batchData.status === "CONFIRMED"
+  const isCompleted = batchData.status === "COMPLETED";
+  const isConfirmed = batchData.status === "CONFIRMED";
 
   return (
     <section className={styles.infoCard}>
@@ -24,7 +24,15 @@ export default function BatchInfoCard({ batchData = {} }) {
       <div className={styles.heroDishBox}>
         <div className={styles.heroLeft}>
           <div className={styles.heroMetaRow}>
-            <div className={styles.batchCodePill} title="Mã lô chế biến">
+            {batchData.batchGroupCode && (
+              <div className={styles.batchGroupPill} title="Lô chế biến cha">
+                <Layers size={13} className={styles.groupIcon} />
+                <span className={styles.batchGroupText}>
+                  Lô cha: {batchData.batchGroupCode}
+                </span>
+              </div>
+            )}
+            <div className={styles.batchCodePill} title="Mã mẻ chế biến">
               <Hash size={13} className={styles.hashIcon} />
               <span className={styles.batchCodeText}>
                 {batchData.code || "—"}
@@ -33,7 +41,8 @@ export default function BatchInfoCard({ batchData = {} }) {
             {isCompleted ? (
               <span className={styles.statusCompletedPill}>
                 <CheckCircle2 size={13} />
-                Đã nấu xong {batchData.completedAt ? `(${batchData.completedAt})` : ""}
+                Đã nấu xong{" "}
+                {batchData.completedAt ? `(${batchData.completedAt})` : ""}
               </span>
             ) : isConfirmed ? (
               <span className={styles.statusConfirmedPill}>
@@ -41,12 +50,35 @@ export default function BatchInfoCard({ batchData = {} }) {
                 Đang chế biến
               </span>
             ) : (
-              <span className={styles.statusDraftPill}>
-                Chưa xác nhận nấu
-              </span>
+              <span className={styles.statusDraftPill}>Chưa xác nhận nấu</span>
             )}
           </div>
           <h2 className={styles.dishNameTitle}>{batchData.dishName || "—"}</h2>
+          {batchData.dishes && batchData.dishes.length > 1 && (
+            <div className={styles.dishesBox}>
+              <div className={styles.dishesBoxHeader}>
+                <Utensils size={14} />
+                <span>
+                  Các món ăn trong mẻ này ({batchData.dishes.length} món)
+                </span>
+              </div>
+              <div className={styles.dishesList}>
+                {batchData.dishes.map((dish, idx) => (
+                  <div
+                    key={dish.dishId || idx}
+                    className={styles.dishItemBadge}
+                  >
+                    <span className={styles.dishItemName}>{dish.name}</span>
+                    {dish.plannedPortions && (
+                      <span className={styles.dishItemPortions}>
+                        {dish.plannedPortions.toLocaleString("vi-VN")} suất
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className={styles.heroPortionBox}>
@@ -68,7 +100,9 @@ export default function BatchInfoCard({ batchData = {} }) {
           </div>
           <div className={styles.metricValue}>
             <strong>{batchData.mealType || "Bữa trưa"}</strong>
-            <span className={styles.metricSubTime}>({batchData.servingTime || "11:15"})</span>
+            <span className={styles.metricSubTime}>
+              ({batchData.servingTime || "11:15"})
+            </span>
           </div>
         </div>
 
@@ -95,5 +129,5 @@ export default function BatchInfoCard({ batchData = {} }) {
         </div>
       </div>
     </section>
-  )
+  );
 }

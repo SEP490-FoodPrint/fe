@@ -74,10 +74,55 @@
   white-space: nowrap;
 }
 
+.codeCellWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+
+.batchCodeText {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.batchGroupBadge {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 500;
+  font-family: ui-monospace, monospace;
+  color: #6d28d9;
+  background-color: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  padding: 1px 5px;
+  border-radius: 4px;
+  line-height: 1.2;
+}
+
 .dishWrap {
   display: flex;
   flex-direction: column;
   gap: 2px;
+}
+
+.dishNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.multiDishChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  cursor: help;
 }
 
 .dishName {
@@ -776,11 +821,31 @@
 .samplePending {
   background: transparent !important;
   border: none !important;
+  color: #dc2626 !important;
+
+  svg {
+    color: #dc2626 !important;
+  }
+}
+
+.samplePartial {
+  background: transparent !important;
+  border: none !important;
   color: #d97706 !important;
 
   svg {
     color: #d97706 !important;
   }
+}
+
+.mobileBatchGroup {
+  font-size: 10px;
+  font-family: ui-monospace, monospace;
+  color: #6d28d9;
+  background-color: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  padding: 0 4px;
+  border-radius: 3px;
 }
 
 .sampleMuted {

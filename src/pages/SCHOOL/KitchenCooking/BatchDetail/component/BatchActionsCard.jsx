@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Zap,
   CheckCircle2,
@@ -7,9 +7,9 @@ import {
   CookingPot,
   FlaskConical,
   Check,
-} from "lucide-react"
-import ROUTER from "src/router/ROUTER"
-import styles from "./BatchActionsCard.module.scss"
+} from "lucide-react";
+import ROUTER from "src/router/ROUTER";
+import styles from "./BatchActionsCard.module.scss";
 
 export default function BatchActionsCard({
   batchId,
@@ -17,17 +17,22 @@ export default function BatchActionsCard({
   batchCode = "",
   dishName = "",
   hasSample = false,
+  allSamplesDone = false,
+  sampledCount = 0,
+  totalDishes = 1,
   onOpenConfirmModal,
   onOpenDeleteModal,
   onCompleteBatch,
   actionLoading = false,
   onOpenSampleModal,
 }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
-  const isConfirmed = status === "CONFIRMED"
-  const isCompleted = status === "COMPLETED"
+  const isDraft = status === "DRAFT" || status === "UNCONFIRMED";
+  const isConfirmed = status === "CONFIRMED";
+  const isCompleted = status === "COMPLETED";
+
+  const isAllSampled = allSamplesDone || (hasSample && totalDishes <= 1);
 
   return (
     <>
@@ -60,14 +65,16 @@ export default function BatchActionsCard({
               disabled={actionLoading}
             >
               <CookingPot size={18} />
-              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
+              <span>
+                {actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}
+              </span>
             </button>
           )}
 
           {/* Nút 3: Mẫu lưu thực phẩm (khi đã hoàn thành chế biến) */}
           {isCompleted && (
             <div className={styles.sampleActionBlock}>
-              {hasSample ? (
+              {isAllSampled ? (
                 <div
                   style={{
                     display: "flex",
@@ -83,7 +90,10 @@ export default function BatchActionsCard({
                   }}
                 >
                   <Check size={18} color="#059669" />
-                  <span>Đã lưu mẫu thực phẩm (24h)</span>
+                  <span>
+                    Đã lưu mẫu thực phẩm{" "}
+                    {totalDishes > 1 ? `(đủ ${totalDishes} món)` : "(24h)"}
+                  </span>
                 </div>
               ) : (
                 <button
@@ -92,7 +102,12 @@ export default function BatchActionsCard({
                   onClick={onOpenSampleModal}
                 >
                   <FlaskConical size={18} />
-                  <span>Ghi nhận mẫu lưu thực phẩm</span>
+                  <span>
+                    Ghi nhận mẫu lưu thực phẩm{" "}
+                    {totalDishes > 1
+                      ? `(${sampledCount}/${totalDishes} món)`
+                      : ""}
+                  </span>
                 </button>
               )}
             </div>
@@ -147,12 +162,14 @@ export default function BatchActionsCard({
               disabled={actionLoading}
             >
               <CookingPot size={19} />
-              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
+              <span>
+                {actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}
+              </span>
             </button>
           )}
 
-          {isCompleted && (
-            hasSample ? (
+          {isCompleted &&
+            (isAllSampled ? (
               <div
                 style={{
                   display: "flex",
@@ -170,7 +187,9 @@ export default function BatchActionsCard({
                 }}
               >
                 <Check size={18} color="#059669" />
-                <span>Đã lưu mẫu thực phẩm</span>
+                <span>
+                  Đã lưu mẫu {totalDishes > 1 ? `(${totalDishes} món)` : "24h"}
+                </span>
               </div>
             ) : (
               <button
@@ -179,12 +198,14 @@ export default function BatchActionsCard({
                 onClick={onOpenSampleModal}
               >
                 <FlaskConical size={19} />
-                <span>Ghi nhận mẫu lưu</span>
+                <span>
+                  Lưu mẫu{" "}
+                  {totalDishes > 1 ? `(${sampledCount}/${totalDishes})` : ""}
+                </span>
               </button>
-            )
-          )}
+            ))}
         </div>
       </div>
     </>
-  )
+  );
 }

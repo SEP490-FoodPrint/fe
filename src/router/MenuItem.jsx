@@ -21,6 +21,7 @@ import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
 import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined"
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
+import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -228,6 +229,12 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_MEAL_TIMES,
     label: "Giờ phục vụ",
     icon: <ScheduleOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_ACADEMIC_YEARS,
+    label: "Thiết lập niên khóa",
+    icon: <CalendarMonthOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {

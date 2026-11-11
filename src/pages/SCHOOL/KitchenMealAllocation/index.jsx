@@ -1,22 +1,17 @@
 import React, { useMemo, useState } from "react";
-import { Alert, Chip, Snackbar } from "@mui/material";
+import { Alert, Snackbar } from "@mui/material";
 import { Archive } from "lucide-react";
 import {
   getMealAllocationView,
+  removeClassFromBatch,
   replaceBatchAllocation,
   withoutBatchAllocation,
 } from "src/utils/mealAllocation";
 import BatchAllocationPanel from "./component/BatchAllocationPanel";
 import SelectClassesDialog from "./component/SelectClassesDialog";
-import {
-  allocationScenarios,
-  createScenarioData,
-  getMockAllocationId,
-  mockMealAllocation,
-} from "./component/mockMealAllocation";
+import { getMockAllocationId, mockMealAllocation } from "./component/mockMealAllocation";
 import "./style.scss";
 
-const [firstBatch, , thirdBatch] = mockMealAllocation.cookingBatches;
 const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
   day: "2-digit",
   month: "2-digit",
@@ -25,10 +20,8 @@ const dateFormatter = new Intl.DateTimeFormat("vi-VN", {
 });
 
 export default function KitchenMealAllocation() {
-  const [data, setData] = useState(() =>
-    createScenarioData(allocationScenarios[0]),
-  );
-  const [openBatchId, setOpenBatchId] = useState(thirdBatch.id);
+  const [data, setData] = useState(mockMealAllocation);
+  const [openBatchIds, setOpenBatchIds] = useState([]);
   const [selectingBatchId, setSelectingBatchId] = useState(null);
   const [feedback, setFeedback] = useState("");
   const view = useMemo(() => getMealAllocationView(data), [data]);
@@ -44,6 +37,14 @@ export default function KitchenMealAllocation() {
   );
 
   const closeDialog = () => setSelectingBatchId(null);
+
+  const toggleBatch = (batchId) => {
+    setOpenBatchIds((current) =>
+      current.includes(batchId)
+        ? current.filter((id) => id !== batchId)
+        : [...current, batchId],
+    );
+  };
 
   const applySelection = (orderedIds) => {
     setData(
@@ -71,22 +72,10 @@ export default function KitchenMealAllocation() {
             <span className="kitchen-meal-allocation__icon">
               <Archive size={17} aria-hidden="true" />
             </span>
-            <h1 id="meal-allocation-heading">Phân bổ suất ăn</h1>
-            <Chip
-              size="small"
-              label="Nhân viên bếp"
-              className="kitchen-meal-allocation__role"
-            />
+            <h1 id="meal-allocation-heading">Phân bổ suất ăn Ngày {dateFormatter.format(data.menuDay.menuDate)}</h1>
           </div>
           <p>Phân bổ số suất từ các lô chế biến đến từng lớp học.</p>
         </div>
-
-        <dl className="kitchen-meal-allocation__context">
-          <div>
-            <dt>Ngày:</dt>
-            <dd>{dateFormatter.format(data.menuDay.menuDate)}</dd>
-          </div>
-        </dl>
       </header>
 
       <div className="kitchen-meal-allocation__tip">
@@ -102,17 +91,16 @@ export default function KitchenMealAllocation() {
           <BatchAllocationPanel
             key={batch.id}
             batch={batch}
-            expanded={batch.id === openBatchId}
+            expanded={openBatchIds.includes(batch.id)}
             canAddClasses={
               batch.entries.length > 0 ||
               (view.classes.length > 0 && batch.remaining > 0)
             }
-            onToggle={() =>
-              setOpenBatchId((current) =>
-                current === batch.id ? null : batch.id,
-              )
-            }
+            onToggle={() => toggleBatch(batch.id)}
             onAddClasses={() => setSelectingBatchId(batch.id)}
+            onRemoveClass={(classId) =>
+              setData((current) => removeClassFromBatch(current, batch.id, classId))
+            }
           />
         ))}
       </div>

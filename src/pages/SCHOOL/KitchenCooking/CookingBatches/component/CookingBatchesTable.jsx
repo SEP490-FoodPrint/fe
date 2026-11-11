@@ -89,7 +89,14 @@ export default function CookingBatchesTable({
   return (
     <div className={styles.tableCard} aria-busy={loading}>
       {loading ? (
-        <div style={{ padding: "64px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div
+          style={{
+            padding: "64px 0",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <FoodPrintLoading />
         </div>
       ) : error ? (
@@ -134,10 +141,54 @@ export default function CookingBatchesTable({
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td className={styles.tdCode}>{row.code}</td>
+                    <td className={styles.tdCode}>
+                      <div className={styles.codeCellWrap}>
+                        <span className={styles.batchCodeText}>{row.code}</span>
+                        {row.batchGroupCode && (
+                          <Tooltip
+                            title={`Lô chế biến cha: ${row.batchGroupCode}`}
+                            arrow
+                          >
+                            <span className={styles.batchGroupBadge}>
+                              Lô: {row.batchGroupCode}
+                            </span>
+                          </Tooltip>
+                        )}
+                      </div>
+                    </td>
                     <td>
                       <div className={styles.dishWrap}>
-                        <span className={styles.dishName}>{row.dishName}</span>
+                        <div className={styles.dishNameRow}>
+                          <span className={styles.dishName}>
+                            {row.dishName}
+                          </span>
+                          {row.dishes && row.dishes.length > 1 && (
+                            <Tooltip
+                              title={
+                                <div>
+                                  <div
+                                    style={{ fontWeight: 600, marginBottom: 4 }}
+                                  >
+                                    Danh sách món ăn ({row.dishes.length} món):
+                                  </div>
+                                  {row.dishes.map((d, i) => (
+                                    <div key={d.dishId || i}>
+                                      • {d.name}{" "}
+                                      {d.plannedPortions
+                                        ? `(${d.plannedPortions} suất)`
+                                        : ""}
+                                    </div>
+                                  ))}
+                                </div>
+                              }
+                              arrow
+                            >
+                              <span className={styles.multiDishChip}>
+                                {row.dishes.length} món
+                              </span>
+                            </Tooltip>
+                          )}
+                        </div>
                         <span className={styles.dishCategory}>
                           {row.timeTag}
                         </span>
@@ -147,12 +198,19 @@ export default function CookingBatchesTable({
                     <td>{statusBadge(row)}</td>
                     <td>
                       {row.status === "COMPLETED" ? (
-                        row.hasSample ? (
+                        row.allSamplesDone ? (
                           <span
                             className={`${styles.samplePill} ${styles.sampleDone}`}
                           >
                             <Check size={13} aria-hidden="true" />
-                            <span>Đã lưu mẫu (24h)</span>
+                            <span>{row.sampleLabel}</span>
+                          </span>
+                        ) : row.hasSample ? (
+                          <span
+                            className={`${styles.samplePill} ${styles.samplePartial}`}
+                          >
+                            <AlertCircle size={13} aria-hidden="true" />
+                            <span>{row.sampleLabel}</span>
                           </span>
                         ) : (
                           <span
@@ -187,10 +245,47 @@ export default function CookingBatchesTable({
               >
                 <div className={styles.mobileTopRow}>
                   <div className={styles.dishTitleWrap}>
-                    <span className={styles.mobileDishName}>
-                      {row.dishName}
-                    </span>
-                    <span className={styles.mobileBatchCode}>{row.code}</span>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <span className={styles.mobileDishName}>
+                          {row.dishName}
+                        </span>
+                        {row.dishes && row.dishes.length > 1 && (
+                          <span className={styles.multiDishChip}>
+                            {row.dishes.length} món
+                          </span>
+                        )}
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <span className={styles.mobileBatchCode}>
+                          {row.code}
+                        </span>
+                        {row.batchGroupCode && (
+                          <span className={styles.mobileBatchGroup}>
+                            Lô: {row.batchGroupCode}
+                          </span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                   {statusBadge(row, true)}
                 </div>
@@ -212,9 +307,15 @@ export default function CookingBatchesTable({
                       <>
                         <span className={styles.metaDot}>•</span>
                         <span
-                          className={`${styles.mobileSampleBadge} ${row.hasSample ? styles.sampleDone : styles.samplePending}`}
+                          className={`${styles.mobileSampleBadge} ${
+                            row.allSamplesDone
+                              ? styles.sampleDone
+                              : row.hasSample
+                                ? styles.samplePartial
+                                : styles.samplePending
+                          }`}
                         >
-                          {row.hasSample ? "Đã lưu 24h" : "Chưa lưu mẫu"}
+                          {row.sampleLabel}
                         </span>
                       </>
                     )}
@@ -284,6 +385,46 @@ export default function CookingBatchesTable({
         </DialogTitle>
         <DialogContent>
           <dl className={styles.batchFacts}>
+            {selectedBatch?.batchGroupCode && (
+              <div>
+                <dt>Lô chế biến cha</dt>
+                <dd
+                  style={{
+                    fontFamily: "ui-monospace, monospace",
+                    fontWeight: 600,
+                    color: "#6d28d9",
+                  }}
+                >
+                  {selectedBatch.batchGroupCode}
+                </dd>
+              </div>
+            )}
+            <div>
+              <dt>Mã mẻ chế biến</dt>
+              <dd
+                style={{
+                  fontFamily: "ui-monospace, monospace",
+                  fontWeight: 600,
+                }}
+              >
+                {selectedBatch?.code}
+              </dd>
+            </div>
+            {selectedBatch?.dishes?.length > 1 && (
+              <div>
+                <dt>Danh sách món ăn ({selectedBatch.dishes.length} món)</dt>
+                <dd>
+                  <ul style={{ margin: 0, paddingLeft: 18 }}>
+                    {selectedBatch.dishes.map((d, i) => (
+                      <li key={d.dishId || i}>
+                        {d.name}{" "}
+                        {d.plannedPortions ? `(${d.plannedPortions} suất)` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Ngày thực đơn</dt>
               <dd>{selectedBatch?.dateLabel}</dd>

@@ -39,7 +39,6 @@ export default function SelectClassesDialog({ batch, classes, dishName, onClose,
         <div>
           <div className={styles.titleRow}>
             <h2 id="select-classes-title">Phân bổ lớp vào {batch.name}</h2>
-            <Chip size="small" color="success" variant="outlined" label={`Món: ${dishName}`} />
           </div>
           <div className={styles.subheading}>
             <span>Số suất khả dụng của lô: <strong>{batch.total}</strong></span>
