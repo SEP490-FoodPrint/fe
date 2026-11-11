@@ -4,7 +4,7 @@ import { Box, Card, Typography } from "@mui/material"
 import { BookOpen, Leaf, Archive, Building2 } from "lucide-react"
 import styles from "./CatalogStatsRail.module.scss"
 
-export default function CatalogStatsRail({ stats, onFilterHandlingType }) {
+export default function CatalogStatsRail({ stats, activeFilter, onFilterHandlingType }) {
   const cards = [
     {
       id: "all",
@@ -34,36 +34,39 @@ export default function CatalogStatsRail({ stats, onFilterHandlingType }) {
 
   return (
     <Box className={styles.statsGrid}>
-      {cards.map(card => (
-        <Card
-          key={card.id}
-          className={styles.statCard}
-          onClick={() => {
-            if (["all", "DIRECT_USE", "DRY_STOCK"].includes(card.id)) {
-              onFilterHandlingType(card.id)
-            }
-          }}
-          tabIndex={0}
-          role="button"
-        >
-          <Box className={styles.statContent}>
-            <Typography variant="body2" className={styles.statLabel}>
-              {card.label}
-            </Typography>
-            <Typography variant="h4" className={styles.statCount}>
-              {card.count}
-            </Typography>
-            {card.subtext && (
-              <Typography variant="caption" className={styles.statSubtext}>
-                {card.subtext}
+      {cards.map(card => {
+        const isActive = activeFilter === card.id
+        return (
+          <Card
+            key={card.id}
+            className={`${styles.statCard} ${isActive ? styles.activeCard : ""}`}
+            onClick={() => {
+              if (["all", "DIRECT_USE", "DRY_STOCK"].includes(card.id)) {
+                onFilterHandlingType(card.id)
+              }
+            }}
+            tabIndex={0}
+            role="button"
+          >
+            <Box className={styles.statContent}>
+              <Typography variant="body2" className={styles.statLabel}>
+                {card.label}
               </Typography>
-            )}
-          </Box>
-          <Box className={styles.iconCircle} style={{ color: card.color, backgroundColor: card.bg }}>
-            {card.icon}
-          </Box>
-        </Card>
-      ))}
+              <Typography variant="h4" className={styles.statCount}>
+                {card.count}
+              </Typography>
+              {card.subtext && (
+                <Typography variant="caption" className={styles.statSubtext}>
+                  {card.subtext}
+                </Typography>
+              )}
+            </Box>
+            <Box className={styles.iconCircle} style={{ color: card.color, backgroundColor: card.bg }}>
+              {card.icon}
+            </Box>
+          </Card>
+        )
+      })}
     </Box>
   )
 }
@@ -75,5 +78,6 @@ CatalogStatsRail.propTypes = {
     dryStock: PropTypes.number,
     suppliersCount: PropTypes.number,
   }).isRequired,
+  activeFilter: PropTypes.string,
   onFilterHandlingType: PropTypes.func.isRequired,
 }

@@ -169,9 +169,10 @@ const IngredientOrderService = {
 
   /**
    * 1. TẠO ĐƠN MUA HÀNG ĐỢT 1 (Giao sớm 05:30 sáng)
-   * - Chỉ tạo Đợt 1 (50% Suất tối đa)
-   * - Đồ khô: Chỉ có ở Đợt 1, kèm danh sách các món được tick giao cùng (nếu có)
-   * - KHÔNG tạo Đợt 2 ngay
+   * - Chỉ tạo Đợt 1 (70% định lượng sáng)
+   * - 100% Thực phẩm tươi sống dùng trong ngày (DIRECT_USE), kiểm tra cảm quan trước khi chế biến
+   * - Đồ khô được quản lý độc lập tại Kho Đồ Khô (WarehouseManage)
+   * - KHÔNG tạo Đợt 2 ngay (chờ GVCN điểm danh sáng chốt sĩ số)
    */
   async createBatch1Order({ menuId, note, orderDate }) {
     const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === menuId) || MOCK_APPROVED_MENUS[0]
