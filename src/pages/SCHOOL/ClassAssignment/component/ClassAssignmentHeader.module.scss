@@ -28,6 +28,19 @@
   line-height: var(--leading-tight);
 }
 
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+
+  :global(.MuiButton-root) {
+    min-height: var(--control-height-md);
+    white-space: nowrap;
+  }
+}
+
 .yearSelect {
   flex: 0 0 auto;
   width: 14rem;
@@ -40,11 +53,20 @@
     align-items: stretch;
     flex-direction: column;
   }
+
+  .toolbar {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 600px) {
   .title {
     font-size: var(--text-xl);
+  }
+
+  .toolbar {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .yearSelect {
