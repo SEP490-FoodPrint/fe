@@ -421,9 +421,18 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
             </TableHead>
             <TableBody>
               {delivery.items?.map((item, idx) => {
-                const displayedOrderedQty = isWaitingAttendance
-                  ? Number((((item.orderedQty || 0) / (delivery.plannedPortions || 425)) * remainingNeeded).toFixed(2))
-                  : item.orderedQty
+                const isDiscrete = ["quả", "trứng", "hộp", "gói", "chai", "can", "lon", "hũ", "cái", "củ", "bắp", "ổ", "bó", "túi", "con"].includes(
+                  String(item.unit || "").toLowerCase().trim()
+                )
+                const isExtraItem = item.isExtra === true
+                const portionRate = !isExtraItem && typeof item.qtyPerPortion === "number" && item.qtyPerPortion > 0
+                  ? item.qtyPerPortion
+                  : (!isExtraItem ? Number(((item.orderedQty || 0) / (delivery.plannedPortions || 425)).toFixed(4)) : 0)
+
+                const rawNeeded = portionRate * remainingNeeded
+                const displayedOrderedQty = (isWaitingAttendance && !isExtraItem)
+                  ? (isDiscrete ? Math.ceil(rawNeeded) : Number(rawNeeded.toFixed(2)))
+                  : (isDiscrete && typeof item.orderedQty === "number" ? Math.ceil(item.orderedQty) : item.orderedQty)
 
                 return (
                   <TableRow key={idx} hover className={styles.tableRow}>
@@ -446,7 +455,12 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                       <Typography variant="body2" className={styles.orderedQty}>
                         {displayedOrderedQty} {item.unit}
                       </Typography>
-                      {isWaitingAttendance && (
+                      {portionRate > 0 && !isExtraItem && (
+                        <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
+                          ({portionRate} {item.unit}/suất)
+                        </Typography>
+                      )}
+                      {isWaitingAttendance && !isExtraItem && (
                         <Typography variant="caption" sx={{ color: "#d97706", display: "block", fontSize: "0.7rem" }}>
                           (Theo {remainingNeeded} suất)
                         </Typography>

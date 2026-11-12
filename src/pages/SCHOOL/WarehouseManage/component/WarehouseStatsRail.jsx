@@ -13,17 +13,17 @@ export default function WarehouseStatsRail({ stats, activeFilter, onFilterChange
     },
     {
       id: "CRITICAL_LOW",
-      label: "Dưới 50%",
+      label: "Dưới 50% tồn kho",
       count: stats.criticalLowCount || 0,
     },
     {
       id: "WARNING",
-      label: "Trên 50%",
+      label: "Trên 50% tồn kho",
       count: stats.warningCount || 0,
     },
     {
       id: "SAFE",
-      label: "Đủ",
+      label: "Đủ dùng",
       count: stats.safeStockCount || 0,
     },
   ]

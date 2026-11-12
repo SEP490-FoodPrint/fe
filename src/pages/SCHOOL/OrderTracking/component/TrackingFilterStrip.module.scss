@@ -1,0 +1,53 @@
+.filterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-4, 16px);
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: var(--radius-lg, 12px);
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  border: 1px solid var(--border-default, #dce5e0);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.filterInputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3, 12px);
+  flex: 1;
+}
+
+.searchInput {
+  min-width: 300px;
+  flex: 1;
+
+  @media (max-width: 600px) {
+    min-width: 100%;
+  }
+}
+
+.selectInput {
+  min-width: 200px;
+
+  @media (max-width: 600px) {
+    min-width: 100%;
+  }
+}
+
+.searchIcon {
+  color: var(--text-muted, #6b7c74);
+}
+
+.resetBtn {
+  text-transform: none;
+  font-weight: 500;
+  border-color: var(--border-default, #dce5e0);
+  color: var(--text-secondary, #52635c);
+
+  &:hover {
+    border-color: var(--border-strong, #adbbb3);
+    background-color: var(--bg-muted, #f1f5f3);
+  }
+}
