@@ -222,6 +222,7 @@ const IngredientOrderService = {
           deliveredQty: 0,
           status: "WAITING",
           isCustomized: it.isCustomized || false,
+          isExtra: it.isExtra || false,
           defaultQtyPerPortion: it.defaultQtyPerPortion,
         }))
       : targetMenu.ingredients
@@ -307,6 +308,7 @@ const IngredientOrderService = {
           deliveredQty: 0,
           status: "WAITING",
           isCustomized: it.isCustomized || false,
+          isExtra: it.isExtra || false,
           defaultQtyPerPortion: it.defaultQtyPerPortion,
         }))
       : targetMenu.ingredients
