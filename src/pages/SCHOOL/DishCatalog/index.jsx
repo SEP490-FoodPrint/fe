@@ -661,9 +661,16 @@ export default function DishCatalogPage() {
         >
           <div className={styles.modal}>
             <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>
-                {editingDish ? "Chỉnh sửa món ăn" : "Thêm món ăn mới"}
-              </h2>
+              <div className={styles.modalHeaderTitleBlock}>
+                <h2 className={styles.modalTitle}>
+                  {editingDish ? "Chỉnh sửa món ăn" : "Thêm món ăn mới"}
+                </h2>
+                <p className={styles.modalSubtitle}>
+                  {editingDish
+                    ? "Cập nhật công thức và định lượng nguyên liệu trên một suất ăn"
+                    : "Thiết lập món ăn chuẩn, nguyên liệu chính và định lượng gia vị"}
+                </p>
+              </div>
               <button
                 type="button"
                 className={styles.closeBtn}
@@ -712,45 +719,47 @@ export default function DishCatalogPage() {
                 {/* KHU VỰC 1: BẢNG NGUYÊN LIỆU CẤU THÀNH (CÓ NHẬP ĐỊNH LƯỢNG / SUẤT CHO TỪNG NGUYÊN LIỆU) */}
                 <div className={styles.ingredientsSection}>
                   <div className={styles.sectionHeaderRow}>
-                    <div>
+                    <div className={styles.sectionTitleBlock}>
                       <label className={styles.sectionTitle}>
                         Nguyên liệu chính <span className={styles.required}>*</span>
                       </label>
-                      <p className={styles.sectionSub}>
-                        Chọn nguyên liệu từ Nhà cung cấp và nhập định lượng chuẩn
-                        trên 1 suất ăn
-                      </p>
+                      <span className={styles.sectionHint}>
+                        Chọn nguyên liệu từ NCC và cài đặt định lượng / suất ăn
+                      </span>
                     </div>
 
-                    <button
-                      type="button"
-                      className={styles.openPickerBtn}
-                      onClick={() => setPickerOpen(true)}
-                    >
-                      <Plus size={14} />
-                      <span>
-                        Chọn nguyên liệu từ NCC ({selectedIngredients.length})
-                      </span>
-                    </button>
+                    {selectedIngredients.length > 0 && (
+                      <button
+                        type="button"
+                        className={styles.openPickerBtn}
+                        onClick={() => setPickerOpen(true)}
+                      >
+                        <Plus size={14} />
+                        <span>
+                          Thêm nguyên liệu ({selectedIngredients.length})
+                        </span>
+                      </button>
+                    )}
                   </div>
 
                   {selectedIngredients.length === 0 ? (
                     <div
                       className={styles.emptyIngredientBox}
                       onClick={() => setPickerOpen(true)}
+                      role="button"
+                      tabIndex={0}
                     >
+                      <div className={styles.emptyIconCircle}>
+                        <Plus size={18} />
+                      </div>
                       <div className={styles.emptyPrompt}>
                         <p className={styles.emptyPromptTitle}>
-                          Chưa chọn nguyên liệu cho món này
+                          Chọn nguyên liệu từ Nhà cung cấp
                         </p>
                         <p className={styles.emptyPromptSub}>
-                          Bấm vào đây để mở bảng chọn nguyên liệu từ Nhà cung cấp
-                          liên kết
+                          Bấm vào đây để mở bảng chọn nguyên liệu từ NCC liên kết
                         </p>
                       </div>
-                      <button type="button" className={styles.emptyAddBtn}>
-                        + Mở bảng chọn nguyên liệu
-                      </button>
                     </div>
                   ) : (
                     <div className={styles.ingTableWrap}>
@@ -863,10 +872,13 @@ export default function DishCatalogPage() {
                 {/* KHU VỰC 2: CHỌN GIA VỊ CHO MÓN & NHẬP ĐỊNH LƯỢNG / SUẤT */}
                 <div className={styles.seasoningsSection}>
                   <div className={styles.sectionHeaderRow}>
-                    <div>
+                    <div className={styles.sectionTitleBlock}>
                       <label className={styles.sectionTitle}>
                         Gia vị dùng cho món
                       </label>
+                      <span className={styles.sectionHint}>
+                        Gia vị từ kho trường (tùy chọn)
+                      </span>
                     </div>
 
                     {/* Selector chọn gia vị để thêm nhanh */}
@@ -885,7 +897,7 @@ export default function DishCatalogPage() {
                         }}
                       >
                         <option value="" disabled>
-                          + Chọn gia vị...
+                          + Thêm gia vị từ kho...
                         </option>
                         {WAREHOUSE_SEASONINGS_CATALOG.map((s) => (
                           <option key={s.id} value={s.id}>
@@ -898,9 +910,9 @@ export default function DishCatalogPage() {
 
                   {selectedSeasonings.length === 0 ? (
                     <div className={styles.emptySeasoningBox}>
+                      <Sparkles size={15} className={styles.emptySeasoningIcon} />
                       <p className={styles.emptySeasoningText}>
-                        Chưa chọn gia vị. Chọn gia vị ở góc phải trên để thêm vào
-                        món ăn.
+                        Chưa chọn gia vị cho món này (chọn từ danh sách phía trên nếu cần)
                       </p>
                     </div>
                   ) : (
@@ -991,29 +1003,36 @@ export default function DishCatalogPage() {
 
             <div className={styles.modalFooter}>
               <div className={styles.modalFooterHint}>
-                {selectedIngredients.length === 0 && (
+                {selectedIngredients.length === 0 ? (
                   <span className={styles.footerWarning}>
                     * Vui lòng chọn ít nhất 1 nguyên liệu chính cho món ăn
                   </span>
+                ) : (
+                  <span className={styles.footerSuccess}>
+                    Đã chọn {selectedIngredients.length} nguyên liệu chính
+                    {selectedSeasonings.length > 0 && ` • ${selectedSeasonings.length} loại gia vị`}
+                  </span>
                 )}
               </div>
-              <button
-                type="button"
-                className={styles.cancelBtn}
-                onClick={closeModal}
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                className={styles.saveBtn}
-                onClick={handleSave}
-                disabled={
-                  !form.name.trim() || selectedIngredients.length === 0
-                }
-              >
-                {editingDish ? "Lưu thay đổi" : "Lưu món ăn"}
-              </button>
+              <div className={styles.modalFooterActions}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={closeModal}
+                >
+                  Hủy
+                </button>
+                <button
+                  type="button"
+                  className={styles.saveBtn}
+                  onClick={handleSave}
+                  disabled={
+                    !form.name.trim() || selectedIngredients.length === 0
+                  }
+                >
+                  {editingDish ? "Lưu thay đổi" : "Lưu món ăn"}
+                </button>
+              </div>
             </div>
           </div>
         </div>

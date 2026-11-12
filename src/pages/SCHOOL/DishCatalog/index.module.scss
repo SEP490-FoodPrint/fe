@@ -495,63 +495,79 @@
 
 .modal {
   background-color: #ffffff;
-  border-radius: 10px;
+  border-radius: 12px;
   width: 100%;
   max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
-  border: 1px solid #dce5e0;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.18);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
 }
 
 .modalHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #e8eeeb;
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid #edf2f7;
   position: sticky;
   top: 0;
   background-color: #ffffff;
-  z-index: 1;
+  z-index: 10;
+}
+
+.modalHeaderTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .modalTitle {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
-  color: #1d2b26;
+  color: #0f172a;
   margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.modalSubtitle {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  font-weight: 400;
 }
 
 .closeBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border: 1px solid #dce5e0;
-  background-color: #f8faf9;
-  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  border-radius: 8px;
   cursor: pointer;
-  color: #52635c;
+  color: #64748b;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: #fee2e2;
-    border-color: #fca5a5;
-    color: #dc2626;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
   }
 }
 
 .modalBody {
-  padding: 20px;
+  padding: 22px 24px;
 }
 
 .formGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  gap: 16px;
 
   @media (max-width: 520px) {
     grid-template-columns: 1fr;
@@ -575,16 +591,16 @@
 
 .formLabel {
   display: block;
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 600;
-  color: #52635c;
-  margin-bottom: 5px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: #334155;
+  margin-bottom: 6px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .required {
-  color: #d64545;
+  color: #ef4444;
   margin-left: 2px;
 }
 
@@ -592,20 +608,24 @@
 .formSelect,
 .formTextarea {
   width: 100%;
-  padding: 8px 11px;
-  border: 1px solid #dce5e0;
-  border-radius: 6px;
-  font-size: 13px;
+  padding: 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  font-size: 13.5px;
   font-family: inherit;
-  color: #1d2b26;
+  color: #0f172a;
   box-sizing: border-box;
-  transition: border-color 0.15s ease;
+  transition: all 0.15s ease;
   background-color: #ffffff;
 
   &:focus {
     outline: none;
     border-color: #0a8066;
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+  }
+
+  &::placeholder {
+    color: #94a3b8;
   }
 }
 
@@ -647,21 +667,32 @@
   flex-wrap: wrap;
 }
 
+.sectionTitleBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
 .sectionTitle {
-  font-size: 11.5px;
+  font-size: 13px;
   font-weight: 700;
-  color: #1d2b26;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  color: #0f172a;
+  text-transform: none;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 4px;
 }
 
+.sectionHint {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 400;
+}
+
 .sectionSub {
   font-size: 12px;
-  color: #52635c;
+  color: #64748b;
   margin: 2px 0 0;
 }
 
@@ -674,7 +705,7 @@
   background-color: #e8f5f1;
   color: #0a8066;
   border: 1px solid #c9e8de;
-  border-radius: 6px;
+  border-radius: 7px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
@@ -689,47 +720,66 @@
 }
 
 .emptyIngredientBox {
-  border: 1.5px dashed #c9e8de;
-  border-radius: 8px;
-  background-color: #f8faf9;
-  padding: 24px 16px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 10px;
+  background-color: #f8fafc;
+  padding: 24px 20px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 8px;
 
   &:hover {
     border-color: #0a8066;
-    background-color: #e8f5f1;
+    background-color: #f0fdf9;
+
+    .emptyIconCircle {
+      background-color: #0a8066;
+      color: #ffffff;
+      transform: scale(1.05);
+    }
+
+    .emptyPromptTitle {
+      color: #0a8066;
+    }
   }
+}
+
+.emptyIconCircle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #e6f7f2;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.18s ease;
+}
+
+.emptyPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
 }
 
 .emptyPromptTitle {
   font-size: 13.5px;
   font-weight: 600;
-  color: #1d2b26;
+  color: #1e293b;
   margin: 0;
+  transition: color 0.15s ease;
 }
 
 .emptyPromptSub {
   font-size: 12px;
-  color: #52635c;
+  color: #64748b;
   margin: 0;
-}
-
-.emptyAddBtn {
-  margin-top: 4px;
-  padding: 6px 14px;
-  border-radius: 6px;
-  border: 1px solid #0a8066;
-  background-color: #0a8066;
-  color: #ffffff;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
 }
 
 .ingTableWrap {
@@ -833,53 +883,70 @@
 }
 
 .footerWarning {
-  font-size: 12px;
+  font-size: 12.5px;
   color: #d97706;
   font-weight: 500;
 }
 
+.footerSuccess {
+  font-size: 12.5px;
+  color: #0a8066;
+  font-weight: 500;
+}
+
+.modalFooterActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .modalFooter {
   display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  padding: 14px 20px;
-  border-top: 1px solid #e8eeeb;
-  background-color: #f8faf9;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  border-top: 1px solid #edf2f7;
+  background-color: #f8fafc;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
 }
 
 .cancelBtn {
-  padding: 8px 16px;
-  border: 1px solid #dce5e0;
-  border-radius: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
   background-color: #ffffff;
-  color: #52635c;
+  color: #475569;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    background-color: #f1f5f3;
-    color: #1d2b26;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
   }
 }
 
 .saveBtn {
-  padding: 8px 18px;
+  height: 36px;
+  padding: 0 20px;
   border: none;
-  border-radius: 6px;
+  border-radius: 7px;
   background-color: #0a8066;
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
 
   &:hover:not(:disabled) {
-    background-color: #08735c;
+    background-color: #087059;
   }
 
   &:disabled {
@@ -1009,9 +1076,13 @@
 
 /* ─── Khu vực chọn gia vị từ kho ────────────────── */
 .seasoningsSection {
-  margin-top: 22px;
-  padding-top: 18px;
-  border-top: 1px dashed #dce5e0;
+  grid-column: 1 / -1;
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px solid #edf2f7;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .seasoningAddPickerWrap {
@@ -1020,40 +1091,51 @@
 }
 
 .seasoningSelectPicker {
-  height: 34px;
+  height: 32px;
   padding: 0 12px;
-  border: 1px solid #0a8066;
-  border-radius: 6px;
-  background-color: #f0fdfa;
-  color: #08604d;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background-color: #ffffff;
+  color: #1e293b;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: #e6f7f3;
+    border-color: #0a8066;
+    color: #0a8066;
+    background-color: #f0fdf9;
   }
 
   &:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.2);
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
   }
 }
 
 .emptySeasoningBox {
-  background-color: #fafbfc;
-  border: 1px dashed #dce5e0;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 16px;
-  text-align: center;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.emptySeasoningIcon {
+  color: #94a3b8;
+  flex-shrink: 0;
 }
 
 .emptySeasoningText {
   margin: 0;
-  font-size: 12.5px;
-  color: #6b7c74;
+  font-size: 12px;
+  color: #64748b;
+  line-height: 1.4;
 }
 
 /* ─── Modal Xem chi tiết món ăn (Icon Mắt) ──────── */
