@@ -273,13 +273,12 @@ export default function CookingBatchesTable({
                       <>
                         <span className={styles.metaDot}>•</span>
                         <span
-                          className={`${styles.mobileSampleBadge} ${
-                            row.allSamplesDone
+                          className={`${styles.mobileSampleBadge} ${row.allSamplesDone
                               ? styles.sampleDone
                               : row.hasSample
                                 ? styles.samplePartial
                                 : styles.samplePending
-                          }`}
+                            }`}
                         >
                           {row.sampleLabel}
                         </span>

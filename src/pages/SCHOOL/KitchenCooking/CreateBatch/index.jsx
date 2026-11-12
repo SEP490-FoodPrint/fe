@@ -150,11 +150,11 @@ export default function CreateBatch() {
         prev.map((d) =>
           d.id === dishToCreate.id
             ? {
-                ...d,
-                isBatchCreated: true,
-                batchCode: dishCode,
-                batchId: firstBatchId,
-              }
+              ...d,
+              isBatchCreated: true,
+              batchCode: dishCode,
+              batchId: firstBatchId,
+            }
             : d
         )
       );
@@ -162,11 +162,11 @@ export default function CreateBatch() {
       setSelectedDish((prev) =>
         prev?.id === dishToCreate.id
           ? {
-              ...prev,
-              isBatchCreated: true,
-              batchCode: dishCode,
-              batchId: firstBatchId,
-            }
+            ...prev,
+            isBatchCreated: true,
+            batchCode: dishCode,
+            batchId: firstBatchId,
+          }
           : prev
       );
 

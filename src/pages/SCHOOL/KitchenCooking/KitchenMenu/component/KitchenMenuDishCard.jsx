@@ -15,9 +15,8 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
 
   return (
     <div
-      className={`${styles.dishRow} ${
-        mealType === "AFTERNOON" ? styles.afternoonDishRow : styles.lunchDishRow
-      } ${dish.isBatchCreated ? styles.dishRowClickable : ""}`}
+      className={`${styles.dishRow} ${mealType === "AFTERNOON" ? styles.afternoonDishRow : styles.lunchDishRow
+        } ${dish.isBatchCreated ? styles.dishRowClickable : ""}`}
       onClick={dish.isBatchCreated ? handleAction : undefined}
       role={dish.isBatchCreated ? "button" : undefined}
       tabIndex={dish.isBatchCreated ? 0 : undefined}

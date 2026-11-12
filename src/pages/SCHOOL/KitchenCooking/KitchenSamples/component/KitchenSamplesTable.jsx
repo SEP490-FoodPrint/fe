@@ -37,9 +37,8 @@ export default function KitchenSamplesTable({
               return (
                 <tr
                   key={row.id}
-                  className={`${styles.tr} ${
-                    info24h.isReadyToDispose ? styles.trWarning : ""
-                  }`}
+                  className={`${styles.tr} ${info24h.isReadyToDispose ? styles.trWarning : ""
+                    }`}
                   onClick={() => onViewDetail(row)}
                 >
                   {/* 1. Tên món ăn & Mã lô nấu phía dưới */}
@@ -64,11 +63,10 @@ export default function KitchenSamplesTable({
                   {/* 2. Bữa ăn */}
                   <td className={styles.td}>
                     <span
-                      className={`${styles.mealBadge} ${
-                        row.mealType === "AFTERNOON"
+                      className={`${styles.mealBadge} ${row.mealType === "AFTERNOON"
                           ? styles.mealAfternoon
                           : styles.mealLunch
-                      }`}
+                        }`}
                     >
                       {row.mealLabel || (row.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")}
                     </span>
@@ -87,13 +85,12 @@ export default function KitchenSamplesTable({
                     <div className={styles.countdownCol}>
                       <div className={styles.countdownHeader}>
                         <span
-                          className={`${styles.countdownText} ${
-                            info24h.isReadyToDispose
+                          className={`${styles.countdownText} ${info24h.isReadyToDispose
                               ? styles.countdownReady
                               : info24h.isDisposed
-                              ? styles.countdownDisposed
-                              : styles.countdownActive
-                          }`}
+                                ? styles.countdownDisposed
+                                : styles.countdownActive
+                            }`}
                         >
                           {info24h.timeText}
                         </span>
@@ -105,13 +102,12 @@ export default function KitchenSamplesTable({
                       </div>
                       <div className={styles.progressBarBg}>
                         <div
-                          className={`${styles.progressBarFill} ${
-                            info24h.isReadyToDispose
+                          className={`${styles.progressBarFill} ${info24h.isReadyToDispose
                               ? styles.fillWarning
                               : info24h.isDisposed
-                              ? styles.fillMuted
-                              : styles.fillPrimary
-                          }`}
+                                ? styles.fillMuted
+                                : styles.fillPrimary
+                            }`}
                           style={{ width: `${info24h.percent}%` }}
                         />
                       </div>
@@ -190,9 +186,8 @@ export default function KitchenSamplesTable({
                       {row.status === "STORED" && (
                         <button
                           type="button"
-                          className={`${styles.disposeIconBtn} ${
-                            info24h.isReadyToDispose ? styles.disposeIconBtnHighlight : ""
-                          }`}
+                          className={`${styles.disposeIconBtn} ${info24h.isReadyToDispose ? styles.disposeIconBtnHighlight : ""
+                            }`}
                           onClick={() => onOpenDisposeModal(row)}
                           title={
                             info24h.isReadyToDispose

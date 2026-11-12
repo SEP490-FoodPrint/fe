@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
+import notice from "src/components/Notice";
 import ROUTER from "src/router/ROUTER";
 import MenuService from "src/services/MenuService";
 import KitchenService from "src/services/KitchenService";
 import CreateBatchSeparateHeader from "./component/CreateBatchSeparateHeader";
-import BasicInfoSeparateSection from "./component/BasicInfoSeparateSection";
-import ProposedSeparateBatchSection from "./component/ProposedSeparateBatchSection";
-import CreateBatchSeparateFooter from "./component/CreateBatchSeparateFooter";
+import CreateBatchKanban from "../CreateBatch/component/CreateBatchKanban";
+import CreateBatchDetailModal from "../CreateBatch/component/CreateBatchDetailModal";
 import styles from "./index.module.scss";
 
 /**
- * CreateBatchSeparate - Màn hình Khởi tạo Lô Chế Biến - Nấu Riêng Từng Lô (Nhân viên Bếp)
+ * CreateBatchSeparate - Màn hình Khởi tạo Lô Chế Biến - Nấu Riêng Từng Lô (Dạng Kanban)
  * Kết nối dữ liệu thực tế từ thực đơn đã duyệt hôm nay của trường.
  */
 export default function CreateBatchSeparate() {
@@ -19,9 +19,10 @@ export default function CreateBatchSeparate() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [dishes, setDishes] = useState([]);
-  const [selectedMeal, setSelectedMeal] = useState("lunch");
+  const [selectedMeal, setSelectedMeal] = useState("all");
   const [selectedDish, setSelectedDish] = useState(null);
-  const [portions, setPortions] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [submittingDishId, setSubmittingDishId] = useState(null);
 
   // Tải danh sách món ăn từ thực đơn đã duyệt hôm nay
   useEffect(() => {
@@ -43,18 +44,28 @@ export default function CreateBatchSeparate() {
         if (!active) return;
 
         const existingBatches = batchesRes?.items || [];
-        const todayDay = scheduleRes?.data?.days?.find(d => d.date === todayISO);
+        const todayDay = scheduleRes?.data?.days?.find((d) => d.date === todayISO);
         const demandByMeal = {};
         const loadedDishes = [];
         if (todayDay?.status === "APPROVED" && todayDay.meals) {
-          await Promise.all(["LUNCH", "AFTERNOON"].filter(type => todayDay.meals[type]?.dishes?.length).map(async type => {
-            demandByMeal[type] = await MenuService.getMealRequirements(todayDay.menuDayId, type);
-          }));
+          await Promise.all(
+            ["LUNCH", "AFTERNOON"]
+              .filter((type) => todayDay.meals[type]?.dishes?.length)
+              .map(async (type) => {
+                demandByMeal[type] = await MenuService.getMealRequirements(
+                  todayDay.menuDayId,
+                  type
+                );
+              })
+          );
           if (!active) return;
+
           const lunchDishes = todayDay.meals.LUNCH?.dishes || [];
           lunchDishes.forEach((d, idx) => {
             const matchedBatch = existingBatches.find(
-              (b) => (b.dishId === d.id || b.dishId === d.dishId) && b.mealType === "LUNCH"
+              (b) =>
+                (b.dishId === d.id || b.dishId === d.dishId) &&
+                b.mealType === "LUNCH"
             );
             loadedDishes.push({
               id: d.id || d.dishId || `dish-lunch-${idx}`,
@@ -63,9 +74,11 @@ export default function CreateBatchSeparate() {
               mealType: "lunch",
               mealName: "Bữa trưa",
               name: d.name,
-              portionStandard: demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
+              portionStandard:
+                demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
               isBatchCreated: Boolean(matchedBatch),
               batchCode: matchedBatch?.batchCode || "",
+              batchId: matchedBatch?.id || "",
               ingredients: d.ingredients || [],
             });
           });
@@ -73,7 +86,9 @@ export default function CreateBatchSeparate() {
           const afternoonDishes = todayDay.meals.AFTERNOON?.dishes || [];
           afternoonDishes.forEach((d, idx) => {
             const matchedBatch = existingBatches.find(
-              (b) => (b.dishId === d.id || b.dishId === d.dishId) && b.mealType === "AFTERNOON"
+              (b) =>
+                (b.dishId === d.id || b.dishId === d.dishId) &&
+                b.mealType === "AFTERNOON"
             );
             loadedDishes.push({
               id: d.id || d.dishId || `dish-afternoon-${idx}`,
@@ -82,28 +97,23 @@ export default function CreateBatchSeparate() {
               mealType: "afternoon",
               mealName: "Bữa xế",
               name: d.name,
-              portionStandard: demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
+              portionStandard:
+                demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
               isBatchCreated: Boolean(matchedBatch),
               batchCode: matchedBatch?.batchCode || "",
+              batchId: matchedBatch?.id || "",
               ingredients: d.ingredients || [],
             });
           });
         }
 
         setDishes(loadedDishes);
-        const initialPending =
-          loadedDishes.find((d) => !d.isBatchCreated && d.mealType === "lunch") ||
-          loadedDishes.find((d) => !d.isBatchCreated) ||
-          loadedDishes[0] ||
-          null;
-
-        setSelectedDish(initialPending);
-        if (initialPending?.portionStandard) {
-          setPortions(initialPending.portionStandard);
-        }
       } catch (err) {
         console.warn("Lỗi tải món ăn hôm nay:", err);
-        if (active) { setDishes([]); setLoadError(err.message); }
+        if (active) {
+          setDishes([]);
+          setLoadError(err.message);
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -116,54 +126,95 @@ export default function CreateBatchSeparate() {
     };
   }, []);
 
-  const handleBatchCreated = (dishId, createdBatch) => {
-    const updatedDishes = dishes.map((d) => {
-      if (d.id === dishId) {
-        return {
-          ...d,
-          isBatchCreated: true,
-          batchCode: createdBatch?.batchCode || d.batchCode || "ĐÃ TẠO LÔ",
-        };
+  // Xử lý tạo lô cho một món ăn
+  const handleCreateBatchForDish = async (dishToCreate) => {
+    if (!dishToCreate) return;
+    setSubmittingDishId(dishToCreate.id);
+    try {
+      const mealType = String(dishToCreate.mealType || selectedMeal || "LUNCH").toUpperCase();
+      const res = await KitchenService.planBatch({
+        dishId: dishToCreate.dishId || dishToCreate.id,
+        menuDayId: dishToCreate.menuDayId,
+        mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
+      });
+
+      if (!Array.isArray(res?.batches) || !res.batches.length) {
+        throw new Error("Phản hồi thiếu phương án lô; vui lòng tải lại danh sách.");
       }
-      return d;
-    });
 
-    setDishes(updatedDishes);
+      const dishCode = res.batches.map((b) => b.batchCode).join(", ");
+      const firstBatchId = res.batches[0]?.id;
 
-    const nextInSameMeal = updatedDishes.find(
-      (d) =>
-        !d.isBatchCreated &&
-        d.id !== dishId &&
-        (selectedMeal === "all" || d.mealType === selectedMeal)
-    );
+      // Cập nhật danh sách món ăn: món chuyển sang trạng thái Đã tạo lô
+      setDishes((prev) =>
+        prev.map((d) =>
+          d.id === dishToCreate.id
+            ? {
+                ...d,
+                isBatchCreated: true,
+                batchCode: dishCode,
+                batchId: firstBatchId,
+              }
+            : d
+        )
+      );
 
-    const nextAnyPending = updatedDishes.find(
-      (d) => !d.isBatchCreated && d.id !== dishId
-    );
+      setSelectedDish((prev) =>
+        prev?.id === dishToCreate.id
+          ? {
+              ...prev,
+              isBatchCreated: true,
+              batchCode: dishCode,
+              batchId: firstBatchId,
+            }
+          : prev
+      );
 
-    const nextPending = nextInSameMeal || nextAnyPending;
+      notice({
+        msg: `✓ Đã tạo thành công lô ${dishCode} cho món "${dishToCreate.name}"!`,
+        isSuccess: true,
+      });
 
-    if (nextPending) {
-      if (nextPending.mealType !== selectedMeal && selectedMeal !== "all") {
-        setSelectedMeal(nextPending.mealType);
-      }
-      setSelectedDish(nextPending);
-      if (nextPending.portionStandard) {
-        setPortions(nextPending.portionStandard);
-      }
-    } else {
-      const current = updatedDishes.find((d) => d.id === dishId);
-      if (current) setSelectedDish(current);
+      setTimeout(() => {
+        setIsModalOpen(false);
+      }, 500);
+    } catch (err) {
+      notice({
+        msg: err.message || "Không thể tạo lô chế biến. Vui lòng kiểm tra lại nguyên liệu.",
+        isSuccess: false,
+      });
+    } finally {
+      setSubmittingDishId(null);
     }
+  };
+
+  const handleDishClick = (dish) => {
+    setSelectedDish(dish);
+    setIsModalOpen(true);
+  };
+
+  const handleViewBatchDetail = (dish) => {
+    const targetId = dish.batchId || dish.id;
+    navigate(ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", targetId));
   };
 
   return (
     <div className={styles.createBatchContainer}>
       <div className={styles.formContainer}>
+        {/* Header Bar */}
         <CreateBatchSeparateHeader />
 
-        {loadError ? <p role="alert">{loadError}</p> : loading ? (
-          <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        {loadError ? (
+          <p role="alert">{loadError}</p>
+        ) : loading ? (
+          <div
+            style={{
+              padding: "80px 0",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
             <FoodPrintLoading />
           </div>
         ) : dishes.length === 0 ? (
@@ -183,33 +234,26 @@ export default function CreateBatchSeparate() {
             </button>
           </div>
         ) : (
-          <>
-            <BasicInfoSeparateSection
-              dishes={dishes}
-              selectedDish={selectedDish}
-              setSelectedDish={setSelectedDish}
-              portions={portions}
-              setPortions={setPortions}
-              selectedMeal={selectedMeal}
-              setSelectedMeal={setSelectedMeal}
-            />
-
-            <ProposedSeparateBatchSection
-              selectedDish={selectedDish}
-              dishes={dishes}
-              selectedMeal={selectedMeal}
-              setSelectedDish={setSelectedDish}
-            />
-
-            <CreateBatchSeparateFooter
-              selectedDish={selectedDish}
-              dishes={dishes}
-              selectedMeal={selectedMeal}
-              onBatchCreated={handleBatchCreated}
-              onSelectNextDish={setSelectedDish}
-            />
-          </>
+          <CreateBatchKanban
+            dishes={dishes}
+            selectedMeal={selectedMeal}
+            onSelectMeal={setSelectedMeal}
+            onDishClick={handleDishClick}
+            onQuickConfirm={handleCreateBatchForDish}
+            onViewBatchDetail={handleViewBatchDetail}
+            submittingDishId={submittingDishId}
+          />
         )}
+
+        {/* Modal chi tiết lô khi ấn vào thẻ món ăn */}
+        <CreateBatchDetailModal
+          open={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          dish={selectedDish}
+          onConfirmCreate={handleCreateBatchForDish}
+          submitting={submittingDishId === selectedDish?.id}
+          onViewBatchDetail={handleViewBatchDetail}
+        />
       </div>
     </div>
   );

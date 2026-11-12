@@ -77,12 +77,12 @@ export default function KitchenSamples() {
             ? b.dishes
             : b.dishId
               ? [
-                  {
-                    dishId: b.dishId,
-                    name: b.Dish?.name || "Món ăn bán trú",
-                    plannedPortions: b.plannedPortions,
-                  },
-                ]
+                {
+                  dishId: b.dishId,
+                  name: b.Dish?.name || "Món ăn bán trú",
+                  plannedPortions: b.plannedPortions,
+                },
+              ]
               : [];
         const dishName =
           dishes.length > 0
