@@ -1,8 +1,10 @@
-import React, { useEffect, useState, useMemo, useCallback } from "react"
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CalendarDays,
   CheckCircle2,
   AlertTriangle,
@@ -62,7 +64,81 @@ export default function CreateMenu() {
 
   // 2. Thông tin thực đơn tuần
   const [menuTitle, setMenuTitle] = useState("")
-  const [targetScope, setTargetScope] = useState("Toàn trường (Khối 1 – 5)")
+
+  // Danh mục 5 khối lớp chuẩn tiểu học
+  const GRADE_OPTIONS = useMemo(
+    () => [
+      { id: "grade-1", label: "Khối 1" },
+      { id: "grade-2", label: "Khối 2" },
+      { id: "grade-3", label: "Khối 3" },
+      { id: "grade-4", label: "Khối 4" },
+      { id: "grade-5", label: "Khối 5" },
+    ],
+    []
+  )
+
+  // Mặc định chọn tất cả các khối
+  const [selectedGrades, setSelectedGrades] = useState([
+    "grade-1",
+    "grade-2",
+    "grade-3",
+    "grade-4",
+    "grade-5",
+  ])
+  const [isGradeDropdownOpen, setIsGradeDropdownOpen] = useState(false)
+  const gradeDropdownRef = useRef(null)
+
+  // Tính toán nhãn hiển thị cho Đối tượng áp dụng
+  const targetScopeText = useMemo(() => {
+    if (selectedGrades.length === 0) return ""
+    if (selectedGrades.length === GRADE_OPTIONS.length) {
+      return "Tất cả các khối (Khối 1 - 5)"
+    }
+    return GRADE_OPTIONS.filter((g) => selectedGrades.includes(g.id))
+      .map((g) => g.label)
+      .join(", ")
+  }, [selectedGrades, GRADE_OPTIONS])
+
+  const [targetScope, setTargetScope] = useState(targetScopeText)
+
+  // Luôn đồng bộ targetScope theo các khối đã chọn
+  useEffect(() => {
+    setTargetScope(targetScopeText)
+  }, [targetScopeText])
+
+  // Click outside để tự động đóng dropdown khối lớp
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        gradeDropdownRef.current &&
+        !gradeDropdownRef.current.contains(event.target)
+      ) {
+        setIsGradeDropdownOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const handleToggleGrade = (gradeId) => {
+    setSelectedGrades((prev) => {
+      if (prev.includes(gradeId)) {
+        return prev.filter((id) => id !== gradeId)
+      } else {
+        return [...prev, gradeId]
+      }
+    })
+  }
+
+  const handleToggleAllGrades = () => {
+    if (selectedGrades.length === GRADE_OPTIONS.length) {
+      setSelectedGrades([])
+    } else {
+      setSelectedGrades(GRADE_OPTIONS.map((g) => g.id))
+    }
+  }
 
   // Chỉ dùng số tuần và năm học được API tính từ cấu hình của trường.
   useEffect(() => {
@@ -438,17 +514,79 @@ export default function CreateMenu() {
               />
             </div>
 
-            <div className={styles.inputGroup}>
+            {/* Select sổ xuống có checkbox chọn nhiều khối lớp */}
+            <div className={styles.inputGroup} ref={gradeDropdownRef}>
               <label className={styles.inputLabel}>
                 Đối tượng áp dụng <span className={styles.inputRequired}>*</span>
               </label>
-              <input
-                type="text"
-                className={styles.textInput}
-                value={targetScope}
-                onChange={(e) => setTargetScope(e.target.value)}
-                placeholder="Ví dụ: Toàn trường (Khối 1 - 5)"
-              />
+
+              <div className={styles.multiSelectContainer}>
+                <div
+                  className={`${styles.selectTrigger} ${
+                    isGradeDropdownOpen ? styles.selectTriggerOpen : ""
+                  }`}
+                  onClick={() => setIsGradeDropdownOpen((prev) => !prev)}
+                  tabIndex={0}
+                  role="button"
+                  aria-haspopup="listbox"
+                  aria-expanded={isGradeDropdownOpen}
+                >
+                  <span
+                    className={`${styles.selectValueText} ${
+                      !targetScopeText ? styles.selectPlaceholder : ""
+                    }`}
+                  >
+                    {targetScopeText || "Chọn khối lớp áp dụng..."}
+                  </span>
+                  {isGradeDropdownOpen ? (
+                    <ChevronUp size={16} className={styles.selectChevron} />
+                  ) : (
+                    <ChevronDown size={16} className={styles.selectChevron} />
+                  )}
+                </div>
+
+                {isGradeDropdownOpen && (
+                  <div className={styles.selectDropdownMenu} role="listbox">
+                    {/* Mục Chọn tất cả */}
+                    <label className={styles.dropdownOptionAll}>
+                      <input
+                        type="checkbox"
+                        className={styles.dropdownCheckbox}
+                        checked={
+                          selectedGrades.length === GRADE_OPTIONS.length
+                        }
+                        onChange={handleToggleAllGrades}
+                      />
+                      <span className={styles.dropdownOptionTextBold}>
+                        Tất cả các khối (Khối 1 - 5)
+                      </span>
+                    </label>
+
+                    {/* Danh sách từng khối lớp */}
+                    <div className={styles.dropdownOptionsList}>
+                      {GRADE_OPTIONS.map((grade) => {
+                        const isChecked = selectedGrades.includes(grade.id)
+                        return (
+                          <label
+                            key={grade.id}
+                            className={styles.dropdownOptionItem}
+                          >
+                            <input
+                              type="checkbox"
+                              className={styles.dropdownCheckbox}
+                              checked={isChecked}
+                              onChange={() => handleToggleGrade(grade.id)}
+                            />
+                            <span className={styles.dropdownOptionText}>
+                              {grade.label}
+                            </span>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
