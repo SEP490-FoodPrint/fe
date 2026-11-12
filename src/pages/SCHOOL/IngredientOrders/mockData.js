@@ -531,33 +531,41 @@ export const MOCK_DELIVERIES = [
     },
     items: [
       {
+        ingredientId: "ing-lon-01",
         ingredientName: "Thịt lợn nạc mông VietGAP",
         handlingType: "DIRECT_USE",
         unit: "kg",
+        qtyPerPortion: 0.05,
         orderedQty: 21.25, // 425 * 0.05
         deliveredQty: 21.5,
         status: "ACCEPTED",
       },
       {
+        ingredientId: "ing-cai-02",
         ingredientName: "Bắp cải trắng Đà Lạt",
         handlingType: "DIRECT_USE",
         unit: "kg",
+        qtyPerPortion: 0.06,
         orderedQty: 25.5, // 425 * 0.06
         deliveredQty: 25.5,
         status: "ACCEPTED",
       },
       {
+        ingredientId: "ing-rau-03",
         ingredientName: "Rau cải xanh VietGAP",
         handlingType: "DIRECT_USE",
         unit: "kg",
+        qtyPerPortion: 0.04,
         orderedQty: 17.0, // 425 * 0.04
         deliveredQty: 17.0,
         status: "ACCEPTED",
       },
       {
+        ingredientId: "ing-trung-08",
         ingredientName: "Trứng gà ta có kiểm dịch",
         handlingType: "DIRECT_USE",
         unit: "quả",
+        qtyPerPortion: 0.5,
         orderedQty: 213,
         deliveredQty: 215,
         status: "ACCEPTED",
@@ -593,33 +601,41 @@ export const MOCK_DELIVERIES = [
     },
     items: [
       {
+        ingredientId: "ing-lon-01",
         ingredientName: "Thịt lợn nạc mông VietGAP",
         handlingType: "DIRECT_USE",
         unit: "kg",
+        qtyPerPortion: 0.05,
         orderedQty: 19.75, // 395 * 0.05
         deliveredQty: 20.0,
         status: "CHECKING",
       },
       {
+        ingredientId: "ing-cai-02",
         ingredientName: "Bắp cải trắng Đà Lạt",
         handlingType: "DIRECT_USE",
         unit: "kg",
+        qtyPerPortion: 0.06,
         orderedQty: 23.7, // 395 * 0.06
         deliveredQty: 23.7,
         status: "CHECKING",
       },
       {
+        ingredientId: "ing-rau-03",
         ingredientName: "Rau cải xanh VietGAP",
         handlingType: "DIRECT_USE",
         unit: "kg",
+        qtyPerPortion: 0.04,
         orderedQty: 15.8, // 395 * 0.04
         deliveredQty: 15.8,
         status: "CHECKING",
       },
       {
+        ingredientId: "ing-trung-08",
         ingredientName: "Trứng gà ta có kiểm dịch",
         handlingType: "DIRECT_USE",
         unit: "quả",
+        qtyPerPortion: 0.5,
         orderedQty: 198,
         deliveredQty: 200,
         status: "CHECKING",

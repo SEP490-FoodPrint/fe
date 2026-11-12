@@ -12,6 +12,37 @@ import {
 // Bộ nhớ đệm tạm thời cho các phiếu giao nhận đã tạo / cập nhật trong phiên làm việc
 let localDeliveries = [...MOCK_DELIVERIES]
 
+const isDiscreteUnit = (unit = "") => {
+  if (!unit) return false
+  const u = String(unit).toLowerCase().trim()
+  const discreteUnits = [
+    "quả",
+    "trứng",
+    "hộp",
+    "gói",
+    "chai",
+    "can",
+    "lon",
+    "hũ",
+    "cái",
+    "củ",
+    "bắp",
+    "ổ",
+    "bó",
+    "túi",
+    "con",
+  ]
+  return discreteUnits.includes(u)
+}
+
+const calcQty = (qtyPerPortion, portions, unit = "") => {
+  const raw = Number(qtyPerPortion) * Number(portions)
+  if (isDiscreteUnit(unit)) {
+    return Math.ceil(raw)
+  }
+  return Number(raw.toFixed(2))
+}
+
 const IngredientOrderService = {
   /**
    * Lấy Danh mục nguyên liệu chuẩn (Master Ingredient Catalog)
@@ -169,28 +200,44 @@ const IngredientOrderService = {
 
   /**
    * 1. TẠO ĐƠN MUA HÀNG ĐỢT 1 (Giao sớm 05:30 sáng)
-   * - Chỉ tạo Đợt 1 (70% định lượng sáng)
-   * - 100% Thực phẩm tươi sống dùng trong ngày (DIRECT_USE), kiểm tra cảm quan trước khi chế biến
-   * - Đồ khô được quản lý độc lập tại Kho Đồ Khô (WarehouseManage)
-   * - KHÔNG tạo Đợt 2 ngay (chờ GVCN điểm danh sáng chốt sĩ số)
+   * - Chỉ tạo Đợt 1 (50% định lượng suất tối đa)
+   * - 100% Thực phẩm tươi sống dùng trong ngày (DIRECT_USE)
+   * - Hỗ trợ tùy chỉnh 2 chiều Định lượng/suất <-> Số lượng đợt
    */
-  async createBatch1Order({ menuId, note, orderDate }) {
+  async createBatch1Order({ menuId, note, orderDate, items }) {
     const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === menuId) || MOCK_APPROVED_MENUS[0]
     const orderNo = `PO-${orderDate ? orderDate.replace(/-/g, "") : "20261027"}-${Math.floor(10 + Math.random() * 90)}`
     const maxPortions = targetMenu.maxPortions || 850
-    const batch1Portions = Math.floor(maxPortions * 0.7) // 70% định lượng sáng
+    const batch1Portions = Math.floor(maxPortions / 2) // Cố định 50% suất tối đa
 
-    // 1. Tươi sống Đợt 1 (100% thực phẩm tươi sống, giao sáng sớm kiểm tra cảm quan)
-    const freshItemsBatch1 = targetMenu.ingredients
-      .filter(it => it.handlingType === "DIRECT_USE")
-      .map(it => ({
-        ingredientName: it.name,
-        handlingType: it.handlingType,
-        unit: it.unit,
-        orderedQty: Number((batch1Portions * it.qtyPerPortion).toFixed(2)),
-        deliveredQty: 0,
-        status: "WAITING",
-      }))
+    // 1. Tươi sống Đợt 1 (lấy items người dùng đã tùy chỉnh nếu có, hoặc tính theo định lượng thực đơn)
+    const freshItemsBatch1 = Array.isArray(items) && items.length > 0
+      ? items.map(it => ({
+          ingredientId: it.ingredientId || it.id,
+          ingredientName: it.ingredientName || it.name,
+          handlingType: it.handlingType || "DIRECT_USE",
+          unit: it.unit,
+          qtyPerPortion: it.qtyPerPortion,
+          orderedQty: it.orderedQty ?? it.batchQty ?? calcQty(it.qtyPerPortion || 0.05, batch1Portions, it.unit),
+          deliveredQty: 0,
+          status: "WAITING",
+          isCustomized: it.isCustomized || false,
+          defaultQtyPerPortion: it.defaultQtyPerPortion,
+        }))
+      : targetMenu.ingredients
+          .filter(it => it.handlingType === "DIRECT_USE")
+          .map(it => ({
+            ingredientId: it.id,
+            ingredientName: it.name,
+            handlingType: it.handlingType,
+            unit: it.unit,
+            qtyPerPortion: it.qtyPerPortion,
+            orderedQty: calcQty(it.qtyPerPortion, batch1Portions, it.unit),
+            deliveredQty: 0,
+            status: "WAITING",
+            isCustomized: false,
+            defaultQtyPerPortion: it.qtyPerPortion,
+          }))
 
     const deliveryBatch1 = {
       id: `deliv-${Date.now()}-01`,
@@ -201,7 +248,7 @@ const IngredientOrderService = {
       deliveryDate: orderDate || targetMenu.mealDate,
       deliveryTime: "05:30",
       batchType: "BATCH_1",
-      batchLabel: "Đợt 1 (70% Thực phẩm tươi sống sáng)",
+      batchLabel: "Đợt 1 (50% Suất tối đa)",
       maxPortions,
       plannedPortions: batch1Portions,
       supplierId: targetMenu.ingredients[0]?.supplierId || "sup-bavi-01",
@@ -233,11 +280,10 @@ const IngredientOrderService = {
   /**
    * 2. TẠO ĐƠN GIAO HÀNG ĐỢT 2 (Giao lúc 07:45 sáng)
    * - Bê nguyên nguyên liệu tươi sống của Đợt 1 sang
-   * - KHÔNG có đồ khô
-   * - Chỉ tạo được khi GVCN đã cập nhật sĩ số
+   * - TỰ ĐỘNG ĐỒNG BỘ ĐỊNH LƯỢNG ĐÃ THAY ĐỔI Ở ĐỢT 1
    * - Số suất giao bù = actualAttendance - batch1Portions
    */
-  async createBatch2Order({ batch1DeliveryId, actualAttendance, note }) {
+  async createBatch2Order({ batch1DeliveryId, actualAttendance, note, items }) {
     const batch1Delivery = localDeliveries.find(d => d.id === batch1DeliveryId)
     if (!batch1Delivery) {
       throw new Error("Không tìm thấy thông tin đơn hàng Đợt 1 tương ứng.")
@@ -245,21 +291,45 @@ const IngredientOrderService = {
 
     const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === batch1Delivery.menuId) || MOCK_APPROVED_MENUS[0]
     const maxPortions = batch1Delivery.maxPortions || 850
-    const batch1Portions = batch1Delivery.plannedPortions || 425
+    const batch1Portions = batch1Delivery.plannedPortions || Math.floor(maxPortions / 2)
     const actualCount = Number(actualAttendance) || maxPortions
     const remainingPortions = Math.max(0, actualCount - batch1Portions)
 
-    // Bê nguyên thực phẩm tươi sống từ menu Đợt 1 sang, tính theo số suất giao bù
-    const freshItemsBatch2 = targetMenu.ingredients
-      .filter(it => it.handlingType === "DIRECT_USE")
-      .map(it => ({
-        ingredientName: it.name,
-        handlingType: it.handlingType,
-        unit: it.unit,
-        orderedQty: Number((remainingPortions * it.qtyPerPortion).toFixed(2)),
-        deliveredQty: 0,
-        status: "WAITING",
-      }))
+    // Bê nguyên thực phẩm tươi sống từ Đợt 1 sang (ưu tiên items truyền vào, hoặc đọc từ batch1Delivery.items)
+    const freshItemsBatch2 = Array.isArray(items) && items.length > 0
+      ? items.map(it => ({
+          ingredientId: it.ingredientId || it.id,
+          ingredientName: it.ingredientName || it.name,
+          handlingType: it.handlingType || "DIRECT_USE",
+          unit: it.unit,
+          qtyPerPortion: it.qtyPerPortion,
+          orderedQty: it.orderedQty ?? it.batchQty ?? calcQty(it.qtyPerPortion || 0.05, remainingPortions, it.unit),
+          deliveredQty: 0,
+          status: "WAITING",
+          isCustomized: it.isCustomized || false,
+          defaultQtyPerPortion: it.defaultQtyPerPortion,
+        }))
+      : targetMenu.ingredients
+          .filter(it => it.handlingType === "DIRECT_USE")
+          .map(it => {
+            const b1Item = batch1Delivery.items?.find(
+              b => (b.ingredientId && b.ingredientId === it.id) || b.ingredientName === it.name
+            )
+            const portionRate = b1Item?.qtyPerPortion ?? (b1Item?.orderedQty && batch1Portions ? Number((b1Item.orderedQty / batch1Portions).toFixed(4)) : it.qtyPerPortion)
+
+            return {
+              ingredientId: it.id,
+              ingredientName: it.name,
+              handlingType: it.handlingType,
+              unit: it.unit,
+              qtyPerPortion: portionRate,
+              orderedQty: calcQty(portionRate, remainingPortions, it.unit),
+              deliveredQty: 0,
+              status: "WAITING",
+              isCustomized: Math.abs(portionRate - it.qtyPerPortion) > 0.00001,
+              defaultQtyPerPortion: it.qtyPerPortion,
+            }
+          })
 
     const deliveryBatch2 = {
       id: `deliv-${Date.now()}-02`,
@@ -304,6 +374,7 @@ const IngredientOrderService = {
 
   /**
    * Cập nhật sĩ số thực tế do GVCN báo sáng cho Đợt 2 (khi phiếu đã tạo)
+   * Tự động tính lại theo đúng định lượng đã lưu từ Đợt 1
    */
   async updateBatch2Attendance(deliveryId, actualCount) {
     const idx = localDeliveries.findIndex(d => d.id === deliveryId)
@@ -312,18 +383,35 @@ const IngredientOrderService = {
       const batch1Portions = item.batch1Portions || 425
       const actualRemaining = Math.max(0, actualCount - batch1Portions)
 
+      // Tìm Đợt 1 tương ứng để đảm bảo kế thừa định lượng tùy chỉnh
+      const batch1Delivery = localDeliveries.find(
+        d => d.orderNo === item.orderNo && d.batchType === "BATCH_1"
+      )
+
       const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === item.menuId) || MOCK_APPROVED_MENUS[0]
 
-      const updatedItems = targetMenu.ingredients
-        .filter(it => it.handlingType === "DIRECT_USE")
-        .map(it => ({
-          ingredientName: it.name,
-          handlingType: it.handlingType,
+      const sourceItems = item.items && item.items.length > 0
+        ? item.items
+        : targetMenu.ingredients.filter(it => it.handlingType === "DIRECT_USE")
+
+      const updatedItems = sourceItems.map(it => {
+        const b1Item = batch1Delivery?.items?.find(
+          b => (b.ingredientId && (b.ingredientId === it.ingredientId || b.ingredientId === it.id)) ||
+               b.ingredientName === (it.ingredientName || it.name)
+        )
+        const portionRate = it.qtyPerPortion ?? b1Item?.qtyPerPortion ?? it.defaultQtyPerPortion ?? 0.05
+
+        return {
+          ...it,
+          ingredientName: it.ingredientName || it.name,
+          handlingType: it.handlingType || "DIRECT_USE",
           unit: it.unit,
-          orderedQty: Number((actualRemaining * it.qtyPerPortion).toFixed(2)),
+          qtyPerPortion: portionRate,
+          orderedQty: calcQty(portionRate, actualRemaining, it.unit),
           deliveredQty: 0,
           status: "WAITING",
-        }))
+        }
+      })
 
       localDeliveries[idx] = {
         ...item,
