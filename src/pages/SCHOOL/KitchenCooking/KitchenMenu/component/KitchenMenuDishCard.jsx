@@ -13,24 +13,31 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
     }
   }
 
+  const isLunch = mealType === "LUNCH"
+
   return (
     <div
-      className={`${styles.dishRow} ${mealType === "AFTERNOON" ? styles.afternoonDishRow : styles.lunchDishRow
-        } ${dish.isBatchCreated ? styles.dishRowClickable : ""}`}
+      className={`${styles.dishRow} ${
+        isLunch ? styles.lunchDishRow : styles.afternoonDishRow
+      } ${dish.isBatchCreated ? styles.dishRowClickable : ""}`}
       onClick={dish.isBatchCreated ? handleAction : undefined}
       role={dish.isBatchCreated ? "button" : undefined}
       tabIndex={dish.isBatchCreated ? 0 : undefined}
       title={
         dish.isBatchCreated
-          ? `Món "${dish.name}" đã lập lô chế biến - Bấm để xem chi tiết`
+          ? `Món "${dish.name}" đã lập lô chế biến — Bấm để xem chi tiết`
           : dish.name
       }
       aria-label={`${dish.name} - ${dish.isBatchCreated ? "Đã lập lô" : "Chưa tạo lô"}`}
     >
-      {/* 1. Tên món ăn: Rõ ràng, sạch sẽ, không nút thao tác thừa */}
-      <span className={styles.dishName}>{dish.name}</span>
+      <div className={styles.dishContent}>
+        {/* Chấm bullet tròn nhỏ giống danh sách thực đơn Dinh dưỡng */}
+        <span className={isLunch ? styles.dishDotLunch : styles.dishDotAfternoon} />
+        {/* Tên món ăn */}
+        <span className={styles.dishName}>{dish.name}</span>
+      </div>
 
-      {/* 2. Trạng thái nếu đã lập lô */}
+      {/* Trạng thái nếu đã lập lô */}
       {dish.isBatchCreated && (
         <div className={styles.actionWrap}>
           <span className={styles.badgeBatchDone}>

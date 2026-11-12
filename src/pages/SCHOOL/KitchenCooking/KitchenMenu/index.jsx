@@ -88,21 +88,37 @@ export default function KitchenMenu() {
     }
   }, [weekInfo])
 
-  // 5. Kết hợp schoolDays với dữ liệu món ăn theo từng ngày từ API thực
+  // Tiêu đề động của thực đơn tuần theo dữ liệu
+  const menuTitle = useMemo(() => {
+    if (apiWeekData?.title) return apiWeekData.title
+    if (selectedWeekObj?.weekNumber) return `Thực đơn tuần ${selectedWeekObj.weekNumber}`
+    return selectedWeekObj?.label || "Thực đơn tuần"
+  }, [apiWeekData, selectedWeekObj])
+
+  // Khối lớp áp dụng (Toàn trường hoặc danh sách khối cụ thể)
+  const targetScope = useMemo(() => {
+    return apiWeekData?.targetScope || "Toàn trường (Khối 1 – 5)"
+  }, [apiWeekData])
+
+  // 5. Kết hợp schoolDays với dữ liệu món ăn theo từng ngày từ API thực & ngày nghỉ cấu hình từ BGH
   const processedDays = useMemo(() => {
     if (!weekInfo?.schoolDays) return []
+    const holidays = currentAcademicYearConfig?.holidays || []
 
     return weekInfo.schoolDays.map((sd) => {
+      const holidayMatch = holidays.find((h) => h.date === sd.dateISO)
       const apiDay = apiWeekData?.days?.find(
         (d) => d.date === sd.dateVN || d.rawDate === sd.dateISO || d.date === sd.dateISO
       )
 
       return {
         ...sd,
+        isHoliday: Boolean(holidayMatch) || Boolean(apiDay?.isHoliday),
+        holidayReason: holidayMatch?.reason || apiDay?.holidayReason || "Ngày nghỉ toàn trường",
         meals: apiDay?.meals || { LUNCH: { dishes: [] }, AFTERNOON: { dishes: [] } },
       }
     })
-  }, [weekInfo, apiWeekData])
+  }, [weekInfo, apiWeekData, currentAcademicYearConfig])
 
   // 6. Thống kê tổng số món theo ca ăn đang chọn
   const stats = useMemo(() => {
@@ -182,8 +198,10 @@ export default function KitchenMenu() {
 
   return (
     <div className={styles.pageContainer}>
-      {/* 1. Header: Tiêu đề, Duyệt BGH, Bộ lọc Năm học & Tuần học, Ca ăn, KPI */}
+      {/* 1. Header: Tiêu đề động, Khối lớp, Duyệt BGH, Bộ lọc Năm học & Tuần học, Ca ăn, KPI */}
       <KitchenMenuHeader
+        menuTitle={menuTitle}
+        targetScope={targetScope}
         academicYear={academicYear}
         academicYearOptions={availableAcademicYears}
         onAcademicYearChange={handleAcademicYearChange}
