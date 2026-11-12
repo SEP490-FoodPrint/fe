@@ -9,6 +9,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   Info,
+  Copy,
+  Loader2,
 } from "lucide-react"
 import styles from "./CreateMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
@@ -18,6 +20,7 @@ import {
   parseDateVNToISO,
   formatDateVN,
   getSchoolWeekScheduleFromDate,
+  menuWeekMeals,
 } from "src/services/MenuService/adapter"
 
 import CreateMenuHeader from "../component/CreateMenuHeader"
@@ -164,8 +167,10 @@ export default function CreateMenu() {
     tab: "DISHES",
   })
 
-  // 5. Modal Xác nhận gửi duyệt & Toast
+  // 5. Modal Xác nhận gửi duyệt, Modal Sao chép tuần trước & Toast
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [isCopying, setIsCopying] = useState(false)
+  const [showCopyConfirmModal, setShowCopyConfirmModal] = useState(false)
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = "success") => {
@@ -295,6 +300,157 @@ export default function CreateMenu() {
     })
     return count
   }, [schoolDays, weeklyMeals])
+
+  // 6. Xử lý Sao chép từ thực đơn tuần trước
+  const handleTriggerCopyPreviousWeek = async () => {
+    const currentMondayISO = schoolDays[0]?.dateISO
+    if (!currentMondayISO) {
+      showToast("Chưa xác định được tuần học hiện tại", "warning")
+      return
+    }
+
+    // Nếu tuần này đã có món ăn, hỏi xác nhận để tránh mất dữ liệu dở dang
+    if (totalWeeklyDishesCount > 0) {
+      setShowCopyConfirmModal(true)
+      return
+    }
+
+    // Nếu tuần hiện tại đang trống, thực hiện sao chép ngay
+    await executeCopyPreviousWeek()
+  }
+
+  const executeCopyPreviousWeek = async () => {
+    setIsCopying(true)
+    setShowCopyConfirmModal(false)
+
+    try {
+      const currentMondayISO = schoolDays[0]?.dateISO
+      if (!currentMondayISO) throw new Error("Chưa có ngày bắt đầu tuần")
+
+      // Tính ngày Thứ Hai tuần trước (-7 ngày)
+      const prevDate = new Date(`${currentMondayISO}T00:00:00Z`)
+      prevDate.setUTCDate(prevDate.getUTCDate() - 7)
+      const prevMondayISO = prevDate.toISOString().slice(0, 10)
+
+      let sourceDays = []
+      let sourceLabel = "tuần trước"
+
+      // Bước 1: Thử lấy lịch thực đơn tuần trước qua MenuService.getWeekSchedule
+      try {
+        const prevScheduleRes = await MenuService.getWeekSchedule(prevMondayISO)
+        const days = prevScheduleRes?.data?.days || []
+        const hasAnyDishes = days.some(
+          (d) =>
+            (d.meals?.LUNCH?.dishes?.length || 0) > 0 ||
+            (d.meals?.AFTERNOON?.dishes?.length || 0) > 0
+        )
+        if (hasAnyDishes) {
+          sourceDays = days
+          sourceLabel = prevScheduleRes?.data?.weekLabel || "tuần trước"
+        }
+      } catch (err) {
+        console.warn("Không tải được schedule tuần trước:", err)
+      }
+
+      // Bước 2: Nếu tuần trước rỗng, tìm thực đơn đã có gần nhất
+      if (!sourceDays.length) {
+        try {
+          const menusRes = await MenuService.getMenus({ limit: 10 })
+          const menuList = Array.isArray(menusRes?.data)
+            ? menusRes.data
+            : Array.isArray(menusRes)
+            ? menusRes
+            : []
+          const prevMenu =
+            menuList.find(
+              (m) => m.weekStartDate && m.weekStartDate < currentMondayISO
+            ) || menuList.find((m) => m.weekStartDate !== currentMondayISO)
+
+          if (prevMenu?.id) {
+            const detailRes = await http.get(`/v1/menus/${prevMenu.id}`, {
+              notifyOnError: false,
+            })
+            if (detailRes?.data) {
+              sourceDays = menuWeekMeals(detailRes.data)
+              sourceLabel = prevMenu.title || `thực đơn ${prevMenu.weekStartDate}`
+            }
+          }
+        } catch (err) {
+          console.warn("Không tìm thấy thực đơn gần nhất:", err)
+        }
+      }
+
+      // Nếu không tìm thấy thực đơn nào trước đó trên hệ thống
+      if (!sourceDays.length) {
+        showToast(
+          "Không tìm thấy dữ liệu thực đơn của tuần trước để sao chép",
+          "warning"
+        )
+        return
+      }
+
+      // Bước 3: Ánh xạ thực đơn theo các thứ trong tuần (Thứ Hai -> Thứ Sáu)
+      const newWeeklyMeals = { ...weeklyMeals }
+      let copiedCount = 0
+
+      schoolDays.forEach((sd, index) => {
+        if (sd.isHoliday) return
+
+        const srcDay =
+          sourceDays[index] ||
+          sourceDays.find((d, dIdx) => dIdx === index) ||
+          sourceDays.find((d) => d.targetDayOfWeek === (index + 2))
+        if (!srcDay) return
+
+        const lunchDishes = (srcDay.meals?.LUNCH?.dishes || []).map((d) => ({
+          ...d,
+        }))
+        const afternoonDishes = (
+          srcDay.meals?.AFTERNOON?.dishes || []
+        ).map((d) => ({ ...d }))
+
+        const seasonings = Array.isArray(srcDay.seasonings)
+          ? srcDay.seasonings.map((s) => ({ ...s }))
+          : []
+
+        const seasoningsByMeal = srcDay.seasoningsByMeal
+          ? {
+              LUNCH: (srcDay.seasoningsByMeal.LUNCH || []).map((s) => ({
+                ...s,
+              })),
+              AFTERNOON: (srcDay.seasoningsByMeal.AFTERNOON || []).map((s) => ({
+                ...s,
+              })),
+            }
+          : { LUNCH: [], AFTERNOON: [] }
+
+        newWeeklyMeals[sd.dateISO] = {
+          LUNCH: lunchDishes,
+          AFTERNOON: afternoonDishes,
+          seasonings,
+          seasoningsByMeal,
+          portionGroupsByMeal: srcDay.portionGroupsByMeal || {},
+          useDishRecipes: srcDay.useDishRecipes,
+        }
+
+        copiedCount += lunchDishes.length + afternoonDishes.length
+      })
+
+      setWeeklyMeals(newWeeklyMeals)
+      showToast(
+        `Đã sao chép thành công ${copiedCount} món ăn từ ${sourceLabel}!`,
+        "success"
+      )
+    } catch (error) {
+      console.error("Lỗi khi sao chép thực đơn tuần trước:", error)
+      showToast(
+        "Không thể sao chép thực đơn: " + (error.message || "Lỗi xử lý"),
+        "warning"
+      )
+    } finally {
+      setIsCopying(false)
+    }
+  }
 
   // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
   const buildWeeklyMenuPayload = () => {
@@ -586,6 +742,24 @@ export default function CreateMenu() {
               <CalendarDays size={18} />
               <span>Bảng thực đơn tuần (Thứ Hai – Thứ Sáu)</span>
             </h3>
+
+            {/* Nút Sao chép thực đơn tuần trước */}
+            <button
+              type="button"
+              className={styles.copyPrevWeekBtn}
+              onClick={handleTriggerCopyPreviousWeek}
+              disabled={isCopying}
+              title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
+            >
+              {isCopying ? (
+                <Loader2 size={15} className={styles.spin} />
+              ) : (
+                <Copy size={15} />
+              )}
+              <span>
+                {isCopying ? "Đang sao chép..." : "Sao chép từ tuần trước"}
+              </span>
+            </button>
           </div>
 
           <CreateMenuWeeklyGrid
@@ -633,6 +807,52 @@ export default function CreateMenu() {
         selectedAllergyOption="OPTION_2"
         conflictCount={0}
       />
+
+      {/* Modal xác nhận sao chép từ tuần trước */}
+      {showCopyConfirmModal && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) =>
+            e.target === e.currentTarget &&
+            !isCopying &&
+            setShowCopyConfirmModal(false)
+          }
+        >
+          <div className={styles.confirmModalBox}>
+            <div className={styles.confirmModalHeader}>
+              <div className={styles.confirmModalIconWrap}>
+                <Copy size={20} />
+              </div>
+              <div className={styles.confirmModalHeaderContent}>
+                <h3 className={styles.confirmModalTitle}>
+                  Sao chép thực đơn tuần trước?
+                </h3>
+                <p className={styles.confirmModalDesc}>
+                  Tuần hiện tại đang có <strong>{totalWeeklyDishesCount}</strong> món ăn. Hành động này sẽ thay thế các món ăn hiện có bằng thực đơn của tuần trước. Bạn có chắc chắn muốn tiếp tục?
+                </p>
+              </div>
+            </div>
+            <div className={styles.confirmModalFooter}>
+              <button
+                type="button"
+                className={styles.confirmCancelBtn}
+                onClick={() => setShowCopyConfirmModal(false)}
+                disabled={isCopying}
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                className={styles.confirmAcceptBtn}
+                onClick={executeCopyPreviousWeek}
+                disabled={isCopying}
+              >
+                {isCopying ? "Đang sao chép..." : "Xác nhận sao chép"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
