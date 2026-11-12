@@ -7,6 +7,7 @@ import {
   apiGetClasses,
   apiGetEligibleTeachers,
   apiHomeroomTeacher,
+  apiImportClasses,
   apiUpdateClass,
 } from "./urls"
 
@@ -27,6 +28,10 @@ const changeClassStatus = (classId, status) =>
 const copyClasses = (fromAcademicYear, toAcademicYear) =>
   http.post(apiCopyClasses, { fromAcademicYear, toAcademicYear }, silent)
 
+// rows: các dòng đã đọc từ file Excel; dryRun = true chỉ kiểm tra, không lưu.
+const importClasses = (academicYear, rows, dryRun) =>
+  http.post(apiImportClasses, { academicYear, dryRun, rows }, silent)
+
 const ClassService = {
   getClasses,
   getAcademicYears,
@@ -37,6 +42,7 @@ const ClassService = {
   updateClass,
   changeClassStatus,
   copyClasses,
+  importClasses,
 }
 
 export default ClassService

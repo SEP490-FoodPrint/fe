@@ -11,7 +11,21 @@ import ClassFormDialog from "./component/ClassFormDialog"
 import ClassStatusDialog from "./component/ClassStatusDialog"
 import ClassTable from "./component/ClassTable"
 import CopyClassesDialog from "./component/CopyClassesDialog"
+import ImportClassesDialog from "./component/ImportClassesDialog"
+import { downloadClassList } from "./classExcel"
 import "./style.scss"
+
+const EXPORT_PAGE_SIZE = 100
+
+// Xuất đủ mọi lớp của niên khóa, không chỉ trang đang hiển thị.
+const fetchAllClasses = async academicYear => {
+  const items = []
+  for (let page = 1; ; page += 1) {
+    const response = await ClassService.getClasses({ academicYear, page, limit: EXPORT_PAGE_SIZE })
+    items.push(...response.data.items)
+    if (!response.data.pagination?.hasNext) return items
+  }
+}
 
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
 const YEAR_PATTERN = /^(\d{4})-(\d{4})$/
@@ -43,6 +57,8 @@ function ClassAssignment() {
   const [form, setForm] = useState(null)
   const [statusItem, setStatusItem] = useState(null)
   const [copyOpen, setCopyOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
+  const [exporting, setExporting] = useState(false)
   const [refresh, setRefresh] = useState(0)
 
   useEffect(() => {
@@ -136,6 +152,28 @@ function ClassAssignment() {
     notice({ msg: `Đã sao chép ${created} lớp sang niên khóa ${result?.toAcademicYear}${skippedText}` })
   }
 
+  const handleImported = result => {
+    setImportOpen(false)
+    const skipped = result?.summary?.skip || 0
+    const skippedText = skipped ? `; bỏ qua ${skipped} lớp đã có` : ""
+    if (result?.academicYear) setAcademicYear(result.academicYear)
+    setRefresh(value => value + 1)
+    notice({ msg: `Đã nhập ${result?.created?.length || 0} lớp vào niên khóa ${result?.academicYear}${skippedText}` })
+  }
+
+  const handleExport = async () => {
+    if (exporting) return
+    setExporting(true)
+    try {
+      const items = await fetchAllClasses(academicYear)
+      await downloadClassList({ academicYear, classes: items })
+    } catch {
+      notice({ isSuccess: false, msg: "Không thể xuất danh sách lớp. Vui lòng thử lại." })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   return (
     <div className="class-assignment-page">
       <ClassAssignmentHeader
@@ -146,6 +184,11 @@ function ClassAssignment() {
         canManage={canManage}
         onCreate={() => setForm({ mode: "create", item: null })}
         onCopy={() => setCopyOpen(true)}
+        canImport={writableYears.length > 0}
+        canExport={!loading && classes.length > 0}
+        exporting={exporting}
+        onImport={() => setImportOpen(true)}
+        onExport={handleExport}
       />
       {configuredLoaded && !writableYears.length && (
         <Alert
@@ -203,6 +246,13 @@ function ClassAssignment() {
         writableYears={writableYears}
         onClose={() => setCopyOpen(false)}
         onDone={handleCopied}
+      />
+      <ImportClassesDialog
+        open={importOpen}
+        academicYear={academicYear}
+        writableYears={writableYears}
+        onClose={() => setImportOpen(false)}
+        onDone={handleImported}
       />
     </div>
   )

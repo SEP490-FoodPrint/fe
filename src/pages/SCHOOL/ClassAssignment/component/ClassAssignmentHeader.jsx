@@ -1,7 +1,7 @@
-import React from "react"
+import React, { useState } from "react"
 import PropTypes from "prop-types"
-import { Button, MenuItem, TextField } from "@mui/material"
-import { Copy, Plus } from "lucide-react"
+import { Button, ListItemIcon, ListItemText, Menu, MenuItem, TextField } from "@mui/material"
+import { ChevronDown, Copy, Download, FileSpreadsheet, Plus, Upload } from "lucide-react"
 import styles from "./ClassAssignmentHeader.module.scss"
 
 function ClassAssignmentHeader({
@@ -12,7 +12,18 @@ function ClassAssignmentHeader({
   canManage,
   onCreate,
   onCopy,
+  canImport,
+  canExport,
+  exporting,
+  onImport,
+  onExport,
 }) {
+  const [excelMenu, setExcelMenu] = useState(null)
+  const runExcel = action => {
+    setExcelMenu(null)
+    action()
+  }
+
   return (
     <header className={styles.header}>
       <div>
@@ -40,6 +51,39 @@ function ClassAssignmentHeader({
             </MenuItem>
           ))}
         </TextField>
+        <Button
+          variant="outlined"
+          startIcon={<FileSpreadsheet size={18} />}
+          endIcon={<ChevronDown size={16} />}
+          onClick={event => setExcelMenu(event.currentTarget)}
+          aria-haspopup="menu"
+          aria-expanded={Boolean(excelMenu)}
+          disabled={exporting}
+        >
+          {exporting ? "Đang xuất..." : "Excel"}
+        </Button>
+        <Menu
+          anchorEl={excelMenu}
+          open={Boolean(excelMenu)}
+          onClose={() => setExcelMenu(null)}
+          anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+          transformOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          {canImport && (
+            <MenuItem onClick={() => runExcel(onImport)}>
+              <ListItemIcon>
+                <Upload size={16} />
+              </ListItemIcon>
+              <ListItemText primary="Nhập lớp từ Excel" secondary="Có file mẫu, xem trước trước khi lưu" />
+            </MenuItem>
+          )}
+          <MenuItem onClick={() => runExcel(onExport)} disabled={!canExport}>
+            <ListItemIcon>
+              <Download size={16} />
+            </ListItemIcon>
+            <ListItemText primary="Xuất danh sách lớp" secondary={`Niên khóa ${academicYear || "đang chọn"}`} />
+          </MenuItem>
+        </Menu>
         {canManage && (
           <>
             <Button variant="outlined" startIcon={<Copy size={18} />} onClick={onCopy}>
@@ -63,6 +107,11 @@ ClassAssignmentHeader.propTypes = {
   canManage: PropTypes.bool.isRequired,
   onCreate: PropTypes.func.isRequired,
   onCopy: PropTypes.func.isRequired,
+  canImport: PropTypes.bool.isRequired,
+  canExport: PropTypes.bool.isRequired,
+  exporting: PropTypes.bool.isRequired,
+  onImport: PropTypes.func.isRequired,
+  onExport: PropTypes.func.isRequired,
 }
 
 export default ClassAssignmentHeader
