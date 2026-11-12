@@ -4,7 +4,7 @@ export const COOKING_MODES = {
 };
 
 export function getDishBatchState(batches, dishId, mealType, menuDayId) {
-  const matches = batches.filter(batch =>
+  const matches = (batches || []).filter(batch =>
     batch.mealType === mealType &&
     (!menuDayId || batch.menuDayId === menuDayId) &&
     (Array.isArray(batch.dishes) && batch.dishes.length

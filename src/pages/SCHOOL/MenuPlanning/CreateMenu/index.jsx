@@ -11,6 +11,7 @@ import {
   Info,
   Copy,
   Loader2,
+  RotateCcw,
 } from "lucide-react"
 import styles from "./CreateMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
@@ -171,6 +172,8 @@ export default function CreateMenu() {
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
   const [isCopying, setIsCopying] = useState(false)
   const [showCopyConfirmModal, setShowCopyConfirmModal] = useState(false)
+  const [preCopyMealsSnapshot, setPreCopyMealsSnapshot] = useState(null)
+  const [hasCopiedPreviousWeek, setHasCopiedPreviousWeek] = useState(false)
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = "success") => {
@@ -188,6 +191,8 @@ export default function CreateMenu() {
 
     setLoadingSchedule(true)
     setAcademicWeek(null)
+    setHasCopiedPreviousWeek(false)
+    setPreCopyMealsSnapshot(null)
     MenuService.getWeekSchedule(weekStart)
       .then((res) => {
         if (!active) return
@@ -241,6 +246,8 @@ export default function CreateMenu() {
     setCurrentDateVN(newDateVN)
     setAcademicWeek(null)
     setMenuTitle("")
+    setHasCopiedPreviousWeek(false)
+    setPreCopyMealsSnapshot(null)
   }, [currentDateVN])
 
   // Mở Popup Modal Chi tiết ngày (50/50)
@@ -326,6 +333,9 @@ export default function CreateMenu() {
     try {
       const currentMondayISO = schoolDays[0]?.dateISO
       if (!currentMondayISO) throw new Error("Chưa có ngày bắt đầu tuần")
+
+      // Lưu snapshot của thực đơn hiện tại trước khi thực hiện sao chép
+      const currentSnapshot = JSON.parse(JSON.stringify(weeklyMeals))
 
       // Tính ngày Thứ Hai tuần trước (-7 ngày)
       const prevDate = new Date(`${currentMondayISO}T00:00:00Z`)
@@ -437,6 +447,8 @@ export default function CreateMenu() {
       })
 
       setWeeklyMeals(newWeeklyMeals)
+      setPreCopyMealsSnapshot(currentSnapshot)
+      setHasCopiedPreviousWeek(true)
       showToast(
         `Đã sao chép thành công ${copiedCount} món ăn từ ${sourceLabel}!`,
         "success"
@@ -450,6 +462,15 @@ export default function CreateMenu() {
     } finally {
       setIsCopying(false)
     }
+  }
+
+  // 7. Xử lý Bỏ sao chép (Undo khôi phục thực đơn trước khi sao chép)
+  const handleUndoCopyPreviousWeek = () => {
+    if (!preCopyMealsSnapshot) return
+    setWeeklyMeals(preCopyMealsSnapshot)
+    setHasCopiedPreviousWeek(false)
+    setPreCopyMealsSnapshot(null)
+    showToast("Đã bỏ sao chép và khôi phục thực đơn trước đó!", "info")
   }
 
   // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
@@ -743,23 +764,41 @@ export default function CreateMenu() {
               <span>Bảng thực đơn tuần (Thứ Hai – Thứ Sáu)</span>
             </h3>
 
-            {/* Nút Sao chép thực đơn tuần trước */}
-            <button
-              type="button"
-              className={styles.copyPrevWeekBtn}
-              onClick={handleTriggerCopyPreviousWeek}
-              disabled={isCopying}
-              title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
-            >
-              {isCopying ? (
-                <Loader2 size={15} className={styles.spin} />
-              ) : (
-                <Copy size={15} />
+            <div className={styles.headerActionsWrap}>
+              {hasCopiedPreviousWeek && (
+                <button
+                  type="button"
+                  className={styles.undoCopyBtn}
+                  onClick={handleUndoCopyPreviousWeek}
+                  title="Hủy bỏ sao chép và khôi phục lại thực đơn trước khi sao chép"
+                >
+                  <RotateCcw size={14} />
+                  <span>Bỏ sao chép</span>
+                </button>
               )}
-              <span>
-                {isCopying ? "Đang sao chép..." : "Sao chép từ tuần trước"}
-              </span>
-            </button>
+
+              {/* Nút Sao chép thực đơn tuần trước */}
+              <button
+                type="button"
+                className={styles.copyPrevWeekBtn}
+                onClick={handleTriggerCopyPreviousWeek}
+                disabled={isCopying}
+                title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
+              >
+                {isCopying ? (
+                  <Loader2 size={15} className={styles.spin} />
+                ) : (
+                  <Copy size={15} />
+                )}
+                <span>
+                  {isCopying
+                    ? "Đang sao chép..."
+                    : hasCopiedPreviousWeek
+                    ? "Sao chép lại"
+                    : "Sao chép từ tuần trước"}
+                </span>
+              </button>
+            </div>
           </div>
 
           <CreateMenuWeeklyGrid

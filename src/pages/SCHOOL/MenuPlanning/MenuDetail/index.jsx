@@ -186,9 +186,11 @@ export default function MenuDetail() {
               const rows =
                 updatedDay.seasoningsByMeal?.[mealType] ||
                 (mealType === "LUNCH" ? updatedDay.seasonings || [] : [])
+              const pGroups = updatedDay.portionGroupsByMeal?.[mealType]
               meals.push({
                 mealType,
                 dishes: mealDishes,
+                ...(pGroups?.length ? { portionGroups: pGroups } : {}),
                 seasonings: rows.map((s) => ({
                   ingredientEntryId: s.ingredientEntryId || s.id,
                   quantityPerPortion: String(s.quantityPerPortion ?? s.portionQty),

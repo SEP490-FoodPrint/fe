@@ -749,6 +749,276 @@
   }
 }
 
+/* ========================================================
+   CẢNH BÁO DỊ ỨNG & MÓN ĂN THAY THẾ CHO HỌC SINH DỊ ỨNG
+   ======================================================== */
+.dishAllergyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 3px 0 3px 12px;
+}
+
+.dishAllergyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.dishSubstituteActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #ffffff;
+  color: #0a8066;
+  border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #059669;
+  }
+}
+
+.substituteDishCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin: 2px 0 4px 14px;
+}
+
+.subLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.subArrow {
+  color: #059669;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.subBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.subDishName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #14532d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subSafeNote {
+  font-size: 10.5px;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+.subRemoveBtn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #e11d48;
+    background-color: #ffe4e6;
+  }
+}
+
+/* Modal chọn món riêng cho học sinh dị ứng */
+.subModalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.subModalContainer {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: scaleUp 0.18s ease-out;
+}
+
+.subModalHeader {
+  padding: 14px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8fafc;
+}
+
+.subModalTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subModalTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subModalNotice {
+  padding: 10px 16px;
+  background-color: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+.subModalSearchWrap {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.subSearchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    width: 100%;
+    color: #0f172a;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+}
+
+.subCatalogList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+}
+
+.subCatalogCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  transition: all 0.12s ease;
+
+  &:hover {
+    border-color: #0a8066;
+    background-color: #f0fdf4;
+  }
+}
+
+.subCatalogCardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subCatalogDishName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.subCatalogDishMeta {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.btnPickSub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #0a8066;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.subModalFooter {
+  padding: 10px 16px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f8fafc;
+}
+
+
 /* CATALOG LIST SCROLL */
 .catalogListScroll {
   flex: 1;
@@ -1083,3 +1353,273 @@
     border-color: #08604d;
   }
 }
+
+/* ========================================================
+   CẢNH BÁO DỊ ỨNG & MÓN ĂN THAY THẾ CHO HỌC SINH DỊ ỨNG
+   ======================================================== */
+.dishAllergyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 3px 0 3px 12px;
+}
+
+.dishAllergyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.dishSubstituteActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #ffffff;
+  color: #0a8066;
+  border: 1px solid #a7f3d0;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #059669;
+  }
+}
+
+.substituteDishCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 4px;
+  padding: 5px 8px;
+  margin: 2px 0 4px 14px;
+}
+
+.subLeft {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.subArrow {
+  color: #059669;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.subBadge {
+  font-size: 10px;
+  font-weight: 700;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.subDishName {
+  font-size: 12px;
+  font-weight: 600;
+  color: #14532d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subSafeNote {
+  font-size: 10.5px;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+.subRemoveBtn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #e11d48;
+    background-color: #ffe4e6;
+  }
+}
+
+/* Modal chọn món riêng cho học sinh dị ứng */
+.subModalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(2px);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.subModalContainer {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 580px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  animation: scaleUp 0.18s ease-out;
+}
+
+.subModalHeader {
+  padding: 14px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #f8fafc;
+}
+
+.subModalTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subModalTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subModalNotice {
+  padding: 10px 16px;
+  background-color: #eff6ff;
+  border-bottom: 1px solid #dbeafe;
+  font-size: 12px;
+  color: #1e40af;
+  line-height: 1.4;
+}
+
+.subModalSearchWrap {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.subSearchBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+
+  input {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 13px;
+    width: 100%;
+    color: #0f172a;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+  }
+}
+
+.subCatalogList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 380px;
+}
+
+.subCatalogCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  transition: all 0.12s ease;
+
+  &:hover {
+    border-color: #0a8066;
+    background-color: #f0fdf4;
+  }
+}
+
+.subCatalogCardLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.subCatalogDishName {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.subCatalogDishMeta {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.btnPickSub {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background-color: #0a8066;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+}
+
+.subModalFooter {
+  padding: 10px 16px;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  background-color: #f8fafc;
+}
+
