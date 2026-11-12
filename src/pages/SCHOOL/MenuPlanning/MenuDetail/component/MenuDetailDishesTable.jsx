@@ -48,11 +48,8 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
     <div className={styles.tableCard}>
       <div className={styles.cardHeader}>
         <div className={styles.headerTitleGroup}>
-          <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant</span>
-          <div className={styles.titleWithBadge}>
-            <h2 className={styles.cardTitle}>Cơ cấu món ăn & Định lượng nguyên liệu / suất</h2>
-            <span className={styles.dishCountBadge}>{dishes.length} món ăn</span>
-          </div>
+          <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant_menu</span>
+          <h2 className={styles.cardTitle}>Danh sách món ăn</h2>
         </div>
       </div>
 
@@ -126,7 +123,7 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
                         icon={<AllergyIcon aria-hidden="true" className={allergy.status === "loading" ? styles.loadingIcon : undefined} />}
                         label={allergy.label}
                       />
-                      {allergy.description && (
+                      {allergy.description && allergy.status === "conflict" && (
                         <span className={styles.allergyDescription}>{allergy.description}</span>
                       )}
                       {allergy.classes?.length > 0 && (

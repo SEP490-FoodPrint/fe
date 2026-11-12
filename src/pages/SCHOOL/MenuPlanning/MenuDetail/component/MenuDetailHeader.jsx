@@ -10,6 +10,19 @@ export default function MenuDetailHeader({
   const navigate = useNavigate()
   const canEdit = menu.status === "DRAFT" || menu.status === "REVISION_REQUESTED"
 
+  const displayTitle = React.useMemo(() => {
+    if (!menu) return "Thực đơn tuần"
+    if (menu.name && menu.name.startsWith("Thực đơn tuần")) {
+      return menu.name
+    }
+    const weekMatch = (menu.name || "").match(/tuần\s*(\d+)/i) || (menu.rawWeeklyTitle || "").match(/tuần\s*(\d+)/i)
+    const weekNum = weekMatch ? weekMatch[1] : null
+    const scope = menu.targetScope || ""
+    const gradeMatch = scope.match(/\((Khối[^)]+)\)/i) || scope.match(/(Khối\s*\d+\s*[-–]\s*\d+)/i)
+    const gradeText = gradeMatch ? gradeMatch[1] : "Khối 1 - 5"
+    return weekNum ? `Thực đơn tuần ${weekNum} - ${gradeText}` : `Thực đơn tuần - ${gradeText}`
+  }, [menu])
+
   const getStatusBadge = (status) => {
     switch (status) {
       case "REVISION_REQUESTED":
@@ -40,7 +53,7 @@ export default function MenuDetailHeader({
               {menu.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
             </span>
           </div>
-          <h1 className={styles.pageTitle}>{menu.name}</h1>
+          <h1 className={styles.pageTitle}>{displayTitle}</h1>
         </div>
 
         {/* Action Buttons */}

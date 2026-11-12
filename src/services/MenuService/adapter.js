@@ -414,7 +414,7 @@ export function getDishAllergyState(dish, check) {
   if (ingredientIds.some((id) => !check.ingredientIds.includes(id))) {
     return { status: "unknown", label: "Chưa đủ dữ liệu", description: "Chưa đối soát được đầy đủ nguyên liệu của món." };
   }
-  return { status: "clear", label: "Chưa ghi nhận dị ứng", description: "Theo hồ sơ dị ứng của các lớp hiện có." };
+  return { status: "clear", label: "Chưa ghi nhận dị ứng", description: "" };
 }
 
 /**
@@ -665,12 +665,35 @@ export function adaptBackendMenuDetailToView(
     : [];
   const allergyGroup = portionGroups.find((g) => !g.isDefault);
 
+  // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp
+  const targetScope = "Toàn trường (Khối 1 - 5)";
+  const weekMatch = (weeklyMenu.title || "").match(/tuần\s*(\d+)/i);
+  let weekNum = weekMatch ? weekMatch[1] : null;
+  if (!weekNum) {
+    const d = new Date(rawDate);
+    if (!isNaN(d.getTime())) {
+      const target = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const dayNr = (target.getUTCDay() + 6) % 7;
+      target.setUTCDate(target.getUTCDate() - dayNr + 3);
+      const firstThursday = target.getTime();
+      target.setUTCMonth(0, 1);
+      if (target.getUTCDay() !== 4) {
+        target.setUTCMonth(0, 1 + ((4 - target.getUTCDay()) + 7) % 7);
+      }
+      weekNum = 1 + Math.ceil((firstThursday - target.getTime()) / 604800000);
+    }
+  }
+  const gradeMatch = targetScope.match(/\((Khối[^)]+)\)/i);
+  const gradeText = gradeMatch ? gradeMatch[1] : "Khối 1 - 5";
+  const formattedTitle = weekNum ? `Thực đơn tuần ${weekNum} - ${gradeText}` : `Thực đơn tuần - ${gradeText}`;
+
   return {
     id: weeklyMenu.id,
     weeklyMenuId: weeklyMenu.id,
     menuDayId: currentDay.id,
     code: `TD-${rawDate.replace(/-/g, "")}-${targetMealType === "AFTERNOON" ? "02" : "01"}`,
-    name: weeklyMenu.title || `Thực đơn ${dateStr}`,
+    name: formattedTitle,
+    rawWeeklyTitle: weeklyMenu.title || "",
     date: dateStr,
     rawDate,
     mealType: targetMealType,
@@ -678,7 +701,7 @@ export function adaptBackendMenuDetailToView(
     weeklyStatus: normalizeStatus(weeklyMenu.status),
     hasMeal: dishes.length > 0 || seasonings.length > 0,
     mealTypeLabel: targetMealType === "AFTERNOON" ? "Chiều" : "Trưa",
-    targetScope: "Toàn trường (Khối 1 - 5)",
+    targetScope,
     portionCount: 210,
     hasAllergyMenu: Boolean(allergyGroup),
     allergyNote: allergyGroup ? allergyGroup.name : "Không có",
