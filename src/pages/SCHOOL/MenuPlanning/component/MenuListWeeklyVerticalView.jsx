@@ -433,28 +433,31 @@ export default function MenuListWeeklyVerticalView({
                 <div
                   className={`${styles.dayCard} ${
                     sd.isToday ? styles.todayDayCard : ""
-                  }`}
+                  } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
                 >
                   {/* HÀNG 1: Header Cột Ngày - CHIỀU CAO CỐ ĐỊNH 64px ĐỒNG BỘ CẢ 5 NGÀY */}
                   <div className={styles.dayHeader}>
                     <div className={styles.dayTitleRow}>
                       <div className={styles.dayTitleLeft}>
                         <span className={styles.dayLabel}>{sd.dayLabel}</span>
-                        {sd.isToday && (
-                          <span className={styles.todayPill}>Hôm nay</span>
-                        )}
                       </div>
 
-                      {/* Tiến độ ngày: Icon + Label ngắn gọn */}
-                      {progress && (
-                        <span
-                          className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                          title={progress.note ? `BGH: ${progress.note}` : `Tiến độ ngày: ${progress.label}`}
-                        >
-                          <ProgressIcon size={12} />
-                          <span>{progress.label}</span>
-                        </span>
-                      )}
+                      {/* Tiến độ ngày: Ẩn trạng thái "Đã duyệt" của từng thứ vì BGH duyệt cả tuần */}
+                      {progress &&
+                        (progress.type === "HOLIDAY" ||
+                          weekStatus !== "APPROVED") && (
+                          <span
+                            className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
+                            title={
+                              progress.note
+                                ? `BGH: ${progress.note}`
+                                : `Tiến độ ngày: ${progress.label}`
+                            }
+                          >
+                            <ProgressIcon size={12} />
+                            <span>{progress.label}</span>
+                          </span>
+                        )}
                     </div>
 
                     <div className={styles.dayDateRow}>
@@ -554,17 +557,6 @@ export default function MenuListWeeklyVerticalView({
                           ) : (
                             <div className={styles.emptySingleMealBox}>
                               <span className={styles.emptyMealText}>Chưa có thực đơn trưa</span>
-                              {canEditWeeklyMenu && (
-                                <button
-                                  type="button"
-                                  className={styles.addSingleMealBtn}
-                                  onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
-                                  title={`Thêm thực đơn bữa trưa cho ${sd.dayLabel}`}
-                                >
-                                  <Plus size={12} />
-                                  <span>Thêm bữa trưa</span>
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
@@ -638,17 +630,6 @@ export default function MenuListWeeklyVerticalView({
                           ) : (
                             <div className={styles.emptySingleMealBoxSm}>
                               <span className={styles.emptyMealText}>Chưa có thực đơn xế</span>
-                              {canEditWeeklyMenu && (
-                                <button
-                                  type="button"
-                                  className={styles.addSingleMealBtn}
-                                  onClick={() => onNavigateCreate(sd.dateISO, "AFTERNOON")}
-                                  title={`Thêm thực đơn bữa xế cho ${sd.dayLabel}`}
-                                >
-                                  <Plus size={12} />
-                                  <span>Thêm bữa xế</span>
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
