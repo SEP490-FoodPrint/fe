@@ -33,14 +33,14 @@ export default function MenuDetailHeader({
             <span className={styles.codePill}>{menu.code}</span>
             {getStatusBadge(menu.status)}
             <span className={styles.dateLabel}>
-              <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-              Ngày ăn: {menu.date}
+              <span className="material-symbols-outlined text-[15px]">calendar_today</span>
+              {menu.date}
+            </span>
+            <span className={styles.mealBadge}>
+              {menu.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
             </span>
           </div>
           <h1 className={styles.pageTitle}>{menu.name}</h1>
-          <p className={styles.pageSubtitle}>
-            Kế hoạch thực đơn dinh dưỡng bán trú đã được lập và đối soát an toàn theo quy chuẩn y tế học đường.
-          </p>
         </div>
 
         {/* Action Buttons */}

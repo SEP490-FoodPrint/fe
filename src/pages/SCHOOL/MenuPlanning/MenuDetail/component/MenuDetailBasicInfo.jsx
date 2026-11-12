@@ -6,41 +6,56 @@ export default function MenuDetailBasicInfo({ menu }) {
 
   return (
     <div className={styles.summaryBar}>
-      {/* Cột 1: Ngày & Ca ăn */}
-      <div className={styles.metricCol}>
-        <span className={styles.metricLabel}>Ngày & Ca phục vụ</span>
-        <div className={styles.metricValueRow}>
-          <span className="material-symbols-outlined text-[17px] text-[#0a8066]">calendar_today</span>
-          <span className={styles.metricValue}>{menu.date}</span>
-          <span className={styles.mealBadge}>
-            {menu.mealType === "LUNCH" ? "Bữa trưa" : "Bữa chiều"}
+      {/* 1: Ngày & Bữa ăn */}
+      <div className={styles.item}>
+        <span className={styles.label}>Ngày & Bữa ăn</span>
+        <div className={styles.valRow}>
+          <span className="material-symbols-outlined text-[18px] text-[#0a8066]">calendar_today</span>
+          <strong className={styles.val}>{menu.date}</strong>
+          <span className={styles.mealChip}>
+            {menu.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
           </span>
         </div>
-        <span className={styles.metricSub}>Bán trú trường học</span>
       </div>
 
-      <div className={styles.divider}></div>
+      <div className={styles.sep} />
 
-      {/* Cột 2: Khối lớp áp dụng */}
-      <div className={styles.metricCol}>
-        <span className={styles.metricLabel}>Khối lớp áp dụng</span>
-        <div className={styles.metricValueRow}>
-          <span className="material-symbols-outlined text-[17px] text-[#0a8066]">school</span>
-          <span className={styles.metricValueText}>{menu.targetScope || "Toàn trường"}</span>
+      {/* 2: Khối lớp áp dụng */}
+      <div className={styles.item}>
+        <span className={styles.label}>Phạm vi áp dụng</span>
+        <div className={styles.valRow}>
+          <span className="material-symbols-outlined text-[18px] text-[#0a8066]">school</span>
+          <strong className={styles.val}>{menu.targetScope || "Toàn trường"}</strong>
         </div>
-        <span className={styles.metricSub}>Phân bổ theo tháp dinh dưỡng</span>
       </div>
 
-      <div className={styles.divider}></div>
+      <div className={styles.sep} />
 
-      {/* Cột 3: CBYT phụ trách & Tiêu chuẩn */}
-      <div className={styles.metricCol}>
-        <span className={styles.metricLabel}>Cán bộ Y tế lập kế hoạch</span>
-        <div className={styles.metricValueRow}>
-          <span className="material-symbols-outlined text-[17px] text-[#0a8066]">verified_user</span>
-          <span className={styles.metricValueText}>BS. Nguyễn Thu Trang</span>
+      {/* 3: Số món */}
+      <div className={styles.item}>
+        <span className={styles.label}>Quy mô thực đơn</span>
+        <div className={styles.valRow}>
+          <span className="material-symbols-outlined text-[18px] text-[#0a8066]">restaurant_menu</span>
+          <strong className={styles.val}>{menu.dishes?.length || 0} món ăn</strong>
+          {menu.seasonings?.length > 0 && (
+            <span className={styles.subTag}>{menu.seasonings.length} loại gia vị</span>
+          )}
         </div>
-        <span className={styles.metricSub}>100% VietGAP từ NCC liên kết</span>
+      </div>
+
+      <div className={styles.sep} />
+
+      {/* 4: Phương án dị ứng */}
+      <div className={styles.item}>
+        <span className={styles.label}>Chế độ suất ăn</span>
+        <div className={styles.valRow}>
+          <span className={`material-symbols-outlined text-[18px] ${menu.hasAllergyMenu ? "text-amber-600" : "text-emerald-600"}`}>
+            {menu.hasAllergyMenu ? "shield_with_heart" : "check_circle"}
+          </span>
+          <strong className={styles.val}>
+            {menu.hasAllergyMenu ? "Có suất riêng dị ứng" : "100% Suất chuẩn"}
+          </strong>
+        </div>
       </div>
     </div>
   )

@@ -431,6 +431,11 @@ function selectedGroupDish(day, group) {
     name: chosen.Dish?.name || "",
     qty: chosen.ingredients?.[0] ? `${chosen.ingredients[0].quantityPerPortion}${chosen.ingredients[0].unit}` : "",
     ingredients: (chosen.ingredients || []).map(line => line.ingredient?.name).filter(Boolean),
+    ingredientDetails: (chosen.ingredients || []).map(line => ({
+      name: line.ingredient?.name || "",
+      quantityPerPortion: line.quantityPerPortion != null ? Number(line.quantityPerPortion) : null,
+      unit: line.unit || line.ingredient?.defaultUnit || "g",
+    })),
   };
 }
 
@@ -614,7 +619,9 @@ export function adaptBackendMenuDetailToView(
             ? d.ingredients.map((i) => ({
                 id: i.ingredientId,
                 name: i.ingredient?.name || "Nguyên liệu",
-                category: i.ingredient?.category || "Nguyên liệu",
+                category: i.ingredient?.ingredientCategory?.categoryName || i.ingredient?.category || "Nguyên liệu",
+                quantityPerPortion: i.quantityPerPortion != null ? Number(i.quantityPerPortion) : null,
+                unit: i.unit || i.ingredient?.defaultUnit || "g",
               }))
             : [],
           ingredientStandards: Array.isArray(d.ingredients)
