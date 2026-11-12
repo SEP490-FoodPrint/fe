@@ -10,6 +10,22 @@ const originalWindow = globalThis.window
 const originalStorage = globalThis.localStorage
 const id = n => `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`
 const ingredient = (n, quantity, unit = "g") => ({ ingredientId: id(n), quantityPerPortion: quantity, unit, ingredient: { name: `Ingredient ${n}` } })
+
+test("substitute dish matches all grouped child batches and preserves day and meal scope", async () => {
+  const {getDishBatchState} = await server.ssrLoadModule("/src/services/KitchenService/adapter.js")
+  const batch = (n, day, mealType, dishes) => ({id:id(n),batchCode:`CB${n}`,menuDayId:day,mealType,dishId:null,dishes:dishes.map(d=>({dishId:d}))})
+  const rows = [batch(30,id(2),"LUNCH",[id(3),id(9)]),batch(31,id(2),"LUNCH",[id(9)]),batch(32,id(5),"LUNCH",[id(9)]),batch(33,id(2),"AFTERNOON",[id(9)])]
+  assert.deepEqual(getDishBatchState(rows,id(9),"LUNCH",id(2)),{isBatchCreated:true,batchCode:"CB30, CB31",batchId:id(30)})
+  assert.equal(getDishBatchState(rows,id(99),"LUNCH",id(2)).isBatchCreated,false)
+})
+
+test("completed child can record its own pending dish samples while parent remains incomplete", async () => {
+  const {canRecordBatchSample} = await server.ssrLoadModule("/src/services/KitchenService/adapter.js")
+  const child = {status:"COMPLETED",BatchGroup:{status:"CONFIRMED"},dishes:[{dishId:id(3)},{dishId:id(9)}],retainedFoodSamples:[{dishId:id(3)}]}
+  assert.equal(canRecordBatchSample(child),true)
+  assert.equal(canRecordBatchSample({...child,status:"CONFIRMED"}),false)
+  assert.equal(canRecordBatchSample({...child,retainedFoodSamples:[{dishId:id(3)},{dishId:id(9)}]}),false)
+})
 const dish = (mealType, n, quantity) => ({ mealType, dishId: id(n), Dish: { name: `Dish ${n}` }, ingredients: [ingredient(n + 10, quantity)] })
 const snapshot = () => ({
   id: id(1), status: "DRAFT", weekStartDate: "2026-11-02", title: "Week",

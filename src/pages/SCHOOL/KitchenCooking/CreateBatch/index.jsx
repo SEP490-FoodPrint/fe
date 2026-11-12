@@ -5,6 +5,7 @@ import notice from "src/components/Notice";
 import ROUTER from "src/router/ROUTER";
 import MenuService from "src/services/MenuService";
 import KitchenService from "src/services/KitchenService";
+import { getDishBatchState } from "src/services/KitchenService/adapter";
 import CreateBatchHeader from "./component/CreateBatchHeader";
 import CreateBatchKanban from "./component/CreateBatchKanban";
 import CreateBatchDetailModal from "./component/CreateBatchDetailModal";
@@ -62,11 +63,7 @@ export default function CreateBatch() {
 
           const lunchDishes = todayDay.meals.LUNCH?.dishes || [];
           lunchDishes.forEach((d, idx) => {
-            const matchedBatch = existingBatches.find(
-              (b) =>
-                (b.dishId === d.id || b.dishId === d.dishId) &&
-                b.mealType === "LUNCH"
-            );
+            const batchState = getDishBatchState(existingBatches, d.dishId || d.id, "LUNCH", todayDay.menuDayId);
             loadedDishes.push({
               id: d.id || d.dishId || `dish-lunch-${idx}`,
               dishId: d.dishId || d.id,
@@ -76,20 +73,14 @@ export default function CreateBatch() {
               name: d.name,
               portionStandard:
                 demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
-              isBatchCreated: Boolean(matchedBatch),
-              batchCode: matchedBatch?.batchCode || "",
-              batchId: matchedBatch?.id || "",
+              ...batchState,
               ingredients: d.ingredients || [],
             });
           });
 
           const afternoonDishes = todayDay.meals.AFTERNOON?.dishes || [];
           afternoonDishes.forEach((d, idx) => {
-            const matchedBatch = existingBatches.find(
-              (b) =>
-                (b.dishId === d.id || b.dishId === d.dishId) &&
-                b.mealType === "AFTERNOON"
-            );
+            const batchState = getDishBatchState(existingBatches, d.dishId || d.id, "AFTERNOON", todayDay.menuDayId);
             loadedDishes.push({
               id: d.id || d.dishId || `dish-afternoon-${idx}`,
               dishId: d.dishId || d.id,
@@ -99,9 +90,7 @@ export default function CreateBatch() {
               name: d.name,
               portionStandard:
                 demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
-              isBatchCreated: Boolean(matchedBatch),
-              batchCode: matchedBatch?.batchCode || "",
-              batchId: matchedBatch?.id || "",
+              ...batchState,
               ingredients: d.ingredients || [],
             });
           });
@@ -143,35 +132,25 @@ export default function CreateBatch() {
       }
 
       const dishCode = res.batches.map((b) => b.batchCode).join(", ");
-      const firstBatchId = res.batches[0]?.id;
 
-      // Cập nhật danh sách món ăn: món chuyển sang trạng thái Đã tạo lô
+      // Backend plans the whole meal, including manually selected substitutes.
       setDishes((prev) =>
-        prev.map((d) =>
-          d.id === dishToCreate.id
-            ? {
-              ...d,
-              isBatchCreated: true,
-              batchCode: dishCode,
-              batchId: firstBatchId,
-            }
-            : d
-        )
+        prev.map((d) => d.menuDayId === dishToCreate.menuDayId && d.mealType === dishToCreate.mealType
+          ? {...d, ...getDishBatchState(res.batches, d.dishId || d.id, d.mealType.toUpperCase(), d.menuDayId)}
+          : d)
       );
 
       setSelectedDish((prev) =>
         prev?.id === dishToCreate.id
           ? {
             ...prev,
-            isBatchCreated: true,
-            batchCode: dishCode,
-            batchId: firstBatchId,
+            ...getDishBatchState(res.batches, prev.dishId || prev.id, prev.mealType.toUpperCase(), prev.menuDayId),
           }
           : prev
       );
 
       notice({
-        msg: `✓ Đã tạo thành công lô ${dishCode} cho món "${dishToCreate.name}"!`,
+        msg: `Đã lập phương án chế biến cho bữa ăn: ${dishCode}.`,
         isSuccess: true,
       });
 

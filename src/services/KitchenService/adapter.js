@@ -3,6 +3,28 @@ export const COOKING_MODES = {
   SEPARATE_BY_LOT: "Nấu riêng theo lô",
 };
 
+export function getDishBatchState(batches, dishId, mealType, menuDayId) {
+  const matches = batches.filter(batch =>
+    batch.mealType === mealType &&
+    (!menuDayId || batch.menuDayId === menuDayId) &&
+    (Array.isArray(batch.dishes) && batch.dishes.length
+      ? batch.dishes.some(dish => dish.dishId === dishId)
+      : batch.dishId === dishId),
+  );
+  return {
+    isBatchCreated: matches.length > 0,
+    batchCode: matches.map(batch => batch.batchCode).join(", "),
+    batchId: matches[0]?.id || "",
+  };
+}
+
+export function canRecordBatchSample(batch) {
+  if (batch?.status !== "COMPLETED") return false;
+  const dishes = batch.dishes?.length ? batch.dishes : batch.dishId ? [{dishId:batch.dishId}] : [];
+  const sampled = new Set((batch.retainedFoodSamples || []).map(s => s.dishId));
+  return dishes.some(dish => !sampled.has(dish.dishId));
+}
+
 export const isUuid = (str) =>
   typeof str === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(

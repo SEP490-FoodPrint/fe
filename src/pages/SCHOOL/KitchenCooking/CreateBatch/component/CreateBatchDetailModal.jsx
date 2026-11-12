@@ -5,7 +5,6 @@ import {
   DialogContent,
   DialogActions,
   IconButton,
-  Tooltip,
 } from "@mui/material";
 import {
   X,
@@ -16,6 +15,9 @@ import {
   Clock,
   ArrowRight,
   CheckCircle2,
+  Flame,
+  ShieldCheck,
+  Calendar,
 } from "lucide-react";
 import styles from "./CreateBatchDetailModal.module.scss";
 
@@ -23,18 +25,54 @@ export default function CreateBatchDetailModal({
   open,
   onClose,
   dish,
+  batch,
+  item,
   onConfirmCreate,
+  onConfirmCooking,
+  onCompleteCooking,
   submitting = false,
   onViewBatchDetail,
 }) {
-  if (!dish) return null;
+  const currentItem = item || batch || dish;
+  if (!currentItem) return null;
 
-  const isCreated = Boolean(dish.isBatchCreated);
-  const ingredients = dish.ingredients || [];
+  const batchCode = currentItem.batchCode || currentItem.code || "";
+  const isCreated = Boolean(currentItem.isBatchCreated || batchCode);
+  const status = currentItem.status || (isCreated ? "UNCONFIRMED" : "PENDING");
+  const ingredients = currentItem.ingredients || currentItem.cookingBatchLots || [];
+
   const mealLabel =
-    dish.mealType === "afternoon" || dish.mealType === "AFTERNOON"
+    currentItem.mealType === "afternoon" || currentItem.mealType === "AFTERNOON"
       ? "Bữa xế"
       : "Bữa trưa";
+
+  const portions =
+    currentItem.portionStandard ??
+    currentItem.plannedPortions ??
+    currentItem.portions ??
+    0;
+
+  const modeLabel =
+    currentItem.cookingModeApplied === "SEPARATE_BY_LOT"
+      ? "Nấu riêng theo lô"
+      : "Nấu chung mẻ";
+
+  const formatTime = (iso) => {
+    if (!iso) return "";
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+    } catch {
+      return "";
+    }
+  };
+
+  const hasSample = Boolean(
+    (Array.isArray(currentItem.retainedFoodSamples) && currentItem.retainedFoodSamples.length > 0) ||
+    currentItem.retainedFoodSample ||
+    currentItem.hasSample
+  );
 
   return (
     <Dialog
@@ -51,11 +89,11 @@ export default function CreateBatchDetailModal({
             <CookingPot size={20} className={styles.dishIcon} />
           </div>
           <div className={styles.titleTextWrap}>
-            <h2 className={styles.dishHeading}>{dish.name}</h2>
+            <h2 className={styles.dishHeading}>{currentItem.name || currentItem.dishName}</h2>
             <div className={styles.metaRow}>
               <span
                 className={`${styles.mealBadge} ${
-                  dish.mealType === "afternoon" || dish.mealType === "AFTERNOON"
+                  currentItem.mealType === "afternoon" || currentItem.mealType === "AFTERNOON"
                     ? styles.mealAfternoon
                     : styles.mealLunch
                 }`}
@@ -66,9 +104,7 @@ export default function CreateBatchDetailModal({
               <span className={styles.portionsMeta}>
                 <Users size={12} />
                 <span>
-                  {Number.isFinite(dish.portionStandard)
-                    ? dish.portionStandard.toLocaleString("vi-VN")
-                    : "—"}{" "}
+                  {Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "—"}{" "}
                   suất
                 </span>
               </span>
@@ -88,55 +124,98 @@ export default function CreateBatchDetailModal({
       </DialogTitle>
 
       <DialogContent dividers className={styles.dialogContent}>
-        {/* Banner trạng thái */}
-        {isCreated ? (
+        {/* Banner trạng thái theo vòng đời chế biến */}
+        {status === "COMPLETED" ? (
           <div className={styles.statusBannerDone}>
-            <CheckCircle2 size={18} className={styles.doneIcon} />
+            <CheckCircle2 size={20} className={styles.doneIcon} />
             <div className={styles.bannerText}>
               <span className={styles.bannerTitle}>
-                Đã lập lô chế biến thành công
+                Đã nấu xong hoàn tất
               </span>
               <span className={styles.bannerSubtitle}>
-                Mã lô: <strong>{dish.batchCode || "ĐÃ TẠO"}</strong> — Sẵn sàng nấu
+                Mã lô: <strong>{batchCode}</strong>
+                {currentItem.completedAt ? ` • Xong lúc ${formatTime(currentItem.completedAt)}` : ""} — Sẵn sàng phân bổ suất ăn
+              </span>
+            </div>
+          </div>
+        ) : status === "CONFIRMED" ? (
+          <div className={styles.statusBannerCooking}>
+            <Flame size={20} className={styles.cookingIcon} />
+            <div className={styles.bannerText}>
+              <span className={styles.bannerTitle}>
+                Đang chế biến trên bếp
+              </span>
+              <span className={styles.bannerSubtitle}>
+                Mã lô: <strong>{batchCode}</strong>
+                {currentItem.confirmedAt ? ` • Bắt đầu lúc ${formatTime(currentItem.confirmedAt)}` : ""}
+              </span>
+            </div>
+          </div>
+        ) : isCreated ? (
+          <div className={styles.statusBannerCreated}>
+            <Layers size={18} className={styles.createdIcon} />
+            <div className={styles.bannerText}>
+              <span className={styles.bannerTitle}>
+                Đã khởi tạo lô chế biến
+              </span>
+              <span className={styles.bannerSubtitle}>
+                Mã lô: <strong>{batchCode || "ĐÃ TẠO"}</strong> — Chờ xác nhận và bắt đầu nấu
               </span>
             </div>
           </div>
         ) : (
           <div className={styles.statusBannerPending}>
-            <Clock size={16} className={styles.pendingIcon} />
+            <Clock size={18} className={styles.pendingIcon} />
             <div className={styles.bannerText}>
               <span className={styles.bannerTitle}>Chờ xác nhận tạo lô</span>
               <span className={styles.bannerSubtitle}>
-                Kiểm tra định mức nguyên liệu bên dưới và bấm nút tích để tạo lô
+                Kiểm tra định mức nguyên liệu bên dưới và bấm nút Tạo lô để bắt đầu
               </span>
             </div>
           </div>
         )}
 
-        {/* Thông tin phương án lô dự kiến */}
+        {/* Thông tin chi tiết lô */}
         <div className={styles.lotSummaryCard}>
           <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Mã lô dự kiến</span>
+            <span className={styles.summaryLabel}>Mã lô chế biến</span>
             <span className={styles.summaryValueCode}>
-              {dish.batchCode || "TỰ ĐỘNG SINH (CB-...)"}
+              {batchCode || "TỰ ĐỘNG SINH (CB-...)"}
             </span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Quy mô chế biến</span>
             <span className={styles.summaryValue}>
               <strong>
-                {Number.isFinite(dish.portionStandard)
-                  ? dish.portionStandard.toLocaleString("vi-VN")
-                  : "0"}
+                {Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "0"}
               </strong>{" "}
               suất ăn
             </span>
           </div>
           <div className={styles.summaryItem}>
             <span className={styles.summaryLabel}>Phương thức nấu</span>
-            <span className={styles.summaryValueMode}>Nấu chung mẻ</span>
+            <span className={styles.summaryValueMode}>{modeLabel}</span>
           </div>
         </div>
+
+        {/* Thông tin mẫu lưu thực phẩm nếu đã nấu xong */}
+        {status === "COMPLETED" && (
+          <div className={styles.sampleBox}>
+            <div className={styles.sampleIconWrap}>
+              <ShieldCheck size={18} className={styles.sampleIcon} />
+            </div>
+            <div className={styles.sampleContent}>
+              <span className={styles.sampleTitle}>
+                {hasSample ? "Đã lưu mẫu thực phẩm 24h" : "Chờ lưu mẫu thực phẩm"}
+              </span>
+              <span className={styles.sampleDesc}>
+                {hasSample
+                  ? "Mẫu thức ăn đã được lưu vào tủ lưu chuyên dụng theo quy chuẩn ATTP."
+                  : "Cần lưu tối thiểu 100g mẫu thức ăn trong tủ lưu 24h trước khi bàn giao suất ăn."}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* Danh sách nguyên liệu xuất kho */}
         <div className={styles.ingredientsSection}>
@@ -153,13 +232,13 @@ export default function CreateBatchDetailModal({
           {ingredients.length > 0 ? (
             <div className={styles.ingredientsList}>
               {ingredients.map((ing, idx) => (
-                <div key={ing.code || idx} className={styles.ingRow}>
+                <div key={ing.code || ing.lotCode || ing.id || idx} className={styles.ingRow}>
                   <div className={styles.ingInfoCol}>
                     <span className={styles.ingName}>
-                      {ing.name || ing.ingredientName}
+                      {ing.name || ing.dishName || ing.ingredientName}
                     </span>
                     <span className={styles.ingLotCode}>
-                      {ing.code ? `Lô: ${ing.code}` : "Lô kho gần nhất"}
+                      {ing.code || ing.lotCode ? `Lô: ${ing.code || ing.lotCode}` : "Lô kho gần nhất"}
                     </span>
                   </div>
                   <div className={styles.ingAmountCol}>
@@ -191,28 +270,50 @@ export default function CreateBatchDetailModal({
           Đóng
         </button>
 
-        {isCreated ? (
-          <button
-            type="button"
-            className={styles.viewBatchBtn}
-            onClick={() => onViewBatchDetail?.(dish)}
-          >
-            <span>Xem chi tiết lô</span>
-            <ArrowRight size={16} />
-          </button>
-        ) : (
+        {/* Nút hành động theo trạng thái */}
+        {!isCreated && onConfirmCreate ? (
           <button
             type="button"
             className={styles.confirmTickBtn}
-            onClick={() => onConfirmCreate?.(dish)}
+            onClick={() => onConfirmCreate(currentItem)}
             disabled={submitting}
           >
             <Check size={18} className={styles.tickIcon} />
             <span>{submitting ? "Đang tạo lô..." : "Xác nhận tạo lô"}</span>
           </button>
+        ) : status === "UNCONFIRMED" && onConfirmCooking ? (
+          <button
+            type="button"
+            className={styles.startCookBtn}
+            onClick={() => onConfirmCooking(currentItem)}
+            disabled={submitting}
+          >
+            <Flame size={16} />
+            <span>{submitting ? "Đang xử lý..." : "Bắt đầu nấu"}</span>
+          </button>
+        ) : status === "CONFIRMED" && onCompleteCooking ? (
+          <button
+            type="button"
+            className={styles.completeCookBtn}
+            onClick={() => onCompleteCooking(currentItem)}
+            disabled={submitting}
+          >
+            <CheckCircle2 size={16} />
+            <span>{submitting ? "Đang xử lý..." : "Ghi nhận nấu xong"}</span>
+          </button>
+        ) : (
+          onViewBatchDetail && (
+            <button
+              type="button"
+              className={styles.viewBatchBtn}
+              onClick={() => onViewBatchDetail(currentItem)}
+            >
+              <span>Xem trang đầy đủ</span>
+              <ArrowRight size={16} />
+            </button>
+          )
         )}
       </DialogActions>
     </Dialog>
   );
 }
-

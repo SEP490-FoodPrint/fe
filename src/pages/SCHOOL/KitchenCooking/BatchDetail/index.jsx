@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import notice from "src/components/Notice";
 import KitchenService from "src/services/KitchenService";
-import { adaptBatchDetail } from "src/services/KitchenService/adapter";
+import { adaptBatchDetail, canRecordBatchSample } from "src/services/KitchenService/adapter";
 import BatchDetailHeader from "./component/BatchDetailHeader";
 import BatchInfoCard from "./component/BatchInfoCard";
 import BatchIngredientsCard from "./component/BatchIngredientsCard";
@@ -53,7 +53,10 @@ export default function KitchenBatchDetail() {
           setSampleData(sampleList.length > 0 ? sampleList[0] : null);
           adapted.retainedFoodSamples = sampleList;
           setBatchData({ ...adapted });
+          return { ...adapted };
         }
+        setSampleData(null);
+        return adapted;
       } catch (err) {
         if (!signal?.aborted) {
           setError(err.message || "Không thể tải thông tin lô chế biến.");
@@ -83,7 +86,7 @@ export default function KitchenBatchDetail() {
         isSuccess: true,
       });
       setIsConfirmOpen(false);
-      fetchBatch();
+      await fetchBatch();
     } catch (err) {
       notice({
         msg: err.message || "Không thể xác nhận nấu.",
@@ -103,7 +106,8 @@ export default function KitchenBatchDetail() {
         msg: "Ghi nhận nấu xong thành công!",
         isSuccess: true,
       });
-      fetchBatch();
+      const completed = await fetchBatch();
+      if (canRecordBatchSample(completed)) setIsSampleOpen(true);
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận nấu xong.",
@@ -146,7 +150,8 @@ export default function KitchenBatchDetail() {
         isSuccess: true,
       });
       setIsSampleOpen(false);
-      fetchBatch();
+      const refreshed = await fetchBatch();
+      if (canRecordBatchSample(refreshed)) setIsSampleOpen(true);
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận lưu mẫu thực phẩm.",

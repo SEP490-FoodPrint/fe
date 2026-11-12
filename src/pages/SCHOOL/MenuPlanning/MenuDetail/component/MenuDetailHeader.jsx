@@ -6,7 +6,8 @@ import ROUTER from "src/router/ROUTER"
 export default function MenuDetailHeader({
   menu,
   menuId,
-  onSubmitApproval
+  onSubmitApproval,
+  onEdit,
 }) {
   const navigate = useNavigate()
   // Thực đơn chưa được duyệt: bất kỳ trạng thái nào khác "APPROVED" (DRAFT, PENDING_APPROVAL, REVISION_REQUESTED...)
@@ -14,7 +15,6 @@ export default function MenuDetailHeader({
                      String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
   const canEdit = !isApproved
   const canSubmit = menu?.status === "DRAFT" || menu?.status === "REVISION_REQUESTED" || menu?.status === "REVISION_REQUIRED"
-  const targetEditId = menu?.weeklyMenuId || (typeof menuId === "string" && menuId.includes("_") ? menuId.split("_")[0] : menuId) || menu?.id
 
   const displayTitle = React.useMemo(() => {
     if (!menu) return "Thực đơn tuần"
@@ -75,11 +75,11 @@ export default function MenuDetailHeader({
           </button>
 
           {/* Nút Chỉnh sửa: Hiển thị khi thực đơn CHƯA ĐƯỢC DUYỆT */}
-          {canEdit && (
+          {canEdit && onEdit && (
             <button
               type="button"
               className={styles.btnEdit}
-              onClick={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", targetEditId), { state: { menu } })}
+              onClick={onEdit}
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
               <span>Chỉnh sửa</span>

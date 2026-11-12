@@ -4,7 +4,10 @@ import { ArrowLeft } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import styles from "./CreateBatchSeparateHeader.module.scss";
 
-export default function CreateBatchSeparateHeader() {
+export default function CreateBatchSeparateHeader({
+  title = "Tiến độ chế biến",
+  subtitle = "Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày",
+}) {
   const navigate = useNavigate();
 
   return (
@@ -21,7 +24,10 @@ export default function CreateBatchSeparateHeader() {
             <ArrowLeft size={20} />
           </button>
 
-          <h1 className={styles.heading}>Tạo lô chế biến</h1>
+          <div className={styles.titleTextWrap}>
+            <h1 className={styles.heading}>{title}</h1>
+            {subtitle && <p className={styles.subheading}>{subtitle}</p>}
+          </div>
         </div>
 
         <div

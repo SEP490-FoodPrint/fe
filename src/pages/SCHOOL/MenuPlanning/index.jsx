@@ -363,8 +363,8 @@ export default function MenuPlanning() {
   }
 
   const handleEditMenu = (menu) => {
-    navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), {
-      state: { menu },
+    navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), {
+      state: { menu, autoOpenEdit: true },
     })
   }
 

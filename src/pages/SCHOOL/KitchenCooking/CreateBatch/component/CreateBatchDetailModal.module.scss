@@ -100,6 +100,7 @@
   background-color: #ffffff;
 }
 
+/* Status Banners */
 .statusBannerDone {
   display: flex;
   align-items: center;
@@ -112,6 +113,36 @@
 
 .doneIcon {
   color: #16a34a;
+  flex-shrink: 0;
+}
+
+.statusBannerCooking {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 8px;
+}
+
+.cookingIcon {
+  color: #ea580c;
+  flex-shrink: 0;
+}
+
+.statusBannerCreated {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+}
+
+.createdIcon {
+  color: #2563eb;
   flex-shrink: 0;
 }
 
@@ -137,14 +168,14 @@
 }
 
 .bannerTitle {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #0f172a;
 }
 
 .bannerSubtitle {
   font-size: 12px;
-  color: #64748b;
+  color: #475569;
 }
 
 .lotSummaryCard {
@@ -176,7 +207,7 @@
 }
 
 .summaryValueCode {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #0f766e;
   font-family: monospace;
@@ -193,6 +224,48 @@
   color: #475569;
 }
 
+/* Sample Box */
+.sampleBox {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  background-color: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 8px;
+}
+
+.sampleIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background-color: #dcfce7;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sampleContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sampleTitle {
+  font-size: 13px;
+  font-weight: 700;
+  color: #15803d;
+}
+
+.sampleDesc {
+  font-size: 12px;
+  color: #166534;
+  line-height: 1.4;
+}
+
+/* Ingredients Section */
 .ingredientsSection {
   display: flex;
   flex-direction: column;
@@ -285,6 +358,7 @@
   color: #64748b;
 }
 
+/* Dialog Actions */
 .dialogActions {
   padding: 12px 20px !important;
   background-color: #f8fafc;
@@ -308,6 +382,58 @@
   &:hover:not(:disabled) {
     background-color: #f1f5f9;
     color: #0f172a;
+  }
+}
+
+.startCookBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border: none;
+  background-color: #ea580c;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(234, 88, 12, 0.25);
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #c2410c;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+  }
+}
+
+.completeCookBtn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  border: none;
+  background-color: #16a34a;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.25);
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #15803d;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
   }
 }
 
@@ -360,4 +486,3 @@
 .tickIcon {
   stroke-width: 2.5;
 }
-
