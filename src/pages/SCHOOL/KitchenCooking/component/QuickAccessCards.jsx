@@ -14,7 +14,7 @@ import styles from "./QuickAccessCards.module.scss";
 const CARDS_DATA = [
   {
     id: "cooking-batch",
-    title: "Lô chế biến",
+    title: "Chế biến",
     desc: "Lập lô chế biến, kiểm tra quy trình nấu",
     icon: <UtensilsCrossed size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_BATCHES,
@@ -28,14 +28,14 @@ const CARDS_DATA = [
   },
   {
     id: "food-sample",
-    title: "Mẫu lưu 24h",
+    title: "Lưu mẫu thức ăn",
     desc: "Ghi nhận niêm phong mẫu lưu",
     icon: <FlaskConical size={20} />,
     route: ROUTER.SCHOOL_KITCHEN_SAMPLES,
   },
   {
     id: "ingredient-inspect",
-    title: "Đánh giá nhận hàng",
+    title: "Kiểm tra nguyên liệu",
     desc: "Kiểm thực 3 bước nhập kho",
     icon: <ClipboardCheck size={20} />,
     route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
