@@ -25,8 +25,8 @@
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .controlsTopRow {
@@ -35,13 +35,15 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .weekStepper {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
   padding: 4px 8px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
@@ -90,7 +92,7 @@
   color: #475569;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 6px;
 
   strong {
@@ -98,12 +100,12 @@
   }
 }
 
-/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Đã bỏ Quy mô 1,250 học sinh) */
+/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Cân đối 2 cột, gọn gàng, bỏ gợi ý thừa) */
 .controlsInputsRow {
   display: grid;
-  grid-template-columns: minmax(320px, 1.6fr) minmax(220px, 1.2fr);
-  gap: 14px;
-  align-items: flex-end;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  align-items: flex-start;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -113,13 +115,13 @@
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .inputLabel {
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: #334155;
 }
 
 .inputRequired {
@@ -128,13 +130,15 @@
 
 .textInput {
   width: 100%;
-  padding: 8px 12px;
+  height: 38px;
+  padding: 0 12px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 13.5px;
+  font-size: 13px;
   color: #0f172a;
   background-color: #ffffff;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus {
@@ -154,45 +158,6 @@
   &:focus {
     box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15) !important;
   }
-}
-
-.presetChipsWrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
-}
-
-.presetLabel {
-  font-size: 11px;
-  color: #64748b;
-}
-
-.presetChip {
-  padding: 2px 7px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
-  background-color: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  color: #334155;
-  cursor: pointer;
-  transition: all 0.12s ease;
-  font-family: inherit;
-
-  &:hover {
-    background-color: #e8f5f1;
-    color: #0a8066;
-    border-color: #c9e8de;
-  }
-}
-
-.targetHint {
-  font-size: 11px;
-  color: #64748b;
-  margin-top: 2px;
-  line-height: 1.3;
 }
 
 /* ========================================================

@@ -442,17 +442,17 @@ export default function CreateMenuDayModal({
                 )}
               </div>
 
-              {/* KHỐI 3: GIA VỊ KHO - TỰ ĐỘNG TÍNH TỪ MÓN ĂN - SỔ LÊN / SỔ XUỐNG */}
+              {/* KHỐI 3: GIA VỊ - TỰ ĐỘNG TÍNH TỪ MÓN ĂN - SỔ LÊN / SỔ XUỐNG */}
               <div className={styles.previewSeasoningCard}>
                 <div
                   className={styles.seasoningBanner}
                   onClick={() => setIsSeasoningCollapsed((prev) => !prev)}
-                  title="Bấm để sổ lên / sổ xuống gia vị kho"
+                  title="Bấm để sổ lên / sổ xuống gia vị"
                 >
                   <div className={styles.bannerLeft}>
                     <Sparkles size={13} className={styles.seasoningBannerIcon} />
                     <span className={styles.bannerText}>
-                      GIA VỊ KHO (TỰ ĐỘNG TÍNH THEO SUẤT)
+                      GIA VỊ (THEO SUẤT)
                     </span>
                   </div>
                   <div className={styles.bannerRight}>
@@ -483,43 +483,34 @@ export default function CreateMenuDayModal({
                         </span>
                       </div>
                     ) : (
-                      <>
-                        <div className={styles.autoCalcHint}>
-                          <span>
-                            Đã tự động tính tổng định lượng từ{" "}
-                            <strong>{totalDishesCount}</strong> món ăn trong
-                            ngày
-                          </span>
-                        </div>
-                        <table className={styles.miniSeasoningTable}>
-                          <thead>
-                            <tr>
-                              <th>Gia vị kho</th>
-                              <th className={styles.alignRight}>
-                                Định lượng / suất
-                              </th>
+                      <table className={styles.miniSeasoningTable}>
+                        <thead>
+                          <tr>
+                            <th>Tên gia vị</th>
+                            <th className={styles.alignRight}>
+                              Định lượng / suất
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {seasonings.map((s) => (
+                            <tr key={s.id}>
+                              <td className={styles.seasoningNameCell}>
+                                <span className={styles.seasoningDot} />
+                                <span>
+                                  {s.name.replace(/\(.*?\)/g, "").trim()}
+                                </span>
+                              </td>
+                              <td
+                                className={`${styles.seasoningPortionCell} ${styles.alignRight}`}
+                              >
+                                <strong>{s.portionQty}</strong> {s.unit || "g"}
+                                /suất
+                              </td>
                             </tr>
-                          </thead>
-                          <tbody>
-                            {seasonings.map((s) => (
-                              <tr key={s.id}>
-                                <td className={styles.seasoningNameCell}>
-                                  <span className={styles.seasoningDot} />
-                                  <span>
-                                    {s.name.replace(/\(.*?\)/g, "").trim()}
-                                  </span>
-                                </td>
-                                <td
-                                  className={`${styles.seasoningPortionCell} ${styles.alignRight}`}
-                                >
-                                  <strong>{s.portionQty}</strong> {s.unit || "g"}
-                                  /suất
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </>
+                          ))}
+                        </tbody>
+                      </table>
                     )}
                   </div>
                 )}

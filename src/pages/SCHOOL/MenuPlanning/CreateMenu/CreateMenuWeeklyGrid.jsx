@@ -91,9 +91,6 @@ export default function CreateMenuWeeklyGrid({
                   <div className={styles.dayTitleRow}>
                     <div className={styles.dayTitleLeft}>
                       <span className={styles.dayLabel}>{sd.dayLabel}</span>
-                      {sd.isToday && (
-                        <span className={styles.todayPill}>Hôm nay</span>
-                      )}
                     </div>
 
                     {/* Nút + duy nhất để mở menu cho mỗi thứ */}
@@ -283,11 +280,11 @@ export default function CreateMenuWeeklyGrid({
                     <div
                       className={styles.seasoningBanner}
                       onClick={() => toggleCollapse(sd.dateISO, "SEASONINGS")}
-                      title="Bấm để sổ lên / sổ xuống gia vị kho"
+                      title="Bấm để sổ lên / sổ xuống gia vị"
                     >
                       <div className={styles.bannerLeft}>
                         <Sparkles size={13} className={styles.seasoningIcon} />
-                        <span className={styles.seasoningTitle}>GIA VỊ KHO</span>
+                        <span className={styles.seasoningTitle}>GIA VỊ</span>
                         {hasSeasonings && (
                           <span className={styles.mealCountBadge}>
                             ({seasonings.length})
@@ -301,8 +298,8 @@ export default function CreateMenuWeeklyGrid({
                           className={styles.collapseToggleBtn}
                           aria-label={
                             isSeasoningCollapsed
-                              ? "Mở rộng gia vị kho"
-                              : "Thu gọn gia vị kho"
+                              ? "Mở rộng gia vị"
+                              : "Thu gọn gia vị"
                           }
                         >
                           {isSeasoningCollapsed ? (

@@ -423,7 +423,7 @@ export default function CreateMenu() {
             </div>
           </div>
 
-          {/* Dòng nhập Tên thực đơn & Đối tượng áp dụng */}
+          {/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Đã bỏ gợi ý thừa, bố cục cân đối) */}
           <div className={styles.controlsInputsRow}>
             <div className={styles.inputGroup}>
               <label className={styles.inputLabel}>
@@ -444,32 +444,11 @@ export default function CreateMenu() {
               </label>
               <input
                 type="text"
-                className={`${styles.textInput} ${
-                  !targetScope.trim() ? "" : ""
-                }`}
+                className={styles.textInput}
                 value={targetScope}
                 onChange={(e) => setTargetScope(e.target.value)}
                 placeholder="Ví dụ: Toàn trường (Khối 1 - 5)"
               />
-              {/* Dải gợi ý chọn nhanh */}
-              <div className={styles.presetChipsWrap}>
-                <span className={styles.presetLabel}>Gợi ý:</span>
-                {[
-                  "Toàn trường (Khối 1 - 5)",
-                  "Khối 1 & 2",
-                  "Khối 3, 4, 5",
-                  "Toàn bộ Khối 1",
-                ].map((preset) => (
-                  <button
-                    key={preset}
-                    type="button"
-                    className={styles.presetChip}
-                    onClick={() => setTargetScope(preset)}
-                  >
-                    {preset}
-                  </button>
-                ))}
-              </div>
             </div>
           </div>
         </div>

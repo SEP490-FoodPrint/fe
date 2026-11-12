@@ -440,21 +440,24 @@ export default function MenuListWeeklyVerticalView({
                     <div className={styles.dayTitleRow}>
                       <div className={styles.dayTitleLeft}>
                         <span className={styles.dayLabel}>{sd.dayLabel}</span>
-                        {sd.isToday && (
-                          <span className={styles.todayPill}>Hôm nay</span>
-                        )}
                       </div>
 
-                      {/* Tiến độ ngày: Icon + Label ngắn gọn */}
-                      {progress && (
-                        <span
-                          className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                          title={progress.note ? `BGH: ${progress.note}` : `Tiến độ ngày: ${progress.label}`}
-                        >
-                          <ProgressIcon size={12} />
-                          <span>{progress.label}</span>
-                        </span>
-                      )}
+                      {/* Tiến độ ngày: Ẩn trạng thái "Đã duyệt" của từng thứ vì BGH duyệt cả tuần */}
+                      {progress &&
+                        (progress.type === "HOLIDAY" ||
+                          weekStatus !== "APPROVED") && (
+                          <span
+                            className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
+                            title={
+                              progress.note
+                                ? `BGH: ${progress.note}`
+                                : `Tiến độ ngày: ${progress.label}`
+                            }
+                          >
+                            <ProgressIcon size={12} />
+                            <span>{progress.label}</span>
+                          </span>
+                        )}
                     </div>
 
                     <div className={styles.dayDateRow}>
