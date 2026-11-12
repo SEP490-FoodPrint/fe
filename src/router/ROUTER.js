@@ -73,7 +73,8 @@ const ROUTER = {
   SCHOOL_INGREDIENT_ORDERS: "/school/ingredient-orders",     // Phiếu nhập & Đơn hàng
   SCHOOL_ORDER_TRACKING: "/school/order-tracking",           // Theo dõi đơn hàng
   SCHOOL_INGREDIENT_REPORTS: "/school/ingredient-reports",   // Thống kê & Báo cáo
-  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
+  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Ban Giám hiệu
+  SCHOOL_MEAL_COMPLAINTS: "/school/meal-complaints",
   SCHOOL_SUPPLIERS: "/school/suppliers",
   SCHOOL_CLASS_ASSIGNMENT: "/school/class-assignment",   // BGH phân công GVCN
   SCHOOL_COOKING_MODE: "/school/cooking-mode",             // BGH cấu hình chế độ nấu

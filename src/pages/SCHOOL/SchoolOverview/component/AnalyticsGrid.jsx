@@ -61,7 +61,7 @@ function ComplaintTick({ x, y, payload }) {
   </text>
 }
 
-export default function AnalyticsGrid({ data }) {
+export default function AnalyticsGrid({ data, complaintRoute }) {
   const menus = data.menus === null ? null : groupRows(data.menus || [], "status", statusLabels)
   const complaints = data.complaints === null ? null : groupRows(data.complaints || [], "type", complaintLabels)
   const suppliers = data.suppliers === null ? null : groupRows(data.suppliers || [], "status", statusLabels)
@@ -79,7 +79,7 @@ export default function AnalyticsGrid({ data }) {
     <ChartCard title="Trạng thái thẩm định thực đơn" subtitle="Phân bổ thực đơn hiện có" rows={menus} to={ROUTER.SCHOOL_MENU_APPROVAL}>
       <Donut rows={menus || []} unit="thực đơn" />
     </ChartCard>
-    <ChartCard title="Phân loại khiếu nại" subtitle="Nhóm vấn đề được phản ánh" rows={complaints} to={ROUTER.SCHOOL_MEAL_FEEDBACK}>
+    <ChartCard title="Phân loại khiếu nại" subtitle="Nhóm vấn đề được phản ánh" rows={complaints} to={complaintRoute}>
       <div className={styles.barChart}><ResponsiveContainer width="100%" height="100%">
         <BarChart data={complaints || []} margin={{ top: 24, right: 12, bottom: 8, left: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border-default)" strokeDasharray="3 3" />
