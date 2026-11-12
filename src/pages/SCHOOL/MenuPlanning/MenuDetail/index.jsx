@@ -7,7 +7,6 @@ import MenuService from "src/services/MenuService"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
 import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
-import MenuDetailBasicInfo from "./component/MenuDetailBasicInfo"
 import MenuDetailDishesTable from "./component/MenuDetailDishesTable"
 import MenuDetailAllergyCard from "./component/MenuDetailAllergyCard"
 import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
@@ -120,10 +119,7 @@ export default function MenuDetail() {
           onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })}
         />
 
-        {/* Khối 1: Thông tin kế hoạch & Phạm vi áp dụng */}
-        <MenuDetailBasicInfo menu={menu} />
-
-        {/* Khối 2: Bảng cơ cấu món ăn trong thực đơn & Định lượng nguyên liệu / suất */}
+        {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
         <MenuDetailDishesTable dishes={menu.dishes} />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
