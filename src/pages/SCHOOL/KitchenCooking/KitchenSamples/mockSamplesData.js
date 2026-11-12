@@ -223,7 +223,7 @@ export function formatSampleDateTime(val) {
   if (isNaN(d.getTime())) return String(val)
   const pad = (n) => String(n).padStart(2, "0")
   const dateStr = `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
-  const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}`
+  const timeStr = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`
   return {
     full: `${timeStr} · ${dateStr}`,
     date: dateStr,

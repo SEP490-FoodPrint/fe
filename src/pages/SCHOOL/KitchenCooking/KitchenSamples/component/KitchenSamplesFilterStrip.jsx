@@ -14,6 +14,9 @@ export default function KitchenSamplesFilterStrip({
   onDateChange,
   onResetFilters,
   hasActiveFilters = false,
+  readyCount = 0,
+  onDisposeAllReady,
+  disposing = false,
 }) {
   return (
     <div className={styles.filterCard}>
@@ -98,6 +101,28 @@ export default function KitchenSamplesFilterStrip({
             </button>
           )}
         </div>
+
+        {/* Nút Hủy tất cả cho những mẫu đã đủ 24h */}
+        <button
+          type="button"
+          className={`${styles.disposeAllBtn} ${readyCount > 0 ? styles.disposeAllActive : ""}`}
+          onClick={onDisposeAllReady}
+          title={
+            readyCount > 0
+              ? `Hủy tất cả ${readyCount} mẫu lưu đã đủ 24 giờ`
+              : "Không có mẫu lưu nào đủ 24h để hủy"
+          }
+          disabled={readyCount === 0 || disposing}
+        >
+          <X size={14} className={styles.disposeAllIcon} />
+          <span>
+            {disposing
+              ? "Đang hủy..."
+              : readyCount > 0
+                ? `Hủy tất cả (${readyCount})`
+                : "Hủy tất cả"}
+          </span>
+        </button>
 
         {/* Nút Xóa bộ lọc */}
         {hasActiveFilters && (

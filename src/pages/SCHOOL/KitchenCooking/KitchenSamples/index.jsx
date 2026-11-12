@@ -15,6 +15,7 @@ import CreateSampleModal from "./component/CreateSampleModal";
 import SampleDetailModal from "./component/SampleDetailModal";
 import UpdateSampleModal from "./component/UpdateSampleModal";
 import DisposeSampleModal from "./component/DisposeSampleModal";
+import BatchDisposeConfirmModal from "./component/BatchDisposeConfirmModal";
 import styles from "./index.module.scss";
 
 export default function KitchenSamples() {
@@ -38,6 +39,7 @@ export default function KitchenSamples() {
   const [detailSample, setDetailSample] = useState(null);
   const [updateSample, setUpdateSample] = useState(null);
   const [disposeSample, setDisposeSample] = useState(null);
+  const [isBatchDisposeOpen, setIsBatchDisposeOpen] = useState(false);
 
   // 4. Tải dữ liệu thực từ backend API
   const fetchSamples = useCallback(async (signal) => {
@@ -147,11 +149,19 @@ export default function KitchenSamples() {
     return { stored, ready, disposed };
   }, [samples]);
 
-  // 6. Lọc danh sách mẫu lưu
+  // 6. Danh sách mẫu đã đủ 24h chờ tiêu hủy
+  const readyToDisposeSamples = useMemo(() => {
+    return samples.filter((s) => {
+      const info = get24hRetainedStatus(s.sampledAt, s.status);
+      return info.isReadyToDispose && !info.isDisposed && s.status === "STORED";
+    });
+  }, [samples]);
+
+  // 7. Lọc danh sách mẫu lưu và sắp xếp thời điểm lấy mẫu mới nhất ở trên
   const filteredSamples = useMemo(() => {
     const searchLower = searchTerm.trim().toLowerCase();
 
-    return samples.filter((s) => {
+    const result = samples.filter((s) => {
       // Tìm kiếm từ khóa
       if (searchLower) {
         const dishMatch = s.dishName?.toLowerCase().includes(searchLower);
@@ -199,6 +209,13 @@ export default function KitchenSamples() {
       }
 
       return true;
+    });
+
+    // Sắp xếp thời điểm lấy mẫu muộn hơn (mới nhất) ở trên
+    return result.sort((a, b) => {
+      const timeA = new Date(a.sampledAt || a.createdAt || 0).getTime();
+      const timeB = new Date(b.sampledAt || b.createdAt || 0).getTime();
+      return timeB - timeA;
     });
   }, [samples, searchTerm, statusFilter, mealTypeFilter, dateFilter]);
 
@@ -282,7 +299,38 @@ export default function KitchenSamples() {
     }
   };
 
-  // 10. Điều hướng xem chi tiết mẻ nấu
+  // 10. Xử lý Tiêu hủy hàng loạt tất cả mẫu đã đủ 24 giờ
+  const handleBatchDisposeConfirm = async () => {
+    if (!readyToDisposeSamples.length) return;
+    setSubmitting(true);
+    try {
+      const nowISO = new Date().toISOString();
+      await Promise.all(
+        readyToDisposeSamples.map((sample) =>
+          KitchenService.disposeRetainedSample(sample.id, {
+            disposedAt: nowISO,
+            disposalNote:
+              "Tiêu hủy hàng loạt sau khi lưu trữ đủ 24 giờ theo quy chuẩn.",
+          })
+        )
+      );
+      await fetchSamples();
+      setIsBatchDisposeOpen(false);
+      notice({
+        msg: `Đã tiêu hủy thành công tất cả ${readyToDisposeSamples.length} mẫu lưu đủ 24 giờ!`,
+        isSuccess: true,
+      });
+    } catch (err) {
+      notice({
+        msg: err.message || "Lỗi khi tiêu hủy hàng loạt mẫu lưu.",
+        isSuccess: false,
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // 11. Điều hướng xem chi tiết mẻ nấu
   const handleNavigateBatch = (batchId) => {
     if (batchId) {
       navigate(ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", batchId));
@@ -313,6 +361,18 @@ export default function KitchenSamples() {
         onDateChange={setDateFilter}
         onResetFilters={handleResetFilters}
         hasActiveFilters={hasActiveFilters}
+        readyCount={readyToDisposeSamples.length}
+        onDisposeAllReady={() => {
+          if (readyToDisposeSamples.length === 0) {
+            notice({
+              msg: "Hiện tại không có mẫu lưu nào đã đủ 24 giờ để tiêu hủy.",
+              isSuccess: false,
+            });
+            return;
+          }
+          setIsBatchDisposeOpen(true);
+        }}
+        disposing={submitting && isBatchDisposeOpen}
       />
 
       {/* 4. Bảng mẫu lưu (Desktop) & Danh sách Card (Mobile) */}
@@ -395,6 +455,15 @@ export default function KitchenSamples() {
         sample={disposeSample}
         onClose={() => setDisposeSample(null)}
         onConfirm={handleDisposeSampleConfirm}
+        submitting={submitting}
+      />
+
+      {/* Modal Xác nhận tiêu hủy hàng loạt tất cả mẫu đủ 24 giờ */}
+      <BatchDisposeConfirmModal
+        open={isBatchDisposeOpen}
+        count={readyToDisposeSamples.length}
+        onClose={() => setIsBatchDisposeOpen(false)}
+        onConfirm={handleBatchDisposeConfirm}
         submitting={submitting}
       />
     </div>

@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Eye, Trash2, Edit3, ArrowUpRight, Clock, Check, AlertCircle } from "lucide-react"
+import { Eye, X, Edit3, ArrowUpRight, Clock, Check, AlertCircle } from "lucide-react"
 import { get24hRetainedStatus, formatSampleDateTime } from "../mockSamplesData"
 import styles from "./KitchenSamplesMobileCards.module.scss"
 
@@ -166,7 +166,7 @@ export default function KitchenSamplesMobileCards({
                   onClick={() => onOpenDisposeModal(row)}
                   title="Tiêu hủy mẫu lưu"
                 >
-                  <Trash2 size={15} />
+                  <X size={15} />
                   <span>Tiêu hủy</span>
                 </button>
               )}
