@@ -1061,12 +1061,12 @@
   background-color: #ffffff;
   border-radius: 12px;
   width: 100%;
-  max-width: 720px;
+  max-width: 780px;
   max-height: 90vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 45px rgba(29, 43, 38, 0.2);
-  border: 1px solid #e8eeeb;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16);
+  border: 1px solid #e2e8f0;
   overflow: hidden;
   animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1077,74 +1077,180 @@
   justify-content: space-between;
   padding: 16px 22px;
   border-bottom: 1px solid #e8eeeb;
-  background-color: #f8faf9;
+  background-color: #ffffff;
+  gap: 16px;
 }
 
 .detailHeaderTitleWrap {
   display: flex;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.detailModalIconWrap {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
 .detailHeaderIcon {
   color: #0a8066;
 }
 
+.detailTitleInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.detailTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .detailModalTitle {
   margin: 0;
-  font-size: 17px;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 18px;
   font-weight: 700;
-  color: #1d2b26;
+  color: #0f172a;
   letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.detailSubText {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.detailHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.detailEditHeaderBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #08604d;
+  background-color: #e8f5f1;
+  border: 1px solid #c9e8de;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #0a8066;
+    color: #ffffff;
+    border-color: #0a8066;
+  }
 }
 
 .detailModalBody {
-  padding: 20px 22px;
+  padding: 18px 22px;
   overflow-y: auto;
-  max-height: calc(90vh - 75px);
+  max-height: calc(90vh - 140px);
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.detailMetaCard {
+/* Lưới thông số tổng quan */
+.detailOverviewGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.overviewItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overviewItemLabel {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.03em;
+}
+
+.overviewItemVal {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  background-color: #f8faf9;
-  border: 1px solid #e8eeeb;
-  border-radius: 8px;
-  font-size: 13px;
+  gap: 6px;
   flex-wrap: wrap;
-}
 
-.detailMetaLabel {
-  color: #6b7c74;
-}
-
-.detailMetaVal {
-  font-weight: 600;
-  color: #1d2b26;
+  strong {
+    color: #0a8066;
+    font-weight: 700;
+  }
 }
 
 .detailSectionBox {
-  border: 1px solid #e8eeeb;
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
+  background-color: #ffffff;
 }
 
 .detailSectionHeader {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
   padding: 10px 14px;
-  background-color: #fafbfc;
-  border-bottom: 1px solid #e8eeeb;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.detailSectionTitleLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.detailCountBadge {
+  font-size: 11px;
   font-weight: 600;
-  color: #1d2b26;
+  color: #64748b;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 9999px;
 }
 
 .detailTable {
@@ -1153,40 +1259,99 @@
   font-size: 12.5px;
 
   th {
-    padding: 9px 12px;
-    background-color: #f8faf9;
-    color: #52635c;
+    padding: 10px 12px;
+    background-color: #ffffff;
+    color: #475569;
     font-weight: 600;
     text-align: left;
-    border-bottom: 1px solid #e8eeeb;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 12px;
   }
 
   td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #f1f5f3;
-    color: #1d2b26;
+    padding: 11px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
   }
 
   tr:last-child td {
     border-bottom: none;
   }
+
+  tr:hover td {
+    background-color: #f8fafc;
+  }
 }
 
 .detailPortionBadge {
-  display: inline-block;
-  padding: 2px 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 9px;
   background-color: #e8f5f1;
   color: #08604d;
-  font-weight: 600;
+  font-weight: 700;
   border-radius: 4px;
   font-size: 12px;
   border: 1px solid #c9e8de;
 }
 
+.detailPortionBadgeBrown {
+  display: inline-flex;
+  align-items: center;
+  padding: 2.5px 9px;
+  background-color: #f4eeea;
+  color: #584b46;
+  font-weight: 700;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid #ded3cd;
+}
+
 .detailEmptyText {
-  padding: 16px;
+  padding: 20px;
   text-align: center;
-  color: #6b7c74;
+  color: #64748b;
   font-size: 12.5px;
   font-style: italic;
+  background-color: #fafbfc;
+}
+
+/* Footer chi tiết */
+.detailModalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  border-top: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.footerNote {
+  font-size: 12px;
+  color: #64748b;
+  font-style: italic;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+}
+
+.detailFooterEditBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 6px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #08735c;
+  }
 }

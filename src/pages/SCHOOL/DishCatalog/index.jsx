@@ -41,6 +41,77 @@ const EMPTY_FORM = {
 
 const PAGE_SIZE = 8
 
+/* ─── Phân giải nguyên liệu & gia vị đầy đủ cho xem chi tiết ───── */
+const getDishResolvedIngredients = (dish) => {
+  if (!dish) return []
+  if (Array.isArray(dish.ingredients) && dish.ingredients.length > 0) {
+    return dish.ingredients.map((ing) => ({
+      ...ing,
+      portionQty: ing.portionQty != null ? ing.portionQty : 50,
+      unit: ing.unit || "g",
+    }))
+  }
+  if (Array.isArray(dish.ingredientIds) && dish.ingredientIds.length > 0) {
+    return dish.ingredientIds
+      .map((id) => {
+        const found = ALL_INGREDIENTS.find((i) => i.id === id)
+        if (found) {
+          const sup = LINKED_SUPPLIERS.find((s) => s.id === found.supplierId)
+          return {
+            ...found,
+            portionQty: 50,
+            unit: "g",
+            supplierName: sup ? sup.name : "NCC liên kết",
+            supplierBadge: sup ? sup.badge : "",
+          }
+        }
+        return null
+      })
+      .filter(Boolean)
+  }
+  const mainText =
+    dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
+  const foundByName = ALL_INGREDIENTS.find(
+    (i) => i.name.toLowerCase() === mainText.toLowerCase()
+  )
+  if (foundByName) {
+    const sup = LINKED_SUPPLIERS.find((s) => s.id === foundByName.supplierId)
+    return [
+      {
+        ...foundByName,
+        portionQty: 50,
+        unit: "g",
+        supplierName: sup ? sup.name : "NCC liên kết",
+        supplierBadge: sup ? sup.badge : "",
+      },
+    ]
+  }
+  return [
+    {
+      id: `ing-syn-${dish.id}`,
+      name: mainText,
+      category: dish.categoryLabel || "Nguyên liệu chính",
+      portionQty: 50,
+      unit: "g",
+      supplierId: dish.supplierId || "sup-cp",
+      supplierName: dish.supplierName || "CP Foods Việt Nam",
+      supplierBadge: dish.supplierBadge || "VietGAP",
+    },
+  ]
+}
+
+const getDishResolvedSeasonings = (dish) => {
+  if (!dish) return []
+  if (Array.isArray(dish.seasonings) && dish.seasonings.length > 0) {
+    return dish.seasonings.map((s) => ({
+      ...s,
+      portionQty: s.portionQty != null ? s.portionQty : 2,
+      unit: s.unit || "g",
+    }))
+  }
+  return []
+}
+
 export default function DishCatalogPage() {
   const [catalog, setCatalog] = useState(() => getStoredDishCatalog())
   const [search, setSearch] = useState("")
@@ -514,15 +585,6 @@ export default function DishCatalogPage() {
                         </button>
                         <button
                           type="button"
-                          className={styles.iconEditBtn}
-                          onClick={() => openEdit(dish)}
-                          title="Chỉnh sửa món ăn"
-                          aria-label="Chỉnh sửa món ăn"
-                        >
-                          <Pencil size={16} />
-                        </button>
-                        <button
-                          type="button"
                           className={styles.iconDeleteBtn}
                           onClick={() => setDeletingDish(dish)}
                           title="Xóa món ăn"
@@ -958,141 +1020,229 @@ export default function DishCatalogPage() {
       )}
 
       {/* Modal Xem chi tiết món ăn (Icon Mắt) */}
-      {viewingDish && (
-        <div
-          className={styles.modalOverlay}
-          onClick={(e) => e.target === e.currentTarget && setViewingDish(null)}
-        >
-          <div className={styles.detailModal}>
-            <div className={styles.detailModalHeader}>
-              <div className={styles.detailHeaderTitleWrap}>
-                <Utensils size={18} className={styles.detailHeaderIcon} />
-                <h2 className={styles.detailModalTitle}>{viewingDish.name}</h2>
-                <span
-                  className={`${styles.catBadge} ${
-                    CAT_STYLE[viewingDish.category] || ""
-                  }`}
+      {viewingDish && (() => {
+        const resolvedIngs = getDishResolvedIngredients(viewingDish)
+        const resolvedSeas = getDishResolvedSeasonings(viewingDish)
+
+        return (
+          <div
+            className={styles.modalOverlay}
+            onClick={(e) => e.target === e.currentTarget && setViewingDish(null)}
+          >
+            <div className={styles.detailModal}>
+              {/* Header chi tiết */}
+              <div className={styles.detailModalHeader}>
+                <div className={styles.detailHeaderTitleWrap}>
+                  <div className={styles.detailModalIconWrap}>
+                    <Utensils size={18} className={styles.detailHeaderIcon} />
+                  </div>
+                  <div className={styles.detailTitleInfo}>
+                    <div className={styles.detailTitleRow}>
+                      <h2 className={styles.detailModalTitle}>{viewingDish.name}</h2>
+                      <span
+                        className={`${styles.catBadge} ${
+                          CAT_STYLE[viewingDish.category] || ""
+                        }`}
+                      >
+                        {viewingDish.categoryLabel || viewingDish.category}
+                      </span>
+                    </div>
+                    <span className={styles.detailSubText}>
+                      Danh mục món ăn chuẩn học đường • Quản lý dinh dưỡng bán trú
+                    </span>
+                  </div>
+                </div>
+
+                <div className={styles.detailHeaderActions}>
+                  <button
+                    type="button"
+                    className={styles.detailEditHeaderBtn}
+                    onClick={() => {
+                      const target = viewingDish
+                      setViewingDish(null)
+                      openEdit(target)
+                    }}
+                    title="Chỉnh sửa thông tin món ăn"
+                  >
+                    <Pencil size={14} />
+                    <span>Chỉnh sửa</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.closeBtn}
+                    onClick={() => setViewingDish(null)}
+                    title="Đóng cửa sổ"
+                    aria-label="Đóng"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Body chi tiết */}
+              <div className={styles.detailModalBody}>
+                {/* Lưới thông số tổng quan */}
+                <div className={styles.detailOverviewGrid}>
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewItemLabel}>Nhà cung cấp chính</span>
+                    <div className={styles.overviewItemVal}>
+                      <span>{viewingDish.supplierName || "CP Foods Việt Nam"}</span>
+                      {viewingDish.supplierBadge && (
+                        <span className={styles.supplierBadgePill}>
+                          {viewingDish.supplierBadge}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewItemLabel}>Nguyên liệu cấu thành</span>
+                    <div className={styles.overviewItemVal}>
+                      <strong>{resolvedIngs.length}</strong> nguyên liệu chính
+                    </div>
+                  </div>
+
+                  <div className={styles.overviewItem}>
+                    <span className={styles.overviewItemLabel}>Gia vị định lượng</span>
+                    <div className={styles.overviewItemVal}>
+                      <strong>{resolvedSeas.length}</strong> loại gia vị kho
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bảng Nguyên liệu chính */}
+                <div className={styles.detailSectionBox}>
+                  <div className={styles.detailSectionHeader}>
+                    <div className={styles.detailSectionTitleLeft}>
+                      <Layers size={15} style={{ color: "#0a8066" }} />
+                      <span>Nguyên liệu chính cấu thành món ăn</span>
+                    </div>
+                    <span className={styles.detailCountBadge}>
+                      {resolvedIngs.length} nguyên liệu
+                    </span>
+                  </div>
+
+                  {resolvedIngs.length > 0 ? (
+                    <table className={styles.detailTable}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: 45, textAlign: "center" }}>#</th>
+                          <th>Tên nguyên liệu</th>
+                          <th>Phân loại</th>
+                          <th>Nhà cung cấp</th>
+                          <th style={{ textAlign: "right" }}>Định lượng / 1 suất</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {resolvedIngs.map((ing, idx) => (
+                          <tr key={ing.id || idx}>
+                            <td style={{ textAlign: "center", color: "#64748b" }}>
+                              {idx + 1}
+                            </td>
+                            <td>
+                              <strong style={{ color: "#0f172a" }}>{ing.name}</strong>
+                            </td>
+                            <td>
+                              <span className={styles.ingTableCatBadge}>
+                                {ing.category || "Nguyên liệu chính"}
+                              </span>
+                            </td>
+                            <td>
+                              <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                                <span>{ing.supplierName || "NCC liên kết"}</span>
+                                {ing.supplierBadge && (
+                                  <span className={styles.supplierBadgePill}>
+                                    {ing.supplierBadge}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td style={{ textAlign: "right" }}>
+                              <span className={styles.detailPortionBadge}>
+                                {ing.portionQty || 50} {ing.unit || "g"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className={styles.detailEmptyText}>
+                      Chưa có dữ liệu nguyên liệu cấu thành cho món ăn này.
+                    </div>
+                  )}
+                </div>
+
+                {/* Bảng Gia vị món ăn */}
+                <div className={styles.detailSectionBox}>
+                  <div className={styles.detailSectionHeader}>
+                    <div className={styles.detailSectionTitleLeft}>
+                      <Sparkles size={15} style={{ color: "#75635c" }} />
+                      <span>Gia vị định lượng của món ăn</span>
+                    </div>
+                    <span className={styles.detailCountBadge}>
+                      {resolvedSeas.length} gia vị kho
+                    </span>
+                  </div>
+
+                  {resolvedSeas.length > 0 ? (
+                    <table className={styles.detailTable}>
+                      <thead>
+                        <tr>
+                          <th style={{ width: 45, textAlign: "center" }}>#</th>
+                          <th>Tên gia vị từ kho trường</th>
+                          <th style={{ textAlign: "right" }}>Định lượng / 1 suất</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {resolvedSeas.map((s, idx) => (
+                          <tr key={s.id || idx}>
+                            <td style={{ textAlign: "center", color: "#64748b" }}>
+                              {idx + 1}
+                            </td>
+                            <td>
+                              <strong style={{ color: "#0f172a" }}>{s.name}</strong>
+                            </td>
+                            <td style={{ textAlign: "right" }}>
+                              <span className={styles.detailPortionBadgeBrown}>
+                                {s.portionQty} {s.unit || "g"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className={styles.detailEmptyText}>
+                      Món ăn chưa cài đặt gia vị kho đi kèm. Có thể bấm "Chỉnh sửa" để thêm gia vị từ kho.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Footer chi tiết */}
+              <div className={styles.detailModalFooter}>
+                <span className={styles.footerNote}>
+                  * Định lượng được tính cho 1 suất ăn học sinh bán trú chuẩn.
+                </span>
+                <button
+                  type="button"
+                  className={styles.detailFooterEditBtn}
+                  onClick={() => {
+                    const target = viewingDish
+                    setViewingDish(null)
+                    openEdit(target)
+                  }}
                 >
-                  {viewingDish.categoryLabel || viewingDish.category}
-                </span>
-              </div>
-              <button
-                type="button"
-                className={styles.closeBtn}
-                onClick={() => setViewingDish(null)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.detailModalBody}>
-              {/* Thông tin nhà cung cấp */}
-              <div className={styles.detailMetaCard}>
-                <span className={styles.detailMetaLabel}>Nhà cung cấp chính:</span>
-                <span className={styles.detailMetaVal}>
-                  {viewingDish.supplierName || "CP Foods Việt Nam"}
-                </span>
-                {viewingDish.supplierBadge && (
-                  <span className={styles.supplierBadgePill}>
-                    {viewingDish.supplierBadge}
-                  </span>
-                )}
-              </div>
-
-              {/* Bảng Nguyên liệu chính */}
-              <div className={styles.detailSectionBox}>
-                <div className={styles.detailSectionHeader}>
-                  <Layers size={14} />
-                  <span>Nguyên liệu chính cấu thành món ăn</span>
-                </div>
-                {Array.isArray(viewingDish.ingredients) &&
-                viewingDish.ingredients.length > 0 ? (
-                  <table className={styles.detailTable}>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Tên nguyên liệu</th>
-                        <th>Phân loại</th>
-                        <th>Nhà cung cấp</th>
-                        <th style={{ textAlign: "right" }}>Định lượng / suất</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {viewingDish.ingredients.map((ing, idx) => (
-                        <tr key={ing.id || idx}>
-                          <td style={{ textAlign: "center", color: "#6b7c74" }}>
-                            {idx + 1}
-                          </td>
-                          <td>
-                            <strong>{ing.name}</strong>
-                          </td>
-                          <td>
-                            <span className={styles.ingTableCatBadge}>
-                              {ing.category}
-                            </span>
-                          </td>
-                          <td>{ing.supplierName || "NCC liên kết"}</td>
-                          <td style={{ textAlign: "right" }}>
-                            <span className={styles.detailPortionBadge}>
-                              {ing.portionQty || 50} {ing.unit || "g"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className={styles.detailEmptyText}>
-                    {viewingDish.mainIngredient || viewingDish.name} (Định lượng
-                    tiêu chuẩn 50g/suất)
-                  </div>
-                )}
-              </div>
-
-              {/* Bảng Gia vị món ăn */}
-              <div className={styles.detailSectionBox}>
-                <div className={styles.detailSectionHeader}>
-                  <Sparkles size={14} />
-                  <span>Gia vị của món ăn</span>
-                </div>
-                {Array.isArray(viewingDish.seasonings) &&
-                viewingDish.seasonings.length > 0 ? (
-                  <table className={styles.detailTable}>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Tên gia vị</th>
-                        <th style={{ textAlign: "right" }}>Định lượng / suất</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {viewingDish.seasonings.map((s, idx) => (
-                        <tr key={s.id || idx}>
-                          <td style={{ textAlign: "center", color: "#6b7c74" }}>
-                            {idx + 1}
-                          </td>
-                          <td>
-                            <strong>{s.name}</strong>
-                          </td>
-                          <td style={{ textAlign: "right" }}>
-                            <span className={styles.detailPortionBadge}>
-                              {s.portionQty} {s.unit || "g"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className={styles.detailEmptyText}>
-                    Chưa cài đặt gia vị cho món ăn này.
-                  </div>
-                )}
+                  <Pencil size={15} />
+                  <span>Chỉnh sửa món ăn</span>
+                </button>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      })()}
 
       {/* Popup Modal Chọn nguyên liệu chuẩn theo phân loại & NCC */}
       <IngredientPickerModal
