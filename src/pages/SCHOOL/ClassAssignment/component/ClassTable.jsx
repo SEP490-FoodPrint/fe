@@ -106,8 +106,22 @@ function ClassTable({ classes, loading, canManage, onAssign, onRemove, onEdit, o
               <TableRow>
                 <TableCell colSpan={4}>
                   <div className={styles.emptyState}>
-                    Niên khóa này chưa có lớp học.
-                    {canManage && " Dùng “Thêm lớp” hoặc “Sao chép từ năm trước” để bắt đầu."}
+                    <p className={styles.emptyTitle}>Niên khóa này chưa có lớp học.</p>
+                    {canManage && (
+                      <ol className={styles.steps}>
+                        <li>
+                          <strong>Tạo lớp:</strong> bấm “Thêm lớp” hoặc “Sao chép từ năm trước”.
+                        </li>
+                        <li>
+                          <strong>Phân công GVCN:</strong> chọn giáo viên khi tạo lớp hoặc bấm “Phân công” trên
+                          từng lớp.
+                        </li>
+                        <li>
+                          <strong>Khai báo suất ăn:</strong> GVCN được phân công bắt đầu báo suất ăn hằng ngày cho
+                          lớp.
+                        </li>
+                      </ol>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>

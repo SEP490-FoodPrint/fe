@@ -216,7 +216,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
-    label: "Phân công GVCN",
+    label: "Lớp học & GVCN",
     icon: <AssignmentIndOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },

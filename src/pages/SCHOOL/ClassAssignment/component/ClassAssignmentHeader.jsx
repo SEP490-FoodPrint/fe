@@ -19,9 +19,12 @@ function ClassAssignmentHeader({
         <nav className={styles.breadcrumb} aria-label="Đường dẫn trang">
           <span>Ban Giám hiệu</span>
           <span>/</span>
-          <strong>Phân công GVCN</strong>
+          <strong>Lớp học & GVCN</strong>
         </nav>
         <h1 className={styles.title}>Lớp học & giáo viên chủ nhiệm</h1>
+        <p className={styles.description}>
+          Tạo lớp theo niên khóa, sao chép lớp từ năm trước và phân công giáo viên chủ nhiệm.
+        </p>
       </div>
 
       <div className={styles.toolbar}>
