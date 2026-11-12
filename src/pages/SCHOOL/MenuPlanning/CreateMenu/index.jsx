@@ -293,6 +293,11 @@ export default function CreateMenu() {
       return
     }
 
+    if (!targetScope.trim()) {
+      showToast("Vui lòng nhập đối tượng áp dụng cho thực đơn", "warning")
+      return
+    }
+
     const payload = buildWeeklyMenuPayload()
     if (!payload.days.length) {
       showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần trước khi lưu", "warning")
@@ -315,6 +320,10 @@ export default function CreateMenu() {
   const handleOpenConfirmSubmit = () => {
     if (!menuTitle.trim()) {
       showToast("Vui lòng nhập tên thực đơn trước khi gửi duyệt", "warning")
+      return
+    }
+    if (!targetScope.trim()) {
+      showToast("Vui lòng nhập đối tượng áp dụng trước khi gửi duyệt", "warning")
       return
     }
     if (totalWeeklyDishesCount === 0) {
@@ -417,7 +426,9 @@ export default function CreateMenu() {
           {/* Dòng nhập Tên thực đơn & Đối tượng áp dụng */}
           <div className={styles.controlsInputsRow}>
             <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Tên thực đơn tuần *</label>
+              <label className={styles.inputLabel}>
+                Tên thực đơn tuần <span className={styles.inputRequired}>*</span>
+              </label>
               <input
                 type="text"
                 className={styles.textInput}
@@ -428,14 +439,37 @@ export default function CreateMenu() {
             </div>
 
             <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>Đối tượng áp dụng</label>
+              <label className={styles.inputLabel}>
+                Đối tượng áp dụng <span className={styles.inputRequired}>*</span>
+              </label>
               <input
                 type="text"
-                className={styles.textInput}
+                className={`${styles.textInput} ${
+                  !targetScope.trim() ? "" : ""
+                }`}
                 value={targetScope}
                 onChange={(e) => setTargetScope(e.target.value)}
                 placeholder="Ví dụ: Toàn trường (Khối 1 - 5)"
               />
+              {/* Dải gợi ý chọn nhanh */}
+              <div className={styles.presetChipsWrap}>
+                <span className={styles.presetLabel}>Gợi ý:</span>
+                {[
+                  "Toàn trường (Khối 1 - 5)",
+                  "Khối 1 & 2",
+                  "Khối 3, 4, 5",
+                  "Toàn bộ Khối 1",
+                ].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    className={styles.presetChip}
+                    onClick={() => setTargetScope(preset)}
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>

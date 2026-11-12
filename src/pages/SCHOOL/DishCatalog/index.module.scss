@@ -375,6 +375,7 @@
   gap: 10px;
 }
 
+.iconViewBtn,
 .iconEditBtn,
 .iconDeleteBtn {
   display: inline-flex;
@@ -389,6 +390,15 @@
 
   &:active {
     transform: scale(0.9);
+  }
+}
+
+.iconViewBtn {
+  color: #2563eb;
+
+  &:hover {
+    color: #1d4ed8;
+    transform: scale(1.15);
   }
 }
 
@@ -408,6 +418,74 @@
     color: #991b1b;
     transform: scale(1.15);
   }
+}
+
+/* Pagination */
+.paginationWrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background-color: #ffffff;
+  border: 1px solid #e8eeeb;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pageInfo {
+  font-size: 12.5px;
+  color: #52635c;
+
+  strong {
+    color: #1d2b26;
+    font-weight: 600;
+  }
+}
+
+.pageControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pageArrowBtn,
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #dce5e0;
+  background-color: #ffffff;
+  color: #1d2b26;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #f1f5f3;
+    border-color: #0a8066;
+    color: #0a8066;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background-color: #f8faf9;
+  }
+}
+
+.activePageBtn {
+  background-color: #0a8066 !important;
+  border-color: #0a8066 !important;
+  color: #ffffff !important;
+  font-weight: 600;
 }
 
 /* Empty */
@@ -887,4 +965,233 @@
   &:hover {
     background-color: #b91c1c;
   }
+}
+
+/* ─── Định lượng / suất cho nguyên liệu & gia vị ── */
+.portionInputGroup {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.portionQtyInput {
+  width: 72px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  color: #1d2b26;
+  text-align: center;
+  background-color: #fdfefe;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
+    background-color: #ffffff;
+  }
+}
+
+.portionUnitSelect {
+  height: 32px;
+  padding: 0 6px;
+  border: 1px solid #dce5e0;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #1d2b26;
+  background-color: #f8faf9;
+  cursor: pointer;
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+  }
+}
+
+/* ─── Khu vực chọn gia vị từ kho ────────────────── */
+.seasoningsSection {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px dashed #dce5e0;
+}
+
+.seasoningAddPickerWrap {
+  display: flex;
+  align-items: center;
+}
+
+.seasoningSelectPicker {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #0a8066;
+  border-radius: 6px;
+  background-color: #f0fdfa;
+  color: #08604d;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #e6f7f3;
+  }
+
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.2);
+  }
+}
+
+.emptySeasoningBox {
+  background-color: #fafbfc;
+  border: 1px dashed #dce5e0;
+  border-radius: 8px;
+  padding: 16px;
+  text-align: center;
+}
+
+.emptySeasoningText {
+  margin: 0;
+  font-size: 12.5px;
+  color: #6b7c74;
+}
+
+/* ─── Modal Xem chi tiết món ăn (Icon Mắt) ──────── */
+.detailModal {
+  background-color: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 45px rgba(29, 43, 38, 0.2);
+  border: 1px solid #e8eeeb;
+  overflow: hidden;
+  animation: modalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.detailModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 22px;
+  border-bottom: 1px solid #e8eeeb;
+  background-color: #f8faf9;
+}
+
+.detailHeaderTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.detailHeaderIcon {
+  color: #0a8066;
+}
+
+.detailModalTitle {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: #1d2b26;
+  letter-spacing: -0.01em;
+}
+
+.detailModalBody {
+  padding: 20px 22px;
+  overflow-y: auto;
+  max-height: calc(90vh - 75px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detailMetaCard {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #f8faf9;
+  border: 1px solid #e8eeeb;
+  border-radius: 8px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.detailMetaLabel {
+  color: #6b7c74;
+}
+
+.detailMetaVal {
+  font-weight: 600;
+  color: #1d2b26;
+}
+
+.detailSectionBox {
+  border: 1px solid #e8eeeb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detailSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background-color: #fafbfc;
+  border-bottom: 1px solid #e8eeeb;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1d2b26;
+}
+
+.detailTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+
+  th {
+    padding: 9px 12px;
+    background-color: #f8faf9;
+    color: #52635c;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 1px solid #e8eeeb;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f3;
+    color: #1d2b26;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.detailPortionBadge {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: #e8f5f1;
+  color: #08604d;
+  font-weight: 600;
+  border-radius: 4px;
+  font-size: 12px;
+  border: 1px solid #c9e8de;
+}
+
+.detailEmptyText {
+  padding: 16px;
+  text-align: center;
+  color: #6b7c74;
+  font-size: 12.5px;
+  font-style: italic;
 }

@@ -1,5 +1,16 @@
-import React, { useState, useMemo, useCallback } from "react"
-import { Pencil, Trash2, Plus, ShoppingBag } from "lucide-react"
+import React, { useState, useMemo, useCallback, useEffect } from "react"
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  Eye,
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Layers,
+  Sparkles,
+  Utensils,
+} from "lucide-react"
 import {
   DISH_CATEGORIES,
   CATALOG_SUPPLIERS,
@@ -9,6 +20,7 @@ import {
 import {
   ALL_INGREDIENTS,
   LINKED_SUPPLIERS,
+  WAREHOUSE_SEASONINGS_CATALOG,
 } from "src/pages/SCHOOL/MenuPlanning/mockMenuData"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import styles from "./index.module.scss"
@@ -16,33 +28,40 @@ import styles from "./index.module.scss"
 /* ─── Helpers ────────────────────────────────────── */
 const CAT_STYLE = {
   RICE_STARCH: styles.catRice,
-  MAIN_DISH:   styles.catMain,
-  VEGETABLE:   styles.catVeg,
-  SOUP:        styles.catSoup,
-  DESSERT:     styles.catDessert,
+  MAIN_DISH: styles.catMain,
+  VEGETABLE: styles.catVeg,
+  SOUP: styles.catSoup,
+  DESSERT: styles.catDessert,
 }
 
 const EMPTY_FORM = {
   name: "",
   category: "MAIN_DISH",
-  portionQty: "",
-  unit: "g",
 }
+
+const PAGE_SIZE = 8
 
 export default function DishCatalogPage() {
   const [catalog, setCatalog] = useState(() => getStoredDishCatalog())
   const [search, setSearch] = useState("")
   const [activeCat, setActiveCat] = useState("ALL")
   const [supplierFilter, setSupplierFilter] = useState("ALL")
+  const [currentPage, setCurrentPage] = useState(1)
+
+  // Modal Xem chi tiết
+  const [viewingDish, setViewingDish] = useState(null)
 
   // Modal thêm / sửa
   const [modalOpen, setModalOpen] = useState(false)
   const [editingDish, setEditingDish] = useState(null)
   const [form, setForm] = useState(EMPTY_FORM)
 
-  // Danh sách nguyên liệu cấu thành món ăn (dạng bảng trực quan)
+  // Danh sách nguyên liệu cấu thành món ăn (kèm định lượng từng nguyên liệu)
   const [selectedIngredients, setSelectedIngredients] = useState([])
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  // Danh sách gia vị kho dùng cho món này (kèm định lượng từng gia vị)
+  const [selectedSeasonings, setSelectedSeasonings] = useState([])
 
   // Danh sách ID nguyên liệu để đồng bộ với IngredientPickerModal
   const selectedIngredientIds = useMemo(
@@ -60,7 +79,10 @@ export default function DishCatalogPage() {
       list = list.filter((d) => d.category === activeCat)
     }
     if (supplierFilter !== "ALL") {
-      list = list.filter((d) => d.supplierId === supplierFilter || d.supplierName === supplierFilter)
+      list = list.filter(
+        (d) =>
+          d.supplierId === supplierFilter || d.supplierName === supplierFilter
+      )
     }
     if (search.trim()) {
       const q = search.toLowerCase()
@@ -74,10 +96,24 @@ export default function DishCatalogPage() {
     return list
   }, [catalog, activeCat, supplierFilter, search])
 
+  // Reset về trang 1 khi lọc
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [search, activeCat, supplierFilter])
+
+  /* ─── Pagination ─────────────────────────────── */
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const paginatedList = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE
+    return filtered.slice(start, start + PAGE_SIZE)
+  }, [filtered, currentPage])
+
   /* ─── Stats ──────────────────────────────────── */
   const stats = useMemo(() => {
     const catCount = new Set(catalog.map((d) => d.category)).size
-    const supplierCount = new Set(catalog.map((d) => d.supplierName).filter(Boolean)).size
+    const supplierCount = new Set(
+      catalog.map((d) => d.supplierName).filter(Boolean)
+    ).size
     return { total: catalog.length, catCount, supplierCount }
   }, [catalog])
 
@@ -86,6 +122,7 @@ export default function DishCatalogPage() {
     setEditingDish(null)
     setForm(EMPTY_FORM)
     setSelectedIngredients([])
+    setSelectedSeasonings([])
     setModalOpen(true)
   }, [])
 
@@ -94,13 +131,20 @@ export default function DishCatalogPage() {
     setForm({
       name: dish.name || "",
       category: dish.category || "MAIN_DISH",
-      portionQty: dish.portionQty ?? "",
-      unit: dish.unit === "ml" ? "ml" : "g",
     })
 
-    // Nạp danh sách nguyên liệu của món ăn đang sửa
+    // Nạp danh sách nguyên liệu của món ăn đang sửa (kèm định lượng)
     let initialIngs = []
-    if (Array.isArray(dish.ingredientIds) && dish.ingredientIds.length > 0) {
+    if (Array.isArray(dish.ingredients) && dish.ingredients.length > 0) {
+      initialIngs = dish.ingredients.map((ing) => ({
+        ...ing,
+        portionQty: ing.portionQty != null ? ing.portionQty : 50,
+        unit: ing.unit || "g",
+      }))
+    } else if (
+      Array.isArray(dish.ingredientIds) &&
+      dish.ingredientIds.length > 0
+    ) {
       initialIngs = dish.ingredientIds
         .map((id) => {
           const found = ALL_INGREDIENTS.find((i) => i.id === id)
@@ -108,6 +152,8 @@ export default function DishCatalogPage() {
             const sup = LINKED_SUPPLIERS.find((s) => s.id === found.supplierId)
             return {
               ...found,
+              portionQty: 50,
+              unit: "g",
               supplierName: sup ? sup.name : "NCC liên kết",
               supplierBadge: sup ? sup.badge : "",
             }
@@ -117,17 +163,21 @@ export default function DishCatalogPage() {
         .filter(Boolean)
     }
 
-    // Nếu chưa có mảng ID, nạp từ mainIngredient text hoặc tìm trong ALL_INGREDIENTS
     if (initialIngs.length === 0) {
-      const mainText = dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
+      const mainText =
+        dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
       const foundByName = ALL_INGREDIENTS.find(
         (i) => i.name.toLowerCase() === mainText.toLowerCase()
       )
       if (foundByName) {
-        const sup = LINKED_SUPPLIERS.find((s) => s.id === foundByName.supplierId)
+        const sup = LINKED_SUPPLIERS.find(
+          (s) => s.id === foundByName.supplierId
+        )
         initialIngs = [
           {
             ...foundByName,
+            portionQty: 50,
+            unit: "g",
             supplierName: sup ? sup.name : "NCC liên kết",
             supplierBadge: sup ? sup.badge : "",
           },
@@ -138,6 +188,8 @@ export default function DishCatalogPage() {
             id: `ing-syn-${dish.id}`,
             name: mainText,
             category: dish.categoryLabel || "Nguyên liệu chính",
+            portionQty: 50,
+            unit: "g",
             supplierId: dish.supplierId || "sup-cp",
             supplierName: dish.supplierName || "CP Foods Việt Nam",
             supplierBadge: dish.supplierBadge || "VietGAP",
@@ -147,6 +199,14 @@ export default function DishCatalogPage() {
     }
 
     setSelectedIngredients(initialIngs)
+
+    // Nạp danh sách gia vị kho
+    if (Array.isArray(dish.seasonings) && dish.seasonings.length > 0) {
+      setSelectedSeasonings(dish.seasonings.map((s) => ({ ...s })))
+    } else {
+      setSelectedSeasonings([])
+    }
+
     setModalOpen(true)
   }, [])
 
@@ -154,6 +214,7 @@ export default function DishCatalogPage() {
     setModalOpen(false)
     setEditingDish(null)
     setSelectedIngredients([])
+    setSelectedSeasonings([])
     setForm(EMPTY_FORM)
   }, [])
 
@@ -175,6 +236,8 @@ export default function DishCatalogPage() {
           id: ing.id,
           name: ing.name,
           category: ing.category,
+          portionQty: 50,
+          unit: "g",
           supplierId: ing.supplierId,
           supplierName: sup ? sup.name : ing.supplierName || "NCC liên kết",
           supplierBadge: sup ? sup.badge : ing.supplierBadge || "",
@@ -183,18 +246,59 @@ export default function DishCatalogPage() {
     })
   }, [])
 
+  // Cập nhật định lượng / đơn vị cho từng nguyên liệu
+  const handleUpdateIngredientPortion = useCallback(
+    (ingId, field, val) => {
+      setSelectedIngredients((prev) =>
+        prev.map((i) => (i.id === ingId ? { ...i, [field]: val } : i))
+      )
+    },
+    []
+  )
+
   // Xóa nguyên liệu khỏi bảng trong modal
   const handleRemoveIngredient = useCallback((ingId) => {
     setSelectedIngredients((prev) => prev.filter((i) => i.id !== ingId))
   }, [])
 
+  // Thêm gia vị từ kho
+  const handleAddSeasoning = useCallback((seasItem) => {
+    setSelectedSeasonings((prev) => {
+      if (prev.some((s) => s.id === seasItem.id)) return prev
+      return [
+        ...prev,
+        {
+          id: seasItem.id,
+          name: seasItem.name.replace(/\(.*?\)/g, "").trim(),
+          portionQty: 2,
+          unit: seasItem.defaultUnit || "g",
+        },
+      ]
+    })
+  }, [])
+
+  // Cập nhật định lượng gia vị
+  const handleUpdateSeasoning = useCallback((seasId, field, val) => {
+    setSelectedSeasonings((prev) =>
+      prev.map((s) => (s.id === seasId ? { ...s, [field]: val } : s))
+    )
+  }, [])
+
+  // Xóa gia vị khỏi danh sách
+  const handleRemoveSeasoning = useCallback((seasId) => {
+    setSelectedSeasonings((prev) => prev.filter((s) => s.id !== seasId))
+  }, [])
+
+  // Lưu món ăn
   const handleSave = useCallback(() => {
-    if (!form.name.trim() || !form.portionQty || selectedIngredients.length === 0) return
+    if (!form.name.trim() || selectedIngredients.length === 0) return
 
     const catInfo = DISH_CATEGORIES.find((c) => c.key === form.category)
     const primaryIng = selectedIngredients[0]
     const allNames = selectedIngredients.map((i) => i.name)
-    const mainIngText = allNames.join(" & ")
+    const mainIngText = selectedIngredients
+      .map((i) => `${i.name} (${i.portionQty}${i.unit})`)
+      .join(" & ")
     const ingIds = selectedIngredients.map((i) => i.id)
 
     const finalSupplierId = primaryIng?.supplierId || "sup-cp"
@@ -209,20 +313,23 @@ export default function DishCatalogPage() {
               name: form.name.trim(),
               category: form.category,
               categoryLabel: catInfo?.label || "Món ăn",
-              portionQty: Number(form.portionQty) || 50,
-              unit: form.unit === "ml" ? "ml" : "g",
               mainIngredient: mainIngText,
               supplierId: finalSupplierId,
               supplierName: finalSupplierName,
               supplierBadge: finalSupplierBadge,
               ingredientIds: ingIds,
               ingredientNames: allNames,
+              ingredients: selectedIngredients,
+              seasonings: selectedSeasonings,
             }
           : d
       )
       setCatalog(updated)
       try {
-        localStorage.setItem("FOODPRINT_DISH_CATALOG_V2", JSON.stringify(updated))
+        localStorage.setItem(
+          "FOODPRINT_DISH_CATALOG_V2",
+          JSON.stringify(updated)
+        )
       } catch (e) {
         console.warn("Lỗi lưu dish catalog:", e)
       }
@@ -231,20 +338,27 @@ export default function DishCatalogPage() {
         name: form.name.trim(),
         category: form.category,
         categoryLabel: catInfo?.label || "Món ăn",
-        portionQty: Number(form.portionQty) || 50,
-        unit: form.unit === "ml" ? "ml" : "g",
         mainIngredient: mainIngText,
         supplierId: finalSupplierId,
         supplierName: finalSupplierName,
         supplierBadge: finalSupplierBadge,
         ingredientIds: ingIds,
         ingredientNames: allNames,
+        ingredients: selectedIngredients,
+        seasonings: selectedSeasonings,
       }
       const updated = saveDishToCatalog(newDish)
       setCatalog(updated)
     }
     closeModal()
-  }, [form, editingDish, selectedIngredients, catalog, closeModal])
+  }, [
+    form,
+    editingDish,
+    selectedIngredients,
+    selectedSeasonings,
+    catalog,
+    closeModal,
+  ])
 
   const handleDeleteConfirm = useCallback(() => {
     if (!deletingDish) return
@@ -260,20 +374,22 @@ export default function DishCatalogPage() {
 
   return (
     <div className={styles.page}>
-      {/* Header (Không có icon) */}
+      {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
           <h1 className={styles.title}>Danh Sách Món Ăn Bán Trú</h1>
           <p className={styles.subtitle}>
-            Cán bộ Y tế quản lý danh mục món ăn chuẩn, định lượng theo suất và nguyên liệu từ Nhà cung cấp
+            Nhân viên dinh dưỡng quản lý danh mục món ăn chuẩn, định lượng theo
+            suất và nguyên liệu từ Nhà cung cấp
           </p>
         </div>
         <button type="button" className={styles.addBtn} onClick={openAdd}>
-          Thêm món ăn mới
+          <Plus size={16} />
+          <span>Thêm món ăn mới</span>
         </button>
       </div>
 
-      {/* Stats row (3 thẻ số liệu trọng tâm) */}
+      {/* Stats row */}
       <div className={styles.statsRow}>
         <div className={styles.statCard}>
           <div className={styles.statNum}>{stats.total}</div>
@@ -317,7 +433,9 @@ export default function DishCatalogPage() {
             <button
               key={cat.key}
               type="button"
-              className={`${styles.catTab} ${activeCat === cat.key ? styles.active : ""}`}
+              className={`${styles.catTab} ${
+                activeCat === cat.key ? styles.active : ""
+              }`}
               onClick={() => setActiveCat(cat.key)}
             >
               {cat.label}
@@ -326,7 +444,7 @@ export default function DishCatalogPage() {
         </div>
       </div>
 
-      {/* Bảng danh sách món ăn */}
+      {/* Bảng danh sách món ăn (Đã xóa cột Định lượng / suất) */}
       <div className={styles.tableWrap}>
         {filtered.length === 0 ? (
           <div className={styles.empty}>
@@ -339,19 +457,28 @@ export default function DishCatalogPage() {
                 <th style={{ width: 45, textAlign: "center" }}>#</th>
                 <th style={{ minWidth: 220 }}>Tên món ăn</th>
                 <th style={{ width: 150 }}>Nhóm món</th>
-                <th style={{ width: 140 }}>Định lượng / suất</th>
                 <th style={{ minWidth: 280 }}>Nguyên liệu chính & NCC</th>
-                <th style={{ width: 100, textAlign: "center" }}>Thao tác</th>
+                <th style={{ width: 120, textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((dish, idx) => {
+              {paginatedList.map((dish, idx) => {
+                const globalIdx = (currentPage - 1) * PAGE_SIZE + idx + 1
                 const catClass = CAT_STYLE[dish.category] || ""
-                const mainIng = dish.mainIngredient || dish.ingredientNames?.[0] || dish.name
+                const mainIng =
+                  dish.mainIngredient ||
+                  dish.ingredientNames?.[0] ||
+                  dish.name
                 return (
                   <tr key={dish.id}>
-                    <td style={{ textAlign: "center", color: "#6b7c74", fontSize: 12 }}>
-                      {idx + 1}
+                    <td
+                      style={{
+                        textAlign: "center",
+                        color: "#6b7c74",
+                        fontSize: 12,
+                      }}
+                    >
+                      {globalIdx}
                     </td>
                     <td>
                       <div className={styles.dishName}>{dish.name}</div>
@@ -360,9 +487,6 @@ export default function DishCatalogPage() {
                       <span className={`${styles.catBadge} ${catClass}`}>
                         {dish.categoryLabel || dish.category}
                       </span>
-                    </td>
-                    <td className={styles.portionCell}>
-                      {dish.portionQty} {dish.unit}
                     </td>
                     {/* Cột Nguyên liệu chính (kèm NCC) */}
                     <td>
@@ -378,6 +502,16 @@ export default function DishCatalogPage() {
                     </td>
                     <td style={{ textAlign: "center" }}>
                       <div className={styles.actionBtns}>
+                        {/* Nút Xem chi tiết (icon mắt) */}
+                        <button
+                          type="button"
+                          className={styles.iconViewBtn}
+                          onClick={() => setViewingDish(dish)}
+                          title="Xem chi tiết nguyên liệu & gia vị"
+                          aria-label="Xem chi tiết món ăn"
+                        >
+                          <Eye size={16} />
+                        </button>
                         <button
                           type="button"
                           className={styles.iconEditBtn}
@@ -406,7 +540,58 @@ export default function DishCatalogPage() {
         )}
       </div>
 
-      {/* Modal Thêm / Sửa món ăn (Có BẢNG CHỌN NGUYÊN LIỆU có phân loại) */}
+      {/* Phân trang (Pagination) */}
+      {filtered.length > PAGE_SIZE && (
+        <div className={styles.paginationWrap}>
+          <div className={styles.pageInfo}>
+            Hiển thị{" "}
+            <strong>
+              {(currentPage - 1) * PAGE_SIZE + 1} -{" "}
+              {Math.min(currentPage * PAGE_SIZE, filtered.length)}
+            </strong>{" "}
+            trên <strong>{filtered.length}</strong> món ăn
+          </div>
+          <div className={styles.pageControls}>
+            <button
+              type="button"
+              className={styles.pageArrowBtn}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              aria-label="Trang trước"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            {Array.from({ length: totalPages }).map((_, pIdx) => {
+              const pageNum = pIdx + 1
+              return (
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={`${styles.pageBtn} ${
+                    currentPage === pageNum ? styles.activePageBtn : ""
+                  }`}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              )
+            })}
+            <button
+              type="button"
+              className={styles.pageArrowBtn}
+              onClick={() =>
+                setCurrentPage((p) => Math.min(totalPages, p + 1))
+              }
+              disabled={currentPage === totalPages}
+              aria-label="Trang sau"
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Thêm / Sửa món ăn */}
       {modalOpen && (
         <div
           className={styles.modalOverlay}
@@ -417,7 +602,11 @@ export default function DishCatalogPage() {
               <h2 className={styles.modalTitle}>
                 {editingDish ? "Chỉnh sửa món ăn" : "Thêm món ăn mới"}
               </h2>
-              <button type="button" className={styles.closeBtn} onClick={closeModal}>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={closeModal}
+              >
                 Đóng
               </button>
             </div>
@@ -439,12 +628,14 @@ export default function DishCatalogPage() {
                 </div>
 
                 {/* Nhóm món */}
-                <div>
+                <div className={styles.formFullRow}>
                   <label className={styles.formLabel}>Nhóm món ăn</label>
                   <select
                     className={styles.formSelect}
                     value={form.category}
-                    onChange={(e) => handleFormChange("category", e.target.value)}
+                    onChange={(e) =>
+                      handleFormChange("category", e.target.value)
+                    }
                   >
                     {DISH_CATEGORIES.filter((c) => c.key !== "ALL").map((c) => (
                       <option key={c.key} value={c.key}>
@@ -454,40 +645,16 @@ export default function DishCatalogPage() {
                   </select>
                 </div>
 
-                {/* Định lượng / suất */}
-                <div>
-                  <label className={styles.formLabel}>
-                    Định lượng chuẩn / 1 suất <span className={styles.required}>*</span>
-                  </label>
-                  <div className={styles.portionRow}>
-                    <input
-                      type="number"
-                      min="1"
-                      className={`${styles.formInput} ${styles.portionInput}`}
-                      placeholder="Số lượng"
-                      value={form.portionQty}
-                      onChange={(e) => handleFormChange("portionQty", e.target.value)}
-                    />
-                    <select
-                      className={`${styles.formSelect} ${styles.unitSelect}`}
-                      value={form.unit}
-                      onChange={(e) => handleFormChange("unit", e.target.value)}
-                    >
-                      <option value="g">g</option>
-                      <option value="ml">ml</option>
-                    </select>
-                  </div>
-                </div>
-
-                {/* KHU VỰC: BẢNG NGUYÊN LIỆU CẤU THÀNH MÓN ĂN (Có phân loại & NCC) */}
+                {/* KHU VỰC 1: BẢNG NGUYÊN LIỆU CẤU THÀNH (CÓ NHẬP ĐỊNH LƯỢNG / SUẤT CHO TỪNG NGUYÊN LIỆU) */}
                 <div className={styles.ingredientsSection}>
                   <div className={styles.sectionHeaderRow}>
                     <div>
                       <label className={styles.sectionTitle}>
-                        Nguyên liệu cấu thành món ăn <span className={styles.required}>*</span>
+                        Nguyên liệu chính <span className={styles.required}>*</span>
                       </label>
                       <p className={styles.sectionSub}>
-                        Chọn nguyên liệu theo Phân loại và Nhà cung cấp đã liên kết
+                        Chọn nguyên liệu từ Nhà cung cấp và nhập định lượng chuẩn
+                        trên 1 suất ăn
                       </p>
                     </div>
 
@@ -497,20 +664,24 @@ export default function DishCatalogPage() {
                       onClick={() => setPickerOpen(true)}
                     >
                       <Plus size={14} />
-                      <span>Chọn nguyên liệu từ NCC ({selectedIngredients.length})</span>
+                      <span>
+                        Chọn nguyên liệu từ NCC ({selectedIngredients.length})
+                      </span>
                     </button>
                   </div>
 
-                  {/* Bảng nguyên liệu */}
                   {selectedIngredients.length === 0 ? (
                     <div
                       className={styles.emptyIngredientBox}
                       onClick={() => setPickerOpen(true)}
                     >
                       <div className={styles.emptyPrompt}>
-                        <p className={styles.emptyPromptTitle}>Chưa chọn nguyên liệu cho món này</p>
+                        <p className={styles.emptyPromptTitle}>
+                          Chưa chọn nguyên liệu cho món này
+                        </p>
                         <p className={styles.emptyPromptSub}>
-                          Bấm vào đây để mở bảng chọn nguyên liệu có đầy đủ Phân loại & Nhà cung cấp liên kết
+                          Bấm vào đây để mở bảng chọn nguyên liệu từ Nhà cung cấp
+                          liên kết
                         </p>
                       </div>
                       <button type="button" className={styles.emptyAddBtn}>
@@ -524,21 +695,34 @@ export default function DishCatalogPage() {
                           <tr>
                             <th style={{ width: 40, textAlign: "center" }}>#</th>
                             <th style={{ minWidth: 160 }}>Tên nguyên liệu</th>
-                            <th style={{ width: 140 }}>Phân loại</th>
-                            <th style={{ minWidth: 180 }}>Nhà cung cấp cung ứng</th>
-                            <th style={{ width: 60, textAlign: "center" }}>Xóa</th>
+                            <th style={{ width: 130 }}>Phân loại</th>
+                            <th style={{ minWidth: 160 }}>Nhà cung cấp</th>
+                            <th style={{ width: 160, textAlign: "center" }}>
+                              Định lượng / suất <span className={styles.required}>*</span>
+                            </th>
+                            <th style={{ width: 50, textAlign: "center" }}>Xóa</th>
                           </tr>
                         </thead>
                         <tbody>
                           {selectedIngredients.map((ing, iIdx) => {
-                            const sup = LINKED_SUPPLIERS.find((s) => s.id === ing.supplierId)
+                            const sup = LINKED_SUPPLIERS.find(
+                              (s) => s.id === ing.supplierId
+                            )
                             return (
                               <tr key={ing.id || iIdx}>
-                                <td style={{ textAlign: "center", color: "#6b7c74", fontSize: 12 }}>
+                                <td
+                                  style={{
+                                    textAlign: "center",
+                                    color: "#6b7c74",
+                                    fontSize: 12,
+                                  }}
+                                >
                                   {iIdx + 1}
                                 </td>
                                 <td>
-                                  <strong className={styles.ingTableNameText}>{ing.name}</strong>
+                                  <strong className={styles.ingTableNameText}>
+                                    {ing.name}
+                                  </strong>
                                 </td>
                                 <td>
                                   <span className={styles.ingTableCatBadge}>
@@ -548,21 +732,56 @@ export default function DishCatalogPage() {
                                 <td>
                                   <div className={styles.ingTableSupplierWrap}>
                                     <span className={styles.ingTableSupplierName}>
-                                      {sup?.name || ing.supplierName || "NCC liên kết"}
+                                      {sup?.name ||
+                                        ing.supplierName ||
+                                        "NCC liên kết"}
                                     </span>
-                                    {(sup?.badge || ing.supplierBadge) && (
-                                      <span className={styles.ingTableSupplierBadge}>
-                                        {sup?.badge || ing.supplierBadge}
-                                      </span>
-                                    )}
+                                  </div>
+                                </td>
+                                <td>
+                                  <div className={styles.portionInputGroup}>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      step="0.5"
+                                      className={styles.portionQtyInput}
+                                      value={ing.portionQty || ""}
+                                      onChange={(e) =>
+                                        handleUpdateIngredientPortion(
+                                          ing.id,
+                                          "portionQty",
+                                          Number(e.target.value) || 0
+                                        )
+                                      }
+                                      placeholder="Số lượng"
+                                    />
+                                    <select
+                                      className={styles.portionUnitSelect}
+                                      value={ing.unit || "g"}
+                                      onChange={(e) =>
+                                        handleUpdateIngredientPortion(
+                                          ing.id,
+                                          "unit",
+                                          e.target.value
+                                        )
+                                      }
+                                    >
+                                      <option value="g">g</option>
+                                      <option value="ml">ml</option>
+                                      <option value="kg">kg</option>
+                                      <option value="quả">quả</option>
+                                      <option value="hộp">hộp</option>
+                                    </select>
                                   </div>
                                 </td>
                                 <td style={{ textAlign: "center" }}>
                                   <button
                                     type="button"
                                     className={styles.ingTableRemoveBtn}
-                                    onClick={() => handleRemoveIngredient(ing.id)}
-                                    title={`Xóa ${ing.name} khỏi món này`}
+                                    onClick={() =>
+                                      handleRemoveIngredient(ing.id)
+                                    }
+                                    title={`Xóa ${ing.name}`}
                                     aria-label="Xóa nguyên liệu"
                                   >
                                     <Trash2 size={15} />
@@ -576,6 +795,137 @@ export default function DishCatalogPage() {
                     </div>
                   )}
                 </div>
+
+                {/* KHU VỰC 2: CHỌN GIA VỊ TỪ KHO & NHẬP ĐỊNH LƯỢNG / SUẤT */}
+                <div className={styles.seasoningsSection}>
+                  <div className={styles.sectionHeaderRow}>
+                    <div>
+                      <label className={styles.sectionTitle}>
+                        Gia vị kho dùng cho món này
+                      </label>
+                      <p className={styles.sectionSub}>
+                        Chọn gia vị từ kho trường và cài đặt định lượng trên 1
+                        suất ăn để tự động tính tổng khi lập thực đơn
+                      </p>
+                    </div>
+
+                    {/* Selector chọn gia vị kho để thêm nhanh */}
+                    <div className={styles.seasoningAddPickerWrap}>
+                      <select
+                        className={styles.seasoningSelectPicker}
+                        defaultValue=""
+                        onChange={(e) => {
+                          const found = WAREHOUSE_SEASONINGS_CATALOG.find(
+                            (s) => s.id === e.target.value
+                          )
+                          if (found) {
+                            handleAddSeasoning(found)
+                            e.target.value = ""
+                          }
+                        }}
+                      >
+                        <option value="" disabled>
+                          + Thêm gia vị từ kho...
+                        </option>
+                        {WAREHOUSE_SEASONINGS_CATALOG.map((s) => (
+                          <option key={s.id} value={s.id}>
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {selectedSeasonings.length === 0 ? (
+                    <div className={styles.emptySeasoningBox}>
+                      <p className={styles.emptySeasoningText}>
+                        Chưa chọn gia vị nào. Chọn gia vị từ kho ở góc phải trên
+                        để thêm vào món ăn.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className={styles.ingTableWrap}>
+                      <table className={styles.ingTable}>
+                        <thead>
+                          <tr>
+                            <th style={{ width: 40, textAlign: "center" }}>#</th>
+                            <th style={{ minWidth: 200 }}>Tên gia vị kho</th>
+                            <th style={{ width: 160, textAlign: "center" }}>
+                              Định lượng / suất
+                            </th>
+                            <th style={{ width: 50, textAlign: "center" }}>Xóa</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {selectedSeasonings.map((seas, sIdx) => (
+                            <tr key={seas.id || sIdx}>
+                              <td
+                                style={{
+                                  textAlign: "center",
+                                  color: "#6b7c74",
+                                  fontSize: 12,
+                                }}
+                              >
+                                {sIdx + 1}
+                              </td>
+                              <td>
+                                <strong className={styles.ingTableNameText}>
+                                  {seas.name}
+                                </strong>
+                              </td>
+                              <td>
+                                <div className={styles.portionInputGroup}>
+                                  <input
+                                    type="number"
+                                    min="0.1"
+                                    step="0.5"
+                                    className={styles.portionQtyInput}
+                                    value={seas.portionQty || ""}
+                                    onChange={(e) =>
+                                      handleUpdateSeasoning(
+                                        seas.id,
+                                        "portionQty",
+                                        Number(e.target.value) || 0
+                                      )
+                                    }
+                                    placeholder="Định lượng"
+                                  />
+                                  <select
+                                    className={styles.portionUnitSelect}
+                                    value={seas.unit || "g"}
+                                    onChange={(e) =>
+                                      handleUpdateSeasoning(
+                                        seas.id,
+                                        "unit",
+                                        e.target.value
+                                      )
+                                    }
+                                  >
+                                    <option value="g">g</option>
+                                    <option value="ml">ml</option>
+                                  </select>
+                                </div>
+                              </td>
+                              <td style={{ textAlign: "center" }}>
+                                <button
+                                  type="button"
+                                  className={styles.ingTableRemoveBtn}
+                                  onClick={() =>
+                                    handleRemoveSeasoning(seas.id)
+                                  }
+                                  title={`Xóa ${seas.name}`}
+                                  aria-label="Xóa gia vị"
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -583,18 +933,24 @@ export default function DishCatalogPage() {
               <div className={styles.modalFooterHint}>
                 {selectedIngredients.length === 0 && (
                   <span className={styles.footerWarning}>
-                    * Vui lòng chọn ít nhất 1 nguyên liệu cho món ăn
+                    * Vui lòng chọn ít nhất 1 nguyên liệu chính cho món ăn
                   </span>
                 )}
               </div>
-              <button type="button" className={styles.cancelBtn} onClick={closeModal}>
+              <button
+                type="button"
+                className={styles.cancelBtn}
+                onClick={closeModal}
+              >
                 Hủy
               </button>
               <button
                 type="button"
                 className={styles.saveBtn}
                 onClick={handleSave}
-                disabled={!form.name.trim() || !form.portionQty || selectedIngredients.length === 0}
+                disabled={
+                  !form.name.trim() || selectedIngredients.length === 0
+                }
               >
                 {editingDish ? "Lưu thay đổi" : "Lưu món ăn"}
               </button>
@@ -603,13 +959,163 @@ export default function DishCatalogPage() {
         </div>
       )}
 
-      {/* Popup Modal Chọn nguyên liệu chuẩn theo phân loại & NCC (như bên Tạo thực đơn) */}
+      {/* Modal Xem chi tiết món ăn (Icon Mắt) */}
+      {viewingDish && (
+        <div
+          className={styles.modalOverlay}
+          onClick={(e) => e.target === e.currentTarget && setViewingDish(null)}
+        >
+          <div className={styles.detailModal}>
+            <div className={styles.detailModalHeader}>
+              <div className={styles.detailHeaderTitleWrap}>
+                <Utensils size={18} className={styles.detailHeaderIcon} />
+                <h2 className={styles.detailModalTitle}>{viewingDish.name}</h2>
+                <span
+                  className={`${styles.catBadge} ${
+                    CAT_STYLE[viewingDish.category] || ""
+                  }`}
+                >
+                  {viewingDish.categoryLabel || viewingDish.category}
+                </span>
+              </div>
+              <button
+                type="button"
+                className={styles.closeBtn}
+                onClick={() => setViewingDish(null)}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.detailModalBody}>
+              {/* Thông tin nhà cung cấp */}
+              <div className={styles.detailMetaCard}>
+                <span className={styles.detailMetaLabel}>Nhà cung cấp chính:</span>
+                <span className={styles.detailMetaVal}>
+                  {viewingDish.supplierName || "CP Foods Việt Nam"}
+                </span>
+                {viewingDish.supplierBadge && (
+                  <span className={styles.supplierBadgePill}>
+                    {viewingDish.supplierBadge}
+                  </span>
+                )}
+              </div>
+
+              {/* Bảng Nguyên liệu chính */}
+              <div className={styles.detailSectionBox}>
+                <div className={styles.detailSectionHeader}>
+                  <Layers size={14} />
+                  <span>Nguyên liệu chính cấu thành món ăn</span>
+                </div>
+                {Array.isArray(viewingDish.ingredients) &&
+                viewingDish.ingredients.length > 0 ? (
+                  <table className={styles.detailTable}>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Tên nguyên liệu</th>
+                        <th>Phân loại</th>
+                        <th>Nhà cung cấp</th>
+                        <th style={{ textAlign: "right" }}>Định lượng / suất</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewingDish.ingredients.map((ing, idx) => (
+                        <tr key={ing.id || idx}>
+                          <td style={{ textAlign: "center", color: "#6b7c74" }}>
+                            {idx + 1}
+                          </td>
+                          <td>
+                            <strong>{ing.name}</strong>
+                          </td>
+                          <td>
+                            <span className={styles.ingTableCatBadge}>
+                              {ing.category}
+                            </span>
+                          </td>
+                          <td>{ing.supplierName || "NCC liên kết"}</td>
+                          <td style={{ textAlign: "right" }}>
+                            <span className={styles.detailPortionBadge}>
+                              {ing.portionQty || 50} {ing.unit || "g"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className={styles.detailEmptyText}>
+                    {viewingDish.mainIngredient || viewingDish.name} (Định lượng
+                    tiêu chuẩn 50g/suất)
+                  </div>
+                )}
+              </div>
+
+              {/* Bảng Gia vị kho */}
+              <div className={styles.detailSectionBox}>
+                <div className={styles.detailSectionHeader}>
+                  <Sparkles size={14} />
+                  <span>Gia vị kho dùng cho món này</span>
+                </div>
+                {Array.isArray(viewingDish.seasonings) &&
+                viewingDish.seasonings.length > 0 ? (
+                  <table className={styles.detailTable}>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Tên gia vị kho</th>
+                        <th style={{ textAlign: "right" }}>Định lượng / suất</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {viewingDish.seasonings.map((s, idx) => (
+                        <tr key={s.id || idx}>
+                          <td style={{ textAlign: "center", color: "#6b7c74" }}>
+                            {idx + 1}
+                          </td>
+                          <td>
+                            <strong>{s.name}</strong>
+                          </td>
+                          <td style={{ textAlign: "right" }}>
+                            <span className={styles.detailPortionBadge}>
+                              {s.portionQty} {s.unit || "g"}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div className={styles.detailEmptyText}>
+                    Chưa cài đặt gia vị kho cho món ăn này.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className={styles.detailModalFooter}>
+              <button
+                type="button"
+                className={styles.closeDetailBtn}
+                onClick={() => setViewingDish(null)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Popup Modal Chọn nguyên liệu chuẩn theo phân loại & NCC */}
       <IngredientPickerModal
         isOpen={pickerOpen}
         onClose={() => setPickerOpen(false)}
         selectedIngredientIds={selectedIngredientIds}
         onToggleIngredient={handleToggleIngredient}
-        dishContextName={form.name.trim() || (editingDish ? editingDish.name : "Món ăn mới")}
+        dishContextName={
+          form.name.trim() ||
+          (editingDish ? editingDish.name : "Món ăn mới")
+        }
       />
 
       {/* Modal Xác nhận xóa */}
@@ -618,8 +1124,9 @@ export default function DishCatalogPage() {
           <div className={styles.confirmBox}>
             <h3 className={styles.confirmTitle}>Xác nhận xóa món ăn</h3>
             <p className={styles.confirmMsg}>
-              Bạn có chắc chắn muốn xóa món <strong>"{deletingDish.name}"</strong> khỏi danh sách món ăn?
-              Thao tác này sẽ không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa món{" "}
+              <strong>"{deletingDish.name}"</strong> khỏi danh sách món ăn? Thao
+              tác này sẽ không thể hoàn tác.
             </p>
             <div className={styles.confirmActions}>
               <button

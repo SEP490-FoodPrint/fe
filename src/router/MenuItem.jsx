@@ -156,7 +156,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
-    label: "Đánh giá giao hàng",
+    label: "Kiểm tra nguyên liệu",
     icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.SCHOOL_NUTRITION_OFFICER],
   },

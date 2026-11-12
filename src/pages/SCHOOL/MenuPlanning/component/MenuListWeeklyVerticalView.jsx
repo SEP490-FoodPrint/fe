@@ -433,7 +433,7 @@ export default function MenuListWeeklyVerticalView({
                 <div
                   className={`${styles.dayCard} ${
                     sd.isToday ? styles.todayDayCard : ""
-                  }`}
+                  } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
                 >
                   {/* HÀNG 1: Header Cột Ngày - CHIỀU CAO CỐ ĐỊNH 64px ĐỒNG BỘ CẢ 5 NGÀY */}
                   <div className={styles.dayHeader}>
@@ -554,17 +554,6 @@ export default function MenuListWeeklyVerticalView({
                           ) : (
                             <div className={styles.emptySingleMealBox}>
                               <span className={styles.emptyMealText}>Chưa có thực đơn trưa</span>
-                              {canEditWeeklyMenu && (
-                                <button
-                                  type="button"
-                                  className={styles.addSingleMealBtn}
-                                  onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
-                                  title={`Thêm thực đơn bữa trưa cho ${sd.dayLabel}`}
-                                >
-                                  <Plus size={12} />
-                                  <span>Thêm bữa trưa</span>
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
@@ -638,17 +627,6 @@ export default function MenuListWeeklyVerticalView({
                           ) : (
                             <div className={styles.emptySingleMealBoxSm}>
                               <span className={styles.emptyMealText}>Chưa có thực đơn xế</span>
-                              {canEditWeeklyMenu && (
-                                <button
-                                  type="button"
-                                  className={styles.addSingleMealBtn}
-                                  onClick={() => onNavigateCreate(sd.dateISO, "AFTERNOON")}
-                                  title={`Thêm thực đơn bữa xế cho ${sd.dayLabel}`}
-                                >
-                                  <Plus size={12} />
-                                  <span>Thêm bữa xế</span>
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>

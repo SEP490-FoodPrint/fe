@@ -122,6 +122,10 @@
   color: #475569;
 }
 
+.inputRequired {
+  color: #dc2626;
+}
+
 .textInput {
   width: 100%;
   padding: 8px 12px;
@@ -141,6 +145,54 @@
   &::placeholder {
     color: #94a3b8;
   }
+}
+
+.textInputError {
+  border-color: #dc2626 !important;
+  background-color: #fff5f5;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15) !important;
+  }
+}
+
+.presetChipsWrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.presetLabel {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.presetChip {
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  font-family: inherit;
+
+  &:hover {
+    background-color: #e8f5f1;
+    color: #0a8066;
+    border-color: #c9e8de;
+  }
+}
+
+.targetHint {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  line-height: 1.3;
 }
 
 /* ========================================================
