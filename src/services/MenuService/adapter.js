@@ -843,7 +843,12 @@ export function menuWeekMeals(snapshot) {
         portionQty: String(row.quantityPerPortion), quantityPerPortion: String(row.quantityPerPortion), unit: row.unit,
       }));
     }
-    return { date: day.menuDate.slice(0, 10), menuDayId: day.id, meals, seasoningsByMeal, seasonings: seasoningsByMeal.LUNCH };
+    const portionGroupsByMeal = {};
+    for (const mealType of ["LUNCH", "AFTERNOON"]) {
+      const groups = (day.portionGroups || []).filter(g => g.mealType === mealType);
+      if (groups.length) portionGroupsByMeal[mealType] = groups.map(g => ({id:g.id, name:g.name, isDefault:g.isDefault, dishIds:(g.dishes || []).map(d=>d.dishId), avoidedIngredientEntryIds:(g.avoidances || []).map(a=>a.ingredientEntryId)}));
+    }
+    return { date: day.menuDate.slice(0, 10), menuDayId: day.id, meals, seasoningsByMeal, portionGroupsByMeal, seasonings: seasoningsByMeal.LUNCH };
   });
 }
 

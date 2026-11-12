@@ -115,17 +115,10 @@ export default function MenuDetail() {
         />
 
         {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
-        <MenuDetailBGHFeedback
-          menu={menu}
-          onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", id || menu.id), { state: { menu } })}
-        />
+        <MenuDetailBGHFeedback menu={menu} />
 
         {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
-        <MenuDetailDishesTable
-          dishes={menu.dishes}
-          canEdit={menu.status !== "APPROVED"}
-          onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", id || menu.id), { state: { menu } })}
-        />
+        <MenuDetailDishesTable dishes={menu.dishes} />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
         <MenuDetailAllergyCard menu={menu} />

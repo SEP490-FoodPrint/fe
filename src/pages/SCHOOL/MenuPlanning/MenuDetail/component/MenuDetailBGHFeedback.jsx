@@ -1,11 +1,11 @@
 import React from "react"
 import styles from "./MenuDetailBGHFeedback.module.scss"
 
-export default function MenuDetailBGHFeedback({ menu, feedback, status, onEdit }) {
+export default function MenuDetailBGHFeedback({ menu, feedback, status }) {
   const currentStatus = menu?.status || status
   const feedbackText = menu?.feedback || feedback
 
-  if (currentStatus === "REVISION_REQUESTED" || (feedbackText && currentStatus !== "APPROVED")) {
+  if (currentStatus === "REVISION_REQUESTED" || currentStatus === "REVISION_REQUIRED" || (feedbackText && currentStatus !== "APPROVED")) {
     return (
       <div className={styles.alertRevision} role="alert">
         <div className={styles.alertHeader}>
@@ -16,12 +16,6 @@ export default function MenuDetailBGHFeedback({ menu, feedback, status, onEdit }
               {feedbackText && <p className={styles.alertComment}>{feedbackText}</p>}
             </div>
           </div>
-          {onEdit && (
-            <button type="button" className={styles.btnActionRevision} onClick={onEdit}>
-              <span className="material-symbols-outlined text-[16px]">edit</span>
-              <span>Chỉnh sửa ngay</span>
-            </button>
-          )}
         </div>
       </div>
     )

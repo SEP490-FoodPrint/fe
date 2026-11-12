@@ -1,99 +1,161 @@
-import React, { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
+import { useNavigate, useParams, useLocation } from "react-router-dom"
+import {
+  CalendarDays,
+  CheckCircle2,
+  AlertTriangle,
+  Info,
+  ChevronDown,
+  ChevronUp,
+  Lock,
+} from "lucide-react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./EditMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { ALL_INGREDIENTS } from "../mockMenuData"
+import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
+import { apiMenuDetail } from "src/services/MenuService/urls"
+import {
+  formatDateVN,
+  getSchoolWeekScheduleFromDate,
+  menuWeekMeals,
+} from "src/services/MenuService/adapter"
 
-import EditMenuHeader from "./component/EditMenuHeader"
-import MenuDetailBGHFeedback from "../MenuDetail/component/MenuDetailBGHFeedback"
-import MenuBasicInfoCard from "../component/MenuBasicInfoCard"
-import MenuDishesTable from "../component/MenuDishesTable"
-import AllergyAlternativeMealsCard from "../component/AllergyAlternativeMealsCard"
-import MenuSeasoningCard from "../component/MenuSeasoningCard"
+import CreateMenuHeader from "../component/CreateMenuHeader"
 import CreateMenuBottomBar from "../component/CreateMenuBottomBar"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
-import IngredientPickerModal from "../component/IngredientPickerModal"
+import MenuDetailBGHFeedback from "../MenuDetail/component/MenuDetailBGHFeedback"
+import CreateMenuWeeklyGrid from "../CreateMenu/CreateMenuWeeklyGrid"
+import CreateMenuDayModal from "../CreateMenu/CreateMenuDayModal"
 
 export default function EditMenu() {
   const { id } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
 
-  const [menu, setMenu] = useState(null)
-  const [formState, setFormState] = useState(null)
-  const [dishes, setDishes] = useState([])
-  const [substituteDish, setSubstituteDish] = useState(null)
-  const [seasonings, setSeasonings] = useState([])
+  // Xử lý weeklyId nếu truyền vào dạng compound id (weeklyId_date_mealType)
+  const weeklyId = useMemo(() => {
+    const locMenu = location.state?.menu
+    if (locMenu?.weeklyMenuId) return locMenu.weeklyMenuId
+    if (typeof id === "string" && id.includes("_")) return id.split("_")[0]
+    return id
+  }, [id, location.state])
 
-  // Modals & Context
-  const [isPickerOpen, setIsPickerOpen] = useState(false)
-  const [pickerContext, setPickerContext] = useState({ type: "dish", dishId: null })
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
-  const [toast, setToast] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState("")
+  const [rawMenu, setRawMenu] = useState(null)
+  const [isSaving, setIsSaving] = useState(false)
 
-  // Khởi tạo dữ liệu từ API hoặc mock fallback theo ID
+  // 1. Quản lý ngày & tuần học đường
+  const [currentDateVN, setCurrentDateVN] = useState("")
+  const [academicWeek, setAcademicWeek] = useState(null)
+
+  const weekInfo = useMemo(() => {
+    if (!currentDateVN) return null
+    return getSchoolWeekScheduleFromDate(currentDateVN)
+  }, [currentDateVN])
+
+  const schoolDays = useMemo(() => {
+    return (weekInfo?.schoolDays || []).map((day) => {
+      const stored = academicWeek?.days?.find((d) => d.date === day.dateISO)
+      return {
+        ...day,
+        isHoliday: stored?.isHoliday || false,
+        holidayReason: stored?.holidayReason || null,
+      }
+    })
+  }, [weekInfo, academicWeek])
+
+  // 2. Thông tin thực đơn tuần
+  const [menuTitle, setMenuTitle] = useState("")
+
+  const GRADE_OPTIONS = useMemo(
+    () => [
+      { id: "grade-1", label: "Khối 1" },
+      { id: "grade-2", label: "Khối 2" },
+      { id: "grade-3", label: "Khối 3" },
+      { id: "grade-4", label: "Khối 4" },
+      { id: "grade-5", label: "Khối 5" },
+    ],
+    []
+  )
+
+  const [selectedGrades, setSelectedGrades] = useState([
+    "grade-1",
+    "grade-2",
+    "grade-3",
+    "grade-4",
+    "grade-5",
+  ])
+  const [isGradeDropdownOpen, setIsGradeDropdownOpen] = useState(false)
+  const gradeDropdownRef = useRef(null)
+
+  const targetScopeText = useMemo(() => {
+    if (selectedGrades.length === 0) return ""
+    if (selectedGrades.length === GRADE_OPTIONS.length) {
+      return "Tất cả các khối (Khối 1 - 5)"
+    }
+    return GRADE_OPTIONS.filter((g) => selectedGrades.includes(g.id))
+      .map((g) => g.label)
+      .join(", ")
+  }, [selectedGrades, GRADE_OPTIONS])
+
+  const [targetScope, setTargetScope] = useState("")
+
+  // Click outside đóng dropdown khối lớp
   useEffect(() => {
-    let isMounted = true
-    const loadMenu = async () => {
-      try {
-        const res = await MenuService.getMenuDetail(id)
-        const rawMenu = res?.data
-        if (!isMounted || !rawMenu) return
-        setMenu(rawMenu)
-
-        // Form state
-        setFormState({
-          name: rawMenu.name,
-          date: rawMenu.date,
-          mealType: rawMenu.mealType === "AFTERNOON_SNACK" ? "AFTERNOON" : rawMenu.mealType,
-          targetScope: rawMenu.targetScope || "Toàn trường",
-          notes: rawMenu.notes || ""
-        })
-
-        // Map dishes
-        if (rawMenu.dishes && rawMenu.dishes.length > 0) {
-          const mappedDishes = rawMenu.dishes.map((d, idx) => {
-            return {
-              ...d,
-              id: `dish-edit-${idx + 1}`,
-              dishId: d.dishId || undefined,
-              name: d.name,
-              ingredientIds: d.ingredientIds || [],
-              ingredientStandards: (d.ingredientStandards || []).map(line => ({ ...line })),
-              portionQty: d.portionQty ?? "",
-              unit: d.unit || ""
-            }
-          })
-          setDishes(mappedDishes)
-        }
-
-        // Map substitute dish
-        setSubstituteDish(rawMenu.substituteDish || null)
-
-        // Map seasonings
-        {
-          const mappedSeasonings = (rawMenu.seasonings || []).map((s, idx) => {
-            if (typeof s === "string") {
-              return {
-                id: `seas-edit-${idx}`,
-                name: s,
-                catalogId: "",
-                portionQty: "",
-                unit: "g"
-              }
-            }
-            return s
-          })
-          setSeasonings(mappedSeasonings)
-        }
-      } catch (err) {
-        console.warn("Lỗi load thực đơn:", err)
+    const handleClickOutside = (event) => {
+      if (
+        gradeDropdownRef.current &&
+        !gradeDropdownRef.current.contains(event.target)
+      ) {
+        setIsGradeDropdownOpen(false)
       }
     }
-    loadMenu()
-    return () => { isMounted = false }
-  }, [id])
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [])
+
+  const handleToggleGrade = (gradeId) => {
+    setSelectedGrades((prev) => {
+      const next = prev.includes(gradeId)
+        ? prev.filter((gid) => gid !== gradeId)
+        : [...prev, gradeId]
+      return next
+    })
+  }
+
+  const handleToggleAllGrades = () => {
+    if (selectedGrades.length === GRADE_OPTIONS.length) {
+      setSelectedGrades([])
+    } else {
+      setSelectedGrades(GRADE_OPTIONS.map((g) => g.id))
+    }
+  }
+
+  // Đồng bộ targetScope với selectedGrades khi người dùng đổi lựa chọn
+  useEffect(() => {
+    if (targetScopeText) {
+      setTargetScope(targetScopeText)
+    }
+  }, [targetScopeText])
+
+  // 3. Dữ liệu thực đơn cả tuần
+  const [weeklyMeals, setWeeklyMeals] = useState({})
+
+  // 4. Modal Chi tiết Ngày (50/50: Nửa trái Preview ngày, Nửa phải Chọn món & Nhập gia vị)
+  const [dayModalState, setDayModalState] = useState({
+    isOpen: false,
+    dayData: null,
+    mealType: "LUNCH",
+    tab: "DISHES",
+  })
+
+  // 5. Modal Xác nhận gửi duyệt & Toast
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false)
+  const [toast, setToast] = useState(null)
 
   const showToast = (message, type = "success") => {
     setToast({ message, type })
@@ -102,166 +164,304 @@ export default function EditMenu() {
     }, 3500)
   }
 
-  // Cập nhật thông tin cơ bản
-  const handleChangeField = (field, value) => {
-    setFormState(prev => ({ ...prev, [field]: value }))
-  }
+  // Tải chi tiết thực đơn tuần cần chỉnh sửa
+  useEffect(() => {
+    let isMounted = true
+    const fetchMenu = async () => {
+      setLoading(true)
+      setLoadError("")
+      try {
+        const res = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false })
+        const raw = res?.data || res
+        if (!isMounted) return
+        if (!raw || !raw.id) {
+          throw new Error("Không tìm thấy dữ liệu thực đơn tuần.")
+        }
 
-  // Cập nhật từng món ăn trong bảng
-  const handleUpdateDish = (dishId, updates) => {
-    setDishes(prev =>
-      prev.map(dish => {
-        if (dish.id !== dishId) return dish
-        return { ...dish, ...updates }
-      })
-    )
-  }
+        setRawMenu(raw)
+        setMenuTitle(raw.title || raw.name || "")
 
-  const handleAddDishRow = () => {
-    const newDish = {
-      id: `dish-edit-${Date.now()}`,
-      name: "",
-      ingredientIds: [],
-      portionQty: 50,
-      unit: "g"
-    }
-    setDishes(prev => [...prev, newDish])
-    showToast("Đã thêm một dòng món ăn mới", "info")
-  }
+        // Xác định ngày bắt đầu tuần
+        const startDateStr = typeof raw.weekStartDate === "string"
+          ? raw.weekStartDate.slice(0, 10)
+          : new Date(raw.weekStartDate).toISOString().slice(0, 10)
+        const dateVN = formatDateVN(startDateStr)
+        setCurrentDateVN(dateVN)
 
-  const handleRemoveDish = (dishId) => {
-    setDishes(prev => prev.filter(d => d.id !== dishId))
-    showToast("Đã xóa món ăn khỏi thực đơn", "info")
-  }
+        // Phân tích phạm vi áp dụng
+        if (raw.targetScope) {
+          setTargetScope(raw.targetScope)
+          const matchedGrades = GRADE_OPTIONS.filter((g) =>
+            raw.targetScope.includes(g.label)
+          ).map((g) => g.id)
+          if (matchedGrades.length > 0) {
+            setSelectedGrades(matchedGrades)
+          }
+        }
 
-  const handleRemoveIngredientFromDish = (dishId, ingredientId) => {
-    const targetDish = dishes.find(d => d.id === dishId)
-    if (!targetDish) return
-    const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
-    const newIds = currentIds.filter(id => id !== ingredientId)
-    handleUpdateDish(dishId, {
-      ingredientIds: newIds,
-      ingredientStandards: (targetDish.ingredientStandards || []).filter(line => line.ingredientId !== ingredientId),
-      ingredientDetails: (targetDish.ingredientDetails || []).filter(line => line.id !== ingredientId),
-    })
-    showToast("Đã xóa nguyên liệu khỏi món", "info")
-  }
+        // Lấy lịch tuần từ backend API
+        const schedRes = await MenuService.getWeekSchedule(startDateStr)
+        if (isMounted && schedRes?.data) {
+          setAcademicWeek(schedRes.data)
+        }
 
-  // Seasonings
-  const handleAddSeasoning = () => {
-    const newSeasoning = {
-      id: `seas-edit-${Date.now()}`,
-      catalogId: "",
-      name: "",
-      portionQty: 1,
-      unit: "g"
-    }
-    setSeasonings(prev => [...prev, newSeasoning])
-    showToast("Đã thêm gia vị mới", "info")
-  }
-
-  const handleRemoveSeasoning = (seasoningId) => {
-    setSeasonings(prev => prev.filter(s => s.id !== seasoningId))
-    showToast("Đã xóa gia vị", "info")
-  }
-
-  const handleUpdateSeasoning = (seasoningId, updates) => {
-    setSeasonings(prev =>
-      prev.map(s => (s.id === seasoningId ? { ...s, ...updates } : s))
-    )
-  }
-
-  // Substitute dish
-  const handleChangeSubstituteDish = (field, value) => {
-    setSubstituteDish(prev => ({ ...prev, [field]: value }))
-  }
-
-  // Picker
-  const handleOpenPickerForDish = (dishId) => {
-    setPickerContext({ type: "dish", dishId })
-    setIsPickerOpen(true)
-  }
-
-  const handleOpenPickerForSubstitute = () => {
-    setPickerContext({ type: "substitute", dishId: null })
-    setIsPickerOpen(true)
-  }
-
-  const handleToggleIngredient = (ingredient) => {
-    if (pickerContext.type === "dish" && pickerContext.dishId) {
-      const targetDish = dishes.find(d => d.id === pickerContext.dishId)
-      if (!targetDish) return
-      const currentIds = targetDish.ingredientIds || (targetDish.ingredientId ? [targetDish.ingredientId] : [])
-      const exists = currentIds.includes(ingredient.id)
-      const newIds = exists
-        ? currentIds.filter(id => id !== ingredient.id)
-        : [...currentIds, ingredient.id]
-
-      handleUpdateDish(pickerContext.dishId, {
-        ingredientIds: newIds,
-        ingredientDetails: exists ? (targetDish.ingredientDetails || []).filter(item => item.id !== ingredient.id) : [...(targetDish.ingredientDetails || []), ingredient],
-        ingredientStandards: exists ? (targetDish.ingredientStandards || []).filter(item => item.ingredientId !== ingredient.id) : [...(targetDish.ingredientStandards || []), { ingredientId: ingredient.id, quantityPerPortion: "", unit: ingredient.defaultUnit }],
-      })
-
-      if (exists) {
-        showToast(`Đã bỏ nguyên liệu "${ingredient.name}"`, "info")
-      } else {
-        showToast(`Đã thêm nguyên liệu "${ingredient.name}"`, "success")
+        // Chuyển đổi dữ liệu ngày & món ăn từ menu
+        const parsedDays = menuWeekMeals(raw)
+        const mapped = {}
+        parsedDays.forEach((day) => {
+          if (day.date) {
+            mapped[day.date] = {
+              LUNCH: day.meals?.LUNCH?.dishes || [],
+              AFTERNOON: day.meals?.AFTERNOON?.dishes || [],
+              seasonings: Array.isArray(day.seasonings) ? day.seasonings : [],
+              seasoningsByMeal: day.seasoningsByMeal || { LUNCH: [], AFTERNOON: [] },
+            }
+          }
+        })
+        setWeeklyMeals(mapped)
+      } catch (err) {
+        if (isMounted) {
+          console.warn("Lỗi tải thực đơn tuần để chỉnh sửa:", err)
+          setLoadError(err.message || "Không thể tải thông tin thực đơn cần chỉnh sửa.")
+        }
+      } finally {
+        if (isMounted) setLoading(false)
       }
-    } else if (pickerContext.type === "substitute") {
-      setSubstituteDish(prev => ({
-        ...prev,
-        ingredientId: ingredient.id,
-        unit: prev.unit || ingredient.unit || "g"
-      }))
-      showToast(`Đã chọn nguyên liệu thay thế: "${ingredient.name}"`, "success")
-      setIsPickerOpen(false)
     }
-  }
 
-  const currentTargetDish = pickerContext.type === "dish"
-    ? dishes.find(d => d.id === pickerContext.dishId)
-    : null
+    if (weeklyId) {
+      fetchMenu()
+    }
+    return () => {
+      isMounted = false
+    }
+  }, [weeklyId, GRADE_OPTIONS])
 
-  const selectedIngredientIds = pickerContext.type === "dish"
-    ? (currentTargetDish?.ingredientIds || (currentTargetDish?.ingredientId ? [currentTargetDish.ingredientId] : []))
-    : (substituteDish?.ingredientId ? [substituteDish.ingredientId] : [])
-
-  // Kiểm tra xung đột dị ứng
-  const conflictDishes = dishes.filter(d => {
-    const ids = d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])
-    return ids.some(id => {
-      const ing = ALL_INGREDIENTS.find(i => i.id === id)
-      return Boolean(ing?.allergen)
+  // Đảm bảo mọi ngày trong schoolDays đều có key trong weeklyMeals
+  useEffect(() => {
+    if (!schoolDays.length) return
+    setWeeklyMeals((prev) => {
+      let changed = false
+      const copy = { ...prev }
+      schoolDays.forEach((sd) => {
+        if (!copy[sd.dateISO]) {
+          changed = true
+          copy[sd.dateISO] = {
+            LUNCH: [],
+            AFTERNOON: [],
+            seasonings: [],
+            seasoningsByMeal: { LUNCH: [], AFTERNOON: [] },
+          }
+        }
+      })
+      return changed ? copy : prev
     })
-  })
-  const conflictCount = conflictDishes.length > 0 ? 12 : 0
+  }, [schoolDays])
 
-  // Actions
-  const handleSaveDraft = async () => {
-    try {
-      const res = await MenuService.updateMenu(id, { formState, dishes, substituteDish, seasonings })
-      showToast(res.message || "Đã lưu các chỉnh sửa thực đơn thành công", "success")
-    } catch (err) {
-      showToast("Lỗi lưu thực đơn: " + err.message, "warning")
+  // Mở Popup Modal Chi tiết ngày (50/50)
+  const handleOpenDayModal = useCallback((dayData, mealType = "LUNCH", tab = "DISHES") => {
+    setDayModalState({
+      isOpen: true,
+      dayData,
+      mealType,
+      tab,
+    })
+  }, [])
+
+  const handleCloseDayModal = useCallback(() => {
+    setDayModalState((prev) => ({ ...prev, isOpen: false }))
+  }, [])
+
+  // Cập nhật dữ liệu từ DayModal vào weeklyMeals
+  const handleSaveDayFromModal = useCallback(
+    ({ dateISO, LUNCH, AFTERNOON, seasonings, seasoningsByMeal, useDishRecipes }) => {
+      setWeeklyMeals((prev) => ({
+        ...prev,
+        [dateISO]: {
+          ...prev[dateISO],
+          LUNCH,
+          AFTERNOON,
+          seasonings,
+          seasoningsByMeal,
+          useDishRecipes,
+        },
+      }))
+      showToast("Đã cập nhật món ăn và gia vị cho ngày thành công", "success")
+    },
+    []
+  )
+
+  // Thống kê tổng số món của cả tuần
+  const totalWeeklyDishesCount = useMemo(() => {
+    let count = 0
+    Object.values(weeklyMeals).forEach((day) => {
+      if (Array.isArray(day?.LUNCH)) count += day.LUNCH.length
+      if (Array.isArray(day?.AFTERNOON)) count += day.AFTERNOON.length
+    })
+    return count
+  }, [weeklyMeals])
+
+  // Tính số ngày đã có món ăn
+  const completedDaysCount = useMemo(() => {
+    let count = 0
+    schoolDays.forEach((sd) => {
+      const dayData = weeklyMeals[sd.dateISO] || {}
+      const hasLunch = Array.isArray(dayData.LUNCH) && dayData.LUNCH.length > 0
+      const hasAfternoon =
+        Array.isArray(dayData.AFTERNOON) && dayData.AFTERNOON.length > 0
+      if (hasLunch && hasAfternoon) count += 1
+    })
+    return count
+  }, [schoolDays, weeklyMeals])
+
+  // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
+  const buildWeeklyMenuPayload = () => {
+    const weekStartDate = schoolDays[0]?.dateISO || (rawMenu?.weekStartDate ? rawMenu.weekStartDate.slice(0, 10) : "")
+    const days = []
+
+    schoolDays.forEach((sd) => {
+      const dayData = weeklyMeals[sd.dateISO]
+      if (!dayData) return
+
+      const lunchDishes = (dayData.LUNCH || [])
+        .filter((d) => (d.name || "").trim().length > 0)
+        .map((d) => ({
+          ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
+          ingredients: Array.isArray(d.ingredientStandards)
+            ? d.ingredientStandards
+            : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
+                ingredientId: id,
+                quantityPerPortion: String(d.portionQty || 50),
+                unit: (d.unit || "g").trim().toLowerCase(),
+              })),
+        }))
+
+      const afternoonDishes = (dayData.AFTERNOON || [])
+        .filter((d) => (d.name || "").trim().length > 0)
+        .map((d) => ({
+          ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
+          ingredients: Array.isArray(d.ingredientStandards)
+            ? d.ingredientStandards
+            : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
+                ingredientId: id,
+                quantityPerPortion: String(d.portionQty || 50),
+                unit: (d.unit || "g").trim().toLowerCase(),
+              })),
+        }))
+
+      const meals = []
+      for (const [mealType, mealDishes] of [
+        ["LUNCH", lunchDishes],
+        ["AFTERNOON", afternoonDishes],
+      ]) {
+        if (!mealDishes.length) continue
+        const rows =
+          dayData.seasoningsByMeal?.[mealType] ||
+          (mealType === "LUNCH" ? dayData.seasonings || [] : [])
+        meals.push({
+          mealType,
+          dishes: mealDishes,
+          ...(dayData.useDishRecipes ? { useDishRecipes: true } : {}),
+          seasonings: rows.map((s) => ({
+            ingredientEntryId: s.ingredientEntryId || s.id,
+            quantityPerPortion: String(s.quantityPerPortion ?? s.portionQty),
+            unit: s.unit,
+          })),
+        })
+      }
+
+      if (meals.length > 0) {
+        days.push({
+          menuDate: sd.dateISO,
+          note: null,
+          meals,
+        })
+      }
+    })
+
+    return {
+      weekStartDate,
+      title: menuTitle.trim(),
+      days,
     }
   }
 
+  // Xử lý Lưu thay đổi (PUT /v1/menus/:id)
+  const handleSaveDraft = async () => {
+    if (!menuTitle.trim()) {
+      showToast("Vui lòng nhập tên thực đơn trước khi lưu", "warning")
+      return
+    }
+
+    if (!targetScope.trim()) {
+      showToast("Vui lòng chọn đối tượng áp dụng cho thực đơn", "warning")
+      return
+    }
+
+    const payload = buildWeeklyMenuPayload()
+    if (!payload.days.length) {
+      showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần trước khi lưu", "warning")
+      return
+    }
+
+    setIsSaving(true)
+    try {
+      await http.put(apiMenuDetail(weeklyId), payload, { notifyOnError: false })
+      MenuService.invalidateMenuCache()
+      showToast("Đã lưu các thay đổi của thực đơn tuần thành công!", "success")
+      setTimeout(() => {
+        navigate(ROUTER.SCHOOL_MENU_PLANNING)
+      }, 1000)
+    } catch (err) {
+      showToast("Không thể cập nhật thực đơn: " + (err.message || "Lỗi máy chủ"), "warning")
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  // Mở modal xác nhận gửi duyệt
+  const handleOpenConfirmSubmit = () => {
+    if (!menuTitle.trim()) {
+      showToast("Vui lòng nhập tên thực đơn trước khi gửi duyệt", "warning")
+      return
+    }
+    if (!targetScope.trim()) {
+      showToast("Vui lòng chọn đối tượng áp dụng trước khi gửi duyệt", "warning")
+      return
+    }
+    if (totalWeeklyDishesCount === 0) {
+      showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần", "warning")
+      return
+    }
+    setIsConfirmModalOpen(true)
+  }
+
+  // Xác nhận gửi Ban Giám Hiệu duyệt (PUT rồi POST /submit)
   const handleConfirmSubmit = async () => {
     setIsConfirmModalOpen(false)
+    const payload = buildWeeklyMenuPayload()
+    if (!payload.days.length) {
+      showToast("Vui lòng thêm ít nhất một món ăn trước khi gửi duyệt", "warning")
+      return
+    }
+
+    setIsSaving(true)
     try {
-      await MenuService.updateMenu(id, { formState, dishes, substituteDish, seasonings })
-      await MenuService.submitMenu(id)
-      showToast("Đã gửi lại thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
+      await http.put(apiMenuDetail(weeklyId), payload, { notifyOnError: false })
+      await MenuService.submitMenu(weeklyId)
+      MenuService.invalidateMenuCache()
+      showToast("Đã cập nhật và gửi thực đơn tuần lên Ban Giám hiệu phê duyệt thành công!", "success")
       setTimeout(() => {
-        navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", id))
+        navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1200)
     } catch (err) {
-      showToast("Lỗi gửi duyệt: " + err.message, "warning")
+      showToast("Lỗi gửi duyệt: " + (err.message || "Không thể gửi thực đơn"), "warning")
+    } finally {
+      setIsSaving(false)
     }
   }
 
-  if (!menu || !formState) {
+  if (loading) {
     return (
       <div className={styles.loadingContainer}>
         <FoodPrintLoading />
@@ -269,126 +469,271 @@ export default function EditMenu() {
     )
   }
 
-  // Trường hợp thực đơn đã được duyệt hoặc đang chờ duyệt -> Khóa chỉnh sửa
-  const isLocked = menu.status === "APPROVED" || menu.status === "PENDING_APPROVAL"
-  if (isLocked) {
+  if (loadError || !rawMenu) {
     return (
-      <div className={styles.lockedContainer}>
-        <div className={styles.lockedCard}>
-          <div className={styles.lockedIconWrap}>
-            <span className="material-symbols-outlined text-[40px] text-amber-600">lock</span>
-          </div>
-          <h2 className={styles.lockedTitle}>Thực đơn đang ở trạng thái {menu.statusLabel}</h2>
-          <p className={styles.lockedDesc}>
-            Thực đơn mã <strong>{menu.code}</strong> đã được phê duyệt chính thức hoặc đang trong phiên thẩm định trực tuyến của Ban Giám Hiệu. Bạn không thể chỉnh sửa trực tiếp nội dung thực đơn này.
-          </p>
-          <div className={styles.lockedActions}>
-            <button
-              type="button"
-              className={styles.btnBackDetail}
-              onClick={() => navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", id))}
-            >
-              <span className="material-symbols-outlined text-[18px]">visibility</span>
-              <span>Xem chi tiết thực đơn</span>
-            </button>
-            <button
-              type="button"
-              className={styles.btnBackList}
-              onClick={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
-            >
-              <span>Về danh sách thực đơn</span>
-            </button>
+      <div className={styles.pageContainer}>
+        <div className={styles.lockedContainer}>
+          <div className={styles.lockedCard}>
+            <div className={styles.lockedIconWrap}>
+              <AlertTriangle size={32} />
+            </div>
+            <h2 className={styles.lockedTitle}>Không tìm thấy thực đơn</h2>
+            <p className={styles.lockedDesc}>
+              {loadError || "Thực đơn yêu cầu không tồn tại hoặc bạn không có quyền truy cập."}
+            </p>
+            <div className={styles.lockedActions}>
+              <button
+                type="button"
+                className={styles.btnBackList}
+                onClick={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+              >
+                Quay lại danh sách
+              </button>
+            </div>
           </div>
         </div>
       </div>
     )
   }
 
+  // Nếu thực đơn đã duyệt: không cho phép chỉnh sửa
+  if (rawMenu.status === "APPROVED") {
+    return (
+      <div className={styles.pageContainer}>
+        <div className={styles.lockedContainer}>
+          <div className={styles.lockedCard}>
+            <div className={styles.lockedIconWrap}>
+              <Lock size={32} />
+            </div>
+            <h2 className={styles.lockedTitle}>Thực đơn đã được phê duyệt</h2>
+            <p className={styles.lockedDesc}>
+              Thực đơn tuần này đã được Ban Giám Hiệu phê duyệt và đang áp dụng thực hiện. Bạn không thể chỉnh sửa thực đơn đã phê duyệt.
+            </p>
+            <div className={styles.lockedActions}>
+              <button
+                type="button"
+                className={styles.btnBackDetail}
+                onClick={() => navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", weeklyId))}
+              >
+                Xem chi tiết thực đơn
+              </button>
+              <button
+                type="button"
+                className={styles.btnBackList}
+                onClick={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+              >
+                Về danh sách
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const weekRangeText =
+    schoolDays.length >= 5
+      ? `${schoolDays[0].dateVN.slice(0, 5)} – ${schoolDays[4].dateVN}`
+      : ""
+
+  const statusLabel =
+    rawMenu.status === "REVISION_REQUIRED" || rawMenu.status === "REVISION_REQUESTED"
+      ? "Yêu cầu chỉnh sửa"
+      : "Bản nháp"
+
   return (
     <div className={styles.pageContainer}>
-      {/* Toast Notification */}
+      {/* Toast thông báo */}
       {toast && (
         <div className={`${styles.toastNotice} ${styles[toast.type]}`}>
-          <span className="material-symbols-outlined">
-            {toast.type === "success" ? "check_circle" : "info"}
-          </span>
+          {toast.type === "success" && <CheckCircle2 size={16} />}
+          {toast.type === "warning" && <AlertTriangle size={16} />}
+          {toast.type === "info" && <Info size={16} />}
           <span>{toast.message}</span>
         </div>
       )}
 
       <div className={styles.contentWrapper}>
-        {/* Header với Tiêu đề, Mã thực đơn và Nút Quay lại */}
-        <EditMenuHeader
-          menu={menu}
-          onBack={() => navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", id))}
+        {/* Header trang chuẩn mực */}
+        <CreateMenuHeader
+          title="Chỉnh sửa thực đơn tuần"
+          statusLabel={statusLabel}
+          onBack={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
         />
 
-        {/* Khối Ý kiến phản hồi BGH nếu trạng thái là REVISION_REQUESTED */}
-        {menu.feedback && (
-          <MenuDetailBGHFeedback feedback={menu.feedback} status={menu.status} />
+        {/* Thông báo ý kiến yêu cầu chỉnh sửa từ Ban Giám Hiệu (nếu có) */}
+        {(rawMenu.status === "REVISION_REQUIRED" ||
+          rawMenu.status === "REVISION_REQUESTED" ||
+          rawMenu.feedback) && (
+          <MenuDetailBGHFeedback menu={rawMenu} />
         )}
 
-        {/* Khối 1: Thông tin thực đơn */}
-        <MenuBasicInfoCard
-          formState={formState}
-          onChangeField={handleChangeField}
-        />
+        {/* 1. THANH ĐIỀU KHIỂN ĐẦU TRANG: TUẦN & THÔNG TIN THỰC ĐƠN */}
+        <div className={styles.topControlsCard}>
+          <div className={styles.controlsTopRow}>
+            {/* Cố định tuần của thực đơn đang sửa */}
+            <div className={styles.weekStepper}>
+              <CalendarDays size={16} className="text-emerald-700" />
+              <span className={styles.weekRangeText}>
+                {weekRangeText || "Tuần thực đơn"}
+              </span>
+              {academicWeek?.weekNumber && (
+                <span className="text-xs text-slate-500 font-semibold ml-1">
+                  (Tuần {academicWeek.weekNumber})
+                </span>
+              )}
+            </div>
 
-        {/* Khối 2: Bảng món ăn trong thực đơn */}
-        <MenuDishesTable
-          dishes={dishes}
-          onUpdateDish={handleUpdateDish}
-          onAddDishRow={handleAddDishRow}
-          onRemoveDish={handleRemoveDish}
-          onOpenPicker={handleOpenPickerForDish}
-          onRemoveIngredientFromDish={handleRemoveIngredientFromDish}
-        />
+            {/* Thống kê nhanh */}
+            <div className={styles.weekQuickStats}>
+              <div className={styles.statPill}>
+                <span>Tổng món tuần:</span>
+                <strong>{totalWeeklyDishesCount} món</strong>
+              </div>
+              <div className={styles.statPill}>
+                <span>Ngày đủ 2 ca:</span>
+                <strong>{completedDaysCount}/5 ngày</strong>
+              </div>
+            </div>
+          </div>
 
-        {/* Khối 3: Bố trí suất ăn riêng cho học sinh dị ứng */}
-        <AllergyAlternativeMealsCard
-          conflictDishes={conflictDishes}
-          substituteDish={substituteDish}
-          onChangeSubstituteDish={handleChangeSubstituteDish}
-          onOpenPickerForSubstitute={handleOpenPickerForSubstitute}
-        />
+          {/* Hàng Form nhập Tên & Khối áp dụng */}
+          <div className={styles.formFieldsRow}>
+            <div className={styles.titleFieldWrap}>
+              <label className={styles.fieldLabel} htmlFor="menu-title-input">
+                Tên thực đơn <span className="text-rose-500">*</span>
+              </label>
+              <input
+                id="menu-title-input"
+                type="text"
+                className={styles.titleInput}
+                placeholder="VD: Thực đơn tuần 45 - Khối 1 - 5"
+                value={menuTitle}
+                onChange={(e) => setMenuTitle(e.target.value)}
+              />
+            </div>
 
-        {/* Khối 4: Gia vị dùng chung */}
-        <MenuSeasoningCard
-          seasonings={seasonings}
-          onUpdateSeasoning={handleUpdateSeasoning}
-          onAddSeasoning={handleAddSeasoning}
-          onRemoveSeasoning={handleRemoveSeasoning}
-        />
+            <div className={styles.scopeFieldWrap} ref={gradeDropdownRef}>
+              <label className={styles.fieldLabel}>
+                Đối tượng áp dụng <span className="text-rose-500">*</span>
+              </label>
+              <div className={styles.scopeDropdownWrap}>
+                <button
+                  type="button"
+                  className={styles.scopeDropdownTrigger}
+                  onClick={() => setIsGradeDropdownOpen((prev) => !prev)}
+                >
+                  <span className="truncate">
+                    {targetScope || "Chọn các khối lớp áp dụng..."}
+                  </span>
+                  {isGradeDropdownOpen ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </button>
+
+                {isGradeDropdownOpen && (
+                  <div className={styles.scopeDropdownMenu}>
+                    <div
+                      className={`${styles.dropdownOption} ${styles.selectAllOption}`}
+                      onClick={handleToggleAllGrades}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedGrades.length === GRADE_OPTIONS.length}
+                        onChange={() => {}}
+                        className={styles.dropdownCheckbox}
+                      />
+                      <span className={styles.optionLabel}>
+                        Tất cả các khối (Khối 1 - 5)
+                      </span>
+                    </div>
+                    {GRADE_OPTIONS.map((g) => {
+                      const isChecked = selectedGrades.includes(g.id)
+                      return (
+                        <div
+                          key={g.id}
+                          className={styles.dropdownOption}
+                          onClick={() => handleToggleGrade(g.id)}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}}
+                            className={styles.dropdownCheckbox}
+                          />
+                          <span className={styles.optionLabel}>{g.label}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. KHU VỰC THỰC ĐƠN CẢ TUẦN (5 NGÀY HỌC ĐƯỜNG) */}
+        <div className={styles.weeklySectionWrap}>
+          <div className={styles.sectionHeaderRow}>
+            <h2 className={styles.sectionTitle}>
+              <CalendarDays size={18} className="text-emerald-700" />
+              <span>Kế hoạch thực đơn trong tuần (Thứ 2 – Thứ 6)</span>
+            </h2>
+          </div>
+
+          <CreateMenuWeeklyGrid
+            schoolDays={schoolDays}
+            weeklyMeals={weeklyMeals}
+            onOpenDayModal={handleOpenDayModal}
+          />
+        </div>
       </div>
 
-      {/* Sticky Bottom Action Bar */}
+      {/* 3. MODAL POPUP CHI TIẾT NGÀY (50/50) */}
+      {dayModalState.isOpen && (
+        <CreateMenuDayModal
+          isOpen={dayModalState.isOpen}
+          onClose={handleCloseDayModal}
+          dayData={dayModalState.dayData}
+          dayMenu={
+            dayModalState.dayData
+              ? weeklyMeals[dayModalState.dayData.dateISO]
+              : null
+          }
+          initialMealType={dayModalState.mealType}
+          onSaveDay={handleSaveDayFromModal}
+        />
+      )}
+
+      {/* 4. THANH HÀNH ĐỘNG CỐ ĐỊNH Ở ĐÁY MÀN HÌNH */}
       <CreateMenuBottomBar
-        onCancel={() => navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", id))}
+        onCancel={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
         onSaveDraft={handleSaveDraft}
-        onSubmitApproval={() => setIsConfirmModalOpen(true)}
+        onSubmitApproval={handleOpenConfirmSubmit}
+        isLoading={isSaving}
+        draftText="Lưu thay đổi"
+        submitText="Gửi BGH phê duyệt"
       />
 
-      {/* Modal chọn nguyên liệu từ NCC liên kết */}
-      <IngredientPickerModal
-        isOpen={isPickerOpen}
-        onClose={() => setIsPickerOpen(false)}
-        selectedIngredientIds={selectedIngredientIds}
-        onToggleIngredient={handleToggleIngredient}
-        dishContextName={pickerContext.type === "dish" ? (currentTargetDish?.name || "Món ăn") : (substituteDish?.name || "Món thay thế")}
-        onlySafe={pickerContext.type === "substitute"}
-      />
-
-      {/* Modal xác nhận gửi BGH duyệt */}
+      {/* 5. MODAL XÁC NHẬN GỬI BAN GIÁM HIỆU DUYỆT */}
       <ConfirmSubmitModal
         isOpen={isConfirmModalOpen}
         onClose={() => setIsConfirmModalOpen(false)}
         onConfirm={handleConfirmSubmit}
-        menuData={formState}
-        dishesCount={dishes.length}
+        menuData={{
+          name: menuTitle,
+          date: weekRangeText,
+          mealType: "Cả ngày (Trưa & Xế)",
+          targetScope: targetScope,
+          portionCount: 650,
+          notes: rawMenu.feedback || "Cập nhật thực đơn theo yêu cầu",
+        }}
+        dishesCount={totalWeeklyDishesCount}
         selectedAllergyOption="OPTION_2"
-        conflictCount={conflictCount}
+        conflictCount={0}
       />
     </div>
   )
 }
-

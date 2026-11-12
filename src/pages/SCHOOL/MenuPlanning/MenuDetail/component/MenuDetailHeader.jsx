@@ -14,7 +14,7 @@ export default function MenuDetailHeader({
                      String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
   const canEdit = !isApproved
   const canSubmit = menu?.status === "DRAFT" || menu?.status === "REVISION_REQUESTED" || menu?.status === "REVISION_REQUIRED"
-  const targetEditId = menuId || menu?.weeklyMenuId || menu?.id
+  const targetEditId = menu?.weeklyMenuId || (typeof menuId === "string" && menuId.includes("_") ? menuId.split("_")[0] : menuId) || menu?.id
 
   const displayTitle = React.useMemo(() => {
     if (!menu) return "Thực đơn tuần"

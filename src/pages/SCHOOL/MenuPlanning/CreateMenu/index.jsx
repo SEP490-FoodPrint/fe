@@ -59,8 +59,11 @@ export default function CreateMenu() {
   const weekInfo = useMemo(() => {
     return getSchoolWeekScheduleFromDate(currentDateVN)
   }, [currentDateVN])
-  const schoolDays = weekInfo?.schoolDays || []
   const [academicWeek, setAcademicWeek] = useState(null)
+  const schoolDays = useMemo(() => (weekInfo?.schoolDays || []).map(day => {
+    const stored = academicWeek?.days?.find(d => d.date === day.dateISO)
+    return {...day, isHoliday: stored?.isHoliday || false, holidayReason: stored?.holidayReason || null}
+  }), [weekInfo, academicWeek])
 
   // 2. Thông tin thực đơn tuần
   const [menuTitle, setMenuTitle] = useState("")
@@ -193,6 +196,7 @@ export default function CreateMenu() {
               AFTERNOON: day.meals?.AFTERNOON?.dishes || [],
               seasonings: Array.isArray(day.seasonings) ? day.seasonings : [],
               seasoningsByMeal: day.seasoningsByMeal || { LUNCH: [], AFTERNOON: [] },
+              portionGroupsByMeal: day.portionGroupsByMeal || {},
             }
           }
         })
@@ -250,7 +254,7 @@ export default function CreateMenu() {
 
   // Cập nhật dữ liệu từ DayModal vào weeklyMeals
   const handleSaveDayFromModal = useCallback(
-    ({ dateISO, LUNCH, AFTERNOON, seasonings }) => {
+    ({ dateISO, LUNCH, AFTERNOON, seasonings, seasoningsByMeal, useDishRecipes, portionGroupsByMeal }) => {
       setWeeklyMeals((prev) => ({
         ...prev,
         [dateISO]: {
@@ -258,6 +262,9 @@ export default function CreateMenu() {
           LUNCH,
           AFTERNOON,
           seasonings,
+          seasoningsByMeal,
+          useDishRecipes,
+          portionGroupsByMeal,
         },
       }))
       showToast("Đã cập nhật thực đơn cho ngày thành công", "success")
@@ -279,6 +286,7 @@ export default function CreateMenu() {
   const completedDaysCount = useMemo(() => {
     let count = 0
     schoolDays.forEach((sd) => {
+      if (sd.isHoliday) return
       const dayData = weeklyMeals[sd.dateISO] || {}
       const hasLunch = Array.isArray(dayData.LUNCH) && dayData.LUNCH.length > 0
       const hasAfternoon =
@@ -319,31 +327,11 @@ export default function CreateMenu() {
           })),
         }))
 
-      const isEntryId = (val) =>
-        /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(val || "")
-
-      const seasonings = (dayData.seasonings || [])
-        .filter((s) => s && (s.ingredientEntryId || s.catalogId || isEntryId(s.id)))
-        .map((s) => ({
-          ingredientEntryId: s.ingredientEntryId || s.catalogId || s.id,
-          quantityPerPortion: String(s.portionQty ?? s.quantityPerPortion ?? s.defaultQty ?? 5),
-          unit: (s.unit || "g").trim().toLowerCase(),
-        }))
-
       const meals = []
-      if (lunchDishes.length > 0 || seasonings.length > 0) {
-        meals.push({
-          mealType: "LUNCH",
-          dishes: lunchDishes,
-          seasonings,
-        })
-      }
-      if (afternoonDishes.length > 0) {
-        meals.push({
-          mealType: "AFTERNOON",
-          dishes: afternoonDishes,
-          seasonings: [],
-        })
+      for (const [mealType, mealDishes] of [["LUNCH", lunchDishes], ["AFTERNOON", afternoonDishes]]) {
+        if (!mealDishes.length) continue
+        const rows = dayData.seasoningsByMeal?.[mealType] || (mealType === "LUNCH" ? dayData.seasonings || [] : [])
+        meals.push({mealType, dishes: mealDishes, ...(dayData.useDishRecipes ? {useDishRecipes: true} : {}), ...(dayData.portionGroupsByMeal?.[mealType] ? {portionGroups:dayData.portionGroupsByMeal[mealType]} : {}), seasonings: rows.map(s=>({ingredientEntryId:s.ingredientEntryId||s.id,quantityPerPortion:String(s.quantityPerPortion??s.portionQty),unit:s.unit}))})
       }
 
       if (meals.length > 0) {
@@ -491,7 +479,7 @@ export default function CreateMenu() {
             {/* Thống kê tiến độ tuần */}
             <div className={styles.weekQuickStats}>
               <span className={styles.statPill}>
-                Tiến độ: <strong>{completedDaysCount}/{schoolDays.length || 5}</strong> ngày đủ 2 ca
+                Tiến độ: <strong>{completedDaysCount}/{schoolDays.filter(d=>!d.isHoliday).length}</strong> ngày học đủ 2 ca
               </span>
               <span className={styles.statPill}>
                 Tổng số món: <strong>{totalWeeklyDishesCount}</strong> món

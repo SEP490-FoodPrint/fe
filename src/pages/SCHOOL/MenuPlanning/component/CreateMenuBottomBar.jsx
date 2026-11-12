@@ -9,6 +9,8 @@ export default function CreateMenuBottomBar({
   isLoading = false,
   readOnly = false,
   onView,
+  draftText = "Lưu bản nháp",
+  submitText = "Gửi BGH phê duyệt",
 }) {
   return (
     <div className={styles.bottomBarContainer}>
@@ -39,7 +41,7 @@ export default function CreateMenuBottomBar({
             disabled={isLoading}
           >
             <span className={`material-symbols-outlined ${styles.btnIcon}`}>save</span>
-            <span>Lưu bản nháp</span>
+            <span>{draftText}</span>
           </button>
 
           <button
@@ -49,7 +51,7 @@ export default function CreateMenuBottomBar({
             disabled={isSubmitting || isLoading}
           >
             <span className={`material-symbols-outlined ${styles.btnIcon}`}>send</span>
-            <span>Gửi BGH phê duyệt</span>
+            <span>{submitText}</span>
           </button>
           </>}
         </div>

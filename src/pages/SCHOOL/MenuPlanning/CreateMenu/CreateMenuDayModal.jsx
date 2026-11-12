@@ -14,91 +14,9 @@ import {
   ChevronUp,
 } from "lucide-react"
 import styles from "./CreateMenuDayModal.module.scss"
-import {
-  getStoredDishCatalog,
-  DISH_CATEGORIES,
-} from "../dishCatalogData"
-import {
-  WAREHOUSE_SEASONINGS_CATALOG,
-} from "../mockMenuData"
-
-// Gia vị mặc định tiêu chuẩn theo nhóm món ăn cho các món chưa có gia vị riêng
-const CATEGORY_DEFAULT_SEASONINGS = {
-  RICE_STARCH: [
-    { name: "Dầu thực vật Meizan", portionQty: 0.5, unit: "ml" },
-    { name: "Muối tinh sấy I-ốt", portionQty: 0.2, unit: "g" },
-  ],
-  MAIN_DISH: [
-    { name: "Nước mắm cá cơm Nam Ngư", portionQty: 2.5, unit: "ml" },
-    { name: "Dầu thực vật Meizan", portionQty: 3, unit: "ml" },
-    { name: "Hạt nêm Knorr thịt thăn", portionQty: 1, unit: "g" },
-    { name: "Đường kính trắng Biên Hòa", portionQty: 0.5, unit: "g" },
-  ],
-  VEGETABLE: [
-    { name: "Dầu thực vật Meizan", portionQty: 2.5, unit: "ml" },
-    { name: "Hạt nêm Knorr thịt thăn", portionQty: 1, unit: "g" },
-    { name: "Muối tinh sấy I-ốt", portionQty: 0.3, unit: "g" },
-  ],
-  SOUP: [
-    { name: "Nước mắm cá cơm Nam Ngư", portionQty: 1.5, unit: "ml" },
-    { name: "Muối tinh sấy I-ốt", portionQty: 0.5, unit: "g" },
-    { name: "Hạt nêm Knorr thịt thăn", portionQty: 0.8, unit: "g" },
-  ],
-  DESSERT: [],
-}
-
-/**
- * Tự động tính tổng gia vị dùng chung cho thực đơn ngày
- * dựa trên tất cả các món ăn ở Bữa trưa và Bữa xế
- */
-function calculateAutoSeasonings(lunchDishes, afternoonDishes, catalogList) {
-  const totals = {}
-
-  const addDishSeasonings = (dish) => {
-    // Tìm thông tin chi tiết của món trong kho master
-    const catalogItem =
-      catalogList.find((c) => c.id === (dish.dishId || dish.id)) || dish
-
-    let dishSeasonings = catalogItem.seasonings
-    if (!Array.isArray(dishSeasonings) || dishSeasonings.length === 0) {
-      // Fallback sang gia vị chuẩn theo nhóm món
-      dishSeasonings =
-        CATEGORY_DEFAULT_SEASONINGS[catalogItem.category] ||
-        CATEGORY_DEFAULT_SEASONINGS.MAIN_DISH
-    }
-
-    dishSeasonings.forEach((seas) => {
-      if (!seas || !seas.name) return
-      const key = seas.name.trim().toLowerCase()
-      const qty = Number(seas.portionQty) || 0
-      const unit = seas.unit || "g"
-
-      if (!totals[key]) {
-        // Tìm catalogId nếu có trong WAREHOUSE_SEASONINGS_CATALOG
-        const matchedWarehouse = WAREHOUSE_SEASONINGS_CATALOG.find(
-          (w) => w.name.toLowerCase() === seas.name.toLowerCase()
-        )
-        totals[key] = {
-          id: matchedWarehouse?.id || seas.id || `seas-auto-${key}`,
-          catalogId: matchedWarehouse?.id || seas.id,
-          name: seas.name,
-          portionQty: qty,
-          unit: unit,
-        }
-      } else {
-        totals[key].portionQty = Number(
-          (totals[key].portionQty + qty).toFixed(1)
-        )
-      }
-    })
-  }
-
-  lunchDishes.forEach(addDishSeasonings)
-  afternoonDishes.forEach(addDishSeasonings)
-
-  return Object.values(totals)
-}
-
+import { loadDishCatalog, loadRecipeOptions, previewMealRecipe } from "src/services/DishService"
+import MenuService from "src/services/MenuService"
+const DISH_CATEGORIES = [{key:"ALL",label:"Tất cả món"}]
 export default function CreateMenuDayModal({
   isOpen,
   onClose,
@@ -114,7 +32,14 @@ export default function CreateMenuDayModal({
   // Local state món ăn của ngày đang chỉnh sửa
   const [lunchDishes, setLunchDishes] = useState([])
   const [afternoonDishes, setAfternoonDishes] = useState([])
-  const [seasonings, setSeasonings] = useState([])
+  const [seasoningsByMeal, setSeasoningsByMeal] = useState({LUNCH: [], AFTERNOON: []})
+  const [recipeError, setRecipeError] = useState("")
+  const [recipeLoading, setRecipeLoading] = useState(false)
+  const [allergiesByMeal, setAllergiesByMeal] = useState({LUNCH: null, AFTERNOON: null})
+  const [edited, setEdited] = useState(false)
+  const [portionGroupsByMeal, setPortionGroupsByMeal] = useState({})
+  const [recipeOptions, setRecipeOptions] = useState([])
+  const seasonings = seasoningsByMeal[selectedMealType] || []
 
   // Search & filter món ăn
   const [searchKeyword, setSearchKeyword] = useState("")
@@ -140,31 +65,48 @@ export default function CreateMenuDayModal({
       setLunchDishes(initialLunch)
       setAfternoonDishes(initialAfternoon)
 
-      const catalog = getStoredDishCatalog()
-      setDishCatalog(catalog)
+      setEdited(false)
+      setPortionGroupsByMeal(dayMenu?.portionGroupsByMeal || {})
+      setRecipeError("")
+      setAllergiesByMeal({LUNCH: null, AFTERNOON: null})
+      setSeasoningsByMeal(dayMenu?.seasoningsByMeal || {LUNCH: dayMenu?.seasonings || [], AFTERNOON: []})
       setSearchKeyword("")
       setSelectedCategory("ALL")
-
-      // Tự động tính tổng gia vị theo các món ban đầu
-      const autoSeas = calculateAutoSeasonings(
-        initialLunch,
-        initialAfternoon,
-        catalog
-      )
-      setSeasonings(autoSeas)
     }
   }, [isOpen, dayMenu, initialMealType])
 
-  // Khi danh sách món trưa hoặc xế thay đổi, TỰ ĐỘNG CẬP NHẬT GIA VỊ
   useEffect(() => {
     if (!isOpen) return
-    const autoSeas = calculateAutoSeasonings(
-      lunchDishes,
-      afternoonDishes,
-      dishCatalog
-    )
-    setSeasonings(autoSeas)
-  }, [lunchDishes, afternoonDishes, dishCatalog, isOpen])
+    let active = true
+    setRecipeLoading(true)
+    Promise.all([loadDishCatalog(), loadRecipeOptions()]).then(([rows, options]) => {
+      if(active) { setDishCatalog(rows); setRecipeOptions(options) }
+    }).catch(e => {if(active) setRecipeError(e.message)}).finally(()=>{if(active) setRecipeLoading(false)})
+    return () => {active = false}
+  }, [isOpen])
+
+  useEffect(() => {
+    if (!isOpen || !edited) return
+    let active = true
+    setRecipeLoading(true)
+    setRecipeError("")
+    Promise.all([previewMealRecipe(lunchDishes.map(d=>d.dishId||d.id)), previewMealRecipe(afternoonDishes.map(d=>d.dishId||d.id))]).then(async ([lunch, afternoon]) => {
+      const [lunchAllergies, afternoonAllergies] = await Promise.all([
+        MenuService.checkAllergies(lunch.ingredientIds || []),
+        MenuService.checkAllergies(afternoon.ingredientIds || []),
+      ])
+      if(active) {
+        setAllergiesByMeal({LUNCH: lunchAllergies.data, AFTERNOON: afternoonAllergies.data})
+        setSeasoningsByMeal({LUNCH: lunch.seasonings.map(s=>({...s,id:s.ingredientEntryId,portionQty:s.quantityPerPortion})), AFTERNOON: afternoon.seasonings.map(s=>({...s,id:s.ingredientEntryId,portionQty:s.quantityPerPortion}))})
+      }
+    }).catch(e=>{if(active) setRecipeError(e.message)}).finally(()=>{if(active) setRecipeLoading(false)})
+    return ()=>{active=false}
+  }, [isOpen, edited, lunchDishes, afternoonDishes])
+
+  useEffect(() => {
+    const ids = {LUNCH: new Set(lunchDishes.map(d=>d.dishId||d.id)), AFTERNOON: new Set(afternoonDishes.map(d=>d.dishId||d.id))}
+    setPortionGroupsByMeal(prev => Object.fromEntries(Object.entries(prev).map(([meal, groups]) => [meal, groups.map(g=>({...g,dishIds:g.dishIds.filter(id=>ids[meal].has(id))}))])))
+  }, [lunchDishes, afternoonDishes])
 
   // Lọc danh sách món ăn từ Kho
   const filteredCatalog = useMemo(() => {
@@ -196,6 +138,7 @@ export default function CreateMenuDayModal({
       const isLunch = selectedMealType === "LUNCH"
       const targetSetter = isLunch ? setLunchDishes : setAfternoonDishes
 
+      setEdited(true)
       targetSetter((prev) => {
         const exists = prev.some(
           (d) => (d.dishId || d.id || d.name) === dish.id
@@ -211,11 +154,10 @@ export default function CreateMenuDayModal({
             name: dish.name,
             category: dish.category,
             categoryLabel: dish.categoryLabel,
-            portionQty: dish.portionQty || 50,
-            unit: dish.unit === "ml" ? "ml" : "g",
             mainIngredient: dish.mainIngredient || dish.name,
-            supplierName: dish.supplierName || "CP Foods Việt Nam",
-            supplierBadge: dish.supplierBadge || "VietGAP",
+            supplierName: dish.supplierName || "",
+            supplierBadge: dish.supplierBadge || "",
+            ingredientStandards: dish.ingredientStandards || [],
             ingredientIds: dish.ingredientIds || [],
             seasonings: dish.seasonings || [],
           }
@@ -228,6 +170,7 @@ export default function CreateMenuDayModal({
 
   // Xóa món trực tiếp từ cột Preview
   const handleRemoveDishFromPreview = useCallback((mealType, dishId) => {
+    setEdited(true)
     if (mealType === "LUNCH") {
       setLunchDishes((prev) => prev.filter((d) => d.id !== dishId))
     } else {
@@ -242,7 +185,10 @@ export default function CreateMenuDayModal({
         dateISO: dayData?.dateISO,
         LUNCH: lunchDishes,
         AFTERNOON: afternoonDishes,
-        seasonings: seasonings,
+        seasonings: seasoningsByMeal.LUNCH,
+        seasoningsByMeal,
+        useDishRecipes: edited,
+        portionGroupsByMeal,
       })
     onClose()
   }
@@ -254,6 +200,34 @@ export default function CreateMenuDayModal({
   return (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true">
       <div className={styles.modalContainer}>
+        {recipeError && <p role="alert">{recipeError}</p>}
+        {recipeLoading && <p role="status">Đang tải công thức…</p>}
+        {!recipeLoading && !recipeError && <div role="status">
+          {!allergiesByMeal[selectedMealType] ? <p>Chọn món để đối chiếu hồ sơ dị ứng của các lớp.</p>
+            : allergiesByMeal[selectedMealType].conflicts.length === 0 ? <p>Chưa ghi nhận xung đột với hồ sơ dị ứng đã khai báo.</p>
+            : <div><strong>Có nguyên liệu cần xử lý dị ứng:</strong><ul>{allergiesByMeal[selectedMealType].conflicts.map(c => <li key={c.ingredientId}>{c.ingredientName} — {c.affectedClasses.map(group => `${group.className}: ${group.count}`).join(", ")}</li>)}</ul><p>Nhân viên dinh dưỡng cần chọn phương án suất riêng phù hợp trước khi gửi duyệt.</p></div>}
+        </div>}
+        <fieldset disabled={recipeLoading} style={{padding: 12, margin: 12}}>
+          <legend>Suất ăn riêng — {selectedMealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}</legend>
+          <p>Chọn cả món thường và món thay thế ở danh sách món, sau đó phân món vào từng nhóm. Gia vị dùng chung cho bữa phải an toàn cho tất cả nhóm.</p>
+          <button type="button" onClick={() => {
+            setEdited(true)
+            setPortionGroupsByMeal(prev => ({...prev, [selectedMealType]: [
+              ...(prev[selectedMealType] || [{name:"Suất thường", isDefault:true, dishIds:currentMealDishes.map(d=>d.dishId||d.id), avoidedIngredientEntryIds:[]}]),
+              {name:`Suất riêng ${(prev[selectedMealType]?.length || 1)}`, isDefault:false, dishIds:[], avoidedIngredientEntryIds:[]},
+            ]}))
+          }}>Thêm nhóm suất riêng / món thay thế</button>
+          {(portionGroupsByMeal[selectedMealType] || []).map((group, index) => {
+            const change = fields => { setEdited(true); setPortionGroupsByMeal(prev => ({...prev, [selectedMealType]: prev[selectedMealType].map((g,i)=>i===index?{...g,...fields}:g)})) }
+            return <fieldset key={group.id || index} style={{marginTop: 10}}><legend>{group.isDefault ? "Suất thường" : "Suất riêng"}</legend>
+              <label>Tên nhóm <input required value={group.name} maxLength={120} onChange={e=>change({name:e.target.value})}/></label>
+              <p>Món dành cho nhóm:</p>
+              {currentMealDishes.map(d=>{ const id=d.dishId||d.id; return <label key={id} style={{display:"block"}}><input type="checkbox" checked={group.dishIds.includes(id)} onChange={e=>change({dishIds:e.target.checked?[...group.dishIds,id]:group.dishIds.filter(v=>v!==id)})}/>{d.name}</label> })}
+              {!group.isDefault && <><p>Nguyên liệu cần tránh:</p>{recipeOptions.map(o=><label key={o.id} style={{display:"inline-block",marginRight:12}}><input type="checkbox" checked={group.avoidedIngredientEntryIds.includes(o.id)} onChange={e=>change({avoidedIngredientEntryIds:e.target.checked?[...group.avoidedIngredientEntryIds,o.id]:group.avoidedIngredientEntryIds.filter(v=>v!==o.id)})}/>{o.name}</label>)}
+                <button type="button" onClick={()=>{setEdited(true);setPortionGroupsByMeal(prev=>({...prev,[selectedMealType]:prev[selectedMealType].filter((_,i)=>i!==index)}))}}>Bỏ nhóm riêng</button></>}
+            </fieldset>
+          })}
+        </fieldset>
         {/* Modal Header */}
         <div className={styles.modalHeader}>
           <div className={styles.headerTitleWrap}>
@@ -669,6 +643,7 @@ export default function CreateMenuDayModal({
             <button
               type="button"
               className={styles.confirmSaveBtn}
+              disabled={recipeLoading || !!recipeError}
               onClick={handleSaveAndClose}
             >
               <Check size={15} />

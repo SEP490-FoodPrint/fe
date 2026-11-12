@@ -38,9 +38,14 @@ export default function CreateMenuWeeklyGrid({
           const afternoonDishes = Array.isArray(dayMeals.AFTERNOON)
             ? dayMeals.AFTERNOON
             : []
-          const seasonings = Array.isArray(dayMeals.seasonings)
-            ? dayMeals.seasonings
-            : []
+          const seasonings = dayMeals.seasoningsByMeal
+            ? ["LUNCH", "AFTERNOON"].flatMap(mealType =>
+                (dayMeals.seasoningsByMeal[mealType] || []).map(s => ({
+                  ...s,
+                  id: `${mealType}-${s.ingredientEntryId || s.id}`,
+                  name: `${mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${s.name}`,
+                })))
+            : Array.isArray(dayMeals.seasonings) ? dayMeals.seasonings : []
 
           const hasLunch = lunchDishes.length > 0
           const hasAfternoon = afternoonDishes.length > 0
@@ -84,7 +89,7 @@ export default function CreateMenuWeeklyGrid({
               <div
                 className={`${styles.dayCard} ${
                   sd.isToday ? styles.todayDayCard : ""
-                }`}
+                } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
               >
                 {/* HÀNG 1: HEADER CỘT NGÀY - CÓ 1 DẤU "+" DUY NHẤT ĐỂ THÊM/SỬA MENU CHO THỨ NÀY */}
                 <div className={styles.dayHeader}>
@@ -121,6 +126,7 @@ export default function CreateMenuWeeklyGrid({
 
                 {/* THÂN THỰC ĐƠN: BỮA TRƯA + BỮA XẾ + GIA VỊ */}
                 <div className={styles.dayMealsBody}>
+                  {sd.isHoliday && <p role="note" className={styles.holidayReason}>Ngày nghỉ: {sd.holidayReason || "Ngày nghỉ toàn trường"}</p>}
                   {/* ========================================================
                       KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
                       ======================================================== */}

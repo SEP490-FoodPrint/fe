@@ -58,7 +58,7 @@ export default function MenuPlanning() {
 
   useEffect(() => {
     let active = true
-    MenuService.getAcademicCalendar()
+    MenuService.getAcademicCalendar({ forceRefresh: true })
       .then(({ academicYears }) => {
         if (!active) return
         setAvailableAcademicYears(academicYears)
