@@ -130,6 +130,44 @@ export const MenuItemSchool = () => [
     icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
+  // BGH: sắp theo luồng công việc — duyệt thực đơn → nhà cung cấp → cấu hình → lớp học
+  {
+    key: ROUTER.SCHOOL_SUPPLIERS,
+    label: "Nhà cung cấp",
+    icon: <LocalShippingOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: "SCHOOL_CONFIGURATION",
+    label: "Cấu hình",
+    icon: <TuneOutlinedIcon />,
+    children: [
+      {
+        key: ROUTER.SCHOOL_COOKING_MODE,
+        label: "Chế độ nấu",
+        icon: <SoupKitchenOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
+        key: ROUTER.SCHOOL_MEAL_TIMES,
+        label: "Khung giờ vận hành",
+        icon: <ScheduleOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
+        key: ROUTER.SCHOOL_ACADEMIC_YEARS,
+        label: "Thiết lập niên khóa",
+        icon: <CalendarMonthOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+    ],
+  },
+  {
+    key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
+    label: "Lớp học & GVCN",
+    icon: <AssignmentIndOutlinedIcon />,
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
   // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN DINH DƯỠNG (SCHOOL_NUTRITION_OFFICER) - 5 MỤC QUY CHUẨN ===
   {
     key: ROUTER.SCHOOL_HEALTH_OVERVIEW,
@@ -208,43 +246,6 @@ export const MenuItemSchool = () => [
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
 
-  {
-    key: ROUTER.SCHOOL_SUPPLIERS,
-    label: "Nhà cung cấp",
-    icon: <LocalShippingOutlinedIcon />,
-    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-  },
-  {
-    key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
-    label: "Lớp học & GVCN",
-    icon: <AssignmentIndOutlinedIcon />,
-    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-  },
-  {
-    key: "SCHOOL_CONFIGURATION",
-    label: "Cấu hình",
-    icon: <TuneOutlinedIcon />,
-    children: [
-      {
-        key: ROUTER.SCHOOL_COOKING_MODE,
-        label: "Chế độ nấu",
-        icon: <SoupKitchenOutlinedIcon />,
-        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-      },
-      {
-        key: ROUTER.SCHOOL_MEAL_TIMES,
-        label: "Khung giờ vận hành",
-        icon: <ScheduleOutlinedIcon />,
-        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-      },
-      {
-        key: ROUTER.SCHOOL_ACADEMIC_YEARS,
-        label: "Thiết lập niên khóa",
-        icon: <CalendarMonthOutlinedIcon />,
-        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-      },
-    ],
-  },
   {
     key: ROUTER.SCHOOL_DAILY_CONFIRM,
     label: "Báo suất ăn & Dị ứng lớp",
