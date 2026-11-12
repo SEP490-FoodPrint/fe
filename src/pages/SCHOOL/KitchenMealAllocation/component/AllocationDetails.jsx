@@ -32,28 +32,28 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
   const [groupBy, setGroupBy] = useState("batch");
   const [expandedBatches, setExpandedBatches] = useState(() => new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const { distribution } = data;
-  const date = data.date.split("-").reverse().join("/");
-  const total = distribution.meals.reduce((sum, item) => sum + item.allocatedPortions, 0);
+  const { distribution } = data || {};
+  const date = data?.date ? data.date.split("-").reverse().join("/") : "";
+  const total = (distribution?.meals || []).reduce((sum, item) => sum + (item.allocatedPortions || 0), 0);
   const visibleMeals = meal === "ALL" ? mealTypes : [meal];
-  const visibleDemands = distribution.demands.filter((demand) => visibleMeals.includes(demand.mealType));
-  const batchesById = new Map(data.batches.map((batch, index) => [
-    batch.id, { ...batch, name: `Lô chế biến ${index + 1}`, recipients: [] },
+  const visibleDemands = (distribution?.demands || []).filter((demand) => visibleMeals.includes(demand.mealType));
+  const batchesById = new Map((data?.batches || []).map((batch, index) => [
+    batch.id, { ...batch, name: batch.name || `Lô chế biến ${index + 1}`, recipients: [] },
   ]));
   const classesById = new Map();
   for (const demand of visibleDemands) {
     const meals = classesById.get(demand.classId) ?? [];
     meals.push(demand);
     classesById.set(demand.classId, meals);
-    for (const entry of demand.batches) {
-      batchesById.get(entry.batchId)?.recipients.push({ ...entry, demand });
+    for (const entry of (demand.batches || [])) {
+      batchesById.get(entry.batchId)?.recipients?.push({ ...entry, demand });
     }
   }
   const visibleBatches = [...batchesById.values()].filter((batch) => visibleMeals.includes(batch.mealType));
-  const incomplete = distribution.demands.filter((demand) =>
-    demand.requiredPortions > 0 && (!demand.demandFinalized || demand.allocatedPortions < demand.requiredPortions),
+  const incomplete = (distribution?.demands || []).filter((demand) =>
+    demand.requiredPortions > 0 && (!demand.demandFinalized || (demand.allocatedPortions || 0) < demand.requiredPortions),
   );
-  const delivered = distribution.status === "DISTRIBUTED";
+  const delivered = distribution?.status === "DISTRIBUTED";
   const allVisibleExpanded = visibleBatches.length > 0 &&
     visibleBatches.every((batch) => expandedBatches.has(batch.id));
 
@@ -159,7 +159,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
       {(groupBy === "batch" ? !visibleBatches.length : !visibleDemands.length) && (
         <Alert severity="info">Chưa có dữ liệu phân bổ cho lựa chọn này.</Alert>
       )}
-      {distribution.message && (
+      {distribution?.message && (
         <Alert severity="info">
           {distribution.message}
           {!!incomplete.length && (
@@ -167,7 +167,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
               {incomplete.map((demand) => (
                 <li key={demand.id}>
                   {demand.className} · {mealLabels[demand.mealType]} · {demand.demandFinalized
-                    ? `thiếu ${demand.requiredPortions - demand.allocatedPortions} suất`
+                    ? `thiếu ${demand.requiredPortions - (demand.allocatedPortions || 0)} suất`
                     : "chưa chốt nhu cầu"}
                 </li>
               ))}
@@ -184,7 +184,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
         <span className={styles.footerNote}><Info size={17} />{delivered ? `Đã giao ${total} suất ngày ${date}.` : `Xác nhận áp dụng cho toàn bộ ${total} suất đã phân bổ trong ngày ${date}.`}</span>
         {!delivered && (
           <Button variant="contained" startIcon={<CheckCircle2 size={16} />}
-            disabled={dirty || saving || !distribution.canConfirmDistribution} onClick={() => setConfirmOpen(true)}>
+            disabled={dirty || saving || !distribution?.canConfirmDistribution} onClick={() => setConfirmOpen(true)}>
             Xác nhận đã giao
           </Button>
         )}
@@ -194,7 +194,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
         <DialogContent>
           <p>Ghi nhận đã giao toàn bộ <strong>{total} suất</strong> trong ngày.</p>
           <ul>
-            {distribution.meals.filter((item) => item.allocatedPortions > 0).map((item) => (
+            {(distribution?.meals || []).filter((item) => (item.allocatedPortions || 0) > 0).map((item) => (
               <li key={item.mealType}>{mealLabels[item.mealType]} · {item.allocatedPortions} suất</li>
             ))}
           </ul>
