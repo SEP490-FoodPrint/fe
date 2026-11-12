@@ -606,43 +606,45 @@ export default function DishCatalogPage() {
                 type="button"
                 className={styles.closeBtn}
                 onClick={closeModal}
+                aria-label="Đóng"
               >
-                Đóng
+                <X size={18} />
               </button>
             </div>
 
             <div className={styles.modalBody}>
               <div className={styles.formGrid}>
-                {/* Tên món */}
-                <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>
-                    Tên món ăn <span className={styles.required}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    className={styles.formInput}
-                    placeholder="Ví dụ: Thịt ba chỉ rang cháy cạnh, Cơm tám Hải Hậu, Súp gà ngô non..."
-                    value={form.name}
-                    onChange={(e) => handleFormChange("name", e.target.value)}
-                  />
-                </div>
+                {/* Hàng 1: Tên món (60%) + Nhóm món (40%) cùng 1 dòng gọn gàng */}
+                <div className={styles.formTwoColsRow}>
+                  <div>
+                    <label className={styles.formLabel}>
+                      Tên món ăn <span className={styles.required}>*</span>
+                    </label>
+                    <input
+                      type="text"
+                      className={styles.formInput}
+                      placeholder="Ví dụ: Thịt ba chỉ rang cháy cạnh, Cơm tám thơm, Súp gà ngô..."
+                      value={form.name}
+                      onChange={(e) => handleFormChange("name", e.target.value)}
+                    />
+                  </div>
 
-                {/* Nhóm món */}
-                <div className={styles.formFullRow}>
-                  <label className={styles.formLabel}>Nhóm món ăn</label>
-                  <select
-                    className={styles.formSelect}
-                    value={form.category}
-                    onChange={(e) =>
-                      handleFormChange("category", e.target.value)
-                    }
-                  >
-                    {DISH_CATEGORIES.filter((c) => c.key !== "ALL").map((c) => (
-                      <option key={c.key} value={c.key}>
-                        {c.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className={styles.formLabel}>Nhóm món ăn</label>
+                    <select
+                      className={styles.formSelect}
+                      value={form.category}
+                      onChange={(e) =>
+                        handleFormChange("category", e.target.value)
+                      }
+                    >
+                      {DISH_CATEGORIES.filter((c) => c.key !== "ALL").map((c) => (
+                        <option key={c.key} value={c.key}>
+                          {c.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* KHU VỰC 1: BẢNG NGUYÊN LIỆU CẤU THÀNH (CÓ NHẬP ĐỊNH LƯỢNG / SUẤT CHO TỪNG NGUYÊN LIỆU) */}
@@ -796,20 +798,16 @@ export default function DishCatalogPage() {
                   )}
                 </div>
 
-                {/* KHU VỰC 2: CHỌN GIA VỊ TỪ KHO & NHẬP ĐỊNH LƯỢNG / SUẤT */}
+                {/* KHU VỰC 2: CHỌN GIA VỊ CHO MÓN & NHẬP ĐỊNH LƯỢNG / SUẤT */}
                 <div className={styles.seasoningsSection}>
                   <div className={styles.sectionHeaderRow}>
                     <div>
                       <label className={styles.sectionTitle}>
-                        Gia vị kho dùng cho món này
+                        Gia vị dùng cho món
                       </label>
-                      <p className={styles.sectionSub}>
-                        Chọn gia vị từ kho trường và cài đặt định lượng trên 1
-                        suất ăn để tự động tính tổng khi lập thực đơn
-                      </p>
                     </div>
 
-                    {/* Selector chọn gia vị kho để thêm nhanh */}
+                    {/* Selector chọn gia vị để thêm nhanh */}
                     <div className={styles.seasoningAddPickerWrap}>
                       <select
                         className={styles.seasoningSelectPicker}
@@ -825,7 +823,7 @@ export default function DishCatalogPage() {
                         }}
                       >
                         <option value="" disabled>
-                          + Thêm gia vị từ kho...
+                          + Chọn gia vị...
                         </option>
                         {WAREHOUSE_SEASONINGS_CATALOG.map((s) => (
                           <option key={s.id} value={s.id}>
@@ -839,8 +837,8 @@ export default function DishCatalogPage() {
                   {selectedSeasonings.length === 0 ? (
                     <div className={styles.emptySeasoningBox}>
                       <p className={styles.emptySeasoningText}>
-                        Chưa chọn gia vị nào. Chọn gia vị từ kho ở góc phải trên
-                        để thêm vào món ăn.
+                        Chưa chọn gia vị. Chọn gia vị ở góc phải trên để thêm vào
+                        món ăn.
                       </p>
                     </div>
                   ) : (
@@ -849,7 +847,7 @@ export default function DishCatalogPage() {
                         <thead>
                           <tr>
                             <th style={{ width: 40, textAlign: "center" }}>#</th>
-                            <th style={{ minWidth: 200 }}>Tên gia vị kho</th>
+                            <th style={{ minWidth: 200 }}>Tên gia vị</th>
                             <th style={{ width: 160, textAlign: "center" }}>
                               Định lượng / suất
                             </th>
@@ -1051,11 +1049,11 @@ export default function DishCatalogPage() {
                 )}
               </div>
 
-              {/* Bảng Gia vị kho */}
+              {/* Bảng Gia vị món ăn */}
               <div className={styles.detailSectionBox}>
                 <div className={styles.detailSectionHeader}>
                   <Sparkles size={14} />
-                  <span>Gia vị kho dùng cho món này</span>
+                  <span>Gia vị của món ăn</span>
                 </div>
                 {Array.isArray(viewingDish.seasonings) &&
                 viewingDish.seasonings.length > 0 ? (
@@ -1063,7 +1061,7 @@ export default function DishCatalogPage() {
                     <thead>
                       <tr>
                         <th>#</th>
-                        <th>Tên gia vị kho</th>
+                        <th>Tên gia vị</th>
                         <th style={{ textAlign: "right" }}>Định lượng / suất</th>
                       </tr>
                     </thead>
@@ -1087,20 +1085,10 @@ export default function DishCatalogPage() {
                   </table>
                 ) : (
                   <div className={styles.detailEmptyText}>
-                    Chưa cài đặt gia vị kho cho món ăn này.
+                    Chưa cài đặt gia vị cho món ăn này.
                   </div>
                 )}
               </div>
-            </div>
-
-            <div className={styles.detailModalFooter}>
-              <button
-                type="button"
-                className={styles.closeDetailBtn}
-                onClick={() => setViewingDish(null)}
-              >
-                Đóng
-              </button>
             </div>
           </div>
         </div>

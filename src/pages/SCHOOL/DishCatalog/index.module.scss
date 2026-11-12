@@ -382,41 +382,22 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: none;
+  border: 1px solid transparent;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
+  padding: 5px;
+  border-radius: 5px;
+  color: #475569;
   transition: all 0.15s ease;
 
+  &:hover {
+    color: #0f172a;
+    background-color: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: scale(1.08);
+  }
+
   &:active {
-    transform: scale(0.9);
-  }
-}
-
-.iconViewBtn {
-  color: #2563eb;
-
-  &:hover {
-    color: #1d4ed8;
-    transform: scale(1.15);
-  }
-}
-
-.iconEditBtn {
-  color: #0a8066;
-
-  &:hover {
-    color: #08604d;
-    transform: scale(1.15);
-  }
-}
-
-.iconDeleteBtn {
-  color: #dc2626;
-
-  &:hover {
-    color: #991b1b;
-    transform: scale(1.15);
+    transform: scale(0.95);
   }
 }
 
@@ -543,20 +524,23 @@
 }
 
 .closeBtn {
-  padding: 5px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
   border: 1px solid #dce5e0;
   background-color: #f8faf9;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   color: #52635c;
-  font-size: 12px;
-  font-weight: 500;
-  font-family: inherit;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    background-color: #e8eeeb;
-    color: #1d2b26;
+    background-color: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
   }
 }
 
@@ -576,6 +560,17 @@
 
 .formFullRow {
   grid-column: 1 / -1;
+}
+
+.formTwoColsRow {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .formLabel {
