@@ -89,7 +89,11 @@ export default function CookingBatchesFilter({
             select
             size="small"
             label="Tuần học"
-            value={filters.week ?? "current"}
+            value={
+              filters.week === "current"
+                ? weeks.find((w) => w.isCurrentWeek)?.isoWeek || "all"
+                : (filters.week ?? "all")
+            }
             onChange={(event) => update("week", event.target.value)}
           >
             <MenuItem value="all">Tất cả các tuần</MenuItem>

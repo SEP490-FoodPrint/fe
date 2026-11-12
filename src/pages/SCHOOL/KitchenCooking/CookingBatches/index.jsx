@@ -67,12 +67,21 @@ export default function CookingBatches() {
     error: "",
   });
 
-  // 1. Cấu hình năm học được chọn
+  // 1. Cấu hình năm học được chọn (ưu tiên năm học đang diễn ra theo ngày hôm nay)
   const currentAcademicYearConfig = useMemo(() => {
+    const todayISO = localDateISO();
+    const activeYear = availableAcademicYears.find((ay) => {
+      if (ay.startDate && ay.endDate) {
+        return ay.startDate <= todayISO && todayISO <= ay.endDate;
+      }
+      return false;
+    });
     return (
+      activeYear ||
       availableAcademicYears.find(
         (ay) => ay.academicYear === filters.academicYear,
-      ) || availableAcademicYears[0]
+      ) ||
+      availableAcademicYears[0]
     );
   }, [availableAcademicYears, filters.academicYear]);
 
@@ -85,6 +94,17 @@ export default function CookingBatches() {
   const currentWeekObj = useMemo(() => {
     return schoolWeeks.find((w) => w.isCurrentWeek) || schoolWeeks[0];
   }, [schoolWeeks]);
+
+  // Tự động đồng bộ tuần học và năm học hiện hành khi tải xong cấu hình BGH
+  useEffect(() => {
+    if (currentWeekObj?.isoWeek && (filters.week === "current" || !filters.week)) {
+      setFilters((prev) => ({
+        ...prev,
+        academicYear: currentAcademicYearConfig?.academicYear || prev.academicYear,
+        week: currentWeekObj.isoWeek,
+      }));
+    }
+  }, [currentWeekObj, currentAcademicYearConfig]);
 
   // 4. Đối tượng tuần đang chọn
   const selectedWeekObj = useMemo(() => {
@@ -364,8 +384,8 @@ export default function CookingBatches() {
         onReset={() => {
           setFilters({
             ...EMPTY_BATCH_FILTERS,
-            academicYear: "2026-2027",
-            week: "current",
+            academicYear: currentAcademicYearConfig?.academicYear || "2026-2027",
+            week: currentWeekObj?.isoWeek || "all",
           });
           setPaging((current) => ({ ...current, page: 1 }));
         }}

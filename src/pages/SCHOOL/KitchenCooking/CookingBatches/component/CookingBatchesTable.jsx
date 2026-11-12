@@ -120,9 +120,6 @@ export default function CookingBatchesTable({
             <table className={styles.table} aria-label="Danh sách lô chế biến">
               <thead>
                 <tr>
-                  <th scope="col" style={{ width: 130 }}>
-                    Mã lô
-                  </th>
                   <th scope="col">Món ăn &amp; Ca ăn</th>
                   <th scope="col" style={{ width: 100 }}>
                     Số suất
@@ -141,21 +138,6 @@ export default function CookingBatchesTable({
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td className={styles.tdCode}>
-                      <div className={styles.codeCellWrap}>
-                        <span className={styles.batchCodeText}>{row.code}</span>
-                        {row.batchGroupCode && (
-                          <Tooltip
-                            title={`Lô chế biến cha: ${row.batchGroupCode}`}
-                            arrow
-                          >
-                            <span className={styles.batchGroupBadge}>
-                              Lô: {row.batchGroupCode}
-                            </span>
-                          </Tooltip>
-                        )}
-                      </div>
-                    </td>
                     <td>
                       <div className={styles.dishWrap}>
                         <div className={styles.dishNameRow}>
@@ -266,22 +248,6 @@ export default function CookingBatchesTable({
                         {row.dishes && row.dishes.length > 1 && (
                           <span className={styles.multiDishChip}>
                             {row.dishes.length} món
-                          </span>
-                        )}
-                      </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
-                        <span className={styles.mobileBatchCode}>
-                          {row.code}
-                        </span>
-                        {row.batchGroupCode && (
-                          <span className={styles.mobileBatchGroup}>
-                            Lô: {row.batchGroupCode}
                           </span>
                         )}
                       </div>
