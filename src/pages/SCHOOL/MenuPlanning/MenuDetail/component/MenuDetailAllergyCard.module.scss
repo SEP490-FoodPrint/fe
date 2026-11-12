@@ -1,7 +1,23 @@
+.safeBanner {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.safeText {
+  font-size: 13px;
+  font-weight: 500;
+  color: #166534;
+}
+
 .allergyCard {
   background-color: #ffffff;
   border-radius: 10px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #fde68a;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   overflow: hidden;
   display: flex;
@@ -9,13 +25,14 @@
 }
 
 .cardHeader {
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
+  padding: 14px 20px;
+  background-color: #fffbeb;
+  border-bottom: 1px solid #fef3c7;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .headerLeft {
@@ -26,114 +43,44 @@
 
 .headerIcon {
   font-size: 22px;
-  color: var(--color-primary, #0a8066);
+  color: #d97706;
 }
 
 .cardTitle {
   font-size: 15px;
   font-weight: 700;
-  color: #0f172a;
+  color: #92400e;
   margin: 0;
 }
 
 .cardSubtitle {
   font-size: 12px;
-  color: #64748b;
+  color: #b45309;
   margin: 2px 0 0;
 }
 
 .allergyBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background-color: #fff1f2;
-  border: 1px solid #ffe4e6;
-  color: #e11d48;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-}
-
-.pulseDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #e11d48;
-}
-
-.safeBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #16a34a;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.allergyBody {
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.alertBanner {
-  background-color: #fffbeb;
-  border: 1px solid #fef3c7;
-  border-radius: 8px;
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.alertLeft {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.affectedClasses {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.classPill {
-  font-size: 11px;
-  font-weight: 600;
-  color: #92400e;
+  color: #b45309;
   background-color: #fef3c7;
-  padding: 2px 8px;
-  border-radius: 4px;
   border: 1px solid #fde68a;
+  padding: 3px 8px;
+  border-radius: 6px;
 }
 
 .substituteBox {
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 14px 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .subHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #edf2f7;
+  gap: 12px;
 }
 
 .subTitleWrap {
@@ -145,54 +92,28 @@
 
 .subTitle {
   font-size: 13px;
-  font-weight: 700;
-  color: #1e293b;
-}
-
-.seasoningNote {
-  font-size: 11px;
   color: #64748b;
+  font-weight: 500;
 }
 
-.portionQtyTag {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-primary, #0a8066);
-  background-color: #e6f6f1;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.subDishContent {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.subDishMain {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.subDishLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.subDishName {
-  font-size: 14px;
+.subName {
+  font-size: 14.5px;
   font-weight: 700;
   color: #0f172a;
 }
 
-.subIngredients {
+.subIngredientsWrap {
   display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.subLabel {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .ingTags {
@@ -204,30 +125,26 @@
 .ingPill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
+  gap: 6px;
   padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 500;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12px;
   color: #334155;
 }
 
-.safeBody {
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+.ingQtyBadge {
+  background-color: #e2e8f0;
+  color: #0f172a;
+  font-size: 11px;
+  padding: 1px 5px;
+  border-radius: 4px;
 }
 
-.safeIconWrap {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background-color: #dcfce7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+.seasoningNote {
+  font-size: 11.5px;
+  color: #64748b;
+  font-style: italic;
+  margin: 0;
 }

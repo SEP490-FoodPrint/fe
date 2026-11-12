@@ -92,27 +92,37 @@ export default function MenuDetailModal({
               Cơ cấu món ăn trong thực đơn
             </h3>
             <div className={styles.dishesList}>
-              {menu.dishes?.map((dish, idx) => (
-                <div key={idx} className={styles.dishCard}>
-                  <div className={styles.dishHeader}>
-                    <span className={styles.dishIndex}>{idx + 1}</span>
-                    <span className={styles.dishName}>{dish.name}</span>
-                    <span className={styles.dishQty}>{dish.qty} / suất</span>
-                  </div>
-                  {dish.ingredients && dish.ingredients.length > 0 && (
-                    <div className={styles.dishIngredients}>
-                      <span className={styles.ingLabel}>Thành phần chính:</span>
-                      <div className={styles.ingTags}>
-                        {dish.ingredients.map((ing, iIdx) => (
-                          <span key={iIdx} className={styles.ingTag}>
-                            {ing}
-                          </span>
-                        ))}
-                      </div>
+              {menu.dishes?.map((dish, idx) => {
+                const ingredientsList = dish.ingredientDetails && dish.ingredientDetails.length > 0
+                  ? dish.ingredientDetails
+                  : (dish.ingredients || []).map((name) => ({ name }))
+
+                return (
+                  <div key={idx} className={styles.dishCard}>
+                    <div className={styles.dishHeader}>
+                      <span className={styles.dishIndex}>{idx + 1}</span>
+                      <span className={styles.dishName}>{dish.name}</span>
                     </div>
-                  )}
-                </div>
-              ))}
+                    {ingredientsList.length > 0 && (
+                      <div className={styles.dishIngredients}>
+                        <span className={styles.ingLabel}>Định lượng nguyên liệu / suất:</span>
+                        <div className={styles.ingTags}>
+                          {ingredientsList.map((ing, iIdx) => (
+                            <span key={iIdx} className={styles.ingTag}>
+                              {ing.name}
+                              {ing.quantityPerPortion != null && (
+                                <strong className="ml-1 text-[#0f172a]">
+                                  ({ing.quantityPerPortion}{ing.unit || "g"})
+                                </strong>
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
 
@@ -127,14 +137,18 @@ export default function MenuDetailModal({
                 <div className={styles.subHeader}>
                   <span className={styles.subTag}>Suất ăn riêng</span>
                   <span className={styles.subName}>{menu.substituteDish.name}</span>
-                  <span className={styles.subQty}>{menu.substituteDish.qty} / suất</span>
                 </div>
                 <div className={styles.subDetails}>
-                  <span className={styles.ingLabel}>Thành phần an toàn:</span>
+                  <span className={styles.ingLabel}>Định lượng nguyên liệu / suất:</span>
                   <div className={styles.ingTags}>
-                    {menu.substituteDish.ingredients?.map((ing, sIdx) => (
+                    {(menu.substituteDish.ingredientDetails || (menu.substituteDish.ingredients || []).map(name => ({ name }))).map((ing, sIdx) => (
                       <span key={sIdx} className={styles.ingTagSafe}>
-                        {ing}
+                        {ing.name}
+                        {ing.quantityPerPortion != null && (
+                          <strong className="ml-1 text-[#0f172a]">
+                            ({ing.quantityPerPortion}{ing.unit || "g"})
+                          </strong>
+                        )}
                       </span>
                     ))}
                   </div>

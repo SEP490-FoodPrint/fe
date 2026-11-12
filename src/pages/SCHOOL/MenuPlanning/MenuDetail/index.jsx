@@ -11,7 +11,6 @@ import MenuDetailBasicInfo from "./component/MenuDetailBasicInfo"
 import MenuDetailDishesTable from "./component/MenuDetailDishesTable"
 import MenuDetailAllergyCard from "./component/MenuDetailAllergyCard"
 import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
-import MenuDetailTimeline from "./component/MenuDetailTimeline"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
 
 export default function MenuDetail() {
@@ -115,13 +114,16 @@ export default function MenuDetail() {
           onSubmitApproval={() => setIsConfirmSubmitOpen(true)}
         />
 
-        {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có) */}
-        {menu.feedback && <MenuDetailBGHFeedback feedback={menu.feedback} status={menu.status} />}
+        {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
+        <MenuDetailBGHFeedback
+          menu={menu}
+          onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })}
+        />
 
         {/* Khối 1: Thông tin kế hoạch & Phạm vi áp dụng */}
         <MenuDetailBasicInfo menu={menu} />
 
-        {/* Khối 2: Bảng cơ cấu món ăn trong thực đơn & Đối soát định lượng */}
+        {/* Khối 2: Bảng cơ cấu món ăn trong thực đơn & Định lượng nguyên liệu / suất */}
         <MenuDetailDishesTable dishes={menu.dishes} />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
@@ -129,9 +131,6 @@ export default function MenuDetail() {
 
         {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
         <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
-
-        {/* Khối 5: Lịch sử theo dõi tiến trình & Kiểm duyệt */}
-        <MenuDetailTimeline menu={menu} />
       </div>
 
       {/* Modal xác nhận gửi BGH duyệt */}

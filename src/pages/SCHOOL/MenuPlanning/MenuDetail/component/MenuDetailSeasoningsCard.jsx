@@ -2,54 +2,36 @@ import React from "react"
 import styles from "./MenuDetailSeasoningsCard.module.scss"
 
 export default function MenuDetailSeasoningsCard({ seasonings = [] }) {
-  // Chuẩn hóa danh sách gia vị
-  const normalizedSeasonings = (seasonings && seasonings.length > 0 ? seasonings : [
-    "Dầu thực vật Neptune 100% nguyên chất",
-    "Nước mắm cá cơm Phú Quốc 40N",
-    "Muối tinh I-ốt Visalco",
-    "Hạt nêm Knorr thịt thăn xương ống"
-  ]).map((s, idx) => {
-    if (typeof s === "string") {
-      const defaultQtys = [5, 3, 2, 2]
-      const defaultUnits = ["ml", "ml", "g", "g"]
-      return {
-        id: `seas-${idx}`,
-        name: s,
-        portionQty: defaultQtys[idx % defaultQtys.length],
-        unit: defaultUnits[idx % defaultUnits.length]
-      }
-    }
-    return s
-  })
+  if (!seasonings || seasonings.length === 0) {
+    return null
+  }
 
   return (
     <div className={styles.seasoningsCard}>
       <div className={styles.cardHeader}>
         <div className={styles.headerLeft}>
           <span className={`material-symbols-outlined ${styles.headerIcon}`}>soup_kitchen</span>
-          <div>
-            <h2 className={styles.cardTitle}>Gia vị sử dụng (Kho nguyên liệu nhà trường)</h2>
-            <p className={styles.cardSubtitle}>
-              Danh mục gia vị chuẩn do Bộ phận Quản lý nguyên liệu & Kho nhập. Định lượng theo một suất ăn.
-            </p>
+          <div className={styles.titleWithBadge}>
+            <h2 className={styles.cardTitle}>Định lượng gia vị / suất</h2>
+            <span className={styles.countBadge}>{seasonings.length} loại</span>
           </div>
-        </div>
-        <div className={styles.warehouseTag}>
-          <span className="material-symbols-outlined text-[15px] text-[#0a8066]">warehouse</span>
-          <span>Kho Vinschool Food Standard</span>
         </div>
       </div>
 
       <div className={styles.seasoningsGrid}>
-        {normalizedSeasonings.map((s, idx) => {
+        {seasonings.map((s, idx) => {
+          const name = typeof s === "string" ? s : s.name
+          const qty = typeof s === "object" ? s.portionQty || s.quantityPerPortion : null
+          const unit = typeof s === "object" ? s.unit || "g" : ""
+
           return (
-            <div key={idx} className={styles.seasoningItem}>
-              <div className={styles.itemHeader}>
-                <span className={styles.seasoningName}>{s.name}</span>
+            <div key={s.id || idx} className={styles.seasoningItem}>
+              <span className={styles.seasoningName}>{name}</span>
+              {qty != null && (
                 <span className={styles.portionQtyBadge}>
-                  {s.portionQty} {s.unit}/suất
+                  {qty} {unit} / suất
                 </span>
-              </div>
+              )}
             </div>
           )
         })}
