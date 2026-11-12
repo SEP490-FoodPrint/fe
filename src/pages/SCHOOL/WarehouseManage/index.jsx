@@ -1,13 +1,12 @@
 import React, { useState, useMemo } from "react"
 import { Box } from "@mui/material"
 import notice from "src/components/Notice"
-import { MOCK_DRY_INVENTORY, MOCK_DRY_PURCHASE_ORDERS } from "./mockWarehouseData"
+import { MOCK_DRY_INVENTORY } from "./mockWarehouseData"
 
 import WarehouseHeader from "./component/WarehouseHeader"
 import WarehouseStatsRail from "./component/WarehouseStatsRail"
 import WarehouseFilterStrip from "./component/WarehouseFilterStrip"
 import WarehouseTable from "./component/WarehouseTable"
-import WarehouseOrdersTable from "./component/WarehouseOrdersTable"
 import WarehousePagination from "./component/WarehousePagination"
 import CreateDryOrderView from "./component/CreateDryOrderView"
 import WarehouseDetailView from "./component/WarehouseDetailView"
@@ -17,8 +16,7 @@ import styles from "./index.module.scss"
 const PAGE_SIZE = 10
 
 export default function WarehouseManage() {
-  const [inventory, setInventory] = useState(MOCK_DRY_INVENTORY)
-  const [orders, setOrders] = useState(MOCK_DRY_PURCHASE_ORDERS)
+  const [inventory] = useState(MOCK_DRY_INVENTORY)
 
   // Sub-view: "list" (mặc định) | "create" | "detail"
   const [subView, setSubView] = useState("list")
@@ -28,11 +26,8 @@ export default function WarehouseManage() {
   // Filter state
   const [filters, setFilters] = useState({
     search: "",
-    viewMode: "inventory", // "inventory" | "orders"
     status: "all",
     category: "all",
-    deliveryType: "all",
-    orderStatus: "all",
   })
 
   // Pagination state
@@ -57,12 +52,11 @@ export default function WarehouseManage() {
 
   // Xác định active rail filter
   const activeRailFilter = useMemo(() => {
-    if (filters.viewMode === "orders") return "all"
     if (filters.status === "CRITICAL_LOW") return "CRITICAL_LOW"
     if (filters.status === "WARNING") return "WARNING"
     if (filters.status === "SAFE") return "SAFE"
     return "all"
-  }, [filters.viewMode, filters.status])
+  }, [filters.status])
 
   // Lọc dữ liệu tồn kho gạo & gia vị
   const filteredInventory = useMemo(() => {
@@ -88,41 +82,14 @@ export default function WarehouseManage() {
     })
   }, [inventory, filters])
 
-  // Lọc dữ liệu phiếu nhập hàng
-  const filteredOrders = useMemo(() => {
-    return orders.filter(o => {
-      const kw = filters.search.toLowerCase()
-      const matchSearch =
-        !kw ||
-        o.orderNo.toLowerCase().includes(kw) ||
-        o.deliveryNo.toLowerCase().includes(kw) ||
-        o.supplierName.toLowerCase().includes(kw)
-
-      const matchDeliveryType =
-        filters.deliveryType === "all" || o.deliveryType === filters.deliveryType
-
-      const matchOrderStatus =
-        filters.orderStatus === "all" || o.status === filters.orderStatus
-
-      return matchSearch && matchDeliveryType && matchOrderStatus
-    })
-  }, [orders, filters])
-
-  // Tính phân trang tùy theo viewMode
-  const currentTotal =
-    filters.viewMode === "inventory" ? filteredInventory.length : filteredOrders.length
-
+  // Phân trang
+  const currentTotal = filteredInventory.length
   const totalPages = Math.ceil(currentTotal / PAGE_SIZE) || 1
 
   const paginatedInventory = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE
     return filteredInventory.slice(start, start + PAGE_SIZE)
   }, [filteredInventory, page])
-
-  const paginatedOrders = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE
-    return filteredOrders.slice(start, start + PAGE_SIZE)
-  }, [filteredOrders, page])
 
   // Handlers
   const handleFilterChange = (field, value) => {
@@ -132,19 +99,10 @@ export default function WarehouseManage() {
 
   const handleFilterStat = statId => {
     setPage(1)
-    if (statId === "all") {
-      setFilters(prev => ({
-        ...prev,
-        viewMode: "inventory",
-        status: "all",
-      }))
-    } else {
-      setFilters(prev => ({
-        ...prev,
-        viewMode: "inventory",
-        status: statId, // "CRITICAL_LOW" | "WARNING" | "SAFE"
-      }))
-    }
+    setFilters(prev => ({
+      ...prev,
+      status: statId, // "all" | "CRITICAL_LOW" | "WARNING" | "SAFE"
+    }))
   }
 
   // Mở màn hình tạo đơn nhập hàng (Sub-view "create")
@@ -168,11 +126,9 @@ export default function WarehouseManage() {
 
   // Submit tạo đơn mới
   const handleCreateOrder = newOrder => {
-    setOrders(prev => [newOrder, ...prev])
-    setFilters(prev => ({ ...prev, viewMode: "orders", orderStatus: "all" }))
     setSubView("list")
     notice({
-      msg: `Đã tạo Phiếu nhập hàng ${newOrder.orderNo} (${newOrder.deliverySchedule})!`,
+      msg: `Đã tạo Phiếu nhập hàng ${newOrder.orderNo} (${newOrder.deliverySchedule})! Bạn có thể theo dõi đơn hàng tại mục Theo dõi đơn hàng.`,
       isSuccess: true,
     })
   }
@@ -200,18 +156,11 @@ export default function WarehouseManage() {
             onOpenCreate={() => handleOpenCreate(null)}
           />
 
-          {/* Bảng Dữ liệu: Tồn kho vs Phiếu nhập */}
-          {filters.viewMode === "inventory" ? (
-            <WarehouseTable
-              items={paginatedInventory}
-              onViewDetail={handleViewDetail}
-            />
-          ) : (
-            <WarehouseOrdersTable
-              orders={paginatedOrders}
-              onViewDetail={handleViewDetail}
-            />
-          )}
+          {/* Bảng Dữ liệu Tồn kho */}
+          <WarehouseTable
+            items={paginatedInventory}
+            onViewDetail={handleViewDetail}
+          />
 
           {/* Phân trang */}
           <WarehousePagination
@@ -234,7 +183,7 @@ export default function WarehouseManage() {
         />
       )}
 
-      {/* Sub-view 3: Xem chi tiết mặt hàng hoặc phiếu nhập */}
+      {/* Sub-view 3: Xem chi tiết mặt hàng tồn kho */}
       {subView === "detail" && selectedItem && (
         <WarehouseDetailView
           item={selectedItem}

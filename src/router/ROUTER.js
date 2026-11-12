@@ -85,4 +85,5 @@ const ROUTER = {
   NOT_FOUND: "/404",
 };
 
+export { ROUTER };
 export default ROUTER;
