@@ -22,6 +22,12 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     border-color: var(--color-primary, #1e7e34);
   }
+
+  &.activeCard {
+    border-color: var(--color-primary, #1e7e34);
+    background-color: #f0fdf4;
+    box-shadow: 0 4px 12px rgba(30, 126, 52, 0.12);
+  }
 }
 
 .statContent {

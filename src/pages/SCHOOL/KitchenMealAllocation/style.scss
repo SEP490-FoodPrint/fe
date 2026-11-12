@@ -179,3 +179,39 @@
   .kitchen-meal-allocation__context { width: 100%; }
   .kitchen-meal-allocation__tip strong { padding-inline-start: var(--space-3); }
 }
+
+.kitchen-meal-allocation__action.MuiButton-root { min-height: 44px; }
+.kitchen-meal-allocation__locked { opacity: 0.45; }
+.kitchen-meal-allocation__tabs {
+  border-bottom: 1px solid var(--border-default);
+
+  .MuiTab-root {
+    font-size: var(--text-sm);
+    text-transform: none;
+
+    &.Mui-focusVisible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: -2px;
+    }
+  }
+}
+
+.kitchen-meal-allocation__day-total {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+
+  .kitchen-meal-allocation__icon { background: var(--bg-surface); }
+
+  strong {
+    display: block;
+    color: var(--color-primary);
+    font-size: var(--text-base);
+  }
+}

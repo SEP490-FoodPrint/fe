@@ -1,0 +1,23 @@
+.paginationContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--card-bg, #ffffff);
+  padding: 14px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.pageInfo {
+  color: var(--text-secondary, #64748b);
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.pagination {
+  :global(.MuiPaginationItem-root) {
+    font-weight: 500;
+  }
+}

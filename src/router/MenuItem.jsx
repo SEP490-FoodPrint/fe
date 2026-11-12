@@ -22,6 +22,7 @@ import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
 import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined"
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
+import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -216,26 +217,33 @@ export const MenuItemSchool = () => [
   {
     key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
     label: "Phân công GVCN",
-    icon: <LocalShippingOutlinedIcon />,
+    icon: <AssignmentIndOutlinedIcon />,
     roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
   {
-    key: ROUTER.SCHOOL_COOKING_MODE,
-    label: "Chế độ nấu",
-    icon: <SoupKitchenOutlinedIcon />,
-    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-  },
-  {
-    key: ROUTER.SCHOOL_MEAL_TIMES,
-    label: "Giờ phục vụ",
-    icon: <ScheduleOutlinedIcon />,
-    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
-  },
-  {
-    key: ROUTER.SCHOOL_ACADEMIC_YEARS,
-    label: "Thiết lập niên khóa",
-    icon: <CalendarMonthOutlinedIcon />,
-    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+    key: "SCHOOL_CONFIGURATION",
+    label: "Cấu hình",
+    icon: <TuneOutlinedIcon />,
+    children: [
+      {
+        key: ROUTER.SCHOOL_COOKING_MODE,
+        label: "Chế độ nấu",
+        icon: <SoupKitchenOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
+        key: ROUTER.SCHOOL_MEAL_TIMES,
+        label: "Khung giờ vận hành",
+        icon: <ScheduleOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
+        key: ROUTER.SCHOOL_ACADEMIC_YEARS,
+        label: "Thiết lập niên khóa",
+        icon: <CalendarMonthOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+    ],
   },
   {
     key: ROUTER.SCHOOL_DAILY_CONFIRM,
@@ -259,7 +267,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_WAREHOUSE,
-    label: "Quản lý kho",
+    label: "Kho đồ khô",
     icon: <WarehouseOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },

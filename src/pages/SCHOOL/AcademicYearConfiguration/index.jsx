@@ -251,6 +251,7 @@ function AcademicYearConfiguration() {
               <div className="academic-year-page__fields">
                 <TextField
                   fullWidth
+                  size="small"
                   label="Niên khóa"
                   value={form.academicYear}
                   disabled={!creating || saving}
@@ -260,7 +261,7 @@ function AcademicYearConfiguration() {
                       ? "Niên khóa này đã tồn tại."
                       : creating
                         ? "Không bắt buộc theo một định dạng cố định."
-                        : "Tên niên khóa không thể đổi sau khi tạo."
+                        : undefined
                   }
                   inputProps={{ maxLength: 30 }}
                   onChange={(event) =>
@@ -272,6 +273,7 @@ function AcademicYearConfiguration() {
                 />
                 <TextField
                   fullWidth
+                  size="small"
                   type="date"
                   label="Ngày bắt đầu"
                   value={form.startDate}
@@ -286,6 +288,7 @@ function AcademicYearConfiguration() {
                 />
                 <TextField
                   fullWidth
+                  size="small"
                   type="date"
                   label="Ngày kết thúc"
                   value={form.endDate}
@@ -294,7 +297,7 @@ function AcademicYearConfiguration() {
                   helperText={
                     dateRangeInvalid
                       ? "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu."
-                      : " "
+                      : undefined
                   }
                   slotProps={{ inputLabel: { shrink: true } }}
                   onChange={(event) =>

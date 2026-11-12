@@ -1,0 +1,181 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--card-bg, #ffffff);
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.backBtn {
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-weight: 700;
+  color: var(--text-primary, #0f172a);
+}
+
+.subtitle {
+  color: var(--text-secondary, #64748b);
+  margin-top: 2px;
+}
+
+.contentGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background-color: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e0e0e0);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cardHeaderWithAction {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cardTitle {
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
+}
+
+.quickOrderBtn {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: var(--color-primary, #1e7e34);
+
+  &:hover {
+    background-color: var(--color-primary-dark, #166527);
+  }
+}
+
+.infoRowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.infoField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.value {
+  font-size: 0.95rem;
+  color: #1e293b;
+}
+
+.valueBold {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.valueHighlight {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1e7e34;
+}
+
+.stockLow {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.stockNormal {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1e7e34;
+}
+
+.scheduleDay {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-weight: 600;
+}
+
+.scheduleEvening {
+  background-color: #ede9fe;
+  color: #6d28d9;
+  font-weight: 600;
+}
+
+.scheduleWeekend {
+  background-color: #fef3c7;
+  color: #b45309;
+  font-weight: 600;
+}
+
+.noteSection {
+  background-color: #f8fafc;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--color-primary, #1e7e34);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.noteContent {
+  color: #334155;
+}
+
+.tableHead {
+  background-color: #f8fafc;
+
+  :global(.MuiTableCell-head) {
+    font-weight: 600;
+    color: var(--text-secondary, #475569);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+  }
+}
+
+.lineTotal {
+  font-weight: 700;
+  color: #1e7e34;
+}
+
+.orderTotalRow {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}

@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, LockKeyhole, X } from "lucide-react"
 import { formatRemainingPortions, previewBatchAllocation } from "src/utils/mealAllocation"
 import styles from "./SelectClassesDialog.module.scss"
 
-export default function SelectClassesDialog({ batch, classes, dishName, onClose, onApply }) {
+export default function SelectClassesDialog({ batch, classes, onClose, onApply }) {
   const [orderedIds, setOrderedIds] = useState(() => batch.entries.map(entry => entry.id))
   const preview = previewBatchAllocation(batch.total, classes, orderedIds)
   const used = batch.total - preview.remaining
@@ -39,7 +39,6 @@ export default function SelectClassesDialog({ batch, classes, dishName, onClose,
         <div>
           <div className={styles.titleRow}>
             <h2 id="select-classes-title">Phân bổ lớp vào {batch.name}</h2>
-            <Chip size="small" color="success" variant="outlined" label={`Món: ${dishName}`} />
           </div>
           <div className={styles.subheading}>
             <span>Số suất khả dụng của lô: <strong>{batch.total}</strong></span>
@@ -139,7 +138,7 @@ export default function SelectClassesDialog({ batch, classes, dishName, onClose,
         <div>
           <Button variant="outlined" onClick={onClose}>Hủy</Button>
           <Button variant="contained" startIcon={<Check size={16} />} disabled={!preview.entries.length && !batch.entries.length} onClick={() => onApply(orderedIds)}>
-            Áp dụng phân bổ
+            Xong
           </Button>
         </div>
       </DialogActions>

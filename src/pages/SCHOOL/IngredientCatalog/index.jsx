@@ -102,6 +102,7 @@ export default function IngredientCatalog() {
       {/* 2. Thẻ thống kê 4 nhóm */}
       <CatalogStatsRail
         stats={stats}
+        activeFilter={filters.handlingType}
         onFilterHandlingType={val => handleFilterChange("handlingType", val)}
       />
 

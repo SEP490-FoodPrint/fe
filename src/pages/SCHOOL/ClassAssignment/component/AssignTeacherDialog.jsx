@@ -7,12 +7,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  MenuItem,
   Skeleton,
-  TextField,
   Typography,
 } from "@mui/material"
 import ClassService from "src/services/ClassService"
+import TeacherAutocomplete from "./TeacherAutocomplete"
 import styles from "./AssignTeacherDialog.module.scss"
 
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
@@ -107,37 +106,18 @@ function AssignTeacherDialog({ open, mode, item, academicYear, onClose, onDone }
             {loading ? (
               <Skeleton variant="rounded" height={40} />
             ) : teachers.length ? (
-              <TextField
-                select
-                fullWidth
-                label="Giáo viên chủ nhiệm"
+              <TeacherAutocomplete
+                teachers={teachers}
                 value={teacherId}
-                onChange={event => {
-                  setTeacherId(event.target.value)
+                onChange={id => {
+                  setTeacherId(id)
                   setError("")
                 }}
+                classId={item?.id}
+                currentTeacherId={current?.id}
+                label="Giáo viên chủ nhiệm"
                 disabled={submitting}
-              >
-                {teachers.map(teacher => {
-                  const busy = teacher.currentClass && teacher.currentClass.id !== item?.id
-                  const isCurrent = teacher.id === current?.id
-                  return (
-                    <MenuItem key={teacher.id} value={teacher.id} disabled={Boolean(busy) || isCurrent}>
-                      <span className={styles.option}>
-                        <span>{teacher.fullName}</span>
-                        <small>
-                          {teacher.username}
-                          {isCurrent
-                            ? " · GVCN hiện tại"
-                            : busy
-                              ? ` · Đang chủ nhiệm lớp ${teacher.currentClass.name}`
-                              : ""}
-                        </small>
-                      </span>
-                    </MenuItem>
-                  )
-                })}
-              </TextField>
+              />
             ) : (
               !error && (
                 <Alert severity="info">
