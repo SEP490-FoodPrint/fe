@@ -5,10 +5,16 @@ import ROUTER from "src/router/ROUTER"
 
 export default function MenuDetailHeader({
   menu,
+  menuId,
   onSubmitApproval
 }) {
   const navigate = useNavigate()
-  const canEdit = menu.status === "DRAFT" || menu.status === "REVISION_REQUESTED"
+  // Thực đơn chưa được duyệt: bất kỳ trạng thái nào khác "APPROVED" (DRAFT, PENDING_APPROVAL, REVISION_REQUESTED...)
+  const isApproved = String(menu?.status || "").toUpperCase() === "APPROVED" ||
+                     String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
+  const canEdit = !isApproved
+  const canSubmit = menu?.status === "DRAFT" || menu?.status === "REVISION_REQUESTED" || menu?.status === "REVISION_REQUIRED"
+  const targetEditId = menuId || menu?.weeklyMenuId || menu?.id
 
   const displayTitle = React.useMemo(() => {
     if (!menu) return "Thực đơn tuần"
@@ -68,20 +74,20 @@ export default function MenuDetailHeader({
             <span>Danh sách</span>
           </button>
 
-          {/* Nút Chỉnh sửa: CHỈ hiển thị nếu status là DRAFT hoặc REVISION_REQUESTED */}
+          {/* Nút Chỉnh sửa: Hiển thị khi thực đơn CHƯA ĐƯỢC DUYỆT */}
           {canEdit && (
             <button
               type="button"
               className={styles.btnEdit}
-              onClick={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })}
+              onClick={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", targetEditId), { state: { menu } })}
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
               <span>Chỉnh sửa</span>
             </button>
           )}
 
-          {/* Nút Gửi duyệt BGH */}
-          {canEdit && (
+          {/* Nút Gửi duyệt BGH (chỉ hiện khi nháp hoặc cần chỉnh sửa) */}
+          {canSubmit && (
             <button
               type="button"
               className={styles.btnPrimary}

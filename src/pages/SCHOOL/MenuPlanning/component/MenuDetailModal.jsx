@@ -9,7 +9,7 @@ export default function MenuDetailModal({
 }) {
   if (!isOpen || !menu) return null
 
-  const canEdit = menu.status === "DRAFT" || menu.status === "REVISION_REQUESTED"
+  const canEdit = menu?.status !== "APPROVED"
 
   const getStatusBadge = (status) => {
     switch (status) {

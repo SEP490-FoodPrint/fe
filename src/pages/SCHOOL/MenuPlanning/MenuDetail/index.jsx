@@ -110,17 +110,22 @@ export default function MenuDetail() {
         {/* Header với Tiêu đề, Mã thực đơn, Trạng thái và Nút Thao tác */}
         <MenuDetailHeader
           menu={menu}
+          menuId={id}
           onSubmitApproval={() => setIsConfirmSubmitOpen(true)}
         />
 
         {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
         <MenuDetailBGHFeedback
           menu={menu}
-          onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })}
+          onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", id || menu.id), { state: { menu } })}
         />
 
         {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
-        <MenuDetailDishesTable dishes={menu.dishes} />
+        <MenuDetailDishesTable
+          dishes={menu.dishes}
+          canEdit={menu.status !== "APPROVED"}
+          onEdit={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", id || menu.id), { state: { menu } })}
+        />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
         <MenuDetailAllergyCard menu={menu} />

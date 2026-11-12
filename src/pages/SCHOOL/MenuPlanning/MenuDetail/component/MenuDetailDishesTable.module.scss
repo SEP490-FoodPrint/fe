@@ -31,6 +31,25 @@
   gap: 12px;
 }
 
+.btnEditDishes {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid #0a8066;
+  background-color: #e6f7f2;
+  color: #00654f;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #d1f2e8;
+  }
+}
+
 .headerTitleGroup {
   display: flex;
   align-items: center;

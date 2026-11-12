@@ -5,7 +5,7 @@ import styles from "./MenuDetailDishesTable.module.scss"
 import MenuService from "src/services/MenuService"
 import { getDishAllergyState } from "src/services/MenuService/adapter"
 
-export default function MenuDetailDishesTable({ dishes = [] }) {
+export default function MenuDetailDishesTable({ dishes = [], canEdit = false, onEdit }) {
   const ingredientKey = useMemo(() => [...new Set((Array.isArray(dishes) ? dishes : []).flatMap((dish) =>
     dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || [],
   ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(","), [dishes])
@@ -51,6 +51,16 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
           <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant_menu</span>
           <h2 className={styles.cardTitle}>Danh sách món ăn</h2>
         </div>
+        {canEdit && onEdit && (
+          <button
+            type="button"
+            className={styles.btnEditDishes}
+            onClick={onEdit}
+          >
+            <span className="material-symbols-outlined text-[16px]">edit</span>
+            <span>Chỉnh sửa</span>
+          </button>
+        )}
       </div>
 
       {currentCheck.status === "error" && (
