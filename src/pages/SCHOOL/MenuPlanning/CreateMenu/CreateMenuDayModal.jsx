@@ -626,18 +626,6 @@ export default function CreateMenuDayModal({
                               </span>
                             )}
                           </div>
-
-                          <div className={styles.cardMetaRow}>
-                            <span className={styles.metaItem}>
-                              Nguyên liệu:{" "}
-                              <strong>{dish.mainIngredient || dish.name}</strong>
-                            </span>
-                            <span className={styles.metaDivider}>•</span>
-                            <span className={styles.metaSupplier}>
-                              <Truck size={11} />
-                              <span>{dish.supplierName}</span>
-                            </span>
-                          </div>
                         </div>
 
                         <button
@@ -670,13 +658,6 @@ export default function CreateMenuDayModal({
 
         {/* Modal Footer */}
         <div className={styles.modalFooter}>
-          <div className={styles.footerInfo}>
-            <span>
-              {dayData?.dayLabel} ({dayData?.dateVN}) • Tổng{" "}
-              <strong>{totalDishesCount}</strong> món ăn • Gia vị tự động tính
-            </span>
-          </div>
-
           <div className={styles.footerBtns}>
             <button
               type="button"
