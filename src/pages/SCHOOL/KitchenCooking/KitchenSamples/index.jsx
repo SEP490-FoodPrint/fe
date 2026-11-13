@@ -5,7 +5,7 @@ import FoodPrintLoading from "src/components/FoodPrintLoading";
 import ROUTER from "src/router/ROUTER";
 import notice from "src/components/Notice";
 import KitchenService from "src/services/KitchenService";
-import { getISOWeekNumber } from "src/services/MenuService/adapter";
+import { getWeeksOfAcademicYear, getISOWeekNumber } from "src/services/MenuService/adapter";
 import { get24hRetainedStatus } from "./retainedStatusHelper";
 import KitchenSamplesHeader from "./component/KitchenSamplesHeader";
 import KitchenSamplesKPICards from "./component/KitchenSamplesKPICards";
@@ -30,6 +30,7 @@ export default function KitchenSamples() {
   // 1. Data States: Không khởi tạo bằng Mock, mặc định rỗng
   const [samples, setSamples] = useState([]);
   const [unsampledBatches, setUnsampledBatches] = useState([]);
+  const [schoolContext, setSchoolContext] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loadError, setLoadError] = useState("");
@@ -53,13 +54,18 @@ export default function KitchenSamples() {
     try {
       setLoading(true);
       setLoadError("");
-      const [samplesRes, batchesRes] = await Promise.all([
+      const [samplesRes, batchesRes, contextRes] = await Promise.all([
         KitchenService.getAllRetainedSamples({ signal }),
         KitchenService.getBatches(
           { status: "COMPLETED", hasSample: false, limit: 100 },
           { signal },
         ),
+        KitchenService.getContext({ signal }).catch(() => null),
       ]);
+
+      if (contextRes) {
+        setSchoolContext(contextRes);
+      }
 
       const rawItems = samplesRes?.items || [];
       const mapped = rawItems.map((item) => ({
@@ -297,46 +303,80 @@ export default function KitchenSamples() {
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   }, [filteredSamples]);
 
-  // 7B. Dữ liệu lịch tuần liên tiếp (Weekly Calendar nhiều tuần nối liền nhau)
-  const calendarWeeks = useMemo(() => {
-    const now = new Date();
-    const getMonday = (d) => {
-      const date = new Date(d);
-      const day = date.getDay();
-      const diff = (day === 0 ? -6 : 1) - day;
-      date.setDate(date.getDate() + diff);
-      date.setHours(0, 0, 0, 0);
-      return date;
-    };
-
-    const currentMonday = getMonday(now);
-    const todayKey = toDateKey(now);
-
-    let weeksCount = 4;
-    if (filteredSamples.length > 0) {
-      const oldestTime = filteredSamples.reduce((min, s) => {
-        const t = new Date(s.sampledAt || s.createdAt || 0).getTime();
-        return t > 0 && t < min ? t : min;
-      }, Date.now());
-      const oldestMonday = getMonday(new Date(oldestTime));
-      const diffWeeks =
-        Math.ceil(
-          (currentMonday.getTime() - oldestMonday.getTime()) /
-            (7 * 24 * 60 * 60 * 1000)
-        ) + 1;
-      weeksCount = Math.min(Math.max(4, diffWeeks), 8);
+  // 7B. Cấu hình năm học theo setup nhà trường trong DB
+  const currentAcademicYearConfig = useMemo(() => {
+    const today = new Date();
+    const todayISO = `${today.getFullYear()}-${padZero(today.getMonth() + 1)}-${padZero(today.getDate())}`;
+    const years = schoolContext?.academicYears;
+    if (Array.isArray(years) && years.length > 0) {
+      const active = years.find((ay) => {
+        if (ay.startDate && ay.endDate) {
+          return ay.startDate <= todayISO && todayISO <= ay.endDate;
+        }
+        return false;
+      });
+      if (active) return active;
+      return years[0];
     }
+    // Mặc định bám sát cấu hình DB PostgreSQL FoodPrint v5.4
+    return {
+      academicYear: "2026-2027",
+      startDate: "2026-09-07",
+      endDate: "2027-05-28",
+      holidays: [],
+    };
+  }, [schoolContext]);
 
+  // Danh sách các tuần học thực tế trong năm học theo BGH thiết lập trong DB
+  const allAcademicWeeks = useMemo(() => {
+    return getWeeksOfAcademicYear(currentAcademicYearConfig);
+  }, [currentAcademicYearConfig]);
+
+  // 7C. Dữ liệu lịch tuần liên tiếp (Weekly Calendar nhiều tuần nối liền nhau)
+  const calendarWeeks = useMemo(() => {
+    if (!allAcademicWeeks.length) return [];
+
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${padZero(now.getMonth() + 1)}-${padZero(now.getDate())}`;
+
+    // Tìm tuần hiện tại trong năm học
+    const currentIndex = allAcademicWeeks.findIndex((w) => w.isCurrentWeek);
+    const activeWeekIndex = currentIndex >= 0 ? currentIndex : allAcademicWeeks.length - 1;
+
+    // Lấy các tuần đã diễn ra (từ Tuần 1 đến Tuần hiện tại)
+    // Sắp xếp tuần mới nhất (Tuần hiện tại) ở TRÊN CÙNG, các tuần trước nối tiếp ở dưới
+    const elapsedWeeks = allAcademicWeeks.slice(0, activeWeekIndex + 1).reverse();
+
+    // Nhóm mẫu lưu theo dateKey ('YYYY-MM-DD')
     const samplesByDate = new Map();
     filteredSamples.forEach((item) => {
       const d = new Date(item.sampledAt || item.createdAt || Date.now());
       if (isNaN(d.getTime())) return;
-      const key = toDateKey(d);
+      const key = `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
       if (!samplesByDate.has(key)) {
         samplesByDate.set(key, []);
       }
       samplesByDate.get(key).push(item);
     });
+
+    // Xác định số tuần hiển thị:
+    // Tối thiểu hiển thị 4 tuần gần nhất (hoặc tất cả nếu số tuần đã qua < 4).
+    // Nếu có mẫu lưu trong filteredSamples ở tuần cũ hơn, mở rộng để bao hàm tất cả các tuần có mẫu.
+    let displayWeeks = elapsedWeeks.slice(0, Math.min(4, elapsedWeeks.length));
+    if (filteredSamples.length > 0) {
+      const maxNeededIndex = elapsedWeeks.findLastIndex((w) => {
+        const parts = w.startDateISO.split("-").map(Number);
+        for (let i = 0; i < 7; i++) {
+          const dt = new Date(parts[0], parts[1] - 1, parts[2] + i, 12, 0, 0);
+          const k = `${dt.getFullYear()}-${padZero(dt.getMonth() + 1)}-${padZero(dt.getDate())}`;
+          if (samplesByDate.has(k)) return true;
+        }
+        return false;
+      });
+      if (maxNeededIndex >= displayWeeks.length) {
+        displayWeeks = elapsedWeeks.slice(0, maxNeededIndex + 1);
+      }
+    }
 
     const DAY_LABELS = [
       { short: "T2", full: "Thứ Hai", isWeekend: false },
@@ -348,17 +388,10 @@ export default function KitchenSamples() {
       { short: "CN", full: "Chủ Nhật", isWeekend: true },
     ];
 
-    const weeks = [];
-    for (let offset = 0; offset < weeksCount; offset++) {
-      const monday = new Date(
-        currentMonday.getTime() - offset * 7 * 24 * 60 * 60 * 1000
-      );
-      const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
-
-      const mStr = `${padZero(monday.getDate())}/${padZero(monday.getMonth() + 1)}`;
-      const sStr = `${padZero(sunday.getDate())}/${padZero(sunday.getMonth() + 1)}/${sunday.getFullYear()}`;
-      const isoWeek = getISOWeekNumber(monday);
-      const isCurrentWeek = offset === 0;
+    return displayWeeks.map((w, offset) => {
+      const parts = w.startDateISO.split("-").map(Number);
+      const sundayDate = new Date(parts[0], parts[1] - 1, parts[2] + 6, 12, 0, 0);
+      const sundayVN = `${padZero(sundayDate.getDate())}/${padZero(sundayDate.getMonth() + 1)}/${sundayDate.getFullYear()}`;
 
       const days = [];
       let weekTotal = 0;
@@ -367,10 +400,8 @@ export default function KitchenSamples() {
       let weekDisposed = 0;
 
       for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
-        const dayDate = new Date(
-          monday.getTime() + dayIndex * 24 * 60 * 60 * 1000
-        );
-        const dayKey = toDateKey(dayDate);
+        const dayDate = new Date(parts[0], parts[1] - 1, parts[2] + dayIndex, 12, 0, 0);
+        const dayKey = `${dayDate.getFullYear()}-${padZero(dayDate.getMonth() + 1)}-${padZero(dayDate.getDate())}`;
         const dayVN = `${padZero(dayDate.getDate())}/${padZero(dayDate.getMonth() + 1)}`;
         const meta = DAY_LABELS[dayIndex];
 
@@ -409,20 +440,18 @@ export default function KitchenSamples() {
         });
       }
 
-      weeks.push({
-        weekKey: `WEEK_${monday.getFullYear()}_${isoWeek}_${offset}`,
-        weekLabel: `Tuần ${isoWeek} (${mStr} – ${sStr})`,
-        isCurrentWeek,
+      return {
+        weekKey: `AY_WEEK_${w.year}_${w.weekIndex}_${offset}`,
+        weekLabel: `Tuần ${w.weekIndex} (${w.startVN} – ${sundayVN})`,
+        isCurrentWeek: w.isCurrentWeek,
         totalSamples: weekTotal,
         storedCount: weekStored,
         readyCount: weekReady,
         disposedCount: weekDisposed,
         days,
-      });
-    }
-
-    return weeks;
-  }, [filteredSamples]);
+      };
+    });
+  }, [allAcademicWeeks, filteredSamples]);
 
   const selectedGroup = useMemo(() => {
     if (!activeDate || activeDate.toLowerCase() === "all") return null;
