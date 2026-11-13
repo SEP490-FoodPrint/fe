@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react"
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import {
   X,
   Search,
@@ -9,18 +9,36 @@ import {
   Sparkles,
   Trash2,
   AlertCircle,
-  Truck,
-  RotateCcw,
+  AlertTriangle,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Filter,
 } from "lucide-react"
 import styles from "./CreateMenuDayModal.module.scss"
 import {
-  getStoredDishCatalog,
-  DISH_CATEGORIES,
-} from "../dishCatalogData"
-import {
-  WAREHOUSE_SEASONINGS_CATALOG,
-  INITIAL_SEASONINGS,
-} from "../mockMenuData"
+  loadDishCatalogData,
+  loadRecipeOptions,
+  dishIngredientIds,
+  dishCategoryKey,
+} from "src/services/DishService"
+import { inspectMenuMealSelection } from "src/services/MenuService"
+
+export const renderCategoryBadge = (dish) => {
+  const cat = dishCategoryKey(dish)
+  const badgeStyles = {
+    MAIN_DISH: styles.badgeMain,
+    SOUP: styles.badgeSoup,
+    VEGETABLE: styles.badgeVeg,
+    RICE_STARCH: styles.badgeRice,
+    DESSERT: styles.badgeAfternoon,
+  }
+  return (
+    <span className={badgeStyles[cat] || styles.badgeMain}>
+      {dish.categoryLabel || "Chưa phân nhóm"}
+    </span>
+  )
+}
 
 export default function CreateMenuDayModal({
   isOpen,
@@ -28,191 +46,592 @@ export default function CreateMenuDayModal({
   dayData,
   dayMenu,
   initialMealType = "LUNCH",
-  initialTab = "DISHES",
   onSaveDay,
+  submitText = "Cập nhật vào ngày này",
 }) {
-  // Tabs: "DISHES" (Chọn món ăn từ Kho) hoặc "SEASONINGS" (Nhập gia vị kho)
-  const [activeTab, setActiveTab] = useState(initialTab)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState("")
+  const saveLock = useRef(false)
   const [selectedMealType, setSelectedMealType] = useState(
     initialMealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
   )
 
-  // Local state món ăn & gia vị của ngày đang chỉnh sửa
+  // Local state món ăn của ngày đang chỉnh sửa
   const [lunchDishes, setLunchDishes] = useState([])
   const [afternoonDishes, setAfternoonDishes] = useState([])
-  const [seasonings, setSeasonings] = useState([])
+  const [seasoningsByMeal, setSeasoningsByMeal] = useState({
+    LUNCH: [],
+    AFTERNOON: [],
+  })
+  const [recipeLoading, setRecipeLoading] = useState(false)
+  const [allergyLoading, setAllergyLoading] = useState(false)
+  const [allergyIssuesByMeal, setAllergyIssuesByMeal] = useState({ LUNCH: [], AFTERNOON: [] })
+  const [edited, setEdited] = useState(false)
+  const [recipeOptions, setRecipeOptions] = useState([])
+  const [dishCatalog, setDishCatalog] = useState([])
+  const [categoryOptions, setCategoryOptions] = useState([])
+  const DISH_CATEGORIES = useMemo(() => [
+    { key: "ALL", label: "Tất cả món" },
+    ...categoryOptions,
+    { key: "UNCLASSIFIED", label: "Chưa phân nhóm" },
+  ], [categoryOptions])
 
-  // Search & filter món ăn
+  // Quản lý món ăn thay thế cho học sinh dị ứng theo từng ca ăn
+  const [substitutesByMeal, setSubstitutesByMeal] = useState({
+    LUNCH: {},
+    AFTERNOON: {},
+  })
+
+  // Chế độ chọn món riêng thay thế cho học sinh dị ứng ở cột bên phải
+  const [selectingSubstituteFor, setSelectingSubstituteFor] = useState(null)
+
+  // Kết quả kiểm tra dị ứng tự động cho từng ca ăn
+  const [allergiesByMeal, setAllergiesByMeal] = useState({
+    LUNCH: { hasConflict: false, conflicts: [] },
+    AFTERNOON: { hasConflict: false, conflicts: [] },
+  })
+
+  const seasonings = seasoningsByMeal[selectedMealType] || []
+
+  // Search & filter món ăn từ kho
   const [searchKeyword, setSearchKeyword] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("ALL")
-  const [dishCatalog, setDishCatalog] = useState([])
+  const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false)
+  const catDropdownRef = useRef(null)
+
+  const selectedCategoryObj = useMemo(() => {
+    return (
+      DISH_CATEGORIES.find((c) => c.key === selectedCategory) ||
+      DISH_CATEGORIES[0]
+    )
+  }, [selectedCategory, DISH_CATEGORIES])
+
+  // Đóng dropdown phân loại khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        catDropdownRef.current &&
+        !catDropdownRef.current.contains(e.target)
+      ) {
+        setIsCatDropdownOpen(false)
+      }
+    }
+    if (isCatDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isCatDropdownOpen])
+
+  // Trạng thái thu gọn (collapsible) ở cột preview bên trái
+  const [isLunchCollapsed, setIsLunchCollapsed] = useState(false)
+  const [isAfternoonCollapsed, setIsAfternoonCollapsed] = useState(false)
+  const [isSeasoningCollapsed, setIsSeasoningCollapsed] = useState(false)
 
   // Đồng bộ dữ liệu khi modal mở ra
   useEffect(() => {
     if (isOpen) {
-      setActiveTab(initialTab || "DISHES")
       setSelectedMealType(
         initialMealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
       )
-      setLunchDishes(Array.isArray(dayMenu?.LUNCH) ? [...dayMenu.LUNCH] : [])
-      setAfternoonDishes(
-        Array.isArray(dayMenu?.AFTERNOON) ? [...dayMenu.AFTERNOON] : []
+      const initialLunch = Array.isArray(dayMenu?.LUNCH) ? [...dayMenu.LUNCH] : []
+      const initialAfternoon = Array.isArray(dayMenu?.AFTERNOON)
+        ? [...dayMenu.AFTERNOON]
+        : []
+
+      setLunchDishes(initialLunch)
+      setAfternoonDishes(initialAfternoon)
+      setEdited(false)
+      setSaveError("")
+      setSeasoningsByMeal(
+        dayMenu?.seasoningsByMeal || {
+          LUNCH: dayMenu?.seasonings || [],
+          AFTERNOON: [],
+        }
       )
 
-      // Khởi tạo gia vị theo suất
-      if (Array.isArray(dayMenu?.seasonings) && dayMenu.seasonings.length > 0) {
-        setSeasonings(dayMenu.seasonings.map((s) => ({ ...s })))
-      } else {
-        setSeasonings(INITIAL_SEASONINGS.map((s) => ({ ...s })))
+      // Khởi tạo món thay thế nếu có sẵn trong dayMenu
+      const existingSubs = dayMenu?.substitutesByMeal || {
+        LUNCH: {},
+        AFTERNOON: {},
       }
+      if (dayMenu?.substituteDish) {
+        const targetMeal = initialMealType || "LUNCH"
+        const conflictDish = (
+          targetMeal === "AFTERNOON" ? initialAfternoon : initialLunch
+        ).find(
+          (d) => (d.dishId || d.id) === dayMenu.substituteDish.substituteForDishId
+        )
+        if (conflictDish) {
+          existingSubs[targetMeal] = {
+            ...existingSubs[targetMeal],
+            [conflictDish.dishId || conflictDish.id]: dayMenu.substituteDish,
+          }
+        }
+      }
+      setSubstitutesByMeal(existingSubs)
+      setSelectingSubstituteFor(null)
 
-      setDishCatalog(getStoredDishCatalog())
       setSearchKeyword("")
       setSelectedCategory("ALL")
+      setIsCatDropdownOpen(false)
     }
-  }, [isOpen, dayMenu, initialMealType, initialTab])
+  }, [isOpen, dayMenu, initialMealType])
 
-  // Lọc danh sách món ăn từ Kho
+  // Tải danh mục món ăn & kho gia vị
+  useEffect(() => {
+    if (!isOpen) return
+    let active = true
+    setRecipeLoading(true)
+    Promise.all([loadDishCatalogData(), loadRecipeOptions()])
+      .then(([data, options]) => {
+        if (active) {
+          setDishCatalog(data.items)
+          setCategoryOptions(data.categories)
+          setRecipeOptions(options || [])
+        }
+      })
+      .catch((e) => {
+        console.warn("Không tải được kho món ăn:", e)
+      })
+      .finally(() => {
+        if (active) setRecipeLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [isOpen])
+
+  // Kiểm tra dị ứng độc lập với việc tổng hợp định lượng công thức.
+  useEffect(() => {
+    if (!isOpen) return
+    let active = true
+    setAllergyLoading(true)
+
+    const inspect = (type, list) => inspectMenuMealSelection({
+      dishes: [
+        ...list,
+        ...Object.values(substitutesByMeal[type] || {}),
+      ],
+      seasonings: seasoningsByMeal[type] || [],
+      refreshRecipe: edited,
+    })
+
+    Promise.all([
+      inspect("LUNCH", lunchDishes),
+      inspect("AFTERNOON", afternoonDishes),
+    ])
+      .then(([lunch, afternoon]) => {
+        if (active) {
+          setAllergiesByMeal({
+            LUNCH: lunch.allergies,
+            AFTERNOON: afternoon.allergies,
+          })
+          setAllergyIssuesByMeal({ LUNCH: lunch.issues, AFTERNOON: afternoon.issues })
+          setSeasoningsByMeal({
+            LUNCH: lunch.seasonings,
+            AFTERNOON: afternoon.seasonings,
+          })
+        }
+      })
+      .catch((error) => {
+        if (active) setAllergyIssuesByMeal({
+          LUNCH: [`Chưa kiểm tra được dị ứng: ${error.message || "Vui lòng thử lại."}`],
+          AFTERNOON: [],
+        })
+      })
+      .finally(() => {
+        if (active) setAllergyLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [isOpen, edited, lunchDishes, afternoonDishes, substitutesByMeal])
+
+  const getDishAllergyConflict = useCallback(
+    (dish, mealType) => {
+      const ids = dishIngredientIds(dish)
+      return (
+        (allergiesByMeal[mealType]?.conflicts || []).find((conflict) =>
+          ids.includes(conflict.ingredientId)
+        ) || null
+      )
+    },
+    [allergiesByMeal]
+  )
+
+  // Đếm số lượng món theo từng phân loại
+  const categoryCounts = useMemo(() => {
+    const counts = Object.fromEntries(DISH_CATEGORIES.map(option => [option.key, 0]))
+    counts.ALL = dishCatalog.length
+    dishCatalog.forEach((dish) => {
+      const cat = dishCategoryKey(dish)
+      if (counts[cat] !== undefined) {
+        counts[cat]++
+      } else {
+        counts.UNCLASSIFIED++
+      }
+    })
+    return counts
+  }, [dishCatalog, DISH_CATEGORIES])
+
+  // Lọc danh mục món ăn theo từ khóa, phân loại và chế độ chọn món thay thế dị ứng
   const filteredCatalog = useMemo(() => {
     return dishCatalog.filter((dish) => {
-      if (selectedCategory !== "ALL" && dish.category !== selectedCategory) {
-        return false
+      // Khi đang chọn món riêng thay thế cho học sinh dị ứng:
+      // Hiển thị tất cả món, nhưng loại trừ chính món đang bị dị ứng cần thay thế
+      if (selectingSubstituteFor?.dish) {
+        const conflictedDishId =
+          selectingSubstituteFor.dish.dishId || selectingSubstituteFor.dish.id
+        if (dish.id === conflictedDishId) {
+          return false
+        }
+      }
+
+      if (selectedCategory !== "ALL") {
+        const cat = dishCategoryKey(dish)
+        if (cat !== selectedCategory) return false
       }
       if (searchKeyword.trim()) {
         const kw = searchKeyword.trim().toLowerCase()
-        const matchName = dish.name.toLowerCase().includes(kw)
-        const matchMain = dish.mainIngredient?.toLowerCase().includes(kw)
-        const matchSupplier = dish.supplierName?.toLowerCase().includes(kw)
+        const matchName = (dish.name || "").toLowerCase().includes(kw)
+        const matchMain = (dish.mainIngredient || "")
+          .toLowerCase()
+          .includes(kw)
+        const matchSupplier = (dish.supplierName || "")
+          .toLowerCase()
+          .includes(kw)
         if (!matchName && !matchMain && !matchSupplier) return false
       }
       return true
     })
-  }, [dishCatalog, selectedCategory, searchKeyword])
+  }, [dishCatalog, selectedCategory, searchKeyword, selectingSubstituteFor])
 
   // Set các món đã chọn trong ca hiện tại
-  const currentMealDishes = selectedMealType === "LUNCH" ? lunchDishes : afternoonDishes
+  const currentMealDishes =
+    selectedMealType === "LUNCH" ? lunchDishes : afternoonDishes
   const selectedDishIds = useMemo(() => {
     return new Set(currentMealDishes.map((d) => d.dishId || d.id || d.name))
   }, [currentMealDishes])
 
   // Thao tác thêm/bỏ món vào ca ăn
-  const handleToggleDish = useCallback((dish) => {
-    const isLunch = selectedMealType === "LUNCH"
-    const targetSetter = isLunch ? setLunchDishes : setAfternoonDishes
+  const handleToggleDish = useCallback(
+    (dish) => {
+      const isLunch = selectedMealType === "LUNCH"
+      const targetSetter = isLunch ? setLunchDishes : setAfternoonDishes
 
-    targetSetter((prev) => {
-      const exists = prev.some((d) => (d.dishId || d.id || d.name) === dish.id)
-      if (exists) {
-        return prev.filter((d) => (d.dishId || d.id || d.name) !== dish.id)
-      } else {
-        const newDish = {
-          id: `dish-picked-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          dishId: dish.id,
-          name: dish.name,
-          category: dish.category,
-          categoryLabel: dish.categoryLabel,
-          portionQty: dish.portionQty || 50,
-          unit: dish.unit === "ml" ? "ml" : "g",
-          mainIngredient: dish.mainIngredient || dish.name,
-          supplierName: dish.supplierName || "CP Foods Việt Nam",
-          supplierBadge: dish.supplierBadge || "VietGAP",
-          ingredientIds: dish.ingredientIds || [],
+      setEdited(true)
+      targetSetter((prev) => {
+        const exists = prev.some(
+          (d) => (d.dishId || d.id || d.name) === dish.id
+        )
+        if (exists) {
+          // Bỏ chọn món: nếu món này có món riêng thay thế thì dọn dẹp luôn
+          setSubstitutesByMeal((prevSubs) => {
+            const copy = { ...prevSubs }
+            if (copy[selectedMealType]?.[dish.id]) {
+              const mealSubs = { ...copy[selectedMealType] }
+              delete mealSubs[dish.id]
+              copy[selectedMealType] = mealSubs
+            }
+            return copy
+          })
+          return prev.filter(
+            (d) => (d.dishId || d.id || d.name) !== dish.id
+          )
+        } else {
+          const newDish = {
+            id: `dish-picked-${Date.now()}-${Math.random()
+              .toString(36)
+              .slice(2, 6)}`,
+            dishId: dish.id,
+            name: dish.name,
+            category: dish.category,
+            categoryLabel: dish.categoryLabel,
+            mainIngredient: dish.mainIngredient || dish.name,
+            supplierName: dish.supplierName || "",
+            supplierBadge: dish.supplierBadge || "",
+            ingredientStandards: dish.ingredientStandards || [],
+            ingredientIds: dishIngredientIds(dish),
+            lines: dish.lines || [],
+            seasonings: dish.seasonings || [],
+          }
+          return [...prev, newDish]
         }
-        return [...prev, newDish]
-      }
-    })
-  }, [selectedMealType])
+      })
+    },
+    [selectedMealType]
+  )
 
   // Xóa món trực tiếp từ cột Preview
   const handleRemoveDishFromPreview = useCallback((mealType, dishId) => {
+    setEdited(true)
     if (mealType === "LUNCH") {
-      setLunchDishes((prev) => prev.filter((d) => d.id !== dishId))
+      setLunchDishes((prev) =>
+        prev.filter((d) => d.id !== dishId && d.dishId !== dishId)
+      )
     } else {
-      setAfternoonDishes((prev) => prev.filter((d) => d.id !== dishId))
+      setAfternoonDishes((prev) =>
+        prev.filter((d) => d.id !== dishId && d.dishId !== dishId)
+      )
     }
+    // Dọn dẹp món thay thế nếu có
+    setSubstitutesByMeal((prev) => {
+      const copy = { ...prev }
+      if (copy[mealType]?.[dishId]) {
+        const mealSubs = { ...copy[mealType] }
+        delete mealSubs[dishId]
+        copy[mealType] = mealSubs
+      }
+      return copy
+    })
+    // Hủy chế độ chọn món thay thế nếu đang chọn cho chính món bị xóa
+    setSelectingSubstituteFor((curr) => {
+      if (curr && (curr.dish?.id === dishId || curr.dish?.dishId === dishId)) {
+        return null
+      }
+      return curr
+    })
   }, [])
 
-  // Thao tác Gia vị (Seasonings) - Hoàn toàn theo suất
-  const handleAddSeasoningRow = () => {
-    const defaultItem = WAREHOUSE_SEASONINGS_CATALOG[0]
-    const newSeas = {
-      id: `seas-new-${Date.now()}`,
-      catalogId: defaultItem.id,
-      name: defaultItem.name,
-      portionQty: 2,
-      unit: defaultItem.defaultUnit || "g",
+  // Bắt đầu chọn món riêng thay thế ở cột bên phải
+  const handleStartSelectSubstitute = (dish, conflict, mealType) => {
+    setSelectedMealType(mealType)
+    setSelectingSubstituteFor({
+      dish,
+      conflict,
+      mealType,
+    })
+  }
+
+  // Hủy chế độ chọn món riêng thay thế
+  const handleCancelSelectSubstitute = () => {
+    setSelectingSubstituteFor(null)
+  }
+
+  // Chọn món riêng thay thế từ danh sách món ở cột bên phải
+  const handleSelectSubstituteFromRightColumn = (chosenDish) => {
+    if (!selectingSubstituteFor || !chosenDish) return
+    const { dish, conflict, mealType } = selectingSubstituteFor
+
+    setEdited(true)
+    const dishKey = dish.dishId || dish.id
+
+    setSubstitutesByMeal((prev) => ({
+      ...prev,
+      [mealType]: {
+        ...prev[mealType],
+        [dishKey]: {
+          id: `sub-${chosenDish.id}-${Date.now()}`,
+          dishId: chosenDish.id,
+          name: chosenDish.name,
+          categoryLabel: chosenDish.categoryLabel,
+          category: chosenDish.category,
+          mainIngredient: chosenDish.mainIngredient || chosenDish.name,
+          ingredientStandards: chosenDish.ingredientStandards || [],
+          ingredientIds: dishIngredientIds(chosenDish),
+          lines: chosenDish.lines || [],
+          seasonings: chosenDish.seasonings || [],
+          isSubstitute: true,
+          substituteForDishId: dishKey,
+          substituteForName: dish.name,
+          allergenName: conflict?.ingredientName || "Dị ứng",
+          avoidedIngredientEntryIds: (
+            allergiesByMeal[mealType]?.conflicts || []
+          )
+            .filter((c) => dishIngredientIds(dish).includes(c.ingredientId))
+            .map(
+              (c) =>
+                recipeOptions.find((o) => o.ingredientId === c.ingredientId)?.id
+            )
+            .filter(Boolean),
+        },
+      },
+    }))
+
+    // Hoàn tất chọn món riêng: quay lại màn hình chọn món thường
+    setSelectingSubstituteFor(null)
+  }
+
+  // Bỏ món riêng thay thế
+  const handleRemoveSubstitute = (mealType, dishId) => {
+    setEdited(true)
+    setSubstitutesByMeal((prev) => {
+      const copy = { ...prev }
+      if (copy[mealType]?.[dishId]) {
+        const mealSubs = { ...copy[mealType] }
+        delete mealSubs[dishId]
+        copy[mealType] = mealSubs
+      }
+      return copy
+    })
+  }
+
+  // Xây dựng danh sách nhóm suất ăn (Portion Groups) tự động theo chuẩn Backend
+  const buildPortionGroupsForMeal = (mealDishes, mealSubsMap) => {
+    const subs = Object.values(mealSubsMap || {})
+    const regularDishes = mealDishes.filter(
+      (d) => !subs.some((s) => s.dishId === d.dishId)
+    )
+    const regularDishIds = regularDishes.map((d) => d.dishId || d.id)
+
+    if (subs.length === 0) {
+      return [
+        {
+          name: "Suất ăn thường tiêu chuẩn",
+          isDefault: true,
+          dishIds: regularDishIds,
+          avoidedIngredientEntryIds: [],
+        },
+      ]
     }
-    setSeasonings((prev) => [...prev, newSeas])
-  }
 
-  const handleUpdateSeasoningCatalog = (seasId, newCatalogId) => {
-    const item = WAREHOUSE_SEASONINGS_CATALOG.find((w) => w.id === newCatalogId)
-    if (!item) return
-    setSeasonings((prev) =>
-      prev.map((s) => {
-        if (s.id !== seasId) return s
-        const unit = item.defaultUnit || "g"
-        return {
-          ...s,
-          catalogId: item.id,
-          name: item.name,
-          unit,
-        }
+    const groups = [
+      {
+        name: "Suất ăn thường tiêu chuẩn",
+        isDefault: true,
+        dishIds: regularDishIds,
+        avoidedIngredientEntryIds: [],
+      },
+    ]
+
+    subs.forEach((sub, idx) => {
+      const allergyDishIds = regularDishes
+        .filter(
+          (d) =>
+            d.id !== sub.substituteForDishId &&
+            d.dishId !== sub.substituteForDishId
+        )
+        .map((d) => d.dishId || d.id)
+
+      if (sub.dishId || sub.id) {
+        allergyDishIds.push(sub.dishId || sub.id)
+      }
+
+      const avoided = sub.avoidedIngredientEntryIds || []
+
+      groups.push({
+        name: `Suất riêng (Dị ứng ${sub.allergenName || `nhóm ${idx + 1}`})`,
+        isDefault: false,
+        dishIds: allergyDishIds,
+        avoidedIngredientEntryIds: avoided,
       })
-    )
-  }
+    })
 
-  const handleUpdatePortionQty = (seasId, rawValue) => {
-    setSeasonings((prev) =>
-      prev.map((s) => {
-        if (s.id !== seasId) return s
-        return {
-          ...s,
-          portionQty: rawValue,
-        }
-      })
-    )
-  }
-
-  const handleRemoveSeasoning = (seasId) => {
-    setSeasonings((prev) => prev.filter((s) => s.id !== seasId))
-  }
-
-  const handleResetDefaultSeasonings = () => {
-    setSeasonings(INITIAL_SEASONINGS.map((s) => ({ ...s })))
+    return groups
   }
 
   // Lưu và cập nhật về ngày
-  const handleSaveAndClose = () => {
-    onSaveDay &&
-      onSaveDay({
+  const handleSaveAndClose = async () => {
+    if (saveLock.current || dayMenu?.canEdit === false || dayMenu?.approvalStatus === "APPROVED") return
+    saveLock.current = true
+    setSaving(true)
+    setSaveError("")
+    try {
+    // Tổng hợp món ăn: bao gồm món thường và các món riêng thay thế
+    const allLunchDishes = [...lunchDishes]
+    Object.values(substitutesByMeal.LUNCH || {}).forEach((sub) => {
+      if (
+        sub &&
+        !allLunchDishes.some(
+          (d) => (d.dishId || d.id) === (sub.dishId || sub.id)
+        )
+      ) {
+        allLunchDishes.push(sub)
+      }
+    })
+
+    const allAfternoonDishes = [...afternoonDishes]
+    Object.values(substitutesByMeal.AFTERNOON || {}).forEach((sub) => {
+      if (
+        sub &&
+        !allAfternoonDishes.some(
+          (d) => (d.dishId || d.id) === (sub.dishId || sub.id)
+        )
+      ) {
+        allAfternoonDishes.push(sub)
+      }
+    })
+
+    const portionGroupsByMeal = !edited && dayMenu?.portionGroupsByMeal ? { ...dayMenu.portionGroupsByMeal } : {
+      LUNCH: buildPortionGroupsForMeal(lunchDishes, substitutesByMeal.LUNCH),
+      AFTERNOON: buildPortionGroupsForMeal(
+        afternoonDishes,
+        substitutesByMeal.AFTERNOON
+      ),
+    }
+
+    const firstSubstitute =
+      Object.values(substitutesByMeal.LUNCH || {})[0] ||
+      Object.values(substitutesByMeal.AFTERNOON || {})[0] ||
+      null
+
+    for (const mealType of ["LUNCH", "AFTERNOON"]) {
+      portionGroupsByMeal[mealType] = (portionGroupsByMeal[mealType] || []).map(group => {
+        const previous = dayMenu?.portionGroupsByMeal?.[mealType]?.find(old =>
+          old.isDefault === group.isDefault &&
+          JSON.stringify([...old.avoidedIngredientEntryIds].sort()) === JSON.stringify([...group.avoidedIngredientEntryIds].sort()))
+        return previous?.id ? { ...group, id: previous.id, name: previous.name } : group
+      })
+    }
+
+    if (!onSaveDay) throw new Error("Chưa có thao tác lưu thực đơn.")
+    await onSaveDay({
         dateISO: dayData?.dateISO,
-        LUNCH: lunchDishes,
-        AFTERNOON: afternoonDishes,
-        seasonings: seasonings,
+        LUNCH: allLunchDishes,
+        AFTERNOON: allAfternoonDishes,
+        seasonings: seasoningsByMeal.LUNCH,
+        seasoningsByMeal,
+        useDishRecipes: edited || Boolean(dayMenu?.useDishRecipes),
+        ...(!edited && dayMenu?.persistedMeals ? { persistedMeals: dayMenu.persistedMeals } : {}),
+        portionGroupsByMeal,
+        substituteDish: firstSubstitute,
+        substitutesByMeal,
       })
     onClose()
+    } catch (error) {
+      setSaveError(error?.message || "Không thể lưu thực đơn. Vui lòng thử lại.")
+    } finally {
+      saveLock.current = false
+      setSaving(false)
+    }
   }
+
+  // Đánh giá trạng thái dị ứng tổng quát cho ngày
+  const hasAnyAllergyConflict = useMemo(() => {
+    const lunchHas = (allergiesByMeal.LUNCH?.conflicts || []).length > 0
+    const afternoonHas = (allergiesByMeal.AFTERNOON?.conflicts || []).length > 0
+    return lunchHas || afternoonHas
+  }, [allergiesByMeal])
+
+  const allergyIssues = [
+    ...allergyIssuesByMeal.LUNCH.map(message => `Bữa trưa: ${message}`),
+    ...allergyIssuesByMeal.AFTERNOON.map(message => `Bữa xế: ${message}`),
+  ]
+  const hasSelectedDishes = lunchDishes.length > 0 || afternoonDishes.length > 0
 
   if (!isOpen) return null
 
   return (
     <div className={styles.modalOverlay} role="dialog" aria-modal="true">
       <div className={styles.modalContainer}>
-        {/* Modal Header: Tinh gọn, không chữ thừa */}
+        {/* Modal Header */}
         <div className={styles.modalHeader}>
           <div className={styles.headerTitleWrap}>
             <div className={styles.dayBadge}>
               {dayData?.dayLabel || "Thứ Hai"}
             </div>
             <h2 className={styles.headerTitle}>
-              Thực đơn ngày {dayData?.dateVN || "10/11/2026"}
+              Thực đơn ngày {dayData?.dateVN || "Chưa chọn ngày"}
             </h2>
           </div>
           <button
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
+            disabled={saving}
             aria-label="Đóng cửa sổ"
           >
             <X size={20} />
@@ -222,7 +641,7 @@ export default function CreateMenuDayModal({
         {/* Modal Body: 50/50 Split View */}
         <div className={styles.modalBody}>
           {/* ========================================================
-              CỘT TRÁI (50%): TỔNG QUÁT HÔM ĐÓ - KHÔNG CẦN CUỘN
+              CỘT TRÁI (50%): TỔNG QUÁT HÔM ĐÓ
               ======================================================== */}
           <div className={styles.previewColumn}>
             {/* Thanh tóm tắt nhanh */}
@@ -245,435 +664,813 @@ export default function CreateMenuDayModal({
             <div className={styles.previewScrollArea}>
               {/* KHỐI 1: BỮA TRƯA */}
               <div className={styles.previewMealCard}>
-                <div className={`${styles.mealBanner} ${styles.lunchBanner}`}>
+                <div
+                  className={`${styles.mealBanner} ${styles.lunchBanner}`}
+                  onClick={() => setIsLunchCollapsed((prev) => !prev)}
+                  title="Bấm để sổ lên / sổ xuống bữa trưa"
+                >
                   <div className={styles.bannerLeft}>
                     <Utensils size={13} className={styles.lunchBannerIcon} />
                     <span className={styles.bannerText}>BỮA TRƯA</span>
                   </div>
-                  <span className={styles.dishesCountBadge}>
-                    {lunchDishes.length} món
-                  </span>
+                  <div className={styles.bannerRight}>
+                    <span className={styles.dishesCountBadge}>
+                      {lunchDishes.length} món
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.bannerCollapseBtn}
+                      aria-label={isLunchCollapsed ? "Mở rộng" : "Thu gọn"}
+                    >
+                      {isLunchCollapsed ? (
+                        <ChevronDown size={14} />
+                      ) : (
+                        <ChevronUp size={14} />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <div className={styles.previewDishesList}>
-                  {lunchDishes.length === 0 ? (
-                    <div className={styles.emptyNotice}>
-                      <span>Chưa có món trưa. Chọn món từ danh sách bên phải để thêm.</span>
-                    </div>
-                  ) : (
-                    lunchDishes.map((dish) => (
-                      <div key={dish.id} className={styles.previewDishItem}>
-                        <div className={styles.dishInfoLeft}>
-                          <span className={styles.dishBulletLunch} />
-                          <span className={styles.dishName} title={dish.name}>
-                            {dish.name}
-                          </span>
-                          {dish.categoryLabel && (
-                            <span className={styles.categoryPill}>
-                              {dish.categoryLabel}
-                            </span>
-                          )}
-                        </div>
-                        <div className={styles.dishInfoRight}>
-                          <span className={styles.portionBadge}>
-                            {dish.portionQty} {dish.unit || "g"}
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.removeIconBtn}
-                            onClick={() => handleRemoveDishFromPreview("LUNCH", dish.id)}
-                            title={`Xóa ${dish.name} khỏi bữa trưa`}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                {!isLunchCollapsed && (
+                  <div className={styles.previewDishesList}>
+                    {lunchDishes.length === 0 ? (
+                      <div className={styles.emptyNotice}>
+                        <span>
+                          Chưa có món trưa. Chọn món từ danh sách bên phải để
+                          thêm.
+                        </span>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ) : (
+                      lunchDishes.map((dish) => {
+                        const dishKey = dish.dishId || dish.id
+                        const conflict = getDishAllergyConflict(dish, "LUNCH")
+                        const substitute = substitutesByMeal.LUNCH?.[dishKey]
+                        const affectedCount =
+                          conflict?.affectedClasses?.reduce(
+                            (acc, c) => acc + c.count,
+                            0
+                          ) || 0
+
+                        return (
+                          <div key={dish.id} className="flex flex-col">
+                            {/* Dòng món ăn chính */}
+                            <div className={styles.previewDishItem}>
+                              <div className={styles.dishInfoLeft}>
+                                <span className={styles.dishBulletLunch} />
+                                <span
+                                  className={styles.dishName}
+                                  title={dish.name}
+                                >
+                                  {dish.name}
+                                </span>
+                                {substitute && (
+                                  <span
+                                    className={styles.regularBadge}
+                                    title="Món này giữ nguyên cho học sinh không dị ứng"
+                                  >
+                                    Suất thường
+                                  </span>
+                                )}
+                                {renderCategoryBadge(dish)}
+                              </div>
+                              <div className={styles.dishInfoRight}>
+                                <button
+                                  type="button"
+                                  className={styles.removeIconBtn}
+                                  onClick={() =>
+                                    handleRemoveDishFromPreview(
+                                      "LUNCH",
+                                      dish.id
+                                    )
+                                  }
+                                  title={`Xóa ${dish.name} khỏi bữa trưa`}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Cảnh báo dị ứng tự động & Nút đổi món riêng */}
+                            {conflict && (
+                              <div className={styles.dishAllergyRow}>
+                                <span className={styles.dishAllergyBadge}>
+                                  <AlertTriangle size={12} />
+                                  <span>
+                                    Dị ứng: {conflict.ingredientName} (
+                                    {affectedCount} HS)
+                                  </span>
+                                </span>
+                                {(() => {
+                                  const isCurrentTarget =
+                                    selectingSubstituteFor &&
+                                    selectingSubstituteFor.mealType === "LUNCH" &&
+                                    (selectingSubstituteFor.dish?.dishId === dishKey ||
+                                      selectingSubstituteFor.dish?.id === dishKey)
+
+                                  return (
+                                    <button
+                                      type="button"
+                                      className={`${styles.dishSubstituteActionBtn} ${
+                                        isCurrentTarget
+                                          ? styles.dishSubstituteActionBtnActive
+                                          : ""
+                                      }`}
+                                      onClick={() => {
+                                        if (isCurrentTarget) {
+                                          handleCancelSelectSubstitute()
+                                        } else {
+                                          handleStartSelectSubstitute(
+                                            dish,
+                                            conflict,
+                                            "LUNCH"
+                                          )
+                                        }
+                                      }}
+                                      title={
+                                        isCurrentTarget
+                                          ? "Bấm để hủy chọn món riêng"
+                                          : "Chọn món thay thế an toàn ở cột bên phải"
+                                      }
+                                    >
+                                      <ShieldCheck size={13} />
+                                      <span>
+                                        {isCurrentTarget
+                                          ? "Đang chọn ở cột phải..."
+                                          : substitute
+                                            ? "Đổi món riêng"
+                                            : "Món riêng cho người dị ứng"}
+                                      </span>
+                                    </button>
+                                  )
+                                })()}
+                              </div>
+                            )}
+
+                            {/* Món ăn riêng thay thế */}
+                            {substitute && (
+                              <div className={styles.substituteDishCard}>
+                                <div className={styles.subLeft}>
+                                  <span className={styles.subArrow}>↳</span>
+                                  <span className={styles.subBadge}>
+                                    Món riêng dị ứng:
+                                  </span>
+                                  <strong className={styles.subDishName}>
+                                    ({substitute.name})
+                                  </strong>
+                                  <span className={styles.subSafeNote}>
+                                    (Thay cho HS dị ứng{" "}
+                                    {conflict?.ingredientName || "món gốc"})
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className={styles.subRemoveBtn}
+                                  onClick={() =>
+                                    handleRemoveSubstitute("LUNCH", dishKey)
+                                  }
+                                  title="Bỏ món riêng này"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* KHỐI 2: BỮA XẾ */}
               <div className={styles.previewMealCard}>
-                <div className={`${styles.mealBanner} ${styles.afternoonBanner}`}>
+                <div
+                  className={`${styles.mealBanner} ${styles.afternoonBanner}`}
+                  onClick={() => setIsAfternoonCollapsed((prev) => !prev)}
+                  title="Bấm để sổ lên / sổ xuống bữa xế"
+                >
                   <div className={styles.bannerLeft}>
                     <Coffee size={13} className={styles.afternoonBannerIcon} />
                     <span className={styles.bannerText}>BỮA XẾ</span>
                   </div>
-                  <span className={styles.dishesCountBadge}>
-                    {afternoonDishes.length} món
-                  </span>
+                  <div className={styles.bannerRight}>
+                    <span className={styles.dishesCountBadge}>
+                      {afternoonDishes.length} món
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.bannerCollapseBtn}
+                      aria-label={isAfternoonCollapsed ? "Mở rộng" : "Thu gọn"}
+                    >
+                      {isAfternoonCollapsed ? (
+                        <ChevronDown size={14} />
+                      ) : (
+                        <ChevronUp size={14} />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <div className={styles.previewDishesList}>
-                  {afternoonDishes.length === 0 ? (
-                    <div className={styles.emptyNotice}>
-                      <span>Chưa có món xế. Chọn ca Bữa xế bên phải để thêm.</span>
-                    </div>
-                  ) : (
-                    afternoonDishes.map((dish) => (
-                      <div key={dish.id} className={styles.previewDishItem}>
-                        <div className={styles.dishInfoLeft}>
-                          <span className={styles.dishBulletAfternoon} />
-                          <span className={styles.dishName} title={dish.name}>
-                            {dish.name}
-                          </span>
-                          {dish.categoryLabel && (
-                            <span className={styles.categoryPill}>
-                              {dish.categoryLabel}
-                            </span>
-                          )}
-                        </div>
-                        <div className={styles.dishInfoRight}>
-                          <span className={styles.portionBadge}>
-                            {dish.portionQty} {dish.unit || "g"}
-                          </span>
-                          <button
-                            type="button"
-                            className={styles.removeIconBtn}
-                            onClick={() => handleRemoveDishFromPreview("AFTERNOON", dish.id)}
-                            title={`Xóa ${dish.name} khỏi bữa xế`}
-                          >
-                            <Trash2 size={13} />
-                          </button>
-                        </div>
+                {!isAfternoonCollapsed && (
+                  <div className={styles.previewDishesList}>
+                    {afternoonDishes.length === 0 ? (
+                      <div className={styles.emptyNotice}>
+                        <span>
+                          Chưa có món xế. Chọn ca Bữa xế bên phải để thêm.
+                        </span>
                       </div>
-                    ))
-                  )}
-                </div>
+                    ) : (
+                      afternoonDishes.map((dish) => {
+                        const dishKey = dish.dishId || dish.id
+                        const conflict = getDishAllergyConflict(
+                          dish,
+                          "AFTERNOON"
+                        )
+                        const substitute =
+                          substitutesByMeal.AFTERNOON?.[dishKey]
+                        const affectedCount =
+                          conflict?.affectedClasses?.reduce(
+                            (acc, c) => acc + c.count,
+                            0
+                          ) || 0
+
+                        return (
+                          <div key={dish.id} className="flex flex-col">
+                            {/* Dòng món ăn chính */}
+                            <div className={styles.previewDishItem}>
+                              <div className={styles.dishInfoLeft}>
+                                <span className={styles.dishBulletAfternoon} />
+                                <span
+                                  className={styles.dishName}
+                                  title={dish.name}
+                                >
+                                  {dish.name}
+                                </span>
+                                {substitute && (
+                                  <span
+                                    className={styles.regularBadge}
+                                    title="Món này giữ nguyên cho học sinh không dị ứng"
+                                  >
+                                    Suất thường
+                                  </span>
+                                )}
+                                {renderCategoryBadge(dish)}
+                              </div>
+                              <div className={styles.dishInfoRight}>
+                                <button
+                                  type="button"
+                                  className={styles.removeIconBtn}
+                                  onClick={() =>
+                                    handleRemoveDishFromPreview(
+                                      "AFTERNOON",
+                                      dish.id
+                                    )
+                                  }
+                                  title={`Xóa ${dish.name} khỏi bữa xế`}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* Cảnh báo dị ứng tự động & Nút đổi món riêng */}
+                            {conflict && (
+                              <div className={styles.dishAllergyRow}>
+                                <span className={styles.dishAllergyBadge}>
+                                  <AlertTriangle size={12} />
+                                  <span>
+                                    Dị ứng: {conflict.ingredientName} (
+                                    {affectedCount} HS)
+                                  </span>
+                                </span>
+                                {(() => {
+                                  const isCurrentTarget =
+                                    selectingSubstituteFor &&
+                                    selectingSubstituteFor.mealType === "AFTERNOON" &&
+                                    (selectingSubstituteFor.dish?.dishId === dishKey ||
+                                      selectingSubstituteFor.dish?.id === dishKey)
+
+                                  return (
+                                    <button
+                                      type="button"
+                                      className={`${styles.dishSubstituteActionBtn} ${
+                                        isCurrentTarget
+                                          ? styles.dishSubstituteActionBtnActive
+                                          : ""
+                                      }`}
+                                      onClick={() => {
+                                        if (isCurrentTarget) {
+                                          handleCancelSelectSubstitute()
+                                        } else {
+                                          handleStartSelectSubstitute(
+                                            dish,
+                                            conflict,
+                                            "AFTERNOON"
+                                          )
+                                        }
+                                      }}
+                                      title={
+                                        isCurrentTarget
+                                          ? "Bấm để hủy chọn món riêng"
+                                          : "Chọn món thay thế an toàn ở cột bên phải"
+                                      }
+                                    >
+                                      <ShieldCheck size={13} />
+                                      <span>
+                                        {isCurrentTarget
+                                          ? "Đang chọn ở cột phải..."
+                                          : substitute
+                                            ? "Đổi món riêng"
+                                            : "Món riêng cho người dị ứng"}
+                                      </span>
+                                    </button>
+                                  )
+                                })()}
+                              </div>
+                            )}
+
+                            {/* Món ăn riêng thay thế */}
+                            {substitute && (
+                              <div className={styles.substituteDishCard}>
+                                <div className={styles.subLeft}>
+                                  <span className={styles.subArrow}>↳</span>
+                                  <span className={styles.subBadge}>
+                                    Món riêng dị ứng:
+                                  </span>
+                                  <strong className={styles.subDishName}>
+                                    ({substitute.name})
+                                  </strong>
+                                  <span className={styles.subSafeNote}>
+                                    (Thay cho HS dị ứng{" "}
+                                    {conflict?.ingredientName || "món gốc"})
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  className={styles.subRemoveBtn}
+                                  onClick={() =>
+                                    handleRemoveSubstitute("AFTERNOON", dishKey)
+                                  }
+                                  title="Bỏ món riêng này"
+                                >
+                                  <X size={12} />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* KHỐI 3: GIA VỊ KHO DÙNG CHUNG (THEO SUẤT) */}
+              {/* KHỐI 3: GIA VỊ THEO SUẤT */}
               <div className={styles.previewSeasoningCard}>
-                <div className={styles.seasoningBanner}>
+                <div
+                  className={styles.seasoningBanner}
+                  onClick={() => setIsSeasoningCollapsed((prev) => !prev)}
+                  title="Bấm để sổ lên / sổ xuống gia vị"
+                >
                   <div className={styles.bannerLeft}>
                     <Sparkles size={13} className={styles.seasoningBannerIcon} />
-                    <span className={styles.bannerText}>GIA VỊ KHO (THEO SUẤT)</span>
+                    <span className={styles.bannerText}>
+                      GIA VỊ (THEO SUẤT)
+                    </span>
                   </div>
-                  <span className={styles.seasoningCountBadge}>
-                    {seasonings.length} loại
-                  </span>
+                  <div className={styles.bannerRight}>
+                    <span className={styles.seasoningCountBadge}>
+                      {seasonings.length} loại
+                    </span>
+                    <button
+                      type="button"
+                      className={styles.bannerCollapseBtn}
+                      aria-label={isSeasoningCollapsed ? "Mở rộng" : "Thu gọn"}
+                    >
+                      {isSeasoningCollapsed ? (
+                        <ChevronDown size={14} />
+                      ) : (
+                        <ChevronUp size={14} />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
-                <div className={styles.previewSeasoningsList}>
-                  {seasonings.length === 0 ? (
-                    <div className={styles.emptyNotice}>
-                      <span>Chưa có gia vị. Chuyển sang tab “Gia vị dùng chung” bên phải để khai báo.</span>
-                    </div>
-                  ) : (
-                    <table className={styles.miniSeasoningTable}>
-                      <thead>
-                        <tr>
-                          <th>Gia vị kho</th>
-                          <th className={styles.alignRight}>Định lượng theo suất</th>
-                          <th style={{ width: "24px" }}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {seasonings.map((s) => (
-                          <tr key={s.id}>
-                            <td className={styles.seasoningNameCell}>
-                              <span className={styles.seasoningDot} />
-                              <span>{s.name.replace(/\(.*?\)/g, "").trim()}</span>
-                            </td>
-                            <td className={`${styles.seasoningPortionCell} ${styles.alignRight}`}>
-                              <strong>{s.portionQty}</strong> {s.unit || "g"}/suất
-                            </td>
-                            <td className={styles.actionCell}>
-                              <button
-                                type="button"
-                                className={styles.removeIconBtn}
-                                onClick={() => handleRemoveSeasoning(s.id)}
-                                title={`Xóa gia vị ${s.name}`}
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </td>
+                {!isSeasoningCollapsed && (
+                  <div className={styles.previewSeasoningsList}>
+                    {seasonings.length === 0 ? (
+                      <div className={styles.emptyNotice}>
+                        <span>
+                          Chưa có gia vị. Gia vị sẽ tự động tính khi bạn chọn món
+                          ăn ở danh sách bên phải.
+                        </span>
+                      </div>
+                    ) : (
+                      <table className={styles.miniSeasoningTable}>
+                        <thead>
+                          <tr>
+                            <th>Tên gia vị</th>
+                            <th className={styles.alignRight}>
+                              Định lượng / suất
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
-                </div>
+                        </thead>
+                        <tbody>
+                          {seasonings.map((s) => (
+                            <tr key={s.id || s.name}>
+                              <td className={styles.seasoningNameCell}>
+                                <span className={styles.seasoningDot} />
+                                <span>
+                                  {s.name.replace(/\(.*?\)/g, "").trim()}
+                                </span>
+                              </td>
+                              <td
+                                className={`${styles.seasoningPortionCell} ${styles.alignRight}`}
+                              >
+                                {s.portionQty || 5} {s.unit || "g"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           {/* ========================================================
-              CỘT PHẢI (50%): CHỌN MÓN TỪ KHO & NHẬP GIA VỊ
+              CỘT PHẢI (50%): CHỌN MÓN TỪ KHO BÁN TRÚ
               ======================================================== */}
-          <div className={styles.inputColumn}>
-            {/* Top Switcher Tabs */}
-            <div className={styles.tabBar}>
-              <button
-                type="button"
-                className={`${styles.tabBtn} ${
-                  activeTab === "DISHES" ? styles.activeTabBtn : ""
-                }`}
-                onClick={() => setActiveTab("DISHES")}
-              >
-                <Utensils size={14} />
-                <span>Chọn món từ Danh sách món ăn</span>
-                <span className={styles.tabBadge}>
-                  {currentMealDishes.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                className={`${styles.tabBtn} ${
-                  activeTab === "SEASONINGS" ? styles.activeTabBtn : ""
-                }`}
-                onClick={() => setActiveTab("SEASONINGS")}
-              >
-                <Sparkles size={14} />
-                <span>Gia vị dùng chung (theo suất)</span>
-                <span className={styles.tabBadge}>
-                  {seasonings.length}
-                </span>
-              </button>
+          <div className={styles.pickerColumn}>
+            {/* Header Tabs: Chọn Ca Bữa trưa / Bữa xế */}
+            <div className={styles.columnStickyHeaderRight}>
+              <div className={styles.mealTypeSwitchTabs}>
+                <button
+                  type="button"
+                  className={`${styles.mealTabBtn} ${
+                    selectedMealType === "LUNCH"
+                      ? styles.activeMealTabLunch
+                      : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedMealType("LUNCH")
+                    if (
+                      selectingSubstituteFor &&
+                      selectingSubstituteFor.mealType !== "LUNCH"
+                    ) {
+                      setSelectingSubstituteFor(null)
+                    }
+                  }}
+                >
+                  <Utensils size={14} />
+                  <span>Món Bữa trưa</span>
+                  <span className={styles.mealTabCountBadge}>
+                    {lunchDishes.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.mealTabBtn} ${
+                    selectedMealType === "AFTERNOON"
+                      ? styles.activeMealTabAfternoon
+                      : ""
+                  }`}
+                  onClick={() => {
+                    setSelectedMealType("AFTERNOON")
+                    if (
+                      selectingSubstituteFor &&
+                      selectingSubstituteFor.mealType !== "AFTERNOON"
+                    ) {
+                      setSelectingSubstituteFor(null)
+                    }
+                  }}
+                >
+                  <Coffee size={14} />
+                  <span>Món Bữa xế</span>
+                  <span className={styles.mealTabCountBadge}>
+                    {afternoonDishes.length}
+                  </span>
+                </button>
+              </div>
             </div>
 
-            {/* TAB 1: CHỌN MÓN TỪ KHO */}
-            {activeTab === "DISHES" && (
-              <div className={styles.tabContentPane}>
-                {/* Thanh chọn Ca ăn muốn thêm món */}
-                <div className={styles.mealTargetSelector}>
-                  <span className={styles.selectorLabel}>Thêm món cho:</span>
-                  <div className={styles.mealPillGroup}>
-                    <button
-                      type="button"
-                      className={`${styles.targetMealPill} ${
-                        selectedMealType === "LUNCH" ? styles.activeLunchPill : ""
-                      }`}
-                      onClick={() => setSelectedMealType("LUNCH")}
-                    >
-                      <Utensils size={13} />
-                      <span>Bữa trưa ({lunchDishes.length} món)</span>
-                    </button>
-                    <button
-                      type="button"
-                      className={`${styles.targetMealPill} ${
-                        selectedMealType === "AFTERNOON" ? styles.activeAfternoonPill : ""
-                      }`}
-                      onClick={() => setSelectedMealType("AFTERNOON")}
-                    >
-                      <Coffee size={13} />
-                      <span>Bữa xế ({afternoonDishes.length} món)</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Search & Filter pills */}
-                <div className={styles.searchAndFilter}>
-                  <div className={styles.searchBox}>
-                    <Search size={14} className={styles.searchIcon} />
-                    <input
-                      type="text"
-                      className={styles.searchInput}
-                      placeholder="Tìm kiếm theo tên món, nguyên liệu, nhà cung cấp..."
-                      value={searchKeyword}
-                      onChange={(e) => setSearchKeyword(e.target.value)}
-                    />
-                    {searchKeyword && (
-                      <button
-                        type="button"
-                        className={styles.clearSearchBtn}
-                        onClick={() => setSearchKeyword("")}
-                      >
-                        <X size={13} />
-                      </button>
-                    )}
-                  </div>
-
-                  <div className={styles.categoryPillsList}>
-                    {DISH_CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.key}
-                        type="button"
-                        className={`${styles.catPill} ${
-                          selectedCategory === cat.key ? styles.activeCatPill : ""
-                        }`}
-                        onClick={() => setSelectedCategory(cat.key)}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Danh sách món ăn từ Kho */}
-                <div className={styles.catalogListScroll}>
-                  {filteredCatalog.length === 0 ? (
-                    <div className={styles.emptyCatalog}>
-                      <AlertCircle size={22} />
-                      <p>Không tìm thấy món ăn nào phù hợp với từ khóa.</p>
+            <div className={styles.catalogAreaWrap}>
+              {/* Banner hiển thị khi đang chọn món riêng thay thế cho học sinh dị ứng */}
+              {selectingSubstituteFor && (
+                <div className={styles.substituteModeBanner}>
+                  <div className={styles.subBannerLeft}>
+                    <div className={styles.subBannerIconWrap}>
+                      <ShieldCheck size={18} />
                     </div>
-                  ) : (
-                    filteredCatalog.map((dish) => {
-                      const isPicked = selectedDishIds.has(dish.id)
+                    <div className={styles.subBannerTextWrap}>
+                      <div className={styles.subBannerTitle}>
+                        Đang chọn món riêng thay cho: <strong>&ldquo;{selectingSubstituteFor.dish?.name}&rdquo;</strong>
+                      </div>
+                      <div className={styles.subBannerDesc}>
+                        Học sinh dị ứng <strong>{selectingSubstituteFor.conflict?.ingredientName}</strong> ({selectingSubstituteFor.conflict?.affectedClasses?.reduce((acc, c) => acc + c.count, 0) || 0} HS) sẽ dùng món riêng này. Món chính vẫn giữ nguyên cho học sinh ăn bình thường.
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className={styles.subBannerCancelBtn}
+                    onClick={handleCancelSelectSubstitute}
+                    title="Hủy chọn món riêng và quay lại chọn món thường"
+                  >
+                    <X size={14} />
+                    <span>Hủy chọn</span>
+                  </button>
+                </div>
+              )}
+
+              {/* Thanh tìm kiếm & bộ lọc phân loại món */}
+              <div className={styles.searchAndFiltersBar}>
+                <div className={styles.searchBox}>
+                  <Search size={15} className={styles.searchIcon} />
+                  <input
+                    type="text"
+                    className={styles.searchInput}
+                    placeholder="Tìm kiếm món ăn theo tên hoặc nguyên liệu..."
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                  />
+                  {searchKeyword && (
+                    <button
+                      type="button"
+                      className={styles.clearSearchBtn}
+                      onClick={() => setSearchKeyword("")}
+                      title="Xóa tìm kiếm"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Dropdown Bộ lọc phân loại món ăn */}
+                <div
+                  className={styles.filterDropdownContainer}
+                  ref={catDropdownRef}
+                >
+                  <button
+                    type="button"
+                    className={`${styles.filterDropdownTrigger} ${
+                      isCatDropdownOpen ? styles.triggerOpen : ""
+                    } ${
+                      selectedCategory !== "ALL"
+                        ? styles.triggerActiveFilter
+                        : ""
+                    }`}
+                    onClick={() => setIsCatDropdownOpen((prev) => !prev)}
+                    aria-haspopup="listbox"
+                    aria-expanded={isCatDropdownOpen}
+                    title="Lọc món ăn theo phân loại"
+                  >
+                    <div className={styles.triggerLeft}>
+                      <Filter size={14} className={styles.filterIcon} />
+                      <span className={styles.triggerText}>
+                        {selectedCategoryObj.label}
+                      </span>
+                      <span className={styles.triggerCountBadge}>
+                        {categoryCounts[selectedCategory] || 0}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      size={14}
+                      className={`${styles.chevronIcon} ${
+                        isCatDropdownOpen ? styles.chevronRotated : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isCatDropdownOpen && (
+                    <div className={styles.dropdownMenu} role="listbox">
+                      {DISH_CATEGORIES.map((cat) => {
+                        const isSelected = selectedCategory === cat.key
+                        const count = categoryCounts[cat.key] || 0
+                        return (
+                          <button
+                            key={cat.key}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            className={`${styles.dropdownItem} ${
+                              isSelected ? styles.dropdownItemSelected : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedCategory(cat.key)
+                              setIsCatDropdownOpen(false)
+                            }}
+                          >
+                            <div className={styles.dropdownItemLeft}>
+                              <span className={styles.dropdownItemText}>
+                                {cat.label}
+                              </span>
+                              <span className={styles.dropdownItemCount}>
+                                ({count})
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <Check
+                                size={14}
+                                className={styles.dropdownItemCheck}
+                              />
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Danh sách món ăn từ Kho (Có thể cuộn lên/xuống mượt mà) */}
+              <div className={styles.catalogListScroll}>
+                {recipeLoading ? (
+                  <div className={styles.loadingCatalog}>
+                    <div className={styles.statusSpinner} />
+                    <span>Đang tải kho món ăn bán trú...</span>
+                  </div>
+                ) : filteredCatalog.length === 0 ? (
+                  <div className={styles.emptyCatalog}>
+                    <AlertCircle size={24} />
+                    <p>Không tìm thấy món ăn nào phù hợp với bộ lọc hiện tại.</p>
+                  </div>
+                ) : (
+                  filteredCatalog.map((dish) => {
+                    // Khi đang ở chế độ chọn món riêng thay thế cho học sinh dị ứng
+                    if (selectingSubstituteFor) {
+                      const dishKey =
+                        selectingSubstituteFor.dish?.dishId ||
+                        selectingSubstituteFor.dish?.id
+                      const currentSub =
+                        substitutesByMeal[selectingSubstituteFor.mealType]?.[
+                          dishKey
+                        ]
+                      const isThisSub =
+                        (currentSub?.dishId || currentSub?.id) === dish.id
+                      const containsAllergen =
+                        Boolean(
+                          selectingSubstituteFor.conflict?.ingredientId &&
+                          dishIngredientIds(dish).includes(
+                            selectingSubstituteFor.conflict.ingredientId
+                          )
+                        )
+
                       return (
                         <div
                           key={dish.id}
                           className={`${styles.catalogCard} ${
-                            isPicked ? styles.cardPicked : ""
+                            isThisSub ? styles.cardPickedSub : ""
                           }`}
                         >
                           <div className={styles.cardMain}>
                             <div className={styles.cardHeaderRow}>
-                              <h4 className={styles.dishCardTitle}>{dish.name}</h4>
-                              {dish.categoryLabel && (
-                                <span className={styles.cardCatBadge}>
-                                  {dish.categoryLabel}
+                              <h4 className={styles.dishCardTitle}>
+                                {dish.name}
+                              </h4>
+                              {renderCategoryBadge(dish)}
+                              {containsAllergen && (
+                                <span className={styles.subAllergyWarnBadge}>
+                                  <AlertTriangle size={11} />
+                                  <span>
+                                    Chứa {selectingSubstituteFor.conflict?.ingredientName}
+                                  </span>
                                 </span>
                               )}
                             </div>
-
-                            <div className={styles.cardMetaRow}>
-                              <span className={styles.metaItem}>
-                                Định lượng: <strong>{dish.portionQty} {dish.unit || "g"}</strong>
+                            {dish.mainIngredient && (
+                              <p className={styles.dishMainIngredient}>
+                                Nguyên liệu chính: {dish.mainIngredient}
+                              </p>
+                            )}
+                            {dish.supplierName && (
+                              <span className={styles.dishSupplierBadge}>
+                                NCC: {dish.supplierName}
                               </span>
-                              <span className={styles.metaDivider}>•</span>
-                              <span className={styles.metaSupplier}>
-                                <Truck size={11} />
-                                <span>{dish.supplierName}</span>
-                              </span>
-                            </div>
+                            )}
                           </div>
 
                           <button
                             type="button"
                             className={`${styles.pickActionBtn} ${
-                              isPicked ? styles.btnRemovePick : styles.btnAddPick
+                              isThisSub ? styles.btnPickedSub : styles.btnAddSub
                             }`}
-                            onClick={() => handleToggleDish(dish)}
+                            onClick={() =>
+                              handleSelectSubstituteFromRightColumn(dish)
+                            }
                           >
-                            {isPicked ? (
+                            {isThisSub ? (
                               <>
-                                <Check size={13} />
-                                <span>Đã chọn</span>
+                                <Check size={12} />
+                                <span>Đang chọn làm món riêng</span>
                               </>
                             ) : (
                               <>
-                                <Plus size={13} />
-                                <span>Thêm</span>
+                                <Plus size={12} />
+                                <span>Chọn làm món riêng</span>
                               </>
                             )}
                           </button>
                         </div>
                       )
-                    })
-                  )}
-                </div>
+                    }
+
+                    // Chế độ chọn món thường
+                    const isPicked = selectedDishIds.has(dish.id)
+                    return (
+                      <div
+                        key={dish.id}
+                        className={`${styles.catalogCard} ${
+                          isPicked ? styles.cardPicked : ""
+                        }`}
+                      >
+                        <div className={styles.cardMain}>
+                          <div className={styles.cardHeaderRow}>
+                            <h4 className={styles.dishCardTitle}>
+                              {dish.name}
+                            </h4>
+                            {renderCategoryBadge(dish)}
+                          </div>
+                          {dish.mainIngredient && (
+                            <p className={styles.dishMainIngredient}>
+                              Nguyên liệu chính: {dish.mainIngredient}
+                            </p>
+                          )}
+                          {dish.supplierName && (
+                            <span className={styles.dishSupplierBadge}>
+                              NCC: {dish.supplierName}
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          type="button"
+                          className={`${styles.pickActionBtn} ${
+                            isPicked ? styles.btnRemovePick : styles.btnAddPick
+                          }`}
+                          onClick={() => handleToggleDish(dish)}
+                        >
+                          {isPicked ? (
+                            <>
+                              <Check size={12} />
+                              <span>Đã chọn</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus size={12} />
+                              <span>Thêm</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })
+                )}
               </div>
-            )}
-
-            {/* TAB 2: GIA VỊ DÙNG CHUNG (THEO SUẤT) */}
-            {activeTab === "SEASONINGS" && (
-              <div className={styles.tabContentPane}>
-                {/* Bảng nhập gia vị hoàn toàn theo suất */}
-                <div className={styles.seasoningsEditorTableWrap}>
-                  <table className={styles.seasoningsEditorTable}>
-                    <thead>
-                      <tr>
-                        <th style={{ width: "55%" }}>Gia vị từ kho trường</th>
-                        <th style={{ width: "35%" }}>Định lượng theo suất</th>
-                        <th style={{ width: "10%" }}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {seasonings.map((s) => (
-                        <tr key={s.id}>
-                          {/* Chọn gia vị từ kho */}
-                          <td>
-                            <select
-                              className={styles.tableSelect}
-                              value={s.catalogId}
-                              onChange={(e) =>
-                                handleUpdateSeasoningCatalog(s.id, e.target.value)
-                              }
-                            >
-                              {WAREHOUSE_SEASONINGS_CATALOG.map((w) => (
-                                <option key={w.id} value={w.id}>
-                                  {w.name}
-                                </option>
-                              ))}
-                            </select>
-                          </td>
-
-                          {/* Định lượng theo suất */}
-                          <td>
-                            <div className={styles.inputWithUnit}>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.5"
-                                className={styles.tableNumberInput}
-                                value={s.portionQty}
-                                onChange={(e) =>
-                                  handleUpdatePortionQty(s.id, e.target.value)
-                                }
-                              />
-                              <span className={styles.unitAddon}>{s.unit}/suất</span>
-                            </div>
-                          </td>
-
-                          {/* Xóa dòng */}
-                          <td className={styles.alignCenter}>
-                            <button
-                              type="button"
-                              className={styles.removeIconBtn}
-                              onClick={() => handleRemoveSeasoning(s.id)}
-                              title="Xóa gia vị này"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Các nút hành động cho gia vị */}
-                <div className={styles.seasoningActionsBar}>
-                  <button
-                    type="button"
-                    className={styles.addSeasoningRowBtn}
-                    onClick={handleAddSeasoningRow}
-                  >
-                    <Plus size={13} />
-                    <span>+ Thêm gia vị từ kho</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className={styles.resetSeasoningBtn}
-                    onClick={handleResetDefaultSeasonings}
-                    title="Đặt lại 4 gia vị chuẩn: Dầu ăn, Nước mắm, Muối, Đường"
-                  >
-                    <RotateCcw size={12} />
-                    <span>Nạp gia vị mặc định</span>
-                  </button>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
 
         {/* Modal Footer */}
         <div className={styles.modalFooter}>
-          <div className={styles.footerInfo}>
-            <span>
-              {dayData?.dayLabel} ({dayData?.dateVN})
-            </span>
+          <div className={styles.footerStatusWrap} aria-live="polite">
+            {allergyLoading ? (
+              <div className={styles.footerStatusLoading}>
+                <div className={styles.statusSpinner} />
+                <span>Đang kiểm tra an toàn dinh dưỡng &amp; dị ứng học sinh...</span>
+              </div>
+            ) : hasAnyAllergyConflict ? (
+              <div className={styles.footerStatusWarn}>
+                <AlertTriangle size={15} />
+                <span>
+                  Phát hiện món chứa nguyên liệu dị ứng của học sinh. Bạn có thể chọn món riêng thay thế ở cột bên trái.
+                </span>
+              </div>
+            ) : allergyIssues.length === 0 && hasSelectedDishes ? (
+              <div className={styles.footerStatusSafe}>
+                <ShieldCheck size={16} />
+                <span>
+                  Chưa phát hiện xung đột với hồ sơ dị ứng đã lưu của trường.
+                </span>
+              </div>
+            ) : null}
+            {!allergyLoading && allergyIssues.map(message => (
+              <div key={message} className={styles.footerStatusWarn} role="alert">
+                <AlertTriangle size={15} />
+                <span>{message}</span>
+              </div>
+            ))}
           </div>
 
+          {saveError && <p role="alert">{saveError}</p>}
           <div className={styles.footerBtns}>
             <button
               type="button"
               className={styles.cancelBtn}
               onClick={onClose}
+              disabled={saving}
             >
               Hủy bỏ
             </button>
@@ -681,9 +1478,10 @@ export default function CreateMenuDayModal({
               type="button"
               className={styles.confirmSaveBtn}
               onClick={handleSaveAndClose}
+              disabled={saving || allergyLoading || recipeLoading || dayMenu?.canEdit === false}
             >
-              <Check size={15} />
-              <span>Xác nhận &amp; Cập nhật vào ngày này</span>
+              <Check size={16} />
+              <span>{saving ? "Đang lưu…" : submitText}</span>
             </button>
           </div>
         </div>

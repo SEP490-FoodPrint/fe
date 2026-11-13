@@ -5,15 +5,23 @@ import ROUTER from "src/router/ROUTER"
 
 export default function MenuDetailHeader({
   menu,
-  onPrint,
-  onSubmitApproval
+  menuId,
+  onSubmitApproval,
+  onEdit,
 }) {
   const navigate = useNavigate()
-  const canEdit = menu.status === "DRAFT" || menu.status === "REVISION_REQUESTED"
+  // Thực đơn chưa được duyệt: bất kỳ trạng thái nào khác "APPROVED" (DRAFT, PENDING_APPROVAL, REVISION_REQUESTED...)
+  const isApproved = String(menu?.status || "").toUpperCase() === "APPROVED" ||
+                     String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
+  const canEdit = !isApproved && ["DRAFT", "PENDING_APPROVAL", "REVISION_REQUIRED", "REVISION_REQUESTED"].includes(menu?.status)
+  const canSubmit = menu?.status === "DRAFT" || menu?.status === "REVISION_REQUESTED" || menu?.status === "REVISION_REQUIRED"
+
+  const displayTitle = menu?.rawWeeklyTitle || menu?.name || "Th\u1ef1c \u0111\u01a1n"
 
   const getStatusBadge = (status) => {
     switch (status) {
       case "REVISION_REQUESTED":
+      case "REVISION_REQUIRED":
         return <span className={`${styles.statusBadge} ${styles.revision}`}>Yêu cầu chỉnh sửa</span>
       case "APPROVED":
         return <span className={`${styles.statusBadge} ${styles.approved}`}>Đã phê duyệt</span>
@@ -34,14 +42,14 @@ export default function MenuDetailHeader({
             <span className={styles.codePill}>{menu.code}</span>
             {getStatusBadge(menu.status)}
             <span className={styles.dateLabel}>
-              <span className="material-symbols-outlined text-[16px]">calendar_today</span>
-              Ngày ăn: {menu.date}
+              <span className="material-symbols-outlined text-[15px]">calendar_today</span>
+              {menu.date}
+            </span>
+            <span className={styles.mealBadge}>
+              {menu.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
             </span>
           </div>
-          <h1 className={styles.pageTitle}>{menu.name}</h1>
-          <p className={styles.pageSubtitle}>
-            Kế hoạch thực đơn dinh dưỡng bán trú đã được lập và đối soát an toàn theo quy chuẩn y tế học đường.
-          </p>
+          <h1 className={styles.pageTitle}>{displayTitle}</h1>
         </div>
 
         {/* Action Buttons */}
@@ -56,31 +64,20 @@ export default function MenuDetailHeader({
             <span>Danh sách</span>
           </button>
 
-          {/* Nút In thực đơn */}
-          <button
-            type="button"
-            className={styles.btnSecondary}
-            onClick={onPrint}
-            title="In biểu mẫu thực đơn học đường"
-          >
-            <span className="material-symbols-outlined text-[18px]">print</span>
-            <span>In thực đơn</span>
-          </button>
-
-          {/* Nút Chỉnh sửa: CHỈ hiển thị nếu status là DRAFT hoặc REVISION_REQUESTED */}
-          {canEdit && (
+          {/* Nút Chỉnh sửa: Hiển thị khi thực đơn CHƯA ĐƯỢC DUYỆT */}
+          {canEdit && onEdit && (
             <button
               type="button"
               className={styles.btnEdit}
-              onClick={() => navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), { state: { menu } })}
+              onClick={onEdit}
             >
               <span className="material-symbols-outlined text-[18px]">edit</span>
               <span>Chỉnh sửa</span>
             </button>
           )}
 
-          {/* Nút Gửi duyệt BGH */}
-          {canEdit && (
+          {/* Nút Gửi duyệt BGH (chỉ hiện khi nháp hoặc cần chỉnh sửa) */}
+          {canSubmit && (
             <button
               type="button"
               className={styles.btnPrimary}

@@ -35,7 +35,7 @@ Chỉ khi `VITE_USE_MOCK=true`, trang Đăng nhập (`/login`) có danh sách cl
 | **SUPPLIER** | `INGREDIENT_SUPPLIER` | `supplier_fresh` | Trần Thị Bích |
 | **SCHOOL** | `SCHOOL_ADMIN` | `school_admin` | Phạm Hải Đăng |
 | | `SCHOOL_MANAGEMENT_BOARD` | `school_bgh` | ThS. Lê Hoàng Nam (Hiệu trưởng) |
-| | `SCHOOL_HEALTH_OFFICER` | `school_health` | BS. Nguyễn Mai Lan (Cán bộ Y tế) |
+| | `SCHOOL_NUTRITION_OFFICER` | `school_health` | Nguyễn Thu Trang (Nhân viên Dinh dưỡng) |
 | | `SCHOOL_KITCHEN_STAFF` | `school_kitchen` | Đầu bếp Vũ Đình Trọng |
 | | `HOMEROOM_TEACHER` | `school_teacher` | Cô Hoàng Thu Trang (GVCN 3A1) |
 | | `PARENTS_COMMITTEE` | `school_parents` | Ông Bùi Quốc Tuấn (Trưởng Ban PH) |

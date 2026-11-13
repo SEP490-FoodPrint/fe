@@ -14,6 +14,7 @@ const ROUTER = {
   RESET_PASSWORD: "/reset-password",
   SCHOOL_LIST: "/schools",
   SCHOOL_LANDING: "/school/:schoolCode",
+  SCHOOL_MEAL_DETAIL: "/school/:schoolCode/daily-menu",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",
@@ -30,6 +31,7 @@ const ROUTER = {
   SUPPLIER: "/supplier",
   SUPPLIER_OVERVIEW: "/supplier/overview",
   SUPPLIER_INGREDIENTS: "/supplier/ingredient-catalog",
+  SUPPLIER_INGREDIENT_DETAIL: "/supplier/ingredient-catalog/:id",
   SUPPLIER_ORDERS: "/supplier/supply-orders",
 
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
@@ -60,16 +62,21 @@ const ROUTER = {
   SCHOOL_KITCHEN_BATCH_EDIT: "/school/kitchen-cooking/batches/:id/edit", // Chỉnh sửa lô chế biến
   SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/kitchen-cooking/meal-allocation", // Phân bổ suất ăn
   SCHOOL_KITCHEN_INGREDIENTS: "/school/kitchen-cooking/ingredients", // Danh sách nguyên liệu
-  SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm
+  SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm (danh sách ngày)
+  SCHOOL_KITCHEN_SAMPLES_DATE: "/school/kitchen-cooking/samples/:date", // Chi tiết mẫu lưu theo ngày
+  SCHOOL_KITCHEN_SAMPLE_STORAGE: "/school/kitchen-cooking/sample-storage", // Master data Tủ lưu mẫu
   SCHOOL_KITCHEN_HANDOVER: "/school/kitchen-cooking/handover", // Bàn giao suất ăn
   SCHOOL_KITCHEN_TRACEABILITY: "/school/kitchen-cooking/traceability", // Truy xuất nguồn gốc
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho, Bếp
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
   SCHOOL_INGREDIENT_OVERVIEW: "/school/ingredient-overview", // Tổng quan Kho & Nguyên liệu
+  SCHOOL_INGREDIENT_CATALOG: "/school/ingredient-catalog",   // Danh mục Nguyên liệu Master Data
   SCHOOL_INGREDIENT_ORDERS: "/school/ingredient-orders",     // Phiếu nhập & Đơn hàng
+  SCHOOL_ORDER_TRACKING: "/school/order-tracking",           // Theo dõi đơn hàng
   SCHOOL_INGREDIENT_REPORTS: "/school/ingredient-reports",   // Thống kê & Báo cáo
-  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Phụ huynh, GVCN
+  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Ban Giám hiệu
+  SCHOOL_MEAL_COMPLAINTS: "/school/meal-complaints",
   SCHOOL_SUPPLIERS: "/school/suppliers",
   SCHOOL_CLASS_ASSIGNMENT: "/school/class-assignment",   // BGH phân công GVCN
   SCHOOL_COOKING_MODE: "/school/cooking-mode",             // BGH cấu hình chế độ nấu
@@ -81,4 +88,5 @@ const ROUTER = {
   NOT_FOUND: "/404",
 };
 
+export { ROUTER };
 export default ROUTER;

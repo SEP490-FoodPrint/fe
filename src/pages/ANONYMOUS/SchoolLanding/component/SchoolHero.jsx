@@ -14,6 +14,7 @@ const DEFAULT_HERO_IMAGE =
   "https://lh3.googleusercontent.com/aida/AEtjO1XlqSmOu0ItBe9yXWYK-HH0qJi-YUY5wHooEUPuGWXQR9Az9oxrFxFlAbWGgthrYAGTCYeuN2u9stYeyQ6l9BEvLlCFe6XqUGhD2rR_nVtbVwEDfzHdKY-4ocKe4fUrG0dvyWEwoNn0dDGDAu1QNLeAGbMR1DQo9YR977O5y6shU5EfdeacFlOyzOgKKrbgYXR07wydVVR3ye4bKSfNMVsdxZ4qiYimYtSrWetrL8HJqtU8DKUgRD8Qohk"
 
 function SchoolHero({ school }) {
+  // Hai liên kết trong banner cuộn đến phần thực đơn tương ứng trên cùng trang.
   const scrollToDaily = e => {
     e.preventDefault()
     const el = document.getElementById("thuc-don-ngay")

@@ -90,7 +90,7 @@ export default function BatchCookingResultCard({ batchData = {} }) {
               isCompleted ? styles.successVal : isConfirmed ? styles.warningVal : styles.draftVal
             }`}
           >
-            {isCompleted ? "Đã hoàn thành" : isConfirmed ? "Đang chế biến" : "Chờ xác nhận"}
+            {isCompleted ? "Đã hoàn thành" : isConfirmed ? "Đang chế biến" : "Chưa xác nhận nấu"}
           </span>
           <span className={styles.kpiSub}>Bếp ăn cơ sở</span>
         </div>

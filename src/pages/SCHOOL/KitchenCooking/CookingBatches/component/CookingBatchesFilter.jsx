@@ -1,112 +1,158 @@
-import React, { useState } from "react"
-import {
-  TextField,
-  MenuItem,
-  InputAdornment,
-  IconButton,
-  Tooltip,
-} from "@mui/material"
-import { Search, RotateCcw, SlidersHorizontal } from "lucide-react"
-import {
-  BATCH_STATUSES,
-  EMPTY_BATCH_FILTERS,
-} from "src/services/KitchenService/adapter"
+import React from "react"
+import { Search, ChevronDown, RotateCcw, X, Utensils, Filter, Calendar } from "lucide-react"
+import { BATCH_STATUSES } from "src/services/KitchenService/adapter"
 import styles from "./CookingBatchesFilter.module.scss"
 
-export default function CookingBatchesFilter({ filters, onChange, onRefresh }) {
-  const [expanded, setExpanded] = useState(false)
-  const filterCount = [
-    filters.date,
-    filters.mealType,
-    filters.status,
-  ].filter(Boolean).length
+export default function CookingBatchesFilter({
+  filters,
+  onChange,
+  onRefresh,
+  onReset,
+  academicYearOptions = [],
+  weeks = [],
+}) {
   const update = (field, value) => onChange({ ...filters, [field]: value })
 
+  const currentWeekValue =
+    filters.week === "current"
+      ? weeks.find((w) => w.isCurrentWeek)?.isoWeek || "all"
+      : (filters.week ?? "all")
+
+  const hasActiveFilters = Boolean(
+    filters.search ||
+      (filters.academicYear && filters.academicYear !== "2026-2027") ||
+      (filters.week && filters.week !== "current" && filters.week !== "all") ||
+      filters.mealType ||
+      filters.status
+  )
+
+  const handleReset = () => {
+    if (onReset) {
+      onReset()
+    } else {
+      onChange({
+        search: "",
+        academicYear: "2026-2027",
+        week: "current",
+        mealType: "",
+        cookingModeApplied: "",
+        status: "",
+      })
+    }
+    onRefresh?.()
+  }
+
   return (
-    <div className={styles.filterSection}>
-      <div className={styles.filterBar}>
-        <TextField
-          className={styles.searchField}
-          size="small"
-          label="Tìm lô chế biến"
-          placeholder="Tên món, mã lô hoặc số suất"
-          value={filters.search}
+    <div className={styles.filterCard}>
+      {/* 1. Ô tìm kiếm theo Tên món, Mã lô, Số suất */}
+      <div className={styles.searchWrapper}>
+        <Search size={15} className={styles.searchIcon} aria-hidden="true" />
+        <input
+          type="text"
+          className={styles.searchInput}
+          placeholder="Tìm tên món, mã lô, số suất..."
+          value={filters.search || ""}
           onChange={(event) => update("search", event.target.value)}
-          slotProps={{
-            htmlInput: { maxLength: 100 },
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={17} aria-hidden="true" />
-                </InputAdornment>
-              ),
-            },
-          }}
+          maxLength={100}
         />
-        <Tooltip title="Bộ lọc">
-          <IconButton
-            className={styles.mobileToggle}
-            aria-label={`Bộ lọc${filterCount ? `, ${filterCount} điều kiện đang chọn` : ""}`}
-            aria-expanded={expanded}
-            aria-controls="cooking-batch-filter-fields"
-            onClick={() => setExpanded((value) => !value)}
+        {filters.search && (
+          <button
+            type="button"
+            className={styles.clearSearchBtn}
+            onClick={() => update("search", "")}
+            title="Xóa từ khóa tìm kiếm"
+            aria-label="Xóa từ khóa"
           >
-            <SlidersHorizontal size={19} />
-            {filterCount > 0 && (
-              <span className={styles.filterCount}>{filterCount}</span>
-            )}
-          </IconButton>
-        </Tooltip>
-        <div
-          id="cooking-batch-filter-fields"
-          className={`${styles.filterControls} ${expanded ? styles.controlsExpanded : ""}`}
-        >
-          <TextField
-            size="small"
-            type="date"
-            label="Ngày thực đơn"
-            value={filters.date}
-            onChange={(event) => update("date", event.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
-          <TextField
-            select
-            size="small"
-            label="Bữa ăn"
-            value={filters.mealType}
-            onChange={(event) => update("mealType", event.target.value)}
+            <X size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* 2. Nhóm bộ lọc Dropdown chuẩn đẹp & gọn */}
+      <div className={styles.filtersGroup}>
+        {/* Năm học */}
+        <div className={styles.selectWrapper} style={{ minWidth: 145 }}>
+          <Calendar size={14} className={styles.selectIcon} aria-hidden="true" />
+          <select
+            className={styles.selectInput}
+            value={filters.academicYear || "2026-2027"}
+            onChange={(event) => update("academicYear", event.target.value)}
+            title="Lọc theo năm học"
           >
-            <MenuItem value="">Tất cả bữa ăn</MenuItem>
-            <MenuItem value="LUNCH">Bữa trưa</MenuItem>
-            <MenuItem value="AFTERNOON">Bữa xế</MenuItem>
-          </TextField>
-          <TextField
-            select
-            size="small"
-            label="Trạng thái"
-            value={filters.status}
-            onChange={(event) => update("status", event.target.value)}
-          >
-            <MenuItem value="">Tất cả trạng thái</MenuItem>
-            {Object.entries(BATCH_STATUSES).map(([value, label]) => (
-              <MenuItem key={value} value={value}>
-                {label}
-              </MenuItem>
+            {academicYearOptions.map((ay) => (
+              <option key={ay.academicYear} value={ay.academicYear}>
+                {ay.label || `Năm học ${ay.academicYear}`}
+              </option>
             ))}
-          </TextField>
-          <Tooltip title="Xóa bộ lọc và tải lại">
-            <IconButton
-              className={styles.resetBtn}
-              aria-label="Xóa bộ lọc và tải lại"
-              onClick={() => {
-                onChange({ ...EMPTY_BATCH_FILTERS })
-                onRefresh()
-              }}
-            >
-              <RotateCcw size={18} />
-            </IconButton>
-          </Tooltip>
+          </select>
+          <ChevronDown size={14} className={styles.chevronIcon} aria-hidden="true" />
         </div>
+
+        {/* Tuần học */}
+        <div className={styles.selectWrapper} style={{ minWidth: 220, maxWidth: 300 }}>
+          <Calendar size={14} className={styles.selectIcon} aria-hidden="true" />
+          <select
+            className={styles.selectInput}
+            value={currentWeekValue}
+            onChange={(event) => update("week", event.target.value)}
+            title="Lọc theo tuần học"
+          >
+            <option value="all">Tất cả các tuần</option>
+            {weeks.map((w) => (
+              <option key={w.key || w.isoWeek} value={w.isoWeek}>
+                {w.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className={styles.chevronIcon} aria-hidden="true" />
+        </div>
+
+        {/* Bữa ăn */}
+        <div className={styles.selectWrapper} style={{ minWidth: 130 }}>
+          <Utensils size={14} className={styles.selectIcon} aria-hidden="true" />
+          <select
+            className={styles.selectInput}
+            value={filters.mealType || ""}
+            onChange={(event) => update("mealType", event.target.value)}
+            title="Lọc theo bữa ăn"
+          >
+            <option value="">Tất cả bữa ăn</option>
+            <option value="LUNCH">Bữa trưa</option>
+            <option value="AFTERNOON">Bữa xế</option>
+          </select>
+          <ChevronDown size={14} className={styles.chevronIcon} aria-hidden="true" />
+        </div>
+
+        {/* Trạng thái */}
+        <div className={styles.selectWrapper} style={{ minWidth: 155 }}>
+          <Filter size={14} className={styles.selectIcon} aria-hidden="true" />
+          <select
+            className={styles.selectInput}
+            value={filters.status || ""}
+            onChange={(event) => update("status", event.target.value)}
+            title="Lọc theo trạng thái lô"
+          >
+            <option value="">Tất cả trạng thái</option>
+            {Object.entries(BATCH_STATUSES).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className={styles.chevronIcon} aria-hidden="true" />
+        </div>
+
+        {/* Nút Đặt lại bộ lọc */}
+        <button
+          type="button"
+          className={`${styles.resetBtn} ${hasActiveFilters ? styles.resetBtnActive : ""}`}
+          onClick={handleReset}
+          title="Đặt lại bộ lọc về mặc định"
+          aria-label="Đặt lại bộ lọc"
+        >
+          <RotateCcw size={14} />
+          <span className={styles.resetLabel}>Đặt lại</span>
+        </button>
       </div>
     </div>
   )

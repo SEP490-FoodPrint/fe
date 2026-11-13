@@ -25,8 +25,8 @@
   padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  gap: 14px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .controlsTopRow {
@@ -35,13 +35,15 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .weekStepper {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: #f1f5f9;
+  background-color: #f8fafc;
   padding: 4px 8px;
   border-radius: 6px;
   border: 1px solid #cbd5e1;
@@ -90,7 +92,7 @@
   color: #475569;
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 6px;
 
   strong {
@@ -98,12 +100,12 @@
   }
 }
 
-/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Đã bỏ Quy mô 1,250 học sinh) */
+/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Cân đối 2 cột, gọn gàng, bỏ gợi ý thừa) */
 .controlsInputsRow {
   display: grid;
-  grid-template-columns: minmax(320px, 1.6fr) minmax(220px, 1.2fr);
-  gap: 14px;
-  align-items: flex-end;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 16px;
+  align-items: flex-start;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -113,24 +115,30 @@
 .inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .inputLabel {
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: #334155;
+}
+
+.inputRequired {
+  color: #dc2626;
 }
 
 .textInput {
   width: 100%;
-  padding: 8px 12px;
+  height: 38px;
+  padding: 0 12px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  font-size: 13.5px;
+  font-size: 13px;
   color: #0f172a;
   background-color: #ffffff;
   outline: none;
+  box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:focus {
@@ -141,6 +149,161 @@
   &::placeholder {
     color: #94a3b8;
   }
+}
+
+.textInputError {
+  border-color: #dc2626 !important;
+  background-color: #fff5f5;
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15) !important;
+  }
+}
+
+/* Multi-select Dropdown Khối lớp */
+.multiSelectContainer {
+  position: relative;
+  width: 100%;
+}
+
+.selectTrigger {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background-color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    border-color: #94a3b8;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
+  }
+}
+
+.selectTriggerOpen {
+  border-color: #0a8066 !important;
+  box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15) !important;
+}
+
+.selectValueText {
+  font-size: 13px;
+  color: #0f172a;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.selectPlaceholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.selectChevron {
+  color: #64748b;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.selectDropdownMenu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  background-color: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  animation: dropdownFadeIn 0.15s ease-out;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownOptionAll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background-color: #f0fdf4;
+  border: 1px solid #dcfce7;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease;
+  margin-bottom: 4px;
+
+  &:hover {
+    background-color: #dcfce7;
+  }
+}
+
+.dropdownOptionTextBold {
+  font-size: 13px;
+  font-weight: 600;
+  color: #166534;
+}
+
+.dropdownOptionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.dropdownOptionItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.12s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+  }
+}
+
+.dropdownOptionText {
+  font-size: 13px;
+  color: #334155;
+  font-weight: 500;
+}
+
+.dropdownCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #0a8066;
+  cursor: pointer;
+  border-radius: 4px;
 }
 
 /* ========================================================
@@ -156,6 +319,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .sectionTitle {
@@ -166,6 +331,231 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.headerActionsWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Nút Bỏ sao chép (Hoàn tác) */
+.undoCopyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 13px;
+  border: 1px solid #fed7aa;
+  border-radius: 7px;
+  background-color: #fff7ed;
+  color: #c2410c;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(194, 65, 12, 0.05);
+
+  &:hover {
+    background-color: #ea580c;
+    color: #ffffff;
+    border-color: #ea580c;
+    box-shadow: 0 2px 6px rgba(234, 88, 12, 0.2);
+  }
+}
+
+/* Nút Sao chép từ tuần trước */
+.copyPrevWeekBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #c9e8de;
+  border-radius: 7px;
+  background-color: #f0fdf9;
+  color: #0a8066;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.05);
+
+  &:hover:not(:disabled) {
+    background-color: #0a8066;
+    color: #ffffff;
+    border-color: #0a8066;
+    box-shadow: 0 3px 8px rgba(10, 128, 102, 0.2);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Modal Xác nhận Sao chép */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.45);
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.18s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirmModalBox {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.25);
+  border: 1px solid #e2e8f0;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: popIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.confirmModalHeader {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.confirmModalIconWrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #e6f7f2;
+  color: #0a8066;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.confirmModalHeaderContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.confirmModalTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.confirmModalDesc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+
+  strong {
+    color: #0f172a;
+  }
+}
+
+.confirmModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.confirmCancelBtn {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.confirmAcceptBtn {
+  height: 36px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 7px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #087059;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
 /* TOAST */

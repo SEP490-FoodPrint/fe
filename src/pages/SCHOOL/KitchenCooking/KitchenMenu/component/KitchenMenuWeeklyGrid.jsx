@@ -27,17 +27,23 @@ export default function KitchenMenuWeeklyGrid({
           {schoolDays.map((day) => {
             const isToday = day.dateISO === todayISO
             const isSelected = selectedDayOfWeek === day.dayOfWeek
+            const isHoliday = Boolean(day.isHoliday)
             return (
               <button
                 key={day.dayOfWeek}
                 type="button"
                 className={`${styles.mobileDayPill} ${
                   isSelected ? styles.mobileDayPillActive : ""
-                } ${isToday ? styles.mobileDayPillToday : ""}`}
+                } ${isToday ? styles.mobileDayPillToday : ""} ${
+                  isHoliday ? styles.mobileDayPillHoliday : ""
+                }`}
                 onClick={() => setSelectedDayOfWeek(day.dayOfWeek)}
                 aria-label={`${day.dayLabel} ${day.dateVN}`}
               >
-                <span className={styles.pillIndex}>{day.dayIndexLabel}</span>
+                <span className={styles.pillIndex}>
+                  {day.dayLabel?.slice(0, 7) || day.dayIndexLabel}
+                  {isHoliday ? " (Nghỉ)" : ""}
+                </span>
                 <span className={styles.pillDate}>{day.dateVN?.slice(0, 5)}</span>
                 {isToday && <span className={styles.pillDot} />}
               </button>

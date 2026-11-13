@@ -1,93 +1,168 @@
-.headerBar {
+.headerContainer {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 100%;
-}
-
-/* Title Row */
-.titleRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: 12px;
   width: 100%;
+  padding-bottom: 4px;
 }
 
-.titleLeft {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-
-  @media (min-width: 768px) {
-    gap: 12px;
-  }
-}
-
-/* Nút quay lại Ghost icon (touch target >= 44px) */
-.backBtn {
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  border: none !important;
-  background-color: transparent !important;
-  color: var(--text-primary, #111827);
-  cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  position: relative;
-  transition: all 0.15s ease;
-  margin-top: -2px;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: -4px;
-    bottom: -4px;
-    left: -4px;
-    right: -4px;
-  }
-
-  &:hover {
-    background-color: rgba(0, 0, 0, 0.05) !important;
-    color: var(--color-primary, #0a8066);
-  }
-
-  &:active {
-    background-color: rgba(0, 0, 0, 0.08) !important;
-    transform: scale(0.92);
-  }
-}
-
-.headingWrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
+/* 1. Tiêu đề chính cùng hàng với Nút Danh sách lô và Nút Thao tác */
 .titleLine {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   flex-wrap: wrap;
-  gap: 8px;
 }
 
-.heading {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-  letter-spacing: -0.02em;
-  line-height: 1.25;
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
 
-  @media (min-width: 768px) {
-    font-size: 22px;
+.headingGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.batchCode {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a8066;
+  background-color: #e6f7f2;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #94a3b8;
+  }
+}
+
+.actionsDesktop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #087059;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.sampleActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #0a8066;
+  border-radius: 6px;
+  background-color: #f0fdf9;
+  color: #0a8066;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #0a8066;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background-color: #fff1f2;
+  color: #dc2626;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #dc2626;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
@@ -106,91 +181,93 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(1.3);
-  }
 }
 
 .statusDraft {
-  background-color: #fef6e7;
-  color: #b26b00;
-  border: 1px solid rgba(233, 162, 59, 0.25);
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
 
   .pulseDot {
-    background-color: #e9a23b;
+    background-color: #f59e0b;
   }
 }
 
 .statusConfirmed {
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  border: 1px solid rgba(10, 128, 102, 0.25);
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 
   .pulseDot {
-    background-color: var(--color-primary, #0a8066);
+    background-color: #3b82f6;
   }
 }
 
 .statusCompleted {
-  background-color: #ecfdf5;
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 
   .pulseDot {
-    background-color: #10b981;
+    background-color: #22c55e;
   }
 }
 
-.subTitle {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.4;
-  display: none;
-
-  @media (min-width: 640px) {
-    display: block;
-  }
+/* 2. Hàng Metadata tinh gọn */
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 8px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
 }
 
-/* Header Actions Desktop */
-.headerActionsDesktop {
-  display: none;
-
-  @media (min-width: 768px) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-}
-
-.backToListBtn {
+.metaItem {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background-color: #ffffff;
-  color: var(--text-primary, #374151);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  transition: all 0.15s ease;
+  gap: 5px;
+}
 
-  &:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-    color: var(--color-primary, #0a8066);
+.metaIcon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.metaLabel {
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.metaValue {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.metaValueHighlight {
+  color: #0a8066;
+  font-weight: 700;
+}
+
+.sampleDoneText {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.samplePendingText {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.metaDivider {
+  color: #cbd5e1;
+  user-select: none;
+
+  @media (max-width: 640px) {
+    display: none;
   }
 }

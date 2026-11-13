@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import styles from "./IngredientPickerModal.module.scss"
-import { INGREDIENT_CATEGORIES, LINKED_SUPPLIERS, ALL_INGREDIENTS } from "../mockMenuData"
+import MenuService from "src/services/MenuService"
 
 // Helper icon cho phân loại
 const getCategoryIcon = (cat) => {
@@ -21,17 +21,49 @@ export default function IngredientPickerModal({
   selectedIngredientIds = [],
   onToggleIngredient,
   dishContextName = "",
-  onlySafe = false
+  onlySafe = false,
+  providedIngredients,
 }) {
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [selectedSupplierId, setSelectedSupplierId] = useState("ALL")
   const [searchTerm, setSearchTerm] = useState("")
+  const [ALL_INGREDIENTS, setIngredients] = useState([])
+  const [catalogError, setCatalogError] = useState("")
+  const [loading, setLoading] = useState(false)
+  useEffect(() => {
+    if (!isOpen) return
+    if (providedIngredients) {
+      setIngredients(providedIngredients)
+      setCatalogError("")
+      setLoading(false)
+      return
+    }
+    let active = true
+    setLoading(true)
+    setCatalogError("")
+    MenuService.getIngredientOptions("main")
+      .then(result => { if (active) setIngredients(result.data) })
+      .catch(error => { if (active) { setIngredients([]); setCatalogError(error.message) } })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [isOpen, providedIngredients])
+  const INGREDIENT_CATEGORIES = useMemo(() => [...new Set(ALL_INGREDIENTS.map(item => item.category).filter(Boolean))], [ALL_INGREDIENTS])
+  const LINKED_SUPPLIERS = useMemo(() => {
+    const suppliers = new Map()
+    ALL_INGREDIENTS.forEach(item => {
+      if (!item.supplierId) return
+      const supplier = suppliers.get(item.supplierId) || { id: item.supplierId, name: item.supplierName, categories: [] }
+      if (item.category && !supplier.categories.includes(item.category)) supplier.categories.push(item.category)
+      suppliers.set(item.supplierId, supplier)
+    })
+    return [...suppliers.values()]
+  }, [ALL_INGREDIENTS])
 
   // Danh sách NCC theo phân loại đang chọn
   const availableSuppliers = useMemo(() => {
     if (selectedCategory === "ALL") return LINKED_SUPPLIERS
     return LINKED_SUPPLIERS.filter(sup => sup.categories.includes(selectedCategory))
-  }, [selectedCategory])
+  }, [selectedCategory, LINKED_SUPPLIERS])
 
   // Lọc nguyên liệu theo các tiêu chí (Phân loại -> NCC -> Search text)
   const filteredIngredients = useMemo(() => {
@@ -49,13 +81,13 @@ export default function IngredientPickerModal({
       if (searchTerm.trim() !== "") {
         const term = searchTerm.toLowerCase().trim()
         const matchName = ing.name.toLowerCase().includes(term)
-        const matchCat = ing.category.toLowerCase().includes(term)
+        const matchCat = ing.category?.toLowerCase().includes(term)
         if (!matchName && !matchCat) return false
       }
 
       return true
     })
-  }, [selectedCategory, selectedSupplierId, searchTerm, onlySafe])
+  }, [selectedCategory, selectedSupplierId, searchTerm, onlySafe, ALL_INGREDIENTS])
 
   // Reset bộ lọc
   const handleResetFilters = () => {
@@ -69,6 +101,8 @@ export default function IngredientPickerModal({
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
+        {loading && <p role="status">Đang tải nguyên liệu từ nhà cung cấp liên kết…</p>}
+        {catalogError && <p role="alert">{catalogError}</p>}
         {/* Header Modal */}
         <div className={styles.modalHeader}>
           <div className={styles.headerTitleWrap}>
@@ -143,7 +177,7 @@ export default function IngredientPickerModal({
                 </option>
                 {availableSuppliers.map(sup => (
                   <option key={sup.id} value={sup.id}>
-                    {sup.name} ({sup.badge})
+                    {sup.name}
                   </option>
                 ))}
               </select>

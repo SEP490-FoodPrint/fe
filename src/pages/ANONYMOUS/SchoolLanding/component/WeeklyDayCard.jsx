@@ -1,18 +1,24 @@
-import React from "react"
-import PropTypes from "prop-types"
-import { ArrowDown, ArrowRight } from "lucide-react"
-import { NO_DATA_TEXT } from "src/constants/ui"
-import styles from "./WeeklyDayCard.module.scss"
+import React from "react";
+import PropTypes from "prop-types";
+import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
+import { NO_DATA_TEXT } from "src/constants/ui";
+import styles from "./WeeklyDayCard.module.scss";
 
-function WeeklyDayCard({ day }) {
-  if (!day) return null
+function WeeklyDayCard({ day, schoolCode }) {
+  if (!day) return null;
 
-  const dayOfWeek = day.dayOfWeek || NO_DATA_TEXT
-  const date = day.date || ""
-  const isToday = Boolean(day.isToday)
-  const statusLabel = day.statusLabel || (isToday ? "Hôm nay" : "Sắp diễn ra")
-  const lunchDishes = day.lunchDishes || []
-  const snackSummary = day.snackSummary || NO_DATA_TEXT
+  const dayOfWeek = day.dayOfWeek || NO_DATA_TEXT;
+  const date = day.date || "";
+  const isToday = Boolean(day.isToday);
+  const statusLabel = day.statusLabel || (isToday ? "Hôm nay" : "Sắp diễn ra");
+  const lunchDishes = day.lunchDishes || [];
+  const snackSummary = day.snackSummary || NO_DATA_TEXT;
+
+  // Truyền ngày qua URL để MealDetail mở đúng thực đơn từ thẻ tuần.
+  const detailTarget = schoolCode
+    ? `/school/${schoolCode}/daily-menu${day.dateIso ? `?date=${day.dateIso}` : ""}`
+    : "#thuc-don-ngay";
 
   return (
     <div className={`${styles.card} ${isToday ? styles.todayCard : ""}`}>
@@ -46,14 +52,28 @@ function WeeklyDayCard({ day }) {
           <span className={styles.blockTitle}>Bữa trưa chính</span>
           {lunchDishes.length > 0 ? (
             <ul className={styles.dishList}>
-              {lunchDishes.map((dish, i) => (
-                <li key={i} className={styles.dishItem}>
-                  <span className={styles.bullet}>•</span>
-                  <span className={styles.dishText}>
-                    {typeof dish === "string" ? dish : dish.name}
-                  </span>
-                </li>
-              ))}
+              {lunchDishes.map((dish, i) => {
+                const dishName = typeof dish === "string" ? dish : dish.name
+                const sub =
+                  typeof dish === "object"
+                    ? dish.substituteDish ||
+                      dish.alternativeDish ||
+                      dish.substitute
+                    : null
+                return (
+                  <li key={i} className={styles.dishItem}>
+                    <span className={styles.bullet}>•</span>
+                    <div className={styles.dishTextCol}>
+                      <span className={styles.dishText}>{dishName}</span>
+                      {sub && (
+                        <span className={styles.substituteDishNote}>
+                          ({sub.name || sub})
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           ) : (
             <p className={styles.snackDesc}>{NO_DATA_TEXT}</p>
@@ -69,32 +89,32 @@ function WeeklyDayCard({ day }) {
 
       {/* Bottom Link */}
       <div className={styles.bottomSection}>
-        {isToday ? (
-          <a href="#thuc-don-ngay" className={styles.todayActionLink}>
-            <span>Đang phục vụ hôm nay</span>
-            <ArrowDown size={14} />
-          </a>
-        ) : (
-          <a href="#thuc-don-ngay" className={styles.viewDetailLink}>
-            <span>Xem chi tiết suất ăn</span>
-            <ArrowRight size={14} />
-          </a>
-        )}
+        <Link to={detailTarget} className={isToday ? styles.todayActionLink : styles.viewDetailLink}>
+          <span>{isToday ? "Đang phục vụ hôm nay" : "Xem chi tiết suất ăn"}</span>
+          <ArrowRight size={14} />
+        </Link>
       </div>
     </div>
-  )
+  );
 }
 
 WeeklyDayCard.propTypes = {
   day: PropTypes.shape({
     dayOfWeek: PropTypes.string,
     date: PropTypes.string,
+    dateIso: PropTypes.string,
     isToday: PropTypes.bool,
     status: PropTypes.string,
     statusLabel: PropTypes.string,
     lunchDishes: PropTypes.array,
     snackSummary: PropTypes.string,
   }),
-}
+  schoolCode: PropTypes.string,
+};
 
-export default WeeklyDayCard
+WeeklyDayCard.defaultProps = {
+  day: null,
+  schoolCode: "",
+};
+
+export default WeeklyDayCard;

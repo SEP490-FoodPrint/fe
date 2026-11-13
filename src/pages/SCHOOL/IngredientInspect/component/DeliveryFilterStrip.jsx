@@ -8,11 +8,17 @@ export default function DeliveryFilterStrip({
   onSearchChange,
   statusFilter,
   onStatusChange,
-  timeFilter,
-  onTimeChange,
+  dateFilter,
+  onDateChange,
   onResetFilters,
   hasActiveFilters,
 }) {
+  const todayString = React.useMemo(() => {
+    const now = new Date()
+    const offset = 7 * 60 * 60 * 1000
+    return new Date(now.getTime() + offset).toISOString().slice(0, 10)
+  }, [])
+
   return (
     <div className={styles.filterStrip}>
       {/* 1. Ô tìm kiếm */}
@@ -37,7 +43,7 @@ export default function DeliveryFilterStrip({
         )}
       </div>
 
-      {/* 2. Bộ lọc trạng thái & thời gian */}
+      {/* 2. Bộ lọc trạng thái & Ngày giao hàng */}
       <div className={styles.filterControls}>
         <div className={styles.selectWrap}>
           <Filter size={15} className={styles.selectIcon} />
@@ -59,20 +65,38 @@ export default function DeliveryFilterStrip({
           </select>
         </div>
 
-        <div className={styles.selectWrap}>
+        {/* Bộ lọc ngày (thay thế bộ lọc thời gian, mặc định là ngày hôm nay) */}
+        <div className={styles.dateWrap} title="Lọc theo ngày giao hàng">
           <Calendar size={15} className={styles.selectIcon} />
-          <select
-            className={styles.select}
-            value={timeFilter}
-            onChange={(e) => onTimeChange(e.target.value)}
-            aria-label="Lọc theo thời gian giao hàng"
-          >
-            <option value="ALL">Tất cả thời gian</option>
-            <option value="today">Hôm nay</option>
-            <option value="week">Tuần này</option>
-            <option value="month">Tháng này</option>
-          </select>
+          <input
+            type="date"
+            className={styles.dateInput}
+            value={dateFilter}
+            onChange={(e) => onDateChange(e.target.value)}
+            aria-label="Lọc theo ngày giao hàng"
+          />
+          {dateFilter && (
+            <button
+              type="button"
+              className={styles.clearDateBtn}
+              onClick={() => onDateChange("")}
+              title="Xem tất cả các ngày"
+            >
+              ×
+            </button>
+          )}
         </div>
+
+        {dateFilter !== todayString && (
+          <button
+            type="button"
+            className={styles.todayQuickBtn}
+            onClick={() => onDateChange(todayString)}
+            title="Xem giao hàng hôm nay"
+          >
+            Hôm nay
+          </button>
+        )}
 
         {hasActiveFilters && (
           <button
@@ -95,8 +119,8 @@ DeliveryFilterStrip.propTypes = {
   onSearchChange: PropTypes.func.isRequired,
   statusFilter: PropTypes.string.isRequired,
   onStatusChange: PropTypes.func.isRequired,
-  timeFilter: PropTypes.string.isRequired,
-  onTimeChange: PropTypes.func.isRequired,
+  dateFilter: PropTypes.string.isRequired,
+  onDateChange: PropTypes.func.isRequired,
   onResetFilters: PropTypes.func.isRequired,
   hasActiveFilters: PropTypes.bool.isRequired,
 }

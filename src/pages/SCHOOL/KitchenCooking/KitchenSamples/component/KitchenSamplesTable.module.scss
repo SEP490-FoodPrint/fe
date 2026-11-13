@@ -1,278 +1,393 @@
 .tableCard {
-  background-color: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: var(--radius-lg, 12px);
+  background: #ffffff;
+  border: 1px solid var(--border-default, #e2e8f0);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-
-  @media (max-width: 640px) {
-    background-color: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    border-radius: 0 !important;
-  }
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+  margin-bottom: 20px;
 }
 
-.emptyCard {
-  background-color: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: var(--radius-lg, 12px);
-  padding: 40px 20px;
-  text-align: center;
-}
-
-.emptyIcon {
-  color: var(--color-primary, #0a8066);
-  margin: 0 auto 12px;
-}
-
-.emptyTitle {
-  font-size: var(--text-base);
-  font-weight: var(--font-semibold);
-  color: var(--text-primary);
-  margin: 0 0 6px;
-}
-
-.emptyDesc {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  margin: 0 0 16px;
-}
-
-.emptyBtn {
-  background-color: var(--color-primary, #0a8066) !important;
-  text-transform: none !important;
-  font-weight: var(--font-semibold) !important;
-}
-
-/* 1. Desktop Table */
-.desktopTableWrap {
+.tableResponsiveWrap {
+  width: 100%;
   overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-
-  @media (max-width: 640px) {
-    display: none;
-  }
 }
 
 .table {
   width: 100%;
-  min-width: 600px;
   border-collapse: collapse;
   text-align: left;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
 }
 
 .th {
-  background: var(--bg-muted, #f9fafb);
-  padding: 12px 16px;
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  color: var(--text-secondary, #4b5563);
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 11.5px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border-default, #e5e7eb);
+  letter-spacing: 0.04em;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-default, #e2e8f0);
+  white-space: nowrap;
+}
+
+.thActions {
+  text-align: right;
+  padding-right: 18px;
+}
+
+.tr {
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f8faf9;
+  }
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.trWarning {
+  background-color: #fffdfb;
+
+  &:hover {
+    background-color: #fff8f1;
+  }
 }
 
 .td {
-  padding: 14px 16px;
-  font-size: var(--text-sm);
-  color: var(--text-primary, #111827);
-  border-bottom: 1px solid #f3f4f6;
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text-primary, #0f172a);
+  vertical-align: middle;
 }
 
-.tdCode {
-  padding: 14px 16px;
-  font-size: var(--text-xs);
-  font-family: ui-monospace, monospace;
+.tdActions {
+  text-align: right;
+  padding-right: 14px;
+}
+
+/* 1. Mã Lô */
+.batchLinkBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-primary, #0a8066);
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--color-primary, #0a8066);
-  border-bottom: 1px solid #f3f4f6;
-}
-
-.viewBatchLink {
-  padding: 0 !important;
-  min-width: auto !important;
-  font-weight: var(--font-semibold) !important;
-  color: var(--color-primary, #0a8066) !important;
-  text-transform: none !important;
-  font-size: var(--text-sm) !important;
-}
-
-.statusStored {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: var(--radius-full, 9999px);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-}
-
-.statusDisposed {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px 8px;
-  border-radius: var(--radius-full, 9999px);
-  font-size: var(--text-xs);
-  font-weight: var(--font-semibold);
-  background-color: #f3f4f6;
-  color: var(--text-muted, #6b7280);
-}
-
-.disposeBtn {
-  padding: 5px 10px;
-  font-size: var(--text-xs);
-  font-weight: var(--font-medium);
-  color: #b91c1c;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: var(--radius-sm, 6px);
   cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.15s ease;
+  white-space: nowrap;
 
   &:hover {
-    background: #fee2e2;
+    text-decoration: underline;
+    color: #086a54;
   }
 }
 
-/* 2. Mobile Cards List (Rule 6 Mobile-First) */
-.mobileCardsList {
-  display: none;
+.batchSubCode {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 0;
+  width: fit-content;
+  color: var(--color-primary, #0a8066);
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
 
-  @media (max-width: 640px) {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  &:hover {
+    text-decoration: underline;
+    color: #086a54;
   }
 }
 
-.mobileSampleCard {
-  background-color: var(--bg-surface, #ffffff);
-  border: 1px solid var(--border-default, #e5e7eb);
-  border-radius: 10px;
-  padding: 10px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+/* 2. Món ăn */
+.dishCol {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  min-height: 58px;
+  gap: 2px;
+  min-width: 180px;
 }
 
-.mobileTopRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.sampleMainInfo {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-.sampleQtyBold {
-  font-size: 13.5px;
+.dishName {
+  font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: #0f172a;
+}
+
+.dishSub {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+/* 3. Bữa ăn */
+.mealBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
 }
 
-.metaDot {
-  color: var(--text-muted, #9ca3af);
-  font-size: 10px;
+.mealLunch {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #ffedd5;
 }
 
-.storageLoc {
-  font-size: 12px;
-  color: var(--text-secondary, #4b5563);
+.mealAfternoon {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #dbeafe;
+}
+
+/* 4. Thời điểm */
+.timeCol {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.mobileBottomRow {
+.timeBold {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dateMuted {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+/* 5. Countdown 24h & Progress */
+.countdownCol {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 140px;
+}
+
+.countdownHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
 }
 
-.timeScheduleText {
-  font-size: 11.5px;
-  color: var(--text-muted, #6b7280);
+.countdownText {
+  font-size: 12px;
+  font-weight: 600;
 }
 
-.mobileActionGroup {
+.countdownActive {
+  color: var(--color-primary, #0a8066);
+}
+
+.countdownReady {
+  color: #c2410c;
+}
+
+.countdownDisposed {
+  color: #94a3b8;
+}
+
+.countdownPercent {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.progressBarBg {
+  width: 100%;
+  height: 5px;
+  background-color: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.fillPrimary {
+  background-color: var(--color-primary, #0a8066);
+}
+
+.fillWarning {
+  background-color: #ea580c;
+}
+
+.fillMuted {
+  background-color: #94a3b8;
+}
+
+/* 6. Khối lượng */
+.qtyCol {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  white-space: nowrap;
+}
+
+.qtyText {
+  font-size: 12.5px;
+  color: #1e293b;
+
+  strong {
+    font-weight: 600;
+  }
+}
+
+.packagingText {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+/* 7. Vị trí lưu */
+.storageLoc {
   display: flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
 }
 
-.mobileActionBtn {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 8px !important;
-  background-color: #f3f4f6 !important;
-  color: var(--text-secondary, #4b5563) !important;
-  padding: 0 !important;
-  position: relative;
-  transition: all 0.16s ease !important;
+.storageText {
+  font-size: 12px;
+  color: #475569;
+}
 
-  /* Hit box mở rộng >= 44px (Rule 6.2) */
-  &::after {
-    content: "";
-    position: absolute;
-    top: -6px;
-    bottom: -6px;
-    left: -6px;
-    right: -6px;
-  }
+/* 8. Badge trạng thái */
+.badgeStored {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
 
-  &:active {
-    transform: scale(0.92) !important;
-  }
+.statusDotPrimary {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #0a8066;
+}
+
+.badgeReady {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background-color: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusDotWarning {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ea580c;
+}
+
+.badgeDisposed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.statusDotMuted {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+}
+
+/* 9. Thao tác */
+.actionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.actionIconBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
 
   &:hover {
-    background-color: var(--color-primary-soft, #e8f5f1) !important;
-    color: var(--color-primary, #0a8066) !important;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #e2e8f0;
   }
 }
 
-.mobileDisposeBtn {
-  width: 32px !important;
-  height: 32px !important;
-  border-radius: 8px !important;
-  background-color: #fef2f2 !important;
-  color: #dc2626 !important;
-  border: 1px solid #fecaca !important;
-  padding: 0 !important;
-  position: relative;
-  transition: all 0.16s ease !important;
-
-  /* Hit box mở rộng >= 44px (Rule 6.2) */
-  &::after {
-    content: "";
-    position: absolute;
-    top: -6px;
-    bottom: -6px;
-    left: -6px;
-    right: -6px;
-  }
-
-  &:active {
-    transform: scale(0.92) !important;
-  }
+.disposeIconBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #ef4444;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
 
   &:hover {
-    background-color: #fee2e2 !important;
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
   }
 }
 
+.disposeIconBtnHighlight {
+  background-color: #fff7ed;
+  color: #ea580c;
+  border-color: #fed7aa;
+
+  &:hover {
+    background-color: #ea580c;
+    color: #ffffff;
+    border-color: #c2410c;
+  }
+}

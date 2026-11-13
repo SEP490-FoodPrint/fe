@@ -48,6 +48,11 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
   const isWaitingAttendance = delivery.status === "WAITING_ATTENDANCE"
   const approvals = delivery.approvals || {}
 
+  // Đếm số bên từ chối theo nguyên tắc nghiệm thu
+  const rejectCount = Object.values(approvals).filter(a => a?.approved === false).length
+  const isCancelled = delivery.status === "CANCELLED" || rejectCount >= 2
+  const isRedeliver = (delivery.status === "RE_DELIVER" || delivery.status === "REJECTED") && rejectCount === 1
+
   const maxPortions = delivery.maxPortions || 850
   const batch1Portions = delivery.batch1Portions || 425
   const remainingNeeded = Math.max(0, attendanceInput - batch1Portions)
@@ -69,28 +74,24 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       title: "1. Ban QL Nguyên liệu",
       icon: <ShieldCheck size={20} />,
       data: approvals.ingredientManagement,
-      roleDuty: "Đối chiếu số lượng & hợp đồng",
     },
     {
       key: "healthOfficer",
       title: "2. Y tế học đường",
       icon: <Stethoscope size={20} />,
       data: approvals.healthOfficer,
-      roleDuty: "Kiểm tra ATTP, nhiệt độ & kiểm dịch",
     },
     {
       key: "parentsCommittee",
       title: "3. Đại diện Ban Phụ huynh",
       icon: <HeartHandshake size={20} />,
       data: approvals.parentsCommittee,
-      roleDuty: "Giám sát độc lập & cảm quan",
     },
     {
       key: "kitchenStaff",
       title: "4. Đại diện Nhà Bếp",
       icon: <Utensils size={20} />,
       data: approvals.kitchenStaff,
-      roleDuty: "Nhận bàn giao sơ chế & nấu",
     },
   ]
 
@@ -120,29 +121,33 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
               />
             </Box>
             <Typography variant="body2" className={styles.subTitle}>
-              Đơn đặt hàng gốc: <strong>{delivery.orderNo}</strong> | Thực đơn: <strong>{delivery.menuName}</strong>
+              Đơn đặt hàng gốc: <strong>{delivery.orderNo}</strong>
             </Typography>
           </Box>
         </Box>
 
-        <Box className={styles.navRight}>
-          <Button
-            variant="outlined"
-            startIcon={<Printer size={16} />}
-            className={styles.printBtn}
-          >
-            In biên bản nghiệm thu
-          </Button>
-        </Box>
       </Box>
 
-      {/* 2. Cảnh báo Từ chối (nếu có 1/4 bên từ chối) */}
-      {delivery.status === "REJECTED" && (
+      {/* 2. Cảnh báo Từ chối / Hủy đơn theo quy tắc nghiệm thu */}
+      {isCancelled && (
         <Alert severity="error" className={styles.rejectAlert}>
           <Typography variant="subtitle2" className={styles.rejectTitle}>
-            LÔ HÀNG BỊ TỪ CHỐI NHẬP (QUY TẮC 1 TRONG 4 BÊN TỪ CHỐI):
+            ĐƠN HÀNG ĐÃ BỊ HỦY TOÀN BỘ ({rejectCount} BÊN TỪ CHỐI):
           </Typography>
-          <Typography variant="body2">{delivery.rejectionReason}</Typography>
+          <Typography variant="body2">
+            {delivery.rejectionReason || "Theo quy chế nghiệm thu, từ 2 bên từ chối trở lên thì hủy toàn bộ đơn hàng. Đợt 1 đã bị hủy nên không thể triển khai Đợt 2."}
+          </Typography>
+        </Alert>
+      )}
+
+      {isRedeliver && (
+        <Alert severity="warning" className={styles.redeliverAlert}>
+          <Typography variant="subtitle2" className={styles.rejectTitle}>
+            YÊU CẦU NCC GIAO LẠI LÔ HÀNG KHÁC (1 BÊN TỪ CHỐI):
+          </Typography>
+          <Typography variant="body2">
+            {delivery.rejectionReason || "Có 1 bên không đồng thuận nhận hàng. NCC phải thu hồi lô này và chuyển xe khác đạt chuẩn trước giờ chế biến."}
+          </Typography>
         </Alert>
       )}
 
@@ -272,6 +277,20 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           </Box>
 
           <Box className={styles.infoItem}>
+            <Utensils size={16} className={styles.infoIcon} />
+            <Typography variant="body2" className={styles.infoLabel}>
+              Quy mô suất ăn:
+            </Typography>
+            <Typography variant="body2" className={styles.infoValue}>
+              {isBatch1
+                ? `${delivery.plannedPortions} / ${delivery.maxPortions} suất chuẩn (50%)`
+                : delivery.actualAttendance
+                  ? `Sĩ số chốt: ${delivery.actualAttendance} HS (Giao bù ${delivery.plannedPortions} suất)`
+                  : `${delivery.plannedPortions} suất`}
+            </Typography>
+          </Box>
+
+          <Box className={styles.infoItem}>
             <Typography variant="body2" className={styles.infoLabel}>
               Tài xế & Phương tiện:
             </Typography>
@@ -314,7 +333,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
             Hội Đồng Nghiệm Thu 4 Bên Tại Cổng Trường
           </Typography>
           <Chip
-            label="Nguyên tắc Đồng thuận 4/4 (1 bên từ chối = Đổi hàng)"
+            label="Nguyên tắc nghiệm thu: 1 bên từ chối = Giao lại | ≥ 2 bên từ chối = Hủy luôn"
             size="small"
             className={styles.consensusChip}
           />
@@ -402,9 +421,19 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
             </TableHead>
             <TableBody>
               {delivery.items?.map((item, idx) => {
-                const displayedOrderedQty = isWaitingAttendance
-                  ? Number((((item.orderedQty || 0) / (delivery.plannedPortions || 425)) * remainingNeeded).toFixed(2))
-                  : item.orderedQty
+                const isDiscrete = ["quả", "trứng", "hộp", "gói", "chai", "can", "lon", "hũ", "cái", "củ", "bắp", "ổ", "bó", "túi", "con"].includes(
+                  String(item.unit || "").toLowerCase().trim()
+                )
+                const isExtraItem = item.isExtraItem === true || item.isExtra === true
+                const hasExtraQty = typeof item.extraQty === "number" && item.extraQty > 0
+                const portionRate = !isExtraItem && typeof item.qtyPerPortion === "number" && item.qtyPerPortion > 0
+                  ? item.qtyPerPortion
+                  : (!isExtraItem ? Number(((item.orderedQty || 0) / (delivery.plannedPortions || 425)).toFixed(4)) : 0)
+
+                const rawNeeded = portionRate * remainingNeeded
+                const displayedOrderedQty = (isWaitingAttendance && !isExtraItem)
+                  ? (isDiscrete ? Math.ceil(rawNeeded + (item.extraQty || 0)) : Number((rawNeeded + (item.extraQty || 0)).toFixed(2)))
+                  : (isDiscrete && typeof item.orderedQty === "number" ? Math.ceil(item.orderedQty) : item.orderedQty)
 
                 return (
                   <TableRow key={idx} hover className={styles.tableRow}>
@@ -427,7 +456,17 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                       <Typography variant="body2" className={styles.orderedQty}>
                         {displayedOrderedQty} {item.unit}
                       </Typography>
-                      {isWaitingAttendance && (
+                      {hasExtraQty && !isExtraItem && (
+                        <Typography variant="caption" sx={{ color: "#15803d", display: "block", fontSize: "0.7rem", fontWeight: 600 }}>
+                          (Gồm {item.standardQty} theo suất + {item.extraQty} giao thêm)
+                        </Typography>
+                      )}
+                      {portionRate > 0 && !isExtraItem && !hasExtraQty && (
+                        <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
+                          ({portionRate} {item.unit}/suất)
+                        </Typography>
+                      )}
+                      {isWaitingAttendance && !isExtraItem && (
                         <Typography variant="caption" sx={{ color: "#d97706", display: "block", fontSize: "0.7rem" }}>
                           (Theo {remainingNeeded} suất)
                         </Typography>

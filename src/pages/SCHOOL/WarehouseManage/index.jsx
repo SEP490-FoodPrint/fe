@@ -1,15 +1,196 @@
-import React from "react"
-import ExamplePageStub from "src/components/Common/ExamplePageStub"
-import { ROLES } from "src/constants/roles"
+import React, { useState, useMemo } from "react"
+import { Box } from "@mui/material"
+import notice from "src/components/Notice"
+import { MOCK_DRY_INVENTORY } from "./mockWarehouseData"
 
-function WarehouseManage() {
+import WarehouseHeader from "./component/WarehouseHeader"
+import WarehouseStatsRail from "./component/WarehouseStatsRail"
+import WarehouseFilterStrip from "./component/WarehouseFilterStrip"
+import WarehouseTable from "./component/WarehouseTable"
+import WarehousePagination from "./component/WarehousePagination"
+import CreateDryOrderView from "./component/CreateDryOrderView"
+import WarehouseDetailView from "./component/WarehouseDetailView"
+
+import styles from "./index.module.scss"
+
+const PAGE_SIZE = 10
+
+export default function WarehouseManage() {
+  const [inventory] = useState(MOCK_DRY_INVENTORY)
+
+  // Sub-view: "list" (mặc định) | "create" | "detail"
+  const [subView, setSubView] = useState("list")
+  const [selectedItem, setSelectedItem] = useState(null)
+  const [selectedItemForOrder, setSelectedItemForOrder] = useState(null)
+
+  // Filter state
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "all",
+    category: "all",
+  })
+
+  // Pagination state
+  const [page, setPage] = useState(1)
+
+  // Thống kê nhanh cho StatsRail (Tổng, Dưới 50%, Trên 50%, Đủ)
+  const stats = useMemo(() => {
+    return {
+      total: inventory.length,
+      criticalLowCount: inventory.filter(it => it.currentStock / it.safetyStock < 0.5).length,
+      warningCount: inventory.filter(
+        it => it.currentStock / it.safetyStock >= 0.5 && it.currentStock / it.safetyStock < 1
+      ).length,
+      safeStockCount: inventory.filter(it => it.currentStock >= it.safetyStock).length,
+    }
+  }, [inventory])
+
+  // Danh mục nhóm hàng độc nhất
+  const categories = useMemo(() => {
+    return Array.from(new Set(inventory.map(it => it.category).filter(Boolean)))
+  }, [inventory])
+
+  // Xác định active rail filter
+  const activeRailFilter = useMemo(() => {
+    if (filters.status === "CRITICAL_LOW") return "CRITICAL_LOW"
+    if (filters.status === "WARNING") return "WARNING"
+    if (filters.status === "SAFE") return "SAFE"
+    return "all"
+  }, [filters.status])
+
+  // Lọc dữ liệu tồn kho gạo & gia vị
+  const filteredInventory = useMemo(() => {
+    return inventory.filter(it => {
+      const kw = filters.search.toLowerCase()
+      const matchSearch =
+        !kw ||
+        it.name.toLowerCase().includes(kw) ||
+        it.code.toLowerCase().includes(kw) ||
+        it.supplierName.toLowerCase().includes(kw)
+
+      const matchCategory =
+        filters.category === "all" || it.category === filters.category
+
+      const stockPct = Math.round((it.currentStock / it.safetyStock) * 100)
+
+      let matchStatus = true
+      if (filters.status === "LOW_STOCK") matchStatus = stockPct < 100
+      else if (filters.status === "CRITICAL_LOW") matchStatus = stockPct < 50
+      else if (filters.status === "SAFE") matchStatus = stockPct >= 100
+
+      return matchSearch && matchCategory && matchStatus
+    })
+  }, [inventory, filters])
+
+  // Phân trang
+  const currentTotal = filteredInventory.length
+  const totalPages = Math.ceil(currentTotal / PAGE_SIZE) || 1
+
+  const paginatedInventory = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return filteredInventory.slice(start, start + PAGE_SIZE)
+  }, [filteredInventory, page])
+
+  // Handlers
+  const handleFilterChange = (field, value) => {
+    setFilters(prev => ({ ...prev, [field]: value }))
+    setPage(1)
+  }
+
+  const handleFilterStat = statId => {
+    setPage(1)
+    setFilters(prev => ({
+      ...prev,
+      status: statId, // "all" | "CRITICAL_LOW" | "WARNING" | "SAFE"
+    }))
+  }
+
+  // Mở màn hình tạo đơn nhập hàng (Sub-view "create")
+  const handleOpenCreate = (targetItem = null) => {
+    setSelectedItemForOrder(targetItem)
+    setSubView("create")
+  }
+
+  // Xem chi tiết (Sub-view "detail")
+  const handleViewDetail = item => {
+    setSelectedItem(item)
+    setSubView("detail")
+  }
+
+  // Quay lại danh sách
+  const handleBackToList = () => {
+    setSubView("list")
+    setSelectedItem(null)
+    setSelectedItemForOrder(null)
+  }
+
+  // Submit tạo đơn mới
+  const handleCreateOrder = newOrder => {
+    setSubView("list")
+    notice({
+      msg: `Đã tạo Phiếu nhập hàng ${newOrder.orderNo} (${newOrder.deliverySchedule})! Bạn có thể theo dõi đơn hàng tại mục Theo dõi đơn hàng.`,
+      isSuccess: true,
+    })
+  }
+
   return (
-    <ExamplePageStub
-      title="Quản lý Kho Nguyên liệu & Yêu cầu Nhập hàng"
-      description="Theo dõi tồn kho thực phẩm khô/tươi, hạn sử dụng, lập phiếu yêu cầu nhập hàng gửi sang nhà cung cấp."
-      allowedRoles={[ROLES.INGREDIENT_MANAGEMENT]}
-    />
+    <Box className={styles.pageContainer}>
+      {/* Sub-view 1: Danh sách Quản lý kho (Mặc định) */}
+      {subView === "list" && (
+        <>
+          {/* Header */}
+          <WarehouseHeader />
+
+          {/* Thẻ thống kê 4 nhóm: Tổng, Dưới an toàn, An toàn, Chờ giao */}
+          <WarehouseStatsRail
+            stats={stats}
+            activeFilter={activeRailFilter}
+            onFilterChange={handleFilterStat}
+          />
+
+          {/* Bộ lọc & Tìm kiếm + Nút Lập phiếu nhập đồ khô */}
+          <WarehouseFilterStrip
+            filters={filters}
+            categories={categories}
+            onFilterChange={handleFilterChange}
+            onOpenCreate={() => handleOpenCreate(null)}
+          />
+
+          {/* Bảng Dữ liệu Tồn kho */}
+          <WarehouseTable
+            items={paginatedInventory}
+            onViewDetail={handleViewDetail}
+          />
+
+          {/* Phân trang */}
+          <WarehousePagination
+            page={page}
+            count={totalPages}
+            totalItems={currentTotal}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        </>
+      )}
+
+      {/* Sub-view 2: Lập phiếu nhập hàng gạo & gia vị (Toàn màn hình sạch đẹp) */}
+      {subView === "create" && (
+        <CreateDryOrderView
+          inventoryItems={inventory}
+          initialSelectedItem={selectedItemForOrder}
+          onBack={handleBackToList}
+          onSubmit={handleCreateOrder}
+        />
+      )}
+
+      {/* Sub-view 3: Xem chi tiết mặt hàng tồn kho */}
+      {subView === "detail" && selectedItem && (
+        <WarehouseDetailView
+          item={selectedItem}
+          onBack={handleBackToList}
+          onQuickOrder={handleOpenCreate}
+        />
+      )}
+    </Box>
   )
 }
-
-export default WarehouseManage

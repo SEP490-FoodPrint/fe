@@ -1,25 +1,39 @@
 import React from "react"
+import PropTypes from "prop-types"
 import { useNavigate } from "react-router-dom"
 import {
   ChevronLeft,
   ChevronRight,
-  Calendar,
+  ChevronDown,
+  GraduationCap,
+  CalendarDays,
   CookingPot,
-  Users,
+  RotateCcw,
   Check,
   ArrowRight,
+  Utensils,
 } from "lucide-react"
 import { Button } from "@mui/material"
 import ROUTER from "src/router/ROUTER"
 import styles from "./KitchenMenuHeader.module.scss"
 
 export default function KitchenMenuHeader({
-  weekInfo,
+  menuTitle = "Thực đơn tuần",
+  targetScope = "Toàn trường (Khối 1 – 5)",
+  academicYear = "",
+  approved = false,
+  academicYearOptions = [],
+  onAcademicYearChange,
+  week,
+  weeks = [],
+  onWeekChange,
   onPrevWeek,
   onNextWeek,
   onCurrentWeek,
-  totalDishes = 30,
-  portions = 1250,
+  isCurrentWeekSelected = false,
+  isFirstWeek = false,
+  isLastWeek = false,
+  totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
 }) {
@@ -27,36 +41,27 @@ export default function KitchenMenuHeader({
 
   return (
     <div className={styles.headerContainer}>
-      {/* HÀNG 1: Icon Chuông Đậy Món | Tiêu Đề + Huy Hiệu Duyệt BGH */}
+      {/* HÀNG 1: Tiêu đề động & Khối lớp & Huy hiệu Đã duyệt BGH & Phím tắt Lô chế biến */}
       <div className={styles.topRow}>
         <div className={styles.titleGroup}>
           <div className={styles.clocheIconWrap}>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={styles.clocheIcon}
-            >
-              <path d="M18 11a6 6 0 0 0-12 0" />
-              <path d="M4 14h16" />
-              <path d="M12 4a1 1 0 0 0-1 1v1" />
-              <path d="M2 17h20" />
-            </svg>
+            <Utensils size={16} className={styles.clocheIcon} />
           </div>
 
           <span className={styles.verticalDivider} />
 
-          <h1 className={styles.heading}>Thực đơn tuần học đường</h1>
+          <h1 className={styles.heading}>{menuTitle || "Thực đơn tuần"}</h1>
 
-          <span className={styles.approvedBadge}>
+          {approved && <span className={styles.approvedBadge}>
             <Check size={12} className={styles.checkIcon} />
             <span>Đã duyệt BGH</span>
-          </span>
+          </span>}
+
+          {targetScope && (
+            <span className={styles.targetScopeBadge} title="Khối lớp áp dụng">
+              • {targetScope}
+            </span>
+          )}
         </div>
 
         {/* Nút Điều Hướng Sang Lô Chế Biến */}
@@ -73,38 +78,62 @@ export default function KitchenMenuHeader({
         </div>
       </div>
 
-      {/* HÀNG 2: Bộ Chuyển Tuần Gộp Khung | Bộ Lọc Ca Ăn | Các KPI Inline */}
+      {/* HÀNG 2: Bộ lọc Năm học | Bộ lọc Tuần (Dropdown + < > + Tuần này) | Bộ lọc Ca ăn | KPI */}
       <div className={styles.controlRow}>
         <div className={styles.controlLeft}>
-          {/* Cụm điều hướng tuần đóng khung đơn gọn gàng */}
+          {/* 1. Bộ lọc Năm học (đồng bộ từ thiết lập BGH) */}
+          <div className={styles.selectWrapperAcademicYear}>
+            <GraduationCap size={15} className={styles.selectIcon} />
+            <select
+              className={styles.selectInput}
+              value={academicYear}
+              onChange={(e) => onAcademicYearChange?.(e.target.value)}
+              title="Chọn năm học"
+            >
+              {academicYearOptions.map((ay) => (
+                <option key={ay.academicYear} value={ay.academicYear}>
+                  {ay.label || `Năm học ${ay.academicYear}`}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={14} className={styles.chevronIcon} />
+          </div>
+
+          {/* 2. Cụm điều hướng tuần học đường: Nút < + Dropdown chọn tuần + Nút > */}
           <div className={styles.weekControlBox}>
             <button
               type="button"
               className={styles.weekArrowBtn}
               onClick={onPrevWeek}
+              disabled={isFirstWeek}
               aria-label="Tuần trước"
               title="Tuần trước"
             >
               <ChevronLeft size={16} />
             </button>
 
-            <div
-              className={styles.weekCenterBox}
-              onClick={onCurrentWeek}
-              role="button"
-              tabIndex={0}
-              title="Bấm để về tuần này"
-            >
-              <Calendar size={14} className={styles.calIcon} />
-              <span className={styles.weekRangeText}>
-                {weekInfo?.weekRangeLabel || "Tuần học đường"}
-              </span>
+            <div className={styles.weekSelectMiddle}>
+              <CalendarDays size={14} className={styles.selectIconMiddle} />
+              <select
+                className={styles.selectInputMiddle}
+                value={String(week)}
+                onChange={(e) => onWeekChange?.(Number(e.target.value))}
+                title="Chọn tuần học trong năm học"
+              >
+                {weeks.map((w) => (
+                  <option key={w.key || w.isoWeek} value={w.isoWeek}>
+                    {w.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={14} className={styles.chevronIconMiddle} />
             </div>
 
             <button
               type="button"
               className={styles.weekArrowBtn}
               onClick={onNextWeek}
+              disabled={isLastWeek}
               aria-label="Tuần sau"
               title="Tuần sau"
             >
@@ -112,9 +141,22 @@ export default function KitchenMenuHeader({
             </button>
           </div>
 
+          {/* 3. Nút đặt lại về Tuần này */}
+          <button
+            type="button"
+            className={`${styles.currentWeekBtn} ${
+              isCurrentWeekSelected ? styles.currentWeekBtnActive : ""
+            }`}
+            onClick={onCurrentWeek}
+            title="Nhảy nhanh về tuần hiện tại"
+          >
+            <RotateCcw size={13} />
+            <span>Tuần này</span>
+          </button>
+
           <span className={styles.inlineDivider} />
 
-          {/* Bộ lọc Ca ăn (thay thế 10 bữa ăn theo yêu cầu) */}
+          {/* 4. Bộ lọc Ca ăn (Tất cả / Bữa trưa / Bữa xế) */}
           <div className={styles.mealFilterSegment} role="group" aria-label="Bộ lọc ca ăn">
             <button
               type="button"
@@ -147,7 +189,7 @@ export default function KitchenMenuHeader({
 
           <span className={styles.inlineDivider} />
 
-          {/* Các KPI hiển thị ngang theo đúng hình mẫu */}
+          {/* 5. KPI thống kê tổng số món */}
           <div className={styles.kpiInlineGroup}>
             <div className={styles.kpiInlineItem}>
               <CookingPot size={14} className={styles.kpiIcon} />
@@ -155,16 +197,29 @@ export default function KitchenMenuHeader({
                 <strong>{totalDishes}</strong> món
               </span>
             </div>
-
-            <div className={styles.kpiInlineItem}>
-              <Users size={14} className={styles.kpiIcon} />
-              <span className={styles.kpiText}>
-                <strong>{portions.toLocaleString("vi-VN")}</strong> suất/ngày
-              </span>
-            </div>
           </div>
         </div>
       </div>
     </div>
   )
+}
+
+KitchenMenuHeader.propTypes = {
+  menuTitle: PropTypes.string,
+  targetScope: PropTypes.string,
+  academicYear: PropTypes.string,
+  academicYearOptions: PropTypes.array,
+  onAcademicYearChange: PropTypes.func,
+  week: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  weeks: PropTypes.array,
+  onWeekChange: PropTypes.func,
+  onPrevWeek: PropTypes.func,
+  onNextWeek: PropTypes.func,
+  onCurrentWeek: PropTypes.func,
+  isCurrentWeekSelected: PropTypes.bool,
+  isFirstWeek: PropTypes.bool,
+  isLastWeek: PropTypes.bool,
+  totalDishes: PropTypes.number,
+  mealTypeFilter: PropTypes.string,
+  onMealTypeFilterChange: PropTypes.func,
 }

@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 import { ArrowRight, MapPin } from "lucide-react"
 import styles from "./SchoolCard.module.scss"
 
+// Thẻ dùng mã trường để mở cổng thông tin công khai của trường đó.
 function SchoolCard({ school }) {
   return (
     <div className={styles.card}>

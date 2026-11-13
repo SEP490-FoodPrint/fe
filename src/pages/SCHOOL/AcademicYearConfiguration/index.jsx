@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 import notice from "src/components/Notice";
 import AcademicYearService from "src/services/AcademicYearService";
-import DateFieldVN from "src/components/Common/DateFieldVN";
 import AcademicYearList from "./component/AcademicYearList";
 import HolidayEditor from "./component/HolidayEditor";
 import "./style.scss";
@@ -272,36 +271,39 @@ function AcademicYearConfiguration() {
                     }))
                   }
                 />
-                <DateFieldVN
+                <TextField
                   fullWidth
                   size="small"
+                  type="date"
                   label="Ngày bắt đầu"
                   value={form.startDate}
                   disabled={saving}
-                  onChange={(startDate) =>
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      startDate,
+                      startDate: event.target.value,
                     }))
                   }
                 />
-                <DateFieldVN
+                <TextField
                   fullWidth
                   size="small"
+                  type="date"
                   label="Ngày kết thúc"
                   value={form.endDate}
                   disabled={saving}
-                  min={form.startDate}
                   error={dateRangeInvalid}
                   helperText={
                     dateRangeInvalid
                       ? "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu."
                       : undefined
                   }
-                  onChange={(endDate) =>
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      endDate,
+                      endDate: event.target.value,
                     }))
                   }
                 />

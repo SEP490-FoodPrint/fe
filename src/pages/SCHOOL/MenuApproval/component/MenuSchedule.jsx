@@ -47,14 +47,20 @@ function DishCell({ dishes }) {
         const detail = [dish.description, dish.supplier && `NCC: ${dish.supplier}`]
           .filter(Boolean)
           .join(" · ")
+        const sub = dish.substituteDish || dish.substitute
         return (
-          <li key={`${dish.name}-${index}`}>
+          <li key={`${dish.name}-${index}`} className={styles.dishListItem}>
             {detail ? (
               <Tooltip title={detail} placement="top" arrow>
                 <span className={styles.dishName}>{dish.name}</span>
               </Tooltip>
             ) : (
               <span className={styles.dishName}>{dish.name}</span>
+            )}
+            {sub && (
+              <span className={styles.substituteDishNote}>
+                ({sub.name || sub})
+              </span>
             )}
           </li>
         )

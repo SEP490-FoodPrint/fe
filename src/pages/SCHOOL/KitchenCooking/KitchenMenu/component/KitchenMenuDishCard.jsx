@@ -1,63 +1,58 @@
 import React from "react"
 import { useNavigate } from "react-router-dom"
-import { CheckCircle2, Plus } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./KitchenMenuDishCard.module.scss"
 
 export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
   const navigate = useNavigate()
 
-  const handleAction = (e) => {
-    e.stopPropagation()
+  const handleAction = () => {
     if (dish.isBatchCreated && dish.batchId) {
       navigate(ROUTER.SCHOOL_KITCHEN_BATCH_DETAIL.replace(":id", dish.batchId))
-    } else {
-      navigate(ROUTER.SCHOOL_KITCHEN_BATCH_CREATE)
     }
   }
+
+  const isLunch = mealType === "LUNCH"
 
   return (
     <div
       className={`${styles.dishRow} ${
-        mealType === "AFTERNOON" ? styles.afternoonDishRow : styles.lunchDishRow
-      }`}
-      onClick={handleAction}
-      role="button"
-      tabIndex={0}
+        isLunch ? styles.lunchDishRow : styles.afternoonDishRow
+      } ${dish.isBatchCreated ? styles.dishRowClickable : ""}`}
+      onClick={dish.isBatchCreated ? handleAction : undefined}
+      role={dish.isBatchCreated ? "button" : undefined}
+      tabIndex={dish.isBatchCreated ? 0 : undefined}
       title={
         dish.isBatchCreated
-          ? `Món "${dish.name}" đã lập lô chế biến - Bấm để xem chi tiết`
-          : `Bấm để tạo lô chế biến cho món "${dish.name}"`
+          ? `Món "${dish.name}" đã lập lô chế biến — Bấm để xem chi tiết`
+          : dish.name
       }
       aria-label={`${dish.name} - ${dish.isBatchCreated ? "Đã lập lô" : "Chưa tạo lô"}`}
     >
-      {/* 1. Tên món ăn: NỔI BẬT NHẤT CHO NGƯỜI LÀM BẾP DỄ QUÉT MẮT */}
-      <span className={styles.dishName}>{dish.name}</span>
+      <div className={styles.dishContent}>
+        {/* Chấm bullet tròn nhỏ giống danh sách thực đơn Dinh dưỡng */}
+        <span className={isLunch ? styles.dishDotLunch : styles.dishDotAfternoon} />
+        {/* Tên món ăn & món thay thế */}
+        <div className={styles.dishTitleCol}>
+          <span className={styles.dishName}>{dish.name}</span>
+          {(dish.substituteDish || dish.substitute) && (
+            <span className={styles.substituteDishNote}>
+              ({dish.substituteDish?.name || dish.substitute?.name || dish.substituteDish || dish.substitute})
+            </span>
+          )}
+        </div>
+      </div>
 
-      {/* 2. Cụm thao tác lô: Nhẹ nhàng, tinh tế, không lấn át tên món */}
-      <div className={styles.actionWrap}>
-        {dish.isBatchCreated ? (
-          <button
-            type="button"
-            className={styles.badgeBatchDone}
-            onClick={handleAction}
-            aria-label={`Xem lô chế biến món ${dish.name}`}
-          >
+      {/* Trạng thái nếu đã lập lô */}
+      {dish.isBatchCreated && (
+        <div className={styles.actionWrap}>
+          <span className={styles.badgeBatchDone}>
             <CheckCircle2 size={11} className={styles.btnIcon} />
             <span>Đã lập lô</span>
-          </button>
-        ) : (
-          <button
-            type="button"
-            className={styles.btnCreateBatch}
-            onClick={handleAction}
-            aria-label={`Tạo lô chế biến món ${dish.name}`}
-          >
-            <Plus size={11} className={styles.btnIcon} />
-            <span>Tạo lô</span>
-          </button>
-        )}
-      </div>
+          </span>
+        </div>
+      )}
     </div>
   )
 }

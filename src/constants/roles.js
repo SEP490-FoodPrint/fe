@@ -26,7 +26,7 @@ export const ROLES = {
   // Nhóm SCHOOL
   SCHOOL_ADMINISTRATION: "SCHOOL_ADMINISTRATION",
   SCHOOL_MANAGEMENT_BOARD: "SCHOOL_MANAGEMENT_BOARD", // Ban giám hiệu
-  SCHOOL_HEALTH_OFFICER: "SCHOOL_HEALTH_OFFICER", // Ban y tế
+  SCHOOL_NUTRITION_OFFICER: "SCHOOL_NUTRITION_OFFICER", // Nhân viên dinh dưỡng
   SCHOOL_KITCHEN_STAFF: "SCHOOL_KITCHEN_STAFF", // Nhân viên bếp
   HOMEROOM_TEACHER: "HOMEROOM_TEACHER", // Giáo viên chủ nhiệm
   PARENTS_COMMITTEE: "PARENTS_COMMITTEE", // Ban phụ huynh
@@ -44,7 +44,7 @@ export const ROLE_LABELS = {
   [ROLES.INGREDIENT_SUPPLIER_STAFF]: "Nhân viên Nhà cung cấp (Supplier Staff)",
   [ROLES.SCHOOL_ADMINISTRATION]: "Quản trị viên Nhà trường (School Admin)",
   [ROLES.SCHOOL_MANAGEMENT_BOARD]: "Ban Giám Hiệu",
-  [ROLES.SCHOOL_HEALTH_OFFICER]: "Cán bộ Y tế Trường",
+  [ROLES.SCHOOL_NUTRITION_OFFICER]: "Nhân viên Dinh dưỡng",
   [ROLES.SCHOOL_KITCHEN_STAFF]: "Nhân viên Bếp / Bếp trưởng",
   [ROLES.HOMEROOM_TEACHER]: "Giáo viên Chủ nhiệm",
   [ROLES.PARENTS_COMMITTEE]: "Ban Đại diện Phụ huynh",
@@ -88,12 +88,12 @@ export const MOCK_ACCOUNTS = [
   {
     userId: "fp_demo_health",
     username: "fp_demo_health",
-    fullName: "BS. Nguyễn Thu Trang",
+    fullName: "Nguyễn Thu Trang (Nhân viên Dinh dưỡng)",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
     orgName: "Trường Tiểu học FoodPrint (DEMO)",
-    role: ROLES.SCHOOL_HEALTH_OFFICER,
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=HealthOfficer",
+    role: ROLES.SCHOOL_NUTRITION_OFFICER,
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=NutritionOfficer",
   },
   {
     userId: "school_kitchen",

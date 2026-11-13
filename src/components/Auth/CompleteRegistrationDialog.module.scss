@@ -13,35 +13,3 @@
   .icon { width: var(--space-10); height: var(--space-10); }
   .actions:global(.MuiDialogActions-root) { padding-top: var(--space-6); }
 }
-
-.feedback {
-  :global(.MuiDialog-paper) { position: relative; }
-
-  .title:global(.MuiDialogTitle-root) {
-    display: block;
-    padding: var(--space-8) var(--space-12) var(--space-2) var(--space-6);
-    font-size: var(--text-xl);
-    line-height: var(--leading-tight);
-    overflow-wrap: anywhere;
-  }
-
-  .close:global(.MuiIconButton-root) {
-    position: absolute;
-    top: var(--space-3);
-    right: var(--space-3);
-  }
-
-  .actions:global(.MuiDialogActions-root) {
-    justify-content: flex-start;
-    padding-top: var(--space-6);
-
-    :global(.MuiButton-root) { width: auto; padding-inline: var(--space-6); }
-  }
-}
-
-@media (max-width: 600px) {
-  .feedback {
-    .title:global(.MuiDialogTitle-root) { padding-top: var(--space-8); font-size: var(--text-lg); }
-    .actions:global(.MuiDialogActions-root) :global(.MuiButton-root) { width: 100%; }
-  }
-}

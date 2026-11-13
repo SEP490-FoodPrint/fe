@@ -29,7 +29,7 @@ const KPI_ITEMS = [
   {
     id: "allergy-alerts",
     title: "Cảnh báo dị ứng theo lớp",
-    count: "06",
+    count: null,
     description: "Lớp có học sinh cần theo dõi",
     icon: <HealthAndSafetyOutlinedIcon className={styles.kpiIcon} />,
     route: ROUTER.SCHOOL_HEALTH_ALLERGY,
@@ -37,7 +37,7 @@ const KPI_ITEMS = [
   },
 ]
 
-export default function HealthKPICards({ onSelectCard }) {
+export default function HealthKPICards({ onSelectCard, allergyClassCount = null }) {
   const navigate = useNavigate()
 
   const handleCardClick = (item) => {
@@ -72,7 +72,7 @@ export default function HealthKPICards({ onSelectCard }) {
 
           <div className={styles.cardBottom}>
             <div className={styles.valueRow}>
-              <span className={styles.countNumber}>{item.count}</span>
+              <span className={styles.countNumber}>{item.id==="allergy-alerts" ? (allergyClassCount ?? "—") : item.count}</span>
               <span className={styles.hoverArrow}>
                 <ArrowForwardIcon fontSize="inherit" />
               </span>

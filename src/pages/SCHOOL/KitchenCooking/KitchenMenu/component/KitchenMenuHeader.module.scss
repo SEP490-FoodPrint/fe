@@ -1,12 +1,14 @@
 .headerContainer {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
   width: 100%;
   padding-bottom: 2px;
 }
 
-/* HÀNG 1: Tiêu đề & Huy hiệu */
+/* ========================================================
+   HÀNG 1: Tiêu đề & Huy hiệu & Nút Lô chế biến
+   ======================================================== */
 .topRow {
   display: flex;
   align-items: center;
@@ -26,49 +28,64 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primary, #0a8066);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background-color: #e8f5f1;
+  color: #0a8066;
+  flex-shrink: 0;
 }
 
 .clocheIcon {
-  color: var(--color-primary, #0a8066);
+  color: #0a8066;
 }
 
 .verticalDivider {
   display: inline-block;
   width: 1px;
-  height: 22px;
-  background-color: var(--border-default, #e2e8f0);
+  height: 18px;
+  background-color: #dce5e0;
   margin: 0 4px;
 }
 
 .heading {
   margin: 0;
   font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 700;
-  color: var(--text-primary, #1e293b);
-  letter-spacing: -0.02em;
+  color: #1d2b26;
+  letter-spacing: -0.01em;
 
   @media (max-width: 640px) {
-    font-size: 18px;
+    font-size: 16px;
   }
 }
 
 .approvedBadge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 2.5px 9px;
   border-radius: 9999px;
-  background-color: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #047857;
+  background-color: #e8f5f1;
+  border: 1px solid #c9e8de;
+  color: #08604d;
   font-size: 11.5px;
   font-weight: 600;
+  line-height: 1.2;
 
   .checkIcon {
     stroke-width: 2.5px;
+    color: #0a8066;
   }
+}
+
+.targetScopeBadge {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  white-space: nowrap;
 }
 
 .topActions {
@@ -95,23 +112,77 @@
   }
 }
 
-/* HÀNG 2: Bộ Chuyển Tuần + Bộ Lọc Ca Ăn + KPI Inline */
+/* ========================================================
+   HÀNG 2: Bộ lọc Năm học + Bộ lọc Tuần + Ca ăn + KPI
+   ======================================================== */
 .controlRow {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 14px;
 }
 
 .controlLeft {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
+  width: 100%;
 }
 
-/* Cụm điều hướng tuần gộp khung đơn */
+/* 1. Bộ lọc Năm học (đồng bộ với MenuPlanning) */
+.selectWrapperAcademicYear {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 180px;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+.selectIcon {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  pointer-events: none;
+}
+
+.selectInput {
+  width: 100%;
+  height: 36px;
+  padding: 0 24px 0 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #e2e8f0);
+  background-color: #ffffff;
+  color: var(--text-primary, #1e293b);
+  font-size: 12.5px;
+  font-weight: 500;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+  &:focus {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
+  }
+}
+
+.chevronIcon {
+  position: absolute;
+  right: 8px;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+/* 2. Cụm điều hướng tuần gộp: [<] [Dropdown Tuần...] [>] */
 .weekControlBox {
   display: inline-flex;
   align-items: center;
@@ -121,59 +192,131 @@
   overflow: hidden;
   height: 36px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+  @media (max-width: 640px) {
+    width: 100%;
+  }
 }
 
 .weekArrowBtn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
+  width: 32px;
   height: 100%;
   border: none;
   background-color: transparent;
   color: var(--text-secondary, #64748b);
   cursor: pointer;
+  flex-shrink: 0;
   transition: background-color 0.12s ease, color 0.12s ease;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background-color: #f8fafc;
     color: var(--color-primary, #0a8066);
   }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
 }
 
-.weekCenterBox {
-  display: inline-flex;
+.weekSelectMiddle {
+  position: relative;
+  display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 14px;
   height: 100%;
-  cursor: pointer;
   border-left: 1px solid var(--border-default, #e2e8f0);
   border-right: 1px solid var(--border-default, #e2e8f0);
+  min-width: 270px;
+
+  @media (max-width: 640px) {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.selectIconMiddle {
+  position: absolute;
+  left: 10px;
+  color: var(--color-primary, #0a8066);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.selectInputMiddle {
+  width: 100%;
+  height: 100%;
+  padding: 0 24px 0 32px;
+  border: none;
   background-color: transparent;
-  transition: background-color 0.12s ease;
+  color: var(--text-primary, #1e293b);
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  outline: none;
+  appearance: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
 
   &:hover {
     background-color: #f8fafc;
   }
+
+  &:focus {
+    background-color: #f1fdf9;
+  }
 }
 
-.calIcon {
-  color: var(--color-primary, #0a8066);
-  flex-shrink: 0;
+.chevronIconMiddle {
+  position: absolute;
+  right: 8px;
+  color: #94a3b8;
+  pointer-events: none;
 }
 
-.weekRangeText {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary, #1e293b);
+/* 3. Nút quay về Tuần này */
+.currentWeekBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #e2e8f0);
+  background-color: #ffffff;
+  color: var(--text-secondary, #64748b);
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  cursor: pointer;
+  transition: all 0.15s ease;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+
+  &:hover {
+    background-color: #ecfdf5;
+    color: #0a8066;
+    border-color: #a7f3d0;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.currentWeekBtnActive {
+  background-color: #ecfdf5;
+  color: #047857;
+  border-color: #a7f3d0;
+  font-weight: 600;
 }
 
 .inlineDivider {
   display: inline-block;
   width: 1px;
-  height: 18px;
+  height: 20px;
   background-color: var(--border-default, #cbd5e1);
   margin: 0 2px;
 
@@ -183,7 +326,7 @@
 }
 
 /* ========================================================
-   BỘ LỌC CA ĂN (Thay thế 10 bữa ăn): Tinh tế, rõ ràng
+   4. BỘ LỌC CA ĂN (Tất cả / Bữa trưa / Bữa xế)
    ======================================================== */
 .mealFilterSegment {
   display: inline-flex;
@@ -195,6 +338,11 @@
   height: 36px;
   box-sizing: border-box;
   gap: 2px;
+
+  @media (max-width: 640px) {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .filterSegmentBtn {
@@ -211,6 +359,12 @@
   transition: all 0.15s ease;
   white-space: nowrap;
 
+  @media (max-width: 640px) {
+    flex: 1;
+    text-align: center;
+    padding: 0 6px;
+  }
+
   &:hover:not(.filterSegmentBtnActive):not(.filterSegmentLunchActive):not(.filterSegmentAfternoonActive) {
     color: var(--text-primary, #1e293b);
     background-color: rgba(255, 255, 255, 0.6);
@@ -225,24 +379,26 @@
 }
 
 .filterSegmentLunchActive {
-  background-color: #fff7ed;
-  color: #c2410c;
+  background-color: #e8f5f1;
+  color: #08604d;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(234, 88, 12, 0.12);
+  box-shadow: 0 1px 2px rgba(10, 128, 102, 0.12);
 }
 
 .filterSegmentAfternoonActive {
-  background-color: #eff6ff;
-  color: #1d4ed8;
+  background-color: #f4eeea;
+  color: #584b46;
   font-weight: 600;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 1px 2px rgba(117, 99, 92, 0.12);
 }
 
-/* KPI Inline */
+/* ========================================================
+   5. KPI Inline (Tổng số món)
+   ======================================================== */
 .kpiInlineGroup {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 

@@ -15,9 +15,6 @@ export default function OrderListHeader() {
           <Typography variant="h5" className={styles.pageTitle}>
             Phiếu Nhập & Đơn Hàng Nguyên Liệu
           </Typography>
-          <Typography variant="body2" className={styles.pageSubtitle}>
-            Quản lý danh mục nguyên liệu chuẩn của trường, theo dõi đơn đặt hàng và tiếp nhận phiếu nhập kho
-          </Typography>
         </Box>
       </Box>
     </Box>

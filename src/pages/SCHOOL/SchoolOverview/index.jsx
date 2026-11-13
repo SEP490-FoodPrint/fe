@@ -28,7 +28,7 @@ function SchoolOverview() {
   const [attempt, setAttempt] = useState(0)
 
   useEffect(() => {
-    if ([ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_HEALTH_OFFICER, ROLES.HOMEROOM_TEACHER].includes(role)) return
+    if ([ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.HOMEROOM_TEACHER].includes(role)) return
     let active = true
     setLoading(true)
     setError("")
@@ -43,7 +43,7 @@ function SchoolOverview() {
   }, [username, attempt, role])
 
   if (role === ROLES.SCHOOL_KITCHEN_STAFF) return <Navigate to={ROUTER.SCHOOL_KITCHEN_COOKING} replace />
-  if (role === ROLES.SCHOOL_HEALTH_OFFICER) return <Navigate to={ROUTER.SCHOOL_HEALTH_OVERVIEW} replace />
+  if (role === ROLES.SCHOOL_NUTRITION_OFFICER) return <Navigate to={ROUTER.SCHOOL_HEALTH_OVERVIEW} replace />
   if (role === ROLES.HOMEROOM_TEACHER) return <Navigate to={ROUTER.SCHOOL_HOMEROOM_OVERVIEW} replace />
 
   return (
@@ -60,7 +60,7 @@ function SchoolOverview() {
             ["Sự cố đang xử lý", data.incidents?.filter(item => ["OPEN", "INVESTIGATING"].includes(item.status)).length, "sự cố"],
           ].map(([label, value, unit]) => <article key={label}><p>{label}</p><strong>{value ?? "—"}</strong><span>{unit}</span></article>)}
         </section>
-        <AnalyticsGrid data={data} />
+        <AnalyticsGrid data={data} complaintRoute={role === ROLES.PARENTS_COMMITTEE ? ROUTER.SCHOOL_MEAL_COMPLAINTS : ROUTER.SCHOOL_MEAL_FEEDBACK} />
         <section className="overview-panel">
           <h2>Thực đơn gần đây</h2>
           {data.menus?.length ? <div className="overview-menu-list">{data.menus.slice(0, 5).map(menu =>

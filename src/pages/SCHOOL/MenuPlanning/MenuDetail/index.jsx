@@ -1,51 +1,38 @@
-import React, { useState, useEffect } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
+import { useParams, useNavigate, useLocation } from "react-router-dom"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import { getMenuById } from "../mockMenuListData"
+import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
+import { apiMenuDetail } from "src/services/MenuService/urls"
+import { parseDateVNToISO, menuWeekMeals, adaptBackendMenuDetailToView } from "src/services/MenuService/adapter"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
 import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
-import MenuDetailBasicInfo from "./component/MenuDetailBasicInfo"
 import MenuDetailDishesTable from "./component/MenuDetailDishesTable"
 import MenuDetailAllergyCard from "./component/MenuDetailAllergyCard"
 import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
-import MenuDetailTimeline from "./component/MenuDetailTimeline"
-import MenuDetailPrintModal from "./component/MenuDetailPrintModal"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
+import CreateMenuDayModal from "../CreateMenu/CreateMenuDayModal"
 
 export default function MenuDetail() {
   const { id } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
 
   const [menu, setMenu] = useState(null)
+  const [rawWeeklyMenu, setRawWeeklyMenu] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false)
+  const [loadError, setLoadError] = useState("")
+
+  // Modal chỉnh sửa trực tiếp dạng popup
+  const [isEditModalOpen, setIsEditModalOpen] = useState(
+    Boolean(location.state?.autoOpenEdit)
+  )
+
   const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = useState(false)
   const [toast, setToast] = useState(null)
-
-  useEffect(() => {
-    let isMounted = true
-    const fetchDetail = async () => {
-      setLoading(true)
-      try {
-        const res = await MenuService.getMenuDetail(id)
-        if (isMounted && res?.data) {
-          setMenu(res.data)
-        } else if (isMounted) {
-          setMenu(getMenuById(id))
-        }
-      } catch (err) {
-        console.warn("Lỗi tải chi tiết thực đơn:", err)
-        if (isMounted) setMenu(getMenuById(id))
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
-    fetchDetail()
-    return () => { isMounted = false }
-  }, [id])
 
   const showToast = (message, type = "success") => {
     setToast({ message, type })
@@ -54,30 +41,145 @@ export default function MenuDetail() {
     }, 3500)
   }
 
-  // Xử lý gửi BGH duyệt từ trang chi tiết
+  // Tải chi tiết thực đơn và dữ liệu tuần gốc
+  const fetchDetail = useCallback(async () => {
+    setLoading(true)
+    setLoadError("")
+    let weeklyId = id
+    if (typeof id === "string" && id.includes("_")) {
+      weeklyId = id.split("_")[0]
+    }
+    try {
+      const response = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false })
+      if (!response?.data?.id) throw new Error("Không tải được đầy đủ thực đơn tuần.")
+      const parts = id.split("_")
+      setRawWeeklyMenu(response.data)
+      setMenu(adaptBackendMenuDetailToView(response.data, parts[1] || null, parts[2] || "LUNCH"))
+    } catch (err) {
+      setLoadError(err.message || "Không thể tải thông tin chi tiết thực đơn.")
+      setMenu(null)
+      setRawWeeklyMenu(null)
+    } finally {
+      setLoading(false)
+    }
+  }, [id])
+
+  useEffect(() => {
+    fetchDetail()
+  }, [fetchDetail])
+
+  // Chuẩn bị dữ liệu ngày cho CreateMenuDayModal
+  const dayData = useMemo(() => {
+    if (!menu) return null
+    let dateISO = menu.rawDate
+    if (!dateISO && menu.date) {
+      dateISO = parseDateVNToISO(menu.date)
+    }
+    let dayLabel = "Thứ Hai"
+    if (dateISO) {
+      const d = new Date(dateISO)
+      const dayOfWeek = d.getDay()
+      const labels = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"]
+      dayLabel = labels[dayOfWeek] || "Thứ Hai"
+    }
+    return {
+      dayLabel,
+      dateVN: menu.date,
+      dateISO,
+    }
+  }, [menu])
+
+  // Lấy danh sách món ăn & gia vị cả 2 ca của ngày đó từ tuần thực đơn
+  const dayMeals = useMemo(() => {
+    if (!menu) return null
+    if (rawWeeklyMenu) {
+      const days = menuWeekMeals(rawWeeklyMenu)
+      const dateISO = menu.rawDate || (menu.date && parseDateVNToISO(menu.date))
+      const found = days.find((d) => d.date === dateISO || d.menuDayId === menu.menuDayId)
+      if (found) {
+        return {
+          ...found,
+          LUNCH: found.meals?.LUNCH?.dishes || [],
+          AFTERNOON: found.meals?.AFTERNOON?.dishes || [],
+          seasonings: Array.isArray(found.seasonings) ? found.seasonings : [],
+          seasoningsByMeal: found.seasoningsByMeal || { LUNCH: [], AFTERNOON: [] },
+        }
+      }
+    }
+    // Fallback nếu không có rawWeeklyMenu
+    const isLunch = menu.mealType !== "AFTERNOON"
+    const currentDishes = (menu.dishes || []).map((d) => ({
+      id: d.dishId || d.id,
+      dishId: d.dishId || d.id,
+      name: d.name,
+      ingredientIds: d.ingredientIds || [],
+      ingredientStandards: d.ingredientStandards || [],
+      portionQty: d.portionQty ?? "",
+      unit: d.unit || "g",
+    }))
+    const currentSeasonings = Array.isArray(menu.seasonings) ? menu.seasonings : []
+    return {
+      LUNCH: isLunch ? currentDishes : [],
+      AFTERNOON: !isLunch ? currentDishes : [],
+      seasonings: currentSeasonings,
+      seasoningsByMeal: {
+        LUNCH: isLunch ? currentSeasonings : [],
+        AFTERNOON: !isLunch ? currentSeasonings : [],
+      },
+    }
+  }, [menu, rawWeeklyMenu])
+
+  // Lưu chỉnh sửa từ Popup trực tiếp lên Backend
+  const handleSaveDay = async (updatedDay) => {
+    const submit = menu.status === "PENDING_APPROVAL" || rawWeeklyMenu?.status === "PENDING_APPROVAL"
+    try {
+      await MenuService.saveMenuDay(menu.weeklyMenuId || id, updatedDay, { submit })
+      setIsEditModalOpen(false)
+      showToast(submit ? "Đã lưu và gửi BGH duyệt lại" : "Đã lưu chỉnh sửa thực đơn", "success")
+      await fetchDetail()
+    } catch (err) {
+      showToast(err.message || "Không thể lưu cập nhật thực đơn.", "warning")
+      throw err
+    }
+  }
+
   const handleConfirmSubmit = async () => {
     setIsConfirmSubmitOpen(false)
     const targetId = menu.weeklyMenuId || menu.id
     try {
       await MenuService.submitMenu(targetId)
+      setMenu((prev) => ({
+        ...prev,
+        status: "PENDING_APPROVAL",
+        statusLabel: "Chờ BGH duyệt",
+      }))
+      showToast("Đã gửi hồ sơ thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
     } catch (e) {
-      console.warn("Submit menu API:", e)
+      showToast(e.message || "Không thể gửi duyệt thực đơn.", "warning")
     }
-    setMenu(prev => ({
-      ...prev,
-      status: "PENDING_APPROVAL",
-      statusLabel: "Chờ BGH duyệt"
-    }))
-    showToast("Đã gửi hồ sơ thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
   }
 
-  if (!menu) {
+  if (loading) {
     return (
       <div className={styles.loadingContainer}>
-        <span className="material-symbols-outlined text-[36px] text-[#0a8066] animate-spin">
-          progress_activity
-        </span>
-        <p className="text-slate-600 font-medium mt-2">Đang tải thông tin chi tiết thực đơn...</p>
+        <FoodPrintLoading />
+      </div>
+    )
+  }
+
+  if (loadError || !menu) {
+    return (
+      <div className={styles.pageContainer}>
+        <div className="p-8 text-center">
+          <p className="text-red-600 font-medium mb-4">{loadError || "Không tìm thấy thực đơn yêu cầu."}</p>
+          <button
+            type="button"
+            className="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-medium hover:bg-emerald-800 transition"
+            onClick={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+          >
+            Về danh sách thực đơn
+          </button>
+        </div>
       </div>
     )
   }
@@ -98,17 +200,15 @@ export default function MenuDetail() {
         {/* Header với Tiêu đề, Mã thực đơn, Trạng thái và Nút Thao tác */}
         <MenuDetailHeader
           menu={menu}
-          onPrint={() => setIsPrintModalOpen(true)}
+          menuId={id}
+          onEdit={() => setIsEditModalOpen(true)}
           onSubmitApproval={() => setIsConfirmSubmitOpen(true)}
         />
 
-        {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có) */}
-        {menu.feedback && <MenuDetailBGHFeedback feedback={menu.feedback} status={menu.status} />}
+        {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
+        <MenuDetailBGHFeedback menu={menu} />
 
-        {/* Khối 1: Thông tin kế hoạch & Phạm vi áp dụng */}
-        <MenuDetailBasicInfo menu={menu} />
-
-        {/* Khối 2: Bảng cơ cấu món ăn trong thực đơn & Đối soát định lượng */}
+        {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
         <MenuDetailDishesTable dishes={menu.dishes} />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
@@ -116,17 +216,20 @@ export default function MenuDetail() {
 
         {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
         <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
-
-        {/* Khối 5: Lịch sử theo dõi tiến trình & Kiểm duyệt */}
-        <MenuDetailTimeline menu={menu} />
       </div>
 
-      {/* Modal xem trước & In biểu mẫu thực đơn */}
-      <MenuDetailPrintModal
-        isOpen={isPrintModalOpen}
-        onClose={() => setIsPrintModalOpen(false)}
-        menu={menu}
-      />
+      {/* Modal Popup Chỉnh sửa thực đơn ngày (50/50: Preview + Chọn món & Gia vị) */}
+      {isEditModalOpen && rawWeeklyMenu && rawWeeklyMenu.status !== "APPROVED" && menu.status !== "APPROVED" && dayMeals?.canEdit !== false && (
+        <CreateMenuDayModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          dayData={dayData}
+          dayMenu={dayMeals}
+          initialMealType={menu.mealType || "LUNCH"}
+          onSaveDay={handleSaveDay}
+          submitText={menu.status === "PENDING_APPROVAL" || rawWeeklyMenu.status === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Lưu thay đổi"}
+        />
+      )}
 
       {/* Modal xác nhận gửi BGH duyệt */}
       <ConfirmSubmitModal
@@ -139,7 +242,7 @@ export default function MenuDetail() {
           mealType: menu.mealType,
           targetScope: menu.targetScope,
           portionCount: menu.portionCount,
-          notes: menu.feedback
+          notes: menu.feedback,
         }}
         dishesCount={menu.dishes?.length || 0}
         selectedAllergyOption="OPTION_2"
@@ -148,4 +251,3 @@ export default function MenuDetail() {
     </div>
   )
 }
-

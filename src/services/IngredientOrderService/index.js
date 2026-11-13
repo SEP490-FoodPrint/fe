@@ -1,6 +1,7 @@
 import http from "../01_axios"
 import { apiIngredients, apiSuppliers, apiDeliveries, apiSupplyOrders } from "./urls"
 import { adaptCatalogItem } from "./adapter"
+import { USE_MOCK_API } from "src/lib/config"
 import {
   MOCK_MASTER_INGREDIENT_CATALOG,
   MOCK_SUPPLIERS,
@@ -11,16 +12,57 @@ import {
 // Bộ nhớ đệm tạm thời cho các phiếu giao nhận đã tạo / cập nhật trong phiên làm việc
 let localDeliveries = [...MOCK_DELIVERIES]
 
+const isDiscreteUnit = (unit = "") => {
+  if (!unit) return false
+  const u = String(unit).toLowerCase().trim()
+  const discreteUnits = [
+    "quả",
+    "trứng",
+    "hộp",
+    "gói",
+    "chai",
+    "can",
+    "lon",
+    "hũ",
+    "cái",
+    "củ",
+    "bắp",
+    "ổ",
+    "bó",
+    "túi",
+    "con",
+  ]
+  return discreteUnits.includes(u)
+}
+
+const calcQty = (qtyPerPortion, portions, unit = "") => {
+  const raw = Number(qtyPerPortion) * Number(portions)
+  if (isDiscreteUnit(unit)) {
+    return Math.ceil(raw)
+  }
+  return Number(raw.toFixed(2))
+}
+
 const IngredientOrderService = {
   /**
    * Lấy Danh mục nguyên liệu chuẩn (Master Ingredient Catalog)
-   * Đảm bảo luôn có đầy đủ cả Kho khô (DRY_STOCK) và Tươi sống (DIRECT_USE)
+   * Khi USE_MOCK_API = true (cấu hình trong .env): Trả về mock data 0ms
+   * Khi USE_MOCK_API = false: Gọi API backend thật
    */
   async getMasterIngredientCatalog() {
+    if (USE_MOCK_API) {
+      return {
+        items: MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem),
+        total: MOCK_MASTER_INGREDIENT_CATALOG.length,
+        isMock: true,
+      }
+    }
+
     try {
       const response = await http.get(apiIngredients, {
         params: { page: 1, limit: 100 },
         notifyOnError: false,
+        skipAuthRedirect: true,
       })
       const data = response?.data || response
       const apiItems = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : []
@@ -30,7 +72,6 @@ const IngredientOrderService = {
         const hasDryStock = adaptedApi.some(it => it.handlingType === "DRY_STOCK")
 
         if (!hasDryStock) {
-          // Nếu backend DB chỉ có đồ tươi sống, tự động bổ sung danh mục Đồ khô chuẩn
           const dryItems = MOCK_MASTER_INGREDIENT_CATALOG.filter(it => it.handlingType === "DRY_STOCK").map(adaptCatalogItem)
           return {
             items: [...adaptedApi, ...dryItems],
@@ -41,7 +82,7 @@ const IngredientOrderService = {
         return { items: adaptedApi, total: adaptedApi.length, isMock: false }
       }
     } catch (err) {
-      // Backend chưa có data -> Tự động dùng mock chuẩn
+      // Backend chưa có data -> Fallback sang mock chuẩn
     }
 
     return {
@@ -55,16 +96,21 @@ const IngredientOrderService = {
    * Lấy danh sách Nhà cung cấp liên kết
    */
   async getSuppliers() {
+    if (USE_MOCK_API) {
+      return { items: MOCK_SUPPLIERS, total: MOCK_SUPPLIERS.length, isMock: true }
+    }
+
     try {
       const response = await http.get(apiSuppliers, {
         params: { page: 1, limit: 100 },
         notifyOnError: false,
+        skipAuthRedirect: true,
       })
       const data = response?.data || response
       if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, isMock: false }
       if (Array.isArray(data) && data.length > 0) return { items: data, isMock: false }
     } catch (err) {
-      // Fallback sang mock suppliers
+      // Fallback
     }
     return { items: MOCK_SUPPLIERS, isMock: true }
   },
@@ -73,30 +119,56 @@ const IngredientOrderService = {
    * Lấy danh sách Thực đơn đã phê duyệt (APPROVED) từ module Thực đơn
    */
   async getApprovedMenus() {
+    if (USE_MOCK_API) {
+      return { items: MOCK_APPROVED_MENUS, total: MOCK_APPROVED_MENUS.length, isMock: true }
+    }
+
     try {
       const response = await http.get("/menus", {
         params: { status: "APPROVED", page: 1, limit: 50 },
         notifyOnError: false,
+        skipAuthRedirect: true,
       })
       const data = response?.data || response
       if (Array.isArray(data?.items) && data.items.length > 0) {
         return { items: data.items, isMock: false }
       }
     } catch (err) {
-      // Fallback sang mock danh sách thực đơn đã duyệt
+      // Fallback
     }
     return { items: MOCK_APPROVED_MENUS, isMock: true }
   },
 
   /**
    * Lấy danh sách Phiếu giao nhận & Nhập hàng (Deliveries)
-   * Phân rõ 2 đợt giao và trạng thái duyệt 4 bên
    */
   async getDeliveries(params = {}) {
+    if (USE_MOCK_API) {
+      let items = [...localDeliveries]
+      if (params.batchType && params.batchType !== "all") {
+        items = items.filter(d => d.batchType === params.batchType)
+      }
+      if (params.status && params.status !== "all") {
+        items = items.filter(d => d.status === params.status)
+      }
+      if (params.search) {
+        const kw = params.search.toLowerCase()
+        items = items.filter(
+          d =>
+            d.deliveryNo.toLowerCase().includes(kw) ||
+            d.orderNo.toLowerCase().includes(kw) ||
+            d.supplierName.toLowerCase().includes(kw) ||
+            d.menuName.toLowerCase().includes(kw)
+        )
+      }
+      return { items, total: items.length, isMock: true }
+    }
+
     try {
       const response = await http.get(apiDeliveries, {
         params: { page: 1, limit: 100 },
         notifyOnError: false,
+        skipAuthRedirect: true,
       })
       const data = response?.data || response
       if (Array.isArray(data?.items) && data.items.length > 0) {
@@ -127,18 +199,62 @@ const IngredientOrderService = {
   },
 
   /**
-   * Tạo Đơn mua hàng từ Thực đơn đã duyệt
-   * Tự động sinh ra 2 đợt giao hàng:
-   * - Đợt 1: 50% Sĩ số tối đa
-   * - Đợt 2: Sĩ số dự kiến (chờ GVCN chốt sáng)
+   * 1. TẠO ĐƠN MUA HÀNG ĐỢT 1 (Giao sớm 05:30 sáng)
+   * - Chỉ tạo Đợt 1 (50% định lượng suất tối đa)
+   * - 100% Thực phẩm tươi sống dùng trong ngày (DIRECT_USE)
+   * - Hỗ trợ tùy chỉnh 2 chiều Định lượng/suất <-> Số lượng đợt
    */
-  async createSupplyOrder({ menuId, note, orderDate }) {
+  async createBatch1Order({ menuId, note, orderDate, items }) {
     const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === menuId) || MOCK_APPROVED_MENUS[0]
     const orderNo = `PO-${orderDate ? orderDate.replace(/-/g, "") : "20261027"}-${Math.floor(10 + Math.random() * 90)}`
     const maxPortions = targetMenu.maxPortions || 850
-    const batch1Portions = Math.floor(maxPortions / 2) // 50%
+    const batch1Portions = Math.floor(maxPortions / 2) // Cố định 50% suất tối đa
 
-    // Tạo phiếu nhập Đợt 1
+    // 1. Tươi sống Đợt 1 (lấy items người dùng đã tùy chỉnh nếu có, hoặc tính theo định lượng thực đơn)
+    const freshItemsBatch1 = Array.isArray(items) && items.length > 0
+      ? items.map(it => {
+          const stdQty = it.standardQty ?? (it.isExtraItem ? 0 : calcQty(it.qtyPerPortion || 0.05, batch1Portions, it.unit))
+          const extra = Number(it.extraQty) || 0
+          const isDiscrete = isDiscreteUnit(it.unit)
+          const totalQty = it.orderedQty ?? (isDiscrete ? Math.ceil(stdQty + extra) : Number((stdQty + extra).toFixed(2)))
+
+          return {
+            ingredientId: it.ingredientId || it.id,
+            ingredientName: it.ingredientName || it.name,
+            handlingType: it.handlingType || "DIRECT_USE",
+            unit: it.unit,
+            qtyPerPortion: it.qtyPerPortion || 0,
+            standardQty: stdQty,
+            extraQty: extra,
+            orderedQty: totalQty,
+            deliveredQty: 0,
+            status: "WAITING",
+            isCustomized: it.isCustomized || false,
+            isExtraItem: it.isExtraItem || false,
+            defaultQtyPerPortion: it.defaultQtyPerPortion,
+          }
+        })
+      : targetMenu.ingredients
+          .filter(it => it.handlingType === "DIRECT_USE")
+          .map(it => {
+            const stdQty = calcQty(it.qtyPerPortion, batch1Portions, it.unit)
+            return {
+              ingredientId: it.id,
+              ingredientName: it.name,
+              handlingType: it.handlingType,
+              unit: it.unit,
+              qtyPerPortion: it.qtyPerPortion,
+              standardQty: stdQty,
+              extraQty: 0,
+              orderedQty: stdQty,
+              deliveredQty: 0,
+              status: "WAITING",
+              isCustomized: false,
+              isExtraItem: false,
+              defaultQtyPerPortion: it.qtyPerPortion,
+            }
+          })
+
     const deliveryBatch1 = {
       id: `deliv-${Date.now()}-01`,
       deliveryNo: `PN-${orderNo.replace("PO-", "")}-D1`,
@@ -158,70 +274,137 @@ const IngredientOrderService = {
       refrigerationTemp: "Chưa đo (Chờ xe tới)",
       status: "CONFIRMED",
       statusLabel: "NCC đang chuẩn bị hàng",
+      note: note || "",
       approvals: {
         ingredientManagement: { approved: null, name: "Ban QL NL" },
         healthOfficer: { approved: null, name: "Y tế" },
         parentsCommittee: { approved: null, name: "Ban PH" },
         kitchenStaff: { approved: null, name: "Bên Bếp" },
       },
-      items: targetMenu.ingredients
-        .filter(it => it.handlingType === "DIRECT_USE")
-        .map(it => ({
-          ingredientName: it.name,
-          handlingType: it.handlingType,
-          unit: it.unit,
-          orderedQty: Number((batch1Portions * it.qtyPerPortion).toFixed(2)),
-          deliveredQty: 0,
-          status: "WAITING",
-        })),
+      items: freshItemsBatch1,
     }
 
-    // Tạo phiếu nhập Đợt 2 (Chờ GVCN báo sĩ số)
+    localDeliveries = [deliveryBatch1, ...localDeliveries]
+    return {
+      success: true,
+      orderNo,
+      delivery: deliveryBatch1,
+      attachedDryCount: 0,
+    }
+  },
+
+  /**
+   * 2. TẠO ĐƠN GIAO HÀNG ĐỢT 2 (Giao lúc 07:45 sáng)
+   * - Bê nguyên nguyên liệu tươi sống của Đợt 1 sang
+   * - TỰ ĐỘNG ĐỒNG BỘ ĐỊNH LƯỢNG ĐÃ THAY ĐỔI Ở ĐỢT 1
+   * - Số suất giao bù = actualAttendance - batch1Portions
+   */
+  async createBatch2Order({ batch1DeliveryId, actualAttendance, note, items }) {
+    const batch1Delivery = localDeliveries.find(d => d.id === batch1DeliveryId)
+    if (!batch1Delivery) {
+      throw new Error("Không tìm thấy thông tin đơn hàng Đợt 1 tương ứng.")
+    }
+
+    const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === batch1Delivery.menuId) || MOCK_APPROVED_MENUS[0]
+    const maxPortions = batch1Delivery.maxPortions || 850
+    const batch1Portions = batch1Delivery.plannedPortions || Math.floor(maxPortions / 2)
+    const actualCount = Number(actualAttendance) || maxPortions
+    const remainingPortions = Math.max(0, actualCount - batch1Portions)
+
+    // Bê nguyên thực phẩm tươi sống từ Đợt 1 sang (ưu tiên items truyền vào, hoặc đọc từ batch1Delivery.items)
+    const freshItemsBatch2 = Array.isArray(items) && items.length > 0
+      ? items.map(it => {
+          const stdQty = it.standardQty ?? (it.isExtraItem ? 0 : calcQty(it.qtyPerPortion || 0.05, remainingPortions, it.unit))
+          const extra = Number(it.extraQty) || 0
+          const isDiscrete = isDiscreteUnit(it.unit)
+          const totalQty = it.orderedQty ?? (isDiscrete ? Math.ceil(stdQty + extra) : Number((stdQty + extra).toFixed(2)))
+
+          return {
+            ingredientId: it.ingredientId || it.id,
+            ingredientName: it.ingredientName || it.name,
+            handlingType: it.handlingType || "DIRECT_USE",
+            unit: it.unit,
+            qtyPerPortion: it.qtyPerPortion || 0,
+            standardQty: stdQty,
+            extraQty: extra,
+            orderedQty: totalQty,
+            deliveredQty: 0,
+            status: "WAITING",
+            isCustomized: it.isCustomized || false,
+            isExtraItem: it.isExtraItem || false,
+            defaultQtyPerPortion: it.defaultQtyPerPortion,
+          }
+        })
+      : targetMenu.ingredients
+          .filter(it => it.handlingType === "DIRECT_USE")
+          .map(it => {
+            const b1Item = batch1Delivery.items?.find(
+              b => (b.ingredientId && b.ingredientId === it.id) || b.ingredientName === it.name
+            )
+            const portionRate = b1Item?.qtyPerPortion ?? (b1Item?.orderedQty && batch1Portions ? Number((b1Item.orderedQty / batch1Portions).toFixed(4)) : it.qtyPerPortion)
+            const stdQty = calcQty(portionRate, remainingPortions, it.unit)
+
+            return {
+              ingredientId: it.id,
+              ingredientName: it.name,
+              handlingType: it.handlingType,
+              unit: it.unit,
+              qtyPerPortion: portionRate,
+              standardQty: stdQty,
+              extraQty: 0,
+              orderedQty: stdQty,
+              deliveredQty: 0,
+              status: "WAITING",
+              isCustomized: Math.abs(portionRate - it.qtyPerPortion) > 0.00001,
+              isExtraItem: false,
+              defaultQtyPerPortion: it.qtyPerPortion,
+            }
+          })
+
     const deliveryBatch2 = {
       id: `deliv-${Date.now()}-02`,
-      deliveryNo: `PN-${orderNo.replace("PO-", "")}-D2`,
-      orderNo,
-      menuId: targetMenu.id,
-      menuName: targetMenu.name,
-      deliveryDate: orderDate || targetMenu.mealDate,
+      deliveryNo: `PN-${batch1Delivery.orderNo.replace("PO-", "")}-D2`,
+      orderNo: batch1Delivery.orderNo,
+      menuId: batch1Delivery.menuId,
+      menuName: batch1Delivery.menuName,
+      deliveryDate: batch1Delivery.deliveryDate,
       deliveryTime: "07:45",
       batchType: "BATCH_2",
-      batchLabel: "Đợt 2 (Chờ GVCN chốt sĩ số)",
+      batchLabel: `Đợt 2 (Chốt sĩ số: ${actualCount} HS)`,
       maxPortions,
       batch1Portions,
-      actualAttendance: null,
-      plannedPortions: maxPortions - batch1Portions,
-      supplierId: targetMenu.ingredients[0]?.supplierId || "sup-bavi-01",
-      supplierName: targetMenu.ingredients[0]?.supplierName || "Liên minh NCC thực phẩm sạch",
-      driverName: "--",
-      deliveryQr: "--",
-      refrigerationTemp: "--",
-      status: "WAITING_ATTENDANCE",
-      statusLabel: "Chờ GVCN báo sĩ số sáng",
+      actualAttendance: actualCount,
+      plannedPortions: remainingPortions,
+      supplierId: batch1Delivery.supplierId,
+      supplierName: batch1Delivery.supplierName,
+      driverName: batch1Delivery.driverName || "--",
+      deliveryQr: `QR-LOT-${batch1Delivery.orderNo.replace("PO-", "")}-02`,
+      refrigerationTemp: "Chưa đo (Chờ xe tới)",
+      status: "CONFIRMED",
+      statusLabel: `Đã chốt sĩ số (${actualCount} HS) - NCC đang chuẩn bị`,
+      note: note || "",
       approvals: {
         ingredientManagement: { approved: null },
         healthOfficer: { approved: null },
         parentsCommittee: { approved: null },
         kitchenStaff: { approved: null },
       },
-      items: targetMenu.ingredients
-        .filter(it => it.handlingType === "DIRECT_USE")
-        .map(it => ({
-          ingredientName: it.name,
-          handlingType: it.handlingType,
-          unit: it.unit,
-          orderedQty: Number(((maxPortions - batch1Portions) * it.qtyPerPortion).toFixed(2)),
-          deliveredQty: 0,
-          status: "WAITING",
-        })),
+      items: freshItemsBatch2,
     }
 
-    localDeliveries = [deliveryBatch1, deliveryBatch2, ...localDeliveries]
-    return { success: true, orderNo, deliveries: [deliveryBatch1, deliveryBatch2] }
+    localDeliveries = [deliveryBatch2, ...localDeliveries]
+    return {
+      success: true,
+      delivery: deliveryBatch2,
+      orderNo: batch1Delivery.orderNo,
+      remainingPortions,
+      actualAttendance: actualCount,
+    }
   },
 
   /**
-   * Cập nhật sĩ số thực tế do GVCN báo sáng cho Đợt 2
+   * Cập nhật sĩ số thực tế do GVCN báo sáng cho Đợt 2 (khi phiếu đã tạo)
+   * Tự động tính lại theo đúng định lượng đã lưu từ Đợt 1
    */
   async updateBatch2Attendance(deliveryId, actualCount) {
     const idx = localDeliveries.findIndex(d => d.id === deliveryId)
@@ -230,18 +413,46 @@ const IngredientOrderService = {
       const batch1Portions = item.batch1Portions || 425
       const actualRemaining = Math.max(0, actualCount - batch1Portions)
 
+      // Tìm Đợt 1 tương ứng để đảm bảo kế thừa định lượng tùy chỉnh
+      const batch1Delivery = localDeliveries.find(
+        d => d.orderNo === item.orderNo && d.batchType === "BATCH_1"
+      )
+
       const targetMenu = MOCK_APPROVED_MENUS.find(m => m.id === item.menuId) || MOCK_APPROVED_MENUS[0]
 
-      const updatedItems = targetMenu.ingredients
-        .filter(it => it.handlingType === "DIRECT_USE")
-        .map(it => ({
-          ingredientName: it.name,
-          handlingType: it.handlingType,
+      const sourceItems = item.items && item.items.length > 0
+        ? item.items
+        : targetMenu.ingredients.filter(it => it.handlingType === "DIRECT_USE")
+
+      const updatedItems = sourceItems.map(it => {
+        if (it.isExtraItem) {
+          // Món thêm ngoài giữ nguyên số lượng đã đặt
+          return it
+        }
+
+        const b1Item = batch1Delivery?.items?.find(
+          b => (b.ingredientId && (b.ingredientId === it.ingredientId || b.ingredientId === it.id)) ||
+               b.ingredientName === (it.ingredientName || it.name)
+        )
+        const portionRate = it.qtyPerPortion ?? b1Item?.qtyPerPortion ?? it.defaultQtyPerPortion ?? 0.05
+        const stdQty = calcQty(portionRate, actualRemaining, it.unit)
+        const extra = Number(it.extraQty) || 0
+        const isDiscrete = isDiscreteUnit(it.unit)
+        const totalQty = isDiscrete ? Math.ceil(stdQty + extra) : Number((stdQty + extra).toFixed(2))
+
+        return {
+          ...it,
+          ingredientName: it.ingredientName || it.name,
+          handlingType: it.handlingType || "DIRECT_USE",
           unit: it.unit,
-          orderedQty: Number((actualRemaining * it.qtyPerPortion).toFixed(2)),
+          qtyPerPortion: portionRate,
+          standardQty: stdQty,
+          extraQty: extra,
+          orderedQty: totalQty,
           deliveredQty: 0,
           status: "WAITING",
-        }))
+        }
+      })
 
       localDeliveries[idx] = {
         ...item,
@@ -254,6 +465,11 @@ const IngredientOrderService = {
       return { success: true, delivery: localDeliveries[idx] }
     }
     return { success: false }
+  },
+
+  // Alias tương thích
+  async createSupplyOrder(data) {
+    return this.createBatch1Order(data)
   },
 }
 
