@@ -1,5 +1,5 @@
 import React from "react"
-import { Layers, PackageCheck } from "lucide-react"
+import { Layers } from "lucide-react"
 import styles from "./BatchIngredientsCard.module.scss"
 
 export default function BatchIngredientsCard({ ingredients = [] }) {
@@ -9,83 +9,57 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
       <div className={styles.cardHeader}>
         <div className={styles.headerLeft}>
           <div className={styles.iconBox}>
-            <Layers size={18} />
+            <Layers size={17} />
           </div>
-          <h2 className={styles.cardTitle}>Nguyên liệu sử dụng</h2>
+          <h2 className={styles.cardTitle}>Nguyên liệu xuất kho cho lô</h2>
         </div>
-        <div className={styles.countBadge}>
-          <PackageCheck size={14} />
-          <span>{ingredients.length} nguyên liệu</span>
-        </div>
+        <span className={styles.countBadge}>
+          {ingredients.length} loại nguyên liệu
+        </span>
       </div>
 
       {/* 1. Desktop Table View (>= 640px) */}
-      <div className={styles.desktopTableWrap}>
+      <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
+              <th className={styles.thIndex}>#</th>
               <th className={styles.thName}>Tên nguyên liệu</th>
-              <th className={styles.thLot}>Mã lô nguyên liệu</th>
-              <th className={styles.thQty}>Số lượng</th>
-              <th className={styles.thUnit}>Đơn vị</th>
+              <th className={styles.thLot}>Mã lô xuất kho</th>
+              <th className={styles.thQty}>Định lượng sử dụng</th>
               <th className={styles.thExpiry}>Hạn sử dụng (HSD)</th>
             </tr>
           </thead>
           <tbody>
             {ingredients.length === 0 ? (
               <tr>
-                <td
-                  colSpan={5}
-                  style={{
-                    textAlign: "center",
-                    padding: "24px 16px",
-                    color: "#6b7280",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  Chưa có thông tin chi tiết lô nguyên liệu hoặc mẻ chưa xuất kho.
+                <td colSpan={5} className={styles.emptyCell}>
+                  Chưa có thông tin chi tiết lô nguyên liệu hoặc lô chưa xuất kho.
                 </td>
               </tr>
             ) : (
-              ingredients.map((item) => (
-                <tr key={item.id} className={styles.row}>
-                  {/* Tên */}
-                  <td className={styles.tdName}>
-                    <div className={styles.nameWrap}>
-                      <span className={styles.dot} />
+              ingredients.map((item, index) => {
+                const qtyVal = item.quantity || item.plannedQty || "—"
+                const unitVal = item.unit || "kg"
+                return (
+                  <tr key={item.id || index} className={styles.row}>
+                    <td className={styles.tdIndex}>{index + 1}</td>
+                    <td className={styles.tdName}>
                       <span className={styles.nameText}>{item.name}</span>
-                    </div>
-                  </td>
-
-                  {/* Mã lô */}
-                  <td className={styles.tdLot}>
-                    <div className={styles.lotWrap}>
-                      <span className={styles.lotCode}>{item.lotCode}</span>
-                      <span className={styles.lotQualityBadge}>Đạt</span>
-                    </div>
-                  </td>
-
-                  {/* Số lượng */}
-                  <td className={styles.tdQty}>
-                    <span className={styles.numBold}>{(item.quantity || item.plannedQty)}</span>
-                  </td>
-
-                  {/* Đơn vị */}
-                  <td className={styles.tdUnit}>
-                    <span className={styles.unitText}>{item.unit}</span>
-                  </td>
-
-                  {/* HSD */}
-                  <td className={styles.tdExpiry}>
-                    <div className={styles.expiryWrap}>
-                      <span className={styles.expiryDate}>{item.expiryDate}</span>
-                      <span className={`${styles.expiryNotePill} ${styles[`note_${item.noteType || "default"}`]}`}>
-                        {item.expiryNote}
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td className={styles.tdLot}>
+                      <span className={styles.lotCode}>{item.lotCode || "—"}</span>
+                    </td>
+                    <td className={styles.tdQty}>
+                      <strong className={styles.qtyNumber}>{qtyVal}</strong>
+                      <span className={styles.qtyUnit}>{unitVal}</span>
+                    </td>
+                    <td className={styles.tdExpiry}>
+                      <span className={styles.expiryDate}>{item.expiryDate || "—"}</span>
+                    </td>
+                  </tr>
+                )
+              })
             )}
           </tbody>
         </table>
@@ -94,45 +68,32 @@ export default function BatchIngredientsCard({ ingredients = [] }) {
       {/* 2. Mobile Card List (< 640px) */}
       <div className={styles.mobileCardList}>
         {ingredients.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "20px 16px",
-              color: "#6b7280",
-              fontSize: "0.875rem",
-            }}
-          >
-            Chưa có thông tin chi tiết lô nguyên liệu hoặc mẻ chưa xuất kho.
+          <div className={styles.emptyCell}>
+            Chưa có thông tin chi tiết lô nguyên liệu hoặc lô chưa xuất kho.
           </div>
         ) : (
-          ingredients.map((item) => (
-            <div key={item.id} className={styles.mobileItemCard}>
-              <div className={styles.mobileItemTop}>
-                <div className={styles.mobileItemName}>
-                  <span className={styles.dot} />
-                  <span>{item.name}</span>
-                </div>
-                <div className={styles.lotWrap}>
+          ingredients.map((item, index) => {
+            const qtyVal = item.quantity || item.plannedQty || "—"
+            const unitVal = item.unit || "kg"
+            return (
+              <div key={item.id || index} className={styles.mobileItemCard}>
+                <div className={styles.mobileTopRow}>
+                  <strong className={styles.mobileNameText}>{item.name}</strong>
                   <span className={styles.lotCode}>{item.lotCode}</span>
-                  <span className={styles.lotQualityBadge}>Đạt</span>
+                </div>
+                <div className={styles.mobileBottomRow}>
+                  <div className={styles.mobileField}>
+                    <span className={styles.fieldLabel}>Định lượng:</span>
+                    <strong className={styles.qtyNumber}>{qtyVal} {unitVal}</strong>
+                  </div>
+                  <div className={styles.mobileField}>
+                    <span className={styles.fieldLabel}>HSD:</span>
+                    <span className={styles.expiryDate}>{item.expiryDate}</span>
+                  </div>
                 </div>
               </div>
-
-              <div className={styles.mobileItemMid}>
-                <span className={styles.mobileLabel}>Số lượng xuất kho:</span>
-                <span className={styles.mobileValBold}>
-                  {(item.quantity || item.plannedQty)} {item.unit}
-                </span>
-              </div>
-
-              <div className={styles.mobileItemBottom}>
-                <span className={styles.mobileLabel}>HSD: {item.expiryDate}</span>
-                <span className={`${styles.expiryNotePill} ${styles[`note_${item.noteType || "default"}`]}`}>
-                  {item.expiryNote}
-                </span>
-              </div>
-            </div>
-          ))
+            )
+          })
         )}
       </div>
     </section>

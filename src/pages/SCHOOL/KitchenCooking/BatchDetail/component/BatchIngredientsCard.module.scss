@@ -1,24 +1,18 @@
 .ingredientsCard {
   background-color: #ffffff;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
-
-  @media (min-width: 768px) {
-    padding: 22px;
-  }
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
 }
 
 .cardHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding-bottom: 14px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #f3f4f6;
-  flex-wrap: wrap;
+  padding: 16px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  background-color: #fafcfb;
 }
 
 .headerLeft {
@@ -31,307 +25,228 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
+  background-color: #e6f7f2;
+  color: #0a8066;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
 }
 
 .cardTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--text-primary, #111827);
-  letter-spacing: -0.01em;
-
-  @media (min-width: 768px) {
-    font-size: 17px;
-  }
+  color: #0f172a;
 }
 
 .countBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  font-size: 11.5px;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  background-color: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
   font-weight: 600;
 }
 
-/* 1. Desktop Table View */
-.desktopTableWrap {
-  display: none;
+/* 1. Desktop Table */
+.tableWrap {
+  width: 100%;
   overflow-x: auto;
 
-  @media (min-width: 640px) {
-    display: block;
+  @media (max-width: 640px) {
+    display: none;
   }
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
   text-align: left;
+  font-size: 13.5px;
 }
 
-.thName,
-.thLot,
-.thQty,
-.thUnit,
-.thExpiry {
-  padding: 10px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #6b7280;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
-  white-space: nowrap;
-
-  &:first-child {
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
-  }
-
-  &:last-child {
-    border-top-right-radius: 8px;
-    border-bottom-right-radius: 8px;
-  }
+.thIndex {
+  width: 44px;
+  text-align: center;
+  padding: 12px 14px;
+  color: #64748b;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .thName {
-  min-width: 180px;
+  padding: 12px 16px;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .thLot {
-  min-width: 160px;
+  width: 160px;
+  padding: 12px 16px;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .thQty {
-  text-align: right;
-  min-width: 110px;
-}
-
-.thUnit {
-  text-align: center;
-  min-width: 70px;
+  width: 180px;
+  padding: 12px 16px;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .thExpiry {
-  min-width: 170px;
+  width: 160px;
+  padding: 12px 16px;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .row {
-  border-bottom: 1px solid #f3f4f6;
-  transition: background-color 0.15s ease;
-
-  &:hover {
-    background-color: #fafbfc;
-  }
+  border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.12s ease;
 
   &:last-child {
     border-bottom: none;
   }
+
+  &:hover {
+    background-color: #f8fafc;
+  }
 }
 
-.tdName,
-.tdLot,
-.tdQty,
-.tdUnit,
-.tdExpiry {
-  padding: 12px;
-  vertical-align: middle;
-}
-
-.tdQty {
-  text-align: right;
-}
-
-.tdUnit {
+.tdIndex {
   text-align: center;
+  color: #94a3b8;
+  font-size: 12px;
+  padding: 14px;
 }
 
-.nameWrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: var(--color-primary, #0a8066);
-  flex-shrink: 0;
+.tdName {
+  padding: 14px 16px;
 }
 
 .nameText {
   font-weight: 600;
-  color: var(--text-primary, #111827);
+  color: #0f172a;
 }
 
-.lotWrap {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-  flex-shrink: 0;
+.tdLot {
+  padding: 14px 16px;
 }
 
 .lotCode {
-  font-family: monospace;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #374151;
-  white-space: nowrap;
-}
-
-.lotQualityBadge {
   display: inline-block;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background-color: #e8f5f1;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: 700;
+  color: #065f46;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 2px 7px;
+  border-radius: 5px;
+}
+
+.tdQty {
+  padding: 14px 16px;
+}
+
+.qtyNumber {
+  font-size: 14px;
+  font-weight: 700;
   color: #0a8066;
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
+  font-feature-settings: "tnum";
 }
 
-.numBold {
-  font-weight: 700;
-  color: var(--text-primary, #111827);
-  white-space: nowrap;
+.qtyUnit {
+  margin-left: 4px;
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
 }
 
-.unitText {
-  font-size: 12.5px;
-  color: #6b7280;
-  white-space: nowrap;
-}
-
-.expiryWrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-wrap: nowrap;
-  white-space: nowrap;
+.tdExpiry {
+  padding: 14px 16px;
 }
 
 .expiryDate {
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #374151;
+  font-size: 13px;
+  color: #475569;
+  font-feature-settings: "tnum";
 }
 
-.expiryNotePill {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10.5px;
-  font-weight: 600;
-  white-space: nowrap;
+.emptyCell {
+  text-align: center;
+  padding: 32px 16px;
+  color: #64748b;
+  font-size: 13.5px;
 }
 
-.note_warning {
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.note_info {
-  background-color: #e0f2fe;
-  color: #0369a1;
-}
-
-.note_default {
-  background-color: #f3f4f6;
-  color: #4b5563;
-}
-
-/* 2. Mobile Card List */
+/* 2. Mobile Cards */
 .mobileCardList {
-  display: flex;
-  flex-direction: column;
+  display: none;
+  padding: 12px;
   gap: 10px;
 
-  @media (min-width: 640px) {
-    display: none;
+  @media (max-width: 640px) {
+    display: flex;
+    flex-direction: column;
   }
 }
 
 .mobileItemCard {
+  background-color: #fcfdfe;
+  border: 1px solid #f1f5f9;
+  border-radius: 8px;
   padding: 12px;
-  border-radius: 10px;
-  background-color: #f9fafb;
-  border: 1px solid #e5e7eb;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.mobileItemTop {
+.mobileTopRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.mobileItemName {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
+.mobileNameText {
+  font-size: 14px;
   font-weight: 600;
-  color: #111827;
-  min-width: 0;
+  color: #0f172a;
 }
 
-.mobileItemMid {
+.mobileBottomRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 0;
-  border-top: 1px dashed #e5e7eb;
-  border-bottom: 1px dashed #e5e7eb;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed #f1f5f9;
 }
 
-.mobileLabel {
-  font-size: 11.5px;
-  color: #6b7280;
-}
-
-.mobileValBold {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--color-primary, #0a8066);
-}
-
-.mobileItemBottom {
+.mobileField {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  gap: 4px;
 }
 
-/* Footer note */
-.footerNote {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.fieldLabel {
   font-size: 12px;
-  color: #6b7280;
-  line-height: 1.4;
-}
-
-.infoIcon {
-  color: #9ca3af;
-  flex-shrink: 0;
+  color: #64748b;
 }

@@ -2,24 +2,25 @@
   background-color: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  padding: 16px;
+  padding: 20px 22px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 
-  @media (min-width: 768px) {
-    padding: 20px;
+  @media (max-width: 640px) {
+    padding: 16px;
+    gap: 14px;
   }
 }
 
-.heroDishBox {
-  background-color: #fafcfb;
-  border: 1px solid #e6f4ef;
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 14px;
+.heroBox {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 18px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #f1f5f9;
 
   @media (max-width: 640px) {
     flex-direction: column;
@@ -31,185 +32,97 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
+  flex: 1;
 }
 
-.heroMetaRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.batchCodePill {
+.dishLabelRow {
   display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: #ffffff;
-  border: 1px solid #d1fae5;
-  color: #065f46;
-}
-
-.batchGroupPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: #f5f3ff;
-  border: 1px solid #ddd6fe;
-  color: #6d28d9;
-}
-
-.groupIcon {
-  color: #7c3aed;
-}
-
-.batchGroupText {
-  font-family: monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.dishesBox {
-  margin-top: 10px;
-  padding: 10px 12px;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.dishesBoxHeader {
-  display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #475569;
+  color: #0a8066;
+}
+
+.dishIcon {
+  color: #0a8066;
+}
+
+.dishCategoryText {
+  font-size: 12px;
+  font-weight: 600;
+  color: #0a8066;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.dishesList {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.dishItemBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background-color: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.8125rem;
-}
-
-.dishItemName {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.dishItemPortions {
-  font-size: 0.75rem;
-  color: #64748b;
-  background-color: #ffffff;
-  padding: 1px 5px;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-}
-
-.hashIcon {
-  color: #059669;
-}
-
-.batchCodeText {
-  font-family: monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-}
-
-.statusCompletedPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: #ecfdf5;
-  color: #059669;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.statusConfirmedPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: #eff6ff;
-  color: #2563eb;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-.statusDraftPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border-radius: 6px;
-  background-color: #fef3c7;
-  color: #b45309;
-  font-size: 0.75rem;
-  font-weight: 600;
+  letter-spacing: 0.04em;
 }
 
 .dishNameTitle {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 22px;
   font-weight: 800;
-  color: #111827;
+  color: #0f172a;
   letter-spacing: -0.02em;
+  line-height: 1.3;
 
-  @media (min-width: 768px) {
-    font-size: 1.45rem;
+  @media (max-width: 640px) {
+    font-size: 18px;
   }
 }
 
-.heroPortionBox {
+.dishesListWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.dishChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background-color: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 12.5px;
+}
+
+.dishChipName {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.dishChipPortions {
+  font-size: 11.5px;
+  color: #0a8066;
+  font-weight: 600;
+  background-color: #e6f7f2;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.portionBox {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 8px 14px;
-  background: #ffffff;
-  border-radius: 8px;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 10px 18px;
+  background-color: #f8fafc;
+  border-radius: 10px;
   border: 1px solid #e2e8f0;
   flex-shrink: 0;
 
-  @media (min-width: 640px) {
-    align-items: flex-end;
-  }
-
   @media (max-width: 640px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 14px;
   }
 }
 
 .portionLabel {
-  font-size: 0.6875rem;
+  font-size: 11.5px;
   font-weight: 600;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
 }
 
 .portionValueRow {
@@ -219,76 +132,92 @@
 }
 
 .portionBigNumber {
-  font-size: 1.5rem;
+  font-size: 26px;
   font-weight: 800;
   color: #0a8066;
+  line-height: 1.1;
+  font-feature-settings: "tnum";
 }
 
 .portionUnit {
-  font-size: 0.8125rem;
+  font-size: 13px;
   font-weight: 600;
   color: #64748b;
 }
 
-.metricsGrid {
+/* 2. Dải thông số nghiệp vụ cốt lõi */
+.metaStrip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
 
-  @media (max-width: 640px) {
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 480px) {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 10px;
   }
 }
 
-.metricItem {
-  background-color: #f8fafc;
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background-color: #fcfdfe;
   border-radius: 8px;
-  padding: 10px 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.metaIconWrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background-color: #f1f5f9;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metaContent {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
+}
 
-  @media (max-width: 640px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 12px;
+.metaLabel {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.metaVal {
+  font-size: 13px;
+  color: #1e293b;
+
+  strong {
+    font-weight: 600;
+    color: #0f172a;
   }
 }
 
-.metricLabelRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.subText {
   color: #64748b;
-}
-
-.metricIcon {
-  color: #64748b;
-}
-
-.metricLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.metricValue {
-  font-size: 0.875rem;
-  color: #111827;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.metricSubTime {
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 12px;
 }
 
 .methodTag {
-  font-size: 0.8125rem;
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background-color: #e0f2fe;
+  color: #0369a1;
+  font-size: 11.5px;
   font-weight: 600;
-  color: #0f766e;
 }

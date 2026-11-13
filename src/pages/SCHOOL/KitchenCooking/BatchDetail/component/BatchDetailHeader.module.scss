@@ -1,103 +1,79 @@
 .headerBar {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  width: 100%;
-}
-
-/* Title Row */
-.titleRow {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-}
-
-.titleLeft {
-  display: flex;
-  align-items: flex-start;
   gap: 8px;
-  min-width: 0;
-  flex: 1;
-
-  @media (min-width: 768px) {
-    gap: 12px;
-  }
+  width: 100%;
+  padding-bottom: 6px;
 }
 
-/* Nút quay lại Ghost icon (touch target >= 44px) */
+.headerMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
 .backBtn {
-  width: 38px;
-  height: 38px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
   border-radius: 8px;
-  border: none !important;
-  background-color: transparent !important;
-  color: var(--text-primary, #111827);
+  border: 1px solid #e2e8f0;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  padding: 0;
-  flex-shrink: 0;
-  position: relative;
+  font-family: inherit;
   transition: all 0.15s ease;
-  margin-top: -2px;
-
-  &::after {
-    content: "";
-    position: absolute;
-    top: -4px;
-    bottom: -4px;
-    left: -4px;
-    right: -4px;
-  }
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.05) !important;
-    color: var(--color-primary, #0a8066);
-  }
-
-  &:active {
-    background-color: rgba(0, 0, 0, 0.08) !important;
-    transform: scale(0.92);
+    background-color: #f8fafc;
+    color: #0f172a;
+    border-color: #cbd5e1;
   }
 }
 
-.headingWrap {
+.titleInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  min-width: 0;
+  gap: 3px;
 }
 
-.titleLine {
+.titleRow {
   display: flex;
   align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
-  gap: 8px;
 }
 
 .heading {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
-  color: var(--text-primary, #111827);
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-
-  @media (min-width: 768px) {
-    font-size: 22px;
-  }
+  color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
 .statusBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 9px;
+  padding: 3px 10px;
   border-radius: 9999px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -106,91 +82,158 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.4;
-    transform: scale(1.3);
-  }
 }
 
 .statusDraft {
-  background-color: #fef6e7;
-  color: #b26b00;
-  border: 1px solid rgba(233, 162, 59, 0.25);
+  background-color: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
 
   .pulseDot {
-    background-color: #e9a23b;
+    background-color: #f59e0b;
   }
 }
 
 .statusConfirmed {
-  background-color: var(--color-primary-soft, #e8f5f1);
-  color: var(--color-primary, #0a8066);
-  border: 1px solid rgba(10, 128, 102, 0.25);
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
 
   .pulseDot {
-    background-color: var(--color-primary, #0a8066);
+    background-color: #3b82f6;
   }
 }
 
 .statusCompleted {
-  background-color: #ecfdf5;
-  color: #047857;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  background-color: #f0fdf4;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
 
   .pulseDot {
-    background-color: #10b981;
+    background-color: #22c55e;
   }
 }
 
-.subTitle {
-  margin: 0;
-  font-size: 12.5px;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.4;
-  display: none;
+.subGroupTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #64748b;
 
-  @media (min-width: 640px) {
-    display: block;
+  strong {
+    color: #334155;
+    font-weight: 600;
   }
 }
 
-/* Header Actions Desktop */
-.headerActionsDesktop {
-  display: none;
+/* Actions Area */
+.actionsArea {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
-  @media (min-width: 768px) {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 8px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(10, 128, 102, 0.2);
+
+  &:hover:not(:disabled) {
+    background-color: #087059;
+    box-shadow: 0 2px 6px rgba(10, 128, 102, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 
-.backToListBtn {
+.sampleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid #0a8066;
+  border-radius: 8px;
+  background-color: #f0fdf9;
+  color: #0a8066;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #0a8066;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.sampleDoneBadge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 14px;
+  height: 36px;
+  padding: 0 14px;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  background-color: #ffffff;
-  color: var(--text-primary, #374151);
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background-color: #fff1f2;
+  color: #dc2626;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  font-family: inherit;
   transition: all 0.15s ease;
 
-  &:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-    color: var(--color-primary, #0a8066);
+  &:hover:not(:disabled) {
+    background-color: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 768px) {
+  .actionsArea {
+    display: none; // Ẩn trên mobile vì đã có mobile sticky bottom bar
   }
 }
