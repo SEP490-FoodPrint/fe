@@ -1,30 +1,22 @@
-import api from "../01_axios"
-import * as urls from "./urls"
+import http from "src/services/01_axios"
+import { USER_URLS } from "./urls"
 
 const UserService = {
-  /**
-   * Lấy danh sách tài khoản thuộc trường học (phân trang page/limit)
-   */
-  getSchoolAccounts: (schoolId, params) =>
-    api.get(urls.apiGetSchoolAccounts(schoolId), { params }),
-
-  /**
-   * Tạo tài khoản nhân sự mới cho trường học
-   */
-  createSchoolAccount: (schoolId, data) =>
-    api.post(urls.apiCreateSchoolAccount(schoolId), data),
-
-  /**
-   * Cập nhật thông tin tài khoản nhân sự (Họ tên, SĐT, Vai trò)
-   */
-  updateSchoolAccount: (schoolId, userId, data) =>
-    api.put(urls.apiUpdateSchoolAccount(schoolId, userId), data),
-
-  /**
-   * Khóa hoặc Mở khóa tài khoản nhân sự
-   */
-  toggleAccountStatus: (schoolId, userId, status) =>
-    api.patch(urls.apiToggleAccountStatus(schoolId, userId), { status }),
+  getSchoolAccounts: (schoolId, params) => {
+    return http.get(USER_URLS.schoolAccounts(schoolId), { params })
+  },
+  getSchoolAccountById: (schoolId, userId) => {
+    return http.get(USER_URLS.schoolAccountDetail(schoolId, userId))
+  },
+  createSchoolAccount: (schoolId, body) => {
+    return http.post(USER_URLS.schoolAccounts(schoolId), body)
+  },
+  updateSchoolAccount: (schoolId, userId, body) => {
+    return http.put(USER_URLS.schoolAccountDetail(schoolId, userId), body)
+  },
+  toggleAccountStatus: (schoolId, userId, status) => {
+    return http.patch(USER_URLS.schoolAccountStatus(schoolId, userId), { status })
+  },
 }
 
 export default UserService

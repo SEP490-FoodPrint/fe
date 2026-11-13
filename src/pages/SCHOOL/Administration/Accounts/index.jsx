@@ -22,6 +22,7 @@ const PAGE_SIZE = 10
 const ROLE_TO_DEPT = {
     SCHOOL_MANAGEMENT_BOARD: "BGH",
     SCHOOL_NUTRITION_OFFICER: "Y_TE",
+    SCHOOL_HEALTH_OFFICER: "Y_TE",
     SCHOOL_KITCHEN_STAFF: "BEP",
     HOMEROOM_TEACHER: "GVCN",
     PARENTS_COMMITTEE: "PHU_HUYNH",
@@ -32,6 +33,7 @@ const ROLE_TO_DEPT = {
 const ALLOWED_STAFF_ROLES = new Set([
     "SCHOOL_MANAGEMENT_BOARD",
     "SCHOOL_NUTRITION_OFFICER",
+    "SCHOOL_HEALTH_OFFICER",
     "SCHOOL_KITCHEN_STAFF",
     "HOMEROOM_TEACHER",
     "PARENTS_COMMITTEE",
@@ -84,6 +86,7 @@ function Accounts() {
                 })
                 .map(mapApiUser)
             setAccounts(staffUsers)
+            saveStoredAccounts(staffUsers)
         } catch (err) {
             console.warn("Chưa kết nối API Backend hoặc rỗng, hiển thị danh sách hiện tại:", err)
             setAccounts(getStoredAccounts())
@@ -196,17 +199,17 @@ function Accounts() {
         navigate(ROUTER.SCHOOL_ACCOUNT_CREATE || "/school/administration/accounts/create")
     }
 
-    // Chuyển sang màn hình Cập nhật tài khoản (làm sau)
+    // Chuyển sang màn hình Cập nhật tài khoản
     const handleNavigateToEdit = (account) => {
         const editUrl = ROUTER.SCHOOL_ACCOUNT_EDIT
             ? ROUTER.SCHOOL_ACCOUNT_EDIT.replace(":id", account.id)
             : `/school/administration/accounts/${account.id}/edit`
-        navigate(editUrl)
+        navigate(editUrl, { state: { account } })
     }
 
     // Khóa / Mở khóa tài khoản (chuyển đổi 2 trạng thái lock/unlock)
     const handlePromptToggleStatus = (account) => {
-        const isLocked = account.status === "LOCKED"
+        const isLocked = account.status === "LOCKED" || account.status === "INACTIVE"
         setConfirmDialog({
             isOpen: true,
             type: isLocked ? "UNLOCK" : "LOCK",
@@ -215,22 +218,29 @@ function Accounts() {
     }
 
     // Xác nhận Khóa / Mở khóa từ ConfirmDialog
-    const handleConfirmToggleStatus = (account, type) => {
-        let updated
-        if (type === "LOCK") {
-            updated = accounts.map((acc) =>
-                acc.id === account.id ? { ...acc, status: "LOCKED" } : acc
+    const handleConfirmToggleStatus = async (account, type) => {
+        const userInfo = getStorage(STORAGE.USER_INFO)
+        const schoolId = userInfo?.schoolId
+        const newStatus = type === "LOCK" ? "LOCKED" : "ACTIVE"
+
+        try {
+            if (schoolId) {
+                await UserService.toggleAccountStatus(schoolId, account.id, newStatus)
+            }
+            const updated = accounts.map((acc) =>
+                acc.id === account.id ? { ...acc, status: newStatus } : acc
             )
             setAccounts(updated)
             saveStoredAccounts(updated)
-            showToast(`Đã tạm khóa tài khoản "${account.fullName}" (${account.code})!`, "warning")
-        } else if (type === "UNLOCK") {
-            updated = accounts.map((acc) =>
-                acc.id === account.id ? { ...acc, status: "ACTIVE" } : acc
+            showToast(
+                type === "LOCK"
+                    ? `Đã tạm khóa tài khoản "${account.fullName}" (${account.code})!`
+                    : `Đã mở khóa tài khoản "${account.fullName}" thành công!`,
+                type === "LOCK" ? "warning" : "success"
             )
-            setAccounts(updated)
-            saveStoredAccounts(updated)
-            showToast(`Đã mở khóa tài khoản "${account.fullName}" thành công!`, "success")
+        } catch (err) {
+            console.error("Lỗi khi thay đổi trạng thái tài khoản:", err)
+            showToast(err.message || "Không thể thay đổi trạng thái tài khoản. Vui lòng thử lại.", "warning")
         }
     }
 
