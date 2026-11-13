@@ -295,20 +295,28 @@ export default function CookingBatchesTable({
 
       <div className={styles.paginationBar}>
         <div className={styles.pageInfo}>
-          <span>
-            {loading
-              ? "Đang tải…"
-              : error
-                ? "Chưa tải được danh sách"
-                : `${totalItems.toLocaleString("vi-VN")} lô · ${totalItems ? (page - 1) * limit + 1 : 0}–${Math.min(page * limit, totalItems)}`}
+          <span className={styles.rangeText}>
+            {loading ? (
+              "Đang tải…"
+            ) : error ? (
+              "Chưa tải được danh sách"
+            ) : (
+              <>
+                Hiển thị <strong>{totalItems ? (page - 1) * limit + 1 : 0}–{Math.min(page * limit, totalItems)}</strong> trong tổng số <strong>{totalItems.toLocaleString("vi-VN")}</strong> lô
+              </>
+            )}
           </span>
+
+          <span className={styles.metaDivider}>•</span>
+
           <div className={styles.pageSizeSelect}>
-            <span>Xem:</span>
+            <span className={styles.pageSizeLabel}>Xem:</span>
             <select
               value={limit}
               onChange={(event) => onPageSizeChange(Number(event.target.value))}
               aria-label="Số dòng mỗi trang"
               disabled={loading}
+              className={styles.selectInput}
             >
               <option value={10}>10 / trang</option>
               <option value={20}>20 / trang</option>
@@ -316,26 +324,31 @@ export default function CookingBatchesTable({
             </select>
           </div>
         </div>
+
         <div className={styles.pageNav}>
-          <IconButton
+          <button
+            type="button"
             className={styles.pageBtn}
             disabled={loading || Boolean(error) || page <= 1}
             onClick={() => onPageChange(page - 1)}
             aria-label="Trang trước"
+            title="Trang trước"
           >
-            <ChevronLeft size={18} />
-          </IconButton>
+            <ChevronLeft size={16} />
+          </button>
           <span className={styles.pageText}>
-            Trang {page}/{totalPages}
+            Trang <strong>{page}</strong> / {totalPages || 1}
           </span>
-          <IconButton
+          <button
+            type="button"
             className={styles.pageBtn}
             disabled={loading || Boolean(error) || page >= totalPages}
             onClick={() => onPageChange(page + 1)}
             aria-label="Trang tiếp"
+            title="Trang tiếp theo"
           >
-            <ChevronRight size={18} />
-          </IconButton>
+            <ChevronRight size={16} />
+          </button>
         </div>
       </div>
       <Dialog
