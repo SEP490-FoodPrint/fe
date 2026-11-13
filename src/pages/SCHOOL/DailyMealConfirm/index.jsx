@@ -39,7 +39,7 @@ import "./style.scss"
 
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
 const statusLabel = status => (status === "FINALIZED" ? "Đã chốt" : "Bản nháp")
-const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa phụ" : "Bữa trưa")
+const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")
 const statusTone = status => {
   if (!status) return "neutral"
   return status === "FINALIZED" ? "success" : "warning"
@@ -76,7 +76,7 @@ function DailyMealConfirm() {
   const initialMealType = searchParams.get("mealType") === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
   const [date, setDate] = useState(() => getInitialDate(searchParams.get("date")))
   const [mealType, setMealType] = useState(initialMealType)
-  const [historyWeekFilter, setHistoryWeekFilter] = useState("ALL")
+  const [historyMealFilter, setHistoryMealFilter] = useState("ALL")
   const [context, setContext] = useState(null)
   const [history, setHistory] = useState([])
   const [totalPortions, setTotalPortions] = useState("")
@@ -193,53 +193,44 @@ function DailyMealConfirm() {
     }
   }
 
-  const historyByWeek = useMemo(() => {
-    if (!history || !history.length) return []
-    const map = new Map()
+  const selectedMondayISO = weekSchedule.schoolDays[0]?.dateISO
 
-    for (const item of history) {
-      const sched = getSchoolWeekScheduleFromDate(item.mealDate)
-      const mondayISO = sched.schoolDays[0]?.dateISO || dayjs(item.mealDate).startOf("isoWeek").format("YYYY-MM-DD")
+  const filteredHistoryItems = useMemo(() => {
+    if (!history || !history.length || !selectedMondayISO) return []
+    return history
+      .filter(item => {
+        const itemSched = getSchoolWeekScheduleFromDate(item.mealDate)
+        const itemMonday = itemSched.schoolDays[0]?.dateISO
+        if (itemMonday !== selectedMondayISO) return false
+        if (historyMealFilter === "LUNCH") return item.mealType === "LUNCH"
+        if (historyMealFilter === "AFTERNOON") return item.mealType === "AFTERNOON"
+        return true
+      })
+      .sort((a, b) => {
+        const dateComp = dayjs(b.mealDate).diff(dayjs(a.mealDate))
+        if (dateComp !== 0) return dateComp
+        return a.mealType === "LUNCH" ? -1 : 1
+      })
+  }, [history, selectedMondayISO, historyMealFilter])
 
-      if (!map.has(mondayISO)) {
-        map.set(mondayISO, {
-          weekNumber: sched.weekNumber,
-          weekRangeLabel: sched.weekRangeLabel,
-          mondayISO,
-          items: [],
-          totalPortions: 0,
-          finalizedCount: 0,
-        })
-      }
-      const group = map.get(mondayISO)
-      group.items.push(item)
-      group.totalPortions += Number(item.totalPortions || 0)
-      if (item.status === "FINALIZED") group.finalizedCount += 1
+  const weekHistoryStats = useMemo(() => {
+    const totalPortions = filteredHistoryItems.reduce(
+      (sum, it) => sum + Number(it.totalPortions || 0),
+      0,
+    )
+    const finalizedCount = filteredHistoryItems.filter(it => it.status === "FINALIZED").length
+    return {
+      totalPortions,
+      finalizedCount,
+      count: filteredHistoryItems.length,
     }
-
-    return Array.from(map.values()).sort((a, b) => b.mondayISO.localeCompare(a.mondayISO))
-  }, [history])
-
-  const displayedWeekGroups = useMemo(() => {
-    if (historyWeekFilter === "CURRENT_WEEK") {
-      const curMonday = weekSchedule.schoolDays[0]?.dateISO
-      return historyByWeek.filter(w => w.mondayISO === curMonday)
-    }
-    return historyByWeek
-  }, [historyByWeek, historyWeekFilter, weekSchedule])
+  }, [filteredHistoryItems])
 
   const handleSelectHistoryItem = item => {
     const itemDate = dayjs(item.mealDate).format("YYYY-MM-DD")
     setDate(itemDate)
     setMealType(item.mealType)
     window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  const getDayMealStatus = dayIso => {
-    const record = history.find(
-      h => dayjs(h.mealDate).format("YYYY-MM-DD") === dayIso && h.mealType === mealType,
-    )
-    return record?.status || null
   }
 
   return (
@@ -302,7 +293,7 @@ function DailyMealConfirm() {
               className={`daily-meal-shift-segment__btn ${mealType === "AFTERNOON" ? "daily-meal-shift-segment__btn--afternoon-active" : ""}`}
               onClick={() => setMealType("AFTERNOON")}
             >
-              Bữa phụ
+              Bữa xế
             </button>
           </div>
         </div>
@@ -313,7 +304,6 @@ function DailyMealConfirm() {
         {weekSchedule.schoolDays.map(day => {
           const isSelected = day.dateISO === date
           const isToday = day.dateISO === dayjs().format("YYYY-MM-DD")
-          const dayStatus = getDayMealStatus(day.dateISO)
 
           return (
             <button
@@ -324,14 +314,9 @@ function DailyMealConfirm() {
             >
               <div className="daily-meal-day-pill__top">
                 <span className="daily-meal-day-pill__name">{day.dayIndexLabel}</span>
-                {isToday && <span className="daily-meal-day-pill__today-dot" title="Hôm nay" />}
+                {isToday && <span className="daily-meal-day-pill__today-pill">Hôm nay</span>}
               </div>
               <span className="daily-meal-day-pill__date">{day.dateVN?.slice(0, 5)}</span>
-              <div className="daily-meal-day-pill__status-row">
-                {dayStatus === "FINALIZED" && <span className="status-dot status-dot--success" title="Đã chốt" />}
-                {dayStatus === "DRAFT" && <span className="status-dot status-dot--warning" title="Bản nháp" />}
-                {!dayStatus && <span className="status-dot status-dot--empty" title="Chưa khai báo" />}
-              </div>
             </button>
           )
         })}
@@ -454,55 +439,59 @@ function DailyMealConfirm() {
             )}
           </Paper>
 
-          {/* 4. LỊCH SỬ KHAI BÁO THEO TUẦN */}
+          {/* 4. LỊCH SỬ KHAI BÁO THEO TUẦN ĐANG CHỌN */}
           <section className="daily-meal-history">
             <div className="daily-meal-history__header">
-              <h2>Lịch sử khai báo theo tuần</h2>
-              <div className="daily-meal-history__filters">
-                <Button
-                  size="small"
-                  variant={historyWeekFilter === "ALL" ? "contained" : "outlined"}
-                  onClick={() => setHistoryWeekFilter("ALL")}
-                  className="daily-meal-filter-btn"
+              <div className="daily-meal-history__title-group">
+                <h2>Lịch sử khai báo ({weekSchedule.weekRangeLabel})</h2>
+                {filteredHistoryItems.length > 0 && (
+                  <div className="daily-meal-history__stats">
+                    <Chip
+                      size="small"
+                      icon={<Utensils size={13} />}
+                      label={`Tổng ${weekHistoryStats.totalPortions} suất`}
+                      variant="outlined"
+                      className="daily-meal-stats-chip"
+                    />
+                    <Chip
+                      size="small"
+                      icon={<CheckCircle2 size={13} />}
+                      label={`${weekHistoryStats.finalizedCount}/${weekHistoryStats.count} ca đã chốt`}
+                      className="daily-meal-stats-chip daily-meal-stats-chip--success"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Bộ lọc ca ăn cho lịch sử: Tất cả | Bữa trưa | Bữa xế */}
+              <div className="daily-meal-shift-segment" role="group" aria-label="Lọc ca ăn lịch sử">
+                <button
+                  type="button"
+                  className={`daily-meal-shift-segment__btn ${historyMealFilter === "ALL" ? "daily-meal-shift-segment__btn--neutral-active" : ""}`}
+                  onClick={() => setHistoryMealFilter("ALL")}
                 >
-                  Tất cả ({historyByWeek.length} tuần)
-                </Button>
-                <Button
-                  size="small"
-                  variant={historyWeekFilter === "CURRENT_WEEK" ? "contained" : "outlined"}
-                  onClick={() => setHistoryWeekFilter("CURRENT_WEEK")}
-                  className="daily-meal-filter-btn"
+                  Tất cả ca
+                </button>
+                <button
+                  type="button"
+                  className={`daily-meal-shift-segment__btn ${historyMealFilter === "LUNCH" ? "daily-meal-shift-segment__btn--lunch-active" : ""}`}
+                  onClick={() => setHistoryMealFilter("LUNCH")}
                 >
-                  Tuần {weekSchedule.weekNumber}
-                </Button>
+                  Bữa trưa
+                </button>
+                <button
+                  type="button"
+                  className={`daily-meal-shift-segment__btn ${historyMealFilter === "AFTERNOON" ? "daily-meal-shift-segment__btn--afternoon-active" : ""}`}
+                  onClick={() => setHistoryMealFilter("AFTERNOON")}
+                >
+                  Bữa xế
+                </button>
               </div>
             </div>
 
             <div className="daily-meal-history__list">
-              {displayedWeekGroups.map(week => (
-                <Paper variant="outlined" key={week.mondayISO} className="daily-meal-week-card">
-                  <div className="daily-meal-week-card__header">
-                    <div className="daily-meal-week-card__title">
-                      <CalendarDays size={16} />
-                      <strong>{week.weekRangeLabel}</strong>
-                    </div>
-                    <div className="daily-meal-week-card__stats">
-                      <Chip
-                        size="small"
-                        icon={<Utensils size={13} />}
-                        label={`Tổng ${week.totalPortions} suất`}
-                        variant="outlined"
-                        className="daily-meal-stats-chip"
-                      />
-                      <Chip
-                        size="small"
-                        icon={<CheckCircle2 size={13} />}
-                        label={`${week.finalizedCount}/${week.items.length} ca đã chốt`}
-                        className="daily-meal-stats-chip daily-meal-stats-chip--success"
-                      />
-                    </div>
-                  </div>
-
+              {filteredHistoryItems.length > 0 ? (
+                <Paper variant="outlined" className="daily-meal-week-card">
                   {/* DESKTOP TABLE */}
                   <div className="daily-meal-history-desktop">
                     <TableContainer>
@@ -518,7 +507,7 @@ function DailyMealConfirm() {
                           </TableRow>
                         </TableHead>
                         <TableBody>
-                          {week.items.map(item => (
+                          {filteredHistoryItems.map(item => (
                             <TableRow key={item.id} hover>
                               <TableCell>
                                 <strong>{formatVNDate(item.mealDate)}</strong>
@@ -550,7 +539,7 @@ function DailyMealConfirm() {
 
                   {/* MOBILE CARD LIST */}
                   <div className="daily-meal-history-mobile">
-                    {week.items.map(item => (
+                    {filteredHistoryItems.map(item => (
                       <div key={item.id} className="daily-meal-history-card-item">
                         <div className="daily-meal-history-card-item__row">
                           <span className="daily-meal-history-card-item__date">
@@ -580,11 +569,9 @@ function DailyMealConfirm() {
                     ))}
                   </div>
                 </Paper>
-              ))}
-
-              {!displayedWeekGroups.length && (
+              ) : (
                 <Paper variant="outlined" className="daily-meal-empty-history">
-                  Chưa có lịch sử khai báo nào cho tuần này.
+                  Chưa có lịch sử khai báo nào trong tuần này{historyMealFilter !== "ALL" ? ` cho ${mealLabel(historyMealFilter).toLowerCase()}` : ""}.
                 </Paper>
               )}
             </div>
