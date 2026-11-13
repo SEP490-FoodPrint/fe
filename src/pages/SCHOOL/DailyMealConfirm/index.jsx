@@ -19,7 +19,6 @@ import {
   TableHead,
   TableRow,
   TextField,
-  Tooltip,
 } from "@mui/material"
 import dayjs from "dayjs"
 import {
@@ -31,17 +30,14 @@ import {
   ClipboardList,
   Edit3,
   Eye,
-  Info,
   RotateCcw,
   Save,
-  Sparkles,
-  Users,
   Utensils,
 } from "lucide-react"
 import { useSearchParams } from "react-router-dom"
 import notice from "src/components/Notice"
 import MealPortionService from "src/services/MealPortionService"
-import { getSchoolWeekScheduleFromDate, formatDateVN } from "src/services/MenuService/adapter"
+import { getSchoolWeekScheduleFromDate } from "src/services/MenuService/adapter"
 import "./style.scss"
 
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
@@ -50,6 +46,13 @@ const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa phụ" : "Bữa
 const statusTone = status => {
   if (!status) return "neutral"
   return status === "FINALIZED" ? "success" : "warning"
+}
+
+const VN_WEEKDAYS = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"]
+const formatVNDate = dateStr => {
+  const d = dayjs(dateStr)
+  if (!d.isValid()) return ""
+  return `${VN_WEEKDAYS[d.day()]}, ${d.format("DD/MM/YYYY")}`
 }
 
 const StatusChip = ({ status }) => (
@@ -64,7 +67,6 @@ const getInitialDate = param => {
   if (/^\d{4}-\d{2}-\d{2}$/.test(param || "")) return param
   const today = dayjs()
   const dow = today.day()
-  // Nếu là T7 hoặc CN, tự động trỏ về Thứ Hai của tuần học
   if (dow === 0 || dow === 6) {
     const sched = getSchoolWeekScheduleFromDate(today.toDate())
     return sched.schoolDays[0]?.dateISO || today.format("YYYY-MM-DD")
@@ -88,7 +90,6 @@ function DailyMealConfirm() {
   const [error, setError] = useState("")
   const [confirmOpen, setConfirmOpen] = useState(false)
 
-  // Thông tin tuần học từ adapter module tái sử dụng của nhóm
   const weekSchedule = useMemo(() => getSchoolWeekScheduleFromDate(date), [date])
 
   const isCurrentWeekSelected = useMemo(() => {
@@ -124,14 +125,14 @@ function DailyMealConfirm() {
         MealPortionService.getHistory({ page: 1, limit: 100 }),
       ])
       const next = contextResponse.data
-      const submission = next.submission
+      const sub = next.submission
       setContext(next)
       setHistory(historyResponse.data.items || [])
-      setTotalPortions(submission ? String(submission.totalPortions) : "")
-      setAllergyNotes(submission?.allergyNotes || "")
+      setTotalPortions(sub ? String(sub.totalPortions) : "")
+      setAllergyNotes(sub?.allergyNotes || "")
       setAllergyCounts(
         Object.fromEntries(
-          (submission?.dailyAllergyPortions || []).map(item => [item.ingredientEntryId, item.portionCount]),
+          (sub?.dailyAllergyPortions || []).map(item => [item.ingredientEntryId, item.portionCount]),
         ),
       )
     } catch (failure) {
@@ -165,14 +166,6 @@ function DailyMealConfirm() {
     [allergies, allergyCounts, allergyNotes, date, mealType, totalPortions],
   )
 
-  const registered = context?.class?.registeredMealPortions ?? 0
-  const numPortions = Number(totalPortions)
-  const isOverRegistered = totalPortions !== "" && numPortions > registered
-  const isUnderRegistered = totalPortions !== "" && numPortions < registered
-  const extraPortions = Math.max(0, numPortions - registered)
-
-  // Validation: Không giới hạn tối đa theo registeredMealPortions
-  // vì có thêm học sinh ăn bán trú phát sinh trong ngày
   const valid =
     totalPortions !== "" &&
     Number.isInteger(Number(totalPortions)) &&
@@ -186,19 +179,6 @@ function DailyMealConfirm() {
         count <= Number(totalPortions)
       )
     })
-
-  const portionsHelperText = useMemo(() => {
-    if (totalPortions === "") {
-      return `Đăng ký đầu năm: ${registered} suất. Có thể điều chỉnh tăng nếu có học sinh ăn bán trú phát sinh.`
-    }
-    if (isOverRegistered) {
-      return `Phát sinh thêm +${extraPortions} suất so với đăng ký đầu năm (${registered} suất).`
-    }
-    if (isUnderRegistered) {
-      return `Giảm ${registered - numPortions} suất so với đăng ký đầu năm (${registered} suất).`
-    }
-    return `Đúng bằng số suất đăng ký đầu năm (${registered} suất).`
-  }, [totalPortions, registered, isOverRegistered, isUnderRegistered, extraPortions, numPortions])
 
   const submit = async shouldFinalize => {
     if (!valid || saving || finalized) return
@@ -215,7 +195,6 @@ function DailyMealConfirm() {
     }
   }
 
-  // Nhóm lịch sử khai báo theo tuần học
   const historyByWeek = useMemo(() => {
     if (!history || !history.length) return []
     const map = new Map()
@@ -258,7 +237,6 @@ function DailyMealConfirm() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  // Lấy trạng thái bữa ăn của một ngày trong tuần đang xem
   const getDayMealStatus = dayIso => {
     const record = history.find(
       h => dayjs(h.mealDate).format("YYYY-MM-DD") === dayIso && h.mealType === mealType,
@@ -269,18 +247,10 @@ function DailyMealConfirm() {
   return (
     <div className="daily-meal-page">
       <header className="daily-meal-page__header">
-        <div>
-          <nav className="daily-meal-page__breadcrumb" aria-label="Đường dẫn trang">
-            <span>Giáo viên chủ nhiệm</span>
-            <span>/</span>
-            <strong>Suất ăn hằng ngày</strong>
-          </nav>
-          <h1>Chốt số suất ăn của lớp</h1>
-          <p>Khai báo tổng số suất và nhu cầu tránh nguyên liệu theo dữ liệu dị ứng của lớp theo từng tuần học.</p>
-        </div>
+        <h1>Chốt số suất ăn của lớp</h1>
       </header>
 
-      {/* CỤM ĐIỀU HƯỚNG TUẦN VÀ CHỌN THỨ TRONG TUẦN */}
+      {/* ĐIỀU HƯỚNG TUẦN VÀ CHỌN THỨ TRONG TUẦN */}
       <Paper variant="outlined" className="daily-meal-page__week-panel">
         <div className="daily-meal-page__week-nav-bar">
           <div className="daily-meal-page__week-nav-controls">
@@ -296,7 +266,7 @@ function DailyMealConfirm() {
 
             <div className="daily-meal-page__week-nav-info">
               <CalendarRange size={18} className="daily-meal-page__week-icon" />
-              <strong>{weekSchedule.weekRangeLabel}</strong>
+              <span>{weekSchedule.weekRangeLabel}</span>
             </div>
 
             <IconButton
@@ -313,7 +283,7 @@ function DailyMealConfirm() {
               size="small"
               variant={isCurrentWeekSelected ? "contained" : "outlined"}
               color="primary"
-              startIcon={<RotateCcw size={14} />}
+              startIcon={<RotateCcw size={13} />}
               onClick={handleCurrentWeek}
               className="daily-meal-page__current-week-btn"
             >
@@ -325,7 +295,7 @@ function DailyMealConfirm() {
             <TextField
               size="small"
               type="date"
-              label="Chọn ngày cụ thể"
+              label="Chọn ngày"
               value={date}
               onChange={event => setDate(event.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
@@ -345,7 +315,7 @@ function DailyMealConfirm() {
           </div>
         </div>
 
-        {/* CÁC THẺ NGÀY TRONG TUẦN (THỨ HAI - THỨ SÁU) */}
+        {/* 5 THẺ NGÀY TRONG TUẦN (T2 - T6) */}
         <div className="daily-meal-page__day-strip">
           {weekSchedule.schoolDays.map(day => {
             const isSelected = day.dateISO === date
@@ -359,26 +329,20 @@ function DailyMealConfirm() {
                 className={`daily-meal-page__day-card ${isSelected ? "daily-meal-page__day-card--active" : ""}`}
                 onClick={() => setDate(day.dateISO)}
               >
-                <div className="daily-meal-page__day-card-header">
-                  <span className="daily-meal-page__day-name">{day.dayLabel}</span>
+                <div className="daily-meal-page__day-card-top">
+                  <span className="daily-meal-page__day-name">{day.dayIndexLabel}</span>
                   {isToday && <span className="daily-meal-page__day-today-tag">Hôm nay</span>}
                 </div>
                 <div className="daily-meal-page__day-date">{day.dateVN.slice(0, 5)}</div>
-                <div className="daily-meal-page__day-status-indicator">
+                <div className="daily-meal-page__day-status-pill-wrap">
                   {dayStatus === "FINALIZED" && (
-                    <span className="daily-meal-page__day-status-pill daily-meal-page__day-status-pill--finalized">
-                      <CheckCircle2 size={12} /> Đã chốt
-                    </span>
+                    <span className="daily-meal-page__status-dot daily-meal-page__status-dot--success" title="Đã chốt" />
                   )}
                   {dayStatus === "DRAFT" && (
-                    <span className="daily-meal-page__day-status-pill daily-meal-page__day-status-pill--draft">
-                      Bản nháp
-                    </span>
+                    <span className="daily-meal-page__status-dot daily-meal-page__status-dot--warning" title="Bản nháp" />
                   )}
                   {!dayStatus && (
-                    <span className="daily-meal-page__day-status-pill daily-meal-page__day-status-pill--empty">
-                      Chưa khai báo
-                    </span>
+                    <span className="daily-meal-page__status-dot daily-meal-page__status-dot--empty" title="Chưa khai báo" />
                   )}
                 </div>
               </button>
@@ -401,37 +365,27 @@ function DailyMealConfirm() {
 
       {!loading && context && (
         <>
-          <Paper variant="outlined" className="daily-meal-page__summary">
-            <div>
-              <span>Lớp được phân công</span>
+          {/* THÔNG TIN LỚP & TRẠNG THÁI CA ĂN GỌN GÀNG */}
+          <Paper variant="outlined" className="daily-meal-page__class-banner">
+            <div className="daily-meal-page__class-banner-left">
               <strong>{context.class.name}</strong>
-              <small>Niên khóa {context.class.academicYear}</small>
+              <span>Niên khóa {context.class.academicYear}</span>
             </div>
-            <div>
-              <span>Số suất đăng ký đầu năm</span>
-              <strong>{context.class.registeredMealPortions}</strong>
-              <small>Mức đăng ký ban đầu (có thể tăng thêm)</small>
-            </div>
-            <div className="daily-meal-page__summary-status">
-              <div>
-                <span>Trạng thái ca ăn</span>
-                <small className="daily-meal-page__summary-subtext">
-                  {dayjs(date).format("DD/MM/YYYY")} · {mealLabel(mealType)}
-                </small>
-              </div>
+            <div className="daily-meal-page__class-banner-right">
+              <span className="daily-meal-page__class-banner-meal">
+                {mealLabel(mealType)} · {formatVNDate(date)}
+              </span>
               <StatusChip status={submission?.status} />
             </div>
           </Paper>
 
+          {/* FORM NHẬP SUẤT ĂN */}
           <Paper variant="outlined" className="daily-meal-page__form" aria-busy={saving}>
-            <div className="daily-meal-page__section-title">
+            <div className="daily-meal-page__form-title">
               <ClipboardList size={20} />
-              <div>
-                <h2>
-                  Số suất {mealLabel(mealType).toLowerCase()} — {dayjs(date).format("dddd, DD/MM/YYYY")}
-                </h2>
-                <p>Được phép sửa khi còn là bản nháp. Số suất có thể vượt mức đăng ký đầu năm nếu có học sinh ăn thêm.</p>
-              </div>
+              <h2>
+                Số suất {mealLabel(mealType).toLowerCase()} ({formatVNDate(date)})
+              </h2>
             </div>
 
             {finalized && (
@@ -440,29 +394,19 @@ function DailyMealConfirm() {
               </Alert>
             )}
 
-            {isOverRegistered && !finalized && (
-              <Alert severity="info" icon={<Sparkles size={18} />}>
-                Số suất khai báo ({numPortions}) cao hơn mức đăng ký đầu năm ({registered} suất). Đã ghi nhận thêm{" "}
-                <strong>+{extraPortions} suất bán trú phát sinh</strong>.
-              </Alert>
-            )}
-
             <TextField
               fullWidth
               type="number"
               label="Tổng số suất"
+              placeholder="Nhập tổng số suất ăn..."
               value={totalPortions}
               disabled={finalized || saving}
               onChange={event => setTotalPortions(event.target.value)}
-              inputProps={{ min: 0, step: 1 }}
-              helperText={portionsHelperText}
+              inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
             />
 
             <div className="daily-meal-page__allergies">
-              <div>
-                <h3>Suất cần tránh nguyên liệu</h3>
-                <p>Chỉ hiển thị dữ liệu dị ứng tổng hợp đã lưu cho lớp.</p>
-              </div>
+              <h3>Suất cần tránh nguyên liệu</h3>
               {!allergies.length && (
                 <Alert severity="info">Lớp chưa có thông tin dị ứng tổng hợp.</Alert>
               )}
@@ -484,7 +428,7 @@ function DailyMealConfirm() {
                         [item.ingredientEntryId]: event.target.value,
                       }))
                     }
-                    inputProps={{ min: 0, max: item.affectedCount, step: 1 }}
+                    inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric" }}
                   />
                 </div>
               ))}
@@ -494,10 +438,10 @@ function DailyMealConfirm() {
               fullWidth
               multiline
               minRows={2}
-              label="Ghi chú chung (không bắt buộc)"
+              label="Ghi chú (không bắt buộc)"
               value={allergyNotes}
               disabled={finalized || saving}
-              placeholder="Ghi chú thêm về học sinh ăn bán trú phát sinh hoặc yêu cầu đặc biệt..."
+              placeholder="Ghi chú thêm cho bếp nếu có yêu cầu đặc biệt..."
               onChange={event => setAllergyNotes(event.target.value)}
               inputProps={{ maxLength: 1000 }}
             />
@@ -509,6 +453,7 @@ function DailyMealConfirm() {
                   startIcon={<Save size={18} />}
                   disabled={!valid || saving}
                   onClick={() => submit(false)}
+                  className="daily-meal-page__btn-action"
                 >
                   Lưu nháp
                 </Button>
@@ -517,6 +462,7 @@ function DailyMealConfirm() {
                   startIcon={<CheckCircle2 size={18} />}
                   disabled={!valid || saving}
                   onClick={() => setConfirmOpen(true)}
+                  className="daily-meal-page__btn-action"
                 >
                   {saving ? "Đang xử lý..." : "Chốt số suất"}
                 </Button>
@@ -527,24 +473,21 @@ function DailyMealConfirm() {
           {/* LỊCH SỬ KHAI BÁO THEO TUẦN */}
           <section className="daily-meal-page__history">
             <div className="daily-meal-page__history-header">
-              <div>
-                <h2>Lịch sử khai báo theo tuần</h2>
-                <p>Dữ liệu của lớp được sắp xếp và thống kê trực quan theo từng tuần học.</p>
-              </div>
+              <h2>Lịch sử khai báo theo tuần</h2>
               <div className="daily-meal-page__history-filter-strip">
                 <Button
                   size="small"
                   variant={historyWeekFilter === "ALL" ? "contained" : "outlined"}
                   onClick={() => setHistoryWeekFilter("ALL")}
                 >
-                  Tất cả các tuần ({historyByWeek.length})
+                  Tất cả ({historyByWeek.length} tuần)
                 </Button>
                 <Button
                   size="small"
                   variant={historyWeekFilter === "CURRENT_WEEK" ? "contained" : "outlined"}
                   onClick={() => setHistoryWeekFilter("CURRENT_WEEK")}
                 >
-                  Tuần đang chọn (Tuần {weekSchedule.weekNumber})
+                  Tuần {weekSchedule.weekNumber}
                 </Button>
               </div>
             </div>
@@ -573,46 +516,30 @@ function DailyMealConfirm() {
                     </div>
                   </div>
 
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Ngày</TableCell>
-                          <TableCell>Ca ăn</TableCell>
-                          <TableCell>Lớp</TableCell>
-                          <TableCell align="right">Số suất</TableCell>
-                          <TableCell>Ghi chú suất</TableCell>
-                          <TableCell>Trạng thái</TableCell>
-                          <TableCell align="center">Thao tác</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {week.items.map(item => {
-                          const isOver = item.totalPortions > registered
-                          const diff = item.totalPortions - registered
-
-                          return (
+                  {/* DESKTOP TABLE */}
+                  <div className="daily-meal-page__desktop-history-table">
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Ngày</TableCell>
+                            <TableCell>Ca ăn</TableCell>
+                            <TableCell>Lớp</TableCell>
+                            <TableCell align="right">Số suất</TableCell>
+                            <TableCell>Trạng thái</TableCell>
+                            <TableCell align="center">Thao tác</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {week.items.map(item => (
                             <TableRow key={item.id} hover>
                               <TableCell>
-                                <strong>{dayjs(item.mealDate).format("dddd, DD/MM/YYYY")}</strong>
+                                <strong>{formatVNDate(item.mealDate)}</strong>
                               </TableCell>
                               <TableCell>{mealLabel(item.mealType)}</TableCell>
                               <TableCell>{item.Class?.name || context.class.name}</TableCell>
                               <TableCell align="right">
                                 <strong>{item.totalPortions}</strong>
-                              </TableCell>
-                              <TableCell>
-                                {isOver ? (
-                                  <span className="daily-meal-page__diff-badge daily-meal-page__diff-badge--plus">
-                                    +{diff} phát sinh
-                                  </span>
-                                ) : diff < 0 ? (
-                                  <span className="daily-meal-page__diff-badge daily-meal-page__diff-badge--minus">
-                                    {diff} suất
-                                  </span>
-                                ) : (
-                                  <span className="daily-meal-page__diff-badge">Đúng định mức</span>
-                                )}
                               </TableCell>
                               <TableCell>
                                 <StatusChip status={item.status} />
@@ -628,11 +555,43 @@ function DailyMealConfirm() {
                                 </Button>
                               </TableCell>
                             </TableRow>
-                          )
-                        })}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </div>
+
+                  {/* MOBILE CARDS LIST */}
+                  <div className="daily-meal-page__mobile-history-list">
+                    {week.items.map(item => (
+                      <div key={item.id} className="daily-meal-page__mobile-history-item">
+                        <div className="daily-meal-page__mobile-history-row">
+                          <span className="daily-meal-page__mobile-history-date">
+                            {formatVNDate(item.mealDate)}
+                          </span>
+                          <span className="daily-meal-page__mobile-history-meal">
+                            {mealLabel(item.mealType)}
+                          </span>
+                        </div>
+                        <div className="daily-meal-page__mobile-history-row">
+                          <div className="daily-meal-page__mobile-history-portions">
+                            <strong>{item.totalPortions}</strong> suất
+                          </div>
+                          <div className="daily-meal-page__mobile-history-actions">
+                            <StatusChip status={item.status} />
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => handleSelectHistoryItem(item)}
+                              className="daily-meal-page__mobile-btn-view"
+                            >
+                              {item.status === "FINALIZED" ? "Xem" : "Sửa"}
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </Paper>
               ))}
 
@@ -648,7 +607,7 @@ function DailyMealConfirm() {
             <DialogTitle>Chốt số suất ăn?</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Sau khi chốt, số suất ngày <strong>{dayjs(date).format("DD/MM/YYYY")}</strong> ({mealLabel(mealType).toLowerCase()}) sẽ được giữ nguyên để bếp lập kế hoạch và không thể sửa trực tiếp.
+                Sau khi chốt, số suất ngày <strong>{formatVNDate(date)}</strong> ({mealLabel(mealType).toLowerCase()}) sẽ được giữ nguyên để bếp lập kế hoạch và không thể sửa trực tiếp.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
