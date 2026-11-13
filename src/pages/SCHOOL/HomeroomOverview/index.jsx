@@ -137,7 +137,7 @@ function HomeroomOverview() {
           </div>
         </section>
 
-        <Link className="homeroom-overview__feedback" to={ROUTER.SCHOOL_MEAL_FEEDBACK}
+        <Link className="homeroom-overview__feedback" to={ROUTER.SCHOOL_MEAL_COMPLAINTS}
           aria-label="Mở trang phản ánh bữa ăn">
           <MessageSquareText size={22} />
           <span><strong>Phản ánh bữa ăn</strong><small>Gửi hoặc theo dõi phản ánh của lớp</small></span>

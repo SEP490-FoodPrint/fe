@@ -60,7 +60,7 @@ function SchoolOverview() {
             ["Sự cố đang xử lý", data.incidents?.filter(item => ["OPEN", "INVESTIGATING"].includes(item.status)).length, "sự cố"],
           ].map(([label, value, unit]) => <article key={label}><p>{label}</p><strong>{value ?? "—"}</strong><span>{unit}</span></article>)}
         </section>
-        <AnalyticsGrid data={data} />
+        <AnalyticsGrid data={data} complaintRoute={role === ROLES.PARENTS_COMMITTEE ? ROUTER.SCHOOL_MEAL_COMPLAINTS : ROUTER.SCHOOL_MEAL_FEEDBACK} />
         <section className="overview-panel">
           <h2>Thực đơn gần đây</h2>
           {data.menus?.length ? <div className="overview-menu-list">{data.menus.slice(0, 5).map(menu =>

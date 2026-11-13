@@ -27,10 +27,8 @@
   section { padding-top: var(--space-4); border-top: 1px solid var(--border-default); } section p { margin-top: var(--space-2); color: var(--text-secondary); line-height: 1.7; white-space: pre-wrap; }
   textarea { line-height: 1.6; }
 }
-.create-complaint { display: flex; flex-direction: column; gap: var(--space-4); padding-top: var(--space-5) !important; &__meal { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); } }
 @media (max-width: 900px) { .complaints-page__filters { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 680px) {
   .complaints-page { gap: var(--space-4); &__header { align-items: stretch; flex-direction: column; } &__header .MuiButton-root { width: 100%; } &__filters { grid-template-columns: 1fr; } &__table { display: none; } &__cards { display: flex; flex-direction: column; gap: var(--space-3); } &__cards button { display: grid; grid-template-columns: 1fr auto; gap: var(--space-3); width: 100%; padding: var(--space-4); border: 1px solid var(--border-default); border-radius: var(--radius-lg); color: inherit; background: var(--bg-surface); text-align: left; } &__cards button > span { display: flex; flex-direction: column; gap: var(--space-1); } &__cards button > span:nth-child(2) { align-items: flex-end; flex-direction: row; } &__cards small { color: var(--text-muted); } &__cards em { color: var(--text-secondary); font-style: normal; } .MuiPagination-root { align-self: center; } }
   .complaint-detail dl { grid-template-columns: 1fr; } .complaint-detail dl div, .complaint-detail dl div:nth-child(odd), .complaint-detail dl div:nth-last-child(-n + 2) { border-right: 0; border-bottom: 1px solid var(--border-default); } .complaint-detail dl div:last-child { border-bottom: 0; }
-  .create-complaint__meal { grid-template-columns: 1fr; }
 }
