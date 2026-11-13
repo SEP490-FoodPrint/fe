@@ -30,6 +30,7 @@ export default function CreateBatchDetailModal({
   onConfirmCreate,
   onConfirmCooking,
   onCompleteCooking,
+  onOpenSampleModal,
   submitting = false,
   onViewBatchDetail,
 }) {
@@ -300,6 +301,18 @@ export default function CreateBatchDetailModal({
           >
             <CheckCircle2 size={16} />
             <span>{submitting ? "Đang xử lý..." : "Ghi nhận nấu xong"}</span>
+          </button>
+        ) : status === "COMPLETED" && !hasSample && onOpenSampleModal ? (
+          <button
+            type="button"
+            className={styles.confirmTickBtn}
+            onClick={() => {
+              onClose?.();
+              onOpenSampleModal(currentItem);
+            }}
+          >
+            <ShieldCheck size={16} />
+            <span>Lưu mẫu thực phẩm 24h</span>
           </button>
         ) : (
           onViewBatchDetail && (

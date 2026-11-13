@@ -48,3 +48,4 @@ export default function BatchDishesCard({ batchData = {} }) {
     </section>
   )
 }
+

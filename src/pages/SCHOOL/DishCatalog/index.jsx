@@ -11,17 +11,8 @@ import {
   Sparkles,
   Utensils,
 } from "lucide-react"
-import {
-  DISH_CATEGORIES,
-  CATALOG_SUPPLIERS,
-  getStoredDishCatalog,
-  saveDishToCatalog,
-} from "src/pages/SCHOOL/MenuPlanning/dishCatalogData"
-import {
-  ALL_INGREDIENTS,
-  LINKED_SUPPLIERS,
-  WAREHOUSE_SEASONINGS_CATALOG,
-} from "src/pages/SCHOOL/MenuPlanning/mockMenuData"
+import { loadDishCatalog, loadRecipeOptions, saveDishRecipe, deleteDishRecipe } from "src/services/DishService"
+const DISH_CATEGORIES = [{key:"ALL",label:"T\u1ea5t c\u1ea3 m\u00f3n"}]
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import styles from "./index.module.scss"
 
@@ -36,84 +27,17 @@ const CAT_STYLE = {
 
 const EMPTY_FORM = {
   name: "",
-  category: "MAIN_DISH",
+  category: "",
 }
 
 const PAGE_SIZE = 8
 
 /* ─── Phân giải nguyên liệu & gia vị đầy đủ cho xem chi tiết ───── */
-const getDishResolvedIngredients = (dish) => {
-  if (!dish) return []
-  if (Array.isArray(dish.ingredients) && dish.ingredients.length > 0) {
-    return dish.ingredients.map((ing) => ({
-      ...ing,
-      portionQty: ing.portionQty != null ? ing.portionQty : 50,
-      unit: ing.unit || "g",
-    }))
-  }
-  if (Array.isArray(dish.ingredientIds) && dish.ingredientIds.length > 0) {
-    return dish.ingredientIds
-      .map((id) => {
-        const found = ALL_INGREDIENTS.find((i) => i.id === id)
-        if (found) {
-          const sup = LINKED_SUPPLIERS.find((s) => s.id === found.supplierId)
-          return {
-            ...found,
-            portionQty: 50,
-            unit: "g",
-            supplierName: sup ? sup.name : "NCC liên kết",
-            supplierBadge: sup ? sup.badge : "",
-          }
-        }
-        return null
-      })
-      .filter(Boolean)
-  }
-  const mainText =
-    dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
-  const foundByName = ALL_INGREDIENTS.find(
-    (i) => i.name.toLowerCase() === mainText.toLowerCase()
-  )
-  if (foundByName) {
-    const sup = LINKED_SUPPLIERS.find((s) => s.id === foundByName.supplierId)
-    return [
-      {
-        ...foundByName,
-        portionQty: 50,
-        unit: "g",
-        supplierName: sup ? sup.name : "NCC liên kết",
-        supplierBadge: sup ? sup.badge : "",
-      },
-    ]
-  }
-  return [
-    {
-      id: `ing-syn-${dish.id}`,
-      name: mainText,
-      category: dish.categoryLabel || "Nguyên liệu chính",
-      portionQty: 50,
-      unit: "g",
-      supplierId: dish.supplierId || "sup-cp",
-      supplierName: dish.supplierName || "CP Foods Việt Nam",
-      supplierBadge: dish.supplierBadge || "VietGAP",
-    },
-  ]
-}
-
-const getDishResolvedSeasonings = (dish) => {
-  if (!dish) return []
-  if (Array.isArray(dish.seasonings) && dish.seasonings.length > 0) {
-    return dish.seasonings.map((s) => ({
-      ...s,
-      portionQty: s.portionQty != null ? s.portionQty : 2,
-      unit: s.unit || "g",
-    }))
-  }
-  return []
-}
+const getDishResolvedIngredients = dish => dish?.ingredients || []
+const getDishResolvedSeasonings = dish => dish?.seasonings || []
 
 export default function DishCatalogPage() {
-  const [catalog, setCatalog] = useState(() => getStoredDishCatalog())
+  const [catalog, setCatalog] = useState([])
   const [search, setSearch] = useState("")
   const [activeCat, setActiveCat] = useState("ALL")
   const [supplierFilter, setSupplierFilter] = useState("ALL")
@@ -181,7 +105,7 @@ export default function DishCatalogPage() {
 
   /* ─── Stats ──────────────────────────────────── */
   const stats = useMemo(() => {
-    const catCount = new Set(catalog.map((d) => d.category)).size
+    const catCount = new Set(catalog.map((d) => d.category).filter(Boolean)).size
     const supplierCount = new Set(
       catalog.map((d) => d.supplierName).filter(Boolean)
     ).size
@@ -199,85 +123,11 @@ export default function DishCatalogPage() {
 
   const openEdit = useCallback((dish) => {
     setEditingDish(dish)
-    setForm({
-      name: dish.name || "",
-      category: dish.category || "MAIN_DISH",
-    })
-
-    // Nạp danh sách nguyên liệu của món ăn đang sửa (kèm định lượng)
-    let initialIngs = []
-    if (Array.isArray(dish.ingredients) && dish.ingredients.length > 0) {
-      initialIngs = dish.ingredients.map((ing) => ({
-        ...ing,
-        portionQty: ing.portionQty != null ? ing.portionQty : 50,
-        unit: ing.unit || "g",
-      }))
-    } else if (
-      Array.isArray(dish.ingredientIds) &&
-      dish.ingredientIds.length > 0
-    ) {
-      initialIngs = dish.ingredientIds
-        .map((id) => {
-          const found = ALL_INGREDIENTS.find((i) => i.id === id)
-          if (found) {
-            const sup = LINKED_SUPPLIERS.find((s) => s.id === found.supplierId)
-            return {
-              ...found,
-              portionQty: 50,
-              unit: "g",
-              supplierName: sup ? sup.name : "NCC liên kết",
-              supplierBadge: sup ? sup.badge : "",
-            }
-          }
-          return null
-        })
-        .filter(Boolean)
-    }
-
-    if (initialIngs.length === 0) {
-      const mainText =
-        dish.mainIngredient || dish.ingredientNames?.[0] || dish.name || ""
-      const foundByName = ALL_INGREDIENTS.find(
-        (i) => i.name.toLowerCase() === mainText.toLowerCase()
-      )
-      if (foundByName) {
-        const sup = LINKED_SUPPLIERS.find(
-          (s) => s.id === foundByName.supplierId
-        )
-        initialIngs = [
-          {
-            ...foundByName,
-            portionQty: 50,
-            unit: "g",
-            supplierName: sup ? sup.name : "NCC liên kết",
-            supplierBadge: sup ? sup.badge : "",
-          },
-        ]
-      } else {
-        initialIngs = [
-          {
-            id: `ing-syn-${dish.id}`,
-            name: mainText,
-            category: dish.categoryLabel || "Nguyên liệu chính",
-            portionQty: 50,
-            unit: "g",
-            supplierId: dish.supplierId || "sup-cp",
-            supplierName: dish.supplierName || "CP Foods Việt Nam",
-            supplierBadge: dish.supplierBadge || "VietGAP",
-          },
-        ]
-      }
-    }
-
-    setSelectedIngredients(initialIngs)
-
-    // Nạp danh sách gia vị kho
-    if (Array.isArray(dish.seasonings) && dish.seasonings.length > 0) {
-      setSelectedSeasonings(dish.seasonings.map((s) => ({ ...s })))
-    } else {
-      setSelectedSeasonings([])
-    }
-
+    setForm({name:dish.name || "",category:""})
+    setSelectedIngredients((dish.ingredients || []).map(i=>({...i})))
+    setSelectedSeasonings((dish.seasonings || []).map(i=>({...i})))
+    setUnclassifiedLines((dish.unclassifiedLines || []).map(i=>({...i})))
+    setCatalogError("")
     setModalOpen(true)
   }, [])
 
@@ -294,27 +144,8 @@ export default function DishCatalogPage() {
   }, [])
 
   // Toggle chọn nguyên liệu từ IngredientPickerModal
-  const handleToggleIngredient = useCallback((ing) => {
-    setSelectedIngredients((prev) => {
-      const exists = prev.some((i) => i.id === ing.id)
-      if (exists) {
-        return prev.filter((i) => i.id !== ing.id)
-      }
-      const sup = LINKED_SUPPLIERS.find((s) => s.id === ing.supplierId)
-      return [
-        ...prev,
-        {
-          id: ing.id,
-          name: ing.name,
-          category: ing.category,
-          portionQty: 50,
-          unit: "g",
-          supplierId: ing.supplierId,
-          supplierName: sup ? sup.name : ing.supplierName || "NCC liên kết",
-          supplierBadge: sup ? sup.badge : ing.supplierBadge || "",
-        },
-      ]
-    })
+  const handleToggleIngredient = useCallback(ing => {
+    setSelectedIngredients(prev => prev.some(i=>i.id===ing.id) ? prev.filter(i=>i.id!==ing.id) : [...prev,{...ing,portionQty:"",unit:ing.defaultUnit || ""}])
   }, [])
 
   // Cập nhật định lượng / đơn vị cho từng nguyên liệu
@@ -341,7 +172,7 @@ export default function DishCatalogPage() {
         {
           id: seasItem.id,
           name: seasItem.name.replace(/\(.*?\)/g, "").trim(),
-          portionQty: 2,
+          portionQty: "",
           unit: seasItem.defaultUnit || "g",
         },
       ]
@@ -361,87 +192,28 @@ export default function DishCatalogPage() {
   }, [])
 
   // Lưu món ăn
-  const handleSave = useCallback(() => {
-    if (!form.name.trim() || selectedIngredients.length === 0) return
-
-    const catInfo = DISH_CATEGORIES.find((c) => c.key === form.category)
-    const primaryIng = selectedIngredients[0]
-    const allNames = selectedIngredients.map((i) => i.name)
-    const mainIngText = selectedIngredients
-      .map((i) => `${i.name} (${i.portionQty}${i.unit})`)
-      .join(" & ")
-    const ingIds = selectedIngredients.map((i) => i.id)
-
-    const finalSupplierId = primaryIng?.supplierId || "sup-cp"
-    const finalSupplierName = primaryIng?.supplierName || "CP Foods Việt Nam"
-    const finalSupplierBadge = primaryIng?.supplierBadge || "VietGAP"
-
-    if (editingDish) {
-      const updated = catalog.map((d) =>
-        d.id === editingDish.id
-          ? {
-              ...d,
-              name: form.name.trim(),
-              category: form.category,
-              categoryLabel: catInfo?.label || "Món ăn",
-              mainIngredient: mainIngText,
-              supplierId: finalSupplierId,
-              supplierName: finalSupplierName,
-              supplierBadge: finalSupplierBadge,
-              ingredientIds: ingIds,
-              ingredientNames: allNames,
-              ingredients: selectedIngredients,
-              seasonings: selectedSeasonings,
-            }
-          : d
-      )
-      setCatalog(updated)
-      try {
-        localStorage.setItem(
-          "FOODPRINT_DISH_CATALOG_V2",
-          JSON.stringify(updated)
-        )
-      } catch (e) {
-        console.warn("Lỗi lưu dish catalog:", e)
-      }
-    } else {
-      const newDish = {
-        name: form.name.trim(),
-        category: form.category,
-        categoryLabel: catInfo?.label || "Món ăn",
-        mainIngredient: mainIngText,
-        supplierId: finalSupplierId,
-        supplierName: finalSupplierName,
-        supplierBadge: finalSupplierBadge,
-        ingredientIds: ingIds,
-        ingredientNames: allNames,
-        ingredients: selectedIngredients,
-        seasonings: selectedSeasonings,
-      }
-      const updated = saveDishToCatalog(newDish)
-      setCatalog(updated)
-    }
-    closeModal()
-  }, [
-    form,
-    editingDish,
-    selectedIngredients,
-    selectedSeasonings,
-    catalog,
-    closeModal,
-  ])
-
-  const handleDeleteConfirm = useCallback(() => {
-    if (!deletingDish) return
-    const updated = catalog.filter((d) => d.id !== deletingDish.id)
-    setCatalog(updated)
+  const handleSave = async () => {
+    setCatalogError("")
+    if (unclassifiedLines.length) {setCatalogError("Ph\u00e2n lo\u1ea1i c\u00e1c d\u00f2ng c\u00f4ng th\u1ee9c c\u0169 tr\u01b0\u1edbc khi l\u01b0u.");return}
+    setSaving(true)
     try {
-      localStorage.setItem("FOODPRINT_DISH_CATALOG_V2", JSON.stringify(updated))
-    } catch (e) {
-      console.warn("Lỗi xóa món:", e)
-    }
-    setDeletingDish(null)
-  }, [deletingDish, catalog])
+      await saveDishRecipe(editingDish?.id,{name:form.name.trim(),description:editingDish?.description || null,lines:[
+        ...selectedIngredients.map(i=>({ingredientEntryId:i.ingredientEntryId,ingredientRole:"MAIN",requiredQuantity:String(i.portionQty),unit:i.unit})),
+        ...selectedSeasonings.map(i=>({ingredientEntryId:i.ingredientEntryId || i.id,ingredientRole:"SEASONING",requiredQuantity:String(i.portionQty),unit:i.unit})),
+      ]})
+      const rows=await loadDishCatalog()
+      setCatalog(rows)
+      closeModal()
+    } catch(error) {setCatalogError(error.message)} finally {setSaving(false)}
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!deletingDish) return
+    setSaving(true)
+    setCatalogError("")
+    try { await deleteDishRecipe(deletingDish.id);setCatalog(await loadDishCatalog());setDeletingDish(null) }
+    catch(error) {setCatalogError(error.message)} finally {setSaving(false)}
+  }
 
   return (
     <div className={styles.page}>
@@ -700,19 +472,7 @@ export default function DishCatalogPage() {
 
                   <div>
                     <label className={styles.formLabel}>Nhóm món ăn</label>
-                    <select
-                      className={styles.formSelect}
-                      value={form.category}
-                      onChange={(e) =>
-                        handleFormChange("category", e.target.value)
-                      }
-                    >
-                      {DISH_CATEGORIES.filter((c) => c.key !== "ALL").map((c) => (
-                        <option key={c.key} value={c.key}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </select>
+                    <select className={styles.formSelect} disabled><option>Ch\u01b0a ph\u00e2n nh\u00f3m</option></select>
                   </div>
                 </div>
 
@@ -778,7 +538,7 @@ export default function DishCatalogPage() {
                         </thead>
                         <tbody>
                           {selectedIngredients.map((ing, iIdx) => {
-                            const sup = LINKED_SUPPLIERS.find(
+                            const sup = linkedSuppliers.find(
                               (s) => s.id === ing.supplierId
                             )
                             return (

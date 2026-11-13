@@ -9,8 +9,6 @@ import {
   CheckCircle2,
   CookingPot,
   Trash2,
-  Check,
-  Layers,
 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./BatchDetailHeader.module.scss"
@@ -72,84 +70,86 @@ export default function BatchDetailHeader({
 
   return (
     <div className={styles.headerContainer}>
-      {/* 1. Thanh điều hướng quay lại & Thao tác chính */}
-      <div className={styles.topRow}>
-        <button
-          type="button"
-          className={styles.backBtn}
-          onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
-          title="Quay lại danh sách lô chế biến"
-        >
-          <ArrowLeft size={16} />
-          <span>Danh sách lô</span>
-        </button>
+      {/* 1. Tiêu đề chính + Mã lô + Trạng thái bên trái; Thao tác & Nút Danh sách lô bên phải cùng hàng */}
+      <div className={styles.titleLine}>
+        <div className={styles.leftGroup}>
+          <div className={styles.headingGroup}>
+            <h1 className={styles.pageTitle}>Chi tiết lô chế biến</h1>
+            <span className={styles.batchCode}>#{batchData?.code || "—"}</span>
+          </div>
+          {getStatusBadge()}
+        </div>
 
-        {/* Cụm nút thao tác nghiệp vụ chính trên Desktop */}
-        <div className={styles.actionsDesktop}>
-          {isDraft && (
-            <>
-              <button
-                type="button"
-                className={styles.deleteBtn}
-                onClick={onOpenDeleteModal}
-                disabled={actionLoading}
-                title="Xóa lô chế biến"
-              >
-                <Trash2 size={15} />
-                <span>Xóa lô</span>
-              </button>
+        <div className={styles.rightGroup}>
+          {/* Cụm nút thao tác nghiệp vụ chính trên Desktop */}
+          <div className={styles.actionsDesktop}>
+            {isDraft && (
+              <>
+                <button
+                  type="button"
+                  className={styles.deleteBtn}
+                  onClick={onOpenDeleteModal}
+                  disabled={actionLoading}
+                  title="Xóa lô chế biến"
+                >
+                  <Trash2 size={15} />
+                  <span>Xóa lô</span>
+                </button>
 
+                <button
+                  type="button"
+                  className={styles.primaryBtn}
+                  onClick={onOpenConfirmModal}
+                  disabled={actionLoading}
+                >
+                  <CheckCircle2 size={16} />
+                  <span>Xác nhận nấu</span>
+                </button>
+              </>
+            )}
+
+            {isConfirmed && (
               <button
                 type="button"
                 className={styles.primaryBtn}
-                onClick={onOpenConfirmModal}
+                onClick={onCompleteBatch}
                 disabled={actionLoading}
               >
-                <CheckCircle2 size={16} />
-                <span>Xác nhận nấu</span>
+                <CookingPot size={16} />
+                <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
               </button>
-            </>
-          )}
+            )}
 
-          {isConfirmed && (
-            <button
-              type="button"
-              className={styles.primaryBtn}
-              onClick={onCompleteBatch}
-              disabled={actionLoading}
-            >
-              <CookingPot size={16} />
-              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
-            </button>
-          )}
+            {isCompleted && !isAllSampled && (
+              <button
+                type="button"
+                className={styles.sampleActionBtn}
+                onClick={onOpenSampleModal}
+                disabled={actionLoading}
+              >
+                <FlaskConical size={16} />
+                <span>
+                  Ghi nhận mẫu lưu 24h
+                  {totalDishes > 1 ? ` (${sampledCount}/${totalDishes})` : ""}
+                </span>
+              </button>
+            )}
+          </div>
 
-          {isCompleted && !isAllSampled && (
-            <button
-              type="button"
-              className={styles.sampleActionBtn}
-              onClick={onOpenSampleModal}
-              disabled={actionLoading}
-            >
-              <FlaskConical size={16} />
-              <span>
-                Ghi nhận mẫu lưu 24h
-                {totalDishes > 1 ? ` (${sampledCount}/${totalDishes})` : ""}
-              </span>
-            </button>
-          )}
+          {/* Nút danh sách lô để bên phải cùng hàng chữ Chi tiết lô chế biến */}
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+            title="Quay lại danh sách lô chế biến"
+          >
+            <ArrowLeft size={16} />
+            <span>Danh sách lô</span>
+          </button>
         </div>
       </div>
 
-      {/* 2. Tiêu đề chính & Mã lô & Trạng thái */}
-      <div className={styles.titleLine}>
-        <div className={styles.headingGroup}>
-          <h1 className={styles.pageTitle}>Chi tiết lô chế biến</h1>
-          <span className={styles.batchCode}>#{batchData?.code || "—"}</span>
-        </div>
-        {getStatusBadge()}
-      </div>
-
-      {/* 3. Hàng Metadata tinh gọn ngay dưới Header: Ngày nấu • Bữa ăn • Tổng số suất • Trạng thái lưu mẫu */}
+      {/* 2. Hàng Metadata tinh gọn ngay dưới Header: Ngày nấu • Bữa ăn • Tổng số suất • Trạng thái lưu mẫu */}
       <div className={styles.metaRow}>
         <div className={styles.metaItem}>
           <Calendar size={14} className={styles.metaIcon} />
@@ -191,16 +191,6 @@ export default function BatchDetailHeader({
               >
                 {sampleStatusText}
               </span>
-            </div>
-          </>
-        )}
-
-        {batchData?.batchGroupCode && (
-          <>
-            <span className={styles.metaDivider}>•</span>
-            <div className={styles.metaSubGroup}>
-              <Layers size={13} className={styles.subGroupIcon} />
-              <span>Lô cha: {batchData.batchGroupCode}</span>
             </div>
           </>
         )}
