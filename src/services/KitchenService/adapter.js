@@ -117,12 +117,33 @@ export function adaptCookingBatch(batch) {
   const batchGroupCode = batch.BatchGroup?.batchCode || "";
 
   const rawDishes = Array.isArray(batch.dishes) ? batch.dishes : [];
-  const dishes = rawDishes.map((d) => ({
-    dishId: d.dishId || d.id,
-    name: d.name || d.Dish?.name || "Món ăn",
-    plannedPortions: d.plannedPortions ?? batch.plannedPortions,
-    cookingBatchLots: d.cookingBatchLots || [],
-  }));
+  const dishes = rawDishes.map((d) => {
+    const dishObj = d.Dish || {};
+    const entries = dishObj.dishIngredientEntries || d.dishIngredientEntries || dishObj.lines || d.lines || [];
+    const mainIngredients = entries
+      .filter((e) => e.ingredientRole === "MAIN")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Nguyên liệu chính",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.quantityPerPortion != null ? String(e.quantityPerPortion) : null),
+        unit: e.unit || "g",
+      }));
+    const seasonings = entries
+      .filter((e) => e.ingredientRole === "SEASONING")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Gia vị",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.portionQty != null ? String(e.portionQty) : null),
+        unit: e.unit || "g",
+      }));
+
+    return {
+      dishId: d.dishId || d.id,
+      name: d.name || dishObj.name || "Món ăn",
+      plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+      cookingBatchLots: d.cookingBatchLots || [],
+      mainIngredients,
+      seasonings,
+    };
+  });
 
   let dishName = batch.Dish?.name || "";
   if (dishes.length > 0) {
@@ -236,12 +257,33 @@ export function adaptBatchDetail(batch) {
   const status = batch.status === "DRAFT" ? "UNCONFIRMED" : batch.status;
 
   const rawDishes = Array.isArray(batch.dishes) ? batch.dishes : [];
-  const dishes = rawDishes.map((d) => ({
-    dishId: d.dishId || d.id,
-    name: d.name || d.Dish?.name || "Món ăn",
-    plannedPortions: d.plannedPortions ?? batch.plannedPortions,
-    cookingBatchLots: d.cookingBatchLots || [],
-  }));
+  const dishes = rawDishes.map((d) => {
+    const dishObj = d.Dish || {};
+    const entries = dishObj.dishIngredientEntries || d.dishIngredientEntries || dishObj.lines || d.lines || [];
+    const mainIngredients = entries
+      .filter((e) => e.ingredientRole === "MAIN")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Nguyên liệu chính",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.quantityPerPortion != null ? String(e.quantityPerPortion) : null),
+        unit: e.unit || "g",
+      }));
+    const seasonings = entries
+      .filter((e) => e.ingredientRole === "SEASONING")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Gia vị",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.portionQty != null ? String(e.portionQty) : null),
+        unit: e.unit || "g",
+      }));
+
+    return {
+      dishId: d.dishId || d.id,
+      name: d.name || dishObj.name || "Món ăn",
+      plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+      cookingBatchLots: d.cookingBatchLots || [],
+      mainIngredients,
+      seasonings,
+    };
+  });
 
   let dishName = batch.Dish?.name || "";
   if (dishes.length > 0) {
