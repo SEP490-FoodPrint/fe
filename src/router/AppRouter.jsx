@@ -66,6 +66,7 @@ const OrderTracking = lazy(() => import("src/pages/SCHOOL/OrderTracking"))
 
 const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
+const MealComplaints = lazy(() => import("src/pages/SCHOOL/MealComplaints"))
 const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
 const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
@@ -323,9 +324,15 @@ const routes = [
             ],
           },
           {
-            element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MEAL_FEEDBACK, element: <LazyWrapper><MealFeedback /></LazyWrapper> },
+            ],
+          },
+          {
+            element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER, ROLES.PARENTS_COMMITTEE]} />,
+            children: [
+              { path: ROUTER.SCHOOL_MEAL_COMPLAINTS, element: <LazyWrapper><MealComplaints /></LazyWrapper> },
             ],
           },
         ],

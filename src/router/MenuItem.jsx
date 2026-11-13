@@ -301,10 +301,12 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_MEAL_FEEDBACK,
     label: "Ý kiến & Phản ánh Bữa ăn",
     icon: <ChatBubbleOutlineOutlinedIcon />,
-    roles: [
-      ROLES.PARENTS_COMMITTEE,
-      ROLES.HOMEROOM_TEACHER,
-      ROLES.SCHOOL_MANAGEMENT_BOARD,
-    ],
+    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: ROUTER.SCHOOL_MEAL_COMPLAINTS,
+    label: "Khiếu nại bữa ăn",
+    icon: <ChatBubbleOutlineOutlinedIcon />,
+    roles: [ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER],
   },
 ];
