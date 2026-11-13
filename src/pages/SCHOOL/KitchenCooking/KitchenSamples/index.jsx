@@ -5,11 +5,12 @@ import FoodPrintLoading from "src/components/FoodPrintLoading";
 import ROUTER from "src/router/ROUTER";
 import notice from "src/components/Notice";
 import KitchenService from "src/services/KitchenService";
+import { getISOWeekNumber } from "src/services/MenuService/adapter";
 import { get24hRetainedStatus } from "./retainedStatusHelper";
 import KitchenSamplesHeader from "./component/KitchenSamplesHeader";
 import KitchenSamplesKPICards from "./component/KitchenSamplesKPICards";
 import KitchenSamplesFilterStrip from "./component/KitchenSamplesFilterStrip";
-import KitchenSamplesDayCards from "./component/KitchenSamplesDayCards";
+import KitchenSamplesWeeklyCalendar from "./component/KitchenSamplesWeeklyCalendar";
 import KitchenSamplesTable from "./component/KitchenSamplesTable";
 import KitchenSamplesMobileCards from "./component/KitchenSamplesMobileCards";
 import KitchenSamplesEmptyState from "./component/KitchenSamplesEmptyState";
@@ -294,6 +295,133 @@ export default function KitchenSamples() {
         totalSamples: g.samples.length,
       }))
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+  }, [filteredSamples]);
+
+  // 7B. Dữ liệu lịch tuần liên tiếp (Weekly Calendar nhiều tuần nối liền nhau)
+  const calendarWeeks = useMemo(() => {
+    const now = new Date();
+    const getMonday = (d) => {
+      const date = new Date(d);
+      const day = date.getDay();
+      const diff = (day === 0 ? -6 : 1) - day;
+      date.setDate(date.getDate() + diff);
+      date.setHours(0, 0, 0, 0);
+      return date;
+    };
+
+    const currentMonday = getMonday(now);
+    const todayKey = toDateKey(now);
+
+    let weeksCount = 4;
+    if (filteredSamples.length > 0) {
+      const oldestTime = filteredSamples.reduce((min, s) => {
+        const t = new Date(s.sampledAt || s.createdAt || 0).getTime();
+        return t > 0 && t < min ? t : min;
+      }, Date.now());
+      const oldestMonday = getMonday(new Date(oldestTime));
+      const diffWeeks =
+        Math.ceil(
+          (currentMonday.getTime() - oldestMonday.getTime()) /
+            (7 * 24 * 60 * 60 * 1000)
+        ) + 1;
+      weeksCount = Math.min(Math.max(4, diffWeeks), 8);
+    }
+
+    const samplesByDate = new Map();
+    filteredSamples.forEach((item) => {
+      const d = new Date(item.sampledAt || item.createdAt || Date.now());
+      if (isNaN(d.getTime())) return;
+      const key = toDateKey(d);
+      if (!samplesByDate.has(key)) {
+        samplesByDate.set(key, []);
+      }
+      samplesByDate.get(key).push(item);
+    });
+
+    const DAY_LABELS = [
+      { short: "T2", full: "Thứ Hai", isWeekend: false },
+      { short: "T3", full: "Thứ Ba", isWeekend: false },
+      { short: "T4", full: "Thứ Tư", isWeekend: false },
+      { short: "T5", full: "Thứ Năm", isWeekend: false },
+      { short: "T6", full: "Thứ Sáu", isWeekend: false },
+      { short: "T7", full: "Thứ Bảy", isWeekend: true },
+      { short: "CN", full: "Chủ Nhật", isWeekend: true },
+    ];
+
+    const weeks = [];
+    for (let offset = 0; offset < weeksCount; offset++) {
+      const monday = new Date(
+        currentMonday.getTime() - offset * 7 * 24 * 60 * 60 * 1000
+      );
+      const sunday = new Date(monday.getTime() + 6 * 24 * 60 * 60 * 1000);
+
+      const mStr = `${padZero(monday.getDate())}/${padZero(monday.getMonth() + 1)}`;
+      const sStr = `${padZero(sunday.getDate())}/${padZero(sunday.getMonth() + 1)}/${sunday.getFullYear()}`;
+      const isoWeek = getISOWeekNumber(monday);
+      const isCurrentWeek = offset === 0;
+
+      const days = [];
+      let weekTotal = 0;
+      let weekStored = 0;
+      let weekReady = 0;
+      let weekDisposed = 0;
+
+      for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
+        const dayDate = new Date(
+          monday.getTime() + dayIndex * 24 * 60 * 60 * 1000
+        );
+        const dayKey = toDateKey(dayDate);
+        const dayVN = `${padZero(dayDate.getDate())}/${padZero(dayDate.getMonth() + 1)}`;
+        const meta = DAY_LABELS[dayIndex];
+
+        const dayItems = samplesByDate.get(dayKey) || [];
+        let stored = 0;
+        let ready = 0;
+        let disposed = 0;
+
+        dayItems.forEach((s) => {
+          const info = get24hRetainedStatus(s.sampledAt, s.status);
+          if (info.isDisposed) {
+            disposed += 1;
+          } else if (info.isReadyToDispose) {
+            ready += 1;
+          } else {
+            stored += 1;
+          }
+        });
+
+        weekTotal += dayItems.length;
+        weekStored += stored;
+        weekReady += ready;
+        weekDisposed += disposed;
+
+        days.push({
+          dateKey: dayKey,
+          dateVN: dayVN,
+          dayShortLabel: meta.short,
+          dayFullLabel: meta.full,
+          isToday: dayKey === todayKey,
+          isWeekend: meta.isWeekend,
+          totalSamples: dayItems.length,
+          storedCount: stored,
+          readyCount: ready,
+          disposedCount: disposed,
+        });
+      }
+
+      weeks.push({
+        weekKey: `WEEK_${monday.getFullYear()}_${isoWeek}_${offset}`,
+        weekLabel: `Tuần ${isoWeek} (${mStr} – ${sStr})`,
+        isCurrentWeek,
+        totalSamples: weekTotal,
+        storedCount: weekStored,
+        readyCount: weekReady,
+        disposedCount: weekDisposed,
+        days,
+      });
+    }
+
+    return weeks;
   }, [filteredSamples]);
 
   const selectedGroup = useMemo(() => {
@@ -728,16 +856,13 @@ export default function KitchenSamples() {
             disposing={submitting && isBatchDisposeOpen}
           />
 
-          {/* 4. Các cục theo các ngày (Day Cards Grid) - KHÔNG CÓ BẢNG Ở DƯỚI */}
-          {filteredSamples.length > 0 ? (
-            <KitchenSamplesDayCards
-              dayGroups={dayGroups}
-              selectedKey=""
+          {/* 4. Màn sổ lưu mẫu 24h dạng lịch: các tuần nối tiếp nhau với ô vuông liền sát (KHÔNG CÓ BẢNG Ở DƯỚI) */}
+          {calendarWeeks.length > 0 ? (
+            <KitchenSamplesWeeklyCalendar
+              weeks={calendarWeeks}
               onSelectDay={handleOpenDayDetail}
+              onViewAll={() => handleOpenDayDetail("all")}
               totalAll={filteredSamples.length}
-              allStored={kpiStats.stored}
-              allReady={kpiStats.ready}
-              allDisposed={kpiStats.disposed}
             />
           ) : (
             <KitchenSamplesEmptyState

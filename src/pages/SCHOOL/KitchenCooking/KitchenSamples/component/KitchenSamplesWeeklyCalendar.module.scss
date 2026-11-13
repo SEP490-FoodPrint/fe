@@ -1,0 +1,430 @@
+.calendarContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.calendarTitleWrap {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.calendarIcon {
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.calendarTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #0f172a;
+  text-transform: uppercase;
+}
+
+.totalBadge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #0a8066;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 0.2rem 0.625rem;
+  border-radius: 9999px;
+}
+
+.viewAllTableBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #334155;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  padding: 0.4375rem 0.875rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #0a8066;
+    border-color: #0a8066;
+  }
+}
+
+.weeksList {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.weekBlock {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s ease;
+
+  &.weekCurrent {
+    border-color: #99f6e4;
+    box-shadow: 0 1px 4px rgba(10, 128, 102, 0.08);
+
+    .weekHeader {
+      background: linear-gradient(90deg, #f0fdf4 0%, #f8fafc 100%);
+      border-bottom-color: #ccfbf1;
+    }
+  }
+}
+
+.weekHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 1rem;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.weekTitleRow {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.weekLabel {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.currentWeekBadge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #065f46;
+  background-color: #d1fae5;
+  border: 1px solid #a7f3d0;
+  padding: 0.125rem 0.5rem;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.weekSummary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  flex-wrap: wrap;
+}
+
+.weekTotalText {
+  font-weight: 600;
+  color: #475569;
+}
+
+.weekStoredText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  color: #0a8066;
+  font-weight: 500;
+}
+
+.weekReadyText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  color: #d97706;
+  font-weight: 600;
+  background-color: #fef3c7;
+  padding: 0.125rem 0.4375rem;
+  border-radius: 4px;
+}
+
+.weekDisposedText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  color: #64748b;
+}
+
+/* 7 ô vuông nối liền sát nhau trong 1 hàng */
+.weekDaysGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 1px;
+  background-color: #e2e8f0; /* Hairline divider giữa các ô */
+  width: 100%;
+}
+
+.daySquare {
+  background-color: #ffffff;
+  min-height: 125px;
+  padding: 0.625rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease-in-out;
+  outline: none;
+
+  &:hover {
+    background-color: #f8fafc;
+    z-index: 2;
+    box-shadow: inset 0 0 0 1.5px #0a8066;
+
+    .viewLink {
+      color: #0a8066;
+      .arrowIcon {
+        transform: translateX(2px);
+      }
+    }
+  }
+
+  &:focus-visible {
+    z-index: 3;
+    box-shadow: inset 0 0 0 2px #0a8066;
+  }
+
+  &.squareToday {
+    background-color: #fbfffd;
+
+    .squareHeader {
+      .dayShortName {
+        color: #0a8066;
+        font-weight: 700;
+      }
+      .dateNumber {
+        color: #075945;
+        font-weight: 700;
+      }
+    }
+  }
+
+  &.squareWarning {
+    border-top: 2px solid #f59e0b;
+    margin-top: -1px;
+
+    .statusItemReady {
+      color: #b45309;
+      background-color: #fef3c7;
+    }
+  }
+
+  &.squareWeekend {
+    background-color: #fafbfc;
+
+    .squareHeader .dayShortName {
+      color: #94a3b8;
+    }
+    .squareHeader .dateNumber {
+      color: #94a3b8;
+    }
+  }
+
+  &.squareEmpty {
+    opacity: 0.88;
+  }
+}
+
+.squareHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+
+.dayDateLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.dayShortLabel,
+.dayShortName {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.dateNumber {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.todayPill {
+  font-size: 0.625rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #ffffff;
+  background-color: #0a8066;
+  padding: 0.125rem 0.375rem;
+  border-radius: 3px;
+  line-height: 1.2;
+}
+
+.squareBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0.375rem 0;
+}
+
+.samplesMainRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+}
+
+.samplesCount {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1;
+}
+
+.samplesUnit {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: #64748b;
+}
+
+.statusBreakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statusItemStored,
+.statusItemReady,
+.statusItemDisposed {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statusItemStored {
+  color: #047857;
+  font-weight: 500;
+}
+
+.statusItemReady {
+  color: #b45309;
+  font-weight: 600;
+  padding: 0.125rem 0.25rem;
+  border-radius: 3px;
+  width: fit-content;
+}
+
+.statusItemDisposed {
+  color: #64748b;
+  font-weight: 400;
+}
+
+.dotStored {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #10b981;
+  flex-shrink: 0;
+}
+
+.dotReady {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.dotDisposed {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.emptyDayWrap {
+  padding: 0.375rem 0;
+}
+
+.emptyText {
+  font-size: 0.6875rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.squareFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  border-top: 1px dashed #f1f5f9;
+  padding-top: 0.3125rem;
+}
+
+.viewLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: #64748b;
+  transition: color 0.15s ease;
+}
+
+.arrowIcon {
+  transition: transform 0.15s ease;
+}
+
+.noDataDash {
+  font-size: 0.75rem;
+  color: #cbd5e1;
+}
+
+/* Responsive: Trên màn hình nhỏ cuộn ngang để giữ nguyên dạng 7 ô vuông liền sát */
+@media (max-width: 860px) {
+  .weekDaysGrid {
+    overflow-x: auto;
+    min-width: 680px;
+  }
+
+  .weekBlock {
+    overflow-x: auto;
+  }
+}
