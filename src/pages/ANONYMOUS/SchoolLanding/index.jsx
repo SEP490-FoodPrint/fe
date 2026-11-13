@@ -63,23 +63,15 @@ function SchoolLanding() {
     };
   }, [activeCode]);
 
-  // Hai thao tác của WeeklyMenuSection chỉ tải lại phần thực đơn tuần.
-  const handleWeekChange = (weekValue, groupId) =>
-    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi tuần:");
-
-  const handleGroupChange = (groupId, weekValue) =>
-    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi nhóm bán trú:");
-
-  const loadWeeklyMenu = async (weekValue, groupId, errorMessage) => {
+  const handleWeekChange = async (weekValue) => {
     try {
       const res = await SchoolService.getWeeklyMenu(
         activeCode,
         resolveWeekStartDate(weekValue),
-        groupId,
       );
       setWeeklyMenu(getPublicMealData(res));
     } catch (err) {
-      console.error(errorMessage, err);
+      console.error("Lỗi khi chuyển đổi tuần:", err);
     }
   };
 
@@ -103,7 +95,6 @@ function SchoolLanding() {
           weeklyMenu={weeklyMenu}
           schoolCode={activeCode}
           onWeekChange={handleWeekChange}
-          onGroupChange={handleGroupChange}
         />
       </main>
 
