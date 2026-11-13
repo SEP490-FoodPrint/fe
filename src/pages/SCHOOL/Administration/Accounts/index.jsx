@@ -1,7 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect, useCallback } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import { CheckCircle2, AlertCircle, Info } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
+import STORAGE, { getStorage } from "src/lib/storage"
+import UserService from "src/services/UserService"
 import AccountHeader from "./component/AccountHeader"
 import AccountDepartmentKPI from "./component/AccountDepartmentKPI"
 import AccountFilters from "./component/AccountFilters"
@@ -17,22 +19,86 @@ import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
 
+const ROLE_TO_DEPT = {
+    SCHOOL_MANAGEMENT_BOARD: "BGH",
+    SCHOOL_NUTRITION_OFFICER: "Y_TE",
+    SCHOOL_KITCHEN_STAFF: "BEP",
+    HOMEROOM_TEACHER: "GVCN",
+    PARENTS_COMMITTEE: "PHU_HUYNH",
+    INGREDIENT_MANAGEMENT: "QUAN_LY_NGUYEN_LIEU",
+    INGREDIENT_MANAGEMENT_DEPARTMENT: "QUAN_LY_NGUYEN_LIEU",
+}
+
+const ALLOWED_STAFF_ROLES = new Set([
+    "SCHOOL_MANAGEMENT_BOARD",
+    "SCHOOL_NUTRITION_OFFICER",
+    "SCHOOL_KITCHEN_STAFF",
+    "HOMEROOM_TEACHER",
+    "PARENTS_COMMITTEE",
+    "INGREDIENT_MANAGEMENT",
+    "INGREDIENT_MANAGEMENT_DEPARTMENT",
+])
+
+function mapApiUser(u) {
+    const roleCode = u.roleCode || u.Role?.code || ""
+    return {
+        id: u.id,
+        code: u.username || `TK-${(u.id || "").slice(0, 6).toUpperCase()}`,
+        fullName: u.fullName,
+        position: u.roleName || u.Role?.name || "",
+        email: u.email,
+        phone: u.phone || "",
+        roleCode: roleCode,
+        departmentId: ROLE_TO_DEPT[roleCode] || "BGH",
+        status: u.status || "ACTIVE",
+        schoolId: u.schoolId,
+        createdAt: u.createdAt,
+        updatedAt: u.updatedAt,
+    }
+}
+
 function Accounts() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    // 1. Quản lý danh sách tài khoản (đọc từ localStorage để đồng bộ với màn hình Tạo mới)
+    // 1. Quản lý danh sách tài khoản (Khởi tạo rỗng, hoàn toàn không nạp Mock Data)
     const [accounts, setAccounts] = useState(() => getStoredAccounts())
+    const [isLoading, setIsLoading] = useState(false)
 
-    // Khi quay lại từ trang khác (hoặc vừa tạo xong), làm mới danh sách
+    // Tải danh sách tài khoản từ Backend API
+    const loadAccounts = useCallback(async () => {
+        const userInfo = getStorage(STORAGE.USER_INFO)
+        const schoolId = userInfo?.schoolId
+        if (!schoolId) {
+            setAccounts(getStoredAccounts())
+            return
+        }
+        setIsLoading(true)
+        try {
+            const res = await UserService.getSchoolAccounts(schoolId, { page: 1, limit: 100 })
+            const items = res?.data?.items || res?.items || []
+            const staffUsers = items
+                .filter((u) => {
+                    const code = u.roleCode || u.Role?.code || ""
+                    return code !== "SCHOOL_ADMINISTRATION" && (ALLOWED_STAFF_ROLES.has(code) || !code)
+                })
+                .map(mapApiUser)
+            setAccounts(staffUsers)
+        } catch (err) {
+            console.warn("Chưa kết nối API Backend hoặc rỗng, hiển thị danh sách hiện tại:", err)
+            setAccounts(getStoredAccounts())
+        } finally {
+            setIsLoading(false)
+        }
+    }, [])
+
     useEffect(() => {
-        setAccounts(getStoredAccounts())
+        loadAccounts()
         if (location.state?.toastMessage) {
             showToast(location.state.toastMessage, location.state.toastType || "success")
-            // Xóa state để không hiện lại khi refresh
             window.history.replaceState({}, document.title)
         }
-    }, [location.state])
+    }, [location.state, loadAccounts])
 
     // 2. Bộ lọc & Tìm kiếm
     const [searchTerm, setSearchTerm] = useState("")

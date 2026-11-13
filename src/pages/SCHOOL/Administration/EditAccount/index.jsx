@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { AlertCircle, ArrowLeft } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
+import STORAGE, { getStorage } from "src/lib/storage"
+import UserService from "src/services/UserService"
 import EditAccountHeader from "./component/EditAccountHeader"
 import EditAccountForm from "./component/EditAccountForm"
 import {
@@ -103,7 +105,7 @@ function EditAccount() {
   }
 
   // Lưu thay đổi
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) {
       return
@@ -121,6 +123,20 @@ function EditAccount() {
       roleKey: deptConfig.roleKey,
       status: formData.status,
       password: formData.password.trim(),
+    }
+
+    const userInfo = getStorage(STORAGE.USER_INFO)
+    const schoolId = userInfo?.schoolId
+    if (schoolId) {
+      try {
+        await UserService.updateSchoolAccount(schoolId, id, {
+          fullName: formData.fullName.trim(),
+          phone: formData.phone.trim(),
+          roleCode: deptConfig.roleKey,
+        })
+      } catch (err) {
+        console.warn("Lỗi khi đồng bộ API Backend:", err)
+      }
     }
 
     updateStoredAccount(id, updatedData)

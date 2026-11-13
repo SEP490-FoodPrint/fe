@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import ROUTER from "src/router/ROUTER"
+import STORAGE, { getStorage } from "src/lib/storage"
+import UserService from "src/services/UserService"
 import CreateAccountHeader from "./component/CreateAccountHeader"
 import CreateAccountForm from "./component/CreateAccountForm"
 import SuccessModal from "./component/SuccessModal"
@@ -100,7 +102,7 @@ function CreateAccount() {
   }
 
   // Submit tạo tài khoản
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) {
       return
@@ -126,7 +128,26 @@ function CreateAccount() {
       lastLoginAt: null,
     }
 
-    // Lưu vào localStorage
+    const userInfo = getStorage(STORAGE.USER_INFO)
+    const schoolId = userInfo?.schoolId
+    if (schoolId) {
+      try {
+        const created = await UserService.createSchoolAccount(schoolId, {
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim() || null,
+          roleCode: deptConfig.roleKey,
+          username: formData.email.split("@")[0].toLowerCase().trim(),
+        })
+        if (created?.data?.id) {
+          newAccount.id = created.data.id
+        }
+      } catch (err) {
+        console.warn("Lỗi khi đồng bộ API Backend:", err)
+      }
+    }
+
+    // Lưu vào bộ nhớ local để trang danh sách nhận được ngay
     addNewAccount(newAccount)
 
     // Hiển thị modal thông báo thành công

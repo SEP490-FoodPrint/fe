@@ -569,26 +569,25 @@ export function getDepartmentKPIStats(accounts = INITIAL_MOCK_ACCOUNTS) {
 /**
  * Mật khẩu khởi tạo mặc định cho tất cả tài khoản tạo mới của trường
  */
-export const DEFAULT_INITIAL_PASSWORD = "FoodPrint@2026"
+export const DEFAULT_INITIAL_PASSWORD = "123456"
 
-const STORAGE_KEY = "foodprint_school_accounts_storage_v1"
+const STORAGE_KEY = "foodprint_school_accounts_storage_v2"
 
 /**
- * Lấy danh sách tài khoản từ localStorage hoặc trả về INITIAL_MOCK_ACCOUNTS
+ * Lấy danh sách tài khoản từ localStorage hoặc trả về rỗng (Đã tắt Mock Data)
  */
 export function getStoredAccounts() {
-  if (typeof window === "undefined") return INITIAL_MOCK_ACCOUNTS
+  if (typeof window === "undefined") return []
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_MOCK_ACCOUNTS))
-      return INITIAL_MOCK_ACCOUNTS
+      return []
     }
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) && parsed.length > 0 ? parsed : INITIAL_MOCK_ACCOUNTS
+    return Array.isArray(parsed) ? parsed : []
   } catch (error) {
     console.error("Lỗi khi đọc accounts từ localStorage:", error)
-    return INITIAL_MOCK_ACCOUNTS
+    return []
   }
 }
 
