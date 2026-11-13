@@ -53,28 +53,21 @@ function SupplierList({
                   )}
                   <small>{supplier.address || "Chưa cập nhật địa chỉ"}</small>
                   <small>
-                    {supplier.ingredients
-                      .map((item) => item.category)
-                      .filter(Boolean)
-                      .join(" · ") || "Chưa cập nhật nhóm hàng"}
+                    {Array.from(
+                      new Set(
+                        supplier.ingredients
+                          .map((item) =>
+                            item.category === "Thịt" ? "Thịt tươi" : item.category,
+                          )
+                          .filter(Boolean),
+                      ),
+                    ).join(" · ") || "Chưa cập nhật nhóm hàng"}
                   </small>
                 </TableCell>
                 <TableCell>
-                  <Chip
-                    size="small"
-                    variant="outlined"
-                    color={supplier.status === "ACTIVE" ? "success" : "default"}
-                    label={
-                      supplier.status === "ACTIVE"
-                        ? "Đang hoạt động"
-                        : "Ngừng hoạt động"
-                    }
+                  <RelationshipStatus
+                    status={supplier.relationship?.status}
                   />
-                  <div style={{ marginTop: 8 }}>
-                    <RelationshipStatus
-                      status={supplier.relationship?.status}
-                    />
-                  </div>
                 </TableCell>
                 <TableCell align="center">
                   <div className="supplier-row-actions">

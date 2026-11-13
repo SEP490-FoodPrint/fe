@@ -25,20 +25,207 @@
   }
 }
 
-.weekSelect {
-  width: 23rem;
-  max-width: 100%;
+.weekNavigator {
+  display: inline-flex;
+  align-items: center;
   background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 10px);
+  padding: 3px 4px;
+  gap: 2px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: rgba(10, 128, 102, 0.4);
+  }
+
+  &:focus-within {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+  }
+}
+
+.navButton {
+  color: var(--text-secondary) !important;
+  border-radius: 6px !important;
+  padding: 6px !important;
+  width: 30px !important;
+  height: 30px !important;
+  transition: all 0.15s ease !important;
+
+  &:hover:not(:disabled) {
+    background: var(--bg-muted) !important;
+    color: var(--color-primary) !important;
+  }
+
+  &:disabled {
+    opacity: 0.3 !important;
+    color: var(--text-muted) !important;
+  }
+}
+
+.weekFormControl {
+  display: inline-flex !important;
+  align-items: center;
+}
+
+.weekSelect {
+  background: transparent !important;
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border: none !important;
+  }
+
+  :global(.MuiSelect-select) {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    padding-left: 6px !important;
+    padding-right: 28px !important;
+    height: 30px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    background: transparent !important;
+  }
+
+  :global(.MuiSelect-icon) {
+    color: var(--text-secondary);
+    right: 4px;
+  }
+}
+
+.selectedValue {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendarIcon {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.weekDateText {
+  font-weight: var(--font-semibold, 600);
+  font-size: 13.5px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.dropdownPaper {
+  border-radius: 12px !important;
+  border: 1px solid var(--border-default) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.04) !important;
+  max-height: 280px !important;
+  padding: 4px !important;
+  margin-top: 4px !important;
+}
+
+.menuItem {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 8px 14px !important;
+  border-radius: 6px !important;
+  margin: 2px 0 !important;
+  font-size: var(--text-sm) !important;
+  transition: all 0.15s ease !important;
+
+  &:hover {
+    background: var(--bg-muted) !important;
+    color: var(--color-primary) !important;
+  }
+
+  &:global(.Mui-selected) {
+    background: rgba(10, 128, 102, 0.08) !important;
+    color: var(--color-primary) !important;
+    font-weight: 600 !important;
+  }
+}
+
+.menuItemText {
+  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1;
+  height: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.statusPending {
+  color: #b45309;
+  background: #fffbeb;
+  border-color: #fde68a;
+  .statusDot {
+    background: #f59e0b;
+  }
+}
+
+.statusApproved {
+  color: #047857;
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  .statusDot {
+    background: #10b981;
+  }
+}
+
+.statusRejected {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #fecaca;
+  .statusDot {
+    background: #ef4444;
+  }
+}
+
+.statusDraft {
+  color: #4b5563;
+  background: #f3f4f6;
+  border-color: #e5e7eb;
+  .statusDot {
+    background: #9ca3af;
+  }
 }
 
 @media (max-width: 600px) {
+  .weekNavigator {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .weekFormControl {
+    flex: 1;
+  }
   .weekSelect {
     width: 100%;
   }
 }
 
 @media print {
-  .weekSelect {
+  .weekNavigator {
     display: none;
   }
 }

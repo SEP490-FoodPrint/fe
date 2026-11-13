@@ -9,10 +9,20 @@ import MenuSchedule from "./component/MenuSchedule"
 import MenuSummary from "./component/MenuSummary"
 import "./style.scss"
 
-// Ưu tiên tuần chờ duyệt cũ nhất; không còn tuần chờ thì mở tuần mới nhất
+// Ưu tiên tuần chờ duyệt gần nhất; nếu không có tuần chờ thì mở tuần gần nhất
 const pickDefaultWeek = weeks => {
+  if (!weeks || !weeks.length) return null
   const pending = weeks.filter(week => week.status === "PENDING_APPROVAL")
-  return (pending.at(-1) || weeks[0])?.id || null
+  if (pending.length > 0) {
+    const sortedPending = [...pending].sort(
+      (a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime(),
+    )
+    return sortedPending[0].id
+  }
+  const sortedAll = [...weeks].sort(
+    (a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime(),
+  )
+  return sortedAll[0].id
 }
 
 function MenuApproval() {
@@ -34,9 +44,12 @@ function MenuApproval() {
       try {
         const items = await MenuService.getApprovalWeeks()
         if (!mounted) return
-        setWeeks(items)
-        setMenuId(pickDefaultWeek(items))
-        if (!items.length) setLoading(false)
+        const sortedWeeks = [...items].sort(
+          (a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime(),
+        )
+        setWeeks(sortedWeeks)
+        setMenuId(pickDefaultWeek(sortedWeeks))
+        if (!sortedWeeks.length) setLoading(false)
       } catch (requestError) {
         if (mounted) {
           setError(

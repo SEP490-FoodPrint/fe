@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import ROUTER from "src/router/ROUTER"
+import STORAGE, { getStorage } from "src/lib/storage"
+import UserService from "src/services/UserService"
+import notice from "src/components/Notice"
 import CreateAccountHeader from "./component/CreateAccountHeader"
 import CreateAccountForm from "./component/CreateAccountForm"
 import SuccessModal from "./component/SuccessModal"
@@ -100,7 +103,7 @@ function CreateAccount() {
   }
 
   // Submit tạo tài khoản
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validate()) {
       return
@@ -109,6 +112,13 @@ function CreateAccount() {
     const deptConfig =
       DEPARTMENT_CONFIGS.find((d) => d.id === formData.departmentId) ||
       DEPARTMENT_CONFIGS[0]
+
+    let targetRoleCode = deptConfig.roleKey
+    if (targetRoleCode === "SCHOOL_HEALTH_OFFICER") {
+      targetRoleCode = "SCHOOL_NUTRITION_OFFICER"
+    } else if (targetRoleCode === "INGREDIENT_MANAGEMENT") {
+      targetRoleCode = "INGREDIENT_MANAGEMENT_DEPARTMENT"
+    }
 
     const newAccount = {
       id: `acc_${Date.now()}`,
@@ -126,7 +136,30 @@ function CreateAccount() {
       lastLoginAt: null,
     }
 
-    // Lưu vào localStorage
+    const userInfo = getStorage(STORAGE.USER_INFO)
+    const schoolId = userInfo?.schoolId
+    if (schoolId) {
+      try {
+        const created = await UserService.createSchoolAccount(schoolId, {
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim().toLowerCase(),
+          phone: formData.phone.trim() || null,
+          roleCode: targetRoleCode,
+          username: formData.email.split("@")[0].toLowerCase().trim(),
+        })
+        const resData = created?.data || created
+        if (resData?.id) {
+          newAccount.id = resData.id
+          if (resData.username) newAccount.code = resData.username
+        }
+      } catch (err) {
+        console.error("Lỗi khi tạo tài khoản trên server:", err)
+        notice({ msg: err.message || "Tạo tài khoản thất bại. Vui lòng kiểm tra lại thông tin.", isSuccess: false })
+        return
+      }
+    }
+
+    // Lưu vào bộ nhớ local để trang danh sách nhận được ngay
     addNewAccount(newAccount)
 
     // Hiển thị modal thông báo thành công

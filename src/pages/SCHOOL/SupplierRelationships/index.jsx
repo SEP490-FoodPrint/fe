@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react"
+import React, { useContext, useEffect, useMemo, useState } from "react"
 import {
   Alert,
   Button,
@@ -28,6 +28,10 @@ function SupplierRelationships() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [categories, setCategories] = useState([])
+  const displayCategories = useMemo(() => {
+    const list = categories.map((c) => (c === "Thịt" ? "Thịt tươi" : c))
+    return Array.from(new Set(list)).sort((a, b) => a.localeCompare(b, "vi"))
+  }, [categories])
   const [workspace, setWorkspace] = useState(null)
   const [refresh, setRefresh] = useState(0)
   const [search, setSearch] = useState(params.get("q") || "")
@@ -86,6 +90,7 @@ function SupplierRelationships() {
       limit: 10,
       ...(q ? { q } : {}),
       ...(activeView === "relationships" && status ? { status } : {}),
+      ...(activeView === "suppliers" ? { status: "ACTIVE" } : {}),
       ...(activeView === "suppliers" && category ? { category } : {}),
     }
     const request =
@@ -95,7 +100,11 @@ function SupplierRelationships() {
     request(query, controller.signal)
       .then((response) => {
         if (!controller.signal.aborted) {
-          setRows(response.data.items)
+          const items =
+            activeView === "suppliers"
+              ? response.data.items.filter((item) => item.status === "ACTIVE")
+              : response.data.items
+          setRows(items)
           setRowsView(activeView)
           setPagination(response.data.pagination)
         }
@@ -161,7 +170,7 @@ function SupplierRelationships() {
             onChange={(event) => update({ category: event.target.value })}
           >
             <MenuItem value="">Tất cả nhóm hàng</MenuItem>
-            {categories.map((item) => (
+            {displayCategories.map((item) => (
               <MenuItem key={item} value={item}>
                 {item}
               </MenuItem>
