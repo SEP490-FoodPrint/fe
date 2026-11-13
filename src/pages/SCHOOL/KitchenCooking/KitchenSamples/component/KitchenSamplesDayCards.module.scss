@@ -280,3 +280,32 @@
   font-weight: 600;
   margin-top: 2px;
 }
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding-top: 8px;
+  margin-top: 2px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--color-primary, #0a8066);
+  transition: all 0.15s ease;
+}
+
+.openTableText {
+  user-select: none;
+}
+
+.openTableIcon {
+  transition: transform 0.15s ease;
+}
+
+.dayCard:hover {
+  .openTableIcon {
+    transform: translateX(3px);
+  }
+}
+

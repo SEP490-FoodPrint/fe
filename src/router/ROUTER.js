@@ -62,7 +62,8 @@ const ROUTER = {
   SCHOOL_KITCHEN_BATCH_EDIT: "/school/kitchen-cooking/batches/:id/edit", // Chỉnh sửa lô chế biến
   SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/kitchen-cooking/meal-allocation", // Phân bổ suất ăn
   SCHOOL_KITCHEN_INGREDIENTS: "/school/kitchen-cooking/ingredients", // Danh sách nguyên liệu
-  SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm
+  SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm (danh sách ngày)
+  SCHOOL_KITCHEN_SAMPLES_DATE: "/school/kitchen-cooking/samples/:date", // Chi tiết mẫu lưu theo ngày
   SCHOOL_KITCHEN_HANDOVER: "/school/kitchen-cooking/handover", // Bàn giao suất ăn
   SCHOOL_KITCHEN_TRACEABILITY: "/school/kitchen-cooking/traceability", // Truy xuất nguồn gốc
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN

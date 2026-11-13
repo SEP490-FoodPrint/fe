@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Calendar, Layers, ClockAlert, CheckCircle2, ShieldAlert } from "lucide-react"
+import { Calendar, Layers, ClockAlert, ArrowRight } from "lucide-react"
 import styles from "./KitchenSamplesDayCards.module.scss"
 
 export default function KitchenSamplesDayCards({
@@ -25,7 +25,7 @@ export default function KitchenSamplesDayCards({
           <span className={styles.dayGroupCount}>({dayGroups.length} ngày)</span>
         </div>
         <span className={styles.sectionHint}>
-          Chọn một ngày để xem danh sách chi tiết các mẫu lưu
+          Bấm vào ngày bất kỳ để chuyển sang trang xem bảng chi tiết
         </span>
       </div>
 
@@ -35,15 +35,15 @@ export default function KitchenSamplesDayCards({
           className={`${styles.dayCard} ${styles.allCard} ${
             selectedKey === "ALL" ? styles.cardActive : ""
           }`}
-          onClick={() => onSelectDay?.("ALL")}
+          onClick={() => onSelectDay?.("all")}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
-              onSelectDay?.("ALL")
+              onSelectDay?.("all")
             }
           }}
-          title="Xem toàn bộ mẫu lưu từ tất cả các ngày"
+          title="Xem toàn bộ mẫu lưu từ tất cả các ngày trên trang riêng"
         >
           <div className={styles.cardHeader}>
             <div className={styles.dayTitleWrap}>
@@ -81,6 +81,11 @@ export default function KitchenSamplesDayCards({
               )}
             </div>
           </div>
+
+          <div className={styles.cardFooter}>
+            <span className={styles.openTableText}>Xem bảng toàn bộ</span>
+            <ArrowRight size={13} className={styles.openTableIcon} />
+          </div>
         </div>
 
         {/* Danh sách từng cục ngày */}
@@ -102,7 +107,7 @@ export default function KitchenSamplesDayCards({
                   onSelectDay?.(group.dateKey)
                 }
               }}
-              title={`Xem chi tiết mẫu lưu ${group.dayLabel}, ${group.dateDisplay}`}
+              title={`Bấm để chuyển sang trang xem chi tiết ${group.dayLabel}, ${group.dateDisplay}`}
             >
               <div className={styles.cardHeader}>
                 <div className={styles.dayTitleWrap}>
@@ -163,6 +168,11 @@ export default function KitchenSamplesDayCards({
                   <span>Có {group.readyCount} mẫu đủ 24h chờ tiêu hủy</span>
                 </div>
               )}
+
+              <div className={styles.cardFooter}>
+                <span className={styles.openTableText}>Xem bảng chi tiết</span>
+                <ArrowRight size={13} className={styles.openTableIcon} />
+              </div>
             </div>
           )
         })}
@@ -194,3 +204,4 @@ KitchenSamplesDayCards.propTypes = {
   allReady: PropTypes.number,
   allDisposed: PropTypes.number,
 }
+
