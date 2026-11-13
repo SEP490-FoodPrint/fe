@@ -1,43 +1,33 @@
-.headerBar {
+.headerContainer {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
-  padding-bottom: 6px;
+  padding-bottom: 4px;
 }
 
-.headerMain {
+.topRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.titleArea {
-  display: flex;
-  align-items: center;
   gap: 12px;
-  min-width: 0;
-  flex-wrap: wrap;
 }
 
 .backBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: 8px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
   border: 1px solid #e2e8f0;
   background-color: #ffffff;
   color: #475569;
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 
   &:hover {
     background-color: #f8fafc;
@@ -46,20 +36,112 @@
   }
 }
 
-.titleInfo {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.titleRow {
+.actionsDesktop {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #0a8066;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #087059;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.sampleActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid #0a8066;
+  border-radius: 6px;
+  background-color: #f0fdf9;
+  color: #0a8066;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #0a8066;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  background-color: #fff1f2;
+  color: #dc2626;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background-color: #dc2626;
+    color: #ffffff;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/* 2. Tiêu đề chính */
+.titleLine {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
-.heading {
+.headingGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
@@ -67,13 +149,23 @@
   letter-spacing: -0.01em;
 }
 
+.batchCode {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a8066;
+  background-color: #e6f7f2;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
 .statusBadge {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 3px 9px;
   border-radius: 9999px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
   white-space: nowrap;
 }
@@ -114,126 +206,74 @@
   }
 }
 
-.subGroupTag {
+/* 3. Hàng Metadata tinh gọn */
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 8px 14px;
+  background-color: #f8fafc;
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #475569;
+}
+
+.metaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.metaIcon {
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.metaLabel {
+  color: #64748b;
+  font-size: 12.5px;
+}
+
+.metaValue {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.metaValueHighlight {
+  color: #0a8066;
+  font-weight: 700;
+}
+
+.sampleDoneText {
+  color: #15803d;
+  font-weight: 600;
+}
+
+.samplePendingText {
+  color: #b45309;
+  font-weight: 600;
+}
+
+.metaDivider {
+  color: #cbd5e1;
+  user-select: none;
+
+  @media (max-width: 640px) {
+    display: none;
+  }
+}
+
+.metaSubGroup {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 12px;
   color: #64748b;
-
-  strong {
-    color: #334155;
-    font-weight: 600;
-  }
+  font-family: monospace;
 }
 
-/* Actions Area */
-.actionsArea {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.primaryBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 16px;
-  border: none;
-  border-radius: 8px;
-  background-color: #0a8066;
-  color: #ffffff;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(10, 128, 102, 0.2);
-
-  &:hover:not(:disabled) {
-    background-color: #087059;
-    box-shadow: 0 2px 6px rgba(10, 128, 102, 0.3);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.sampleBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: 38px;
-  padding: 0 16px;
-  border: 1px solid #0a8066;
-  border-radius: 8px;
-  background-color: #f0fdf9;
-  color: #0a8066;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s ease;
-
-  &:hover:not(:disabled) {
-    background-color: #0a8066;
-    color: #ffffff;
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-}
-
-.sampleDoneBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 14px;
-  border-radius: 8px;
-  background-color: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  color: #15803d;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.deleteBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 8px;
-  border: 1px solid #fecaca;
-  background-color: #fff1f2;
-  color: #dc2626;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: inherit;
-  transition: all 0.15s ease;
-
-  &:hover:not(:disabled) {
-    background-color: #dc2626;
-    color: #ffffff;
-    border-color: #dc2626;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-@media (max-width: 768px) {
-  .actionsArea {
-    display: none; // Ẩn trên mobile vì đã có mobile sticky bottom bar
-  }
+.subGroupIcon {
+  color: #7c3aed;
 }

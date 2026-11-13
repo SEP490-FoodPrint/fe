@@ -2,7 +2,7 @@
   background-color: #ffffff;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
   overflow: hidden;
 }
 
@@ -10,43 +10,37 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
-  border-bottom: 1px solid #f1f5f9;
-  background-color: #fafcfb;
+  padding: 18px 20px 14px;
 }
 
-.headerLeft {
+.titleWrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
-.iconBox {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background-color: #e6f7f2;
+.sectionIcon {
   color: #0a8066;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.cardTitle {
-  margin: 0;
+.sectionTitle {
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.01em;
 }
 
-.countBadge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background-color: #f1f5f9;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 600;
+/* Empty State tinh gọn */
+.emptyContainer {
+  padding: 18px 20px 24px;
+}
+
+.emptyText {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  font-style: italic;
 }
 
 /* 1. Desktop Table */
@@ -69,50 +63,55 @@
 .thIndex {
   width: 44px;
   text-align: center;
-  padding: 12px 14px;
+  padding: 10px 14px;
   color: #64748b;
   font-weight: 600;
   font-size: 12px;
   background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .thName {
-  padding: 12px 16px;
+  padding: 10px 16px;
   color: #475569;
   font-weight: 600;
   font-size: 12px;
   background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .thLot {
   width: 160px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   color: #475569;
   font-weight: 600;
   font-size: 12px;
   background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .thQty {
-  width: 180px;
-  padding: 12px 16px;
+  width: 160px;
+  padding: 10px 16px;
   color: #475569;
   font-weight: 600;
   font-size: 12px;
   background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #e2e8f0;
 }
 
 .thExpiry {
   width: 160px;
-  padding: 12px 16px;
+  padding: 10px 16px;
   color: #475569;
   font-weight: 600;
   font-size: 12px;
   background-color: #f8fafc;
+  border-top: 1px solid #f1f5f9;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -133,11 +132,11 @@
   text-align: center;
   color: #94a3b8;
   font-size: 12px;
-  padding: 14px;
+  padding: 12px 14px;
 }
 
 .tdName {
-  padding: 14px 16px;
+  padding: 12px 16px;
 }
 
 .nameText {
@@ -146,27 +145,27 @@
 }
 
 .tdLot {
-  padding: 14px 16px;
+  padding: 12px 16px;
 }
 
 .lotCode {
   display: inline-block;
   font-family: monospace;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #065f46;
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
   padding: 2px 7px;
-  border-radius: 5px;
+  border-radius: 4px;
 }
 
 .tdQty {
-  padding: 14px 16px;
+  padding: 12px 16px;
 }
 
 .qtyNumber {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #0a8066;
   font-feature-settings: "tnum";
@@ -180,7 +179,7 @@
 }
 
 .tdExpiry {
-  padding: 14px 16px;
+  padding: 12px 16px;
 }
 
 .expiryDate {
@@ -189,18 +188,11 @@
   font-feature-settings: "tnum";
 }
 
-.emptyCell {
-  text-align: center;
-  padding: 32px 16px;
-  color: #64748b;
-  font-size: 13.5px;
-}
-
 /* 2. Mobile Cards */
 .mobileCardList {
   display: none;
   padding: 12px;
-  gap: 10px;
+  gap: 8px;
 
   @media (max-width: 640px) {
     display: flex;
@@ -209,10 +201,10 @@
 }
 
 .mobileItemCard {
-  background-color: #fcfdfe;
-  border: 1px solid #f1f5f9;
+  background-color: #f8fafc;
+  border: 1px solid #edf2f7;
   border-radius: 8px;
-  padding: 12px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -226,7 +218,7 @@
 }
 
 .mobileNameText {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #0f172a;
 }
@@ -237,7 +229,7 @@
   justify-content: space-between;
   gap: 10px;
   padding-top: 6px;
-  border-top: 1px dashed #f1f5f9;
+  border-top: 1px dashed #e2e8f0;
 }
 
 .mobileField {

@@ -268,22 +268,40 @@ export function adaptBatchDetail(batch) {
           })),
         );
 
-  const ingredients = combinedLots.map((lot, idx) => ({
-    id: lot.ingredientLotId || idx + 1,
-    dishId: lot.dishId,
-    dishName: lot.dishName,
-    name: lot.ingredientName || lot.name || `Lô nguyên liệu #${idx + 1}`,
-    lotCode:
+  const ingredients = combinedLots.map((lot, idx) => {
+    const rawExpiry =
+      lot.IngredientLot?.expiryDate ||
+      lot.expirationDate ||
+      lot.expiryDate;
+    const expiryDate = rawExpiry ? formatDateTime(rawExpiry) || String(rawExpiry) : "—";
+
+    const ingredientName =
+      lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name ||
+      lot.IngredientLot?.IngredientEntry?.Ingredient?.name ||
+      lot.Ingredient?.name ||
+      lot.ingredientName ||
+      lot.name ||
+      "—";
+
+    const lotCode =
+      lot.IngredientLot?.lotCode ||
       lot.lotCode ||
-      (lot.ingredientLotId
-        ? `LOT-${lot.ingredientLotId.slice(0, 8).toUpperCase()}`
-        : `LOT-00${idx + 1}`),
-    quantity: lot.quantityUsed || "—",
-    unit: lot.unit || "kg",
-    expiryDate: lot.expirationDate || lot.expiryDate || "Đã kiểm thực",
-    expiryNote: "Đạt chuẩn an toàn",
-    noteType: "default",
-  }));
+      "—";
+
+    const qty = lot.quantityUsed != null ? String(lot.quantityUsed) : (lot.quantity != null ? String(lot.quantity) : "—");
+    const unit = lot.unit || "kg";
+
+    return {
+      id: lot.ingredientLotId || idx + 1,
+      dishId: lot.dishId,
+      dishName: lot.dishName,
+      name: ingredientName,
+      lotCode,
+      quantity: qty,
+      unit,
+      expiryDate,
+    };
+  });
 
   return {
     id: batch.id,

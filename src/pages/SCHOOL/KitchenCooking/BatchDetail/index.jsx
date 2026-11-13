@@ -15,8 +15,9 @@ import notice from "src/components/Notice";
 import KitchenService from "src/services/KitchenService";
 import { adaptBatchDetail, canRecordBatchSample } from "src/services/KitchenService/adapter";
 import BatchDetailHeader from "./component/BatchDetailHeader";
-import BatchInfoCard from "./component/BatchInfoCard";
+import BatchDishesCard from "./component/BatchDishesCard";
 import BatchIngredientsCard from "./component/BatchIngredientsCard";
+import BatchAdditionalInfo from "./component/BatchAdditionalInfo";
 import ConfirmBatchModal from "./component/ConfirmBatchModal";
 import DeleteBatchModal from "./component/DeleteBatchModal";
 import RetainedSampleModal from "./component/RetainedSampleModal";
@@ -245,11 +246,14 @@ export default function KitchenBatchDetail() {
           totalDishes={totalDishes}
         />
 
-        {/* 2. Thông tin tổng quan mẻ nấu */}
-        <BatchInfoCard batchData={batchData} />
+        {/* 2. Danh sách món ăn thuộc lô chế biến */}
+        <BatchDishesCard batchData={batchData} />
 
-        {/* 3. Bảng nguyên liệu xuất kho sử dụng cho mẻ */}
+        {/* 3. Bảng nguyên liệu xuất kho sử dụng cho lô */}
         <BatchIngredientsCard ingredients={batchData.ingredients} />
+
+        {/* 4. Thông tin bổ sung tinh gọn */}
+        <BatchAdditionalInfo batchData={batchData} />
       </div>
 
       {/* 4. Thanh thao tác nhanh cố định trên Mobile (< 768px) */}
