@@ -19,9 +19,10 @@ const NAME_MAX_LENGTH = 120
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
 
 // mode "create": tạo lớp mới; mode "edit": sửa tên và số suất đăng ký của lớp đã có
-function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClose, onDone }) {
+function ClassFormDialog({ open, mode, item, academicYear, writableYears, grades, canEditGrade, gradeOnly, onClose, onDone }) {
   const isEdit = mode === "edit"
   const [name, setName] = useState("")
+  const [gradeId, setGradeId] = useState("")
   const [year, setYear] = useState("")
   const [portions, setPortions] = useState("0")
   const [errors, setErrors] = useState({})
@@ -63,6 +64,7 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
   useEffect(() => {
     if (!open) return
     setName(isEdit ? item?.name || "" : "")
+    setGradeId(isEdit ? item?.grade?.id || "" : "")
     setPortions(String(isEdit ? item?.registeredMealPortions ?? 0 : 0))
     setYear(writableYears.includes(academicYear) ? academicYear : writableYears[0] || "")
     setErrors({})
@@ -81,7 +83,7 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
   }
 
   const submit = async () => {
-    if (submitLock.current || !validate()) return
+    if (submitLock.current || (!gradeOnly && !validate())) return
     const payload = { name: name.trim(), registeredMealPortions: Number(portions.trim()) }
     submitLock.current = true
     setSubmitting(true)
@@ -89,9 +91,11 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
     try {
       if (isEdit) {
         const changes = {}
-        if (payload.name !== item.name) changes.name = payload.name
-        if (payload.registeredMealPortions !== item.registeredMealPortions)
+        if (!gradeOnly && payload.name !== item.name) changes.name = payload.name
+        if (!gradeOnly && payload.registeredMealPortions !== item.registeredMealPortions)
           changes.registeredMealPortions = payload.registeredMealPortions
+        if (canEditGrade && (gradeId || null) !== (item.grade?.id ?? null))
+          changes.gradeId = gradeId || null
         if (!Object.keys(changes).length) {
           onClose()
           return
@@ -103,6 +107,7 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
         await ClassService.createClass({
           ...payload,
           academicYear: year,
+          ...(canEditGrade && gradeId ? { gradeId } : {}),
           ...(teacher ? { homeroomTeacherUserId: teacher.id } : {}),
         })
         onDone(
@@ -143,7 +148,7 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
             }}
             error={Boolean(errors.name)}
             helperText={errors.name || "Trường tự đặt tên; không trùng trong cùng niên khóa."}
-            disabled={submitting}
+            disabled={submitting || gradeOnly}
             inputProps={{ maxLength: NAME_MAX_LENGTH }}
           />
           {isEdit ? (
@@ -182,9 +187,17 @@ function ClassFormDialog({ open, mode, item, academicYear, writableYears, onClos
             }}
             error={Boolean(errors.portions)}
             helperText={errors.portions || "Mức tối đa GVCN được khai báo mỗi bữa."}
-            disabled={submitting}
+            disabled={submitting || gradeOnly}
             inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
           />
+          {canEditGrade && (
+            <TextField select label="Khối học" value={gradeId} disabled={submitting}
+              onChange={event => setGradeId(event.target.value)}>
+              <MenuItem value="">Chưa gán khối</MenuItem>
+              {grades.map(grade => <MenuItem key={grade.id} value={grade.id}>{grade.name}</MenuItem>)}
+              {gradeId && !grades.some(grade => grade.id === gradeId) && <MenuItem value={gradeId} disabled>{item?.grade?.name}</MenuItem>}
+            </TextField>
+          )}
           {!isEdit && (
             <TeacherAutocomplete
               teachers={teachers}
@@ -223,6 +236,9 @@ ClassFormDialog.propTypes = {
   item: PropTypes.object,
   academicYear: PropTypes.string.isRequired,
   writableYears: PropTypes.arrayOf(PropTypes.string).isRequired,
+  grades: PropTypes.arrayOf(PropTypes.object).isRequired,
+  canEditGrade: PropTypes.bool.isRequired,
+  gradeOnly: PropTypes.bool.isRequired,
   onClose: PropTypes.func.isRequired,
   onDone: PropTypes.func.isRequired,
 }

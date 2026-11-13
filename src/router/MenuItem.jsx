@@ -164,10 +164,23 @@ export const MenuItemSchool = () => [
     ],
   },
   {
-    key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
-    label: "Lớp học & GVCN",
+    key: "SCHOOL_GRADES_AND_CLASSES",
+    label: "Khối & Lớp học",
     icon: <AssignmentIndOutlinedIcon />,
-    roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+    children: [
+      {
+        key: ROUTER.SCHOOL_GRADES,
+        label: "Khối học",
+        icon: <SchoolOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
+        key: ROUTER.SCHOOL_CLASS_ASSIGNMENT,
+        label: "Lớp học & GVCN",
+        icon: <AssignmentIndOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+    ],
   },
   // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO NHÂN VIÊN DINH DƯỠNG (SCHOOL_NUTRITION_OFFICER) - 5 MỤC QUY CHUẨN ===
   {
