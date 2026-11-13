@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Calendar, Table, ArrowRight, ClockAlert } from "lucide-react"
+import { Calendar, Table, ArrowRight, ClockAlert, ChevronDown, ChevronUp } from "lucide-react"
 import styles from "./KitchenSamplesWeeklyCalendar.module.scss"
 
 export default function KitchenSamplesWeeklyCalendar({
@@ -8,6 +8,9 @@ export default function KitchenSamplesWeeklyCalendar({
   onSelectDay,
   onViewAll,
   totalAll = 0,
+  onToggleShowAllYear,
+  isShowingAllYear = false,
+  totalYearWeeks = 0,
 }) {
   return (
     <div className={styles.calendarContainer}>
@@ -181,6 +184,34 @@ export default function KitchenSamplesWeeklyCalendar({
             </div>
           </div>
         ))}
+
+        {onToggleShowAllYear && totalYearWeeks > weeks.length && !isShowingAllYear && (
+          <div className={styles.showAllWeeksWrap}>
+            <button
+              type="button"
+              className={styles.showAllWeeksBtn}
+              onClick={onToggleShowAllYear}
+              title={`Bấm xem toàn bộ ${totalYearWeeks} tuần trong năm học 2026-2027`}
+            >
+              <span>Xem toàn bộ {totalYearWeeks} tuần trong năm học</span>
+              <ChevronDown size={14} />
+            </button>
+          </div>
+        )}
+
+        {onToggleShowAllYear && isShowingAllYear && (
+          <div className={styles.showAllWeeksWrap}>
+            <button
+              type="button"
+              className={styles.showAllWeeksBtn}
+              onClick={onToggleShowAllYear}
+              title="Thu gọn về danh sách các tuần đã qua"
+            >
+              <span>Thu gọn về các tuần đã qua</span>
+              <ChevronUp size={14} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

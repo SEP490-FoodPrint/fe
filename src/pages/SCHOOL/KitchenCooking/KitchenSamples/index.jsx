@@ -39,7 +39,8 @@ export default function KitchenSamples() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL");
-  const [dateFilter, setDateFilter] = useState("");
+  const [weekFilter, setWeekFilter] = useState("ALL");
+  const [showAllYearWeeks, setShowAllYearWeeks] = useState(false);
 
   // 3. Modal / Popup States
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -170,7 +171,59 @@ export default function KitchenSamples() {
     });
   }, [samples]);
 
-  // 7. Lọc danh sách mẫu lưu và sắp xếp thời điểm lấy mẫu mới nhất ở trên
+  const padZero = (n) => String(n).padStart(2, "0");
+  const toDateKey = (d) => {
+    if (!d) return "";
+    const date = new Date(d);
+    if (isNaN(date.getTime())) return "";
+    return `${date.getFullYear()}-${padZero(date.getMonth() + 1)}-${padZero(date.getDate())}`;
+  };
+
+  // 7A. Cấu hình năm học theo setup nhà trường trong DB
+  const currentAcademicYearConfig = useMemo(() => {
+    const today = new Date();
+    const todayISO = `${today.getFullYear()}-${padZero(today.getMonth() + 1)}-${padZero(today.getDate())}`;
+    const years = schoolContext?.academicYears;
+    if (Array.isArray(years) && years.length > 0) {
+      const active = years.find((ay) => {
+        if (ay.startDate && ay.endDate) {
+          return ay.startDate <= todayISO && todayISO <= ay.endDate;
+        }
+        return false;
+      });
+      if (active) return active;
+      return years[0];
+    }
+    // Mặc định bám sát cấu hình DB PostgreSQL FoodPrint v5.4
+    return {
+      academicYear: "2026-2027",
+      startDate: "2026-09-07",
+      endDate: "2027-05-28",
+      holidays: [],
+    };
+  }, [schoolContext]);
+
+  // Danh sách các tuần học thực tế trong năm học theo BGH thiết lập trong DB
+  const allAcademicWeeks = useMemo(() => {
+    return getWeeksOfAcademicYear(currentAcademicYearConfig);
+  }, [currentAcademicYearConfig]);
+
+  // Danh sách options tuần cho dropdown bộ lọc
+  const weekFilterOptions = useMemo(() => {
+    if (!allAcademicWeeks.length) return [];
+    return allAcademicWeeks.map((w) => {
+      const parts = w.startDateISO.split("-").map(Number);
+      const sunday = new Date(parts[0], parts[1] - 1, parts[2] + 6, 12, 0, 0);
+      const sundayVN = `${padZero(sunday.getDate())}/${padZero(sunday.getMonth() + 1)}`;
+      return {
+        weekIndex: String(w.weekIndex),
+        label: `Tuần ${w.weekIndex} (${w.startVN} – ${sundayVN})${w.isCurrentWeek ? " — Tuần này" : ""}`,
+        isCurrentWeek: w.isCurrentWeek,
+      };
+    });
+  }, [allAcademicWeeks]);
+
+  // 7B. Lọc danh sách mẫu lưu và sắp xếp thời điểm lấy mẫu mới nhất ở trên
   const filteredSamples = useMemo(() => {
     const searchLower = searchTerm.trim().toLowerCase();
 
@@ -209,15 +262,38 @@ export default function KitchenSamples() {
         return false;
       }
 
-      // Lọc ngày (chọn từ lịch ngày/tháng/năm)
-      if (dateFilter) {
-        const d = new Date(s.sampledAt);
-        const yyyy = d.getFullYear();
-        const mm = String(d.getMonth() + 1).padStart(2, "0");
-        const dd = String(d.getDate()).padStart(2, "0");
-        const itemDateStr = `${yyyy}-${mm}-${dd}`;
-        if (itemDateStr !== dateFilter) {
-          return false;
+      // Lọc theo tuần học
+      if (weekFilter !== "ALL") {
+        const targetWeek =
+          weekFilter === "CURRENT"
+            ? allAcademicWeeks.find((w) => w.isCurrentWeek)
+            : allAcademicWeeks.find(
+                (w) => String(w.weekIndex) === String(weekFilter)
+              );
+
+        if (targetWeek) {
+          const parts = targetWeek.startDateISO.split("-").map(Number);
+          const mondayTime = new Date(
+            parts[0],
+            parts[1] - 1,
+            parts[2],
+            0,
+            0,
+            0
+          ).getTime();
+          const sundayTime = new Date(
+            parts[0],
+            parts[1] - 1,
+            parts[2] + 6,
+            23,
+            59,
+            59,
+            999
+          ).getTime();
+          const sampleTime = new Date(s.sampledAt || s.createdAt || 0).getTime();
+          if (sampleTime < mondayTime || sampleTime > sundayTime) {
+            return false;
+          }
         }
       }
 
@@ -230,7 +306,7 @@ export default function KitchenSamples() {
       const timeB = new Date(b.sampledAt || b.createdAt || 0).getTime();
       return timeB - timeA;
     });
-  }, [samples, searchTerm, statusFilter, mealTypeFilter, dateFilter]);
+  }, [samples, searchTerm, statusFilter, mealTypeFilter, weekFilter, allAcademicWeeks]);
 
   const DAYS_OF_WEEK = [
     "Chủ Nhật",
@@ -241,10 +317,6 @@ export default function KitchenSamples() {
     "Thứ Sáu",
     "Thứ Bảy",
   ];
-
-  const padZero = (n) => String(n).padStart(2, "0");
-  const toDateKey = (d) =>
-    `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
 
   // 7A. Nhóm mẫu lưu theo ngày (Day Groups)
   const dayGroups = useMemo(() => {
@@ -303,35 +375,6 @@ export default function KitchenSamples() {
       .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
   }, [filteredSamples]);
 
-  // 7B. Cấu hình năm học theo setup nhà trường trong DB
-  const currentAcademicYearConfig = useMemo(() => {
-    const today = new Date();
-    const todayISO = `${today.getFullYear()}-${padZero(today.getMonth() + 1)}-${padZero(today.getDate())}`;
-    const years = schoolContext?.academicYears;
-    if (Array.isArray(years) && years.length > 0) {
-      const active = years.find((ay) => {
-        if (ay.startDate && ay.endDate) {
-          return ay.startDate <= todayISO && todayISO <= ay.endDate;
-        }
-        return false;
-      });
-      if (active) return active;
-      return years[0];
-    }
-    // Mặc định bám sát cấu hình DB PostgreSQL FoodPrint v5.4
-    return {
-      academicYear: "2026-2027",
-      startDate: "2026-09-07",
-      endDate: "2027-05-28",
-      holidays: [],
-    };
-  }, [schoolContext]);
-
-  // Danh sách các tuần học thực tế trong năm học theo BGH thiết lập trong DB
-  const allAcademicWeeks = useMemo(() => {
-    return getWeeksOfAcademicYear(currentAcademicYearConfig);
-  }, [currentAcademicYearConfig]);
-
   // 7C. Dữ liệu lịch tuần liên tiếp (Weekly Calendar nhiều tuần nối liền nhau)
   const calendarWeeks = useMemo(() => {
     if (!allAcademicWeeks.length) return [];
@@ -359,23 +402,23 @@ export default function KitchenSamples() {
       samplesByDate.get(key).push(item);
     });
 
-    // Xác định số tuần hiển thị:
-    // Tối thiểu hiển thị 4 tuần gần nhất (hoặc tất cả nếu số tuần đã qua < 4).
-    // Nếu có mẫu lưu trong filteredSamples ở tuần cũ hơn, mở rộng để bao hàm tất cả các tuần có mẫu.
-    let displayWeeks = elapsedWeeks.slice(0, Math.min(4, elapsedWeeks.length));
-    if (filteredSamples.length > 0) {
-      const maxNeededIndex = elapsedWeeks.findLastIndex((w) => {
-        const parts = w.startDateISO.split("-").map(Number);
-        for (let i = 0; i < 7; i++) {
-          const dt = new Date(parts[0], parts[1] - 1, parts[2] + i, 12, 0, 0);
-          const k = `${dt.getFullYear()}-${padZero(dt.getMonth() + 1)}-${padZero(dt.getDate())}`;
-          if (samplesByDate.has(k)) return true;
-        }
-        return false;
-      });
-      if (maxNeededIndex >= displayWeeks.length) {
-        displayWeeks = elapsedWeeks.slice(0, maxNeededIndex + 1);
-      }
+    // Xác định các tuần cần hiển thị:
+    let displayWeeks = [];
+
+    if (weekFilter === "CURRENT") {
+      const cur = allAcademicWeeks.find((w) => w.isCurrentWeek);
+      displayWeeks = cur ? [cur] : [];
+    } else if (weekFilter !== "ALL") {
+      const selected = allAcademicWeeks.find(
+        (w) => String(w.weekIndex) === String(weekFilter)
+      );
+      displayWeeks = selected ? [selected] : [];
+    } else if (showAllYearWeeks) {
+      // Hiển thị toàn bộ các tuần của năm học (38 tuần)
+      displayWeeks = [...allAcademicWeeks].reverse();
+    } else {
+      // Hiển thị TẤT CẢ các tuần đã diễn ra từ đầu năm học đến tuần này (từ Tuần 10 xuống Tuần 1)
+      displayWeeks = elapsedWeeks;
     }
 
     const DAY_LABELS = [
@@ -451,7 +494,7 @@ export default function KitchenSamples() {
         days,
       };
     });
-  }, [allAcademicWeeks, filteredSamples]);
+  }, [allAcademicWeeks, filteredSamples, weekFilter, showAllYearWeeks]);
 
   const selectedGroup = useMemo(() => {
     if (!activeDate || activeDate.toLowerCase() === "all") return null;
@@ -520,13 +563,13 @@ export default function KitchenSamples() {
     Boolean(searchTerm.trim()) ||
     statusFilter !== "ALL" ||
     mealTypeFilter !== "ALL" ||
-    Boolean(dateFilter);
+    weekFilter !== "ALL";
 
   const handleResetFilters = () => {
     setSearchTerm("");
     setStatusFilter("ALL");
     setMealTypeFilter("ALL");
-    setDateFilter("");
+    setWeekFilter("ALL");
   };
 
   const handleOpenDayDetail = (dateKey) => {
@@ -866,8 +909,9 @@ export default function KitchenSamples() {
             onStatusChange={setStatusFilter}
             mealTypeFilter={mealTypeFilter}
             onMealTypeChange={setMealTypeFilter}
-            dateFilter={dateFilter}
-            onDateChange={setDateFilter}
+            weekFilter={weekFilter}
+            onWeekChange={setWeekFilter}
+            weeks={weekFilterOptions}
             onResetFilters={handleResetFilters}
             hasActiveFilters={hasActiveFilters}
             readyCount={readyToDisposeSamples.length}
@@ -892,6 +936,9 @@ export default function KitchenSamples() {
               onSelectDay={handleOpenDayDetail}
               onViewAll={() => handleOpenDayDetail("all")}
               totalAll={filteredSamples.length}
+              onToggleShowAllYear={() => setShowAllYearWeeks((prev) => !prev)}
+              isShowingAllYear={showAllYearWeeks}
+              totalYearWeeks={allAcademicWeeks.length}
             />
           ) : (
             <KitchenSamplesEmptyState

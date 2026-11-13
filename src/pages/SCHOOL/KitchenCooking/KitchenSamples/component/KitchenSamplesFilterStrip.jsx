@@ -10,8 +10,9 @@ export default function KitchenSamplesFilterStrip({
   onStatusChange,
   mealTypeFilter = "ALL",
   onMealTypeChange,
-  dateFilter = "",
-  onDateChange,
+  weekFilter = "ALL",
+  onWeekChange,
+  weeks = [],
   onResetFilters,
   hasActiveFilters = false,
   readyCount = 0,
@@ -78,28 +79,24 @@ export default function KitchenSamplesFilterStrip({
           <ChevronDown size={14} className={styles.chevronIcon} />
         </div>
 
-        {/* Lọc Lịch (ngày tháng năm) */}
-        <div className={styles.datePickerWrapper}>
-          <Calendar size={14} className={styles.dateIcon} />
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={dateFilter}
-            onChange={(e) => onDateChange?.(e.target.value)}
-            title="Chọn ngày tháng năm lưu mẫu"
-            aria-label="Chọn ngày lưu mẫu"
-          />
-          {dateFilter && (
-            <button
-              type="button"
-              className={styles.clearDateBtn}
-              onClick={() => onDateChange?.("")}
-              title="Xem tất cả các ngày"
-              aria-label="Xem tất cả các ngày"
-            >
-              <X size={13} />
-            </button>
-          )}
+        {/* Lọc Tuần học */}
+        <div className={styles.selectWrapper} style={{ minWidth: 200, maxWidth: 300 }}>
+          <Calendar size={14} className={styles.selectIcon} />
+          <select
+            className={styles.selectInput}
+            value={weekFilter}
+            onChange={(e) => onWeekChange?.(e.target.value)}
+            title="Lọc theo tuần học"
+          >
+            <option value="ALL">Tất cả các tuần</option>
+            <option value="CURRENT">Tuần hiện tại (Tuần này)</option>
+            {weeks.map((w) => (
+              <option key={w.weekIndex} value={w.weekIndex}>
+                {w.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className={styles.chevronIcon} />
         </div>
 
         {/* Nút Hủy tất cả cho những mẫu đã đủ 24h */}
@@ -148,8 +145,15 @@ KitchenSamplesFilterStrip.propTypes = {
   onStatusChange: PropTypes.func.isRequired,
   mealTypeFilter: PropTypes.string,
   onMealTypeChange: PropTypes.func.isRequired,
-  dateFilter: PropTypes.string,
-  onDateChange: PropTypes.func.isRequired,
+  weekFilter: PropTypes.string,
+  onWeekChange: PropTypes.func.isRequired,
+  weeks: PropTypes.arrayOf(
+    PropTypes.shape({
+      weekIndex: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      isCurrentWeek: PropTypes.bool,
+    })
+  ),
   onResetFilters: PropTypes.func.isRequired,
   hasActiveFilters: PropTypes.bool,
 }
