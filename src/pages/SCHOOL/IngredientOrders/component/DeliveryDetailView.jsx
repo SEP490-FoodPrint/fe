@@ -424,14 +424,15 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 const isDiscrete = ["quả", "trứng", "hộp", "gói", "chai", "can", "lon", "hũ", "cái", "củ", "bắp", "ổ", "bó", "túi", "con"].includes(
                   String(item.unit || "").toLowerCase().trim()
                 )
-                const isExtraItem = item.isExtra === true
+                const isExtraItem = item.isExtraItem === true || item.isExtra === true
+                const hasExtraQty = typeof item.extraQty === "number" && item.extraQty > 0
                 const portionRate = !isExtraItem && typeof item.qtyPerPortion === "number" && item.qtyPerPortion > 0
                   ? item.qtyPerPortion
                   : (!isExtraItem ? Number(((item.orderedQty || 0) / (delivery.plannedPortions || 425)).toFixed(4)) : 0)
 
                 const rawNeeded = portionRate * remainingNeeded
                 const displayedOrderedQty = (isWaitingAttendance && !isExtraItem)
-                  ? (isDiscrete ? Math.ceil(rawNeeded) : Number(rawNeeded.toFixed(2)))
+                  ? (isDiscrete ? Math.ceil(rawNeeded + (item.extraQty || 0)) : Number((rawNeeded + (item.extraQty || 0)).toFixed(2)))
                   : (isDiscrete && typeof item.orderedQty === "number" ? Math.ceil(item.orderedQty) : item.orderedQty)
 
                 return (
@@ -455,7 +456,12 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                       <Typography variant="body2" className={styles.orderedQty}>
                         {displayedOrderedQty} {item.unit}
                       </Typography>
-                      {portionRate > 0 && !isExtraItem && (
+                      {hasExtraQty && !isExtraItem && (
+                        <Typography variant="caption" sx={{ color: "#15803d", display: "block", fontSize: "0.7rem", fontWeight: 600 }}>
+                          (Gồm {item.standardQty} theo suất + {item.extraQty} giao thêm)
+                        </Typography>
+                      )}
+                      {portionRate > 0 && !isExtraItem && !hasExtraQty && (
                         <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
                           ({portionRate} {item.unit}/suất)
                         </Typography>

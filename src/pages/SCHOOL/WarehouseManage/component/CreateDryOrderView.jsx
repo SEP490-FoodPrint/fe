@@ -222,7 +222,6 @@ export default function CreateDryOrderView({
             </Box>
             <Box className={styles.presetButtons}>
               <Chip
-                icon={<Sun size={14} />}
                 label="Buổi sáng (09:00)"
                 onClick={() => handleSelectTimePreset("MORNING")}
                 color={timePreset === "MORNING" ? "primary" : "default"}
@@ -231,7 +230,6 @@ export default function CreateDryOrderView({
                 size="small"
               />
               <Chip
-                icon={<Clock size={14} />}
                 label="Buổi chiều (14:30)"
                 onClick={() => handleSelectTimePreset("AFTERNOON")}
                 color={timePreset === "AFTERNOON" ? "primary" : "default"}
@@ -240,7 +238,6 @@ export default function CreateDryOrderView({
                 size="small"
               />
               <Chip
-                icon={<Moon size={14} />}
                 label="Buổi tối (19:30)"
                 onClick={() => handleSelectTimePreset("EVENING")}
                 color={timePreset === "EVENING" ? "primary" : "default"}
@@ -249,7 +246,6 @@ export default function CreateDryOrderView({
                 size="small"
               />
               <Chip
-                icon={<Calendar size={14} />}
                 label="Cuối tuần (08:30)"
                 onClick={() => handleSelectTimePreset("WEEKEND")}
                 color={timePreset === "WEEKEND" ? "primary" : "default"}
@@ -271,7 +267,7 @@ export default function CreateDryOrderView({
               sx={{ minWidth: 200 }}
             />
             <TextField
-              label="Giờ hẹn giao (Tùy chọn giờ bất kỳ)"
+              label="Giờ hẹn giao"
               type="time"
               value={deliveryTime}
               onChange={e => {
@@ -281,7 +277,6 @@ export default function CreateDryOrderView({
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               sx={{ minWidth: 200 }}
-              helperText="Người tạo có thể nhập bất kỳ giờ nào thuận tiện"
             />
           </Box>
 
@@ -304,9 +299,6 @@ export default function CreateDryOrderView({
           <Box>
             <Typography variant="subtitle1" className={styles.sectionTitle}>
               2. Danh sách gạo &amp; gia vị cần nhập ({selectedCount} món đã chọn)
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              Tick chọn nguyên liệu và điều chỉnh số lượng cần đặt theo nhu cầu thực tế
             </Typography>
           </Box>
 
