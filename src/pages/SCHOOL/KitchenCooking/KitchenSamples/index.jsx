@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { Calendar, ClockAlert } from "lucide-react";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
 import ROUTER from "src/router/ROUTER";
 import notice from "src/components/Notice";
@@ -8,6 +9,7 @@ import { get24hRetainedStatus } from "./mockSamplesData";
 import KitchenSamplesHeader from "./component/KitchenSamplesHeader";
 import KitchenSamplesKPICards from "./component/KitchenSamplesKPICards";
 import KitchenSamplesFilterStrip from "./component/KitchenSamplesFilterStrip";
+import KitchenSamplesDayCards from "./component/KitchenSamplesDayCards";
 import KitchenSamplesTable from "./component/KitchenSamplesTable";
 import KitchenSamplesMobileCards from "./component/KitchenSamplesMobileCards";
 import KitchenSamplesEmptyState from "./component/KitchenSamplesEmptyState";
@@ -33,6 +35,7 @@ export default function KitchenSamples() {
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL");
   const [dateFilter, setDateFilter] = useState("");
+  const [selectedDayKey, setSelectedDayKey] = useState("ALL");
 
   // 3. Modal / Popup States
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -40,6 +43,7 @@ export default function KitchenSamples() {
   const [updateSample, setUpdateSample] = useState(null);
   const [disposeSample, setDisposeSample] = useState(null);
   const [isBatchDisposeOpen, setIsBatchDisposeOpen] = useState(false);
+  const [batchDisposeTargetSamples, setBatchDisposeTargetSamples] = useState(null);
 
   // 4. Tải dữ liệu thực từ backend API
   const fetchSamples = useCallback(async (signal) => {
@@ -219,6 +223,95 @@ export default function KitchenSamples() {
     });
   }, [samples, searchTerm, statusFilter, mealTypeFilter, dateFilter]);
 
+  const DAYS_OF_WEEK = [
+    "Chủ Nhật",
+    "Thứ Hai",
+    "Thứ Ba",
+    "Thứ Tư",
+    "Thứ Năm",
+    "Thứ Sáu",
+    "Thứ Bảy",
+  ];
+
+  const padZero = (n) => String(n).padStart(2, "0");
+  const toDateKey = (d) =>
+    `${d.getFullYear()}-${padZero(d.getMonth() + 1)}-${padZero(d.getDate())}`;
+
+  // 7A. Nhóm mẫu lưu theo ngày (Day Groups)
+  const dayGroups = useMemo(() => {
+    const today = new Date();
+    const todayKey = toDateKey(today);
+    const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+    const yesterdayKey = toDateKey(yesterday);
+
+    const map = new Map();
+
+    filteredSamples.forEach((item) => {
+      const d = new Date(item.sampledAt || item.createdAt || Date.now());
+      if (isNaN(d.getTime())) return;
+      const key = toDateKey(d);
+
+      if (!map.has(key)) {
+        map.set(key, {
+          dateKey: key,
+          dateObj: d,
+          dateDisplay: `${padZero(d.getDate())}/${padZero(d.getMonth() + 1)}/${d.getFullYear()}`,
+          dayLabel: DAYS_OF_WEEK[d.getDay()],
+          isToday: key === todayKey,
+          isYesterday: key === yesterdayKey,
+          samples: [],
+          lunchCount: 0,
+          afternoonCount: 0,
+          storedCount: 0,
+          readyCount: 0,
+          disposedCount: 0,
+        });
+      }
+
+      const group = map.get(key);
+      group.samples.push(item);
+      if (item.mealType === "AFTERNOON") {
+        group.afternoonCount += 1;
+      } else {
+        group.lunchCount += 1;
+      }
+
+      const info = get24hRetainedStatus(item.sampledAt, item.status);
+      if (info.isDisposed) {
+        group.disposedCount += 1;
+      } else if (info.isReadyToDispose) {
+        group.readyCount += 1;
+      } else {
+        group.storedCount += 1;
+      }
+    });
+
+    return Array.from(map.values())
+      .map((g) => ({
+        ...g,
+        totalSamples: g.samples.length,
+      }))
+      .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+  }, [filteredSamples]);
+
+  const activeSelectedKey = useMemo(() => {
+    if (selectedDayKey === "ALL") return "ALL";
+    const exists = dayGroups.some((g) => g.dateKey === selectedDayKey);
+    return exists ? selectedDayKey : "ALL";
+  }, [selectedDayKey, dayGroups]);
+
+  const selectedGroup = useMemo(() => {
+    if (activeSelectedKey === "ALL") return null;
+    return dayGroups.find((g) => g.dateKey === activeSelectedKey) || null;
+  }, [activeSelectedKey, dayGroups]);
+
+  const displayedSamples = useMemo(() => {
+    if (activeSelectedKey === "ALL") {
+      return filteredSamples;
+    }
+    return selectedGroup ? selectedGroup.samples : [];
+  }, [activeSelectedKey, filteredSamples, selectedGroup]);
+
   const hasActiveFilters =
     Boolean(searchTerm.trim()) ||
     statusFilter !== "ALL" ||
@@ -230,6 +323,7 @@ export default function KitchenSamples() {
     setStatusFilter("ALL");
     setMealTypeFilter("ALL");
     setDateFilter("");
+    setSelectedDayKey("ALL");
   };
 
   // 7. Xử lý Tạo mẫu lưu mới (SCREEN 02)
@@ -299,14 +393,31 @@ export default function KitchenSamples() {
     }
   };
 
-  // 10. Xử lý Tiêu hủy hàng loạt tất cả mẫu đã đủ 24 giờ
+  // 10. Xử lý Tiêu hủy hàng loạt mẫu đã đủ 24 giờ (tất cả hoặc theo ngày cụ thể)
+  const handleOpenDisposeForDay = (dateKey) => {
+    const readyForDay = readyToDisposeSamples.filter((s) => {
+      const d = new Date(s.sampledAt || s.createdAt || Date.now());
+      return toDateKey(d) === dateKey;
+    });
+    if (readyForDay.length === 0) {
+      notice({
+        msg: "Không có mẫu lưu nào đã đủ 24 giờ của ngày này để tiêu hủy.",
+        isSuccess: false,
+      });
+      return;
+    }
+    setBatchDisposeTargetSamples(readyForDay);
+    setIsBatchDisposeOpen(true);
+  };
+
   const handleBatchDisposeConfirm = async () => {
-    if (!readyToDisposeSamples.length) return;
+    const targets = batchDisposeTargetSamples || readyToDisposeSamples;
+    if (!targets.length) return;
     setSubmitting(true);
     try {
       const nowISO = new Date().toISOString();
       await Promise.all(
-        readyToDisposeSamples.map((sample) =>
+        targets.map((sample) =>
           KitchenService.disposeRetainedSample(sample.id, {
             disposedAt: nowISO,
             disposalNote:
@@ -316,8 +427,9 @@ export default function KitchenSamples() {
       );
       await fetchSamples();
       setIsBatchDisposeOpen(false);
+      setBatchDisposeTargetSamples(null);
       notice({
-        msg: `Đã tiêu hủy thành công tất cả ${readyToDisposeSamples.length} mẫu lưu đủ 24 giờ!`,
+        msg: `Đã tiêu hủy thành công tất cả ${targets.length} mẫu lưu đủ 24 giờ!`,
         isSuccess: true,
       });
     } catch (err) {
@@ -370,12 +482,69 @@ export default function KitchenSamples() {
             });
             return;
           }
+          setBatchDisposeTargetSamples(null);
           setIsBatchDisposeOpen(true);
         }}
         disposing={submitting && isBatchDisposeOpen}
       />
 
-      {/* 4. Bảng mẫu lưu (Desktop) & Danh sách Card (Mobile) */}
+      {/* 4. Các cục theo các ngày (Day Cards) */}
+      {!loading && !loadError && filteredSamples.length > 0 && (
+        <KitchenSamplesDayCards
+          dayGroups={dayGroups}
+          selectedKey={activeSelectedKey}
+          onSelectDay={(key) =>
+            setSelectedDayKey((prev) => (prev === key ? "ALL" : key))
+          }
+          totalAll={filteredSamples.length}
+          allStored={kpiStats.stored}
+          allReady={kpiStats.ready}
+          allDisposed={kpiStats.disposed}
+        />
+      )}
+
+      {/* 5. Tiêu đề khối bảng chi tiết của ngày đang chọn */}
+      {!loading && !loadError && displayedSamples.length > 0 && (
+        <div className={styles.tableHeaderBar}>
+          <div className={styles.tableHeaderTitle}>
+            <Calendar size={16} className={styles.tableHeaderIcon} />
+            <span className={styles.tableHeaderHeading}>
+              {selectedGroup
+                ? `Chi tiết mẫu lưu: ${selectedGroup.dayLabel}, ${selectedGroup.dateDisplay}`
+                : "Bảng chi tiết toàn bộ mẫu lưu"}
+            </span>
+            <span className={styles.tableHeaderCount}>
+              {displayedSamples.length} mẫu
+            </span>
+          </div>
+
+          <div className={styles.tableHeaderActions}>
+            {selectedGroup?.readyCount > 0 && (
+              <button
+                type="button"
+                className={styles.dayDisposeBtn}
+                onClick={() => handleOpenDisposeForDay(selectedGroup.dateKey)}
+                title="Tiêu hủy các mẫu đủ 24h của ngày này"
+              >
+                <ClockAlert size={14} />
+                <span>Tiêu hủy {selectedGroup.readyCount} mẫu đủ 24h</span>
+              </button>
+            )}
+            {activeSelectedKey !== "ALL" && (
+              <button
+                type="button"
+                className={styles.viewAllBtn}
+                onClick={() => setSelectedDayKey("ALL")}
+                title="Hiển thị mẫu lưu của tất cả các ngày"
+              >
+                Xem tất cả các ngày
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 6. Bảng mẫu lưu (Desktop) & Danh sách Card (Mobile) */}
       {loading ? (
         <div
           style={{
@@ -391,11 +560,11 @@ export default function KitchenSamples() {
         <div className="p-4 my-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
           {loadError}
         </div>
-      ) : filteredSamples.length > 0 ? (
+      ) : displayedSamples.length > 0 ? (
         <>
           <div className={styles.desktopWrap}>
             <KitchenSamplesTable
-              samples={filteredSamples}
+              samples={displayedSamples}
               onViewDetail={setDetailSample}
               onOpenDisposeModal={setDisposeSample}
               onOpenUpdateModal={setUpdateSample}
@@ -405,7 +574,7 @@ export default function KitchenSamples() {
 
           <div className={styles.mobileWrap}>
             <KitchenSamplesMobileCards
-              samples={filteredSamples}
+              samples={displayedSamples}
               onViewDetail={setDetailSample}
               onOpenDisposeModal={setDisposeSample}
               onOpenUpdateModal={setUpdateSample}
@@ -415,7 +584,7 @@ export default function KitchenSamples() {
         </>
       ) : (
         <KitchenSamplesEmptyState
-          isFiltered={hasActiveFilters}
+          isFiltered={hasActiveFilters || activeSelectedKey !== "ALL"}
           onResetFilters={handleResetFilters}
           onOpenCreateModal={() => setIsCreateOpen(true)}
         />
@@ -461,8 +630,11 @@ export default function KitchenSamples() {
       {/* Modal Xác nhận tiêu hủy hàng loạt tất cả mẫu đủ 24 giờ */}
       <BatchDisposeConfirmModal
         open={isBatchDisposeOpen}
-        count={readyToDisposeSamples.length}
-        onClose={() => setIsBatchDisposeOpen(false)}
+        count={(batchDisposeTargetSamples || readyToDisposeSamples).length}
+        onClose={() => {
+          setIsBatchDisposeOpen(false);
+          setBatchDisposeTargetSamples(null);
+        }}
         onConfirm={handleBatchDisposeConfirm}
         submitting={submitting}
       />
