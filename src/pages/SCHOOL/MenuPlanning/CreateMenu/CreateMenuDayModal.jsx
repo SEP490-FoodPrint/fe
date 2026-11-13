@@ -26,8 +26,18 @@ import { inspectMenuMealSelection } from "src/services/MenuService"
 
 export const renderCategoryBadge = (dish) => {
   const cat = dishCategoryKey(dish)
-  const badgeStyles = { MAIN_DISH: styles.badgeMain, SOUP: styles.badgeSoup, VEGETABLE: styles.badgeVeg, RICE_STARCH: styles.badgeRice, DESSERT: styles.badgeAfternoon }
-  return <span className={badgeStyles[cat]}>{dish.categoryLabel || "Chưa phân nhóm"}</span>
+  const badgeStyles = {
+    MAIN_DISH: styles.badgeMain,
+    SOUP: styles.badgeSoup,
+    VEGETABLE: styles.badgeVeg,
+    RICE_STARCH: styles.badgeRice,
+    DESSERT: styles.badgeAfternoon,
+  }
+  return (
+    <span className={badgeStyles[cat] || styles.badgeMain}>
+      {dish.categoryLabel || "Chưa phân nhóm"}
+    </span>
+  )
 }
 
 export default function CreateMenuDayModal({
