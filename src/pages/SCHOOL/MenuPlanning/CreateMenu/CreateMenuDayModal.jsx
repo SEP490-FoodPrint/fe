@@ -1377,7 +1377,7 @@ export default function CreateMenuDayModal({
                           ) : (
                             <>
                               <Plus size={14} />
-                              <span>Thêm món</span>
+                              <span>Thêm</span>
                             </>
                           )}
                         </button>
