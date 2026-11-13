@@ -6,33 +6,73 @@
   padding-bottom: 4px;
 }
 
-.topRow {
+/* 1. Tiêu đề chính cùng hàng với Nút Danh sách lô và Nút Thao tác */
+.titleLine {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.leftGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.headingGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.batchCode {
+  font-family: monospace;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0a8066;
+  background-color: #e6f7f2;
+  padding: 2px 8px;
+  border-radius: 5px;
+}
+
+.rightGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .backBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 10px;
+  height: 34px;
+  padding: 0 12px;
   border-radius: 6px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #cbd5e1;
   background-color: #ffffff;
-  color: #475569;
-  font-size: 12.5px;
+  color: #334155;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
   transition: all 0.15s ease;
 
   &:hover {
-    background-color: #f8fafc;
+    background-color: #f1f5f9;
     color: #0f172a;
-    border-color: #cbd5e1;
+    border-color: #94a3b8;
   }
 }
 
@@ -126,39 +166,6 @@
   }
 }
 
-/* 2. Tiêu đề chính */
-.titleLine {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.headingGroup {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pageTitle {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #0f172a;
-  letter-spacing: -0.01em;
-}
-
-.batchCode {
-  font-family: monospace;
-  font-size: 15px;
-  font-weight: 700;
-  color: #0a8066;
-  background-color: #e6f7f2;
-  padding: 2px 8px;
-  border-radius: 5px;
-}
-
 .statusBadge {
   display: inline-flex;
   align-items: center;
@@ -206,7 +213,7 @@
   }
 }
 
-/* 3. Hàng Metadata tinh gọn */
+/* 2. Hàng Metadata tinh gọn */
 .metaRow {
   display: flex;
   align-items: center;
@@ -263,17 +270,4 @@
   @media (max-width: 640px) {
     display: none;
   }
-}
-
-.metaSubGroup {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: #64748b;
-  font-family: monospace;
-}
-
-.subGroupIcon {
-  color: #7c3aed;
 }
