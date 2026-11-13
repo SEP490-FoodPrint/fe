@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 2100;
-  background-color: rgba(15, 23, 42, 0.55);
+  background-color: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -14,20 +14,22 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: scale(0.99);
   }
   to {
     opacity: 1;
+    transform: scale(1);
   }
 }
 
 .modalContainer {
   background-color: #ffffff;
-  width: 94vw;
+  width: 95vw;
   max-width: 1280px;
-  height: 86vh;
-  max-height: 860px;
-  border-radius: 10px;
-  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.2);
+  height: 88vh;
+  max-height: 880px;
+  border-radius: 12px;
+  box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -35,10 +37,10 @@
 }
 
 /* ========================================================
-   MODAL HEADER (GỌN GÀNG, KHÔNG CHỮ THỪA)
+   MODAL HEADER
    ======================================================== */
 .modalHeader {
-  padding: 12px 20px;
+  padding: 14px 22px;
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   display: flex;
@@ -50,15 +52,15 @@
 .headerTitleWrap {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dayBadge {
   background-color: #e8f5f1;
   color: #08604d;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 6px;
   border: 1px solid #c9e8de;
   white-space: nowrap;
@@ -66,7 +68,7 @@
 
 .headerTitle {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: #0f172a;
 }
@@ -75,14 +77,14 @@
   background: transparent;
   border: none;
   color: #64748b;
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
 
   &:hover {
     background-color: #f1f5f9;
@@ -96,13 +98,15 @@
 .modalBody {
   flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   min-height: 0;
+  height: 100%;
+  overflow: hidden;
   background-color: #f8fafc;
 }
 
 /* --------------------------------------------------------
-   CỘT TRÁI: PREVIEW HÔM ĐÓ (50%) - TỔNG QUÁT KHÔNG CẦN CUỘN
+   CỘT TRÁI (50%): TỔNG QUÁT HÔM ĐÓ
    -------------------------------------------------------- */
 .previewColumn {
   border-right: 1px solid #e2e8f0;
@@ -115,7 +119,7 @@
 }
 
 .columnStickyHeader {
-  padding: 8px 16px;
+  padding: 10px 18px;
   background-color: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
@@ -124,13 +128,14 @@
 .summaryBar {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 10px;
+  font-size: 12.5px;
   color: #64748b;
 }
 
 .summaryItem strong {
   color: #0a8066;
+  font-weight: 700;
 }
 
 .summaryDivider {
@@ -142,10 +147,10 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 10px 14px;
+  padding: 14px 18px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 
   /* Custom scrollbar mượt mà */
   &::-webkit-scrollbar {
@@ -153,7 +158,6 @@
   }
   &::-webkit-scrollbar-track {
     background: #f8fafc;
-    border-radius: 4px;
   }
   &::-webkit-scrollbar-thumb {
     background-color: #cbd5e1;
@@ -165,29 +169,25 @@
   }
 }
 
-/* THẺ BỮA TRƯA & BỮA XẾ & GIA VỊ: Không bao giờ bị co ép (flex-shrink: 0), chiều cao tự nhiên */
+/* Khối bữa ăn trong preview */
 .previewMealCard {
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
+  border-radius: 8px;
   background-color: #ffffff;
   flex-shrink: 0;
-  height: auto;
-  min-height: min-content;
-  overflow: visible;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
-/* Banner chuẩn đồng bộ 100% với danh sách thực đơn */
 .mealBanner {
-  height: 32px;
-  min-height: 32px;
-  padding: 0 10px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   box-sizing: border-box;
   flex-shrink: 0;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
   cursor: pointer;
   user-select: none;
   transition: opacity 0.15s ease;
@@ -197,28 +197,27 @@
   }
 }
 
+.bannerLeft {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .bannerRight {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 
-.bannerCollapseBtn {
-  background: transparent;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  padding: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s ease;
+.bannerText {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
 .lunchBanner {
   background-color: #e8f5f1;
-  border-top: 1px solid #c9e8de;
-  border-bottom: 1px solid #bce6cf;
+  border-bottom: 1px solid #c9e8de;
   color: #08604d;
 }
 
@@ -228,7 +227,6 @@
 
 .afternoonBanner {
   background-color: #f4eeea;
-  border-top: 1px solid #eae1db;
   border-bottom: 1px solid #ded3cd;
   color: #584b46;
 }
@@ -237,56 +235,49 @@
   color: #75635c;
 }
 
-.bannerLeft {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.bannerText {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
 .dishesCountBadge {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   background: #ffffff;
-  padding: 1px 6px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+.bannerCollapseBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .previewDishesList {
-  padding: 4px 8px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  height: auto;
-  overflow: visible;
+  gap: 4px;
 }
 
 .emptyNotice {
-  padding: 10px 8px;
+  padding: 16px 12px;
   text-align: center;
-  font-size: 11.5px;
+  font-size: 12.5px;
   color: #94a3b8;
   font-style: italic;
-  flex-shrink: 0;
 }
 
-/* Hàng món ăn compact, 1 dòng gọn gàng, tự co giãn, không bị ép đè */
 .previewDishItem {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 6px;
-  border-radius: 4px;
+  padding: 6px 10px;
+  border-radius: 6px;
   transition: background-color 0.12s ease;
-  min-height: 32px;
-  height: auto;
-  flex-shrink: 0;
+  min-height: 36px;
 
   &:hover {
     background-color: #f8fafc;
@@ -296,46 +287,43 @@
 .dishInfoLeft {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   min-width: 0;
   flex: 1;
 }
 
 .dishBulletLunch {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: #0a8066;
   flex-shrink: 0;
 }
 
 .dishBulletAfternoon {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background-color: #75635c;
   flex-shrink: 0;
 }
 
 .dishName {
-  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  -webkit-line-clamp: 1;
-  line-clamp: 1;
 }
 
-.categoryPill {
-  font-size: 10px;
-  font-weight: 600;
+.regularBadge {
+  font-size: 10.5px;
   background-color: #f1f5f9;
   color: #475569;
-  padding: 1px 5px;
-  border-radius: 3px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -347,27 +335,17 @@
   flex-shrink: 0;
 }
 
-.portionBadge {
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
-  background-color: #f8fafc;
-  padding: 2px 6px;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-}
-
 .removeIconBtn {
   background: transparent;
   border: none;
   color: #94a3b8;
-  padding: 3px;
+  padding: 4px;
   border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.12s ease, background-color 0.12s ease;
+  transition: all 0.12s ease;
 
   &:hover {
     color: #ef4444;
@@ -375,31 +353,138 @@
   }
 }
 
-/* KHỐI GIA VỊ TRÊN PREVIEW: Không co ép (flex-shrink: 0), chiều cao tự nhiên */
-.previewSeasoningCard {
-  border: 1px solid #cbd5e1;
+/* Cảnh báo dị ứng */
+.dishAllergyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #fffbeb;
+  border: 1px solid #fef3c7;
   border-radius: 6px;
+  padding: 5px 10px;
+  margin: 3px 0 3px 14px;
+}
+
+.dishAllergyBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #b45309;
+}
+
+.dishSubstituteActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #ffffff;
+  color: #0a8066;
+  border: 1px solid #a7f3d0;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #ecfdf5;
+    border-color: #059669;
+  }
+}
+
+.substituteDishCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background-color: #f0fdf4;
+  border: 1px dashed #86efac;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 3px 0 5px 16px;
+}
+
+.subLeft {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  flex: 1;
+}
+
+.subArrow {
+  color: #059669;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.subBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  background-color: #dcfce7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+.subDishName {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #14532d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subSafeNote {
+  font-size: 11px;
+  color: #16a34a;
+  white-space: nowrap;
+}
+
+.subRemoveBtn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: #e11d48;
+    background-color: #ffe4e6;
+  }
+}
+
+/* Khối gia vị theo suất */
+.previewSeasoningCard {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
   background-color: #ffffff;
   flex-shrink: 0;
-  height: auto;
-  min-height: min-content;
-  overflow: visible;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .seasoningBanner {
-  height: 32px;
-  min-height: 32px;
-  padding: 0 10px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background-color: #f0fdf4;
-  border-top: 1px solid #dcfce7;
   border-bottom: 1px solid #bbf7d0;
   color: #15803d;
-  flex-shrink: 0;
-  border-top-left-radius: 5px;
-  border-top-right-radius: 5px;
   cursor: pointer;
   user-select: none;
   transition: opacity 0.15s ease;
@@ -409,54 +494,40 @@
   }
 }
 
-.autoCalcHint {
-  padding: 4px 8px;
-  background-color: #f0fdf4;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #166534;
-  margin-bottom: 6px;
-  border: 1px solid #dcfce7;
-
-  strong {
-    font-weight: 700;
-  }
-}
-
 .seasoningBannerIcon {
   color: #16a34a;
 }
 
 .seasoningCountBadge {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   background-color: #ffffff;
   color: #15803d;
-  padding: 1px 6px;
-  border-radius: 3px;
+  padding: 2px 8px;
+  border-radius: 12px;
   border: 1px solid #dcfce7;
 }
 
 .previewSeasoningsList {
-  padding: 4px 8px;
+  padding: 8px 12px;
 }
 
 .miniSeasoningTable {
   width: 100%;
   border-collapse: collapse;
-  font-size: 11.5px;
+  font-size: 12px;
 
   th {
     text-align: left;
-    padding: 4px 6px;
-    font-size: 10.5px;
+    padding: 6px 8px;
+    font-size: 11px;
     font-weight: 600;
     color: #64748b;
     border-bottom: 1px solid #e2e8f0;
   }
 
   td {
-    padding: 5px 6px;
+    padding: 6px 8px;
     border-bottom: 1px solid #f8fafc;
     color: #334155;
   }
@@ -471,12 +542,12 @@
   color: #0f172a;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
 .seasoningDot {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background-color: #16a34a;
   flex-shrink: 0;
@@ -486,201 +557,133 @@
   color: #64748b;
 }
 
-.seasoningTotalCell {
-  color: #0a8066;
-  font-weight: 600;
-}
-
 .alignRight {
   text-align: right;
 }
 
-.actionCell {
-  width: 24px;
-  text-align: center;
-}
-
-/* --------------------------------------------------------
-   CỘT PHẢI: CHỌN MÓN & NHẬP GIA VỊ (50%)
-   -------------------------------------------------------- */
-.inputColumn {
+/* ========================================================
+   CỘT PHẢI (50%): CHỌN MÓN TỪ KHO BÁN TRÚ
+   (THIẾT KẾ CO GIÃN THÔNG MINH, CUỘN LƯỚT MƯỢT MÀ)
+   ======================================================== */
+.pickerColumn {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  height: 100%;
   background-color: #ffffff;
-}
-
-.inputColumnHeader {
-  padding: 10px 16px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  flex-shrink: 0;
-}
-
-.inputColumnTitle {
-  margin: 0;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-
-  svg {
-    color: #0a8066;
-  }
-}
-
-.tabBar {
-  display: flex;
-  border-bottom: 1px solid #e2e8f0;
-  background-color: #f8fafc;
-  flex-shrink: 0;
-}
-
-.tabBtn {
-  flex: 1;
-  padding: 11px 14px;
-  border: none;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #64748b;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.12s ease;
-
-  &:hover {
-    color: #0f172a;
-    background-color: #f1f5f9;
-  }
-}
-
-.activeTabBtn {
-  color: #0a8066;
-  background-color: #ffffff;
-  border-bottom-color: #0a8066;
-
-  &:hover {
-    color: #0a8066;
-    background-color: #ffffff;
-  }
-}
-
-.tabBadge {
-  background-color: #e2e8f0;
-  color: #334155;
-  font-size: 10.5px;
-  font-weight: 700;
-  padding: 1px 6px;
-  border-radius: 8px;
-
-  .activeTabBtn & {
-    background-color: #e8f5f1;
-    color: #08604d;
-  }
-}
-
-.tabContentPane {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  padding: 12px 16px;
   overflow: hidden;
 }
 
-/* SELECTOR CA ĂN */
-.mealTargetSelector {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+.columnStickyHeaderRight {
+  padding: 10px 18px;
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
 }
 
-.selectorLabel {
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
-}
-
-.mealPillGroup {
+.mealTypeSwitchTabs {
   display: flex;
-  gap: 6px;
+  gap: 10px;
 }
 
-.targetMealPill {
+.mealTabBtn {
+  flex: 1;
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
-  border-radius: 6px;
-  border: 1px solid #cbd5e1;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
   background-color: #ffffff;
-  font-size: 12px;
+  color: #64748b;
+  font-size: 13px;
   font-weight: 600;
-  color: #475569;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    border-color: #94a3b8;
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: #cbd5e1;
   }
 }
 
-.activeLunchPill {
+.activeMealTabLunch {
   background-color: #e8f5f1;
-  border-color: #c9e8de;
+  border-color: #0a8066;
   color: #08604d;
+
+  &:hover {
+    background-color: #d8eee7;
+    border-color: #0a8066;
+  }
 }
 
-.activeAfternoonPill {
+.activeMealTabAfternoon {
   background-color: #f4eeea;
-  border-color: #ded3cd;
-  color: #584b46;
+  border-color: #75635c;
+  color: #4a3d38;
+
+  &:hover {
+    background-color: #ece1db;
+    border-color: #75635c;
+  }
 }
 
-/* SEARCH & FILTER */
-.searchAndFilter {
+.mealTabCountBadge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.catalogAreaWrap {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 10px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.searchAndFiltersBar {
+  padding: 12px 18px 10px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
 
 .searchBox {
   display: flex;
   align-items: center;
-  position: relative;
   background-color: #f8fafc;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 0 8px;
+  border-radius: 8px;
+  padding: 0 10px;
+  transition: all 0.15s ease;
 
   &:focus-within {
-    border-color: #0a8066;
     background-color: #ffffff;
-    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.12);
+    border-color: #0a8066;
+    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.1);
   }
 }
 
 .searchIcon {
   color: #94a3b8;
-  margin-right: 6px;
+  flex-shrink: 0;
 }
 
 .searchInput {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 6px 0;
-  font-size: 12.5px;
+  padding: 8px 10px;
+  font-size: 13px;
   color: #0f172a;
   outline: none;
 
@@ -694,46 +697,54 @@
   border: none;
   color: #94a3b8;
   cursor: pointer;
-  padding: 3px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: 4px;
 
   &:hover {
     color: #0f172a;
+    background-color: #e2e8f0;
   }
 }
 
+/* Danh mục phân loại dạng pills */
 .categoryPillsList {
   display: flex;
-  gap: 5px;
+  gap: 6px;
   overflow-x: auto;
-  padding-bottom: 2px;
+  padding-bottom: 4px;
 
   &::-webkit-scrollbar {
-    height: 3px;
+    height: 4px;
   }
   &::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 3px;
+    background-color: #e2e8f0;
+    border-radius: 4px;
   }
 }
 
 .catPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   white-space: nowrap;
   border: 1px solid #e2e8f0;
   background-color: #f8fafc;
   color: #475569;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 500;
-  padding: 3px 8px;
-  border-radius: 5px;
+  padding: 5px 11px;
+  border-radius: 20px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
+  user-select: none;
 
   &:hover {
     background-color: #f1f5f9;
     border-color: #cbd5e1;
+    color: #1e293b;
   }
 }
 
@@ -746,295 +757,60 @@
   &:hover {
     background-color: #08604d;
     border-color: #08604d;
+    color: #ffffff;
+  }
+
+  .catCountBadge {
+    background-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
   }
 }
 
-/* ========================================================
-   CẢNH BÁO DỊ ỨNG & MÓN ĂN THAY THẾ CHO HỌC SINH DỊ ỨNG
-   ======================================================== */
-.dishAllergyRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background-color: #fffbeb;
-  border: 1px solid #fef3c7;
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 3px 0 3px 12px;
-}
-
-.dishAllergyBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.catCountBadge {
   font-size: 11px;
-  font-weight: 600;
-  color: #b45309;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background-color: #e2e8f0;
+  color: #475569;
 }
 
-.dishSubstituteActionBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: #ffffff;
-  color: #0a8066;
-  border: 1px solid #a7f3d0;
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #ecfdf5;
-    border-color: #059669;
-  }
-}
-
-.substituteDishCard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background-color: #f0fdf4;
-  border: 1px dashed #86efac;
-  border-radius: 4px;
-  padding: 5px 8px;
-  margin: 2px 0 4px 14px;
-}
-
-.subLeft {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
+/* Danh sách món ăn có thể cuộn lên/xuống mượt mà */
+.catalogListScroll {
   flex: 1;
-}
-
-.subArrow {
-  color: #059669;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.subBadge {
-  font-size: 10px;
-  font-weight: 700;
-  color: #15803d;
-  background-color: #dcfce7;
-  padding: 1px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-}
-
-.subDishName {
-  font-size: 12px;
-  font-weight: 600;
-  color: #14532d;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.subSafeNote {
-  font-size: 10.5px;
-  color: #16a34a;
-  white-space: nowrap;
-}
-
-.subRemoveBtn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  transition: all 0.15s ease;
-
-  &:hover {
-    color: #e11d48;
-    background-color: #ffe4e6;
-  }
-}
-
-/* Modal chọn món riêng cho học sinh dị ứng */
-.subModalOverlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(2px);
-  z-index: 3000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-
-.subModalContainer {
-  background-color: #ffffff;
-  border-radius: 12px;
-  width: 100%;
-  max-width: 580px;
-  max-height: 85vh;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-  animation: scaleUp 0.18s ease-out;
-}
-
-.subModalHeader {
-  padding: 14px 18px;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #f8fafc;
-}
-
-.subModalTitleWrap {
-  display: flex;
-  align-items: center;
   gap: 8px;
-}
+  padding: 12px 18px;
 
-.subModalTitle {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f172a;
-}
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: #f8fafc;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
 
-.subModalNotice {
-  padding: 10px 16px;
-  background-color: #eff6ff;
-  border-bottom: 1px solid #dbeafe;
-  font-size: 12px;
-  color: #1e40af;
-  line-height: 1.4;
-}
-
-.subModalSearchWrap {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.subSearchBox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 6px 10px;
-
-  input {
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 13px;
-    width: 100%;
-    color: #0f172a;
-
-    &::placeholder {
-      color: #94a3b8;
+    &:hover {
+      background-color: #94a3b8;
     }
   }
 }
 
-.subCatalogList {
-  flex: 1;
-  overflow-y: auto;
-  padding: 12px 16px;
+.loadingCatalog {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 380px;
-}
-
-.subCatalogCard {
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background-color: #ffffff;
-  transition: all 0.12s ease;
-
-  &:hover {
-    border-color: #0a8066;
-    background-color: #f0fdf4;
-  }
-}
-
-.subCatalogCardLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.subCatalogDishName {
-  font-size: 13px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.subCatalogDishMeta {
-  font-size: 11px;
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 12px;
   color: #64748b;
-}
-
-.btnPickSub {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: #0a8066;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  padding: 6px 12px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
-.subModalFooter {
-  padding: 10px 16px;
-  border-top: 1px solid #e2e8f0;
-  display: flex;
-  justify-content: flex-end;
-  background-color: #f8fafc;
-}
-
-
-/* CATALOG LIST SCROLL */
-.catalogListScroll {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding-right: 2px;
-
-  &::-webkit-scrollbar {
-    width: 5px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background-color: #cbd5e1;
-    border-radius: 5px;
-  }
+  font-size: 13px;
 }
 
 .emptyCatalog {
@@ -1042,97 +818,145 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 30px 16px;
+  padding: 40px 20px;
   color: #94a3b8;
-  gap: 6px;
-  font-size: 12.5px;
+  gap: 8px;
+  font-size: 13px;
+  text-align: center;
 }
 
+/* Thẻ món ăn trong catalog */
 .catalogCard {
   border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 8px 12px;
+  border-radius: 8px;
+  padding: 10px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   background-color: #ffffff;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
 
   &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    border-color: #0a8066;
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.08);
   }
 }
 
 .cardPicked {
   background-color: #f0fdf4;
-  border-color: #a7f3d0;
+  border-color: #86efac;
+
+  &:hover {
+    border-color: #4ade80;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12);
+  }
 }
 
 .cardMain {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   min-width: 0;
+  flex: 1;
 }
 
 .cardHeaderRow {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .dishCardTitle {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 13.5px;
   font-weight: 600;
   color: #0f172a;
 }
 
-.cardCatBadge {
-  font-size: 10px;
+/* Phân loại badge món ăn */
+.badgeMain {
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-size: 11px;
   font-weight: 600;
-  background-color: #f1f5f9;
-  color: #475569;
-  padding: 1px 5px;
-  border-radius: 3px;
+  padding: 2px 7px;
+  border-radius: 4px;
 }
 
-.cardMetaRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11.5px;
+.badgeSoup {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.badgeVeg {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.badgeRice {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #e9d5ff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.badgeAfternoon {
+  background-color: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.dishMainIngredient {
+  font-size: 12px;
   color: #64748b;
+  margin: 0;
 }
 
-.metaItem strong {
-  color: #0f172a;
-}
-
-.metaDivider {
-  color: #cbd5e1;
-}
-
-.metaSupplier {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  color: #475569;
+.dishSupplierBadge {
+  font-size: 11px;
+  color: #0284c7;
+  background-color: #f0f9ff;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid #e0f2fe;
+  display: inline-block;
+  margin-top: 2px;
+  width: fit-content;
 }
 
 .pickActionBtn {
   border: none;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 5px 10px;
-  border-radius: 5px;
-  display: flex;
+  padding: 7px 12px;
+  border-radius: 6px;
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   cursor: pointer;
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .btnAddPick {
@@ -1147,7 +971,7 @@
 .btnRemovePick {
   background-color: #e8f5f1;
   color: #08604d;
-  border: 1px solid #c9e8de;
+  border: 1px solid #a7f3d0;
 
   &:hover {
     background-color: #fee2e2;
@@ -1157,163 +981,75 @@
 }
 
 /* ========================================================
-   TAB 2: GIA VỊ DÙNG CHUNG
-   ======================================================== */
-.seasoningsEditorTableWrap {
-  flex: 1;
-  overflow-y: auto;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  background-color: #ffffff;
-  margin-bottom: 10px;
-}
-
-.seasoningsEditorTable {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-
-  th {
-    background-color: #f8fafc;
-    padding: 7px 8px;
-    font-size: 11px;
-    font-weight: 600;
-    color: #475569;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
-  }
-
-  td {
-    padding: 6px 8px;
-    border-bottom: 1px solid #f8fafc;
-    vertical-align: middle;
-  }
-
-  tr:last-child td {
-    border-bottom: none;
-  }
-}
-
-.tableSelect {
-  width: 100%;
-  padding: 5px 6px;
-  font-size: 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 5px;
-  background-color: #ffffff;
-  color: #0f172a;
-  outline: none;
-
-  &:focus {
-    border-color: #0a8066;
-  }
-}
-
-.inputWithUnit {
-  display: flex;
-  align-items: center;
-  border: 1px solid #cbd5e1;
-  border-radius: 5px;
-  overflow: hidden;
-  background-color: #ffffff;
-
-  &:focus-within {
-    border-color: #0a8066;
-  }
-}
-
-.tableNumberInput {
-  width: 100%;
-  border: none;
-  padding: 5px 6px;
-  font-size: 12px;
-  outline: none;
-  color: #0f172a;
-}
-
-.unitAddon {
-  background-color: #f8fafc;
-  color: #64748b;
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 5px 6px;
-  border-left: 1px solid #e2e8f0;
-  white-space: nowrap;
-}
-
-.alignCenter {
-  text-align: center;
-}
-
-.seasoningActionsBar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
-
-.addSeasoningRowBtn {
-  border: 1px dashed #0a8066;
-  background-color: #f0fdf4;
-  color: #0a8066;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.12s ease;
-
-  &:hover {
-    background-color: #e8f5f1;
-  }
-}
-
-.resetSeasoningBtn {
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
-  color: #64748b;
-  font-size: 11.5px;
-  font-weight: 500;
-  padding: 6px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  transition: all 0.12s ease;
-
-  &:hover {
-    background-color: #f8fafc;
-    color: #0f172a;
-  }
-}
-
-/* ========================================================
-   MODAL FOOTER
+   MODAL FOOTER (THANH TRẠNG THÁI & NÚT LƯU)
    ======================================================== */
 .modalFooter {
-  padding: 10px 20px;
+  padding: 12px 22px;
   background-color: #ffffff;
   border-top: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 16px;
   flex-shrink: 0;
 }
 
-.footerInfo {
-  font-size: 12.5px;
+.footerStatusWrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.footerStatusLoading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   color: #64748b;
-  font-weight: 600;
+  font-size: 12.5px;
+}
+
+.footerStatusWarn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #b45309;
+  font-size: 12.5px;
+  font-weight: 500;
+  background-color: #fffbeb;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #fef3c7;
+}
+
+.footerStatusSafe {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #15803d;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.statusSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid #cbd5e1;
+  border-top-color: #0a8066;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .footerBtns {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-shrink: 0;
 }
 
 .cancelBtn {
@@ -1322,7 +1058,7 @@
   color: #475569;
   font-size: 13px;
   font-weight: 600;
-  padding: 7px 16px;
+  padding: 8px 16px;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.12s ease;
@@ -1330,6 +1066,7 @@
   &:hover {
     background-color: #f8fafc;
     color: #0f172a;
+    border-color: #94a3b8;
   }
 }
 
@@ -1339,140 +1076,33 @@
   color: #ffffff;
   font-size: 13px;
   font-weight: 600;
-  padding: 7px 18px;
+  padding: 8px 20px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: all 0.12s ease;
+  transition: all 0.15s ease;
 
   &:hover {
     background-color: #08604d;
     border-color: #08604d;
   }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
 }
 
 /* ========================================================
-   CẢNH BÁO DỊ ỨNG & MÓN ĂN THAY THẾ CHO HỌC SINH DỊ ỨNG
+   MODAL CON: CHỌN MÓN RIÊNG THAY THẾ CHO HỌC SINH DỊ ỨNG
    ======================================================== */
-.dishAllergyRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background-color: #fffbeb;
-  border: 1px solid #fef3c7;
-  border-radius: 4px;
-  padding: 4px 8px;
-  margin: 3px 0 3px 12px;
-}
-
-.dishAllergyBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #b45309;
-}
-
-.dishSubstituteActionBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  background-color: #ffffff;
-  color: #0a8066;
-  border: 1px solid #a7f3d0;
-  border-radius: 4px;
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #ecfdf5;
-    border-color: #059669;
-  }
-}
-
-.substituteDishCard {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  background-color: #f0fdf4;
-  border: 1px dashed #86efac;
-  border-radius: 4px;
-  padding: 5px 8px;
-  margin: 2px 0 4px 14px;
-}
-
-.subLeft {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  flex: 1;
-}
-
-.subArrow {
-  color: #059669;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.subBadge {
-  font-size: 10px;
-  font-weight: 700;
-  color: #15803d;
-  background-color: #dcfce7;
-  padding: 1px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-}
-
-.subDishName {
-  font-size: 12px;
-  font-weight: 600;
-  color: #14532d;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.subSafeNote {
-  font-size: 10.5px;
-  color: #16a34a;
-  white-space: nowrap;
-}
-
-.subRemoveBtn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
-  transition: all 0.15s ease;
-
-  &:hover {
-    color: #e11d48;
-    background-color: #ffe4e6;
-  }
-}
-
-/* Modal chọn món riêng cho học sinh dị ứng */
 .subModalOverlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.45);
+  background-color: rgba(15, 23, 42, 0.5);
   backdrop-filter: blur(2px);
   z-index: 3000;
   display: flex;
@@ -1489,9 +1119,9 @@
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
   overflow: hidden;
-  animation: scaleUp 0.18s ease-out;
+  animation: fadeIn 0.18s ease-out;
 }
 
 .subModalHeader {
@@ -1517,16 +1147,16 @@
 }
 
 .subModalNotice {
-  padding: 10px 16px;
+  padding: 10px 18px;
   background-color: #eff6ff;
   border-bottom: 1px solid #dbeafe;
-  font-size: 12px;
+  font-size: 12.5px;
   color: #1e40af;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 .subModalSearchWrap {
-  padding: 12px 16px;
+  padding: 12px 18px;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -1537,7 +1167,7 @@
   background-color: #f8fafc;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  padding: 6px 10px;
+  padding: 7px 10px;
 
   input {
     border: none;
@@ -1556,18 +1186,26 @@
 .subCatalogList {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: 12px 18px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   max-height: 380px;
+
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+  }
 }
 
 .subCatalogCard {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 9px 12px;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   background-color: #ffffff;
@@ -1582,7 +1220,7 @@
 .subCatalogCardLeft {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .subCatalogDishName {
@@ -1592,18 +1230,18 @@
 }
 
 .subCatalogDishMeta {
-  font-size: 11px;
+  font-size: 11.5px;
   color: #64748b;
 }
 
 .btnPickSub {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   background-color: #0a8066;
   color: #ffffff;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 600;
@@ -1616,10 +1254,9 @@
 }
 
 .subModalFooter {
-  padding: 10px 16px;
+  padding: 10px 18px;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
   background-color: #f8fafc;
 }
-

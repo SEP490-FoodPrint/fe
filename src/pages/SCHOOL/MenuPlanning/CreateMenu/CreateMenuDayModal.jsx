@@ -15,10 +15,121 @@ import {
   ChevronUp,
 } from "lucide-react"
 import styles from "./CreateMenuDayModal.module.scss"
-import { loadDishCatalog, loadRecipeOptions, previewMealRecipe } from "src/services/DishService"
+import {
+  loadDishCatalog,
+  loadRecipeOptions,
+  previewMealRecipe,
+  dishIngredientIds,
+} from "src/services/DishService"
 import MenuService from "src/services/MenuService"
 
-const DISH_CATEGORIES = [{ key: "ALL", label: "Tất cả món" }]
+export const DISH_CATEGORIES = [
+  { key: "ALL", label: "Tất cả món" },
+  { key: "MAIN", label: "Món mặn chính" },
+  { key: "SOUP", label: "Món canh" },
+  { key: "VEG", label: "Món rau / xào" },
+  { key: "RICE", label: "Cơm / Tinh bột" },
+  { key: "AFTERNOON", label: "Món xế / Tráng miệng" },
+]
+
+export const classifyDish = (dish) => {
+  if (dish?.category) {
+    const cat = String(dish.category).toUpperCase()
+    if (cat === "MAIN_DISH" || cat.includes("MAIN") || cat.includes("MAN")) return "MAIN"
+    if (cat === "SOUP" || cat.includes("CANH")) return "SOUP"
+    if (
+      cat === "VEGETABLE" ||
+      cat.includes("VEG") ||
+      cat.includes("RAU") ||
+      cat.includes("XAO")
+    )
+      return "VEG"
+    if (
+      cat === "RICE_STARCH" ||
+      cat.includes("RICE") ||
+      cat.includes("COM") ||
+      cat.includes("STARCH")
+    )
+      return "RICE"
+    if (
+      cat === "DESSERT" ||
+      cat.includes("XE") ||
+      cat.includes("TRANG_MIENG") ||
+      cat.includes("AFTERNOON")
+    )
+      return "AFTERNOON"
+  }
+  const name = (dish?.name || "").toLowerCase()
+  if (
+    name.includes("canh") ||
+    name.includes("soup") ||
+    name.includes("súp") ||
+    name.includes("lẩu")
+  )
+    return "SOUP"
+  if (
+    name.includes("cơm") ||
+    name.includes("xôi") ||
+    name.includes("bún") ||
+    name.includes("phở") ||
+    name.includes("miến") ||
+    name.includes("mì ") ||
+    name.includes("cháo")
+  )
+    return "RICE"
+  if (
+    name.includes("rau") ||
+    name.includes("xào") ||
+    name.includes("luộc") ||
+    name.includes("nộm") ||
+    name.includes("salad") ||
+    name.includes("gỏi") ||
+    name.includes("cải") ||
+    name.includes("bắp cải") ||
+    name.includes("đậu cô ve") ||
+    name.includes("su su") ||
+    name.includes("bí đỏ") ||
+    name.includes("bí đao") ||
+    name.includes("mướp")
+  )
+    return "VEG"
+  if (
+    name.includes("chè") ||
+    name.includes("bánh") ||
+    name.includes("sữa chua") ||
+    name.includes("flan") ||
+    name.includes("trái cây") ||
+    name.includes("hoa quả") ||
+    name.includes("dầm") ||
+    name.includes("thạch") ||
+    name.includes("chuối") ||
+    name.includes("dưa hấu") ||
+    name.includes("thanh long") ||
+    name.includes("táo") ||
+    name.includes("cam") ||
+    name.includes("ổi")
+  )
+    return "AFTERNOON"
+  return "MAIN"
+}
+
+export const renderCategoryBadge = (dish) => {
+  const cat = classifyDish(dish)
+  switch (cat) {
+    case "MAIN":
+      return <span className={styles.badgeMain}>Món mặn</span>
+    case "SOUP":
+      return <span className={styles.badgeSoup}>Món canh</span>
+    case "VEG":
+      return <span className={styles.badgeVeg}>Rau / Củ</span>
+    case "RICE":
+      return <span className={styles.badgeRice}>Cơm / Tinh bột</span>
+    case "AFTERNOON":
+      return <span className={styles.badgeAfternoon}>Món xế</span>
+    default:
+      return <span className={styles.badgeMain}>Món mặn</span>
+  }
+}
 
 export default function CreateMenuDayModal({
   isOpen,
@@ -35,15 +146,21 @@ export default function CreateMenuDayModal({
   // Local state món ăn của ngày đang chỉnh sửa
   const [lunchDishes, setLunchDishes] = useState([])
   const [afternoonDishes, setAfternoonDishes] = useState([])
-  const [seasoningsByMeal, setSeasoningsByMeal] = useState({ LUNCH: [], AFTERNOON: [] })
+  const [seasoningsByMeal, setSeasoningsByMeal] = useState({
+    LUNCH: [],
+    AFTERNOON: [],
+  })
   const [recipeLoading, setRecipeLoading] = useState(false)
+  const [allergyLoading, setAllergyLoading] = useState(false)
   const [edited, setEdited] = useState(false)
   const [recipeOptions, setRecipeOptions] = useState([])
   const [dishCatalog, setDishCatalog] = useState([])
 
   // Quản lý món ăn thay thế cho học sinh dị ứng theo từng ca ăn
-  // Cấu trúc: { LUNCH: { [originalDishId]: substituteDishObj }, AFTERNOON: { ... } }
-  const [substitutesByMeal, setSubstitutesByMeal] = useState({ LUNCH: {}, AFTERNOON: {} })
+  const [substitutesByMeal, setSubstitutesByMeal] = useState({
+    LUNCH: {},
+    AFTERNOON: {},
+  })
 
   // Modal chọn món ăn thay thế cho học sinh dị ứng
   const [substituteModal, setSubstituteModal] = useState({
@@ -93,11 +210,17 @@ export default function CreateMenuDayModal({
       )
 
       // Khởi tạo món thay thế nếu có sẵn trong dayMenu
-      const existingSubs = dayMenu?.substitutesByMeal || { LUNCH: {}, AFTERNOON: {} }
+      const existingSubs = dayMenu?.substitutesByMeal || {
+        LUNCH: {},
+        AFTERNOON: {},
+      }
       if (dayMenu?.substituteDish) {
         const targetMeal = initialMealType || "LUNCH"
-        const conflictDish = (targetMeal === "AFTERNOON" ? initialAfternoon : initialLunch).find((d) =>
-          d.name?.toLowerCase().includes("đậu phộng") || d.hasConflict
+        const conflictDish = (
+          targetMeal === "AFTERNOON" ? initialAfternoon : initialLunch
+        ).find(
+          (d) =>
+            d.name?.toLowerCase().includes("đậu phộng") || d.hasConflict
         )
         if (conflictDish) {
           existingSubs[targetMeal] = {
@@ -121,12 +244,12 @@ export default function CreateMenuDayModal({
     Promise.all([loadDishCatalog(), loadRecipeOptions()])
       .then(([rows, options]) => {
         if (active) {
-          setDishCatalog(rows)
-          setRecipeOptions(options)
+          setDishCatalog(rows || [])
+          setRecipeOptions(options || [])
         }
       })
       .catch((e) => {
-        console.warn("Không tải được danh mục công thức:", e.message)
+        console.warn("Không tải được kho món ăn:", e)
       })
       .finally(() => {
         if (active) setRecipeLoading(false)
@@ -136,134 +259,144 @@ export default function CreateMenuDayModal({
     }
   }, [isOpen])
 
-  // Tự động kiểm tra dị ứng học đường cho cả 2 ca ăn
+  // Tự động kiểm tra dị ứng học đường cho cả 2 ca ăn (không chặn khi thiếu chi tiết công thức)
   useEffect(() => {
     if (!isOpen) return
     let active = true
+    setAllergyLoading(true)
 
-    const getDishIngIds = (list) =>
-      [
-        ...new Set(
-          (list || []).flatMap(
-            (d) =>
-              d.ingredientIds ||
-              d.ingredientStandards?.map((i) => i.ingredientId) ||
-              []
+    const inspect = async (type, list) => {
+      const selected = [
+        ...list,
+        ...Object.values(substitutesByMeal[type] || {}),
+      ]
+      const unique = [
+        ...new Map(selected.map((d) => [d.dishId || d.id, d])).values(),
+      ]
+      let ids = [...new Set(unique.flatMap(dishIngredientIds))]
+      let seasonings = seasoningsByMeal[type] || []
+
+      try {
+        if (edited) {
+          const preview = await previewMealRecipe(
+            unique.map((d) => d.dishId || d.id)
           )
-        ),
-      ].filter((id) =>
-        /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)
-      )
+          if (unique.length && Array.isArray(preview?.ingredientIds)) {
+            ids = preview.ingredientIds || []
+            seasonings = (preview.seasonings || []).map((line) => ({
+              ...line,
+              id: line.ingredientEntryId,
+              portionQty: line.quantityPerPortion,
+            }))
+          }
+        } else {
+          ids = [
+            ...new Set([
+              ...ids,
+              ...seasonings.map((line) => line.ingredientId).filter(Boolean),
+            ]),
+          ]
+        }
 
-    const lunchIngs = getDishIngIds(lunchDishes)
-    const afternoonIngs = getDishIngIds(afternoonDishes)
+        // Nếu món chưa có công thức chi tiết, không throw lỗi chặn người dùng
+        if (!ids.length) {
+          return {
+            allergies: { hasConflict: false, conflicts: [] },
+            seasonings,
+          }
+        }
 
-    const checkLunch = lunchIngs.length
-      ? MenuService.checkAllergies(lunchIngs)
-          .then((res) => res.data)
-          .catch(() => ({ hasConflict: false, conflicts: [] }))
-      : Promise.resolve({ hasConflict: false, conflicts: [] })
-
-    const checkAfternoon = afternoonIngs.length
-      ? MenuService.checkAllergies(afternoonIngs)
-          .then((res) => res.data)
-          .catch(() => ({ hasConflict: false, conflicts: [] }))
-      : Promise.resolve({ hasConflict: false, conflicts: [] })
-
-    Promise.all([checkLunch, checkAfternoon]).then(([lunchRes, afternoonRes]) => {
-      if (active) {
-        setAllergiesByMeal({
-          LUNCH: lunchRes || { hasConflict: false, conflicts: [] },
-          AFTERNOON: afternoonRes || { hasConflict: false, conflicts: [] },
-        })
-      }
-    })
-
-    return () => {
-      active = false
-    }
-  }, [isOpen, lunchDishes, afternoonDishes])
-
-  // Tự động tính toán định lượng gia vị từ công thức món ăn (chạy nền, không block)
-  useEffect(() => {
-    if (!isOpen || !edited) return
-    let active = true
-    Promise.all([
-      previewMealRecipe(lunchDishes.map((d) => d.dishId || d.id)).catch(() => ({
-        dishes: [],
-        seasonings: [],
-      })),
-      previewMealRecipe(afternoonDishes.map((d) => d.dishId || d.id)).catch(() => ({
-        dishes: [],
-        seasonings: [],
-      })),
-    ]).then(([lunch, afternoon]) => {
-      if (active) {
-        setSeasoningsByMeal({
-          LUNCH: (lunch.seasonings || []).map((s) => ({
-            ...s,
-            id: s.ingredientEntryId || s.id,
-            portionQty: s.quantityPerPortion,
-          })),
-          AFTERNOON: (afternoon.seasonings || []).map((s) => ({
-            ...s,
-            id: s.ingredientEntryId || s.id,
-            portionQty: s.quantityPerPortion,
-          })),
-        })
-      }
-    })
-    return () => {
-      active = false
-    }
-  }, [isOpen, edited, lunchDishes, afternoonDishes])
-
-  // Hàm phát hiện dị ứng cho một món ăn cụ thể
-  const getDishAllergyConflict = useCallback(
-    (dish, mealType) => {
-      const conflicts = allergiesByMeal[mealType]?.conflicts || []
-      const dishIngIds =
-        dish.ingredientIds ||
-        dish.ingredientStandards?.map((i) => i.ingredientId) ||
-        []
-
-      // 1. Đối chiếu theo mã nguyên liệu dị ứng từ DB
-      let matched = conflicts.find((c) => dishIngIds.includes(c.ingredientId))
-
-      // 2. Đối chiếu theo tên nguyên liệu dị ứng
-      if (!matched) {
-        matched = conflicts.find(
-          (c) =>
-            dish.name &&
-            dish.name.toLowerCase().includes(c.ingredientName?.toLowerCase())
-        )
-      }
-
-      // 3. Fallback cho các món demo có chứa từ khóa đậu phộng / hải sản
-      if (!matched && dish.name?.toLowerCase().includes("đậu phộng")) {
-        matched = {
-          ingredientId: "demo-peanut-allergy",
-          ingredientName: "Đậu phộng",
-          affectedClasses: [{ className: "Khối 1", count: 12 }],
+        const res = await MenuService.checkAllergies(ids)
+        return {
+          allergies: res?.data || { hasConflict: false, conflicts: [] },
+          seasonings,
+        }
+      } catch (err) {
+        console.warn("Bỏ qua lỗi công thức thiếu khi đối soát:", err)
+        return {
+          allergies: { hasConflict: false, conflicts: [] },
+          seasonings,
         }
       }
+    }
 
-      return matched || null
+    Promise.all([
+      inspect("LUNCH", lunchDishes),
+      inspect("AFTERNOON", afternoonDishes),
+    ])
+      .then(([lunch, afternoon]) => {
+        if (active) {
+          setAllergiesByMeal({
+            LUNCH: lunch.allergies,
+            AFTERNOON: afternoon.allergies,
+          })
+          setSeasoningsByMeal({
+            LUNCH: lunch.seasonings,
+            AFTERNOON: afternoon.seasonings,
+          })
+        }
+      })
+      .catch((error) => {
+        console.warn("Lỗi đối soát dị ứng:", error)
+      })
+      .finally(() => {
+        if (active) setAllergyLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [isOpen, edited, lunchDishes, afternoonDishes, substitutesByMeal])
+
+  const getDishAllergyConflict = useCallback(
+    (dish, mealType) => {
+      const ids = dishIngredientIds(dish)
+      return (
+        (allergiesByMeal[mealType]?.conflicts || []).find((conflict) =>
+          ids.includes(conflict.ingredientId)
+        ) || null
+      )
     },
     [allergiesByMeal]
   )
 
-  // Lọc danh sách món ăn từ Kho
+  // Đếm số lượng món theo từng phân loại
+  const categoryCounts = useMemo(() => {
+    const counts = {
+      ALL: dishCatalog.length,
+      MAIN: 0,
+      SOUP: 0,
+      VEG: 0,
+      RICE: 0,
+      AFTERNOON: 0,
+    }
+    dishCatalog.forEach((dish) => {
+      const cat = classifyDish(dish)
+      if (counts[cat] !== undefined) {
+        counts[cat]++
+      } else {
+        counts.MAIN++
+      }
+    })
+    return counts
+  }, [dishCatalog])
+
+  // Lọc danh mục món ăn theo từ khóa và phân loại
   const filteredCatalog = useMemo(() => {
     return dishCatalog.filter((dish) => {
-      if (selectedCategory !== "ALL" && dish.category !== selectedCategory) {
-        return false
+      if (selectedCategory !== "ALL") {
+        const cat = classifyDish(dish)
+        if (cat !== selectedCategory) return false
       }
       if (searchKeyword.trim()) {
         const kw = searchKeyword.trim().toLowerCase()
-        const matchName = dish.name.toLowerCase().includes(kw)
-        const matchMain = dish.mainIngredient?.toLowerCase().includes(kw)
-        const matchSupplier = dish.supplierName?.toLowerCase().includes(kw)
+        const matchName = (dish.name || "").toLowerCase().includes(kw)
+        const matchMain = (dish.mainIngredient || "")
+          .toLowerCase()
+          .includes(kw)
+        const matchSupplier = (dish.supplierName || "")
+          .toLowerCase()
+          .includes(kw)
         if (!matchName && !matchMain && !matchSupplier) return false
       }
       return true
@@ -273,7 +406,13 @@ export default function CreateMenuDayModal({
   // Lọc món thay thế an toàn cho học sinh dị ứng
   const filteredSubstituteCatalog = useMemo(() => {
     if (!substituteModal.isOpen) return []
-    const conflictName = (substituteModal.conflict?.ingredientName || "").toLowerCase()
+    const avoidedIds = new Set(
+      (allergiesByMeal[substituteModal.mealType]?.conflicts || [])
+        .filter((c) =>
+          dishIngredientIds(substituteModal.dish).includes(c.ingredientId)
+        )
+        .map((c) => c.ingredientId)
+    )
     const kw = subSearchKeyword.trim().toLowerCase()
     const currentDishes =
       substituteModal.mealType === "LUNCH" ? lunchDishes : afternoonDishes
@@ -284,10 +423,11 @@ export default function CreateMenuDayModal({
       if (currentIds.has(dish.id)) return false
 
       // Loại trừ món có chứa nguyên liệu gây dị ứng
-      if (conflictName) {
-        if (dish.name.toLowerCase().includes(conflictName)) return false
-        if (dish.mainIngredient?.toLowerCase().includes(conflictName)) return false
-      }
+      if (
+        dish.unclassifiedLines?.length ||
+        dishIngredientIds(dish).some((id) => avoidedIds.has(id))
+      )
+        return false
 
       // Tìm kiếm theo từ khóa
       if (kw) {
@@ -297,7 +437,14 @@ export default function CreateMenuDayModal({
       }
       return true
     })
-  }, [dishCatalog, substituteModal, subSearchKeyword, lunchDishes, afternoonDishes])
+  }, [
+    dishCatalog,
+    substituteModal,
+    subSearchKeyword,
+    lunchDishes,
+    afternoonDishes,
+    allergiesByMeal,
+  ])
 
   // Set các món đã chọn trong ca hiện tại
   const currentMealDishes =
@@ -328,7 +475,9 @@ export default function CreateMenuDayModal({
             }
             return copy
           })
-          return prev.filter((d) => (d.dishId || d.id || d.name) !== dish.id)
+          return prev.filter(
+            (d) => (d.dishId || d.id || d.name) !== dish.id
+          )
         } else {
           const newDish = {
             id: `dish-picked-${Date.now()}-${Math.random()
@@ -356,9 +505,13 @@ export default function CreateMenuDayModal({
   const handleRemoveDishFromPreview = useCallback((mealType, dishId) => {
     setEdited(true)
     if (mealType === "LUNCH") {
-      setLunchDishes((prev) => prev.filter((d) => d.id !== dishId && d.dishId !== dishId))
+      setLunchDishes((prev) =>
+        prev.filter((d) => d.id !== dishId && d.dishId !== dishId)
+      )
     } else {
-      setAfternoonDishes((prev) => prev.filter((d) => d.id !== dishId && d.dishId !== dishId))
+      setAfternoonDishes((prev) =>
+        prev.filter((d) => d.id !== dishId && d.dishId !== dishId)
+      )
     }
     // Dọn dẹp món thay thế nếu có
     setSubstitutesByMeal((prev) => {
@@ -408,12 +561,25 @@ export default function CreateMenuDayModal({
           substituteForDishId: dishKey,
           substituteForName: dish.name,
           allergenName: conflict?.ingredientName || "Dị ứng",
-          avoidedIngredientEntryIds: conflict?.ingredientId ? [conflict.ingredientId] : [],
+          avoidedIngredientEntryIds: (
+            allergiesByMeal[mealType]?.conflicts || []
+          )
+            .filter((c) => dishIngredientIds(dish).includes(c.ingredientId))
+            .map(
+              (c) =>
+                recipeOptions.find((o) => o.ingredientId === c.ingredientId)?.id
+            )
+            .filter(Boolean),
         },
       },
     }))
 
-    setSubstituteModal({ isOpen: false, dish: null, conflict: null, mealType: "LUNCH" })
+    setSubstituteModal({
+      isOpen: false,
+      dish: null,
+      conflict: null,
+      mealType: "LUNCH",
+    })
   }
 
   // Bỏ món riêng thay thế
@@ -433,7 +599,9 @@ export default function CreateMenuDayModal({
   // Xây dựng danh sách nhóm suất ăn (Portion Groups) tự động theo chuẩn Backend
   const buildPortionGroupsForMeal = (mealDishes, mealSubsMap) => {
     const subs = Object.values(mealSubsMap || {})
-    const regularDishes = mealDishes.filter((d) => !subs.some((s) => s.dishId === d.dishId))
+    const regularDishes = mealDishes.filter(
+      (d) => !subs.some((s) => s.dishId === d.dishId)
+    )
     const regularDishIds = regularDishes.map((d) => d.dishId || d.id)
 
     if (subs.length === 0) {
@@ -460,7 +628,8 @@ export default function CreateMenuDayModal({
       const allergyDishIds = regularDishes
         .filter(
           (d) =>
-            d.id !== sub.substituteForDishId && d.dishId !== sub.substituteForDishId
+            d.id !== sub.substituteForDishId &&
+            d.dishId !== sub.substituteForDishId
         )
         .map((d) => d.dishId || d.id)
 
@@ -468,16 +637,7 @@ export default function CreateMenuDayModal({
         allergyDishIds.push(sub.dishId || sub.id)
       }
 
-      const avoided =
-        sub.avoidedIngredientEntryIds?.length
-          ? sub.avoidedIngredientEntryIds
-          : recipeOptions.find((o) =>
-              o.name?.toLowerCase().includes((sub.allergenName || "đậu phộng").toLowerCase())
-            )
-          ? [recipeOptions.find((o) =>
-              o.name?.toLowerCase().includes((sub.allergenName || "đậu phộng").toLowerCase())
-            ).id]
-          : []
+      const avoided = sub.avoidedIngredientEntryIds || []
 
       groups.push({
         name: `Suất riêng (Dị ứng ${sub.allergenName || `nhóm ${idx + 1}`})`,
@@ -497,7 +657,9 @@ export default function CreateMenuDayModal({
     Object.values(substitutesByMeal.LUNCH || {}).forEach((sub) => {
       if (
         sub &&
-        !allLunchDishes.some((d) => (d.dishId || d.id) === (sub.dishId || sub.id))
+        !allLunchDishes.some(
+          (d) => (d.dishId || d.id) === (sub.dishId || sub.id)
+        )
       ) {
         allLunchDishes.push(sub)
       }
@@ -507,7 +669,9 @@ export default function CreateMenuDayModal({
     Object.values(substitutesByMeal.AFTERNOON || {}).forEach((sub) => {
       if (
         sub &&
-        !allAfternoonDishes.some((d) => (d.dishId || d.id) === (sub.dishId || sub.id))
+        !allAfternoonDishes.some(
+          (d) => (d.dishId || d.id) === (sub.dishId || sub.id)
+        )
       ) {
         allAfternoonDishes.push(sub)
       }
@@ -515,7 +679,10 @@ export default function CreateMenuDayModal({
 
     const portionGroupsByMeal = {
       LUNCH: buildPortionGroupsForMeal(lunchDishes, substitutesByMeal.LUNCH),
-      AFTERNOON: buildPortionGroupsForMeal(afternoonDishes, substitutesByMeal.AFTERNOON),
+      AFTERNOON: buildPortionGroupsForMeal(
+        afternoonDishes,
+        substitutesByMeal.AFTERNOON
+      ),
     }
 
     const firstSubstitute =
@@ -538,6 +705,13 @@ export default function CreateMenuDayModal({
     onClose()
   }
 
+  // Đánh giá trạng thái dị ứng tổng quát cho ngày
+  const hasAnyAllergyConflict = useMemo(() => {
+    const lunchHas = (allergiesByMeal.LUNCH?.conflicts || []).length > 0
+    const afternoonHas = (allergiesByMeal.AFTERNOON?.conflicts || []).length > 0
+    return lunchHas || afternoonHas
+  }, [allergiesByMeal])
+
   if (!isOpen) return null
 
   return (
@@ -550,7 +724,7 @@ export default function CreateMenuDayModal({
               {dayData?.dayLabel || "Thứ Hai"}
             </div>
             <h2 className={styles.headerTitle}>
-              Thực đơn ngày {dayData?.dateVN || "10/11/2026"}
+              Thực đơn ngày {dayData?.dateVN || "Chưa chọn ngày"}
             </h2>
           </div>
           <button
@@ -634,37 +808,39 @@ export default function CreateMenuDayModal({
                           conflict?.affectedClasses?.reduce(
                             (acc, c) => acc + c.count,
                             0
-                          ) || 12
+                          ) || 0
 
                         return (
                           <div key={dish.id} className="flex flex-col">
-                            {/* Dòng món ăn chính (vẫn giữ nguyên cho học sinh không dị ứng) */}
+                            {/* Dòng món ăn chính */}
                             <div className={styles.previewDishItem}>
                               <div className={styles.dishInfoLeft}>
                                 <span className={styles.dishBulletLunch} />
-                                <span className={styles.dishName} title={dish.name}>
+                                <span
+                                  className={styles.dishName}
+                                  title={dish.name}
+                                >
                                   {dish.name}
                                 </span>
                                 {substitute && (
                                   <span
-                                    className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium"
+                                    className={styles.regularBadge}
                                     title="Món này giữ nguyên cho học sinh không dị ứng"
                                   >
                                     Suất thường
                                   </span>
                                 )}
-                                {dish.categoryLabel && (
-                                  <span className={styles.categoryPill}>
-                                    {dish.categoryLabel}
-                                  </span>
-                                )}
+                                {renderCategoryBadge(dish)}
                               </div>
                               <div className={styles.dishInfoRight}>
                                 <button
                                   type="button"
                                   className={styles.removeIconBtn}
                                   onClick={() =>
-                                    handleRemoveDishFromPreview("LUNCH", dish.id)
+                                    handleRemoveDishFromPreview(
+                                      "LUNCH",
+                                      dish.id
+                                    )
                                   }
                                   title={`Xóa ${dish.name} khỏi bữa trưa`}
                                 >
@@ -679,14 +855,19 @@ export default function CreateMenuDayModal({
                                 <span className={styles.dishAllergyBadge}>
                                   <AlertTriangle size={12} />
                                   <span>
-                                    Dị ứng: {conflict.ingredientName} ({affectedCount} HS)
+                                    Dị ứng: {conflict.ingredientName} (
+                                    {affectedCount} HS)
                                   </span>
                                 </span>
                                 <button
                                   type="button"
                                   className={styles.dishSubstituteActionBtn}
                                   onClick={() =>
-                                    handleOpenSubstituteModal(dish, conflict, "LUNCH")
+                                    handleOpenSubstituteModal(
+                                      dish,
+                                      conflict,
+                                      "LUNCH"
+                                    )
                                   }
                                   title="Chọn món ăn thay thế an toàn cho học sinh dị ứng"
                                 >
@@ -700,7 +881,7 @@ export default function CreateMenuDayModal({
                               </div>
                             )}
 
-                            {/* Món ăn riêng thay thế (được bố trí an toàn cho học sinh dị ứng) */}
+                            {/* Món ăn riêng thay thế */}
                             {substitute && (
                               <div className={styles.substituteDishCard}>
                                 <div className={styles.subLeft}>
@@ -712,7 +893,8 @@ export default function CreateMenuDayModal({
                                     {substitute.name}
                                   </strong>
                                   <span className={styles.subSafeNote}>
-                                    (Thay cho HS dị ứng {conflict?.ingredientName || "món gốc"})
+                                    (Thay cho HS dị ứng{" "}
+                                    {conflict?.ingredientName || "món gốc"})
                                   </span>
                                 </div>
                                 <button
@@ -775,36 +957,39 @@ export default function CreateMenuDayModal({
                     ) : (
                       afternoonDishes.map((dish) => {
                         const dishKey = dish.dishId || dish.id
-                        const conflict = getDishAllergyConflict(dish, "AFTERNOON")
-                        const substitute = substitutesByMeal.AFTERNOON?.[dishKey]
+                        const conflict = getDishAllergyConflict(
+                          dish,
+                          "AFTERNOON"
+                        )
+                        const substitute =
+                          substitutesByMeal.AFTERNOON?.[dishKey]
                         const affectedCount =
                           conflict?.affectedClasses?.reduce(
                             (acc, c) => acc + c.count,
                             0
-                          ) || 12
+                          ) || 0
 
                         return (
                           <div key={dish.id} className="flex flex-col">
-                            {/* Dòng món ăn chính (vẫn giữ nguyên cho học sinh không dị ứng) */}
+                            {/* Dòng món ăn chính */}
                             <div className={styles.previewDishItem}>
                               <div className={styles.dishInfoLeft}>
                                 <span className={styles.dishBulletAfternoon} />
-                                <span className={styles.dishName} title={dish.name}>
+                                <span
+                                  className={styles.dishName}
+                                  title={dish.name}
+                                >
                                   {dish.name}
                                 </span>
                                 {substitute && (
                                   <span
-                                    className="text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium"
+                                    className={styles.regularBadge}
                                     title="Món này giữ nguyên cho học sinh không dị ứng"
                                   >
                                     Suất thường
                                   </span>
                                 )}
-                                {dish.categoryLabel && (
-                                  <span className={styles.categoryPill}>
-                                    {dish.categoryLabel}
-                                  </span>
-                                )}
+                                {renderCategoryBadge(dish)}
                               </div>
                               <div className={styles.dishInfoRight}>
                                 <button
@@ -829,7 +1014,8 @@ export default function CreateMenuDayModal({
                                 <span className={styles.dishAllergyBadge}>
                                   <AlertTriangle size={12} />
                                   <span>
-                                    Dị ứng: {conflict.ingredientName} ({affectedCount} HS)
+                                    Dị ứng: {conflict.ingredientName} (
+                                    {affectedCount} HS)
                                   </span>
                                 </span>
                                 <button
@@ -866,7 +1052,8 @@ export default function CreateMenuDayModal({
                                     {substitute.name}
                                   </strong>
                                   <span className={styles.subSafeNote}>
-                                    (Thay cho HS dị ứng {conflict?.ingredientName || "món gốc"})
+                                    (Thay cho HS dị ứng{" "}
+                                    {conflict?.ingredientName || "món gốc"})
                                   </span>
                                 </div>
                                 <button
@@ -941,7 +1128,7 @@ export default function CreateMenuDayModal({
                         </thead>
                         <tbody>
                           {seasonings.map((s) => (
-                            <tr key={s.id}>
+                            <tr key={s.id || s.name}>
                               <td className={styles.seasoningNameCell}>
                                 <span className={styles.seasoningDot} />
                                 <span>
@@ -974,12 +1161,17 @@ export default function CreateMenuDayModal({
                 <button
                   type="button"
                   className={`${styles.mealTabBtn} ${
-                    selectedMealType === "LUNCH" ? styles.activeMealTabLunch : ""
+                    selectedMealType === "LUNCH"
+                      ? styles.activeMealTabLunch
+                      : ""
                   }`}
                   onClick={() => setSelectedMealType("LUNCH")}
                 >
-                  <Utensils size={13} />
-                  <span>Món Bữa trưa ({lunchDishes.length})</span>
+                  <Utensils size={14} />
+                  <span>Món Bữa trưa</span>
+                  <span className={styles.mealTabCountBadge}>
+                    {lunchDishes.length}
+                  </span>
                 </button>
                 <button
                   type="button"
@@ -990,19 +1182,23 @@ export default function CreateMenuDayModal({
                   }`}
                   onClick={() => setSelectedMealType("AFTERNOON")}
                 >
-                  <Coffee size={13} />
-                  <span>Món Bữa xế ({afternoonDishes.length})</span>
+                  <Coffee size={14} />
+                  <span>Món Bữa xế</span>
+                  <span className={styles.mealTabCountBadge}>
+                    {afternoonDishes.length}
+                  </span>
                 </button>
               </div>
             </div>
 
             <div className={styles.catalogAreaWrap}>
-              {/* Thanh tìm kiếm & lọc thể loại */}
+              {/* Thanh tìm kiếm & bộ lọc phân loại món */}
               <div className={styles.searchAndFiltersBar}>
                 <div className={styles.searchBox}>
-                  <Search size={14} className={styles.searchIcon} />
+                  <Search size={15} className={styles.searchIcon} />
                   <input
                     type="text"
+                    className={styles.searchInput}
                     placeholder="Tìm kiếm món ăn theo tên hoặc nguyên liệu..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
@@ -1012,34 +1208,46 @@ export default function CreateMenuDayModal({
                       type="button"
                       className={styles.clearSearchBtn}
                       onClick={() => setSearchKeyword("")}
+                      title="Xóa tìm kiếm"
                     >
-                      <X size={13} />
+                      <X size={14} />
                     </button>
                   )}
                 </div>
 
+                {/* Bộ lọc phân loại danh mục món ăn với số lượng */}
                 <div className={styles.categoryPillsList}>
-                  {DISH_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.key}
-                      type="button"
-                      className={`${styles.catPill} ${
-                        selectedCategory === cat.key ? styles.activeCatPill : ""
-                      }`}
-                      onClick={() => setSelectedCategory(cat.key)}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
+                  {DISH_CATEGORIES.map((cat) => {
+                    const count = categoryCounts[cat.key] || 0
+                    const isActive = selectedCategory === cat.key
+                    return (
+                      <button
+                        key={cat.key}
+                        type="button"
+                        className={`${styles.catPill} ${
+                          isActive ? styles.activeCatPill : ""
+                        }`}
+                        onClick={() => setSelectedCategory(cat.key)}
+                      >
+                        <span>{cat.label}</span>
+                        <span className={styles.catCountBadge}>{count}</span>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              {/* Danh sách món ăn từ Kho */}
+              {/* Danh sách món ăn từ Kho (Có thể cuộn lên/xuống mượt mà) */}
               <div className={styles.catalogListScroll}>
-                {filteredCatalog.length === 0 ? (
+                {recipeLoading ? (
+                  <div className={styles.loadingCatalog}>
+                    <div className={styles.statusSpinner} />
+                    <span>Đang tải kho món ăn bán trú...</span>
+                  </div>
+                ) : filteredCatalog.length === 0 ? (
                   <div className={styles.emptyCatalog}>
-                    <AlertCircle size={22} />
-                    <p>Không tìm thấy món ăn nào phù hợp với từ khóa.</p>
+                    <AlertCircle size={24} />
+                    <p>Không tìm thấy món ăn nào phù hợp với bộ lọc hiện tại.</p>
                   </div>
                 ) : (
                   filteredCatalog.map((dish) => {
@@ -1053,17 +1261,20 @@ export default function CreateMenuDayModal({
                       >
                         <div className={styles.cardMain}>
                           <div className={styles.cardHeaderRow}>
-                            <h4 className={styles.dishCardTitle}>{dish.name}</h4>
-                            {dish.categoryLabel && (
-                              <span className={styles.cardCatBadge}>
-                                {dish.categoryLabel}
-                              </span>
-                            )}
+                            <h4 className={styles.dishCardTitle}>
+                              {dish.name}
+                            </h4>
+                            {renderCategoryBadge(dish)}
                           </div>
                           {dish.mainIngredient && (
-                            <p className="text-[11.5px] text-slate-500 mt-0.5">
+                            <p className={styles.dishMainIngredient}>
                               Nguyên liệu chính: {dish.mainIngredient}
                             </p>
+                          )}
+                          {dish.supplierName && (
+                            <span className={styles.dishSupplierBadge}>
+                              NCC: {dish.supplierName}
+                            </span>
                           )}
                         </div>
 
@@ -1076,12 +1287,12 @@ export default function CreateMenuDayModal({
                         >
                           {isPicked ? (
                             <>
-                              <Check size={13} />
+                              <Check size={14} />
                               <span>Đã chọn</span>
                             </>
                           ) : (
                             <>
-                              <Plus size={13} />
+                              <Plus size={14} />
                               <span>Thêm món</span>
                             </>
                           )}
@@ -1097,6 +1308,29 @@ export default function CreateMenuDayModal({
 
         {/* Modal Footer */}
         <div className={styles.modalFooter}>
+          <div className={styles.footerStatusWrap}>
+            {allergyLoading ? (
+              <div className={styles.footerStatusLoading}>
+                <div className={styles.statusSpinner} />
+                <span>Đang kiểm tra an toàn dinh dưỡng &amp; dị ứng học sinh...</span>
+              </div>
+            ) : hasAnyAllergyConflict ? (
+              <div className={styles.footerStatusWarn}>
+                <AlertTriangle size={15} />
+                <span>
+                  Phát hiện món chứa nguyên liệu dị ứng của học sinh. Bạn có thể chọn món riêng thay thế ở cột bên trái.
+                </span>
+              </div>
+            ) : (
+              <div className={styles.footerStatusSafe}>
+                <ShieldCheck size={16} />
+                <span>
+                  Thực đơn an toàn: 100% học sinh không bị dị ứng với các món đã chọn
+                </span>
+              </div>
+            )}
+          </div>
+
           <div className={styles.footerBtns}>
             <button
               type="button"
@@ -1110,7 +1344,7 @@ export default function CreateMenuDayModal({
               className={styles.confirmSaveBtn}
               onClick={handleSaveAndClose}
             >
-              <Check size={15} />
+              <Check size={16} />
               <span>Xác nhận &amp; Cập nhật vào ngày này</span>
             </button>
           </div>
