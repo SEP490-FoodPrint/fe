@@ -1,11 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   CalendarX,
   ChevronLeft,
   ChevronRight,
   FileText,
-  Users,
 } from "lucide-react";
 import { FormControl, Select, MenuItem, InputAdornment } from "@mui/material";
 import { NO_DATA_TEXT } from "src/constants/ui";
@@ -18,31 +17,7 @@ import {
 import WeeklyDayCard from "./WeeklyDayCard";
 import styles from "./WeeklyMenuSection.module.scss";
 
-function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode }) {
-  const groups =
-    weeklyMenu?.portionGroups ||
-    weeklyMenu?.gradeGroups ||
-    [];
-
-  const defaultGroupId =
-    groups.find((g) => g.isDefault)?.id ||
-    groups.find((g) => g.isDefault)?.key ||
-    groups[0]?.id ||
-    groups[0]?.key ||
-    "all";
-
-  const [activeGroupId, setActiveGroupId] = useState(defaultGroupId);
-
-  // Giữ nhóm đang chọn nếu nhóm đó vẫn có trong dữ liệu tuần mới.
-  useEffect(() => {
-    if (groups.length > 0) {
-      const exists = groups.some((g) => (g.id || g.key) === activeGroupId);
-      if (!exists) {
-        setActiveGroupId(defaultGroupId);
-      }
-    }
-  }, [groups, defaultGroupId, activeGroupId]);
-
+function WeeklyMenuSection({ weeklyMenu, onWeekChange, schoolCode }) {
   // Điều hướng theo các tuần API công bố, kể cả khi lịch có tuần bị bỏ trống.
   const availableWeeks = useMemo(() => getAvailableWeeks(weeklyMenu), [weeklyMenu]);
 
@@ -59,31 +34,23 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
   const canGoNext =
     currentWeekIndex >= 0 && currentWeekIndex < availableWeeks.length - 1;
 
-  // Đổi tuần giữ nguyên nhóm đang chọn. Page cha chịu trách nhiệm gọi API.
+  // Page cha tải thực đơn mặc định của tuần được chọn.
   const handlePrevWeek = () => {
     if (!canGoPrev || !onWeekChange) return;
     const prevWeek = availableWeeks[currentWeekIndex - 1];
-    onWeekChange(prevWeek.weekStartDate, activeGroupId);
+    onWeekChange(prevWeek.weekStartDate);
   };
 
   const handleNextWeek = () => {
     if (!canGoNext || !onWeekChange) return;
     const nextWeek = availableWeeks[currentWeekIndex + 1];
-    onWeekChange(nextWeek.weekStartDate, activeGroupId);
+    onWeekChange(nextWeek.weekStartDate);
   };
 
   const handleSelectWeek = (e) => {
     const targetDate = e.target.value;
     if (onWeekChange && targetDate && targetDate !== currentWeekDate) {
-      onWeekChange(targetDate, activeGroupId);
-    }
-  };
-
-  // Đổi nhóm giữ nguyên tuần đang xem.
-  const handleSelectGroup = (groupId) => {
-    setActiveGroupId(groupId);
-    if (onGroupChange) {
-      onGroupChange(groupId, currentWeekDate);
+      onWeekChange(targetDate);
     }
   };
 
@@ -184,37 +151,6 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
             </button>
           </div>
 
-          {/* Dynamic Portion/Grade Groups */}
-          <div className={styles.rightActions}>
-            {groups.length > 1 ? (
-              <div className={styles.gradeTabs}>
-                {groups.map((group) => {
-                  const gId = group.id || group.key;
-                  const gName = group.name || group.label;
-                  const isActive = activeGroupId === gId;
-                  return (
-                    <button
-                      key={gId}
-                      type="button"
-                      className={`${styles.gradeTab} ${
-                        isActive ? styles.activeGrade : ""
-                      }`}
-                      onClick={() => handleSelectGroup(gId)}
-                    >
-                      {gName}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : groups.length === 1 ? (
-              <div className={styles.singleGroupBadge}>
-                <Users size={14} />
-                <span>
-                  Khẩu phần: {groups[0].name || groups[0].label || "Toàn trường"}
-                </span>
-              </div>
-            ) : null}
-          </div>
         </div>
 
         {/* Nội dung: Hiển thị Empty State Banner trong container hoặc Lưới 5 ngày */}
@@ -252,14 +188,11 @@ WeeklyMenuSection.propTypes = {
     weekNumber: PropTypes.number,
     weekStartDate: PropTypes.string,
     weekRange: PropTypes.string,
-    portionGroups: PropTypes.array,
-    gradeGroups: PropTypes.array,
     days: PropTypes.array,
     availableWeeks: PropTypes.array,
     available_weeks: PropTypes.array,
   }),
   onWeekChange: PropTypes.func,
-  onGroupChange: PropTypes.func,
 };
 
 export default WeeklyMenuSection;
