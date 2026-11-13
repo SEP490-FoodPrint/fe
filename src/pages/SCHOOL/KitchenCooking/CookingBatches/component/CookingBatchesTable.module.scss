@@ -420,33 +420,42 @@
   }
 }
 
-/* 3. Phân trang */
+/* 3. Phân trang tối giản, dồn về bên phải */
 .paginationBar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 18px;
+  justify-content: flex-end;
+  padding: 8px 16px;
   border-top: 1px solid #edf2f7;
   background-color: #ffffff;
   border-bottom-left-radius: 12px;
   border-bottom-right-radius: 12px;
-  gap: 12px;
 
   @media (max-width: 640px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    padding: 10px 14px;
+    justify-content: flex-end;
+    padding: 8px 12px;
   }
 }
 
-.pageInfo {
-  display: flex;
+.paginationCluster {
+  display: inline-flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: 12.5px;
   color: #64748b;
   flex-wrap: wrap;
+  justify-content: flex-end;
+
+  @media (max-width: 640px) {
+    gap: 8px;
+    font-size: 12px;
+  }
+}
+
+.rangeText {
+  white-space: nowrap;
+  font-size: 12.5px;
+  color: #64748b;
 
   strong {
     color: #0f172a;
@@ -454,72 +463,51 @@
   }
 }
 
-.rangeText {
-  white-space: nowrap;
-}
-
 .metaDivider {
   color: #cbd5e1;
+  font-size: 10px;
   user-select: none;
-
-  @media (max-width: 640px) {
-    display: none;
-  }
 }
 
-.pageSizeSelect {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.selectInput {
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  font-family: inherit;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
 
-  .pageSizeLabel {
-    font-size: 12.5px;
-    color: #64748b;
+  &:hover:not(:disabled) {
+    border-color: #cbd5e1;
+    background-color: #f1f5f9;
   }
 
-  .selectInput {
-    height: 30px;
-    padding: 0 8px;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    background-color: #ffffff;
-    font-size: 12.5px;
-    font-weight: 500;
-    color: #334155;
-    outline: none;
-    cursor: pointer;
-    transition: all 0.15s ease;
+  &:focus {
+    border-color: #0a8066;
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
+  }
 
-    &:hover:not(:disabled) {
-      border-color: #cbd5e1;
-      background-color: #f8fafc;
-    }
-
-    &:focus {
-      border-color: #0a8066;
-      box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.1);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 }
 
 .pageNav {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-
-  @media (max-width: 640px) {
-    justify-content: flex-end;
-  }
+  gap: 4px;
 }
 
 .pageBtn {
-  width: 30px;
-  height: 30px;
+  width: 28px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -547,11 +535,12 @@
 }
 
 .pageText {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   color: #64748b;
   padding: 0 4px;
   user-select: none;
+  white-space: nowrap;
 
   strong {
     color: #0f172a;

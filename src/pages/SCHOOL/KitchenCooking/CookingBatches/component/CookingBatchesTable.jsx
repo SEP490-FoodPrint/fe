@@ -294,61 +294,62 @@ export default function CookingBatchesTable({
       )}
 
       <div className={styles.paginationBar}>
-        <div className={styles.pageInfo}>
+        <div className={styles.paginationCluster}>
           <span className={styles.rangeText}>
             {loading ? (
               "Đang tải…"
             ) : error ? (
-              "Chưa tải được danh sách"
+              "Chưa tải được dữ liệu"
+            ) : totalItems > limit ? (
+              <>
+                {(page - 1) * limit + 1}–{Math.min(page * limit, totalItems)} / <strong>{totalItems.toLocaleString("vi-VN")}</strong> lô
+              </>
             ) : (
               <>
-                Hiển thị <strong>{totalItems ? (page - 1) * limit + 1 : 0}–{Math.min(page * limit, totalItems)}</strong> trong tổng số <strong>{totalItems.toLocaleString("vi-VN")}</strong> lô
+                Tổng số <strong>{totalItems.toLocaleString("vi-VN")}</strong> lô
               </>
             )}
           </span>
 
           <span className={styles.metaDivider}>•</span>
 
-          <div className={styles.pageSizeSelect}>
-            <span className={styles.pageSizeLabel}>Xem:</span>
-            <select
-              value={limit}
-              onChange={(event) => onPageSizeChange(Number(event.target.value))}
-              aria-label="Số dòng mỗi trang"
-              disabled={loading}
-              className={styles.selectInput}
-            >
-              <option value={10}>10 / trang</option>
-              <option value={20}>20 / trang</option>
-              <option value={50}>50 / trang</option>
-            </select>
-          </div>
-        </div>
+          <select
+            value={limit}
+            onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            aria-label="Số dòng mỗi trang"
+            disabled={loading}
+            className={styles.selectInput}
+          >
+            <option value={10}>10 / trang</option>
+            <option value={20}>20 / trang</option>
+            <option value={50}>50 / trang</option>
+          </select>
 
-        <div className={styles.pageNav}>
-          <button
-            type="button"
-            className={styles.pageBtn}
-            disabled={loading || Boolean(error) || page <= 1}
-            onClick={() => onPageChange(page - 1)}
-            aria-label="Trang trước"
-            title="Trang trước"
-          >
-            <ChevronLeft size={16} />
-          </button>
-          <span className={styles.pageText}>
-            Trang <strong>{page}</strong> / {totalPages || 1}
-          </span>
-          <button
-            type="button"
-            className={styles.pageBtn}
-            disabled={loading || Boolean(error) || page >= totalPages}
-            onClick={() => onPageChange(page + 1)}
-            aria-label="Trang tiếp"
-            title="Trang tiếp theo"
-          >
-            <ChevronRight size={16} />
-          </button>
+          <div className={styles.pageNav}>
+            <button
+              type="button"
+              className={styles.pageBtn}
+              disabled={loading || Boolean(error) || page <= 1}
+              onClick={() => onPageChange(page - 1)}
+              aria-label="Trang trước"
+              title="Trang trước"
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span className={styles.pageText}>
+              <strong>{page}</strong> / {totalPages || 1}
+            </span>
+            <button
+              type="button"
+              className={styles.pageBtn}
+              disabled={loading || Boolean(error) || page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+              aria-label="Trang tiếp"
+              title="Trang tiếp theo"
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
         </div>
       </div>
       <Dialog
