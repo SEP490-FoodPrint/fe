@@ -38,6 +38,22 @@ const getDishResolvedSeasonings = dish => dish?.seasonings || []
 
 export default function DishCatalogPage() {
   const [catalog, setCatalog] = useState([])
+  const [recipeOptions, setRecipeOptions] = useState([])
+  const [catalogError, setCatalogError] = useState("")
+  const [catalogLoading, setCatalogLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [unclassifiedLines, setUnclassifiedLines] = useState([])
+  const providedIngredients = useMemo(() => recipeOptions.filter(o=>o.mainAllowed).map(o=>({...o,id:o.ingredientId,ingredientEntryId:o.id})), [recipeOptions])
+  const linkedSuppliers = useMemo(() => [...new Map(recipeOptions.filter(o=>o.mainAllowed).map(o=>[o.supplierId,{id:o.supplierId,name:o.supplierName}])).values()], [recipeOptions])
+  const CATALOG_SUPPLIERS = linkedSuppliers
+  const WAREHOUSE_SEASONINGS_CATALOG = useMemo(() => recipeOptions.filter(o=>o.seasoningAllowed), [recipeOptions])
+  useEffect(() => {
+    let active = true
+    Promise.all([loadDishCatalog(),loadRecipeOptions()]).then(([rows,options])=>{
+      if(active){setCatalog(rows);setRecipeOptions(options)}
+    }).catch(error=>{if(active)setCatalogError(error.message)}).finally(()=>{if(active)setCatalogLoading(false)})
+    return ()=>{active=false}
+  }, [])
   const [search, setSearch] = useState("")
   const [activeCat, setActiveCat] = useState("ALL")
   const [supplierFilter, setSupplierFilter] = useState("ALL")
@@ -114,6 +130,8 @@ export default function DishCatalogPage() {
 
   /* ─── Handlers ───────────────────────────────── */
   const openAdd = useCallback(() => {
+    setCatalogError("")
+    setUnclassifiedLines([])
     setEditingDish(null)
     setForm(EMPTY_FORM)
     setSelectedIngredients([])
@@ -132,6 +150,7 @@ export default function DishCatalogPage() {
   }, [])
 
   const closeModal = useCallback(() => {
+    setUnclassifiedLines([])
     setModalOpen(false)
     setEditingDish(null)
     setSelectedIngredients([])
@@ -197,10 +216,11 @@ export default function DishCatalogPage() {
     if (unclassifiedLines.length) {setCatalogError("Ph\u00e2n lo\u1ea1i c\u00e1c d\u00f2ng c\u00f4ng th\u1ee9c c\u0169 tr\u01b0\u1edbc khi l\u01b0u.");return}
     setSaving(true)
     try {
-      await saveDishRecipe(editingDish?.id,{name:form.name.trim(),description:editingDish?.description || null,lines:[
+      const response = await saveDishRecipe(editingDish?.id,{name:form.name.trim(),description:editingDish?.description || null,lines:[
         ...selectedIngredients.map(i=>({ingredientEntryId:i.ingredientEntryId,ingredientRole:"MAIN",requiredQuantity:String(i.portionQty),unit:i.unit})),
         ...selectedSeasonings.map(i=>({ingredientEntryId:i.ingredientEntryId || i.id,ingredientRole:"SEASONING",requiredQuantity:String(i.portionQty),unit:i.unit})),
       ]})
+      setEditingDish(response.data)
       const rows=await loadDishCatalog()
       setCatalog(rows)
       closeModal()
@@ -217,6 +237,8 @@ export default function DishCatalogPage() {
 
   return (
     <div className={styles.page}>
+      {catalogLoading && <p role="status">Đang tải danh mục món và kho trường…</p>}
+      {catalogError && <p role="alert">{catalogError}</p>}
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
@@ -226,7 +248,7 @@ export default function DishCatalogPage() {
             suất và nguyên liệu từ Nhà cung cấp
           </p>
         </div>
-        <button type="button" className={styles.addBtn} onClick={openAdd}>
+        <button type="button" className={styles.addBtn} disabled={catalogLoading || !!catalogError} onClick={openAdd}>
           <Plus size={16} />
           <span>Thêm món ăn mới</span>
         </button>
@@ -266,7 +288,7 @@ export default function DishCatalogPage() {
           <option value="ALL">Tất cả Nhà cung cấp (NCC)</option>
           {CATALOG_SUPPLIERS.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name} ({s.badge})
+              {s.name}
             </option>
           ))}
         </select>
@@ -454,6 +476,21 @@ export default function DishCatalogPage() {
             </div>
 
             <div className={styles.modalBody}>
+              {catalogError && <p role="alert">{catalogError}</p>}
+              {unclassifiedLines.length > 0 && <section aria-label="Công thức cần phân loại">
+                <p>Các dòng công thức cũ cần được phân loại trước khi lưu:</p>
+                {unclassifiedLines.map(line=><div key={line.ingredientEntryId}>
+                  <span>{line.name}: {line.requiredQuantity} {line.unit}</span>
+                  <button type="button" disabled={saving} onClick={()=>{
+                    setSelectedIngredients(prev=>[...prev,{...line,id:line.ingredientId,portionQty:line.requiredQuantity}])
+                    setUnclassifiedLines(prev=>prev.filter(l=>l.ingredientEntryId!==line.ingredientEntryId))
+                  }}>Nguyên liệu chính</button>
+                  <button type="button" disabled={saving || !recipeOptions.some(o=>o.id===line.ingredientEntryId&&o.seasoningAllowed)} onClick={()=>{
+                    setSelectedSeasonings(prev=>[...prev,{...line,id:line.ingredientEntryId,portionQty:line.requiredQuantity}])
+                    setUnclassifiedLines(prev=>prev.filter(l=>l.ingredientEntryId!==line.ingredientEntryId))
+                  }}>Gia vị</button>
+                </div>)}
+              </section>}
               <div className={styles.formGrid}>
                 {/* Hàng 1: Tên món (60%) + Nhóm món (40%) cùng 1 dòng gọn gàng */}
                 <div className={styles.formTwoColsRow}>
@@ -472,7 +509,7 @@ export default function DishCatalogPage() {
 
                   <div>
                     <label className={styles.formLabel}>Nhóm món ăn</label>
-                    <select className={styles.formSelect} disabled><option>Ch\u01b0a ph\u00e2n nh\u00f3m</option></select>
+                    <select className={styles.formSelect} disabled><option>Chưa phân nhóm</option></select>
                   </div>
                 </div>
 
@@ -787,7 +824,7 @@ export default function DishCatalogPage() {
                   className={styles.saveBtn}
                   onClick={handleSave}
                   disabled={
-                    !form.name.trim() || selectedIngredients.length === 0
+                    saving || unclassifiedLines.length > 0 || !form.name.trim() || selectedIngredients.length === 0
                   }
                 >
                   {editingDish ? "Lưu thay đổi" : "Lưu món ăn"}
@@ -866,7 +903,7 @@ export default function DishCatalogPage() {
                   <div className={styles.overviewItem}>
                     <span className={styles.overviewItemLabel}>Nhà cung cấp chính</span>
                     <div className={styles.overviewItemVal}>
-                      <span>{viewingDish.supplierName || "CP Foods Việt Nam"}</span>
+                      <span>{viewingDish.supplierName || "Chưa xác định nhà cung cấp"}</span>
                       {viewingDish.supplierBadge && (
                         <span className={styles.supplierBadgePill}>
                           {viewingDish.supplierBadge}
@@ -939,7 +976,7 @@ export default function DishCatalogPage() {
                             </td>
                             <td style={{ textAlign: "right" }}>
                               <span className={styles.detailPortionBadge}>
-                                {ing.portionQty || 50} {ing.unit || "g"}
+                                {ing.portionQty ?? "—"} {ing.unit || ""}
                               </span>
                             </td>
                           </tr>
@@ -1025,6 +1062,7 @@ export default function DishCatalogPage() {
 
       {/* Popup Modal Chọn nguyên liệu chuẩn theo phân loại & NCC */}
       <IngredientPickerModal
+        providedIngredients={providedIngredients}
         isOpen={pickerOpen}
         onClose={() => setPickerOpen(false)}
         selectedIngredientIds={selectedIngredientIds}
@@ -1046,6 +1084,7 @@ export default function DishCatalogPage() {
               tác này sẽ không thể hoàn tác.
             </p>
             <div className={styles.confirmActions}>
+              {catalogError && <p role="alert">{catalogError}</p>}
               <button
                 type="button"
                 className={styles.confirmCancel}
@@ -1056,6 +1095,7 @@ export default function DishCatalogPage() {
               <button
                 type="button"
                 className={styles.confirmDelete}
+                disabled={saving}
                 onClick={handleDeleteConfirm}
               >
                 Xóa món

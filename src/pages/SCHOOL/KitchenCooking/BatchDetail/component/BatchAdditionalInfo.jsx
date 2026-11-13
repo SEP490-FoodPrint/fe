@@ -1,5 +1,5 @@
 import React from "react"
-import { Info, Clock, Layers, FileText } from "lucide-react"
+import { Info } from "lucide-react"
 import styles from "./BatchAdditionalInfo.module.scss"
 
 export default function BatchAdditionalInfo({ batchData = {} }) {
@@ -8,14 +8,13 @@ export default function BatchAdditionalInfo({ batchData = {} }) {
       ? "Nấu riêng theo lớp"
       : "Nấu chung"
 
-  const hasParent = Boolean(batchData.batchGroupCode)
   const hasCreated = Boolean(batchData.createdAt && batchData.createdAt !== "Chưa ghi nhận")
   const hasConfirmed = Boolean(batchData.confirmedAt)
   const hasCompleted = Boolean(batchData.completedAtFull || batchData.completedAt)
   const hasNote = Boolean(batchData.note && batchData.note.trim())
 
   // Kiểm tra nếu không có thông tin phụ nào thì không render
-  if (!hasCreated && !hasConfirmed && !hasCompleted && !hasParent && !hasNote && !methodLabel) {
+  if (!hasCreated && !hasConfirmed && !hasCompleted && !hasNote && !methodLabel) {
     return null
   }
 
@@ -34,14 +33,6 @@ export default function BatchAdditionalInfo({ batchData = {} }) {
           <span className={styles.infoLabel}>Quy cách nấu</span>
           <span className={styles.infoValue}>{methodLabel}</span>
         </div>
-
-        {/* Mã lô cha (nếu có) */}
-        {hasParent && (
-          <div className={styles.infoItem}>
-            <span className={styles.infoLabel}>Mã lô cha (nhóm)</span>
-            <span className={styles.infoValueCode}>{batchData.batchGroupCode}</span>
-          </div>
-        )}
 
         {/* Thời gian khởi tạo */}
         {hasCreated && (
@@ -80,4 +71,3 @@ export default function BatchAdditionalInfo({ batchData = {} }) {
     </section>
   )
 }
-
