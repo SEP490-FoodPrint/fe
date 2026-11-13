@@ -11,8 +11,7 @@ import {
   Sparkles,
   Utensils,
 } from "lucide-react"
-import { loadDishCatalog, loadRecipeOptions, saveDishRecipe, deleteDishRecipe } from "src/services/DishService"
-const DISH_CATEGORIES = [{key:"ALL",label:"T\u1ea5t c\u1ea3 m\u00f3n"}]
+import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import styles from "./index.module.scss"
 
@@ -38,6 +37,8 @@ const getDishResolvedSeasonings = dish => dish?.seasonings || []
 
 export default function DishCatalogPage() {
   const [catalog, setCatalog] = useState([])
+  const [categoryOptions, setCategoryOptions] = useState([])
+  const DISH_CATEGORIES = [{ key: "ALL", label: "Tất cả món" }, ...categoryOptions, { key: "UNCLASSIFIED", label: "Chưa phân nhóm" }]
   const [recipeOptions, setRecipeOptions] = useState([])
   const [catalogError, setCatalogError] = useState("")
   const [catalogLoading, setCatalogLoading] = useState(true)
@@ -49,8 +50,8 @@ export default function DishCatalogPage() {
   const WAREHOUSE_SEASONINGS_CATALOG = useMemo(() => recipeOptions.filter(o=>o.seasoningAllowed), [recipeOptions])
   useEffect(() => {
     let active = true
-    Promise.all([loadDishCatalog(),loadRecipeOptions()]).then(([rows,options])=>{
-      if(active){setCatalog(rows);setRecipeOptions(options)}
+    Promise.all([loadDishCatalogData(),loadRecipeOptions()]).then(([data,options])=>{
+      if(active){setCatalog(data.items);setCategoryOptions(data.categories);setRecipeOptions(options)}
     }).catch(error=>{if(active)setCatalogError(error.message)}).finally(()=>{if(active)setCatalogLoading(false)})
     return ()=>{active=false}
   }, [])
@@ -87,7 +88,7 @@ export default function DishCatalogPage() {
   const filtered = useMemo(() => {
     let list = catalog
     if (activeCat !== "ALL") {
-      list = list.filter((d) => d.category === activeCat)
+      list = list.filter((d) => dishCategoryKey(d) === activeCat)
     }
     if (supplierFilter !== "ALL") {
       list = list.filter(
@@ -141,10 +142,38 @@ export default function DishCatalogPage() {
 
   const openEdit = useCallback((dish) => {
     setEditingDish(dish)
-    setForm({name:dish.name || "",category:""})
-    setSelectedIngredients((dish.ingredients || []).map(i=>({...i})))
-    setSelectedSeasonings((dish.seasonings || []).map(i=>({...i})))
-    setUnclassifiedLines((dish.unclassifiedLines || []).map(i=>({...i})))
+    setForm({ name: dish.name || "", category: dish.category || "" })
+
+    // Tự động đưa mọi nguyên liệu (kể cả từ công thức cũ) vào danh sách nguyên liệu chính (ảnh 2)
+    const legacyMains = (dish.unclassifiedLines || []).map((l) => ({
+      ...l,
+      id: l.ingredientId || l.ingredientEntryId,
+      ingredientEntryId: l.ingredientEntryId || l.id,
+      name: l.name,
+      category: l.category || "-",
+      portionQty: l.requiredQuantity || l.portionQty || "",
+      unit: l.unit || "kg",
+      supplierName:
+        l.supplierName || dish.supplierName || "Nhà cung cấp Nông Sản Xanh (DEMO)",
+    }))
+
+    const initialIngredients = [
+      ...(dish.ingredients || []).map((i) => ({ ...i })),
+      ...legacyMains,
+    ]
+
+    const uniqueIngredients = [
+      ...new Map(
+        initialIngredients.map((i) => [
+          i.id || i.ingredientEntryId || i.name,
+          i,
+        ])
+      ).values(),
+    ]
+
+    setSelectedIngredients(uniqueIngredients)
+    setSelectedSeasonings((dish.seasonings || []).map((i) => ({ ...i })))
+    setUnclassifiedLines([])
     setCatalogError("")
     setModalOpen(true)
   }, [])
@@ -213,18 +242,37 @@ export default function DishCatalogPage() {
   // Lưu món ăn
   const handleSave = async () => {
     setCatalogError("")
-    if (unclassifiedLines.length) {setCatalogError("Ph\u00e2n lo\u1ea1i c\u00e1c d\u00f2ng c\u00f4ng th\u1ee9c c\u0169 tr\u01b0\u1edbc khi l\u01b0u.");return}
+    if (!categoryOptions.some(option => option.key === form.category)) { setCatalogError("Vui lòng chọn nhóm món ăn."); return }
     setSaving(true)
     try {
-      const response = await saveDishRecipe(editingDish?.id,{name:form.name.trim(),description:editingDish?.description || null,lines:[
-        ...selectedIngredients.map(i=>({ingredientEntryId:i.ingredientEntryId,ingredientRole:"MAIN",requiredQuantity:String(i.portionQty),unit:i.unit})),
-        ...selectedSeasonings.map(i=>({ingredientEntryId:i.ingredientEntryId || i.id,ingredientRole:"SEASONING",requiredQuantity:String(i.portionQty),unit:i.unit})),
-      ]})
+      const response = await saveDishRecipe(editingDish?.id, {
+        name: form.name.trim(),
+        category: form.category,
+        description: editingDish?.description || null,
+        lines: [
+          ...selectedIngredients.map((i) => ({
+            ingredientEntryId: i.ingredientEntryId || i.id,
+            ingredientRole: "MAIN",
+            requiredQuantity: String(i.portionQty || "0.01"),
+            unit: i.unit || "kg",
+          })),
+          ...selectedSeasonings.map((i) => ({
+            ingredientEntryId: i.ingredientEntryId || i.id,
+            ingredientRole: "SEASONING",
+            requiredQuantity: String(i.portionQty || "0.01"),
+            unit: i.unit || "g",
+          })),
+        ],
+      })
       setEditingDish(response.data)
-      const rows=await loadDishCatalog()
+      const rows = await loadDishCatalog()
       setCatalog(rows)
       closeModal()
-    } catch(error) {setCatalogError(error.message)} finally {setSaving(false)}
+    } catch (error) {
+      setCatalogError(error.message)
+    } finally {
+      setSaving(false)
+    }
   }
 
   const handleDeleteConfirm = async () => {
@@ -350,7 +398,7 @@ export default function DishCatalogPage() {
                     </td>
                     <td>
                       <span className={`${styles.catBadge} ${catClass}`}>
-                        {dish.categoryLabel || dish.category}
+                        {dish.categoryLabel || "Chưa phân nhóm"}
                       </span>
                     </td>
                     {/* Cột Nguyên liệu chính (kèm NCC) */}
@@ -477,20 +525,6 @@ export default function DishCatalogPage() {
 
             <div className={styles.modalBody}>
               {catalogError && <p role="alert">{catalogError}</p>}
-              {unclassifiedLines.length > 0 && <section aria-label="Công thức cần phân loại">
-                <p>Các dòng công thức cũ cần được phân loại trước khi lưu:</p>
-                {unclassifiedLines.map(line=><div key={line.ingredientEntryId}>
-                  <span>{line.name}: {line.requiredQuantity} {line.unit}</span>
-                  <button type="button" disabled={saving} onClick={()=>{
-                    setSelectedIngredients(prev=>[...prev,{...line,id:line.ingredientId,portionQty:line.requiredQuantity}])
-                    setUnclassifiedLines(prev=>prev.filter(l=>l.ingredientEntryId!==line.ingredientEntryId))
-                  }}>Nguyên liệu chính</button>
-                  <button type="button" disabled={saving || !recipeOptions.some(o=>o.id===line.ingredientEntryId&&o.seasoningAllowed)} onClick={()=>{
-                    setSelectedSeasonings(prev=>[...prev,{...line,id:line.ingredientEntryId,portionQty:line.requiredQuantity}])
-                    setUnclassifiedLines(prev=>prev.filter(l=>l.ingredientEntryId!==line.ingredientEntryId))
-                  }}>Gia vị</button>
-                </div>)}
-              </section>}
               <div className={styles.formGrid}>
                 {/* Hàng 1: Tên món (60%) + Nhóm món (40%) cùng 1 dòng gọn gàng */}
                 <div className={styles.formTwoColsRow}>
@@ -509,7 +543,10 @@ export default function DishCatalogPage() {
 
                   <div>
                     <label className={styles.formLabel}>Nhóm món ăn</label>
-                    <select className={styles.formSelect} disabled><option>Chưa phân nhóm</option></select>
+                    <select className={styles.formSelect} value={form.category} disabled={saving} onChange={event => handleFormChange("category", event.target.value)} aria-label="Nhóm món ăn" required>
+                      <option value="">Chọn nhóm món ăn</option>
+                      {categoryOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+                    </select>
                   </div>
                 </div>
 
@@ -612,15 +649,15 @@ export default function DishCatalogPage() {
                                   <div className={styles.portionInputGroup}>
                                     <input
                                       type="number"
-                                      min="1"
-                                      step="0.5"
+                                      min="0.001"
+                                      step="any"
                                       className={styles.portionQtyInput}
-                                      value={ing.portionQty || ""}
+                                      value={ing.portionQty ?? ""}
                                       onChange={(e) =>
                                         handleUpdateIngredientPortion(
                                           ing.id,
                                           "portionQty",
-                                          Number(e.target.value) || 0
+                                          e.target.value
                                         )
                                       }
                                       placeholder="Số lượng"
@@ -824,7 +861,7 @@ export default function DishCatalogPage() {
                   className={styles.saveBtn}
                   onClick={handleSave}
                   disabled={
-                    saving || unclassifiedLines.length > 0 || !form.name.trim() || selectedIngredients.length === 0
+                    saving || !form.name.trim() || selectedIngredients.length === 0
                   }
                 >
                   {editingDish ? "Lưu thay đổi" : "Lưu món ăn"}
@@ -860,7 +897,7 @@ export default function DishCatalogPage() {
                           CAT_STYLE[viewingDish.category] || ""
                         }`}
                       >
-                        {viewingDish.categoryLabel || viewingDish.category}
+                        {viewingDish.categoryLabel || "Chưa phân nhóm"}
                       </span>
                     </div>
                     <span className={styles.detailSubText}>
@@ -870,20 +907,6 @@ export default function DishCatalogPage() {
                 </div>
 
                 <div className={styles.detailHeaderActions}>
-                  <button
-                    type="button"
-                    className={styles.detailEditHeaderBtn}
-                    onClick={() => {
-                      const target = viewingDish
-                      setViewingDish(null)
-                      openEdit(target)
-                    }}
-                    title="Chỉnh sửa thông tin món ăn"
-                  >
-                    <Pencil size={14} />
-                    <span>Chỉnh sửa</span>
-                  </button>
-
                   <button
                     type="button"
                     className={styles.closeBtn}
