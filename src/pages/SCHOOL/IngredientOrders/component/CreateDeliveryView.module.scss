@@ -514,6 +514,58 @@
   font-weight: 700;
 }
 
+.extraCol {
+  background-color: #f0fdf4;
+  color: #15803d !important;
+}
+
+.extraCell {
+  background-color: #fcfdfc;
+}
+
+.extraCellInput {
+  :global(.MuiOutlinedInput-root) {
+    background-color: #ffffff;
+    color: #15803d;
+
+    &.Mui-focused :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: #16a34a;
+    }
+  }
+}
+
+.totalCol {
+  background-color: #f8fafc;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+}
+
+.totalCell {
+  background-color: #f8fafc;
+}
+
+.totalQtyText {
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.readOnlyText {
+  color: #334155;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.readOnlyPortionText {
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background-color: #f1f5f9;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
 .supplierText {
   color: #64748b;
   font-size: 0.82rem;

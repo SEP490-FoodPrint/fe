@@ -212,33 +212,48 @@ const IngredientOrderService = {
 
     // 1. Tươi sống Đợt 1 (lấy items người dùng đã tùy chỉnh nếu có, hoặc tính theo định lượng thực đơn)
     const freshItemsBatch1 = Array.isArray(items) && items.length > 0
-      ? items.map(it => ({
-          ingredientId: it.ingredientId || it.id,
-          ingredientName: it.ingredientName || it.name,
-          handlingType: it.handlingType || "DIRECT_USE",
-          unit: it.unit,
-          qtyPerPortion: it.qtyPerPortion,
-          orderedQty: it.orderedQty ?? it.batchQty ?? calcQty(it.qtyPerPortion || 0.05, batch1Portions, it.unit),
-          deliveredQty: 0,
-          status: "WAITING",
-          isCustomized: it.isCustomized || false,
-          isExtra: it.isExtra || false,
-          defaultQtyPerPortion: it.defaultQtyPerPortion,
-        }))
-      : targetMenu.ingredients
-          .filter(it => it.handlingType === "DIRECT_USE")
-          .map(it => ({
-            ingredientId: it.id,
-            ingredientName: it.name,
-            handlingType: it.handlingType,
+      ? items.map(it => {
+          const stdQty = it.standardQty ?? (it.isExtraItem ? 0 : calcQty(it.qtyPerPortion || 0.05, batch1Portions, it.unit))
+          const extra = Number(it.extraQty) || 0
+          const isDiscrete = isDiscreteUnit(it.unit)
+          const totalQty = it.orderedQty ?? (isDiscrete ? Math.ceil(stdQty + extra) : Number((stdQty + extra).toFixed(2)))
+
+          return {
+            ingredientId: it.ingredientId || it.id,
+            ingredientName: it.ingredientName || it.name,
+            handlingType: it.handlingType || "DIRECT_USE",
             unit: it.unit,
-            qtyPerPortion: it.qtyPerPortion,
-            orderedQty: calcQty(it.qtyPerPortion, batch1Portions, it.unit),
+            qtyPerPortion: it.qtyPerPortion || 0,
+            standardQty: stdQty,
+            extraQty: extra,
+            orderedQty: totalQty,
             deliveredQty: 0,
             status: "WAITING",
-            isCustomized: false,
-            defaultQtyPerPortion: it.qtyPerPortion,
-          }))
+            isCustomized: it.isCustomized || false,
+            isExtraItem: it.isExtraItem || false,
+            defaultQtyPerPortion: it.defaultQtyPerPortion,
+          }
+        })
+      : targetMenu.ingredients
+          .filter(it => it.handlingType === "DIRECT_USE")
+          .map(it => {
+            const stdQty = calcQty(it.qtyPerPortion, batch1Portions, it.unit)
+            return {
+              ingredientId: it.id,
+              ingredientName: it.name,
+              handlingType: it.handlingType,
+              unit: it.unit,
+              qtyPerPortion: it.qtyPerPortion,
+              standardQty: stdQty,
+              extraQty: 0,
+              orderedQty: stdQty,
+              deliveredQty: 0,
+              status: "WAITING",
+              isCustomized: false,
+              isExtraItem: false,
+              defaultQtyPerPortion: it.qtyPerPortion,
+            }
+          })
 
     const deliveryBatch1 = {
       id: `deliv-${Date.now()}-01`,
@@ -298,19 +313,28 @@ const IngredientOrderService = {
 
     // Bê nguyên thực phẩm tươi sống từ Đợt 1 sang (ưu tiên items truyền vào, hoặc đọc từ batch1Delivery.items)
     const freshItemsBatch2 = Array.isArray(items) && items.length > 0
-      ? items.map(it => ({
-          ingredientId: it.ingredientId || it.id,
-          ingredientName: it.ingredientName || it.name,
-          handlingType: it.handlingType || "DIRECT_USE",
-          unit: it.unit,
-          qtyPerPortion: it.qtyPerPortion,
-          orderedQty: it.orderedQty ?? it.batchQty ?? calcQty(it.qtyPerPortion || 0.05, remainingPortions, it.unit),
-          deliveredQty: 0,
-          status: "WAITING",
-          isCustomized: it.isCustomized || false,
-          isExtra: it.isExtra || false,
-          defaultQtyPerPortion: it.defaultQtyPerPortion,
-        }))
+      ? items.map(it => {
+          const stdQty = it.standardQty ?? (it.isExtraItem ? 0 : calcQty(it.qtyPerPortion || 0.05, remainingPortions, it.unit))
+          const extra = Number(it.extraQty) || 0
+          const isDiscrete = isDiscreteUnit(it.unit)
+          const totalQty = it.orderedQty ?? (isDiscrete ? Math.ceil(stdQty + extra) : Number((stdQty + extra).toFixed(2)))
+
+          return {
+            ingredientId: it.ingredientId || it.id,
+            ingredientName: it.ingredientName || it.name,
+            handlingType: it.handlingType || "DIRECT_USE",
+            unit: it.unit,
+            qtyPerPortion: it.qtyPerPortion || 0,
+            standardQty: stdQty,
+            extraQty: extra,
+            orderedQty: totalQty,
+            deliveredQty: 0,
+            status: "WAITING",
+            isCustomized: it.isCustomized || false,
+            isExtraItem: it.isExtraItem || false,
+            defaultQtyPerPortion: it.defaultQtyPerPortion,
+          }
+        })
       : targetMenu.ingredients
           .filter(it => it.handlingType === "DIRECT_USE")
           .map(it => {
@@ -318,6 +342,7 @@ const IngredientOrderService = {
               b => (b.ingredientId && b.ingredientId === it.id) || b.ingredientName === it.name
             )
             const portionRate = b1Item?.qtyPerPortion ?? (b1Item?.orderedQty && batch1Portions ? Number((b1Item.orderedQty / batch1Portions).toFixed(4)) : it.qtyPerPortion)
+            const stdQty = calcQty(portionRate, remainingPortions, it.unit)
 
             return {
               ingredientId: it.id,
@@ -325,10 +350,13 @@ const IngredientOrderService = {
               handlingType: it.handlingType,
               unit: it.unit,
               qtyPerPortion: portionRate,
-              orderedQty: calcQty(portionRate, remainingPortions, it.unit),
+              standardQty: stdQty,
+              extraQty: 0,
+              orderedQty: stdQty,
               deliveredQty: 0,
               status: "WAITING",
               isCustomized: Math.abs(portionRate - it.qtyPerPortion) > 0.00001,
+              isExtraItem: false,
               defaultQtyPerPortion: it.qtyPerPortion,
             }
           })
@@ -397,11 +425,20 @@ const IngredientOrderService = {
         : targetMenu.ingredients.filter(it => it.handlingType === "DIRECT_USE")
 
       const updatedItems = sourceItems.map(it => {
+        if (it.isExtraItem) {
+          // Món thêm ngoài giữ nguyên số lượng đã đặt
+          return it
+        }
+
         const b1Item = batch1Delivery?.items?.find(
           b => (b.ingredientId && (b.ingredientId === it.ingredientId || b.ingredientId === it.id)) ||
                b.ingredientName === (it.ingredientName || it.name)
         )
         const portionRate = it.qtyPerPortion ?? b1Item?.qtyPerPortion ?? it.defaultQtyPerPortion ?? 0.05
+        const stdQty = calcQty(portionRate, actualRemaining, it.unit)
+        const extra = Number(it.extraQty) || 0
+        const isDiscrete = isDiscreteUnit(it.unit)
+        const totalQty = isDiscrete ? Math.ceil(stdQty + extra) : Number((stdQty + extra).toFixed(2))
 
         return {
           ...it,
@@ -409,7 +446,9 @@ const IngredientOrderService = {
           handlingType: it.handlingType || "DIRECT_USE",
           unit: it.unit,
           qtyPerPortion: portionRate,
-          orderedQty: calcQty(portionRate, actualRemaining, it.unit),
+          standardQty: stdQty,
+          extraQty: extra,
+          orderedQty: totalQty,
           deliveredQty: 0,
           status: "WAITING",
         }
