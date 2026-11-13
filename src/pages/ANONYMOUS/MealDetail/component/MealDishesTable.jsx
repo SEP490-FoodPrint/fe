@@ -83,6 +83,11 @@ function MealDishesTable({
                         <span className={styles.dishName}>{dish.name}</span>
                         <Info size={13} className={styles.infoIcon} />
                       </button>
+                      {alt && (
+                        <div className={styles.substituteDishNote}>
+                          ({alt.name})
+                        </div>
+                      )}
                     </div>
                   </td>
 
@@ -103,7 +108,7 @@ function MealDishesTable({
                           onClick={() => onOpenDishModal && onOpenDishModal(alt)}
                           title="Bấm để xem chi tiết nguyên liệu món thay thế"
                         >
-                          <span className={styles.altDishName}>{alt.name}</span>
+                          <span className={styles.altDishName}>({alt.name})</span>
                           <Info size={13} className={styles.infoIcon} />
                         </button>
                         {alt.allergyGroup && (

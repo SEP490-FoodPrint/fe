@@ -5,7 +5,8 @@ import styles from "./BatchAllocationPanel.module.scss"
 
 export default function BatchAllocationPanel({ batch, expanded, canAddClasses, onToggle, onAddClasses, onRemoveClass }) {
   const contentId = `batch-classes-${batch.id}`
-  const hasEntries = batch.entries.length > 0
+  const entries = batch.entries || []
+  const hasEntries = entries.length > 0
   const status = !hasEntries
     ? { label: "Chưa phân lô", color: "default" }
     : batch.remaining === 0
@@ -51,7 +52,7 @@ export default function BatchAllocationPanel({ batch, expanded, canAddClasses, o
           <div className={styles.seats}>
             {hasEntries ? (
               <ul className={styles.classes} aria-label={`Các lớp trong ${batch.name}`}>
-                {batch.entries.map(entry => (
+                {entries.map(entry => (
                   <li key={entry.id} className={styles.seat} data-partial={entry.remaining > 0}>
                     <strong>{entry.name}</strong>
                     <span>·</span>

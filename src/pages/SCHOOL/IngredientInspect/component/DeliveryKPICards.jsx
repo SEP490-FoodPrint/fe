@@ -3,31 +3,19 @@ import PropTypes from "prop-types"
 import { Truck, ShieldCheck } from "lucide-react"
 import styles from "./DeliveryKPICards.module.scss"
 
-export default function DeliveryKPICards({ deliveries = [] }) {
+export default function DeliveryKPICards({ stats }) {
   // Thống kê tiến độ chuyến giao
-  const totalDeliveries = deliveries.length
-  const receivedCount = deliveries.filter((d) => d.status === "RECEIVED").length
-  const inTransitCount = deliveries.filter((d) => d.status === "IN_TRANSIT").length
-  const arrivedCount = deliveries.filter((d) => d.status === "ARRIVED").length
+  const totalDeliveries = stats?.total ?? 0
+  const receivedCount = stats?.received ?? 0
+  const inTransitCount = stats?.inTransit ?? 0
+  const arrivedCount = stats?.arrived ?? 0
 
   // Thống kê kiểm thực của Cán bộ Y tế
-  const rejectedCount = deliveries.filter(
-    (d) =>
-      d.status === "REJECTED" ||
-      d.deliveryApprovals?.some((a) => a.decision === "REJECT")
-  ).length
+  const rejectedCount = stats?.rejected ?? 0
 
-  const approvedCount = deliveries.filter(
-    (d) =>
-      (d.status === "RECEIVED" || d.status === "APPROVED") &&
-      !d.deliveryApprovals?.some((a) => a.decision === "REJECT")
-  ).length
+  const approvedCount = (stats?.received ?? 0) + (stats?.approved ?? 0)
 
-  const pendingInspectCount = deliveries.filter(
-    (d) =>
-      (d.status === "ARRIVED" || d.status === "PENDING_APPROVAL") &&
-      !d.deliveryApprovals?.some((a) => a.roleCode === "SCHOOL_NUTRITION_OFFICER")
-  ).length
+  const pendingInspectCount = (stats?.arrived ?? 0) + (stats?.pending ?? 0)
 
   return (
     <div className={styles.kpiGrid}>
@@ -99,5 +87,5 @@ export default function DeliveryKPICards({ deliveries = [] }) {
 }
 
 DeliveryKPICards.propTypes = {
-  deliveries: PropTypes.array.isRequired,
+  stats: PropTypes.object,
 }

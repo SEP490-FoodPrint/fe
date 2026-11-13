@@ -433,28 +433,31 @@ export default function MenuListWeeklyVerticalView({
                 <div
                   className={`${styles.dayCard} ${
                     sd.isToday ? styles.todayDayCard : ""
-                  }`}
+                  } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
                 >
                   {/* HÀNG 1: Header Cột Ngày - CHIỀU CAO CỐ ĐỊNH 64px ĐỒNG BỘ CẢ 5 NGÀY */}
                   <div className={styles.dayHeader}>
                     <div className={styles.dayTitleRow}>
                       <div className={styles.dayTitleLeft}>
                         <span className={styles.dayLabel}>{sd.dayLabel}</span>
-                        {sd.isToday && (
-                          <span className={styles.todayPill}>Hôm nay</span>
-                        )}
                       </div>
 
-                      {/* Tiến độ ngày: Icon + Label ngắn gọn */}
-                      {progress && (
-                        <span
-                          className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                          title={progress.note ? `BGH: ${progress.note}` : `Tiến độ ngày: ${progress.label}`}
-                        >
-                          <ProgressIcon size={12} />
-                          <span>{progress.label}</span>
-                        </span>
-                      )}
+                      {/* Tiến độ ngày: Ẩn trạng thái "Đã duyệt" của từng thứ vì BGH duyệt cả tuần */}
+                      {progress &&
+                        (progress.type === "HOLIDAY" ||
+                          weekStatus !== "APPROVED") && (
+                          <span
+                            className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
+                            title={
+                              progress.note
+                                ? `BGH: ${progress.note}`
+                                : `Tiến độ ngày: ${progress.label}`
+                            }
+                          >
+                            <ProgressIcon size={12} />
+                            <span>{progress.label}</span>
+                          </span>
+                        )}
                     </div>
 
                     <div className={styles.dayDateRow}>
@@ -537,34 +540,41 @@ export default function MenuListWeeklyVerticalView({
                           {/* Danh sách món trưa (Chiều cao cố định 250px) */}
                           {hasLunch ? (
                             <div className={styles.dishesListLunch}>
-                              {lunchDishes.map((dish) => (
-                                <div
-                                  key={dish.id || dish.name}
-                                  className={styles.lunchDishRow}
-                                  onClick={() => onViewDetail(resolvedLunchMenu)}
-                                  title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
-                                >
-                                  <span className={styles.dishDotLunch} />
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
-                                </div>
-                              ))}
+                              {lunchDishes.map((dish) => {
+                                const dishKey = dish.id || dish.dishId
+                                const sub =
+                                  dish.substituteDish ||
+                                  (resolvedLunchMenu?.substituteDish?.substituteForDishId === dishKey
+                                    ? resolvedLunchMenu.substituteDish
+                                    : null)
+
+                                return (
+                                  <div
+                                    key={dishKey || dish.name}
+                                    className={styles.lunchDishRow}
+                                    onClick={() => onViewDetail(resolvedLunchMenu)}
+                                    title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
+                                  >
+                                    <div className={styles.dishCol}>
+                                      <div className={styles.dishLeftWrap}>
+                                        <span className={styles.dishDotLunch} />
+                                        <span className={styles.dishName}>
+                                          {dish.name}
+                                        </span>
+                                      </div>
+                                      {sub && (
+                                        <div className={styles.substituteDishNote}>
+                                          ({sub.name})
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
                           ) : (
                             <div className={styles.emptySingleMealBox}>
                               <span className={styles.emptyMealText}>Chưa có thực đơn trưa</span>
-                              {canEditWeeklyMenu && (
-                                <button
-                                  type="button"
-                                  className={styles.addSingleMealBtn}
-                                  onClick={() => onNavigateCreate(sd.dateISO, "LUNCH")}
-                                  title={`Thêm thực đơn bữa trưa cho ${sd.dayLabel}`}
-                                >
-                                  <Plus size={12} />
-                                  <span>Thêm bữa trưa</span>
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>
@@ -621,34 +631,41 @@ export default function MenuListWeeklyVerticalView({
                           {/* Danh sách món xế (Chiều cao cố định 100px) */}
                           {hasAfternoon ? (
                             <div className={styles.dishesListAfternoon}>
-                              {afternoonDishes.map((dish) => (
-                                <div
-                                  key={dish.id || dish.name}
-                                  className={styles.afternoonDishRow}
-                                  onClick={() => onViewDetail(resolvedAfternoonMenu)}
-                                  title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
-                                >
-                                  <span className={styles.dishDotAfternoon} />
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
-                                </div>
-                              ))}
+                              {afternoonDishes.map((dish) => {
+                                const dishKey = dish.id || dish.dishId
+                                const sub =
+                                  dish.substituteDish ||
+                                  (resolvedAfternoonMenu?.substituteDish?.substituteForDishId === dishKey
+                                    ? resolvedAfternoonMenu.substituteDish
+                                    : null)
+
+                                return (
+                                  <div
+                                    key={dishKey || dish.name}
+                                    className={styles.afternoonDishRow}
+                                    onClick={() => onViewDetail(resolvedAfternoonMenu)}
+                                    title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
+                                  >
+                                    <div className={styles.dishCol}>
+                                      <div className={styles.dishLeftWrap}>
+                                        <span className={styles.dishDotAfternoon} />
+                                        <span className={styles.dishName}>
+                                          {dish.name}
+                                        </span>
+                                      </div>
+                                      {sub && (
+                                        <div className={styles.substituteDishNote}>
+                                          ({sub.name})
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
                           ) : (
                             <div className={styles.emptySingleMealBoxSm}>
                               <span className={styles.emptyMealText}>Chưa có thực đơn xế</span>
-                              {canEditWeeklyMenu && (
-                                <button
-                                  type="button"
-                                  className={styles.addSingleMealBtn}
-                                  onClick={() => onNavigateCreate(sd.dateISO, "AFTERNOON")}
-                                  title={`Thêm thực đơn bữa xế cho ${sd.dayLabel}`}
-                                >
-                                  <Plus size={12} />
-                                  <span>Thêm bữa xế</span>
-                                </button>
-                              )}
                             </div>
                           )}
                         </div>

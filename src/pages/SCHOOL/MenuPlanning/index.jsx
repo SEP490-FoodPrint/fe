@@ -58,7 +58,7 @@ export default function MenuPlanning() {
 
   useEffect(() => {
     let active = true
-    MenuService.getAcademicCalendar()
+    MenuService.getAcademicCalendar({ forceRefresh: true })
       .then(({ academicYears }) => {
         if (!active) return
         setAvailableAcademicYears(academicYears)
@@ -363,8 +363,8 @@ export default function MenuPlanning() {
   }
 
   const handleEditMenu = (menu) => {
-    navigate(ROUTER.SCHOOL_MENU_EDIT.replace(":id", menu.id), {
-      state: { menu },
+    navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), {
+      state: { menu, autoOpenEdit: true },
     })
   }
 

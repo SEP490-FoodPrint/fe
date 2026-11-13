@@ -16,6 +16,7 @@ import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlin
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined"
 import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
+import KitchenOutlinedIcon from "@mui/icons-material/KitchenOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
@@ -195,7 +196,7 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
-    label: "Đánh giá giao hàng",
+    label: "Kiểm tra nguyên liệu",
     icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.SCHOOL_NUTRITION_OFFICER],
   },
@@ -216,13 +217,13 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_MENU,
-    label: "Thực đơn tuần học đường",
+    label: "Thực đơn tuần",
     icon: <RestaurantMenuOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_BATCHES,
-    label: "Lô chế biến",
+    label: "Chế biến",
     icon: <SoupKitchenOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
@@ -234,13 +235,19 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_KITCHEN_SAMPLES,
-    label: "Mẫu lưu thực phẩm",
+    label: "Lưu mẫu thức ăn",
     icon: <ScienceOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {
+    key: ROUTER.SCHOOL_KITCHEN_SAMPLE_STORAGE,
+    label: "Tủ lưu mẫu",
+    icon: <KitchenOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
-    label: "Đánh giá nguyên liệu",
+    label: "Kiểm tra nguyên liệu",
     icon: <FactCheckOutlinedIcon />,
     badge: "1",
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],

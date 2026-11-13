@@ -157,10 +157,6 @@ export default function CreateSampleModal({
             </div>
             <div>
               <h2 className={styles.title}>Ghi nhận mẫu thức ăn lưu 24h</h2>
-              <p className={styles.subTitle}>
-                Kiểm thực 3 bước — Niêm phong và bảo quản mẫu lưu an toàn thực
-                phẩm
-              </p>
             </div>
           </div>
           <button
@@ -224,20 +220,6 @@ export default function CreateSampleModal({
             {/* Chi tiết lô được chọn */}
             {activeBatch && (
               <div className={styles.batchSummaryBox}>
-                {activeBatch.batchGroupCode && (
-                  <div className={styles.batchSummaryRow}>
-                    <span className={styles.summaryLabel}>Lô cha:</span>
-                    <span
-                      style={{
-                        fontFamily: "ui-monospace, monospace",
-                        fontWeight: 700,
-                        color: "#6d28d9",
-                      }}
-                    >
-                      {activeBatch.batchGroupCode}
-                    </span>
-                  </div>
-                )}
                 <div className={styles.batchSummaryRow}>
                   <span className={styles.summaryLabel}>Món ăn:</span>
                   <span className={styles.summaryValueBold}>
@@ -323,7 +305,7 @@ export default function CreateSampleModal({
               </div>
 
               {/* 2. Khối lượng mẫu */}
-              <div className={styles.formGroup}>
+              <div className={styles.formGroupFull}>
                 <label className={styles.fieldLabel} htmlFor="sample-qty">
                   Lượng mẫu lưu
                 </label>
@@ -349,28 +331,6 @@ export default function CreateSampleModal({
                     <option value="ml">mililit (ml)</option>
                   </select>
                 </div>
-                <span className={styles.fieldHint}>
-                  Quy chuẩn tối thiểu 100g hoặc 100ml
-                </span>
-              </div>
-
-              {/* 3. Vị trí lưu mẫu */}
-              <div className={styles.formGroup}>
-                <label className={styles.fieldLabel} htmlFor="sample-location">
-                  Vị trí tủ lưu mẫu
-                </label>
-                <input
-                  id="sample-location"
-                  type="text"
-                  placeholder="Ví dụ: Tủ A1 - Ngăn 02"
-                  className={styles.textInput}
-                  value={storageLocation}
-                  onChange={(e) => setStorageLocation(e.target.value)}
-                  disabled={submitting}
-                />
-                <span className={styles.fieldHint}>
-                  Tủ lưu chuyên dụng 2°C - 8°C
-                </span>
               </div>
             </div>
           </div>

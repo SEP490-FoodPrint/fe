@@ -52,14 +52,28 @@ function WeeklyDayCard({ day, schoolCode }) {
           <span className={styles.blockTitle}>Bữa trưa chính</span>
           {lunchDishes.length > 0 ? (
             <ul className={styles.dishList}>
-              {lunchDishes.map((dish, i) => (
-                <li key={i} className={styles.dishItem}>
-                  <span className={styles.bullet}>•</span>
-                  <span className={styles.dishText}>
-                    {typeof dish === "string" ? dish : dish.name}
-                  </span>
-                </li>
-              ))}
+              {lunchDishes.map((dish, i) => {
+                const dishName = typeof dish === "string" ? dish : dish.name
+                const sub =
+                  typeof dish === "object"
+                    ? dish.substituteDish ||
+                      dish.alternativeDish ||
+                      dish.substitute
+                    : null
+                return (
+                  <li key={i} className={styles.dishItem}>
+                    <span className={styles.bullet}>•</span>
+                    <div className={styles.dishTextCol}>
+                      <span className={styles.dishText}>{dishName}</span>
+                      {sub && (
+                        <span className={styles.substituteDishNote}>
+                          ({sub.name || sub})
+                        </span>
+                      )}
+                    </div>
+                  </li>
+                )
+              })}
             </ul>
           ) : (
             <p className={styles.snackDesc}>{NO_DATA_TEXT}</p>

@@ -27,6 +27,7 @@ export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
         <div key={item.id} className={styles.card}>
           <div className={styles.cardHeader}>
             <span className={styles.supplierName}>{item.supplierName}</span>
+            <small>{item.deliveryNo}</small>
             <DeliveryStatusBadge status={item.status} />
           </div>
 

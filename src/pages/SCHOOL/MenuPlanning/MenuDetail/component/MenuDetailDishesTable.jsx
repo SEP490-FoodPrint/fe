@@ -5,7 +5,7 @@ import styles from "./MenuDetailDishesTable.module.scss"
 import MenuService from "src/services/MenuService"
 import { getDishAllergyState } from "src/services/MenuService/adapter"
 
-export default function MenuDetailDishesTable({ dishes = [] }) {
+export default function MenuDetailDishesTable({ dishes = [], substituteDish = null }) {
   const ingredientKey = useMemo(() => [...new Set((Array.isArray(dishes) ? dishes : []).flatMap((dish) =>
     dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || [],
   ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(","), [dishes])
@@ -48,31 +48,25 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
     <div className={styles.tableCard}>
       <div className={styles.cardHeader}>
         <div className={styles.headerTitleGroup}>
-          <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant</span>
-          <div className={styles.titleWithBadge}>
-            <h2 className={styles.cardTitle}>Cơ cấu món ăn trong thực đơn</h2>
-            <span className={styles.dishCountBadge}>{dishes.length} món ăn</span>
-          </div>
+          <span className={`material-symbols-outlined ${styles.headerIcon}`}>restaurant_menu</span>
+          <h2 className={styles.cardTitle}>Danh sách món ăn</h2>
         </div>
       </div>
 
-      <div className={styles.allergyNotice} role="status" aria-live="polite">
-        <span>{currentCheck.status === "loading"
-          ? "Đang đối chiếu nguyên liệu với hồ sơ dị ứng của các lớp…"
-          : currentCheck.status === "error"
-            ? currentCheck.message || "Chưa tải được kết quả đối soát dị ứng."
-            : "Đối soát dựa trên nguyên liệu và hồ sơ dị ứng của các lớp hiện có."}</span>
-        {currentCheck.status === "error" && <Button size="small" onClick={() => setRetryAttempt(value => value + 1)}>Thử lại</Button>}
-      </div>
+      {currentCheck.status === "error" && (
+        <div className={styles.allergyNotice} role="status">
+          <span>{currentCheck.message || "Chưa tải được kết quả đối soát dị ứng."}</span>
+          <Button size="small" onClick={() => setRetryAttempt(value => value + 1)}>Thử lại</Button>
+        </div>
+      )}
 
       <div className={styles.tableResponsive}>
-        <table className={styles.table} aria-label="Cơ cấu món ăn và đối soát dị ứng">
+        <table className={styles.table} aria-label="Cơ cấu món ăn và định lượng nguyên liệu trên suất">
           <thead>
             <tr>
               <th scope="col" className={styles.thIndex}>STT</th>
               <th scope="col" className={styles.thDish}>Tên món ăn</th>
-              <th scope="col" className={styles.thQty}>Định lượng / Suất</th>
-              <th scope="col" className={styles.thIngredients}>Thành phần chính & Nhà cung cấp liên kết</th>
+              <th scope="col" className={styles.thIngredients}>Định lượng nguyên liệu / suất</th>
               <th scope="col" className={styles.thAllergy}>Đối soát dị ứng</th>
             </tr>
           </thead>
@@ -83,41 +77,54 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
                 : allergy.status === "clear" ? ClipboardCheck
                   : allergy.status === "loading" ? LoaderCircle : CircleHelp
 
+              const ingredientsList = dish.ingredientDetails && dish.ingredientDetails.length > 0
+                ? dish.ingredientDetails
+                : dish.ingredientStandards && dish.ingredientStandards.length > 0
+                  ? dish.ingredientStandards
+                  : (dish.ingredients || []).map((name) => ({ name }))
+
               return (
                 <tr key={idx} className={styles.tr}>
                   <td className={styles.tdIndex}>{idx + 1}</td>
 
                   {/* Tên món */}
                   <td className={styles.tdDish}>
-                    <div className={styles.dishNameBlock}>
-                      <span className={styles.dishName}>{dish.name}</span>
-                      <span className={styles.dishCategory}>
-                        {idx === 0 ? "Món chính (Đạm & Khoáng)" : idx === 1 ? "Món mặn đậm đà" : idx === 2 ? "Món canh rau củ" : "Món tinh bột / Tráng miệng"}
-                      </span>
-                    </div>
+                    <span className={styles.dishName}>{dish.name}</span>
+                    {(() => {
+                      const dishKey = dish.dishId || dish.id
+                      const sub =
+                        dish.substituteDish ||
+                        (substituteDish?.substituteForDishId === dishKey
+                          ? substituteDish
+                          : null)
+                      if (!sub) return null
+                      return (
+                        <div className={styles.substituteDishNote}>
+                          ({sub.name})
+                        </div>
+                      )
+                    })()}
                   </td>
 
-                  {/* Định lượng */}
-                  <td className={styles.tdQty}>
-                    <div className={styles.qtyBadge}>
-                      <span className={styles.qtyNumber}>{dish.qty}</span>
-                      <span className={styles.qtyLabel}>/ suất</span>
-                    </div>
-                  </td>
-
-                  {/* Thành phần & NCC */}
+                  {/* Định lượng nguyên liệu / suất */}
                   <td className={styles.tdIngredients}>
-                    <div className={styles.ingredientList}>
-                      {dish.ingredients && dish.ingredients.length > 0 ? (
-                        dish.ingredients.map((ing, iIdx) => (
-                          <div key={iIdx} className={styles.ingredientTag}>
-                            <span className={`material-symbols-outlined ${styles.ingIcon}`}>eco</span>
-                            <span className={styles.ingText}>{ing}</span>
-                            <span className={styles.vietgapBadge}>VietGAP</span>
-                          </div>
-                        ))
+                    <div className={styles.ingredientItems}>
+                      {ingredientsList.length > 0 ? (
+                        ingredientsList.map((ing, iIdx) => {
+                          const hasQty = ing.quantityPerPortion != null && ing.quantityPerPortion !== ""
+                          return (
+                            <div key={iIdx} className={styles.ingredientPill}>
+                              <span className={styles.ingName}>{ing.name}</span>
+                              {hasQty && (
+                                <span className={styles.ingQtyBadge}>
+                                  {ing.quantityPerPortion} {ing.unit || "g"}
+                                </span>
+                              )}
+                            </div>
+                          )
+                        })
                       ) : (
-                        <span className="text-slate-400 text-xs italic">Chưa xác định thành phần</span>
+                        <span className="text-slate-400 text-xs italic">Chưa xác định nguyên liệu</span>
                       )}
                     </div>
                   </td>
@@ -125,10 +132,14 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
                   {/* Đối soát dị ứng */}
                   <td className={styles.tdAllergy}>
                     <div className={styles.allergyStatus}>
-                      <Chip className={`${styles.allergyChip} ${styles[allergy.status]}`}
+                      <Chip
+                        className={`${styles.allergyChip} ${styles[allergy.status]}`}
                         icon={<AllergyIcon aria-hidden="true" className={allergy.status === "loading" ? styles.loadingIcon : undefined} />}
-                        label={allergy.label} />
-                      {allergy.description && <span className={styles.allergyDescription}>{allergy.description}</span>}
+                        label={allergy.label}
+                      />
+                      {allergy.description && allergy.status === "conflict" && (
+                        <span className={styles.allergyDescription}>{allergy.description}</span>
+                      )}
                       {allergy.classes?.length > 0 && (
                         <span className={styles.affectedClasses}>Lớp: {allergy.classes.join(", ")}</span>
                       )}
@@ -143,4 +154,3 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
     </div>
   )
 }
-

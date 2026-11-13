@@ -120,9 +120,6 @@ export default function CookingBatchesTable({
             <table className={styles.table} aria-label="Danh sách lô chế biến">
               <thead>
                 <tr>
-                  <th scope="col" style={{ width: 130 }}>
-                    Mã lô
-                  </th>
                   <th scope="col">Món ăn &amp; Ca ăn</th>
                   <th scope="col" style={{ width: 100 }}>
                     Số suất
@@ -141,21 +138,6 @@ export default function CookingBatchesTable({
               <tbody>
                 {rows.map((row) => (
                   <tr key={row.id}>
-                    <td className={styles.tdCode}>
-                      <div className={styles.codeCellWrap}>
-                        <span className={styles.batchCodeText}>{row.code}</span>
-                        {row.batchGroupCode && (
-                          <Tooltip
-                            title={`Lô chế biến cha: ${row.batchGroupCode}`}
-                            arrow
-                          >
-                            <span className={styles.batchGroupBadge}>
-                              Lô: {row.batchGroupCode}
-                            </span>
-                          </Tooltip>
-                        )}
-                      </div>
-                    </td>
                     <td>
                       <div className={styles.dishWrap}>
                         <div className={styles.dishNameRow}>
@@ -269,22 +251,6 @@ export default function CookingBatchesTable({
                           </span>
                         )}
                       </div>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 6,
-                        }}
-                      >
-                        <span className={styles.mobileBatchCode}>
-                          {row.code}
-                        </span>
-                        {row.batchGroupCode && (
-                          <span className={styles.mobileBatchGroup}>
-                            Lô: {row.batchGroupCode}
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                   {statusBadge(row, true)}
@@ -307,13 +273,12 @@ export default function CookingBatchesTable({
                       <>
                         <span className={styles.metaDot}>•</span>
                         <span
-                          className={`${styles.mobileSampleBadge} ${
-                            row.allSamplesDone
+                          className={`${styles.mobileSampleBadge} ${row.allSamplesDone
                               ? styles.sampleDone
                               : row.hasSample
                                 ? styles.samplePartial
                                 : styles.samplePending
-                          }`}
+                            }`}
                         >
                           {row.sampleLabel}
                         </span>
@@ -329,48 +294,62 @@ export default function CookingBatchesTable({
       )}
 
       <div className={styles.paginationBar}>
-        <div className={styles.pageInfo}>
-          <span>
-            {loading
-              ? "Đang tải…"
-              : error
-                ? "Chưa tải được danh sách"
-                : `${totalItems.toLocaleString("vi-VN")} lô · ${totalItems ? (page - 1) * limit + 1 : 0}–${Math.min(page * limit, totalItems)}`}
+        <div className={styles.paginationCluster}>
+          <span className={styles.rangeText}>
+            {loading ? (
+              "Đang tải…"
+            ) : error ? (
+              "Chưa tải được dữ liệu"
+            ) : totalItems > limit ? (
+              <>
+                {(page - 1) * limit + 1}–{Math.min(page * limit, totalItems)} / <strong>{totalItems.toLocaleString("vi-VN")}</strong> lô
+              </>
+            ) : (
+              <>
+                Tổng số <strong>{totalItems.toLocaleString("vi-VN")}</strong> lô
+              </>
+            )}
           </span>
-          <div className={styles.pageSizeSelect}>
-            <span>Xem:</span>
-            <select
-              value={limit}
-              onChange={(event) => onPageSizeChange(Number(event.target.value))}
-              aria-label="Số dòng mỗi trang"
-              disabled={loading}
+
+          <span className={styles.metaDivider}>•</span>
+
+          <select
+            value={limit}
+            onChange={(event) => onPageSizeChange(Number(event.target.value))}
+            aria-label="Số dòng mỗi trang"
+            disabled={loading}
+            className={styles.selectInput}
+          >
+            <option value={10}>10 / trang</option>
+            <option value={20}>20 / trang</option>
+            <option value={50}>50 / trang</option>
+          </select>
+
+          <div className={styles.pageNav}>
+            <button
+              type="button"
+              className={styles.pageBtn}
+              disabled={loading || Boolean(error) || page <= 1}
+              onClick={() => onPageChange(page - 1)}
+              aria-label="Trang trước"
+              title="Trang trước"
             >
-              <option value={10}>10 / trang</option>
-              <option value={20}>20 / trang</option>
-              <option value={50}>50 / trang</option>
-            </select>
+              <ChevronLeft size={15} />
+            </button>
+            <span className={styles.pageText}>
+              <strong>{page}</strong> / {totalPages || 1}
+            </span>
+            <button
+              type="button"
+              className={styles.pageBtn}
+              disabled={loading || Boolean(error) || page >= totalPages}
+              onClick={() => onPageChange(page + 1)}
+              aria-label="Trang tiếp"
+              title="Trang tiếp theo"
+            >
+              <ChevronRight size={15} />
+            </button>
           </div>
-        </div>
-        <div className={styles.pageNav}>
-          <IconButton
-            className={styles.pageBtn}
-            disabled={loading || Boolean(error) || page <= 1}
-            onClick={() => onPageChange(page - 1)}
-            aria-label="Trang trước"
-          >
-            <ChevronLeft size={18} />
-          </IconButton>
-          <span className={styles.pageText}>
-            Trang {page}/{totalPages}
-          </span>
-          <IconButton
-            className={styles.pageBtn}
-            disabled={loading || Boolean(error) || page >= totalPages}
-            onClick={() => onPageChange(page + 1)}
-            aria-label="Trang tiếp"
-          >
-            <ChevronRight size={18} />
-          </IconButton>
         </div>
       </div>
       <Dialog

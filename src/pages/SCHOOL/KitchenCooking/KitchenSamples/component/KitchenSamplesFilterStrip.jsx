@@ -10,10 +10,14 @@ export default function KitchenSamplesFilterStrip({
   onStatusChange,
   mealTypeFilter = "ALL",
   onMealTypeChange,
-  dateFilter = "",
-  onDateChange,
+  weekFilter = "ALL",
+  onWeekChange,
+  weeks = [],
   onResetFilters,
   hasActiveFilters = false,
+  readyCount = 0,
+  onDisposeAllReady,
+  disposing = false,
 }) {
   return (
     <div className={styles.filterCard}>
@@ -75,29 +79,47 @@ export default function KitchenSamplesFilterStrip({
           <ChevronDown size={14} className={styles.chevronIcon} />
         </div>
 
-        {/* Lọc Lịch (ngày tháng năm) */}
-        <div className={styles.datePickerWrapper}>
-          <Calendar size={14} className={styles.dateIcon} />
-          <input
-            type="date"
-            className={styles.dateInput}
-            value={dateFilter}
-            onChange={(e) => onDateChange?.(e.target.value)}
-            title="Chọn ngày tháng năm lưu mẫu"
-            aria-label="Chọn ngày lưu mẫu"
-          />
-          {dateFilter && (
-            <button
-              type="button"
-              className={styles.clearDateBtn}
-              onClick={() => onDateChange?.("")}
-              title="Xem tất cả các ngày"
-              aria-label="Xem tất cả các ngày"
-            >
-              <X size={13} />
-            </button>
-          )}
+        {/* Lọc Tuần học */}
+        <div className={styles.selectWrapper} style={{ minWidth: 200, maxWidth: 300 }}>
+          <Calendar size={14} className={styles.selectIcon} />
+          <select
+            className={styles.selectInput}
+            value={weekFilter}
+            onChange={(e) => onWeekChange?.(e.target.value)}
+            title="Lọc theo tuần học"
+          >
+            <option value="ALL">Tất cả các tuần</option>
+            <option value="CURRENT">Tuần hiện tại (Tuần này)</option>
+            {weeks.map((w) => (
+              <option key={w.weekIndex} value={w.weekIndex}>
+                {w.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={14} className={styles.chevronIcon} />
         </div>
+
+        {/* Nút Hủy tất cả cho những mẫu đã đủ 24h */}
+        <button
+          type="button"
+          className={`${styles.disposeAllBtn} ${readyCount > 0 ? styles.disposeAllActive : ""}`}
+          onClick={onDisposeAllReady}
+          title={
+            readyCount > 0
+              ? `Hủy tất cả ${readyCount} mẫu lưu đã đủ 24 giờ`
+              : "Không có mẫu lưu nào đủ 24h để hủy"
+          }
+          disabled={readyCount === 0 || disposing}
+        >
+          <X size={14} className={styles.disposeAllIcon} />
+          <span>
+            {disposing
+              ? "Đang hủy..."
+              : readyCount > 0
+                ? `Hủy tất cả (${readyCount})`
+                : "Hủy tất cả"}
+          </span>
+        </button>
 
         {/* Nút Xóa bộ lọc */}
         {hasActiveFilters && (
@@ -123,8 +145,15 @@ KitchenSamplesFilterStrip.propTypes = {
   onStatusChange: PropTypes.func.isRequired,
   mealTypeFilter: PropTypes.string,
   onMealTypeChange: PropTypes.func.isRequired,
-  dateFilter: PropTypes.string,
-  onDateChange: PropTypes.func.isRequired,
+  weekFilter: PropTypes.string,
+  onWeekChange: PropTypes.func.isRequired,
+  weeks: PropTypes.arrayOf(
+    PropTypes.shape({
+      weekIndex: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      isCurrentWeek: PropTypes.bool,
+    })
+  ),
   onResetFilters: PropTypes.func.isRequired,
   hasActiveFilters: PropTypes.bool,
 }

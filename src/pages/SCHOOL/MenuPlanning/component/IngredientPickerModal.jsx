@@ -21,7 +21,8 @@ export default function IngredientPickerModal({
   selectedIngredientIds = [],
   onToggleIngredient,
   dishContextName = "",
-  onlySafe = false
+  onlySafe = false,
+  providedIngredients,
 }) {
   const [selectedCategory, setSelectedCategory] = useState("ALL")
   const [selectedSupplierId, setSelectedSupplierId] = useState("ALL")
@@ -31,6 +32,12 @@ export default function IngredientPickerModal({
   const [loading, setLoading] = useState(false)
   useEffect(() => {
     if (!isOpen) return
+    if (providedIngredients) {
+      setIngredients(providedIngredients)
+      setCatalogError("")
+      setLoading(false)
+      return
+    }
     let active = true
     setLoading(true)
     setCatalogError("")
@@ -39,7 +46,7 @@ export default function IngredientPickerModal({
       .catch(error => { if (active) { setIngredients([]); setCatalogError(error.message) } })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
-  }, [isOpen])
+  }, [isOpen, providedIngredients])
   const INGREDIENT_CATEGORIES = useMemo(() => [...new Set(ALL_INGREDIENTS.map(item => item.category).filter(Boolean))], [ALL_INGREDIENTS])
   const LINKED_SUPPLIERS = useMemo(() => {
     const suppliers = new Map()

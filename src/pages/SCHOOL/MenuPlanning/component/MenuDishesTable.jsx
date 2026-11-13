@@ -102,6 +102,11 @@ export default function MenuDishesTable({
                               <span>Đổi</span>
                             </button>
                           </div>
+                          {(dish.substituteDish || dish.substitute) && (
+                            <div className={styles.substituteDishNote}>
+                              ({dish.substituteDish?.name || dish.substitute?.name || dish.substituteDish || dish.substitute})
+                            </div>
+                          )}
                           {dish.categoryLabel && (
                             <span className={styles.categoryPill}>{dish.categoryLabel}</span>
                           )}

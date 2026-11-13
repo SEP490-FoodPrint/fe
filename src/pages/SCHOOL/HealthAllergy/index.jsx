@@ -1,9 +1,8 @@
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
 import {
-  MOCK_CLASS_ALLERGIES,
-  MOCK_ACADEMIC_YEARS,
+  getSchoolClassAllergies,
   computeAllergySummary,
-} from "./mockAllergyData"
+} from "src/services/AllergyService"
 import AllergyHeader from "./component/AllergyHeader"
 import AllergyKPICards from "./component/AllergyKPICards"
 import AllergyFilterStrip from "./component/AllergyFilterStrip"
@@ -15,7 +14,20 @@ import styles from "./index.module.scss"
 
 export default function HealthAllergyPage() {
   // Master data
-  const [classList] = useState(MOCK_CLASS_ALLERGIES)
+  const [classList,setClassList] = useState([])
+  const [loading,setLoading] = useState(true)
+  const [error,setError] = useState("")
+  const [revision,setRevision] = useState(0)
+  useEffect(()=>{
+    const controller=new AbortController()
+    setLoading(true)
+    setError("")
+    getSchoolClassAllergies({signal:controller.signal}).then(rows=>{if(!controller.signal.aborted)setClassList(rows)})
+      .catch(e=>{if(!controller.signal.aborted)setError(e.message)})
+      .finally(()=>{if(!controller.signal.aborted)setLoading(false)})
+    return ()=>controller.abort()
+  },[revision])
+  const academicYearOptions=useMemo(()=>[{value:"ALL",label:"Tất cả năm học"},...[...new Set(classList.map(row=>row.academicYear).filter(Boolean))].sort().reverse().map(year=>({value:year,label:`Năm học ${year}`}))],[classList])
 
   // Điều hướng 2 màn hình: null = SCREEN 01 (Danh sách), object = SCREEN 02 (Chi tiết lớp)
   const [selectedClass, setSelectedClass] = useState(null)
@@ -79,7 +91,7 @@ export default function HealthAllergyPage() {
       <AllergyHeader />
 
       {/* B. Summary: 2 chỉ số nhỏ gọn */}
-      <AllergyKPICards summary={summary} />
+      {!loading && !error && <AllergyKPICards summary={summary} />}
 
       {/* C. Search và Filter */}
       <AllergyFilterStrip
@@ -87,13 +99,13 @@ export default function HealthAllergyPage() {
         onSearchChange={setSearchQuery}
         academicYear={academicYear}
         onAcademicYearChange={setAcademicYear}
-        academicYearOptions={MOCK_ACADEMIC_YEARS}
+        academicYearOptions={academicYearOptions}
         onResetFilters={handleResetFilters}
         isFiltered={isFiltered}
       />
 
       {/* D. Allergy List & E. Empty State */}
-      {filteredList.length === 0 ? (
+      {loading ? <p role="status">Đang tải dữ liệu dị ứng…</p> : error ? <div role="alert"><p>{error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div> : filteredList.length === 0 ? (
         <AllergyEmptyState
           isSearching={isFiltered}
           onResetFilters={handleResetFilters}

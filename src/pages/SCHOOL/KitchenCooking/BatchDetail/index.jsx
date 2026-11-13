@@ -1,17 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
-import { Alert, Button, Skeleton } from "@mui/material";
-import { ArrowLeft } from "lucide-react";
+import { Alert, Button } from "@mui/material";
+import {
+  ArrowLeft,
+  CheckCircle2,
+  CookingPot,
+  FlaskConical,
+  Trash2,
+  Check,
+} from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import notice from "src/components/Notice";
 import KitchenService from "src/services/KitchenService";
-import { adaptBatchDetail } from "src/services/KitchenService/adapter";
+import { adaptBatchDetail, canRecordBatchSample } from "src/services/KitchenService/adapter";
 import BatchDetailHeader from "./component/BatchDetailHeader";
-import BatchInfoCard from "./component/BatchInfoCard";
-import BatchIngredientsCard from "./component/BatchIngredientsCard";
-import BatchTimelineCard from "./component/BatchTimelineCard";
-import BatchActionsCard from "./component/BatchActionsCard";
+import BatchDishesCard from "./component/BatchDishesCard";
+import BatchAdditionalInfo from "./component/BatchAdditionalInfo";
 import ConfirmBatchModal from "./component/ConfirmBatchModal";
 import DeleteBatchModal from "./component/DeleteBatchModal";
 import RetainedSampleModal from "./component/RetainedSampleModal";
@@ -53,7 +58,10 @@ export default function KitchenBatchDetail() {
           setSampleData(sampleList.length > 0 ? sampleList[0] : null);
           adapted.retainedFoodSamples = sampleList;
           setBatchData({ ...adapted });
+          return { ...adapted };
         }
+        setSampleData(null);
+        return adapted;
       } catch (err) {
         if (!signal?.aborted) {
           setError(err.message || "Không thể tải thông tin lô chế biến.");
@@ -83,7 +91,7 @@ export default function KitchenBatchDetail() {
         isSuccess: true,
       });
       setIsConfirmOpen(false);
-      fetchBatch();
+      await fetchBatch();
     } catch (err) {
       notice({
         msg: err.message || "Không thể xác nhận nấu.",
@@ -94,7 +102,7 @@ export default function KitchenBatchDetail() {
     }
   };
 
-  // Xử lý ghi nhận nấu xong (Chuyển sang COMPLETED) - Chạy trực tiếp không mở popup
+  // Xử lý ghi nhận nấu xong (Chuyển sang COMPLETED)
   const handleCompleteBatch = async () => {
     setActionLoading(true);
     try {
@@ -103,7 +111,8 @@ export default function KitchenBatchDetail() {
         msg: "Ghi nhận nấu xong thành công!",
         isSuccess: true,
       });
-      fetchBatch();
+      const completed = await fetchBatch();
+      if (canRecordBatchSample(completed)) setIsSampleOpen(true);
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận nấu xong.",
@@ -146,7 +155,8 @@ export default function KitchenBatchDetail() {
         isSuccess: true,
       });
       setIsSampleOpen(false);
-      fetchBatch();
+      const refreshed = await fetchBatch();
+      if (canRecordBatchSample(refreshed)) setIsSampleOpen(true);
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận lưu mẫu thực phẩm.",
@@ -209,57 +219,105 @@ export default function KitchenBatchDetail() {
     );
   }
 
+  const isDraft = batchData.status === "DRAFT" || batchData.status === "UNCONFIRMED";
+  const isConfirmed = batchData.status === "CONFIRMED";
+  const isCompleted = batchData.status === "COMPLETED";
+  const totalDishes = batchData.dishes?.length || 1;
+  const sampledCount = batchData.retainedFoodSamples?.length || (sampleData ? 1 : 0);
+  const allSamplesDone = batchData.dishes?.length > 1
+    ? (batchData.retainedFoodSamples?.length || 0) >= batchData.dishes.length
+    : Boolean(sampleData);
+
   return (
     <div className={styles.batchDetailPage}>
-      {/* 1. Header Trang */}
-      <BatchDetailHeader batchData={batchData} />
+      <div className={styles.container}>
+        {/* 1. Header Trang & Thao tác chính */}
+        <BatchDetailHeader
+          batchData={batchData}
+          onOpenConfirmModal={() => setIsConfirmOpen(true)}
+          onOpenDeleteModal={() => setIsDeleteOpen(true)}
+          onCompleteBatch={handleCompleteBatch}
+          actionLoading={actionLoading}
+          onOpenSampleModal={() => setIsSampleOpen(true)}
+          hasSample={Boolean(sampleData)}
+          allSamplesDone={allSamplesDone}
+          sampledCount={sampledCount}
+          totalDishes={totalDishes}
+        />
 
-      {/* 2. Main Content Grid (8 Cols Left - 4 Cols Right trên Desktop, Stack trên Mobile) */}
-      <div className={styles.contentGrid}>
-        {/* CỘT TRÁI: Thông tin trọng tâm (Món ăn, số suất) & Nguyên liệu */}
-        <div className={styles.leftCol}>
-          {/* Thẻ 1: Thông tin lô chế biến (Món ăn, số suất, chế độ nấu) */}
-          <BatchInfoCard batchData={batchData} />
+        {/* 2. Danh sách món ăn thuộc lô chế biến (sổ xuống xem nguyên liệu chính & gia vị) */}
+        <BatchDishesCard batchData={batchData} />
 
-          {/* Thẻ 2: Nguyên liệu sử dụng */}
-          <BatchIngredientsCard ingredients={batchData.ingredients} />
-        </div>
+        {/* 3. Thông tin bổ sung tinh gọn */}
+        <BatchAdditionalInfo batchData={batchData} />
+      </div>
 
-        {/* CỘT PHẢI: Tiến trình & Thao tác nghiệp vụ */}
-        <div className={styles.rightCol}>
-          {/* Thẻ 1: Tiến trình chế biến (3 bước gọn) */}
-          <BatchTimelineCard
-            status={batchData.status}
-            batchCode={batchData.code}
-          />
+      {/* 4. Thanh thao tác nhanh cố định trên Mobile (< 768px) */}
+      <div className={styles.mobileStickyBar}>
+        <div className={styles.mobileBarInner}>
+          {isDraft && (
+            <>
+              <button
+                type="button"
+                className={styles.mobilePrimaryBtn}
+                onClick={() => setIsConfirmOpen(true)}
+                disabled={actionLoading}
+              >
+                <CheckCircle2 size={18} />
+                <span>Xác nhận nấu</span>
+              </button>
 
-          {/* Thẻ 2: Thao tác nghiệp vụ (Nút bấm to rõ) */}
-          <BatchActionsCard
-            batchId={batchData.id}
-            status={batchData.status}
-            batchCode={batchData.code}
-            dishName={batchData.dishName}
-            hasSample={Boolean(sampleData)}
-            allSamplesDone={
-              batchData.dishes?.length > 1
-                ? (batchData.retainedFoodSamples?.length || 0) >=
-                  batchData.dishes.length
-                : Boolean(sampleData)
-            }
-            sampledCount={
-              batchData.retainedFoodSamples?.length || (sampleData ? 1 : 0)
-            }
-            totalDishes={batchData.dishes?.length || 1}
-            onOpenConfirmModal={() => setIsConfirmOpen(true)}
-            onOpenDeleteModal={() => setIsDeleteOpen(true)}
-            onCompleteBatch={handleCompleteBatch}
-            actionLoading={actionLoading}
-            onOpenSampleModal={() => setIsSampleOpen(true)}
-          />
+              <button
+                type="button"
+                className={styles.mobileDeleteBtn}
+                onClick={() => setIsDeleteOpen(true)}
+                disabled={actionLoading}
+                title="Xóa lô"
+              >
+                <Trash2 size={18} />
+              </button>
+            </>
+          )}
+
+          {isConfirmed && (
+            <button
+              type="button"
+              className={styles.mobilePrimaryBtn}
+              onClick={handleCompleteBatch}
+              disabled={actionLoading}
+            >
+              <CookingPot size={18} />
+              <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
+            </button>
+          )}
+
+          {isCompleted && (
+            <>
+              {allSamplesDone ? (
+                <div className={styles.mobileSampleDone}>
+                  <Check size={18} />
+                  <span>Đã lưu mẫu thực phẩm (24h)</span>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className={styles.mobilePrimaryBtn}
+                  onClick={() => setIsSampleOpen(true)}
+                  disabled={actionLoading}
+                >
+                  <FlaskConical size={18} />
+                  <span>
+                    Ghi nhận mẫu lưu 24h
+                    {totalDishes > 1 ? ` (${sampledCount}/${totalDishes})` : ""}
+                  </span>
+                </button>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      {/* 3. Modals */}
+      {/* 5. Modals */}
       <ConfirmBatchModal
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}

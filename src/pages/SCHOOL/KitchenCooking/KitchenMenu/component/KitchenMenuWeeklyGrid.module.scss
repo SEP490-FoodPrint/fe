@@ -96,21 +96,28 @@
       color: var(--color-primary, #0a8066);
     }
   }
+
+  &.mobileDayPillHoliday {
+    background-color: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #475569 !important;
+  }
 }
 
-/* 2. Days Grid (5 cột rộng rãi, khoảng cách 16px thoáng mắt không bị dính sát) */
+/* 2. Days Grid (5 cột dãn đều 100%, khoảng cách 12px thoáng mắt giống Dinh dưỡng) */
 .daysGridWrapper {
   width: 100%;
   overflow-x: auto;
-  padding: 4px 4px 12px 4px;
-  margin: -4px -4px 0 -4px;
+  box-sizing: border-box;
 }
 
 .daysGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(215px, 1fr));
-  gap: 16px; /* Khoảng cách 16px giữa 5 cột ngày */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
   align-items: stretch;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dayColItem {

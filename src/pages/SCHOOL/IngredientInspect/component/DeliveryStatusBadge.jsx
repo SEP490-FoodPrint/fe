@@ -1,6 +1,6 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { DELIVERY_STATUS_CONFIG } from "../mockDeliveryData"
+import { DELIVERY_STATUS_CONFIG } from "src/services/DeliveryInspectionService"
 import styles from "./DeliveryStatusBadge.module.scss"
 
 export default function DeliveryStatusBadge({ status }) {

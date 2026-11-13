@@ -12,27 +12,59 @@ import AllocationDetails from "./component/AllocationDetails";
 import detailsStyles from "./component/AllocationDetails.module.scss";
 import "./style.scss";
 
-function getView(data, draft) {
-  if (!data) return { batches: [], demands: [] };
-  const demands = data.demands.map((demand) => ({ ...demand, total: demand.totalPortions, remaining: demand.totalPortions }));
+function getView(data, draft = {}) {
+  if (!data || !Array.isArray(data.demands) || !Array.isArray(data.batches)) {
+    return { batches: [], demands: [] };
+  }
+  const demands = data.demands.map((demand) => ({
+    ...demand,
+    total: demand.totalPortions ?? 0,
+    remaining: demand.totalPortions ?? 0,
+  }));
   const demandById = new Map(demands.map((demand) => [demand.id, demand]));
   const batches = data.batches.map((batch, index) => {
-    const entries = (draft[batch.id] ?? batch.entries).map((entry) => {
+    const rawEntries = draft[batch.id] ?? batch.entries ?? [];
+    const entries = rawEntries.map((entry) => {
       const demand = demandById.get(entry.dailyMealPortionId);
-      demand.remaining -= entry.allocatedPortions;
-      return { ...entry, id: demand.id, name: demand.name, total: demand.total, portions: entry.allocatedPortions, demand };
+      if (!demand) {
+        return {
+          ...entry,
+          portions: entry.allocatedPortions ?? 0,
+        };
+      }
+      demand.remaining -= entry.allocatedPortions ?? 0;
+      return {
+        ...entry,
+        id: demand.id,
+        name: demand.name,
+        total: demand.total,
+        portions: entry.allocatedPortions ?? 0,
+        demand,
+      };
     });
-    const lockedCount = entries.filter((entry) => entry.locked)
-      .reduce((sum, entry) => sum + entry.portions, 0);
+    const lockedCount = entries
+      .filter((entry) => entry.locked)
+      .reduce((sum, entry) => sum + (entry.portions ?? 0), 0);
     const total = batch.plannedPortions ?? 0;
     return {
-      ...batch, name: `Lô ${index + 1} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}`,
-      total, entries, editableCapacity: total - lockedCount,
-      remaining: total - entries.reduce((sum, entry) => sum + entry.portions, 0),
+      ...batch,
+      name:
+        batch.name ||
+        `Lô ${index + 1} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}`,
+      total,
+      entries,
+      editableCapacity: total - lockedCount,
+      remaining:
+        total - entries.reduce((sum, entry) => sum + (entry.portions ?? 0), 0),
     };
   });
-  for (const batch of batches)
-    for (const entry of batch.entries) entry.remaining = entry.demand.remaining;
+  for (const batch of batches) {
+    for (const entry of batch.entries) {
+      if (entry.demand) {
+        entry.remaining = entry.demand.remaining;
+      }
+    }
+  }
   return { batches, demands };
 }
 
@@ -140,7 +172,7 @@ export default function KitchenMealAllocation() {
         <div className="kitchen-meal-allocation__title">
           <span className="kitchen-meal-allocation__icon"><Archive size={17} aria-hidden="true" /></span>
           <h1 id="meal-allocation-heading">
-            Phân bổ suất ăn{data ? ` ngày ${data.date.split("-").reverse().join("/")}` : ""}
+            Phân bổ suất ăn{data?.date ? ` ngày ${data.date.split("-").reverse().join("/")}` : ""}
           </h1>
         </div>
         {activeTab === "details" && data?.distribution && (
@@ -148,7 +180,7 @@ export default function KitchenMealAllocation() {
             <span className="kitchen-meal-allocation__icon"><ClipboardCheck size={17} aria-hidden="true" /></span>
             <div>
               <span>Tổng nhu cầu trong ngày</span>
-              <strong>{data.distribution.demands.reduce((sum, demand) => sum + demand.requiredPortions, 0)} suất</strong>
+              <strong>{(data.distribution.demands || []).reduce((sum, demand) => sum + (demand.requiredPortions || 0), 0)} suất</strong>
             </div>
           </div>
         )}
@@ -196,13 +228,13 @@ export default function KitchenMealAllocation() {
               key={batch.id}
               batch={batch}
               expanded={openBatchIds.includes(batch.id)}
-              canAddClasses={batch.entries.some((entry) => !entry.locked) ||
+              canAddClasses={(batch.entries || []).some((entry) => !entry.locked) ||
                 (batch.remaining > 0 && view.demands.some((demand) => !demand.locked &&
                   demand.mealType === batch.mealType && demand.remaining > 0))}
               onToggle={() => setOpenBatchIds((current) => current.includes(batch.id)
                 ? current.filter((id) => id !== batch.id) : [...current, batch.id])}
               onAddClasses={() => setSelectedId(batch.id)}
-              onRemoveClass={(id) => updateBatch(batch.id, batch.entries.filter((entry) => entry.locked || entry.id !== id))}
+              onRemoveClass={(id) => updateBatch(batch.id, (batch.entries || []).filter((entry) => entry.locked || entry.id !== id))}
             />
           ))}
         </div>

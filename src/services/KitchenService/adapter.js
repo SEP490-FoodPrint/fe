@@ -3,6 +3,28 @@ export const COOKING_MODES = {
   SEPARATE_BY_LOT: "Nấu riêng theo lô",
 };
 
+export function getDishBatchState(batches, dishId, mealType, menuDayId) {
+  const matches = (batches || []).filter(batch =>
+    batch.mealType === mealType &&
+    (!menuDayId || batch.menuDayId === menuDayId) &&
+    (Array.isArray(batch.dishes) && batch.dishes.length
+      ? batch.dishes.some(dish => dish.dishId === dishId)
+      : batch.dishId === dishId),
+  );
+  return {
+    isBatchCreated: matches.length > 0,
+    batchCode: matches.map(batch => batch.batchCode).join(", "),
+    batchId: matches[0]?.id || "",
+  };
+}
+
+export function canRecordBatchSample(batch) {
+  if (batch?.status !== "COMPLETED") return false;
+  const dishes = batch.dishes?.length ? batch.dishes : batch.dishId ? [{dishId:batch.dishId}] : [];
+  const sampled = new Set((batch.retainedFoodSamples || []).map(s => s.dishId));
+  return dishes.some(dish => !sampled.has(dish.dishId));
+}
+
 export const isUuid = (str) =>
   typeof str === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -95,12 +117,33 @@ export function adaptCookingBatch(batch) {
   const batchGroupCode = batch.BatchGroup?.batchCode || "";
 
   const rawDishes = Array.isArray(batch.dishes) ? batch.dishes : [];
-  const dishes = rawDishes.map((d) => ({
-    dishId: d.dishId || d.id,
-    name: d.name || d.Dish?.name || "Món ăn",
-    plannedPortions: d.plannedPortions ?? batch.plannedPortions,
-    cookingBatchLots: d.cookingBatchLots || [],
-  }));
+  const dishes = rawDishes.map((d) => {
+    const dishObj = d.Dish || {};
+    const entries = dishObj.dishIngredientEntries || d.dishIngredientEntries || dishObj.lines || d.lines || [];
+    const mainIngredients = entries
+      .filter((e) => e.ingredientRole === "MAIN")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Nguyên liệu chính",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.quantityPerPortion != null ? String(e.quantityPerPortion) : null),
+        unit: e.unit || "g",
+      }));
+    const seasonings = entries
+      .filter((e) => e.ingredientRole === "SEASONING")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Gia vị",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.portionQty != null ? String(e.portionQty) : null),
+        unit: e.unit || "g",
+      }));
+
+    return {
+      dishId: d.dishId || d.id,
+      name: d.name || dishObj.name || "Món ăn",
+      plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+      cookingBatchLots: d.cookingBatchLots || [],
+      mainIngredients,
+      seasonings,
+    };
+  });
 
   let dishName = batch.Dish?.name || "";
   if (dishes.length > 0) {
@@ -214,12 +257,33 @@ export function adaptBatchDetail(batch) {
   const status = batch.status === "DRAFT" ? "UNCONFIRMED" : batch.status;
 
   const rawDishes = Array.isArray(batch.dishes) ? batch.dishes : [];
-  const dishes = rawDishes.map((d) => ({
-    dishId: d.dishId || d.id,
-    name: d.name || d.Dish?.name || "Món ăn",
-    plannedPortions: d.plannedPortions ?? batch.plannedPortions,
-    cookingBatchLots: d.cookingBatchLots || [],
-  }));
+  const dishes = rawDishes.map((d) => {
+    const dishObj = d.Dish || {};
+    const entries = dishObj.dishIngredientEntries || d.dishIngredientEntries || dishObj.lines || d.lines || [];
+    const mainIngredients = entries
+      .filter((e) => e.ingredientRole === "MAIN")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Nguyên liệu chính",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.quantityPerPortion != null ? String(e.quantityPerPortion) : null),
+        unit: e.unit || "g",
+      }));
+    const seasonings = entries
+      .filter((e) => e.ingredientRole === "SEASONING")
+      .map((e) => ({
+        name: e.IngredientEntry?.Ingredient?.name || e.Ingredient?.name || e.name || "Gia vị",
+        requiredQuantity: e.requiredQuantity != null ? String(e.requiredQuantity) : (e.portionQty != null ? String(e.portionQty) : null),
+        unit: e.unit || "g",
+      }));
+
+    return {
+      dishId: d.dishId || d.id,
+      name: d.name || dishObj.name || "Món ăn",
+      plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+      cookingBatchLots: d.cookingBatchLots || [],
+      mainIngredients,
+      seasonings,
+    };
+  });
 
   let dishName = batch.Dish?.name || "";
   if (dishes.length > 0) {
@@ -246,22 +310,40 @@ export function adaptBatchDetail(batch) {
           })),
         );
 
-  const ingredients = combinedLots.map((lot, idx) => ({
-    id: lot.ingredientLotId || idx + 1,
-    dishId: lot.dishId,
-    dishName: lot.dishName,
-    name: lot.ingredientName || lot.name || `Lô nguyên liệu #${idx + 1}`,
-    lotCode:
+  const ingredients = combinedLots.map((lot, idx) => {
+    const rawExpiry =
+      lot.IngredientLot?.expiryDate ||
+      lot.expirationDate ||
+      lot.expiryDate;
+    const expiryDate = rawExpiry ? formatDateTime(rawExpiry) || String(rawExpiry) : "—";
+
+    const ingredientName =
+      lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name ||
+      lot.IngredientLot?.IngredientEntry?.Ingredient?.name ||
+      lot.Ingredient?.name ||
+      lot.ingredientName ||
+      lot.name ||
+      "—";
+
+    const lotCode =
+      lot.IngredientLot?.lotCode ||
       lot.lotCode ||
-      (lot.ingredientLotId
-        ? `LOT-${lot.ingredientLotId.slice(0, 8).toUpperCase()}`
-        : `LOT-00${idx + 1}`),
-    quantity: lot.quantityUsed || "—",
-    unit: lot.unit || "kg",
-    expiryDate: lot.expirationDate || lot.expiryDate || "Đã kiểm thực",
-    expiryNote: "Đạt chuẩn an toàn",
-    noteType: "default",
-  }));
+      "—";
+
+    const qty = lot.quantityUsed != null ? String(lot.quantityUsed) : (lot.quantity != null ? String(lot.quantity) : "—");
+    const unit = lot.unit || "kg";
+
+    return {
+      id: lot.ingredientLotId || idx + 1,
+      dishId: lot.dishId,
+      dishName: lot.dishName,
+      name: ingredientName,
+      lotCode,
+      quantity: qty,
+      unit,
+      expiryDate,
+    };
+  });
 
   return {
     id: batch.id,

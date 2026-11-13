@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Eye, Trash2, Edit3, ArrowUpRight, Clock, Check, AlertCircle } from "lucide-react"
-import { get24hRetainedStatus, formatSampleDateTime } from "../mockSamplesData"
+import { Eye, X, Edit3, ArrowUpRight, Clock, Check, AlertCircle } from "lucide-react"
+import { get24hRetainedStatus, formatSampleDateTime } from "../retainedStatusHelper"
 import styles from "./KitchenSamplesMobileCards.module.scss"
 
 export default function KitchenSamplesMobileCards({
@@ -20,20 +20,18 @@ export default function KitchenSamplesMobileCards({
         return (
           <div
             key={row.id}
-            className={`${styles.card} ${
-              info24h.isReadyToDispose ? styles.cardWarning : ""
-            }`}
+            className={`${styles.card} ${info24h.isReadyToDispose ? styles.cardWarning : ""
+              }`}
             onClick={() => onViewDetail(row)}
           >
             {/* Hàng 1: Bữa ăn + Badge trạng thái */}
             <div className={styles.topRow}>
               <div>
                 <span
-                  className={`${styles.mealBadge} ${
-                    row.mealType === "AFTERNOON"
+                  className={`${styles.mealBadge} ${row.mealType === "AFTERNOON"
                       ? styles.mealAfternoon
                       : styles.mealLunch
-                  }`}
+                    }`}
                 >
                   {row.mealLabel || (row.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")}
                 </span>
@@ -100,13 +98,12 @@ export default function KitchenSamplesMobileCards({
                 <div className={styles.countdownTitleRow}>
                   <span className={styles.countdownTitle}>Thời gian lưu 24h:</span>
                   <span
-                    className={`${styles.countdownText} ${
-                      info24h.isReadyToDispose
+                    className={`${styles.countdownText} ${info24h.isReadyToDispose
                         ? styles.countdownReady
                         : info24h.isDisposed
-                        ? styles.countdownDisposed
-                        : styles.countdownActive
-                    }`}
+                          ? styles.countdownDisposed
+                          : styles.countdownActive
+                      }`}
                   >
                     {info24h.timeText}
                   </span>
@@ -118,13 +115,12 @@ export default function KitchenSamplesMobileCards({
 
               <div className={styles.progressBarBg}>
                 <div
-                  className={`${styles.progressBarFill} ${
-                    info24h.isReadyToDispose
+                  className={`${styles.progressBarFill} ${info24h.isReadyToDispose
                       ? styles.fillWarning
                       : info24h.isDisposed
-                      ? styles.fillMuted
-                      : styles.fillPrimary
-                  }`}
+                        ? styles.fillMuted
+                        : styles.fillPrimary
+                    }`}
                   style={{ width: `${info24h.percent}%` }}
                 />
               </div>
@@ -160,13 +156,12 @@ export default function KitchenSamplesMobileCards({
               {row.status === "STORED" && (
                 <button
                   type="button"
-                  className={`${styles.actionDisposeBtn} ${
-                    info24h.isReadyToDispose ? styles.actionDisposeBtnAlert : ""
-                  }`}
+                  className={`${styles.actionDisposeBtn} ${info24h.isReadyToDispose ? styles.actionDisposeBtnAlert : ""
+                    }`}
                   onClick={() => onOpenDisposeModal(row)}
                   title="Tiêu hủy mẫu lưu"
                 >
-                  <Trash2 size={15} />
+                  <X size={15} />
                   <span>Tiêu hủy</span>
                 </button>
               )}

@@ -8,77 +8,7 @@ import {
 import styles from "./BasicInfoSeparateSection.module.scss";
 
 export const INITIAL_SEPARATE_DISHES = [];
-const OBSOLETE_DISHES = [
-  // --- BỮA TRƯA ---
-  {
-    id: "d0000001-0000-0000-0000-000000000001",
-    legacyId: "dish-1",
-    menuDayId: "m0000001-0000-0000-0000-000000000001",
-    mealType: "lunch",
-    mealName: "Bữa trưa",
-    name: "Thịt heo kho nước dừa",
-    portionStandard: 1250,
-    isBatchCreated: false,
-    batchCode: "LÔ-THK-01 & 02",
-  },
-  {
-    id: "d0000001-0000-0000-0000-000000000002",
-    legacyId: "dish-2",
-    menuDayId: "m0000001-0000-0000-0000-000000000001",
-    mealType: "lunch",
-    mealName: "Bữa trưa",
-    name: "Canh sườn hầm củ quả thập cẩm",
-    portionStandard: 1250,
-    isBatchCreated: false,
-    batchCode: "LÔ-CSH-01",
-  },
-  {
-    id: "d0000001-0000-0000-0000-000000000003",
-    legacyId: "dish-3",
-    menuDayId: "m0000001-0000-0000-0000-000000000001",
-    mealType: "lunch",
-    mealName: "Bữa trưa",
-    name: "Cơm gạo ST25 dẻo thơm",
-    portionStandard: 1250,
-    isBatchCreated: true,
-    batchCode: "LÔ-COM-01",
-  },
-  {
-    id: "d0000001-0000-0000-0000-000000000004",
-    legacyId: "dish-4",
-    menuDayId: "m0000001-0000-0000-0000-000000000001",
-    mealType: "lunch",
-    mealName: "Bữa trưa",
-    name: "Thanh long ruột đỏ Bình Thuận",
-    portionStandard: 1250,
-    isBatchCreated: false,
-    batchCode: "LÔ-TL-01",
-  },
-
-  // --- BỮA PHỤ CHIỀU ---
-  {
-    id: "d0000001-0000-0000-0000-000000000005",
-    legacyId: "dish-5",
-    menuDayId: "m0000001-0000-0000-0000-000000000001",
-    mealType: "afternoon",
-    mealName: "Bữa phụ chiều",
-    name: "Bánh bao hấp nhân thịt xá xíu",
-    portionStandard: 1250,
-    isBatchCreated: false,
-    batchCode: "LÔ-BB-01",
-  },
-  {
-    id: "d0000001-0000-0000-0000-000000000006",
-    legacyId: "dish-6",
-    menuDayId: "m0000001-0000-0000-0000-000000000001",
-    mealType: "afternoon",
-    mealName: "Bữa phụ chiều",
-    name: "Sữa chua tiệt trùng Ba Vì",
-    portionStandard: 1250,
-    isBatchCreated: true,
-    batchCode: "LÔ-SC-01",
-  },
-];
+const OBSOLETE_DISHES = [];
 
 export const SEPARATE_DISH_OPTIONS = [];
 

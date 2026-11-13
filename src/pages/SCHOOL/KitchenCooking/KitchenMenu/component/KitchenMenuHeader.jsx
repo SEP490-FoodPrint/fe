@@ -11,13 +11,17 @@ import {
   RotateCcw,
   Check,
   ArrowRight,
+  Utensils,
 } from "lucide-react"
 import { Button } from "@mui/material"
 import ROUTER from "src/router/ROUTER"
 import styles from "./KitchenMenuHeader.module.scss"
 
 export default function KitchenMenuHeader({
-  academicYear = "2026-2027",
+  menuTitle = "Thực đơn tuần",
+  targetScope = "Toàn trường (Khối 1 – 5)",
+  academicYear = "",
+  approved = false,
   academicYearOptions = [],
   onAcademicYearChange,
   week,
@@ -29,7 +33,7 @@ export default function KitchenMenuHeader({
   isCurrentWeekSelected = false,
   isFirstWeek = false,
   isLastWeek = false,
-  totalDishes = 30,
+  totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
 }) {
@@ -37,36 +41,27 @@ export default function KitchenMenuHeader({
 
   return (
     <div className={styles.headerContainer}>
-      {/* HÀNG 1: Tiêu đề & Huy hiệu Đã duyệt BGH & Phím tắt Lô chế biến */}
+      {/* HÀNG 1: Tiêu đề động & Khối lớp & Huy hiệu Đã duyệt BGH & Phím tắt Lô chế biến */}
       <div className={styles.topRow}>
         <div className={styles.titleGroup}>
           <div className={styles.clocheIconWrap}>
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={styles.clocheIcon}
-            >
-              <path d="M18 11a6 6 0 0 0-12 0" />
-              <path d="M4 14h16" />
-              <path d="M12 4a1 1 0 0 0-1 1v1" />
-              <path d="M2 17h20" />
-            </svg>
+            <Utensils size={16} className={styles.clocheIcon} />
           </div>
 
           <span className={styles.verticalDivider} />
 
-          <h1 className={styles.heading}>Thực đơn tuần học đường</h1>
+          <h1 className={styles.heading}>{menuTitle || "Thực đơn tuần"}</h1>
 
-          <span className={styles.approvedBadge}>
+          {approved && <span className={styles.approvedBadge}>
             <Check size={12} className={styles.checkIcon} />
             <span>Đã duyệt BGH</span>
-          </span>
+          </span>}
+
+          {targetScope && (
+            <span className={styles.targetScopeBadge} title="Khối lớp áp dụng">
+              • {targetScope}
+            </span>
+          )}
         </div>
 
         {/* Nút Điều Hướng Sang Lô Chế Biến */}
@@ -210,6 +205,8 @@ export default function KitchenMenuHeader({
 }
 
 KitchenMenuHeader.propTypes = {
+  menuTitle: PropTypes.string,
+  targetScope: PropTypes.string,
   academicYear: PropTypes.string,
   academicYearOptions: PropTypes.array,
   onAcademicYearChange: PropTypes.func,
