@@ -1,5 +1,5 @@
 export const USER_URLS = {
-  schoolAccounts: (schoolId) => `/api/schools/${schoolId}/accounts`,
-  schoolAccountDetail: (schoolId, userId) => `/api/schools/${schoolId}/accounts/${userId}`,
-  schoolAccountStatus: (schoolId, userId) => `/api/schools/${schoolId}/accounts/${userId}/status`,
+  schoolAccounts: (schoolId) => `/schools/${schoolId}/accounts`,
+  schoolAccountDetail: (schoolId, userId) => `/schools/${schoolId}/accounts/${userId}`,
+  schoolAccountStatus: (schoolId, userId) => `/schools/${schoolId}/accounts/${userId}/status`,
 }
