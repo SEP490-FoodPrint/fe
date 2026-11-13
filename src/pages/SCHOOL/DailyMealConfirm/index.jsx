@@ -9,8 +9,6 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
-  MenuItem,
   Paper,
   Table,
   TableBody,
@@ -23,7 +21,6 @@ import {
 import dayjs from "dayjs"
 import {
   CalendarDays,
-  CalendarRange,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
@@ -59,7 +56,7 @@ const StatusChip = ({ status }) => (
   <Chip
     size="small"
     label={status ? statusLabel(status) : "Chưa khai báo"}
-    className={`daily-meal-page__status daily-meal-page__status--${statusTone(status)}`}
+    className={`daily-meal-status-chip daily-meal-status-chip--${statusTone(status)}`}
   />
 )
 
@@ -117,6 +114,7 @@ function DailyMealConfirm() {
   }
 
   const load = useCallback(async () => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return
     setLoading(true)
     setError("")
     try {
@@ -246,113 +244,101 @@ function DailyMealConfirm() {
 
   return (
     <div className="daily-meal-page">
-      <header className="daily-meal-page__header">
-        <h1>Chốt số suất ăn của lớp</h1>
-      </header>
+      {/* 1. HÀNG TIÊU ĐỀ & THANH ĐIỀU HƯỚNG ĐỒNG BỘ CHUẨN FOODPRINT */}
+      <div className="daily-meal-header">
+        <h1 className="daily-meal-header__title">Chốt số suất ăn của lớp</h1>
 
-      {/* ĐIỀU HƯỚNG TUẦN VÀ CHỌN THỨ TRONG TUẦN */}
-      <Paper variant="outlined" className="daily-meal-page__week-panel">
-        <div className="daily-meal-page__week-nav-bar">
-          <div className="daily-meal-page__week-nav-controls">
-            <IconButton
-              size="small"
+        <div className="daily-meal-header__controls">
+          {/* Cụm điều hướng tuần gộp chuẩn KitchenMenu: [<] Tuần W (DD/MM - DD/MM) [>] */}
+          <div className="daily-meal-week-box">
+            <button
+              type="button"
+              className="daily-meal-week-box__arrow"
               onClick={handlePrevWeek}
               title="Tuần trước"
               aria-label="Tuần trước"
-              className="daily-meal-page__week-nav-btn"
             >
-              <ChevronLeft size={18} />
-            </IconButton>
+              <ChevronLeft size={16} />
+            </button>
 
-            <div className="daily-meal-page__week-nav-info">
-              <CalendarRange size={18} className="daily-meal-page__week-icon" />
+            <div className="daily-meal-week-box__label">
+              <CalendarDays size={14} className="daily-meal-week-box__icon" />
               <span>{weekSchedule.weekRangeLabel}</span>
             </div>
 
-            <IconButton
-              size="small"
+            <button
+              type="button"
+              className="daily-meal-week-box__arrow"
               onClick={handleNextWeek}
               title="Tuần sau"
               aria-label="Tuần sau"
-              className="daily-meal-page__week-nav-btn"
             >
-              <ChevronRight size={18} />
-            </IconButton>
-
-            <Button
-              size="small"
-              variant={isCurrentWeekSelected ? "contained" : "outlined"}
-              color="primary"
-              startIcon={<RotateCcw size={13} />}
-              onClick={handleCurrentWeek}
-              className="daily-meal-page__current-week-btn"
-            >
-              Tuần này
-            </Button>
+              <ChevronRight size={16} />
+            </button>
           </div>
 
-          <div className="daily-meal-page__week-nav-filters">
-            <TextField
-              size="small"
-              type="date"
-              label="Chọn ngày"
-              value={date}
-              onChange={event => setDate(event.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-              className="daily-meal-page__date-input"
-            />
-            <TextField
-              select
-              size="small"
-              label="Ca ăn"
-              value={mealType}
-              onChange={event => setMealType(event.target.value)}
-              className="daily-meal-page__meal-select"
+          {/* Nút Tuần này */}
+          <button
+            type="button"
+            className={`daily-meal-current-week-btn ${isCurrentWeekSelected ? "daily-meal-current-week-btn--active" : ""}`}
+            onClick={handleCurrentWeek}
+            title="Nhảy nhanh về tuần hiện tại"
+          >
+            <RotateCcw size={13} />
+            <span>Tuần này</span>
+          </button>
+
+          {/* Bộ lọc ca ăn chuẩn Segmented Control */}
+          <div className="daily-meal-shift-segment" role="group" aria-label="Chọn ca ăn">
+            <button
+              type="button"
+              className={`daily-meal-shift-segment__btn ${mealType === "LUNCH" ? "daily-meal-shift-segment__btn--lunch-active" : ""}`}
+              onClick={() => setMealType("LUNCH")}
             >
-              <MenuItem value="LUNCH">Bữa trưa</MenuItem>
-              <MenuItem value="AFTERNOON">Bữa phụ</MenuItem>
-            </TextField>
+              Bữa trưa
+            </button>
+            <button
+              type="button"
+              className={`daily-meal-shift-segment__btn ${mealType === "AFTERNOON" ? "daily-meal-shift-segment__btn--afternoon-active" : ""}`}
+              onClick={() => setMealType("AFTERNOON")}
+            >
+              Bữa phụ
+            </button>
           </div>
         </div>
+      </div>
 
-        {/* 5 THẺ NGÀY TRONG TUẦN (T2 - T6) */}
-        <div className="daily-meal-page__day-strip">
-          {weekSchedule.schoolDays.map(day => {
-            const isSelected = day.dateISO === date
-            const isToday = day.dateISO === dayjs().format("YYYY-MM-DD")
-            const dayStatus = getDayMealStatus(day.dateISO)
+      {/* 2. DẢI 5 NGÀY HỌC TRONG TUẦN (THỨ HAI -> THỨ SÁU) CHUẨN GRID FOODPRINT */}
+      <div className="daily-meal-day-strip">
+        {weekSchedule.schoolDays.map(day => {
+          const isSelected = day.dateISO === date
+          const isToday = day.dateISO === dayjs().format("YYYY-MM-DD")
+          const dayStatus = getDayMealStatus(day.dateISO)
 
-            return (
-              <button
-                type="button"
-                key={day.dateISO}
-                className={`daily-meal-page__day-card ${isSelected ? "daily-meal-page__day-card--active" : ""}`}
-                onClick={() => setDate(day.dateISO)}
-              >
-                <div className="daily-meal-page__day-card-top">
-                  <span className="daily-meal-page__day-name">{day.dayIndexLabel}</span>
-                  {isToday && <span className="daily-meal-page__day-today-tag">Hôm nay</span>}
-                </div>
-                <div className="daily-meal-page__day-date">{day.dateVN.slice(0, 5)}</div>
-                <div className="daily-meal-page__day-status-pill-wrap">
-                  {dayStatus === "FINALIZED" && (
-                    <span className="daily-meal-page__status-dot daily-meal-page__status-dot--success" title="Đã chốt" />
-                  )}
-                  {dayStatus === "DRAFT" && (
-                    <span className="daily-meal-page__status-dot daily-meal-page__status-dot--warning" title="Bản nháp" />
-                  )}
-                  {!dayStatus && (
-                    <span className="daily-meal-page__status-dot daily-meal-page__status-dot--empty" title="Chưa khai báo" />
-                  )}
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </Paper>
+          return (
+            <button
+              type="button"
+              key={day.dateISO}
+              className={`daily-meal-day-pill ${isSelected ? "daily-meal-day-pill--active" : ""} ${isToday ? "daily-meal-day-pill--today" : ""}`}
+              onClick={() => setDate(day.dateISO)}
+            >
+              <div className="daily-meal-day-pill__top">
+                <span className="daily-meal-day-pill__name">{day.dayIndexLabel}</span>
+                {isToday && <span className="daily-meal-day-pill__today-dot" title="Hôm nay" />}
+              </div>
+              <span className="daily-meal-day-pill__date">{day.dateVN?.slice(0, 5)}</span>
+              <div className="daily-meal-day-pill__status-row">
+                {dayStatus === "FINALIZED" && <span className="status-dot status-dot--success" title="Đã chốt" />}
+                {dayStatus === "DRAFT" && <span className="status-dot status-dot--warning" title="Bản nháp" />}
+                {!dayStatus && <span className="status-dot status-dot--empty" title="Chưa khai báo" />}
+              </div>
+            </button>
+          )
+        })}
+      </div>
 
       {loading && (
-        <div className="daily-meal-page__loading" role="status" aria-live="polite">
+        <div className="daily-meal-loading" role="status" aria-live="polite">
           <FoodPrintLoading size="medium" />
         </div>
       )}
@@ -365,27 +351,19 @@ function DailyMealConfirm() {
 
       {!loading && context && (
         <>
-          {/* THÔNG TIN LỚP & TRẠNG THÁI CA ĂN GỌN GÀNG */}
-          <Paper variant="outlined" className="daily-meal-page__class-banner">
-            <div className="daily-meal-page__class-banner-left">
-              <strong>{context.class.name}</strong>
-              <span>Niên khóa {context.class.academicYear}</span>
-            </div>
-            <div className="daily-meal-page__class-banner-right">
-              <span className="daily-meal-page__class-banner-meal">
-                {mealLabel(mealType)} · {formatVNDate(date)}
-              </span>
+          {/* 3. CARD KHAI BÁO SUẤT ĂN */}
+          <Paper variant="outlined" className="daily-meal-card" aria-busy={saving}>
+            <div className="daily-meal-card__header">
+              <div className="daily-meal-card__info">
+                <ClipboardList size={18} className="daily-meal-card__icon" />
+                <div className="daily-meal-card__title-group">
+                  <h2>{context.class.name}</h2>
+                  <span className="daily-meal-card__subtitle">
+                    {mealLabel(mealType)} · {formatVNDate(date)}
+                  </span>
+                </div>
+              </div>
               <StatusChip status={submission?.status} />
-            </div>
-          </Paper>
-
-          {/* FORM NHẬP SUẤT ĂN */}
-          <Paper variant="outlined" className="daily-meal-page__form" aria-busy={saving}>
-            <div className="daily-meal-page__form-title">
-              <ClipboardList size={20} />
-              <h2>
-                Số suất {mealLabel(mealType).toLowerCase()} ({formatVNDate(date)})
-              </h2>
             </div>
 
             {finalized && (
@@ -394,75 +372,81 @@ function DailyMealConfirm() {
               </Alert>
             )}
 
-            <TextField
-              fullWidth
-              type="number"
-              label="Tổng số suất"
-              placeholder="Nhập tổng số suất ăn..."
-              value={totalPortions}
-              disabled={finalized || saving}
-              onChange={event => setTotalPortions(event.target.value)}
-              inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
-            />
+            <div className="daily-meal-card__body">
+              <TextField
+                fullWidth
+                size="small"
+                type="number"
+                label="Tổng số suất"
+                placeholder="Nhập tổng số suất ăn..."
+                value={totalPortions}
+                disabled={finalized || saving}
+                onChange={event => setTotalPortions(event.target.value)}
+                inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
+              />
 
-            <div className="daily-meal-page__allergies">
-              <h3>Suất cần tránh nguyên liệu</h3>
-              {!allergies.length && (
-                <Alert severity="info">Lớp chưa có thông tin dị ứng tổng hợp.</Alert>
-              )}
-              {allergies.map(item => (
-                <div className="daily-meal-page__allergy-row" key={item.ingredientEntryId}>
-                  <div>
-                    <strong>{item.IngredientEntry.Ingredient.name}</strong>
-                    <span>Tối đa {item.affectedCount} suất theo hồ sơ lớp</span>
+              <div className="daily-meal-card__allergies">
+                <h3>Suất cần tránh nguyên liệu</h3>
+                {!allergies.length && (
+                  <Alert severity="info">Lớp chưa có thông tin dị ứng tổng hợp.</Alert>
+                )}
+                {allergies.map(item => (
+                  <div className="daily-meal-allergy-row" key={item.ingredientEntryId}>
+                    <div>
+                      <strong>{item.IngredientEntry.Ingredient.name}</strong>
+                      <span>Tối đa {item.affectedCount} suất theo hồ sơ lớp</span>
+                    </div>
+                    <TextField
+                      size="small"
+                      type="number"
+                      label="Số suất"
+                      value={allergyCounts[item.ingredientEntryId] ?? ""}
+                      disabled={finalized || saving}
+                      onChange={event =>
+                        setAllergyCounts(current => ({
+                          ...current,
+                          [item.ingredientEntryId]: event.target.value,
+                        }))
+                      }
+                      inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric" }}
+                    />
                   </div>
-                  <TextField
-                    size="small"
-                    type="number"
-                    label="Số suất"
-                    value={allergyCounts[item.ingredientEntryId] ?? ""}
-                    disabled={finalized || saving}
-                    onChange={event =>
-                      setAllergyCounts(current => ({
-                        ...current,
-                        [item.ingredientEntryId]: event.target.value,
-                      }))
-                    }
-                    inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric" }}
-                  />
-                </div>
-              ))}
+                ))}
+              </div>
+
+              <TextField
+                fullWidth
+                multiline
+                size="small"
+                minRows={2}
+                label="Ghi chú (không bắt buộc)"
+                value={allergyNotes}
+                disabled={finalized || saving}
+                placeholder="Ghi chú cho bếp nếu có yêu cầu đặc biệt..."
+                onChange={event => setAllergyNotes(event.target.value)}
+                inputProps={{ maxLength: 1000 }}
+              />
             </div>
 
-            <TextField
-              fullWidth
-              multiline
-              minRows={2}
-              label="Ghi chú (không bắt buộc)"
-              value={allergyNotes}
-              disabled={finalized || saving}
-              placeholder="Ghi chú thêm cho bếp nếu có yêu cầu đặc biệt..."
-              onChange={event => setAllergyNotes(event.target.value)}
-              inputProps={{ maxLength: 1000 }}
-            />
-
             {!finalized && (
-              <div className="daily-meal-page__actions">
+              <div className="daily-meal-card__actions">
                 <Button
                   variant="outlined"
-                  startIcon={<Save size={18} />}
+                  size="small"
+                  startIcon={<Save size={16} />}
                   disabled={!valid || saving}
                   onClick={() => submit(false)}
-                  className="daily-meal-page__btn-action"
+                  className="daily-meal-btn"
                 >
                   Lưu nháp
                 </Button>
                 <Button
                   variant="contained"
-                  startIcon={<CheckCircle2 size={18} />}
+                  size="small"
+                  startIcon={<CheckCircle2 size={16} />}
                   disabled={!valid || saving}
                   onClick={() => setConfirmOpen(true)}
-                  className="daily-meal-page__btn-action"
+                  className="daily-meal-btn daily-meal-btn--primary"
                 >
                   {saving ? "Đang xử lý..." : "Chốt số suất"}
                 </Button>
@@ -470,15 +454,16 @@ function DailyMealConfirm() {
             )}
           </Paper>
 
-          {/* LỊCH SỬ KHAI BÁO THEO TUẦN */}
-          <section className="daily-meal-page__history">
-            <div className="daily-meal-page__history-header">
+          {/* 4. LỊCH SỬ KHAI BÁO THEO TUẦN */}
+          <section className="daily-meal-history">
+            <div className="daily-meal-history__header">
               <h2>Lịch sử khai báo theo tuần</h2>
-              <div className="daily-meal-page__history-filter-strip">
+              <div className="daily-meal-history__filters">
                 <Button
                   size="small"
                   variant={historyWeekFilter === "ALL" ? "contained" : "outlined"}
                   onClick={() => setHistoryWeekFilter("ALL")}
+                  className="daily-meal-filter-btn"
                 >
                   Tất cả ({historyByWeek.length} tuần)
                 </Button>
@@ -486,38 +471,40 @@ function DailyMealConfirm() {
                   size="small"
                   variant={historyWeekFilter === "CURRENT_WEEK" ? "contained" : "outlined"}
                   onClick={() => setHistoryWeekFilter("CURRENT_WEEK")}
+                  className="daily-meal-filter-btn"
                 >
                   Tuần {weekSchedule.weekNumber}
                 </Button>
               </div>
             </div>
 
-            <div className="daily-meal-page__history-weeks">
+            <div className="daily-meal-history__list">
               {displayedWeekGroups.map(week => (
-                <Paper variant="outlined" key={week.mondayISO} className="daily-meal-page__week-history-card">
-                  <div className="daily-meal-page__week-history-card-header">
-                    <div className="daily-meal-page__week-history-title">
-                      <CalendarDays size={18} />
+                <Paper variant="outlined" key={week.mondayISO} className="daily-meal-week-card">
+                  <div className="daily-meal-week-card__header">
+                    <div className="daily-meal-week-card__title">
+                      <CalendarDays size={16} />
                       <strong>{week.weekRangeLabel}</strong>
                     </div>
-                    <div className="daily-meal-page__week-history-stats">
+                    <div className="daily-meal-week-card__stats">
                       <Chip
                         size="small"
-                        icon={<Utensils size={14} />}
+                        icon={<Utensils size={13} />}
                         label={`Tổng ${week.totalPortions} suất`}
                         variant="outlined"
+                        className="daily-meal-stats-chip"
                       />
                       <Chip
                         size="small"
-                        icon={<CheckCircle2 size={14} />}
+                        icon={<CheckCircle2 size={13} />}
                         label={`${week.finalizedCount}/${week.items.length} ca đã chốt`}
-                        className="daily-meal-page__chip-success"
+                        className="daily-meal-stats-chip daily-meal-stats-chip--success"
                       />
                     </div>
                   </div>
 
                   {/* DESKTOP TABLE */}
-                  <div className="daily-meal-page__desktop-history-table">
+                  <div className="daily-meal-history-desktop">
                     <TableContainer>
                       <Table size="small">
                         <TableHead>
@@ -561,29 +548,29 @@ function DailyMealConfirm() {
                     </TableContainer>
                   </div>
 
-                  {/* MOBILE CARDS LIST */}
-                  <div className="daily-meal-page__mobile-history-list">
+                  {/* MOBILE CARD LIST */}
+                  <div className="daily-meal-history-mobile">
                     {week.items.map(item => (
-                      <div key={item.id} className="daily-meal-page__mobile-history-item">
-                        <div className="daily-meal-page__mobile-history-row">
-                          <span className="daily-meal-page__mobile-history-date">
+                      <div key={item.id} className="daily-meal-history-card-item">
+                        <div className="daily-meal-history-card-item__row">
+                          <span className="daily-meal-history-card-item__date">
                             {formatVNDate(item.mealDate)}
                           </span>
-                          <span className="daily-meal-page__mobile-history-meal">
+                          <span className="daily-meal-history-card-item__meal">
                             {mealLabel(item.mealType)}
                           </span>
                         </div>
-                        <div className="daily-meal-page__mobile-history-row">
-                          <div className="daily-meal-page__mobile-history-portions">
+                        <div className="daily-meal-history-card-item__row">
+                          <div className="daily-meal-history-card-item__portions">
                             <strong>{item.totalPortions}</strong> suất
                           </div>
-                          <div className="daily-meal-page__mobile-history-actions">
+                          <div className="daily-meal-history-card-item__actions">
                             <StatusChip status={item.status} />
                             <Button
                               size="small"
                               variant="outlined"
                               onClick={() => handleSelectHistoryItem(item)}
-                              className="daily-meal-page__mobile-btn-view"
+                              className="daily-meal-history-card-item__btn"
                             >
                               {item.status === "FINALIZED" ? "Xem" : "Sửa"}
                             </Button>
@@ -596,7 +583,7 @@ function DailyMealConfirm() {
               ))}
 
               {!displayedWeekGroups.length && (
-                <Paper variant="outlined" className="daily-meal-page__empty-history">
+                <Paper variant="outlined" className="daily-meal-empty-history">
                   Chưa có lịch sử khai báo nào cho tuần này.
                 </Paper>
               )}
