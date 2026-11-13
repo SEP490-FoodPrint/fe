@@ -1,5 +1,12 @@
 import http from "../01_axios";
 
+export const dishIngredientIds = dish => [...new Set([
+  ...(dish?.ingredientIds || []),
+  ...(dish?.ingredientStandards || []).map(line=>line.ingredientId),
+  ...(dish?.lines || []).map(line=>line.ingredientId),
+  ...(dish?.seasonings || []).map(line=>line.ingredientId),
+].filter(Boolean))];
+
 export const loadDishCatalog = async () => {
   const items = [];
   for (let page = 1; ; page++) {
