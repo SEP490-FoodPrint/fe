@@ -22,7 +22,7 @@ import styles from "./ClassTable.module.scss"
 
 const formatDate = value => (value ? new Date(value).toLocaleDateString("vi-VN") : "")
 
-function ClassTable({ classes, loading, canManage, onAssign, onRemove, onEdit, onToggleStatus }) {
+function ClassTable({ classes, loading, canManage, canEditGrade, filtered, onAssign, onRemove, onEdit, onToggleStatus }) {
   const [menu, setMenu] = useState(null)
 
   if (loading) return <Skeleton variant="rounded" height={320} />
@@ -41,6 +41,7 @@ function ClassTable({ classes, loading, canManage, onAssign, onRemove, onEdit, o
           <TableHead>
             <TableRow>
               <TableCell>Lớp</TableCell>
+              <TableCell>Khối</TableCell>
               <TableCell>Suất ăn đăng ký</TableCell>
               <TableCell>Giáo viên chủ nhiệm</TableCell>
               <TableCell align="right">Thao tác</TableCell>
@@ -57,6 +58,7 @@ function ClassTable({ classes, loading, canManage, onAssign, onRemove, onEdit, o
                       <Chip size="small" variant="outlined" label="Ngừng hoạt động" className={styles.inactive} />
                     )}
                   </TableCell>
+                  <TableCell>{item.grade?.name ?? "Chưa gán khối"}</TableCell>
                   <TableCell>{item.registeredMealPortions}</TableCell>
                   <TableCell>
                     {item.homeroomTeacher ? (
@@ -95,7 +97,9 @@ function ClassTable({ classes, loading, canManage, onAssign, onRemove, onEdit, o
                           </IconButton>
                         </Tooltip>
                       ) : (
-                        !item.canAssign && <span className={styles.readOnly}>Chỉ xem</span>
+                        canEditGrade
+                          ? <Button onClick={() => onEdit(item)}>Đổi khối</Button>
+                          : !item.canAssign && <span className={styles.readOnly}>Chỉ xem</span>
                       )}
                     </div>
                   </TableCell>
@@ -104,10 +108,10 @@ function ClassTable({ classes, loading, canManage, onAssign, onRemove, onEdit, o
             })}
             {!classes.length && (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={5}>
                   <div className={styles.emptyState}>
-                    <p className={styles.emptyTitle}>Niên khóa này chưa có lớp học.</p>
-                    {canManage && (
+                    <p className={styles.emptyTitle}>{filtered ? "Không có lớp phù hợp với bộ lọc." : "Niên khóa này chưa có lớp học."}</p>
+                    {canManage && !filtered && (
                       <ol className={styles.steps}>
                         <li>
                           <strong>Tạo lớp:</strong> bấm “Thêm lớp” hoặc “Sao chép từ năm trước”.
@@ -167,6 +171,8 @@ ClassTable.propTypes = {
   classes: PropTypes.arrayOf(PropTypes.object).isRequired,
   loading: PropTypes.bool.isRequired,
   canManage: PropTypes.bool.isRequired,
+  canEditGrade: PropTypes.bool.isRequired,
+  filtered: PropTypes.bool.isRequired,
   onAssign: PropTypes.func.isRequired,
   onRemove: PropTypes.func.isRequired,
   onEdit: PropTypes.func.isRequired,

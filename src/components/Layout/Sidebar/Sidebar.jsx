@@ -32,15 +32,14 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
       return hasPermission(item.roles, user.role) ? [item] : []
     })
   }, [orgType, user?.role])
-  const configurationItem = menuItems.find(item => item.key === "SCHOOL_CONFIGURATION")
-  const configurationActive = Boolean(configurationItem?.children.some(item =>
+  const activeGroupKey = menuItems.find(group => group.children?.some(item =>
     location.pathname === item.key || location.pathname.startsWith(`${item.key}/`),
-  ))
-  const [configurationOpen, setConfigurationOpen] = useState(configurationActive)
+  ))?.key
+  const [openGroups, setOpenGroups] = useState(() => activeGroupKey ? { [activeGroupKey]: true } : {})
 
   useEffect(() => {
-    if (configurationActive) setConfigurationOpen(true)
-  }, [configurationActive])
+    if (activeGroupKey) setOpenGroups(current => ({ ...current, [activeGroupKey]: true }))
+  }, [activeGroupKey])
 
   const renderLink = item => {
     const tooltipTitle = item.label + (item.badge ? ` (${item.badge})` : "")
@@ -77,20 +76,22 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
   }
 
   const renderGroup = item => {
+    const expanded = Boolean(openGroups[item.key])
+    const submenuId = `sidebar-${mobile ? "mobile" : "desktop"}-${item.key}`
     const toggle = (
       <button
         type="button"
         aria-label={item.label}
-        aria-expanded={configurationOpen}
-        aria-controls="school-configuration-submenu"
-        onClick={() => setConfigurationOpen(open => !open)}
-        className={[styles.navItem, styles.navGroupToggle, configurationActive && styles.groupContainsActive].filter(Boolean).join(" ")}
+        aria-expanded={expanded}
+        aria-controls={submenuId}
+        onClick={() => setOpenGroups(current => ({ ...current, [item.key]: !expanded }))}
+        className={[styles.navItem, styles.navGroupToggle, activeGroupKey === item.key && styles.groupContainsActive].filter(Boolean).join(" ")}
       >
         <span className={styles.navIcon}>{item.icon}</span>
         {!iconOnly && <span className={styles.navLabel}>{item.label}</span>}
         {!iconOnly && (
           <KeyboardArrowDownIcon
-            className={[styles.groupArrow, configurationOpen && styles.groupArrowOpen].filter(Boolean).join(" ")}
+            className={[styles.groupArrow, expanded && styles.groupArrowOpen].filter(Boolean).join(" ")}
             aria-hidden="true"
           />
         )}
@@ -104,8 +105,8 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
             <span className={styles.tooltipLink}>{toggle}</span>
           </Tooltip>
         ) : toggle}
-        <Collapse in={configurationOpen} timeout={reducedMotion ? 0 : "auto"}>
-          <div id="school-configuration-submenu" className={styles.navChildren}>
+        <Collapse in={expanded} timeout={reducedMotion ? 0 : "auto"}>
+          <div id={submenuId} className={styles.navChildren}>
             {item.children.map(child => renderLink({ ...child, nested: true }))}
           </div>
         </Collapse>
