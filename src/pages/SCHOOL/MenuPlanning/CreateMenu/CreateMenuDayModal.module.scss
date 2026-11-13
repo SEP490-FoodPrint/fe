@@ -1052,17 +1052,18 @@
 
 .pickActionBtn {
   border: none;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 7px 12px;
-  border-radius: 6px;
+  padding: 4px 9px;
+  border-radius: 5px;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1.35;
 }
 
 .btnAddPick {
@@ -1343,16 +1344,17 @@
 .btnPickSub {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   background-color: #0a8066;
   color: #ffffff;
   border: none;
   border-radius: 5px;
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 4px 9px;
+  font-size: 11px;
   font-weight: 600;
   cursor: pointer;
   transition: opacity 0.15s ease;
+  line-height: 1.35;
 
   &:hover {
     opacity: 0.9;

@@ -1371,12 +1371,12 @@ export default function CreateMenuDayModal({
                         >
                           {isPicked ? (
                             <>
-                              <Check size={14} />
+                              <Check size={12} />
                               <span>Đã chọn</span>
                             </>
                           ) : (
                             <>
-                              <Plus size={14} />
+                              <Plus size={12} />
                               <span>Thêm</span>
                             </>
                           )}
