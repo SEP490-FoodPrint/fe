@@ -1,236 +1,90 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
-import {
-  MOCK_SCHOOL_ACADEMIC_YEARS,
-  getWeeksOfAcademicYear,
-  getISOWeekNumber,
-  getSchoolWeekScheduleFromDate,
-} from "src/services/MenuService/adapter"
+import { getSchoolWeekScheduleFromDate } from "src/services/MenuService/adapter"
 import KitchenMenuHeader from "./component/KitchenMenuHeader"
 import KitchenMenuWeeklyGrid from "./component/KitchenMenuWeeklyGrid"
 import styles from "./index.module.scss"
 
 export default function KitchenMenu() {
-  const currentWeekNumber = useMemo(() => getISOWeekNumber(new Date()), [])
-
-  // 1. Danh sách năm học cấu hình toàn trường (từ BGH)
-  const availableAcademicYears = MOCK_SCHOOL_ACADEMIC_YEARS
-
-  // 2. State Bộ lọc Năm học & Tuần học
-  const [academicYear, setAcademicYear] = useState(() => {
-    const cur = availableAcademicYears.find((ay) => ay.isCurrent)
-    return cur ? cur.academicYear : "2026-2027"
-  })
-  const [selectedWeek, setSelectedWeek] = useState(currentWeekNumber)
+  const [years, setYears] = useState([])
+  const [academicYear, setAcademicYear] = useState("")
+  const [selectedWeek, setSelectedWeek] = useState(null)
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
-  const [loading, setLoading] = useState(true)
+  const [calendarLoading, setCalendarLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
+  const [calendarError, setCalendarError] = useState("")
+  const [error, setError] = useState("")
   const [apiWeekData, setApiWeekData] = useState(null)
+  const [revision, setRevision] = useState(0)
 
-  // Cấu hình năm học đang chọn
-  const currentAcademicYearConfig = useMemo(() => {
-    return (
-      availableAcademicYears.find((ay) => ay.academicYear === academicYear) ||
-      availableAcademicYears[0]
-    )
-  }, [availableAcademicYears, academicYear])
-
-  // Danh sách các tuần học thực tế trong năm học
-  const schoolWeeks = useMemo(() => {
-    return getWeeksOfAcademicYear(currentAcademicYearConfig)
-  }, [currentAcademicYearConfig])
-
-  // Đối tượng tuần đang chọn
-  const selectedWeekObj = useMemo(() => {
-    const found = schoolWeeks.find((w) => w.isoWeek === Number(selectedWeek))
-    if (found) return found
-    const currentW = schoolWeeks.find((w) => w.isCurrentWeek)
-    return currentW || schoolWeeks[0]
-  }, [schoolWeeks, selectedWeek])
-
-  // 3. Tính toán thông tin tuần từ selectedWeekObj (khớp lịch 5 ngày T2 - T6)
-  const weekInfo = useMemo(() => {
-    if (!selectedWeekObj?.startDateISO) {
-      return getSchoolWeekScheduleFromDate(new Date())
-    }
-    const parts = selectedWeekObj.startDateISO.split("-").map(Number)
-    const mondayDate = new Date(parts[0], parts[1] - 1, parts[2])
-    return getSchoolWeekScheduleFromDate(mondayDate)
-  }, [selectedWeekObj])
-
-  const todayISO = useMemo(() => {
-    const pad = (n) => String(n).padStart(2, "0")
-    const now = new Date()
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
-  }, [])
-
-  // 4. Tải dữ liệu thực đơn từ MenuService API thực tế
   useEffect(() => {
-    let isMounted = true
-    const fetchWeekMenu = async () => {
-      try {
-        setLoading(true)
-        const dateStr = weekInfo.schoolDays?.[0]?.dateISO || weekInfo.dateISO
-        const res = await MenuService.getWeekSchedule(dateStr)
-        if (isMounted && res?.data) {
-          setApiWeekData(res.data)
-        }
-      } catch (err) {
-        console.warn("Không tải được thực đơn từ API:", err?.message)
-      } finally {
-        if (isMounted) setLoading(false)
-      }
-    }
+    let active = true
+    setCalendarLoading(true)
+    setCalendarError("")
+    MenuService.getAcademicCalendar({forceRefresh:true}).then(response => {
+      if (!active) return
+      const rows = response.data?.academicYears
+      if (!Array.isArray(rows)) throw new Error("Không tải được cấu hình năm học.")
+      setYears(rows)
+      const current = rows.find(year=>year.isCurrent) || rows[0]
+      setAcademicYear(current?.academicYear || "")
+      setSelectedWeek(current?.weeks?.find(week=>week.isCurrentWeek)?.weekNumber || current?.weeks?.[0]?.weekNumber || null)
+    }).catch(e=>{if(active)setCalendarError(e.message)}).finally(()=>{if(active)setCalendarLoading(false)})
+    return ()=>{active=false}
+  }, [revision])
 
-    fetchWeekMenu()
-    return () => {
-      isMounted = false
-    }
-  }, [weekInfo])
+  const year = years.find(row=>row.academicYear===academicYear)
+  const weeks = useMemo(()=>(year?.weeks || []).map(week=>({...week,isoWeek:week.weekNumber,startDateISO:week.weekStartDate,endDateISO:week.weekEndDate})),[year])
+  const week = weeks.find(row=>row.weekNumber===selectedWeek)
+  useEffect(()=>{
+    let active=true
+    setApiWeekData(null)
+    setError("")
+    if (!week) return ()=>{active=false}
+    setLoading(true)
+    MenuService.getWeekSchedule(week.weekStartDate).then(response=>{if(active)setApiWeekData(response.data)})
+      .catch(e=>{if(active)setError(e.message)})
+      .finally(()=>{if(active)setLoading(false)})
+    return ()=>{active=false}
+  },[week,revision])
 
-  // Tiêu đề động của thực đơn tuần theo dữ liệu
-  const menuTitle = useMemo(() => {
-    if (apiWeekData?.title) return apiWeekData.title
-    if (selectedWeekObj?.weekNumber) return `Thực đơn tuần ${selectedWeekObj.weekNumber}`
-    return selectedWeekObj?.label || "Thực đơn tuần"
-  }, [apiWeekData, selectedWeekObj])
-
-  // Khối lớp áp dụng (Toàn trường hoặc danh sách khối cụ thể)
-  const targetScope = useMemo(() => {
-    return apiWeekData?.targetScope || "Toàn trường (Khối 1 – 5)"
-  }, [apiWeekData])
-
-  // 5. Kết hợp schoolDays với dữ liệu món ăn theo từng ngày từ API thực & ngày nghỉ cấu hình từ BGH
-  const processedDays = useMemo(() => {
-    if (!weekInfo?.schoolDays) return []
-    const holidays = currentAcademicYearConfig?.holidays || []
-
-    return weekInfo.schoolDays.map((sd) => {
-      const holidayMatch = holidays.find((h) => h.date === sd.dateISO)
-      const apiDay = apiWeekData?.days?.find(
-        (d) => d.date === sd.dateVN || d.rawDate === sd.dateISO || d.date === sd.dateISO
-      )
-
-      return {
-        ...sd,
-        isHoliday: Boolean(holidayMatch) || Boolean(apiDay?.isHoliday),
-        holidayReason: holidayMatch?.reason || apiDay?.holidayReason || "Ngày nghỉ toàn trường",
-        meals: apiDay?.meals || { LUNCH: { dishes: [] }, AFTERNOON: { dishes: [] } },
-      }
+  const days = useMemo(()=>{
+    if (!week || !apiWeekData) return []
+    return getSchoolWeekScheduleFromDate(week.weekStartDate).schoolDays.map(day=>{
+      const stored=apiWeekData.days?.find(row=>row.date===day.dateISO)
+      return {...day,isHoliday:stored?.isHoliday || false,holidayReason:stored?.holidayReason || "",status:stored?.status,meals:stored?.meals || {LUNCH:{dishes:[]},AFTERNOON:{dishes:[]}}}
     })
-  }, [weekInfo, apiWeekData, currentAcademicYearConfig])
-
-  // 6. Thống kê tổng số món theo ca ăn đang chọn
-  const stats = useMemo(() => {
-    let totalDishes = 0
-
-    processedDays.forEach((day) => {
-      const lunchDishes = day?.meals?.LUNCH?.dishes || []
-      const afternoonDishes = day?.meals?.AFTERNOON?.dishes || []
-
-      if (mealTypeFilter === "ALL") {
-        totalDishes += lunchDishes.length + afternoonDishes.length
-      } else if (mealTypeFilter === "LUNCH") {
-        totalDishes += lunchDishes.length
-      } else if (mealTypeFilter === "AFTERNOON") {
-        totalDishes += afternoonDishes.length
-      }
-    })
-
-    return {
-      totalDishes,
-    }
-  }, [processedDays, mealTypeFilter])
-
-  // Xử lý đổi năm học
-  const handleAcademicYearChange = useCallback(
-    (newAy) => {
-      setAcademicYear(newAy)
-      const targetConfig =
-        availableAcademicYears.find((ay) => ay.academicYear === newAy) || availableAcademicYears[0]
-      const newWeeks = getWeeksOfAcademicYear(targetConfig)
-      const hasCurrent = newWeeks.some((w) => w.isoWeek === currentWeekNumber)
-      if (hasCurrent) {
-        setSelectedWeek(currentWeekNumber)
-      } else if (newWeeks.length > 0) {
-        setSelectedWeek(newWeeks[0].isoWeek)
-      }
-    },
-    [availableAcademicYears, currentWeekNumber]
-  )
-
-  // Xử lý đổi tuần
-  const handleWeekChange = useCallback((newWeekNum) => {
-    setSelectedWeek(Number(newWeekNum))
-  }, [])
-
-  // Xác định vị trí tuần hiện tại trong danh sách tuần
-  const currentWeekIndex = useMemo(() => {
-    return schoolWeeks.findIndex((w) => w.isoWeek === selectedWeekObj?.isoWeek)
-  }, [schoolWeeks, selectedWeekObj])
-
-  const isFirstWeek = currentWeekIndex <= 0
-  const isLastWeek = currentWeekIndex >= schoolWeeks.length - 1
-  const isCurrentWeekSelected = Boolean(selectedWeekObj?.isCurrentWeek)
-
-  // Chuyển tuần trước
-  const handlePrevWeek = useCallback(() => {
-    if (currentWeekIndex > 0) {
-      setSelectedWeek(schoolWeeks[currentWeekIndex - 1].isoWeek)
-    }
-  }, [currentWeekIndex, schoolWeeks])
-
-  // Chuyển tuần sau
-  const handleNextWeek = useCallback(() => {
-    if (currentWeekIndex < schoolWeeks.length - 1) {
-      setSelectedWeek(schoolWeeks[currentWeekIndex + 1].isoWeek)
-    }
-  }, [currentWeekIndex, schoolWeeks])
-
-  // Quay về tuần này
-  const handleCurrentWeek = useCallback(() => {
-    const curAy = availableAcademicYears.find((ay) => ay.isCurrent)
-    if (curAy && academicYear !== curAy.academicYear) {
-      setAcademicYear(curAy.academicYear)
-    }
-    setSelectedWeek(currentWeekNumber)
-  }, [availableAcademicYears, academicYear, currentWeekNumber])
-
-  return (
-    <div className={styles.pageContainer}>
-      {/* 1. Header: Tiêu đề động, Khối lớp, Duyệt BGH, Bộ lọc Năm học & Tuần học, Ca ăn, KPI */}
-      <KitchenMenuHeader
-        menuTitle={menuTitle}
-        targetScope={targetScope}
-        academicYear={academicYear}
-        academicYearOptions={availableAcademicYears}
-        onAcademicYearChange={handleAcademicYearChange}
-        week={selectedWeek}
-        weeks={schoolWeeks}
-        onWeekChange={handleWeekChange}
-        onPrevWeek={handlePrevWeek}
-        onNextWeek={handleNextWeek}
-        onCurrentWeek={handleCurrentWeek}
-        isCurrentWeekSelected={isCurrentWeekSelected}
-        isFirstWeek={isFirstWeek}
-        isLastWeek={isLastWeek}
-        totalDishes={stats.totalDishes}
-        mealTypeFilter={mealTypeFilter}
-        onMealTypeFilterChange={setMealTypeFilter}
-      />
-
-      {/* 2. Lưới 5 ngày phẳng, tối giản viền theo đúng nguyên mẫu thiết kế */}
-      {loading ? (
-        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <FoodPrintLoading />
-        </div>
-      ) : (
-        <KitchenMenuWeeklyGrid
-          schoolDays={processedDays}
-          mealTypeFilter={mealTypeFilter}
-          todayISO={todayISO}
-        />
-      )}
-    </div>
-  )
+  },[week,apiWeekData])
+  const totalDishes=days.reduce((sum,day)=>sum+["LUNCH","AFTERNOON"].filter(type=>mealTypeFilter==="ALL"||type===mealTypeFilter).reduce((n,type)=>n+(day.meals[type]?.dishes?.length || 0),0),0)
+  const index=weeks.indexOf(week)
+  const changeYear=value=>{
+    setAcademicYear(value)
+    const target=years.find(row=>row.academicYear===value)
+    setSelectedWeek(target?.weeks?.find(row=>row.isCurrentWeek)?.weekNumber || target?.weeks?.[0]?.weekNumber || null)
+  }
+  const currentWeek=()=>{
+    const current=years.find(row=>row.isCurrent)
+    if (current) changeYear(current.academicYear)
+  }
+  const todayISO=new Date(Date.now()+7*3600000).toISOString().slice(0,10)
+  const existing=apiWeekData?.days?.filter(day=>day.hasMenu) || []
+  return <div className={styles.pageContainer}>
+    <KitchenMenuHeader
+      menuTitle={apiWeekData?.weeklyMenuTitle || (week ? `Thực đơn tuần ${week.weekNumber}` : "Thực đơn")}
+      targetScope={apiWeekData?.targetScope || ""}
+      approved={existing.length>0&&existing.every(day=>day.status==="APPROVED")}
+      academicYear={academicYear} academicYearOptions={years} onAcademicYearChange={changeYear}
+      week={selectedWeek ?? ""} weeks={weeks} onWeekChange={value=>setSelectedWeek(Number(value))}
+      onPrevWeek={()=>{if(index>0)setSelectedWeek(weeks[index-1].weekNumber)}}
+      onNextWeek={()=>{if(index>=0&&index<weeks.length-1)setSelectedWeek(weeks[index+1].weekNumber)}}
+      onCurrentWeek={currentWeek} isCurrentWeekSelected={!!week?.isCurrentWeek}
+      isFirstWeek={index<=0} isLastWeek={index<0||index>=weeks.length-1}
+      totalDishes={totalDishes} mealTypeFilter={mealTypeFilter} onMealTypeFilterChange={setMealTypeFilter}
+    />
+    {calendarLoading || loading ? <div role="status" style={{padding:80}}><FoodPrintLoading/></div>
+      : calendarError || error ? <div role="alert"><p>{calendarError || error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div>
+      : !years.length ? <p>Chưa có cấu hình năm học của trường.</p>
+      : <KitchenMenuWeeklyGrid schoolDays={days} mealTypeFilter={mealTypeFilter} todayISO={todayISO}/>}
+  </div>
 }

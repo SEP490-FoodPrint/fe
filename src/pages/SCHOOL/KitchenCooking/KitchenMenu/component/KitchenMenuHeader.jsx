@@ -20,7 +20,8 @@ import styles from "./KitchenMenuHeader.module.scss"
 export default function KitchenMenuHeader({
   menuTitle = "Thực đơn tuần",
   targetScope = "Toàn trường (Khối 1 – 5)",
-  academicYear = "2026-2027",
+  academicYear = "",
+  approved = false,
   academicYearOptions = [],
   onAcademicYearChange,
   week,
@@ -32,7 +33,7 @@ export default function KitchenMenuHeader({
   isCurrentWeekSelected = false,
   isFirstWeek = false,
   isLastWeek = false,
-  totalDishes = 30,
+  totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
 }) {
@@ -51,10 +52,10 @@ export default function KitchenMenuHeader({
 
           <h1 className={styles.heading}>{menuTitle || "Thực đơn tuần"}</h1>
 
-          <span className={styles.approvedBadge}>
+          {approved && <span className={styles.approvedBadge}>
             <Check size={12} className={styles.checkIcon} />
             <span>Đã duyệt BGH</span>
-          </span>
+          </span>}
 
           {targetScope && (
             <span className={styles.targetScopeBadge} title="Khối lớp áp dụng">
