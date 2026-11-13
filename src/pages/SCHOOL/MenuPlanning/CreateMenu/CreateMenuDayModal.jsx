@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react"
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import {
   X,
   Search,
@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
+  Filter,
 } from "lucide-react"
 import styles from "./CreateMenuDayModal.module.scss"
 import {
@@ -182,6 +183,33 @@ export default function CreateMenuDayModal({
   // Search & filter món ăn từ kho
   const [searchKeyword, setSearchKeyword] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("ALL")
+  const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false)
+  const catDropdownRef = useRef(null)
+
+  const selectedCategoryObj = useMemo(() => {
+    return (
+      DISH_CATEGORIES.find((c) => c.key === selectedCategory) ||
+      DISH_CATEGORIES[0]
+    )
+  }, [selectedCategory])
+
+  // Đóng dropdown phân loại khi click ra ngoài
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        catDropdownRef.current &&
+        !catDropdownRef.current.contains(e.target)
+      ) {
+        setIsCatDropdownOpen(false)
+      }
+    }
+    if (isCatDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [isCatDropdownOpen])
 
   // Trạng thái thu gọn (collapsible) ở cột preview bên trái
   const [isLunchCollapsed, setIsLunchCollapsed] = useState(false)
@@ -233,6 +261,7 @@ export default function CreateMenuDayModal({
 
       setSearchKeyword("")
       setSelectedCategory("ALL")
+      setIsCatDropdownOpen(false)
     }
   }, [isOpen, dayMenu, initialMealType])
 
@@ -1215,25 +1244,80 @@ export default function CreateMenuDayModal({
                   )}
                 </div>
 
-                {/* Bộ lọc phân loại danh mục món ăn với số lượng */}
-                <div className={styles.categoryPillsList}>
-                  {DISH_CATEGORIES.map((cat) => {
-                    const count = categoryCounts[cat.key] || 0
-                    const isActive = selectedCategory === cat.key
-                    return (
-                      <button
-                        key={cat.key}
-                        type="button"
-                        className={`${styles.catPill} ${
-                          isActive ? styles.activeCatPill : ""
-                        }`}
-                        onClick={() => setSelectedCategory(cat.key)}
-                      >
-                        <span>{cat.label}</span>
-                        <span className={styles.catCountBadge}>{count}</span>
-                      </button>
-                    )
-                  })}
+                {/* Dropdown Bộ lọc phân loại món ăn */}
+                <div
+                  className={styles.filterDropdownContainer}
+                  ref={catDropdownRef}
+                >
+                  <button
+                    type="button"
+                    className={`${styles.filterDropdownTrigger} ${
+                      isCatDropdownOpen ? styles.triggerOpen : ""
+                    } ${
+                      selectedCategory !== "ALL"
+                        ? styles.triggerActiveFilter
+                        : ""
+                    }`}
+                    onClick={() => setIsCatDropdownOpen((prev) => !prev)}
+                    aria-haspopup="listbox"
+                    aria-expanded={isCatDropdownOpen}
+                    title="Lọc món ăn theo phân loại"
+                  >
+                    <div className={styles.triggerLeft}>
+                      <Filter size={14} className={styles.filterIcon} />
+                      <span className={styles.triggerText}>
+                        {selectedCategoryObj.label}
+                      </span>
+                      <span className={styles.triggerCountBadge}>
+                        {categoryCounts[selectedCategory] || 0}
+                      </span>
+                    </div>
+                    <ChevronDown
+                      size={14}
+                      className={`${styles.chevronIcon} ${
+                        isCatDropdownOpen ? styles.chevronRotated : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isCatDropdownOpen && (
+                    <div className={styles.dropdownMenu} role="listbox">
+                      {DISH_CATEGORIES.map((cat) => {
+                        const isSelected = selectedCategory === cat.key
+                        const count = categoryCounts[cat.key] || 0
+                        return (
+                          <button
+                            key={cat.key}
+                            type="button"
+                            role="option"
+                            aria-selected={isSelected}
+                            className={`${styles.dropdownItem} ${
+                              isSelected ? styles.dropdownItemSelected : ""
+                            }`}
+                            onClick={() => {
+                              setSelectedCategory(cat.key)
+                              setIsCatDropdownOpen(false)
+                            }}
+                          >
+                            <div className={styles.dropdownItemLeft}>
+                              <span className={styles.dropdownItemText}>
+                                {cat.label}
+                              </span>
+                              <span className={styles.dropdownItemCount}>
+                                ({count})
+                              </span>
+                            </div>
+                            {isSelected && (
+                              <Check
+                                size={14}
+                                className={styles.dropdownItemCheck}
+                              />
+                            )}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
