@@ -270,9 +270,9 @@ export default function CookingBatches() {
   const canCreate = Boolean(COOKING_MODES[school?.cookingMode]);
   const isSeparateMode = school?.cookingMode === "SEPARATE_BY_LOT";
   const mealTimes = [
-    schoolClock(school?.lunchTime) && `Trưa ${schoolClock(school.lunchTime)}`,
+    schoolClock(school?.lunchTime) && `Bữa trưa ${schoolClock(school.lunchTime)}`,
     schoolClock(school?.afternoonMealTime) &&
-    `Xế ${schoolClock(school.afternoonMealTime)}`,
+    `Bữa xế ${schoolClock(school.afternoonMealTime)}`,
   ]
     .filter(Boolean)
     .join(" · ");
