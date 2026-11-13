@@ -54,86 +54,12 @@ export default function BatchPlanModal({
     const now = new Date();
     const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}`;
 
-    // Xác định tên nguyên liệu chính & phụ dựa trên tên món
-    const dishNameLower = (dish.name || "").toLowerCase();
-    let mainMeatName = "Thịt nạc heo VietGAP";
-    let mainMeatCodePrefix = "LOT-HEO";
-    if (dishNameLower.includes("gà")) {
-      mainMeatName = "Thịt gà tươi VietGAP";
-      mainMeatCodePrefix = "LOT-GA";
-    } else if (dishNameLower.includes("bò")) {
-      mainMeatName = "Thịt bò phi lê sạch";
-      mainMeatCodePrefix = "LOT-BO";
-    } else if (dishNameLower.includes("cá")) {
-      mainMeatName = "Cá basa phi lê VietGAP";
-      mainMeatCodePrefix = "LOT-CA";
-    } else if (dishNameLower.includes("trứng")) {
-      mainMeatName = "Trứng gà tươi Ba Huân";
-      mainMeatCodePrefix = "LOT-TRUNG";
-    }
+    // Lấy nguyên liệu thực tế từ công thức món ăn (Database / API)
+    const rawDishIngs = Array.isArray(dish.ingredients) && dish.ingredients.length > 0
+      ? dish.ingredients
+      : (dish.cookingBatchLots || []);
 
-    let subVegName = "Rau củ / Cải xanh Đà Lạt";
-    let subVegCodePrefix = "LOT-RAU";
-    if (dishNameLower.includes("nấm")) {
-      subVegName = "Nấm hương tươi VietGAP";
-      subVegCodePrefix = "LOT-NAM";
-    } else if (dishNameLower.includes("gừng")) {
-      subVegName = "Gừng tươi Đắk Lắk";
-      subVegCodePrefix = "LOT-GUNG";
-    } else if (dishNameLower.includes("cà chua")) {
-      subVegName = "Cà chua sạch VietGAP";
-      subVegCodePrefix = "LOT-CACHUA";
-    } else if (dishNameLower.includes("khoai")) {
-      subVegName = "Khoai tây Đà Lạt";
-      subVegCodePrefix = "LOT-KHOAI";
-    }
-
-    // Hàm sinh danh sách gia vị tính theo số suất ăn của lô
-    const generateSeasoningsForPortions = (portions) => {
-      const p = Number(portions) || 0;
-      return [
-        {
-          id: "gv-dau",
-          name: "Dầu ăn thực vật Tường An",
-          lotCode: `LOT-GV-DAU-${dateStr.slice(4)}`,
-          amount: `${(p * 0.005).toFixed(2)} lít`,
-          amountRaw: p * 0.005,
-          unit: "lít",
-        },
-        {
-          id: "gv-mam",
-          name: "Nước mắm truyền thống Phú Quốc",
-          lotCode: `LOT-GV-MAM-${dateStr.slice(4)}`,
-          amount: `${(p * 0.0025).toFixed(2)} kg`,
-          amountRaw: p * 0.0025,
-          unit: "kg",
-        },
-        {
-          id: "gv-nem",
-          name: "Hạt nêm I-ốt Knorr học đường",
-          lotCode: `LOT-GV-NEM-${dateStr.slice(4)}`,
-          amount: `${(p * 0.002).toFixed(2)} kg`,
-          amountRaw: p * 0.002,
-          unit: "kg",
-        },
-        {
-          id: "gv-duong",
-          name: "Đường kính trắng Biên Hòa",
-          lotCode: `LOT-GV-DUONG-${dateStr.slice(4)}`,
-          amount: `${(p * 0.0015).toFixed(2)} kg`,
-          amountRaw: p * 0.0015,
-          unit: "kg",
-        },
-        {
-          id: "gv-hanh",
-          name: "Hành, tỏi & gia vị thơm",
-          lotCode: `LOT-GV-HANH-${dateStr.slice(4)}`,
-          amount: `${(p * 0.003).toFixed(2)} kg`,
-          amountRaw: p * 0.003,
-          unit: "kg",
-        },
-      ];
-    };
+    const rawSeasonings = Array.isArray(dish.seasonings) ? dish.seasonings : [];
 
     // Xác định số lượng lô phân tách linh hoạt theo quy mô suất
     // Đối với suất thông thường (<= 350): chia 2 lô nguồn
@@ -159,31 +85,40 @@ export default function BatchPlanModal({
       const lotNumStr = String(idx + 1).padStart(2, "0");
       const lotCodeFormatted = `CB-${dateStr}-${String(idx + 1).padStart(3, "0")}`;
 
+      const mains = rawDishIngs.map((ing, ingIdx) => {
+        const portionQty = Number(ing.portionQty || ing.requiredQuantity || 0);
+        const calcQty = portionQty > 0 ? portionQty * p : 0;
+        return {
+          id: ing.id || `main-${idx}-${ingIdx}`,
+          name: ing.name || ing.ingredientName || `Nguyên liệu #${ingIdx + 1}`,
+          lotCode: ing.lotCode || ing.code || "Chờ xuất kho",
+          amount: calcQty > 0 ? `${calcQty.toFixed(1)} ${ing.unit || "kg"}` : (ing.amount || "Theo định mức"),
+          amountRaw: calcQty,
+          unit: ing.unit || "kg",
+        };
+      });
+
+      const seasons = rawSeasonings.map((s, sIdx) => {
+        const portionQty = Number(s.portionQty || s.requiredQuantity || 0);
+        const calcQty = portionQty > 0 ? portionQty * p : 0;
+        return {
+          id: s.id || `seasoning-${idx}-${sIdx}`,
+          name: s.name || s.ingredientName || `Gia vị #${sIdx + 1}`,
+          lotCode: s.lotCode || s.code || "Chờ xuất kho",
+          amount: calcQty > 0 ? `${calcQty.toFixed(2)} ${s.unit || "kg"}` : (s.amount || "Theo định mức"),
+          amountRaw: calcQty,
+          unit: s.unit || "kg",
+        };
+      });
+
       return {
         id: `batch-plan-${lotNumStr}`,
         index: idx,
         code: lotCodeFormatted,
         name: `Lô chế biến ${idx + 1}`,
         portions: p,
-        mainIngredients: [
-          {
-            id: `main-meat-${idx}`,
-            name: mainMeatName,
-            lotCode: `${mainMeatCodePrefix}-${dateStr}-${lotNumStr}`,
-            amount: `${(p * 0.1).toFixed(1)} kg`,
-            amountRaw: p * 0.1,
-            unit: "kg",
-          },
-          {
-            id: `sub-veg-${idx}`,
-            name: subVegName,
-            lotCode: `${subVegCodePrefix}-${dateStr}-01`,
-            amount: `${(p * 0.04).toFixed(1)} kg`,
-            amountRaw: p * 0.04,
-            unit: "kg",
-          },
-        ],
-        seasonings: generateSeasoningsForPortions(p),
+        mainIngredients: mains,
+        seasonings: seasons,
       };
     });
   }, [dish, totalPortions]);
@@ -407,27 +342,29 @@ export default function BatchPlanModal({
                     </div>
                   </div>
 
-                  {/* Nhóm 2: Gia vị định mức tính chính xác theo số suất của lô này */}
-                  <div className={styles.groupSection}>
-                    <div className={styles.groupHeader}>
-                      <span>Gia vị định mức ({currentBatch.portions} suất)</span>
-                    </div>
-                    <div className={styles.itemsTable}>
-                      {currentBatch.seasonings.map((item, idx) => (
-                        <div key={idx} className={styles.itemRow}>
-                          <div className={styles.itemLeft}>
-                            <span className={styles.itemName}>{item.name}</span>
-                            <span className={styles.itemLotSub}>
-                              Mã lô: <code>{item.lotCode}</code>
-                            </span>
+                  {/* Nhóm 2: Gia vị định mức (Chỉ hiển thị nếu có dữ liệu gia vị) */}
+                  {currentBatch.seasonings && currentBatch.seasonings.length > 0 && (
+                    <div className={styles.groupSection}>
+                      <div className={styles.groupHeader}>
+                        <span>Gia vị định mức ({currentBatch.portions} suất)</span>
+                      </div>
+                      <div className={styles.itemsTable}>
+                        {currentBatch.seasonings.map((item, idx) => (
+                          <div key={idx} className={styles.itemRow}>
+                            <div className={styles.itemLeft}>
+                              <span className={styles.itemName}>{item.name}</span>
+                              <span className={styles.itemLotSub}>
+                                Mã lô: <code>{item.lotCode}</code>
+                              </span>
+                            </div>
+                            <div className={styles.itemRight}>
+                              <span className={styles.itemAmountVal}>{item.amount}</span>
+                            </div>
                           </div>
-                          <div className={styles.itemRight}>
-                            <span className={styles.itemAmountVal}>{item.amount}</span>
-                          </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             )}
@@ -487,42 +424,46 @@ export default function BatchPlanModal({
                     );
                   })}
 
-                  <tr className={styles.sectionDividerRow}>
-                    <td colSpan={plannedBatches.length + 3}>
-                      <span>2. Gia vị định mức</span>
-                    </td>
-                  </tr>
-                  {/* Danh sách các gia vị */}
-                  {plannedBatches[0]?.seasonings.map((_, sIdx) => {
-                    const sName = plannedBatches[0].seasonings[sIdx].name;
-                    const sUnit = plannedBatches[0].seasonings[sIdx].unit;
-                    const sCode = plannedBatches[0].seasonings[sIdx].lotCode;
-                    const totalQty = plannedBatches.reduce(
-                      (sum, b) => sum + (b.seasonings[sIdx]?.amountRaw || 0),
-                      0
-                    );
-
-                    return (
-                      <tr key={`seasoning-${sIdx}`}>
-                        <td className={styles.stickyCol}>
-                          <span>{sName}</span>
-                        </td>
-                        <td className={styles.codeCell}>
-                          <code>{sCode}</code>
-                        </td>
-                        {plannedBatches.map((b) => (
-                          <td key={b.id} className={styles.batchQtyCell}>
-                            {b.seasonings[sIdx]?.amount}
-                          </td>
-                        ))}
-                        <td className={styles.totalQtyCell}>
-                          <strong>
-                            {totalQty.toFixed(2)} {sUnit}
-                          </strong>
+                  {plannedBatches[0]?.seasonings?.length > 0 && (
+                    <>
+                      <tr className={styles.sectionDividerRow}>
+                        <td colSpan={plannedBatches.length + 3}>
+                          <span>2. Gia vị định mức</span>
                         </td>
                       </tr>
-                    );
-                  })}
+                      {/* Danh sách các gia vị */}
+                      {plannedBatches[0].seasonings.map((_, sIdx) => {
+                        const sName = plannedBatches[0].seasonings[sIdx].name;
+                        const sUnit = plannedBatches[0].seasonings[sIdx].unit;
+                        const sCode = plannedBatches[0].seasonings[sIdx].lotCode;
+                        const totalQty = plannedBatches.reduce(
+                          (sum, b) => sum + (b.seasonings[sIdx]?.amountRaw || 0),
+                          0
+                        );
+
+                        return (
+                          <tr key={`seasoning-${sIdx}`}>
+                            <td className={styles.stickyCol}>
+                              <span>{sName}</span>
+                            </td>
+                            <td className={styles.codeCell}>
+                              <code>{sCode}</code>
+                            </td>
+                            {plannedBatches.map((b) => (
+                              <td key={b.id} className={styles.batchQtyCell}>
+                                {b.seasonings[sIdx]?.amount}
+                              </td>
+                            ))}
+                            <td className={styles.totalQtyCell}>
+                              <strong>
+                                {totalQty.toFixed(2)} {sUnit}
+                              </strong>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>

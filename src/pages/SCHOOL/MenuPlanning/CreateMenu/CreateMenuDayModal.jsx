@@ -47,7 +47,11 @@ export default function CreateMenuDayModal({
   dayMenu,
   initialMealType = "LUNCH",
   onSaveDay,
+  submitText = "Cập nhật vào ngày này",
 }) {
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState("")
+  const saveLock = useRef(false)
   const [selectedMealType, setSelectedMealType] = useState(
     initialMealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
   )
@@ -139,6 +143,7 @@ export default function CreateMenuDayModal({
       setLunchDishes(initialLunch)
       setAfternoonDishes(initialAfternoon)
       setEdited(false)
+      setSaveError("")
       setSeasoningsByMeal(
         dayMenu?.seasoningsByMeal || {
           LUNCH: dayMenu?.seasonings || [],
@@ -519,7 +524,12 @@ export default function CreateMenuDayModal({
   }
 
   // Lưu và cập nhật về ngày
-  const handleSaveAndClose = () => {
+  const handleSaveAndClose = async () => {
+    if (saveLock.current || dayMenu?.canEdit === false || dayMenu?.approvalStatus === "APPROVED") return
+    saveLock.current = true
+    setSaving(true)
+    setSaveError("")
+    try {
     // Tổng hợp món ăn: bao gồm món thường và các món riêng thay thế
     const allLunchDishes = [...lunchDishes]
     Object.values(substitutesByMeal.LUNCH || {}).forEach((sub) => {
@@ -545,7 +555,7 @@ export default function CreateMenuDayModal({
       }
     })
 
-    const portionGroupsByMeal = {
+    const portionGroupsByMeal = !edited && dayMenu?.portionGroupsByMeal ? { ...dayMenu.portionGroupsByMeal } : {
       LUNCH: buildPortionGroupsForMeal(lunchDishes, substitutesByMeal.LUNCH),
       AFTERNOON: buildPortionGroupsForMeal(
         afternoonDishes,
@@ -558,19 +568,35 @@ export default function CreateMenuDayModal({
       Object.values(substitutesByMeal.AFTERNOON || {})[0] ||
       null
 
-    onSaveDay &&
-      onSaveDay({
+    for (const mealType of ["LUNCH", "AFTERNOON"]) {
+      portionGroupsByMeal[mealType] = (portionGroupsByMeal[mealType] || []).map(group => {
+        const previous = dayMenu?.portionGroupsByMeal?.[mealType]?.find(old =>
+          old.isDefault === group.isDefault &&
+          JSON.stringify([...old.avoidedIngredientEntryIds].sort()) === JSON.stringify([...group.avoidedIngredientEntryIds].sort()))
+        return previous?.id ? { ...group, id: previous.id, name: previous.name } : group
+      })
+    }
+
+    if (!onSaveDay) throw new Error("Chưa có thao tác lưu thực đơn.")
+    await onSaveDay({
         dateISO: dayData?.dateISO,
         LUNCH: allLunchDishes,
         AFTERNOON: allAfternoonDishes,
         seasonings: seasoningsByMeal.LUNCH,
         seasoningsByMeal,
-        useDishRecipes: edited,
+        useDishRecipes: edited || Boolean(dayMenu?.useDishRecipes),
+        ...(!edited && dayMenu?.persistedMeals ? { persistedMeals: dayMenu.persistedMeals } : {}),
         portionGroupsByMeal,
         substituteDish: firstSubstitute,
         substitutesByMeal,
       })
     onClose()
+    } catch (error) {
+      setSaveError(error?.message || "Không thể lưu thực đơn. Vui lòng thử lại.")
+    } finally {
+      saveLock.current = false
+      setSaving(false)
+    }
   }
 
   // Đánh giá trạng thái dị ứng tổng quát cho ngày
@@ -605,6 +631,7 @@ export default function CreateMenuDayModal({
             type="button"
             className={styles.closeBtn}
             onClick={onClose}
+            disabled={saving}
             aria-label="Đóng cửa sổ"
           >
             <X size={20} />
@@ -788,7 +815,7 @@ export default function CreateMenuDayModal({
                                     Món riêng dị ứng:
                                   </span>
                                   <strong className={styles.subDishName}>
-                                    {substitute.name}
+                                    ({substitute.name})
                                   </strong>
                                   <span className={styles.subSafeNote}>
                                     (Thay cho HS dị ứng{" "}
@@ -971,7 +998,7 @@ export default function CreateMenuDayModal({
                                     Món riêng dị ứng:
                                   </span>
                                   <strong className={styles.subDishName}>
-                                    {substitute.name}
+                                    ({substitute.name})
                                   </strong>
                                   <span className={styles.subSafeNote}>
                                     (Thay cho HS dị ứng{" "}
@@ -1437,11 +1464,13 @@ export default function CreateMenuDayModal({
             ))}
           </div>
 
+          {saveError && <p role="alert">{saveError}</p>}
           <div className={styles.footerBtns}>
             <button
               type="button"
               className={styles.cancelBtn}
               onClick={onClose}
+              disabled={saving}
             >
               Hủy bỏ
             </button>
@@ -1449,10 +1478,10 @@ export default function CreateMenuDayModal({
               type="button"
               className={styles.confirmSaveBtn}
               onClick={handleSaveAndClose}
-              disabled={allergyLoading || recipeLoading}
+              disabled={saving || allergyLoading || recipeLoading || dayMenu?.canEdit === false}
             >
               <Check size={16} />
-              <span>Xác nhận &amp; Cập nhật vào ngày này</span>
+              <span>{saving ? "Đang lưu…" : submitText}</span>
             </button>
           </div>
         </div>

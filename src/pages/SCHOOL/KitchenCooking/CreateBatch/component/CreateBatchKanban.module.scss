@@ -3,109 +3,112 @@
   flex-direction: column;
   gap: 16px;
   width: 100%;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
-/* 1. Dải thông tin phiên nấu hôm nay */
+/* ==========================================================================
+   1. Dải thông tin phiên nấu hôm nay & Bộ lọc (Compact Session Toolbar)
+   ========================================================================== */
 .sessionBar {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 16px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
 
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr 1fr;
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
-  }
-
-  @media (max-width: 600px) {
-    grid-template-columns: 1fr;
-    gap: 10px;
+    padding: 10px 14px;
   }
 }
 
-.sessionItemMock {
+.sessionMetaGroup {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-
-  @media (max-width: 900px) {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
-  }
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.resetMockPill {
+.metaItem {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
-  padding: 0 12px;
-  font-size: 12px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.metaIcon {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.metaDateText {
   font-weight: 600;
-  color: #0f766e;
-  background-color: #f0fdfa;
-  border: 1px solid #99f6e4;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  white-space: nowrap;
-
-  &:hover {
-    background-color: #ccfbf1;
-    color: #115e59;
-    border-color: #5eead4;
-  }
-}
-
-.sessionItem {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.sessionItemHeader {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.sessionIcon {
-  color: #0f766e;
-}
-
-.sessionLabel {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.sessionValRow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sessionVal {
-  font-size: 13.5px;
-  font-weight: 700;
   color: #0f172a;
 }
 
 .todayBadge {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
-  padding: 1px 6px;
+  padding: 1.5px 7px;
   border-radius: 4px;
   background-color: #f0fdf4;
-  color: #16a34a;
+  color: #166534;
   border: 1px solid #bbf7d0;
+  line-height: 1.2;
+}
+
+.metaDivider {
+  width: 1px;
+  height: 16px;
+  background-color: #e2e8f0;
+  flex-shrink: 0;
+
+  @media (max-width: 520px) {
+    display: none;
+  }
+}
+
+.metaLabelText {
+  color: #64748b;
+  font-weight: 500;
+  font-size: 12.5px;
+}
+
+.portionVal {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.unitText {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #64748b;
+  margin-right: 2px;
+}
+
+.lockBadge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1.5px 6px;
+  border-radius: 4px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  line-height: 1.2;
+}
+
+.filterControl {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .selectWrapper {
@@ -114,64 +117,59 @@
   align-items: center;
 }
 
+.selectIcon {
+  position: absolute;
+  left: 10px;
+  color: #64748b;
+  pointer-events: none;
+  z-index: 1;
+}
+
 .selectInput {
-  width: 100%;
   appearance: none;
-  background-color: #f8fafc;
+  background-color: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 5px 28px 5px 10px;
-  font-size: 13px;
+  border-radius: 7px;
+  padding: 6px 28px 6px 30px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: #0f172a;
+  color: #1e293b;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s ease;
+  min-width: 160px;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #94a3b8;
+    background-color: #f8fafc;
+  }
 
   &:focus {
-    border-color: #0f766e;
-    box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.15);
+    border-color: #059669;
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.12);
+    background-color: #ffffff;
   }
 }
 
 .selectArrow {
   position: absolute;
-  right: 8px;
+  right: 9px;
   color: #64748b;
   pointer-events: none;
 }
 
-.portionVal {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f766e;
-}
-
-.unitText {
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748b;
-}
-
-.lockBadge {
-  font-size: 10.5px;
-  font-weight: 500;
-  padding: 1px 6px;
-  border-radius: 4px;
-  background-color: #f1f5f9;
-  color: #475569;
-}
-
-/* Banner hoàn thành tất cả lô */
+/* ==========================================================================
+   Banner hoàn thành tất cả lô (All Done Banner)
+   ========================================================================== */
 .allDoneBanner {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 14px 18px;
-  background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
-  border: 1px solid #86efac;
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
   border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.08);
+  box-shadow: 0 1px 4px rgba(22, 163, 74, 0.05);
 }
 
 .allDoneIcon {
@@ -196,31 +194,9 @@
   color: #166534;
 }
 
-.allDoneResetBtn {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 34px;
-  padding: 0 14px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: #15803d;
-  background-color: #ffffff;
-  border: 1px solid #86efac;
-  border-radius: 8px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-
-  &:hover {
-    background-color: #f0fdf4;
-    border-color: #4ade80;
-    color: #166534;
-  }
-}
-
-/* 2. Cột Kanban 4 cột */
+/* ==========================================================================
+   2. Bảng Kanban 4 Cột
+   ========================================================================== */
 .kanbanColumns {
   display: grid;
   grid-template-columns: repeat(4, minmax(260px, 1fr));
@@ -238,10 +214,7 @@
   }
 }
 
-.columnPending,
-.columnCreated,
-.columnCooked,
-.columnSampled {
+.columnWrapper {
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -249,14 +222,14 @@
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 12px;
-  min-height: 440px;
+  min-height: 480px;
 }
 
 .columnHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 10px;
+  padding: 2px 2px 10px 2px;
   border-bottom: 1px solid #e2e8f0;
 }
 
@@ -266,6 +239,7 @@
   gap: 8px;
 }
 
+/* Điểm báo trạng thái cột: màu sắc tinh tế, nhã nhặn */
 .colIndicatorPending {
   width: 8px;
   height: 8px;
@@ -277,64 +251,38 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #2563eb;
+  background-color: #475569;
 }
 
 .colIndicatorCooked {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #ea580c;
+  background-color: #d97706;
 }
 
 .colIndicatorSampled {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #16a34a;
+  background-color: #059669;
 }
 
 .colTitle {
   margin: 0;
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: #0f172a;
+  letter-spacing: -0.01em;
 }
 
-.colCountPending {
-  font-size: 11.5px;
+.colCountBadge {
+  font-size: 11px;
   font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background-color: #fef3c7;
-  color: #b45309;
-}
-
-.colCountCreated {
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background-color: #dbeafe;
-  color: #1d4ed8;
-}
-
-.colCountCooked {
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background-color: #ffedd5;
-  color: #c2410c;
-}
-
-.colCountSampled {
-  font-size: 11.5px;
-  font-weight: 600;
-  padding: 2px 7px;
-  border-radius: 10px;
-  background-color: #dcfce7;
-  color: #15803d;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #f1f5f9;
+  color: #475569;
 }
 
 .cardsContainer {
@@ -350,17 +298,17 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 32px 16px;
+  padding: 36px 16px;
   text-align: center;
   border: 1px dashed #cbd5e1;
-  border-radius: 8px;
+  border-radius: 10px;
   background-color: #ffffff;
   color: #94a3b8;
   min-height: 140px;
 }
 
 .emptyDoneIcon {
-  color: #16a34a;
+  color: #059669;
 }
 
 .emptyWaitIcon {
@@ -373,308 +321,302 @@
   color: #64748b;
 }
 
-/* CỘT 1: THẺ TINH GỌN (CHỜ TẠO LÔ - BỎ TAG SUẤT & NGUYÊN LIỆU) */
-.dishCardPendingClean {
+/* ==========================================================================
+   3. Card món ăn trong Kanban (Không dùng ảnh, sạch sẽ, không chói)
+   ========================================================================== */
+.dishCard {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 14px;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
-  border-left: 3px solid #f59e0b;
-  border-radius: 8px;
+  border-radius: 10px;
+  padding: 13px 14px 12px 14px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
+    box-shadow: 0 6px 16px -2px rgba(15, 23, 42, 0.08);
     border-color: #cbd5e1;
-    border-left-color: #d97706;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #059669;
+    outline-offset: 2px;
   }
 }
 
-.cleanCardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.dishTitleClean {
-  margin: 0;
-  font-size: 14.5px;
-  font-weight: 700;
-  color: #0f172a;
-  line-height: 1.35;
-}
-
-.cleanCardBottom {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-top: 6px;
-  border-top: 1px dashed #f1f5f9;
-}
-
-.primaryCreateBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border: none;
-  background-color: #0f766e;
-  color: #ffffff;
-  border-radius: 6px;
-  font-size: 12.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(15, 118, 110, 0.2);
-
-  &:hover:not(:disabled) {
-    background-color: #0d9488;
-    transform: translateY(-1px);
-    box-shadow: 0 3px 8px rgba(15, 118, 110, 0.3);
-  }
-
-  &:disabled {
-    opacity: 0.65;
-    cursor: not-allowed;
-  }
-}
-
-/* Card Styles for Columns 2, 3, 4 */
-.dishCardCreated,
-.dishCardCooked,
-.dishCardSampled {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 12px;
-  background-color: #ffffff;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.07);
-  }
-}
-
-.dishCardCreated {
-  border: 1px solid #bfdbfe;
-  border-left: 3px solid #2563eb;
-  background: linear-gradient(180deg, #ffffff 0%, #f8faff 100%);
-}
-
-.dishCardCooked {
-  border: 1px solid #fed7aa;
-  border-left: 3px solid #ea580c;
-  background: linear-gradient(180deg, #ffffff 0%, #fffbf7 100%);
-}
-
-.dishCardSampled {
-  border: 1px solid #bbf7d0;
-  border-left: 3px solid #16a34a;
-  background: linear-gradient(180deg, #ffffff 0%, #f7fdf9 100%);
-}
-
+/* Hàng trên cùng của thẻ: Ca ăn + Trạng thái mẻ */
 .cardHeaderRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
 .mealChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border-radius: 4px;
   font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
+  letter-spacing: 0.2px;
 }
 
-.mealLunch {
-  background-color: #fff7ed;
-  color: #c2410c;
-  border: 1px solid #fed7aa;
+.mealChipLunch {
+  background-color: #f0fdf4;
+  color: #166534;
+  border: 1px solid #dcfce7;
 }
 
-.mealAfternoon {
+.mealChipAfternoon {
   background-color: #eff6ff;
-  color: #1d4ed8;
-  border: 1px solid #bfdbfe;
+  color: #1e40af;
+  border: 1px solid #dbeafe;
 }
 
-.portionsInline {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 500;
-}
-
-.statusCreatedBadge {
+/* Badge trạng thái nhẹ nhàng, không chói */
+.statusWaitingCook {
   font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
-  background-color: #dbeafe;
-  color: #1d4ed8;
+  background-color: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
 }
 
-.statusWaitSampleBadge {
+.statusWaitingSample {
   font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
-  background-color: #ffedd5;
-  color: #c2410c;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
 }
 
-.statusSampledBadge {
+.statusSampled {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
-  background-color: #dcfce7;
+  background-color: #f0fdf4;
   color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
-.dishTitle,
-.dishTitleCooked {
-  margin: 0;
-  font-size: 13.5px;
-  font-weight: 700;
+/* Hàng Tên món ăn & Nút Tạo cùng dòng (Cột 1: Chờ tạo lô) */
+.dishTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.primaryCreateBtnCompact {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+  padding: 0 10px;
+  background-color: #059669;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.2);
+
+  &:hover:not(:disabled) {
+    background-color: #047857;
+    box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.96);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+/* Tiêu đề món ăn */
+.dishCardTitle {
+  margin: 0 0 8px 0;
+  font-size: 14px;
+  font-weight: 600;
   color: #0f172a;
   line-height: 1.35;
 }
 
-.dishTitleSampled {
-  margin: 0;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #14532d;
-  line-height: 1.35;
-}
-
-.lotCodeWrap {
+/* Hộp thông tin mã lô & số suất */
+.batchMetaBox {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 6px;
   padding: 4px 8px;
-  background-color: #f1f5f9;
-  border-radius: 4px;
+  background-color: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 5px;
+  font-size: 11px;
+  margin-bottom: 8px;
 }
 
-.lotCodeText {
+.batchCodeText {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
-  font-weight: 700;
-  color: #0f766e;
-  font-family: monospace;
+  font-weight: 600;
+  color: #334155;
 }
 
-.lotCodeTextCooked {
-  font-size: 11px;
-  font-weight: 700;
-  color: #c2410c;
-  font-family: monospace;
+.batchMetaDot {
+  color: #cbd5e1;
+  font-size: 10px;
 }
 
-.lotCodeTextSampled {
-  font-size: 11px;
-  font-weight: 700;
-  color: #15803d;
-  font-family: monospace;
+.batchPortionsText {
+  font-weight: 500;
+  color: #475569;
 }
 
 .completedTimeText {
-  font-size: 10.5px;
-  color: #64748b;
+  color: #059669;
   font-weight: 500;
+  font-size: 10.5px;
 }
 
+/* Hàng nút hành động dưới đáy thẻ */
 .cardBottomRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px dashed #e2e8f0;
+  padding-top: 8px;
+  border-top: 1px solid #f1f5f9;
 }
 
-/* Eye buttons */
-.iconEyeBtn {
+/* ==========================================================================
+   4. Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG (theo yêu cầu)
+   ========================================================================== */
+.ghostDetailBtn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
   padding: 5px 8px;
-  border: 1px solid #cbd5e1;
-  background-color: #ffffff;
-  color: #334155;
-  border-radius: 6px;
-  font-size: 11.5px;
-  font-weight: 600;
+  border: none !important;
+  background: transparent !important;
+  color: #475569 !important;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   transition: all 0.15s ease;
+  outline: none;
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #0f766e;
-    border-color: #94a3b8;
+    background-color: #f1f5f9 !important;
+    color: #0f172a !important;
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 }
 
-.viewDetailEyeBtn {
+.ghostDetailBtnFull {
   width: 100%;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding: 6px 10px;
-  border: 1px solid #86efac;
-  background-color: #f0fdf4;
-  color: #15803d;
+  border: none !important;
+  background-color: #f8fafc;
+  color: #334155 !important;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+
+  &:hover {
+    background-color: #f1f5f9;
+    color: #0f172a !important;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/* ==========================================================================
+   5. Các nút hành động chính (Primary Action Buttons)
+   ========================================================================== */
+.primaryCreateBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border: none;
+  background-color: #059669;
+  color: #ffffff;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.2);
 
-  &:hover {
-    background-color: #dcfce7;
-    border-color: #4ade80;
-    transform: translateY(-1px);
+  &:hover:not(:disabled) {
+    background-color: #047857;
+    box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
   }
 }
 
-/* Action Buttons */
 .cookCompleteBtn {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 10px;
+  padding: 6px 11px;
   border: none;
-  background-color: #ea580c;
+  background-color: #0f766e;
   color: #ffffff;
   border-radius: 6px;
   font-size: 11.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.2);
 
   &:hover:not(:disabled) {
-    background-color: #c2410c;
-    transform: translateY(-1px);
+    background-color: #115e59;
+    box-shadow: 0 2px 5px rgba(15, 118, 110, 0.25);
   }
 
   &:disabled {
-    opacity: 0.65;
+    opacity: 0.6;
     cursor: not-allowed;
   }
 }
@@ -682,25 +624,25 @@
 .sampleActionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 12px;
+  gap: 4px;
+  padding: 6px 11px;
   border: none;
-  background-color: #0f766e;
+  background-color: #059669;
   color: #ffffff;
   border-radius: 6px;
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 1px 2px rgba(5, 150, 105, 0.2);
 
   &:hover:not(:disabled) {
-    background-color: #0d9488;
-    transform: translateY(-1px);
+    background-color: #047857;
+    box-shadow: 0 2px 5px rgba(5, 150, 105, 0.25);
   }
 
   &:disabled {
-    opacity: 0.65;
+    opacity: 0.6;
     cursor: not-allowed;
   }
 }

@@ -29,6 +29,8 @@ export default function DeliveryApprovalModal({
 
   // State popup xác nhận bước 2
   const [isConfirming, setIsConfirming] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const roleName = delivery.requiredRoles?.find(role => role.code === delivery.currentRole)?.name || "Bộ phận kiểm tra"
 
   // Format date helper
   const formatDate = (isoString) => {
@@ -54,8 +56,13 @@ export default function DeliveryApprovalModal({
     setIsConfirming(true)
   }
 
-  const handleFinalConfirm = () => {
-    onSubmitApproval(decision, reason.trim())
+  const handleFinalConfirm = async () => {
+    if (saving) return
+    setSaving(true)
+    setErrorMsg("")
+    try { await onSubmitApproval(decision, reason.trim()) }
+    catch (error) { setErrorMsg(error.message || "Chưa lưu được quyết định. Vui lòng thử lại.") }
+    finally { setSaving(false) }
   }
 
   return (
@@ -70,7 +77,7 @@ export default function DeliveryApprovalModal({
             </div>
             <h2 className={styles.modalTitle}>Đánh giá & Phê duyệt Giao nhận Nguyên liệu</h2>
             <p className={styles.modalDesc}>
-              Cán bộ Y tế kiểm tra cảm quan, an toàn vệ sinh và ra quyết định tiếp nhận hoặc từ chối đợt giao hàng.
+              {roleName} ghi nhận kết quả kiểm tra đợt giao. Chỉ tiếp nhận nguyên liệu khi đủ cả 4 bên đồng ý.
             </p>
           </div>
           <button
@@ -117,7 +124,7 @@ export default function DeliveryApprovalModal({
           {/* 1. Chọn Quyết định Kiểm thực: APPROVE vs REJECT */}
           <div className={styles.decisionGroup}>
             <label className={styles.decisionGroupLabel}>
-              Quyết định kiểm thực của Cán bộ Y tế <span className={styles.required}>*</span>
+              Quyết định của {roleName} <span className={styles.required}>*</span>
             </label>
 
             <div className={styles.decisionCards}>
@@ -239,11 +246,11 @@ export default function DeliveryApprovalModal({
                 {decision === "REJECT" ? (
                   <>
                     Đợt giao hàng <strong>{delivery.deliveryNo}</strong> sẽ bị chuyển sang trạng thái{" "}
-                    <strong className={styles.dangerText}>Bị từ chối (REJECTED)</strong>. Nhà cung cấp và các bên liên quan sẽ nhận được thông báo biên bản này.
+                    <strong className={styles.dangerText}>Bị từ chối</strong> và cần giao lại. Nếu tổng số lần phải giao lại của đơn vượt 2, hệ thống sẽ hủy phần chưa nhận và hiển thị thông báo hủy.
                   </>
                 ) : (
                   <>
-                    Ghi nhận kết quả đánh giá <strong className={styles.successText}>ĐẠT CHUẨN</strong> từ Cán bộ Y tế cho chuyến giao{" "}
+                    Ghi nhận kết quả đánh giá <strong className={styles.successText}>ĐẠT CHUẨN</strong> từ {roleName} cho chuyến giao{" "}
                     <strong>{delivery.deliveryNo}</strong>. Biên bản sẽ được lưu vào lịch sử kiểm thực giao nhận.
                   </>
                 )}
@@ -252,12 +259,14 @@ export default function DeliveryApprovalModal({
               <div className={styles.confirmWarningNote}>
                 Lưu ý: Quyết định kiểm thực sau khi xác nhận sẽ được lưu chính thức và không thể sửa đổi.
               </div>
+              {errorMsg && <p role="alert">{errorMsg}</p>}
 
               <div className={styles.confirmActions}>
                 <button
                   type="button"
                   className={styles.confirmCancelBtn}
                   onClick={() => setIsConfirming(false)}
+                  disabled={saving}
                 >
                   Kiểm tra lại
                 </button>
@@ -267,8 +276,9 @@ export default function DeliveryApprovalModal({
                     decision === "REJECT" ? styles.confirmRejectBtn : styles.confirmApproveBtn
                   }`}
                   onClick={handleFinalConfirm}
+                  disabled={saving}
                 >
-                  {decision === "REJECT" ? "Đồng ý Từ chối" : "Đồng ý Phê duyệt"}
+                  {saving ? "Đang lưu…" : decision === "REJECT" ? "Đồng ý Từ chối" : "Đồng ý Phê duyệt"}
                 </button>
               </div>
             </div>

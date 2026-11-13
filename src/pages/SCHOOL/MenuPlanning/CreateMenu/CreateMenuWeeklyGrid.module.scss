@@ -354,6 +354,22 @@
   }
 }
 
+.dishCol {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.substituteDishNote {
+  font-size: 11.5px;
+  font-style: italic;
+  color: #dc2626;
+  margin-top: 2px;
+  padding-left: 11px;
+  line-height: 1.3;
+}
+
 .dishLeftWrap {
   display: flex;
   align-items: center;

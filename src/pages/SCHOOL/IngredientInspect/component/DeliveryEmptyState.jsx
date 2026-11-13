@@ -11,7 +11,7 @@ export default function DeliveryEmptyState({ message, onResetFilters }) {
       </div>
       <h3 className={styles.title}>Không tìm thấy chuyến giao hàng phù hợp</h3>
       <p className={styles.desc}>
-        {message || "Vui lòng kiểm tra lại từ khóa tìm kiếm hoặc điều chỉnh bộ lọc trạng thái và thời gian."}
+        {message || "Vui lòng kiểm tra lại từ khóa tìm kiếm hoặc điều chỉnh bộ lọc trạng thái và ngày giao hàng."}
       </p>
       {onResetFilters && (
         <button

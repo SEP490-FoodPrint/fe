@@ -38,7 +38,7 @@ export default function CreateMenuBottomBar({
             type="button"
             className={styles.draftBtn}
             onClick={onSaveDraft}
-            disabled={isLoading}
+            disabled={isSubmitting || isLoading}
           >
             <span className={`material-symbols-outlined ${styles.btnIcon}`}>save</span>
             <span>{draftText}</span>

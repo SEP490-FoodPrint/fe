@@ -56,6 +56,7 @@ const KitchenCreateBatch = lazy(() => import("src/pages/SCHOOL/KitchenCooking/Cr
 const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCooking/CreateBatchSeparate"))
 const KitchenBatchDetail = lazy(() => import("src/pages/SCHOOL/KitchenCooking/BatchDetail"))
 const KitchenSamples = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenSamples"))
+const SampleStorage = lazy(() => import("src/pages/SCHOOL/KitchenCooking/SampleStorage"))
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
@@ -284,6 +285,7 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION, element: <LazyWrapper><KitchenMealAllocation /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES_DATE, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_KITCHEN_SAMPLE_STORAGE, element: <LazyWrapper><SampleStorage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
             ],

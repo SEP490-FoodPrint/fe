@@ -13,7 +13,7 @@ import {
 } from "lucide-react"
 import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
-import DishCategoryModal, { DEFAULT_DISH_CATEGORIES } from "./component/DishCategoryModal"
+import DishCategoryModal from "./component/DishCategoryModal"
 import styles from "./index.module.scss"
 
 /* ─── Helpers ────────────────────────────────────── */
@@ -43,6 +43,8 @@ export default function DishCatalogPage() {
   const DISH_CATEGORIES = [{ key: "ALL", label: "Tất cả món" }, ...categoryOptions, { key: "UNCLASSIFIED", label: "Chưa phân nhóm" }]
   const [recipeOptions, setRecipeOptions] = useState([])
   const [catalogError, setCatalogError] = useState("")
+  const [catalogLoadError, setCatalogLoadError] = useState("")
+  const [recipeOptionsError, setRecipeOptionsError] = useState("")
   const [catalogLoading, setCatalogLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [unclassifiedLines, setUnclassifiedLines] = useState([])
@@ -51,46 +53,21 @@ export default function DishCatalogPage() {
   const CATALOG_SUPPLIERS = linkedSuppliers
   const WAREHOUSE_SEASONINGS_CATALOG = useMemo(() => recipeOptions.filter(o=>o.seasoningAllowed), [recipeOptions])
 
-  const mergeWithDefaults = useCallback((apiCats = []) => {
-    return apiCats.map((c) => {
-      const def = DEFAULT_DISH_CATEGORIES.find((d) => d.key === c.key)
-      return {
-        ...c,
-        description: c.description || def?.description || "",
-        color: c.color || def?.color || "slate",
-      }
-    })
-  }, [])
-
   useEffect(() => {
     let active = true
-    Promise.all([loadDishCatalogData(), loadRecipeOptions()]).then(([data, options]) => {
-      if (active) {
-        setCatalog(data.items)
-        const saved = localStorage.getItem("FOODPRINT_DISH_CATEGORIES")
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved)
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              setCategoryOptions(parsed)
-            } else {
-              setCategoryOptions(mergeWithDefaults(data.categories))
-            }
-          } catch {
-            setCategoryOptions(mergeWithDefaults(data.categories))
-          }
-        } else {
-          setCategoryOptions(mergeWithDefaults(data.categories))
-        }
-        setRecipeOptions(options)
-      }
-    }).catch((error) => {
-      if (active) setCatalogError(error.message)
+    Promise.allSettled([loadDishCatalogData(), loadRecipeOptions()]).then(([catalogResult, optionsResult]) => {
+      if (!active) return
+      if (catalogResult.status === "fulfilled") {
+        setCatalog(catalogResult.value.items)
+        setCategoryOptions(catalogResult.value.categories)
+      } else setCatalogLoadError(catalogResult.reason?.message || "Không tải được danh sách món ăn.")
+      if (optionsResult.status === "fulfilled") setRecipeOptions(optionsResult.value)
+      else setRecipeOptionsError(optionsResult.reason?.message || "Không tải được nguyên liệu để tạo món.")
     }).finally(() => {
       if (active) setCatalogLoading(false)
     })
     return () => { active = false }
-  }, [mergeWithDefaults])
+  }, [])
 
   const dishCounts = useMemo(() => {
     const counts = {}
@@ -100,24 +77,6 @@ export default function DishCatalogPage() {
     }
     return counts
   }, [catalog])
-
-  const handleSaveCategories = useCallback((newCategories, deletedKey) => {
-    setCategoryOptions(newCategories)
-    try {
-      localStorage.setItem("FOODPRINT_DISH_CATEGORIES", JSON.stringify(newCategories))
-    } catch (e) {
-      console.warn("Could not save categories to localStorage:", e)
-    }
-    if (deletedKey) {
-      setCatalog((prev) =>
-        prev.map((d) =>
-          d.category === deletedKey
-            ? { ...d, category: null, categoryLabel: "Chưa phân nhóm" }
-            : d
-        )
-      )
-    }
-  }, [])
   const [search, setSearch] = useState("")
   const [activeCat, setActiveCat] = useState("ALL")
   const [supplierFilter, setSupplierFilter] = useState("ALL")
@@ -350,6 +309,8 @@ export default function DishCatalogPage() {
     <div className={styles.page}>
       {catalogLoading && <p role="status">Đang tải danh mục món và kho trường…</p>}
       {catalogError && <p role="alert">{catalogError}</p>}
+      {catalogLoadError && <p role="alert">{catalogLoadError}</p>}
+      {recipeOptionsError && <p role="alert">{recipeOptionsError}</p>}
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
@@ -364,7 +325,7 @@ export default function DishCatalogPage() {
             type="button"
             className={styles.categoryBtn}
             onClick={() => setIsCategoryModalOpen(true)}
-            title="Xem và quản lý danh sách nhóm món ăn"
+            title="Xem danh sách nhóm món ăn quy chuẩn từ Database"
           >
             <Layers size={16} />
             <span>Danh sách nhóm món ăn</span>
@@ -372,7 +333,7 @@ export default function DishCatalogPage() {
           <button
             type="button"
             className={styles.addBtn}
-            disabled={catalogLoading || !!catalogError}
+            disabled={catalogLoading || !!catalogError || !!catalogLoadError || !!recipeOptionsError}
             onClick={openAdd}
           >
             <Plus size={16} />
@@ -438,7 +399,11 @@ export default function DishCatalogPage() {
 
       {/* Bảng danh sách món ăn (Đã xóa cột Định lượng / suất) */}
       <div className={styles.tableWrap}>
-        {filtered.length === 0 ? (
+        {catalogLoading ? (
+          <div className={styles.empty}><p>Đang tải danh sách món ăn…</p></div>
+        ) : catalogLoadError ? (
+          <div className={styles.empty}><p>Không thể hiển thị danh sách món ăn. Vui lòng kiểm tra kết nối và thử tải lại trang.</p></div>
+        ) : filtered.length === 0 ? (
           <div className={styles.empty}>
             <p>Không tìm thấy món ăn nào phù hợp với bộ lọc.</p>
           </div>
@@ -1207,13 +1172,18 @@ export default function DishCatalogPage() {
         </div>
       )}
 
-      {/* Modal Quản lý danh sách nhóm món ăn (CRUD) */}
+      {/* Modal Xem danh sách nhóm món ăn quy chuẩn từ Database */}
       <DishCategoryModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         categories={categoryOptions}
-        onSaveCategories={handleSaveCategories}
         dishCounts={dishCounts}
+        onChanged={async () => {
+          const data = await loadDishCatalogData()
+          setCategoryOptions(data.categories)
+          setCatalog(data.items)
+          setActiveCat(current => data.categories.some(option => option.key === current) || current === "ALL" || current === "UNCLASSIFIED" ? current : "ALL")
+        }}
       />
     </div>
   )

@@ -110,16 +110,29 @@ function DailyMealSection({ dailyMeal }) {
                   </h4>
 
                   <ul className={styles.dishList}>
-                    {lunch?.dishes?.map((dish, idx) => (
-                      <li key={dish.id || idx} className={styles.dishItem}>
-                        <span className={styles.dishName}>
-                          {idx + 1}. {dish.name}
-                        </span>
-                        <span className={styles.dishPortion}>
-                          {dish.portion || NO_DATA_TEXT}
-                        </span>
-                      </li>
-                    ))}
+                    {lunch?.dishes?.map((dish, idx) => {
+                      const sub =
+                        dish.substituteDish ||
+                        dish.alternativeDish ||
+                        dish.substitute
+                      return (
+                        <li key={dish.id || idx} className={styles.dishItem}>
+                          <div className={styles.dishNameCol}>
+                            <span className={styles.dishName}>
+                              {idx + 1}. {dish.name}
+                            </span>
+                            {sub && (
+                              <span className={styles.substituteDishNote}>
+                                ({sub.name || sub})
+                              </span>
+                            )}
+                          </div>
+                          <span className={styles.dishPortion}>
+                            {dish.portion || NO_DATA_TEXT}
+                          </span>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               </div>

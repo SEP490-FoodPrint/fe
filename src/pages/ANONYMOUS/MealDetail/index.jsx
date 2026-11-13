@@ -21,10 +21,6 @@ import {
   MOCK_GRADE_BLOCKS,
   resolveSchoolGradeBlocks,
 } from "./component/mockGradeBlocks";
-import {
-  MOCK_NUTRITION_DAILY_MENU,
-  resolveDishNutritionInfo,
-} from "./component/mockNutritionMenu";
 
 import "./style.scss";
 
@@ -234,75 +230,9 @@ function MealDetail() {
   }, [weekStartDateObj, weeklyMenu?.days]);
 
   // Chuẩn bị món theo từng bữa. Dữ liệu mẫu bổ sung chi tiết theo tên món.
-  const lunchDishes = useMemo(() => {
-    const apiLunch = dailyMenu?.lunch?.dishes;
-    if (Array.isArray(apiLunch) && apiLunch.length > 0) {
-      return apiLunch.map((d) => {
-        const resolved = resolveDishNutritionInfo(d.name, "LUNCH") || {};
+  const lunchDishes = useMemo(() => (Array.isArray(dailyMenu?.lunch?.dishes) ? dailyMenu.lunch.dishes : []).map(normalizePublicDish), [dailyMenu]);
+  const snackDishes = useMemo(() => (Array.isArray(dailyMenu?.snack?.dishes) ? dailyMenu.snack.dishes : []).map(normalizePublicDish), [dailyMenu]);
 
-        const ingredientsText =
-          d.mainIngredientsText ||
-          (Array.isArray(d.ingredients) && d.ingredients.length > 0
-            ? d.ingredients.map((i) => i.name).join(", ")
-            : resolved.mainIngredientsText || "");
-
-        const normalizedPortion = formatPerServingPortion(
-          d.portion,
-          resolved.portion || "120g/suất",
-        );
-
-        return {
-          ...d,
-          portion: normalizedPortion,
-          mainIngredientsText: ingredientsText,
-          category: d.category || resolved.category || "Món ăn chính",
-          ingredients:
-            Array.isArray(d.ingredients) && d.ingredients.length > 0
-              ? d.ingredients
-              : resolved.ingredients || [],
-          alternativeDish: resolved.alternativeDish || null,
-        };
-      });
-    }
-    // Nếu API thiếu danh sách bữa trưa, hiển thị thực đơn mẫu.
-    return MOCK_NUTRITION_DAILY_MENU.lunch.dishes;
-  }, [dailyMenu]);
-
-  const snackDishes = useMemo(() => {
-    const apiSnack = dailyMenu?.snack?.dishes;
-    if (Array.isArray(apiSnack) && apiSnack.length > 0) {
-      return apiSnack.map((d) => {
-        const resolved = resolveDishNutritionInfo(d.name, "AFTERNOON") || {};
-
-        const ingredientsText =
-          d.mainIngredientsText ||
-          (Array.isArray(d.ingredients) && d.ingredients.length > 0
-            ? d.ingredients.map((i) => i.name).join(", ")
-            : resolved.mainIngredientsText || "");
-
-        const normalizedPortion = formatPerServingPortion(
-          d.portion,
-          resolved.portion || "100g/suất",
-        );
-
-        return {
-          ...d,
-          portion: normalizedPortion,
-          mainIngredientsText: ingredientsText,
-          category: d.category || resolved.category || "Bữa phụ dinh dưỡng",
-          ingredients:
-            Array.isArray(d.ingredients) && d.ingredients.length > 0
-              ? d.ingredients
-              : resolved.ingredients || [],
-          alternativeDish: resolved.alternativeDish || null,
-        };
-      });
-    }
-    // Nếu API thiếu danh sách bữa phụ, hiển thị thực đơn mẫu.
-    return MOCK_NUTRITION_DAILY_MENU.snack.dishes;
-  }, [dailyMenu]);
-
-  // Cùng một modal nhận món được bấm trong bảng, gồm cả món thay thế.
   const handleOpenDishModal = (dish) => {
     if (!dish) return;
     setModalDish(dish);
@@ -461,4 +391,9 @@ function formatPerServingPortion(portionStr, defaultPortion) {
     return `${trimmed}/suất`;
   }
   return trimmed;
+}
+
+function normalizePublicDish(dish) {
+  const ingredients = Array.isArray(dish.ingredients) ? dish.ingredients : [];
+  return {...dish,portion:formatPerServingPortion(dish.portion,"Ch\u01b0a c\u00f3 \u0111\u1ecbnh l\u01b0\u1ee3ng"),ingredients,mainIngredientsText:dish.mainIngredientsText || ingredients.map(i=>i.name).filter(Boolean).join(", "),alternativeDish:dish.alternativeDish || null};
 }

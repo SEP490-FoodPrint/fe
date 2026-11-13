@@ -4,34 +4,7 @@ import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
 import ROUTER from "src/router/ROUTER"
 import styles from "./HealthAllergyByClass.module.scss"
 
-const ALLERGY_DATA = [
-  {
-    id: "ca-1a",
-    className: "Lớp 1A — Khối 1",
-    allergyType: "Giáp xác & Đậu phộng",
-    casesCount: 4,
-  },
-  {
-    id: "ca-2b",
-    className: "Lớp 2B — Khối 2",
-    allergyType: "Tôm sú, cua biển",
-    casesCount: 5,
-  },
-  {
-    id: "ca-3c",
-    className: "Lớp 3C — Khối 3",
-    allergyType: "Giáp xác & Mực tươi",
-    casesCount: 4,
-  },
-  {
-    id: "ca-4d",
-    className: "Lớp 4D — Khối 4",
-    allergyType: "Trứng gà & Sữa bò",
-    casesCount: 2,
-  },
-]
-
-export default function HealthAllergyByClass() {
+export default function HealthAllergyByClass({classList = [], loading = false, error = ""}) {
   const navigate = useNavigate()
 
   const handleViewAllergy = () => {
@@ -57,7 +30,10 @@ export default function HealthAllergyByClass() {
 
         {/* List of Classes */}
         <div className={styles.allergyList}>
-          {ALLERGY_DATA.map((item) => (
+          {loading && <p role="status">Đang tải hồ sơ dị ứng…</p>}
+          {error && <p role="alert">{error}</p>}
+          {!loading && !error && classList.length===0 && <p>Chưa có ghi nhận dị ứng trong dữ liệu của trường.</p>}
+          {classList.slice(0,4).map((item) => (
             <div
               key={item.id}
               className={styles.allergyItem}
@@ -73,11 +49,11 @@ export default function HealthAllergyByClass() {
             >
               <div className={styles.itemLeft}>
                 <span className={styles.className}>{item.className}</span>
-                <span className={styles.allergyType}>{item.allergyType}</span>
+                <span className={styles.allergyType}>{item.allergies.map(line=>`${line.ingredientName}: ${line.affectedCount}`).join("; ")}</span>
               </div>
 
               <div className={styles.caseBadge}>
-                <span>{item.casesCount} ca</span>
+                <span>{item.allergies.length} nguyên liệu</span>
               </div>
             </div>
           ))}

@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Eye, X, Edit3, ArrowUpRight } from "lucide-react"
-import { get24hRetainedStatus, formatSampleDateTime } from "../mockSamplesData"
+import { get24hRetainedStatus, formatSampleDateTime } from "../retainedStatusHelper"
 import styles from "./KitchenSamplesTable.module.scss"
 
 export default function KitchenSamplesTable({

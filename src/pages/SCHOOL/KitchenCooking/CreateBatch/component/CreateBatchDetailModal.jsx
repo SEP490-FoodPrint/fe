@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -8,19 +8,25 @@ import {
 } from "@mui/material";
 import {
   X,
-  Check,
   CookingPot,
-  Layers,
-  Users,
-  Clock,
-  ArrowRight,
+  Check,
   CheckCircle2,
   Flame,
   ShieldCheck,
-  Calendar,
+  Clock,
+  ArrowRight,
+  FlaskConical,
 } from "lucide-react";
 import styles from "./CreateBatchDetailModal.module.scss";
 
+/**
+ * CreateBatchDetailModal - Popup Xem chi tiết lô chế biến
+ * Đồng bộ 100% với layout của Phương án phân lô:
+ * - Nguyên liệu chính (Tên + Mã lô nguồn bên dưới + Định lượng xuất kho)
+ * - Gia vị định mức tính chính xác theo số suất ăn của lô
+ * - Badge trạng thái mẻ nấu theo từng giai đoạn
+ * - Nút hành động tương ứng theo trạng thái
+ */
 export default function CreateBatchDetailModal({
   open,
   onClose,
@@ -35,28 +41,62 @@ export default function CreateBatchDetailModal({
   onViewBatchDetail,
 }) {
   const currentItem = item || batch || dish;
-  if (!currentItem) return null;
-
-  const batchCode = currentItem.batchCode || currentItem.code || "";
-  const isCreated = Boolean(currentItem.isBatchCreated || batchCode);
-  const status = currentItem.status || (isCreated ? "UNCONFIRMED" : "PENDING");
-  const ingredients = currentItem.ingredients || currentItem.cookingBatchLots || [];
 
   const mealLabel =
-    currentItem.mealType === "afternoon" || currentItem.mealType === "AFTERNOON"
+    currentItem?.mealType === "afternoon" || currentItem?.mealType === "AFTERNOON"
       ? "Bữa xế"
       : "Bữa trưa";
 
-  const portions =
-    currentItem.portionStandard ??
-    currentItem.plannedPortions ??
-    currentItem.portions ??
-    0;
+  const portions = Number(
+    currentItem?.portionStandard ??
+    currentItem?.plannedPortions ??
+    currentItem?.portions ??
+    0
+  );
 
-  const modeLabel =
-    currentItem.cookingModeApplied === "SEPARATE_BY_LOT"
-      ? "Nấu riêng theo lô"
-      : "Nấu chung mẻ";
+  const batchCode = currentItem?.batchCode || currentItem?.code || "";
+  const isCreated = Boolean(currentItem?.isBatchCreated || batchCode);
+  const status = currentItem?.status || (isCreated ? "UNCONFIRMED" : "PENDING");
+
+  const hasSample = Boolean(
+    (Array.isArray(currentItem?.retainedFoodSamples) && currentItem.retainedFoodSamples.length > 0) ||
+    currentItem?.retainedFoodSample ||
+    currentItem?.hasSample
+  );
+
+  const sampleData = useMemo(() => {
+    if (!currentItem) return null;
+    if (Array.isArray(currentItem.retainedFoodSamples) && currentItem.retainedFoodSamples.length > 0) {
+      return currentItem.retainedFoodSamples[0];
+    }
+    return currentItem.retainedFoodSample || null;
+  }, [currentItem]);
+
+  // Phân tách nguyên liệu chính và gia vị từ dữ liệu thực tế
+  const { mainIngredients, seasonings } = useMemo(() => {
+    if (!currentItem) return { mainIngredients: [], seasonings: [] };
+
+    const rawIngs = currentItem.ingredients || currentItem.cookingBatchLots || [];
+
+    // Danh sách nguyên liệu chính thực tế từ Database / API
+    const mains = rawIngs.map((ing, idx) => ({
+      id: ing.id || idx,
+      name: ing.name || ing.dishName || ing.ingredientName || "Nguyên liệu",
+      lotCode: ing.lotCode || ing.code || "",
+      amount: ing.amount || (ing.quantity ? `${ing.quantity} ${ing.unit || "kg"}` : "Theo định mức"),
+    }));
+
+    // Gia vị thực tế nếu có trong dữ liệu
+    const rawSeasonings = currentItem.seasonings || currentItem.mealSeasonings || [];
+    const seasonList = rawSeasonings.map((s, idx) => ({
+      id: s.id || idx,
+      name: s.name || s.ingredientName || "Gia vị",
+      lotCode: s.lotCode || s.code || "",
+      amount: s.amount || (s.quantity ? `${s.quantity} ${s.unit || "kg"}` : "Theo định mức"),
+    }));
+
+    return { mainIngredients: mains, seasonings: seasonList };
+  }, [currentItem]);
 
   const formatTime = (iso) => {
     if (!iso) return "";
@@ -69,11 +109,20 @@ export default function CreateBatchDetailModal({
     }
   };
 
-  const hasSample = Boolean(
-    (Array.isArray(currentItem.retainedFoodSamples) && currentItem.retainedFoodSamples.length > 0) ||
-    currentItem.retainedFoodSample ||
-    currentItem.hasSample
-  );
+  const formatDate = (val) => {
+    try {
+      const d = new Date(val || new Date());
+      const pad = (n) => String(n).padStart(2, "0");
+      return !isNaN(d.getTime())
+        ? `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
+        : "";
+    } catch {
+      return "";
+    }
+  };
+
+  // Safe early exit AFTER all hooks are called
+  if (!currentItem) return null;
 
   return (
     <Dialog
@@ -84,30 +133,43 @@ export default function CreateBatchDetailModal({
       aria-labelledby="batch-detail-dialog-title"
       classes={{ paper: styles.dialogPaper }}
     >
+      {/* 1. Modal Header Tinh Gọn & Thống Nhất */}
       <DialogTitle id="batch-detail-dialog-title" className={styles.dialogTitle}>
         <div className={styles.titleLeft}>
-          <div className={styles.dishIconWrap}>
-            <CookingPot size={20} className={styles.dishIcon} />
+          <div className={styles.iconCircle}>
+            {hasSample ? (
+              <ShieldCheck size={20} />
+            ) : status === "COMPLETED" ? (
+              <CheckCircle2 size={20} />
+            ) : status === "CONFIRMED" ? (
+              <Flame size={20} />
+            ) : (
+              <CookingPot size={20} />
+            )}
           </div>
           <div className={styles.titleTextWrap}>
-            <h2 className={styles.dishHeading}>{currentItem.name || currentItem.dishName}</h2>
+            <h2 className={styles.modalHeading}>Chi tiết lô chế biến</h2>
             <div className={styles.metaRow}>
-              <span
-                className={`${styles.mealBadge} ${
-                  currentItem.mealType === "afternoon" || currentItem.mealType === "AFTERNOON"
-                    ? styles.mealAfternoon
-                    : styles.mealLunch
-                }`}
-              >
-                {mealLabel}
+              <span className={styles.dishNameText}>
+                {hasSample
+                  ? (() => {
+                      const d = formatDate(currentItem.completedAt || currentItem.createdAt || new Date());
+                      const rawName = (currentItem.name || currentItem.dishName || "")
+                        .trim()
+                        .replace(/^thức\s*ăn[:,\s-]*/i, "")
+                        .replace(/^món\s*ăn[:,\s-]*/i, "")
+                        .replace(/ngày\s*\d{1,2}\/\d{1,2}\/\d{4}/gi, "")
+                        .replace(/[•,\-:\s]+$/, "")
+                        .trim();
+                      return rawName ? `${rawName} • Ngày ${d}` : `Ngày ${d}`;
+                    })()
+                  : (currentItem.name || currentItem.dishName || "Lô chế biến")}
               </span>
               <span className={styles.dot}>•</span>
-              <span className={styles.portionsMeta}>
-                <Users size={12} />
-                <span>
-                  {Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "—"}{" "}
-                  suất
-                </span>
+              <span className={styles.mealBadge}>{mealLabel}</span>
+              <span className={styles.dot}>•</span>
+              <span className={styles.portionText}>
+                Quy mô: <strong>{Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "0"} suất</strong>
               </span>
             </div>
           </div>
@@ -125,142 +187,112 @@ export default function CreateBatchDetailModal({
       </DialogTitle>
 
       <DialogContent dividers className={styles.dialogContent}>
-        {/* Banner trạng thái theo vòng đời chế biến */}
-        {status === "COMPLETED" ? (
-          <div className={styles.statusBannerDone}>
-            <CheckCircle2 size={20} className={styles.doneIcon} />
-            <div className={styles.bannerText}>
-              <span className={styles.bannerTitle}>
-                Đã nấu xong hoàn tất
-              </span>
-              <span className={styles.bannerSubtitle}>
-                Mã lô: <strong>{batchCode}</strong>
-                {currentItem.completedAt ? ` • Xong lúc ${formatTime(currentItem.completedAt)}` : ""} — Sẵn sàng phân bổ suất ăn
-              </span>
-            </div>
+        {/* 2. Thanh Tóm Tắt Trạng Thái & Mã Lô (Balance Bar) */}
+        <div className={styles.summaryBar}>
+          <div className={styles.summaryLeft}>
+            <span className={styles.batchCodeLabel}>Mã lô:</span>
+            <span className={styles.batchCodeValue}>{batchCode || "CHƯA TẠO"}</span>
           </div>
-        ) : status === "CONFIRMED" ? (
-          <div className={styles.statusBannerCooking}>
-            <Flame size={20} className={styles.cookingIcon} />
-            <div className={styles.bannerText}>
-              <span className={styles.bannerTitle}>
-                Đang chế biến trên bếp
-              </span>
-              <span className={styles.bannerSubtitle}>
-                Mã lô: <strong>{batchCode}</strong>
-                {currentItem.confirmedAt ? ` • Bắt đầu lúc ${formatTime(currentItem.confirmedAt)}` : ""}
-              </span>
-            </div>
-          </div>
-        ) : isCreated ? (
-          <div className={styles.statusBannerCreated}>
-            <Layers size={18} className={styles.createdIcon} />
-            <div className={styles.bannerText}>
-              <span className={styles.bannerTitle}>
-                Đã khởi tạo lô chế biến
-              </span>
-              <span className={styles.bannerSubtitle}>
-                Mã lô: <strong>{batchCode || "ĐÃ TẠO"}</strong> — Chờ xác nhận và bắt đầu nấu
-              </span>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.statusBannerPending}>
-            <Clock size={18} className={styles.pendingIcon} />
-            <div className={styles.bannerText}>
-              <span className={styles.bannerTitle}>Chờ xác nhận tạo lô</span>
-              <span className={styles.bannerSubtitle}>
-                Kiểm tra định mức nguyên liệu bên dưới và bấm nút Tạo lô để bắt đầu
-              </span>
-            </div>
-          </div>
-        )}
 
-        {/* Thông tin chi tiết lô */}
-        <div className={styles.lotSummaryCard}>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Mã lô chế biến</span>
-            <span className={styles.summaryValueCode}>
-              {batchCode || "TỰ ĐỘNG SINH (CB-...)"}
-            </span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Quy mô chế biến</span>
-            <span className={styles.summaryValue}>
-              <strong>
-                {Number.isFinite(portions) ? portions.toLocaleString("vi-VN") : "0"}
-              </strong>{" "}
-              suất ăn
-            </span>
-          </div>
-          <div className={styles.summaryItem}>
-            <span className={styles.summaryLabel}>Phương thức nấu</span>
-            <span className={styles.summaryValueMode}>{modeLabel}</span>
+          <div className={styles.summaryRight}>
+            {hasSample ? (
+              <span className={styles.statusBadgeSampled}>
+                <ShieldCheck size={13} />
+                <span>Đã lưu mẫu 24h</span>
+              </span>
+            ) : status === "COMPLETED" ? (
+              <span className={styles.statusBadgeCooked}>
+                <CheckCircle2 size={13} />
+                <span>Đã nấu xong {currentItem.completedAt ? `(${formatTime(currentItem.completedAt)})` : ""}</span>
+              </span>
+            ) : status === "CONFIRMED" ? (
+              <span className={styles.statusBadgeCooking}>
+                <Flame size={13} />
+                <span>Đang nấu {currentItem.confirmedAt ? `(${formatTime(currentItem.confirmedAt)})` : ""}</span>
+              </span>
+            ) : (
+              <span className={styles.statusBadgePending}>
+                <Clock size={13} />
+                <span>Chờ nấu</span>
+              </span>
+            )}
           </div>
         </div>
 
-        {/* Thông tin mẫu lưu thực phẩm nếu đã nấu xong */}
-        {status === "COMPLETED" && (
-          <div className={styles.sampleBox}>
-            <div className={styles.sampleIconWrap}>
-              <ShieldCheck size={18} className={styles.sampleIcon} />
+        {/* 3. Khối Thông Tin Mẫu Lưu (Chỉ hiển thị khi đã lưu mẫu) */}
+        {hasSample && (
+          <div className={styles.sampleInfoCard}>
+            <div className={styles.sampleCardLeft}>
+              <FlaskConical size={18} className={styles.sampleIcon} />
+              <div className={styles.sampleDetailsWrap}>
+                <span className={styles.sampleTitle}>Thông tin niêm phong lưu mẫu thực phẩm</span>
+                <span className={styles.sampleLocationText}>
+                  Vị trí: <strong>{sampleData?.storageLocation || "Chưa cập nhật vị trí"}</strong>
+                  {sampleData?.quantity ? ` • Lượng mẫu: ${sampleData.quantity} ${sampleData.unit || "g"}` : ""}
+                </span>
+              </div>
             </div>
-            <div className={styles.sampleContent}>
-              <span className={styles.sampleTitle}>
-                {hasSample ? "Đã lưu mẫu thực phẩm 24h" : "Chờ lưu mẫu thực phẩm"}
-              </span>
-              <span className={styles.sampleDesc}>
-                {hasSample
-                  ? "Mẫu thức ăn đã được lưu vào tủ lưu chuyên dụng theo quy chuẩn ATTP."
-                  : "Cần lưu tối thiểu 100g mẫu thức ăn trong tủ lưu 24h trước khi bàn giao suất ăn."}
-              </span>
-            </div>
+            <span className={styles.safeTag}>Đạt chuẩn ATTP</span>
           </div>
         )}
 
-        {/* Danh sách nguyên liệu xuất kho */}
-        <div className={styles.ingredientsSection}>
-          <div className={styles.ingHeader}>
-            <div className={styles.ingTitleLeft}>
-              <Layers size={14} className={styles.ingIcon} />
-              <span className={styles.ingTitle}>Lô nguyên liệu xuất kho</span>
+        {/* 4. Danh Sách Nguyên Liệu Thực Tế */}
+        <div className={styles.itemsContainer}>
+          {/* Nhóm 1: Nguyên liệu chính */}
+          <div className={styles.groupSection}>
+            <div className={styles.groupHeading}>
+              <span>Nguyên liệu chính ({mainIngredients.length} loại)</span>
             </div>
-            <span className={styles.ingCountBadge}>
-              {ingredients.length.toString().padStart(2, "0")} lô
-            </span>
+            <div className={styles.itemsList}>
+              {mainIngredients.length === 0 ? (
+                <div style={{ padding: "12px 14px", color: "#94a3b8", fontSize: "13px" }}>
+                  Chưa có thông tin nguyên liệu phân bổ
+                </div>
+              ) : (
+                mainIngredients.map((item, idx) => (
+                  <div key={idx} className={styles.itemRow}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemName}>{item.name}</span>
+                      <span className={styles.itemLotCode}>
+                        Mã lô: <code>{item.lotCode || "Chờ xuất kho"}</code>
+                      </span>
+                    </div>
+                    <div className={styles.itemAmountCol}>
+                      <span className={styles.itemAmount}>{item.amount}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
 
-          {ingredients.length > 0 ? (
-            <div className={styles.ingredientsList}>
-              {ingredients.map((ing, idx) => (
-                <div key={ing.code || ing.lotCode || ing.id || idx} className={styles.ingRow}>
-                  <div className={styles.ingInfoCol}>
-                    <span className={styles.ingName}>
-                      {ing.name || ing.dishName || ing.ingredientName}
-                    </span>
-                    <span className={styles.ingLotCode}>
-                      {ing.code || ing.lotCode ? `Lô: ${ing.code || ing.lotCode}` : "Lô kho gần nhất"}
-                    </span>
+          {/* Nhóm 2: Gia vị định mức (Chỉ hiển thị nếu có dữ liệu gia vị) */}
+          {seasonings.length > 0 && (
+            <div className={styles.groupSection}>
+              <div className={styles.groupHeading}>
+                <span>Gia vị định mức ({portions} suất)</span>
+              </div>
+              <div className={styles.itemsList}>
+                {seasonings.map((item, idx) => (
+                  <div key={idx} className={styles.itemRow}>
+                    <div className={styles.itemInfo}>
+                      <span className={styles.itemName}>{item.name}</span>
+                      <span className={styles.itemLotCode}>
+                        Mã lô: <code>{item.lotCode || "Chờ xuất kho"}</code>
+                      </span>
+                    </div>
+                    <div className={styles.itemAmountCol}>
+                      <span className={styles.itemAmount}>{item.amount}</span>
+                    </div>
                   </div>
-                  <div className={styles.ingAmountCol}>
-                    <span className={styles.ingAmount}>
-                      {ing.amount ||
-                        (ing.quantity ? `${ing.quantity} ${ing.unit || "kg"}` : "Theo định mức")}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={styles.noIngredientsNotice}>
-              <span>
-                Nguyên liệu đã được phân bổ tự động theo định mức dinh dưỡng BGH duyệt.
-              </span>
+                ))}
+              </div>
             </div>
           )}
         </div>
       </DialogContent>
 
+      {/* 5. Modal Footer: Nút hành động tương ứng theo từng trạng thái */}
       <DialogActions className={styles.dialogActions}>
         <button
           type="button"
@@ -275,11 +307,11 @@ export default function CreateBatchDetailModal({
         {!isCreated && onConfirmCreate ? (
           <button
             type="button"
-            className={styles.confirmTickBtn}
+            className={styles.confirmBtn}
             onClick={() => onConfirmCreate(currentItem)}
             disabled={submitting}
           >
-            <Check size={18} className={styles.tickIcon} />
+            <Check size={17} />
             <span>{submitting ? "Đang tạo lô..." : "Xác nhận tạo lô"}</span>
           </button>
         ) : status === "UNCONFIRMED" && onConfirmCooking ? (
@@ -305,7 +337,7 @@ export default function CreateBatchDetailModal({
         ) : status === "COMPLETED" && !hasSample && onOpenSampleModal ? (
           <button
             type="button"
-            className={styles.confirmTickBtn}
+            className={styles.sampleActionBtn}
             onClick={() => {
               onClose?.();
               onOpenSampleModal(currentItem);
@@ -318,11 +350,11 @@ export default function CreateBatchDetailModal({
           onViewBatchDetail && (
             <button
               type="button"
-              className={styles.viewBatchBtn}
+              className={styles.viewFullBtn}
               onClick={() => onViewBatchDetail(currentItem)}
             >
               <span>Xem trang đầy đủ</span>
-              <ArrowRight size={16} />
+              <ArrowRight size={15} />
             </button>
           )
         )}

@@ -46,6 +46,7 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
                 >
                   {item.supplierName}
                 </button>
+                <div><small>{item.deliveryNo}</small></div>
               </td>
 
               {/* 2. Thời gian giao */}

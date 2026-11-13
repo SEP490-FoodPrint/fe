@@ -16,6 +16,7 @@ export default function CreateMenuWeeklyGrid({
   schoolDays = [],
   weeklyMeals = {},
   onOpenDayModal,
+  readOnly = false,
 }) {
   // Quản lý trạng thái đóng/mở của từng bữa ăn theo key: `${dateISO}_${mealType}`
   // Mặc định false (mở đầy đủ)
@@ -34,6 +35,8 @@ export default function CreateMenuWeeklyGrid({
       <div className={styles.weeklyGrid}>
         {schoolDays.map((sd) => {
           const dayMeals = weeklyMeals[sd.dateISO] || {}
+          const canEdit = !readOnly && !sd.isHoliday && dayMeals.canEdit !== false && dayMeals.approvalStatus !== "APPROVED" && dayMeals.weeklyStatus !== "APPROVED"
+          const openDay = mealType => { if (canEdit) onOpenDayModal(sd, mealType, "DISHES") }
           const lunchDishes = Array.isArray(dayMeals.LUNCH) ? dayMeals.LUNCH : []
           const afternoonDishes = Array.isArray(dayMeals.AFTERNOON)
             ? dayMeals.AFTERNOON
@@ -99,15 +102,15 @@ export default function CreateMenuWeeklyGrid({
                     </div>
 
                     {/* Nút + duy nhất để mở menu cho mỗi thứ */}
-                    <button
+                    {canEdit && <button
                       type="button"
                       className={styles.dayAddBtn}
-                      onClick={() => onOpenDayModal(sd, "LUNCH", "DISHES")}
+                      onClick={() => openDay("LUNCH")}
                       title={`Thêm / chỉnh sửa thực đơn ${sd.dayLabel}`}
                       aria-label="Thêm thực đơn ngày"
                     >
                       <Plus size={14} />
-                    </button>
+                    </button>}
                   </div>
 
                   <div className={styles.dayDateRow}>
@@ -167,29 +170,46 @@ export default function CreateMenuWeeklyGrid({
                       <div className={styles.collapsibleContent}>
                         {hasLunch ? (
                           <div className={styles.dishesListLunch}>
-                            {lunchDishes.map((dish, idx) => (
-                              <div
-                                key={dish.id || idx}
-                                className={styles.lunchDishRow}
-                                onClick={() =>
-                                  onOpenDayModal(sd, "LUNCH", "DISHES")
-                                }
-                                title={`Món: ${dish.name} — Bấm để chỉnh sửa`}
-                              >
-                                <div className={styles.dishLeftWrap}>
-                                  <span className={styles.dishDotLunch} />
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
+                            {lunchDishes.map((dish, idx) => {
+                              const dishKey = dish.dishId || dish.id
+                              const sub =
+                                dish.substituteDish ||
+                                dayMeals.substitutesByMeal?.LUNCH?.[dishKey] ||
+                                (dayMeals.substituteDish?.substituteForDishId === dishKey
+                                  ? dayMeals.substituteDish
+                                  : null)
+
+                              return (
+                                <div
+                                  key={dishKey || idx}
+                                  className={styles.lunchDishRow}
+                                  onClick={() =>
+                                    openDay("LUNCH")
+                                  }
+                                  title={`Món: ${dish.name} — Bấm để chỉnh sửa`}
+                                >
+                                  <div className={styles.dishCol}>
+                                    <div className={styles.dishLeftWrap}>
+                                      <span className={styles.dishDotLunch} />
+                                      <span className={styles.dishName}>
+                                        {dish.name}
+                                      </span>
+                                    </div>
+                                    {sub && (
+                                      <div className={styles.substituteDishNote}>
+                                        ({sub.name})
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              )
+                            })}
                           </div>
                         ) : (
                           <div
                             className={styles.emptySingleMealBox}
                             onClick={() =>
-                              onOpenDayModal(sd, "LUNCH", "DISHES")
+                              openDay("LUNCH")
                             }
                             title="Bấm để thêm món trưa"
                           >
@@ -244,29 +264,46 @@ export default function CreateMenuWeeklyGrid({
                       <div className={styles.collapsibleContent}>
                         {hasAfternoon ? (
                           <div className={styles.dishesListAfternoon}>
-                            {afternoonDishes.map((dish, idx) => (
-                              <div
-                                key={dish.id || idx}
-                                className={styles.afternoonDishRow}
-                                onClick={() =>
-                                  onOpenDayModal(sd, "AFTERNOON", "DISHES")
-                                }
-                                title={`Món: ${dish.name} — Bấm để chỉnh sửa`}
-                              >
-                                <div className={styles.dishLeftWrap}>
-                                  <span className={styles.dishDotAfternoon} />
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
+                            {afternoonDishes.map((dish, idx) => {
+                              const dishKey = dish.dishId || dish.id
+                              const sub =
+                                dish.substituteDish ||
+                                dayMeals.substitutesByMeal?.AFTERNOON?.[dishKey] ||
+                                (dayMeals.substituteDish?.substituteForDishId === dishKey
+                                  ? dayMeals.substituteDish
+                                  : null)
+
+                              return (
+                                <div
+                                  key={dishKey || idx}
+                                  className={styles.afternoonDishRow}
+                                  onClick={() =>
+                                    openDay("AFTERNOON")
+                                  }
+                                  title={`Món: ${dish.name} — Bấm để chỉnh sửa`}
+                                >
+                                  <div className={styles.dishCol}>
+                                    <div className={styles.dishLeftWrap}>
+                                      <span className={styles.dishDotAfternoon} />
+                                      <span className={styles.dishName}>
+                                        {dish.name}
+                                      </span>
+                                    </div>
+                                    {sub && (
+                                      <div className={styles.substituteDishNote}>
+                                        ({sub.name})
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              )
+                            })}
                           </div>
                         ) : (
                           <div
                             className={styles.emptySingleMealBoxSm}
                             onClick={() =>
-                              onOpenDayModal(sd, "AFTERNOON", "DISHES")
+                              openDay("AFTERNOON")
                             }
                             title="Bấm để thêm món xế"
                           >
@@ -326,7 +363,7 @@ export default function CreateMenuWeeklyGrid({
                                 key={s.id || idx}
                                 className={styles.seasoningDishRow}
                                 onClick={() =>
-                                  onOpenDayModal(sd, "LUNCH", "DISHES")
+                                  openDay("LUNCH")
                                 }
                                 title={`Gia vị: ${s.name}`}
                               >
@@ -343,7 +380,7 @@ export default function CreateMenuWeeklyGrid({
                           <div
                             className={styles.emptySingleMealBoxSm}
                             onClick={() =>
-                              onOpenDayModal(sd, "LUNCH", "DISHES")
+                              openDay("LUNCH")
                             }
                             title="Tự động tính từ các món ăn"
                           >

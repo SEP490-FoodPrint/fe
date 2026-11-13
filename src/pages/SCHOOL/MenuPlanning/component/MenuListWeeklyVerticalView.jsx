@@ -540,19 +540,37 @@ export default function MenuListWeeklyVerticalView({
                           {/* Danh sách món trưa (Chiều cao cố định 250px) */}
                           {hasLunch ? (
                             <div className={styles.dishesListLunch}>
-                              {lunchDishes.map((dish) => (
-                                <div
-                                  key={dish.id || dish.name}
-                                  className={styles.lunchDishRow}
-                                  onClick={() => onViewDetail(resolvedLunchMenu)}
-                                  title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
-                                >
-                                  <span className={styles.dishDotLunch} />
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
-                                </div>
-                              ))}
+                              {lunchDishes.map((dish) => {
+                                const dishKey = dish.id || dish.dishId
+                                const sub =
+                                  dish.substituteDish ||
+                                  (resolvedLunchMenu?.substituteDish?.substituteForDishId === dishKey
+                                    ? resolvedLunchMenu.substituteDish
+                                    : null)
+
+                                return (
+                                  <div
+                                    key={dishKey || dish.name}
+                                    className={styles.lunchDishRow}
+                                    onClick={() => onViewDetail(resolvedLunchMenu)}
+                                    title={`Món: ${dish.name} (Bữa trưa) — Bấm xem chi tiết`}
+                                  >
+                                    <div className={styles.dishCol}>
+                                      <div className={styles.dishLeftWrap}>
+                                        <span className={styles.dishDotLunch} />
+                                        <span className={styles.dishName}>
+                                          {dish.name}
+                                        </span>
+                                      </div>
+                                      {sub && (
+                                        <div className={styles.substituteDishNote}>
+                                          ({sub.name})
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
                           ) : (
                             <div className={styles.emptySingleMealBox}>
@@ -613,19 +631,37 @@ export default function MenuListWeeklyVerticalView({
                           {/* Danh sách món xế (Chiều cao cố định 100px) */}
                           {hasAfternoon ? (
                             <div className={styles.dishesListAfternoon}>
-                              {afternoonDishes.map((dish) => (
-                                <div
-                                  key={dish.id || dish.name}
-                                  className={styles.afternoonDishRow}
-                                  onClick={() => onViewDetail(resolvedAfternoonMenu)}
-                                  title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
-                                >
-                                  <span className={styles.dishDotAfternoon} />
-                                  <span className={styles.dishName}>
-                                    {dish.name}
-                                  </span>
-                                </div>
-                              ))}
+                              {afternoonDishes.map((dish) => {
+                                const dishKey = dish.id || dish.dishId
+                                const sub =
+                                  dish.substituteDish ||
+                                  (resolvedAfternoonMenu?.substituteDish?.substituteForDishId === dishKey
+                                    ? resolvedAfternoonMenu.substituteDish
+                                    : null)
+
+                                return (
+                                  <div
+                                    key={dishKey || dish.name}
+                                    className={styles.afternoonDishRow}
+                                    onClick={() => onViewDetail(resolvedAfternoonMenu)}
+                                    title={`Món: ${dish.name} (Bữa xế) — Bấm xem chi tiết`}
+                                  >
+                                    <div className={styles.dishCol}>
+                                      <div className={styles.dishLeftWrap}>
+                                        <span className={styles.dishDotAfternoon} />
+                                        <span className={styles.dishName}>
+                                          {dish.name}
+                                        </span>
+                                      </div>
+                                      {sub && (
+                                        <div className={styles.substituteDishNote}>
+                                          ({sub.name})
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )
+                              })}
                             </div>
                           ) : (
                             <div className={styles.emptySingleMealBoxSm}>

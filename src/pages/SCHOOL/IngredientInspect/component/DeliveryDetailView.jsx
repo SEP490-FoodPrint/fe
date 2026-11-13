@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import LotQRTraceModal from "./LotQRTraceModal"
-import { LOT_STATUS_CONFIG } from "../mockDeliveryData"
+import { LOT_STATUS_CONFIG } from "src/services/DeliveryInspectionService"
 import styles from "./DeliveryDetailView.module.scss"
 
 export default function DeliveryDetailView({
@@ -34,7 +34,7 @@ export default function DeliveryDetailView({
 
   // Kiểm tra đánh giá của Cán bộ Y tế
   const healthApproval = delivery.deliveryApprovals?.find(
-    (a) => a.roleCode === "SCHOOL_NUTRITION_OFFICER"
+    (a) => a.roleCode === delivery.currentRole
   )
 
   // Format date helper (dd/mm/yyyy)
@@ -120,7 +120,7 @@ export default function DeliveryDetailView({
   const isBeforeArrival =
     delivery.status === "CREATED" || delivery.status === "IN_TRANSIT"
   const isCancelled =
-    delivery.status === "CANCELLED" || delivery.status === "CANCELLED_MEAL"
+    delivery.status === "CANCELLED" || delivery.status === "CANCELLED_MEAL" || Boolean(delivery.cancellationNotice)
 
   return (
     <div className={styles.detailWrapper}>
@@ -152,7 +152,7 @@ export default function DeliveryDetailView({
                 title={`Đã duyệt đạt chuẩn lúc ${formatDateTime(healthApproval.decidedAt)} (Biên bản kiểm thực không thể sửa đổi)`}
               >
                 <CheckCircle2 size={15} />
-                <span>Y tế đã duyệt tiếp nhận</span>
+                <span>Bộ phận của bạn đã đồng ý</span>
               </div>
             ) : (
               <div
@@ -160,7 +160,7 @@ export default function DeliveryDetailView({
                 title={`Đã từ chối tiếp nhận lúc ${formatDateTime(healthApproval.decidedAt)} (Biên bản kiểm thực không thể sửa đổi)`}
               >
                 <XCircle size={15} />
-                <span>Y tế đã từ chối tiếp nhận</span>
+                <span>Bộ phận của bạn đã từ chối</span>
               </div>
             )
           ) : isCancelled ? (
@@ -192,6 +192,7 @@ export default function DeliveryDetailView({
               type="button"
               className={styles.approvalPrimaryBtn}
               onClick={() => onOpenApprovalModal(delivery)}
+              disabled={!delivery.canInspect}
               title="Đánh giá cảm quan và ra quyết định duyệt hoặc từ chối"
             >
               <ShieldCheck size={16} />
@@ -200,6 +201,18 @@ export default function DeliveryDetailView({
           )}
         </div>
       </div>
+
+      {delivery.cancellationNotice && <div className={styles.rejectedBanner} role="alert"><AlertTriangle size={18} /><p>{delivery.cancellationNotice}</p></div>}
+      <section className={styles.contentSection} aria-label="Kết quả kiểm tra của bốn bộ phận">
+        <div className={styles.sectionHeading}><h2 className={styles.sectionTitle}>Kết quả kiểm tra từng bộ phận</h2><span className={styles.countText}>Số lần phải giao lại của đơn: {delivery.redeliveryRequiredCount}/{delivery.redeliveryLimit}</span></div>
+        <div className={styles.tableResponsive}><table className={styles.flatTable}>
+          <thead><tr><th>Bộ phận</th><th>Người kiểm tra</th><th>Kết quả</th><th>Nhận xét</th><th>Thời gian</th></tr></thead>
+          <tbody>{(delivery.requiredRoles || []).map(role => {
+            const decision = delivery.deliveryApprovals?.find(item => item.roleCode === role.code)
+            return <tr key={role.code}><td>{role.name}</td><td>{decision?.userName || "—"}</td><td>{decision ? (decision.decision === "APPROVE" ? "Đồng ý" : "Từ chối") : "Chưa kiểm tra"}</td><td>{decision?.reason || "—"}</td><td>{formatDateTime(decision?.decidedAt)}</td></tr>
+          })}</tbody>
+        </table></div>
+      </section>
 
       {/* 2. Thanh tóm tắt thông tin chuyến giao */}
       <div className={styles.summaryBar}>
@@ -257,7 +270,7 @@ export default function DeliveryDetailView({
         <div className={styles.transitNotice}>
           <Clock size={15} className={styles.transitNoticeIcon} />
           <span>
-            Xe hàng đang trên đường vận chuyển đến trường. Cán bộ Y tế sẽ tiến hành kiểm thực (nhiệt độ thùng lạnh, cảm quan, niêm phong tem QR) ngay khi xe đến nơi.
+            Xe hàng đang trên đường vận chuyển đến trường. Bốn bộ phận sẽ kiểm tra nguyên liệu khi xe đến nơi.
           </span>
         </div>
       )}

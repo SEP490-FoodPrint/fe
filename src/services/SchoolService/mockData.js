@@ -175,8 +175,6 @@ export const MOCK_DAILY_MEAL_MENUS = {
         },
       ],
       standardsNote: "Đạt chuẩn 4 nhóm chất (Tinh bột, Đạm, Xơ, Khoáng)",
-      allergyWarning:
-        "Lưu ý: Không chứa lạc (đậu phộng), không hải sản vỏ cứng.",
     },
     snack: {
       mealType: "AFTERNOON",

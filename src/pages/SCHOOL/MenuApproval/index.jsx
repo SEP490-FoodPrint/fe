@@ -87,7 +87,7 @@ function MenuApproval() {
 
   const openDecision = type => {
     if (!canDecide || submitting) return
-    setDialog({ type })
+    setDialog({ type, submissionVersion: menu.submissionVersion })
   }
 
   const changeWeek = weekId => {
@@ -103,8 +103,8 @@ function MenuApproval() {
       const response = await MenuService.reviewMenu(
         menu.id,
         type === "approve"
-          ? { decision: "APPROVED" }
-          : { decision: "REVISION_REQUESTED", feedback: text },
+          ? { decision: "APPROVED", ...(dialog.submissionVersion ? { submissionVersion: dialog.submissionVersion } : {}) }
+          : { decision: "REVISION_REQUESTED", feedback: text, ...(dialog.submissionVersion ? { submissionVersion: dialog.submissionVersion } : {}) },
       )
       const status = response.data.weeklyStatus
       setWeeks(current =>

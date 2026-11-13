@@ -6,14 +6,6 @@ import ROUTER from "src/router/ROUTER";
 import MenuService from "src/services/MenuService";
 import KitchenService from "src/services/KitchenService";
 import { adaptBatchDetail } from "src/services/KitchenService/adapter";
-import {
-  getMockTodayProgressData,
-  resetMockTodayProgressData,
-  createMockBatchFromDish,
-  updateMockBatchStatus,
-  createMockBatchSample,
-  findMockBatchDetail,
-} from "src/services/KitchenService/mockCookingBatchesData";
 import CreateBatchSeparateHeader from "./component/CreateBatchSeparateHeader";
 import CreateBatchKanban from "../CreateBatch/component/CreateBatchKanban";
 import CreateBatchDetailModal from "../CreateBatch/component/CreateBatchDetailModal";
@@ -23,7 +15,7 @@ import styles from "./index.module.scss";
 
 /**
  * CreateBatchSeparate - Màn hình Tiến độ Chế biến Nấu riêng theo lô (Nhân viên Bếp)
- * Giao diện Kanban 4 cột theo dõi quy trình từ Tạo lô -> Chờ nấu -> Đã nấu xong -> Đã lưu mẫu
+ * Kết nối 100% API thực tế, không dùng Mock Data fallback
  */
 export default function CreateBatchSeparate() {
   const navigate = useNavigate();
@@ -106,19 +98,30 @@ export default function CreateBatchSeparate() {
         });
       }
 
-      // Xử lý các lô đã có trên backend
+      // Dữ liệu chi tiết món trong mẻ là nguồn chính; hỗ trợ cả bản ghi cũ một món.
       const formattedBatches = existingBatches.map((b) => {
-        const dishName = b.Dish?.name || b.dishName || "Món ăn";
+        const dishes = Array.isArray(b.dishes) && b.dishes.length
+          ? b.dishes
+          : b.dishId ? [{ dishId: b.dishId, name: b.Dish?.name || b.dishName, plannedPortions: b.plannedPortions }] : [];
+        const dishIds = dishes.map((dish) => dish.dishId).filter(Boolean);
+        const dishName = dishes.map((dish) => dish.name).filter(Boolean).join(", ") || b.Dish?.name || b.dishName || "";
         const mealType = String(b.mealType || "").toLowerCase() === "afternoon" ? "afternoon" : "lunch";
         const mealName = mealType === "afternoon" ? "Bữa xế" : "Bữa trưa";
         const matchedDish = allTodayDishes.find(
-          (d) => (d.dishId === b.dishId || d.id === b.dishId) && d.mealType === mealType
+          (d) => dishIds.includes(d.dishId) && d.mealType === mealType
         );
+        const lots = [
+          ...(b.cookingBatchLots || []),
+          ...dishes.flatMap((dish) => (dish.cookingBatchLots || []).map((lot) => ({ ...lot, dishId: lot.dishId || dish.dishId, dishName: dish.name }))),
+        ];
+        const uniqueLots = [...new Map(lots.map((lot) => [`${lot.dishId || ""}:${lot.ingredientLotId || lot.id}`, lot])).values()];
 
         return {
           id: b.id,
           batchCode: b.batchCode || "",
-          dishId: b.dishId,
+          dishId: dishIds[0] || null,
+          batchDishIds: dishIds,
+          dishes,
           dishName,
           name: dishName,
           mealType,
@@ -128,47 +131,41 @@ export default function CreateBatchSeparate() {
           status: b.status || "UNCONFIRMED",
           confirmedAt: b.confirmedAt,
           completedAt: b.completedAt,
-          cookingModeApplied: b.cookingModeApplied || "SEPARATE_BY_LOT",
-          retainedFoodSamples: b.RetainedFoodSample || b.retainedFoodSamples || [],
-          ingredients: (b.cookingBatchLots && b.cookingBatchLots.length > 0)
-            ? b.cookingBatchLots.map((lot, idx) => ({
+          cookingModeApplied: b.cookingModeApplied,
+          retainedFoodSamples: b.retainedFoodSamples || b.RetainedFoodSample || [],
+          ingredients: uniqueLots.length
+            ? uniqueLots.map((lot, idx) => ({
                 id: lot.ingredientLotId || idx,
-                name: lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name || lot.name || `Lô #${idx + 1}`,
+                name: lot.ingredientName || lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name || lot.name || `Lô #${idx + 1}`,
                 code: lot.IngredientLot?.lotCode || lot.lotCode || "",
                 amount: lot.quantityUsed ? `${lot.quantityUsed} ${lot.unit || "kg"}` : "",
                 quantity: lot.quantityUsed,
                 unit: lot.unit || "kg",
+                dishId: lot.dishId,
+                dishName: lot.dishName,
               }))
             : (matchedDish?.ingredients || []),
         };
       });
 
-      // Lọc các món chưa tạo lô
+      // So tổng suất đã lập theo từng món để món lập dở vẫn còn trong danh sách chờ.
       const pending = allTodayDishes.filter((dish) => {
-        const hasCreatedBatch = formattedBatches.some(
-          (b) =>
-            (b.dishId === dish.dishId || b.dishId === dish.id) &&
-            b.mealType === dish.mealType
-        );
-        return !hasCreatedBatch;
+        const planned = formattedBatches.reduce((total, batch) => {
+          if (batch.mealType !== dish.mealType) return total;
+          const dishPlan = batch.dishes?.find((item) => item.dishId === dish.dishId || item.dishId === dish.id);
+          return total + Number(dishPlan?.plannedPortions || 0);
+        }, 0);
+        return planned < Number(dish.portionStandard || 0);
       });
 
-      // Nếu dữ liệu trực tiếp chưa có thực đơn hoặc mẻ nấu hôm nay, tự động nạp mock data 4 trạng thái
-      if (pending.length === 0 && formattedBatches.length === 0) {
-        const mockData = getMockTodayProgressData();
-        setPendingDishes(mockData.pendingDishes);
-        setBatches(mockData.batches);
-      } else {
-        setPendingDishes(pending);
-        setBatches(formattedBatches);
-      }
+      setPendingDishes(pending);
+      setBatches(formattedBatches);
     } catch (err) {
-      console.warn("Lỗi tải tiến độ nấu riêng hôm nay, sử dụng dữ liệu mẫu:", err);
+      console.warn("Lỗi tải tiến độ nấu riêng hôm nay:", err);
       if (!signal?.aborted) {
-        const mockData = getMockTodayProgressData();
-        setPendingDishes(mockData.pendingDishes);
-        setBatches(mockData.batches);
-        setLoadError("");
+        setPendingDishes([]);
+        setBatches([]);
+        setLoadError(err.message || "Không thể tải tiến độ chế biến hôm nay.");
       }
     } finally {
       if (!signal?.aborted) setLoading(false);
@@ -181,88 +178,32 @@ export default function CreateBatchSeparate() {
     return () => controller.abort();
   }, [loadTodayData]);
 
-  // Khôi phục / nạp lại dữ liệu mẫu 4 trạng thái để kiểm thử
-  const handleResetMockData = () => {
-    const mockData = resetMockTodayProgressData();
-    setPendingDishes(mockData.pendingDishes);
-    setBatches(mockData.batches);
-    notice({
-      msg: "Đã nạp lại dữ liệu mẫu 4 trạng thái (Chờ tạo lô, Đã tạo lô, Đã nấu xong, Đã lưu mẫu)",
-      isSuccess: true,
-    });
-  };
-
-  // Xử lý tạo lô cho một món ăn (nấu riêng theo lô)
+  // Xử lý tạo lô cho một món ăn theo phương án nấu riêng
   const handleCreateBatchForDish = async (dishToCreate) => {
     if (!dishToCreate) return;
     setSubmittingId(dishToCreate.id);
     try {
-      let createdBatchesList = [];
-      try {
-        const mealType = String(dishToCreate.mealType || selectedMeal || "LUNCH").toUpperCase();
-        const res = await KitchenService.planBatch({
-          dishId: dishToCreate.dishId || dishToCreate.id,
-          menuDayId: dishToCreate.menuDayId,
-          mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
-        });
+      const mealType = String(dishToCreate.mealType || selectedMeal || "LUNCH").toUpperCase();
+      const res = await KitchenService.planBatch({
+        dishId: dishToCreate.dishId || dishToCreate.id,
+        menuDayId: dishToCreate.menuDayId,
+        mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
+      });
 
-        if (Array.isArray(res?.batches) && res.batches.length) {
-          createdBatchesList = res.batches.map((b) => ({
-            id: b.id,
-            batchCode: b.batchCode,
-            dishId: dishToCreate.dishId || dishToCreate.id,
-            dishName: dishToCreate.name,
-            name: dishToCreate.name,
-            mealType: dishToCreate.mealType,
-            mealName: dishToCreate.mealName,
-            portionStandard: b.plannedPortions || dishToCreate.portionStandard || 0,
-            plannedPortions: b.plannedPortions || dishToCreate.portionStandard || 0,
-            status: b.status || "CONFIRMED",
-            cookingModeApplied: "SEPARATE_BY_LOT",
-            ingredients: (b.cookingBatchLots || []).map((lot, idx) => ({
-              id: lot.ingredientLotId || idx,
-              name: lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name || lot.name || `Lô #${idx + 1}`,
-              code: lot.IngredientLot?.lotCode || lot.lotCode || "",
-              amount: lot.quantityUsed ? `${lot.quantityUsed} ${lot.unit || "kg"}` : "",
-              quantity: lot.quantityUsed,
-              unit: lot.unit || "kg",
-            })),
-            createdAt: new Date().toISOString(),
-          }));
-        }
-      } catch (apiErr) {
-        console.warn("API planBatch không khả dụng, sử dụng bộ sinh lô mẫu:", apiErr);
+      if (!Array.isArray(res?.batches)) {
+        throw new Error("Không thể tạo phương án lô riêng cho món ăn này từ nguyên liệu hiện có.");
       }
-
-      // Nếu API không trả về lô (chế độ mock/offline), tạo lô giả lập hoàn chỉnh
-      if (!createdBatchesList.length) {
-        const mockBatch = createMockBatchFromDish(dishToCreate, "SEPARATE_BY_LOT");
-        if (mockBatch) createdBatchesList = [mockBatch];
-      }
-
-      if (!createdBatchesList.length) {
-        throw new Error("Không thể tạo phương án lô cho món ăn này.");
-      }
-
-      const dishCode = createdBatchesList.map((b) => b.batchCode).join(", ");
-
-      // Bỏ món khỏi danh sách chờ tạo lô
-      setPendingDishes((prev) =>
-        prev.filter((d) => d.id !== dishToCreate.id && d.dishId !== dishToCreate.dishId)
-      );
-
-      // Thêm các lô mới vào cột Đã tạo lô
-      setBatches((prev) => [...createdBatchesList, ...prev.filter((b) => !createdBatchesList.some((nb) => nb.id === b.id))]);
+      await loadTodayData();
 
       notice({
-        msg: `Đã tạo lô ${dishToCreate.name} (${dishCode})`,
+        msg: "Đã đồng bộ các mẻ con theo cấu hình nấu riêng của BGH.",
         isSuccess: true,
       });
 
       setIsModalOpen(false);
     } catch (err) {
       notice({
-        msg: err.message || "Không thể tạo lô chế biến. Vui lòng kiểm tra lại nguyên liệu.",
+        msg: err.message || "Không thể tạo lô riêng. Vui lòng kiểm tra lại nguyên liệu.",
         isSuccess: false,
       });
     } finally {
@@ -275,12 +216,7 @@ export default function CreateBatchSeparate() {
     if (!batch?.id) return;
     setActionLoadingId(batch.id);
     try {
-      try {
-        await KitchenService.confirmBatch(batch.id);
-      } catch (apiErr) {
-        console.warn("API confirmBatch không khả dụng, xác nhận nội bộ:", apiErr);
-        updateMockBatchStatus(batch.id, "CONFIRMED");
-      }
+      await KitchenService.confirmBatch(batch.id);
       const nowISO = new Date().toISOString();
       setBatches((prev) =>
         prev.map((b) => (b.id === batch.id ? { ...b, status: "CONFIRMED", confirmedAt: nowISO } : b))
@@ -307,12 +243,7 @@ export default function CreateBatchSeparate() {
     if (!batch?.id) return;
     setActionLoadingId(batch.id);
     try {
-      try {
-        await KitchenService.completeBatch(batch.id);
-      } catch (apiErr) {
-        console.warn("API completeBatch không khả dụng, ghi nhận nấu xong nội bộ:", apiErr);
-        updateMockBatchStatus(batch.id, "COMPLETED");
-      }
+      await KitchenService.completeBatch(batch.id);
       const nowISO = new Date().toISOString();
       setBatches((prev) =>
         prev.map((b) => (b.id === batch.id ? { ...b, status: "COMPLETED", completedAt: nowISO } : b))
@@ -334,7 +265,7 @@ export default function CreateBatchSeparate() {
     }
   };
 
-  // Mở Popup phương án phân bổ lô chế biến trước khi tạo (Nấu riêng theo lô)
+  // Mở Popup phương án phân bổ lô chế biến trước khi tạo
   const handleOpenPlanModal = (dish) => {
     setDishToPlan(dish);
     setIsPlanModalOpen(true);
@@ -351,12 +282,7 @@ export default function CreateBatchSeparate() {
     if (!sampleBatch?.id) return;
     setSampleLoading(true);
     try {
-      try {
-        await KitchenService.createBatchSample(sampleBatch.id, samplePayload);
-      } catch (apiErr) {
-        console.warn("API createBatchSample không khả dụng, lưu mẫu nội bộ:", apiErr);
-        createMockBatchSample(sampleBatch.id, samplePayload);
-      }
+      await KitchenService.createBatchSample(sampleBatch.id, samplePayload);
       setBatches((prev) =>
         prev.map((b) =>
           b.id === sampleBatch.id
@@ -414,21 +340,8 @@ export default function CreateBatchSeparate() {
               : prev
           );
         }
-      } catch {
-        // Fallback sang tìm mock detail nếu có
-        const mockDetail = findMockBatchDetail(item.id);
-        if (mockDetail) {
-          setSelectedItem((prev) =>
-            prev?.id === item.id
-              ? {
-                  ...prev,
-                  ...mockDetail,
-                  ingredients: mockDetail.ingredients || prev.ingredients,
-                  cookingBatchLots: mockDetail.cookingBatchLots || prev.cookingBatchLots,
-                }
-              : prev
-          );
-        }
+      } catch (err) {
+        console.warn("Không thể tải chi tiết lô từ API:", err);
       }
     }
   };
@@ -448,8 +361,7 @@ export default function CreateBatchSeparate() {
         {/* Header Bar */}
         <CreateBatchSeparateHeader
           title="Tiến độ chế biến"
-          subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày (Nấu riêng theo lô)"
-          onResetMock={handleResetMockData}
+          subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
         />
 
         {loadError ? (
@@ -471,16 +383,9 @@ export default function CreateBatchSeparate() {
               Chưa có thực đơn được duyệt cho ngày hôm nay
             </h3>
             <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">
-              Hệ thống không tìm thấy món ăn nào thuộc thực đơn đã duyệt. Bạn có thể nạp dữ liệu mẫu để trải nghiệm quy trình chế biến 4 trạng thái.
+              Hệ thống không tìm thấy món ăn nào thuộc thực đơn đã duyệt hôm nay. Vui lòng kiểm tra lại thực đơn trường học hoặc quay lại sau.
             </p>
             <div style={{ display: "flex", justifyContent: "center", gap: 12 }}>
-              <button
-                type="button"
-                className="px-5 py-2.5 bg-emerald-700 text-white rounded-lg text-sm font-medium hover:bg-emerald-800 transition cursor-pointer"
-                onClick={handleResetMockData}
-              >
-                Nạp dữ liệu mẫu 4 bước
-              </button>
               <button
                 type="button"
                 className="px-5 py-2.5 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition cursor-pointer"
@@ -505,7 +410,6 @@ export default function CreateBatchSeparate() {
             onViewBatchDetail={handleViewFullPage}
             submittingId={submittingId}
             actionLoadingId={actionLoadingId}
-            onResetMock={handleResetMockData}
           />
         )}
 
@@ -522,7 +426,7 @@ export default function CreateBatchSeparate() {
           onViewBatchDetail={handleViewFullPage}
         />
 
-        {/* Modal xem trước phương án phân bổ lô trước khi xác nhận tạo (Nấu riêng theo lô) */}
+        {/* Modal xem trước phương án phân bổ lô riêng trước khi xác nhận tạo */}
         <BatchPlanModal
           open={isPlanModalOpen}
           onClose={() => {

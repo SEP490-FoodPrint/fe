@@ -11,7 +11,7 @@ export default function MenuDetailAllergyCard({ menu }) {
       <div className={styles.safeBanner}>
         <span className="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span>
         <span className={styles.safeText}>
-          Không có học sinh ghi nhận tiền sử dị ứng trong ca ăn này — 100% sử dụng suất ăn tiêu chuẩn.
+          Chưa có phương án suất ăn riêng được lưu cho bữa này. Xem kết quả đối soát dị ứng tại từng món.
         </span>
       </div>
     )
@@ -42,7 +42,7 @@ export default function MenuDetailAllergyCard({ menu }) {
           <div className={styles.subTitleWrap}>
             <span className="material-symbols-outlined text-[18px] text-[#0a8066]">restaurant</span>
             <span className={styles.subTitle}>Món ăn thay thế:</span>
-            <strong className={styles.subName}>{substitute?.name || "Món ăn thay thế"}</strong>
+            <strong className={styles.subName}>({substitute?.name || "Món ăn thay thế"})</strong>
           </div>
         </div>
 

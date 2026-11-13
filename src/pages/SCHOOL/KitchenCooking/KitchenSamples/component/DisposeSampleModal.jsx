@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
 import { X, Trash2, AlertTriangle, Check, Clock } from "lucide-react"
-import { formatSampleDateTime } from "../mockSamplesData"
+import { formatSampleDateTime } from "../retainedStatusHelper"
 import styles from "./DisposeSampleModal.module.scss"
 
 export default function DisposeSampleModal({

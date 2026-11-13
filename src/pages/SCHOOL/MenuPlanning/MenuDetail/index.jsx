@@ -6,7 +6,7 @@ import ROUTER from "src/router/ROUTER"
 import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
 import { apiMenuDetail } from "src/services/MenuService/urls"
-import { parseDateVNToISO, menuWeekMeals } from "src/services/MenuService/adapter"
+import { parseDateVNToISO, menuWeekMeals, adaptBackendMenuDetailToView } from "src/services/MenuService/adapter"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
 import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
@@ -50,19 +50,15 @@ export default function MenuDetail() {
       weeklyId = id.split("_")[0]
     }
     try {
-      const [detailRes, rawWeeklyRes] = await Promise.all([
-        MenuService.getMenuDetail(id),
-        http.get(apiMenuDetail(weeklyId), { notifyOnError: false }).catch(() => null),
-      ])
-      if (detailRes?.data) {
-        setMenu(detailRes.data)
-      }
-      if (rawWeeklyRes?.data) {
-        setRawWeeklyMenu(rawWeeklyRes.data)
-      }
+      const response = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false })
+      if (!response?.data?.id) throw new Error("Không tải được đầy đủ thực đơn tuần.")
+      const parts = id.split("_")
+      setRawWeeklyMenu(response.data)
+      setMenu(adaptBackendMenuDetailToView(response.data, parts[1] || null, parts[2] || "LUNCH"))
     } catch (err) {
       setLoadError(err.message || "Không thể tải thông tin chi tiết thực đơn.")
       setMenu(null)
+      setRawWeeklyMenu(null)
     } finally {
       setLoading(false)
     }
@@ -102,6 +98,7 @@ export default function MenuDetail() {
       const found = days.find((d) => d.date === dateISO || d.menuDayId === menu.menuDayId)
       if (found) {
         return {
+          ...found,
           LUNCH: found.meals?.LUNCH?.dishes || [],
           AFTERNOON: found.meals?.AFTERNOON?.dishes || [],
           seasonings: Array.isArray(found.seasonings) ? found.seasonings : [],
@@ -117,7 +114,7 @@ export default function MenuDetail() {
       name: d.name,
       ingredientIds: d.ingredientIds || [],
       ingredientStandards: d.ingredientStandards || [],
-      portionQty: d.portionQty || 50,
+      portionQty: d.portionQty ?? "",
       unit: d.unit || "g",
     }))
     const currentSeasonings = Array.isArray(menu.seasonings) ? menu.seasonings : []
@@ -134,148 +131,18 @@ export default function MenuDetail() {
 
   // Lưu chỉnh sửa từ Popup trực tiếp lên Backend
   const handleSaveDay = async (updatedDay) => {
-    setIsEditModalOpen(false)
-    let weeklyId = menu.weeklyMenuId || menu.id
-    if (typeof id === "string" && id.includes("_")) {
-      weeklyId = id.split("_")[0]
-    }
-
+    const submit = menu.status === "PENDING_APPROVAL" || rawWeeklyMenu?.status === "PENDING_APPROVAL"
     try {
-      if (rawWeeklyMenu && Array.isArray(rawWeeklyMenu.menuDays)) {
-        const targetDateISO = updatedDay.dateISO
-
-        const days = rawWeeklyMenu.menuDays.map((day) => {
-          const dayDateISO =
-            typeof day.menuDate === "string"
-              ? day.menuDate.slice(0, 10)
-              : new Date(day.menuDate).toISOString().slice(0, 10)
-
-          if (dayDateISO === targetDateISO) {
-            const lunchDishes = (updatedDay.LUNCH || [])
-              .filter((d) => (d.name || "").trim().length > 0)
-              .map((d) => ({
-                ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
-                ingredients: Array.isArray(d.ingredientStandards)
-                  ? d.ingredientStandards
-                  : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((ingId) => ({
-                      ingredientId: ingId,
-                      quantityPerPortion: String(d.portionQty || 50),
-                      unit: (d.unit || "g").trim().toLowerCase(),
-                    })),
-              }))
-
-            const afternoonDishes = (updatedDay.AFTERNOON || [])
-              .filter((d) => (d.name || "").trim().length > 0)
-              .map((d) => ({
-                ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
-                ingredients: Array.isArray(d.ingredientStandards)
-                  ? d.ingredientStandards
-                  : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((ingId) => ({
-                      ingredientId: ingId,
-                      quantityPerPortion: String(d.portionQty || 50),
-                      unit: (d.unit || "g").trim().toLowerCase(),
-                    })),
-              }))
-
-            const meals = []
-            for (const [mealType, mealDishes] of [
-              ["LUNCH", lunchDishes],
-              ["AFTERNOON", afternoonDishes],
-            ]) {
-              if (!mealDishes.length) continue
-              const rows =
-                updatedDay.seasoningsByMeal?.[mealType] ||
-                (mealType === "LUNCH" ? updatedDay.seasonings || [] : [])
-              const pGroups = updatedDay.portionGroupsByMeal?.[mealType]
-              meals.push({
-                mealType,
-                dishes: mealDishes,
-                ...(pGroups?.length ? { portionGroups: pGroups } : {}),
-                seasonings: rows.map((s) => ({
-                  ingredientEntryId: s.ingredientEntryId || s.id,
-                  quantityPerPortion: String(s.quantityPerPortion ?? s.portionQty),
-                  unit: s.unit,
-                })),
-              })
-            }
-
-            return {
-              menuDate: dayDateISO,
-              note: day.note || null,
-              meals,
-            }
-          }
-
-          // Ngày khác giữ nguyên
-          const meals = [...new Set((day.menuDayDishes || []).map((d) => d.mealType))].map(
-            (mealType) => {
-              const dishes = (day.menuDayDishes || [])
-                .filter((d) => d.mealType === mealType)
-                .map((d) => ({
-                  dishId: d.dishId,
-                  ingredients: (d.ingredients || []).map((line) => ({
-                    ingredientId: line.ingredientId,
-                    quantityPerPortion: String(line.quantityPerPortion),
-                    unit: line.unit,
-                  })),
-                }))
-
-              const seasonings = (day.mealSeasonings || [])
-                .filter((s) => s.mealType === mealType)
-                .map((s) => ({
-                  ingredientEntryId: s.ingredientEntryId,
-                  quantityPerPortion: String(s.quantityPerPortion),
-                  unit: s.unit,
-                }))
-
-              return {
-                mealType,
-                dishes,
-                seasonings,
-              }
-            }
-          )
-
-          return {
-            menuDate: dayDateISO,
-            note: day.note || null,
-            meals,
-          }
-        })
-
-        const payload = {
-          weekStartDate:
-            typeof rawWeeklyMenu.weekStartDate === "string"
-              ? rawWeeklyMenu.weekStartDate.slice(0, 10)
-              : new Date(rawWeeklyMenu.weekStartDate).toISOString().slice(0, 10),
-          title: rawWeeklyMenu.title || rawWeeklyMenu.name,
-          days,
-        }
-
-        await http.put(apiMenuDetail(weeklyId), payload, { notifyOnError: false })
-      } else {
-        await MenuService.updateMenu(id, {
-          formState: {
-            name: menu.name,
-            date: menu.date,
-            mealType: menu.mealType,
-            notes: menu.notes,
-          },
-          dishes: menu.mealType === "AFTERNOON" ? updatedDay.AFTERNOON : updatedDay.LUNCH,
-          seasonings:
-            updatedDay.seasoningsByMeal?.[menu.mealType] || updatedDay.seasonings || [],
-        })
-      }
-
-      MenuService.invalidateMenuCache()
-      showToast("Đã lưu chỉnh sửa thực đơn thành công!", "success")
+      await MenuService.saveMenuDay(menu.weeklyMenuId || id, updatedDay, { submit })
+      setIsEditModalOpen(false)
+      showToast(submit ? "Đã lưu và gửi BGH duyệt lại" : "Đã lưu chỉnh sửa thực đơn", "success")
       await fetchDetail()
     } catch (err) {
       showToast(err.message || "Không thể lưu cập nhật thực đơn.", "warning")
+      throw err
     }
   }
 
-  // Xử lý gửi BGH duyệt từ trang chi tiết
   const handleConfirmSubmit = async () => {
     setIsConfirmSubmitOpen(false)
     const targetId = menu.weeklyMenuId || menu.id
@@ -352,7 +219,7 @@ export default function MenuDetail() {
       </div>
 
       {/* Modal Popup Chỉnh sửa thực đơn ngày (50/50: Preview + Chọn món & Gia vị) */}
-      {isEditModalOpen && (
+      {isEditModalOpen && rawWeeklyMenu && rawWeeklyMenu.status !== "APPROVED" && menu.status !== "APPROVED" && dayMeals?.canEdit !== false && (
         <CreateMenuDayModal
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
@@ -360,6 +227,7 @@ export default function MenuDetail() {
           dayMenu={dayMeals}
           initialMealType={menu.mealType || "LUNCH"}
           onSaveDay={handleSaveDay}
+          submitText={menu.status === "PENDING_APPROVAL" || rawWeeklyMenu.status === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Lưu thay đổi"}
         />
       )}
 

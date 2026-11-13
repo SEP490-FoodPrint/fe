@@ -9,7 +9,7 @@ import {
   Trash2,
   ArrowUpRight,
 } from "lucide-react"
-import { get24hRetainedStatus, formatSampleDateTime } from "../mockSamplesData"
+import { get24hRetainedStatus, formatSampleDateTime } from "../retainedStatusHelper"
 import styles from "./SampleDetailModal.module.scss"
 
 export default function SampleDetailModal({

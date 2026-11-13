@@ -5,7 +5,7 @@ import styles from "./MenuDetailDishesTable.module.scss"
 import MenuService from "src/services/MenuService"
 import { getDishAllergyState } from "src/services/MenuService/adapter"
 
-export default function MenuDetailDishesTable({ dishes = [] }) {
+export default function MenuDetailDishesTable({ dishes = [], substituteDish = null }) {
   const ingredientKey = useMemo(() => [...new Set((Array.isArray(dishes) ? dishes : []).flatMap((dish) =>
     dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || [],
   ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(","), [dishes])
@@ -90,6 +90,20 @@ export default function MenuDetailDishesTable({ dishes = [] }) {
                   {/* Tên món */}
                   <td className={styles.tdDish}>
                     <span className={styles.dishName}>{dish.name}</span>
+                    {(() => {
+                      const dishKey = dish.dishId || dish.id
+                      const sub =
+                        dish.substituteDish ||
+                        (substituteDish?.substituteForDishId === dishKey
+                          ? substituteDish
+                          : null)
+                      if (!sub) return null
+                      return (
+                        <div className={styles.substituteDishNote}>
+                          ({sub.name})
+                        </div>
+                      )
+                    })()}
                   </td>
 
                   {/* Định lượng nguyên liệu / suất */}

@@ -1,5 +1,6 @@
 import http from "../01_axios";
 import STORAGE, { getStorage } from "src/lib/storage";
+import { dishIngredientIds, previewMealRecipe } from "../DishService";
 import {
   apiMenus,
   apiMenuDetail,
@@ -15,6 +16,7 @@ import {
   adaptBackendMenuDetailToView,
   adaptFormToBackendWrite,
   mergeMenuMealWrite,
+  mergeMenuDayWrite,
   menuWeekMeals,
   SCHOOL_DAY_LABELS,
   parseDateVNToISO,
@@ -23,6 +25,54 @@ import {
 const weekScheduleCache = new Map();
 const weekScheduleRequests = new Map();
 const WEEK_SCHEDULE_CACHE_MS = 15000;
+
+// Allergy inspection must still run when a legacy recipe cannot be aggregated.
+export async function inspectMenuMealSelection({ dishes, seasonings = [], refreshRecipe = false }) {
+  const selected = [...new Map(dishes.map(dish => [dish.dishId || dish.id, dish])).values()];
+  if (!selected.length) {
+    return { allergies: { hasConflict: false, conflicts: [] }, seasonings: [], issues: [] };
+  }
+  let ingredientIds = [...new Set([
+    ...selected.flatMap(dishIngredientIds),
+    ...(!refreshRecipe ? seasonings.map(line => line.ingredientId) : []),
+  ].filter(Boolean))];
+  const [preview, check] = await Promise.allSettled([
+    refreshRecipe ? previewMealRecipe(selected.map(dish => dish.dishId || dish.id)) : Promise.resolve(null),
+    ingredientIds.length ? MenuService.checkAllergies(ingredientIds) : Promise.resolve(null),
+  ]);
+  const issues = [];
+  let allergies = check.status === "fulfilled" ? check.value?.data ?? null : null;
+  const recipe = preview.status === "fulfilled" ? preview.value : null;
+  if (preview.status === "rejected") {
+    issues.push(`Chưa tổng hợp được định lượng: ${preview.reason?.message || "Vui lòng kiểm tra công thức món."}`);
+  }
+  if (Array.isArray(recipe?.ingredientIds) && recipe.ingredientIds.length) {
+    const combined = [...new Set([...ingredientIds, ...recipe.ingredientIds])];
+    // A database preview may contain identities missing from an older catalog response.
+    if (combined.length !== ingredientIds.length) {
+      ingredientIds = combined;
+      try {
+        allergies = (await MenuService.checkAllergies(ingredientIds)).data;
+      } catch (error) {
+        allergies = null;
+        issues.push(`Chưa kiểm tra được dị ứng: ${error.message || "Vui lòng thử lại."}`);
+      }
+    } else if (check.status === "rejected") {
+      issues.push(`Chưa kiểm tra được dị ứng: ${check.reason?.message || "Vui lòng thử lại."}`);
+    }
+    seasonings = (recipe.seasonings || []).map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.quantityPerPortion }));
+  } else {
+    if (check.status === "rejected") {
+      issues.push(`Chưa kiểm tra được dị ứng: ${check.reason?.message || "Vui lòng thử lại."}`);
+    }
+    const missing = selected.filter(dish => !dishIngredientIds(dish).length);
+    if (missing.length) {
+      issues.push(`Chưa đủ dữ liệu nguyên liệu để kiểm tra dị ứng: ${missing.map(dish => dish.name || "Món chưa có công thức").join(", ")}.`);
+    }
+  }
+  return { allergies, seasonings, issues };
+}
+
 let weekScheduleGeneration = 0;
 export const invalidateWeekScheduleCache = () => {
   weekScheduleGeneration += 1;
@@ -317,6 +367,18 @@ const MenuService = {
   /**
    * Cập nhật thực đơn
    */
+  saveMenuDay: async (id, day, { submit = false } = {}) => {
+    const weeklyId = id.split("_")[0];
+    const snapshotResponse = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false });
+    const payload = mergeMenuDayWrite(snapshotResponse?.data, day);
+    const response = submit
+      ? await http.post(`${apiMenuDetail(weeklyId)}/revise-and-submit`, payload, { notifyOnError: false })
+      : await http.put(apiMenuDetail(weeklyId), payload, { notifyOnError: false });
+    invalidateWeekScheduleCache();
+    invalidateMenuListCache();
+    return response;
+  },
+
   updateMenu: async (id, { formState, dishes, substituteDish, seasonings }) => {
     let weeklyId = id;
     if (typeof id === "string" && id.includes("_")) {

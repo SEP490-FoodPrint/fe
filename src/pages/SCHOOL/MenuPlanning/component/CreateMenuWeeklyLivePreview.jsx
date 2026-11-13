@@ -95,16 +95,33 @@ export default function CreateMenuWeeklyLivePreview({
                       <span>(Click để thêm)</span>
                     </div>
                   ) : (
-                    lunchDishes.map((dish, idx) => (
-                      <div key={dish.id || idx} className={styles.dishItem}>
-                        <span className={styles.dishNameText} title={dish.name}>
-                          {dish.name}
-                        </span>
-                        <span className={styles.dishQtyText}>
-                          {dish.portionQty}{dish.unit || "g"}
-                        </span>
-                      </div>
-                    ))
+                    lunchDishes.map((dish, idx) => {
+                      const dishKey = dish.dishId || dish.id
+                      const sub =
+                        dish.substituteDish ||
+                        dayData.substitutesByMeal?.LUNCH?.[dishKey] ||
+                        (dayData.substituteDish?.substituteForDishId === dishKey
+                          ? dayData.substituteDish
+                          : null)
+
+                      return (
+                        <div key={dishKey || idx} className={styles.dishItem}>
+                          <div className={styles.dishNameCol}>
+                            <span className={styles.dishNameText} title={dish.name}>
+                              {dish.name}
+                            </span>
+                            {sub && (
+                              <span className={styles.substituteDishNote}>
+                                ({sub.name})
+                              </span>
+                            )}
+                          </div>
+                          <span className={styles.dishQtyText}>
+                            {dish.portionQty}{dish.unit || "g"}
+                          </span>
+                        </div>
+                      )
+                    })
                   )}
                 </div>
               </div>
@@ -138,16 +155,33 @@ export default function CreateMenuWeeklyLivePreview({
                       <span>(Click để thêm)</span>
                     </div>
                   ) : (
-                    afternoonDishes.map((dish, idx) => (
-                      <div key={dish.id || idx} className={styles.dishItem}>
-                        <span className={styles.dishNameText} title={dish.name}>
-                          {dish.name}
-                        </span>
-                        <span className={styles.dishQtyText}>
-                          {dish.portionQty}{dish.unit || "g"}
-                        </span>
-                      </div>
-                    ))
+                    afternoonDishes.map((dish, idx) => {
+                      const dishKey = dish.dishId || dish.id
+                      const sub =
+                        dish.substituteDish ||
+                        dayData.substitutesByMeal?.AFTERNOON?.[dishKey] ||
+                        (dayData.substituteDish?.substituteForDishId === dishKey
+                          ? dayData.substituteDish
+                          : null)
+
+                      return (
+                        <div key={dishKey || idx} className={styles.dishItem}>
+                          <div className={styles.dishNameCol}>
+                            <span className={styles.dishNameText} title={dish.name}>
+                              {dish.name}
+                            </span>
+                            {sub && (
+                              <span className={styles.substituteDishNote}>
+                                ({sub.name})
+                              </span>
+                            )}
+                          </div>
+                          <span className={styles.dishQtyText}>
+                            {dish.portionQty}{dish.unit || "g"}
+                          </span>
+                        </div>
+                      )
+                    })
                   )}
                 </div>
               </div>

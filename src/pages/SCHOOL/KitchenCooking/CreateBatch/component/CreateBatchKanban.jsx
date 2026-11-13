@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import PropTypes from "prop-types";
 import {
   Calendar,
   Clock,
@@ -11,16 +12,15 @@ import {
   Plus,
   ShieldCheck,
   FlaskConical,
-  RotateCcw,
 } from "lucide-react";
 import styles from "./CreateBatchKanban.module.scss";
 
 /**
- * CreateBatchKanban - Bảng Kanban 4 cột:
+ * CreateBatchKanban - Bảng Tiến độ chế biến 4 cột chuẩn FoodPrint (Không dùng ảnh):
  * 1. Chờ tạo lô (Thẻ tinh gọn: Tên món + Nút Tạo lô, không tag thừa)
- * 2. Đã tạo lô (Chờ nấu) -> Nút "Nấu xong"
- * 3. Đã nấu xong (Chờ lưu mẫu) -> Nút "Lưu mẫu" (mở form nhập lưu mẫu)
- * 4. Đã lưu mẫu (Hoàn tất 24h) -> Icon mắt xem chi tiết
+ * 2. Đã tạo lô (Chờ nấu) -> Nút "Chi tiết" đen trắng không viền + Nút "Nấu xong"
+ * 3. Đã nấu xong (Chờ lưu mẫu) -> Nút "Chi tiết" đen trắng không viền + Nút "Lưu mẫu"
+ * 4. Đã lưu mẫu (Hoàn tất 24h) -> Nút "Xem chi tiết lô" đen trắng không viền
  */
 export default function CreateBatchKanban({
   dishes = [],
@@ -34,7 +34,6 @@ export default function CreateBatchKanban({
   onCompleteCooking,
   submittingId = null,
   actionLoadingId = null,
-  onResetMock,
 }) {
   const today = new Date();
   const dayNames = [
@@ -51,6 +50,43 @@ export default function CreateBatchKanban({
   const mm = String(today.getMonth() + 1).padStart(2, "0");
   const yyyy = today.getFullYear();
   const todayDateStr = `${dayOfWeek}, ${dd}/${mm}/${yyyy}`;
+
+  // Hàm hiển thị tiêu đề thẻ lưu mẫu: "Ngày dd/mm/yyyy" (bỏ chữ thức ăn theo yêu cầu)
+  const getSampledFoodTitle = (batch) => {
+    const rawDate =
+      batch.sampledAt ||
+      batch.retainedFoodSample?.sampledAt ||
+      batch.retainedFoodSamples?.[0]?.sampledAt ||
+      batch.completedAt ||
+      batch.createdAt;
+    let dateStr = "";
+    if (rawDate) {
+      try {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          dateStr = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+        }
+      } catch {
+        // ignore
+      }
+    }
+    if (!dateStr) {
+      dateStr = `${dd}/${mm}/${yyyy}`;
+    }
+
+    const rawName = (batch.name || batch.dishName || "").trim();
+    const cleanName = rawName
+      .replace(/^thức\s*ăn[:,\s-]*/i, "")
+      .replace(/^món\s*ăn[:,\s-]*/i, "")
+      .replace(/ngày\s*\d{1,2}\/\d{1,2}\/\d{4}/gi, "")
+      .replace(/[•,\-:\s]+$/, "")
+      .trim();
+
+    if (!cleanName) {
+      return `Ngày ${dateStr}`;
+    }
+    return `${cleanName} • Ngày ${dateStr}`;
+  };
 
   // Chuẩn hóa danh sách pending dishes và batches
   const effectivePendingDishes = useMemo(() => {
@@ -150,25 +186,36 @@ export default function CreateBatchKanban({
 
   return (
     <div className={styles.kanbanWrapper}>
-      {/* 1. Dải thông tin phiên nấu hôm nay (Session Bar) */}
+      {/* 1. Dải thông tin phiên nấu hôm nay & Bộ lọc (Compact Session Toolbar) */}
       <div className={styles.sessionBar}>
-        <div className={styles.sessionItem}>
-          <div className={styles.sessionItemHeader}>
-            <Calendar size={13} className={styles.sessionIcon} />
-            <span className={styles.sessionLabel}>Ngày chế biến</span>
-          </div>
-          <div className={styles.sessionValRow}>
-            <span className={styles.sessionVal}>{todayDateStr}</span>
+        <div className={styles.sessionMetaGroup}>
+          {/* Ngày chế biến */}
+          <div className={styles.metaItem}>
+            <Calendar size={15} className={styles.metaIcon} />
+            <span className={styles.metaDateText}>{todayDateStr}</span>
             <span className={styles.todayBadge}>Hôm nay</span>
+          </div>
+
+          <div className={styles.metaDivider} aria-hidden="true" />
+
+          {/* Số suất ăn dự kiến */}
+          <div className={styles.metaItem}>
+            <Users size={15} className={styles.metaIcon} />
+            <span className={styles.metaLabelText}>Dự kiến:</span>
+            <span className={styles.portionVal}>
+              {Number.isFinite(totalPortions) ? totalPortions.toLocaleString("vi-VN") : "—"}
+            </span>
+            <span className={styles.unitText}>suất</span>
+            <span className={styles.lockBadge} title="Số liệu đồng bộ từ điểm danh học sinh">
+              Điểm danh
+            </span>
           </div>
         </div>
 
-        <div className={styles.sessionItem}>
-          <div className={styles.sessionItemHeader}>
-            <Clock size={13} className={styles.sessionIcon} />
-            <span className={styles.sessionLabel}>Bữa ăn</span>
-          </div>
+        {/* Bộ lọc Bữa ăn (Filter Control bên phải) */}
+        <div className={styles.filterControl}>
           <div className={styles.selectWrapper}>
+            <Clock size={14} className={styles.selectIcon} />
             <select
               className={styles.selectInput}
               value={selectedMeal}
@@ -176,40 +223,12 @@ export default function CreateBatchKanban({
               aria-label="Chọn bữa ăn"
             >
               <option value="all">Tất cả bữa ăn</option>
-              <option value="lunch">Bữa trưa học đường (11:00)</option>
-              <option value="afternoon">Bữa xế chiều (14:30)</option>
+              <option value="lunch">Bữa trưa (11:00)</option>
+              <option value="afternoon">Bữa xế (14:30)</option>
             </select>
             <ChevronDown size={14} className={styles.selectArrow} aria-hidden="true" />
           </div>
         </div>
-
-        <div className={styles.sessionItem}>
-          <div className={styles.sessionItemHeader}>
-            <Users size={13} className={styles.sessionIcon} />
-            <span className={styles.sessionLabel}>Số suất ăn dự kiến</span>
-          </div>
-          <div className={styles.sessionValRow}>
-            <span className={styles.portionVal}>
-              {Number.isFinite(totalPortions) ? totalPortions.toLocaleString("vi-VN") : "—"}{" "}
-              <span className={styles.unitText}>suất</span>
-            </span>
-            <span className={styles.lockBadge}>Điểm danh</span>
-          </div>
-        </div>
-
-        {onResetMock && (
-          <div className={styles.sessionItemMock}>
-            <button
-              type="button"
-              className={styles.resetMockPill}
-              onClick={onResetMock}
-              title="Khôi phục lại dữ liệu mẫu 4 trạng thái để kiểm thử"
-            >
-              <RotateCcw size={13} />
-              <span>Nạp lại mẫu 4 bước</span>
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Thông báo nếu đã hoàn thành và lưu mẫu toàn bộ */}
@@ -224,30 +243,21 @@ export default function CreateBatchKanban({
               Tất cả {colSampled.length} lô chế biến đã nấu xong, niêm phong lưu mẫu 24h đầy đủ và sẵn sàng phân bổ suất ăn cho các lớp.
             </span>
           </div>
-          {onResetMock && (
-            <button
-              type="button"
-              className={styles.allDoneResetBtn}
-              onClick={onResetMock}
-              title="Nạp lại dữ liệu mẫu để thử nghiệm quy trình từ đầu"
-            >
-              <RotateCcw size={14} />
-              <span>Thử lại từ đầu</span>
-            </button>
-          )}
         </div>
       )}
 
-      {/* 2. Bảng Kanban 4 cột: Chờ tạo lô -> Đã tạo lô -> Đã nấu xong -> Đã lưu mẫu */}
+      {/* 2. Bảng Kanban 4 cột */}
       <div className={styles.kanbanColumns}>
-        {/* CỘT 1: CHỜ TẠO LÔ (Thẻ tinh gọn: chỉ Tên món + Nút Tạo lô) */}
-        <div className={styles.columnPending}>
+        {/* ========================================================= */}
+        {/* CỘT 1: CHỜ TẠO LÔ                                         */}
+        {/* ========================================================= */}
+        <div className={styles.columnWrapper}>
           <div className={styles.columnHeader}>
             <div className={styles.colTitleLeft}>
               <span className={styles.colIndicatorPending} />
               <h2 className={styles.colTitle}>Chờ tạo lô</h2>
             </div>
-            <span className={styles.colCountPending}>
+            <span className={styles.colCountBadge}>
               {colPending.length} món
             </span>
           </div>
@@ -263,37 +273,38 @@ export default function CreateBatchKanban({
             ) : (
               colPending.map((dish) => {
                 const isSubmitting = submittingId === dish.id;
-                const mealBadgeClass =
-                  dish.mealType === "afternoon" || dish.mealType === "AFTERNOON"
-                    ? styles.mealAfternoon
-                    : styles.mealLunch;
                 const mealLabel =
                   dish.mealType === "afternoon" || dish.mealType === "AFTERNOON"
                     ? "Bữa xế"
                     : "Bữa trưa";
+                const isAfternoon =
+                  dish.mealType === "afternoon" || dish.mealType === "AFTERNOON";
 
                 return (
                   <article
                     key={dish.id}
-                    className={styles.dishCardPendingClean}
+                    className={styles.dishCard}
                     onClick={() => onOpenPlanModal?.(dish)}
                     tabIndex={0}
                     role="button"
                     aria-label={`Món ${dish.name}, bấm để xem phương án phân lô`}
                   >
-                    <div className={styles.cleanCardTop}>
-                      <span className={`${styles.mealChip} ${mealBadgeClass}`}>
+                    <div className={styles.cardHeaderRow}>
+                      <span
+                        className={`${styles.mealChip} ${
+                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
+                        }`}
+                      >
                         {mealLabel}
                       </span>
                     </div>
 
-                    <h3 className={styles.dishTitleClean}>{dish.name}</h3>
-
-                    <div className={styles.cleanCardBottom}>
-                      {/* Nút Tạo lô: Mở popup xem trước phương án phân lô theo yêu cầu */}
+                    {/* Nút Tạo nằm cùng hàng với Tên món ăn */}
+                    <div className={styles.dishTitleRow}>
+                      <h3 className={styles.dishCardTitle}>{dish.name}</h3>
                       <button
                         type="button"
-                        className={styles.primaryCreateBtn}
+                        className={styles.primaryCreateBtnCompact}
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenPlanModal?.(dish);
@@ -302,8 +313,8 @@ export default function CreateBatchKanban({
                         title="Bấm để xem phương án phân lô nguyên liệu"
                         aria-label={`Tạo lô cho ${dish.name}`}
                       >
-                        <Plus size={15} />
-                        <span>{isSubmitting ? "Đang xử lý..." : "Tạo lô"}</span>
+                        <Plus size={13} />
+                        <span>{isSubmitting ? "Đang xử lý..." : "Tạo"}</span>
                       </button>
                     </div>
                   </article>
@@ -313,14 +324,16 @@ export default function CreateBatchKanban({
           </div>
         </div>
 
-        {/* CỘT 2: ĐÃ TẠO LÔ (Chờ nấu -> Nút Nấu xong) */}
-        <div className={styles.columnCreated}>
+        {/* ========================================================= */}
+        {/* CỘT 2: ĐÃ TẠO LÔ (Chờ nấu)                                */}
+        {/* ========================================================= */}
+        <div className={styles.columnWrapper}>
           <div className={styles.columnHeader}>
             <div className={styles.colTitleLeft}>
               <span className={styles.colIndicatorCreated} />
               <h2 className={styles.colTitle}>Đã tạo lô</h2>
             </div>
-            <span className={styles.colCountCreated}>
+            <span className={styles.colCountBadge}>
               {colCreated.length} lô
             </span>
           </div>
@@ -335,49 +348,55 @@ export default function CreateBatchKanban({
               </div>
             ) : (
               colCreated.map((batch) => {
-                const mealBadgeClass =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
-                    ? styles.mealAfternoon
-                    : styles.mealLunch;
                 const mealLabel =
                   batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
                     ? "Bữa xế"
                     : "Bữa trưa";
+                const isAfternoon =
+                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON";
                 const isActing = actionLoadingId === batch.id;
 
                 return (
                   <article
                     key={batch.id}
-                    className={styles.dishCardCreated}
+                    className={styles.dishCard}
                     onClick={() => onOpenDetail?.(batch)}
                     tabIndex={0}
                     role="button"
                     aria-label={`Lô ${batch.batchCode}, món ${batch.name || batch.dishName}`}
                   >
                     <div className={styles.cardHeaderRow}>
-                      <span className={`${styles.mealChip} ${mealBadgeClass}`}>
+                      <span
+                        className={`${styles.mealChip} ${
+                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
+                        }`}
+                      >
                         {mealLabel}
                       </span>
-                      <span className={styles.statusCreatedBadge}>
+                      <span className={styles.statusWaitingCook}>
                         Chờ nấu
                       </span>
                     </div>
 
-                    <h3 className={styles.dishTitle}>{batch.name || batch.dishName}</h3>
+                    <h3 className={styles.dishCardTitle}>
+                      {batch.name || batch.dishName}
+                    </h3>
 
-                    <div className={styles.lotCodeWrap}>
-                      <span className={styles.lotCodeText}>
+                    <div className={styles.batchMetaBox}>
+                      <span className={styles.batchCodeText}>
                         {batch.batchCode || "LÔ CHẾ BIẾN"}
                       </span>
-                      <span className={styles.portionsInline}>
+                      <span className={styles.batchMetaDot}>•</span>
+                      <span className={styles.batchPortionsText}>
                         {batch.portionStandard || batch.plannedPortions || "—"} suất
                       </span>
                     </div>
 
                     <div className={styles.cardBottomRow}>
+                      {/* Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG */}
                       <button
                         type="button"
-                        className={styles.iconEyeBtn}
+                        className={styles.ghostDetailBtn}
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenDetail?.(batch);
@@ -385,11 +404,11 @@ export default function CreateBatchKanban({
                         title="Xem chi tiết lô"
                         aria-label={`Xem chi tiết lô ${batch.batchCode}`}
                       >
-                        <Eye size={15} />
+                        <Eye size={15} strokeWidth={1.75} />
                         <span>Chi tiết</span>
                       </button>
 
-                      {/* Nút Nấu xong chuyển sang Cột 3 */}
+                      {/* Nút Nấu xong */}
                       <button
                         type="button"
                         className={styles.cookCompleteBtn}
@@ -401,7 +420,7 @@ export default function CreateBatchKanban({
                         title="Ghi nhận mẻ này đã nấu xong"
                         aria-label={`Nấu xong lô ${batch.batchCode}`}
                       >
-                        <CheckCircle2 size={14} />
+                        <CookingPot size={14} />
                         <span>{isActing ? "Đang xử lý..." : "Nấu xong"}</span>
                       </button>
                     </div>
@@ -412,14 +431,16 @@ export default function CreateBatchKanban({
           </div>
         </div>
 
-        {/* CỘT 3: ĐÃ NẤU XONG (Chờ lưu mẫu -> Nút Lưu mẫu) */}
-        <div className={styles.columnCooked}>
+        {/* ========================================================= */}
+        {/* CỘT 3: ĐÃ NẤU XONG (Chờ lưu mẫu)                          */}
+        {/* ========================================================= */}
+        <div className={styles.columnWrapper}>
           <div className={styles.columnHeader}>
             <div className={styles.colTitleLeft}>
               <span className={styles.colIndicatorCooked} />
               <h2 className={styles.colTitle}>Đã nấu xong</h2>
             </div>
-            <span className={styles.colCountCooked}>
+            <span className={styles.colCountBadge}>
               {colCooked.length} lô
             </span>
           </div>
@@ -434,50 +455,62 @@ export default function CreateBatchKanban({
               </div>
             ) : (
               colCooked.map((batch) => {
-                const mealBadgeClass =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
-                    ? styles.mealAfternoon
-                    : styles.mealLunch;
                 const mealLabel =
                   batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
                     ? "Bữa xế"
                     : "Bữa trưa";
+                const isAfternoon =
+                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON";
 
                 return (
                   <article
                     key={batch.id}
-                    className={styles.dishCardCooked}
+                    className={styles.dishCard}
                     onClick={() => onOpenDetail?.(batch)}
                     tabIndex={0}
                     role="button"
                     aria-label={`Lô đã nấu xong ${batch.batchCode}`}
                   >
                     <div className={styles.cardHeaderRow}>
-                      <span className={`${styles.mealChip} ${mealBadgeClass}`}>
+                      <span
+                        className={`${styles.mealChip} ${
+                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
+                        }`}
+                      >
                         {mealLabel}
                       </span>
-                      <span className={styles.statusWaitSampleBadge}>
+                      <span className={styles.statusWaitingSample}>
                         Chờ lưu mẫu
                       </span>
                     </div>
 
-                    <h3 className={styles.dishTitleCooked}>{batch.name || batch.dishName}</h3>
+                    <h3 className={styles.dishCardTitle}>
+                      {batch.name || batch.dishName}
+                    </h3>
 
-                    <div className={styles.lotCodeWrap}>
-                      <span className={styles.lotCodeTextCooked}>
+                    <div className={styles.batchMetaBox}>
+                      <span className={styles.batchCodeText}>
                         {batch.batchCode || "LÔ CHẾ BIẾN"}
                       </span>
+                      <span className={styles.batchMetaDot}>•</span>
+                      <span className={styles.batchPortionsText}>
+                        {batch.portionStandard || batch.plannedPortions || "—"} suất
+                      </span>
                       {batch.completedAt && (
-                        <span className={styles.completedTimeText}>
-                          Xong {formatTime(batch.completedAt)}
-                        </span>
+                        <>
+                          <span className={styles.batchMetaDot}>•</span>
+                          <span className={styles.completedTimeText}>
+                            Xong {formatTime(batch.completedAt)}
+                          </span>
+                        </>
                       )}
                     </div>
 
                     <div className={styles.cardBottomRow}>
+                      {/* Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG */}
                       <button
                         type="button"
-                        className={styles.iconEyeBtn}
+                        className={styles.ghostDetailBtn}
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenDetail?.(batch);
@@ -485,7 +518,7 @@ export default function CreateBatchKanban({
                         title="Xem chi tiết lô"
                         aria-label={`Xem chi tiết lô ${batch.batchCode}`}
                       >
-                        <Eye size={15} />
+                        <Eye size={15} strokeWidth={1.75} />
                         <span>Chi tiết</span>
                       </button>
 
@@ -511,14 +544,16 @@ export default function CreateBatchKanban({
           </div>
         </div>
 
-        {/* CỘT 4: ĐÃ LƯU MẪU (Hoàn tất quy trình 24h) */}
-        <div className={styles.columnSampled}>
+        {/* ========================================================= */}
+        {/* CỘT 4: ĐÃ LƯU MẪU (Hoàn tất 24h)                          */}
+        {/* ========================================================= */}
+        <div className={styles.columnWrapper}>
           <div className={styles.columnHeader}>
             <div className={styles.colTitleLeft}>
               <span className={styles.colIndicatorSampled} />
               <h2 className={styles.colTitle}>Đã lưu mẫu</h2>
             </div>
-            <span className={styles.colCountSampled}>
+            <span className={styles.colCountBadge}>
               {colSampled.length} lô
             </span>
           </div>
@@ -533,51 +568,64 @@ export default function CreateBatchKanban({
               </div>
             ) : (
               colSampled.map((batch) => {
-                const mealBadgeClass =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
-                    ? styles.mealAfternoon
-                    : styles.mealLunch;
                 const mealLabel =
                   batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
                     ? "Bữa xế"
                     : "Bữa trưa";
+                const isAfternoon =
+                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON";
 
                 return (
                   <article
                     key={batch.id}
-                    className={styles.dishCardSampled}
+                    className={styles.dishCard}
                     onClick={() => onOpenDetail?.(batch)}
                     tabIndex={0}
                     role="button"
                     aria-label={`Lô đã lưu mẫu ${batch.batchCode}`}
                   >
                     <div className={styles.cardHeaderRow}>
-                      <span className={`${styles.mealChip} ${mealBadgeClass}`}>
+                      <span
+                        className={`${styles.mealChip} ${
+                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
+                        }`}
+                      >
                         {mealLabel}
                       </span>
-                      <span className={styles.statusSampledBadge}>
+                      <span className={styles.statusSampled}>
                         <ShieldCheck size={12} />
                         <span>Đã lưu mẫu 24h</span>
                       </span>
                     </div>
 
-                    <h3 className={styles.dishTitleSampled}>{batch.name || batch.dishName}</h3>
+                    {/* Bỏ chữ món ăn đi, thay vào đó là Thức ăn, ngày ... */}
+                    <h3 className={styles.dishCardTitle}>
+                      {getSampledFoodTitle(batch)}
+                    </h3>
 
-                    <div className={styles.lotCodeWrap}>
-                      <span className={styles.lotCodeTextSampled}>
+                    <div className={styles.batchMetaBox}>
+                      <span className={styles.batchCodeText}>
                         {batch.batchCode || "LÔ CHẾ BIẾN"}
                       </span>
+                      <span className={styles.batchMetaDot}>•</span>
+                      <span className={styles.batchPortionsText}>
+                        {batch.portionStandard || batch.plannedPortions || "—"} suất
+                      </span>
                       {batch.completedAt && (
-                        <span className={styles.completedTimeText}>
-                          Xong {formatTime(batch.completedAt)}
-                        </span>
+                        <>
+                          <span className={styles.batchMetaDot}>•</span>
+                          <span className={styles.completedTimeText}>
+                            Xong {formatTime(batch.completedAt)}
+                          </span>
+                        </>
                       )}
                     </div>
 
                     <div className={styles.cardBottomRow}>
+                      {/* Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG */}
                       <button
                         type="button"
-                        className={styles.viewDetailEyeBtn}
+                        className={styles.ghostDetailBtnFull}
                         onClick={(e) => {
                           e.stopPropagation();
                           onOpenDetail?.(batch);
@@ -585,7 +633,7 @@ export default function CreateBatchKanban({
                         title="Bấm để xem chi tiết lô và phiếu lưu mẫu"
                         aria-label={`Xem chi tiết lô ${batch.batchCode}`}
                       >
-                        <Eye size={15} />
+                        <Eye size={15} strokeWidth={1.75} />
                         <span>Xem chi tiết lô</span>
                       </button>
                     </div>
@@ -599,3 +647,17 @@ export default function CreateBatchKanban({
     </div>
   );
 }
+
+CreateBatchKanban.propTypes = {
+  dishes: PropTypes.arrayOf(PropTypes.object),
+  pendingDishes: PropTypes.arrayOf(PropTypes.object),
+  batches: PropTypes.arrayOf(PropTypes.object),
+  selectedMeal: PropTypes.string,
+  onSelectMeal: PropTypes.func,
+  onOpenDetail: PropTypes.func,
+  onOpenPlanModal: PropTypes.func,
+  onOpenSampleModal: PropTypes.func,
+  onCompleteCooking: PropTypes.func,
+  submittingId: PropTypes.string,
+  actionLoadingId: PropTypes.string,
+};

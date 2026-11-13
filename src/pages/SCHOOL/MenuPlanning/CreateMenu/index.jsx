@@ -22,6 +22,7 @@ import {
   formatDateVN,
   getSchoolWeekScheduleFromDate,
   menuWeekMeals,
+  menuDayWrite,
 } from "src/services/MenuService/adapter"
 
 import CreateMenuHeader from "../component/CreateMenuHeader"
@@ -30,8 +31,10 @@ import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
 
 import CreateMenuWeeklyGrid from "./CreateMenuWeeklyGrid"
 import CreateMenuDayModal from "./CreateMenuDayModal"
+import MenuAllergyReport from "../component/MenuAllergyReport"
 
 export default function CreateMenu() {
+  const [allergyReport, setAllergyReport] = useState(null)
   const navigate = useNavigate()
   const location = useLocation()
   const initialDate = location.state?.initialDate
@@ -75,22 +78,14 @@ export default function CreateMenu() {
   // Danh mục 5 khối lớp chuẩn tiểu học
   const GRADE_OPTIONS = useMemo(
     () => [
-      { id: "grade-1", label: "Khối 1" },
-      { id: "grade-2", label: "Khối 2" },
-      { id: "grade-3", label: "Khối 3" },
-      { id: "grade-4", label: "Khối 4" },
-      { id: "grade-5", label: "Khối 5" },
+      { id: "school", label: "Toàn trường" },
     ],
     []
   )
 
   // Mặc định chọn tất cả các khối
   const [selectedGrades, setSelectedGrades] = useState([
-    "grade-1",
-    "grade-2",
-    "grade-3",
-    "grade-4",
-    "grade-5",
+    "school",
   ])
   const [isGradeDropdownOpen, setIsGradeDropdownOpen] = useState(false)
   const gradeDropdownRef = useRef(null)
@@ -99,7 +94,7 @@ export default function CreateMenu() {
   const targetScopeText = useMemo(() => {
     if (selectedGrades.length === 0) return ""
     if (selectedGrades.length === GRADE_OPTIONS.length) {
-      return "Tất cả các khối (Khối 1 - 5)"
+      return "Toàn trường"
     }
     return GRADE_OPTIONS.filter((g) => selectedGrades.includes(g.id))
       .map((g) => g.label)
@@ -159,6 +154,9 @@ export default function CreateMenu() {
   // 3. Dữ liệu thực đơn của cả tuần (5 ngày x 2 ca + gia vị của ngày)
   const [weeklyMeals, setWeeklyMeals] = useState({})
   const [loadingSchedule, setLoadingSchedule] = useState(false)
+  const [scheduleError, setScheduleError] = useState("")
+  const [saving, setSaving] = useState(false)
+  const saveLock = useRef(false)
 
   // 4. Modal Chi tiết Ngày (50/50: Nửa trái Preview ngày, Nửa phải Chọn món & Nhập gia vị)
   const [dayModalState, setDayModalState] = useState({
@@ -190,6 +188,9 @@ export default function CreateMenu() {
     if (!weekStart) return
 
     setLoadingSchedule(true)
+    setScheduleError("")
+    setWeeklyMeals({})
+    setDayModalState(prev => ({ ...prev, isOpen: false }))
     setAcademicWeek(null)
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
@@ -197,16 +198,20 @@ export default function CreateMenu() {
       .then((res) => {
         if (!active) return
         setAcademicWeek(res.data)
+        if (res.data.weeklyMenuTitle) setMenuTitle(res.data.weeklyMenuTitle)
         const days = res?.data?.days || []
         const mapped = {}
         days.forEach((day) => {
           if (day.date) {
             mapped[day.date] = {
+              ...day,
               LUNCH: day.meals?.LUNCH?.dishes || [],
               AFTERNOON: day.meals?.AFTERNOON?.dishes || [],
               seasonings: Array.isArray(day.seasonings) ? day.seasonings : [],
               seasoningsByMeal: day.seasoningsByMeal || { LUNCH: [], AFTERNOON: [] },
               portionGroupsByMeal: day.portionGroupsByMeal || {},
+              substituteDish: day.substituteDish || null,
+              substitutesByMeal: day.substitutesByMeal || { LUNCH: {}, AFTERNOON: {} },
             }
           }
         })
@@ -224,6 +229,7 @@ export default function CreateMenu() {
         setWeeklyMeals(mapped)
       })
       .catch((err) => {
+        if (active) setScheduleError(err.message)
         console.warn("Lỗi tải lịch thực đơn tuần:", err)
       })
       .finally(() => {
@@ -252,13 +258,15 @@ export default function CreateMenu() {
 
   // Mở Popup Modal Chi tiết ngày (50/50)
   const handleOpenDayModal = useCallback((dayData, mealType = "LUNCH", tab = "DISHES") => {
+    const stored = weeklyMeals[dayData.dateISO]
+    if (loadingSchedule || scheduleError || saving || dayData.isHoliday || academicWeek?.weeklyMenuStatus === "APPROVED" || stored?.canEdit === false || stored?.approvalStatus === "APPROVED") return
     setDayModalState({
       isOpen: true,
       dayData,
       mealType,
       tab,
     })
-  }, [])
+  }, [weeklyMeals, loadingSchedule, scheduleError, academicWeek, saving])
 
   const handleCloseDayModal = useCallback(() => {
     setDayModalState((prev) => ({ ...prev, isOpen: false }))
@@ -266,7 +274,24 @@ export default function CreateMenu() {
 
   // Cập nhật dữ liệu từ DayModal vào weeklyMeals
   const handleSaveDayFromModal = useCallback(
-    ({ dateISO, LUNCH, AFTERNOON, seasonings, seasoningsByMeal, useDishRecipes, portionGroupsByMeal }) => {
+    async ({
+      dateISO,
+      LUNCH,
+      AFTERNOON,
+      seasonings,
+      seasoningsByMeal,
+      useDishRecipes,
+      portionGroupsByMeal,
+      substituteDish,
+      substitutesByMeal,
+    }) => {
+      const stored = weeklyMeals[dateISO]
+      if (stored?.canEdit === false || stored?.approvalStatus === "APPROVED" || academicWeek?.weeklyMenuStatus === "APPROVED") throw new Error("Thực đơn đã duyệt chỉ được xem.")
+      if (academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
+        await MenuService.saveMenuDay(academicWeek.weeklyMenuId, { dateISO, LUNCH, AFTERNOON, seasonings, seasoningsByMeal, useDishRecipes, portionGroupsByMeal, substituteDish, substitutesByMeal }, { submit: true })
+        navigate(ROUTER.SCHOOL_MENU_PLANNING)
+        return
+      }
       setWeeklyMeals((prev) => ({
         ...prev,
         [dateISO]: {
@@ -277,11 +302,13 @@ export default function CreateMenu() {
           seasoningsByMeal,
           useDishRecipes,
           portionGroupsByMeal,
+          substituteDish,
+          substitutesByMeal,
         },
       }))
-      showToast("Đã cập nhật thực đơn cho ngày thành công", "success")
+      showToast("Đã cập nhật ngày trong bản soạn thảo. Bấm Lưu hoặc Gửi BGH để ghi nhận.", "success")
     },
-    []
+    [weeklyMeals, academicWeek, navigate]
   )
 
   // Thống kê tổng số món của cả tuần
@@ -404,7 +431,7 @@ export default function CreateMenu() {
       let copiedCount = 0
 
       schoolDays.forEach((sd, index) => {
-        if (sd.isHoliday) return
+        if (sd.isHoliday || weeklyMeals[sd.dateISO]?.canEdit === false || weeklyMeals[sd.dateISO]?.approvalStatus === "APPROVED") return
 
         const srcDay =
           sourceDays[index] ||
@@ -435,12 +462,16 @@ export default function CreateMenu() {
           : { LUNCH: [], AFTERNOON: [] }
 
         newWeeklyMeals[sd.dateISO] = {
+          ...weeklyMeals[sd.dateISO],
           LUNCH: lunchDishes,
           AFTERNOON: afternoonDishes,
           seasonings,
           seasoningsByMeal,
-          portionGroupsByMeal: srcDay.portionGroupsByMeal || {},
-          useDishRecipes: srcDay.useDishRecipes,
+          portionGroupsByMeal: Object.fromEntries(Object.entries(srcDay.portionGroupsByMeal || {}).map(([mealType, groups]) => [mealType, groups.map(({ id, ...group }) => group)])),
+          persistedMeals: undefined,
+          useDishRecipes: true,
+          substitutesByMeal: srcDay.substitutesByMeal || { LUNCH: {}, AFTERNOON: {} },
+          substituteDish: srcDay.substituteDish || null,
         }
 
         copiedCount += lunchDishes.length + afternoonDishes.length
@@ -474,60 +505,17 @@ export default function CreateMenu() {
   }
 
   // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
-  const buildWeeklyMenuPayload = () => {
-    const weekStartDate = schoolDays[0]?.dateISO
-    const days = []
+  const buildWeeklyMenuPayload = () => ({
+    weekStartDate: schoolDays[0]?.dateISO,
+    title: menuTitle.trim(),
+    days: schoolDays.flatMap(sd => {
+      const day = weeklyMeals[sd.dateISO]
+      if (!day) return []
+      const payload = menuDayWrite({ ...day, dateISO: sd.dateISO })
+      return payload.meals.length ? [payload] : []
+    }),
+  })
 
-    schoolDays.forEach((sd) => {
-      const dayData = weeklyMeals[sd.dateISO]
-      if (!dayData) return
-
-      const lunchDishes = (dayData.LUNCH || [])
-        .filter((d) => (d.name || "").trim().length > 0)
-        .map((d) => ({
-          ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
-          ingredients: Array.isArray(d.ingredientStandards) ? d.ingredientStandards : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
-            ingredientId: id,
-            quantityPerPortion: String(d.portionQty || 50),
-            unit: (d.unit || "g").trim().toLowerCase(),
-          })),
-        }))
-
-      const afternoonDishes = (dayData.AFTERNOON || [])
-        .filter((d) => (d.name || "").trim().length > 0)
-        .map((d) => ({
-          ...(d.dishId ? { dishId: d.dishId } : { name: (d.name || "").trim() }),
-          ingredients: Array.isArray(d.ingredientStandards) ? d.ingredientStandards : (d.ingredientIds || (d.ingredientId ? [d.ingredientId] : [])).map((id) => ({
-            ingredientId: id,
-            quantityPerPortion: String(d.portionQty || 50),
-            unit: (d.unit || "g").trim().toLowerCase(),
-          })),
-        }))
-
-      const meals = []
-      for (const [mealType, mealDishes] of [["LUNCH", lunchDishes], ["AFTERNOON", afternoonDishes]]) {
-        if (!mealDishes.length) continue
-        const rows = dayData.seasoningsByMeal?.[mealType] || (mealType === "LUNCH" ? dayData.seasonings || [] : [])
-        meals.push({mealType, dishes: mealDishes, ...(dayData.useDishRecipes ? {useDishRecipes: true} : {}), ...(dayData.portionGroupsByMeal?.[mealType] ? {portionGroups:dayData.portionGroupsByMeal[mealType]} : {}), seasonings: rows.map(s=>({ingredientEntryId:s.ingredientEntryId||s.id,quantityPerPortion:String(s.quantityPerPortion??s.portionQty),unit:s.unit}))})
-      }
-
-      if (meals.length > 0) {
-        days.push({
-          menuDate: sd.dateISO,
-          note: null,
-          meals,
-        })
-      }
-    })
-
-    return {
-      weekStartDate,
-      title: menuTitle.trim(),
-      days,
-    }
-  }
-
-  // Xử lý Lưu bản nháp (gọi API thực tế)
   const handleSaveDraft = async () => {
     if (!menuTitle.trim()) {
       showToast("Vui lòng nhập tên thực đơn trước khi lưu", "warning")
@@ -545,15 +533,30 @@ export default function CreateMenu() {
       return
     }
 
+    if (saveLock.current || loadingSchedule || scheduleError) return
+    saveLock.current = true
+    setSaving(true)
     try {
-      await http.post("/v1/menus", payload, { notifyOnError: false })
+      const response = await http.post("/v1/menus", payload, { notifyOnError: false })
       MenuService.invalidateMenuCache()
+      if (!Array.isArray(response?.data?.allergyChecks)) {
+        showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng từ máy chủ.", "warning")
+        return
+      }
+      setAllergyReport(response.data)
+      if (response.data.hasUnresolvedAllergies) {
+        showToast("Đã lưu nháp. Cần hoàn thiện nhóm suất riêng trước khi gửi duyệt.", "warning")
+        return
+      }
       showToast("Đã lưu bản nháp thực đơn tuần thành công trên hệ thống!", "success")
       setTimeout(() => {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1000)
     } catch (err) {
       showToast("Không thể lưu bản nháp: " + (err.message || "Lỗi máy chủ"), "warning")
+    } finally {
+      saveLock.current = false
+      setSaving(false)
     }
   }
 
@@ -583,8 +586,27 @@ export default function CreateMenu() {
       return
     }
 
+    if (saveLock.current || loadingSchedule || scheduleError) return
+    saveLock.current = true
+    setSaving(true)
     try {
+      if (academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
+        await http.post(`/v1/menus/${academicWeek.weeklyMenuId}/revise-and-submit`, payload, { notifyOnError: false })
+        MenuService.invalidateMenuCache()
+        navigate(ROUTER.SCHOOL_MENU_PLANNING)
+        return
+      }
       const createRes = await http.post("/v1/menus", payload, { notifyOnError: false })
+      MenuService.invalidateMenuCache()
+      if (!Array.isArray(createRes?.data?.allergyChecks)) {
+        showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng; chưa gửi duyệt.", "warning")
+        return
+      }
+      setAllergyReport(createRes.data)
+      if (createRes.data.hasUnresolvedAllergies) {
+        showToast("Đã lưu nháp. Cần hoàn thiện nhóm suất riêng trước khi gửi duyệt.", "warning")
+        return
+      }
       const menuId = createRes?.data?.id || createRes?.id
       if (!menuId) throw new Error("Đã gửi yêu cầu lưu nhưng phản hồi thiếu mã thực đơn; chưa thể gửi duyệt.")
       await MenuService.submitMenu(menuId)
@@ -598,6 +620,9 @@ export default function CreateMenu() {
       }, 1200)
     } catch (err) {
       showToast("Lỗi gửi duyệt: " + (err.message || "Không thể gửi thực đơn"), "warning")
+    } finally {
+      saveLock.current = false
+      setSaving(false)
     }
   }
 
@@ -620,6 +645,7 @@ export default function CreateMenu() {
 
       <div className={styles.contentWrapper}>
         {/* Header trang chuẩn mực */}
+        <MenuAllergyReport report={allergyReport}/>
         <CreateMenuHeader
           onBack={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
           statusLabel="Bản nháp mới"
@@ -674,6 +700,7 @@ export default function CreateMenu() {
                 type="text"
                 className={styles.textInput}
                 value={menuTitle}
+                disabled={loadingSchedule || saving || Boolean(scheduleError) || Object.values(weeklyMeals).some(day => day.approvalStatus === "APPROVED") || academicWeek?.weeklyMenuStatus === "APPROVED"}
                 onChange={(e) => setMenuTitle(e.target.value)}
                 placeholder="Nhập tên thực đơn tuần..."
               />
@@ -723,7 +750,7 @@ export default function CreateMenu() {
                         onChange={handleToggleAllGrades}
                       />
                       <span className={styles.dropdownOptionTextBold}>
-                        Tất cả các khối (Khối 1 - 5)
+                        Toàn trường
                       </span>
                     </label>
 
@@ -782,7 +809,7 @@ export default function CreateMenu() {
                 type="button"
                 className={styles.copyPrevWeekBtn}
                 onClick={handleTriggerCopyPreviousWeek}
-                disabled={isCopying}
+                disabled={isCopying || loadingSchedule || saving || Boolean(scheduleError) || academicWeek?.weeklyMenuStatus === "APPROVED"}
                 title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
               >
                 {isCopying ? (
@@ -805,16 +832,21 @@ export default function CreateMenu() {
             schoolDays={schoolDays}
             weeklyMeals={weeklyMeals}
             onOpenDayModal={handleOpenDayModal}
+            readOnly={loadingSchedule || saving || Boolean(scheduleError) || academicWeek?.weeklyMenuStatus === "APPROVED"}
           />
         </div>
       </div>
 
+      {scheduleError && <p role="alert">{scheduleError}</p>}
       {/* Sticky Bottom Bar */}
       <CreateMenuBottomBar
         onCancel={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
         onSaveDraft={handleSaveDraft}
         onSubmitApproval={handleOpenConfirmSubmit}
-        isLoading={loadingSchedule}
+        isLoading={loadingSchedule || Boolean(scheduleError)}
+        isSubmitting={saving}
+        readOnly={academicWeek?.weeklyMenuStatus === "APPROVED"}
+        submitText={academicWeek?.weeklyMenuStatus === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Gửi BGH duyệt"}
       />
 
       {/* 3. POPUP MODAL TO RỘNG (50/50: NỬA TRÁI PREVIEW, NỬA PHẢI CHỌN MÓN & NHẬP GIA VỊ KHO) */}
@@ -830,6 +862,7 @@ export default function CreateMenu() {
         initialMealType={dayModalState.mealType}
         initialTab={dayModalState.tab}
         onSaveDay={handleSaveDayFromModal}
+        submitText={academicWeek?.weeklyMenuStatus === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Cập nhật vào ngày này"}
       />
 
       {/* Modal xác nhận gửi BGH duyệt */}

@@ -24,7 +24,7 @@ export default function KitchenMenu() {
     setCalendarError("")
     MenuService.getAcademicCalendar({forceRefresh:true}).then(response => {
       if (!active) return
-      const rows = response.data?.academicYears
+      const rows = response.academicYears
       if (!Array.isArray(rows)) throw new Error("Không tải được cấu hình năm học.")
       setYears(rows)
       const current = rows.find(year=>year.isCurrent) || rows[0]
@@ -41,7 +41,7 @@ export default function KitchenMenu() {
     let active=true
     setApiWeekData(null)
     setError("")
-    if (!week) return ()=>{active=false}
+    if (!week) {setLoading(false);return ()=>{active=false}}
     setLoading(true)
     MenuService.getWeekSchedule(week.weekStartDate).then(response=>{if(active)setApiWeekData(response.data)})
       .catch(e=>{if(active)setError(e.message)})

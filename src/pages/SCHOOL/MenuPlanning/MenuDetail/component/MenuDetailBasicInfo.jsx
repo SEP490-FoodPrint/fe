@@ -53,7 +53,7 @@ export default function MenuDetailBasicInfo({ menu }) {
             {menu.hasAllergyMenu ? "shield_with_heart" : "check_circle"}
           </span>
           <strong className={styles.val}>
-            {menu.hasAllergyMenu ? "Có suất riêng dị ứng" : "100% Suất chuẩn"}
+            {menu.hasAllergyMenu ? "Có suất riêng dị ứng" : "Chưa có phương án suất riêng"}
           </strong>
         </div>
       </div>

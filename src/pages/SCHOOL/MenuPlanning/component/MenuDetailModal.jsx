@@ -9,7 +9,7 @@ export default function MenuDetailModal({
 }) {
   if (!isOpen || !menu) return null
 
-  const canEdit = menu?.status !== "APPROVED"
+  const canEdit = menu?.weeklyStatus !== "APPROVED" && ["DRAFT", "PENDING_APPROVAL", "REVISION_REQUIRED", "REVISION_REQUESTED"].includes(menu?.status)
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -81,7 +81,7 @@ export default function MenuDetailModal({
             </div>
             <div className={styles.metricItem}>
               <span className={styles.metricLabel}>Tổng số suất</span>
-              <span className={styles.metricValuePrimary}>{menu.portionCount} suất</span>
+              <span className={styles.metricValuePrimary}>{menu.portionCount == null ? "Chưa chốt" : `${menu.portionCount} suất`}</span>
             </div>
           </div>
 
@@ -101,7 +101,23 @@ export default function MenuDetailModal({
                   <div key={idx} className={styles.dishCard}>
                     <div className={styles.dishHeader}>
                       <span className={styles.dishIndex}>{idx + 1}</span>
-                      <span className={styles.dishName}>{dish.name}</span>
+                      <div className={styles.dishTitleCol}>
+                        <span className={styles.dishName}>{dish.name}</span>
+                        {(() => {
+                          const dishKey = dish.dishId || dish.id
+                          const sub =
+                            dish.substituteDish ||
+                            (menu.substituteDish?.substituteForDishId === dishKey
+                              ? menu.substituteDish
+                              : null)
+                          if (!sub) return null
+                          return (
+                            <span className={styles.substituteDishNote}>
+                              ({sub.name})
+                            </span>
+                          )
+                        })()}
+                      </div>
                     </div>
                     {ingredientsList.length > 0 && (
                       <div className={styles.dishIngredients}>

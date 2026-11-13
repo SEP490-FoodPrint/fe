@@ -16,6 +16,7 @@ import RestaurantMenuOutlinedIcon from "@mui/icons-material/RestaurantMenuOutlin
 import MenuBookOutlinedIcon from "@mui/icons-material/MenuBookOutlined"
 import RoomServiceOutlinedIcon from "@mui/icons-material/RoomServiceOutlined"
 import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined"
+import KitchenOutlinedIcon from "@mui/icons-material/KitchenOutlined"
 import AdminPanelSettingsOutlinedIcon from "@mui/icons-material/AdminPanelSettingsOutlined"
 import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined"
 import AssessmentOutlinedIcon from "@mui/icons-material/AssessmentOutlined"
@@ -198,6 +199,12 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_KITCHEN_SAMPLES,
     label: "Lưu mẫu thức ăn",
     icon: <ScienceOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+  {
+    key: ROUTER.SCHOOL_KITCHEN_SAMPLE_STORAGE,
+    label: "Tủ lưu mẫu",
+    icon: <KitchenOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
   {

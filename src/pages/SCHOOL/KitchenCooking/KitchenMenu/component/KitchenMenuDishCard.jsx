@@ -33,8 +33,15 @@ export default function KitchenMenuDishCard({ dish, mealType = "LUNCH" }) {
       <div className={styles.dishContent}>
         {/* Chấm bullet tròn nhỏ giống danh sách thực đơn Dinh dưỡng */}
         <span className={isLunch ? styles.dishDotLunch : styles.dishDotAfternoon} />
-        {/* Tên món ăn */}
-        <span className={styles.dishName}>{dish.name}</span>
+        {/* Tên món ăn & món thay thế */}
+        <div className={styles.dishTitleCol}>
+          <span className={styles.dishName}>{dish.name}</span>
+          {(dish.substituteDish || dish.substitute) && (
+            <span className={styles.substituteDishNote}>
+              ({dish.substituteDish?.name || dish.substitute?.name || dish.substituteDish || dish.substitute})
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Trạng thái nếu đã lập lô */}
