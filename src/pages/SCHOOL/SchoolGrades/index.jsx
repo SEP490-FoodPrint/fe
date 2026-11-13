@@ -15,7 +15,6 @@ export default function SchoolGrades() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [dialog, setDialog] = useState(null)
-  const [code, setCode] = useState("")
   const [name, setName] = useState("")
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
@@ -33,7 +32,6 @@ export default function SchoolGrades() {
   }, [version])
 
   function open(mode, item) {
-    setCode(item?.code ?? "")
     setName(item?.name ?? "")
     setSaveError("")
     setDialog({ mode, item })
@@ -44,12 +42,12 @@ export default function SchoolGrades() {
 
   async function save(event) {
     event.preventDefault()
-    if (busy.current || blocked || (!deleting && (!code.trim() || !name.trim()))) return
+    if (busy.current || blocked || (!deleting && !name.trim())) return
     busy.current = true
     setSaving(true)
     setSaveError("")
     try {
-      const data = { code: code.trim().toUpperCase(), name: name.trim() }
+      const data = { name: name.trim() }
       if (deleting) await SchoolGradeService.remove(dialog.item.id)
       else if (dialog.item) await SchoolGradeService.update(dialog.item.id, data)
       else await SchoolGradeService.create(data)
@@ -75,11 +73,11 @@ export default function SchoolGrades() {
       {!loading && !error && (
         <TableContainer component={Paper} variant="outlined">
           <Table aria-label="Danh sách khối học">
-            <TableHead><TableRow><TableCell>Mã khối</TableCell><TableCell>Tên khối</TableCell><TableCell align="right">Số lớp</TableCell><TableCell align="right">Thao tác</TableCell></TableRow></TableHead>
+            <TableHead><TableRow><TableCell>Tên khối</TableCell><TableCell align="right">Số lớp</TableCell><TableCell align="right">Thao tác</TableCell></TableRow></TableHead>
             <TableBody>
               {items.map(item => (
                 <TableRow key={item.id}>
-                  <TableCell>{item.code}</TableCell><TableCell>{item.name}</TableCell><TableCell align="right">{item.classCount}</TableCell>
+                  <TableCell>{item.name}</TableCell><TableCell align="right">{item.classCount}</TableCell>
                   <TableCell align="right">
                     <div className={styles.actions}>
                       <Button aria-label={`Sửa ${item.name}`} onClick={() => open("edit", item)}>Sửa</Button>
@@ -88,7 +86,7 @@ export default function SchoolGrades() {
                   </TableCell>
                 </TableRow>
               ))}
-              {!items.length && <TableRow><TableCell colSpan={4}>Chưa có khối học.</TableCell></TableRow>}
+              {!items.length && <TableRow><TableCell colSpan={3}>Chưa có khối học.</TableCell></TableRow>}
             </TableBody>
           </Table>
         </TableContainer>
@@ -105,10 +103,7 @@ export default function SchoolGrades() {
                   <Link to={`${ROUTER.SCHOOL_CLASS_ASSIGNMENT}?gradeId=${dialog.item.id}`}>Lớp học &amp; GVCN</Link>.
                 </Alert> : <p>Bạn muốn xóa khối <strong>{dialog.item.name}</strong>?</p>
               ) : (
-                <>
-                  <TextField required label="Mã khối" value={code} disabled={saving} onChange={event => setCode(event.target.value)} slotProps={{ htmlInput: { maxLength: 30 } }} />
-                  <TextField required label="Tên khối" value={name} disabled={saving} onChange={event => setName(event.target.value)} slotProps={{ htmlInput: { maxLength: 120 } }} />
-                </>
+                <TextField required label="Tên khối" value={name} disabled={saving} onChange={event => setName(event.target.value)} slotProps={{ htmlInput: { maxLength: 120 } }} />
               )}
             </DialogContent>
             <DialogActions>
