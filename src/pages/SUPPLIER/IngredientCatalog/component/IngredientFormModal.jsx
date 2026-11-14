@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react"
+import { CircularProgress } from "@mui/material"
 import {
   Add,
   Close,
@@ -6,19 +7,23 @@ import {
   ImageOutlined,
   KeyboardArrowDown,
 } from "@mui/icons-material"
-import { DEFAULT_UNITS } from "src/services/SupplierIngredientService"
+import SupplierIngredientService, {
+  DEFAULT_UNITS,
+} from "src/services/SupplierIngredientService"
 import styles from "../IngredientCatalog.module.scss"
 import ConfirmHideDialog from "./ConfirmHideDialog"
 
 const MAX_DESC_IMAGES = 5
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024
 
-function toValidImagePath(file) {
-  const rawName = String(file?.name || "ingredient.jpg")
-    .trim()
-    .replace(/\s+/g, "-")
-    .replace(/[^a-zA-Z0-9._-]/g, "")
-  const safeName = rawName || `ingredient-${Date.now()}.jpg`
-  return `/uploads/ingredients/${safeName}`
+function extractUploadErrorMessage(error, fallback) {
+  const apiData = error?.response?.data
+  return (
+    apiData?.error?.message ||
+    apiData?.message ||
+    error?.message ||
+    fallback
+  )
 }
 
 export function isValidBackendImageRef(value) {
@@ -61,6 +66,7 @@ const IngredientFormModal = ({
   const avatarInputRef = useRef(null)
   const descImageInputRef = useRef(null)
   const objectUrlsRef = useRef([])
+  const uploadSessionRef = useRef(0)
 
   const [name, setName] = useState("")
   const [categoryId, setCategoryId] = useState("")
@@ -71,6 +77,8 @@ const IngredientFormModal = ({
   const [imageDescription, setImageDescription] = useState([])
   const [previewMap, setPreviewMap] = useState({})
   const [failedPreviews, setFailedPreviews] = useState({})
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadingDesc, setUploadingDesc] = useState(false)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -80,12 +88,16 @@ const IngredientFormModal = ({
 
   useEffect(() => {
     return () => {
+      uploadSessionRef.current += 1
       objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
       objectUrlsRef.current = []
     }
   }, [])
 
   useEffect(() => {
+    uploadSessionRef.current += 1
+    setUploadingCover(false)
+    setUploadingDesc(false)
     if (!open) return
 
     objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
@@ -147,50 +159,146 @@ const IngredientFormModal = ({
     return previewMap[refPath] || refPath
   }
 
-  const handleAvatarChange = event => {
+  const handleAvatarChange = async event => {
     const file = event.target.files?.[0]
     event.target.value = ""
-    if (!file) return
+    if (!file || uploadingCover) return
 
-    const refPath = toValidImagePath(file)
-    const blobUrl = URL.createObjectURL(file)
-    objectUrlsRef.current.push(blobUrl)
+    if (file.size > MAX_IMAGE_BYTES) {
+      setErrors(prev => ({
+        ...prev,
+        coverImage: "Ảnh đại diện không được vượt quá 5 MB.",
+      }))
+      return
+    }
 
-    setPreviewMap(prev => ({ ...prev, [refPath]: blobUrl }))
-    setFailedPreviews(prev => ({ ...prev, [refPath]: false }))
-    setCoverImage(refPath)
+    const sessionId = uploadSessionRef.current
+    setUploadingCover(true)
     setErrors(prev => ({ ...prev, coverImage: "" }))
+
+    try {
+      const uploaded = await SupplierIngredientService.uploadImage(file)
+      if (uploadSessionRef.current !== sessionId) return
+
+      const remoteUrl = uploaded?.url || ""
+      if (!remoteUrl) {
+        throw new Error("Không nhận được URL ảnh sau khi tải lên.")
+      }
+
+      const blobUrl = URL.createObjectURL(file)
+      objectUrlsRef.current.push(blobUrl)
+
+      setPreviewMap(prev => ({ ...prev, [remoteUrl]: blobUrl }))
+      setFailedPreviews(prev => ({ ...prev, [remoteUrl]: false }))
+      setCoverImage(remoteUrl)
+    } catch (error) {
+      if (uploadSessionRef.current !== sessionId) return
+      setErrors(prev => ({
+        ...prev,
+        coverImage: extractUploadErrorMessage(
+          error,
+          "Không thể tải lên ảnh đại diện. Vui lòng thử lại.",
+        ),
+      }))
+    } finally {
+      if (uploadSessionRef.current === sessionId) {
+        setUploadingCover(false)
+      }
+    }
   }
 
   const handleClearAvatar = event => {
     event.stopPropagation()
+    if (uploadingCover) return
     setCoverImage("")
     setErrors(prev => ({ ...prev, coverImage: "" }))
   }
 
-  const handleAddDescImages = event => {
+  const handleAddDescImages = async event => {
     const fileList = Array.from(event.target.files || [])
     event.target.value = ""
-    if (!fileList.length) return
+    if (!fileList.length || uploadingDesc) return
 
     const remainingSlots = MAX_DESC_IMAGES - imageDescription.length
     if (remainingSlots <= 0) return
 
     const selectedFiles = fileList.slice(0, remainingSlots)
-    const nextRefs = []
-    const nextPreviewEntries = {}
+    const oversized = selectedFiles.filter(file => file.size > MAX_IMAGE_BYTES)
+    const validFiles = selectedFiles.filter(file => file.size <= MAX_IMAGE_BYTES)
 
-    selectedFiles.forEach(file => {
-      const refPath = toValidImagePath(file)
-      const blobUrl = URL.createObjectURL(file)
-      objectUrlsRef.current.push(blobUrl)
-      nextRefs.push(refPath)
-      nextPreviewEntries[refPath] = blobUrl
-    })
+    if (validFiles.length === 0) {
+      setErrors(prev => ({
+        ...prev,
+        imageDescription: "Mỗi ảnh mô tả không được vượt quá 5 MB.",
+      }))
+      return
+    }
 
-    setPreviewMap(prev => ({ ...prev, ...nextPreviewEntries }))
-    setImageDescription(prev => [...prev, ...nextRefs].slice(0, MAX_DESC_IMAGES))
+    const sessionId = uploadSessionRef.current
+    setUploadingDesc(true)
     setErrors(prev => ({ ...prev, imageDescription: "" }))
+
+    try {
+      const results = await SupplierIngredientService.uploadImages(validFiles)
+      if (uploadSessionRef.current !== sessionId) return
+
+      const nextRefs = []
+      const nextPreviewEntries = {}
+      const nextFailedEntries = {}
+      const failedMessages = []
+
+      if (oversized.length > 0) {
+        failedMessages.push(
+          `${oversized.length} ảnh vượt quá 5 MB chưa được tải lên.`,
+        )
+      }
+
+      results.forEach((result, idx) => {
+        if (result?.status === "success" && result?.asset?.url) {
+          const remoteUrl = result.asset.url
+          const sourceFile = validFiles[result.index ?? idx]
+          if (sourceFile) {
+            const blobUrl = URL.createObjectURL(sourceFile)
+            objectUrlsRef.current.push(blobUrl)
+            nextPreviewEntries[remoteUrl] = blobUrl
+          }
+          nextFailedEntries[remoteUrl] = false
+          nextRefs.push(remoteUrl)
+        } else {
+          failedMessages.push(
+            result?.error?.message || "Một ảnh tải lên thất bại.",
+          )
+        }
+      })
+
+      if (nextRefs.length > 0) {
+        setPreviewMap(prev => ({ ...prev, ...nextPreviewEntries }))
+        setFailedPreviews(prev => ({ ...prev, ...nextFailedEntries }))
+        setImageDescription(prev =>
+          [...prev, ...nextRefs].slice(0, MAX_DESC_IMAGES),
+        )
+      }
+
+      if (failedMessages.length > 0) {
+        setErrors(prev => ({
+          ...prev,
+          imageDescription: failedMessages[0],
+        }))
+      }
+    } catch (error) {
+      if (uploadSessionRef.current !== sessionId) return
+      setErrors(prev => ({
+        ...prev,
+        imageDescription: extractUploadErrorMessage(
+          error,
+          "Không thể tải lên ảnh mô tả. Vui lòng thử lại.",
+        ),
+      }))
+    } finally {
+      if (uploadSessionRef.current === sessionId) {
+        setUploadingDesc(false)
+      }
+    }
   }
 
   const handleRemoveDescImage = indexToRemove => {
@@ -269,7 +377,7 @@ const IngredientFormModal = ({
 
   const handleFormSubmit = async event => {
     event.preventDefault()
-    if (submitting) return
+    if (submitting || uploadingCover || uploadingDesc) return
     setSubmitError("")
     if (!validateForm()) return
 
@@ -393,13 +501,22 @@ const IngredientFormModal = ({
                         type="button"
                         className={styles.avatarUploadBtn}
                         onClick={() => avatarInputRef.current?.click()}
+                        disabled={uploadingCover || submitting}
                         aria-label={
-                          coverImage
-                            ? "Thay đổi ảnh đại diện"
-                            : "Chọn ảnh đại diện nguyên liệu"
+                          uploadingCover
+                            ? "Đang tải lên ảnh đại diện"
+                            : coverImage
+                              ? "Thay đổi ảnh đại diện"
+                              : "Chọn ảnh đại diện nguyên liệu"
                         }
                       >
-                        {coverImage && !failedPreviews[coverImage] ? (
+                        {uploadingCover ? (
+                          <CircularProgress
+                            size={20}
+                            color="inherit"
+                            aria-label="Đang tải ảnh đại diện"
+                          />
+                        ) : coverImage && !failedPreviews[coverImage] ? (
                           <>
                             <img
                               src={coverPreviewUrl}
@@ -426,6 +543,7 @@ const IngredientFormModal = ({
                           type="button"
                           className={styles.removeImageBtn}
                           onClick={handleClearAvatar}
+                          disabled={uploadingCover || submitting}
                           aria-label="Gỡ ảnh đại diện"
                         >
                           <Close className={styles.removeImageIcon} />
@@ -532,9 +650,23 @@ const IngredientFormModal = ({
                       type="button"
                       className={styles.addImageTileBtn}
                       onClick={() => descImageInputRef.current?.click()}
+                      disabled={uploadingDesc || submitting}
                     >
-                      <Add className={styles.addImageIcon} />
-                      <span>Thêm ảnh</span>
+                      {uploadingDesc ? (
+                        <>
+                          <CircularProgress
+                            size={18}
+                            color="inherit"
+                            aria-label="Đang tải ảnh mô tả"
+                          />
+                          <span>Đang tải...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Add className={styles.addImageIcon} />
+                          <span>Thêm ảnh</span>
+                        </>
+                      )}
                     </button>
                   )}
                 </div>
@@ -706,9 +838,13 @@ const IngredientFormModal = ({
               <button
                 type="submit"
                 className={styles.saveBtn}
-                disabled={submitting}
+                disabled={submitting || uploadingCover || uploadingDesc}
               >
-                {submitting ? "Đang lưu..." : "Lưu"}
+                {submitting
+                  ? "Đang lưu..."
+                  : uploadingCover || uploadingDesc
+                    ? "Đang tải ảnh..."
+                    : "Lưu"}
               </button>
             </div>
           </form>
