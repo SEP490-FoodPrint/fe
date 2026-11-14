@@ -7,7 +7,6 @@ import DecisionDialog from "./component/DecisionDialog"
 import MenuApprovalHeader from "./component/MenuApprovalHeader"
 import MenuReview from "./component/MenuReview"
 import MenuSchedule from "./component/MenuSchedule"
-import GradeCoverage from "./component/GradeCoverage"
 import MenuSummary from "./component/MenuSummary"
 import "./style.scss"
 
@@ -228,7 +227,6 @@ function MenuApproval() {
         disabled={submitting || Boolean(dialog)}
       />
       <MenuSummary menu={menu} />
-      <GradeCoverage coverage={menu.gradeCoverage} />
       <MenuReview
         review={menu.medicalReview}
         approval={menu.approval}
