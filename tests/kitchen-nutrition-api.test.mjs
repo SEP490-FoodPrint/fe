@@ -495,6 +495,34 @@ test("approved day rejects both save paths even when its parent week is still a 
   assert.equal(requests.every(config => config.method === "get"), true)
 })
 
+test("cooking progress retains substitute dishes and tracks samples separately per batch", async () => {
+  const { batchSampleProgress } = await server.ssrLoadModule("/src/services/KitchenService/adapter.js")
+  const batch = { status: "COMPLETED", dishes: [{ dishId: id(3) }, { dishId: id(4) }], retainedFoodSamples: [{ dishId: id(3) }] }
+  assert.deepEqual(batchSampleProgress(batch), { completed: 1, total: 2, complete: false })
+  assert.equal(batchSampleProgress({ ...batch, retainedFoodSamples: [...batch.retainedFoodSamples, { dishId: id(4) }] }).complete, true)
+  assert.equal(batchSampleProgress({ ...batch, retainedFoodSamples: [] }).complete, false)
+  const week = snapshot()
+  const original = week.menuDays[0].menuDayDishes[0]
+  week.menuDays[0].menuDayDishes.push({ ...original, dishId: id(4), Dish: { name: "Alternative" } })
+  week.menuDays[0].portionGroups = [
+    { mealType: "LUNCH", isDefault: true, dishes: [{ dishId: id(3) }], avoidances: [] },
+    { mealType: "LUNCH", isDefault: false, dishes: [{ dishId: id(4) }], avoidances: [] },
+  ]
+  const lunch = adapter.menuWeekMeals(week)[0].meals.LUNCH
+  assert(lunch.allDishes.some((dish) => dish.dishId === id(4)))
+})
+
+test("cooking board shows full meal demand and keeps a partially sampled batch awaiting samples", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Board } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/CreateBatch/component/CreateBatchKanban.jsx")
+  const batch = { id: id(1), batchCode: "CB-1", name: "Dish A, Dish B", mealType: "lunch", status: "COMPLETED", plannedPortions: 60, dishes: [{ dishId: id(3) }, { dishId: id(4) }], retainedFoodSamples: [{ dishId: id(3) }] }
+  const html = renderToStaticMarkup(React.createElement(Board, { batches: [batch], pendingDishes: [], mealRequirements: { LUNCH: { portions: 100 } }, selectedMeal: "lunch" }))
+  assert.match(html, /100/)
+  assert.match(html, /1\/2/)
+  assert.doesNotMatch(html, /T?t c? 1 l? ch? bi?n ?? n?u xong/)
+})
+
 test("weekly editing preserves frozen quantities, seasonings, notes and explicit group identities", () => {
   const week = snapshot()
   week.menuDays[0].portionGroups = [{ id: id(80), name: "Normal", mealType: "LUNCH", isDefault: true, dishes: [{ dishId: id(3) }], avoidances: [] }]

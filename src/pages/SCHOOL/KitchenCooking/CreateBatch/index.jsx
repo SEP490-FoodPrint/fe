@@ -24,6 +24,8 @@ export default function CreateBatch() {
   const [loadError, setLoadError] = useState("");
   const [pendingDishes, setPendingDishes] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [mealRequirements, setMealRequirements] = useState({});
+  const [hasApprovedMenu, setHasApprovedMenu] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState("all");
   const [menuId, setMenuId] = useState("");
   const [menuOptions, setMenuOptions] = useState([]);
@@ -62,11 +64,13 @@ export default function CreateBatch() {
       const todayDay = scheduleRes?.data?.days?.find((d) => d.date === todayISO);
       const demandByMeal = {};
       const allTodayDishes = [];
+      const approved = todayDay?.status === "APPROVED" && Boolean(todayDay.meals);
+      setHasApprovedMenu(approved);
 
       if (todayDay?.status === "APPROVED" && todayDay.meals) {
         await Promise.all(
           ["LUNCH", "AFTERNOON"]
-            .filter((type) => todayDay.meals[type]?.dishes?.length)
+            .filter((type) => (todayDay.meals[type]?.allDishes || todayDay.meals[type]?.dishes || []).length)
             .map(async (type) => {
               demandByMeal[type] = await MenuService.getMealRequirements(
                 todayDay.menuDayId,
@@ -75,7 +79,7 @@ export default function CreateBatch() {
             })
         );
 
-        const lunchDishes = todayDay.meals.LUNCH?.dishes || [];
+        const lunchDishes = todayDay.meals.LUNCH?.allDishes || todayDay.meals.LUNCH?.dishes || [];
         lunchDishes.forEach((d, idx) => {
           allTodayDishes.push({
             id: d.id || d.dishId || `dish-lunch-${idx}`,
@@ -85,11 +89,12 @@ export default function CreateBatch() {
             mealName: "Bữa trưa",
             name: d.name,
             portionStandard: demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
+            unfinalizedClasses: demandByMeal.LUNCH?.unfinalizedClasses || [],
             ingredients: d.ingredients || [],
           });
         });
 
-        const afternoonDishes = todayDay.meals.AFTERNOON?.dishes || [];
+        const afternoonDishes = todayDay.meals.AFTERNOON?.allDishes || todayDay.meals.AFTERNOON?.dishes || [];
         afternoonDishes.forEach((d, idx) => {
           allTodayDishes.push({
             id: d.id || d.dishId || `dish-afternoon-${idx}`,
@@ -99,6 +104,7 @@ export default function CreateBatch() {
             mealName: "Bữa xế",
             name: d.name,
             portionStandard: demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
+            unfinalizedClasses: demandByMeal.AFTERNOON?.unfinalizedClasses || [],
             ingredients: d.ingredients || [],
           });
         });
@@ -182,11 +188,14 @@ export default function CreateBatch() {
       });
 
       setPendingDishes(pending);
+      setMealRequirements(demandByMeal);
       setBatches(formattedBatches);
     } catch (err) {
       console.warn("Lỗi tải tiến độ chế biến hôm nay:", err);
       if (!signal?.aborted) {
         setPendingDishes([]);
+        setMealRequirements({});
+        setHasApprovedMenu(false);
         setBatches([]);
         setLoadError(err.message || "Không thể tải tiến độ chế biến hôm nay.");
       }
@@ -267,6 +276,10 @@ export default function CreateBatch() {
 
   // Mở Popup phương án phân bổ lô chế biến trước khi tạo
   const handleOpenPlanModal = (dish) => {
+    if (dish.unfinalizedClasses?.length) {
+      notice({ msg: `Chưa chốt suất ăn: ${dish.unfinalizedClasses.map((row) => row.name).join(", ")}`, isSuccess: false });
+      return;
+    }
     setDishToPlan(dish);
     setIsPlanModalOpen(true);
   };
@@ -282,15 +295,13 @@ export default function CreateBatch() {
     if (!sampleBatch?.id) return;
     setSampleLoading(true);
     try {
-      await KitchenService.createBatchSample(sampleBatch.id, samplePayload);
+      const savedSample = await KitchenService.createBatchSample(sampleBatch.id, samplePayload);
       setBatches((prev) =>
         prev.map((b) =>
           b.id === sampleBatch.id
             ? {
                 ...b,
-                hasSample: true,
-                retainedFoodSamples: [...(b.retainedFoodSamples || []), samplePayload],
-                retainedFoodSample: samplePayload,
+                retainedFoodSamples: [...(b.retainedFoodSamples || []), savedSample],
               }
             : b
         )
@@ -298,9 +309,7 @@ export default function CreateBatch() {
       if (selectedItem?.id === sampleBatch.id) {
         setSelectedItem((prev) => ({
           ...prev,
-          hasSample: true,
-          retainedFoodSamples: [...(prev?.retainedFoodSamples || []), samplePayload],
-          retainedFoodSample: samplePayload,
+          retainedFoodSamples: [...(prev?.retainedFoodSamples || []), savedSample],
         }));
       }
       notice({
@@ -334,6 +343,9 @@ export default function CreateBatch() {
               ? {
                   ...prev,
                   ...adapted,
+                  retainedFoodSamples: fullDetail.retainedFoodSamples ?? prev.retainedFoodSamples,
+                  completedAt: fullDetail.completedAt ?? prev.completedAt,
+                  confirmedAt: fullDetail.confirmedAt ?? prev.confirmedAt,
                   batchCode: adapted.code || prev.batchCode,
                   ingredients: adapted.ingredients?.length ? adapted.ingredients : prev.ingredients,
                 }
@@ -365,6 +377,9 @@ export default function CreateBatch() {
         />
 
         <MenuScopeSelect menus={menuOptions} value={menuId} onChange={setMenuId} disabled={loading || Boolean(submittingId || actionLoadingId)} />
+        {!loading && Object.entries(mealRequirements).map(([mealType, requirement]) => requirement.unfinalizedClasses?.length > 0 && (
+          <p role="status" key={mealType}>{mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}: chưa chốt suất ăn cho {requirement.unfinalizedClasses.map((row) => row.name).join(", ")}.</p>
+        ))}
         {loadError ? (
           <p role="alert">{loadError}</p>
         ) : loading ? (
@@ -380,6 +395,8 @@ export default function CreateBatch() {
           </div>
         ) : menuOptions.length > 1 && !menuId ? (
           <p role="status">Chọn thực đơn và khối ở trên để xem tiến độ chế biến.</p>
+        ) : !hasAnyData && hasApprovedMenu ? (
+          <p role="status">Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
         ) : !hasAnyData ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-slate-800 font-semibold text-lg mb-2">
@@ -402,6 +419,7 @@ export default function CreateBatch() {
           <CreateBatchKanban
             pendingDishes={pendingDishes}
             batches={batches}
+            mealRequirements={mealRequirements}
             selectedMeal={selectedMeal}
             onSelectMeal={setSelectedMeal}
             onOpenDetail={handleOpenDetail}

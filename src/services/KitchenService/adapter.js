@@ -18,6 +18,14 @@ export function getDishBatchState(batches, dishId, mealType, menuDayId) {
   };
 }
 
+export function batchSampleProgress(batch) {
+  const dishes = batch?.dishes?.length ? batch.dishes : batch?.dishId ? [{ dishId: batch.dishId }] : [];
+  const samples = Array.isArray(batch?.retainedFoodSamples) ? batch.retainedFoodSamples : [];
+  const sampledIds = new Set(samples.map((sample) => sample.dishId).filter(Boolean));
+  const completed = dishes.filter((dish) => sampledIds.has(dish.dishId)).length;
+  return { completed, total: dishes.length, complete: dishes.length > 0 && completed === dishes.length };
+}
+
 export function canRecordBatchSample(batch) {
   if (batch?.status !== "COMPLETED") return false;
   const dishes = batch.dishes?.length ? batch.dishes : batch.dishId ? [{dishId:batch.dishId}] : [];

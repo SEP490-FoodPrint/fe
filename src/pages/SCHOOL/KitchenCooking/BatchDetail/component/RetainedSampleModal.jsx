@@ -99,12 +99,17 @@ export default function RetainedSampleModal({
     }
 
     setErrorMsg("");
+    const selectedTime = new Date(sampledAt);
+    const completedTime = new Date(batchData.completedAt);
+    if (!isNaN(completedTime.getTime()) && selectedTime < completedTime && Math.floor(selectedTime.getTime() / 60000) === Math.floor(completedTime.getTime() / 60000)) {
+      selectedTime.setTime(Date.now());
+    }
     onConfirm({
       ...(selectedDishId ? { dishId: selectedDishId } : {}),
       quantity: String(num),
       unit,
       storageLocation: "Tủ lưu mẫu Bếp 01 - Ngăn A",
-      sampledAt: new Date(sampledAt).toISOString(),
+      sampledAt: selectedTime.toISOString(),
     });
   };
 
