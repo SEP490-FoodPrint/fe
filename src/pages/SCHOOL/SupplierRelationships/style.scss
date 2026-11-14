@@ -43,6 +43,9 @@
   .MuiTableCell-body {
     vertical-align: top;
   }
+  .MuiTableCell-body.supplier-status-cell {
+    vertical-align: middle;
+  }
 }
 .supplier-row-actions {
   display: flex;
