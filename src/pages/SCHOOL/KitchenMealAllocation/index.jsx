@@ -50,7 +50,7 @@ function getView(data, draft = {}) {
       ...batch,
       name:
         batch.name ||
-        `Lô ${index + 1} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}`,
+        `Lô ${index + 1} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${batch.scopeLabel || "Toàn trường"}`,
       total,
       entries,
       editableCapacity: total - lockedCount,
@@ -108,7 +108,7 @@ export default function KitchenMealAllocation() {
   const dirty = Object.keys(draft).length > 0;
   const selected = view.batches.find((batch) => batch.id === selectedId);
   const available = selected
-    ? view.demands.filter((demand) => !demand.locked && demand.mealType === selected.mealType)
+    ? view.demands.filter((demand) => !demand.locked && demand.mealType === selected.mealType && (!selected.eligibleDemandIds || selected.eligibleDemandIds.includes(demand.id)))
         .map((demand) => ({
           ...demand,
           remaining: demand.remaining + (selected.entries.find((entry) => entry.id === demand.id)?.portions ?? 0),
@@ -230,7 +230,7 @@ export default function KitchenMealAllocation() {
               expanded={openBatchIds.includes(batch.id)}
               canAddClasses={(batch.entries || []).some((entry) => !entry.locked) ||
                 (batch.remaining > 0 && view.demands.some((demand) => !demand.locked &&
-                  demand.mealType === batch.mealType && demand.remaining > 0))}
+                  demand.mealType === batch.mealType && (!batch.eligibleDemandIds || batch.eligibleDemandIds.includes(demand.id)) && demand.remaining > 0))}
               onToggle={() => setOpenBatchIds((current) => current.includes(batch.id)
                 ? current.filter((id) => id !== batch.id) : [...current, batch.id])}
               onAddClasses={() => setSelectedId(batch.id)}

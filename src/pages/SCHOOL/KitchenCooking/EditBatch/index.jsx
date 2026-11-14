@@ -339,7 +339,7 @@ export default function EditBatch() {
 
   // Hủy thay đổi -> quay lại chi tiết
   const handleCancel = () => {
-    navigate(`/school/kitchen-cooking/batches/${batchData.code}`)
+    navigate(`/school/batches/${batchData.code}`)
   }
 
   // Lưu cập nhật lô chế biến
@@ -347,7 +347,7 @@ export default function EditBatch() {
     setIsSubmitting(true)
     setTimeout(() => {
       setIsSubmitting(false)
-      navigate(`/school/kitchen-cooking/batches/${batchData.code}`)
+      navigate(`/school/batches/${batchData.code}`)
     }, 400)
   }
 

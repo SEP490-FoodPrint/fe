@@ -1,3 +1,4 @@
+import { dishForGrades } from "src/services/DishService"
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import {
   X,
@@ -42,6 +43,7 @@ export const renderCategoryBadge = (dish) => {
 
 export default function CreateMenuDayModal({
   isOpen,
+  gradeIds,
   onClose,
   dayData,
   dayMenu,
@@ -187,7 +189,7 @@ export default function CreateMenuDayModal({
     Promise.all([loadDishCatalogData(), loadRecipeOptions()])
       .then(([data, options]) => {
         if (active) {
-          setDishCatalog(data.items)
+          setDishCatalog(data.items.map((dish) => dishForGrades(dish, gradeIds)))
           setCategoryOptions(data.categories)
           setRecipeOptions(options || [])
         }
@@ -201,7 +203,7 @@ export default function CreateMenuDayModal({
     return () => {
       active = false
     }
-  }, [isOpen])
+  }, [isOpen, gradeIds])
 
   // Kiểm tra dị ứng độc lập với việc tổng hợp định lượng công thức.
   useEffect(() => {
@@ -215,6 +217,7 @@ export default function CreateMenuDayModal({
         ...Object.values(substitutesByMeal[type] || {}),
       ],
       seasonings: seasoningsByMeal[type] || [],
+      gradeIds,
       refreshRecipe: edited,
     })
 
@@ -248,7 +251,7 @@ export default function CreateMenuDayModal({
     return () => {
       active = false
     }
-  }, [isOpen, edited, lunchDishes, afternoonDishes, substitutesByMeal])
+  }, [isOpen, edited, lunchDishes, afternoonDishes, substitutesByMeal, gradeIds])
 
   const getDishAllergyConflict = useCallback(
     (dish, mealType) => {
@@ -1340,7 +1343,8 @@ export default function CreateMenuDayModal({
                                 </span>
                               )}
                             </div>
-                            {dish.mainIngredient && (
+                            {dish.gradeRecipeIssue && <p role="status">{dish.gradeRecipeIssue}</p>}
+                          {dish.mainIngredient && (
                               <p className={styles.dishMainIngredient}>
                                 Nguyên liệu chính: {dish.mainIngredient}
                               </p>
@@ -1357,6 +1361,8 @@ export default function CreateMenuDayModal({
                             className={`${styles.pickActionBtn} ${
                               isThisSub ? styles.btnPickedSub : styles.btnAddSub
                             }`}
+                            disabled={Boolean(dish.gradeRecipeIssue)}
+                            title={dish.gradeRecipeIssue || ""}
                             onClick={() =>
                               handleSelectSubstituteFromRightColumn(dish)
                             }
@@ -1393,6 +1399,7 @@ export default function CreateMenuDayModal({
                             </h4>
                             {renderCategoryBadge(dish)}
                           </div>
+                          {dish.gradeRecipeIssue && <p role="status">{dish.gradeRecipeIssue}</p>}
                           {dish.mainIngredient && (
                             <p className={styles.dishMainIngredient}>
                               Nguyên liệu chính: {dish.mainIngredient}
@@ -1410,6 +1417,8 @@ export default function CreateMenuDayModal({
                           className={`${styles.pickActionBtn} ${
                             isPicked ? styles.btnRemovePick : styles.btnAddPick
                           }`}
+                          disabled={!isPicked && Boolean(dish.gradeRecipeIssue)}
+                          title={dish.gradeRecipeIssue || ""}
                           onClick={() => handleToggleDish(dish)}
                         >
                           {isPicked ? (

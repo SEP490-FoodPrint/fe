@@ -2,9 +2,64 @@ import assert from "node:assert/strict"
 import { after, before, beforeEach, test } from "node:test"
 import { AxiosError } from "axios"
 import { createServer } from "vite"
+import viteConfig from "../vite.config.js"
 
 let server, http, menus, kitchen, adapter, keys, storageTools, respond
 let requests = []
+
+test("grade recipe selection uses the selected profile and keeps missing profiles explicit", async () => {
+  const { dishForGrades } = await server.ssrLoadModule("/src/services/DishService/index.js")
+  const base = { id: id(40), lines: [{ ingredientId: id(1), ingredientRole: "MAIN", requiredQuantity: "80", unit: "g" }], gradeRecipes: [{ gradeId: id(50), lines: [{ ingredientEntryId: id(41), ingredientId: id(42), ingredientRole: "MAIN", requiredQuantity: "120", unit: "g", name: "Thịt", supplierName: "NCC" }] }] }
+  const scoped = dishForGrades(base, [id(50)])
+  assert.deepEqual(scoped.ingredientStandards, [{ ingredientId: id(42), quantityPerPortion: "120", unit: "g" }])
+  assert.deepEqual(scoped.ingredientIds, [id(42)])
+  assert(dishForGrades(base, [id(50), id(51)]).gradeRecipeIssue)
+  assert.equal(base.lines[0].requiredQuantity, "80")
+})
+
+test("recipe and allergy preview send grade scope and replace base ingredient identities", async () => {
+  const { inspectMenuMealSelection } = await server.ssrLoadModule("/src/services/MenuService/index.js")
+  respond = config => {
+    const body = JSON.parse(config.data)
+    assert.deepEqual(body.gradeIds, [id(50)])
+    if (config.url === "/dishes/recipe-preview") return { ingredientIds: [id(42)], seasonings: [], dishes: [] }
+    assert.equal(config.url, "/v1/menus/allergy-check")
+    return { hasConflict: body.ingredientIds.includes(id(1)), conflicts: [] }
+  }
+  const result = await inspectMenuMealSelection({ dishes: [{ id: id(40), ingredientIds: [id(1)] }], gradeIds: [id(50)], refreshRecipe: true })
+  assert.equal(result.allergies.hasConflict, false)
+  assert.deepEqual(JSON.parse(requests.at(-1).data).ingredientIds, [id(42)])
+  assert.deepEqual(result.issues, [])
+})
+
+test("weekly schedule requests and cache distinguish menus for the same week", async () => {
+  respond = config => {
+    if (config.url === "/v1/menus/week-schedule") return { weeklyMenuId: null, days: [], gradeIds: config.params.gradeIds?.split(",") || [], selected: config.params.menuId || "none" }
+    assert.fail(`Unexpected URL ${config.url}`)
+  }
+  const first = await menus.getWeekSchedule("2026-11-09", { menuId: id(50) })
+  const second = await menus.getWeekSchedule("2026-11-09", { menuId: id(51) })
+  assert.equal(first.data.selected, id(50))
+  assert.equal(second.data.selected, id(51))
+  assert.equal(requests.length, 2)
+  await menus.getWeekSchedule("2026-11-09", { gradeIds: [id(52), id(50)] })
+  assert.equal(requests.at(-1).params.gradeIds, [id(50), id(52)].join(","))
+})
+
+test("approval list reads every page and labels menus with their grade scope", async () => {
+  respond = config => ({ items: [{ id: id(config.params.page), status: "PENDING_APPROVAL", weekStartDate: "2026-11-09", grades: [{ grade: { name: `Khối ${config.params.page}` } }] }], pagination: { totalItems: 2 } })
+  const rows = await menus.getApprovalWeeks()
+  assert.equal(rows.length, 2)
+  assert.deepEqual(rows.map(row => row.gradeNames), [["Khối 1"], ["Khối 2"]])
+  assert.deepEqual(requests.map(config => config.params.page), [1, 2])
+})
+
+test("menu planning can load all grade menus without changing ordinary pagination", async () => {
+  respond = config => ({ items: [{ ...snapshot(), id: id(config.params.page), grades: [{ gradeId: id(50 + config.params.page), grade: { name: `Khối ${config.params.page}` } }] }], pagination: { totalItems: 2 } })
+  const response = await menus.getMenus({ limit: 1, allPages: true, weekStartDate: "2026-11-09" })
+  assert.deepEqual([...new Set(response.data.map(row => row.weeklyMenuId))], [id(1), id(2)])
+  assert.deepEqual(requests.map(config => config.params.page), [1, 2])
+})
 
 test("school allergy catalogue uses every API page and preserves per-ingredient counts without guessed pupils", async () => {
   const {getSchoolClassAllergies,computeAllergySummary,affectedCountsLabel} = await server.ssrLoadModule("/src/services/AllergyService/index.js")
@@ -234,7 +289,8 @@ const snapshot = () => ({
 const edits = () => ({ formState: { name: "Edited", date: "02/11/2026", mealType: "LUNCH", notes: "Edited note" }, dishes: [{ dishId: id(3), name: "Dish 3", ingredientStandards: [{ ingredientId: id(13), quantityPerPortion: "81.125", unit: "g" }, { ingredientId: id(14), quantityPerPortion: "0.375", unit: "kg" }] }], seasonings: [{ ingredientEntryId: id(21), quantityPerPortion: "0.625", unit: "g" }] })
 
 before(async () => {
-  server = await createServer({ configLoader: "runner", server: { middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true, entries: [] }, appType: "custom" })
+  // Service tests need the real aliases and Sass setup, without bundling a config or React refresh.
+  server = await createServer({ ...viteConfig, configFile: false, plugins: [], server: { middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true, entries: [] }, appType: "custom" })
   globalThis.window = { location: { replace: () => assert.fail("Unexpected authentication redirect") } }
   globalThis.localStorage = { getItem: key => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, String(value)), removeItem: key => memory.delete(key) }
   http = (await server.ssrLoadModule("/src/services/01_axios/index.js")).default

@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect, useCallback } from "react";
+import MenuScopeSelect from "src/components/MenuScopeSelect";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
 import notice from "src/components/Notice";
@@ -24,6 +25,8 @@ export default function CreateBatch() {
   const [pendingDishes, setPendingDishes] = useState([]);
   const [batches, setBatches] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState("all");
+  const [menuId, setMenuId] = useState("");
+  const [menuOptions, setMenuOptions] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submittingId, setSubmittingId] = useState(null);
@@ -48,11 +51,14 @@ export default function CreateBatch() {
       const todayISO = `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`;
 
       const [scheduleRes, batchesRes] = await Promise.all([
-        MenuService.getWeekSchedule(todayISO),
-        KitchenService.getBatches({ date: todayISO, limit: 100 }, { signal }),
+        MenuService.getWeekSchedule(todayISO, menuId ? { menuId } : {}),
+        KitchenService.getAllBatches({ date: todayISO }),
       ]);
 
-      const existingBatches = batchesRes?.items || [];
+      if (signal?.aborted) return;
+      setMenuOptions(scheduleRes?.data?.availableMenus || []);
+      const dayIds = new Set((scheduleRes?.data?.days || []).map((day) => day.menuDayId).filter(Boolean));
+      const existingBatches = (batchesRes?.items || []).filter((batch) => dayIds.has(batch.menuDayId));
       const todayDay = scheduleRes?.data?.days?.find((d) => d.date === todayISO);
       const demandByMeal = {};
       const allTodayDishes = [];
@@ -187,7 +193,7 @@ export default function CreateBatch() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  }, []);
+  }, [menuId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -202,6 +208,7 @@ export default function CreateBatch() {
     try {
       const mealType = String(dishToCreate.mealType || selectedMeal || "LUNCH").toUpperCase();
       const res = await KitchenService.planBatch({
+        planVersion: dishToCreate.planVersion,
         dishId: dishToCreate.dishId || dishToCreate.id,
         menuDayId: dishToCreate.menuDayId,
         mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
@@ -223,37 +230,13 @@ export default function CreateBatch() {
         msg: err.message || "Không thể tạo lô chế biến. Vui lòng kiểm tra lại nguyên liệu.",
         isSuccess: false,
       });
+      throw err;
     } finally {
       setSubmittingId(null);
     }
   };
 
   // Xử lý xác nhận bắt đầu nấu
-  const handleConfirmCooking = async (batch) => {
-    if (!batch?.id) return;
-    setActionLoadingId(batch.id);
-    try {
-      await KitchenService.confirmBatch(batch.id);
-      const nowISO = new Date().toISOString();
-      setBatches((prev) =>
-        prev.map((b) => (b.id === batch.id ? { ...b, status: "CONFIRMED", confirmedAt: nowISO } : b))
-      );
-      if (selectedItem?.id === batch.id) {
-        setSelectedItem((prev) => ({ ...prev, status: "CONFIRMED", confirmedAt: nowISO }));
-      }
-      notice({
-        msg: `Bắt đầu nấu: ${batch.name || batch.dishName} (${batch.batchCode})`,
-        isSuccess: true,
-      });
-    } catch (err) {
-      notice({
-        msg: err.message || "Không thể xác nhận nấu.",
-        isSuccess: false,
-      });
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   // Xử lý ghi nhận nấu xong
   const handleCompleteCooking = async (batch) => {
@@ -381,6 +364,7 @@ export default function CreateBatch() {
           subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
         />
 
+        <MenuScopeSelect menus={menuOptions} value={menuId} onChange={setMenuId} disabled={loading || Boolean(submittingId || actionLoadingId)} />
         {loadError ? (
           <p role="alert">{loadError}</p>
         ) : loading ? (
@@ -394,6 +378,8 @@ export default function CreateBatch() {
           >
             <FoodPrintLoading />
           </div>
+        ) : menuOptions.length > 1 && !menuId ? (
+          <p role="status">Chọn thực đơn và khối ở trên để xem tiến độ chế biến.</p>
         ) : !hasAnyData ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-slate-800 font-semibold text-lg mb-2">
@@ -422,7 +408,6 @@ export default function CreateBatch() {
             onOpenPlanModal={handleOpenPlanModal}
             onOpenSampleModal={handleOpenSampleModal}
             onQuickCreate={handleCreateBatchForDish}
-            onConfirmCooking={handleConfirmCooking}
             onCompleteCooking={handleCompleteCooking}
             onViewBatchDetail={handleViewFullPage}
             submittingId={submittingId}
@@ -435,8 +420,7 @@ export default function CreateBatch() {
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           item={selectedItem}
-          onConfirmCreate={handleCreateBatchForDish}
-          onConfirmCooking={handleConfirmCooking}
+          onConfirmCreate={handleOpenPlanModal}
           onCompleteCooking={handleCompleteCooking}
           onOpenSampleModal={handleOpenSampleModal}
           submitting={Boolean(submittingId || actionLoadingId)}

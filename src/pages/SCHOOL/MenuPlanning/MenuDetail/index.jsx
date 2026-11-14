@@ -209,7 +209,7 @@ export default function MenuDetail() {
         <MenuDetailBGHFeedback menu={menu} />
 
         {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
-        <MenuDetailDishesTable dishes={menu.dishes} />
+        <MenuDetailDishesTable dishes={menu.dishes} gradeIds={menu.gradeIds} />
 
         {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
         <MenuDetailAllergyCard menu={menu} />
@@ -221,6 +221,7 @@ export default function MenuDetail() {
       {/* Modal Popup Chỉnh sửa thực đơn ngày (50/50: Preview + Chọn món & Gia vị) */}
       {isEditModalOpen && rawWeeklyMenu && rawWeeklyMenu.status !== "APPROVED" && menu.status !== "APPROVED" && dayMeals?.canEdit !== false && (
         <CreateMenuDayModal
+          gradeIds={menu.gradeIds}
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           dayData={dayData}

@@ -75,27 +75,25 @@ export default function CreateMenu() {
   // 2. Thông tin thực đơn tuần
   const [menuTitle, setMenuTitle] = useState("")
 
-  // Danh mục 5 khối lớp chuẩn tiểu học
-  const GRADE_OPTIONS = useMemo(
-    () => [
-      { id: "school", label: "Toàn trường" },
-    ],
-    []
-  )
-
-  // Mặc định chọn tất cả các khối
-  const [selectedGrades, setSelectedGrades] = useState([
-    "school",
-  ])
+  // Các khối do Ban Giám hiệu cấu hình cho trường.
+  const [GRADE_OPTIONS, setGradeOptions] = useState([])
+  const [gradeError, setGradeError] = useState("")
+  const [selectedGrades, setSelectedGrades] = useState([])
+  useEffect(() => {
+    let active = true
+    MenuService.getContext({ forceRefresh: true }).then((context) => {
+      if (!active) return
+      if (!Array.isArray(context.grades)) throw new Error("Không tải được danh sách khối của trường.")
+      setGradeOptions(context.grades.map((grade) => ({ id: grade.id, label: grade.name })))
+    }).catch((error) => { if (active) setGradeError(error.message) })
+    return () => { active = false }
+  }, [])
   const [isGradeDropdownOpen, setIsGradeDropdownOpen] = useState(false)
   const gradeDropdownRef = useRef(null)
 
   // Tính toán nhãn hiển thị cho Đối tượng áp dụng
   const targetScopeText = useMemo(() => {
     if (selectedGrades.length === 0) return ""
-    if (selectedGrades.length === GRADE_OPTIONS.length) {
-      return "Toàn trường"
-    }
     return GRADE_OPTIONS.filter((g) => selectedGrades.includes(g.id))
       .map((g) => g.label)
       .join(", ")
@@ -125,6 +123,8 @@ export default function CreateMenu() {
   }, [])
 
   const handleToggleGrade = (gradeId) => {
+    if (saving || loadingSchedule) return
+    if (Object.values(weeklyMeals).some(day => day.useDishRecipes) && !window.confirm("Đổi khối sẽ tải thực đơn tương ứng và bỏ các thay đổi chưa lưu. Tiếp tục?")) return
     setSelectedGrades((prev) => {
       if (prev.includes(gradeId)) {
         return prev.filter((id) => id !== gradeId)
@@ -135,6 +135,8 @@ export default function CreateMenu() {
   }
 
   const handleToggleAllGrades = () => {
+    if (saving || loadingSchedule) return
+    if (Object.values(weeklyMeals).some(day => day.useDishRecipes) && !window.confirm("Đổi khối sẽ tải thực đơn tương ứng và bỏ các thay đổi chưa lưu. Tiếp tục?")) return
     if (selectedGrades.length === GRADE_OPTIONS.length) {
       setSelectedGrades([])
     } else {
@@ -185,7 +187,7 @@ export default function CreateMenu() {
   useEffect(() => {
     let active = true
     const weekStart = schoolDays[0]?.dateISO
-    if (!weekStart) return
+    if (!weekStart || !selectedGrades.length) { setWeeklyMeals({}); setAcademicWeek(null); setLoadingSchedule(false); setScheduleError(""); return }
 
     setLoadingSchedule(true)
     setScheduleError("")
@@ -194,7 +196,7 @@ export default function CreateMenu() {
     setAcademicWeek(null)
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
-    MenuService.getWeekSchedule(weekStart)
+    MenuService.getWeekSchedule(weekStart, { gradeIds: selectedGrades })
       .then((res) => {
         if (!active) return
         setAcademicWeek(res.data)
@@ -239,7 +241,7 @@ export default function CreateMenu() {
     return () => {
       active = false
     }
-  }, [schoolDays[0]?.dateISO])
+  }, [schoolDays[0]?.dateISO, [...selectedGrades].sort().join(",")])
 
   // Điều hướng tuần (Tuần trước / Tuần sau)
   const handleShiftWeek = useCallback((offset) => {
@@ -258,6 +260,7 @@ export default function CreateMenu() {
 
   // Mở Popup Modal Chi tiết ngày (50/50)
   const handleOpenDayModal = useCallback((dayData, mealType = "LUNCH", tab = "DISHES") => {
+    if (!selectedGrades.length) { showToast("Chọn khối áp dụng trước khi chọn món.", "warning"); return }
     const stored = weeklyMeals[dayData.dateISO]
     if (loadingSchedule || scheduleError || saving || dayData.isHoliday || academicWeek?.weeklyMenuStatus === "APPROVED" || stored?.canEdit === false || stored?.approvalStatus === "APPROVED") return
     setDayModalState({
@@ -266,7 +269,7 @@ export default function CreateMenu() {
       mealType,
       tab,
     })
-  }, [weeklyMeals, loadingSchedule, scheduleError, academicWeek, saving])
+  }, [weeklyMeals, loadingSchedule, scheduleError, academicWeek, saving, selectedGrades])
 
   const handleCloseDayModal = useCallback(() => {
     setDayModalState((prev) => ({ ...prev, isOpen: false }))
@@ -337,6 +340,7 @@ export default function CreateMenu() {
 
   // 6. Xử lý Sao chép từ thực đơn tuần trước
   const handleTriggerCopyPreviousWeek = async () => {
+    if (!selectedGrades.length) { showToast("Chọn khối áp dụng trước khi sao chép.", "warning"); return }
     const currentMondayISO = schoolDays[0]?.dateISO
     if (!currentMondayISO) {
       showToast("Chưa xác định được tuần học hiện tại", "warning")
@@ -374,7 +378,7 @@ export default function CreateMenu() {
 
       // Bước 1: Thử lấy lịch thực đơn tuần trước qua MenuService.getWeekSchedule
       try {
-        const prevScheduleRes = await MenuService.getWeekSchedule(prevMondayISO)
+        const prevScheduleRes = await MenuService.getWeekSchedule(prevMondayISO, { gradeIds: selectedGrades })
         const days = prevScheduleRes?.data?.days || []
         const hasAnyDishes = days.some(
           (d) =>
@@ -390,7 +394,7 @@ export default function CreateMenu() {
       }
 
       // Bước 2: Nếu tuần trước rỗng, tìm thực đơn đã có gần nhất
-      if (!sourceDays.length) {
+      if (!sourceDays.length && !selectedGrades.length) {
         try {
           const menusRes = await MenuService.getMenus({ limit: 10 })
           const menuList = Array.isArray(menusRes?.data)
@@ -506,6 +510,7 @@ export default function CreateMenu() {
 
   // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
   const buildWeeklyMenuPayload = () => ({
+    gradeIds: selectedGrades,
     weekStartDate: schoolDays[0]?.dateISO,
     title: menuTitle.trim(),
     days: schoolDays.flatMap(sd => {
@@ -838,6 +843,8 @@ export default function CreateMenu() {
       </div>
 
       {scheduleError && <p role="alert">{scheduleError}</p>}
+      {gradeError && <p role="alert">{gradeError}</p>}
+      {!GRADE_OPTIONS.length && !gradeError && <p role="status">Chưa có khối để lập thực đơn. Ban Giám hiệu cần cấu hình khối trước.</p>}
       {/* Sticky Bottom Bar */}
       <CreateMenuBottomBar
         onCancel={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
@@ -851,6 +858,7 @@ export default function CreateMenu() {
 
       {/* 3. POPUP MODAL TO RỘNG (50/50: NỬA TRÁI PREVIEW, NỬA PHẢI CHỌN MÓN & NHẬP GIA VỊ KHO) */}
       <CreateMenuDayModal
+        gradeIds={selectedGrades}
         isOpen={dayModalState.isOpen}
         onClose={handleCloseDayModal}
         dayData={dayModalState.dayData}
