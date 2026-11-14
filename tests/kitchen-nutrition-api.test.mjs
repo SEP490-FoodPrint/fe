@@ -16,6 +16,13 @@ test("grade menu filter lists individual grades and preserves shared menu mappin
   const html = renderToStaticMarkup(React.createElement(Filter, { menus, value: "shared", onChange: () => {} }))
   assert.match(html, /Grade 1/)
   assert.match(html, /Grade 2/)
+  const allGrades = [{ id: "g1", name: "Grade 1" }, { id: "g2", name: "Grade 2" }]
+  assert.deepEqual(menuGradeOptions([], allGrades), [{ key: "g1", label: "Grade 1", menuId: "" }, { key: "g2", label: "Grade 2", menuId: "" }])
+  const emptyHtml = renderToStaticMarkup(React.createElement(Filter, { menus: [], grades: allGrades, gradeValue: "g2", onChange: () => {} }))
+  assert.match(emptyHtml, /Grade 2/)
+  assert.match(emptyHtml, /value="g2" selected/)
+  const unselectedHtml = renderToStaticMarkup(React.createElement(Filter, { menus: [], grades: allGrades, gradeValue: "", onChange: () => {} }))
+  assert.match(unselectedHtml, /value="" selected/)
   assert.doesNotMatch(html, /Th\u1ef1c \u0111\u01a1n \/ kh\u1ed1i/)
 })
 

@@ -28,6 +28,10 @@ export default function CreateBatchSeparate() {
   const [hasApprovedMenu, setHasApprovedMenu] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState("all");
   const [menuId, setMenuId] = useState("");
+  const [gradeId, setGradeId] = useState("");
+  const [grades, setGrades] = useState([]);
+  const [gradeError, setGradeError] = useState("");
+  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, []);
   const [menuOptions, setMenuOptions] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -359,12 +363,12 @@ export default function CreateBatchSeparate() {
           subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
         />
 
-        <MenuScopeSelect menus={menuOptions} value={menuId} onChange={setMenuId} disabled={loading || Boolean(submittingId || actionLoadingId)} />
+        <MenuScopeSelect menus={menuOptions} grades={grades} gradeValue={gradeId} value={menuId} onChange={(id, selectedGrade) => { setGradeId(selectedGrade); setMenuId(id) }} disabled={loading || Boolean(submittingId || actionLoadingId)} />
         {!loading && Object.entries(mealRequirements).map(([mealType, requirement]) => requirement.unfinalizedClasses?.length > 0 && (
           <p role="status" key={mealType}>{mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}: chưa chốt suất ăn cho {requirement.unfinalizedClasses.map((row) => row.name).join(", ")}.</p>
         ))}
-        {loadError ? (
-          <p role="alert">{loadError}</p>
+        {loadError || gradeError ? (
+          <p role="alert">{loadError || gradeError}</p>
         ) : loading ? (
           <div
             style={{
@@ -376,6 +380,8 @@ export default function CreateBatchSeparate() {
           >
             <FoodPrintLoading />
           </div>
+        ) : gradeId && !menuOptions.some(menu => menu.gradeIds?.includes(gradeId) || !menu.gradeIds?.length) ? (
+          <p role="status">Khối này chưa có thực đơn trong tuần này.</p>
         ) : menuOptions.length > 1 && !menuId ? (
           <p role="status">Chọn khối ở trên để xem tiến độ chế biến riêng.</p>
         ) : !hasAnyData && hasApprovedMenu ? (

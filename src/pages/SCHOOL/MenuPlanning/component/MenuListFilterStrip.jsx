@@ -9,7 +9,7 @@ export default function MenuListFilterStrip({
   onResetFilters,
   academicYearOptions = [],
   weeks = [],
-  gradeMenus = [], gradeMenuId = "", onGradeMenuChange, gradeDisabled = false,
+  gradeMenus = [], grades = [], gradeValue = "", gradeMenuId = "", onGradeMenuChange, gradeDisabled = false,
 }) {
   const {
     searchKeyword = "",
@@ -83,7 +83,7 @@ export default function MenuListFilterStrip({
         <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
 
-      <MenuScopeSelect menus={gradeMenus} value={gradeMenuId} onChange={onGradeMenuChange} disabled={gradeDisabled} />
+      <MenuScopeSelect menus={gradeMenus} grades={grades} gradeValue={gradeValue} value={gradeMenuId} onChange={onGradeMenuChange} disabled={gradeDisabled} />
 
       {/* 4. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>

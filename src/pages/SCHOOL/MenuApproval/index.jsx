@@ -29,7 +29,10 @@ const pickDefaultWeek = weeks => {
 function MenuApproval() {
   const [weeks, setWeeks] = useState([])
   const [gradeFilter, setGradeFilter] = useState("")
-  const gradeOptions = useMemo(() => menuGradeOptions(weeks).filter((option) => !option.key.startsWith("school:")), [weeks])
+  const [grades, setGrades] = useState([])
+  const [gradeError, setGradeError] = useState("")
+  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, [])
+  const gradeOptions = useMemo(() => menuGradeOptions(weeks, grades).filter((option) => !option.key.startsWith("school:")), [weeks, grades])
   const filteredWeeks = useMemo(() => gradeFilter ? weeks.filter((week) => !week.gradeIds?.length || week.gradeIds.includes(gradeFilter)) : weeks, [weeks, gradeFilter])
   const [menuId, setMenuId] = useState(null)
   const [menu, setMenu] = useState(null)
@@ -184,6 +187,8 @@ function MenuApproval() {
   if (!error && !weeks.length) {
     return (
       <div className="menu-approval-page">
+        <label htmlFor="approval-empty-grade">Khối lớp </label><select id="approval-empty-grade" value={gradeFilter} onChange={event => setGradeFilter(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select>
+        {gradeError && <Alert severity="error">{gradeError}</Alert>}
         <Alert severity="info">Chưa có thực đơn tuần nào được Y tế gửi duyệt.</Alert>
       </div>
     )
@@ -193,10 +198,10 @@ function MenuApproval() {
     return <div className="menu-approval-page"><label htmlFor="approval-grade">Khối lớp </label><select id="approval-grade" value={gradeFilter} onChange={event => changeGrade(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select><p>Không có thực đơn cho khối này.</p></div>
   }
 
-  if (error || !menu) {
+  if (error || gradeError || !menu) {
     return (
       <div className="menu-approval-page">
-        <Alert severity="error">{error || "Không tìm thấy thực đơn."}</Alert>
+        <Alert severity="error">{error || gradeError || "Không tìm thấy thực đơn."}</Alert>
       </div>
     )
   }

@@ -18,8 +18,12 @@ export default function MenuPlanning() {
   // Master data: Ban đầu rỗng, tải 100% từ API thật
   const [allMenus, setMenus] = useState([])
   const [scopeId, setScopeId] = useState("")
+  const [gradeId, setGradeId] = useState("")
+  const [grades, setGrades] = useState([])
+  const [gradeError, setGradeError] = useState("")
+  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, [])
   const menuOptions = useMemo(() => [...new Map(allMenus.map((menu) => [menu.weeklyMenuId, { id: menu.weeklyMenuId, gradeIds: menu.gradeIds || [], gradeNames: menu.gradeIds?.length ? menu.targetScope.split(", ") : [] }])).values()], [allMenus])
-  const selectedScopeId = menuOptions.some((menu) => menu.id === scopeId) ? scopeId : menuOptions.length === 1 ? menuOptions[0].id : ""
+  const selectedScopeId = gradeId ? (menuOptions.find(menu => menu.gradeIds.includes(gradeId))?.id || menuOptions.find(menu => !menu.gradeIds.length)?.id || "") : menuOptions.some((menu) => menu.id === scopeId) ? scopeId : menuOptions.length === 1 ? menuOptions[0].id : ""
   const menus = useMemo(() => allMenus.filter((menu) => menu.weeklyMenuId === selectedScopeId), [allMenus, selectedScopeId])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
@@ -147,6 +151,7 @@ export default function MenuPlanning() {
   const handleResetFilters = () => {
     const year = defaultYear(availableAcademicYears)
     setScopeId("")
+    setGradeId("")
     setFilters({
       searchKeyword: "",
       academicYear: year?.academicYear || "",
@@ -421,8 +426,10 @@ export default function MenuPlanning() {
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
         gradeMenus={menuOptions}
+        grades={grades}
+        gradeValue={gradeId}
         gradeMenuId={selectedScopeId}
-        onGradeMenuChange={setScopeId}
+        onGradeMenuChange={(menuId, selectedGrade) => { setGradeId(selectedGrade); setScopeId(menuId) }}
         gradeDisabled={loading}
       />
 
@@ -432,10 +439,12 @@ export default function MenuPlanning() {
         <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <FoodPrintLoading />
         </div>
-      ) : calendarError || loadError ? (
-        <p role="alert">{calendarError || loadError}</p>
+      ) : calendarError || loadError || gradeError ? (
+        <p role="alert">{calendarError || loadError || gradeError}</p>
       ) : !selectedWeekObj ? (
         <p role="status">Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
+      ) : gradeId && !selectedScopeId ? (
+        <p role="status">Khối này chưa có thực đơn trong tuần đã chọn.</p>
       ) : menuOptions.length > 1 && !selectedScopeId ? (
         <p role="status">Chọn khối để xem hoặc gửi duyệt.</p>
       ) : (

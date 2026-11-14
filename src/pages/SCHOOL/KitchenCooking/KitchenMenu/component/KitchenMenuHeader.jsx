@@ -37,7 +37,7 @@ export default function KitchenMenuHeader({
   totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
-  gradeMenus = [], gradeMenuId = "", onGradeMenuChange, gradeDisabled = false,
+  gradeMenus = [], grades = [], gradeValue = "", gradeMenuId = "", onGradeMenuChange, gradeDisabled = false,
 }) {
   const navigate = useNavigate()
 
@@ -156,7 +156,7 @@ export default function KitchenMenuHeader({
             <span>Tuần này</span>
           </button>
 
-          <MenuScopeSelect menus={gradeMenus} value={gradeMenuId} onChange={onGradeMenuChange} disabled={gradeDisabled} />
+          <MenuScopeSelect menus={gradeMenus} grades={grades} gradeValue={gradeValue} value={gradeMenuId} onChange={onGradeMenuChange} disabled={gradeDisabled} />
 
           <span className={styles.inlineDivider} />
 

@@ -8,6 +8,10 @@ import styles from "./index.module.scss"
 
 export default function KitchenMenu() {
   const [years, setYears] = useState([])
+  const [grades, setGrades] = useState([])
+  const [gradeId, setGradeId] = useState("")
+  const [gradeError, setGradeError] = useState("")
+  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(err => { if (active) setGradeError(err.message) }); return () => { active = false } }, [])
   const [academicYear, setAcademicYear] = useState("")
   const [selectedWeek, setSelectedWeek] = useState(null)
   const [mealTypeFilter, setMealTypeFilter] = useState("ALL")
@@ -51,13 +55,20 @@ export default function KitchenMenu() {
     return ()=>{active=false}
   },[week,revision,menuId])
 
+  useEffect(() => {
+    if (!loading && gradeId && apiWeekData && !menuId) {
+      const matching = apiWeekData.availableMenus?.find(menu => menu.gradeIds?.includes(gradeId)) || apiWeekData.availableMenus?.find(menu => !menu.gradeIds?.length)
+      if (matching) setScopeSelection({ date: week.weekStartDate, id: matching.id })
+    }
+  }, [loading, gradeId, apiWeekData, menuId, week])
+  const gradeHasMenu = !gradeId || (apiWeekData?.availableMenus || []).some(menu => menu.gradeIds?.includes(gradeId) || !menu.gradeIds?.length)
   const days = useMemo(()=>{
-    if (!week || !apiWeekData) return []
+    if (!week || !apiWeekData || !gradeHasMenu) return []
     return getSchoolWeekScheduleFromDate(week.weekStartDate).schoolDays.map(day=>{
       const stored=apiWeekData.days?.find(row=>row.date===day.dateISO)
       return {...day,isHoliday:stored?.isHoliday || false,holidayReason:stored?.holidayReason || "",status:stored?.status,meals:stored?.meals || {LUNCH:{dishes:[]},AFTERNOON:{dishes:[]}}}
     })
-  },[week,apiWeekData])
+  },[week,apiWeekData,gradeHasMenu])
   const totalDishes=days.reduce((sum,day)=>sum+["LUNCH","AFTERNOON"].filter(type=>mealTypeFilter==="ALL"||type===mealTypeFilter).reduce((n,type)=>n+(day.meals[type]?.dishes?.length || 0),0),0)
   const index=weeks.indexOf(week)
   const changeYear=value=>{
@@ -73,21 +84,22 @@ export default function KitchenMenu() {
   const existing=apiWeekData?.days?.filter(day=>day.hasMenu) || []
   return <div className={styles.pageContainer}>
     <KitchenMenuHeader
-      menuTitle={apiWeekData?.weeklyMenuTitle || (week ? `Thực đơn tuần ${week.weekNumber}` : "Thực đơn")}
-      targetScope={apiWeekData?.targetScope || ""}
-      approved={existing.length>0&&existing.every(day=>day.status==="APPROVED")}
+      menuTitle={(gradeHasMenu && apiWeekData?.weeklyMenuTitle) || (week ? `Thực đơn tuần ${week.weekNumber}` : "Thực đơn")}
+      targetScope={gradeHasMenu ? apiWeekData?.targetScope || "" : ""}
+      approved={gradeHasMenu && existing.length>0&&existing.every(day=>day.status==="APPROVED")}
       academicYear={academicYear} academicYearOptions={years} onAcademicYearChange={changeYear}
       week={selectedWeek ?? ""} weeks={weeks} onWeekChange={value=>setSelectedWeek(Number(value))}
       onPrevWeek={()=>{if(index>0)setSelectedWeek(weeks[index-1].weekNumber)}}
       onNextWeek={()=>{if(index>=0&&index<weeks.length-1)setSelectedWeek(weeks[index+1].weekNumber)}}
       onCurrentWeek={currentWeek} isCurrentWeekSelected={!!week?.isCurrentWeek}
       isFirstWeek={index<=0} isLastWeek={index<0||index>=weeks.length-1}
-      gradeMenus={apiWeekData?.availableMenus || []} gradeMenuId={menuId} onGradeMenuChange={(id) => setScopeSelection({ date: week?.weekStartDate, id })} gradeDisabled={loading}
+      gradeMenus={apiWeekData?.availableMenus || []} grades={grades} gradeValue={gradeId} gradeMenuId={menuId} onGradeMenuChange={(id, selectedGrade) => { setGradeId(selectedGrade); setScopeSelection({ date: week?.weekStartDate, id }) }} gradeDisabled={loading}
       totalDishes={totalDishes} mealTypeFilter={mealTypeFilter} onMealTypeFilterChange={setMealTypeFilter}
     />
     {calendarLoading || loading ? <div role="status" style={{padding:80}}><FoodPrintLoading/></div>
-      : calendarError || error ? <div role="alert"><p>{calendarError || error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div>
+      : calendarError || error || gradeError ? <div role="alert"><p>{calendarError || error || gradeError}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div>
       : !years.length ? <p>Chưa có cấu hình năm học của trường.</p>
+      : !gradeHasMenu ? <p role="status">Khối này chưa có thực đơn trong tuần đã chọn.</p>
       : apiWeekData?.availableMenus?.length > 1 && !menuId ? <p role="status">Chọn khối ở trên để xem món ăn trong tuần.</p>
       : <KitchenMenuWeeklyGrid schoolDays={days} mealTypeFilter={mealTypeFilter} todayISO={todayISO}/>}
   </div>
