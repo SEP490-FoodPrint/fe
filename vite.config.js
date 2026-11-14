@@ -32,5 +32,8 @@ export default defineConfig({
     port: 3001,
     strictPort: true,
     open: true,
+    proxy: {
+      "/api/blockchain-todos": process.env.FOODPRINT_TODO_API_TARGET || "http://127.0.0.1:5000",
+    },
   },
 })

@@ -83,7 +83,13 @@ function LazyWrapper({ children }) {
   )
 }
 
+const BlockchainTodo = lazy(() => import("src/pages/BlockchainTodo"))
+
 const routes = [
+  ...(import.meta.env.DEV ? [{
+    path: "/blockchain-test",
+    element: <LazyWrapper><BlockchainTodo /></LazyWrapper>,
+  }] : []),
   // 1. Trang chủ Nền tảng FoodPrint (Công khai)
   {
     element: <PublicLayout />,
