@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react"
+import { menuGradeOptions } from "src/components/MenuScopeSelect";
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Skeleton } from "@mui/material"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
@@ -27,6 +28,12 @@ const pickDefaultWeek = weeks => {
 
 function MenuApproval() {
   const [weeks, setWeeks] = useState([])
+  const [gradeFilter, setGradeFilter] = useState("")
+  const [grades, setGrades] = useState([])
+  const [gradeError, setGradeError] = useState("")
+  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, [])
+  const gradeOptions = useMemo(() => menuGradeOptions(weeks, grades).filter((option) => !option.key.startsWith("school:")), [weeks, grades])
+  const filteredWeeks = useMemo(() => gradeFilter ? weeks.filter((week) => !week.gradeIds?.length || week.gradeIds.includes(gradeFilter)) : weeks, [weeks, gradeFilter])
   const [menuId, setMenuId] = useState(null)
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -103,6 +110,16 @@ function MenuApproval() {
     setDialog({ type, submissionVersion: menu.submissionVersion })
   }
 
+  const changeGrade = gradeId => {
+    if (submitting || dialog) return
+    setGradeFilter(gradeId)
+    const eligible = gradeId ? weeks.filter(week => !week.gradeIds?.length || week.gradeIds.includes(gradeId)) : weeks
+    if (!eligible.some(week => week.id === menuId)) {
+      setMenu(null)
+      setMenuId(pickDefaultWeek(eligible))
+    }
+  }
+
   const changeWeek = weekId => {
     if (submitting || dialog || weekId === menuId) return
     setMenuId(weekId)
@@ -170,15 +187,21 @@ function MenuApproval() {
   if (!error && !weeks.length) {
     return (
       <div className="menu-approval-page">
+        <label htmlFor="approval-empty-grade">Khối lớp </label><select id="approval-empty-grade" value={gradeFilter} onChange={event => setGradeFilter(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select>
+        {gradeError && <Alert severity="error">{gradeError}</Alert>}
         <Alert severity="info">Chưa có thực đơn tuần nào được Y tế gửi duyệt.</Alert>
       </div>
     )
   }
 
-  if (error || !menu) {
+  if (!error && !menu && gradeFilter && filteredWeeks.length === 0) {
+    return <div className="menu-approval-page"><label htmlFor="approval-grade">Khối lớp </label><select id="approval-grade" value={gradeFilter} onChange={event => changeGrade(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select><p>Không có thực đơn cho khối này.</p></div>
+  }
+
+  if (error || gradeError || !menu) {
     return (
       <div className="menu-approval-page">
-        <Alert severity="error">{error || "Không tìm thấy thực đơn."}</Alert>
+        <Alert severity="error">{error || gradeError || "Không tìm thấy thực đơn."}</Alert>
       </div>
     )
   }
@@ -195,7 +218,10 @@ function MenuApproval() {
       />
       <MenuSchedule
         days={menu.days}
-        weeks={weeks}
+        weeks={filteredWeeks}
+        gradeOptions={gradeOptions}
+        gradeFilter={gradeFilter}
+        onGradeChange={changeGrade}
         selectedWeekId={menuId}
         onWeekChange={changeWeek}
         disabled={submitting || Boolean(dialog)}

@@ -1,4 +1,4 @@
-import MenuScopeSelect from "src/components/MenuScopeSelect";
+import CookingProgressPreview from "../CreateBatch/CookingProgressPreview";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
@@ -18,14 +18,20 @@ import styles from "./index.module.scss";
  * CreateBatchSeparate - Màn hình Tiến độ Chế biến Nấu riêng theo lô (Nhân viên Bếp)
  * Kết nối 100% API thực tế, không dùng Mock Data fallback
  */
-export default function CreateBatchSeparate() {
+function CreateBatchSeparatePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [pendingDishes, setPendingDishes] = useState([]);
   const [batches, setBatches] = useState([]);
+  const [mealRequirements, setMealRequirements] = useState({});
+  const [hasApprovedMenu, setHasApprovedMenu] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState("all");
   const [menuId, setMenuId] = useState("");
+  const [gradeId, setGradeId] = useState("");
+  const [grades, setGrades] = useState([]);
+  const [gradeError, setGradeError] = useState("");
+  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, []);
   const [menuOptions, setMenuOptions] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,11 +68,13 @@ export default function CreateBatchSeparate() {
       const todayDay = scheduleRes?.data?.days?.find((d) => d.date === todayISO);
       const demandByMeal = {};
       const allTodayDishes = [];
+      const approved = todayDay?.status === "APPROVED" && Boolean(todayDay.meals);
+      setHasApprovedMenu(approved);
 
       if (todayDay?.status === "APPROVED" && todayDay.meals) {
         await Promise.all(
           ["LUNCH", "AFTERNOON"]
-            .filter((type) => todayDay.meals[type]?.dishes?.length)
+            .filter((type) => (todayDay.meals[type]?.allDishes || todayDay.meals[type]?.dishes || []).length)
             .map(async (type) => {
               demandByMeal[type] = await MenuService.getMealRequirements(
                 todayDay.menuDayId,
@@ -75,7 +83,7 @@ export default function CreateBatchSeparate() {
             })
         );
 
-        const lunchDishes = todayDay.meals.LUNCH?.dishes || [];
+        const lunchDishes = todayDay.meals.LUNCH?.allDishes || todayDay.meals.LUNCH?.dishes || [];
         lunchDishes.forEach((d, idx) => {
           allTodayDishes.push({
             id: d.id || d.dishId || `dish-lunch-${idx}`,
@@ -85,11 +93,12 @@ export default function CreateBatchSeparate() {
             mealName: "Bữa trưa",
             name: d.name,
             portionStandard: demandByMeal.LUNCH?.dishPortions?.[d.dishId || d.id] ?? 0,
+            unfinalizedClasses: demandByMeal.LUNCH?.unfinalizedClasses || [],
             ingredients: d.ingredients || [],
           });
         });
 
-        const afternoonDishes = todayDay.meals.AFTERNOON?.dishes || [];
+        const afternoonDishes = todayDay.meals.AFTERNOON?.allDishes || todayDay.meals.AFTERNOON?.dishes || [];
         afternoonDishes.forEach((d, idx) => {
           allTodayDishes.push({
             id: d.id || d.dishId || `dish-afternoon-${idx}`,
@@ -99,12 +108,13 @@ export default function CreateBatchSeparate() {
             mealName: "Bữa xế",
             name: d.name,
             portionStandard: demandByMeal.AFTERNOON?.dishPortions?.[d.dishId || d.id] ?? 0,
+            unfinalizedClasses: demandByMeal.AFTERNOON?.unfinalizedClasses || [],
             ingredients: d.ingredients || [],
           });
         });
       }
 
-      // Dữ liệu chi tiết món trong mẻ là nguồn chính; hỗ trợ cả bản ghi cũ một món.
+      // Dữ liệu chi tiết món trong lô là nguồn chính; hỗ trợ cả bản ghi cũ một món.
       const formattedBatches = existingBatches.map((b) => {
         const dishes = Array.isArray(b.dishes) && b.dishes.length
           ? b.dishes
@@ -165,11 +175,14 @@ export default function CreateBatchSeparate() {
       });
 
       setPendingDishes(pending);
+      setMealRequirements(demandByMeal);
       setBatches(formattedBatches);
     } catch (err) {
       console.warn("Lỗi tải tiến độ nấu riêng hôm nay:", err);
       if (!signal?.aborted) {
         setPendingDishes([]);
+        setMealRequirements({});
+        setHasApprovedMenu(false);
         setBatches([]);
         setLoadError(err.message || "Không thể tải tiến độ chế biến hôm nay.");
       }
@@ -203,7 +216,7 @@ export default function CreateBatchSeparate() {
       await loadTodayData();
 
       notice({
-        msg: "Đã đồng bộ các mẻ con theo cấu hình nấu riêng của BGH.",
+        msg: "Đã đồng bộ các lô chế biến theo cấu hình nấu riêng của BGH.",
         isSuccess: true,
       });
 
@@ -250,6 +263,10 @@ export default function CreateBatchSeparate() {
 
   // Mở Popup phương án phân bổ lô chế biến trước khi tạo
   const handleOpenPlanModal = (dish) => {
+    if (dish.unfinalizedClasses?.length) {
+      notice({ msg: `Chưa chốt suất ăn: ${dish.unfinalizedClasses.map((row) => row.name).join(", ")}`, isSuccess: false });
+      return;
+    }
     setDishToPlan(dish);
     setIsPlanModalOpen(true);
   };
@@ -265,15 +282,13 @@ export default function CreateBatchSeparate() {
     if (!sampleBatch?.id) return;
     setSampleLoading(true);
     try {
-      await KitchenService.createBatchSample(sampleBatch.id, samplePayload);
+      const savedSample = await KitchenService.createBatchSample(sampleBatch.id, samplePayload);
       setBatches((prev) =>
         prev.map((b) =>
           b.id === sampleBatch.id
             ? {
                 ...b,
-                hasSample: true,
-                retainedFoodSamples: [...(b.retainedFoodSamples || []), samplePayload],
-                retainedFoodSample: samplePayload,
+                retainedFoodSamples: [...(b.retainedFoodSamples || []), savedSample],
               }
             : b
         )
@@ -281,9 +296,7 @@ export default function CreateBatchSeparate() {
       if (selectedItem?.id === sampleBatch.id) {
         setSelectedItem((prev) => ({
           ...prev,
-          hasSample: true,
-          retainedFoodSamples: [...(prev?.retainedFoodSamples || []), samplePayload],
-          retainedFoodSample: samplePayload,
+          retainedFoodSamples: [...(prev?.retainedFoodSamples || []), savedSample],
         }));
       }
       notice({
@@ -317,6 +330,9 @@ export default function CreateBatchSeparate() {
               ? {
                   ...prev,
                   ...adapted,
+                  retainedFoodSamples: fullDetail.retainedFoodSamples ?? prev.retainedFoodSamples,
+                  completedAt: fullDetail.completedAt ?? prev.completedAt,
+                  confirmedAt: fullDetail.confirmedAt ?? prev.confirmedAt,
                   batchCode: adapted.code || prev.batchCode,
                   ingredients: adapted.ingredients?.length ? adapted.ingredients : prev.ingredients,
                 }
@@ -347,9 +363,11 @@ export default function CreateBatchSeparate() {
           subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
         />
 
-        <MenuScopeSelect menus={menuOptions} value={menuId} onChange={setMenuId} disabled={loading || Boolean(submittingId || actionLoadingId)} />
-        {loadError ? (
-          <p role="alert">{loadError}</p>
+        {!loading && Object.entries(mealRequirements).map(([mealType, requirement]) => requirement.unfinalizedClasses?.length > 0 && (
+          <p role="status" key={mealType}>{mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}: chưa chốt suất ăn cho {requirement.unfinalizedClasses.map((row) => row.name).join(", ")}.</p>
+        ))}
+        {loadError || gradeError ? (
+          <p role="alert">{loadError || gradeError}</p>
         ) : loading ? (
           <div
             style={{
@@ -361,8 +379,20 @@ export default function CreateBatchSeparate() {
           >
             <FoodPrintLoading />
           </div>
+        ) : (
+          <CreateBatchKanban
+            gradeMenus={menuOptions}
+            grades={grades}
+            gradeValue={gradeId}
+            gradeMenuId={menuId}
+            onGradeChange={(id, selectedGrade) => { setGradeId(selectedGrade); setMenuId(id); }}
+            gradeDisabled={Boolean(submittingId || actionLoadingId)}
+            emptyState={gradeId && !menuOptions.some(menu => menu.gradeIds?.includes(gradeId) || !menu.gradeIds?.length) ? (
+          <p role="status">Khối này chưa có thực đơn trong tuần này.</p>
         ) : menuOptions.length > 1 && !menuId ? (
-          <p role="status">Chọn thực đơn và khối ở trên để xem tiến độ chế biến riêng.</p>
+          <p role="status">Chọn khối để xem tiến độ chế biến riêng.</p>
+        ) : !hasAnyData && hasApprovedMenu ? (
+          <p role="status">Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
         ) : !hasAnyData ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-slate-800 font-semibold text-lg mb-2">
@@ -381,10 +411,10 @@ export default function CreateBatchSeparate() {
               </button>
             </div>
           </div>
-        ) : (
-          <CreateBatchKanban
+        ) : null}
             pendingDishes={pendingDishes}
             batches={batches}
+            mealRequirements={mealRequirements}
             selectedMeal={selectedMeal}
             onSelectMeal={setSelectedMeal}
             onOpenDetail={handleOpenDetail}
@@ -462,4 +492,9 @@ export default function CreateBatchSeparate() {
       </div>
     </div>
   );
+}
+
+export default function CookingProgressRoute() {
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("preview") === "1") return <CookingProgressPreview separate />;
+  return <CreateBatchSeparatePage />;
 }

@@ -70,7 +70,7 @@ function DishCell({ dishes }) {
 }
 
 // Bảng cả tuần: cột là ngày, hàng là bữa ăn — BGH xem và duyệt toàn bộ thực đơn một lần
-function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
+function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled, gradeOptions = [], gradeFilter = "", onGradeChange }) {
   const currentIndex = weeks.findIndex((w) => w.id === selectedWeekId)
   // Danh sách weeks được xếp từ mới nhất đến cũ nhất (giảm dần theo ngày)
   // Tuần trước (earlier date, lùi về trước) nằm ở index sau (currentIndex + 1)
@@ -89,6 +89,10 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
         </Typography>
 
         <div className={styles.weekNavigator}>
+          <select className={styles.gradeSelect} aria-label="Lọc theo khối lớp" value={gradeFilter} disabled={disabled} onChange={event => onGradeChange(event.target.value)}>
+            <option value="">Tất cả khối</option>
+            {gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+          </select>
           <Tooltip title={prevWeek ? `Tuần trước (${formatWeekRange(prevWeek.weekStartDate)})` : ""}>
             <span>
               <IconButton
@@ -226,6 +230,9 @@ MenuSchedule.propTypes = {
   selectedWeekId: PropTypes.string,
   onWeekChange: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
+  gradeOptions: PropTypes.arrayOf(PropTypes.object),
+  gradeFilter: PropTypes.string,
+  onGradeChange: PropTypes.func,
 }
 
 export default MenuSchedule

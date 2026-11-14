@@ -43,13 +43,28 @@ export default function CreateMenuWeeklyGrid({
             ? dayMeals.AFTERNOON
             : []
           const seasonings = dayMeals.seasoningsByMeal
-            ? ["LUNCH", "AFTERNOON"].flatMap(mealType =>
-                (dayMeals.seasoningsByMeal[mealType] || []).map(s => ({
-                  ...s,
-                  id: `${mealType}-${s.ingredientEntryId || s.id}`,
-                  name: `${mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${s.name}`,
-                })))
-            : Array.isArray(dayMeals.seasonings) ? dayMeals.seasonings : []
+            ? (() => {
+                const map = new Map()
+                for (const mealType of ["LUNCH", "AFTERNOON"]) {
+                  for (const s of dayMeals.seasoningsByMeal[mealType] || []) {
+                    const key = s.ingredientEntryId || s.name || s.id
+                    if (!map.has(key)) {
+                      map.set(key, {
+                        ...s,
+                        id: s.ingredientEntryId || s.id || key,
+                        name: (s.name || "").replace(/^(Bữa trưa|Bữa xế)\s*[·•-]\s*/i, "").trim(),
+                      })
+                    }
+                  }
+                }
+                return Array.from(map.values())
+              })()
+            : Array.isArray(dayMeals.seasonings)
+            ? dayMeals.seasonings.map(s => ({
+                ...s,
+                name: (s.name || "").replace(/^(Bữa trưa|Bữa xế)\s*[·•-]\s*/i, "").trim(),
+              }))
+            : []
 
           const hasLunch = lunchDishes.length > 0
           const hasAfternoon = afternoonDishes.length > 0

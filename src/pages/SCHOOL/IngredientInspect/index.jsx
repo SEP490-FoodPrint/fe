@@ -88,10 +88,10 @@ export default function IngredientInspect() {
     finally { if (version === selectionRevision.current) setDetailLoading(false) }
   }
 
-  const submitApproval = async (decision, reason) => {
+  const submitApproval = async (decision, reason, photo) => {
     if (!deliveryForApproval) return
     const version = selectionRevision.current
-    const result = await decideDeliveryInspection(deliveryForApproval.id, decision, reason)
+    const result = await decideDeliveryInspection(deliveryForApproval.id, decision, reason, photo)
     setDeliveryForApproval(null)
     setCancelToast(Boolean(result.cancellationNotice))
     setRevision(value => value + 1)

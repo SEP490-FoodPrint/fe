@@ -1,5 +1,7 @@
+import { batchSampleProgress } from "src/services/KitchenService/adapter";
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
+import MenuScopeSelect from "src/components/MenuScopeSelect";
 import {
   Calendar,
   Clock,
@@ -26,8 +28,16 @@ export default function CreateBatchKanban({
   dishes = [],
   pendingDishes: propPendingDishes,
   batches: propBatches,
+  mealRequirements = {},
   selectedMeal = "all",
   onSelectMeal,
+  gradeMenus = [],
+  grades = [],
+  gradeValue = "",
+  gradeMenuId = "",
+  onGradeChange,
+  gradeDisabled = false,
+  emptyState = null,
   onOpenDetail,
   onOpenPlanModal,
   onOpenSampleModal,
@@ -126,45 +136,17 @@ export default function CreateBatchKanban({
     [filteredBatches]
   );
 
-  // 3. Đã nấu xong (COMPLETED nhưng chưa lưu mẫu: !hasSample)
   const colCooked = useMemo(
-    () =>
-      filteredBatches.filter((b) => {
-        if (b.status !== "COMPLETED") return false;
-        const hasSample = Boolean(
-          (Array.isArray(b.retainedFoodSamples) && b.retainedFoodSamples.length > 0) ||
-          b.retainedFoodSample ||
-          b.hasSample
-        );
-        return !hasSample;
-      }),
+    () => filteredBatches.filter((batch) => batch.status === "COMPLETED" && !batchSampleProgress(batch).complete),
     [filteredBatches]
   );
-
-  // 4. Đã lưu mẫu (COMPLETED và đã lưu mẫu: hasSample === true)
   const colSampled = useMemo(
-    () =>
-      filteredBatches.filter((b) => {
-        if (b.status !== "COMPLETED") return false;
-        const hasSample = Boolean(
-          (Array.isArray(b.retainedFoodSamples) && b.retainedFoodSamples.length > 0) ||
-          b.retainedFoodSample ||
-          b.hasSample
-        );
-        return hasSample;
-      }),
+    () => filteredBatches.filter((batch) => batch.status === "COMPLETED" && batchSampleProgress(batch).complete),
     [filteredBatches]
   );
-
-  // Tổng số suất ăn tính theo món đang hiển thị
-  const totalPortions = useMemo(() => {
-    const list = [
-      ...effectivePendingDishes.filter((d) => selectedMeal === "all" || d.mealType === selectedMeal),
-      ...effectiveBatches.filter((b) => selectedMeal === "all" || b.mealType === selectedMeal),
-    ];
-    if (!list.length) return 0;
-    return Math.max(...list.map((d) => d.portionStandard || d.plannedPortions || 0));
-  }, [effectivePendingDishes, effectiveBatches, selectedMeal]);
+  const portionsLabel = selectedMeal === "all"
+    ? ["LUNCH", "AFTERNOON"].filter((type) => mealRequirements[type]).map((type) => `${type === "LUNCH" ? "Trưa" : "Xế"}: ${Number(mealRequirements[type].portions ?? 0).toLocaleString("vi-VN")}`).join(" · ") || "—"
+    : Number(mealRequirements[selectedMeal === "lunch" ? "LUNCH" : "AFTERNOON"]?.portions ?? 0).toLocaleString("vi-VN");
 
   const allFinished =
     (effectivePendingDishes.length > 0 || effectiveBatches.length > 0) &&
@@ -203,7 +185,7 @@ export default function CreateBatchKanban({
             <Users size={15} className={styles.metaIcon} />
             <span className={styles.metaLabelText}>Dự kiến:</span>
             <span className={styles.portionVal}>
-              {Number.isFinite(totalPortions) ? totalPortions.toLocaleString("vi-VN") : "—"}
+              {portionsLabel}
             </span>
             <span className={styles.unitText}>suất</span>
             <span className={styles.lockBadge} title="Số liệu đồng bộ từ điểm danh học sinh">
@@ -228,9 +210,11 @@ export default function CreateBatchKanban({
             </select>
             <ChevronDown size={14} className={styles.selectArrow} aria-hidden="true" />
           </div>
+          <MenuScopeSelect menus={gradeMenus} grades={grades} gradeValue={gradeValue} value={gradeMenuId} onChange={onGradeChange} disabled={gradeDisabled} />
         </div>
       </div>
 
+      {emptyState ? emptyState : <>
       {/* Thông báo nếu đã hoàn thành và lưu mẫu toàn bộ */}
       {allFinished && (
         <div className={styles.allDoneBanner}>
@@ -240,7 +224,7 @@ export default function CreateBatchKanban({
               Hoàn thành xuất sắc toàn bộ quy trình chế biến & lưu mẫu hôm nay!
             </span>
             <span className={styles.allDoneDesc}>
-              Tất cả {colSampled.length} lô chế biến đã nấu xong, niêm phong lưu mẫu 24h đầy đủ và sẵn sàng phân bổ suất ăn cho các lớp.
+              Tất cả {colSampled.length} lô chế biến đã nấu xong, niêm phong lưu mẫu đầy đủ và sẵn sàng phân bổ suất ăn cho các lớp.
             </span>
           </div>
         </div>
@@ -417,7 +401,7 @@ export default function CreateBatchKanban({
                           onCompleteCooking?.(batch);
                         }}
                         disabled={isActing || batch.status !== "CONFIRMED"}
-                        title="Ghi nhận mẻ này đã nấu xong"
+                        title="Ghi nhận lô này đã nấu xong"
                         aria-label={`Nấu xong lô ${batch.batchCode}`}
                       >
                         <CookingPot size={14} />
@@ -480,7 +464,7 @@ export default function CreateBatchKanban({
                         {mealLabel}
                       </span>
                       <span className={styles.statusWaitingSample}>
-                        Chờ lưu mẫu
+                        Chờ lưu mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} {batchSampleProgress(batch).total === 1 ? "lô" : "món"})
                       </span>
                     </div>
 
@@ -594,7 +578,7 @@ export default function CreateBatchKanban({
                       </span>
                       <span className={styles.statusSampled}>
                         <ShieldCheck size={12} />
-                        <span>Đã lưu mẫu 24h</span>
+                        <span>Đã lưu đủ mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} {batchSampleProgress(batch).total === 1 ? "lô" : "món"})</span>
                       </span>
                     </div>
 
@@ -611,11 +595,11 @@ export default function CreateBatchKanban({
                       <span className={styles.batchPortionsText}>
                         {batch.portionStandard || batch.plannedPortions || "—"} suất
                       </span>
-                      {batch.completedAt && (
+                      {batch.retainedFoodSamples?.length > 0 && (
                         <>
                           <span className={styles.batchMetaDot}>•</span>
                           <span className={styles.completedTimeText}>
-                            Xong {formatTime(batch.completedAt)}
+                            Lưu mẫu {formatTime(batch.retainedFoodSamples.at(-1)?.sampledAt)}
                           </span>
                         </>
                       )}
@@ -644,6 +628,7 @@ export default function CreateBatchKanban({
           </div>
         </div>
       </div>
+      </>}
     </div>
   );
 }
@@ -652,8 +637,16 @@ CreateBatchKanban.propTypes = {
   dishes: PropTypes.arrayOf(PropTypes.object),
   pendingDishes: PropTypes.arrayOf(PropTypes.object),
   batches: PropTypes.arrayOf(PropTypes.object),
+  mealRequirements: PropTypes.object,
   selectedMeal: PropTypes.string,
   onSelectMeal: PropTypes.func,
+  gradeMenus: PropTypes.arrayOf(PropTypes.object),
+  grades: PropTypes.arrayOf(PropTypes.object),
+  gradeValue: PropTypes.string,
+  gradeMenuId: PropTypes.string,
+  onGradeChange: PropTypes.func,
+  gradeDisabled: PropTypes.bool,
+  emptyState: PropTypes.node,
   onOpenDetail: PropTypes.func,
   onOpenPlanModal: PropTypes.func,
   onOpenSampleModal: PropTypes.func,

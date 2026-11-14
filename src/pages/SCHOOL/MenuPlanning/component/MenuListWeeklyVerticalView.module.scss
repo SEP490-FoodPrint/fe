@@ -347,13 +347,15 @@
    ======================================================== */
 .weeklyGridWrapper {
   width: 100%;
-  overflow: visible; /* Hoàn toàn không có thanh cuộn ngang */
+  overflow: visible;
+  /* Hoàn toàn không có thanh cuộn ngang */
   box-sizing: border-box;
 }
 
 .weeklyGrid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr)); /* Dãn đều 100% theo chiều ngang */
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  /* Dãn đều 100% theo chiều ngang */
   gap: 12px;
   align-items: stretch;
   width: 100%;
@@ -635,7 +637,8 @@
   min-height: 250px;
   max-height: 250px;
   box-sizing: border-box;
-  overflow: hidden; /* Tuyệt đối không có thanh lướt */
+  overflow: hidden;
+  /* Tuyệt đối không có thanh lướt */
 }
 
 /* Khi ngày chưa có bữa trưa: Ô trống cao đúng 250px giữ nhịp bằng nhau */
@@ -723,7 +726,8 @@
   min-height: 100px;
   max-height: 100px;
   box-sizing: border-box;
-  overflow: hidden; /* Tuyệt đối không có thanh lướt */
+  overflow: hidden;
+  /* Tuyệt đối không có thanh lướt */
 }
 
 /* Khi ngày chưa có bữa xế: Ô trống cao đúng 100px giữ nhịp bằng nhau */
