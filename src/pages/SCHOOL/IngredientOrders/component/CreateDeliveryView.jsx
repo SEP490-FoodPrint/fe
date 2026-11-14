@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react"
+import React, { useState, useMemo, useEffect, useCallback } from "react"
 import PropTypes from "prop-types"
 import {
   Box,
@@ -22,6 +22,7 @@ import {
   DialogActions,
   Autocomplete,
   IconButton,
+  TableContainer,
 } from "@mui/material"
 import {
   ArrowLeft,
@@ -42,6 +43,9 @@ import {
   Archive,
   Plus,
   Trash2,
+  RotateCcw,
+  Eye,
+  X,
 } from "lucide-react"
 import { MOCK_APPROVED_MENUS, MOCK_MASTER_INGREDIENT_CATALOG } from "../mockData"
 import styles from "./CreateDeliveryView.module.scss"
@@ -115,8 +119,33 @@ export default function CreateDeliveryView({
     }
   }, [initialDate])
 
-  // Sĩ số GVCN báo cho Đợt 2 (mặc định để trống để test validate)
+  // Sĩ số GVCN báo cho Đợt 2 (tự động đồng bộ từ API tổng hợp sĩ số của trường)
   const [actualAttendance, setActualAttendance] = useState("")
+  const [attendanceLoading, setAttendanceLoading] = useState(false)
+  const [attendanceSummary, setAttendanceSummary] = useState(null)
+  const [openClassDialog, setOpenClassDialog] = useState(false)
+
+  const fetchAttendance = useCallback(async (targetDate) => {
+    const d = targetDate || orderDate
+    if (!d) return
+    setAttendanceLoading(true)
+    try {
+      const summary = await IngredientOrderService.getDailyAttendanceSummary({
+        date: d,
+        mealType: "LUNCH",
+      })
+      if (summary) {
+        setAttendanceSummary(summary)
+        if (summary.totalPortions > 0) {
+          setActualAttendance(String(summary.totalPortions))
+        }
+      }
+    } catch (err) {
+      console.warn("Lỗi đồng bộ sĩ số GVCN:", err)
+    } finally {
+      setAttendanceLoading(false)
+    }
+  }, [orderDate])
 
   // =========================================================================
   // TỰ ĐỘNG NHẬN DIỆN CHẾ ĐỘ THEO NGÀY (VALIDATE THEO ORDER_DATE)
@@ -143,6 +172,15 @@ export default function CreateDeliveryView({
     return { mode: m, batch1ForDate: b1, batch2ForDate: b2 }
   }, [deliveries, orderDate])
 
+  // Tự động đồng bộ sĩ số từ GVCN khi chuyển sang mode Đợt 2 hoặc đổi ngày
+  useEffect(() => {
+    if (mode === "BATCH_2") {
+      fetchAttendance(orderDate)
+    } else {
+      setAttendanceSummary(null)
+    }
+  }, [mode, orderDate, fetchAttendance])
+
   // Menu áp dụng
   const currentMenu = useMemo(() => {
     if (mode === "BATCH_2" && batch1ForDate) {
@@ -157,7 +195,7 @@ export default function CreateDeliveryView({
   // Tính số suất giao bù ở Đợt 2
   const parsedAttendance = Number(actualAttendance) || 0
   const remainingPortions =
-    parsedAttendance > 0 ? Math.max(0, parsedAttendance - batch1Portions) : maxPortions - batch1Portions
+    parsedAttendance > 0 ? Math.max(0, parsedAttendance - batch1Portions) : 0
 
   // Nguyên liệu tươi sống (DIRECT_USE)
   const freshIngredients = useMemo(() => {
@@ -177,7 +215,7 @@ export default function CreateDeliveryView({
     if (!currentMenu) return
 
     const fresh = currentMenu.ingredients?.filter(it => it.handlingType === "DIRECT_USE") || []
-    const portions = mode === "BATCH_1" ? batch1Portions : (parsedAttendance > 0 ? remainingPortions : batch1Portions)
+    const portions = mode === "BATCH_1" ? batch1Portions : (parsedAttendance > 0 ? remainingPortions : 0)
 
     const initialItems = fresh.map(ing => {
       let portionRate = ing.qtyPerPortion
@@ -940,61 +978,221 @@ export default function CreateDeliveryView({
                 <Users size={22} className={styles.attendanceIcon} />
                 <Box>
                   <Typography variant="subtitle1" className={styles.attendanceHeading}>
-                    Cập Nhật Sĩ Số Học Sinh Từ Giáo Viên Chủ Nhiệm (GVCN)
+                    Sĩ Số Ăn Bán Trú Thực Tế Từ Giáo Viên Chủ Nhiệm (GVCN)
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Hệ thống tự động tổng hợp số lượng học sinh ăn bán trú từ các lớp đã chốt điểm danh
                   </Typography>
                 </Box>
               </Box>
+
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Eye size={16} />}
+                onClick={() => setOpenClassDialog(true)}
+                sx={{ textTransform: "none", fontWeight: 600 }}
+              >
+                Xem danh sách các lớp ({attendanceSummary?.finalizedClasses || 0}/{attendanceSummary?.classes?.length || 0})
+              </Button>
             </Box>
 
             <Box className={styles.attendanceBody}>
-              <Box className={styles.attendanceInputRow}>
-                <TextField
-                  type="number"
-                  label="Sĩ số thực tế GVCN báo sáng (Học sinh)"
-                  placeholder="Nhập sĩ số điểm danh..."
-                  value={actualAttendance}
-                  onChange={e => setActualAttendance(e.target.value)}
-                  size="small"
-                  className={styles.attendanceInput}
-                  slotProps={{
-                    htmlInput: { min: batch1Portions, max: maxPortions },
-                  }}
-                />
+              {attendanceSummary && (
+                <Box>
+                  {attendanceSummary.finalizedClasses > 0 ? (
+                    <Alert severity="success" icon={<CheckCircle2 size={18} />}>
+                      Đã tự động lấy dữ liệu từ GVCN: <strong>{attendanceSummary.totalPortions} học sinh</strong> ({attendanceSummary.finalizedClasses} lớp đã chốt điểm danh sáng nay).
+                    </Alert>
+                  ) : (
+                    <Alert severity="info" icon={<Clock size={18} />}>
+                      Chưa có lớp nào chốt sĩ số điểm danh cho ngày {orderDate}. Khi GVCN các lớp chốt báo cơm, hệ thống sẽ tự động cập nhật số suất cần giao.
+                    </Alert>
+                  )}
+                </Box>
+              )}
 
-                <Box className={styles.attendanceFormula}>
-                  <Box className={styles.formulaItem}>
-                    <Typography variant="caption" color="text.secondary">
-                      Suất tối đa:
-                    </Typography>
-                    <Typography variant="subtitle2">{maxPortions} suất</Typography>
-                  </Box>
-                  <Typography variant="h6" color="text.secondary">
-                    -
+              <Box className={styles.attendanceStatsRow}>
+                <Box className={styles.attendanceStatBox}>
+                  <Typography variant="caption" color="text.secondary">
+                    Sĩ số chốt từ GVCN:
                   </Typography>
-                  <Box className={styles.formulaItem}>
-                    <Typography variant="caption" color="text.secondary">
-                      Đợt 1 đã nhận:
-                    </Typography>
-                    <Typography variant="subtitle2" color="primary">
-                      {batch1Portions} suất
-                    </Typography>
-                  </Box>
-                  <Typography variant="h6" color="text.secondary">
-                    =
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: 700,
+                      color: parsedAttendance > 0 ? "#15803d" : "#64748b",
+                      mt: 0.5,
+                    }}
+                  >
+                    {attendanceLoading
+                      ? "Đang tải..."
+                      : parsedAttendance > 0
+                        ? `${parsedAttendance} học sinh`
+                        : "0 học sinh"}
                   </Typography>
-                  <Box className={styles.formulaItemResult}>
-                    <Typography variant="caption" color="text.secondary">
-                      Cần giao thêm Đợt 2:
-                    </Typography>
-                    <Typography variant="h6" className={styles.resultPortions}>
-                      {parsedAttendance > 0 ? remainingPortions : "~425"} suất
-                    </Typography>
-                  </Box>
+                </Box>
+
+                <Typography variant="h5" color="text.secondary" sx={{ alignSelf: "center" }}>
+                  -
+                </Typography>
+
+                <Box className={styles.attendanceStatBox}>
+                  <Typography variant="caption" color="text.secondary">
+                    Đợt 1 đã nhận (50%):
+                  </Typography>
+                  <Typography variant="h5" sx={{ fontWeight: 700, color: "#1976d2", mt: 0.5 }}>
+                    {batch1Portions} suất
+                  </Typography>
+                </Box>
+
+                <Typography variant="h5" color="text.secondary" sx={{ alignSelf: "center" }}>
+                  =
+                </Typography>
+
+                <Box className={`${styles.attendanceStatBox} ${styles.attendanceStatBoxHighlight}`}>
+                  <Typography variant="caption" color="text.secondary">
+                    Cần giao thêm Đợt 2:
+                  </Typography>
+                  <Typography variant="h5" className={styles.resultPortions} sx={{ mt: 0.5 }}>
+                    {parsedAttendance > 0 ? `${remainingPortions} suất` : "0 suất"}
+                  </Typography>
                 </Box>
               </Box>
-
             </Box>
           </Paper>
+
+          {/* MÀN NỔI (DIALOG): CHI TIẾT ĐIỂM DANH BÁO CƠM TỪNG LỚP */}
+          <Dialog
+            open={openClassDialog}
+            onClose={() => setOpenClassDialog(false)}
+            maxWidth="md"
+            fullWidth
+          >
+            <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", pb: 1 }}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <Users size={22} color="#15803d" />
+                <Box>
+                  <Typography variant="h6" sx={{ fontWeight: 600, fontSize: "1.1rem" }}>
+                    Chi Tiết Điểm Danh Báo Cơm Các Lớp
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    Ngày: {orderDate} • Bữa trưa (LUNCH)
+                  </Typography>
+                </Box>
+              </Box>
+              <IconButton size="small" onClick={() => setOpenClassDialog(false)}>
+                <X size={18} />
+              </IconButton>
+            </DialogTitle>
+
+            <DialogContent dividers sx={{ p: 2.5 }}>
+              <Box sx={{ display: "flex", gap: 1.5, mb: 2.5, flexWrap: "wrap", alignItems: "center" }}>
+                <Chip
+                  label={`Tổng sĩ số chốt: ${attendanceSummary?.totalPortions || 0} học sinh`}
+                  color="success"
+                  size="small"
+                  sx={{ fontWeight: 600 }}
+                />
+                <Chip
+                  label={`Đã chốt: ${attendanceSummary?.finalizedClasses || 0} lớp`}
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                />
+                {Number(attendanceSummary?.pendingClasses) > 0 && (
+                  <Chip
+                    label={`Chưa chốt: ${attendanceSummary.pendingClasses} lớp`}
+                    color="warning"
+                    variant="outlined"
+                    size="small"
+                  />
+                )}
+              </Box>
+
+              <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+                <Table size="small">
+                  <TableHead sx={{ backgroundColor: "#f8fafc" }}>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600, width: "12%" }}>Lớp</TableCell>
+                      <TableCell sx={{ fontWeight: 600, width: "24%" }}>GVCN</TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 600, width: "16%" }}>
+                        Sĩ số đăng ký
+                      </TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 600, width: "16%" }}>
+                        Sĩ số báo thực tế
+                      </TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 600, width: "14%" }}>
+                        Trạng thái
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, width: "18%" }}>
+                        Ghi chú / Dị ứng
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {(attendanceSummary?.classes || []).length > 0 ? (
+                      attendanceSummary.classes.map((cls, idx) => (
+                        <TableRow key={cls.classId || idx} hover>
+                          <TableCell sx={{ fontWeight: 600 }}>{cls.className}</TableCell>
+                          <TableCell>{cls.teacherName || "Chưa phân công"}</TableCell>
+                          <TableCell align="center">{cls.registeredPortions || 0} hs</TableCell>
+                          <TableCell
+                            align="center"
+                            sx={{
+                              fontWeight: 700,
+                              color: cls.status === "FINALIZED" ? "#15803d" : "inherit",
+                            }}
+                          >
+                            {cls.status === "FINALIZED" ? `${cls.actualPortions} suất` : "—"}
+                          </TableCell>
+                          <TableCell align="center">
+                            {cls.status === "FINALIZED" ? (
+                              <Chip
+                                label="Đã chốt"
+                                size="small"
+                                color="success"
+                                sx={{ height: 22, fontSize: 11, fontWeight: 500 }}
+                              />
+                            ) : cls.status === "DRAFT" ? (
+                              <Chip
+                                label="Bản nháp"
+                                size="small"
+                                color="warning"
+                                sx={{ height: 22, fontSize: 11 }}
+                              />
+                            ) : (
+                              <Chip
+                                label="Chưa báo"
+                                size="small"
+                                variant="outlined"
+                                sx={{ height: 22, fontSize: 11, color: "text.secondary" }}
+                              />
+                            )}
+                          </TableCell>
+                          <TableCell sx={{ fontSize: 12, color: cls.allergyNotes ? "#b91c1c" : "text.secondary" }}>
+                            {cls.allergyNotes || "—"}
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} align="center" sx={{ py: 3, color: "text.secondary" }}>
+                          Chưa có thông tin điểm danh các lớp cho ngày này.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </DialogContent>
+
+            <DialogActions sx={{ px: 2.5, py: 1.5 }}>
+              <Button onClick={() => setOpenClassDialog(false)} variant="contained" color="inherit">
+                Đóng
+              </Button>
+            </DialogActions>
+          </Dialog>
 
           {/* BẢNG NGUYÊN LIỆU TƯƠI SỐNG ĐỢT 2 (BÊ NGUYÊN TỪ ĐỢT 1, KHÔNG CÓ ĐỒ KHÔ) */}
           <Paper className={styles.tableCard} elevation={0}>

@@ -194,6 +194,32 @@ const IngredientOrderService = {
   },
 
   /**
+   * Lấy tổng hợp sĩ số điểm danh thực tế từ Giáo viên chủ nhiệm (GVCN)
+   * phục vụ tự động cân đối và lập đơn Đợt 2.
+   */
+  async getDailyAttendanceSummary({ date, mealType = "LUNCH" }) {
+    try {
+      const response = await http.get("/v1/daily-meal-portions", {
+        params: { date, mealType },
+        notifyOnError: false,
+        skipAuthRedirect: true,
+      })
+      const data = response?.data || response
+      return {
+        date: data.date,
+        mealType: data.mealType,
+        totalPortions: Number(data.totalPortions) || 0,
+        finalizedClasses: Number(data.finalizedClasses) || 0,
+        pendingClasses: Number(data.pendingClasses) || 0,
+        classes: Array.isArray(data.classes) ? data.classes : [],
+      }
+    } catch (err) {
+      console.warn("Lỗi lấy tổng hợp sĩ số GVCN:", err)
+      return null
+    }
+  },
+
+  /**
    * 1. TẠO ĐƠN MUA HÀNG ĐỢT 1 (Giao sớm 05:30 sáng)
    * - Chỉ tạo Đợt 1 (50% định lượng suất tối đa)
    * - 100% Thực phẩm tươi sống dùng trong ngày (DIRECT_USE)
