@@ -25,6 +25,8 @@ const RoleRoute = lazy(() => import("src/pages/SUPPORTPAGES/RoleRoute"))
 // SYSTEM pages
 const DirectoryList = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory").then(module => ({ default: module.DirectoryList })))
 const DirectoryDetail = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory").then(module => ({ default: module.DirectoryDetail })))
+const OfficerList = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory/Officers").then(module => ({ default: module.OfficerList })))
+const OfficerDetail = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory/Officers").then(module => ({ default: module.OfficerDetail })))
 const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
 const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
 
@@ -161,6 +163,8 @@ const routes = [
           { path: ROUTER.SYSTEM_SCHOOL_DETAIL, element: <LazyWrapper><DirectoryDetail kind="school" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_LIST, element: <LazyWrapper><DirectoryList kind="supplier" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_DETAIL, element: <LazyWrapper><DirectoryDetail kind="supplier" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_OFFICER_LIST, element: <LazyWrapper><OfficerList /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_OFFICER_DETAIL, element: <LazyWrapper><OfficerDetail /></LazyWrapper> },
         ],
       },
     ],

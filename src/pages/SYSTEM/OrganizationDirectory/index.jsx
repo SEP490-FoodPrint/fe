@@ -5,6 +5,7 @@ import { Search, SchoolOutlined, LocalShippingOutlined, VisibilityOutlined, Emai
 import SystemDirectoryService from "src/services/SystemDirectoryService"
 import ROUTER from "src/router/ROUTER"
 import styles from "./styles.module.scss"
+import LifecycleActions from "./LifecycleActions"
 
 const display = value => value === null || value === undefined || value === "" ? "—" : value
 const date = value => value && !Number.isNaN(new Date(value).getTime()) ? new Date(value).toLocaleDateString("vi-VN") : "Chưa có thông tin"
@@ -122,8 +123,9 @@ export function DirectoryDetail({ kind }) {
   if (request.error) return <main className={`${styles.page} ${styles.schoolPage}`}>{back}<RequestError error={request.error} retry={request.retry} /></main>
   if (!record) return <main className={`${styles.page} ${styles.schoolPage}`}>{back}<Alert severity="warning">Không tìm thấy thông tin.</Alert></main>
   const name = school ? "trường học" : "nhà cung cấp"
-  return <main className={`${styles.page} ${styles.schoolPage}`}>{back}<header className={styles.schoolDetailTitle}><div><h1>{display(record.name)}</h1><p>{school ? "Mã trường" : "Mã số thuế"}: {display(school ? record.code : record.taxCode)}</p></div><Status value={record.status} /></header>
+  return <main className={`${styles.page} ${styles.schoolPage}`}>{back}<LifecycleActions key={`${kind}-${id}`} kind={kind} id={id} heading={<div><h1>{display(record.name)}</h1><p>{school ? "Mã trường" : "Mã số thuế"}: {display(school ? record.code : record.taxCode)}</p></div>}>
     <section className={`${styles.panel} ${styles.detailSection}`}><h2>Thông tin {name}</h2><div className={styles.fields}><Field label={school ? "Tên trường" : "Tên nhà cung cấp"} value={record.name} /><Field label={school ? "Mã trường" : "Mã số thuế"} value={school ? record.code : record.taxCode} /><Field label="Email" value={record.email} /><Field label="Điện thoại" value={record.phone} /><Field label="Địa chỉ" value={record.address} /><Field label="Trạng thái" value={record.status} status /><Field label="Ngày tạo" value={date(record.createdAt)} /></div></section>
+    </LifecycleActions>
     {school ? <><DataGroup key={`${id}-classes`} kind={kind} id={id} group="classes" title="Lớp học" columns={columns.classes} /><DataGroup key={`${id}-suppliers`} kind={kind} id={id} group="suppliers" title="Nhà cung cấp liên kết" columns={columns.suppliers} /><DataGroup key={`${id}-accounts`} kind={kind} id={id} group="accounts" title="Tài khoản thuộc trường" columns={columns.accounts} /></> : <DataGroup key={`${id}-certifications`} kind={kind} id={id} group="certifications" title="Giấy phép và chứng nhận" columns={columns.certifications} onDocument={setDocument} />}
     {document && <DocumentViewer key={`${document.certificationId}-${document.id}`} document={document} onClose={() => setDocument(null)} />}
   </main>

@@ -73,31 +73,7 @@ function SchoolDiscovery({ schools = [], searchQuery = "", onSearchChange }) {
           <h2 className={styles.sectionTitle}>
             Khám phá các trường học trên FoodPrint
           </h2>
-          <p className={styles.sectionSubtitle}>
-            Tìm kiếm trường học để xem thông tin dinh dưỡng, quy trình chế biến
-            và thực đơn bán trú được nhà trường công khai minh bạch.
-          </p>
-        </div>
-
-        {/* Thanh tìm kiếm trường học lớn */}
-        <div className={styles.searchBoxWrapper}>
-          <form className={styles.searchForm} onSubmit={handleSubmit}>
-            <div className={styles.searchIconBox}>
-              <Search size={22} />
-            </div>
-            <input
-              type="text"
-              className={styles.searchInput}
-              placeholder="Tìm kiếm theo tên trường, quận/huyện hoặc mã cơ sở..."
-              value={searchQuery}
-              onChange={e => onSearchChange(e.target.value)}
-              aria-label="Tìm trường học"
-            />
-            <button type="submit" className={styles.searchBtn}>
-              <span>Tìm trường</span>
-              <ArrowRight size={16} />
-            </button>
-          </form>
+          
         </div>
 
         {schools.length > 0 ? <div ref={track}

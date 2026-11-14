@@ -50,6 +50,12 @@ export const MenuItemSystem = () => [
     roles: [ROLES.SYSTEM_ADMIN],
   },
   {
+    key: ROUTER.SYSTEM_OFFICER_LIST,
+    label: "Danh sách cán bộ ATTP",
+    icon: <AssignmentIndOutlinedIcon />,
+    roles: [ROLES.SYSTEM_ADMIN],
+  },
+  {
     key: ROUTER.SYSTEM_COMPLAINT_LIST,
     label: "Danh sách khiếu nại",
     icon: <ChatBubbleOutlineOutlinedIcon />,

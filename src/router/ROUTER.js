@@ -23,6 +23,8 @@ const ROUTER = {
   SYSTEM_SCHOOL_DETAIL: "/system/school-list/:id",
   SYSTEM_SUPPLIER_LIST: "/system/supplier-list",
   SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
+  SYSTEM_OFFICER_LIST: "/system/officer-list",
+  SYSTEM_OFFICER_DETAIL: "/system/officer-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
   SYSTEM_CONFIG: "/system/config",
 
