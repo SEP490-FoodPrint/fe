@@ -537,9 +537,11 @@ const MenuService = {
    * Danh sách tuần thực đơn Y tế đã gửi (bỏ bản nháp), mới nhất trước
    */
   getApprovalWeeks: async () => {
-    const response = await http.get(apiMenus, { params: { limit: 50 } });
-    const items = response?.data?.items || [];
-    return items.filter((week) => week.status !== "DRAFT");
+    const response = await http.get(apiMenus, { params: { limit: 50 } })
+    const items = response?.data?.items || []
+    return items
+      .filter(week => week.status !== "DRAFT")
+      .sort((a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime())
   },
 
   /**
