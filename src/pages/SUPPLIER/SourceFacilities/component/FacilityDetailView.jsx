@@ -4,12 +4,8 @@ import { Link } from "react-router-dom"
 import { Button, CircularProgress } from "@mui/material"
 import {
   EditOutlined,
-  EmailOutlined,
   KeyboardArrowLeft,
-  LocationOnOutlined,
   PauseCircleOutlined,
-  PersonOutlined,
-  PhoneOutlined,
 } from "@mui/icons-material"
 import ROUTER from "src/router/ROUTER"
 import {
@@ -30,18 +26,18 @@ function FacilityDetailView({
     return (
       <div className={styles.detailPage}>
         <div className={styles.detailHeaderBar}>
-          <div className={styles.headerLeft}>
+          <div className={styles.detailNavLeft}>
             <Link
               to={ROUTER.SUPPLIER_SOURCE_FACILITIES}
-              className={styles.backButton}
+              className={styles.backBtn}
               aria-label="Quay lại danh sách cơ sở nguồn cung"
             >
-              <KeyboardArrowLeft />
+              <KeyboardArrowLeft className={styles.backIcon} />
             </Link>
-            <h1 className={styles.detailTitle}>Chi tiết cơ sở nguồn cung</h1>
+            <h1 className={styles.pageTitle}>Chi tiết cơ sở nguồn cung</h1>
           </div>
         </div>
-        <div className={styles.surfaceCard}>
+        <div className={styles.detailCard}>
           <div className={styles.stateBox} role="status" aria-live="polite">
             <CircularProgress size={28} />
             <p className={styles.stateDesc}>
@@ -65,18 +61,18 @@ function FacilityDetailView({
     return (
       <div className={styles.detailPage}>
         <div className={styles.detailHeaderBar}>
-          <div className={styles.headerLeft}>
+          <div className={styles.detailNavLeft}>
             <Link
               to={ROUTER.SUPPLIER_SOURCE_FACILITIES}
-              className={styles.backButton}
+              className={styles.backBtn}
               aria-label="Quay lại danh sách cơ sở nguồn cung"
             >
-              <KeyboardArrowLeft />
+              <KeyboardArrowLeft className={styles.backIcon} />
             </Link>
-            <h1 className={styles.detailTitle}>Chi tiết cơ sở nguồn cung</h1>
+            <h1 className={styles.pageTitle}>Chi tiết cơ sở nguồn cung</h1>
           </div>
         </div>
-        <div className={styles.surfaceCard}>
+        <div className={styles.detailCard}>
           <div className={styles.stateBox}>
             <p className={styles.stateTitle}>{errorTitle}</p>
             <p className={styles.stateDesc}>
@@ -109,29 +105,15 @@ function FacilityDetailView({
   return (
     <div className={styles.detailPage}>
       <div className={styles.detailHeaderBar}>
-        <div className={styles.headerLeft}>
+        <div className={styles.detailNavLeft}>
           <Link
             to={ROUTER.SUPPLIER_SOURCE_FACILITIES}
-            className={styles.backButton}
+            className={styles.backBtn}
             aria-label="Quay lại danh sách cơ sở nguồn cung"
           >
-            <KeyboardArrowLeft />
+            <KeyboardArrowLeft className={styles.backIcon} />
           </Link>
-          <div className={styles.titleBlock}>
-            <div className={styles.titleMetaRow}>
-              <span className={styles.codeBadge}>
-                {facility.facilityCode || "Chưa cấp mã"}
-              </span>
-              <span
-                className={`${styles.statusBadge} ${
-                  isActive ? styles.statusActive : styles.statusInactive
-                }`}
-              >
-                {getFacilityStatusLabel(facility.status)}
-              </span>
-            </div>
-            <h1 className={styles.detailTitle}>{facility.name}</h1>
-          </div>
+          <h1 className={styles.pageTitle}>Chi tiết cơ sở nguồn cung</h1>
         </div>
 
         <div className={styles.headerActions}>
@@ -140,8 +122,9 @@ function FacilityDetailView({
               type="button"
               variant="outlined"
               color="warning"
-              startIcon={<PauseCircleOutlined />}
+              startIcon={<PauseCircleOutlined className={styles.btnIcon} />}
               onClick={() => onDeactivate?.(facility)}
+              className={styles.deactivateBtn}
             >
               Dừng hoạt động
             </Button>
@@ -150,85 +133,119 @@ function FacilityDetailView({
             type="button"
             variant="contained"
             color="primary"
-            startIcon={<EditOutlined />}
+            startIcon={<EditOutlined className={styles.btnIcon} />}
             onClick={() => onEdit?.(facility)}
+            className={styles.editBtn}
           >
             Chỉnh sửa
           </Button>
         </div>
       </div>
 
-      <div className={styles.detailGrid}>
-        <section className={styles.surfaceCard} aria-labelledby="facility-info-heading">
-          <h2 id="facility-info-heading" className={styles.sectionTitle}>
-            Thông tin cơ sở
+      <article className={styles.detailCard}>
+        <div className={styles.detailCardHeader}>
+          <h2 className={styles.detailSectionTitle}>
+            Thông tin cơ sở nguồn cung
+          </h2>
+          <div className={styles.detailStatusMeta}>
+            <span className={styles.detailStatusLabel}>Trạng thái:</span>
+            <span
+              className={`${styles.statusBadge} ${
+                isActive ? styles.statusActive : styles.statusInactive
+              }`}
+            >
+              {getFacilityStatusLabel(facility.status)}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.detailBody}>
+          <h2 className={styles.detailMobileHeading}>
+            Thông tin cơ sở nguồn cung
           </h2>
 
-          <dl className={styles.infoList}>
-            <div className={styles.infoRow}>
-              <dt>Mã cơ sở</dt>
-              <dd>{facility.facilityCode || "Chưa cấp mã"}</dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt>Tên cơ sở</dt>
-              <dd>{facility.name}</dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt>Trạng thái</dt>
-              <dd>{getFacilityStatusLabel(facility.status)}</dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt>Địa chỉ</dt>
-              <dd className={styles.addressValue}>
-                <LocationOnOutlined className={styles.inlineIcon} />
-                <span>{facility.address || "Chưa cập nhật"}</span>
-              </dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt>Ngày tạo</dt>
-              <dd className={styles.numericValue}>
-                {formatDateTimeVi(facility.createdAt)}
-              </dd>
-            </div>
-            <div className={styles.infoRow}>
-              <dt>Cập nhật lần cuối</dt>
-              <dd className={styles.numericValue}>
-                {formatDateTimeVi(facility.updatedAt)}
-              </dd>
-            </div>
-          </dl>
-        </section>
+          <div className={styles.detailMobileStatusRow}>
+            <span className={styles.detailStatusLabel}>Trạng thái:</span>
+            <span
+              className={`${styles.statusBadge} ${
+                isActive ? styles.statusActive : styles.statusInactive
+              }`}
+            >
+              {getFacilityStatusLabel(facility.status)}
+            </span>
+          </div>
 
-        <section className={styles.surfaceCard} aria-labelledby="facility-contact-heading">
-          <h2 id="facility-contact-heading" className={styles.sectionTitle}>
+          <div className={styles.detailFieldsCol}>
+            <div className={styles.detailFieldBlock}>
+              <p className={styles.detailFieldLabel}>Tên cơ sở nguồn cung</p>
+              <p className={styles.detailFieldValueLarge}>{facility.name}</p>
+            </div>
+
+            <div className={styles.detailFieldPair}>
+              <div className={styles.detailFieldBlock}>
+                <p className={styles.detailFieldLabel}>Mã cơ sở</p>
+                <p className={styles.detailFieldValue}>
+                  {facility.facilityCode || "Chưa cấp mã"}
+                </p>
+              </div>
+              <div className={styles.detailFieldBlock}>
+                <p className={styles.detailFieldLabel}>Địa chỉ</p>
+                <p className={styles.detailFieldValue}>
+                  {facility.address || "Chưa cập nhật"}
+                </p>
+              </div>
+            </div>
+
+            <div className={styles.detailFieldPair}>
+              <div className={styles.detailFieldBlock}>
+                <p className={styles.detailFieldLabel}>Ngày tạo</p>
+                <p className={styles.detailFieldValue}>
+                  {formatDateTimeVi(facility.createdAt)}
+                </p>
+              </div>
+              <div className={styles.detailFieldBlock}>
+                <p className={styles.detailFieldLabel}>Cập nhật lần cuối</p>
+                <p className={styles.detailFieldValue}>
+                  {formatDateTimeVi(facility.updatedAt)}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section
+          className={styles.detailContactSection}
+          aria-labelledby="facility-contact-heading"
+        >
+          <h3
+            id="facility-contact-heading"
+            className={styles.detailContactTitle}
+          >
             Thông tin liên hệ
-          </h2>
+          </h3>
 
-          <dl className={styles.infoList}>
-            <div className={styles.infoRow}>
-              <dt>Người liên hệ</dt>
-              <dd className={styles.iconValue}>
-                <PersonOutlined className={styles.inlineIcon} />
-                <span>{facility.contactName || "Chưa cập nhật"}</span>
-              </dd>
+          <div className={styles.detailContactGrid}>
+            <div className={styles.detailFieldBlock}>
+              <p className={styles.detailFieldLabel}>Người liên hệ</p>
+              <p className={styles.detailFieldValue}>
+                {facility.contactName || "Chưa cập nhật"}
+              </p>
             </div>
-            <div className={styles.infoRow}>
-              <dt>Số điện thoại</dt>
-              <dd className={styles.iconValue}>
-                <PhoneOutlined className={styles.inlineIcon} />
-                <span>{facility.contactPhone || "Chưa cập nhật"}</span>
-              </dd>
+            <div className={styles.detailFieldBlock}>
+              <p className={styles.detailFieldLabel}>Số điện thoại</p>
+              <p className={styles.detailFieldValue}>
+                {facility.contactPhone || "Chưa cập nhật"}
+              </p>
             </div>
-            <div className={styles.infoRow}>
-              <dt>Email liên hệ</dt>
-              <dd className={styles.iconValue}>
-                <EmailOutlined className={styles.inlineIcon} />
-                <span>{facility.contactEmail || "Chưa cập nhật"}</span>
-              </dd>
+            <div className={styles.detailFieldBlock}>
+              <p className={styles.detailFieldLabel}>Email liên hệ</p>
+              <p className={styles.detailFieldValue}>
+                {facility.contactEmail || "Chưa cập nhật"}
+              </p>
             </div>
-          </dl>
+          </div>
         </section>
-      </div>
+      </article>
     </div>
   )
 }

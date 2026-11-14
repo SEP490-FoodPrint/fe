@@ -1,15 +1,8 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
-import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material"
-import {
-  Add,
-  ChevronLeft,
-  ChevronRight,
-  EditOutlined,
-  PauseCircleOutlined,
-  VisibilityOutlined,
-} from "@mui/icons-material"
+import { Button, CircularProgress } from "@mui/material"
+import { Add } from "@mui/icons-material"
 import ROUTER from "src/router/ROUTER"
 import {
   formatDateTimeVi,
@@ -26,10 +19,11 @@ function FacilityListView({
   pagination,
   onResetFilters,
   onCreate,
-  onEdit,
-  onDeactivate,
   onPageChange,
 }) {
+  const currentPage = pagination?.page || 1
+  const pageLimit = pagination?.limit || 20
+
   if (loading && facilities.length === 0) {
     return (
       <div className={styles.loadingState} role="status" aria-live="polite">
@@ -82,11 +76,14 @@ function FacilityListView({
         <table className={styles.facilityTable}>
           <thead>
             <tr>
-              <th scope="col" className={styles.colCode}>
-                Mã cơ sở
+              <th scope="col" className={styles.colStt}>
+                STT
               </th>
               <th scope="col" className={styles.colName}>
                 Tên cơ sở
+              </th>
+              <th scope="col" className={styles.colCode}>
+                Mã cơ sở
               </th>
               <th scope="col" className={styles.colStatus}>
                 Trạng thái
@@ -94,36 +91,43 @@ function FacilityListView({
               <th scope="col" className={styles.colDate}>
                 Ngày tạo
               </th>
-              <th scope="col" className={styles.colDate}>
+              <th scope="col" className={styles.colUpdated}>
                 Cập nhật lần cuối
-              </th>
-              <th scope="col" className={styles.colActions}>
-                Thao tác
               </th>
             </tr>
           </thead>
           <tbody>
-            {facilities.map(facility => {
+            {facilities.map((facility, idx) => {
               const isActive = facility.status === "ACTIVE"
               const detailPath = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${facility.id}`
+              const rowNumber = (currentPage - 1) * pageLimit + idx + 1
 
               return (
                 <tr key={facility.id} className={styles.tableRow}>
+                  <td className={`${styles.colStt} ${styles.cellStt}`}>
+                    {rowNumber}
+                  </td>
+
+                  <td className={styles.colName}>
+                    <div className={styles.nameTextStack}>
+                      <Link to={detailPath} className={styles.nameLink}>
+                        {facility.name}
+                      </Link>
+                      <Link to={detailPath} className={styles.viewDetailLink}>
+                        Xem chi tiết
+                      </Link>
+                    </div>
+                  </td>
+
                   <td className={styles.colCode}>
-                    <span className={styles.codeBadge}>
+                    <span className={styles.codeChip}>
                       {facility.facilityCode || "Chưa cấp mã"}
                     </span>
                   </td>
 
-                  <td className={styles.colName}>
-                    <Link to={detailPath} className={styles.nameLink}>
-                      {facility.name}
-                    </Link>
-                  </td>
-
                   <td className={styles.colStatus}>
                     <span
-                      className={`${styles.statusPill} ${
+                      className={`${styles.statusBadge} ${
                         isActive ? styles.statusActive : styles.statusInactive
                       }`}
                     >
@@ -131,54 +135,12 @@ function FacilityListView({
                     </span>
                   </td>
 
-                  <td className={styles.colDate}>
-                    <span className={styles.dateText}>
-                      {formatDateVi(facility.createdAt)}
-                    </span>
+                  <td className={`${styles.colDate} ${styles.cellMuted}`}>
+                    {formatDateVi(facility.createdAt)}
                   </td>
 
-                  <td className={styles.colDate}>
-                    <span className={styles.dateText}>
-                      {formatDateTimeVi(facility.updatedAt)}
-                    </span>
-                  </td>
-
-                  <td className={styles.colActions}>
-                    <div className={styles.actionGroup}>
-                      <Tooltip title="Xem chi tiết">
-                        <IconButton
-                          component={Link}
-                          to={detailPath}
-                          size="small"
-                          aria-label={`Xem chi tiết ${facility.name}`}
-                          className={styles.actionIconBtn}
-                        >
-                          <VisibilityOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Chỉnh sửa">
-                        <IconButton
-                          size="small"
-                          aria-label={`Chỉnh sửa ${facility.name}`}
-                          onClick={() => onEdit?.(facility)}
-                          className={styles.actionIconBtn}
-                        >
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      {isActive && (
-                        <Tooltip title="Dừng hoạt động">
-                          <IconButton
-                            size="small"
-                            aria-label={`Dừng hoạt động ${facility.name}`}
-                            onClick={() => onDeactivate?.(facility)}
-                            className={`${styles.actionIconBtn} ${styles.deactivateIconBtn}`}
-                          >
-                            <PauseCircleOutlined fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                      )}
-                    </div>
+                  <td className={`${styles.colUpdated} ${styles.cellMuted}`}>
+                    {formatDateTimeVi(facility.updatedAt)}
                   </td>
                 </tr>
               )
@@ -187,103 +149,65 @@ function FacilityListView({
         </table>
       </div>
 
-      <div className={styles.mobileList} aria-label="Danh sách cơ sở nguồn cung">
+      <div className={styles.cardList} aria-label="Danh sách cơ sở nguồn cung">
         {facilities.map(facility => {
           const isActive = facility.status === "ACTIVE"
           const detailPath = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${facility.id}`
 
           return (
-            <article key={facility.id} className={styles.mobileCard}>
-              <div className={styles.mobileCardHeader}>
-                <span className={styles.codeBadge}>
-                  {facility.facilityCode || "Chưa cấp mã"}
-                </span>
+            <article key={facility.id} className={styles.facilityCard}>
+              <Link to={detailPath} className={styles.cardHeaderLink}>
+                <div className={styles.cardTitleGroup}>
+                  <h2 className={styles.cardTitle}>{facility.name}</h2>
+                  <p className={styles.cardSubMeta}>
+                    Mã cơ sở: {facility.facilityCode || "Chưa cấp mã"}
+                  </p>
+                </div>
                 <span
-                  className={`${styles.statusPill} ${
+                  className={`${styles.statusBadge} ${
                     isActive ? styles.statusActive : styles.statusInactive
                   }`}
                 >
                   {getFacilityStatusLabel(facility.status)}
                 </span>
-              </div>
+              </Link>
 
-              <div className={styles.mobileTitleGroup}>
-                <Link to={detailPath} className={styles.mobileNameLink}>
-                  {facility.name}
-                </Link>
-                <span className={styles.mobileMetaText}>
+              <div className={styles.cardFooterRow}>
+                <p className={styles.cardUpdatedText}>
                   Cập nhật: {formatDateTimeVi(facility.updatedAt)}
-                </span>
-              </div>
-
-              <div className={styles.mobileCardFooter}>
-                <Button
-                  component={Link}
-                  to={detailPath}
-                  size="small"
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<VisibilityOutlined />}
-                >
-                  Chi tiết
-                </Button>
-                <Button
-                  type="button"
-                  size="small"
-                  variant="text"
-                  color="primary"
-                  startIcon={<EditOutlined />}
-                  onClick={() => onEdit?.(facility)}
-                >
-                  Chỉnh sửa
-                </Button>
-                {isActive && (
-                  <Button
-                    type="button"
-                    size="small"
-                    variant="text"
-                    color="warning"
-                    startIcon={<PauseCircleOutlined />}
-                    onClick={() => onDeactivate?.(facility)}
-                  >
-                    Dừng hoạt động
-                  </Button>
-                )}
+                </p>
+                <Link to={detailPath} className={styles.viewDetailLink}>
+                  Xem chi tiết
+                </Link>
               </div>
             </article>
           )
         })}
       </div>
 
-      <div className={styles.tableFooter}>
-        <span className={styles.resultCount}>
+      <div className={styles.paginationFooter}>
+        <p className={styles.paginationSummary}>
           Hiển thị <strong>{facilities.length}</strong> / {pageTotalCount} cơ sở
-          {" · "}Trang <strong>{pagination?.page || 1}</strong>
-        </span>
+          {" · "}Trang <strong>{currentPage}</strong>
+        </p>
 
         <div className={styles.paginationControls}>
-          <Button
+          <button
             type="button"
-            size="small"
-            variant="outlined"
-            color="primary"
-            startIcon={<ChevronLeft />}
-            disabled={!pagination || pagination.page <= 1 || loading}
-            onClick={() => onPageChange?.(pagination.page - 1)}
+            className={`${styles.pageNavBtn} ${styles.pageNavBtnPrev}`}
+            disabled={!pagination || currentPage <= 1 || loading}
+            onClick={() => onPageChange?.(currentPage - 1)}
           >
             Trang trước
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            size="small"
-            variant="outlined"
-            color="primary"
-            endIcon={<ChevronRight />}
+            className={styles.pageNavBtn}
             disabled={!pagination || !pagination.hasNext || loading}
-            onClick={() => onPageChange?.(pagination.page + 1)}
+            onClick={() => onPageChange?.(currentPage + 1)}
           >
             Trang sau
-          </Button>
+          </button>
         </div>
       </div>
     </>
@@ -302,8 +226,6 @@ FacilityListView.propTypes = {
   }).isRequired,
   onResetFilters: PropTypes.func,
   onCreate: PropTypes.func,
-  onEdit: PropTypes.func,
-  onDeactivate: PropTypes.func,
   onPageChange: PropTypes.func,
 }
 

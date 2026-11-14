@@ -361,8 +361,6 @@ function SourceFacilities() {
             pagination={pagination}
             onResetFilters={handleResetFilters}
             onCreate={handleOpenCreate}
-            onEdit={handleOpenEdit}
-            onDeactivate={facility => setDeactivateTarget(facility)}
             onPageChange={handlePageChange}
           />
         )}

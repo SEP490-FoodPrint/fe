@@ -1,16 +1,17 @@
 .sourceFacilitiesPage {
   display: flex;
   flex-direction: column;
-  gap: var(--space-5);
+  gap: var(--space-6);
   width: 100%;
-  max-width: var(--layout-max-width);
+  max-width: 1120px;
   margin: 0 auto;
   min-width: 0;
   color: var(--text-primary);
   font-family: var(--font-sans);
   caret-color: var(--color-primary);
 
-  ::selection {
+  &::selection,
+  *::selection {
     background: var(--color-primary-soft);
     color: var(--green-700);
   }
@@ -18,7 +19,7 @@
 
 .sourceFacilitiesHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
   width: 100%;
@@ -27,29 +28,35 @@
 .sourceFacilitiesHeadingGroup {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
   flex: 1;
 }
 
 .sourceFacilitiesTitle {
   margin: 0;
-  font-size: var(--text-2xl);
+  font-size: 20px;
   font-weight: var(--font-bold);
-  line-height: var(--leading-tight);
-  letter-spacing: -0.015em;
+  line-height: 28px;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
 }
 
 .sourceFacilitiesSubtitle {
   margin: 0;
   font-size: var(--text-sm);
-  line-height: var(--leading-normal);
-  color: var(--text-secondary);
+  font-weight: var(--font-normal);
+  line-height: 20px;
+  color: var(--text-muted);
 }
 
 .sourceFacilitiesAddBtn {
-  min-height: 40px;
+  height: 40px;
+  padding: 0 16px !important;
+  border-radius: var(--radius-md) !important;
+  font-size: var(--text-sm) !important;
+  font-weight: var(--font-semibold) !important;
+  line-height: 20px !important;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -70,29 +77,39 @@
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: var(--space-3);
-  padding: var(--space-8) var(--space-4);
+  gap: var(--space-2);
+  padding: 48px 24px;
   background: var(--bg-surface);
 }
 
 .sourceFacilitiesErrorTitle {
   margin: 0;
-  font-size: var(--text-base);
+  font-size: 15px;
   font-weight: var(--font-semibold);
   color: var(--text-primary);
 }
 
 .sourceFacilitiesErrorDesc {
   margin: 0;
-  max-width: 460px;
-  font-size: var(--text-sm);
-  line-height: var(--leading-normal);
-  color: var(--text-secondary);
+  max-width: 440px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .sourceFacilitiesHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .sourceFacilitiesHeadingGroup {
+    gap: 6px;
+  }
+
   .sourceFacilitiesSurface {
-    gap: var(--space-3);
+    gap: 20px;
     background: transparent;
     border: 0;
     border-radius: 0;
@@ -106,20 +123,6 @@
 }
 
 @media (max-width: 600px) {
-  .sourceFacilitiesPage {
-    gap: var(--space-4);
-  }
-
-  .sourceFacilitiesHeader {
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-3);
-  }
-
-  .sourceFacilitiesTitle {
-    font-size: var(--text-xl);
-  }
-
   .sourceFacilitiesAddBtn {
     width: 100%;
   }
