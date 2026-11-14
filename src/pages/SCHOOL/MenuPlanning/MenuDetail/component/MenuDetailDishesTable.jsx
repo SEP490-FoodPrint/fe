@@ -5,7 +5,8 @@ import styles from "./MenuDetailDishesTable.module.scss"
 import MenuService from "src/services/MenuService"
 import { getDishAllergyState } from "src/services/MenuService/adapter"
 
-export default function MenuDetailDishesTable({ dishes = [], substituteDish = null }) {
+export default function MenuDetailDishesTable({ dishes = [], substituteDish = null, gradeIds = [] }) {
+  const gradeKey = [...gradeIds].sort().join(",")
   const ingredientKey = useMemo(() => [...new Set((Array.isArray(dishes) ? dishes : []).flatMap((dish) =>
     dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || [],
   ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(","), [dishes])
@@ -21,7 +22,7 @@ export default function MenuDetailDishesTable({ dishes = [], substituteDish = nu
     for (let index = 0; index < ingredientIds.length; index += 100) {
       batches.push(ingredientIds.slice(index, index + 100))
     }
-    Promise.all(batches.map((ids) => MenuService.checkAllergies(ids)))
+    Promise.all(batches.map((ids) => MenuService.checkAllergies(ids, gradeIds)))
       .then((results) => {
         if (active) setAllergyCheck({ key: ingredientKey, status: "ready", ingredientIds, conflicts: results.flatMap((result) => result.data.conflicts) })
       })
@@ -29,7 +30,7 @@ export default function MenuDetailDishesTable({ dishes = [], substituteDish = nu
         if (active) setAllergyCheck({ key: ingredientKey, status: "error", ingredientIds, conflicts: [], message: error.message })
       })
     return () => { active = false }
-  }, [ingredientKey, retryAttempt])
+  }, [ingredientKey, gradeKey, retryAttempt])
 
   const currentCheck = allergyCheck.key === ingredientKey
     ? allergyCheck

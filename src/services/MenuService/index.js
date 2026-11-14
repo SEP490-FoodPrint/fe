@@ -27,7 +27,7 @@ const weekScheduleRequests = new Map();
 const WEEK_SCHEDULE_CACHE_MS = 15000;
 
 // Allergy inspection must still run when a legacy recipe cannot be aggregated.
-export async function inspectMenuMealSelection({ dishes, seasonings = [], refreshRecipe = false }) {
+export async function inspectMenuMealSelection({ dishes, seasonings = [], refreshRecipe = false, gradeIds = [] }) {
   const selected = [...new Map(dishes.map(dish => [dish.dishId || dish.id, dish])).values()];
   if (!selected.length) {
     return { allergies: { hasConflict: false, conflicts: [] }, seasonings: [], issues: [] };
@@ -37,8 +37,8 @@ export async function inspectMenuMealSelection({ dishes, seasonings = [], refres
     ...(!refreshRecipe ? seasonings.map(line => line.ingredientId) : []),
   ].filter(Boolean))];
   const [preview, check] = await Promise.allSettled([
-    refreshRecipe ? previewMealRecipe(selected.map(dish => dish.dishId || dish.id)) : Promise.resolve(null),
-    ingredientIds.length ? MenuService.checkAllergies(ingredientIds) : Promise.resolve(null),
+    refreshRecipe ? previewMealRecipe(selected.map(dish => dish.dishId || dish.id), gradeIds) : Promise.resolve(null),
+    ingredientIds.length ? MenuService.checkAllergies(ingredientIds, gradeIds) : Promise.resolve(null),
   ]);
   const issues = [];
   let allergies = check.status === "fulfilled" ? check.value?.data ?? null : null;
@@ -47,12 +47,12 @@ export async function inspectMenuMealSelection({ dishes, seasonings = [], refres
     issues.push(`Chưa tổng hợp được định lượng: ${preview.reason?.message || "Vui lòng kiểm tra công thức món."}`);
   }
   if (Array.isArray(recipe?.ingredientIds) && recipe.ingredientIds.length) {
-    const combined = [...new Set([...ingredientIds, ...recipe.ingredientIds])];
+    const combined = [...new Set(gradeIds.length ? recipe.ingredientIds : [...ingredientIds, ...recipe.ingredientIds])];
     // A database preview may contain identities missing from an older catalog response.
-    if (combined.length !== ingredientIds.length) {
+    if (JSON.stringify([...combined].sort()) !== JSON.stringify([...ingredientIds].sort())) {
       ingredientIds = combined;
       try {
-        allergies = (await MenuService.checkAllergies(ingredientIds)).data;
+        allergies = (await MenuService.checkAllergies(ingredientIds, gradeIds)).data;
       } catch (error) {
         allergies = null;
         issues.push(`Chưa kiểm tra được dị ứng: ${error.message || "Vui lòng thử lại."}`);
@@ -158,6 +158,7 @@ const MenuService = {
       search: params.search?.trim() || "",
       page: params.page || 1,
       limit: params.limit || 50,
+      allPages: Boolean(params.allPages),
       gen: menuListGeneration,
     });
 
@@ -189,6 +190,17 @@ const MenuService = {
 
         const rawItems =
           response?.data?.items || response?.items || response?.data || [];
+
+        if (params.allPages && Array.isArray(rawItems)) {
+          const limit = params.limit || 50;
+          const total = response?.data?.pagination?.totalItems || rawItems.length;
+          for (let page = (params.page || 1) + 1; rawItems.length < total; page++) {
+            const next = await http.get(apiMenus, { params: { limit, page, status: status && status !== "all" ? status : undefined, weekStartDate: params.weekStartDate || undefined, date: params.date || undefined, search: params.search?.trim() || undefined }, notifyOnError: false });
+            if (!Array.isArray(next?.data?.items)) throw new Error("Không tải được danh sách thực đơn.");
+            if (!next.data.items.length) break;
+            rawItems.push(...next.data.items);
+          }
+        }
 
         const cardList = Array.isArray(rawItems)
           ? rawItems.flatMap(adaptWeeklyMenuToCardList)
@@ -254,7 +266,7 @@ const MenuService = {
   /**
    * Lấy lịch thực đơn học đường theo tuần (Thứ 2 đến Thứ 6)
    */
-  getWeekSchedule: async (date) => {
+  getWeekSchedule: async (date, selection = {}) => {
     const isoDate =
       typeof date === "string" && date.includes("/")
         ? parseDateVNToISO(date)
@@ -268,7 +280,7 @@ const MenuService = {
     const schoolId = user?.schoolId || user?.orgId || user?.school_id || "";
     const userId = user?.id || user?._id || "school_user";
     const weekStartDate = monday.toISOString().slice(0, 10);
-    const weekKey = `${userId}:${schoolId}:${weekStartDate}`;
+    const weekKey = `${userId}:${schoolId}:${weekStartDate}:${selection.menuId || ""}:${[...(selection.gradeIds || [])].sort().join(",")}`;
     const personalize = (result) => ({
       ...result,
       data: {
@@ -287,7 +299,7 @@ const MenuService = {
     const generation = weekScheduleGeneration;
     const request = (async () => {
       const response = await http.get(`${apiMenus}/week-schedule`, {
-        params: { date: isoDate },
+        params: { date: isoDate, ...(selection.menuId ? { menuId: selection.menuId } : {}), ...(selection.gradeIds?.length ? { gradeIds: [...selection.gradeIds].sort().join(",") } : {}) },
         notifyOnError: false,
       });
       if (response?.data) {
@@ -455,14 +467,14 @@ const MenuService = {
   /**
    * Kiểm tra dị ứng học đường theo danh sách nguyên liệu đã chọn
    */
-  checkAllergies: async (ingredientIds) => {
+  checkAllergies: async (ingredientIds, gradeIds = []) => {
     if (!ingredientIds || ingredientIds.length === 0) {
       return { isOk: true, data: { hasConflict: false, conflicts: [] } };
     }
 
     const response = await http.post(
       apiAllergyCheck,
-      { ingredientIds },
+      { ingredientIds, ...(gradeIds.length ? { gradeIds } : {}) },
       { notifyOnError: false },
     );
     const data = response?.data || response;
@@ -537,10 +549,17 @@ const MenuService = {
    * Danh sách tuần thực đơn Y tế đã gửi (bỏ bản nháp), mới nhất trước
    */
   getApprovalWeeks: async () => {
-    const response = await http.get(apiMenus, { params: { limit: 50 } })
-    const items = response?.data?.items || []
+    const items = []
+    for (let page = 1; ; page++) {
+      const response = await http.get(apiMenus, { params: { page, limit: 100 }, notifyOnError: false })
+      if (!Array.isArray(response?.data?.items)) throw new Error("Không tải được danh sách thực đơn.")
+      items.push(...response.data.items)
+      const pagination = response.data.pagination
+      if (!(pagination?.hasNext ?? (items.length < (pagination?.totalItems || 0))) || !response.data.items.length) break
+    }
     return items
       .filter(week => week.status !== "DRAFT")
+      .map(week => ({ ...week, gradeNames: week.gradeNames || (week.grades || []).map(row => row.grade?.name).filter(Boolean) }))
       .sort((a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime())
   },
 

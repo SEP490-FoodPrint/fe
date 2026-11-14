@@ -1,3 +1,4 @@
+import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React, { useState, useMemo, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
@@ -16,7 +17,11 @@ export default function MenuPlanning() {
   const navigate = useNavigate()
 
   // Master data: Ban đầu rỗng, tải 100% từ API thật
-  const [menus, setMenus] = useState([])
+  const [allMenus, setMenus] = useState([])
+  const [scopeId, setScopeId] = useState("")
+  const menuOptions = useMemo(() => [...new Map(allMenus.map((menu) => [menu.weeklyMenuId, { id: menu.weeklyMenuId, title: menu.name, gradeNames: menu.gradeIds?.length ? [menu.targetScope] : [] }])).values()], [allMenus])
+  const selectedScopeId = menuOptions.some((menu) => menu.id === scopeId) ? scopeId : menuOptions.length === 1 ? menuOptions[0].id : ""
+  const menus = useMemo(() => allMenus.filter((menu) => menu.weeklyMenuId === selectedScopeId), [allMenus, selectedScopeId])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
 
@@ -90,7 +95,7 @@ export default function MenuPlanning() {
       setLoading(true)
       setLoadError("")
       try {
-        const res = await MenuService.getMenus({
+        const res = await MenuService.getMenus({ allPages: true,
           status: filters.status,
           weekStartDate: selectedWeekObj.weekStartDate,
         })
@@ -321,7 +326,7 @@ export default function MenuPlanning() {
         "success"
       )
       // Tải lại danh sách từ API
-      const res = await MenuService.getMenus({ status: filters.status, weekStartDate: filters.week })
+      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week })
       if (Array.isArray(res?.data)) setMenus(res.data)
     } catch (err) {
       showToast(err.message || "Không thể gửi duyệt thực đơn.", "warning")
@@ -344,7 +349,7 @@ export default function MenuPlanning() {
         `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
         "success"
       )
-      const res = await MenuService.getMenus({ status: filters.status, weekStartDate: filters.week })
+      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week })
       if (Array.isArray(res?.data)) setMenus(res.data)
     } catch (err) {
       showToast(err.message || "Không thể gửi lại thực đơn.", "warning")
@@ -417,6 +422,8 @@ export default function MenuPlanning() {
         onResetFilters={handleResetFilters}
       />
 
+      <MenuScopeSelect menus={menuOptions} value={selectedScopeId} onChange={setScopeId} disabled={loading} />
+
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
       {calendarLoading || loading ? (
         <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
@@ -426,6 +433,8 @@ export default function MenuPlanning() {
         <p role="alert">{calendarError || loadError}</p>
       ) : !selectedWeekObj ? (
         <p role="status">Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
+      ) : menuOptions.length > 1 && !selectedScopeId ? (
+        <p role="status">Chọn thực đơn và khối để xem hoặc gửi duyệt.</p>
       ) : (
         <MenuListWeeklyVerticalView
           schoolDays={weekSchoolDays}

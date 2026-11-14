@@ -14,6 +14,7 @@ import {
 import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import DishCategoryModal from "./component/DishCategoryModal"
+import GradeRecipeDialog from "./component/GradeRecipeDialog"
 import styles from "./index.module.scss"
 
 /* ─── Helpers ────────────────────────────────────── */
@@ -84,6 +85,7 @@ export default function DishCatalogPage() {
 
   // Modal Xem chi tiết
   const [viewingDish, setViewingDish] = useState(null)
+  const [gradeRecipeDish, setGradeRecipeDish] = useState(null)
 
   // Modal thêm / sửa
   const [modalOpen, setModalOpen] = useState(false)
@@ -415,7 +417,7 @@ export default function DishCatalogPage() {
                 <th style={{ minWidth: 220 }}>Tên món ăn</th>
                 <th style={{ width: 150 }}>Nhóm món</th>
                 <th style={{ minWidth: 280 }}>Nguyên liệu chính & NCC</th>
-                <th style={{ width: 120, textAlign: "center" }}>Thao tác</th>
+                <th style={{ width: 200, textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -459,6 +461,7 @@ export default function DishCatalogPage() {
                     </td>
                     <td style={{ textAlign: "center" }}>
                       <div className={styles.actionBtns}>
+                        <button type="button" onClick={() => setGradeRecipeDish(dish)} title="Nhập định lượng cho từng khối">Định lượng khối</button>
                         {/* Nút Xem chi tiết (icon mắt) */}
                         <button
                           type="button"
@@ -488,6 +491,7 @@ export default function DishCatalogPage() {
         )}
       </div>
 
+      {gradeRecipeDish && <GradeRecipeDialog dish={gradeRecipeDish} onClose={() => setGradeRecipeDish(null)} onSaved={async () => setCatalog(await loadDishCatalog())} />}
       {/* Phân trang (Pagination) */}
       {filtered.length > PAGE_SIZE && (
         <div className={styles.paginationWrap}>

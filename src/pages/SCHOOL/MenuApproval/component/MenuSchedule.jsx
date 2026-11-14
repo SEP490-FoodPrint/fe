@@ -127,7 +127,7 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
                   <div className={styles.selectedValue}>
                     <Calendar size={15} className={styles.calendarIcon} />
                     <span className={styles.weekDateText}>
-                      Tuần {formatWeekRange(selectedWeek.weekStartDate)}
+                      Tuần {formatWeekRange(selectedWeek.weekStartDate)} · {selectedWeek.gradeNames?.join(", ") || "Toàn trường"}
                     </span>
                     <span className={`${styles.statusBadge} ${st.className}`}>
                       <span className={styles.statusDot} />
@@ -150,7 +150,7 @@ function MenuSchedule({ days, weeks, selectedWeekId, onWeekChange, disabled }) {
                     className={styles.menuItem}
                   >
                     <span className={styles.menuItemText}>
-                      Tuần {formatWeekRange(week.weekStartDate)}
+                      Tuần {formatWeekRange(week.weekStartDate)} · {week.gradeNames?.join(", ") || "Toàn trường"}
                     </span>
                     <span className={`${styles.statusBadge} ${st.className}`}>
                       <span className={styles.statusDot} />
