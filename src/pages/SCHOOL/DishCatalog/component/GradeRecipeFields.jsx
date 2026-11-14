@@ -1,5 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Alert, Button, Stack } from "@mui/material";
+import { ChevronDown } from "lucide-react";
+import selectStyles from "src/pages/SCHOOL/MenuPlanning/CreateMenu/CreateMenu.module.scss";
+import dishStyles from "../index.module.scss";
 
 export function validRecipeLines(lines) {
   return (
@@ -28,62 +31,169 @@ export default function GradeRecipeFields({
   disabled,
 }) {
   const [gradeId, setGradeId] = useState("");
-  const profile = profiles.find((item) => item.gradeId === gradeId);
+  const [open, setOpen] = useState(false);
+  const dropdown = useRef(null);
+  useEffect(() => {
+    const close = (event) => {
+      if (!dropdown.current?.contains(event.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+  const activeId = profiles.some((item) => item.gradeId === gradeId)
+    ? gradeId
+    : profiles[0]?.gradeId;
+  const profile = profiles.find((item) => item.gradeId === activeId);
   const lines = profile?.lines || [];
   const setLines = (next) =>
     onChange([
-      ...profiles.filter((item) => item.gradeId !== gradeId),
-      { gradeId, lines: next },
+      ...profiles.filter((item) => item.gradeId !== activeId),
+      { gradeId: activeId, lines: next },
     ]);
   const update = (index, changes) =>
     setLines(
       lines.map((line, i) => (i === index ? { ...line, ...changes } : line)),
     );
   return (
-    <section aria-label="Định lượng theo khối">
-      <h3>Định lượng theo khối</h3>
-      <p>
-        Mỗi bộ định lượng được tính cho một suất. Có thể sao chép bộ gốc rồi
-        chỉnh sửa cho từng khối.
-      </p>
+    <section
+      className={dishStyles.ingredientsSection}
+      aria-label="Định lượng theo khối"
+    >
+      <h3 className={dishStyles.sectionTitle}>Định lượng theo khối</h3>
       {!grades.length ? (
         <Alert severity="info">
           Chưa có khối để nhập định lượng. Ban Giám hiệu cần cấu hình khối
           trước.
         </Alert>
       ) : (
-        <label>
-          Chọn khối{" "}
-          <select
-            value={gradeId}
+        <div ref={dropdown} className={selectStyles.multiSelectContainer}>
+          <button
+            type="button"
+            className={`${selectStyles.selectTrigger} ${open ? selectStyles.selectTriggerOpen : ""}`}
+            aria-expanded={open}
+            aria-controls="dish-grade-options"
             disabled={disabled}
-            onChange={(event) => setGradeId(event.target.value)}
+            onClick={() => setOpen((value) => !value)}
           >
-            <option value="">Chọn khối</option>
-            {grades.map((grade) => (
-              <option value={grade.id} key={grade.id}>
-                {grade.name}
-                {profiles.some((item) => item.gradeId === grade.id)
-                  ? " · đã nhập"
-                  : ""}
-              </option>
-            ))}
-          </select>
-        </label>
+            <span
+              className={`${selectStyles.selectValueText} ${profiles.length ? "" : selectStyles.selectPlaceholder}`}
+            >
+              {grades
+                .filter((grade) =>
+                  profiles.some((item) => item.gradeId === grade.id),
+                )
+                .map((grade) => grade.name)
+                .join(", ") || "Chọn khối lớp áp dụng..."}
+            </span>
+            <ChevronDown size={16} className={selectStyles.selectChevron} />
+          </button>
+          {open && (
+            <div
+              id="dish-grade-options"
+              className={selectStyles.selectDropdownMenu}
+            >
+              <label className={selectStyles.dropdownOptionAll}>
+                <input
+                  type="checkbox"
+                  className={selectStyles.dropdownCheckbox}
+                  disabled={disabled}
+                  checked={grades.every((grade) =>
+                    profiles.some((item) => item.gradeId === grade.id),
+                  )}
+                  onChange={(event) => {
+                    const next = event.target.checked
+                      ? [
+                          ...profiles,
+                          ...grades
+                            .filter(
+                              (grade) =>
+                                !profiles.some(
+                                  (item) => item.gradeId === grade.id,
+                                ),
+                            )
+                            .map((grade) => ({
+                              gradeId: grade.id,
+                              lines: baseLines.map((line) => ({ ...line })),
+                            })),
+                        ]
+                      : profiles.filter((item) =>
+                          savedGradeIds.includes(item.gradeId),
+                        );
+                    onChange(next);
+                    if (next.length) setGradeId(next[0].gradeId);
+                  }}
+                />
+                <span className={selectStyles.dropdownOptionTextBold}>
+                  Chọn tất cả khối
+                </span>
+              </label>
+              {grades.map((grade) => (
+                <label
+                  key={grade.id}
+                  className={selectStyles.dropdownOptionItem}
+                >
+                  <input
+                    type="checkbox"
+                    className={selectStyles.dropdownCheckbox}
+                    checked={profiles.some((item) => item.gradeId === grade.id)}
+                    disabled={disabled || savedGradeIds.includes(grade.id)}
+                    onChange={(event) => {
+                      if (event.target.checked) {
+                        onChange([
+                          ...profiles,
+                          {
+                            gradeId: grade.id,
+                            lines: baseLines.map((line) => ({ ...line })),
+                          },
+                        ]);
+                        setGradeId(grade.id);
+                      } else
+                        onChange(
+                          profiles.filter((item) => item.gradeId !== grade.id),
+                        );
+                    }}
+                  />
+                  <span className={selectStyles.dropdownOptionText}>
+                    {grade.name}
+                    {savedGradeIds.includes(grade.id) ? " · đã lưu" : ""}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
       )}
-      {gradeId && (
+      {activeId && (
         <Stack spacing={1} sx={{ mt: 2 }}>
+          <label className={dishStyles.formLabel}>
+            Khối đang chỉnh sửa{" "}
+            <select
+              className={dishStyles.formSelect}
+              value={activeId}
+              onChange={(event) => setGradeId(event.target.value)}
+              disabled={disabled}
+            >
+              {profiles.map((item) => (
+                <option key={item.gradeId} value={item.gradeId}>
+                  {grades.find((grade) => grade.id === item.gradeId)?.name ||
+                    "Khối đã lưu"}
+                </option>
+              ))}
+            </select>
+          </label>
           {!profile && (
             <Alert severity="info">Khối này chưa có định lượng.</Alert>
           )}
           <Stack direction="row" spacing={1} flexWrap="wrap">
             <Button
+              sx={{ color: "#0a8066", textTransform: "none" }}
               disabled={disabled || !baseLines.length}
               onClick={() => setLines(baseLines.map((line) => ({ ...line })))}
             >
               Sao chép định lượng gốc
             </Button>
             <Button
+              sx={{ color: "#0a8066", textTransform: "none" }}
               disabled={disabled}
               onClick={() =>
                 setLines([
@@ -99,11 +209,12 @@ export default function GradeRecipeFields({
             >
               Thêm nguyên liệu
             </Button>
-            {profile && !savedGradeIds.includes(gradeId) && (
+            {profile && !savedGradeIds.includes(activeId) && (
               <Button
+                sx={{ color: "#64748b", textTransform: "none" }}
                 disabled={disabled}
                 onClick={() =>
-                  onChange(profiles.filter((item) => item.gradeId !== gradeId))
+                  onChange(profiles.filter((item) => item.gradeId !== activeId))
                 }
               >
                 Bỏ bộ định lượng này
@@ -118,6 +229,7 @@ export default function GradeRecipeFields({
               alignItems="center"
             >
               <select
+                className={dishStyles.formSelect}
                 aria-label={`Loại dòng ${index + 1}`}
                 disabled={disabled}
                 value={line.ingredientRole}
@@ -132,6 +244,7 @@ export default function GradeRecipeFields({
                 <option value="SEASONING">Gia vị</option>
               </select>
               <select
+                className={dishStyles.formSelect}
                 aria-label={`Nguyên liệu dòng ${index + 1}`}
                 disabled={disabled}
                 value={line.ingredientEntryId}
@@ -160,6 +273,7 @@ export default function GradeRecipeFields({
                   ))}
               </select>
               <input
+                className={dishStyles.formSelect}
                 aria-label={`Định lượng mỗi suất dòng ${index + 1}`}
                 type="number"
                 min="0.001"
@@ -172,6 +286,7 @@ export default function GradeRecipeFields({
                 style={{ width: 100 }}
               />
               <input
+                className={dishStyles.formSelect}
                 aria-label={`Đơn vị dòng ${index + 1}`}
                 value={line.unit}
                 disabled={disabled}
@@ -181,6 +296,7 @@ export default function GradeRecipeFields({
                 style={{ width: 60 }}
               />
               <Button
+                sx={{ color: "#64748b", textTransform: "none" }}
                 disabled={disabled}
                 onClick={() => setLines(lines.filter((_, i) => i !== index))}
                 aria-label={`Xóa dòng ${index + 1}`}

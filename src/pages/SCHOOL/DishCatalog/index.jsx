@@ -980,7 +980,7 @@ export default function DishCatalogPage() {
 
               {/* Body chi tiết */}
               <div className={styles.detailModalBody}>
-                <label>Định lượng áp dụng <select value={detailGradeId} onChange={event => setDetailGradeId(event.target.value)}><option value="">Bộ định lượng gốc</option>{grades.map(grade => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></label>
+                <label className={styles.formLabel}>Định lượng áp dụng <select className={styles.formSelect} value={detailGradeId} onChange={event => setDetailGradeId(event.target.value)}><option value="">Bộ định lượng gốc</option>{grades.map(grade => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></label>
                 {gradeError && <p role="alert">{gradeError}</p>}
                 {detailGradeId && !profile && <p role="status">Khối này chưa có định lượng cho món ăn.</p>}
                 {/* Lưới thông số tổng quan */}
