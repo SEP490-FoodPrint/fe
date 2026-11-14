@@ -33,7 +33,7 @@ export const isUuid = (str) =>
 
 export const BATCH_STATUSES = {
   UNCONFIRMED: "Chưa xác nhận nấu",
-  CONFIRMED: "Chờ nấu",
+  CONFIRMED: "Đang nấu",
   COMPLETED: "Đã hoàn thành",
 };
 

@@ -1,0 +1,135 @@
+.dialogPaper {
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 24px 12px !important;
+  flex-shrink: 0;
+}
+
+.dialogTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dialogTitleText {
+  font-size: 20px;
+  font-weight: var(--font-bold);
+  line-height: 28px;
+  color: var(--text-primary);
+}
+
+.dialogSubtitle {
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  line-height: 20px;
+  color: var(--text-muted);
+}
+
+.formWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+
+.dialogContent {
+  padding: 20px 24px !important;
+  overflow-y: auto;
+}
+
+.loadingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 32px 16px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.formSections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.formSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sectionHeading {
+  margin: 0;
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  line-height: 24px;
+  color: var(--text-primary);
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.systemMetaBanner {
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-muted);
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+}
+
+.readonlyBadges {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.metaItem {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+
+  strong {
+    color: var(--text-primary);
+  }
+}
+
+.twoColRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.dialogActions {
+  padding: 12px 24px 20px !important;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .dialogHeader {
+    padding: 20px 20px 12px !important;
+  }
+
+  .dialogContent {
+    padding: 16px 20px !important;
+  }
+
+  .twoColRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dialogActions {
+    padding: 12px 20px 20px !important;
+  }
+}

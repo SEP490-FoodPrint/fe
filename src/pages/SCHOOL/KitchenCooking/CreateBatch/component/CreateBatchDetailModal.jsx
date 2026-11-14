@@ -34,7 +34,6 @@ export default function CreateBatchDetailModal({
   batch,
   item,
   onConfirmCreate,
-  onConfirmCooking,
   onCompleteCooking,
   onOpenSampleModal,
   submitting = false,
@@ -313,16 +312,6 @@ export default function CreateBatchDetailModal({
           >
             <Check size={17} />
             <span>{submitting ? "Đang tạo lô..." : "Xác nhận tạo lô"}</span>
-          </button>
-        ) : status === "UNCONFIRMED" && onConfirmCooking ? (
-          <button
-            type="button"
-            className={styles.startCookBtn}
-            onClick={() => onConfirmCooking(currentItem)}
-            disabled={submitting}
-          >
-            <Flame size={16} />
-            <span>{submitting ? "Đang xử lý..." : "Bắt đầu nấu"}</span>
           </button>
         ) : status === "CONFIRMED" && onCompleteCooking ? (
           <button

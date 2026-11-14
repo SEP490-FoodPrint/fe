@@ -374,7 +374,7 @@ export default function CreateBatchKanban({
                         {mealLabel}
                       </span>
                       <span className={styles.statusWaitingCook}>
-                        Chờ nấu
+                        {batch.status === "CONFIRMED" ? "Đang nấu" : "Chưa xác nhận (dữ liệu cũ)"}
                       </span>
                     </div>
 
@@ -416,7 +416,7 @@ export default function CreateBatchKanban({
                           e.stopPropagation();
                           onCompleteCooking?.(batch);
                         }}
-                        disabled={isActing}
+                        disabled={isActing || batch.status !== "CONFIRMED"}
                         title="Ghi nhận mẻ này đã nấu xong"
                         aria-label={`Nấu xong lô ${batch.batchCode}`}
                       >

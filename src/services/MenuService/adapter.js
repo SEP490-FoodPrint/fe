@@ -545,7 +545,8 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
         week: weekCategory,
         mealType: "LUNCH",
         mealTypeLabel: "Trưa",
-        targetScope: "Toàn trường",
+        targetScope: (weeklyMenu.grades || []).map((row) => row.grade?.name).filter(Boolean).join(", ") || "To\u00e0n tr\u01b0\u1eddng",
+        gradeIds: (weeklyMenu.grades || []).map((row) => row.gradeId),
         portionCount: null,
         hasAllergyMenu: Boolean(allergyGroup),
         allergyNote: allergyGroup ? allergyGroup.name : "Không có",
@@ -571,7 +572,8 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
         week: weekCategory,
         mealType: "AFTERNOON",
         mealTypeLabel: "Chiều",
-        targetScope: "Toàn trường",
+        targetScope: (weeklyMenu.grades || []).map((row) => row.grade?.name).filter(Boolean).join(", ") || "To\u00e0n tr\u01b0\u1eddng",
+        gradeIds: (weeklyMenu.grades || []).map((row) => row.gradeId),
         portionCount: null,
         hasAllergyMenu: portionGroups.some(
           (group) => !group.isDefault && group.mealType === "AFTERNOON"
@@ -732,12 +734,13 @@ export function adaptBackendMenuDetailToView(
     });
 
   // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp
-  const targetScope = "To\u00e0n tr\u01b0\u1eddng";
+  const targetScope = (weeklyMenu.grades || []).map((row) => row.grade?.name).filter(Boolean).join(", ") || "Toàn trường";
   const formattedTitle = weeklyMenu.title || "Th\u1ef1c \u0111\u01a1n";
 
   return {
     id: weeklyMenu.id,
     weeklyMenuId: weeklyMenu.id,
+    gradeIds: (weeklyMenu.grades || []).map((row) => row.gradeId),
     menuDayId: currentDay.id,
     code: `TD-${rawDate.replace(/-/g, "")}-${targetMealType === "AFTERNOON" ? "02" : "01"}`,
     name: formattedTitle,

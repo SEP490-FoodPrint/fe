@@ -7,6 +7,23 @@ export const dishIngredientIds = dish => [...new Set([
   ...(dish?.seasonings || []).map(line=>line.ingredientId),
 ].filter(Boolean))];
 
+export const dishForGrades = (dish, gradeIds = []) => {
+  if (!gradeIds.length) return dish;
+  const profiles = gradeIds.map((id) => dish.gradeRecipes?.find((profile) => profile.gradeId === id));
+  if (profiles.some((profile) => !profile?.lines?.length)) return { ...dish, gradeRecipeIssue: "Chưa có định lượng cho đủ các khối đã chọn." };
+  const lines = profiles[0].lines;
+  const mains = lines.filter((line) => line.ingredientRole === "MAIN");
+  return {
+    ...dish, lines,
+    ingredientStandards: mains.map((line) => ({ ingredientId: line.ingredientId, quantityPerPortion: line.requiredQuantity, unit: line.unit })),
+    ingredientIds: [...new Set(lines.map((line) => line.ingredientId).filter(Boolean))],
+    ingredients: mains.map((line) => ({ ...line, id: line.ingredientId, portionQty: line.requiredQuantity })),
+    mainIngredient: mains.map((line) => line.name).join(", "),
+    supplierName: [...new Set(mains.map((line) => line.supplierName).filter(Boolean))].join(", "),
+    seasonings: lines.filter((line) => line.ingredientRole === "SEASONING").map((line) => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity })),
+  };
+};
+
 export const loadDishCatalogData = async () => {
   const items = [];
   let categories = [];
@@ -42,6 +59,15 @@ export const loadDishCatalogData = async () => {
 };
 export const loadDishCatalog = async () => (await loadDishCatalogData()).items;
 export const dishCategoryKey = dish => dish?.category || "UNCLASSIFIED";
+export const groupDishesByCategory = dishes => {
+  const groups = new Map();
+  for (const dish of dishes) {
+    const key = dishCategoryKey(dish);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(dish);
+  }
+  return [...groups.values()].flat();
+};
 export const loadRecipeOptions = async () => {
   const response = await http.get("/dishes/recipe-options", {notifyOnError: false});
   if (!Array.isArray(response?.data?.items)) throw new Error("Không tải được danh mục kho trường.");
@@ -54,9 +80,9 @@ export const deleteDishRecipe = async id => http.delete(`/dishes/${id}`, {notify
 export const createDishCategory = name => http.post('/dishes/categories', { name }, { notifyOnError: false });
 export const updateDishCategory = (id, name) => http.put(`/dishes/categories/${id}`, { name }, { notifyOnError: false });
 export const deleteDishCategory = id => http.delete(`/dishes/categories/${id}`, { notifyOnError: false });
-export const previewMealRecipe = async (dishIds) => {
+export const previewMealRecipe = async (dishIds, gradeIds = []) => {
   if (!dishIds.length) return {dishes: [], seasonings: []};
-  const response = await http.post("/dishes/recipe-preview", {dishIds}, {notifyOnError: false});
+  const response = await http.post("/dishes/recipe-preview", {dishIds, ...(gradeIds.length ? { gradeIds } : {})}, {notifyOnError: false});
   if (!response?.data) throw new Error("Không tổng hợp được công thức bữa ăn.");
   return response.data;
 };

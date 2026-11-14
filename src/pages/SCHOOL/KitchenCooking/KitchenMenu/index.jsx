@@ -1,3 +1,4 @@
+import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React, { useState, useEffect, useMemo } from "react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
@@ -17,6 +18,7 @@ export default function KitchenMenu() {
   const [error, setError] = useState("")
   const [apiWeekData, setApiWeekData] = useState(null)
   const [revision, setRevision] = useState(0)
+  const [scopeSelection, setScopeSelection] = useState({ date: "", id: "" })
 
   useEffect(() => {
     let active = true
@@ -37,17 +39,18 @@ export default function KitchenMenu() {
   const year = years.find(row=>row.academicYear===academicYear)
   const weeks = useMemo(()=>(year?.weeks || []).map(week=>({...week,isoWeek:week.weekNumber,startDateISO:week.weekStartDate,endDateISO:week.weekEndDate})),[year])
   const week = weeks.find(row=>row.weekNumber===selectedWeek)
+  const menuId = scopeSelection.date === week?.weekStartDate ? scopeSelection.id : ""
   useEffect(()=>{
     let active=true
     setApiWeekData(null)
     setError("")
     if (!week) {setLoading(false);return ()=>{active=false}}
     setLoading(true)
-    MenuService.getWeekSchedule(week.weekStartDate).then(response=>{if(active)setApiWeekData(response.data)})
+    MenuService.getWeekSchedule(week.weekStartDate, menuId ? { menuId } : {}).then(response=>{if(active)setApiWeekData(response.data)})
       .catch(e=>{if(active)setError(e.message)})
       .finally(()=>{if(active)setLoading(false)})
     return ()=>{active=false}
-  },[week,revision])
+  },[week,revision,menuId])
 
   const days = useMemo(()=>{
     if (!week || !apiWeekData) return []
@@ -82,9 +85,11 @@ export default function KitchenMenu() {
       isFirstWeek={index<=0} isLastWeek={index<0||index>=weeks.length-1}
       totalDishes={totalDishes} mealTypeFilter={mealTypeFilter} onMealTypeFilterChange={setMealTypeFilter}
     />
+    <MenuScopeSelect menus={apiWeekData?.availableMenus || []} value={menuId} onChange={(id) => setScopeSelection({ date: week?.weekStartDate, id })} disabled={loading} />
     {calendarLoading || loading ? <div role="status" style={{padding:80}}><FoodPrintLoading/></div>
       : calendarError || error ? <div role="alert"><p>{calendarError || error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div>
       : !years.length ? <p>Chưa có cấu hình năm học của trường.</p>
+      : apiWeekData?.availableMenus?.length > 1 && !menuId ? <p role="status">Chọn thực đơn và khối ở trên để xem món ăn trong tuần.</p>
       : <KitchenMenuWeeklyGrid schoolDays={days} mealTypeFilter={mealTypeFilter} todayISO={todayISO}/>}
   </div>
 }
