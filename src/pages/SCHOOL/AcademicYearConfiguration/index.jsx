@@ -30,6 +30,19 @@ const emptyForm = {
   endDate: "",
   holidays: [],
 };
+// Gợi ý niên khóa kế tiếp: năm lớn nhất đã có + 1, chưa có thì lấy niên khóa hiện tại (từ tháng 9).
+const suggestAcademicYear = (years) => {
+  const starts = years
+    .map((year) => Number(/^(\d{4})-\d{4}$/.exec(year.academicYear)?.[1]))
+    .filter(Boolean);
+  const now = new Date();
+  const start = starts.length
+    ? Math.max(...starts) + 1
+    : now.getMonth() >= 8
+      ? now.getFullYear()
+      : now.getFullYear() - 1;
+  return `${start}-${start + 1}`;
+};
 const errorMessage = (failure, fallback) =>
   failure?.response?.data?.message || fallback;
 const normalize = (value) => ({
@@ -142,7 +155,7 @@ function AcademicYearConfiguration() {
     setSelectedId(null);
     setCreating(true);
     setSaved(emptyForm);
-    setForm(emptyForm);
+    setForm({ ...emptyForm, academicYear: suggestAcademicYear(years) });
     setError("");
   };
   const requestAction = (action) => {
@@ -261,7 +274,7 @@ function AcademicYearConfiguration() {
                     duplicateLabel
                       ? "Niên khóa này đã tồn tại."
                       : creating
-                        ? "Không bắt buộc theo một định dạng cố định."
+                        ? "Định dạng: năm bắt đầu-năm kết thúc, ví dụ 2026-2027."
                         : undefined
                   }
                   inputProps={{ maxLength: 30 }}
