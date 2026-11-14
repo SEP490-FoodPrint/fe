@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import PhotoPicker from "src/components/PhotoPicker";
 import PropTypes from "prop-types";
 import {
   X,
@@ -32,6 +33,7 @@ export default function RetainedSampleModal({
   const [quantity, setQuantity] = useState("150");
   const [unit, setUnit] = useState("g");
   const [errorMsg, setErrorMsg] = useState("");
+  const [photo, setPhoto] = useState(null);
 
   const sampledDishIds = useMemo(() => {
     return new Set(
@@ -61,6 +63,7 @@ export default function RetainedSampleModal({
         `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
       );
       setErrorMsg("");
+      setPhoto(null);
     }
   }, [isOpen]);
 
@@ -110,6 +113,7 @@ export default function RetainedSampleModal({
       unit,
       storageLocation: "Tủ lưu mẫu Bếp 01 - Ngăn A",
       sampledAt: selectedTime.toISOString(),
+      photo,
     });
   };
 
@@ -319,6 +323,7 @@ export default function RetainedSampleModal({
             </div>
           )}
 
+          <PhotoPicker value={photo} onChange={setPhoto} disabled={loading} />
           {/* Footer Actions */}
           <div className={styles.footer}>
             <button

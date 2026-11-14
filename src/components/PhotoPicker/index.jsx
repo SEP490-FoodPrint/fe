@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { Camera, ImagePlus, X } from "lucide-react";
 import styles from "./style.module.scss";
 
-const MAX_SIZE = 10 * 1024 * 1024;
+const MAX_SIZE = 5 * 1024 * 1024;
 
 export default function PhotoPicker({ value, onChange, disabled = false }) {
   const id = useId();
@@ -22,7 +22,8 @@ export default function PhotoPicker({ value, onChange, disabled = false }) {
     event.target.value = "";
     if (!file) return;
     if (!["image/jpeg", "image/png"].includes(file.type) || !file.size || file.size > MAX_SIZE) {
-      setError("Chọn ảnh JPG hoặc PNG, dung lượng tối đa 10 MB.");
+      onChange(null);
+      setError("Chọn ảnh JPG hoặc PNG, dung lượng tối đa 5 MB.");
       return;
     }
     setError("");
@@ -32,10 +33,8 @@ export default function PhotoPicker({ value, onChange, disabled = false }) {
   return <div className={styles.picker}>
     <span className={styles.label}>Ảnh đính kèm <span>(tùy chọn)</span></span>
     <div className={styles.actions}>
-      <label className={styles.action} htmlFor={`${id}-camera`}><Camera size={16} /> Chụp ảnh</label>
-      <input id={`${id}-camera`} className={styles.input} type="file" accept="image/jpeg,image/png" capture="environment" onChange={select} disabled={disabled} />
-      <label className={styles.action} htmlFor={`${id}-upload`}><ImagePlus size={16} /> Tải ảnh lên</label>
-      <input id={`${id}-upload`} className={styles.input} type="file" accept="image/jpeg,image/png" onChange={select} disabled={disabled} />
+      <label className={styles.action} htmlFor={`${id}-camera`}><Camera size={16} /> Chụp ảnh<input id={`${id}-camera`} className={styles.input} type="file" accept="image/jpeg,image/png" capture="environment" onChange={select} disabled={disabled} /></label>
+      <label className={styles.action} htmlFor={`${id}-upload`}><ImagePlus size={16} /> Tải ảnh lên<input id={`${id}-upload`} className={styles.input} type="file" accept="image/jpeg,image/png" onChange={select} disabled={disabled} /></label>
     </div>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {preview && <div className={styles.preview}>
