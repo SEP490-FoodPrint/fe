@@ -410,7 +410,7 @@ export function parseTransportInfo(delivery, orderType) {
 /**
  * Chuẩn hóa danh sách mặt hàng nguyên liệu bàn giao
  */
-export function mapDeliveryItems(deliveryItems = []) {
+export function mapDeliveryItems(deliveryItems = [], defaultSupplierName = "") {
   if (!Array.isArray(deliveryItems) || deliveryItems.length === 0) {
     return []
   }
@@ -421,6 +421,12 @@ export function mapDeliveryItems(deliveryItems = []) {
     )
     const unit = item.unit || "kg"
     const name = item.name || item.ingredientName || "Nguyên liệu"
+    const supplierName =
+      item.supplierName ||
+      item.supplier?.name ||
+      defaultSupplierName ||
+      "Nhà cung cấp đối tác"
+    const supplierId = item.supplierId || item.supplier?.id || ""
     const spec =
       item.spec ||
       item.note ||
@@ -430,9 +436,14 @@ export function mapDeliveryItems(deliveryItems = []) {
 
     return {
       name,
+      ingredientName: name,
       qty,
       unit,
       spec,
+      supplierName,
+      supplierId,
+      handlingType: item.handlingType,
+      raw: item,
     }
   })
 }
@@ -448,7 +459,18 @@ export function adaptTrackingOrder(delivery) {
   const etaInfo = computeEta(delivery.status, delivery.expectedArrivalAt)
   const transportInfo = parseTransportInfo(delivery, orderType)
   const timeline = buildTimeline(delivery, statusInfo.status)
-  const items = mapDeliveryItems(delivery.deliveryItems || delivery.items)
+  
+  const rawItems = delivery.deliveryItems || delivery.items || []
+  const items = mapDeliveryItems(rawItems, delivery.supplierName)
+
+  const uniqueSuppliers = Array.from(
+    new Set(
+      [
+        ...(Array.isArray(delivery.suppliers) ? delivery.suppliers : []),
+        ...items.map(it => it.supplierName),
+      ].filter(Boolean)
+    )
+  )
 
   const scheduleDate =
     delivery.expectedArrivalAt ||
@@ -470,7 +492,15 @@ export function adaptTrackingOrder(delivery) {
     orderTypeLabel: orderType.label,
     supplierName: delivery.supplierName || "Liên minh Hợp tác xã Cung ứng",
     supplierPhone: delivery.supplierPhone || "0987 654 321",
+    suppliers:
+      uniqueSuppliers.length > 0
+        ? uniqueSuppliers
+        : delivery.supplierName
+        ? [delivery.supplierName]
+        : [],
     deliverySchedule,
+    deliveryDate: delivery.deliveryDate,
+    deliveryTime: delivery.deliveryTime,
     status: statusInfo.status,
     rawStatus: delivery.status,
     statusLabel: statusInfo.statusLabel,

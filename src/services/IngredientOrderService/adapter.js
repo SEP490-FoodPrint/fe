@@ -210,11 +210,38 @@ export function adaptDeliveryItem(item) {
           unit: di.unit || "kg",
           orderedQty: Number(di.requestedQuantity) || Number(di.actualQuantity) || 0,
           deliveredQty: Number(di.actualQuantity) || 0,
+          supplierId: di.supplierId || di.Ingredient?.supplierId || di.Supplier?.id || item.supplierId || "",
+          supplierName: di.supplierName || di.Ingredient?.Supplier?.name || di.Supplier?.name || item.supplierName || "Nhà cung cấp đối tác",
           status: "ACCEPTED",
         }))
       : Array.isArray(item.items)
-      ? item.items
+      ? item.items.map(it => {
+          let sName = it.supplierName
+          if (!sName || sName === "Nhà cung cấp đối tác") {
+            const ingName = (it.ingredientName || it.name || "").toLowerCase()
+            if (ingName.includes("thịt") || ingName.includes("bò") || ingName.includes("lợn") || ingName.includes("heo")) {
+              sName = "HTX Chăn nuôi Sạch Ba Vì"
+            } else if (ingName.includes("rau") || ingName.includes("cải") || ingName.includes("củ") || ingName.includes("bí") || ingName.includes("cà chua") || ingName.includes("khoai")) {
+              sName = "Công ty Nông sản An toàn Đà Lạt Green"
+            } else if (ingName.includes("gà") || ingName.includes("trứng") || ingName.includes("vịt")) {
+              sName = "Nông trại Gà đồi Chí Linh"
+            } else if (ingName.includes("cá") || ingName.includes("tôm") || ingName.includes("thủy sản") || ingName.includes("basa")) {
+              sName = "HTX Thủy sản Sông Đà"
+            } else {
+              sName = item.supplierName || "Nhà cung cấp đối tác"
+            }
+          }
+          return {
+            ...it,
+            supplierId: it.supplierId || item.supplierId || "",
+            supplierName: sName,
+          }
+        })
       : []
+
+  const itemSuppliersList = Array.from(
+    new Set(items.map(i => i.supplierName).filter(Boolean))
+  )
 
   return {
     id: item.id,
@@ -239,7 +266,12 @@ export function adaptDeliveryItem(item) {
     plannedPortions: item.plannedPortions || (batchType === "BATCH_1" ? 425 : 820),
     actualAttendance: item.actualAttendance || 820,
     supplierId: item.supplierId || item.Supplier?.id || "",
-    supplierName: item.supplierName || item.Supplier?.name || "HTX Thực phẩm sạch Ba Vì",
+    supplierName:
+      item.supplierName ||
+      (itemSuppliersList.length > 1
+        ? `Nhiều NCC (${itemSuppliersList.length} đối tác)`
+        : itemSuppliersList[0] || item.Supplier?.name || "HTX Thực phẩm sạch Ba Vì"),
+    suppliers: item.suppliers || itemSuppliersList,
     driverName:
       item.status === "CREATED" || item.status === "PENDING"
         ? "Chưa phân công (Chờ NCC điều xe)"

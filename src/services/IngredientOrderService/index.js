@@ -246,6 +246,8 @@ const IngredientOrderService = {
             orderedQty: totalQty,
             deliveredQty: 0,
             status: "WAITING",
+            supplierId: it.supplierId || "",
+            supplierName: it.supplierName || "Nhà cung cấp đối tác",
             isCustomized: it.isCustomized || false,
             isExtraItem: it.isExtraItem || false,
             defaultQtyPerPortion: it.defaultQtyPerPortion,
@@ -266,11 +268,23 @@ const IngredientOrderService = {
               orderedQty: stdQty,
               deliveredQty: 0,
               status: "WAITING",
+              supplierId: it.supplierId || "",
+              supplierName: it.supplierName || "Nhà cung cấp đối tác",
               isCustomized: false,
               isExtraItem: false,
               defaultQtyPerPortion: it.qtyPerPortion,
             }
           })
+
+    const uniqueSuppliers = Array.from(
+      new Set(freshItemsBatch1.map(i => i.supplierName).filter(Boolean))
+    )
+    const summarySupplierName =
+      uniqueSuppliers.length === 1
+        ? uniqueSuppliers[0]
+        : uniqueSuppliers.length > 1
+          ? `Nhiều NCC (${uniqueSuppliers.length} đối tác)`
+          : "Nhiều NCC liên kết"
 
     const deliveryBatch1 = {
       id: `deliv-${Date.now()}-01`,
@@ -285,7 +299,8 @@ const IngredientOrderService = {
       maxPortions,
       plannedPortions: batch1Portions,
       supplierId: targetMenu.ingredients[0]?.supplierId || "sup-bavi-01",
-      supplierName: targetMenu.ingredients[0]?.supplierName || "Liên minh NCC thực phẩm sạch",
+      supplierName: summarySupplierName,
+      suppliers: uniqueSuppliers,
       driverName: "Chờ NCC gán xe & tài xế",
       deliveryQr: `QR-LOT-${orderNo.replace("PO-", "")}-01`,
       refrigerationTemp: "Chưa đo (Chờ xe tới)",
@@ -351,6 +366,8 @@ const IngredientOrderService = {
             orderedQty: totalQty,
             deliveredQty: 0,
             status: "WAITING",
+            supplierId: it.supplierId || b1Item?.supplierId || "",
+            supplierName: it.supplierName || b1Item?.supplierName || "Nhà cung cấp đối tác",
             isCustomized: it.isCustomized || false,
             isExtraItem: it.isExtraItem || false,
             defaultQtyPerPortion: it.defaultQtyPerPortion,
@@ -376,11 +393,23 @@ const IngredientOrderService = {
               orderedQty: stdQty,
               deliveredQty: 0,
               status: "WAITING",
+              supplierId: it.supplierId || b1Item?.supplierId || "",
+              supplierName: it.supplierName || b1Item?.supplierName || "Nhà cung cấp đối tác",
               isCustomized: Math.abs(portionRate - it.qtyPerPortion) > 0.00001,
               isExtraItem: false,
               defaultQtyPerPortion: it.qtyPerPortion,
             }
           })
+
+    const uniqueSuppliers = Array.from(
+      new Set(freshItemsBatch2.map(i => i.supplierName).filter(Boolean))
+    )
+    const summarySupplierName =
+      uniqueSuppliers.length === 1
+        ? uniqueSuppliers[0]
+        : uniqueSuppliers.length > 1
+          ? `Nhiều NCC (${uniqueSuppliers.length} đối tác)`
+          : "Nhiều NCC liên kết"
 
     const deliveryBatch2 = {
       id: `deliv-${Date.now()}-02`,
@@ -397,7 +426,8 @@ const IngredientOrderService = {
       actualAttendance: actualCount,
       plannedPortions: remainingPortions,
       supplierId: batch1Delivery.supplierId,
-      supplierName: batch1Delivery.supplierName,
+      supplierName: summarySupplierName,
+      suppliers: uniqueSuppliers,
       driverName: batch1Delivery.driverName || "--",
       deliveryQr: `QR-LOT-${batch1Delivery.orderNo.replace("PO-", "")}-02`,
       refrigerationTemp: "Chưa đo (Chờ xe tới)",

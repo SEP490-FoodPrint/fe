@@ -54,6 +54,18 @@
 }
 
 /* Card chung */
+.sectionWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
 .card {
   background-color: var(--bg-surface, #ffffff);
   border-radius: var(--radius-lg, 12px);
