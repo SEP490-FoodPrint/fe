@@ -14,7 +14,8 @@ import {
 import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import DishCategoryModal from "./component/DishCategoryModal"
-import GradeRecipeDialog from "./component/GradeRecipeDialog"
+import GradeRecipeFields, { validRecipeLines } from "./component/GradeRecipeFields"
+import MenuService from "src/services/MenuService"
 import styles from "./index.module.scss"
 
 /* ─── Helpers ────────────────────────────────────── */
@@ -43,6 +44,15 @@ export default function DishCatalogPage() {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false)
   const DISH_CATEGORIES = [{ key: "ALL", label: "Tất cả món" }, ...categoryOptions, { key: "UNCLASSIFIED", label: "Chưa phân nhóm" }]
   const [recipeOptions, setRecipeOptions] = useState([])
+  const [grades, setGrades] = useState([])
+  const [gradeError, setGradeError] = useState("")
+  const [gradeProfiles, setGradeProfiles] = useState([])
+  const [detailGradeId, setDetailGradeId] = useState("")
+  useEffect(() => {
+    let active = true
+    MenuService.getContext().then(context => { if (active) { if (!Array.isArray(context.grades)) throw new Error("Không tải được danh sách khối."); setGrades(context.grades) } }).catch(error => { if (active) setGradeError(error.message) })
+    return () => { active = false }
+  }, [])
   const [catalogError, setCatalogError] = useState("")
   const [catalogLoadError, setCatalogLoadError] = useState("")
   const [recipeOptionsError, setRecipeOptionsError] = useState("")
@@ -85,7 +95,6 @@ export default function DishCatalogPage() {
 
   // Modal Xem chi tiết
   const [viewingDish, setViewingDish] = useState(null)
-  const [gradeRecipeDish, setGradeRecipeDish] = useState(null)
 
   // Modal thêm / sửa
   const [modalOpen, setModalOpen] = useState(false)
@@ -161,11 +170,13 @@ export default function DishCatalogPage() {
     setForm(EMPTY_FORM)
     setSelectedIngredients([])
     setSelectedSeasonings([])
+    setGradeProfiles([])
     setModalOpen(true)
   }, [])
 
   const openEdit = useCallback((dish) => {
     setEditingDish(dish)
+    setGradeProfiles((dish.gradeRecipes || []).map(profile => ({ gradeId: profile.gradeId, lines: profile.lines.map(({ ingredientEntryId, ingredientRole, requiredQuantity, unit }) => ({ ingredientEntryId, ingredientRole, requiredQuantity: String(requiredQuantity), unit })) })))
     setForm({ name: dish.name || "", category: dish.category || "" })
 
     // Tự động đưa mọi nguyên liệu (kể cả từ công thức cũ) vào danh sách nguyên liệu chính (ảnh 2)
@@ -264,29 +275,27 @@ export default function DishCatalogPage() {
   }, [])
 
   // Lưu món ăn
+  const baseLines = [
+    ...selectedIngredients.map(i => ({ ingredientEntryId: i.ingredientEntryId || i.id, ingredientRole: "MAIN", requiredQuantity: String(i.portionQty || ""), unit: i.unit || "kg" })),
+    ...selectedSeasonings.map(i => ({ ingredientEntryId: i.ingredientEntryId || i.id, ingredientRole: "SEASONING", requiredQuantity: String(i.portionQty || ""), unit: i.unit || "g" })),
+  ]
   const handleSave = async () => {
     setCatalogError("")
     if (!categoryOptions.some(option => option.key === form.category)) { setCatalogError("Vui lòng chọn nhóm món ăn."); return }
+    if (!validRecipeLines(baseLines)) { setCatalogError("Bộ gốc cần nguyên liệu chính không trùng, định lượng dương tối đa 3 chữ số thập phân và đơn vị hợp lệ."); return }
+    for (const profile of gradeProfiles) {
+      if (!validRecipeLines(profile.lines)) {
+        setCatalogError(`Kiểm tra định lượng của ${grades.find(grade => grade.id === profile.gradeId)?.name || "khối đã chọn"}: cần nguyên liệu chính, lượng dương và không trùng nguyên liệu.`); return
+      }
+    }
     setSaving(true)
     try {
       const response = await saveDishRecipe(editingDish?.id, {
         name: form.name.trim(),
         category: form.category,
         description: editingDish?.description || null,
-        lines: [
-          ...selectedIngredients.map((i) => ({
-            ingredientEntryId: i.ingredientEntryId || i.id,
-            ingredientRole: "MAIN",
-            requiredQuantity: String(i.portionQty || "0.01"),
-            unit: i.unit || "kg",
-          })),
-          ...selectedSeasonings.map((i) => ({
-            ingredientEntryId: i.ingredientEntryId || i.id,
-            ingredientRole: "SEASONING",
-            requiredQuantity: String(i.portionQty || "0.01"),
-            unit: i.unit || "g",
-          })),
-        ],
+        gradeRecipes: gradeProfiles,
+        lines: baseLines,
       })
       setEditingDish(response.data)
       const rows = await loadDishCatalog()
@@ -461,12 +470,11 @@ export default function DishCatalogPage() {
                     </td>
                     <td style={{ textAlign: "center" }}>
                       <div className={styles.actionBtns}>
-                        <button type="button" onClick={() => setGradeRecipeDish(dish)} title="Nhập định lượng cho từng khối">Định lượng khối</button>
                         {/* Nút Xem chi tiết (icon mắt) */}
                         <button
                           type="button"
                           className={styles.iconViewBtn}
-                          onClick={() => setViewingDish(dish)}
+                          onClick={() => { setDetailGradeId(""); setViewingDish(dish) }}
                           title="Xem chi tiết nguyên liệu & gia vị"
                           aria-label="Xem chi tiết món ăn"
                         >
@@ -491,7 +499,6 @@ export default function DishCatalogPage() {
         )}
       </div>
 
-      {gradeRecipeDish && <GradeRecipeDialog dish={gradeRecipeDish} onClose={() => setGradeRecipeDish(null)} onSaved={async () => setCatalog(await loadDishCatalog())} />}
       {/* Phân trang (Pagination) */}
       {filtered.length > PAGE_SIZE && (
         <div className={styles.paginationWrap}>
@@ -560,6 +567,7 @@ export default function DishCatalogPage() {
                     ? "Cập nhật công thức và định lượng nguyên liệu trên một suất ăn"
                     : "Thiết lập món ăn chuẩn, nguyên liệu chính và định lượng gia vị"}
                 </p>
+                {catalogError && <p role="alert">{catalogError}</p>}
               </div>
               <button
                 type="button"
@@ -880,6 +888,7 @@ export default function DishCatalogPage() {
                     </div>
                   )}
                 </div>
+                {gradeError ? <p role="alert">{gradeError}</p> : <GradeRecipeFields grades={grades} options={recipeOptions} profiles={gradeProfiles} onChange={setGradeProfiles} baseLines={baseLines} savedGradeIds={(editingDish?.gradeRecipes || []).map(profile => profile.gradeId)} disabled={saving} />}
               </div>
             </div>
 
@@ -922,8 +931,10 @@ export default function DishCatalogPage() {
 
       {/* Modal Xem chi tiết món ăn (Icon Mắt) */}
       {viewingDish && (() => {
-        const resolvedIngs = getDishResolvedIngredients(viewingDish)
-        const resolvedSeas = getDishResolvedSeasonings(viewingDish)
+        const profile = viewingDish.gradeRecipes?.find(item => item.gradeId === detailGradeId)
+        const selectedLines = profile?.lines || []
+        const resolvedIngs = detailGradeId ? selectedLines.filter(line => line.ingredientRole === "MAIN").map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity })) : getDishResolvedIngredients(viewingDish)
+        const resolvedSeas = detailGradeId ? selectedLines.filter(line => line.ingredientRole === "SEASONING").map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity })) : getDishResolvedSeasonings(viewingDish)
 
         return (
           <div
@@ -969,12 +980,15 @@ export default function DishCatalogPage() {
 
               {/* Body chi tiết */}
               <div className={styles.detailModalBody}>
+                <label>Định lượng áp dụng <select value={detailGradeId} onChange={event => setDetailGradeId(event.target.value)}><option value="">Bộ định lượng gốc</option>{grades.map(grade => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></label>
+                {gradeError && <p role="alert">{gradeError}</p>}
+                {detailGradeId && !profile && <p role="status">Khối này chưa có định lượng cho món ăn.</p>}
                 {/* Lưới thông số tổng quan */}
                 <div className={styles.detailOverviewGrid}>
                   <div className={styles.overviewItem}>
                     <span className={styles.overviewItemLabel}>Nhà cung cấp chính</span>
                     <div className={styles.overviewItemVal}>
-                      <span>{viewingDish.supplierName || "Chưa xác định nhà cung cấp"}</span>
+                      <span>{(detailGradeId ? [...new Set(resolvedIngs.map(line => line.supplierName).filter(Boolean))].join(", ") : viewingDish.supplierName) || "Chưa xác định nhà cung cấp"}</span>
                       {viewingDish.supplierBadge && (
                         <span className={styles.supplierBadgePill}>
                           {viewingDish.supplierBadge}

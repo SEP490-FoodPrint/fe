@@ -7,6 +7,16 @@ import viteConfig from "../vite.config.js"
 let server, http, menus, kitchen, adapter, keys, storageTools, respond
 let requests = []
 
+test("dish recipe form rejects missing, duplicate and invalid grade quantities", async () => {
+  const { validRecipeLines } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
+  const main = { ingredientEntryId: id(1), ingredientRole: "MAIN", requiredQuantity: "120.125", unit: "g" }
+  const seasoning = { ingredientEntryId: id(2), ingredientRole: "SEASONING", requiredQuantity: "0.250", unit: "g" }
+  assert.equal(validRecipeLines([main, seasoning]), true)
+  assert.equal(validRecipeLines([seasoning]), false)
+  assert.equal(validRecipeLines([main, { ...seasoning, ingredientEntryId: main.ingredientEntryId }]), false)
+  for (const quantity of ["", "0", "1e3", "1.0001"]) assert.equal(validRecipeLines([{ ...main, requiredQuantity: quantity }]), false)
+})
+
 test("grade recipe selection uses the selected profile and keeps missing profiles explicit", async () => {
   const { dishForGrades } = await server.ssrLoadModule("/src/services/DishService/index.js")
   const base = { id: id(40), lines: [{ ingredientId: id(1), ingredientRole: "MAIN", requiredQuantity: "80", unit: "g" }], gradeRecipes: [{ gradeId: id(50), lines: [{ ingredientEntryId: id(41), ingredientId: id(42), ingredientRole: "MAIN", requiredQuantity: "120", unit: "g", name: "Thịt", supplierName: "NCC" }] }] }
