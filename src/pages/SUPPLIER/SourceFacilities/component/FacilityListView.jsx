@@ -109,14 +109,9 @@ function FacilityListView({
                   </td>
 
                   <td className={styles.colName}>
-                    <div className={styles.nameTextStack}>
-                      <Link to={detailPath} className={styles.nameLink}>
-                        {facility.name}
-                      </Link>
-                      <Link to={detailPath} className={styles.viewDetailLink}>
-                        Xem chi tiết
-                      </Link>
-                    </div>
+                    <Link to={detailPath} className={styles.nameLink}>
+                      {facility.name}
+                    </Link>
                   </td>
 
                   <td className={styles.colCode}>
@@ -155,8 +150,12 @@ function FacilityListView({
           const detailPath = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${facility.id}`
 
           return (
-            <article key={facility.id} className={styles.facilityCard}>
-              <Link to={detailPath} className={styles.cardHeaderLink}>
+            <Link
+              key={facility.id}
+              to={detailPath}
+              className={styles.facilityCard}
+            >
+              <div className={styles.cardHeaderRow}>
                 <div className={styles.cardTitleGroup}>
                   <h2 className={styles.cardTitle}>{facility.name}</h2>
                   <p className={styles.cardSubMeta}>
@@ -170,17 +169,12 @@ function FacilityListView({
                 >
                   {getFacilityStatusLabel(facility.status)}
                 </span>
-              </Link>
-
-              <div className={styles.cardFooterRow}>
-                <p className={styles.cardUpdatedText}>
-                  Cập nhật: {formatDateTimeVi(facility.updatedAt)}
-                </p>
-                <Link to={detailPath} className={styles.viewDetailLink}>
-                  Xem chi tiết
-                </Link>
               </div>
-            </article>
+
+              <p className={styles.cardUpdatedText}>
+                Cập nhật: {formatDateTimeVi(facility.updatedAt)}
+              </p>
+            </Link>
           )
         })}
       </div>

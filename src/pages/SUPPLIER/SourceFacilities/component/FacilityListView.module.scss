@@ -83,15 +83,6 @@
   white-space: nowrap;
 }
 
-.nameTextStack {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 4px;
-  min-width: 0;
-}
-
 .nameLink {
   display: block;
   max-width: 100%;
@@ -107,29 +98,6 @@
 
   &:hover {
     color: var(--color-primary);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-}
-
-.viewDetailLink {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: var(--font-semibold);
-  line-height: 16px;
-  color: var(--color-primary);
-  text-decoration: underline;
-  text-underline-position: from-font;
-  text-underline-offset: 2px;
-  white-space: nowrap;
-
-  &:hover {
-    color: var(--color-primary-hover);
   }
 
   &:focus-visible {
@@ -199,6 +167,7 @@
   background: var(--bg-surface);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-lg);
+  text-decoration: none;
   transition:
     border-color var(--duration-fast) var(--ease-standard),
     transform var(--duration-fast) var(--ease-standard);
@@ -207,22 +176,20 @@
     border-color: var(--border-strong);
     transform: translateY(-2px);
   }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
 }
 
-.cardHeaderLink {
+.cardHeaderRow {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   width: 100%;
-  text-decoration: none;
   min-width: 0;
-
-  &:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
-    border-radius: 6px;
-  }
 }
 
 .cardTitleGroup {
@@ -251,17 +218,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-.cardFooterRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border-default);
-}
-
 .cardUpdatedText {
   margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-default);
   font-size: 12px;
   font-weight: var(--font-normal);
   line-height: 16px;
