@@ -69,6 +69,25 @@ export function formatTimeShort(dateInput) {
  * Xác định loại đơn hàng (Đồ tươi đợt 1 / đợt 2 / Đồ khô)
  */
 export function determineOrderType(delivery) {
+  if (delivery?.orderType === "DRY_STOCK" || delivery?.batchType === "DRY_STOCK") {
+    return {
+      type: "DRY_STOCK",
+      label: "Đồ khô & Gia vị",
+    }
+  }
+  if (delivery?.orderType === "FRESH_BATCH_2" || delivery?.batchType === "BATCH_2") {
+    return {
+      type: "FRESH_BATCH_2",
+      label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
+    }
+  }
+  if (delivery?.orderType === "FRESH_BATCH_1" || delivery?.batchType === "BATCH_1") {
+    return {
+      type: "FRESH_BATCH_1",
+      label: "Đồ tươi (Đợt 1 - 05:30)",
+    }
+  }
+
   const note = (delivery?.note || "").toLowerCase()
   const items = delivery?.deliveryItems || []
 
@@ -129,6 +148,18 @@ export function determineOrderType(delivery) {
  */
 export function mapDeliveryStatus(dbStatus) {
   switch (dbStatus) {
+    case "CREATED":
+    case "PENDING":
+      return {
+        status: "CREATED",
+        statusLabel: "Chờ NCC xác nhận",
+      }
+    case "ACCEPTED":
+    case "CONFIRMED":
+      return {
+        status: "ACCEPTED",
+        statusLabel: "NCC đã xác nhận",
+      }
     case "IN_TRANSIT":
       return {
         status: "IN_TRANSIT",
@@ -159,12 +190,10 @@ export function mapDeliveryStatus(dbStatus) {
         status: "CANCELLED",
         statusLabel: "Đã hủy đơn",
       }
-    case "ACCEPTED":
-    case "CREATED":
     default:
       return {
-        status: "ACCEPTED",
-        statusLabel: "NCC đã xác nhận",
+        status: "CREATED",
+        statusLabel: "Chờ NCC xác nhận",
       }
   }
 }
@@ -249,6 +278,7 @@ export function buildTimeline(delivery, mappedStatus) {
   const rawStatus = delivery?.status || ""
   const isAccepted = [
     "ACCEPTED",
+    "CONFIRMED",
     "IN_TRANSIT",
     "ARRIVED",
     "COMPLETED",
@@ -265,14 +295,14 @@ export function buildTimeline(delivery, mappedStatus) {
       title: "Tạo phiếu",
       time: createdTime || "Đã tạo",
       done: true,
-      current: rawStatus === "CREATED",
+      current: rawStatus === "CREATED" || rawStatus === "PENDING",
     },
     {
       step: 2,
       title: "NCC xác nhận",
-      time: createdTime || "Đã xác nhận",
+      time: isAccepted ? createdTime || "Đã xác nhận" : "Chờ xác nhận",
       done: isAccepted,
-      current: rawStatus === "ACCEPTED",
+      current: rawStatus === "ACCEPTED" || rawStatus === "CONFIRMED",
     },
     {
       step: 3,
@@ -299,20 +329,57 @@ export function buildTimeline(delivery, mappedStatus) {
  */
 export function parseTransportInfo(delivery, orderType) {
   const note = delivery?.note || ""
+  const rawStatus = delivery?.status || ""
+  const isPendingConfirmation = rawStatus === "CREATED" || rawStatus === "PENDING"
 
-  let driverName = "Tài xế giao hàng"
-  const driverMatch = note.match(/(?:tài xế|lái xe|driver)\s*[:\-]?\s*([^,;\n\(\)]+)/i)
-  if (driverMatch && driverMatch[1]?.trim()) {
-    driverName = driverMatch[1].trim()
+  // 1. Khi NCC chưa xác nhận đơn: Chưa có tài xế hay phương tiện được điều phối
+  if (isPendingConfirmation) {
+    return {
+      driverName: "Chưa phân công",
+      driverPhone: "--",
+      vehiclePlate: "Chưa điều xe",
+      refrigerationTemp: "Chưa đo (Chờ xuất xe)",
+      currentLocation: "Kho NCC (Chờ xác nhận đơn)",
+      isAssigned: false,
+    }
   }
 
-  let driverPhone = delivery?.supplierPhone || "0987 654 321"
+  // 2. Khi NCC đã xác nhận (ACCEPTED / CONFIRMED) nhưng chưa xuất xe giao hàng
+  if (rawStatus === "ACCEPTED" || rawStatus === "CONFIRMED") {
+    return {
+      driverName: "Đang phân công",
+      driverPhone: "--",
+      vehiclePlate: "Đang điều phối xe",
+      refrigerationTemp: "Chưa đo (Chờ xuất xe)",
+      currentLocation: "Kho NCC (Đang chuẩn bị hàng)",
+      isAssigned: false,
+    }
+  }
+
+  // 3. Khi đã xuất xe giao hàng (IN_TRANSIT, ARRIVED, COMPLETED, RECEIVED)
+  let driverName = delivery?.driverName
+  if (!driverName || driverName.includes("Chờ") || driverName === "--") {
+    const driverMatch = note.match(/(?:tài xế|lái xe|driver)\s*[:\-]?\s*([^,;\n\(\)]+)/i)
+    if (driverMatch && driverMatch[1]?.trim()) {
+      driverName = driverMatch[1].trim()
+    } else {
+      driverName = "Tài xế giao hàng"
+    }
+  }
+
+  let driverPhone = delivery?.driverPhone || delivery?.supplierPhone || "0987 654 321"
   const phoneMatch = note.match(/(?:sđt|điện thoại|phone|hotline)\s*[:\-]?\s*([0-9\.\s]{10,12})/i)
   if (phoneMatch && phoneMatch[1]?.trim()) {
     driverPhone = phoneMatch[1].trim()
   }
 
-  const vehiclePlate = delivery?.vehiclePlate || "29H-456.78 (Xe tải lạnh chuyên dụng)"
+  let vehiclePlate = delivery?.vehiclePlate
+  if (!vehiclePlate) {
+    vehiclePlate =
+      orderType.type === "DRY_STOCK"
+        ? "29C-789.12 (Xe tải thùng kín)"
+        : "29H-456.78 (Xe tải lạnh chuyên dụng)"
+  }
 
   let refrigerationTemp = "--"
   if (orderType.type === "DRY_STOCK") {
@@ -322,7 +389,6 @@ export function parseTransportInfo(delivery, orderType) {
   }
 
   let currentLocation = "Kho tổng NCC"
-  const rawStatus = delivery?.status || ""
   if (rawStatus === "ARRIVED") {
     currentLocation = "Cổng phụ số 2 / Khu tiếp nhận bếp trường"
   } else if (rawStatus === "RECEIVED" || rawStatus === "COMPLETED") {
@@ -337,6 +403,7 @@ export function parseTransportInfo(delivery, orderType) {
     vehiclePlate,
     refrigerationTemp,
     currentLocation,
+    isAssigned: true,
   }
 }
 
@@ -349,10 +416,13 @@ export function mapDeliveryItems(deliveryItems = []) {
   }
 
   return deliveryItems.map(item => {
-    const qty = Number(item.actualQuantity || item.requestedQuantity || 0)
+    const qty = Number(
+      item.qty ?? item.actualQuantity ?? item.requestedQuantity ?? item.orderedQty ?? 0
+    )
     const unit = item.unit || "kg"
-    const name = item.ingredientName || "Nguyên liệu"
+    const name = item.name || item.ingredientName || "Nguyên liệu"
     const spec =
+      item.spec ||
       item.note ||
       (item.handlingType === "DIRECT_USE"
         ? "Đóng gói tiêu chuẩn, tem QR truy xuất, có kiểm dịch"
@@ -378,11 +448,14 @@ export function adaptTrackingOrder(delivery) {
   const etaInfo = computeEta(delivery.status, delivery.expectedArrivalAt)
   const transportInfo = parseTransportInfo(delivery, orderType)
   const timeline = buildTimeline(delivery, statusInfo.status)
-  const items = mapDeliveryItems(delivery.deliveryItems)
+  const items = mapDeliveryItems(delivery.deliveryItems || delivery.items)
 
   const scheduleDate =
     delivery.expectedArrivalAt ||
     delivery.requestedDeliveryDate ||
+    (delivery.deliveryDate
+      ? `${delivery.deliveryDate}T${delivery.deliveryTime || "05:30"}:00`
+      : null) ||
     delivery.createdAt
   const deliverySchedule = formatVietnameseDateTime(scheduleDate)
 
@@ -408,6 +481,7 @@ export function adaptTrackingOrder(delivery) {
     vehiclePlate: transportInfo.vehiclePlate,
     refrigerationTemp: transportInfo.refrigerationTemp,
     currentLocation: transportInfo.currentLocation,
+    isAssigned: transportInfo.isAssigned,
     timeline,
     items,
     note: delivery.note || "",

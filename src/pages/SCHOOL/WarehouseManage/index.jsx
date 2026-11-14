@@ -3,6 +3,7 @@ import { Box } from "@mui/material"
 import notice from "src/components/Notice"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import WarehouseService from "src/services/WarehouseService"
+import { saveStoredDelivery } from "src/services/deliveryStorage"
 
 import WarehouseHeader from "./component/WarehouseHeader"
 import WarehouseStatsRail from "./component/WarehouseStatsRail"
@@ -162,11 +163,56 @@ export default function WarehouseManage() {
     setSelectedItemForOrder(null)
   }
 
-  // Submit tạo đơn mới
-  const handleCreateOrder = async newOrder => {
+  // Submit tạo đơn mới (hỗ trợ cả đơn lẻ và nhiều đơn theo các NCC khác nhau)
+  const handleCreateOrder = async orderPayload => {
+    const ordersToSave = Array.isArray(orderPayload) ? orderPayload : [orderPayload]
+
+    ordersToSave.forEach((newOrder, orderIdx) => {
+      const dryDelivery = {
+        id: newOrder.id || `po-dry-${Date.now()}-${orderIdx}`,
+        deliveryNo: newOrder.deliveryNo,
+        orderNo: newOrder.orderNo,
+        supplierId: newOrder.supplierId,
+        supplierName: newOrder.supplierName,
+        supplierPhone: newOrder.supplierPhone,
+        deliveryDate: newOrder.deliverySchedule,
+        expectedArrivalAt: new Date(Date.now() + 86400000).toISOString(),
+        deliveryTime: "14:30",
+        batchType: "DRY_STOCK",
+        batchLabel: "Đồ khô & Gia vị",
+        orderType: "DRY_STOCK",
+        orderTypeLabel: "Đồ khô & Gia vị",
+        status: "CREATED",
+        statusLabel: "Chờ NCC xác nhận",
+        note: newOrder.note || "Phiếu nhập đồ khô & gia vị kho trường",
+        deliveryItems: (newOrder.items || []).map((it, idx) => ({
+          id: `di-${Date.now()}-${orderIdx}-${idx}`,
+          ingredientName: it.name,
+          actualQuantity: it.qty,
+          requestedQuantity: it.qty,
+          unit: it.unit,
+          handlingType: "DRY_STOCK",
+          note: "Đồ khô kho trường",
+        })),
+        items: (newOrder.items || []).map(it => ({
+          name: it.name,
+          ingredientName: it.name,
+          actualQuantity: it.qty,
+          orderedQty: it.qty,
+          qty: it.qty,
+          unit: it.unit,
+          handlingType: "DRY_STOCK",
+          spec: "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng",
+        })),
+        createdAt: new Date().toISOString(),
+      }
+      saveStoredDelivery(dryDelivery)
+    })
+
     setSubView("list")
+    const orderNos = ordersToSave.map(o => o.orderNo).join(", ")
     notice({
-      msg: `Đã tạo Phiếu nhập hàng ${newOrder.orderNo} (${newOrder.deliverySchedule})! Bạn có thể theo dõi đơn hàng tại mục Theo dõi đơn hàng.`,
+      msg: `Đã tạo Phiếu nhập hàng (${orderNos})! Bạn có thể theo dõi đơn hàng tại mục Theo dõi đơn hàng.`,
       isSuccess: true,
     })
     loadInventory()

@@ -12,6 +12,7 @@ import {
   TableCell,
   TableBody,
   Divider,
+  Alert,
 } from "@mui/material"
 import {
   ArrowLeft,
@@ -49,7 +50,9 @@ export default function TrackingDetailView({ item, onBack }) {
               label={item.statusLabel}
               size="small"
               className={
-                item.status === "IN_TRANSIT"
+                item.status === "CREATED" || item.status === "PENDING"
+                  ? styles.statusPending
+                  : item.status === "IN_TRANSIT"
                   ? styles.statusInTransit
                   : item.status === "ARRIVED"
                   ? styles.statusArrived
@@ -102,6 +105,12 @@ export default function TrackingDetailView({ item, onBack }) {
           </Typography>
         </Box>
 
+        {(!item.isAssigned || item.status === "CREATED" || item.status === "PENDING") && (
+          <Alert severity="info" sx={{ mb: 2.5, borderRadius: 2 }}>
+            Đơn hàng đang chờ Nhà cung cấp tiếp nhận và phân công xe giao. Thông tin tài xế và biển số xe sẽ được cập nhật ngay khi NCC xác nhận đơn.
+          </Alert>
+        )}
+
         <Box className={styles.infoRowGrid}>
           <Box className={styles.infoField}>
             <span className={styles.label}>Tài xế phụ trách:</span>
@@ -110,11 +119,15 @@ export default function TrackingDetailView({ item, onBack }) {
 
           <Box className={styles.infoField}>
             <span className={styles.label}>Số điện thoại:</span>
-            <span className={styles.phoneValue}>
-              <a href={`tel:${item.driverPhone}`}>
-                <Phone size={14} /> {item.driverPhone}
-              </a>
-            </span>
+            {item.driverPhone && item.driverPhone !== "--" ? (
+              <span className={styles.phoneValue}>
+                <a href={`tel:${item.driverPhone}`}>
+                  <Phone size={14} /> {item.driverPhone}
+                </a>
+              </span>
+            ) : (
+              <span className={styles.value}>--</span>
+            )}
           </Box>
 
           <Box className={styles.infoField}>

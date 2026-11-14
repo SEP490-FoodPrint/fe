@@ -108,6 +108,13 @@
 }
 
 /* Status Chips */
+.statusPending {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 500 !important;
+}
+
 .statusInTransit {
   background-color: var(--color-info-bg, #eaf3ff) !important;
   color: var(--color-info, #286bbd) !important;

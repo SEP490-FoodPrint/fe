@@ -14,15 +14,9 @@ import {
   TableBody,
   Paper,
   Checkbox,
-  Alert,
 } from "@mui/material"
 import {
   ArrowLeft,
-  Clock,
-  Sun,
-  Moon,
-  Calendar,
-  Sparkles,
   Send,
   Package,
 } from "lucide-react"
@@ -35,31 +29,116 @@ export default function CreateDryOrderView({
   onBack,
   onSubmit,
 }) {
-  const [supplierId, setSupplierId] = useState(() => suppliers[0]?.id || "")
   const [deliveryDate, setDeliveryDate] = useState(() => {
     const d = new Date()
     d.setDate(d.getDate() + 1)
     return d.toISOString().slice(0, 10)
   })
   const [deliveryTime, setDeliveryTime] = useState("14:30")
-  const [timePreset, setTimePreset] = useState("CUSTOM")
   const [note, setNote] = useState("Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.")
   const [orderQtys, setOrderQtys] = useState({})
+  const [itemSuppliers, setItemSuppliers] = useState({})
 
-  useEffect(() => {
-    if (suppliers.length > 0 && (!supplierId || !suppliers.some(s => s.id === supplierId))) {
-      setSupplierId(suppliers[0].id)
+  // 1. Tổng hợp danh sách tất cả NCC liên kết trong hệ thống
+  const allSuppliers = useMemo(() => {
+    const list = [...suppliers]
+    const existingIds = new Set(list.map(s => s.id))
+    const existingNames = new Set(list.map(s => s.name?.toLowerCase().trim()))
+
+    inventoryItems.forEach(it => {
+      if (it.supplierId && !existingIds.has(it.supplierId)) {
+        existingIds.add(it.supplierId)
+        list.push({
+          id: it.supplierId,
+          name: it.supplierName || "Nhà cung cấp đối tác",
+          phone: it.supplierPhone || "",
+        })
+      } else if (it.supplierName && !existingNames.has(it.supplierName.toLowerCase().trim())) {
+        existingNames.add(it.supplierName.toLowerCase().trim())
+        const genId = it.supplierId || `sup-${it.supplierName.replace(/\s+/g, "-").toLowerCase()}`
+        list.push({
+          id: genId,
+          name: it.supplierName,
+          phone: it.supplierPhone || "",
+        })
+      }
+    })
+    return list
+  }, [suppliers, inventoryItems])
+
+  // 2. Kiểm tra xem một NCC có cung cấp mặt hàng này không
+  const isSupplierAvailableForItem = (supplier, item) => {
+    if (!supplier || !item) return false
+
+    // 2.1 Kiểm tra qua mảng availableSupplierIds do adapter trích xuất từ database
+    if (Array.isArray(item.availableSupplierIds) && item.availableSupplierIds.length > 0) {
+      if (item.availableSupplierIds.includes(supplier.id)) return true
     }
-  }, [suppliers, supplierId])
 
-  // Khởi tạo mặt hàng được chọn (mặc định nhập nguyên định mức an toàn)
+    // 2.2 Trực tiếp khớp ID nhà cung cấp chính của mặt hàng
+    if (item.supplierId && item.supplierId === supplier.id) return true
+
+    // 2.3 Khớp tên NCC của mặt hàng với tên của supplier
+    if (item.supplierName && supplier.name) {
+      const a = item.supplierName.trim().toLowerCase()
+      const b = supplier.name.trim().toLowerCase()
+      if (a === b || a.includes(b) || b.includes(a)) return true
+    }
+
+    // 2.4 Kiểm tra trong toàn bộ inventoryItems xem có mặt hàng cùng tên nào do NCC này cấp không
+    const normName = (item.name || "").trim().toLowerCase()
+    const matchSameName = inventoryItems.some(it => {
+      const itNorm = (it.name || "").trim().toLowerCase()
+      const isSameName =
+        itNorm === normName ||
+        (itNorm && normName && (itNorm.includes(normName) || normName.includes(itNorm)))
+      if (!isSameName) return false
+      if (it.supplierId === supplier.id) return true
+      if (Array.isArray(it.availableSupplierIds) && it.availableSupplierIds.includes(supplier.id)) return true
+      if (it.supplierName && supplier.name) {
+        const sA = it.supplierName.trim().toLowerCase()
+        const sB = supplier.name.trim().toLowerCase()
+        if (sA === sB || sA.includes(sB) || sB.includes(sA)) return true
+      }
+      return false
+    })
+    if (matchSameName) return true
+
+    // 2.5 Kiểm tra trong các lô hàng (lots) đã từng nhập của món đó
+    if (Array.isArray(item.lots) && item.lots.length > 0) {
+      const matchLot = item.lots.some(l => {
+        if (l.supplierId === supplier.id) return true
+        if (l.supplierName && supplier.name) {
+          const lA = l.supplierName.trim().toLowerCase()
+          const lB = supplier.name.trim().toLowerCase()
+          return lA === lB || lA.includes(lB) || lB.includes(lA)
+        }
+        return false
+      })
+      if (matchLot) return true
+    }
+
+    return false
+  }
+
+  // 3. Khởi tạo NCC mặc định cho từng mặt hàng (chọn NCC đang có hàng)
+  useEffect(() => {
+    const defaultSupMap = {}
+    inventoryItems.forEach(it => {
+      // Tìm NCC khả dụng đầu tiên có mặt hàng này
+      const matched = allSuppliers.find(s => isSupplierAvailableForItem(s, it))
+      defaultSupMap[it.id] = matched?.id || it.supplierId || (allSuppliers[0]?.id || "")
+    })
+    setItemSuppliers(defaultSupMap)
+  }, [inventoryItems, allSuppliers])
+
+  // 4. Khởi tạo số lượng mặt hàng (ưu tiên món được chỉ định hoặc các món dưới mức an toàn)
   useEffect(() => {
     if (initialSelectedItem) {
       setOrderQtys({
         [initialSelectedItem.id]: Math.max(1, Number(initialSelectedItem.safetyStock) || 1),
       })
     } else {
-      // Tự động gợi ý các mặt hàng đang thiếu kho với số lượng bằng đúng định mức an toàn
       const initial = {}
       inventoryItems
         .filter(it => it.currentStock < it.safetyStock)
@@ -87,31 +166,17 @@ export default function CreateDryOrderView({
     setOrderQtys(prev => ({ ...prev, [itemId]: num }))
   }
 
-  const handleSelectAllLowStock = () => {
-    const next = { ...orderQtys }
-    inventoryItems
-      .filter(it => it.currentStock < it.safetyStock)
-      .forEach(it => {
-        next[it.id] = next[it.id] || Math.max(1, Number(it.safetyStock) || 1)
-      })
-    setOrderQtys(next)
+  // Đổi NCC cho riêng từng mặt hàng
+  const handleItemSupplierChange = (itemId, newSupId) => {
+    setItemSuppliers(prev => ({
+      ...prev,
+      [itemId]: newSupId,
+    }))
   }
 
-  // Chọn nhanh khung giờ gợi ý (vẫn cho phép tự do chỉnh lại giờ bất kỳ)
-  const handleSelectTimePreset = preset => {
-    setTimePreset(preset)
-    if (preset === "MORNING") {
-      setDeliveryTime("09:00")
-    } else if (preset === "AFTERNOON") {
-      setDeliveryTime("14:30")
-    } else if (preset === "EVENING") {
-      setDeliveryTime("19:30")
-    } else if (preset === "WEEKEND") {
-      setDeliveryTime("08:30")
-    }
-  }
-
-  const selectedCount = Object.keys(orderQtys).length
+  const selectedCount = useMemo(() => {
+    return Object.keys(orderQtys).filter(id => orderQtys[id] > 0).length
+  }, [orderQtys])
 
   const totalEstimatedAmount = useMemo(() => {
     return Object.entries(orderQtys).reduce((sum, [id, qty]) => {
@@ -120,65 +185,88 @@ export default function CreateDryOrderView({
     }, 0)
   }, [orderQtys, inventoryItems])
 
-  const handleSubmit = () => {
-    if (selectedCount === 0) return
-
-    const selectedList = Object.entries(orderQtys).map(([id, qty]) => {
-      const it = inventoryItems.find(item => item.id === id)
-      return {
-        name: it?.name || "Nguyên liệu",
-        qty,
-        unit: it?.unit || "gói",
-        price: it?.unitPrice || 0,
+  // Đếm số lượng NCC khác nhau trong các mặt hàng đã chọn
+  const selectedSuppliersCount = useMemo(() => {
+    const supIds = new Set()
+    Object.keys(orderQtys).forEach(id => {
+      if (orderQtys[id] > 0) {
+        const supId = itemSuppliers[id]
+        if (supId) supIds.add(supId)
       }
     })
+    return supIds.size
+  }, [orderQtys, itemSuppliers])
 
-    // Xác định nhãn hiển thị thời gian giao
+  const handleSubmit = () => {
+    // 1. Lọc các mặt hàng được chọn và group theo NCC đã chọn cho món đó
+    const itemsBySupplier = {}
+
+    Object.entries(orderQtys).forEach(([id, qty]) => {
+      if (qty <= 0) return
+      const it = inventoryItems.find(item => item.id === id)
+      if (!it) return
+
+      const supId = itemSuppliers[it.id] || it.supplierId || (allSuppliers[0]?.id || "sup-default")
+      if (!itemsBySupplier[supId]) {
+        itemsBySupplier[supId] = []
+      }
+      itemsBySupplier[supId].push({
+        id: it.id,
+        name: it.name,
+        qty,
+        unit: it.unit || "kg",
+        price: it.unitPrice || 0,
+      })
+    })
+
+    const supplierGroups = Object.entries(itemsBySupplier)
+    if (supplierGroups.length === 0) return
+
+    // 2. Xác định nhãn hiển thị thời gian giao
     const hour = parseInt(deliveryTime.split(":")[0], 10) || 0
-    let deliveryType = "CUSTOM"
+    let deliveryType = "OFFICE_HOURS"
     let deliveryTypeLabel = `Hẹn lúc ${deliveryTime}`
 
-    if (timePreset === "WEEKEND") {
-      deliveryType = "WEEKEND"
-      deliveryTypeLabel = `Cuối tuần (${deliveryTime})`
-    } else if (hour >= 18) {
+    if (hour >= 18) {
       deliveryType = "EVENING"
       deliveryTypeLabel = `Buổi tối (${deliveryTime})`
     } else if (hour >= 12) {
-      deliveryType = "OFFICE_HOURS"
+      deliveryType = "AFTERNOON"
       deliveryTypeLabel = `Buổi chiều (${deliveryTime})`
-    } else if (hour >= 7) {
-      deliveryType = "OFFICE_HOURS"
+    } else if (hour >= 6) {
+      deliveryType = "MORNING"
       deliveryTypeLabel = `Buổi sáng (${deliveryTime})`
     }
 
-    const selectedSupplier = suppliers.find(s => s.id === supplierId)
-    const currentSupplierName = selectedSupplier?.name || "Nhà cung cấp đối tác"
-    const currentSupplierPhone = selectedSupplier?.phone || ""
+    // 3. Tạo đơn theo từng NCC đã chọn
+    const ordersToCreate = supplierGroups.map(([supId, itemsList], idx) => {
+      const selectedSupplier = allSuppliers.find(s => s.id === supId)
+      const currentSupplierName = selectedSupplier?.name || "Nhà cung cấp đối tác"
+      const currentSupplierPhone = selectedSupplier?.phone || ""
+      const totalAmount = itemsList.reduce((sum, it) => sum + (it.price * it.qty), 0)
 
-    const newOrder = {
-      id: `po-dry-${Date.now()}`,
-      orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
-      deliveryNo: `PNK-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
-      supplierId,
-      supplierName: currentSupplierName,
-      supplierPhone: currentSupplierPhone,
-      orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
-      deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
-      deliveryType,
-      deliveryTypeLabel,
-      totalItems: selectedCount,
-      totalAmount: totalEstimatedAmount,
-      status: "WAITING_DELIVERY",
-      statusLabel: "Chờ NCC giao hàng",
-      note,
-      items: selectedList,
-    }
+      return {
+        id: `po-dry-${Date.now()}-${idx}`,
+        orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10) + idx}`,
+        deliveryNo: `PNK-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10) + idx}`,
+        supplierId: supId,
+        supplierName: currentSupplierName,
+        supplierPhone: currentSupplierPhone,
+        orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
+        deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
+        deliveryType,
+        deliveryTypeLabel,
+        totalItems: itemsList.length,
+        totalAmount,
+        status: "CREATED",
+        statusLabel: "Chờ NCC xác nhận",
+        note,
+        items: itemsList,
+      }
+    })
 
-    onSubmit(newOrder)
+    onSubmit(ordersToCreate.length === 1 ? ordersToCreate[0] : ordersToCreate)
   }
-
-  const lowStockItemsCount = inventoryItems.filter(it => it.currentStock < it.safetyStock).length
 
   return (
     <Box className={styles.container}>
@@ -201,75 +289,13 @@ export default function CreateDryOrderView({
         </Box>
       </Box>
 
-      {/* 3. Card Thông tin Giao hàng & Nhà cung cấp */}
+      {/* 2. Card Thông tin Thời gian giao hàng & Ghi chú (Mục 1) */}
       <Paper className={styles.formCard} elevation={0}>
         <Typography variant="subtitle1" className={styles.sectionTitle}>
-          1. Thông tin Nhà cung cấp &amp; Thời gian giao hàng hẹn trước
+          1. Thời gian giao hàng hẹn trước &amp; Ghi chú
         </Typography>
 
         <Box className={styles.formGrid}>
-          <TextField
-            select
-            label="Nhà cung cấp gạo & gia vị"
-            value={supplierId}
-            onChange={e => setSupplierId(e.target.value)}
-            size="small"
-            fullWidth
-          >
-            {suppliers && suppliers.length > 0 ? (
-              suppliers.map(sup => (
-                <MenuItem key={sup.id} value={sup.id}>
-                  {sup.name} {sup.phone ? `(${sup.phone})` : ""}
-                </MenuItem>
-              ))
-            ) : (
-              <MenuItem value="">Đang tải danh sách nhà cung cấp...</MenuItem>
-            )}
-          </TextField>
-
-          {/* Gợi ý chọn nhanh khung giờ + Tự do nhập giờ bất kỳ */}
-          <Box className={styles.scheduleBox}>
-            <Box className={styles.presetHeader}>
-              <Typography variant="caption" className={styles.fieldLabel}>
-                Chọn giờ nhanh hoặc nhập bên dưới:
-              </Typography>
-            </Box>
-            <Box className={styles.presetButtons}>
-              <Chip
-                label="Buổi sáng (09:00)"
-                onClick={() => handleSelectTimePreset("MORNING")}
-                color={timePreset === "MORNING" ? "primary" : "default"}
-                variant={timePreset === "MORNING" ? "filled" : "outlined"}
-                clickable
-                size="small"
-              />
-              <Chip
-                label="Buổi chiều (14:30)"
-                onClick={() => handleSelectTimePreset("AFTERNOON")}
-                color={timePreset === "AFTERNOON" ? "primary" : "default"}
-                variant={timePreset === "AFTERNOON" ? "filled" : "outlined"}
-                clickable
-                size="small"
-              />
-              <Chip
-                label="Buổi tối (19:30)"
-                onClick={() => handleSelectTimePreset("EVENING")}
-                color={timePreset === "EVENING" ? "primary" : "default"}
-                variant={timePreset === "EVENING" ? "filled" : "outlined"}
-                clickable
-                size="small"
-              />
-              <Chip
-                label="Cuối tuần (08:30)"
-                onClick={() => handleSelectTimePreset("WEEKEND")}
-                color={timePreset === "WEEKEND" ? "primary" : "default"}
-                variant={timePreset === "WEEKEND" ? "filled" : "outlined"}
-                clickable
-                size="small"
-              />
-            </Box>
-          </Box>
-
           <Box className={styles.dateRow}>
             <TextField
               label="Ngày giao dự kiến"
@@ -284,10 +310,7 @@ export default function CreateDryOrderView({
               label="Giờ hẹn giao"
               type="time"
               value={deliveryTime}
-              onChange={e => {
-                setDeliveryTime(e.target.value)
-                setTimePreset("CUSTOM")
-              }}
+              onChange={e => setDeliveryTime(e.target.value)}
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               sx={{ minWidth: 200 }}
@@ -307,15 +330,12 @@ export default function CreateDryOrderView({
         </Box>
       </Paper>
 
-      {/* 4. Card Chọn danh sách nguyên liệu nhập */}
+      {/* 3. Card Chọn danh sách nguyên liệu nhập (Mục 2 - Hiện tất cả nguyên liệu + Cột NCC có select) */}
       <Paper className={styles.formCard} elevation={0}>
         <Box className={styles.tableHeaderBar}>
-          <Box>
-            <Typography variant="subtitle1" className={styles.sectionTitle}>
-              2. Danh sách gạo &amp; gia vị cần nhập ({selectedCount} món đã chọn)
-            </Typography>
-          </Box>
-
+          <Typography variant="subtitle1" className={styles.sectionTitle}>
+            2. Danh sách gạo &amp; gia vị cần nhập ({selectedCount} món đã chọn)
+          </Typography>
         </Box>
 
         <Box className={styles.tableWrap}>
@@ -323,121 +343,174 @@ export default function CreateDryOrderView({
             <TableHead className={styles.tableHead}>
               <TableRow>
                 <TableCell padding="checkbox">Chọn</TableCell>
-                <TableCell>Mã &amp; Tên nguyên liệu</TableCell>
-                <TableCell align="center">Tồn kho / Mức an toàn</TableCell>
-                <TableCell align="center" style={{ width: 170 }}>
-                  Số lượng nhập
-                </TableCell>
-                <TableCell align="right">Đơn giá</TableCell>
-                <TableCell align="right">Thành tiền</TableCell>
+                <TableCell style={{ minWidth: 200 }}>Tên &amp; Loại nguyên liệu</TableCell>
+                <TableCell align="center" style={{ minWidth: 150 }}>Tồn kho / Mức an toàn</TableCell>
+                <TableCell align="center" style={{ width: 140 }}>Số lượng nhập</TableCell>
+                <TableCell style={{ minWidth: 240 }}>Nhà cung cấp (NCC)</TableCell>
+                <TableCell align="right" style={{ minWidth: 100 }}>Đơn giá</TableCell>
+                <TableCell align="right" style={{ minWidth: 120 }}>Thành tiền</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {inventoryItems.map(item => {
-                const isSelected = Boolean(orderQtys[item.id])
-                const qty = orderQtys[item.id] || 0
-                const stockPct = Math.round((item.currentStock / item.safetyStock) * 100)
-                const isLow = stockPct < 100
-                const deficitQty = item.safetyStock - item.currentStock
-                const lineTotal = (item.unitPrice || 0) * qty
+              {inventoryItems.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Không có mặt hàng đồ khô nào trong kho.
+                    </Typography>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                inventoryItems.map(item => {
+                  const isSelected = Boolean(orderQtys[item.id])
+                  const qty = orderQtys[item.id] || 0
+                  const stockPct = Math.round((item.currentStock / item.safetyStock) * 100)
+                  const lineTotal = (item.unitPrice || 0) * qty
+                  const selectedSupId = itemSuppliers[item.id] || item.supplierId || (allSuppliers[0]?.id || "")
 
-                return (
-                  <TableRow
-                    key={item.id}
-                    hover
-                    selected={isSelected}
-                    className={isSelected ? styles.selectedRow : ""}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        size="small"
-                        checked={isSelected}
-                        onChange={() => handleToggleItem(item)}
-                        color="primary"
-                      />
-                    </TableCell>
-
-                    <TableCell>
-                      <Typography variant="subtitle2" className={styles.tableItemName}>
-                        {item.name}
-                      </Typography>
-                      <Box className={styles.tableItemMeta}>
-                        <span className={styles.tableCode}>{item.code}</span>
-                        <Chip label={item.category} size="small" className={styles.catChip} />
-                      </Box>
-                    </TableCell>
-
-                    <TableCell align="center">
-                      <Typography
-                        variant="body2"
-                        className={
-                          stockPct < 50
-                            ? styles.lowStockAlert
-                            : stockPct < 100
-                              ? styles.warningStock
-                              : styles.normalStock
-                        }
-                      >
-                        {item.currentStock} / {item.safetyStock} {item.unit}
-                      </Typography>
-                      {stockPct < 50 ? (
-                        <Chip
-                          label="Dưới 50%"
+                  return (
+                    <TableRow
+                      key={item.id}
+                      hover
+                      selected={isSelected}
+                      className={isSelected ? styles.selectedRow : ""}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
                           size="small"
-                          className={styles.miniAlertRed}
+                          checked={isSelected}
+                          onChange={() => handleToggleItem(item)}
+                          color="primary"
                         />
-                      ) : stockPct < 100 ? (
-                        <Chip
-                          label="Trên 50%"
-                          size="small"
-                          className={styles.miniAlertYellow}
-                        />
-                      ) : (
-                        <Chip
-                          label="Đủ dùng"
-                          size="small"
-                          className={styles.miniAlertGreen}
-                        />
-                      )}
-                    </TableCell>
+                      </TableCell>
 
-                    <TableCell align="center">
-                      <Box className={styles.qtyInputWrap}>
+                      <TableCell>
+                        <Typography variant="subtitle2" className={styles.tableItemName}>
+                          {item.name}
+                        </Typography>
+                        {item.category && (
+                          <Box className={styles.tableItemMeta}>
+                            <Chip label={item.category} size="small" className={styles.catChip} />
+                          </Box>
+                        )}
+                      </TableCell>
+
+                      <TableCell align="center">
+                        <Typography
+                          variant="body2"
+                          className={
+                            stockPct < 50
+                              ? styles.lowStockAlert
+                              : stockPct < 100
+                                ? styles.warningStock
+                                : styles.normalStock
+                          }
+                        >
+                          {item.currentStock} / {item.safetyStock} {item.unit}
+                        </Typography>
+                        {stockPct < 50 ? (
+                          <Chip
+                            label="Dưới 50%"
+                            size="small"
+                            className={styles.miniAlertRed}
+                          />
+                        ) : stockPct < 100 ? (
+                          <Chip
+                            label="Trên 50%"
+                            size="small"
+                            className={styles.miniAlertYellow}
+                          />
+                        ) : (
+                          <Chip
+                            label="Đủ dùng"
+                            size="small"
+                            className={styles.miniAlertGreen}
+                          />
+                        )}
+                      </TableCell>
+
+                      <TableCell align="center">
+                        <Box className={styles.qtyInputWrap}>
+                          <TextField
+                            type="number"
+                            size="small"
+                            value={qty}
+                            onChange={e => handleQtyChange(item.id, e.target.value)}
+                            disabled={!isSelected}
+                            slotProps={{
+                              htmlInput: { min: 1, style: { textAlign: "center", padding: "4px 8px" } },
+                            }}
+                            className={styles.qtyField}
+                          />
+                          <span className={styles.unitText}>{item.unit}</span>
+                        </Box>
+                      </TableCell>
+
+                      {/* Cột Nhà cung cấp có select sổ xuống, NCC không có NL thì disabled không nhấn được */}
+                      <TableCell>
                         <TextField
-                          type="number"
+                          select
                           size="small"
-                          value={qty}
-                          onChange={e => handleQtyChange(item.id, e.target.value)}
+                          value={selectedSupId}
+                          onChange={e => handleItemSupplierChange(item.id, e.target.value)}
                           disabled={!isSelected}
-                          slotProps={{
-                            htmlInput: { min: 1, style: { textAlign: "center", padding: "4px 8px" } },
+                          fullWidth
+                          sx={{
+                            "& .MuiSelect-select": {
+                              py: "4px",
+                              px: "8px",
+                              fontSize: "0.8125rem",
+                            },
                           }}
-                          className={styles.qtyField}
-                        />
-                        <span className={styles.unitText}>{item.unit}</span>
-                      </Box>
-                    </TableCell>
+                        >
+                          {allSuppliers.map(sup => {
+                            const isAvailable = isSupplierAvailableForItem(sup, item)
+                            return (
+                              <MenuItem
+                                key={sup.id}
+                                value={sup.id}
+                                disabled={!isAvailable}
+                                sx={{
+                                  fontSize: "0.8125rem",
+                                  py: "6px",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                  ...(!isAvailable && {
+                                    color: "text.disabled",
+                                    backgroundColor: "transparent !important",
+                                    cursor: "not-allowed !important",
+                                  }),
+                                }}
+                              >
+                                <span>{sup.name}</span>
+                              </MenuItem>
+                            )
+                          })}
+                        </TextField>
+                      </TableCell>
 
-                    <TableCell align="right">
-                      <Typography variant="body2">
-                        {item.unitPrice.toLocaleString("vi-VN")} đ
-                      </Typography>
-                    </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">
+                          {item.unitPrice.toLocaleString("vi-VN")} đ
+                        </Typography>
+                      </TableCell>
 
-                    <TableCell align="right">
-                      <Typography variant="subtitle2" className={styles.lineTotal}>
-                        {isSelected ? `${lineTotal.toLocaleString("vi-VN")} đ` : "—"}
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )
-              })}
+                      <TableCell align="right">
+                        <Typography variant="subtitle2" className={styles.lineTotal}>
+                          {isSelected ? `${lineTotal.toLocaleString("vi-VN")} đ` : "—"}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
             </TableBody>
           </Table>
         </Box>
       </Paper>
 
-      {/* 5. Footer Summary & Action Buttons */}
+      {/* 4. Footer Summary & Action Buttons */}
       <Box className={styles.footerWrap}>
         <Box className={styles.summaryBadges}>
           <Chip
@@ -447,6 +520,15 @@ export default function CreateDryOrderView({
             variant="outlined"
             className={styles.countBadge}
           />
+          {selectedSuppliersCount > 0 && (
+            <Chip
+              label={`${selectedSuppliersCount} Nhà cung cấp`}
+              color="default"
+              variant="outlined"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
           <Typography variant="subtitle1" className={styles.totalText}>
             Tổng tiền ước tính: <strong>{totalEstimatedAmount.toLocaleString("vi-VN")} đ</strong>
           </Typography>
@@ -475,6 +557,7 @@ export default function CreateDryOrderView({
 
 CreateDryOrderView.propTypes = {
   inventoryItems: PropTypes.array.isRequired,
+  suppliers: PropTypes.array,
   initialSelectedItem: PropTypes.object,
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,

@@ -48,9 +48,10 @@ export default function TrackingFilterStrip({ filters, onFilterChange, onResetFi
           className={styles.selectInput}
         >
           <MenuItem value="all">Tất cả trạng thái</MenuItem>
-          <MenuItem value="ACCEPTED">Lần 2: NCC đã xác nhận</MenuItem>
-          <MenuItem value="IN_TRANSIT">Lần 3: Đang giao (Có ETA)</MenuItem>
-          <MenuItem value="ARRIVED">Mốc 4: Đã tới trường (Chờ kiểm duyệt)</MenuItem>
+          <MenuItem value="CREATED">Chờ NCC xác nhận</MenuItem>
+          <MenuItem value="ACCEPTED">NCC đã xác nhận</MenuItem>
+          <MenuItem value="IN_TRANSIT">Đang giao</MenuItem>
+          <MenuItem value="ARRIVED">Đã tới trường (Chờ kiểm duyệt)</MenuItem>
           <MenuItem value="COMPLETED">Đã hoàn tất (Đã nhập kho)</MenuItem>
           <MenuItem value="REJECTED">Bị từ chối tiếp nhận</MenuItem>
         </TextField>

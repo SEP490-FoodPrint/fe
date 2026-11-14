@@ -56,6 +56,24 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
 
   const getStatusBadge = status => {
     switch (status) {
+      case "CREATED":
+      case "PENDING":
+        return (
+          <Chip
+            label="Chờ NCC xác nhận"
+            size="small"
+            className={styles.statusPending}
+          />
+        )
+      case "ACCEPTED":
+      case "CONFIRMED":
+        return (
+          <Chip
+            label="NCC đã xác nhận"
+            size="small"
+            className={styles.statusAccepted}
+          />
+        )
       case "IN_TRANSIT":
         return (
           <Chip
@@ -70,15 +88,6 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
             label="Đã tới trường (Chờ kiểm duyệt)"
             size="small"
             className={styles.statusArrived}
-          />
-        )
-      case "ACCEPTED":
-      case "CREATED":
-        return (
-          <Chip
-            label="NCC đã xác nhận"
-            size="small"
-            className={styles.statusAccepted}
           />
         )
       case "COMPLETED":
@@ -143,7 +152,7 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
             <TableCell className={styles.thCell}>Mã Đơn / Phiếu Giao</TableCell>
             <TableCell className={styles.thCell}>Loại Đơn Hàng</TableCell>
             <TableCell className={styles.thCell}>Nhà Cung Cấp</TableCell>
-            <TableCell className={styles.thCell}>Hẹn Giờ &amp; Tiến Độ ETA</TableCell>
+            <TableCell className={styles.thCell}>Lịch Hẹn Giao</TableCell>
             <TableCell className={styles.thCell}>Trạng Thái Tiến Trình</TableCell>
             <TableCell className={styles.thCellAction} align="center">Thao Tác</TableCell>
           </TableRow>
@@ -168,15 +177,9 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
                 <Typography className={styles.supplierPhone}>Hotline: {item.supplierPhone}</Typography>
               </TableCell>
 
-              {/* Cột 4: Hẹn Giờ & Tiến Độ ETA */}
+              {/* Cột 4: Lịch Hẹn Giao */}
               <TableCell className={styles.tdCell}>
                 <Typography className={styles.scheduleText}>{item.deliverySchedule}</Typography>
-                <Typography
-                  className={`${styles.etaText} ${item.status === "IN_TRANSIT" ? styles.etaActive : ""
-                    }`}
-                >
-                  {item.etaText}
-                </Typography>
               </TableCell>
 
               {/* Cột 5: Trạng Thái Tiến Trình */}

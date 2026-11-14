@@ -173,6 +173,25 @@ export const buildWarehouseInventory = (
       ing.code ||
       `NLK-${String(index + 1).padStart(3, "0")}`
 
+    // Tìm các NCC cung cấp mặt hàng này trong danh mục nguyên liệu và lô hàng
+    const normName = (ing.name || "").trim().toLowerCase()
+    const matchingSupIds = new Set()
+    if (ing.supplierId) matchingSupIds.add(ing.supplierId)
+    if (supplierObj?.id) matchingSupIds.add(supplierObj.id)
+
+    catalogIngredients.forEach(c => {
+      const cNorm = (c.name || "").trim().toLowerCase()
+      if (cNorm && normName && (cNorm === normName || cNorm.includes(normName) || normName.includes(cNorm))) {
+        if (c.supplierId) matchingSupIds.add(c.supplierId)
+      }
+    })
+
+    matchingLots.forEach(l => {
+      if (l.supplierId) matchingSupIds.add(l.supplierId)
+    })
+
+    const availableSupplierIds = Array.from(matchingSupIds)
+
     items.push({
       id: ing.id,
       code,
@@ -184,6 +203,7 @@ export const buildWarehouseInventory = (
       maxCapacity,
       supplierId: ing.supplierId || supplierObj?.id || null,
       supplierName,
+      availableSupplierIds,
       unitPrice: ing.unitPrice || (unit === "kg" ? 28000 : 35000),
       description: ing.description || "",
       lots: matchingLots,
@@ -202,6 +222,13 @@ export const buildWarehouseInventory = (
         return sum
       }, 0)
 
+      const matchingSupIds = new Set()
+      if (lot.supplierId) matchingSupIds.add(lot.supplierId)
+      matchingLots.forEach(l => {
+        if (l.supplierId) matchingSupIds.add(l.supplierId)
+      })
+      const availableSupplierIds = Array.from(matchingSupIds)
+
       const safetyStock = getDefaultSafetyStock(lot.unit, lot.ingredientName)
       items.push({
         id: lot.ingredientId,
@@ -214,6 +241,7 @@ export const buildWarehouseInventory = (
         maxCapacity: safetyStock * 5,
         supplierId: lot.supplierId,
         supplierName: lot.supplierName,
+        availableSupplierIds,
         unitPrice: 28000,
         lots: matchingLots,
       })

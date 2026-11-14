@@ -58,14 +58,20 @@ export default function OrderTracking() {
         filters.status === "all" ||
         item.status === filters.status ||
         item.rawStatus === filters.status ||
+        (filters.status === "CREATED" &&
+          (item.status === "CREATED" ||
+            item.status === "PENDING" ||
+            item.rawStatus === "CREATED" ||
+            item.rawStatus === "PENDING")) ||
+        (filters.status === "ACCEPTED" &&
+          (item.status === "ACCEPTED" ||
+            item.status === "CONFIRMED" ||
+            item.rawStatus === "ACCEPTED" ||
+            item.rawStatus === "CONFIRMED")) ||
         (filters.status === "COMPLETED" &&
           (item.status === "COMPLETED" ||
             item.status === "RECEIVED" ||
-            item.rawStatus === "RECEIVED")) ||
-        (filters.status === "ACCEPTED" &&
-          (item.status === "ACCEPTED" ||
-            item.status === "CREATED" ||
-            item.rawStatus === "CREATED"))
+            item.rawStatus === "RECEIVED"))
 
       return matchSearch && matchType && matchStatus
     })

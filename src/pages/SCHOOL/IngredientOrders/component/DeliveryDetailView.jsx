@@ -319,7 +319,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 {delivery.deliveryQr || "Chưa phát hành"}
               </Typography>
               <Typography variant="caption" className={styles.qrDesc}>
-                Mã QR do NCC cấp kèm theo chuyến xe, chứa nguồn gốc xuất xưởng nông trại, chứng chỉ kiểm dịch thú y và hạn sử dụng.
+                Mã QR do NCC cấp kèm theo chuyến xe
               </Typography>
             </Box>
           </Box>
@@ -332,11 +332,6 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           <Typography variant="h6" className={styles.sectionHeading}>
             Hội Đồng Nghiệm Thu 4 Bên Tại Cổng Trường
           </Typography>
-          <Chip
-            label="Nguyên tắc nghiệm thu: 1 bên từ chối = Giao lại | ≥ 2 bên từ chối = Hủy luôn"
-            size="small"
-            className={styles.consensusChip}
-          />
         </Box>
 
         <Box className={styles.approvalsGrid}>

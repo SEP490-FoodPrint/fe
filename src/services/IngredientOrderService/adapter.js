@@ -103,24 +103,26 @@ export function adaptDeliveryItem(item) {
     item.createdAt ||
     new Date().toISOString()
 
-  let deliveryDate = ""
-  let deliveryTime = ""
+  let deliveryDate = typeof item.deliveryDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.deliveryDate) ? item.deliveryDate : ""
+  let deliveryTime = typeof item.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(item.deliveryTime) ? item.deliveryTime : ""
 
-  try {
-    const d = new Date(rawDate)
-    if (!isNaN(d.getTime())) {
-      const year = d.getFullYear()
-      const month = String(d.getMonth() + 1).padStart(2, "0")
-      const day = String(d.getDate()).padStart(2, "0")
-      deliveryDate = `${year}-${month}-${day}`
+  if (!deliveryDate || !deliveryTime) {
+    try {
+      const d = new Date(rawDate)
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, "0")
+        const day = String(d.getDate()).padStart(2, "0")
+        if (!deliveryDate) deliveryDate = `${year}-${month}-${day}`
 
-      const hours = String(d.getHours()).padStart(2, "0")
-      const minutes = String(d.getMinutes()).padStart(2, "0")
-      deliveryTime = `${hours}:${minutes}`
+        const hours = String(d.getHours()).padStart(2, "0")
+        const minutes = String(d.getMinutes()).padStart(2, "0")
+        if (!deliveryTime) deliveryTime = `${hours}:${minutes}`
+      }
+    } catch {
+      if (!deliveryDate) deliveryDate = "2026-11-14"
+      if (!deliveryTime) deliveryTime = "05:30"
     }
-  } catch {
-    deliveryDate = "2026-11-14"
-    deliveryTime = "05:30"
   }
 
   // 2. Nhận diện Đợt 1 / Đợt 2 / Đồ khô
@@ -239,8 +241,10 @@ export function adaptDeliveryItem(item) {
     supplierId: item.supplierId || item.Supplier?.id || "",
     supplierName: item.supplierName || item.Supplier?.name || "HTX Thực phẩm sạch Ba Vì",
     driverName:
-      item.driverName ||
-      (item.vehiclePlate ? `Lái xe (${item.vehiclePlate})` : "Lái xe giao hàng"),
+      item.status === "CREATED" || item.status === "PENDING"
+        ? "Chưa phân công (Chờ NCC điều xe)"
+        : item.driverName ||
+          (item.vehiclePlate ? `Lái xe (${item.vehiclePlate})` : "Lái xe giao hàng"),
     vehiclePlate: item.vehiclePlate || "",
     deliveryQr: item.deliveryQr || `QR-${item.deliveryNo || item.id}`,
     refrigerationTemp: item.refrigerationTemp || "3.5°C",
