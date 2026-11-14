@@ -59,6 +59,15 @@ export const loadDishCatalogData = async () => {
 };
 export const loadDishCatalog = async () => (await loadDishCatalogData()).items;
 export const dishCategoryKey = dish => dish?.category || "UNCLASSIFIED";
+export const groupDishesByCategory = dishes => {
+  const groups = new Map();
+  for (const dish of dishes) {
+    const key = dishCategoryKey(dish);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(dish);
+  }
+  return [...groups.values()].flat();
+};
 export const loadRecipeOptions = async () => {
   const response = await http.get("/dishes/recipe-options", {notifyOnError: false});
   if (!Array.isArray(response?.data?.items)) throw new Error("Không tải được danh mục kho trường.");

@@ -73,7 +73,7 @@ export default function CreateMenu() {
   }), [weekInfo, academicWeek])
 
   // 2. Thông tin thực đơn tuần
-  const [menuTitle, setMenuTitle] = useState("")
+  const menuTitle = academicWeek?.weeklyMenuTitle || (academicWeek?.weekNumber != null ? `Thực đơn tuần ${academicWeek.weekNumber}` : "")
 
   // Các khối do Ban Giám hiệu cấu hình cho trường.
   const [GRADE_OPTIONS, setGradeOptions] = useState([])
@@ -124,7 +124,7 @@ export default function CreateMenu() {
 
   const handleToggleGrade = (gradeId) => {
     if (saving || loadingSchedule) return
-    if (Object.values(weeklyMeals).some(day => day.useDishRecipes) && !window.confirm("Đổi khối sẽ tải thực đơn tương ứng và bỏ các thay đổi chưa lưu. Tiếp tục?")) return
+    if (hasUnsavedChanges && !window.confirm("Đổi khối sẽ tải thực đơn tương ứng và bỏ các thay đổi chưa lưu. Tiếp tục?")) return
     setSelectedGrades((prev) => {
       if (prev.includes(gradeId)) {
         return prev.filter((id) => id !== gradeId)
@@ -136,7 +136,7 @@ export default function CreateMenu() {
 
   const handleToggleAllGrades = () => {
     if (saving || loadingSchedule) return
-    if (Object.values(weeklyMeals).some(day => day.useDishRecipes) && !window.confirm("Đổi khối sẽ tải thực đơn tương ứng và bỏ các thay đổi chưa lưu. Tiếp tục?")) return
+    if (hasUnsavedChanges && !window.confirm("Đổi khối sẽ tải thực đơn tương ứng và bỏ các thay đổi chưa lưu. Tiếp tục?")) return
     if (selectedGrades.length === GRADE_OPTIONS.length) {
       setSelectedGrades([])
     } else {
@@ -144,17 +144,10 @@ export default function CreateMenu() {
     }
   }
 
-  // Chỉ dùng số tuần và năm học được API tính từ cấu hình của trường.
-  useEffect(() => {
-    if (!menuTitle && academicWeek?.weekNumber != null) {
-      setMenuTitle(
-        `Thực đơn tuần ${academicWeek.weekNumber}`
-      )
-    }
-  }, [academicWeek, menuTitle])
-
   // 3. Dữ liệu thực đơn của cả tuần (5 ngày x 2 ca + gia vị của ngày)
   const [weeklyMeals, setWeeklyMeals] = useState({})
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const preCopyDirty = useRef(false)
   const [loadingSchedule, setLoadingSchedule] = useState(false)
   const [scheduleError, setScheduleError] = useState("")
   const [saving, setSaving] = useState(false)
@@ -187,20 +180,21 @@ export default function CreateMenu() {
   useEffect(() => {
     let active = true
     const weekStart = schoolDays[0]?.dateISO
-    if (!weekStart || !selectedGrades.length) { setWeeklyMeals({}); setAcademicWeek(null); setLoadingSchedule(false); setScheduleError(""); return }
+    if (!weekStart) { setWeeklyMeals({}); setAcademicWeek(null); setLoadingSchedule(false); setScheduleError(""); return }
 
     setLoadingSchedule(true)
     setScheduleError("")
     setWeeklyMeals({})
+    setHasUnsavedChanges(false)
     setDayModalState(prev => ({ ...prev, isOpen: false }))
     setAcademicWeek(null)
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
-    MenuService.getWeekSchedule(weekStart, { gradeIds: selectedGrades })
+    MenuService.getWeekSchedule(weekStart, selectedGrades.length ? { gradeIds: selectedGrades } : {})
       .then((res) => {
         if (!active) return
-        setAcademicWeek(res.data)
-        if (res.data.weeklyMenuTitle) setMenuTitle(res.data.weeklyMenuTitle)
+        setAcademicWeek(selectedGrades.length ? res.data : { ...res.data, weeklyMenuId: null, weeklyMenuStatus: null, weeklyMenuTitle: null })
+        if (!selectedGrades.length) return
         const days = res?.data?.days || []
         const mapped = {}
         days.forEach((day) => {
@@ -245,7 +239,8 @@ export default function CreateMenu() {
 
   // Điều hướng tuần (Tuần trước / Tuần sau)
   const handleShiftWeek = useCallback((offset) => {
-    if (!currentDateVN) return
+    if (!currentDateVN || saving || loadingSchedule) return
+    if (hasUnsavedChanges && !window.confirm("Th\u1ef1c \u0111\u01a1n c\u00f3 thay \u0111\u1ed5i ch\u01b0a l\u01b0u. Chuy\u1ec3n tu\u1ea7n s\u1ebd b\u1ecf c\u00e1c thay \u0111\u1ed5i n\u00e0y. Ti\u1ebfp t\u1ee5c?")) return
     const currentISO = parseDateVNToISO(currentDateVN)
     if (!currentISO) return
     const curDate = new Date(currentISO)
@@ -253,10 +248,9 @@ export default function CreateMenu() {
     const newDateVN = formatDateVN(curDate.toISOString().slice(0, 10))
     setCurrentDateVN(newDateVN)
     setAcademicWeek(null)
-    setMenuTitle("")
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
-  }, [currentDateVN])
+  }, [currentDateVN, saving, loadingSchedule, hasUnsavedChanges])
 
   // Mở Popup Modal Chi tiết ngày (50/50)
   const handleOpenDayModal = useCallback((dayData, mealType = "LUNCH", tab = "DISHES") => {
@@ -295,6 +289,7 @@ export default function CreateMenu() {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
         return
       }
+      setHasUnsavedChanges(true)
       setWeeklyMeals((prev) => ({
         ...prev,
         [dateISO]: {
@@ -481,6 +476,8 @@ export default function CreateMenu() {
         copiedCount += lunchDishes.length + afternoonDishes.length
       })
 
+      preCopyDirty.current = hasUnsavedChanges
+      setHasUnsavedChanges(true)
       setWeeklyMeals(newWeeklyMeals)
       setPreCopyMealsSnapshot(currentSnapshot)
       setHasCopiedPreviousWeek(true)
@@ -502,6 +499,7 @@ export default function CreateMenu() {
   // 7. Xử lý Bỏ sao chép (Undo khôi phục thực đơn trước khi sao chép)
   const handleUndoCopyPreviousWeek = () => {
     if (!preCopyMealsSnapshot) return
+    setHasUnsavedChanges(preCopyDirty.current)
     setWeeklyMeals(preCopyMealsSnapshot)
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
@@ -523,7 +521,7 @@ export default function CreateMenu() {
 
   const handleSaveDraft = async () => {
     if (!menuTitle.trim()) {
-      showToast("Vui lòng nhập tên thực đơn trước khi lưu", "warning")
+      showToast("Chưa xác định được tuần học để đặt tên thực đơn. Vui lòng kiểm tra cấu hình năm học.", "warning")
       return
     }
 
@@ -543,6 +541,7 @@ export default function CreateMenu() {
     setSaving(true)
     try {
       const response = await http.post("/v1/menus", payload, { notifyOnError: false })
+      setHasUnsavedChanges(false)
       MenuService.invalidateMenuCache()
       if (!Array.isArray(response?.data?.allergyChecks)) {
         showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng từ máy chủ.", "warning")
@@ -568,7 +567,7 @@ export default function CreateMenu() {
   // Mở modal xác nhận gửi duyệt
   const handleOpenConfirmSubmit = () => {
     if (!menuTitle.trim()) {
-      showToast("Vui lòng nhập tên thực đơn trước khi gửi duyệt", "warning")
+      showToast("Chưa xác định được tuần học để đặt tên thực đơn. Vui lòng kiểm tra cấu hình năm học.", "warning")
       return
     }
     if (!targetScope.trim()) {
@@ -594,6 +593,7 @@ export default function CreateMenu() {
     if (saveLock.current || loadingSchedule || scheduleError) return
     saveLock.current = true
     setSaving(true)
+    let draftSaved = false
     try {
       if (academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
         await http.post(`/v1/menus/${academicWeek.weeklyMenuId}/revise-and-submit`, payload, { notifyOnError: false })
@@ -602,6 +602,8 @@ export default function CreateMenu() {
         return
       }
       const createRes = await http.post("/v1/menus", payload, { notifyOnError: false })
+      draftSaved = true
+      setHasUnsavedChanges(false)
       MenuService.invalidateMenuCache()
       if (!Array.isArray(createRes?.data?.allergyChecks)) {
         showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng; chưa gửi duyệt.", "warning")
@@ -624,7 +626,7 @@ export default function CreateMenu() {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1200)
     } catch (err) {
-      showToast("Lỗi gửi duyệt: " + (err.message || "Không thể gửi thực đơn"), "warning")
+      showToast((draftSaved ? "\u0110\u00e3 l\u01b0u b\u1ea3n nh\u00e1p nh\u01b0ng ch\u01b0a g\u1eedi duy\u1ec7t: " : "L\u1ed7i g\u1eedi duy\u1ec7t: ") + (err.message || "Kh\u00f4ng th\u1ec3 g\u1eedi th\u1ef1c \u0111\u01a1n"), "warning")
     } finally {
       saveLock.current = false
       setSaving(false)
@@ -665,6 +667,7 @@ export default function CreateMenu() {
                 type="button"
                 className={styles.weekNavBtn}
                 onClick={() => handleShiftWeek(-1)}
+                disabled={saving || loadingSchedule}
                 title="Chuyển sang tuần trước"
                 aria-label="Tuần trước"
               >
@@ -677,6 +680,7 @@ export default function CreateMenu() {
                 type="button"
                 className={styles.weekNavBtn}
                 onClick={() => handleShiftWeek(1)}
+                disabled={saving || loadingSchedule}
                 title="Chuyển sang tuần sau"
                 aria-label="Tuần sau"
               >
@@ -705,9 +709,9 @@ export default function CreateMenu() {
                 type="text"
                 className={styles.textInput}
                 value={menuTitle}
-                disabled={loadingSchedule || saving || Boolean(scheduleError) || Object.values(weeklyMeals).some(day => day.approvalStatus === "APPROVED") || academicWeek?.weeklyMenuStatus === "APPROVED"}
-                onChange={(e) => setMenuTitle(e.target.value)}
-                placeholder="Nhập tên thực đơn tuần..."
+                readOnly
+                aria-readonly="true"
+                placeholder={loadingSchedule ? "Đang tải tuần học..." : "Chưa xác định được tuần học"}
               />
             </div>
 

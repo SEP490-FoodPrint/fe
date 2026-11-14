@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
+  CalendarOff,
 } from "lucide-react"
 import styles from "./CreateMenuWeeklyGrid.module.scss"
 
@@ -61,7 +62,13 @@ export default function CreateMenuWeeklyGrid({
             badgeClass: styles.badgeEmpty,
             IconComponent: HelpCircle,
           }
-          if (hasLunch && hasAfternoon) {
+          if (sd.isHoliday) {
+            progress = {
+              label: "Nghỉ",
+              badgeClass: styles.badgeHoliday,
+              IconComponent: CalendarOff,
+            }
+          } else if (hasLunch && hasAfternoon) {
             progress = {
               label: "Đủ ca",
               badgeClass: styles.badgeCompleted,
@@ -127,13 +134,27 @@ export default function CreateMenuWeeklyGrid({
                   </div>
                 </div>
 
-                {/* THÂN THỰC ĐƠN: BỮA TRƯA + BỮA XẾ + GIA VỊ */}
+                {/* THÂN THỰC ĐƠN HOẶC THẺ NGÀY NGHỈ */}
                 <div className={styles.dayMealsBody}>
-                  {sd.isHoliday && <p role="note" className={styles.holidayReason}>Ngày nghỉ: {sd.holidayReason || "Ngày nghỉ toàn trường"}</p>}
-                  {/* ========================================================
-                      KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
-                      ======================================================== */}
-                  <div className={styles.mealBlock}>
+                  {sd.isHoliday ? (
+                    <div className={styles.holidayCardBody}>
+                      <div className={styles.holidayIconWrap}>
+                        <CalendarOff size={28} className={styles.holidayIcon} />
+                      </div>
+                      <span className={styles.holidayTag}>Ngày nghỉ</span>
+                      <div className={styles.holidayReasonBox}>
+                        <span className={styles.holidayReasonText}>
+                          {sd.holidayReason || "Ngày nghỉ toàn trường"}
+                        </span>
+                      </div>
+                      <span className={styles.holidaySubText}>Không phục vụ ăn bán trú</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* ========================================================
+                          KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
+                          ======================================================== */}
+                      <div className={styles.mealBlock}>
                     <div
                       className={styles.lunchBanner}
                       onClick={() => toggleCollapse(sd.dateISO, "LUNCH")}
@@ -392,7 +413,9 @@ export default function CreateMenuWeeklyGrid({
                       </div>
                     )}
                   </div>
-                </div>
+                </>
+              )}
+            </div>
               </div>
             </div>
           )
