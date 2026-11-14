@@ -531,12 +531,6 @@ const IngredientCatalog = () => {
                                   >
                                     {item.name}
                                   </Link>
-                                  <Link
-                                    to={detailUrl}
-                                    className={styles.viewDetailLink}
-                                  >
-                                    Xem chi tiết
-                                  </Link>
                                 </div>
                               </div>
                             </td>

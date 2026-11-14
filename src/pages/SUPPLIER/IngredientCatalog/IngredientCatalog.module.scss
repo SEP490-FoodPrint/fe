@@ -524,22 +524,6 @@
   }
 }
 
-.viewDetailLink {
-  display: inline-flex;
-  align-items: center;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  color: var(--color-primary, #0a8066);
-  text-decoration: underline;
-  text-underline-position: from-font;
-  text-underline-offset: 2px;
-
-  &:hover {
-    color: var(--color-primary-hover, #08735c);
-  }
-}
-
 .categoryChip {
   display: inline-flex;
   align-items: center;
