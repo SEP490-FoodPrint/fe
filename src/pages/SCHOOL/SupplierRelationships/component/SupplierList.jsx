@@ -64,12 +64,12 @@ function SupplierList({
                     ).join(" · ") || "Chưa cập nhật nhóm hàng"}
                   </small>
                 </TableCell>
-                <TableCell>
+                <TableCell className="supplier-status-cell">
                   <RelationshipStatus
                     status={supplier.relationship?.status}
                   />
                 </TableCell>
-                <TableCell align="center">
+                <TableCell align="center" className="supplier-status-cell">
                   <div className="supplier-row-actions">
                     <Button onClick={() => onOpen(supplier.id, "view")}>
                       Xem hồ sơ

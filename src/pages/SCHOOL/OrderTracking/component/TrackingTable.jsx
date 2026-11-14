@@ -11,6 +11,7 @@ import {
   Chip,
   Typography,
   Button,
+  CircularProgress,
 } from "@mui/material"
 import {
   Truck,
@@ -21,7 +22,7 @@ import {
 } from "lucide-react"
 import styles from "./TrackingTable.module.scss"
 
-export default function TrackingTable({ orders = [], onViewDetail }) {
+export default function TrackingTable({ orders = [], onViewDetail, loading = false }) {
   const getOrderTypeBadge = type => {
     switch (type) {
       case "FRESH_BATCH_1":
@@ -44,7 +45,7 @@ export default function TrackingTable({ orders = [], onViewDetail }) {
         return (
           <Chip
             size="small"
-            label="Đồ khô &amp; Gia vị"
+            label="Đồ khô & Gia vị"
             className={styles.badgeDry}
           />
         )
@@ -72,6 +73,7 @@ export default function TrackingTable({ orders = [], onViewDetail }) {
           />
         )
       case "ACCEPTED":
+      case "CREATED":
         return (
           <Chip
             label="NCC đã xác nhận"
@@ -80,6 +82,7 @@ export default function TrackingTable({ orders = [], onViewDetail }) {
           />
         )
       case "COMPLETED":
+      case "RECEIVED":
         return (
           <Chip
             label="Đã hoàn tất"
@@ -87,9 +90,35 @@ export default function TrackingTable({ orders = [], onViewDetail }) {
             className={styles.statusCompleted}
           />
         )
+      case "REJECTED":
+        return (
+          <Chip
+            label="Bị từ chối"
+            size="small"
+            color="error"
+          />
+        )
+      case "CANCELLED":
+        return (
+          <Chip
+            label="Đã hủy"
+            size="small"
+          />
+        )
       default:
         return <Chip size="small" label={status} />
     }
+  }
+
+  if (loading) {
+    return (
+      <Paper className={styles.emptyContainer}>
+        <CircularProgress size={36} sx={{ color: "var(--color-primary, #0a8066)", mb: 2 }} />
+        <Typography variant="body1" className={styles.emptyTitle}>
+          Đang tải dữ liệu theo dõi đơn hàng...
+        </Typography>
+      </Paper>
+    )
   }
 
   if (orders.length === 0) {
@@ -178,4 +207,5 @@ export default function TrackingTable({ orders = [], onViewDetail }) {
 TrackingTable.propTypes = {
   orders: PropTypes.arrayOf(PropTypes.object).isRequired,
   onViewDetail: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
 }

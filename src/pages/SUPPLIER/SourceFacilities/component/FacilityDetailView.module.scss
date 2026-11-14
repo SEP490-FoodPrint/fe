@@ -1,0 +1,371 @@
+.detailPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.detailHeaderBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.detailNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 40px;
+  padding: 0;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--bg-page);
+    border-color: var(--border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+}
+
+.backIcon {
+  width: 24px !important;
+  height: 24px !important;
+  font-size: 24px !important;
+  color: var(--color-primary);
+  display: block;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: var(--font-bold);
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.editBtn,
+.deactivateBtn {
+  height: 40px;
+  padding: 0 14px !important;
+  border-radius: var(--radius-md) !important;
+  font-size: 14px !important;
+  font-weight: var(--font-semibold) !important;
+  line-height: 20px !important;
+  white-space: nowrap;
+}
+
+.btnIcon {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 16px !important;
+}
+
+.detailCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.detailCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.detailSectionTitle {
+  margin: 0;
+  flex: 1;
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  line-height: 24px;
+  color: var(--text-primary);
+}
+
+.detailStatusMeta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.detailStatusLabel {
+  font-size: 12px;
+  font-weight: var(--font-normal);
+  line-height: 16px;
+  color: var(--text-muted);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background: var(--color-success-bg);
+  color: var(--color-primary-hover);
+}
+
+.statusInactive {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.detailBody {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+}
+
+.detailMobileHeading {
+  display: none;
+}
+
+.detailMobileStatusRow {
+  display: none;
+}
+
+.detailFieldsCol {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+.detailFieldBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.detailFieldPair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.detailFieldLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-normal);
+  line-height: 20px;
+  color: var(--text-muted);
+}
+
+.detailFieldValueLarge {
+  margin: 0;
+  font-size: 24px;
+  font-weight: var(--font-semibold);
+  line-height: 32px;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.detailFieldValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-medium);
+  line-height: 20px;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.detailContactSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  border-top: 1px solid var(--border-default);
+  background: var(--bg-surface);
+}
+
+.detailContactTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: var(--font-semibold);
+  line-height: 24px;
+  color: var(--text-primary);
+}
+
+.detailContactGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.stateDesc {
+  margin: 0;
+  max-width: 440px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+
+.stateActions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .detailHeaderBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .backBtn {
+    width: 41px;
+    height: 42px;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .detailCard {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    gap: 20px;
+    overflow: visible;
+  }
+
+  .detailCardHeader {
+    display: none;
+  }
+
+  .detailBody {
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+
+  .detailMobileHeading {
+    display: block;
+    margin: 0;
+    font-size: 16px;
+    font-weight: var(--font-semibold);
+    line-height: 20px;
+    color: var(--text-primary);
+  }
+
+  .detailMobileStatusRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .detailFieldsCol {
+    gap: 12px;
+  }
+
+  .detailFieldBlock {
+    gap: 4px;
+  }
+
+  .detailFieldPair {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .detailFieldLabel {
+    font-size: 12px;
+    line-height: 16px;
+  }
+
+  .detailFieldValueLarge {
+    font-size: 16px;
+    font-weight: var(--font-semibold);
+    line-height: 24px;
+  }
+
+  .detailContactSection {
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+
+  .detailContactTitle {
+    font-size: 16px;
+    line-height: 20px;
+  }
+
+  .detailContactGrid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}

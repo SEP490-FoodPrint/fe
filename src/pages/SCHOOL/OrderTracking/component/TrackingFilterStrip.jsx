@@ -51,7 +51,8 @@ export default function TrackingFilterStrip({ filters, onFilterChange, onResetFi
           <MenuItem value="ACCEPTED">Lần 2: NCC đã xác nhận</MenuItem>
           <MenuItem value="IN_TRANSIT">Lần 3: Đang giao (Có ETA)</MenuItem>
           <MenuItem value="ARRIVED">Mốc 4: Đã tới trường (Chờ kiểm duyệt)</MenuItem>
-          <MenuItem value="COMPLETED">Đã hoàn tất</MenuItem>
+          <MenuItem value="COMPLETED">Đã hoàn tất (Đã nhập kho)</MenuItem>
+          <MenuItem value="REJECTED">Bị từ chối tiếp nhận</MenuItem>
         </TextField>
       </Box>
 

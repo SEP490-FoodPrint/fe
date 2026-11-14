@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import {
   EditOutlined,
@@ -17,6 +17,11 @@ const IngredientDetailView = ({
 }) => {
   const [heroImgFailed, setHeroImgFailed] = useState(false)
   const [failedGalleryIndices, setFailedGalleryIndices] = useState({})
+
+  useEffect(() => {
+    setHeroImgFailed(false)
+    setFailedGalleryIndices({})
+  }, [ingredient?.id, ingredient?.coverImage, ingredient?.imageDescription])
 
   if (loading) {
     return (

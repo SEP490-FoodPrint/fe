@@ -40,9 +40,9 @@ export default function WarehouseFilterStrip({
           sx={{ minWidth: 200 }}
         >
           <MenuItem value="all">Tất cả trạng thái</MenuItem>
-          <MenuItem value="CRITICAL_LOW">Dưới 50% tồn kho</MenuItem>
-          <MenuItem value="WARNING">Trên 50% tồn kho</MenuItem>
-          <MenuItem value="SAFE">Đủ dùng</MenuItem>
+          <MenuItem value="CRITICAL_LOW">Báo động cần nhập gấp (&lt; 30%)</MenuItem>
+          <MenuItem value="WARNING">Cần nhập hàng (&lt; 50%)</MenuItem>
+          <MenuItem value="SAFE">Đủ an toàn (&ge; 50%)</MenuItem>
         </TextField>
 
         <TextField

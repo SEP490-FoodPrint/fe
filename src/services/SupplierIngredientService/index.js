@@ -215,6 +215,31 @@ const SupplierIngredientService = {
     )
     return adaptIngredient(response?.data || response)
   },
+
+  async uploadImage(file) {
+    const formData = new FormData()
+    formData.append("image", file)
+    const response = await http.post(`${BASE_URL}/upload-image`, formData, {
+      timeout: 120000,
+      notifyOnError: false,
+    })
+    return response?.data || response
+  },
+
+  async uploadImages(files) {
+    const formData = new FormData()
+    Array.from(files || [])
+      .slice(0, 5)
+      .forEach(file => {
+        formData.append("images", file)
+      })
+    const response = await http.post(`${BASE_URL}/upload-images`, formData, {
+      timeout: 120000,
+      notifyOnError: false,
+    })
+    const payload = response?.data || response || {}
+    return Array.isArray(payload.results) ? payload.results : []
+  },
 }
 
 export default SupplierIngredientService

@@ -12,7 +12,7 @@ export default function CatalogHeader() {
         </Box>
         <Box>
           <Typography variant="h5" className={styles.pageTitle}>
-            Danh Mục Nguyên Liệu Chuẩn
+            Danh Mục Nguyên Liệu
           </Typography>
         </Box>
       </Box>

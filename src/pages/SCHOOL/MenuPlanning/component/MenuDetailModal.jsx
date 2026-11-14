@@ -185,11 +185,16 @@ export default function MenuDetailModal({
                 Gia vị học đường dùng chung
               </h3>
               <div className={styles.seasoningTags}>
-                {menu.seasonings.map((s, sIdx) => (
-                  <span key={sIdx} className={styles.seasoningTag}>
-                    {s}
-                  </span>
-                ))}
+                {menu.seasonings.map((s, sIdx) => {
+                  const sName = (typeof s === "string" ? s : s?.name || "")
+                    .replace(/^(Bữa trưa|Bữa xế)\s*[·•-]\s*/i, "")
+                    .trim()
+                  return (
+                    <span key={sIdx} className={styles.seasoningTag}>
+                      {sName}
+                    </span>
+                  )
+                })}
               </div>
             </div>
           )}

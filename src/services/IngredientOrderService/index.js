@@ -1,6 +1,6 @@
 import http from "../01_axios"
 import { apiIngredients, apiSuppliers, apiDeliveries, apiSupplyOrders } from "./urls"
-import { adaptCatalogItem } from "./adapter"
+import { adaptCatalogItem, adaptDeliveryItem } from "./adapter"
 import { USE_MOCK_API } from "src/lib/config"
 import {
   MOCK_MASTER_INGREDIENT_CATALOG,
@@ -69,26 +69,16 @@ const IngredientOrderService = {
 
       if (apiItems.length > 0) {
         const adaptedApi = apiItems.map(adaptCatalogItem)
-        const hasDryStock = adaptedApi.some(it => it.handlingType === "DRY_STOCK")
-
-        if (!hasDryStock) {
-          const dryItems = MOCK_MASTER_INGREDIENT_CATALOG.filter(it => it.handlingType === "DRY_STOCK").map(adaptCatalogItem)
-          return {
-            items: [...adaptedApi, ...dryItems],
-            total: adaptedApi.length + dryItems.length,
-            isMock: false,
-          }
-        }
         return { items: adaptedApi, total: adaptedApi.length, isMock: false }
       }
     } catch (err) {
-      // Backend chưa có data -> Fallback sang mock chuẩn
+      console.warn("Lỗi tải danh mục nguyên liệu từ Backend:", err)
     }
 
     return {
-      items: MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem),
-      total: MOCK_MASTER_INGREDIENT_CATALOG.length,
-      isMock: true,
+      items: [],
+      total: 0,
+      isMock: false,
     }
   },
 
@@ -107,12 +97,12 @@ const IngredientOrderService = {
         skipAuthRedirect: true,
       })
       const data = response?.data || response
-      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, isMock: false }
-      if (Array.isArray(data) && data.length > 0) return { items: data, isMock: false }
+      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, total: data.items.length, isMock: false }
+      if (Array.isArray(data) && data.length > 0) return { items: data, total: data.length, isMock: false }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải danh sách nhà cung cấp từ Backend:", err)
     }
-    return { items: MOCK_SUPPLIERS, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**
@@ -131,12 +121,12 @@ const IngredientOrderService = {
       })
       const data = response?.data || response
       if (Array.isArray(data?.items) && data.items.length > 0) {
-        return { items: data.items, isMock: false }
+        return { items: data.items, total: data.items.length, isMock: false }
       }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải thực đơn duyệt từ Backend:", err)
     }
-    return { items: MOCK_APPROVED_MENUS, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**
@@ -171,31 +161,62 @@ const IngredientOrderService = {
         skipAuthRedirect: true,
       })
       const data = response?.data || response
-      if (Array.isArray(data?.items) && data.items.length > 0) {
-        return { items: data.items, isMock: false }
+      const apiItems = Array.isArray(data?.items)
+        ? data.items
+        : Array.isArray(data)
+        ? data
+        : []
+      if (apiItems.length > 0) {
+        let adapted = apiItems.map(adaptDeliveryItem)
+        if (params.batchType && params.batchType !== "all") {
+          adapted = adapted.filter(d => d.batchType === params.batchType)
+        }
+        if (params.status && params.status !== "all") {
+          adapted = adapted.filter(d => d.status === params.status)
+        }
+        if (params.search) {
+          const kw = params.search.toLowerCase()
+          adapted = adapted.filter(
+            d =>
+              d.deliveryNo.toLowerCase().includes(kw) ||
+              d.orderNo.toLowerCase().includes(kw) ||
+              d.supplierName.toLowerCase().includes(kw) ||
+              d.menuName.toLowerCase().includes(kw)
+          )
+        }
+        return { items: adapted, total: adapted.length, isMock: false }
       }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải danh sách phiếu giao nhận từ Backend:", err)
     }
 
-    let items = [...localDeliveries]
-    if (params.batchType && params.batchType !== "all") {
-      items = items.filter(d => d.batchType === params.batchType)
+    return { items: [], total: 0, isMock: false }
+  },
+
+  /**
+   * Lấy tổng hợp sĩ số điểm danh thực tế từ Giáo viên chủ nhiệm (GVCN)
+   * phục vụ tự động cân đối và lập đơn Đợt 2.
+   */
+  async getDailyAttendanceSummary({ date, mealType = "LUNCH" }) {
+    try {
+      const response = await http.get("/v1/daily-meal-portions", {
+        params: { date, mealType },
+        notifyOnError: false,
+        skipAuthRedirect: true,
+      })
+      const data = response?.data || response
+      return {
+        date: data.date,
+        mealType: data.mealType,
+        totalPortions: Number(data.totalPortions) || 0,
+        finalizedClasses: Number(data.finalizedClasses) || 0,
+        pendingClasses: Number(data.pendingClasses) || 0,
+        classes: Array.isArray(data.classes) ? data.classes : [],
+      }
+    } catch (err) {
+      console.warn("Lỗi lấy tổng hợp sĩ số GVCN:", err)
+      return null
     }
-    if (params.status && params.status !== "all") {
-      items = items.filter(d => d.status === params.status)
-    }
-    if (params.search) {
-      const kw = params.search.toLowerCase()
-      items = items.filter(
-        d =>
-          d.deliveryNo.toLowerCase().includes(kw) ||
-          d.orderNo.toLowerCase().includes(kw) ||
-          d.supplierName.toLowerCase().includes(kw) ||
-          d.menuName.toLowerCase().includes(kw)
-      )
-    }
-    return { items, isMock: true }
   },
 
   /**

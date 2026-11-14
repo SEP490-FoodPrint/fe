@@ -1,3 +1,4 @@
+import { batchSampleProgress } from "src/services/KitchenService/adapter";
 import React, { useMemo } from "react";
 import {
   Dialog,
@@ -57,11 +58,7 @@ export default function CreateBatchDetailModal({
   const isCreated = Boolean(currentItem?.isBatchCreated || batchCode);
   const status = currentItem?.status || (isCreated ? "UNCONFIRMED" : "PENDING");
 
-  const hasSample = Boolean(
-    (Array.isArray(currentItem?.retainedFoodSamples) && currentItem.retainedFoodSamples.length > 0) ||
-    currentItem?.retainedFoodSample ||
-    currentItem?.hasSample
-  );
+  const hasSample = batchSampleProgress(currentItem).complete;
 
   const sampleData = useMemo(() => {
     if (!currentItem) return null;

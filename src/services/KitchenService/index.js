@@ -359,9 +359,16 @@ const KitchenService = {
 
   async createBatchSample(batchId, sampleData) {
     if (!batchId) throw new Error("Thiếu mã định danh lô chế biến.");
+    const { photo, ...fields } = sampleData;
+    let payload = fields;
+    if (photo) {
+      payload = new FormData();
+      Object.entries(fields).forEach(([key, value]) => { if (value != null) payload.append(key, String(value)); });
+      payload.append("photo", photo);
+    }
     const response = await http.post(
       `${apiCookingBatches}/${batchId}/food-samples`,
-      sampleData,
+      payload,
       { notifyOnError: false },
     );
     invalidateKitchenBatchCache();
