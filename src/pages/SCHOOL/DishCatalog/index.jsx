@@ -11,7 +11,7 @@ import {
   Sparkles,
   Utensils,
 } from "lucide-react"
-import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey } from "src/services/DishService"
+import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey, groupDishesByCategory } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import DishCategoryModal from "./component/DishCategoryModal"
 import GradeRecipeFields, { sharedGradeRecipes, validRecipeLines } from "./component/GradeRecipeFields"
@@ -134,7 +134,7 @@ export default function DishCatalogPage() {
           (d.supplierName || "").toLowerCase().includes(q)
       )
     }
-    return list
+    return groupDishesByCategory(list)
   }, [catalog, activeCat, supplierFilter, search])
 
   // Reset về trang 1 khi lọc
@@ -292,6 +292,12 @@ export default function DishCatalogPage() {
       setEditingDish(response.data)
       const rows = await loadDishCatalog()
       setCatalog(rows)
+      if (!editingDish) {
+        setSearch("")
+        setActiveCat("ALL")
+        setSupplierFilter("ALL")
+        setCurrentPage(1)
+      }
       closeModal()
     } catch (error) {
       setCatalogError(error.message)

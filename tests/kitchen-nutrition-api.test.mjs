@@ -7,6 +7,20 @@ import viteConfig from "../vite.config.js"
 let server, http, menus, kitchen, adapter, keys, storageTools, respond
 let requests = []
 
+test("dish catalogue groups categories by newest entry without sorting names", async () => {
+  const { groupDishesByCategory } = await server.ssrLoadModule("/src/services/DishService/index.js")
+  const input = [
+    { id: "newest", name: "Z", category: "SOUP" },
+    { id: "next", name: "A", category: "RICE" },
+    { id: "older-soup", name: "B", category: "SOUP" },
+    { id: "unclassified", name: "C", category: null },
+    { id: "older-rice", name: "D", category: "RICE" },
+    { id: "unclassified-older", name: "E", category: null },
+  ]
+  assert.deepEqual(groupDishesByCategory(input).map(dish => dish.id), ["newest", "older-soup", "next", "older-rice", "unclassified", "unclassified-older"])
+  assert.equal(input[1].id, "next")
+})
+
 test("dish recipe form rejects missing, duplicate and invalid grade quantities", async () => {
   const { validRecipeLines } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
   const main = { ingredientEntryId: id(1), ingredientRole: "MAIN", requiredQuantity: "120.125", unit: "g" }
