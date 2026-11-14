@@ -21,7 +21,7 @@ const PAGE_SIZE = 10
 
 export default function IngredientOrders() {
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
-  const [deliveries, setDeliveries] = useState(() => MOCK_DELIVERIES)
+  const [deliveries, setDeliveries] = useState([])
   const [approvedMenus, setApprovedMenus] = useState(() => MOCK_APPROVED_MENUS)
   const [, setLoading] = useState(false)
 
@@ -69,7 +69,12 @@ export default function IngredientOrders() {
       total: deliveries.length,
       batch1Count: deliveries.filter(d => d.batchType === "BATCH_1").length,
       batch2Count: deliveries.filter(d => d.batchType === "BATCH_2").length,
-      completedCount: deliveries.filter(d => d.status === "COMPLETED").length,
+      completedCount: deliveries.filter(
+        d =>
+          d.status === "COMPLETED" ||
+          d.status === "RECEIVED" ||
+          d.status === "APPROVED"
+      ).length,
     }
   }, [deliveries])
 

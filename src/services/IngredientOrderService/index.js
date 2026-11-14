@@ -1,6 +1,6 @@
 import http from "../01_axios"
 import { apiIngredients, apiSuppliers, apiDeliveries, apiSupplyOrders } from "./urls"
-import { adaptCatalogItem } from "./adapter"
+import { adaptCatalogItem, adaptDeliveryItem } from "./adapter"
 import { USE_MOCK_API } from "src/lib/config"
 import {
   MOCK_MASTER_INGREDIENT_CATALOG,
@@ -161,11 +161,16 @@ const IngredientOrderService = {
         skipAuthRedirect: true,
       })
       const data = response?.data || response
-      if (Array.isArray(data?.items) && data.items.length > 0) {
-        return { items: data.items, isMock: false }
+      const apiItems = Array.isArray(data?.items)
+        ? data.items
+        : Array.isArray(data)
+        ? data
+        : []
+      if (apiItems.length > 0) {
+        return { items: apiItems.map(adaptDeliveryItem), total: apiItems.length, isMock: false }
       }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải danh sách phiếu giao nhận từ Backend:", err)
     }
 
     let items = [...localDeliveries]
