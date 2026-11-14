@@ -17,6 +17,18 @@ test("dish recipe form rejects missing, duplicate and invalid grade quantities",
   for (const quantity of ["", "0", "1e3", "1.0001"]) assert.equal(validRecipeLines([{ ...main, requiredQuantity: quantity }]), false)
 })
 
+test("dish form applies entered quantities only to selected grades", async () => {
+  const { sharedGradeRecipes } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
+  const lines = [{ ingredientEntryId: id(1), ingredientRole: "MAIN", requiredQuantity: "75", unit: "g" }]
+  const selected = [{ gradeId: id(50) }, { gradeId: id(51) }]
+  const result = sharedGradeRecipes(selected, lines)
+  assert.deepEqual(result.map(profile => profile.gradeId), [id(50), id(51)])
+  assert.deepEqual(result.map(profile => profile.lines[0].requiredQuantity), ["75", "75"])
+  result[0].lines[0].requiredQuantity = "90"
+  assert.equal(result[1].lines[0].requiredQuantity, "75")
+  assert.equal(lines[0].requiredQuantity, "75")
+})
+
 test("grade recipe selection uses the selected profile and keeps missing profiles explicit", async () => {
   const { dishForGrades } = await server.ssrLoadModule("/src/services/DishService/index.js")
   const base = { id: id(40), lines: [{ ingredientId: id(1), ingredientRole: "MAIN", requiredQuantity: "80", unit: "g" }], gradeRecipes: [{ gradeId: id(50), lines: [{ ingredientEntryId: id(41), ingredientId: id(42), ingredientRole: "MAIN", requiredQuantity: "120", unit: "g", name: "Thịt", supplierName: "NCC" }] }] }

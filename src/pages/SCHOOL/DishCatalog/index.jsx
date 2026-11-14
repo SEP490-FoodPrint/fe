@@ -14,7 +14,7 @@ import {
 import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import DishCategoryModal from "./component/DishCategoryModal"
-import GradeRecipeFields, { validRecipeLines } from "./component/GradeRecipeFields"
+import GradeRecipeFields, { sharedGradeRecipes, validRecipeLines } from "./component/GradeRecipeFields"
 import MenuService from "src/services/MenuService"
 import styles from "./index.module.scss"
 
@@ -172,25 +172,25 @@ export default function DishCatalogPage() {
 
   const openEdit = useCallback((dish) => {
     setEditingDish(dish)
-    setGradeProfiles((dish.gradeRecipes || []).map(profile => ({ gradeId: profile.gradeId, lines: profile.lines.map(({ ingredientEntryId, ingredientRole, requiredQuantity, unit }) => ({ ingredientEntryId, ingredientRole, requiredQuantity: String(requiredQuantity), unit })) })))
+    const firstProfile = (dish.gradeRecipes || [])[0]
+    setGradeProfiles(firstProfile ? [{ gradeId: firstProfile.gradeId, lines: [] }] : [])
     setForm({ name: dish.name || "", category: dish.category || "" })
 
-    // Tự động đưa mọi nguyên liệu (kể cả từ công thức cũ) vào danh sách nguyên liệu chính (ảnh 2)
-    const legacyMains = (dish.unclassifiedLines || []).map((l) => ({
+    // Mỗi lần sửa áp dụng cho khối được chọn; các khối khác được giữ nguyên.
+    const sourceLines = firstProfile?.lines || dish.lines || []
+    const asIngredient = (l) => ({
       ...l,
       id: l.ingredientId || l.ingredientEntryId,
       ingredientEntryId: l.ingredientEntryId || l.id,
       name: l.name,
       category: l.category || "-",
-      portionQty: l.requiredQuantity || l.portionQty || "",
+      portionQty: firstProfile ? String(l.requiredQuantity ?? "") : "",
       unit: l.unit || "kg",
-      supplierName:
-        l.supplierName || dish.supplierName || "Nhà cung cấp Nông Sản Xanh (DEMO)",
-    }))
+      supplierName: l.supplierName || "",
+    })
 
     const initialIngredients = [
-      ...(dish.ingredients || []).map((i) => ({ ...i })),
-      ...legacyMains,
+      ...sourceLines.filter((line) => line.ingredientRole !== "SEASONING").map(asIngredient),
     ]
 
     const uniqueIngredients = [
@@ -203,7 +203,7 @@ export default function DishCatalogPage() {
     ]
 
     setSelectedIngredients(uniqueIngredients)
-    setSelectedSeasonings((dish.seasonings || []).map((i) => ({ ...i })))
+    setSelectedSeasonings(sourceLines.filter((line) => line.ingredientRole === "SEASONING").map((line) => ({ ...asIngredient(line), id: line.ingredientEntryId })))
     setUnclassifiedLines([])
     setCatalogError("")
     setModalOpen(true)
@@ -271,27 +271,23 @@ export default function DishCatalogPage() {
   }, [])
 
   // Lưu món ăn
-  const baseLines = [
+  const recipeLines = [
     ...selectedIngredients.map(i => ({ ingredientEntryId: i.ingredientEntryId || i.id, ingredientRole: "MAIN", requiredQuantity: String(i.portionQty || ""), unit: i.unit || "kg" })),
     ...selectedSeasonings.map(i => ({ ingredientEntryId: i.ingredientEntryId || i.id, ingredientRole: "SEASONING", requiredQuantity: String(i.portionQty || ""), unit: i.unit || "g" })),
   ]
   const handleSave = async () => {
     setCatalogError("")
     if (!categoryOptions.some(option => option.key === form.category)) { setCatalogError("Vui lòng chọn nhóm món ăn."); return }
-    if (!validRecipeLines(baseLines)) { setCatalogError("Bộ gốc cần nguyên liệu chính không trùng, định lượng dương tối đa 3 chữ số thập phân và đơn vị hợp lệ."); return }
-    for (const profile of gradeProfiles) {
-      if (!validRecipeLines(profile.lines)) {
-        setCatalogError(`Kiểm tra định lượng của ${grades.find(grade => grade.id === profile.gradeId)?.name || "khối đã chọn"}: cần nguyên liệu chính, lượng dương và không trùng nguyên liệu.`); return
-      }
-    }
+    if (!gradeProfiles.length) { setCatalogError("Vui lòng chọn ít nhất một khối áp dụng."); return }
+    if (!validRecipeLines(recipeLines)) { setCatalogError("Cần nguyên liệu chính không trùng, định lượng dương tối đa 3 chữ số thập phân và đơn vị hợp lệ."); return }
     setSaving(true)
     try {
       const response = await saveDishRecipe(editingDish?.id, {
         name: form.name.trim(),
         category: form.category,
         description: editingDish?.description || null,
-        gradeRecipes: gradeProfiles,
-        lines: baseLines,
+        gradeRecipes: sharedGradeRecipes(gradeProfiles, recipeLines),
+        lines: recipeLines,
       })
       setEditingDish(response.data)
       const rows = await loadDishCatalog()
@@ -578,6 +574,22 @@ export default function DishCatalogPage() {
             <div className={styles.modalBody}>
               {catalogError && <p role="alert">{catalogError}</p>}
               <div className={styles.formGrid}>
+                {gradeError ? (
+                  <p role="alert" style={{ gridColumn: "1 / -1", color: "#ef4444" }}>
+                    {gradeError}
+                  </p>
+                ) : (
+                  <GradeRecipeFields
+                    grades={grades}
+                    profiles={gradeProfiles}
+                    onChange={setGradeProfiles}
+                    savedGradeIds={(editingDish?.gradeRecipes || []).map(
+                      (profile) => profile.gradeId
+                    )}
+                    disabled={saving}
+                  />
+                )}
+
                 {/* Hàng 1: Tên món (60%) + Nhóm món (40%) cùng 1 dòng gọn gàng */}
                 <div className={styles.formTwoColsRow}>
                   <div>
@@ -702,7 +714,7 @@ export default function DishCatalogPage() {
                                     <input
                                       type="number"
                                       min="0.001"
-                                      step="any"
+                                      step="0.001"
                                       className={styles.portionQtyInput}
                                       value={ing.portionQty ?? ""}
                                       onChange={(e) =>
@@ -712,7 +724,7 @@ export default function DishCatalogPage() {
                                           e.target.value
                                         )
                                       }
-                                      placeholder="Số lượng"
+                                      placeholder="..."
                                     />
                                     <select
                                       className={styles.portionUnitSelect}
@@ -835,18 +847,18 @@ export default function DishCatalogPage() {
                                 <div className={styles.portionInputGroup}>
                                   <input
                                     type="number"
-                                    min="0.1"
-                                    step="0.5"
+                                    min="0.001"
+                                    step="0.001"
                                     className={styles.portionQtyInput}
                                     value={seas.portionQty || ""}
                                     onChange={(e) =>
                                       handleUpdateSeasoning(
                                         seas.id,
                                         "portionQty",
-                                        Number(e.target.value) || 0
+                                        e.target.value
                                       )
                                     }
-                                    placeholder="Định lượng"
+                                    placeholder="..."
                                   />
                                   <select
                                     className={styles.portionUnitSelect}
@@ -884,7 +896,6 @@ export default function DishCatalogPage() {
                     </div>
                   )}
                 </div>
-                {gradeError ? <p role="alert">{gradeError}</p> : <GradeRecipeFields grades={grades} options={recipeOptions} profiles={gradeProfiles} onChange={setGradeProfiles} baseLines={baseLines} savedGradeIds={(editingDish?.gradeRecipes || []).map(profile => profile.gradeId)} disabled={saving} />}
               </div>
             </div>
 
