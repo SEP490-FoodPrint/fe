@@ -454,7 +454,7 @@ export default function CreateBatchKanban({
                         {mealLabel}
                       </span>
                       <span className={styles.statusWaitingSample}>
-                        Chờ lưu mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} món)
+                        Chờ lưu mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} {batchSampleProgress(batch).total === 1 ? "mẻ" : "món"})
                       </span>
                     </div>
 
@@ -568,7 +568,7 @@ export default function CreateBatchKanban({
                       </span>
                       <span className={styles.statusSampled}>
                         <ShieldCheck size={12} />
-                        <span>Đã lưu đủ mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} món)</span>
+                        <span>Đã lưu đủ mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} {batchSampleProgress(batch).total === 1 ? "mẻ" : "món"})</span>
                       </span>
                     </div>
 

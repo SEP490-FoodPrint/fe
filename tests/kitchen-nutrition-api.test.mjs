@@ -520,6 +520,8 @@ test("cooking progress retains substitute dishes and tracks samples separately p
   assert.deepEqual(batchSampleProgress(batch), { completed: 1, total: 2, complete: false })
   assert.equal(batchSampleProgress({ ...batch, retainedFoodSamples: [...batch.retainedFoodSamples, { dishId: id(4) }] }).complete, true)
   assert.equal(batchSampleProgress({ ...batch, retainedFoodSamples: [] }).complete, false)
+  assert.deepEqual(batchSampleProgress({ dishes: [{ dishId: id(3) }], retainedFoodSamples: [] }), { completed: 0, total: 1, complete: false })
+  assert.deepEqual(batchSampleProgress({ dishes: [{ dishId: id(3) }], retainedFoodSamples: [{ dishId: id(3) }] }), { completed: 1, total: 1, complete: true })
   const week = snapshot()
   const original = week.menuDays[0].menuDayDishes[0]
   week.menuDays[0].menuDayDishes.push({ ...original, dishId: id(4), Dish: { name: "Alternative" } })
@@ -539,6 +541,9 @@ test("cooking board shows full meal demand and keeps a partially sampled batch a
   const html = renderToStaticMarkup(React.createElement(Board, { batches: [batch], pendingDishes: [], mealRequirements: { LUNCH: { portions: 100 } }, selectedMeal: "lunch" }))
   assert.match(html, /100/)
   assert.match(html, /1\/2/)
+  const oneDish = { ...batch, dishes: [batch.dishes[0]], retainedFoodSamples: [{ dishId: id(3) }] }
+  const oneDishHtml = renderToStaticMarkup(React.createElement(Board, { batches: [oneDish], pendingDishes: [], mealRequirements: { LUNCH: { portions: 100 } }, selectedMeal: "lunch" }))
+  assert.match(oneDishHtml, /1\/1 m\u1ebb/)
   assert.doesNotMatch(html, /T?t c? 1 l? ch? bi?n ?? n?u xong/)
 })
 
