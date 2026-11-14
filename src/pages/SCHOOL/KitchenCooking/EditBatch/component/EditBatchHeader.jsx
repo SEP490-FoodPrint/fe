@@ -12,7 +12,7 @@ export default function EditBatchHeader({
   const isCombineLots = rule === "COMBINE_LOTS"
 
   const handleBackToDetail = () => {
-    navigate(`/school/kitchen-cooking/batches/${batchCode}`)
+    navigate(`/school/batches/${batchCode}`)
   }
 
   return (

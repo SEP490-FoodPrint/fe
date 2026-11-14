@@ -397,8 +397,8 @@ test("new applicants land on home and open registration only through the chosen 
 
 test("active kitchen staff land on their dashboard while unverified staff stay on home", () => {
   const user = { ...principal, orgType: "SCHOOL", role: ROLES.SCHOOL_KITCHEN_STAFF, status: "ACTIVE" }
-  assert.equal(navigation.getDefaultRedirectByUser(user), "/school/kitchen-cooking")
-  assert.equal(navigation.getAuthRedirect(user), "/school/kitchen-cooking")
+  assert.equal(navigation.getDefaultRedirectByUser(user), "/school")
+  assert.equal(navigation.getAuthRedirect(user), "/school")
   assert.equal(navigation.getAuthRedirect({ ...user, status: "UNVERIFIED" }), "/")
   assert.equal(navigation.getAuthRedirect({ ...user, onboardingRequired: true }), "/")
 })

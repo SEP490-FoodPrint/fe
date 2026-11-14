@@ -51,22 +51,22 @@ const ROUTER = {
   SCHOOL_HEALTH_ALLERGY: "/school/health-allergy",         // Thông tin dị ứng
   SCHOOL_DISH_CATALOG: "/school/dish-catalog",             // Kho Món Ăn Master Data
   // Phân hệ Bếp ăn (Nhân viên Bếp / Bếp trưởng)
-  SCHOOL_KITCHEN_COOKING: "/school/kitchen-cooking",       // Trang chủ Bếp
-  SCHOOL_KITCHEN_MENU: "/school/kitchen-cooking/menu",     // Thực đơn đã lên
-  SCHOOL_KITCHEN_BATCHES: "/school/kitchen-cooking/batches", // Lô chế biến
-  SCHOOL_KITCHEN_BATCH_CREATE: "/school/kitchen-cooking/batches/create", // Tạo lô nấu chung
-  SCHOOL_KITCHEN_CREATE_BATCH: "/school/kitchen-cooking/batches/create", // Alias Tạo lô nấu chung
-  SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Tạo lô nấu riêng
-  SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE: "/school/kitchen-cooking/batches/create-separate", // Alias Tạo lô nấu riêng
-  SCHOOL_KITCHEN_BATCH_DETAIL: "/school/kitchen-cooking/batches/:id", // Chi tiết lô chế biến
-  SCHOOL_KITCHEN_BATCH_EDIT: "/school/kitchen-cooking/batches/:id/edit", // Chỉnh sửa lô chế biến
-  SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/kitchen-cooking/meal-allocation", // Phân bổ suất ăn
-  SCHOOL_KITCHEN_INGREDIENTS: "/school/kitchen-cooking/ingredients", // Danh sách nguyên liệu
-  SCHOOL_KITCHEN_SAMPLES: "/school/kitchen-cooking/samples", // Mẫu lưu thực phẩm (danh sách ngày)
-  SCHOOL_KITCHEN_SAMPLES_DATE: "/school/kitchen-cooking/samples/:date", // Chi tiết mẫu lưu theo ngày
-  SCHOOL_KITCHEN_SAMPLE_STORAGE: "/school/kitchen-cooking/sample-storage", // Master data Tủ lưu mẫu
-  SCHOOL_KITCHEN_HANDOVER: "/school/kitchen-cooking/handover", // Bàn giao suất ăn
-  SCHOOL_KITCHEN_TRACEABILITY: "/school/kitchen-cooking/traceability", // Truy xuất nguồn gốc
+  SCHOOL_KITCHEN_COOKING: "/school",       // Trang chủ Bếp
+  SCHOOL_KITCHEN_MENU: "/school/menu",     // Thực đơn đã lên
+  SCHOOL_KITCHEN_BATCHES: "/school/batches", // Lô chế biến
+  SCHOOL_KITCHEN_BATCH_CREATE: "/school/batches/create", // Tạo lô nấu chung
+  SCHOOL_KITCHEN_CREATE_BATCH: "/school/batches/create", // Alias Tạo lô nấu chung
+  SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE: "/school/batches/create-separate", // Tạo lô nấu riêng
+  SCHOOL_KITCHEN_CREATE_BATCH_SEPARATE: "/school/batches/create-separate", // Alias Tạo lô nấu riêng
+  SCHOOL_KITCHEN_BATCH_DETAIL: "/school/batches/:id", // Chi tiết lô chế biến
+  SCHOOL_KITCHEN_BATCH_EDIT: "/school/batches/:id/edit", // Chỉnh sửa lô chế biến
+  SCHOOL_KITCHEN_MEAL_ALLOCATION: "/school/meal-allocation", // Phân bổ suất ăn
+  SCHOOL_KITCHEN_INGREDIENTS: "/school/ingredients", // Danh sách nguyên liệu
+  SCHOOL_KITCHEN_SAMPLES: "/school/samples", // Mẫu lưu thực phẩm (danh sách ngày)
+  SCHOOL_KITCHEN_SAMPLES_DATE: "/school/samples/:date", // Chi tiết mẫu lưu theo ngày
+  SCHOOL_KITCHEN_SAMPLE_STORAGE: "/school/sample-storage", // Master data Tủ lưu mẫu
+  SCHOOL_KITCHEN_HANDOVER: "/school/handover", // Bàn giao suất ăn
+  SCHOOL_KITCHEN_TRACEABILITY: "/school/traceability", // Truy xuất nguồn gốc
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho, Bếp
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
