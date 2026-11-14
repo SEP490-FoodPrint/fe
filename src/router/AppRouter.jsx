@@ -32,6 +32,7 @@ const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"
 // SUPPLIER pages
 const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
 const IngredientCatalog = lazy(() => import("src/pages/SUPPLIER/IngredientCatalog"))
+const SourceFacilities = lazy(() => import("src/pages/SUPPLIER/SourceFacilities"))
 const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 
 // SCHOOL pages
@@ -203,6 +204,13 @@ const routes = [
           { path: ROUTER.SUPPLIER_OVERVIEW, element: <LazyWrapper><SupplierOverview /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_INGREDIENTS, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_INGREDIENT_DETAIL, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
+          {
+            element: <RoleRoute allowedRoles={[ROLES.INGREDIENT_SUPPLIER_ADMIN]} />,
+            children: [
+              { path: ROUTER.SUPPLIER_SOURCE_FACILITIES, element: <LazyWrapper><SourceFacilities /></LazyWrapper> },
+              { path: ROUTER.SUPPLIER_SOURCE_FACILITY_DETAIL, element: <LazyWrapper><SourceFacilities /></LazyWrapper> },
+            ],
+          },
           { path: ROUTER.SUPPLIER_ORDERS, element: <LazyWrapper><SupplyOrders /></LazyWrapper> },
         ],
       },

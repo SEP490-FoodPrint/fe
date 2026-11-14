@@ -1,0 +1,371 @@
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--bg-surface);
+}
+
+.facilityTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 780px;
+
+  thead tr {
+    height: 48px;
+    background: var(--bg-surface);
+  }
+
+  th {
+    padding: 0 12px;
+    border-bottom: 1px solid var(--border-default);
+    font-size: 12px;
+    font-weight: var(--font-semibold);
+    line-height: 16px;
+    color: var(--text-muted);
+    text-align: left;
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  td {
+    height: 56px;
+    padding: 8px 12px;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-default);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.tableRow {
+  background: var(--bg-surface);
+  transition: background-color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    background: var(--bg-page);
+  }
+}
+
+.colStt {
+  width: 56px;
+  text-align: center !important;
+}
+
+.cellStt {
+  text-align: center;
+  color: var(--text-muted) !important;
+}
+
+.colName {
+  width: auto;
+}
+
+.colCode {
+  width: 160px;
+  white-space: nowrap;
+}
+
+.colStatus {
+  width: 160px;
+  white-space: nowrap;
+}
+
+.colDate {
+  width: 136px;
+  white-space: nowrap;
+}
+
+.colUpdated {
+  width: 168px;
+  white-space: nowrap;
+}
+
+.nameLink {
+  display: block;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  line-height: 20px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-decoration: none;
+  transition: color var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    color: var(--color-primary);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.codeChip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  line-height: 16px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: var(--font-medium);
+  line-height: 16px;
+  white-space: nowrap;
+}
+
+.statusActive {
+  background: var(--color-success-bg);
+  color: var(--color-primary-hover);
+}
+
+.statusInactive {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+.cellMuted {
+  color: var(--text-muted) !important;
+  white-space: nowrap;
+}
+
+/* Tablet & Mobile card list matching IngredientCatalog */
+.cardList {
+  display: none;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.facilityCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px;
+  width: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    transform var(--duration-fast) var(--ease-standard);
+
+  &:hover {
+    border-color: var(--border-strong);
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+}
+
+.cardHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+}
+
+.cardTitleGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  line-height: 20px;
+  color: var(--color-primary);
+  overflow-wrap: anywhere;
+}
+
+.cardSubMeta {
+  margin: 0;
+  font-size: 12px;
+  font-weight: var(--font-normal);
+  line-height: 16px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.cardUpdatedText {
+  margin: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-default);
+  font-size: 12px;
+  font-weight: var(--font-normal);
+  line-height: 16px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Pagination matching IngredientCatalog */
+.paginationFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 16px;
+  width: 100%;
+  background: var(--bg-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+.paginationSummary {
+  margin: 0;
+  font-size: 12px;
+  font-weight: var(--font-normal);
+  line-height: 16px;
+  color: var(--text-muted);
+
+  strong {
+    color: var(--text-primary);
+    font-weight: var(--font-semibold);
+  }
+}
+
+.paginationControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.pageNavBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  padding: 0 16px;
+  min-width: 104px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: var(--font-semibold);
+  line-height: 20px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+
+  &:hover:not(:disabled) {
+    background: var(--bg-page);
+    border-color: var(--border-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.pageNavBtnPrev {
+  min-width: 112px;
+}
+
+.loadingState,
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 8px;
+  padding: 48px 24px;
+  background: var(--bg-surface);
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.emptyDesc {
+  margin: 0;
+  max-width: 420px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .tableWrapper {
+    display: none;
+  }
+
+  .cardList {
+    display: flex;
+  }
+
+  .paginationFooter {
+    padding: 4px 0 0;
+    background: transparent;
+  }
+
+  .pageNavBtn {
+    min-width: 0;
+    height: 42px;
+    padding: 10px 16px;
+  }
+
+  .emptyState {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tableRow,
+  .facilityCard,
+  .pageNavBtn {
+    transition: none;
+    transform: none !important;
+  }
+}
