@@ -228,7 +228,6 @@ function MenuApproval() {
       />
       <MenuSummary menu={menu} />
       <MenuReview
-        review={menu.medicalReview}
         approval={menu.approval}
         status={menu.status}
       />
