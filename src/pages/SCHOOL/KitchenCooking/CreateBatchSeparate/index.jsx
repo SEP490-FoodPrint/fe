@@ -185,6 +185,7 @@ export default function CreateBatchSeparate() {
     try {
       const mealType = String(dishToCreate.mealType || selectedMeal || "LUNCH").toUpperCase();
       const res = await KitchenService.planBatch({
+        planVersion: dishToCreate.planVersion,
         dishId: dishToCreate.dishId || dishToCreate.id,
         menuDayId: dishToCreate.menuDayId,
         mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
@@ -206,37 +207,13 @@ export default function CreateBatchSeparate() {
         msg: err.message || "Không thể tạo lô riêng. Vui lòng kiểm tra lại nguyên liệu.",
         isSuccess: false,
       });
+      throw err;
     } finally {
       setSubmittingId(null);
     }
   };
 
   // Xử lý xác nhận bắt đầu nấu
-  const handleConfirmCooking = async (batch) => {
-    if (!batch?.id) return;
-    setActionLoadingId(batch.id);
-    try {
-      await KitchenService.confirmBatch(batch.id);
-      const nowISO = new Date().toISOString();
-      setBatches((prev) =>
-        prev.map((b) => (b.id === batch.id ? { ...b, status: "CONFIRMED", confirmedAt: nowISO } : b))
-      );
-      if (selectedItem?.id === batch.id) {
-        setSelectedItem((prev) => ({ ...prev, status: "CONFIRMED", confirmedAt: nowISO }));
-      }
-      notice({
-        msg: `Bắt đầu nấu: ${batch.name || batch.dishName} (${batch.batchCode})`,
-        isSuccess: true,
-      });
-    } catch (err) {
-      notice({
-        msg: err.message || "Không thể xác nhận nấu.",
-        isSuccess: false,
-      });
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
 
   // Xử lý ghi nhận nấu xong
   const handleCompleteCooking = async (batch) => {
@@ -405,7 +382,6 @@ export default function CreateBatchSeparate() {
             onOpenPlanModal={handleOpenPlanModal}
             onOpenSampleModal={handleOpenSampleModal}
             onQuickCreate={handleCreateBatchForDish}
-            onConfirmCooking={handleConfirmCooking}
             onCompleteCooking={handleCompleteCooking}
             onViewBatchDetail={handleViewFullPage}
             submittingId={submittingId}
@@ -418,8 +394,7 @@ export default function CreateBatchSeparate() {
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           item={selectedItem}
-          onConfirmCreate={handleCreateBatchForDish}
-          onConfirmCooking={handleConfirmCooking}
+          onConfirmCreate={handleOpenPlanModal}
           onCompleteCooking={handleCompleteCooking}
           onOpenSampleModal={handleOpenSampleModal}
           submitting={Boolean(submittingId || actionLoadingId)}

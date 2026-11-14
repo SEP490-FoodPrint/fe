@@ -282,6 +282,7 @@ const KitchenService = {
     }
     const body = { menuDayId, mealType };
     if (dishId) body.dishId = dishId;
+    if (payload.planVersion) body.planVersion = payload.planVersion;
     const response = await http.post(apiCookingBatches, body, {
       notifyOnError: false,
     });

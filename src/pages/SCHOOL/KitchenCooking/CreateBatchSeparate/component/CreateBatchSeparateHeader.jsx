@@ -30,7 +30,7 @@ export default function CreateBatchSeparateHeader({
               <h1 className={styles.heading}>{title}</h1>
               <div
                 className={styles.modeBadge}
-                title="Chế độ nấu riêng 1:1: Mỗi lô nguyên liệu đầu vào được tự động tách thành một lô chế biến độc lập"
+                title="Mỗi loại nguyên liệu của một món trong một mẻ chỉ dùng một lô nguyên liệu."
               >
                 <span className={styles.pulseDot} />
                 <span>Chế độ: Nấu riêng</span>
