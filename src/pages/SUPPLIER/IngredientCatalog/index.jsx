@@ -273,8 +273,9 @@ const IngredientCatalog = () => {
     statusFilter !== "ALL"
 
   const renderThumb = (item, isCard = false) => {
+    const thumbKey = `${item.id}:${item.coverImage || ""}`
     const hasValidCover =
-      Boolean(item.coverImage) && !failedThumbs[item.id]
+      Boolean(item.coverImage) && !failedThumbs[thumbKey]
     if (hasValidCover) {
       return (
         <img
@@ -282,7 +283,7 @@ const IngredientCatalog = () => {
           alt={item.name}
           className={isCard ? styles.cardThumb : styles.thumbImg}
           onError={() =>
-            setFailedThumbs(prev => ({ ...prev, [item.id]: true }))
+            setFailedThumbs(prev => ({ ...prev, [thumbKey]: true }))
           }
         />
       )
