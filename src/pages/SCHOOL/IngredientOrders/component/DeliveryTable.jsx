@@ -100,6 +100,16 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
     }
 
     switch (item.status) {
+      case "RECEIVED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={14} />}
+            label="Đã nhận hàng & Vào bếp"
+            size="small"
+            className={styles.statusSuccess}
+          />
+        )
+      case "APPROVED":
       case "COMPLETED":
         return (
           <Chip
@@ -109,6 +119,16 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusSuccess}
           />
         )
+      case "ARRIVED":
+        return (
+          <Chip
+            icon={<Clock size={14} />}
+            label="Đã đến cổng - Chờ kiểm tra"
+            size="small"
+            className={styles.statusWarning}
+          />
+        )
+      case "PENDING_APPROVAL":
       case "INSPECTING":
         return (
           <Chip
@@ -118,7 +138,17 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusWarning}
           />
         )
+      case "IN_TRANSIT":
+        return (
+          <Chip
+            icon={<Clock size={14} />}
+            label="NCC đang vận chuyển"
+            size="small"
+            className={styles.statusConfirmed}
+          />
+        )
       case "CONFIRMED":
+      case "CREATED":
         return (
           <Chip
             icon={<Clock size={14} />}

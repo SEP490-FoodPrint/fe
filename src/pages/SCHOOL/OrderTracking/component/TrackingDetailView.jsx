@@ -53,6 +53,8 @@ export default function TrackingDetailView({ item, onBack }) {
                   ? styles.statusInTransit
                   : item.status === "ARRIVED"
                   ? styles.statusArrived
+                  : item.status === "COMPLETED" || item.status === "RECEIVED"
+                  ? styles.statusCompleted
                   : styles.statusAccepted
               }
             />

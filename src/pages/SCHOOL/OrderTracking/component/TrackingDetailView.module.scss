@@ -321,3 +321,10 @@
   border: 1px solid var(--color-warning-border, #f3dea1) !important;
   font-weight: 500 !important;
 }
+
+.statusCompleted {
+  background-color: var(--bg-muted, #f1f5f3) !important;
+  color: var(--text-secondary, #52635c) !important;
+  border: 1px solid var(--border-default, #dce5e0) !important;
+  font-weight: 500 !important;
+}

@@ -1,9 +1,10 @@
 import React from "react"
-import { Box, Typography } from "@mui/material"
-import { Truck } from "lucide-react"
+import PropTypes from "prop-types"
+import { Box, Typography, Button, CircularProgress } from "@mui/material"
+import { Truck, RotateCw } from "lucide-react"
 import styles from "./TrackingHeader.module.scss"
 
-export default function TrackingHeader() {
+export default function TrackingHeader({ onRefresh, loading = false }) {
   return (
     <Box className={styles.headerContainer}>
       <Box className={styles.titleGroup}>
@@ -14,11 +15,13 @@ export default function TrackingHeader() {
           <Typography variant="h5" className={styles.pageTitle}>
             Theo Dõi Đơn Hàng &amp; Vận Chuyển
           </Typography>
-          <Typography variant="body2" className={styles.pageSubtitle}>
-            Giám sát thời gian thực tiến độ giao nhận thực phẩm tươi sống (Đợt 1 / Đợt 2) và đồ khô
-          </Typography>
         </Box>
       </Box>
     </Box>
   )
+}
+
+TrackingHeader.propTypes = {
+  onRefresh: PropTypes.func,
+  loading: PropTypes.bool,
 }

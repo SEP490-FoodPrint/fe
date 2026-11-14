@@ -2,10 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box } from "@mui/material"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
-import {
-  MOCK_DELIVERIES,
-  MOCK_APPROVED_MENUS,
-} from "./mockData"
 
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryStatsRail from "./component/DeliveryStatsRail"
@@ -21,8 +17,8 @@ const PAGE_SIZE = 10
 
 export default function IngredientOrders() {
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
-  const [deliveries, setDeliveries] = useState(() => MOCK_DELIVERIES)
-  const [approvedMenus, setApprovedMenus] = useState(() => MOCK_APPROVED_MENUS)
+  const [deliveries, setDeliveries] = useState([])
+  const [approvedMenus, setApprovedMenus] = useState([])
   const [, setLoading] = useState(false)
 
   // Sub-view: "list" (mặc định) | "create" | "detail"
@@ -69,7 +65,12 @@ export default function IngredientOrders() {
       total: deliveries.length,
       batch1Count: deliveries.filter(d => d.batchType === "BATCH_1").length,
       batch2Count: deliveries.filter(d => d.batchType === "BATCH_2").length,
-      completedCount: deliveries.filter(d => d.status === "COMPLETED").length,
+      completedCount: deliveries.filter(
+        d =>
+          d.status === "COMPLETED" ||
+          d.status === "RECEIVED" ||
+          d.status === "APPROVED"
+      ).length,
     }
   }, [deliveries])
 

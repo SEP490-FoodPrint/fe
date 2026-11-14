@@ -30,33 +30,41 @@ import styles from "./CreateDryOrderView.module.scss"
 
 export default function CreateDryOrderView({
   inventoryItems = [],
+  suppliers = [],
   initialSelectedItem = null,
   onBack,
   onSubmit,
 }) {
-  const [supplierId, setSupplierId] = useState("sup-kho-04")
-  const [deliveryDate, setDeliveryDate] = useState("2026-10-29")
+  const [supplierId, setSupplierId] = useState(() => suppliers[0]?.id || "")
+  const [deliveryDate, setDeliveryDate] = useState(() => {
+    const d = new Date()
+    d.setDate(d.getDate() + 1)
+    return d.toISOString().slice(0, 10)
+  })
   const [deliveryTime, setDeliveryTime] = useState("14:30")
   const [timePreset, setTimePreset] = useState("CUSTOM")
   const [note, setNote] = useState("Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.")
   const [orderQtys, setOrderQtys] = useState({})
 
-  // Khởi tạo mặt hàng được chọn
+  useEffect(() => {
+    if (suppliers.length > 0 && (!supplierId || !suppliers.some(s => s.id === supplierId))) {
+      setSupplierId(suppliers[0].id)
+    }
+  }, [suppliers, supplierId])
+
+  // Khởi tạo mặt hàng được chọn (mặc định nhập nguyên định mức an toàn)
   useEffect(() => {
     if (initialSelectedItem) {
       setOrderQtys({
-        [initialSelectedItem.id]: Math.max(
-          1,
-          (initialSelectedItem.safetyStock - initialSelectedItem.currentStock) + initialSelectedItem.safetyStock
-        ),
+        [initialSelectedItem.id]: Math.max(1, Number(initialSelectedItem.safetyStock) || 1),
       })
     } else {
-      // Tự động gợi ý các mặt hàng đang thiếu kho
+      // Tự động gợi ý các mặt hàng đang thiếu kho với số lượng bằng đúng định mức an toàn
       const initial = {}
       inventoryItems
         .filter(it => it.currentStock < it.safetyStock)
         .forEach(it => {
-          initial[it.id] = (it.safetyStock - it.currentStock) + it.safetyStock
+          initial[it.id] = Math.max(1, Number(it.safetyStock) || 1)
         })
       setOrderQtys(initial)
     }
@@ -68,11 +76,7 @@ export default function CreateDryOrderView({
       if (next[item.id]) {
         delete next[item.id]
       } else {
-        const suggested = Math.max(
-          1,
-          (item.safetyStock - item.currentStock) + item.safetyStock
-        )
-        next[item.id] = suggested
+        next[item.id] = Math.max(1, Number(item.safetyStock) || 1)
       }
       return next
     })
@@ -88,7 +92,7 @@ export default function CreateDryOrderView({
     inventoryItems
       .filter(it => it.currentStock < it.safetyStock)
       .forEach(it => {
-        next[it.id] = next[it.id] || (it.safetyStock - it.currentStock) + it.safetyStock
+        next[it.id] = next[it.id] || Math.max(1, Number(it.safetyStock) || 1)
       })
     setOrderQtys(next)
   }
@@ -148,12 +152,17 @@ export default function CreateDryOrderView({
       deliveryTypeLabel = `Buổi sáng (${deliveryTime})`
     }
 
+    const selectedSupplier = suppliers.find(s => s.id === supplierId)
+    const currentSupplierName = selectedSupplier?.name || "Nhà cung cấp đối tác"
+    const currentSupplierPhone = selectedSupplier?.phone || ""
+
     const newOrder = {
       id: `po-dry-${Date.now()}`,
       orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
       deliveryNo: `PNK-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
-      supplierName: "Tổng kho Lương thực & Gia vị Miền Bắc",
-      supplierPhone: "0912 888 999",
+      supplierId,
+      supplierName: currentSupplierName,
+      supplierPhone: currentSupplierPhone,
       orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
       deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
       deliveryType,
@@ -189,9 +198,6 @@ export default function CreateDryOrderView({
           <Typography variant="h5" className={styles.title}>
             Lập Phiếu Nhập Hàng Gạo &amp; Gia Vị
           </Typography>
-          <Typography variant="body2" className={styles.subtitle}>
-            Nhập bổ sung gạo, dầu ăn, gia vị lưu kho — Chủ động hẹn thời gian giao nhận theo nhu cầu của nhà trường
-          </Typography>
         </Box>
       </Box>
 
@@ -210,7 +216,15 @@ export default function CreateDryOrderView({
             size="small"
             fullWidth
           >
-            <MenuItem value="sup-kho-04">Tổng kho Lương thực &amp; Gia vị Miền Bắc (Hợp đồng cung ứng)</MenuItem>
+            {suppliers && suppliers.length > 0 ? (
+              suppliers.map(sup => (
+                <MenuItem key={sup.id} value={sup.id}>
+                  {sup.name} {sup.phone ? `(${sup.phone})` : ""}
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem value="">Đang tải danh sách nhà cung cấp...</MenuItem>
+            )}
           </TextField>
 
           {/* Gợi ý chọn nhanh khung giờ + Tự do nhập giờ bất kỳ */}

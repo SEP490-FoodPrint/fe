@@ -40,3 +40,16 @@
   margin-top: var(--space-1, 4px);
   font-size: var(--text-sm, 0.875rem);
 }
+
+.refreshBtn {
+  text-transform: none !important;
+  font-weight: 500 !important;
+  color: var(--color-primary, #0a8066) !important;
+  border-color: var(--border-default, #dce5e0) !important;
+  border-radius: var(--radius-md, 8px) !important;
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066) !important;
+    background-color: var(--color-primary-soft, #e8f5f1) !important;
+  }
+}
