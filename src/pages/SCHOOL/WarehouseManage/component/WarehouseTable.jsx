@@ -32,18 +32,21 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
       <Table className={styles.table}>
         <TableHead className={styles.tableHead}>
           <TableRow>
-            <TableCell style={{ width: "35%" }}>Nguyên liệu &amp; Mã</TableCell>
-            <TableCell style={{ width: "33%" }}>Tồn kho / Ngưỡng an toàn</TableCell>
-            <TableCell style={{ width: "20%" }}>Đơn giá &amp; NCC</TableCell>
-            <TableCell align="center" style={{ width: "12%" }}>Thao tác</TableCell>
+            <TableCell style={{ width: "27%" }}>Nguyên liệu &amp; Mã</TableCell>
+            <TableCell style={{ width: "25%" }}>Tồn kho / Ngưỡng an toàn</TableCell>
+            <TableCell style={{ width: "18%" }}>Đơn giá</TableCell>
+            <TableCell style={{ width: "20%" }}>Nhà cung cấp</TableCell>
+            <TableCell align="center" style={{ width: "10%" }}>Thao tác</TableCell>
           </TableRow>
         </TableHead>
 
         <TableBody>
           {items.map(it => {
-            const stockPct = Math.round((it.currentStock / it.safetyStock) * 100)
-            const isCritical = stockPct < 50
-            const isWarning = stockPct >= 50 && stockPct < 100
+            const safety = Number(it.safetyStock) || 1
+            const current = Number(it.currentStock) || 0
+            const stockPct = Math.round((current / safety) * 100)
+            const isCritical = stockPct < 30
+            const isWarning = stockPct >= 30 && stockPct < 50
 
             return (
               <TableRow key={it.id} className={styles.tableRow} hover>
@@ -60,7 +63,7 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
                   </Box>
                 </TableCell>
 
-                {/* 2. Tồn kho hiện tại / Ngưỡng an toàn (3 loại: Đủ, Dưới 50%, Trên 50% - Xanh, Đỏ, Vàng) */}
+                {/* 2. Tồn kho hiện tại / Ngưỡng an toàn (Báo động < 30%, Cần nhập < 50%, Đủ >= 50%) */}
                 <TableCell>
                   <Box className={styles.stockCell}>
                     <Box className={styles.stockMainRow}>
@@ -80,13 +83,13 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
                       <Box className={styles.statusBadgeWrap}>
                         {isCritical ? (
                           <Chip
-                            label="Dưới 50%"
+                            label="Dưới 30% (Khẩn)"
                             size="small"
                             className={styles.criticalChip}
                           />
                         ) : isWarning ? (
                           <Chip
-                            label="Trên 50%"
+                            label="Dưới 50% (Cần nhập)"
                             size="small"
                             className={styles.warningChip}
                           />
@@ -107,6 +110,9 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
                   <Typography variant="body2" className={styles.priceText}>
                     {it.unitPrice.toLocaleString("vi-VN")} đ/{it.unit}
                   </Typography>
+
+                </TableCell>
+                <TableCell>
                   <Typography variant="caption" className={styles.supplierText}>
                     {it.supplierName}
                   </Typography>
