@@ -1,0 +1,77 @@
+.filterContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.filterGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(200px, 1fr) minmax(190px, 0.9fr);
+  gap: var(--space-4);
+  align-items: end;
+}
+
+.searchFieldWrap,
+.selectFieldWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-tight);
+  color: var(--text-muted);
+}
+
+.searchIcon {
+  font-size: 18px !important;
+  color: var(--text-muted);
+}
+
+.filterSecondaryRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.attentionChip {
+  font-family: var(--font-sans) !important;
+  font-weight: var(--font-medium) !important;
+}
+
+.resetButton {
+  font-weight: var(--font-semibold) !important;
+  color: var(--color-primary) !important;
+}
+
+@media (max-width: 1024px) {
+  .filterGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+
+  .searchFieldWrap {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .filterContainer {
+    padding: var(--space-4);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+
+  .filterGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}

@@ -24,6 +24,7 @@ import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined"
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -86,6 +87,12 @@ export const MenuItemSupplier = () => [
       ROLES.INGREDIENT_SUPPLIER_STAFF,
       ROLES.INGREDIENT_SUPPLIER,
     ],
+  },
+  {
+    key: ROUTER.SUPPLIER_SOURCE_FACILITIES,
+    label: "Cơ sở nguồn cung",
+    icon: <StorefrontOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_SUPPLIER_ADMIN],
   },
   {
     key: ROUTER.SUPPLIER_ORDERS,
