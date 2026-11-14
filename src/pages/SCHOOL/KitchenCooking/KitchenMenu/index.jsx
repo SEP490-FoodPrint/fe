@@ -1,4 +1,3 @@
-import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React, { useState, useEffect, useMemo } from "react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
@@ -83,13 +82,13 @@ export default function KitchenMenu() {
       onNextWeek={()=>{if(index>=0&&index<weeks.length-1)setSelectedWeek(weeks[index+1].weekNumber)}}
       onCurrentWeek={currentWeek} isCurrentWeekSelected={!!week?.isCurrentWeek}
       isFirstWeek={index<=0} isLastWeek={index<0||index>=weeks.length-1}
+      gradeMenus={apiWeekData?.availableMenus || []} gradeMenuId={menuId} onGradeMenuChange={(id) => setScopeSelection({ date: week?.weekStartDate, id })} gradeDisabled={loading}
       totalDishes={totalDishes} mealTypeFilter={mealTypeFilter} onMealTypeFilterChange={setMealTypeFilter}
     />
-    <MenuScopeSelect menus={apiWeekData?.availableMenus || []} value={menuId} onChange={(id) => setScopeSelection({ date: week?.weekStartDate, id })} disabled={loading} />
     {calendarLoading || loading ? <div role="status" style={{padding:80}}><FoodPrintLoading/></div>
       : calendarError || error ? <div role="alert"><p>{calendarError || error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div>
       : !years.length ? <p>Chưa có cấu hình năm học của trường.</p>
-      : apiWeekData?.availableMenus?.length > 1 && !menuId ? <p role="status">Chọn thực đơn và khối ở trên để xem món ăn trong tuần.</p>
+      : apiWeekData?.availableMenus?.length > 1 && !menuId ? <p role="status">Chọn khối ở trên để xem món ăn trong tuần.</p>
       : <KitchenMenuWeeklyGrid schoolDays={days} mealTypeFilter={mealTypeFilter} todayISO={todayISO}/>}
   </div>
 }

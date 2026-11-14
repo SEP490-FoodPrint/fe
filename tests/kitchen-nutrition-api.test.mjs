@@ -7,6 +7,18 @@ import viteConfig from "../vite.config.js"
 let server, http, menus, kitchen, adapter, keys, storageTools, respond
 let requests = []
 
+test("grade menu filter lists individual grades and preserves shared menu mappings", async () => {
+  const { menuGradeOptions, default: Filter } = await server.ssrLoadModule("/src/components/MenuScopeSelect.jsx")
+  const menus = [{ id: "shared", gradeIds: ["g1", "g2"], gradeNames: ["Grade 1", "Grade 2"] }, { id: "other", gradeIds: ["g3"], gradeNames: ["Grade 3"] }]
+  assert.deepEqual(menuGradeOptions(menus), [{ key: "g1", label: "Grade 1", menuId: "shared" }, { key: "g2", label: "Grade 2", menuId: "shared" }, { key: "g3", label: "Grade 3", menuId: "other" }])
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const html = renderToStaticMarkup(React.createElement(Filter, { menus, value: "shared", onChange: () => {} }))
+  assert.match(html, /Grade 1/)
+  assert.match(html, /Grade 2/)
+  assert.doesNotMatch(html, /Th\u1ef1c \u0111\u01a1n \/ kh\u1ed1i/)
+})
+
 test("dish catalogue groups categories by newest entry without sorting names", async () => {
   const { groupDishesByCategory } = await server.ssrLoadModule("/src/services/DishService/index.js")
   const input = [

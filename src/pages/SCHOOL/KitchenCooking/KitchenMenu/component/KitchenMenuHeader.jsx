@@ -1,3 +1,4 @@
+import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React from "react"
 import PropTypes from "prop-types"
 import { useNavigate } from "react-router-dom"
@@ -36,6 +37,7 @@ export default function KitchenMenuHeader({
   totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
+  gradeMenus = [], gradeMenuId = "", onGradeMenuChange, gradeDisabled = false,
 }) {
   const navigate = useNavigate()
 
@@ -153,6 +155,8 @@ export default function KitchenMenuHeader({
             <RotateCcw size={13} />
             <span>Tuần này</span>
           </button>
+
+          <MenuScopeSelect menus={gradeMenus} value={gradeMenuId} onChange={onGradeMenuChange} disabled={gradeDisabled} />
 
           <span className={styles.inlineDivider} />
 

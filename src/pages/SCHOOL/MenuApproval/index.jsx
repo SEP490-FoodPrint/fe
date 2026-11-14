@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react"
+import { menuGradeOptions } from "src/components/MenuScopeSelect";
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Skeleton } from "@mui/material"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
@@ -27,6 +28,9 @@ const pickDefaultWeek = weeks => {
 
 function MenuApproval() {
   const [weeks, setWeeks] = useState([])
+  const [gradeFilter, setGradeFilter] = useState("")
+  const gradeOptions = useMemo(() => menuGradeOptions(weeks).filter((option) => !option.key.startsWith("school:")), [weeks])
+  const filteredWeeks = useMemo(() => gradeFilter ? weeks.filter((week) => !week.gradeIds?.length || week.gradeIds.includes(gradeFilter)) : weeks, [weeks, gradeFilter])
   const [menuId, setMenuId] = useState(null)
   const [menu, setMenu] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -103,6 +107,16 @@ function MenuApproval() {
     setDialog({ type, submissionVersion: menu.submissionVersion })
   }
 
+  const changeGrade = gradeId => {
+    if (submitting || dialog) return
+    setGradeFilter(gradeId)
+    const eligible = gradeId ? weeks.filter(week => !week.gradeIds?.length || week.gradeIds.includes(gradeId)) : weeks
+    if (!eligible.some(week => week.id === menuId)) {
+      setMenu(null)
+      setMenuId(pickDefaultWeek(eligible))
+    }
+  }
+
   const changeWeek = weekId => {
     if (submitting || dialog || weekId === menuId) return
     setMenuId(weekId)
@@ -175,6 +189,10 @@ function MenuApproval() {
     )
   }
 
+  if (!error && !menu && gradeFilter && filteredWeeks.length === 0) {
+    return <div className="menu-approval-page"><label htmlFor="approval-grade">Khối lớp </label><select id="approval-grade" value={gradeFilter} onChange={event => changeGrade(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select><p>Không có thực đơn cho khối này.</p></div>
+  }
+
   if (error || !menu) {
     return (
       <div className="menu-approval-page">
@@ -195,7 +213,10 @@ function MenuApproval() {
       />
       <MenuSchedule
         days={menu.days}
-        weeks={weeks}
+        weeks={filteredWeeks}
+        gradeOptions={gradeOptions}
+        gradeFilter={gradeFilter}
+        onGradeChange={changeGrade}
         selectedWeekId={menuId}
         onWeekChange={changeWeek}
         disabled={submitting || Boolean(dialog)}

@@ -394,7 +394,7 @@ export default function CreateBatch() {
             <FoodPrintLoading />
           </div>
         ) : menuOptions.length > 1 && !menuId ? (
-          <p role="status">Chọn thực đơn và khối ở trên để xem tiến độ chế biến.</p>
+          <p role="status">Chọn khối ở trên để xem tiến độ chế biến.</p>
         ) : !hasAnyData && hasApprovedMenu ? (
           <p role="status">Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
         ) : !hasAnyData ? (

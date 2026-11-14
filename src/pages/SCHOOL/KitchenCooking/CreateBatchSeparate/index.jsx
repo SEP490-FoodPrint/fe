@@ -377,7 +377,7 @@ export default function CreateBatchSeparate() {
             <FoodPrintLoading />
           </div>
         ) : menuOptions.length > 1 && !menuId ? (
-          <p role="status">Chọn thực đơn và khối ở trên để xem tiến độ chế biến riêng.</p>
+          <p role="status">Chọn khối ở trên để xem tiến độ chế biến riêng.</p>
         ) : !hasAnyData && hasApprovedMenu ? (
           <p role="status">Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
         ) : !hasAnyData ? (
