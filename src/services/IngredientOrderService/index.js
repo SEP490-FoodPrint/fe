@@ -97,12 +97,12 @@ const IngredientOrderService = {
         skipAuthRedirect: true,
       })
       const data = response?.data || response
-      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, isMock: false }
-      if (Array.isArray(data) && data.length > 0) return { items: data, isMock: false }
+      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, total: data.items.length, isMock: false }
+      if (Array.isArray(data) && data.length > 0) return { items: data, total: data.length, isMock: false }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải danh sách nhà cung cấp từ Backend:", err)
     }
-    return { items: MOCK_SUPPLIERS, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**
@@ -121,12 +121,12 @@ const IngredientOrderService = {
       })
       const data = response?.data || response
       if (Array.isArray(data?.items) && data.items.length > 0) {
-        return { items: data.items, isMock: false }
+        return { items: data.items, total: data.items.length, isMock: false }
       }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải thực đơn duyệt từ Backend:", err)
     }
-    return { items: MOCK_APPROVED_MENUS, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**
@@ -167,30 +167,30 @@ const IngredientOrderService = {
         ? data
         : []
       if (apiItems.length > 0) {
-        return { items: apiItems.map(adaptDeliveryItem), total: apiItems.length, isMock: false }
+        let adapted = apiItems.map(adaptDeliveryItem)
+        if (params.batchType && params.batchType !== "all") {
+          adapted = adapted.filter(d => d.batchType === params.batchType)
+        }
+        if (params.status && params.status !== "all") {
+          adapted = adapted.filter(d => d.status === params.status)
+        }
+        if (params.search) {
+          const kw = params.search.toLowerCase()
+          adapted = adapted.filter(
+            d =>
+              d.deliveryNo.toLowerCase().includes(kw) ||
+              d.orderNo.toLowerCase().includes(kw) ||
+              d.supplierName.toLowerCase().includes(kw) ||
+              d.menuName.toLowerCase().includes(kw)
+          )
+        }
+        return { items: adapted, total: adapted.length, isMock: false }
       }
     } catch (err) {
       console.warn("Lỗi tải danh sách phiếu giao nhận từ Backend:", err)
     }
 
-    let items = [...localDeliveries]
-    if (params.batchType && params.batchType !== "all") {
-      items = items.filter(d => d.batchType === params.batchType)
-    }
-    if (params.status && params.status !== "all") {
-      items = items.filter(d => d.status === params.status)
-    }
-    if (params.search) {
-      const kw = params.search.toLowerCase()
-      items = items.filter(
-        d =>
-          d.deliveryNo.toLowerCase().includes(kw) ||
-          d.orderNo.toLowerCase().includes(kw) ||
-          d.supplierName.toLowerCase().includes(kw) ||
-          d.menuName.toLowerCase().includes(kw)
-      )
-    }
-    return { items, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**

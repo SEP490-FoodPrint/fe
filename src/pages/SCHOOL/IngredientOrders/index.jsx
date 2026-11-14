@@ -2,10 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box } from "@mui/material"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
-import {
-  MOCK_DELIVERIES,
-  MOCK_APPROVED_MENUS,
-} from "./mockData"
 
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryStatsRail from "./component/DeliveryStatsRail"
@@ -22,7 +18,7 @@ const PAGE_SIZE = 10
 export default function IngredientOrders() {
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
   const [deliveries, setDeliveries] = useState([])
-  const [approvedMenus, setApprovedMenus] = useState(() => MOCK_APPROVED_MENUS)
+  const [approvedMenus, setApprovedMenus] = useState([])
   const [, setLoading] = useState(false)
 
   // Sub-view: "list" (mặc định) | "create" | "detail"
