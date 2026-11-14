@@ -1,3 +1,4 @@
+import CookingProgressPreview from "../CreateBatch/CookingProgressPreview";
 import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -18,7 +19,7 @@ import styles from "./index.module.scss";
  * CreateBatchSeparate - Màn hình Tiến độ Chế biến Nấu riêng theo lô (Nhân viên Bếp)
  * Kết nối 100% API thực tế, không dùng Mock Data fallback
  */
-export default function CreateBatchSeparate() {
+function CreateBatchSeparatePage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
@@ -486,4 +487,9 @@ export default function CreateBatchSeparate() {
       </div>
     </div>
   );
+}
+
+export default function CookingProgressRoute() {
+  if (import.meta.env.DEV && new URLSearchParams(window.location.search).get("preview") === "1") return <CookingProgressPreview separate />;
+  return <CreateBatchSeparatePage />;
 }
