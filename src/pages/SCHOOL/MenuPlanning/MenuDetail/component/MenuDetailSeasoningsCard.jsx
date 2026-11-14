@@ -20,7 +20,10 @@ export default function MenuDetailSeasoningsCard({ seasonings = [] }) {
 
       <div className={styles.seasoningsGrid}>
         {seasonings.map((s, idx) => {
-          const name = typeof s === "string" ? s : s.name
+          const rawName = typeof s === "string" ? s : s.name
+          const name = (rawName || "")
+            .replace(/^(Bữa trưa|Bữa xế)\s*[·•-]\s*/i, "")
+            .trim()
           const qty = typeof s === "object" ? s.portionQty || s.quantityPerPortion : null
           const unit = typeof s === "object" ? s.unit || "g" : ""
 

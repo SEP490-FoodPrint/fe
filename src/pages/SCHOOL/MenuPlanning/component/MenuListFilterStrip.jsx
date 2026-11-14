@@ -1,3 +1,4 @@
+import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React from "react"
 import { Search, GraduationCap, CalendarDays, Utensils, RotateCcw, X, ChevronDown } from "lucide-react"
 import styles from "./MenuListFilterStrip.module.scss"
@@ -8,6 +9,7 @@ export default function MenuListFilterStrip({
   onResetFilters,
   academicYearOptions = [],
   weeks = [],
+  gradeMenus = [], grades = [], gradeValue = "", gradeMenuId = "", onGradeMenuChange, gradeDisabled = false,
 }) {
   const {
     searchKeyword = "",
@@ -80,6 +82,8 @@ export default function MenuListFilterStrip({
         </select>
         <ChevronDown size={14} className={styles.chevronIcon} />
       </div>
+
+      <MenuScopeSelect menus={gradeMenus} grades={grades} gradeValue={gradeValue} value={gradeMenuId} onChange={onGradeMenuChange} disabled={gradeDisabled} />
 
       {/* 4. Bộ lọc Ca ăn */}
       <div className={styles.selectWrapperSm}>
