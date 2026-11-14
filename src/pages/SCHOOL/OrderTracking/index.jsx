@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react"
+import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box } from "@mui/material"
-import { MOCK_TRACKING_ORDERS } from "./mockTrackingData"
+import TrackingService from "../../../services/TrackingService"
 
 import TrackingHeader from "./component/TrackingHeader"
 import TrackingFilterStrip from "./component/TrackingFilterStrip"
@@ -10,7 +10,8 @@ import TrackingDetailView from "./component/TrackingDetailView"
 import styles from "./index.module.scss"
 
 export default function OrderTracking() {
-  const [orders] = useState(MOCK_TRACKING_ORDERS)
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
 
   // Sub-view: "list" (mặc định) | "detail" (xem chi tiết toàn màn hình có nút back)
   const [subView, setSubView] = useState("list")
@@ -23,21 +24,48 @@ export default function OrderTracking() {
     status: "all",
   })
 
-  // Lọc danh sách
+  // Tải danh sách đơn hàng từ live Database API
+  const loadOrders = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await TrackingService.getTrackingOrders()
+      setOrders(data)
+    } catch (err) {
+      console.error("Lỗi khi tải dữ liệu theo dõi đơn hàng:", err)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    loadOrders()
+  }, [loadOrders])
+
+  // Lọc danh sách đơn hàng
   const filteredOrders = useMemo(() => {
     return orders.filter(item => {
       const kw = filters.search.trim().toLowerCase()
       const matchSearch =
         !kw ||
-        item.orderNo.toLowerCase().includes(kw) ||
-        item.deliveryNo.toLowerCase().includes(kw) ||
-        item.supplierName.toLowerCase().includes(kw)
+        item.orderNo?.toLowerCase().includes(kw) ||
+        item.deliveryNo?.toLowerCase().includes(kw) ||
+        item.supplierName?.toLowerCase().includes(kw)
 
       const matchType =
         filters.orderType === "all" || item.orderType === filters.orderType
 
       const matchStatus =
-        filters.status === "all" || item.status === filters.status
+        filters.status === "all" ||
+        item.status === filters.status ||
+        item.rawStatus === filters.status ||
+        (filters.status === "COMPLETED" &&
+          (item.status === "COMPLETED" ||
+            item.status === "RECEIVED" ||
+            item.rawStatus === "RECEIVED")) ||
+        (filters.status === "ACCEPTED" &&
+          (item.status === "ACCEPTED" ||
+            item.status === "CREATED" ||
+            item.rawStatus === "CREATED"))
 
       return matchSearch && matchType && matchStatus
     })
@@ -57,9 +85,25 @@ export default function OrderTracking() {
   }
 
   // Mở màn hình xem chi tiết hành trình
-  const handleViewDetail = item => {
+  const handleViewDetail = async item => {
     setSelectedItem(item)
     setSubView("detail")
+
+    // Nếu đơn hàng chưa có danh sách items chi tiết, tải thêm từ API inspection detail
+    if (!item.items || item.items.length === 0) {
+      try {
+        const fullDetail = await TrackingService.getDeliveryDetail(item.id)
+        if (fullDetail) {
+          setSelectedItem(prev => ({
+            ...prev,
+            ...fullDetail,
+            items: fullDetail.items?.length > 0 ? fullDetail.items : prev.items,
+          }))
+        }
+      } catch (err) {
+        console.warn("Không thể tải bổ sung chi tiết đợt giao:", err)
+      }
+    }
   }
 
   // Quay lại danh sách
@@ -74,7 +118,7 @@ export default function OrderTracking() {
       {subView === "list" && (
         <>
           {/* Header */}
-          <TrackingHeader />
+          <TrackingHeader onRefresh={loadOrders} loading={loading} />
 
           {/* Bộ lọc & Tìm kiếm */}
           <TrackingFilterStrip
@@ -86,6 +130,7 @@ export default function OrderTracking() {
           {/* Bảng danh sách đơn theo dõi */}
           <TrackingTable
             orders={filteredOrders}
+            loading={loading}
             onViewDetail={handleViewDetail}
           />
         </>
@@ -93,10 +138,7 @@ export default function OrderTracking() {
 
       {/* Sub-view 2: Màn hình Chi tiết hành trình toàn trang (Có nút Back) */}
       {subView === "detail" && selectedItem && (
-        <TrackingDetailView
-          item={selectedItem}
-          onBack={handleBackToList}
-        />
+        <TrackingDetailView item={selectedItem} onBack={handleBackToList} />
       )}
     </Box>
   )
