@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { Alert, Button } from "@mui/material"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { Alert, Button, MenuItem, TextField } from "@mui/material"
 import notice from "src/components/Notice"
 import ROUTER from "src/router/ROUTER"
 import AcademicYearService from "src/services/AcademicYearService"
 import ClassService from "src/services/ClassService"
+import SchoolGradeService from "src/services/SchoolGradeService"
 import AssignTeacherDialog from "./component/AssignTeacherDialog"
 import ClassAssignmentHeader from "./component/ClassAssignmentHeader"
 import ClassFormDialog from "./component/ClassFormDialog"
@@ -18,10 +19,10 @@ import "./style.scss"
 const EXPORT_PAGE_SIZE = 100
 
 // Xuất đủ mọi lớp của niên khóa, không chỉ trang đang hiển thị.
-const fetchAllClasses = async academicYear => {
+const fetchAllClasses = async (academicYear, gradeId) => {
   const items = []
   for (let page = 1; ; page += 1) {
-    const response = await ClassService.getClasses({ academicYear, page, limit: EXPORT_PAGE_SIZE })
+    const response = await ClassService.getClasses({ academicYear, page, limit: EXPORT_PAGE_SIZE, ...(gradeId && { gradeId }) })
     items.push(...response.data.items)
     if (!response.data.pagination?.hasNext) return items
   }
@@ -45,6 +46,11 @@ const isWritableYear = (label, currentYear) => {
 
 function ClassAssignment() {
   const navigate = useNavigate()
+  const [params, setParams] = useSearchParams()
+  const gradeId = params.get("gradeId") || ""
+  const [grades, setGrades] = useState([])
+  const [gradesError, setGradesError] = useState("")
+  const [gradesLoaded, setGradesLoaded] = useState(false)
   const [classYears, setClassYears] = useState([])
   const [configuredYears, setConfiguredYears] = useState([])
   const [configuredLoaded, setConfiguredLoaded] = useState(false)
@@ -60,6 +66,21 @@ function ClassAssignment() {
   const [importOpen, setImportOpen] = useState(false)
   const [exporting, setExporting] = useState(false)
   const [refresh, setRefresh] = useState(0)
+
+  useEffect(() => {
+    const controller = new AbortController()
+    setGradesError("")
+    SchoolGradeService.list(controller.signal)
+      .then(({ data }) => {
+        if (controller.signal.aborted) return
+        setGrades(data)
+        setGradesLoaded(true)
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setGradesError("Không thể tải danh sách khối học.")
+      })
+    return () => controller.abort()
+  }, [refresh])
 
   useEffect(() => {
     let active = true
@@ -102,9 +123,9 @@ function ClassAssignment() {
     let active = true
     setLoading(true)
     setError("")
-    ClassService.getClasses({ academicYear, limit: 100 })
-      .then(response => {
-        if (active) setClasses(response.data.items)
+    fetchAllClasses(academicYear, gradeId)
+      .then(items => {
+        if (active) setClasses(items)
       })
       .catch(failure => {
         if (!active) return
@@ -117,7 +138,7 @@ function ClassAssignment() {
     return () => {
       active = false
     }
-  }, [academicYear, refresh])
+  }, [academicYear, gradeId, refresh])
 
   const writableYears = useMemo(
     () =>
@@ -190,6 +211,23 @@ function ClassAssignment() {
         onImport={() => setImportOpen(true)}
         onExport={handleExport}
       />
+      {gradesError && <Alert severity="warning" action={<Button onClick={() => setRefresh(value => value + 1)}>Thử lại</Button>}>{gradesError}</Alert>}
+      <TextField
+        select size="small" label="Khối học" value={gradeId}
+        disabled={!gradesLoaded}
+        onChange={event => setParams(current => {
+          const next = new URLSearchParams(current)
+          if (event.target.value) next.set("gradeId", event.target.value)
+          else next.delete("gradeId")
+          return next
+        })}
+      >
+        <MenuItem value="">Tất cả khối</MenuItem>
+        <MenuItem value="unassigned">Chưa gán khối</MenuItem>
+        {grades.map(grade => <MenuItem key={grade.id} value={grade.id}>{grade.name}</MenuItem>)}
+        {gradeId && gradeId !== "unassigned" && !grades.some(grade => grade.id === gradeId) &&
+          <MenuItem value={gradeId} disabled>Khối đã chọn</MenuItem>}
+      </TextField>
       {configuredLoaded && !writableYears.length && (
         <Alert
           severity="info"
@@ -210,6 +248,8 @@ function ClassAssignment() {
           classes={classes}
           loading={loading}
           canManage={canManage}
+          canEditGrade={gradesLoaded && !gradesError}
+          filtered={Boolean(gradeId)}
           onAssign={item => setDialog({ mode: "assign", item })}
           onRemove={item => setDialog({ mode: "remove", item })}
           onEdit={item => setForm({ mode: "edit", item })}
@@ -230,6 +270,9 @@ function ClassAssignment() {
         item={form?.item || null}
         academicYear={academicYear}
         writableYears={writableYears}
+        grades={grades}
+        canEditGrade={gradesLoaded && !gradesError}
+        gradeOnly={Boolean(form?.item && !canManage)}
         onClose={() => setForm(null)}
         onDone={handleDone}
       />
