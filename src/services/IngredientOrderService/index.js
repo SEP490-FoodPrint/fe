@@ -69,26 +69,16 @@ const IngredientOrderService = {
 
       if (apiItems.length > 0) {
         const adaptedApi = apiItems.map(adaptCatalogItem)
-        const hasDryStock = adaptedApi.some(it => it.handlingType === "DRY_STOCK")
-
-        if (!hasDryStock) {
-          const dryItems = MOCK_MASTER_INGREDIENT_CATALOG.filter(it => it.handlingType === "DRY_STOCK").map(adaptCatalogItem)
-          return {
-            items: [...adaptedApi, ...dryItems],
-            total: adaptedApi.length + dryItems.length,
-            isMock: false,
-          }
-        }
         return { items: adaptedApi, total: adaptedApi.length, isMock: false }
       }
     } catch (err) {
-      // Backend chưa có data -> Fallback sang mock chuẩn
+      console.warn("Lỗi tải danh mục nguyên liệu từ Backend:", err)
     }
 
     return {
-      items: MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem),
-      total: MOCK_MASTER_INGREDIENT_CATALOG.length,
-      isMock: true,
+      items: [],
+      total: 0,
+      isMock: false,
     }
   },
 

@@ -1,11 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box } from "@mui/material"
 import IngredientOrderService from "src/services/IngredientOrderService"
-import { adaptCatalogItem } from "src/services/IngredientOrderService/adapter"
-import {
-  MOCK_MASTER_INGREDIENT_CATALOG,
-  MOCK_SUPPLIERS,
-} from "src/pages/SCHOOL/IngredientOrders/mockData"
 
 import CatalogHeader from "./component/CatalogHeader"
 import CatalogStatsRail from "./component/CatalogStatsRail"
@@ -18,8 +13,8 @@ import styles from "./index.module.scss"
 const PAGE_SIZE = 10
 
 export default function IngredientCatalog() {
-  const [catalog, setCatalog] = useState(() => MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem))
-  const [suppliers, setSuppliers] = useState(() => MOCK_SUPPLIERS)
+  const [catalog, setCatalog] = useState([])
+  const [suppliers, setSuppliers] = useState([])
   const [, setLoading] = useState(false)
 
   // Filter state

@@ -64,9 +64,6 @@ export function adaptCatalogItem(item) {
   const handlingType = inferHandlingType(item)
   const handling = HANDLING_TYPES[handlingType] || HANDLING_TYPES.DIRECT_USE
 
-  const defaultPrice = handlingType === "DRY_STOCK" ? 45000 : 95000
-  const finalPrice = Number(item.unitPrice) || defaultPrice
-
   return {
     id: item.id,
     name: item.name || "Nguyên liệu",
@@ -80,13 +77,12 @@ export function adaptCatalogItem(item) {
       item.shelfLifeDays || (handlingType === "DRY_STOCK" ? 180 : 2),
     storageRequirements:
       item.storageRequirements ||
+      item.description ||
       (handlingType === "DRY_STOCK"
         ? "Kê pallet cách đất 20cm, bảo quản nơi khô ráo thoáng mát"
         : "Bảo quản mát 0 - 4°C, chế biến ngay trong ngày"),
-    unitPrice: finalPrice,
-    unitPriceFormatted: `${finalPrice.toLocaleString("vi-VN")} đ`,
     supplierId: item.supplierId || "",
-    supplierName: item.supplierName || item.Supplier?.name || "Nhà cung cấp đối tác",
+    supplierName: item.supplierName || item.Supplier?.name || item.supplier?.name || "Nhà cung cấp đối tác",
     minOrderQty: item.minOrderQty || (handlingType === "DRY_STOCK" ? 10 : 5),
   }
 }
