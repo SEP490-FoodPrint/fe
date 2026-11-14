@@ -1,0 +1,55 @@
+.timelineCard {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+}
+
+.stepBlock {
+  position: relative;
+  padding-left: var(--space-6);
+  padding-bottom: var(--space-4);
+  border-left: 2px solid var(--color-primary);
+
+  &:last-child {
+    border-left: 2px solid transparent;
+    padding-bottom: 0;
+  }
+}
+
+.stepDot {
+  position: absolute;
+  left: -9px;
+  top: 0;
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-primary);
+  border: 2px solid var(--bg-surface);
+}
+
+.stepTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.stepContent {
+  background-color: var(--bg-muted);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.infoLine {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+
+  strong {
+    color: var(--text-primary);
+  }
+}

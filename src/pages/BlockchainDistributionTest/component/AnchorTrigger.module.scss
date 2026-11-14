@@ -1,0 +1,20 @@
+.triggerCard {
+  border-radius: var(--radius-lg);
+  border: 1px dashed var(--color-primary);
+  padding: var(--space-4);
+  background-color: var(--color-primary-soft);
+  margin-bottom: var(--space-4);
+}
+
+.triggerTitle {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+  margin-bottom: var(--space-1);
+}
+
+.triggerDesc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}

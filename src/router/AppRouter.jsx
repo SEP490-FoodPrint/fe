@@ -84,12 +84,24 @@ function LazyWrapper({ children }) {
 }
 
 const BlockchainTodo = lazy(() => import("src/pages/BlockchainTodo"))
+const BlockchainDistributionTest = lazy(() => import("src/pages/BlockchainDistributionTest"))
+const BlockchainTraceabilityTest = lazy(() => import("src/pages/BlockchainTraceabilityTest"))
 
 const routes = [
-  ...(import.meta.env.DEV ? [{
-    path: "/blockchain-test",
-    element: <LazyWrapper><BlockchainTodo /></LazyWrapper>,
-  }] : []),
+  ...(import.meta.env.DEV ? [
+    {
+      path: "/blockchain-test",
+      element: <LazyWrapper><BlockchainTodo /></LazyWrapper>,
+    },
+    {
+      path: "/test/meal-distribution-blockchain",
+      element: <LazyWrapper><BlockchainDistributionTest /></LazyWrapper>,
+    },
+    {
+      path: "/test/traceability-blockchain",
+      element: <LazyWrapper><BlockchainTraceabilityTest /></LazyWrapper>,
+    },
+  ] : []),
   // 1. Trang chủ Nền tảng FoodPrint (Công khai)
   {
     element: <PublicLayout />,

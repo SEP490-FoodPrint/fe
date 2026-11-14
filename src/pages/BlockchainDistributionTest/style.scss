@@ -1,0 +1,20 @@
+.pageContainer {
+  padding-top: var(--space-6);
+  padding-bottom: var(--space-8);
+}
+
+.pageHeader {
+  margin-bottom: var(--space-5);
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+  }
+
+  p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+  }
+}
