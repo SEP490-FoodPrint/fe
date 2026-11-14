@@ -543,8 +543,23 @@ test("cooking board shows full meal demand and keeps a partially sampled batch a
   assert.match(html, /1\/2/)
   const oneDish = { ...batch, dishes: [batch.dishes[0]], retainedFoodSamples: [{ dishId: id(3) }] }
   const oneDishHtml = renderToStaticMarkup(React.createElement(Board, { batches: [oneDish], pendingDishes: [], mealRequirements: { LUNCH: { portions: 100 } }, selectedMeal: "lunch" }))
-  assert.match(oneDishHtml, /1\/1 m\u1ebb/)
+  assert.match(oneDishHtml, /1\/1 l\u00f4/)
   assert.doesNotMatch(html, /T?t c? 1 l? ch? bi?n ?? n?u xong/)
+})
+
+test("cooking board keeps meal and grade filters available for empty grades", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Board } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/CreateBatch/component/CreateBatchKanban.jsx")
+  const html = renderToStaticMarkup(React.createElement(Board, {
+    grades: [{ id: "g1", name: "Grade 1" }, { id: "g2", name: "Grade 2" }],
+    gradeMenus: [{ id: "menu1", gradeIds: ["g1"] }], gradeValue: "g2", gradeMenuId: "",
+    onGradeChange: () => {}, emptyState: React.createElement("p", null, "No menu for grade"),
+  }))
+  assert.match(html, /aria-label="Chọn bữa ăn"/)
+  assert.match(html, /aria-label="Lọc theo khối lớp"/)
+  assert.match(html, /value="g2" selected=""/)
+  assert.match(html, /No menu for grade/)
 })
 
 test("weekly editing preserves frozen quantities, seasonings, notes and explicit group identities", () => {

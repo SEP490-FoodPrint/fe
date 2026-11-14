@@ -188,7 +188,7 @@ export default function RetainedSampleModal({
                 </span>
               </div>
               <div className={styles.batchSummaryRow}>
-                <span className={styles.summaryLabel}>Mã mẻ:</span>
+                <span className={styles.summaryLabel}>Mã lô:</span>
                 <span className={styles.summaryValueMono}>
                   {batchData.code || batchData.batchCode || batchData.id || "—"}
                 </span>
@@ -201,11 +201,11 @@ export default function RetainedSampleModal({
               </div>
             </div>
 
-            {/* Chọn món ăn cụ thể nếu mẻ có nhiều món */}
+            {/* Chọn món ăn cụ thể nếu lô có nhiều món */}
             {batchData.dishes && batchData.dishes.length > 1 && (
               <div style={{ marginTop: 12 }}>
                 <label className={styles.fieldLabel} htmlFor="sample-dish-select">
-                  Chọn món ăn cần lưu mẫu trong mẻ này{" "}
+                  Chọn món ăn cần lưu mẫu trong lô này{" "}
                   <span className={styles.required}>*</span>
                 </label>
                 <div className={styles.selectWrap}>

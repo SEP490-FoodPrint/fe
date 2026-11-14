@@ -1,5 +1,4 @@
 import CookingProgressPreview from "../CreateBatch/CookingProgressPreview";
-import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
@@ -115,7 +114,7 @@ function CreateBatchSeparatePage() {
         });
       }
 
-      // Dữ liệu chi tiết món trong mẻ là nguồn chính; hỗ trợ cả bản ghi cũ một món.
+      // Dữ liệu chi tiết món trong lô là nguồn chính; hỗ trợ cả bản ghi cũ một món.
       const formattedBatches = existingBatches.map((b) => {
         const dishes = Array.isArray(b.dishes) && b.dishes.length
           ? b.dishes
@@ -217,7 +216,7 @@ function CreateBatchSeparatePage() {
       await loadTodayData();
 
       notice({
-        msg: "Đã đồng bộ các mẻ con theo cấu hình nấu riêng của BGH.",
+        msg: "Đã đồng bộ các lô chế biến theo cấu hình nấu riêng của BGH.",
         isSuccess: true,
       });
 
@@ -364,7 +363,6 @@ function CreateBatchSeparatePage() {
           subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
         />
 
-        <MenuScopeSelect menus={menuOptions} grades={grades} gradeValue={gradeId} value={menuId} onChange={(id, selectedGrade) => { setGradeId(selectedGrade); setMenuId(id) }} disabled={loading || Boolean(submittingId || actionLoadingId)} />
         {!loading && Object.entries(mealRequirements).map(([mealType, requirement]) => requirement.unfinalizedClasses?.length > 0 && (
           <p role="status" key={mealType}>{mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}: chưa chốt suất ăn cho {requirement.unfinalizedClasses.map((row) => row.name).join(", ")}.</p>
         ))}
@@ -381,10 +379,18 @@ function CreateBatchSeparatePage() {
           >
             <FoodPrintLoading />
           </div>
-        ) : gradeId && !menuOptions.some(menu => menu.gradeIds?.includes(gradeId) || !menu.gradeIds?.length) ? (
+        ) : (
+          <CreateBatchKanban
+            gradeMenus={menuOptions}
+            grades={grades}
+            gradeValue={gradeId}
+            gradeMenuId={menuId}
+            onGradeChange={(id, selectedGrade) => { setGradeId(selectedGrade); setMenuId(id); }}
+            gradeDisabled={Boolean(submittingId || actionLoadingId)}
+            emptyState={gradeId && !menuOptions.some(menu => menu.gradeIds?.includes(gradeId) || !menu.gradeIds?.length) ? (
           <p role="status">Khối này chưa có thực đơn trong tuần này.</p>
         ) : menuOptions.length > 1 && !menuId ? (
-          <p role="status">Chọn khối ở trên để xem tiến độ chế biến riêng.</p>
+          <p role="status">Chọn khối để xem tiến độ chế biến riêng.</p>
         ) : !hasAnyData && hasApprovedMenu ? (
           <p role="status">Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
         ) : !hasAnyData ? (
@@ -405,8 +411,7 @@ function CreateBatchSeparatePage() {
               </button>
             </div>
           </div>
-        ) : (
-          <CreateBatchKanban
+        ) : null}
             pendingDishes={pendingDishes}
             batches={batches}
             mealRequirements={mealRequirements}
