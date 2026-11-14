@@ -34,10 +34,6 @@ const EMPTY_FORM = {
 
 const PAGE_SIZE = 8
 
-/* ─── Phân giải nguyên liệu & gia vị đầy đủ cho xem chi tiết ───── */
-const getDishResolvedIngredients = dish => dish?.ingredients || []
-const getDishResolvedSeasonings = dish => dish?.seasonings || []
-
 export default function DishCatalogPage() {
   const [catalog, setCatalog] = useState([])
   const [categoryOptions, setCategoryOptions] = useState([])
@@ -931,10 +927,11 @@ export default function DishCatalogPage() {
 
       {/* Modal Xem chi tiết món ăn (Icon Mắt) */}
       {viewingDish && (() => {
-        const profile = viewingDish.gradeRecipes?.find(item => item.gradeId === detailGradeId)
+        const selectedGradeId = detailGradeId || grades[0]?.id || ""
+        const profile = viewingDish.gradeRecipes?.find(item => item.gradeId === selectedGradeId)
         const selectedLines = profile?.lines || []
-        const resolvedIngs = detailGradeId ? selectedLines.filter(line => line.ingredientRole === "MAIN").map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity })) : getDishResolvedIngredients(viewingDish)
-        const resolvedSeas = detailGradeId ? selectedLines.filter(line => line.ingredientRole === "SEASONING").map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity })) : getDishResolvedSeasonings(viewingDish)
+        const resolvedIngs = selectedLines.filter(line => line.ingredientRole === "MAIN").map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity }))
+        const resolvedSeas = selectedLines.filter(line => line.ingredientRole === "SEASONING").map(line => ({ ...line, id: line.ingredientEntryId, portionQty: line.requiredQuantity }))
 
         return (
           <div
@@ -980,15 +977,15 @@ export default function DishCatalogPage() {
 
               {/* Body chi tiết */}
               <div className={styles.detailModalBody}>
-                <label className={styles.formLabel}>Định lượng áp dụng <select className={styles.formSelect} value={detailGradeId} onChange={event => setDetailGradeId(event.target.value)}><option value="">Bộ định lượng gốc</option>{grades.map(grade => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></label>
+                <label className={styles.formLabel}>Định lượng áp dụng <select className={styles.formSelect} value={selectedGradeId} onChange={event => setDetailGradeId(event.target.value)} disabled={!grades.length}><option value="" disabled>Chưa có khối lớp</option>{grades.map(grade => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></label>
                 {gradeError && <p role="alert">{gradeError}</p>}
-                {detailGradeId && !profile && <p role="status">Khối này chưa có định lượng cho món ăn.</p>}
+                {selectedGradeId && !profile && <p role="status">Khối này chưa có định lượng cho món ăn.</p>}
                 {/* Lưới thông số tổng quan */}
                 <div className={styles.detailOverviewGrid}>
                   <div className={styles.overviewItem}>
                     <span className={styles.overviewItemLabel}>Nhà cung cấp chính</span>
                     <div className={styles.overviewItemVal}>
-                      <span>{(detailGradeId ? [...new Set(resolvedIngs.map(line => line.supplierName).filter(Boolean))].join(", ") : viewingDish.supplierName) || "Chưa xác định nhà cung cấp"}</span>
+                      <span>{[...new Set(resolvedIngs.map(line => line.supplierName).filter(Boolean))].join(", ") || "Chưa xác định nhà cung cấp"}</span>
                       {viewingDish.supplierBadge && (
                         <span className={styles.supplierBadgePill}>
                           {viewingDish.supplierBadge}
