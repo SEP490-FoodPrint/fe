@@ -1,40 +1,30 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
-import { Alert, Button } from "@mui/material"
+import { Button, CircularProgress } from "@mui/material"
 import {
   EditOutlined,
   EmailOutlined,
   KeyboardArrowLeft,
   LocationOnOutlined,
+  PauseCircleOutlined,
   PersonOutlined,
   PhoneOutlined,
-  VerifiedUserOutlined,
 } from "@mui/icons-material"
 import ROUTER from "src/router/ROUTER"
 import {
-  formatDateVi,
-  getCertificationHealth,
-  getCooperationStatusLabel,
-  getFacilityAttention,
-  getFacilityTypeLabel,
+  formatDateTimeVi,
+  getFacilityStatusLabel,
 } from "src/services/SourceFacilityService"
 import styles from "./FacilityDetailView.module.scss"
-
-function getCertStatusClass(status) {
-  if (status === "EXPIRED") return styles.certExpired
-  if (status === "EXPIRING_SOON") return styles.certExpiringSoon
-  if (status === "MISSING_DATE") return styles.certExpiringSoon
-  return styles.certValid
-}
 
 function FacilityDetailView({
   facility,
   loading = false,
   error = null,
-  demoNotice = "",
   onRetry,
   onEdit,
+  onDeactivate,
 }) {
   if (loading) {
     return (
@@ -52,15 +42,26 @@ function FacilityDetailView({
           </div>
         </div>
         <div className={styles.surfaceCard}>
-          <p className={styles.stateMessage} role="status" aria-live="polite">
-            Đang tải thông tin cơ sở nguồn cung...
-          </p>
+          <div className={styles.stateBox} role="status" aria-live="polite">
+            <CircularProgress size={28} />
+            <p className={styles.stateDesc}>
+              Đang tải thông tin cơ sở nguồn cung...
+            </p>
+          </div>
         </div>
       </div>
     )
   }
 
   if (error || !facility) {
+    const status = error?.status
+    const errorTitle =
+      status === 403
+        ? "Không có quyền truy cập"
+        : status === 404 || status === 400
+          ? "Không tìm thấy cơ sở nguồn cung"
+          : "Không thể tải thông tin cơ sở nguồn cung"
+
     return (
       <div className={styles.detailPage}>
         <div className={styles.detailHeaderBar}>
@@ -77,15 +78,13 @@ function FacilityDetailView({
         </div>
         <div className={styles.surfaceCard}>
           <div className={styles.stateBox}>
-            <p className={styles.stateTitle}>
-              Không tìm thấy cơ sở nguồn cung
-            </p>
+            <p className={styles.stateTitle}>{errorTitle}</p>
             <p className={styles.stateDesc}>
               {error?.message ||
-                "Cơ sở bạn đang tìm không tồn tại hoặc đã bị xóa khỏi phiên làm việc."}
+                "Cơ sở bạn đang tìm không tồn tại hoặc đã bị xóa."}
             </p>
             <div className={styles.stateActions}>
-              {onRetry && error && error?.response?.status !== 404 && (
+              {onRetry && status !== 404 && status !== 403 && status !== 400 && (
                 <Button variant="outlined" color="primary" onClick={onRetry}>
                   Thử lại
                 </Button>
@@ -105,14 +104,7 @@ function FacilityDetailView({
     )
   }
 
-  const attention = getFacilityAttention(facility)
-  const isActive = facility.cooperationStatus !== "PAUSED"
-  const ingredients = Array.isArray(facility.suppliedIngredients)
-    ? facility.suppliedIngredients
-    : []
-  const certifications = Array.isArray(facility.certifications)
-    ? facility.certifications
-    : []
+  const isActive = facility.status === "ACTIVE"
 
   return (
     <div className={styles.detailPage}>
@@ -127,322 +119,116 @@ function FacilityDetailView({
           </Link>
           <div className={styles.titleBlock}>
             <div className={styles.titleMetaRow}>
-              <span className={styles.codeBadge}>{facility.code}</span>
-              <span className={styles.typeChip}>
-                {getFacilityTypeLabel(facility.facilityType)}
+              <span className={styles.codeBadge}>
+                {facility.facilityCode || "Chưa cấp mã"}
               </span>
               <span
                 className={`${styles.statusBadge} ${
-                  isActive ? styles.statusActive : styles.statusPaused
+                  isActive ? styles.statusActive : styles.statusInactive
                 }`}
               >
-                {getCooperationStatusLabel(facility.cooperationStatus)}
+                {getFacilityStatusLabel(facility.status)}
               </span>
             </div>
             <h1 className={styles.detailTitle}>{facility.name}</h1>
           </div>
         </div>
 
-        <Button
-          type="button"
-          variant="contained"
-          color="primary"
-          startIcon={<EditOutlined />}
-          onClick={() => onEdit?.(facility)}
-          className={styles.editButton}
-        >
-          Chỉnh sửa
-        </Button>
+        <div className={styles.headerActions}>
+          {isActive && (
+            <Button
+              type="button"
+              variant="outlined"
+              color="warning"
+              startIcon={<PauseCircleOutlined />}
+              onClick={() => onDeactivate?.(facility)}
+            >
+              Dừng hoạt động
+            </Button>
+          )}
+          <Button
+            type="button"
+            variant="contained"
+            color="primary"
+            startIcon={<EditOutlined />}
+            onClick={() => onEdit?.(facility)}
+          >
+            Chỉnh sửa
+          </Button>
+        </div>
       </div>
 
-      {demoNotice && (
-        <div className={styles.demoNoticeBar} data-demo-source="mock">
-          <span className={styles.demoBadge}>Dữ liệu minh họa</span>
-          <span className={styles.demoText}>{demoNotice}</span>
-        </div>
-      )}
-
-      {attention.needsAttention && (
-        <Alert
-          severity={attention.severity === "error" ? "error" : "warning"}
-          className={styles.attentionAlert}
-        >
-          <strong className={styles.alertHeading}>
-            Cảnh báo hồ sơ cơ sở: {attention.primaryWarning}
-          </strong>
-          <ul className={styles.alertReasons}>
-            {attention.reasons.map((reason, idx) => (
-              <li key={idx}>{reason}</li>
-            ))}
-          </ul>
-        </Alert>
-      )}
-
-      {/* Section 1: Thông tin cơ sở & Liên hệ */}
-      <section
-        className={styles.surfaceCard}
-        aria-labelledby="facility-info-heading"
-      >
-        <div className={styles.sectionHeader}>
+      <div className={styles.detailGrid}>
+        <section className={styles.surfaceCard} aria-labelledby="facility-info-heading">
           <h2 id="facility-info-heading" className={styles.sectionTitle}>
-            Thông tin cơ sở và liên hệ
+            Thông tin cơ sở
           </h2>
-          <span className={styles.updatedAt}>
-            Cập nhật: {formatDateVi(facility.updatedAt)}
-          </span>
-        </div>
 
-        <div className={styles.infoGrid}>
-          <div className={styles.infoField}>
-            <span className={styles.fieldLabel}>Mã cơ sở</span>
-            <strong className={`${styles.fieldValue} ${styles.tabularText}`}>
-              {facility.code}
-            </strong>
-          </div>
-
-          <div className={styles.infoField}>
-            <span className={styles.fieldLabel}>Loại cơ sở</span>
-            <strong className={styles.fieldValue}>
-              {getFacilityTypeLabel(facility.facilityType)}
-            </strong>
-          </div>
-
-          <div className={styles.infoField}>
-            <span className={styles.fieldLabel}>Trạng thái hợp tác</span>
-            <strong className={styles.fieldValue}>
-              {getCooperationStatusLabel(facility.cooperationStatus)}
-            </strong>
-          </div>
-
-          <div className={styles.infoField}>
-            <span className={styles.fieldLabel}>Người liên hệ</span>
-            <strong className={styles.fieldValueIcon}>
-              <PersonOutlined className={styles.fieldIcon} aria-hidden="true" />
-              <span>{facility.contactName}</span>
-            </strong>
-          </div>
-
-          <div className={styles.infoField}>
-            <span className={styles.fieldLabel}>Số điện thoại</span>
-            <strong
-              className={`${styles.fieldValueIcon} ${styles.tabularText}`}
-            >
-              <PhoneOutlined className={styles.fieldIcon} aria-hidden="true" />
-              <span>{facility.contactPhone}</span>
-            </strong>
-          </div>
-
-          <div className={styles.infoField}>
-            <span className={styles.fieldLabel}>Email liên hệ</span>
-            <strong className={styles.fieldValueIcon}>
-              <EmailOutlined className={styles.fieldIcon} aria-hidden="true" />
-              <span>{facility.contactEmail || "Chưa cập nhật"}</span>
-            </strong>
-          </div>
-
-          <div className={`${styles.infoField} ${styles.fullSpan}`}>
-            <span className={styles.fieldLabel}>Địa chỉ cơ sở</span>
-            <strong className={styles.fieldValueIcon}>
-              <LocationOnOutlined
-                className={styles.fieldIcon}
-                aria-hidden="true"
-              />
-              <span>{facility.address}</span>
-            </strong>
-          </div>
-
-          {facility.operationalNotes && (
-            <div className={`${styles.infoField} ${styles.fullSpan}`}>
-              <span className={styles.fieldLabel}>Ghi chú vận hành</span>
-              <p className={styles.noteParagraph}>
-                {facility.operationalNotes}
-              </p>
+          <dl className={styles.infoList}>
+            <div className={styles.infoRow}>
+              <dt>Mã cơ sở</dt>
+              <dd>{facility.facilityCode || "Chưa cấp mã"}</dd>
             </div>
-          )}
-        </div>
-      </section>
+            <div className={styles.infoRow}>
+              <dt>Tên cơ sở</dt>
+              <dd>{facility.name}</dd>
+            </div>
+            <div className={styles.infoRow}>
+              <dt>Trạng thái</dt>
+              <dd>{getFacilityStatusLabel(facility.status)}</dd>
+            </div>
+            <div className={styles.infoRow}>
+              <dt>Địa chỉ</dt>
+              <dd className={styles.addressValue}>
+                <LocationOnOutlined className={styles.inlineIcon} />
+                <span>{facility.address || "Chưa cập nhật"}</span>
+              </dd>
+            </div>
+            <div className={styles.infoRow}>
+              <dt>Ngày tạo</dt>
+              <dd className={styles.numericValue}>
+                {formatDateTimeVi(facility.createdAt)}
+              </dd>
+            </div>
+            <div className={styles.infoRow}>
+              <dt>Cập nhật lần cuối</dt>
+              <dd className={styles.numericValue}>
+                {formatDateTimeVi(facility.updatedAt)}
+              </dd>
+            </div>
+          </dl>
+        </section>
 
-      {/* Section 2: Nguyên liệu cung ứng */}
-      <section
-        className={styles.surfaceCard}
-        aria-labelledby="facility-ingredients-heading"
-      >
-        <div className={styles.sectionHeader}>
-          <h2 id="facility-ingredients-heading" className={styles.sectionTitle}>
-            Nguyên liệu cung ứng
+        <section className={styles.surfaceCard} aria-labelledby="facility-contact-heading">
+          <h2 id="facility-contact-heading" className={styles.sectionTitle}>
+            Thông tin liên hệ
           </h2>
-          <span className={styles.countMeta}>
-            {ingredients.length} nguyên liệu
-          </span>
-        </div>
 
-        {ingredients.length === 0 ? (
-          <p className={styles.emptySectionText}>
-            Chưa khai báo danh mục nguyên liệu cung ứng từ cơ sở này.
-          </p>
-        ) : (
-          <>
-            <div className={styles.subTableWrap}>
-              <table className={styles.subTable}>
-                <thead>
-                  <tr>
-                    <th scope="col">Tên nguyên liệu</th>
-                    <th scope="col">Nhóm</th>
-                    <th scope="col">Đơn vị tính</th>
-                    <th scope="col">Quy chuẩn / Ghi chú</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {ingredients.map(item => (
-                    <tr key={item.id || item.name}>
-                      <td className={styles.strongCell}>{item.name}</td>
-                      <td>{item.group || "—"}</td>
-                      <td>{item.unit || "—"}</td>
-                      <td>{item.standard || "Theo tiêu chuẩn hợp đồng"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <dl className={styles.infoList}>
+            <div className={styles.infoRow}>
+              <dt>Người liên hệ</dt>
+              <dd className={styles.iconValue}>
+                <PersonOutlined className={styles.inlineIcon} />
+                <span>{facility.contactName || "Chưa cập nhật"}</span>
+              </dd>
             </div>
-
-            <div className={styles.subCardList}>
-              {ingredients.map(item => (
-                <div key={item.id || item.name} className={styles.subCardItem}>
-                  <div className={styles.subCardTop}>
-                    <strong>{item.name}</strong>
-                    <span className={styles.unitTag}>{item.unit || "—"}</span>
-                  </div>
-                  <p className={styles.subCardMeta}>
-                    {item.group || "Nguyên liệu thực phẩm"}
-                    {item.standard ? ` · ${item.standard}` : ""}
-                  </p>
-                </div>
-              ))}
+            <div className={styles.infoRow}>
+              <dt>Số điện thoại</dt>
+              <dd className={styles.iconValue}>
+                <PhoneOutlined className={styles.inlineIcon} />
+                <span>{facility.contactPhone || "Chưa cập nhật"}</span>
+              </dd>
             </div>
-          </>
-        )}
-      </section>
-
-      {/* Section 3: Chứng nhận & Ngày hết hạn */}
-      <section
-        className={styles.surfaceCard}
-        aria-labelledby="facility-certs-heading"
-      >
-        <div className={styles.sectionHeader}>
-          <h2 id="facility-certs-heading" className={styles.sectionTitle}>
-            Hồ sơ chứng nhận và ngày hết hạn
-          </h2>
-          <span className={styles.countMeta}>
-            {certifications.length} chứng nhận
-          </span>
-        </div>
-
-        {certifications.length === 0 ? (
-          <div className={styles.emptyCertBox}>
-            <VerifiedUserOutlined
-              className={styles.emptyCertIcon}
-              aria-hidden="true"
-            />
-            <p className={styles.emptySectionText}>
-              Cơ sở chưa có chứng nhận được khai báo. Nhấn &ldquo;Chỉnh sửa&rdquo; để bổ
-              sung hồ sơ chứng nhận và ngày hết hạn.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className={styles.subTableWrap}>
-              <table className={styles.subTable}>
-                <thead>
-                  <tr>
-                    <th scope="col">Loại chứng nhận</th>
-                    <th scope="col">Số giấy chứng nhận</th>
-                    <th scope="col">Tổ chức cấp</th>
-                    <th scope="col">Ngày cấp</th>
-                    <th scope="col">Ngày hết hạn</th>
-                    <th scope="col">Hiệu lực</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {certifications.map(cert => {
-                    const health = getCertificationHealth(cert)
-                    return (
-                      <tr key={cert.id || cert.certificateNumber}>
-                        <td>
-                          <div className={styles.certNameCell}>
-                            <strong>{cert.name}</strong>
-                            {cert.note && (
-                              <span className={styles.certNote}>{cert.note}</span>
-                            )}
-                          </div>
-                        </td>
-                        <td className={styles.tabularText}>
-                          {cert.certificateNumber || "—"}
-                        </td>
-                        <td>{cert.issuer || "Chưa cập nhật"}</td>
-                        <td className={styles.tabularText}>
-                          {formatDateVi(cert.issuedDate)}
-                        </td>
-                        <td className={styles.tabularText}>
-                          {formatDateVi(cert.expiryDate)}
-                        </td>
-                        <td>
-                          <div className={styles.certStatusStack}>
-                            <span
-                              className={`${styles.certStatusBadge} ${getCertStatusClass(
-                                health.status,
-                              )}`}
-                            >
-                              {health.label}
-                            </span>
-                            <span className={styles.certDaysHint}>
-                              {health.detailText}
-                            </span>
-                          </div>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+            <div className={styles.infoRow}>
+              <dt>Email liên hệ</dt>
+              <dd className={styles.iconValue}>
+                <EmailOutlined className={styles.inlineIcon} />
+                <span>{facility.contactEmail || "Chưa cập nhật"}</span>
+              </dd>
             </div>
-
-            <div className={styles.subCardList}>
-              {certifications.map(cert => {
-                const health = getCertificationHealth(cert)
-                return (
-                  <div
-                    key={cert.id || cert.certificateNumber}
-                    className={styles.subCardItem}
-                  >
-                    <div className={styles.subCardTop}>
-                      <strong>{cert.name}</strong>
-                      <span
-                        className={`${styles.certStatusBadge} ${getCertStatusClass(
-                          health.status,
-                        )}`}
-                      >
-                        {health.label}
-                      </span>
-                    </div>
-                    <p className={`${styles.subCardMeta} ${styles.tabularText}`}>
-                      Số CN: {cert.certificateNumber || "—"} · Hết hạn:{" "}
-                      {formatDateVi(cert.expiryDate)} ({health.detailText})
-                    </p>
-                    {cert.issuer && (
-                      <p className={styles.subCardMeta}>
-                        Tổ chức cấp: {cert.issuer}
-                      </p>
-                    )}
-                    {cert.note && (
-                      <p className={styles.subCardMeta}>{cert.note}</p>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
-      </section>
+          </dl>
+        </section>
+      </div>
     </div>
   )
 }
@@ -450,10 +236,13 @@ function FacilityDetailView({
 FacilityDetailView.propTypes = {
   facility: PropTypes.object,
   loading: PropTypes.bool,
-  error: PropTypes.object,
-  demoNotice: PropTypes.string,
+  error: PropTypes.shape({
+    status: PropTypes.number,
+    message: PropTypes.string,
+  }),
   onRetry: PropTypes.func,
   onEdit: PropTypes.func,
+  onDeactivate: PropTypes.func,
 }
 
 export default FacilityDetailView

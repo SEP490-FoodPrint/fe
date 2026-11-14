@@ -2,7 +2,6 @@ import React from "react"
 import PropTypes from "prop-types"
 import {
   Button,
-  Chip,
   IconButton,
   InputAdornment,
   MenuItem,
@@ -13,23 +12,15 @@ import {
   FilterAltOffOutlined,
   KeyboardArrowDown,
   Search,
-  WarningAmberOutlined,
 } from "@mui/icons-material"
-import {
-  COOPERATION_STATUSES,
-  FACILITY_TYPES,
-} from "src/services/SourceFacilityService/mockData"
+import { FACILITY_STATUS_OPTIONS } from "src/services/SourceFacilityService"
 import styles from "./FacilityFilterBar.module.scss"
 
 function FacilityFilterBar({
   searchQuery,
   onSearchChange,
-  typeFilter,
-  onTypeFilterChange,
   statusFilter,
   onStatusFilterChange,
-  attentionOnly,
-  onToggleAttentionOnly,
   hasActiveFilters,
   onResetFilters,
 }) {
@@ -44,7 +35,7 @@ function FacilityFilterBar({
             id="facility-search-input"
             value={searchQuery}
             onChange={event => onSearchChange?.(event.target.value)}
-            placeholder="Tìm theo tên, mã cơ sở hoặc địa chỉ..."
+            placeholder="Tìm theo tên hoặc mã cơ sở..."
             size="small"
             fullWidth
             slotProps={{
@@ -72,37 +63,8 @@ function FacilityFilterBar({
         </div>
 
         <div className={styles.selectFieldWrap}>
-          <label htmlFor="facility-type-select" className={styles.fieldLabel}>
-            Loại cơ sở
-          </label>
-          <TextField
-            id="facility-type-select"
-            select
-            value={typeFilter}
-            onChange={event => onTypeFilterChange?.(event.target.value)}
-            size="small"
-            fullWidth
-            slotProps={{
-              select: {
-                IconComponent: KeyboardArrowDown,
-                SelectDisplayProps: {
-                  "aria-label": "Lọc theo loại cơ sở",
-                },
-              },
-            }}
-          >
-            <MenuItem value="ALL">Tất cả loại cơ sở</MenuItem>
-            {FACILITY_TYPES.map(item => (
-              <MenuItem key={item.value} value={item.value}>
-                {item.label}
-              </MenuItem>
-            ))}
-          </TextField>
-        </div>
-
-        <div className={styles.selectFieldWrap}>
           <label htmlFor="facility-status-select" className={styles.fieldLabel}>
-            Trạng thái hợp tác
+            Trạng thái hoạt động
           </label>
           <TextField
             id="facility-status-select"
@@ -115,44 +77,31 @@ function FacilityFilterBar({
               select: {
                 IconComponent: KeyboardArrowDown,
                 SelectDisplayProps: {
-                  "aria-label": "Lọc theo trạng thái hợp tác",
+                  "aria-label": "Lọc theo trạng thái hoạt động",
                 },
               },
             }}
           >
-            <MenuItem value="ALL">Tất cả trạng thái</MenuItem>
-            {COOPERATION_STATUSES.map(item => (
+            {FACILITY_STATUS_OPTIONS.map(item => (
               <MenuItem key={item.value} value={item.value}>
                 {item.label}
               </MenuItem>
             ))}
           </TextField>
         </div>
-      </div>
-
-      <div className={styles.filterSecondaryRow}>
-        <Chip
-          icon={<WarningAmberOutlined />}
-          label="Chỉ xem hồ sơ cần chú ý"
-          clickable
-          color={attentionOnly ? "warning" : "default"}
-          variant={attentionOnly ? "filled" : "outlined"}
-          aria-pressed={attentionOnly}
-          onClick={onToggleAttentionOnly}
-          className={styles.attentionChip}
-        />
 
         {hasActiveFilters && (
-          <Button
-            type="button"
-            variant="text"
-            size="small"
-            startIcon={<FilterAltOffOutlined />}
-            onClick={onResetFilters}
-            className={styles.resetButton}
-          >
-            Xóa bộ lọc
-          </Button>
+          <div className={styles.resetWrap}>
+            <Button
+              size="small"
+              variant="text"
+              startIcon={<FilterAltOffOutlined />}
+              onClick={onResetFilters}
+              className={styles.resetButton}
+            >
+              Xóa bộ lọc
+            </Button>
+          </div>
         )}
       </div>
     </div>
@@ -162,14 +111,10 @@ function FacilityFilterBar({
 FacilityFilterBar.propTypes = {
   searchQuery: PropTypes.string.isRequired,
   onSearchChange: PropTypes.func.isRequired,
-  typeFilter: PropTypes.string.isRequired,
-  onTypeFilterChange: PropTypes.func.isRequired,
   statusFilter: PropTypes.string.isRequired,
   onStatusFilterChange: PropTypes.func.isRequired,
-  attentionOnly: PropTypes.bool.isRequired,
-  onToggleAttentionOnly: PropTypes.func.isRequired,
-  hasActiveFilters: PropTypes.bool.isRequired,
-  onResetFilters: PropTypes.func.isRequired,
+  hasActiveFilters: PropTypes.bool,
+  onResetFilters: PropTypes.func,
 }
 
 export default FacilityFilterBar

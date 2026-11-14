@@ -54,44 +54,6 @@
   flex-shrink: 0;
 }
 
-.sourceFacilitiesDemoBanner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-info-border);
-  background: var(--color-info-bg);
-}
-
-.sourceFacilitiesDemoLeft {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  font-size: var(--text-xs);
-  color: var(--text-secondary);
-}
-
-.sourceFacilitiesDemoBadge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--color-info-border);
-  background: var(--bg-surface);
-  font-weight: var(--font-semibold);
-  color: var(--color-info);
-}
-
-.sourceFacilitiesResetDemoBtn {
-  font-size: var(--text-xs) !important;
-  font-weight: var(--font-semibold) !important;
-  color: var(--color-primary) !important;
-}
-
 .sourceFacilitiesSurface {
   display: flex;
   flex-direction: column;
@@ -102,15 +64,48 @@
   overflow: hidden;
 }
 
-.sourceFacilitiesLoading {
-  margin: 0;
-  padding: var(--space-10) var(--space-6);
+.sourceFacilitiesErrorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
-  font-size: var(--text-sm);
-  color: var(--text-muted);
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-4);
+  background: var(--bg-surface);
 }
 
-@media (max-width: 900px) {
+.sourceFacilitiesErrorTitle {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.sourceFacilitiesErrorDesc {
+  margin: 0;
+  max-width: 460px;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .sourceFacilitiesSurface {
+    gap: var(--space-3);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  .sourceFacilitiesErrorState {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+  }
+}
+
+@media (max-width: 600px) {
   .sourceFacilitiesPage {
     gap: var(--space-4);
   }
@@ -121,15 +116,11 @@
     gap: var(--space-3);
   }
 
-  .sourceFacilitiesAddBtn {
-    align-self: flex-start;
+  .sourceFacilitiesTitle {
+    font-size: var(--text-xl);
   }
 
-  .sourceFacilitiesSurface {
-    background: transparent;
-    border: 0;
-    border-radius: 0;
-    gap: var(--space-3);
-    overflow: visible;
+  .sourceFacilitiesAddBtn {
+    width: 100%;
   }
 }

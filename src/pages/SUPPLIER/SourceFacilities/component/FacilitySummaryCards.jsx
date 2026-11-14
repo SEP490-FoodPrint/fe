@@ -4,42 +4,34 @@ import {
   CheckCircleOutlined,
   PauseCircleOutlined,
   StorefrontOutlined,
-  WarningAmberOutlined,
 } from "@mui/icons-material"
 import styles from "./FacilitySummaryCards.module.scss"
 
 const CARD_ITEMS = [
   {
     key: "ALL",
-    label: "Tổng số cơ sở",
+    label: "Cơ sở trên trang",
     statKey: "total",
     icon: StorefrontOutlined,
     toneClass: "toneNeutral",
   },
   {
     key: "ACTIVE",
-    label: "Đang hợp tác",
+    label: "Đang hoạt động",
     statKey: "active",
     icon: CheckCircleOutlined,
     toneClass: "toneSuccess",
   },
   {
-    key: "PAUSED",
-    label: "Tạm ngừng",
-    statKey: "paused",
+    key: "INACTIVE",
+    label: "Ngừng hoạt động",
+    statKey: "inactive",
     icon: PauseCircleOutlined,
     toneClass: "toneMuted",
   },
-  {
-    key: "ATTENTION",
-    label: "Hồ sơ cần chú ý",
-    statKey: "attention",
-    icon: WarningAmberOutlined,
-    toneClass: "toneWarning",
-  },
 ]
 
-function FacilitySummaryCards({ stats, activeQuickFilter = "ALL", onSelectFilter }) {
+function FacilitySummaryCards({ stats, activeStatusFilter = "ALL", onSelectStatus }) {
   return (
     <section
       className={styles.summaryGrid}
@@ -48,7 +40,7 @@ function FacilitySummaryCards({ stats, activeQuickFilter = "ALL", onSelectFilter
       {CARD_ITEMS.map(card => {
         const Icon = card.icon
         const value = stats?.[card.statKey] ?? 0
-        const isSelected = activeQuickFilter === card.key
+        const isSelected = activeStatusFilter === card.key
 
         return (
           <button
@@ -58,7 +50,7 @@ function FacilitySummaryCards({ stats, activeQuickFilter = "ALL", onSelectFilter
               isSelected ? styles.isSelected : ""
             }`}
             aria-pressed={isSelected}
-            onClick={() => onSelectFilter?.(card.key)}
+            onClick={() => onSelectStatus?.(card.key)}
           >
             <div className={styles.statTopRow}>
               <span className={styles.statLabel}>{card.label}</span>
@@ -78,11 +70,10 @@ FacilitySummaryCards.propTypes = {
   stats: PropTypes.shape({
     total: PropTypes.number,
     active: PropTypes.number,
-    paused: PropTypes.number,
-    attention: PropTypes.number,
+    inactive: PropTypes.number,
   }),
-  activeQuickFilter: PropTypes.string,
-  onSelectFilter: PropTypes.func,
+  activeStatusFilter: PropTypes.string,
+  onSelectStatus: PropTypes.func,
 }
 
 export default FacilitySummaryCards

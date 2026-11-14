@@ -1,32 +1,44 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
-import { Button, IconButton, Tooltip } from "@mui/material"
+import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material"
 import {
   Add,
+  ChevronLeft,
+  ChevronRight,
   EditOutlined,
-  LocationOnOutlined,
-  PersonOutlined,
-  VerifiedUserOutlined,
+  PauseCircleOutlined,
   VisibilityOutlined,
-  WarningAmberOutlined,
 } from "@mui/icons-material"
 import ROUTER from "src/router/ROUTER"
 import {
-  getCooperationStatusLabel,
-  getFacilityAttention,
-  getFacilityTypeLabel,
+  formatDateTimeVi,
+  formatDateVi,
+  getFacilityStatusLabel,
 } from "src/services/SourceFacilityService"
 import styles from "./FacilityListView.module.scss"
 
 function FacilityListView({
   facilities,
-  totalCount,
+  pageTotalCount,
+  loading,
   hasActiveFilters,
+  pagination,
   onResetFilters,
   onCreate,
   onEdit,
+  onDeactivate,
+  onPageChange,
 }) {
+  if (loading && facilities.length === 0) {
+    return (
+      <div className={styles.loadingState} role="status" aria-live="polite">
+        <CircularProgress size={28} />
+        <p className={styles.loadingText}>Đang tải danh sách cơ sở nguồn cung...</p>
+      </div>
+    )
+  }
+
   if (facilities.length === 0) {
     return (
       <div className={styles.emptyState}>
@@ -37,8 +49,8 @@ function FacilityListView({
         </p>
         <p className={styles.emptyDesc}>
           {hasActiveFilters
-            ? "Hãy thử thay đổi từ khóa tìm kiếm, loại cơ sở hoặc trạng thái hợp tác."
-            : "Nhấn \"Thêm cơ sở\" để khai báo vùng trồng, trang trại, xưởng sơ chế hoặc kho bảo quản."}
+            ? "Không có cơ sở nào trên trang hiện tại khớp với từ khóa hoặc trạng thái đã chọn."
+            : "Nhấn \"Thêm cơ sở\" để khai báo cơ sở nguồn cung cho nhà cung cấp."}
         </p>
         {hasActiveFilters ? (
           <Button
@@ -76,20 +88,14 @@ function FacilityListView({
               <th scope="col" className={styles.colName}>
                 Tên cơ sở
               </th>
-              <th scope="col" className={styles.colType}>
-                Loại cơ sở
-              </th>
-              <th scope="col" className={styles.colAddress}>
-                Địa chỉ
-              </th>
-              <th scope="col" className={styles.colContact}>
-                Người liên hệ
-              </th>
-              <th scope="col" className={styles.colCert}>
-                Chứng nhận
-              </th>
               <th scope="col" className={styles.colStatus}>
-                Trạng thái hợp tác
+                Trạng thái
+              </th>
+              <th scope="col" className={styles.colDate}>
+                Ngày tạo
+              </th>
+              <th scope="col" className={styles.colDate}>
+                Cập nhật lần cuối
               </th>
               <th scope="col" className={styles.colActions}>
                 Thao tác
@@ -98,88 +104,42 @@ function FacilityListView({
           </thead>
           <tbody>
             {facilities.map(facility => {
-              const detailUrl = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${encodeURIComponent(
-                facility.id,
-              )}`
-              const attention = getFacilityAttention(facility)
-              const isActive = facility.cooperationStatus !== "PAUSED"
-              const certs = Array.isArray(facility.certifications)
-                ? facility.certifications
-                : []
+              const isActive = facility.status === "ACTIVE"
+              const detailPath = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${facility.id}`
 
               return (
                 <tr key={facility.id} className={styles.tableRow}>
                   <td className={styles.colCode}>
-                    <span className={styles.codeBadge}>{facility.code}</span>
-                  </td>
-
-                  <td className={styles.colName}>
-                    <div className={styles.nameStack}>
-                      <Link to={detailUrl} className={styles.nameLink}>
-                        {facility.name}
-                      </Link>
-                      {attention.needsAttention && (
-                        <span
-                          className={`${styles.attentionInline} ${
-                            attention.severity === "error"
-                              ? styles.attentionError
-                              : styles.attentionWarning
-                          }`}
-                        >
-                          <WarningAmberOutlined className={styles.inlineIcon} />
-                          <span>{attention.primaryWarning}</span>
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  <td className={styles.colType}>
-                    <span className={styles.typeChip}>
-                      {getFacilityTypeLabel(facility.facilityType)}
+                    <span className={styles.codeBadge}>
+                      {facility.facilityCode || "Chưa cấp mã"}
                     </span>
                   </td>
 
-                  <td className={styles.colAddress}>
-                    <span className={styles.addressText}>{facility.address}</span>
-                  </td>
-
-                  <td className={styles.colContact}>
-                    <div className={styles.contactStack}>
-                      <span className={styles.contactName}>
-                        {facility.contactName}
-                      </span>
-                      <span className={styles.contactPhone}>
-                        {facility.contactPhone}
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className={styles.colCert}>
-                    {certs.length > 0 ? (
-                      <div className={styles.certBadges}>
-                        {certs.slice(0, 2).map(cert => (
-                          <span key={cert.id} className={styles.certPill}>
-                            {cert.name}
-                          </span>
-                        ))}
-                        {certs.length > 2 && (
-                          <span className={styles.certMore}>
-                            +{certs.length - 2}
-                          </span>
-                        )}
-                      </div>
-                    ) : (
-                      <span className={styles.certEmpty}>Chưa có chứng nhận</span>
-                    )}
+                  <td className={styles.colName}>
+                    <Link to={detailPath} className={styles.nameLink}>
+                      {facility.name}
+                    </Link>
                   </td>
 
                   <td className={styles.colStatus}>
                     <span
-                      className={`${styles.statusBadge} ${
-                        isActive ? styles.statusActive : styles.statusPaused
+                      className={`${styles.statusPill} ${
+                        isActive ? styles.statusActive : styles.statusInactive
                       }`}
                     >
-                      {getCooperationStatusLabel(facility.cooperationStatus)}
+                      {getFacilityStatusLabel(facility.status)}
+                    </span>
+                  </td>
+
+                  <td className={styles.colDate}>
+                    <span className={styles.dateText}>
+                      {formatDateVi(facility.createdAt)}
+                    </span>
+                  </td>
+
+                  <td className={styles.colDate}>
+                    <span className={styles.dateText}>
+                      {formatDateTimeVi(facility.updatedAt)}
                     </span>
                   </td>
 
@@ -188,7 +148,7 @@ function FacilityListView({
                       <Tooltip title="Xem chi tiết">
                         <IconButton
                           component={Link}
-                          to={detailUrl}
+                          to={detailPath}
                           size="small"
                           aria-label={`Xem chi tiết ${facility.name}`}
                           className={styles.actionIconBtn}
@@ -196,9 +156,8 @@ function FacilityListView({
                           <VisibilityOutlined fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Chỉnh sửa cơ sở">
+                      <Tooltip title="Chỉnh sửa">
                         <IconButton
-                          type="button"
                           size="small"
                           aria-label={`Chỉnh sửa ${facility.name}`}
                           onClick={() => onEdit?.(facility)}
@@ -207,6 +166,18 @@ function FacilityListView({
                           <EditOutlined fontSize="small" />
                         </IconButton>
                       </Tooltip>
+                      {isActive && (
+                        <Tooltip title="Dừng hoạt động">
+                          <IconButton
+                            size="small"
+                            aria-label={`Dừng hoạt động ${facility.name}`}
+                            onClick={() => onDeactivate?.(facility)}
+                            className={`${styles.actionIconBtn} ${styles.deactivateIconBtn}`}
+                          >
+                            <PauseCircleOutlined fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -216,142 +187,124 @@ function FacilityListView({
         </table>
       </div>
 
-      {/* Compact Card List for Tablet & Mobile */}
-      <div className={styles.compactList}>
+      <div className={styles.mobileList} aria-label="Danh sách cơ sở nguồn cung">
         {facilities.map(facility => {
-          const detailUrl = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${encodeURIComponent(
-            facility.id,
-          )}`
-          const attention = getFacilityAttention(facility)
-          const isActive = facility.cooperationStatus !== "PAUSED"
-          const certs = Array.isArray(facility.certifications)
-            ? facility.certifications
-            : []
+          const isActive = facility.status === "ACTIVE"
+          const detailPath = `${ROUTER.SUPPLIER_SOURCE_FACILITIES}/${facility.id}`
 
           return (
-            <article key={facility.id} className={styles.compactCard}>
-              <div className={styles.compactHeader}>
-                <div className={styles.compactTitleBlock}>
-                  <div className={styles.compactCodeRow}>
-                    <span className={styles.codeBadge}>{facility.code}</span>
-                    <span className={styles.typeChip}>
-                      {getFacilityTypeLabel(facility.facilityType)}
-                    </span>
-                  </div>
-                  <Link to={detailUrl} className={styles.compactTitleLink}>
-                    {facility.name}
-                  </Link>
-                </div>
-
+            <article key={facility.id} className={styles.mobileCard}>
+              <div className={styles.mobileCardHeader}>
+                <span className={styles.codeBadge}>
+                  {facility.facilityCode || "Chưa cấp mã"}
+                </span>
                 <span
-                  className={`${styles.statusBadge} ${
-                    isActive ? styles.statusActive : styles.statusPaused
+                  className={`${styles.statusPill} ${
+                    isActive ? styles.statusActive : styles.statusInactive
                   }`}
                 >
-                  {getCooperationStatusLabel(facility.cooperationStatus)}
+                  {getFacilityStatusLabel(facility.status)}
                 </span>
               </div>
 
-              <div className={styles.compactMetaList}>
-                <p className={styles.compactMetaRow}>
-                  <LocationOnOutlined
-                    className={styles.compactMetaIcon}
-                    aria-hidden="true"
-                  />
-                  <span>{facility.address}</span>
-                </p>
-                <p className={styles.compactMetaRow}>
-                  <PersonOutlined
-                    className={styles.compactMetaIcon}
-                    aria-hidden="true"
-                  />
-                  <span>
-                    {facility.contactName} ·{" "}
-                    <span className={styles.tabularText}>
-                      {facility.contactPhone}
-                    </span>
-                  </span>
-                </p>
-                <div className={styles.compactMetaRow}>
-                  <VerifiedUserOutlined
-                    className={styles.compactMetaIcon}
-                    aria-hidden="true"
-                  />
-                  {certs.length > 0 ? (
-                    <div className={styles.certBadges}>
-                      {certs.map(cert => (
-                        <span key={cert.id} className={styles.certPill}>
-                          {cert.name}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <span className={styles.certEmpty}>Chưa có chứng nhận</span>
-                  )}
-                </div>
+              <div className={styles.mobileTitleGroup}>
+                <Link to={detailPath} className={styles.mobileNameLink}>
+                  {facility.name}
+                </Link>
+                <span className={styles.mobileMetaText}>
+                  Cập nhật: {formatDateTimeVi(facility.updatedAt)}
+                </span>
               </div>
 
-              {attention.needsAttention && (
-                <p
-                  className={`${styles.compactAttention} ${
-                    attention.severity === "error"
-                      ? styles.attentionError
-                      : styles.attentionWarning
-                  }`}
-                >
-                  <WarningAmberOutlined
-                    className={styles.inlineIcon}
-                    aria-hidden="true"
-                  />
-                  <span>Hồ sơ cần chú ý: {attention.primaryWarning}</span>
-                </p>
-              )}
-
-              <div className={styles.compactActions}>
+              <div className={styles.mobileCardFooter}>
                 <Button
                   component={Link}
-                  to={detailUrl}
+                  to={detailPath}
+                  size="small"
                   variant="outlined"
                   color="primary"
-                  size="small"
                   startIcon={<VisibilityOutlined />}
-                  className={styles.compactActionBtn}
                 >
-                  Xem chi tiết
+                  Chi tiết
                 </Button>
                 <Button
                   type="button"
+                  size="small"
                   variant="text"
                   color="primary"
-                  size="small"
                   startIcon={<EditOutlined />}
                   onClick={() => onEdit?.(facility)}
-                  className={styles.compactActionBtn}
                 >
                   Chỉnh sửa
                 </Button>
+                {isActive && (
+                  <Button
+                    type="button"
+                    size="small"
+                    variant="text"
+                    color="warning"
+                    startIcon={<PauseCircleOutlined />}
+                    onClick={() => onDeactivate?.(facility)}
+                  >
+                    Dừng hoạt động
+                  </Button>
+                )}
               </div>
             </article>
           )
         })}
       </div>
 
-      <footer className={styles.listFooter}>
-        <p className={styles.footerCount}>
-          Hiển thị {facilities.length} / {totalCount} cơ sở nguồn cung
-        </p>
-      </footer>
+      <div className={styles.tableFooter}>
+        <span className={styles.resultCount}>
+          Hiển thị <strong>{facilities.length}</strong> / {pageTotalCount} cơ sở
+          {" · "}Trang <strong>{pagination?.page || 1}</strong>
+        </span>
+
+        <div className={styles.paginationControls}>
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            color="primary"
+            startIcon={<ChevronLeft />}
+            disabled={!pagination || pagination.page <= 1 || loading}
+            onClick={() => onPageChange?.(pagination.page - 1)}
+          >
+            Trang trước
+          </Button>
+          <Button
+            type="button"
+            size="small"
+            variant="outlined"
+            color="primary"
+            endIcon={<ChevronRight />}
+            disabled={!pagination || !pagination.hasNext || loading}
+            onClick={() => onPageChange?.(pagination.page + 1)}
+          >
+            Trang sau
+          </Button>
+        </div>
+      </div>
     </>
   )
 }
 
 FacilityListView.propTypes = {
   facilities: PropTypes.arrayOf(PropTypes.object).isRequired,
-  totalCount: PropTypes.number.isRequired,
-  hasActiveFilters: PropTypes.bool.isRequired,
-  onResetFilters: PropTypes.func.isRequired,
-  onCreate: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
+  pageTotalCount: PropTypes.number.isRequired,
+  loading: PropTypes.bool,
+  hasActiveFilters: PropTypes.bool,
+  pagination: PropTypes.shape({
+    page: PropTypes.number,
+    limit: PropTypes.number,
+    hasNext: PropTypes.bool,
+  }).isRequired,
+  onResetFilters: PropTypes.func,
+  onCreate: PropTypes.func,
+  onEdit: PropTypes.func,
+  onDeactivate: PropTypes.func,
+  onPageChange: PropTypes.func,
 }
 
 export default FacilityListView

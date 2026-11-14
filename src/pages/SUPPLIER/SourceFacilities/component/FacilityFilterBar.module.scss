@@ -9,7 +9,7 @@
 
 .filterGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(200px, 1fr) minmax(190px, 0.9fr);
+  grid-template-columns: minmax(0, 1.6fr) minmax(210px, 0.9fr) auto;
   gap: var(--space-4);
   align-items: end;
 }
@@ -34,44 +34,45 @@
   color: var(--text-muted);
 }
 
-.filterSecondaryRow {
+.resetWrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.attentionChip {
-  font-family: var(--font-sans) !important;
-  font-weight: var(--font-medium) !important;
+  padding-bottom: 2px;
 }
 
 .resetButton {
   font-weight: var(--font-semibold) !important;
   color: var(--color-primary) !important;
+  white-space: nowrap;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 900px) {
   .filterGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 0.85fr);
     gap: var(--space-3);
   }
 
-  .searchFieldWrap {
+  .resetWrap {
     grid-column: 1 / -1;
+    justify-content: flex-end;
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .filterContainer {
     padding: var(--space-4);
     border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
   }
+}
 
+@media (max-width: 600px) {
   .filterGrid {
     grid-template-columns: 1fr;
     gap: var(--space-3);
+  }
+
+  .resetWrap {
+    justify-content: flex-start;
   }
 }
