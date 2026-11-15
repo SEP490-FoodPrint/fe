@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import PhotoPicker from "src/components/PhotoPicker";
 import PropTypes from "prop-types";
 import {
   X,
@@ -31,6 +32,8 @@ export default function CreateSampleModal({
   const [unit, setUnit] = useState("g");
   const [storageLocation, setStorageLocation] = useState("Tủ A1 - Ngăn 02");
   const [errorMsg, setErrorMsg] = useState("");
+  const [photo, setPhoto] = useState(null);
+  useEffect(() => { if (open) setPhoto(null); }, [open]);
 
   // Tự động chọn mẻ đầu tiên khi mở modal
   useEffect(() => {
@@ -114,6 +117,7 @@ export default function CreateSampleModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!photo) { setErrorMsg("Cần chụp hoặc tải ảnh mẫu lưu trước khi xác nhận."); return; }
     if (!selectedBatchId) {
       setErrorMsg("Vui lòng chọn lô chế biến cần lưu mẫu.");
       return;
@@ -138,6 +142,7 @@ export default function CreateSampleModal({
       quantity: quantity ? String(qtyNum) : "150",
       unit: unit || "g",
       storageLocation: storageLocation.trim() || "Tủ lưu mẫu 01",
+      photo,
     });
   };
 
@@ -172,6 +177,7 @@ export default function CreateSampleModal({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className={styles.form}>
+          <PhotoPicker value={photo} onChange={setPhoto} disabled={submitting} />
           {errorMsg && (
             <div className={styles.alertError}>
               <AlertCircle size={16} />

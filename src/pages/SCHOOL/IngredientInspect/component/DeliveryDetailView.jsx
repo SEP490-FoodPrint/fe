@@ -209,7 +209,7 @@ export default function DeliveryDetailView({
           <thead><tr><th>Bộ phận</th><th>Người kiểm tra</th><th>Kết quả</th><th>Nhận xét</th><th>Thời gian</th></tr></thead>
           <tbody>{(delivery.requiredRoles || []).map(role => {
             const decision = delivery.deliveryApprovals?.find(item => item.roleCode === role.code)
-            return <tr key={role.code}><td>{role.name}</td><td>{decision?.userName || "—"}</td><td>{decision ? (decision.decision === "APPROVE" ? "Đồng ý" : "Từ chối") : "Chưa kiểm tra"}</td><td>{decision?.reason || "—"}</td><td>{formatDateTime(decision?.decidedAt)}</td></tr>
+            return <tr key={role.code}><td>{role.name}</td><td>{decision?.userName || "—"}</td><td>{decision ? (decision.decision === "APPROVE" ? "Đồng ý" : "Từ chối") : "Chưa kiểm tra"}</td><td>{decision?.reason || "—"}{decision?.photoUrl && <div><img src={decision.photoUrl} alt={`Ảnh kiểm tra của ${role.name}`} style={{ maxWidth: 130, maxHeight: 100, objectFit: "contain" }} /></div>}</td><td>{formatDateTime(decision?.decidedAt)}</td></tr>
           })}</tbody>
         </table></div>
       </section>

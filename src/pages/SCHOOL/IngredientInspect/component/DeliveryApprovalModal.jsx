@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import PhotoPicker from "src/components/PhotoPicker"
 import PropTypes from "prop-types"
 import {
   X,
@@ -26,6 +27,7 @@ export default function DeliveryApprovalModal({
   const [decision, setDecision] = useState("APPROVE")
   const [reason, setReason] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
+  const [photo, setPhoto] = useState(null)
 
   // State popup xác nhận bước 2
   const [isConfirming, setIsConfirming] = useState(false)
@@ -45,6 +47,7 @@ export default function DeliveryApprovalModal({
 
   const handlePreSubmit = (e) => {
     e.preventDefault()
+    if (!photo) { setErrorMsg("Cần chụp hoặc tải ảnh kiểm tra nguyên liệu trước khi xác nhận."); return }
 
     // Bắt buộc nhập lý do nếu từ chối
     if (decision === "REJECT" && !reason.trim()) {
@@ -58,9 +61,10 @@ export default function DeliveryApprovalModal({
 
   const handleFinalConfirm = async () => {
     if (saving) return
+    if (!photo) { setIsConfirming(false); setErrorMsg("Cần chụp hoặc tải ảnh kiểm tra nguyên liệu trước khi xác nhận."); return }
     setSaving(true)
     setErrorMsg("")
-    try { await onSubmitApproval(decision, reason.trim()) }
+    try { await onSubmitApproval(decision, reason.trim(), photo) }
     catch (error) { setErrorMsg(error.message || "Chưa lưu được quyết định. Vui lòng thử lại.") }
     finally { setSaving(false) }
   }
@@ -190,6 +194,7 @@ export default function DeliveryApprovalModal({
             />
           </div>
 
+          <PhotoPicker value={photo} onChange={setPhoto} disabled={saving} />
           {/* Footer Actions */}
           <div className={styles.modalFooter}>
             <button

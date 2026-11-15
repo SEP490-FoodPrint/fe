@@ -459,6 +459,21 @@ test("approved day rejects both save paths even when its parent week is still a 
   assert.equal(requests.every(config => config.method === "get"), true)
 })
 
+test("inspection and sample photos are sent with their own record", async () => {
+  const { decideDeliveryInspection } = await server.ssrLoadModule("/src/services/DeliveryInspectionService/index.js")
+  const photo = new Blob(["photo"], { type: "image/jpeg" })
+  respond = () => ({ id: id(1) })
+  await decideDeliveryInspection(id(1), "REJECT", "damaged", photo)
+  assert(requests[0].data instanceof FormData)
+  assert.equal(requests[0].data.get("decision"), "REJECT")
+  assert.equal(requests[0].data.get("reason"), "damaged")
+  assert.equal(requests[0].data.get("photo").size, photo.size)
+  await kitchen.createBatchSample(id(2), { dishId: id(3), quantity: "150", unit: "g", storageLocation: "A", sampledAt: "2026-11-14T12:00:00Z", photo })
+  assert(requests[1].data instanceof FormData)
+  assert.equal(requests[1].data.get("dishId"), id(3))
+  assert.equal(requests[1].data.get("photo").size, photo.size)
+})
+
 test("weekly editing preserves frozen quantities, seasonings, notes and explicit group identities", () => {
   const week = snapshot()
   week.menuDays[0].portionGroups = [{ id: id(80), name: "Normal", mealType: "LUNCH", isDefault: true, dishes: [{ dishId: id(3) }], avoidances: [] }]
