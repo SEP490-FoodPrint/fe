@@ -82,6 +82,21 @@
     flex-shrink: 0;
   }
 
+  &__select {
+    border: none;
+    background: transparent;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    padding: 0 2px;
+    outline: none;
+    max-width: 100%;
+  }
+
+  &__label:focus-within {
+    background-color: var(--color-primary-soft, #e8f5f1);
+  }
+
   &__today-btn {
     display: inline-flex;
     align-items: center;
