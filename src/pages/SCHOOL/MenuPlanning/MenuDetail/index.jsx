@@ -13,6 +13,7 @@ import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
 import MenuDetailDishesTable from "./component/MenuDetailDishesTable"
 import MenuDetailAllergyCard from "./component/MenuDetailAllergyCard"
 import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
+import MenuGradeDetails from "./component/MenuGradeDetails"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
 import CreateMenuDayModal from "../CreateMenu/CreateMenuDayModal"
 
@@ -25,6 +26,10 @@ export default function MenuDetail() {
   const [rawWeeklyMenu, setRawWeeklyMenu] = useState(null)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
+  const [selectedScope, setSelectedScope] = useState(() =>
+    location.state?.gradeKey ? { key: location.state.gradeKey } : null
+  )
+  const [comparingGrades, setComparingGrades] = useState(false)
 
   // Modal chỉnh sửa trực tiếp dạng popup
   const [isEditModalOpen, setIsEditModalOpen] = useState(
@@ -208,14 +213,39 @@ export default function MenuDetail() {
         {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
         <MenuDetailBGHFeedback menu={menu} />
 
-        {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
-        <MenuDetailDishesTable dishes={menu.dishes} gradeIds={menu.gradeIds} />
+        <MenuGradeDetails
+          weeklyMenu={rawWeeklyMenu}
+          menu={menu}
+          selectedScope={selectedScope}
+          onScopeChange={setSelectedScope}
+          onModeChange={setComparingGrades}
+          onNavigate={scope => {
+            setIsEditModalOpen(false)
+            setIsConfirmSubmitOpen(false)
+            const target = `${scope.menu.weeklyMenuId}_${scope.menu.menuDayId}_${scope.menu.mealType}`
+            navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", target), {
+              replace: true,
+              state: { gradeKey: scope.key },
+            })
+          }}
+        />
 
-        {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
-        <MenuDetailAllergyCard menu={menu} />
+        {!comparingGrades && (
+          <>
+            {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
+            <MenuDetailDishesTable
+              dishes={menu.dishes}
+              gradeIds={selectedScope?.candidate?.id === rawWeeklyMenu?.id
+                ? selectedScope.gradeIds : menu.gradeIds}
+            />
 
-        {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
-        <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
+            {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
+            <MenuDetailAllergyCard menu={menu} />
+
+            {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
+            <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
+          </>
+        )}
       </div>
 
       {/* Modal Popup Chỉnh sửa thực đơn ngày (50/50: Preview + Chọn món & Gia vị) */}

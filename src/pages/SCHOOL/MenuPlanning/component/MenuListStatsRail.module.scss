@@ -1,21 +1,27 @@
 .statsBar {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 2px;
-}
-
-.pillsList {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-flow: row nowrap;
+  width: 100%;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+.pillsList {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-flow: row nowrap;
 }
 
 .statusPill {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;

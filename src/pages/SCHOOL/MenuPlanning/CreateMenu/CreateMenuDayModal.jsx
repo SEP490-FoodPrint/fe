@@ -24,6 +24,7 @@ import {
   dishCategoryKey,
 } from "src/services/DishService"
 import { inspectMenuMealSelection } from "src/services/MenuService"
+import MenuGradeRecipePreview from "../component/MenuGradeRecipePreview"
 
 export const renderCategoryBadge = (dish) => {
   const cat = dishCategoryKey(dish)
@@ -44,6 +45,7 @@ export const renderCategoryBadge = (dish) => {
 export default function CreateMenuDayModal({
   isOpen,
   gradeIds,
+  gradeOptions = [],
   onClose,
   dayData,
   dayMenu,
@@ -66,6 +68,7 @@ export default function CreateMenuDayModal({
     AFTERNOON: [],
   })
   const [recipeLoading, setRecipeLoading] = useState(false)
+  const [gradePreviewsByMeal, setGradePreviewsByMeal] = useState({ LUNCH: [], AFTERNOON: [] })
   const [allergyLoading, setAllergyLoading] = useState(false)
   const [allergyIssuesByMeal, setAllergyIssuesByMeal] = useState({ LUNCH: [], AFTERNOON: [] })
   const [edited, setEdited] = useState(false)
@@ -134,6 +137,7 @@ export default function CreateMenuDayModal({
   // Đồng bộ dữ liệu khi modal mở ra
   useEffect(() => {
     if (isOpen) {
+      setGradePreviewsByMeal({ LUNCH: [], AFTERNOON: [] })
       setSelectedMealType(
         initialMealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
       )
@@ -218,6 +222,7 @@ export default function CreateMenuDayModal({
       ],
       seasonings: seasoningsByMeal[type] || [],
       gradeIds,
+      gradeSnapshots: Object.fromEntries(Object.entries(dayMenu?.gradeSnapshots || {}).map(([gradeId, meals]) => [gradeId, meals[type]])),
       refreshRecipe: edited,
     })
 
@@ -232,6 +237,7 @@ export default function CreateMenuDayModal({
             AFTERNOON: afternoon.allergies,
           })
           setAllergyIssuesByMeal({ LUNCH: lunch.issues, AFTERNOON: afternoon.issues })
+          setGradePreviewsByMeal({ LUNCH: lunch.gradePreviews || [], AFTERNOON: afternoon.gradePreviews || [] })
           setSeasoningsByMeal({
             LUNCH: lunch.seasonings,
             AFTERNOON: afternoon.seasonings,
@@ -251,7 +257,7 @@ export default function CreateMenuDayModal({
     return () => {
       active = false
     }
-  }, [isOpen, edited, lunchDishes, afternoonDishes, substitutesByMeal, gradeIds])
+  }, [isOpen, edited, lunchDishes, afternoonDishes, substitutesByMeal, gradeIds, dayMenu?.gradeSnapshots])
 
   const getDishAllergyConflict = useCallback(
     (dish, mealType) => {
@@ -359,6 +365,7 @@ export default function CreateMenuDayModal({
             ingredientStandards: dish.ingredientStandards || [],
             ingredientIds: dishIngredientIds(dish),
             lines: dish.lines || [],
+            gradeRecipes: dish.gradeRecipes,
             seasonings: dish.seasonings || [],
           }
           return [...prev, newDish]
@@ -665,6 +672,7 @@ export default function CreateMenuDayModal({
             </div>
 
             <div className={styles.previewScrollArea}>
+              <MenuGradeRecipePreview previews={gradePreviewsByMeal[selectedMealType]} grades={gradeOptions} dishes={[...lunchDishes, ...afternoonDishes, ...dishCatalog]} ingredientOptions={recipeOptions} loading={allergyLoading} />
               {/* KHỐI 1: BỮA TRƯA */}
               <div className={styles.previewMealCard}>
                 <div
@@ -1090,7 +1098,7 @@ export default function CreateMenuDayModal({
                               <td
                                 className={`${styles.seasoningPortionCell} ${styles.alignRight}`}
                               >
-                                {s.portionQty || 5} {s.unit || "g"}
+                                {gradeIds?.length > 1 ? "Theo khối" : `${s.portionQty ?? "—"} ${s.unit || "g"}`}
                               </td>
                             </tr>
                           ))}

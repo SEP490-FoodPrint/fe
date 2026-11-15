@@ -17,9 +17,6 @@ import {
   MenuItem,
   Radio,
   Skeleton,
-  Step,
-  StepLabel,
-  Stepper,
   Tab,
   Tabs,
   TextField,
@@ -80,17 +77,23 @@ const documentLabels = {
     hint: "Bản hợp đồng chính thức đã ký giữa Nhà trường và NCC",
     required: true,
   },
+  // Chỉ cần khi NCC được miễn cấp; nếu chọn chứng nhận NCC đã đăng thì không phải tải lại.
   COMPLIANCE: {
-    label: "Hồ sơ pháp lý / ATTP",
-    hint: "Bản sao GCN ATTP hoặc biên bản thẩm định điều kiện cơ sở",
+    label: "Minh chứng miễn cấp / thẩm định cơ sở",
+    hint: "Văn bản chứng minh NCC được miễn cấp giấy chứng nhận ATTP hoặc biên bản thẩm định cơ sở",
     required: true,
+    exemptionOnly: true,
   },
   APPENDIX: {
-    label: "Phụ lục hợp đồng",
-    hint: "Phụ lục bảng giá, danh mục điều kiện giao nhận",
+    label: "Tài liệu khác",
+    hint: "Bảng giá, điều kiện giao nhận… (nếu có)",
     required: false,
   },
 }
+// Chứng nhận được coi là còn hiệu lực khi đang ACTIVE và chưa quá hạn dùng
+const certValid = (cert, today) =>
+  cert.status === "ACTIVE" &&
+  !(cert.expiryDate && cert.expiryDate.slice(0, 10) < today)
 const actionLabels = {
   LINKED: "Thiết lập liên kết",
   CONTRACT_ACTIVATED: "Kích hoạt hợp đồng",
@@ -123,7 +126,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   const [form, setForm] = useState(toForm(null))
   const [basis, setBasis] = useState("certificate")
   const [ingredientSearch, setIngredientSearch] = useState("")
-  const [verified, setVerified] = useState(false)
+  const [confirmActivate, setConfirmActivate] = useState(false)
   const [decision, setDecision] = useState(null)
   const [reason, setReason] = useState("")
   const [confirmLeave, setConfirmLeave] = useState(false)
@@ -134,7 +137,6 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
     setForm(toForm(value))
     setBasis(value?.exemptionNote ? "exemption" : "certificate")
     setEditing(true)
-    setVerified(false)
     setError("")
   }
   const newDraft = () => {
@@ -198,8 +200,12 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
     }
   }
   const setField = (key, value) => {
-    setForm((previous) => ({ ...previous, [key]: value }))
-    setVerified(false)
+    setForm((previous) => {
+      const next = { ...previous, [key]: value }
+      // Đa số hợp đồng có hiệu lực từ ngày ký: tự điền nếu chưa nhập
+      if (key === "signedOn" && !previous.startsOn) next.startsOn = value
+      return next
+    })
   }
   const dirty =
     Boolean(contract?.id) &&
@@ -216,14 +222,6 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
     if (unsaved) setConfirmLeave(true)
     else onClose()
   }
-  const metadataComplete = Boolean(
-    form.number.trim() &&
-    form.signedOn &&
-    form.startsOn &&
-    form.endsOn &&
-    form.ingredientIds.length &&
-    (form.certificationId || form.exemptionNote.trim()),
-  )
   const draft = !contract?.id || contract.status === "DRAFT"
   const canEdit = Boolean(data?.canManage && draft && !busy)
   const today = vietnamToday()
@@ -233,6 +231,11 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   const datesInvalid = Boolean(dateErrors.signedOn || dateErrors.endsOn)
   const currentRelationship = data?.relationships.find((item) =>
     ["ACTIVE", "SUSPENDED"].includes(item.status),
+  )
+  const startsLater =
+    contract?.startsOn && contract.startsOn.slice(0, 10) > today
+  const visibleDocumentKinds = Object.entries(documentLabels).filter(
+    ([, config]) => !config.exemptionOnly || basis === "exemption",
   )
 
   // Nhóm nguyên liệu theo Danh mục (category)
@@ -312,12 +315,13 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   const activate = () =>
     run(async () => {
       const response = await Service.activate(contract.id, contract.revision)
+      setConfirmActivate(false)
       await refresh(response.data.id)
       notice({
         msg:
           currentRelationship?.status === "SUSPENDED"
-            ? "Đã kích hoạt hợp đồng; liên kết vẫn đang tạm dừng"
-            : "Đã kích hoạt hợp đồng và xác nhận liên kết thành công",
+            ? "Đã kích hoạt hợp đồng. Hợp tác vẫn đang tạm dừng"
+            : "Đã kích hoạt hợp đồng",
         isSuccess: true,
       })
     })
@@ -441,7 +445,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       </dl>
                     </section>
                     <section className="supplier-section-block">
-                      <h3>Hồ sơ chứng nhận đã khai báo</h3>
+                      <h3>Giấy chứng nhận ATTP của NCC</h3>
                       {data.supplier.supplierCertifications.length ? (
                         <div className="supplier-cert-grid">
                           {data.supplier.supplierCertifications.map((cert) => (
@@ -451,11 +455,11 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 <Chip
                                   size="small"
                                   label={
-                                    cert.status === "ACTIVE"
+                                    certValid(cert, today)
                                       ? "Còn hiệu lực"
                                       : "Hết hiệu lực"
                                   }
-                                  color={cert.status === "ACTIVE" ? "success" : "default"}
+                                  color={certValid(cert, today) ? "success" : "default"}
                                   variant="outlined"
                                 />
                               </div>
@@ -482,12 +486,12 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                         </div>
                       ) : (
                         <Alert severity="info">
-                          NCC chưa khai báo chứng nhận ATTP trên hệ thống. Cần kiểm tra hồ sơ trước khi xác nhận liên kết.
+                          NCC chưa đăng giấy chứng nhận ATTP nào. Nếu NCC được miễn cấp, khi tạo hợp đồng cần ghi căn cứ và tải minh chứng.
                         </Alert>
                       )}
                     </section>
                     <section className="supplier-section-block">
-                      <h3>Danh mục nguyên liệu do NCC cung cấp</h3>
+                      <h3>Nguyên liệu NCC đang bán</h3>
                       <div className="supplier-ingredient-chips">
                         {data.supplier.ingredients.map((item) => (
                           <Chip
@@ -502,7 +506,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       )}
                     </section>
                     <section className="supplier-section-block">
-                      <h3>Cơ sở nguồn đã khai báo</h3>
+                      <h3>Nơi sản xuất / nuôi trồng</h3>
                       {data.supplier.sourceFacilities.length ? (
                         data.supplier.sourceFacilities.map((item) => (
                           <p key={item.id}>
@@ -512,7 +516,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           </p>
                         ))
                       ) : (
-                        <p className="supplier-help">Chưa có cơ sở nguồn được khai báo.</p>
+                        <p className="supplier-help">NCC chưa khai báo nơi sản xuất / nuôi trồng.</p>
                       )}
                     </section>
                     {data.canManage && data.supplier.status === "ACTIVE" && (
@@ -523,7 +527,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           else setTab(1)
                         }}
                       >
-                        Chuẩn bị hồ sơ hợp tác
+                        {data.contracts.length ? "Xem hợp đồng" : "Tạo hợp đồng"}
                       </Button>
                     )}
                   </div>
@@ -536,7 +540,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           status={currentRelationship?.status}
                         />
                         <small>
-                          Quan hệ liên kết và từng kỳ hợp đồng được quản lý độc lập.
+                          Mỗi lần ký mới hoặc gia hạn là một hợp đồng riêng. Tạm dừng hay ngừng liên kết không làm mất các hợp đồng đã lưu.
                         </small>
                       </div>
                       {data.canManage && currentRelationship && (
@@ -592,12 +596,12 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                     </div>
                     {!!currentRelationship && !data.contracts.length && (
                       <Alert severity="warning">
-                        Liên kết hiện tại chưa có hồ sơ hợp đồng. Cần bổ sung hợp đồng hợp lệ trước khi gửi đơn đặt hàng mới.
+                        Chưa có hợp đồng với NCC này. Cần tạo và kích hoạt hợp đồng trước khi đặt hàng.
                       </Alert>
                     )}
                     {currentRelationship?.status === "SUSPENDED" && (
                       <Alert severity="warning">
-                        Quan hệ hợp tác đang tạm dừng. Bổ sung hồ sơ không tự động khôi phục quyền đặt hàng; cần xác nhận khôi phục riêng.
+                        Đang tạm dừng hợp tác. Thêm hợp đồng mới không tự mở lại đặt hàng; bấm &ldquo;Khôi phục hợp tác&rdquo; để đặt hàng tiếp.
                       </Alert>
                     )}
 
@@ -605,7 +609,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       <TextField
                         select
                         size="small"
-                        label="Hồ sơ hợp đồng"
+                        label="Chọn hợp đồng"
                         value={contract?.id || "new"}
                         onChange={(event) => {
                           if (event.target.value === "new") newDraft()
@@ -617,7 +621,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             )
                         }}
                       >
-                        <MenuItem value="new">+ Soạn hồ sơ hợp đồng mới</MenuItem>
+                        <MenuItem value="new">+ Hợp đồng mới</MenuItem>
                         {data.contracts.map((item) => (
                           <MenuItem key={item.id} value={item.id}>
                             {displayName(item.number) || "Chưa đặt số"} ·{" "}
@@ -633,43 +637,21 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           disabled={busy || data.supplier.status !== "ACTIVE"}
                           onClick={newDraft}
                         >
-                          Thêm / gia hạn hợp đồng
+                          Tạo hợp đồng
                         </Button>
                       )}
                     </div>
 
                     {editing ? (
                       <>
-                        <Stepper
-                          activeStep={
-                            !contract?.id ||
-                            dirty ||
-                            !metadataComplete ||
-                            datesInvalid
-                              ? 0
-                              : contract.issues?.some((issue) =>
-                                    issue.includes("tải"),
-                                  )
-                                ? 1
-                                : 2
-                          }
-                          alternativeLabel
-                          className="supplier-stepper"
-                        >
-                          <Step>
-                            <StepLabel>1. Thông tin hợp đồng & Phạm vi</StepLabel>
-                          </Step>
-                          <Step>
-                            <StepLabel>2. Căn cứ ATTP & Tài liệu ký</StepLabel>
-                          </Step>
-                          <Step>
-                            <StepLabel>3. Xác nhận & Kích hoạt</StepLabel>
-                          </Step>
-                        </Stepper>
-
                         {!draft && (
                           <Alert severity="info">
-                            Hồ sơ hợp đồng đã kích hoạt được lưu trữ cố định để phục vụ truy xuất nguồn gốc. Để cập nhật điều khoản mới, vui lòng tạo hợp đồng hoặc phụ lục mới.
+                            Hợp đồng đã kích hoạt không sửa được để giữ đúng dữ liệu truy xuất nguồn gốc. Khi gia hạn hoặc đổi điều khoản, hãy tạo hợp đồng mới.
+                          </Alert>
+                        )}
+                        {contract?.status === "ACTIVE" && startsLater && (
+                          <Alert severity="info">
+                            Hợp đồng có hiệu lực từ ngày {dateText(contract.startsOn)}. Chỉ đặt được đơn giao từ ngày này trở đi.
                           </Alert>
                         )}
 
@@ -678,16 +660,16 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           <div className="supplier-section-block__header">
                             <FileText size={18} className="supplier-section-icon" />
                             <div>
-                              <h3>Thời hạn và số hợp đồng</h3>
+                              <h3>1. Số hợp đồng và thời hạn</h3>
                               <p className="supplier-help">
-                                Nhập số văn bản và thời gian hiệu lực ký kết giữa Nhà trường và Nhà cung cấp.
+                                Nhập số hợp đồng và thời gian hợp đồng có hiệu lực. Ngày hiệu lực có thể ở tương lai, ví dụ khi ký gia hạn trước.
                               </p>
                             </div>
                           </div>
                           <div className="supplier-contract-fields">
                             <TextField
                               size="small"
-                              label="Số hợp đồng / phụ lục"
+                              label="Số hợp đồng"
                               value={canEdit ? form.number : displayName(form.number)}
                               disabled={!canEdit}
                               onChange={(event) =>
@@ -731,7 +713,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             <UtensilsCrossed size={18} className="supplier-section-icon" />
                             <div style={{ flex: 1 }}>
                               <div className="supplier-scope-title-row">
-                                <h3>Nguyên liệu được phép cung cấp</h3>
+                                <h3>2. Nguyên liệu được đặt theo hợp đồng</h3>
                                 <Chip
                                   size="small"
                                   label={`Đã chọn ${form.ingredientIds.length}/${allIngredients.length} mặt hàng`}
@@ -740,7 +722,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 />
                               </div>
                               <p className="supplier-help">
-                                Phân nhóm theo loại mặt hàng. Đơn đặt hàng mới từ bếp chỉ được gửi các nguyên liệu nằm trong phạm vi đã chọn tại đây.
+                                Bếp chỉ đặt được những nguyên liệu được chọn ở đây.
                               </p>
                             </div>
                           </div>
@@ -877,7 +859,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                             multiline
                             minRows={2}
                             size="small"
-                            label="Ghi chú phạm vi / điều kiện cung cấp"
+                            label="Ghi chú điều kiện cung cấp (nếu có)"
                             placeholder="Ví dụ: Quy cách giao hàng vào sáng sớm, rau củ còn nguyên cuống tươi..."
                             value={canEdit ? form.scopeNote : displayName(form.scopeNote)}
                             disabled={!canEdit}
@@ -892,9 +874,9 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           <div className="supplier-section-block__header">
                             <ShieldCheck size={18} className="supplier-section-icon" />
                             <div>
-                              <h3>Căn cứ hồ sơ pháp lý & ATTP của Nhà cung cấp</h3>
+                              <h3>3. Chứng nhận ATTP</h3>
                               <p className="supplier-help">
-                                Giấy chứng nhận ATTP do Nhà cung cấp chịu trách nhiệm công bố trên hệ thống. Nhà trường đối chiếu và chọn chứng nhận còn hiệu lực áp dụng cho hợp đồng này.
+                                NCC tự đăng giấy chứng nhận ATTP trên hệ thống. Nhà trường xem bản gốc và chọn giấy còn hiệu lực cho hợp đồng này. Không cần tải lại.
                               </p>
                             </div>
                           </div>
@@ -921,7 +903,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 }}
                                 disabled={!canEdit}
                               >
-                                Căn cứ miễn cấp / Hồ sơ áp dụng đặc thù
+                                NCC được miễn cấp giấy chứng nhận
                               </Button>
                             </div>
 
@@ -996,7 +978,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                   </div>
                                 ) : (
                                   <Alert severity="warning">
-                                    Nhà cung cấp chưa cập nhật Giấy chứng nhận ATTP nào trên hệ thống. Vui lòng yêu cầu NCC đăng tải chứng nhận trong hồ sơ của họ, hoặc chuyển sang tab &ldquo;Căn cứ miễn cấp / Hồ sơ áp dụng đặc thù&rdquo; nếu NCC thuộc diện được miễn theo quy định.
+                                    NCC chưa đăng giấy chứng nhận ATTP nào. Hãy đề nghị NCC đăng trong hồ sơ của họ, hoặc chọn &ldquo;NCC được miễn cấp giấy chứng nhận&rdquo; nếu NCC thuộc diện được miễn.
                                   </Alert>
                                 )}
                               </div>
@@ -1005,8 +987,9 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 <TextField
                                   fullWidth
                                   size="small"
-                                  label="Căn cứ hồ sơ áp dụng / lý do miễn cấp"
-                                  placeholder="Ghi rõ căn cứ (Ví dụ: Cơ sở sản xuất ban đầu nhỏ lẻ theo Điều 12 Nghị định 15/2018/NĐ-CP hoặc có hồ sơ thẩm định cơ sở riêng)..."
+                                  label="Căn cứ miễn cấp"
+                                  helperText="Tải văn bản minh chứng ở mục 4 bên dưới."
+                                  placeholder="Ví dụ: Cơ sở sản xuất ban đầu nhỏ lẻ, thuộc diện miễn theo Điều 12 Nghị định 15/2018/NĐ-CP"
                                   value={canEdit ? form.exemptionNote : displayName(form.exemptionNote)}
                                   disabled={!canEdit}
                                   onChange={(event) =>
@@ -1025,22 +1008,24 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           <div className="supplier-section-block__header">
                             <FileCheck2 size={18} className="supplier-section-icon" />
                             <div>
-                              <h3>Tài liệu đính kèm hợp đồng</h3>
+                              <h3>4. Tài liệu đính kèm</h3>
                               <p className="supplier-help">
-                                Lưu trữ bản scan hợp đồng đã ký giữa hai bên và các tài liệu đối chiếu pháp lý (Tối đa 10 MB/tệp, định dạng PDF, PNG, JPEG).
+                                Bản scan hợp đồng đã ký và giấy tờ liên quan. PDF, PNG hoặc JPEG, tối đa 10 MB mỗi tệp.
                               </p>
                             </div>
                           </div>
 
                           {draft && data.canManage && (
                             <>
-                              {dirty && (
+                              {(dirty || !contract?.id) && (
                                 <Alert severity="warning" sx={{ mb: 2 }}>
-                                  Có thay đổi chưa lưu trên biểu mẫu. Vui lòng nhấn &ldquo;Lưu nháp hồ sơ&rdquo; ở góc dưới trước khi tải tài liệu hoặc kích hoạt hợp đồng.
+                                  {contract?.id
+                                    ? "Có thay đổi chưa lưu. Bấm “Lưu nháp” ở dưới trước khi tải tài liệu hoặc kích hoạt."
+                                    : "Bấm “Lưu nháp” ở dưới để bắt đầu tải tài liệu."}
                                 </Alert>
                               )}
                               <div className="supplier-upload-actions-grid">
-                                {Object.entries(documentLabels).map(([kind, config]) => {
+                                {visibleDocumentKinds.map(([kind, config]) => {
                                   const uploadedCount = (contract?.documents || []).filter(
                                     (doc) => doc.kind === kind,
                                   ).length
@@ -1100,7 +1085,11 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                   <div className="supplier-document-tags">
                                     <Chip
                                       size="small"
-                                      label={documentLabels[file.kind]?.label || file.kind}
+                                      label={
+                                        file.kind === "COMPLIANCE"
+                                          ? "Hồ sơ ATTP / minh chứng miễn cấp"
+                                          : documentLabels[file.kind]?.label || file.kind
+                                      }
                                       variant="outlined"
                                     />
                                     <span>{Math.ceil(file.size / 1024)} KB</span>
@@ -1147,7 +1136,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                         {/* Section 5: Điều kiện xác nhận & Kích hoạt */}
                         {contract?.issues?.length > 0 && draft && (
                           <Alert severity="warning" className="supplier-issues-alert">
-                            <strong>Chưa đủ điều kiện kích hoạt hợp đồng:</strong>
+                            <strong>Cần bổ sung trước khi kích hoạt:</strong>
                             <ul>
                               {contract.issues.map((issue) => (
                                 <li key={issue}>{issue}</li>
@@ -1159,32 +1148,6 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                           <Alert severity="warning">
                             {contract.issues.join(" ")}
                           </Alert>
-                        )}
-
-                        {data.canManage && draft && (
-                          <section className="supplier-confirmation-block">
-                            <FormControlLabel
-                              control={
-                                <Checkbox
-                                  checked={verified}
-                                  disabled={
-                                    busy ||
-                                    !contract?.id ||
-                                    dirty ||
-                                    Boolean(contract.issues?.length)
-                                  }
-                                  onChange={(event) =>
-                                    setVerified(event.target.checked)
-                                  }
-                                />
-                              }
-                              label={
-                                <span>
-                                  <strong>Xác nhận hồ sơ:</strong> Tôi xác nhận đã kiểm tra hợp đồng ký giữa đúng hai bên, hồ sơ pháp lý/ATTP của nhà cung cấp và danh mục nguyên liệu được phép cung cấp.
-                                </span>
-                              }
-                            />
-                          </section>
                         )}
 
                         {data.canManage && contract?.status === "ACTIVE" && (
@@ -1214,10 +1177,10 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       </>
                     ) : (
                       <div className="supplier-empty">
-                        Chưa có hồ sơ hợp đồng của trường.
+                        Trường chưa có hợp đồng với NCC này.
                         {data.canManage && (
                           <div style={{ marginTop: 12 }}>
-                            <Button variant="contained" onClick={newDraft}>Lập hồ sơ liên kết</Button>
+                            <Button variant="contained" onClick={newDraft}>Tạo hợp đồng</Button>
                           </div>
                         )}
                       </div>
@@ -1263,7 +1226,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
             )}
             {draft && !dirty && contract?.id && (
               <span className="supplier-draft-hint">
-                Trạng thái: Hồ sơ nháp (chưa kích hoạt)
+                Hợp đồng nháp, chưa kích hoạt
               </span>
             )}
           </div>
@@ -1280,22 +1243,33 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                   disabled={busy || datesInvalid}
                   onClick={save}
                 >
-                  {busy ? "Đang xử lý…" : "Lưu nháp hồ sơ"}
+                  {busy ? "Đang xử lý…" : "Lưu nháp"}
                 </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  disabled={
-                    busy ||
-                    !verified ||
-                    dirty ||
-                    !contract?.id ||
-                    Boolean(contract.issues?.length)
+                <Tooltip
+                  title={
+                    !contract?.id || dirty
+                      ? "Lưu nháp trước khi kích hoạt"
+                      : contract.issues?.length
+                        ? "Hồ sơ còn thiếu, xem danh sách cần bổ sung"
+                        : ""
                   }
-                  onClick={activate}
                 >
-                  Xác nhận & Kích hoạt hợp đồng
-                </Button>
+                  <span>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      disabled={
+                        busy ||
+                        dirty ||
+                        !contract?.id ||
+                        Boolean(contract.issues?.length)
+                      }
+                      onClick={() => setConfirmActivate(true)}
+                    >
+                      Kích hoạt hợp đồng
+                    </Button>
+                  </span>
+                </Tooltip>
               </>
             )}
           </div>
@@ -1342,6 +1316,43 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
             onClick={decide}
           >
             Xác nhận
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={confirmActivate}
+        onClose={() => {
+          if (!busy) setConfirmActivate(false)
+        }}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Kích hoạt hợp đồng {displayName(contract?.number)}</DialogTitle>
+        <DialogContent>
+          <p>Trước khi kích hoạt, xác nhận bạn đã kiểm tra:</p>
+          <ul>
+            <li>Bản hợp đồng đã ký đúng giữa nhà trường và NCC này.</li>
+            <li>
+              {basis === "exemption"
+                ? "Căn cứ và minh chứng miễn cấp giấy chứng nhận ATTP."
+                : "Giấy chứng nhận ATTP NCC đã đăng còn hiệu lực."}
+            </li>
+            <li>Danh sách nguyên liệu được đặt theo hợp đồng.</li>
+          </ul>
+          <p>Sau khi kích hoạt, hợp đồng không sửa được nữa.</p>
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button disabled={busy} onClick={() => setConfirmActivate(false)}>
+            Quay lại
+          </Button>
+          <Button variant="contained" disabled={busy} onClick={activate}>
+            Đã kiểm tra, kích hoạt
           </Button>
         </DialogActions>
       </Dialog>

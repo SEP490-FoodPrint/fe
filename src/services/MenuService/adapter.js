@@ -555,6 +555,8 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
         feedback: "",
         dishes: finalLunchDishes,
         substituteDish: subLunch,
+        notes: day.note ?? "",
+        portionGroups: portionGroups.filter(group => group.mealType === "LUNCH").map(group => ({ name: group.name, isDefault: group.isDefault, dishIds: (group.dishes || []).map(row => row.dishId), avoidedIngredientEntryIds: (group.avoidances || []).map(row => row.ingredientEntryId) })),
         seasonings: seasoningsByMeal.LUNCH,
       });
     }
@@ -587,6 +589,8 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
         feedback: "",
         dishes: finalAfternoonDishes,
         substituteDish: subAfternoon,
+        notes: day.note ?? "",
+        portionGroups: portionGroups.filter(group => group.mealType === "AFTERNOON").map(group => ({ name: group.name, isDefault: group.isDefault, dishIds: (group.dishes || []).map(row => row.dishId), avoidedIngredientEntryIds: (group.avoidances || []).map(row => row.ingredientEntryId) })),
         seasonings: seasoningsByMeal.AFTERNOON,
       });
     }
