@@ -288,6 +288,131 @@ const snapshot = () => ({
 })
 const edits = () => ({ formState: { name: "Edited", date: "02/11/2026", mealType: "LUNCH", notes: "Edited note" }, dishes: [{ dishId: id(3), name: "Dish 3", ingredientStandards: [{ ingredientId: id(13), quantityPerPortion: "81.125", unit: "g" }, { ingredientId: id(14), quantityPerPortion: "0.375", unit: "kg" }] }], seasonings: [{ ingredientEntryId: id(21), quantityPerPortion: "0.625", unit: "g" }] })
 
+test("grade detail compares saved quantities for the same date and meal without refreshing catalogue recipes", async () => {
+  const { loadGradeMenuDetails, gradeComparisonRows } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
+  const first = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const second = { ...snapshot(), id: id(60), grades: [{ gradeId: id(51), grade: { name: "Khối 4–5" } }] }
+  second.menuDays[0].id = id(61)
+  second.menuDays[0].menuDayDishes[0].ingredients[0].quantityPerPortion = "110.625"
+  first.menuDays[0].mealSeasonings[0].ingredientEntry = { ingredientId: id(70) }
+  const original = JSON.stringify(first)
+  respond = config => {
+    if (config.url === "/v1/menus/week-schedule") {
+      assert.deepEqual(config.params, { date: "2026-11-02", menuId: first.id })
+      return { availableMenus: [first, second].map(week => ({ id: week.id, gradeIds: week.grades.map(row => row.gradeId), gradeNames: week.grades.map(row => row.grade.name) })) }
+    }
+    if (config.url === `/v1/menus/${second.id}`) return second
+    assert.match(config.url, /\/meals\/LUNCH\/requirements$/)
+    return { portions: config.url.includes(id(61)) ? 75 : 100, portionsFinalized: true }
+  }
+  const scopes = await loadGradeMenuDetails(first, id(2), "LUNCH")
+  assert.deepEqual(scopes.map(scope => scope.gradeIds), [[id(50)], [id(51)]])
+  assert.deepEqual(scopes.map(scope => scope.menu.menuDayId), [id(2), id(61)])
+  assert.deepEqual(scopes.map(scope => scope.portionLabel), ["100 suất", "75 suất"])
+  assert.deepEqual(scopes[0].ingredientIds, [id(13), id(70)])
+  const rows = gradeComparisonRows(scopes)
+  assert.deepEqual(rows[0].rows[0].values, { [id(50)]: 80.125, [id(51)]: 110.625 })
+  assert.equal(rows.some(row => row.id === `dish:${id(4)}`), false)
+  assert.equal(JSON.stringify(first), original)
+  assert.equal(requests.length, 4)
+  assert(requests.every(config => config.method === "get"))
+})
+
+test("grade details never substitute a different day or meal when a grade has no matching menu", async () => {
+  const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
+  const first = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const missingDay = { ...snapshot(), id: id(60) }
+  missingDay.menuDays = [missingDay.menuDays[1]]
+  const missingMeal = { ...snapshot(), id: id(61) }
+  missingMeal.menuDays[0].menuDayDishes = [dish("AFTERNOON", 4, "120")]
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) return { availableMenus: [
+      { id: first.id, gradeIds: [id(50)], gradeNames: ["Khối 1–3"] },
+      { id: missingDay.id, gradeIds: [id(51)], gradeNames: ["Khối 4"] },
+      { id: missingMeal.id, gradeIds: [id(52)], gradeNames: ["Khối 5"] },
+    ] }
+    if (config.url === `/v1/menus/${missingDay.id}`) return missingDay
+    if (config.url === `/v1/menus/${missingMeal.id}`) return missingMeal
+    assert.equal(config.url, `/v1/menus/days/${id(2)}/meals/LUNCH/requirements`)
+    return { portions: 0, portionsFinalized: true }
+  }
+  const scopes = await loadGradeMenuDetails(first, id(2), "LUNCH")
+  assert.equal(scopes[0].portionLabel, "0 suất")
+  for (const scope of scopes.slice(1)) {
+    assert.equal(scope.menu, null)
+    assert.match(scope.error, /Chưa có thực đơn cho ngày và bữa ăn này/)
+    assert.equal(scope.loadFailed, undefined)
+  }
+  assert.equal(requests.filter(config => config.url.endsWith("/requirements")).length, 1)
+})
+
+test("a shared weekly menu labels combined portions explicitly and fetches one snapshot for both grades", async () => {
+  const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
+  const week = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }, { gradeId: id(51), grade: { name: "Khối 4–5" } }] }
+  respond = config => config.url.endsWith("/week-schedule") ? { availableMenus: [] } : { portions: 175, portionsFinalized: true }
+  const scopes = await loadGradeMenuDetails(week, id(2), "LUNCH")
+  assert.deepEqual(scopes.map(scope => scope.key), [id(50), id(51)])
+  assert.equal(scopes[0].portionLabel, "175 suất dùng chung (Khối 1–3, Khối 4–5)")
+  assert.equal(scopes[1].portionLabel, scopes[0].portionLabel)
+  assert.equal(requests.length, 2)
+  respond = config => config.url.endsWith("/week-schedule") ? { availableMenus: [] } : { portions: 175, portionsFinalized: false }
+  assert.equal((await loadGradeMenuDetails(week, id(2), "LUNCH"))[0].portionLabel, "Chưa chốt đủ suất")
+})
+
+test("grade detail keeps the selected snapshot readable when another grade or attendance API fails", async () => {
+  const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
+  const week = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const unavailable = config => { throw new AxiosError("Unavailable", "ERR_BAD_RESPONSE", config, null, { status: 503, data: { message: "Không tải được dữ liệu" }, headers: {}, config }) }
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) return { availableMenus: [
+      { id: week.id, gradeIds: [id(50)], gradeNames: ["Khối 1–3"] },
+      { id: id(60), gradeIds: [id(51)], gradeNames: ["Khối 4–5"] },
+    ] }
+    return unavailable(config)
+  }
+  const scopes = await loadGradeMenuDetails(week, id(2), "LUNCH")
+  assert.equal(scopes[0].menu.dishes[0].ingredientDetails[0].quantityPerPortion, 80.125)
+  assert.equal(scopes[0].portionLabel, "Chưa tải được số suất")
+  assert.equal(scopes[1].menu, null)
+  assert.equal(scopes[1].loadFailed, true)
+  respond = unavailable
+  await assert.rejects(loadGradeMenuDetails(week, id(2), "LUNCH"), /Không tải được dữ liệu/)
+})
+
+test("comparison aligns ingredient identities and units, preserving missing values and zero quantities", async () => {
+  const { gradeComparisonRows } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
+  const row = (ingredientId, unit, quantityPerPortion) => ({ id: ingredientId, name: "Cùng tên", unit, quantityPerPortion })
+  const scopes = [
+    { key: "A", menu: { dishes: [{ dishId: id(3), name: "Món chung", ingredientDetails: [row(id(13), "g", 0), row(id(14), "g", 10)] }], seasonings: [{ ingredientEntryId: id(21), name: "Muối", unit: "g", quantityPerPortion: "0.125" }] } },
+    { key: "B", menu: { dishes: [{ dishId: id(3), name: "Món chung", ingredientDetails: [row(id(13), "g", 100), row(id(14), "kg", 0.02), row(id(15), "g", 30)] }, { dishId: id(4), name: "Món chung", ingredientDetails: [] }] } },
+    { key: "C", menu: null, error: "Unavailable" },
+  ]
+  const sections = gradeComparisonRows(scopes)
+  assert.equal(sections.length, 3)
+  const lines = sections.find(section => section.id === `dish:${id(3)}`).rows
+  assert.equal(lines.length, 4)
+  assert.deepEqual(lines[0].values, { A: 0, B: 100 })
+  assert.deepEqual(lines[1].values, { A: 10 })
+  assert.deepEqual(lines[2].values, { B: 0.02 })
+  assert.equal(sections.find(section => section.id === "seasonings").rows[0].values.A, "0.125")
+})
+
+test("grade comparison renders missing quantities and allergy failures without inventing safe results", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { MenuGradeComparisonTable } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/MenuDetail/component/MenuGradeDetails.jsx")
+  const menu = { statusLabel: "Đã phê duyệt", dishes: [{ dishId: id(3), name: "Cơm", ingredientDetails: [{ id: id(13), name: "Gạo", unit: "g", quantityPerPortion: 0 }] }] }
+  const scopes = [{ key: "A", label: "Khối 1–3", menu }, { key: "B", label: "Khối 4–5", menu: { ...menu, dishes: [] } }]
+  const html = renderToStaticMarkup(React.createElement(MenuGradeComparisonTable, { scopes, allergyResults: { A: { error: "Không tải được dị ứng" } } }))
+  assert.match(html, /Khối 1–3/)
+  assert.match(html, /Khối 4–5/)
+  assert.match(html, />0<\/td>/)
+  assert.match(html, />—<\/td>/)
+  assert.match(html, /Không tải được dị ứng/)
+  assert.match(html, /Đang kiểm tra…/)
+  assert.doesNotMatch(html, /Chưa phát hiện xung đột/)
+})
+
 before(async () => {
   // Service tests need the real aliases and Sass setup, without bundling a config or React refresh.
   server = await createServer({ ...viteConfig, configFile: false, plugins: [], server: { middlewareMode: true, hmr: false, ws: false }, optimizeDeps: { noDiscovery: true, entries: [] }, appType: "custom" })
