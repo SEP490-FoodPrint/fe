@@ -12,8 +12,7 @@
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 12px;
-  align-items: start;
-  /* Cho phép các cột co giãn dài tự nhiên theo nội dung */
+  align-items: start; /* Cho phép các cột co giãn dài tự nhiên theo nội dung */
   width: 100%;
   box-sizing: border-box;
 
@@ -35,14 +34,14 @@
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: hidden; /* Bo tròn chuẩn, không bị hở góc */
   height: auto;
   box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
     border-color: #cbd5e1;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 }
 
@@ -50,8 +49,6 @@
 .todayDayCard {
   border: 2px solid #0a8066 !important;
   box-shadow: inset 0 0 0 1px #0a8066, 0 3px 12px rgba(10, 128, 102, 0.12) !important;
-  border-radius: 12px !important;
-  overflow: hidden;
   position: relative;
   z-index: 2;
 
@@ -75,8 +72,6 @@
   padding: 8px 10px;
   background-color: #ffffff;
   border-bottom: 1px solid #f1f5f9;
-  border-top-left-radius: 11px;
-  border-top-right-radius: 11px;
   gap: 4px;
   overflow: hidden;
 }
@@ -173,12 +168,6 @@
   border: 1px solid #e2e8f0;
 }
 
-.badgeHoliday {
-  background-color: #fee2e2;
-  color: #b91c1c;
-  border: 1px solid #fca5a5;
-}
-
 .dayDateRow {
   display: flex;
   align-items: center;
@@ -266,7 +255,6 @@
     opacity: 0;
     transform: translateY(-4px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -694,93 +682,82 @@
   color: #0a8066;
   white-space: nowrap;
 }
-
 /* ========================================================
-   THẺ NGÀY NGHỈ THEO LỊCH SETUP BAN GIÁM HIỆU
+   THẺ NGÀY NGHỈ THEO LỊCH SETUP BAN GIÁM HIỆU (VIỀN ĐỎ NHƯ BẾP)
    ======================================================== */
 .holidayDayCard {
-  border: 1.5px solid #fca5a5 !important;
-  border-radius: 12px !important;
-  overflow: hidden !important;
-  background-color: #fdf8f8;
+  border: 1.5px solid #ef4444 !important;
+  background-color: #fef2f2 !important;
 
   .dayHeader {
-    background-color: #fff1f2;
-    border-bottom: 1px solid #fecaca;
-  }
-
-  .dayLabel {
-    color: #991b1b;
-  }
-
-  .dayDateText {
-    color: #b91c1c;
+    background-color: #fee2e2 !important;
+    border-bottom: 1px solid #fca5a5 !important;
   }
 }
 
+.badgeHoliday {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background-color: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+  line-height: 1.2;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 .holidayCardBody {
-  min-height: 240px;
+  min-height: 340px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 24px 14px;
-  background: linear-gradient(180deg, #ffffff 0%, #fff5f5 100%);
+  background-color: #fff5f5;
   border-radius: 8px;
-  border: 1.5px dashed #fca5a5;
+  border: 1.5px dashed #f87171;
   text-align: center;
   box-sizing: border-box;
-  gap: 8px;
-  margin: 8px;
+  gap: 10px;
+  margin: 10px;
 }
 
 .holidayIconWrap {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background-color: #ffffff;
+  background-color: #fee2e2;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ef4444;
-  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.06);
-  border: 1px solid #fecaca;
+  color: #dc2626;
   margin-bottom: 2px;
 }
 
 .holidayIcon {
-  color: #ef4444;
-}
-
-.holidayTag {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background-color: #fee2e2;
-  color: #b91c1c;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  border: 1px solid #fecaca;
+  color: #dc2626;
+  flex-shrink: 0;
 }
 
 .holidayReasonBox {
   padding: 8px 12px;
   background-color: #ffffff;
-  border: 1px solid #fecaca;
+  border: 1px solid #fca5a5;
   border-radius: 6px;
   max-width: 100%;
   box-sizing: border-box;
-  box-shadow: 0 1px 2px rgba(239, 68, 68, 0.04);
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.08);
 }
 
 .holidayReasonText {
   font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
   font-size: 12.5px;
-  font-weight: 600;
-  color: #991b1b;
+  font-weight: 700;
+  color: #b91c1c;
   line-height: 1.4;
   display: block;
 }
@@ -788,7 +765,7 @@
 .holidaySubText {
   font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
   font-size: 11.5px;
-  color: #b91c1c;
+  color: #dc2626;
   font-style: italic;
   font-weight: 500;
 }

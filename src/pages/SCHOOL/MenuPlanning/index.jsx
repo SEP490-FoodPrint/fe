@@ -113,7 +113,8 @@ export default function MenuPlanning() {
       setLoading(true)
       setLoadError("")
       try {
-        const res = await MenuService.getMenus({ allPages: true,
+        const res = await MenuService.getMenus({
+          allPages: true,
           status: filters.status,
           weekStartDate: selectedWeekObj.weekStartDate,
         })
@@ -393,7 +394,15 @@ export default function MenuPlanning() {
         </button>
       </div>
 
-      {/* Section 3: Bộ lọc (Năm học, Tuần học theo BGH, Ca ăn) */}
+      {/* 2. Dải trạng thái thực đơn (Tất cả, Bản nháp, Chờ BGH duyệt, Đã duyệt...) */}
+      <MenuListStatsRail
+        stats={{ ...stats, pendingApproval: stats.pending, revisionRequested: stats.revision }}
+        year={filters.academicYear}
+        activeStatus={filters.status}
+        onFilterByStatus={handleFilterByStatus}
+      />
+
+      {/* 3. Bộ lọc chi tiết (Năm học, Tuần học theo BGH, Khối, Ca ăn, Tìm kiếm) */}
       <MenuListFilterStrip
         filters={filters}
         academicYearOptions={availableAcademicYears}
@@ -404,12 +413,6 @@ export default function MenuPlanning() {
         onRetryGrades={() => setGradeRetry(value => value + 1)}
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
-        statusFilters={<MenuListStatsRail
-          stats={{ ...stats, pendingApproval: stats.pending, revisionRequested: stats.revision }}
-          year={filters.academicYear}
-          activeStatus={filters.status}
-          onFilterByStatus={handleFilterByStatus}
-        />}
       />
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
