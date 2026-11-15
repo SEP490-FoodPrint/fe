@@ -66,10 +66,13 @@ const contractDateErrors = ({ signedOn, startsOn, endsOn }, today) => ({
         ? "Hợp đồng đã hết hạn"
         : "",
 })
-const contractLabels = {
-  DRAFT: "Hồ sơ nháp",
-  ACTIVE: "Đã kích hoạt",
-  CLOSED: "Đã đóng",
+// Trạng thái hiển thị theo ngày: hợp đồng đã kích hoạt có thể chưa đến hoặc đã quá hạn
+const contractStatusText = (item, today) => {
+  if (item.status === "DRAFT") return "Nháp"
+  if (item.status === "CLOSED") return "Đã đóng"
+  if (item.endsOn && item.endsOn.slice(0, 10) < today) return "Hết hạn"
+  if (item.startsOn && item.startsOn.slice(0, 10) > today) return "Chưa đến hiệu lực"
+  return "Đang hiệu lực"
 }
 const documentLabels = {
   SIGNED_CONTRACT: {
@@ -289,28 +292,45 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
     setField("ingredientIds", [])
   }
 
+  // Lưu nháp và trả về id hợp đồng đã lưu
+  const persistDraft = async () => {
+    if (datesInvalid) throw new Error("Vui lòng sửa lỗi ngày trước khi lưu.")
+    const response = await Service.saveDraft(
+      {
+        ...form,
+        ...(contract?.id ? { revision: contract.revision } : { supplierId }),
+      },
+      contract?.id,
+    )
+    return response.data.id
+  }
+  // Tài liệu gắn vào hợp đồng đã lưu: tự lưu nháp trước nếu chưa lưu/có thay đổi
+  const ensureSaved = async () =>
+    !contract?.id || dirty ? persistDraft() : contract.id
+
   const save = () =>
     run(async () => {
-      const response = await Service.saveDraft(
-        {
-          ...form,
-          ...(contract?.id ? { revision: contract.revision } : { supplierId }),
-        },
-        contract?.id,
-      )
-      await refresh(response.data.id)
-      notice({ msg: "Đã lưu hồ sơ nháp hợp đồng", isSuccess: true })
+      await refresh(await persistDraft())
+      notice({ msg: "Đã lưu nháp hợp đồng", isSuccess: true })
     })
 
   const upload = (kind, file) => {
     if (!file) return
     run(async () => {
       if (file.size > 10 * 1024 * 1024) throw new Error("Tệp tối đa 10 MB.")
-      const response = await Service.upload(contract.id, kind, file)
+      const id = await ensureSaved()
+      const response = await Service.upload(id, kind, file)
       await refresh(response.data.id)
-      notice({ msg: "Đã tải lên và lưu tài liệu", isSuccess: true })
+      notice({ msg: "Đã lưu nháp và tải lên tài liệu", isSuccess: true })
     })
   }
+
+  const removeDocument = (fileId) =>
+    run(async () => {
+      const id = await ensureSaved()
+      await Service.removeDocument(fileId)
+      await refresh(id)
+    })
 
   const activate = () =>
     run(async () => {
@@ -605,42 +625,59 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                       </Alert>
                     )}
 
-                    <div className="supplier-contract-picker">
-                      <TextField
-                        select
-                        size="small"
-                        label="Chọn hợp đồng"
-                        value={contract?.id || "new"}
-                        onChange={(event) => {
-                          if (event.target.value === "new") newDraft()
-                          else
-                            selectContract(
-                              data.contracts.find(
-                                (item) => item.id === event.target.value,
-                              ),
-                            )
-                        }}
-                      >
-                        <MenuItem value="new">+ Hợp đồng mới</MenuItem>
-                        {data.contracts.map((item) => (
-                          <MenuItem key={item.id} value={item.id}>
-                            {displayName(item.number) || "Chưa đặt số"} ·{" "}
-                            {contractLabels[item.status]}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                      {data.canManage && (
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          startIcon={<Plus size={16} />}
-                          disabled={busy || data.supplier.status !== "ACTIVE"}
-                          onClick={newDraft}
-                        >
-                          Tạo hợp đồng
-                        </Button>
-                      )}
-                    </div>
+                    {(data.contracts.length > 0 || data.canManage) && (
+                      <div className="supplier-contract-picker">
+                        {data.contracts.length > 0 ? (
+                          <TextField
+                            select
+                            size="small"
+                            label="Xem hợp đồng"
+                            value={contract?.id || "new"}
+                            onChange={(event) =>
+                              selectContract(
+                                data.contracts.find(
+                                  (item) => item.id === event.target.value,
+                                ),
+                              )
+                            }
+                          >
+                            {!contract?.id && (
+                              <MenuItem value="new" disabled>
+                                Đang soạn hợp đồng mới (chưa lưu)
+                              </MenuItem>
+                            )}
+                            {data.contracts.map((item) => (
+                              <MenuItem key={item.id} value={item.id}>
+                                {displayName(item.number) || "Chưa đặt số"} ·{" "}
+                                {item.startsOn || item.endsOn
+                                  ? `${dateText(item.startsOn)} – ${dateText(item.endsOn)} · `
+                                  : ""}
+                                {contractStatusText(item, today)}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        ) : (
+                          <span className="supplier-help">
+                            {editing ? "Đang soạn hợp đồng mới (chưa lưu)" : ""}
+                          </span>
+                        )}
+                        {data.canManage && (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Plus size={16} />}
+                            disabled={
+                              busy ||
+                              data.supplier.status !== "ACTIVE" ||
+                              (editing && !contract?.id)
+                            }
+                            onClick={newDraft}
+                          >
+                            Tạo hợp đồng
+                          </Button>
+                        )}
+                      </div>
+                    )}
 
                     {editing ? (
                       <>
@@ -1017,13 +1054,9 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
 
                           {draft && data.canManage && (
                             <>
-                              {(dirty || !contract?.id) && (
-                                <Alert severity="warning" sx={{ mb: 2 }}>
-                                  {contract?.id
-                                    ? "Có thay đổi chưa lưu. Bấm “Lưu nháp” ở dưới trước khi tải tài liệu hoặc kích hoạt."
-                                    : "Bấm “Lưu nháp” ở dưới để bắt đầu tải tài liệu."}
-                                </Alert>
-                              )}
+                              <p className="supplier-help" style={{ marginBottom: 12 }}>
+                                Khi tải tệp, hợp đồng sẽ được tự lưu nháp.
+                              </p>
                               <div className="supplier-upload-actions-grid">
                                 {visibleDocumentKinds.map(([kind, config]) => {
                                   const uploadedCount = (contract?.documents || []).filter(
@@ -1054,7 +1087,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                         variant="outlined"
                                         size="small"
                                         startIcon={<Upload size={15} />}
-                                        disabled={busy || !contract?.id || dirty}
+                                        disabled={busy || datesInvalid}
                                         className="supplier-upload-btn"
                                       >
                                         {uploadedCount > 0 ? "Tải thêm tệp" : "Tải tệp lên"}
@@ -1111,13 +1144,8 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                       aria-label={`Xóa ${displayName(file.fileName)}`}
                                       size="small"
                                       color="error"
-                                      disabled={busy || dirty}
-                                      onClick={() =>
-                                        run(async () => {
-                                          const response = await Service.removeDocument(file.id)
-                                          await refresh(response.data.id)
-                                        })
-                                      }
+                                      disabled={busy || datesInvalid}
+                                      onClick={() => removeDocument(file.id)}
                                     >
                                       <Trash2 size={17} />
                                     </IconButton>
