@@ -97,6 +97,16 @@ export const MenuItemSupplier = () => [
   {
     key: ROUTER.SUPPLIER_ORDERS,
     label: "Đơn hàng Cung ứng",
+    icon: <ReceiptLongOutlinedIcon />,
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
+  },
+  {
+    key: ROUTER.SUPPLIER_DELIVERIES,
+    label: "Tạo & Quản lý Đơn giao",
     icon: <LocalShippingOutlinedIcon />,
     roles: [
       ROLES.INGREDIENT_SUPPLIER_ADMIN,
