@@ -21,6 +21,7 @@ export default function MenuListFilterStrip({
   gradeLoading = false,
   gradeError = "",
   onRetryGrades,
+  statusFilters,
 }) {
   const {
     searchKeyword = "",
@@ -32,7 +33,7 @@ export default function MenuListFilterStrip({
 
   return (
     <>
-      <div className={styles.filterStrip}>
+      <div className={styles.filterStrip} role="region" aria-label="Bộ lọc danh sách thực đơn">
         {/* 1. Tìm kiếm theo tên hoặc mã thực đơn */}
         <div className={styles.searchWrapper}>
           <Search size={16} className={styles.searchIcon} />
@@ -141,6 +142,8 @@ export default function MenuListFilterStrip({
           </select>
           <ChevronDown size={14} className={styles.chevronIcon} />
         </div>
+
+        {statusFilters && <div className={styles.statusFilters}>{statusFilters}</div>}
 
         {/* 5. Nút Đặt lại: Icon-only tinh tế */}
         <button

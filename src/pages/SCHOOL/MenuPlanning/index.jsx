@@ -393,14 +393,6 @@ export default function MenuPlanning() {
         </button>
       </div>
 
-      {/* 2. Dải Quick Status Pills */}
-      <MenuListStatsRail
-        stats={stats}
-        year={filters.academicYear}
-        activeStatus={filters.status}
-        onFilterByStatus={handleFilterByStatus}
-      />
-
       {/* Section 3: Bộ lọc (Năm học, Tuần học theo BGH, Ca ăn) */}
       <MenuListFilterStrip
         filters={filters}
@@ -412,6 +404,12 @@ export default function MenuPlanning() {
         onRetryGrades={() => setGradeRetry(value => value + 1)}
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
+        statusFilters={<MenuListStatsRail
+          stats={{ ...stats, pendingApproval: stats.pending, revisionRequested: stats.revision }}
+          year={filters.academicYear}
+          activeStatus={filters.status}
+          onFilterByStatus={handleFilterByStatus}
+        />}
       />
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
