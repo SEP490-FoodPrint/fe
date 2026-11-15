@@ -4,7 +4,7 @@ import { ArrowDown, ArrowUp, Check, LockKeyhole, X } from "lucide-react"
 import { formatRemainingPortions, previewBatchAllocation } from "src/utils/mealAllocation"
 import styles from "./SelectClassesDialog.module.scss"
 
-export default function SelectClassesDialog({ batch, classes, onClose, onApply }) {
+export default function SelectClassesDialog({ batch, classes, dishName, onClose, onApply }) {
   const [orderedIds, setOrderedIds] = useState(() => batch.entries.map(entry => entry.id))
   const preview = previewBatchAllocation(batch.total, classes, orderedIds)
   const used = batch.total - preview.remaining
@@ -38,7 +38,9 @@ export default function SelectClassesDialog({ batch, classes, onClose, onApply }
       <DialogTitle component="div" className={styles.header}>
         <div>
           <div className={styles.titleRow}>
-            <h2 id="select-classes-title">Phân bổ lớp vào {batch.name}</h2>
+            <h2 id="select-classes-title">
+              Phân bổ lớp vào {batch.name}{dishName ? ` · Món ${dishName}` : ""}
+            </h2>
           </div>
           <div className={styles.subheading}>
             <span>Số suất khả dụng của lô: <strong>{batch.total}</strong></span>
