@@ -88,10 +88,6 @@ function PublicHeader() {
         Trang chủ
       </Link>
 
-      <a href={`${ROUTER.DEFAULT}#about`} className={styles.navItem}>
-        Giới thiệu
-      </a>
-
       {/* Dropdown tìm kiếm trường học nhanh */}
       <div className={styles.dropdownContainer} ref={dropdownRef}>
         <button
