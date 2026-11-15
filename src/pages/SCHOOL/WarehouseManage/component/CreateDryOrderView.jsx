@@ -199,28 +199,26 @@ export default function CreateDryOrderView({
   }, [orderQtys, inventoryItems])
 
   const handleSubmit = () => {
-    // 1. Lọc các mặt hàng được chọn và group theo NCC đang có món hàng đó
-    const itemsBySupplier = {}
+    // 1. Tổng hợp tất cả các mặt hàng được chọn kèm NCC tương ứng
+    const allSelectedItems = []
 
     Object.entries(orderQtys).forEach(([id, qty]) => {
       if (qty <= 0) return
       const it = inventoryItems.find(item => item.id === id)
       if (!it) return
 
-      const matchedSup = allSuppliers.find(s => isSupplierAvailableForItem(s, it)) || allSuppliers.find(s => s.id === it.supplierId)
-      const supId = it.supplierId || matchedSup?.id || `sup-${(it.supplierName || "default").replace(/\s+/g, "-").toLowerCase()}`
+      // Ưu tiên NCC gốc của mặt hàng trong kho
+      const matchedSup =
+        allSuppliers.find(s => s.id === it.supplierId) ||
+        allSuppliers.find(s => isSupplierAvailableForItem(s, it))
+      const supId =
+        it.supplierId ||
+        matchedSup?.id ||
+        `sup-${(it.supplierName || "default").replace(/\s+/g, "-").toLowerCase()}`
       const supName = it.supplierName || matchedSup?.name || "Nhà cung cấp đối tác"
       const supPhone = it.supplierPhone || matchedSup?.phone || ""
 
-      if (!itemsBySupplier[supId]) {
-        itemsBySupplier[supId] = {
-          supplierId: supId,
-          supplierName: supName,
-          supplierPhone: supPhone,
-          items: [],
-        }
-      }
-      itemsBySupplier[supId].items.push({
+      allSelectedItems.push({
         id: it.id,
         name: it.name,
         qty,
@@ -228,11 +226,11 @@ export default function CreateDryOrderView({
         price: it.unitPrice || 0,
         supplierId: supId,
         supplierName: supName,
+        supplierPhone: supPhone,
       })
     })
 
-    const supplierGroups = Object.values(itemsBySupplier)
-    if (supplierGroups.length === 0) return
+    if (allSelectedItems.length === 0) return
 
     // 2. Xác định nhãn hiển thị thời gian giao
     const hour = parseInt(deliveryTime.split(":")[0], 10) || 0
@@ -250,32 +248,40 @@ export default function CreateDryOrderView({
       deliveryTypeLabel = `Buổi sáng (${deliveryTime})`
     }
 
-    // 3. Tạo đơn theo từng NCC đang có mặt hàng đó
-    const ordersToCreate = supplierGroups.map((group, idx) => {
-      const itemsList = group.items
-      const totalAmount = itemsList.reduce((sum, it) => sum + (it.price * it.qty), 0)
+    const uniqueSuppliers = Array.from(
+      new Set(allSelectedItems.map(it => it.supplierName).filter(Boolean))
+    )
+    const primarySupplierName =
+      uniqueSuppliers.length === 1
+        ? uniqueSuppliers[0]
+        : uniqueSuppliers.join(", ")
+    const totalAmount = allSelectedItems.reduce(
+      (sum, it) => sum + it.price * it.qty,
+      0
+    )
 
-      return {
-        id: `po-dry-${Date.now()}-${idx}`,
-        orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10) + idx}`,
-        deliveryNo: `PNK-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10) + idx}`,
-        supplierId: group.supplierId,
-        supplierName: group.supplierName,
-        supplierPhone: group.supplierPhone,
-        orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
-        deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
-        deliveryType,
-        deliveryTypeLabel,
-        totalItems: itemsList.length,
-        totalAmount,
-        status: "CREATED",
-        statusLabel: "Chờ NCC xác nhận",
-        note,
-        items: itemsList,
-      }
-    })
+    // 3. Tạo 1 Phiếu nhập hàng duy nhất của trường, bên trong chứa đầy đủ các NCC giao gì
+    const orderToCreate = {
+      id: `po-dry-${Date.now()}`,
+      orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
+      deliveryNo: `PNK-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
+      supplierId: allSelectedItems[0]?.supplierId || "",
+      supplierName: primarySupplierName,
+      suppliers: uniqueSuppliers,
+      supplierPhone: allSelectedItems[0]?.supplierPhone || "",
+      orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
+      deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
+      deliveryType,
+      deliveryTypeLabel,
+      totalItems: allSelectedItems.length,
+      totalAmount,
+      status: "CREATED",
+      statusLabel: "Chờ NCC xác nhận",
+      note,
+      items: allSelectedItems,
+    }
 
-    onSubmit(ordersToCreate.length === 1 ? ordersToCreate[0] : ordersToCreate)
+    onSubmit(orderToCreate)
   }
 
   return (
