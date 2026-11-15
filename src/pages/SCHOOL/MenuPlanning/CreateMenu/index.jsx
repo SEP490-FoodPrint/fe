@@ -17,6 +17,7 @@ import styles from "./CreateMenu.module.scss"
 import ROUTER from "src/router/ROUTER"
 import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
+import { loadGradeAuthoringWeek } from "src/services/MenuService/gradeAuthoring"
 import {
   parseDateVNToISO,
   formatDateVN,
@@ -196,7 +197,7 @@ export default function CreateMenu() {
     setAcademicWeek(null)
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
-    MenuService.getWeekSchedule(weekStart, { gradeIds: selectedGrades })
+    loadGradeAuthoringWeek(weekStart, selectedGrades)
       .then((res) => {
         if (!active) return
         setAcademicWeek(res.data)
@@ -290,7 +291,7 @@ export default function CreateMenu() {
     }) => {
       const stored = weeklyMeals[dateISO]
       if (stored?.canEdit === false || stored?.approvalStatus === "APPROVED" || academicWeek?.weeklyMenuStatus === "APPROVED") throw new Error("Thực đơn đã duyệt chỉ được xem.")
-      if (academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
+      if (selectedGrades.length === 1 && academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
         await MenuService.saveMenuDay(academicWeek.weeklyMenuId, { dateISO, LUNCH, AFTERNOON, seasonings, seasoningsByMeal, useDishRecipes, portionGroupsByMeal, substituteDish, substitutesByMeal }, { submit: true })
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
         return
@@ -311,7 +312,7 @@ export default function CreateMenu() {
       }))
       showToast("Đã cập nhật ngày trong bản soạn thảo. Bấm Lưu hoặc Gửi BGH để ghi nhận.", "success")
     },
-    [weeklyMeals, academicWeek, navigate]
+    [weeklyMeals, academicWeek, navigate, selectedGrades]
   )
 
   // Thống kê tổng số món của cả tuần
@@ -378,7 +379,7 @@ export default function CreateMenu() {
 
       // Bước 1: Thử lấy lịch thực đơn tuần trước qua MenuService.getWeekSchedule
       try {
-        const prevScheduleRes = await MenuService.getWeekSchedule(prevMondayISO, { gradeIds: selectedGrades })
+        const prevScheduleRes = await loadGradeAuthoringWeek(prevMondayISO, selectedGrades)
         const days = prevScheduleRes?.data?.days || []
         const hasAnyDishes = days.some(
           (d) =>
@@ -542,7 +543,7 @@ export default function CreateMenu() {
     saveLock.current = true
     setSaving(true)
     try {
-      const response = await http.post("/v1/menus", payload, { notifyOnError: false })
+      const response = await MenuService.saveGradeBatch(payload)
       MenuService.invalidateMenuCache()
       if (!Array.isArray(response?.data?.allergyChecks)) {
         showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng từ máy chủ.", "warning")
@@ -595,13 +596,13 @@ export default function CreateMenu() {
     saveLock.current = true
     setSaving(true)
     try {
-      if (academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
+      if (selectedGrades.length === 1 && academicWeek?.weeklyMenuId && academicWeek.weeklyMenuStatus === "PENDING_APPROVAL") {
         await http.post(`/v1/menus/${academicWeek.weeklyMenuId}/revise-and-submit`, payload, { notifyOnError: false })
         MenuService.invalidateMenuCache()
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
         return
       }
-      const createRes = await http.post("/v1/menus", payload, { notifyOnError: false })
+      const createRes = await MenuService.saveGradeBatch(payload, { submit: true })
       MenuService.invalidateMenuCache()
       if (!Array.isArray(createRes?.data?.allergyChecks)) {
         showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng; chưa gửi duyệt.", "warning")
@@ -612,9 +613,7 @@ export default function CreateMenu() {
         showToast("Đã lưu nháp. Cần hoàn thiện nhóm suất riêng trước khi gửi duyệt.", "warning")
         return
       }
-      const menuId = createRes?.data?.id || createRes?.id
-      if (!menuId) throw new Error("Đã gửi yêu cầu lưu nhưng phản hồi thiếu mã thực đơn; chưa thể gửi duyệt.")
-      await MenuService.submitMenu(menuId)
+      if (!createRes.data.submitted) throw new Error("Các khối chưa cùng được gửi duyệt. Vui lòng kiểm tra lại bản nháp.")
       MenuService.invalidateMenuCache()
       showToast(
         "Đã gửi thực đơn tuần lên Ban Giám hiệu phê duyệt thành công!",
@@ -859,6 +858,7 @@ export default function CreateMenu() {
       {/* 3. POPUP MODAL TO RỘNG (50/50: NỬA TRÁI PREVIEW, NỬA PHẢI CHỌN MÓN & NHẬP GIA VỊ KHO) */}
       <CreateMenuDayModal
         gradeIds={selectedGrades}
+        gradeOptions={GRADE_OPTIONS}
         isOpen={dayModalState.isOpen}
         onClose={handleCloseDayModal}
         dayData={dayModalState.dayData}

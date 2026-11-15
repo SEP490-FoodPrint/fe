@@ -926,3 +926,117 @@ test("legacy batch detail calls still work and reading all batches stops on an e
   assert.deepEqual((await kitchen.getAllBatches()).items, [])
   assert.equal(requests.length, 2)
 })
+
+test("multi-grade recipe preview reads each grade separately and checks its own allergens", async () => {
+  const { inspectMenuMealSelection } = await server.ssrLoadModule("/src/services/MenuService/index.js")
+  const dish = { id: id(40), name: "Món chung", gradeRecipes: [50, 51].map((grade, index) => ({ gradeId: id(grade), lines: [{ ingredientId: id(42 + index), ingredientRole: "MAIN", requiredQuantity: index ? "100" : "80", unit: "g" }] })) }
+  respond = config => {
+    const body = JSON.parse(config.data)
+    assert.equal(body.gradeIds.length, 1)
+    const larger = body.gradeIds[0] === id(51)
+    if (config.url === "/dishes/recipe-preview") return { ingredientIds: [id(larger ? 43 : 42)], dishes: [{ dishId: id(40), ingredients: [{ ingredientId: id(larger ? 43 : 42), quantityPerPortion: larger ? "100" : "80", unit: "g" }] }], seasonings: [] }
+    assert.equal(config.url, "/v1/menus/allergy-check")
+    assert.deepEqual(body.ingredientIds, [id(larger ? 43 : 42)])
+    return { hasConflict: larger, conflicts: larger ? [{ ingredientId: id(43), ingredientName: "Đậu phộng", affectedClasses: [{ classId: id(71), className: "4A", count: 2 }] }] : [] }
+  }
+  const result = await inspectMenuMealSelection({ dishes: [dish], gradeIds: [id(50), id(51)], refreshRecipe: true })
+  assert.deepEqual(result.gradePreviews.map(row => row.recipe.dishes[0].ingredients[0].quantityPerPortion), ["80", "100"])
+  assert.deepEqual(result.gradePreviews.map(row => row.allergies.hasConflict), [false, true])
+  assert.equal(result.allergies.hasConflict, true)
+  assert.equal(result.allergies.conflicts[0].affectedStudentsCount, 2)
+  assert.deepEqual(result.issues, [])
+})
+
+test("unchanged multi-grade previews keep each saved snapshot without looking up current recipes", async () => {
+  const { inspectMenuMealSelection } = await server.ssrLoadModule("/src/services/MenuService/index.js")
+  respond = config => {
+    assert.equal(config.url, "/v1/menus/allergy-check")
+    const body = JSON.parse(config.data)
+    assert.deepEqual(body.ingredientIds, [body.gradeIds[0] === id(50) ? id(42) : id(43)])
+    return { hasConflict: false, conflicts: [] }
+  }
+  const recipe = (ingredientId, quantity) => ({ dishes: [{ dishId: id(40), ingredientStandards: [{ ingredientId, quantityPerPortion: quantity, unit: "g" }] }], seasonings: [] })
+  const result = await inspectMenuMealSelection({ dishes: [{ dishId: id(40) }], gradeIds: [id(50), id(51)], gradeSnapshots: { [id(50)]: recipe(id(42), "18"), [id(51)]: recipe(id(43), "28") } })
+  assert.deepEqual(result.gradePreviews.map(row => row.recipe.dishes[0].ingredients[0].quantityPerPortion), ["18", "28"])
+  assert.equal(requests.length, 2)
+})
+
+test("grade authoring sends one atomic save request and one grouped submit request", async () => {
+  respond = config => {
+    const body = JSON.parse(config.data)
+    if (config.url === "/v1/menus/grade-batch") {
+      assert.deepEqual(body.gradeIds, [id(50), id(51)])
+      assert.equal(body.submit, true)
+      return { menus: [{ id: id(1), gradeIds: [id(50)] }, { id: id(60), gradeIds: [id(51)] }], allergyChecks: [], hasUnresolvedAllergies: false, submitted: true }
+    }
+    assert.equal(config.url, "/v1/menus/submit-group")
+    assert.deepEqual(body.menuIds, [id(1), id(60)])
+    return { menus: body.menuIds.map(id => ({ id, status: "PENDING_APPROVAL" })) }
+  }
+  await menus.saveGradeBatch({ gradeIds: [id(50), id(51)], weekStartDate: "2026-11-02", days: [] }, { submit: true })
+  await menus.submitMenuGroup([id(1), id(60), id(1)])
+  assert.equal(requests.length, 2)
+})
+
+test("same weekly dishes group into one display item while preserving every approval target", async () => {
+  const { groupMenuCardsByWeek, groupSimilarMenuCards } = await server.ssrLoadModule("/src/services/MenuService/listGrades.js")
+  const card = (weeklyMenuId, gradeId, quantity, dishId = id(40), status = "DRAFT") => ({ id: `${weeklyMenuId}_meal`, weeklyMenuId, gradeIds: [gradeId], targetScope: gradeId, rawDate: "2026-11-02", mealType: "LUNCH", status, dishes: [{ dishId, ingredientStandards: [{ ingredientId: id(42), quantityPerPortion: quantity, unit: "g" }] }] })
+  const first = card(id(1), id(50), "80"), second = card(id(60), id(51), "100")
+  const grouped = groupSimilarMenuCards(groupMenuCardsByWeek([first, second]))
+  assert.equal(grouped.length, 1)
+  assert.deepEqual(grouped[0].members.map(member => member.id), [id(1), id(60)])
+  assert.deepEqual(grouped[0].menus[0].gradeIds, [id(50), id(51)])
+  assert.equal(groupSimilarMenuCards(groupMenuCardsByWeek([first, { ...second, status: "APPROVED" }])).length, 2)
+  assert.equal(groupSimilarMenuCards(groupMenuCardsByWeek([first, card(id(60), id(51), "100", id(41))])).length, 2)
+})
+
+test("new grade authoring cannot inherit dishes or seasonings from an unrelated grade", async () => {
+  const { loadGradeAuthoringWeek } = await server.ssrLoadModule("/src/services/MenuService/gradeAuthoring.js")
+  respond = config => config.url.endsWith("/week-schedule") ? { weeklyMenuId: id(1), availableMenus: [{ id: id(1), gradeIds: [id(50)] }], days: [{ date: "2026-11-02", hasMenu: true, status: "APPROVED" }] } : snapshot()
+  const result = await loadGradeAuthoringWeek("2026-11-02", [id(51)])
+  assert.equal(result.data.weeklyMenuId, null)
+  assert.equal(result.data.weeklyMenuStatus, null)
+  assert.equal(result.data.days[0].hasMenu, false)
+  assert.deepEqual(result.data.days[0].meals.LUNCH.dishes, [])
+  assert.deepEqual(result.data.days[0].seasoningsByMeal.LUNCH, [])
+})
+
+test("common authoring restores a separate saved snapshot for every selected grade", async () => {
+  const { loadGradeAuthoringWeek } = await server.ssrLoadModule("/src/services/MenuService/gradeAuthoring.js")
+  const first = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const second = { ...snapshot(), id: id(60), grades: [{ gradeId: id(51), grade: { name: "Khối 4–5" } }] }
+  second.menuDays[0].id = id(61)
+  second.menuDays[0].menuDayDishes[0].ingredients[0].quantityPerPortion = "110.625"
+  const availableMenus = [first, second].map(week => ({ id: week.id, gradeIds: week.grades.map(row => row.gradeId), gradeNames: week.grades.map(row => row.grade.name) }))
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) {
+      const selected = availableMenus.find(menu => menu.id === config.params.menuId)
+      return { availableMenus, weeklyMenuId: selected?.id || null, weeklyMenuStatus: "DRAFT", gradeIds: selected?.gradeIds || [], days: [{ date: "2026-11-02", hasMenu: Boolean(selected), status: "DRAFT" }] }
+    }
+    return config.url.endsWith(`/${first.id}`) ? first : second
+  }
+  const response = await loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)])
+  assert.equal(response.data.gradeMenus.length, 2)
+  const saved = response.data.days[0].gradeSnapshots
+  assert.equal(saved[id(50)].LUNCH.dishes[0].ingredientStandards[0].quantityPerPortion, "80.125")
+  assert.equal(saved[id(51)].LUNCH.dishes[0].ingredientStandards[0].quantityPerPortion, "110.625")
+  second.menuDays[0].menuDayDishes[0].dishId = id(99)
+  menus.invalidateMenuCache()
+  await assert.rejects(loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)]), /lịch món hoặc trạng thái khác nhau/)
+})
+
+test("grade preview renders a grade selector and its own quantities while hiding stale values during loading", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Preview } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuGradeRecipePreview.jsx")
+  const props = { grades: [{ id: id(50), name: "Khối 1–3" }, { id: id(51), name: "Khối 4–5" }], dishes: [{ dishId: id(40), name: "Thịt kho" }], ingredientOptions: [{ ingredientId: id(42), name: "Thịt" }], previews: [50, 51].map((grade, index) => ({ gradeId: id(grade), allergies: { hasConflict: false }, issues: [], recipe: { dishes: [{ dishId: id(40), ingredients: [{ ingredientId: id(42), quantityPerPortion: index ? "100" : "80", unit: "g" }] }] } })) }
+  const html = renderToStaticMarkup(React.createElement(Preview, props))
+  assert.match(html, /Xem định lượng khối/)
+  assert.match(html, /Khối 1–3/)
+  assert.match(html, /Khối 4–5/)
+  assert.match(html, /Thịt kho/)
+  assert.match(html, />80<\/td>/)
+  const pending = renderToStaticMarkup(React.createElement(Preview, { ...props, loading: true }))
+  assert.match(pending, /Đang đối chiếu/)
+  assert.doesNotMatch(pending, />80<\/td>/)
+})

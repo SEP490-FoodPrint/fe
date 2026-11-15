@@ -6,7 +6,7 @@ import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import MenuService from "src/services/MenuService"
 import { SCHOOL_DAY_LABELS } from "src/services/MenuService/adapter"
-import { filterMenuCardsByGrade, groupMenuCardsByWeek } from "src/services/MenuService/listGrades"
+import { filterMenuCardsByGrade, groupMenuCardsByWeek, groupSimilarMenuCards } from "src/services/MenuService/listGrades"
 
 import MenuListStatsRail from "./component/MenuListStatsRail"
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
@@ -41,7 +41,7 @@ export default function MenuPlanning() {
   })
 
   const menus = useMemo(() => filterMenuCardsByGrade(allMenus, filters.gradeId), [allMenus, filters.gradeId])
-  const menuGroups = useMemo(() => groupMenuCardsByWeek(menus), [menus])
+  const menuGroups = useMemo(() => groupSimilarMenuCards(groupMenuCardsByWeek(menus)), [menus])
 
   useEffect(() => {
     let active = true
@@ -181,7 +181,7 @@ export default function MenuPlanning() {
 
   // Thống kê nhanh theo trạng thái tuần
   const stats = useMemo(() => {
-    const list = Array.isArray(menus) ? menus : []
+    const list = menuGroups.flatMap(group => group.menus)
     const total = list.length
     const draft = list.filter((m) => m.status === "DRAFT").length
     const pending = list.filter((m) => m.status === "PENDING_APPROVAL").length
@@ -189,7 +189,7 @@ export default function MenuPlanning() {
     const approved = list.filter((m) => m.status === "APPROVED").length
 
     return { total, draft, pending, revision, approved }
-  }, [menus])
+  }, [menuGroups])
 
   // Lọc thực đơn theo các tiêu chí
   const filteredMenus = useMemo(() => {
@@ -309,7 +309,7 @@ export default function MenuPlanning() {
     }
 
     try {
-      await MenuService.submitMenu(weeklyId)
+      await MenuService.submitMenuGroup([...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id))])
       showToast(
         `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
         "success"
@@ -332,7 +332,7 @@ export default function MenuPlanning() {
     }
 
     try {
-      await MenuService.submitMenu(weeklyId)
+      await MenuService.submitMenuGroup([...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id))])
       showToast(
         `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
         "success"
@@ -427,7 +427,7 @@ export default function MenuPlanning() {
         menuGroups.map(group => <MenuListWeeklyVerticalView
           key={group.id}
           schoolDays={weekSchoolDays}
-          menus={filteredMenus.filter(menu => (menu.weeklyMenuId || menu.id) === group.id)}
+          menus={group.menus.filter(menu => filteredMenus.some(row => row.id === menu.id))}
           mealTypeFilter={filters.mealType}
           onViewDetail={handleViewDetail}
           onEditMenu={handleEditMenu}
@@ -438,8 +438,8 @@ export default function MenuPlanning() {
           isCurrentWeek={isCurrentWeek}
           weekStatus={group.status}
           weekFeedback={group.feedback}
-          onSubmitWeeklyMenu={() => handleSubmitWeeklyMenu(group.menus)}
-          onResubmitWeeklyMenu={() => handleResubmitWeeklyMenu(group.menus)}
+          onSubmitWeeklyMenu={() => handleSubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
+          onResubmitWeeklyMenu={() => handleResubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
         />)
       )}
 

@@ -6,6 +6,7 @@ import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
 import { getSchoolWeekScheduleFromDate } from "src/services/MenuService/adapter"
 import { loadKitchenGradeSchedules } from "src/services/MenuService/gradeSchedule"
+import { groupSimilarGradeSchedules } from "src/services/MenuService/gradeAuthoring"
 import KitchenMenuHeader from "./component/KitchenMenuHeader"
 import KitchenMenuWeeklyGrid from "./component/KitchenMenuWeeklyGrid"
 import styles from "./index.module.scss"
@@ -134,7 +135,7 @@ export default function KitchenMenu() {
 
   const groups = useMemo(() => {
     if (!week) return []
-    return schedules.map((schedule) => ({
+    return groupSimilarGradeSchedules(schedules).map((schedule) => ({
       ...schedule,
       schoolDays: getSchoolWeekScheduleFromDate(
         week.weekStartDate,
@@ -262,7 +263,7 @@ export default function KitchenMenu() {
       ) : (
         groups.map((group) => (
           <section key={group.weeklyMenuId} aria-label={group.targetScope}>
-            {groups.length > 1 && (
+              {(groups.length > 1 || group.variants.length > 1) && (
               <h2 className={styles.scopeHeading}>{group.targetScope}</h2>
             )}
             <KitchenMenuWeeklyGrid

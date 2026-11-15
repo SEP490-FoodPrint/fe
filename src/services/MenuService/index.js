@@ -1,6 +1,6 @@
 import http from "../01_axios";
 import STORAGE, { getStorage } from "src/lib/storage";
-import { dishIngredientIds, previewMealRecipe } from "../DishService";
+import { dishIngredientIds, dishForGrades, previewMealRecipe } from "../DishService";
 import {
   apiMenus,
   apiMenuDetail,
@@ -27,7 +27,28 @@ const weekScheduleRequests = new Map();
 const WEEK_SCHEDULE_CACHE_MS = 15000;
 
 // Allergy inspection must still run when a legacy recipe cannot be aggregated.
-export async function inspectMenuMealSelection({ dishes, seasonings = [], refreshRecipe = false, gradeIds = [] }) {
+export async function inspectMenuMealSelection({ dishes, seasonings = [], refreshRecipe = false, gradeIds = [], gradeSnapshots = {} }) {
+  if (gradeIds.length > 1) {
+    const gradePreviews = await Promise.all(gradeIds.map(async gradeId => {
+      const snapshot = !refreshRecipe ? gradeSnapshots[gradeId] : null;
+      const selected = snapshot?.dishes || dishes.map(dish => dish.gradeRecipes ? dishForGrades(dish, [gradeId]) : dish);
+      const result = await inspectMenuMealSelection({ dishes: selected, seasonings: snapshot?.seasonings || seasonings, refreshRecipe: refreshRecipe || !snapshot, gradeIds: [gradeId] });
+      return { ...result, gradeId, recipe: result.recipe || { dishes: selected.map(dish => ({ dishId: dish.dishId || dish.id, ingredients: dish.ingredientStandards || [] })), seasonings: result.seasonings } };
+    }));
+    const conflicts = new Map();
+    for (const preview of gradePreviews) for (const conflict of preview.allergies?.conflicts || []) {
+      const key = conflict.ingredientEntryId || conflict.ingredientId;
+      const previous = conflicts.get(key);
+      const classes = [...new Map([...(previous?.affectedClasses || []), ...(conflict.affectedClasses || [])].map(row => [row.classId || row.className, row])).values()];
+      conflicts.set(key, { ...conflict, affectedClasses: classes, affectedStudentsCount: classes.reduce((total, row) => total + row.count, 0) });
+    }
+    return {
+      allergies: gradePreviews.every(row => row.allergies) ? { hasConflict: conflicts.size > 0, conflicts: [...conflicts.values()] } : null,
+      seasonings: gradePreviews[0]?.seasonings || [],
+      issues: gradePreviews.flatMap(row => row.issues.map(issue => `Khối ${gradeIds.indexOf(row.gradeId) + 1}: ${issue}`)),
+      gradePreviews,
+    };
+  }
   const selected = [...new Map(dishes.map(dish => [dish.dishId || dish.id, dish])).values()];
   if (!selected.length) {
     return { allergies: { hasConflict: false, conflicts: [] }, seasonings: [], issues: [] };
@@ -70,7 +91,7 @@ export async function inspectMenuMealSelection({ dishes, seasonings = [], refres
       issues.push(`Chưa đủ dữ liệu nguyên liệu để kiểm tra dị ứng: ${missing.map(dish => dish.name || "Món chưa có công thức").join(", ")}.`);
     }
   }
-  return { allergies, seasonings, issues };
+  return { allergies, seasonings, issues, recipe };
 }
 
 let weekScheduleGeneration = 0;
@@ -103,6 +124,18 @@ const MENU_CONTEXT_CACHE_MS = 300000; // 5 phút cache cấu hình trường
  * Gọi 100% API thực từ Backend, không dùng Mock Data fallback.
  */
 const MenuService = {
+  saveGradeBatch: async (payload, { submit = false } = {}) => {
+    const response = await http.post(`${apiMenus}/grade-batch`, { ...payload, submit }, { notifyOnError: false });
+    if (!Array.isArray(response?.data?.menus) || !response.data.menus.length || !Array.isArray(response.data.allergyChecks)) throw new Error("Phản hồi thiếu thực đơn hoặc đối soát theo khối. Vui lòng tải lại trước khi lưu tiếp.");
+    MenuService.invalidateMenuCache();
+    return response;
+  },
+  submitMenuGroup: async menuIds => {
+    const response = await http.post(`${apiMenus}/submit-group`, { menuIds: [...new Set(menuIds)] }, { notifyOnError: false });
+    if (!Array.isArray(response?.data?.menus)) throw new Error("Chưa nhận được trạng thái gửi duyệt của các khối.");
+    MenuService.invalidateMenuCache();
+    return response;
+  },
   getContext: async ({ forceRefresh = false } = {}) => {
     if (!forceRefresh && menuContextCache && (Date.now() - menuContextCacheTime < MENU_CONTEXT_CACHE_MS)) {
       return menuContextCache;
