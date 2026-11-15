@@ -26,7 +26,7 @@ export default function IngredientOrders() {
   const [selectedDelivery, setSelectedDelivery] = useState(null)
 
   // Ngày được chọn khi mở màn hình Tạo đơn (để tự động nhận diện Đợt 1 / Đợt 2)
-  const [createTargetDate, setCreateTargetDate] = useState("2026-10-27")
+  const [createTargetDate, setCreateTargetDate] = useState("2026-11-16")
 
   // Filter state cho Phiếu giao nhận
   const [deliveryFilters, setDeliveryFilters] = useState({
@@ -213,7 +213,8 @@ export default function IngredientOrders() {
             onFilterChange={handleDeliveryFilterChange}
             onResetFilters={handleResetDeliveryFilters}
             onOpenCreate={() => {
-              setCreateTargetDate("2026-10-27")
+              const defaultDate = approvedMenus[0]?.mealDate || "2026-11-16"
+              setCreateTargetDate(String(defaultDate).slice(0, 10))
               setDeliverySubView("create")
             }}
           />
@@ -223,7 +224,7 @@ export default function IngredientOrders() {
             deliveries={paginatedDeliveries}
             onViewDetail={handleViewDetail}
             onAddBatch2={item => {
-              setCreateTargetDate(item.deliveryDate)
+              setCreateTargetDate(String(item.deliveryDate || "").slice(0, 10))
               setDeliverySubView("create")
             }}
           />

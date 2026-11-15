@@ -15,6 +15,7 @@ import {
   Paper,
   TextField,
   TableContainer,
+  Tooltip,
 } from "@mui/material"
 import {
   ArrowLeft,
@@ -32,6 +33,8 @@ import {
   Calendar,
   Users,
   Check,
+  Layers,
+  ChefHat,
 } from "lucide-react"
 import styles from "./DeliveryDetailView.module.scss"
 
@@ -40,6 +43,11 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
     delivery?.actualAttendance || 820
   )
   const [updating, setUpdating] = useState(false)
+  const [expandedItems, setExpandedItems] = useState({})
+
+  const toggleExpandItem = idx => {
+    setExpandedItems(prev => ({ ...prev, [idx]: !prev[idx] }))
+  }
 
   // Danh sách các Nhà cung cấp duy nhất tham gia đợt giao này
   const uniqueSuppliers = useMemo(() => {
@@ -211,10 +219,32 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 size="small"
                 className={isBatch1 ? styles.batch1Chip : styles.batch2Chip}
               />
+              {delivery.targetScope && (
+                <Chip
+                  icon={<Layers size={13} />}
+                  label={`Áp dụng: ${delivery.targetScope}`}
+                  size="small"
+                  sx={{ bgcolor: "#f1f5f9", color: "#334155", fontWeight: 600, fontSize: "0.75rem" }}
+                />
+              )}
             </Box>
             <Typography variant="body2" className={styles.subTitle}>
               Đơn đặt hàng gốc: <strong>{delivery.orderNo}</strong>
+              {delivery.menuName && ` • Thực đơn: ${delivery.menuName}`}
             </Typography>
+            {Array.isArray(delivery.menusSummary) && delivery.menusSummary.length > 1 && (
+              <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
+                {delivery.menusSummary.map(ms => (
+                  <Chip
+                    key={ms.id}
+                    icon={<ChefHat size={13} />}
+                    label={`${ms.targetScope || ms.name}: ${ms.batch1Portions || Math.floor((ms.maxPortions || 400) / 2)}/${ms.maxPortions || 400} suất`}
+                    size="small"
+                    sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 600, fontSize: "0.725rem", border: "1px solid #bfdbfe" }}
+                  />
+                ))}
+              </Box>
+            )}
           </Box>
         </Box>
 
@@ -545,58 +575,121 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                   ? (isDiscrete ? Math.ceil(rawNeeded + (item.extraQty || 0)) : Number((rawNeeded + (item.extraQty || 0)).toFixed(2)))
                   : (isDiscrete && typeof item.orderedQty === "number" ? Math.ceil(item.orderedQty) : item.orderedQty)
 
+                const isMulti = Boolean(item.breakdown && item.breakdown.length > 1)
+                const isExpanded = Boolean(expandedItems[idx])
+
                 return (
-                  <TableRow key={idx} hover className={styles.tableRow}>
-                    <TableCell>
-                      <Typography variant="subtitle2" className={styles.ingName}>
-                        {item.ingredientName}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b", fontSize: "0.8125rem" }}>
-                        {item.supplierName || delivery.supplierName || "Nhà cung cấp đối tác"}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={item.handlingType === "DIRECT_USE" ? "Tươi sống (Dùng ngay)" : "Kho khô"}
-                        size="small"
-                        className={item.handlingType === "DIRECT_USE" ? styles.freshChip : styles.dryChip}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Typography variant="body2">{item.unit}</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" className={styles.orderedQty}>
-                        {displayedOrderedQty} {item.unit}
-                      </Typography>
-                      {hasExtraQty && !isExtraItem && (
-                        <Typography variant="caption" sx={{ color: "#15803d", display: "block", fontSize: "0.7rem", fontWeight: 600 }}>
-                          (Gồm {item.standardQty} theo suất + {item.extraQty} giao thêm)
+                  <React.Fragment key={idx}>
+                    <TableRow hover className={styles.tableRow}>
+                      <TableCell>
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                          <Typography variant="subtitle2" className={styles.ingName}>
+                            {item.ingredientName}
+                          </Typography>
+                          {isMulti && (
+                            <Tooltip title="Nguyên liệu dùng chung cho nhiều thực đơn - Bấm để xem phân rã chi tiết" arrow>
+                              <Chip
+                                icon={<Layers size={12} />}
+                                label={`${item.breakdown.length} thực đơn`}
+                                size="small"
+                                onClick={() => toggleExpandItem(idx)}
+                                sx={{
+                                  cursor: "pointer",
+                                  bgcolor: "#eff6ff",
+                                  color: "#1d4ed8",
+                                  fontWeight: 700,
+                                  fontSize: "0.7rem",
+                                  height: 22,
+                                  border: "1px solid #bfdbfe",
+                                  "&:hover": { bgcolor: "#dbeafe" },
+                                }}
+                              />
+                            </Tooltip>
+                          )}
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b", fontSize: "0.8125rem" }}>
+                          {item.supplierName || delivery.supplierName || "Nhà cung cấp đối tác"}
                         </Typography>
-                      )}
-                      {portionRate > 0 && !isExtraItem && !hasExtraQty && (
-                        <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
-                          ({portionRate} {item.unit}/suất)
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={item.handlingType === "DIRECT_USE" ? "Tươi sống (Dùng ngay)" : "Kho khô"}
+                          size="small"
+                          className={item.handlingType === "DIRECT_USE" ? styles.freshChip : styles.dryChip}
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <Typography variant="body2">{item.unit}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2" className={styles.orderedQty}>
+                          {displayedOrderedQty} {item.unit}
                         </Typography>
-                      )}
-                      {isWaitingAttendance && !isExtraItem && (
-                        <Typography variant="caption" sx={{ color: "#d97706", display: "block", fontSize: "0.7rem" }}>
-                          (Theo {remainingNeeded} suất)
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell align="center">
-                      {item.status === "ACCEPTED" ? (
-                        <Chip label="Đạt chuẩn tươi ngon" size="small" className={styles.itemAccepted} />
-                      ) : item.status === "REJECTED" ? (
-                        <Chip label="Không đạt (Dập nát/Mùi lạ)" size="small" className={styles.itemRejected} />
-                      ) : (
-                        <Chip label="Đang kiểm tra" size="small" className={styles.itemChecking} />
-                      )}
-                    </TableCell>
-                  </TableRow>
+                        {isMulti ? (
+                          <Button
+                            size="small"
+                            variant="text"
+                            onClick={() => toggleExpandItem(idx)}
+                            sx={{ fontSize: "0.6875rem", p: 0, minWidth: 0, textTransform: "none", color: "#2563eb", display: "block", ml: "auto" }}
+                          >
+                            {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                          </Button>
+                        ) : hasExtraQty && !isExtraItem ? (
+                          <Typography variant="caption" sx={{ color: "#15803d", display: "block", fontSize: "0.7rem", fontWeight: 600 }}>
+                            (Gồm {item.standardQty} theo suất + {item.extraQty} giao thêm)
+                          </Typography>
+                        ) : portionRate > 0 && !isExtraItem && !hasExtraQty ? (
+                          <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
+                            ({portionRate} {item.unit}/suất)
+                          </Typography>
+                        ) : null}
+                        {isWaitingAttendance && !isExtraItem && (
+                          <Typography variant="caption" sx={{ color: "#d97706", display: "block", fontSize: "0.7rem" }}>
+                            (Theo {remainingNeeded} suất)
+                          </Typography>
+                        )}
+                      </TableCell>
+                      <TableCell align="center">
+                        {item.status === "ACCEPTED" ? (
+                          <Chip label="Đạt chuẩn tươi ngon" size="small" className={styles.itemAccepted} />
+                        ) : item.status === "REJECTED" ? (
+                          <Chip label="Không đạt (Dập nát/Mùi lạ)" size="small" className={styles.itemRejected} />
+                        ) : (
+                          <Chip label="Đang kiểm tra" size="small" className={styles.itemChecking} />
+                        )}
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Dòng mở rộng chi tiết phân rã cho nguyên liệu đa thực đơn */}
+                    {isExpanded && isMulti && (
+                      <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                        <TableCell colSpan={6} sx={{ py: 1.25, px: 3, borderBottom: "1px solid #e2e8f0" }}>
+                          <Box sx={{ p: 1.5, bgcolor: "#ffffff", borderRadius: 1.5, border: "1px solid #e2e8f0" }}>
+                            <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+                              <Layers size={14} color="#2563eb" /> Chi tiết định lượng &amp; số lượng theo từng thực đơn / khối lớp:
+                            </Typography>
+                            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                              {item.breakdown.map((b, bIdx) => (
+                                <Box key={bIdx} sx={{ bgcolor: "#f8fafc", p: 1, px: 1.5, borderRadius: 1.25, border: "1px solid #e2e8f0", minWidth: 200 }}>
+                                  <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem" }}>
+                                    {b.targetScope || b.menuName}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+                                    {b.portions} suất × {b.qtyPerPortion} {b.unit}/suất
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb", mt: 0.5 }}>
+                                    = {b.calculatedQty} {b.unit}
+                                  </Typography>
+                                </Box>
+                              ))}
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </React.Fragment>
                 )
               })}
             </TableBody>

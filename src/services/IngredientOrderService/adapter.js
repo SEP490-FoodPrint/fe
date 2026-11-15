@@ -235,6 +235,13 @@ export function adaptDeliveryItem(item) {
             ...it,
             supplierId: it.supplierId || item.supplierId || "",
             supplierName: sName,
+            breakdown: it.breakdown || null,
+            qtyPerPortion: it.qtyPerPortion ?? null,
+            standardQty: it.standardQty ?? null,
+            extraQty: it.extraQty ?? 0,
+            isCustomized: it.isCustomized || false,
+            isExtraItem: it.isExtraItem || false,
+            defaultQtyPerPortion: it.defaultQtyPerPortion || null,
           }
         })
       : []
@@ -252,17 +259,22 @@ export function adaptDeliveryItem(item) {
       item.SupplyRequest?.requestNo ||
       (item.deliveryNo ? `PO-${item.deliveryNo.replace(/^DEL-|^PN-/, "")}` : "PO-UNKNOWN"),
     menuId: item.menuId || "menu-live",
+    menuIds: item.menuIds || (item.menuId ? [item.menuId] : []),
     menuName:
       item.menuName ||
       item.note ||
       (batchType === "BATCH_1"
         ? "Thực đơn dinh dưỡng học đường (Đợt 1)"
         : "Thực đơn bổ sung (Đợt 2)"),
+    menusSummary: item.menusSummary || null,
+    targetScope: item.targetScope || "",
+    actualAttendanceByGrade: item.actualAttendanceByGrade || null,
     deliveryDate,
     deliveryTime,
     batchType,
     batchLabel,
     maxPortions: item.maxPortions || 850,
+    batch1Portions: item.batch1Portions || (batchType === "BATCH_2" ? 425 : undefined),
     plannedPortions: item.plannedPortions || (batchType === "BATCH_1" ? 425 : 820),
     actualAttendance: item.actualAttendance || 820,
     supplierId: item.supplierId || item.Supplier?.id || "",

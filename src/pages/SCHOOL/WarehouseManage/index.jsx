@@ -1,5 +1,7 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react"
+import React, { useState, useMemo, useEffect, useCallback, useContext } from "react"
 import { useSearchParams } from "react-router-dom"
+import { StoreContext } from "src/contexts"
+import STORAGE, { getStorage } from "src/lib/storage"
 import {
   Box,
   Tabs,
@@ -41,6 +43,11 @@ import styles from "./index.module.scss"
 const PAGE_SIZE = 10
 
 export default function WarehouseManage() {
+  const { userStore } = useContext(StoreContext)
+  const currentUser = userStore?.user || getStorage(STORAGE.USER_INFO)
+  const currentSchoolId = currentUser?.schoolId || currentUser?.school_id || currentUser?.orgId || ""
+  const currentSchoolName = currentUser?.schoolName || currentUser?.orgName || ""
+
   const [searchParams, setSearchParams] = useSearchParams()
   const initialTab = searchParams.get("tab") === "orders" ? "orders" : "inventory"
 
@@ -114,7 +121,7 @@ export default function WarehouseManage() {
   useEffect(() => {
     loadInventory()
     loadOrders()
-  }, [loadInventory, loadOrders])
+  }, [loadInventory, loadOrders, currentSchoolId, currentSchoolName])
 
   // Đồng bộ tab từ URL search params nếu có thay đổi
   useEffect(() => {
@@ -311,12 +318,27 @@ export default function WarehouseManage() {
     const ordersToSave = Array.isArray(orderPayload) ? orderPayload : [orderPayload]
 
     ordersToSave.forEach((newOrder, orderIdx) => {
+      const uniqueSuppliers = Array.from(
+        new Set(
+          [
+            ...(Array.isArray(newOrder.suppliers) ? newOrder.suppliers : []),
+            ...(newOrder.items || []).map(it => it.supplierName),
+          ].filter(Boolean)
+        )
+      )
+
       const dryDelivery = {
         id: newOrder.id || `po-dry-${Date.now()}-${orderIdx}`,
         deliveryNo: newOrder.deliveryNo,
         orderNo: newOrder.orderNo,
+        schoolId: currentSchoolId || "10000000-0000-4000-8000-000000000001",
+        schoolName: currentSchoolName || "Trường Tiểu học Cầu Giấy",
         supplierId: newOrder.supplierId,
         supplierName: newOrder.supplierName,
+        suppliers:
+          uniqueSuppliers.length > 0
+            ? uniqueSuppliers
+            : [newOrder.supplierName].filter(Boolean),
         supplierPhone: newOrder.supplierPhone,
         deliveryDate: newOrder.deliverySchedule,
         expectedArrivalAt: new Date(Date.now() + 86400000).toISOString(),
@@ -334,6 +356,8 @@ export default function WarehouseManage() {
           actualQuantity: it.qty,
           requestedQuantity: it.qty,
           unit: it.unit,
+          supplierId: it.supplierId,
+          supplierName: it.supplierName,
           handlingType: "DRY_STOCK",
           note: "Đồ khô kho trường",
         })),
@@ -344,6 +368,8 @@ export default function WarehouseManage() {
           orderedQty: it.qty,
           qty: it.qty,
           unit: it.unit,
+          supplierId: it.supplierId,
+          supplierName: it.supplierName,
           handlingType: "DRY_STOCK",
           spec: "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng",
         })),
@@ -390,6 +416,7 @@ export default function WarehouseManage() {
       {subView === "orderDetail" && selectedOrder && (
         <TrackingDetailView
           item={selectedOrder}
+          inventoryItems={inventory}
           onBack={handleBackToList}
         />
       )}

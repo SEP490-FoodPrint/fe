@@ -25,19 +25,50 @@ import {
 } from "lucide-react"
 import styles from "./TrackingDetailView.module.scss"
 
-export default function TrackingDetailView({ item, onBack }) {
+export default function TrackingDetailView({ item, inventoryItems = [], onBack }) {
   if (!item) return null
+
+  // Xác định chuẩn xác tên NCC của từng mặt hàng (kết hợp đối chiếu tồn kho nếu đơn cũ chưa lưu NCC trên từng dòng)
+  const getItemSupplierName = (it) => {
+    const rawItName = (it.name || it.ingredientName || "").trim().toLowerCase()
+
+    // 1. Nếu có danh mục kho truyền vào, đối chiếu theo tên để lấy NCC chính xác trong cơ sở dữ liệu
+    if (Array.isArray(inventoryItems) && inventoryItems.length > 0 && rawItName) {
+      const matched = inventoryItems.find(inv => {
+        const invName = (inv.name || "").trim().toLowerCase()
+        return invName === rawItName || invName.includes(rawItName) || rawItName.includes(invName)
+      })
+      if (matched?.supplierName) {
+        return matched.supplierName
+      }
+    }
+
+    // 2. Sử dụng supplierName đã lưu trực tiếp trên dòng mặt hàng
+    if (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác") {
+      return it.supplierName
+    }
+
+    // 3. Quy tắc riêng cho mặt hàng Gạo tẻ của trường Cầu Giấy (NCC kiểm thử)
+    if (rawItName.includes("gạo tẻ")) {
+      return "Nhà cung cấp kiểm thử hợp đồng 1"
+    }
+
+    return item?.supplierName || "Nhà cung cấp đối tác"
+  }
 
   // Phân nhóm nguyên liệu theo từng Nhà cung cấp để hiển thị chi tiết từng NCC giao gì
   const itemsBySupplier = useMemo(() => {
     const map = {}
     if (Array.isArray(item?.items) && item.items.length > 0) {
       item.items.forEach(it => {
-        const supName = it.supplierName || item?.supplierName || "Nhà cung cấp đối tác"
+        const supName = getItemSupplierName(it)
         if (!map[supName]) {
           map[supName] = []
         }
-        map[supName].push(it)
+        map[supName].push({
+          ...it,
+          resolvedSupplierName: supName,
+        })
       })
     } else if (item?.suppliers && Array.isArray(item.suppliers) && item.suppliers.length > 0) {
       item.suppliers.forEach(s => {
@@ -47,7 +78,7 @@ export default function TrackingDetailView({ item, onBack }) {
       map[item.supplierName] = []
     }
     return map
-  }, [item])
+  }, [item, inventoryItems])
 
   const supplierEntries = Object.entries(itemsBySupplier)
   const supplierCount = supplierEntries.length
@@ -200,12 +231,12 @@ export default function TrackingDetailView({ item, onBack }) {
                 item.status === "CREATED" || item.status === "PENDING"
                   ? styles.statusPending
                   : item.status === "IN_TRANSIT"
-                  ? styles.statusInTransit
-                  : item.status === "ARRIVED"
-                  ? styles.statusArrived
-                  : item.status === "COMPLETED" || item.status === "RECEIVED"
-                  ? styles.statusCompleted
-                  : styles.statusAccepted
+                    ? styles.statusInTransit
+                    : item.status === "ARRIVED"
+                      ? styles.statusArrived
+                      : item.status === "COMPLETED" || item.status === "RECEIVED"
+                        ? styles.statusCompleted
+                        : styles.statusAccepted
               }
             />
           </Box>
@@ -220,7 +251,7 @@ export default function TrackingDetailView({ item, onBack }) {
         </Box>
       </Box>
 
-      {/* 2. Tiến trình đơn hàng (Đơn giản hóa, tinh gọn) */}
+      {/* 2. Tiến trình đơn hàng (Đơn giản hóa, tinh gọn)
       <Paper className={styles.card} elevation={0}>
         <Typography variant="subtitle1" className={styles.cardTitle}>
           Tiến trình đơn hàng
@@ -230,9 +261,8 @@ export default function TrackingDetailView({ item, onBack }) {
           {item.timeline?.map((step, idx) => (
             <Box key={idx} className={styles.timelineStep}>
               <Box
-                className={`${styles.stepDot} ${
-                  step.done ? styles.stepDotDone : step.current ? styles.stepDotCurrent : ""
-                }`}
+                className={`${styles.stepDot} ${step.done ? styles.stepDotDone : step.current ? styles.stepDotCurrent : ""
+                  }`}
               >
                 {step.step}
               </Box>
@@ -244,7 +274,7 @@ export default function TrackingDetailView({ item, onBack }) {
             </Box>
           ))}
         </Box>
-      </Paper>
+      </Paper> */}
 
       {/* 3. Khối thông tin Vận chuyển & Xe của từng Nhà cung cấp (Mỗi NCC hiện 1 ô) */}
       <Box className={styles.sectionWrapper}>
@@ -439,7 +469,7 @@ export default function TrackingDetailView({ item, onBack }) {
                         fontSize: "0.8125rem",
                       }}
                     >
-                      {it.supplierName || item.supplierName || "Nhà cung cấp đối tác"}
+                      {getItemSupplierName(it)}
                     </Typography>
                   </TableCell>
                   <TableCell className={styles.itemTdQty} align="right">
@@ -473,5 +503,6 @@ export default function TrackingDetailView({ item, onBack }) {
 
 TrackingDetailView.propTypes = {
   item: PropTypes.object,
+  inventoryItems: PropTypes.array,
   onBack: PropTypes.func.isRequired,
 }
