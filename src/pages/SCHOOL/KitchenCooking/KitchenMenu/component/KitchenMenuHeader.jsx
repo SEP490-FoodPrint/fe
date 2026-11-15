@@ -13,7 +13,7 @@ import {
   ArrowRight,
   Utensils,
 } from "lucide-react"
-import { Button } from "@mui/material"
+import { Button, NativeSelect } from "@mui/material"
 import ROUTER from "src/router/ROUTER"
 import styles from "./KitchenMenuHeader.module.scss"
 
@@ -36,6 +36,10 @@ export default function KitchenMenuHeader({
   totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
+  menuOptions = [],
+  selectedMenuId = "",
+  onMenuChange,
+  menuLoading = false,
 }) {
   const navigate = useNavigate()
 
@@ -157,6 +161,23 @@ export default function KitchenMenuHeader({
           <span className={styles.inlineDivider} />
 
           {/* 4. Bộ lọc Ca ăn (Tất cả / Bữa trưa / Bữa xế) */}
+          <div className={styles.selectWrapperScope}>
+            <GraduationCap size={15} className={styles.selectIcon} />
+            <NativeSelect
+              className={styles.scopeControl}
+              value={selectedMenuId || (menuOptions.length === 1 ? menuOptions[0].id : "")}
+              onChange={event => onMenuChange?.(event.target.value)}
+              disabled={menuLoading || !menuOptions.length}
+              disableUnderline
+              inputProps={{ "aria-label": "Lọc thực đơn theo khối" }}
+            >
+              <option value="">{menuLoading ? "Đang tải khối…" : !menuOptions.length ? "Chưa có thực đơn" : "Chọn khối áp dụng"}</option>
+              {menuOptions.map(menu => <option key={menu.id} value={menu.id}>
+                {menu.gradeNames?.join(", ") || "Toàn trường"}
+              </option>)}
+            </NativeSelect>
+          </div>
+
           <div className={styles.mealFilterSegment} role="group" aria-label="Bộ lọc ca ăn">
             <button
               type="button"
@@ -222,4 +243,8 @@ KitchenMenuHeader.propTypes = {
   totalDishes: PropTypes.number,
   mealTypeFilter: PropTypes.string,
   onMealTypeFilterChange: PropTypes.func,
+  menuOptions: PropTypes.array,
+  selectedMenuId: PropTypes.string,
+  onMenuChange: PropTypes.func,
+  menuLoading: PropTypes.bool,
 }

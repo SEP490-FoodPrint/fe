@@ -1,4 +1,3 @@
-import MenuScopeSelect from "src/components/MenuScopeSelect";
 import React, { useState, useEffect, useMemo } from "react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import MenuService from "src/services/MenuService"
@@ -84,8 +83,11 @@ export default function KitchenMenu() {
       onCurrentWeek={currentWeek} isCurrentWeekSelected={!!week?.isCurrentWeek}
       isFirstWeek={index<=0} isLastWeek={index<0||index>=weeks.length-1}
       totalDishes={totalDishes} mealTypeFilter={mealTypeFilter} onMealTypeFilterChange={setMealTypeFilter}
+      menuOptions={apiWeekData?.availableMenus || []}
+      selectedMenuId={menuId}
+      onMenuChange={id => setScopeSelection({ date: week?.weekStartDate, id })}
+      menuLoading={loading || calendarLoading}
     />
-    <MenuScopeSelect menus={apiWeekData?.availableMenus || []} value={menuId} onChange={(id) => setScopeSelection({ date: week?.weekStartDate, id })} disabled={loading} />
     {calendarLoading || loading ? <div role="status" style={{padding:80}}><FoodPrintLoading/></div>
       : calendarError || error ? <div role="alert"><p>{calendarError || error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div>
       : !years.length ? <p>Chưa có cấu hình năm học của trường.</p>
