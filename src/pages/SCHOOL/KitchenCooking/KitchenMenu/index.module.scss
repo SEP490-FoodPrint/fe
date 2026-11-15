@@ -1,4 +1,5 @@
 .pageContainer {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 24px; /* Khoảng cách thoáng 24px giữa Header và Lưới Thực đơn tuần, tránh dính sát nhau */
@@ -11,4 +12,12 @@
     padding: 14px 12px 28px;
     gap: 16px;
   }
+}
+
+.scopeHeading {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
 }

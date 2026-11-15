@@ -106,6 +106,57 @@ test("menu grade filtering includes shared scopes, returns empty for an unused g
   assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [] }], id(51)).length, 1)
 })
 
+test("kitchen grade selector lists every school grade without menus and has no current-week shortcut", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Header } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/KitchenMenu/component/KitchenMenuHeader.jsx")
+  const html = renderToStaticMarkup(React.createElement(Header, { gradeOptions: [{ id: id(50), name: "Khối 1–3" }, { id: id(51), name: "Khối 4–5" }], gradeId: id(51), gradeLoading: false }))
+  assert.match(html, /aria-label="Lọc thực đơn theo khối"/)
+  assert.match(html, /Tất cả khối/)
+  assert.match(html, /Khối 1–3/)
+  assert.match(html, /Khối 4–5/)
+  assert.match(html, new RegExp(`value="${id(51)}" selected=""`))
+  assert.doesNotMatch(html, /Tuần này|Chưa có thực đơn/)
+})
+
+test("kitchen menu grade filtering matches shared membership and keeps menus from other grades separate", async () => {
+  const { loadKitchenGradeSchedules } = await server.ssrLoadModule("/src/services/MenuService/gradeSchedule.js")
+  const first = snapshot()
+  const second = { ...snapshot(), id: id(60) }
+  second.menuDays[0].id = id(61)
+  second.menuDays[0].menuDayDishes[0].Dish.name = "Món khối khác"
+  const availableMenus = [
+    { id: first.id, gradeIds: [id(50), id(51)], gradeNames: ["Khối 1–3", "Khối 4–5"] },
+    { id: second.id, gradeIds: [id(52)], gradeNames: ["Khối khác"] },
+  ]
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) {
+      assert.equal(config.params.gradeIds, undefined)
+      return { availableMenus, weeklyMenuId: config.params.menuId || null, days: [{ date: "2026-11-02", hasMenu: Boolean(config.params.menuId) }] }
+    }
+    if (config.url === `/v1/menus/${first.id}`) return first
+    assert.equal(config.url, `/v1/menus/${second.id}`)
+    return second
+  }
+  const selected = await loadKitchenGradeSchedules("2026-11-02", id(51))
+  assert.equal(selected.length, 1)
+  assert.equal(selected[0].weeklyMenuId, first.id)
+  assert.equal(selected[0].days[0].meals.LUNCH.dishes[0].name, "Dish 3")
+  assert.deepEqual(await loadKitchenGradeSchedules("2026-11-02", id(53)), [])
+  const all = await loadKitchenGradeSchedules("2026-11-02")
+  assert.deepEqual(all.map(menu => menu.weeklyMenuId), [first.id, second.id])
+  assert.equal(all[1].days[0].meals.LUNCH.dishes[0].name, "Món khối khác")
+})
+
+test("kitchen menu loading failures remain errors instead of a grade with no menu", async () => {
+  const { loadKitchenGradeSchedules } = await server.ssrLoadModule("/src/services/MenuService/gradeSchedule.js")
+  respond = config => {
+    if (!config.params.menuId) return { weeklyMenuId: null, availableMenus: [{ id: id(1), gradeIds: [id(50)], gradeNames: ["Khối 1–3"] }], days: [] }
+    throw new AxiosError("Unavailable", "ERR_BAD_RESPONSE", config, null, { status: 503, data: { message: "Không tải được thực đơn" }, headers: {}, config })
+  }
+  await assert.rejects(loadKitchenGradeSchedules("2026-11-02", id(50)), /Không tải được thực đơn/)
+})
+
 test("school allergy catalogue uses every API page and preserves per-ingredient counts without guessed pupils", async () => {
   const {getSchoolClassAllergies,computeAllergySummary,affectedCountsLabel} = await server.ssrLoadModule("/src/services/AllergyService/index.js")
   respond = config => {

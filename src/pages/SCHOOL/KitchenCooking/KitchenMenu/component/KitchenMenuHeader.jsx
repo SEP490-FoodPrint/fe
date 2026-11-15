@@ -1,6 +1,5 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { useNavigate } from "react-router-dom"
 import {
   ChevronLeft,
   ChevronRight,
@@ -8,13 +7,11 @@ import {
   GraduationCap,
   CalendarDays,
   CookingPot,
-  RotateCcw,
   Check,
   ArrowRight,
   Utensils,
 } from "lucide-react"
 import { Button, NativeSelect } from "@mui/material"
-import ROUTER from "src/router/ROUTER"
 import styles from "./KitchenMenuHeader.module.scss"
 
 export default function KitchenMenuHeader({
@@ -29,19 +26,18 @@ export default function KitchenMenuHeader({
   onWeekChange,
   onPrevWeek,
   onNextWeek,
-  onCurrentWeek,
-  isCurrentWeekSelected = false,
   isFirstWeek = false,
   isLastWeek = false,
   totalDishes = 0,
   mealTypeFilter = "ALL",
   onMealTypeFilterChange,
-  menuOptions = [],
-  selectedMenuId = "",
-  onMenuChange,
-  menuLoading = false,
+  gradeOptions = [],
+  gradeId = "",
+  onGradeChange,
+  gradeLoading = false,
+  gradeError = "",
+  onOpenBatches,
 }) {
-  const navigate = useNavigate()
 
   return (
     <div className={styles.headerContainer}>
@@ -56,10 +52,12 @@ export default function KitchenMenuHeader({
 
           <h1 className={styles.heading}>{menuTitle || "Thực đơn tuần"}</h1>
 
-          {approved && <span className={styles.approvedBadge}>
-            <Check size={12} className={styles.checkIcon} />
-            <span>Đã duyệt BGH</span>
-          </span>}
+          {approved && (
+            <span className={styles.approvedBadge}>
+              <Check size={12} className={styles.checkIcon} />
+              <span>Đã duyệt BGH</span>
+            </span>
+          )}
 
           {targetScope && (
             <span className={styles.targetScopeBadge} title="Khối lớp áp dụng">
@@ -74,7 +72,7 @@ export default function KitchenMenuHeader({
             variant="outlined"
             size="small"
             className={styles.actionBtnPrimary}
-            onClick={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
+            onClick={onOpenBatches}
             endIcon={<ArrowRight size={14} />}
           >
             Lô chế biến
@@ -82,7 +80,7 @@ export default function KitchenMenuHeader({
         </div>
       </div>
 
-      {/* HÀNG 2: Bộ lọc Năm học | Bộ lọc Tuần (Dropdown + < > + Tuần này) | Bộ lọc Ca ăn | KPI */}
+      {/* Bộ lọc Năm học | Tuần | Khối | Ca ăn | Tổng số món */}
       <div className={styles.controlRow}>
         <div className={styles.controlLeft}>
           {/* 1. Bộ lọc Năm học (đồng bộ từ thiết lập BGH) */}
@@ -145,19 +143,6 @@ export default function KitchenMenuHeader({
             </button>
           </div>
 
-          {/* 3. Nút đặt lại về Tuần này */}
-          <button
-            type="button"
-            className={`${styles.currentWeekBtn} ${
-              isCurrentWeekSelected ? styles.currentWeekBtnActive : ""
-            }`}
-            onClick={onCurrentWeek}
-            title="Nhảy nhanh về tuần hiện tại"
-          >
-            <RotateCcw size={13} />
-            <span>Tuần này</span>
-          </button>
-
           <span className={styles.inlineDivider} />
 
           {/* 4. Bộ lọc Ca ăn (Tất cả / Bữa trưa / Bữa xế) */}
@@ -165,20 +150,33 @@ export default function KitchenMenuHeader({
             <GraduationCap size={15} className={styles.selectIcon} />
             <NativeSelect
               className={styles.scopeControl}
-              value={selectedMenuId || (menuOptions.length === 1 ? menuOptions[0].id : "")}
-              onChange={event => onMenuChange?.(event.target.value)}
-              disabled={menuLoading || !menuOptions.length}
+              value={gradeId}
+              onChange={(event) => onGradeChange?.(event.target.value)}
+              disabled={gradeLoading}
               disableUnderline
               inputProps={{ "aria-label": "Lọc thực đơn theo khối" }}
             >
-              <option value="">{menuLoading ? "Đang tải khối…" : !menuOptions.length ? "Chưa có thực đơn" : "Chọn khối áp dụng"}</option>
-              {menuOptions.map(menu => <option key={menu.id} value={menu.id}>
-                {menu.gradeNames?.join(", ") || "Toàn trường"}
-              </option>)}
+              <option value="">
+                {gradeLoading ? "Đang tải khối…" : "Tất cả khối"}
+              </option>
+              {gradeOptions.map((grade) => (
+                <option key={grade.id} value={grade.id}>
+                  {grade.name}
+                </option>
+              ))}
+              {!gradeLoading && !gradeOptions.length && (
+                <option disabled>
+                  {gradeError ? "Chưa tải được khối" : "Chưa cấu hình khối"}
+                </option>
+              )}
             </NativeSelect>
           </div>
 
-          <div className={styles.mealFilterSegment} role="group" aria-label="Bộ lọc ca ăn">
+          <div
+            className={styles.mealFilterSegment}
+            role="group"
+            aria-label="Bộ lọc ca ăn"
+          >
             <button
               type="button"
               className={`${styles.filterSegmentBtn} ${
@@ -191,7 +189,9 @@ export default function KitchenMenuHeader({
             <button
               type="button"
               className={`${styles.filterSegmentBtn} ${
-                mealTypeFilter === "LUNCH" ? styles.filterSegmentLunchActive : ""
+                mealTypeFilter === "LUNCH"
+                  ? styles.filterSegmentLunchActive
+                  : ""
               }`}
               onClick={() => onMealTypeFilterChange?.("LUNCH")}
             >
@@ -200,7 +200,9 @@ export default function KitchenMenuHeader({
             <button
               type="button"
               className={`${styles.filterSegmentBtn} ${
-                mealTypeFilter === "AFTERNOON" ? styles.filterSegmentAfternoonActive : ""
+                mealTypeFilter === "AFTERNOON"
+                  ? styles.filterSegmentAfternoonActive
+                  : ""
               }`}
               onClick={() => onMealTypeFilterChange?.("AFTERNOON")}
             >
@@ -236,15 +238,15 @@ KitchenMenuHeader.propTypes = {
   onWeekChange: PropTypes.func,
   onPrevWeek: PropTypes.func,
   onNextWeek: PropTypes.func,
-  onCurrentWeek: PropTypes.func,
-  isCurrentWeekSelected: PropTypes.bool,
   isFirstWeek: PropTypes.bool,
   isLastWeek: PropTypes.bool,
   totalDishes: PropTypes.number,
   mealTypeFilter: PropTypes.string,
   onMealTypeFilterChange: PropTypes.func,
-  menuOptions: PropTypes.array,
-  selectedMenuId: PropTypes.string,
-  onMenuChange: PropTypes.func,
-  menuLoading: PropTypes.bool,
+  gradeOptions: PropTypes.array,
+  gradeId: PropTypes.string,
+  onGradeChange: PropTypes.func,
+  gradeLoading: PropTypes.bool,
+  gradeError: PropTypes.string,
+  onOpenBatches: PropTypes.func,
 }

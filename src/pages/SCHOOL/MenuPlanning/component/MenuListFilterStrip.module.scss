@@ -4,18 +4,18 @@
   border-radius: var(--radius-md);
   border: 1px solid var(--border-default);
   padding: var(--space-2) var(--space-3);
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(130px, 0.85fr) minmax(180px, 1.35fr) minmax(135px, 0.85fr) minmax(100px, 0.65fr) 36px;
+  display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   min-width: 0;
   overflow-x: auto;
   gap: var(--space-2);
   margin-bottom: var(--space-1);
   box-sizing: border-box;
-
 }
 
 .searchWrapper {
+  flex: 1 0 160px;
   position: relative;
   min-width: 0;
   display: flex;
@@ -74,6 +74,19 @@
   align-items: center;
   min-width: 0;
   width: 100%;
+}
+
+.selectWrapperAcademicYear {
+  flex: 0 0 155px;
+}
+.selectWrapperWeek {
+  flex: 1 0 200px;
+}
+.selectWrapperGrade {
+  flex: 0 0 160px;
+}
+.selectWrapperSm {
+  flex: 0 0 125px;
 }
 
 .selectIcon {
@@ -136,6 +149,7 @@
 }
 
 .resetBtn {
+  flex-shrink: 0;
   width: 36px;
   height: 36px;
   padding: 0;
