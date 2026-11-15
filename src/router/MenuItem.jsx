@@ -306,12 +306,6 @@ export const MenuItemSchool = () => [
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {
-    key: ROUTER.SCHOOL_ORDER_TRACKING,
-    label: "Theo dõi đơn hàng",
-    icon: <LocalShippingOutlinedIcon />,
-    roles: [ROLES.INGREDIENT_MANAGEMENT],
-  },
-  {
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Kiểm tra nguyên liệu",
     icon: <FactCheckOutlinedIcon />,

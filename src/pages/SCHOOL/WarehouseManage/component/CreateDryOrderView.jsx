@@ -187,18 +187,19 @@ export default function CreateDryOrderView({
 
   // Đếm số lượng NCC khác nhau trong các mặt hàng đã chọn
   const selectedSuppliersCount = useMemo(() => {
-    const supIds = new Set()
+    const supNames = new Set()
     Object.keys(orderQtys).forEach(id => {
       if (orderQtys[id] > 0) {
-        const supId = itemSuppliers[id]
-        if (supId) supIds.add(supId)
+        const it = inventoryItems.find(item => item.id === id)
+        const name = it?.supplierName || "Nhà cung cấp đối tác"
+        supNames.add(name)
       }
     })
-    return supIds.size
-  }, [orderQtys, itemSuppliers])
+    return supNames.size
+  }, [orderQtys, inventoryItems])
 
   const handleSubmit = () => {
-    // 1. Lọc các mặt hàng được chọn và group theo NCC đã chọn cho món đó
+    // 1. Lọc các mặt hàng được chọn và group theo NCC đang có món hàng đó
     const itemsBySupplier = {}
 
     Object.entries(orderQtys).forEach(([id, qty]) => {
@@ -206,20 +207,31 @@ export default function CreateDryOrderView({
       const it = inventoryItems.find(item => item.id === id)
       if (!it) return
 
-      const supId = itemSuppliers[it.id] || it.supplierId || (allSuppliers[0]?.id || "sup-default")
+      const matchedSup = allSuppliers.find(s => isSupplierAvailableForItem(s, it)) || allSuppliers.find(s => s.id === it.supplierId)
+      const supId = it.supplierId || matchedSup?.id || `sup-${(it.supplierName || "default").replace(/\s+/g, "-").toLowerCase()}`
+      const supName = it.supplierName || matchedSup?.name || "Nhà cung cấp đối tác"
+      const supPhone = it.supplierPhone || matchedSup?.phone || ""
+
       if (!itemsBySupplier[supId]) {
-        itemsBySupplier[supId] = []
+        itemsBySupplier[supId] = {
+          supplierId: supId,
+          supplierName: supName,
+          supplierPhone: supPhone,
+          items: [],
+        }
       }
-      itemsBySupplier[supId].push({
+      itemsBySupplier[supId].items.push({
         id: it.id,
         name: it.name,
         qty,
         unit: it.unit || "kg",
         price: it.unitPrice || 0,
+        supplierId: supId,
+        supplierName: supName,
       })
     })
 
-    const supplierGroups = Object.entries(itemsBySupplier)
+    const supplierGroups = Object.values(itemsBySupplier)
     if (supplierGroups.length === 0) return
 
     // 2. Xác định nhãn hiển thị thời gian giao
@@ -238,20 +250,18 @@ export default function CreateDryOrderView({
       deliveryTypeLabel = `Buổi sáng (${deliveryTime})`
     }
 
-    // 3. Tạo đơn theo từng NCC đã chọn
-    const ordersToCreate = supplierGroups.map(([supId, itemsList], idx) => {
-      const selectedSupplier = allSuppliers.find(s => s.id === supId)
-      const currentSupplierName = selectedSupplier?.name || "Nhà cung cấp đối tác"
-      const currentSupplierPhone = selectedSupplier?.phone || ""
+    // 3. Tạo đơn theo từng NCC đang có mặt hàng đó
+    const ordersToCreate = supplierGroups.map((group, idx) => {
+      const itemsList = group.items
       const totalAmount = itemsList.reduce((sum, it) => sum + (it.price * it.qty), 0)
 
       return {
         id: `po-dry-${Date.now()}-${idx}`,
         orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10) + idx}`,
         deliveryNo: `PNK-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10) + idx}`,
-        supplierId: supId,
-        supplierName: currentSupplierName,
-        supplierPhone: currentSupplierPhone,
+        supplierId: group.supplierId,
+        supplierName: group.supplierName,
+        supplierPhone: group.supplierPhone,
         orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
         deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
         deliveryType,
@@ -284,7 +294,7 @@ export default function CreateDryOrderView({
 
         <Box className={styles.headerText}>
           <Typography variant="h5" className={styles.title}>
-            Lập Phiếu Nhập Hàng Gạo &amp; Gia Vị
+            Lập Phiếu Nhập Đồ Khô
           </Typography>
         </Box>
       </Box>
@@ -366,7 +376,9 @@ export default function CreateDryOrderView({
                   const qty = orderQtys[item.id] || 0
                   const stockPct = Math.round((item.currentStock / item.safetyStock) * 100)
                   const lineTotal = (item.unitPrice || 0) * qty
-                  const selectedSupId = itemSuppliers[item.id] || item.supplierId || (allSuppliers[0]?.id || "")
+                  const matchedSup = allSuppliers.find(s => isSupplierAvailableForItem(s, item)) || allSuppliers.find(s => s.id === item.supplierId)
+                  const supplierDisplayName = item.supplierName || matchedSup?.name || "Nhà cung cấp đối tác"
+                  const supplierPhone = item.supplierPhone || matchedSup?.phone
 
                   return (
                     <TableRow
@@ -446,48 +458,26 @@ export default function CreateDryOrderView({
                         </Box>
                       </TableCell>
 
-                      {/* Cột Nhà cung cấp có select sổ xuống, NCC không có NL thì disabled không nhấn được */}
+                      {/* Cột Nhà cung cấp: Hiện luôn NCC nào đang có món hàng đó */}
                       <TableCell>
-                        <TextField
-                          select
-                          size="small"
-                          value={selectedSupId}
-                          onChange={e => handleItemSupplierChange(item.id, e.target.value)}
-                          disabled={!isSelected}
-                          fullWidth
+                        <Typography
+                          variant="body2"
                           sx={{
-                            "& .MuiSelect-select": {
-                              py: "4px",
-                              px: "8px",
-                              fontSize: "0.8125rem",
-                            },
+                            fontWeight: 600,
+                            color: isSelected ? "#0f172a" : "#64748b",
+                            fontSize: "0.8125rem",
                           }}
                         >
-                          {allSuppliers.map(sup => {
-                            const isAvailable = isSupplierAvailableForItem(sup, item)
-                            return (
-                              <MenuItem
-                                key={sup.id}
-                                value={sup.id}
-                                disabled={!isAvailable}
-                                sx={{
-                                  fontSize: "0.8125rem",
-                                  py: "6px",
-                                  display: "flex",
-                                  justifyContent: "space-between",
-                                  alignItems: "center",
-                                  ...(!isAvailable && {
-                                    color: "text.disabled",
-                                    backgroundColor: "transparent !important",
-                                    cursor: "not-allowed !important",
-                                  }),
-                                }}
-                              >
-                                <span>{sup.name}</span>
-                              </MenuItem>
-                            )
-                          })}
-                        </TextField>
+                          {supplierDisplayName}
+                        </Typography>
+                        {supplierPhone && (
+                          <Typography
+                            variant="caption"
+                            sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}
+                          >
+                            Hotline: {supplierPhone}
+                          </Typography>
+                        )}
                       </TableCell>
 
                       <TableCell align="right">

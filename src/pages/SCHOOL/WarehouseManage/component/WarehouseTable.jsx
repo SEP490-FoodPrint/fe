@@ -83,13 +83,13 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
                       <Box className={styles.statusBadgeWrap}>
                         {isCritical ? (
                           <Chip
-                            label="Dưới 30% (Khẩn)"
+                            label="Dưới 30%"
                             size="small"
                             className={styles.criticalChip}
                           />
                         ) : isWarning ? (
                           <Chip
-                            label="Dưới 50% (Cần nhập)"
+                            label="Dưới 50%"
                             size="small"
                             className={styles.warningChip}
                           />
