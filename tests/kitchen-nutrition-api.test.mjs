@@ -61,6 +61,51 @@ test("menu planning can load all grade menus without changing ordinary paginatio
   assert.deepEqual(requests.map(config => config.params.page), [1, 2])
 })
 
+test("menu list grade filter uses school context and stays visible without any weekly menus", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Filter } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuListFilterStrip.jsx")
+  respond = config => {
+    assert.equal(config.url, "/v1/menus/context")
+    return { id: id(32), grades: [{ id: id(50), name: "Khối 1–3" }, { id: id(51), name: "Khối 4–5" }] }
+  }
+  const context = await menus.getContext({ forceRefresh: true })
+  const html = renderToStaticMarkup(React.createElement(Filter, { filters: {}, gradeOptions: context.grades }))
+  assert.match(html, /aria-label="Lọc theo khối"/)
+  assert.match(html, /Tất cả khối/)
+  assert.match(html, /Khối 1–3/)
+  assert.match(html, /Khối 4–5/)
+  assert.doesNotMatch(html, /Thực đơn \/ khối áp dụng/)
+  assert.equal(requests.length, 1)
+  for (const state of [{ gradeLoading: true }, { gradeOptions: [] }, { gradeError: "Không tải được khối" }]) {
+    const markup = renderToStaticMarkup(React.createElement(Filter, { filters: {}, ...state }))
+    assert.match(markup, /aria-label="Lọc theo khối"/)
+    if (state.gradeError) assert.match(markup, /Không tải được khối/)
+  }
+})
+
+test("menu grade filtering includes shared scopes, returns empty for an unused grade and keeps approval groups separate", async () => {
+  const { filterMenuCardsByGrade, groupMenuCardsByWeek } = await server.ssrLoadModule("/src/services/MenuService/listGrades.js")
+  const cards = [
+    { id: "A-lunch", weeklyMenuId: "A", gradeIds: [id(50)], targetScope: "Khối 1–3", status: "DRAFT" },
+    { id: "B-lunch", weeklyMenuId: "B", gradeIds: [id(51)], targetScope: "Khối 4–5", status: "APPROVED" },
+    { id: "A-afternoon", weeklyMenuId: "A", gradeIds: [id(50)], targetScope: "Khối 1–3", status: "REVISION_REQUIRED", feedback: "Sửa bữa xế" },
+  ]
+  assert.equal(filterMenuCardsByGrade(cards).length, 3)
+  assert.deepEqual(filterMenuCardsByGrade(cards, id(50)).map(card => card.id), ["A-lunch", "A-afternoon"])
+  assert.deepEqual(filterMenuCardsByGrade(cards, id(52)), [])
+  const groups = groupMenuCardsByWeek(filterMenuCardsByGrade(cards))
+  assert.equal(groups.length, 2)
+  assert.deepEqual(groups[0].menus.map(menu => menu.weeklyMenuId), ["A", "A"])
+  assert.equal(groups[0].status, "REVISION_REQUESTED")
+  assert.equal(groups[0].feedback, "Sửa bữa xế")
+  assert.equal(groups[1].status, "APPROVED")
+  assert.equal(groups[1].targetScope, "Khối 4–5")
+  const shared = [{ ...cards[0], gradeIds: [id(50), id(51)] }]
+  assert.equal(filterMenuCardsByGrade(shared, id(51)).length, 1)
+  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [] }], id(51)).length, 1)
+})
+
 test("school allergy catalogue uses every API page and preserves per-ingredient counts without guessed pupils", async () => {
   const {getSchoolClassAllergies,computeAllergySummary,affectedCountsLabel} = await server.ssrLoadModule("/src/services/AllergyService/index.js")
   respond = config => {
