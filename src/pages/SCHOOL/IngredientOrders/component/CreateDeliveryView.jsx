@@ -46,8 +46,11 @@ import {
   RotateCcw,
   Eye,
   X,
+  ChevronDown,
+  ChevronUp,
+  Layers,
 } from "lucide-react"
-import { MOCK_APPROVED_MENUS, MOCK_MASTER_INGREDIENT_CATALOG } from "../mockData"
+import IngredientOrderService from "src/services/IngredientOrderService"
 import styles from "./CreateDeliveryView.module.scss"
 
 /**
@@ -97,24 +100,38 @@ export const calcQtyPerPortion = (batchQty, portions) => {
 export default function CreateDeliveryView({
   menus = [],
   deliveries = [],
-  initialDate = "2026-10-27",
+  initialDate = "2026-11-16",
   onBack,
   onSubmitBatch1,
   onSubmitBatch2,
 }) {
   const effectiveMenus = useMemo(() => {
-    return Array.isArray(menus) && menus.length > 0 ? menus : MOCK_APPROVED_MENUS
+    return Array.isArray(menus) ? menus : []
   }, [menus])
 
-  const [orderDate, setOrderDate] = useState(initialDate)
+  const [orderDate, setOrderDate] = useState(() => {
+    if (initialDate) return String(initialDate).slice(0, 10)
+    if (effectiveMenus[0]?.mealDate) return String(effectiveMenus[0].mealDate).slice(0, 10)
+    return "2026-11-16"
+  })
   const [selectedMenuId, setSelectedMenuId] = useState(() => effectiveMenus[0]?.id || "")
   const [note, setNote] = useState("Vận chuyển bằng xe lạnh chuyên dụng, kiểm tra niêm phong nhiệt độ.")
   const [submitting, setSubmitting] = useState(false)
 
+  // Danh mục nguyên liệu chuẩn tải từ API thật cho modal thêm món ngoài
+  const [catalogOptions, setCatalogOptions] = useState([])
+  useEffect(() => {
+    IngredientOrderService.getMasterIngredientCatalog().then(res => {
+      if (Array.isArray(res?.items) && res.items.length > 0) {
+        setCatalogOptions(res.items)
+      }
+    })
+  }, [])
+
   // Đồng bộ ngày khi initialDate thay đổi (ví dụ bấm Thêm Đợt 2 từ bảng)
   useEffect(() => {
     if (initialDate) {
-      setOrderDate(initialDate)
+      setOrderDate(String(initialDate).slice(0, 10))
       setActualAttendance("")
     }
   }, [initialDate])
@@ -151,7 +168,8 @@ export default function CreateDeliveryView({
   // TỰ ĐỘNG NHẬN DIỆN CHẾ ĐỘ THEO NGÀY (VALIDATE THEO ORDER_DATE)
   // =========================================================================
   const { mode, batch1ForDate, batch2ForDate } = useMemo(() => {
-    const forDate = deliveries.filter(d => d.deliveryDate === orderDate)
+    const target = String(orderDate || "").slice(0, 10)
+    const forDate = deliveries.filter(d => String(d.deliveryDate || "").slice(0, 10) === target)
     const b1 = forDate.find(d => d.batchType === "BATCH_1")
     const b2 = forDate.find(d => d.batchType === "BATCH_2")
 
@@ -181,26 +199,125 @@ export default function CreateDeliveryView({
     }
   }, [mode, orderDate, fetchAttendance])
 
-  // Menu áp dụng
-  const currentMenu = useMemo(() => {
-    if (mode === "BATCH_2" && batch1ForDate) {
-      return effectiveMenus.find(m => m.id === batch1ForDate.menuId) || effectiveMenus[0]
-    }
-    return effectiveMenus.find(m => m.id === selectedMenuId) || effectiveMenus[0]
-  }, [effectiveMenus, selectedMenuId, mode, batch1ForDate])
+  // 1. Quét thực đơn áp dụng theo ngày chọn (Hỗ trợ 1 ngày có nhiều thực đơn)
+  const matchingMenusForDate = useMemo(() => {
+    if (!orderDate) return []
+    const target = String(orderDate).slice(0, 10)
+    return effectiveMenus.filter(m => {
+      const d1 = String(m.mealDate || "").slice(0, 10)
+      const d2 = String(m.date || "").slice(0, 10)
+      const d3 = String(m.weekStartDate || "").slice(0, 10)
+      if (d1 === target || d2 === target || d3 === target) return true
+      if (Array.isArray(m.days) && m.days.some(d => String(d.date || "").slice(0, 10) === target)) return true
+      return false
+    })
+  }, [effectiveMenus, orderDate])
 
-  const maxPortions = currentMenu?.maxPortions || 850
-  const batch1Portions = Math.floor(maxPortions / 2) // 50%
+  const isMultiMenuDate = matchingMenusForDate.length > 1
+
+  // 2. Danh sách thực đơn hiệu lực (activeMenus)
+  const activeMenus = useMemo(() => {
+    if (mode === "BATCH_2" && batch1ForDate) {
+      if (Array.isArray(batch1ForDate.menusSummary) && batch1ForDate.menusSummary.length > 1) {
+        return batch1ForDate.menusSummary.map(ms => {
+          const found = effectiveMenus.find(m => m.id === ms.id)
+          return (
+            found || {
+              ...ms,
+              mealDate: batch1ForDate.deliveryDate,
+              ingredients: [],
+            }
+          )
+        })
+      }
+      return [effectiveMenus.find(m => m.id === batch1ForDate.menuId) || effectiveMenus[0]].filter(Boolean)
+    }
+
+    if (isMultiMenuDate) {
+      return matchingMenusForDate
+    }
+
+    if (matchingMenusForDate.length === 1) {
+      return matchingMenusForDate
+    }
+
+    return [effectiveMenus.find(m => m.id === selectedMenuId) || effectiveMenus[0]].filter(Boolean)
+  }, [mode, batch1ForDate, isMultiMenuDate, matchingMenusForDate, effectiveMenus, selectedMenuId])
+
+  const isMultiMenu = activeMenus.length > 1
+
+  // 3. Phân bổ suất Đợt 1 và Suất tối đa của từng thực đơn
+  const menusPortionsMeta = useMemo(() => {
+    return activeMenus.map(m => {
+      const maxP = Number(m.maxPortions) || (isMultiMenu ? 400 : 850)
+      const b1P = Math.floor(maxP / 2)
+      let scope = m.targetScope
+      if (!scope || scope === "Khối lớp") {
+        if (m.name?.includes("1-3") || m.title?.includes("1-3")) scope = "Khối 1-3"
+        else if (m.name?.includes("4-5") || m.title?.includes("4-5")) scope = "Khối 4-5"
+        else if (Array.isArray(m.gradeNames) && m.gradeNames.length > 0) scope = m.gradeNames.join(" - ")
+        else scope = m.name || "Khối lớp"
+      }
+      return {
+        id: m.id,
+        name: m.name,
+        targetScope: scope,
+        maxPortions: maxP,
+        batch1Portions: b1P,
+      }
+    })
+  }, [activeMenus, isMultiMenu])
+
+  const totalMaxPortions = useMemo(() => {
+    return menusPortionsMeta.reduce((sum, m) => sum + m.maxPortions, 0)
+  }, [menusPortionsMeta])
+
+  const totalBatch1Portions = useMemo(() => {
+    return menusPortionsMeta.reduce((sum, m) => sum + m.batch1Portions, 0)
+  }, [menusPortionsMeta])
+
+  const currentMenu = activeMenus[0] || effectiveMenus[0]
+  const maxPortions = totalMaxPortions
+  const batch1Portions = totalBatch1Portions
+
+  // State sĩ số theo khối và đóng mở xem chi tiết phân rã
+  const [gradeAttendance, setGradeAttendance] = useState({})
+  const [expandedRows, setExpandedRows] = useState({})
+
+  const toggleExpandRow = id => {
+    setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }))
+  }
 
   // Tính số suất giao bù ở Đợt 2
   const parsedAttendance = Number(actualAttendance) || 0
-  const remainingPortions =
-    parsedAttendance > 0 ? Math.max(0, parsedAttendance - batch1Portions) : 0
 
-  // Nguyên liệu tươi sống (DIRECT_USE)
-  const freshIngredients = useMemo(() => {
-    return currentMenu?.ingredients?.filter(it => it.handlingType === "DIRECT_USE") || []
-  }, [currentMenu])
+  const remainingByMenu = useMemo(() => {
+    const res = {}
+    menusPortionsMeta.forEach(m => {
+      let actual = gradeAttendance[m.id]
+      if (typeof actual !== "number" || isNaN(actual)) {
+        const ratio = totalMaxPortions > 0 ? m.maxPortions / totalMaxPortions : 0.5
+        actual = Math.round(parsedAttendance * ratio)
+      }
+      const rem = Math.max(0, actual - m.batch1Portions)
+      res[m.id] = {
+        maxPortions: m.maxPortions,
+        batch1Portions: m.batch1Portions,
+        actual,
+        remaining: rem,
+        targetScope: m.targetScope,
+      }
+    })
+    return res
+  }, [menusPortionsMeta, gradeAttendance, parsedAttendance, totalMaxPortions])
+
+  const remainingPortions = useMemo(() => {
+    if (parsedAttendance <= 0) return 0
+    if (!isMultiMenu) {
+      return Math.max(0, parsedAttendance - totalBatch1Portions)
+    }
+    return Object.values(remainingByMenu).reduce((sum, v) => sum + v.remaining, 0)
+  }, [parsedAttendance, isMultiMenu, totalBatch1Portions, remainingByMenu])
 
   // Quản lý danh sách nguyên liệu và định lượng/số lượng tùy chỉnh 2 chiều
   const [itemsState, setItemsState] = useState([])
@@ -211,44 +328,103 @@ export default function CreateDeliveryView({
   const [extraQtyInput, setExtraQtyInput] = useState("")
 
   // Khởi tạo itemsState khi đổi menu, đổi ngày (hoặc đổi mode Đợt 1 / Đợt 2)
+  // Tự động gộp nguyên liệu chung của các thực đơn và lưu cấu trúc breakdown
   useEffect(() => {
-    if (!currentMenu) return
+    if (!activeMenus || activeMenus.length === 0) return
 
-    const fresh = currentMenu.ingredients?.filter(it => it.handlingType === "DIRECT_USE") || []
-    const portions = mode === "BATCH_1" ? batch1Portions : (parsedAttendance > 0 ? remainingPortions : 0)
+    const groupedMap = new Map()
 
-    const initialItems = fresh.map(ing => {
-      let portionRate = ing.qtyPerPortion
+    activeMenus.forEach(menu => {
+      const fresh = (menu.ingredients || []).filter(it => it.handlingType === "DIRECT_USE")
+      const mPortions =
+        mode === "BATCH_1"
+          ? Math.floor((menu.maxPortions || 400) / 2)
+          : (remainingByMenu[menu.id]?.remaining || 0)
 
-      // Nếu là Đợt 2: Kế thừa 100% định lượng/suất từ Đợt 1 (không cho sửa ở Đợt 2)
-      if (mode === "BATCH_2" && batch1ForDate) {
-        const b1Item = batch1ForDate.items?.find(
-          b => (b.ingredientId && b.ingredientId === ing.id) || b.ingredientName === ing.name
-        )
-        if (b1Item) {
-          if (typeof b1Item.qtyPerPortion === "number" && b1Item.qtyPerPortion > 0) {
-            portionRate = b1Item.qtyPerPortion
-          } else if (b1Item.orderedQty && batch1ForDate.plannedPortions) {
-            portionRate = Number((b1Item.orderedQty / batch1ForDate.plannedPortions).toFixed(4))
+      fresh.forEach(ing => {
+        const key = (ing.name || "").trim().toLowerCase()
+        if (!groupedMap.has(key)) {
+          groupedMap.set(key, {
+            id: ing.id,
+            name: ing.name,
+            category: ing.category,
+            unit: ing.unit,
+            supplierId: ing.supplierId,
+            supplierName: ing.supplierName,
+            handlingType: ing.handlingType || "DIRECT_USE",
+            isExtraItem: false,
+            defaultQtyPerPortion: ing.qtyPerPortion,
+            qtyPerPortion: ing.qtyPerPortion,
+            contributions: [],
+          })
+        }
+
+        const entry = groupedMap.get(key)
+        let rate = ing.qtyPerPortion
+
+        // Kế thừa định lượng Đợt 1 nếu là Đợt 2
+        if (mode === "BATCH_2" && batch1ForDate) {
+          const b1Item = batch1ForDate.items?.find(
+            b =>
+              (b.ingredientId && b.ingredientId === ing.id) ||
+              b.ingredientName?.trim().toLowerCase() === key
+          )
+          if (b1Item) {
+            if (Array.isArray(b1Item.breakdown) && b1Item.breakdown.length > 0) {
+              const bContr = b1Item.breakdown.find(bd => bd.menuId === menu.id)
+              if (bContr?.qtyPerPortion) rate = bContr.qtyPerPortion
+            } else if (typeof b1Item.qtyPerPortion === "number" && b1Item.qtyPerPortion > 0) {
+              rate = b1Item.qtyPerPortion
+            }
           }
         }
-      }
 
-      // Số lượng chuẩn theo suất thực đơn (tự động đẩy tròn lên cho trứng, quả...)
-      const stdQty = calcBatchQty(portionRate, portions, ing.unit)
+        let mScope = menu.targetScope
+        if (!mScope || mScope === "Khối lớp") {
+          if (menu.name?.includes("1-3") || menu.title?.includes("1-3")) mScope = "Khối 1-3"
+          else if (menu.name?.includes("4-5") || menu.title?.includes("4-5")) mScope = "Khối 4-5"
+          else if (Array.isArray(menu.gradeNames) && menu.gradeNames.length > 0) mScope = menu.gradeNames.join(" - ")
+          else mScope = menu.name || "Khối lớp"
+        }
+
+        const calcContribution = Number((rate * mPortions).toFixed(2))
+        entry.contributions.push({
+          menuId: menu.id,
+          menuName: menu.name,
+          targetScope: mScope,
+          qtyPerPortion: rate,
+          portions: mPortions,
+          calculatedQty: calcContribution,
+          unit: ing.unit,
+        })
+      })
+    })
+
+    const initialItems = Array.from(groupedMap.values()).map(entry => {
+      const isDiscrete = isDiscreteUnit(entry.unit)
+      const rawSum = entry.contributions.reduce((acc, c) => acc + c.calculatedQty, 0)
+      const stdQty = isDiscrete ? Math.ceil(rawSum) : Number(rawSum.toFixed(2))
+      const isMulti = entry.contributions.length > 1
+
+      const displayRate = isMulti
+        ? entry.contributions.map(c => `${c.targetScope}: ${c.qtyPerPortion}`).join(" | ")
+        : (entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion)
 
       return {
-        id: ing.id,
-        name: ing.name,
-        category: ing.category,
-        unit: ing.unit,
-        supplierId: ing.supplierId,
-        supplierName: ing.supplierName,
-        handlingType: ing.handlingType || "DIRECT_USE",
+        id: entry.id,
+        name: entry.name,
+        category: entry.category,
+        unit: entry.unit,
+        supplierId: entry.supplierId,
+        supplierName: entry.supplierName,
+        handlingType: entry.handlingType,
         isExtraItem: false,
-        defaultQtyPerPortion: ing.qtyPerPortion,
-        qtyPerPortion: portionRate,
-        portionInput: String(portionRate),
+        isMultiMenu: isMulti,
+        breakdown: entry.contributions,
+        defaultQtyPerPortion: entry.defaultQtyPerPortion,
+        qtyPerPortion: entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion,
+        portionInput: String(entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion),
+        displayRate,
         standardQty: stdQty,
         standardQtyInput: String(stdQty),
         extraQty: 0,
@@ -258,33 +434,50 @@ export default function CreateDeliveryView({
     })
 
     setItemsState(initialItems)
-  }, [currentMenu, mode, batch1ForDate, batch1Portions])
+  }, [activeMenus, mode, batch1ForDate, orderDate])
 
   // Cập nhật lại số lượng Đợt 2 khi GVCN cập nhật Sĩ số (dựa trên định lượng đã kế thừa từ Đợt 1)
   useEffect(() => {
     if (mode !== "BATCH_2") return
-    const portions = parsedAttendance > 0 ? remainingPortions : batch1Portions
 
     setItemsState(prev => {
       if (!prev || prev.length === 0) return prev
       return prev.map(item => {
-        // Món thêm ngoài hoàn toàn giữ nguyên
         if (item.isExtraItem) return item
 
         const isDiscrete = isDiscreteUnit(item.unit)
-        const newStdQty = calcBatchQty(item.qtyPerPortion, portions, item.unit)
+        let newStdQty = 0
+        let newBreakdown = null
+
+        if (Array.isArray(item.breakdown) && item.breakdown.length > 0) {
+          newBreakdown = item.breakdown.map(bd => {
+            const mRem = remainingByMenu[bd.menuId]?.remaining ?? 0
+            const cQty = Number(((bd.qtyPerPortion || 0) * mRem).toFixed(2))
+            return {
+              ...bd,
+              portions: mRem,
+              calculatedQty: cQty,
+            }
+          })
+          const rawSum = newBreakdown.reduce((acc, b) => acc + b.calculatedQty, 0)
+          newStdQty = isDiscrete ? Math.ceil(rawSum) : Number(rawSum.toFixed(2))
+        } else {
+          newStdQty = calcBatchQty(item.qtyPerPortion, remainingPortions, item.unit)
+        }
+
         const extra = Number(item.extraQty) || 0
         const total = isDiscrete ? Math.ceil(newStdQty + extra) : Number((newStdQty + extra).toFixed(2))
 
         return {
           ...item,
+          breakdown: newBreakdown || item.breakdown,
           standardQty: newStdQty,
           standardQtyInput: String(newStdQty),
           batchQty: total,
         }
       })
     })
-  }, [mode, parsedAttendance, remainingPortions, batch1Portions])
+  }, [mode, parsedAttendance, remainingPortions, remainingByMenu])
 
   // Thêm nguyên liệu giao thêm từ Catalog Popup
   const handleAddExtraIngredient = () => {
@@ -504,11 +697,14 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 1 (Chuyên biệt thực phẩm tươi sống trong ngày)
   const handleSubmitBatch1 = async () => {
-    if (!currentMenu) return
+    if (!activeMenus || activeMenus.length === 0) return
     setSubmitting(true)
     try {
       await onSubmitBatch1({
-        menuId: currentMenu.id,
+        menuId: activeMenus[0].id,
+        menuIds: activeMenus.map(m => m.id),
+        menus: activeMenus,
+        targetScope: activeMenus.map(m => m.targetScope).filter(Boolean).join(" & "),
         orderDate,
         note,
         items: itemsState.map(it => ({
@@ -525,6 +721,7 @@ export default function CreateDeliveryView({
           isCustomized: it.isCustomized || false,
           isExtraItem: it.isExtraItem || false,
           defaultQtyPerPortion: it.defaultQtyPerPortion,
+          breakdown: it.breakdown || null,
         })),
       })
     } finally {
@@ -540,6 +737,7 @@ export default function CreateDeliveryView({
       await onSubmitBatch2({
         batch1DeliveryId: batch1ForDate.id,
         actualAttendance: parsedAttendance,
+        actualAttendanceByGrade: gradeAttendance,
         orderDate,
         note,
         items: itemsState.map(it => ({
@@ -556,6 +754,7 @@ export default function CreateDeliveryView({
           isCustomized: it.isCustomized || false,
           isExtraItem: it.isExtraItem || false,
           defaultQtyPerPortion: it.defaultQtyPerPortion,
+          breakdown: it.breakdown || null,
         })),
       })
     } finally {
@@ -607,30 +806,78 @@ export default function CreateDeliveryView({
           />
 
           {mode === "BATCH_1" ? (
-            <TextField
-              select
-              label="Thực đơn áp dụng (Đã duyệt)"
-              value={selectedMenuId}
-              onChange={e => setSelectedMenuId(e.target.value)}
-              className={styles.menuSelect}
-              size="small"
-              fullWidth
-            >
-              {effectiveMenus.map(menu => (
-                <MenuItem key={menu.id} value={menu.id}>
-                  {menu.name} — {menu.targetScope} ({menu.maxPortions} suất chuẩn)
-                </MenuItem>
-              ))}
-            </TextField>
+            isMultiMenuDate ? (
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap", flex: 1 }}>
+                {matchingMenusForDate.map(menu => (
+                  <Chip
+                    key={menu.id}
+                    icon={<ChefHat size={16} color="#166534" />}
+                    label={menu.name}
+                    variant="outlined"
+                    sx={{
+                      py: 2.2,
+                      px: 1,
+                      borderRadius: 2,
+                      bgcolor: "#f0fdf4",
+                      borderColor: "#86efac",
+                      fontWeight: 700,
+                      color: "#166534",
+                      fontSize: "0.875rem",
+                    }}
+                  />
+                ))}
+              </Box>
+            ) : (
+              <TextField
+                select
+                label="Thực đơn áp dụng (Đã duyệt)"
+                value={selectedMenuId}
+                onChange={e => setSelectedMenuId(e.target.value)}
+                className={styles.menuSelect}
+                size="small"
+                fullWidth
+              >
+                {effectiveMenus.map(menu => (
+                  <MenuItem key={menu.id} value={menu.id}>
+                    {menu.name} — {menu.targetScope} ({menu.maxPortions} suất chuẩn)
+                  </MenuItem>
+                ))}
+              </TextField>
+            )
           ) : (
-            <TextField
-              label="Thực đơn đã chọn"
-              value={`${currentMenu?.name || ""} (${maxPortions} suất tối đa)`}
-              size="small"
-              disabled
-              className={styles.menuSelect}
-              fullWidth
-            />
+            <Box sx={{ flex: 1 }}>
+              {isMultiMenu ? (
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, flexWrap: "wrap" }}>
+                  {activeMenus.map(menu => (
+                    <Chip
+                      key={menu.id}
+                      icon={<ChefHat size={16} color="#b45309" />}
+                      label={menu.name}
+                      variant="outlined"
+                      sx={{
+                        py: 2.2,
+                        px: 1,
+                        borderRadius: 2,
+                        bgcolor: "#fffbeb",
+                        borderColor: "#fde68a",
+                        fontWeight: 700,
+                        color: "#b45309",
+                        fontSize: "0.875rem",
+                      }}
+                    />
+                  ))}
+                </Box>
+              ) : (
+                <TextField
+                  label="Thực đơn đã chọn"
+                  value={`${currentMenu?.name || ""} (${maxPortions} suất tối đa)`}
+                  size="small"
+                  disabled
+                  className={styles.menuSelect}
+                  fullWidth
+                />
+              )}
+            </Box>
           )}
         </Box>
       </Paper>
@@ -707,6 +954,18 @@ export default function CreateDeliveryView({
               {batch1Portions} <span className={styles.portionTotal}>/ {maxPortions}</span>{" "}
               <span className={styles.portionUnit}>suất ăn</span>
             </Typography>
+            {isMultiMenu && (
+              <Box sx={{ display: "flex", gap: 1.5, mt: 1, flexWrap: "wrap" }}>
+                {menusPortionsMeta.map(m => (
+                  <Chip
+                    key={m.id}
+                    label={`${m.targetScope}: ${m.batch1Portions} / ${m.maxPortions} suất (50%)`}
+                    size="small"
+                    sx={{ bgcolor: "#e0f2fe", color: "#0369a1", fontWeight: 600, fontSize: "0.75rem" }}
+                  />
+                ))}
+              </Box>
+            )}
           </Box>
 
           {/* BẢNG 1: THỰC PHẨM TƯƠI SỐNG (ĐỢT 1: 50% SUẤT) */}
@@ -725,23 +984,6 @@ export default function CreateDeliveryView({
                   size="small"
                   className={styles.freshItemCountBadge}
                 />
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<Plus size={16} />}
-                  onClick={() => setOpenAddModal(true)}
-                  sx={{
-                    borderColor: "#cbd5e1",
-                    color: "#0f172a",
-                    bgcolor: "#ffffff",
-                    textTransform: "none",
-                    fontWeight: 600,
-                    fontSize: "0.8125rem",
-                    "&:hover": { borderColor: "#94a3b8", bgcolor: "#f8fafc" },
-                  }}
-                >
-                  + Thêm nguyên liệu
-                </Button>
               </Box>
             </Box>
 
@@ -755,168 +997,163 @@ export default function CreateDeliveryView({
                       Định lượng / 1 Suất
                     </TableCell>
                     <TableCell align="right" className={styles.batch1Col} style={{ width: 160 }}>
-                      SL theo suất ({batch1Portions} suất)
-                    </TableCell>
-                    <TableCell align="right" className={styles.extraCol} style={{ width: 150 }}>
-                      Giao thêm
-                    </TableCell>
-                    <TableCell align="right" className={styles.totalCol} style={{ width: 135 }}>
-                      Tổng Đợt 1
+                      Số lượng Đợt 1 ({batch1Portions} suất)
                     </TableCell>
                     <TableCell>Nhà cung cấp đối tác</TableCell>
-                    <TableCell align="center" style={{ width: 50 }}></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {itemsState.map(ing => {
                     const isDiscrete = isDiscreteUnit(ing.unit)
+                    const isMulti = Boolean(ing.breakdown && ing.breakdown.length > 1)
+                    const isExpanded = Boolean(expandedRows[ing.id])
 
                     return (
-                      <TableRow key={ing.id} hover className={styles.tableRow}>
-                        <TableCell>
-                          <Typography variant="subtitle2" className={styles.ingName}>
-                            {ing.name}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={ing.handlingType === "DRY_STOCK" ? "Kho khô" : "Tươi sống (Dùng ngay)"}
-                            size="small"
-                            className={styles.freshChip}
-                          />
-                        </TableCell>
-
-                        {/* Cột 1: Định lượng / 1 Suất (Chỉnh sửa 2 chiều, hoặc — nếu là món thêm ngoài) */}
-                        <TableCell align="center">
-                          {ing.isExtraItem ? (
-                            <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
-                              —
+                      <React.Fragment key={ing.id}>
+                        <TableRow hover className={styles.tableRow}>
+                          <TableCell>
+                            <Typography variant="subtitle2" className={styles.ingName}>
+                              {ing.name}
                             </Typography>
-                          ) : (
-                            <Box className={styles.editableCellWrap}>
-                              <TextField
-                                type="number"
-                                size="small"
-                                value={ing.portionInput}
-                                onChange={e => handlePortionChange(ing.id, e.target.value)}
-                                onBlur={() => handlePortionBlur(ing.id)}
-                                className={styles.cellInput}
-                                slotProps={{
-                                  htmlInput: {
-                                    step: "0.001",
-                                    min: "0.001",
-                                    style: { textAlign: "right", padding: "6px 8px" },
-                                  },
-                                  input: {
-                                    endAdornment: (
-                                      <span className={styles.inputAdornment}>
-                                        {ing.unit}/suất
-                                      </span>
-                                    ),
-                                  },
-                                }}
-                              />
-                            </Box>
-                          )}
-                        </TableCell>
-
-                        {/* Cột 2: Số lượng theo suất thực đơn (Chỉnh sửa 2 chiều, hoặc — nếu là món thêm ngoài) */}
-                        <TableCell align="right" className={styles.batch1Cell}>
-                          {ing.isExtraItem ? (
-                            <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
-                              —
-                            </Typography>
-                          ) : (
-                            <Box className={styles.editableCellWrapRight}>
-                              <TextField
-                                type="number"
-                                size="small"
-                                value={ing.standardQtyInput}
-                                onChange={e => handleStandardQtyChange(ing.id, e.target.value)}
-                                onBlur={() => handleStandardQtyBlur(ing.id)}
-                                className={`${styles.cellInput} ${styles.batch1CellInput}`}
-                                slotProps={{
-                                  htmlInput: {
-                                    step: isDiscrete ? "1" : "0.01",
-                                    min: isDiscrete ? "1" : "0.01",
-                                    style: { textAlign: "right", padding: "6px 8px", fontWeight: 700 },
-                                  },
-                                  input: {
-                                    endAdornment: (
-                                      <span className={styles.inputAdornment}>
-                                        {ing.unit}
-                                      </span>
-                                    ),
-                                  },
-                                }}
-                              />
-                            </Box>
-                          )}
-                        </TableCell>
-
-                        {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
-                        <TableCell align="right" className={styles.extraCell}>
-                          <Box className={styles.editableCellWrapRight}>
-                            <TextField
-                              type="number"
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={ing.handlingType === "DRY_STOCK" ? "Kho khô" : "Tươi sống (Dùng ngay)"}
                               size="small"
-                              placeholder="0"
-                              value={ing.extraQtyInput}
-                              onChange={e => handleExtraQtyChange(ing.id, e.target.value)}
-                              onBlur={() => handleExtraQtyBlur(ing.id)}
-                              className={`${styles.cellInput} ${styles.extraCellInput}`}
-                              slotProps={{
-                                htmlInput: {
-                                  step: isDiscrete ? "1" : "0.01",
-                                  min: "0",
-                                  style: {
-                                    textAlign: "right",
-                                    padding: "6px 8px",
-                                    fontWeight: 700,
-                                    color: ing.extraQty > 0 ? "#15803d" : "#64748b",
-                                  },
-                                },
-                                input: {
-                                  endAdornment: (
-                                    <span className={styles.inputAdornment} style={{ color: ing.extraQty > 0 ? "#15803d" : "#64748b" }}>
-                                      {ing.unit}
-                                    </span>
-                                  ),
-                                },
-                              }}
+                              className={styles.freshChip}
                             />
-                          </Box>
-                        </TableCell>
+                          </TableCell>
 
-                        {/* Cột 4: Tổng SL Đợt 1 (= Theo suất + Giao thêm) */}
-                        <TableCell align="right" className={styles.totalCell}>
-                          <Typography variant="subtitle2" className={styles.totalQtyText}>
-                            {ing.batchQty} {ing.unit}
-                          </Typography>
-                        </TableCell>
+                          {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
+                          <TableCell align="center">
+                            {ing.isExtraItem ? (
+                              <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
+                                —
+                              </Typography>
+                            ) : isMulti ? (
+                              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
+                                <Chip
+                                  icon={<Layers size={12} />}
+                                  label={`${ing.breakdown.length} thực đơn`}
+                                  size="small"
+                                  onClick={() => toggleExpandRow(ing.id)}
+                                  sx={{
+                                    cursor: "pointer",
+                                    bgcolor: "#eff6ff",
+                                    color: "#1d4ed8",
+                                    fontWeight: 700,
+                                    fontSize: "0.75rem",
+                                    height: 22,
+                                    border: "1px solid #bfdbfe",
+                                    "&:hover": { bgcolor: "#dbeafe" },
+                                  }}
+                                />
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => toggleExpandRow(ing.id)}
+                                  sx={{ fontSize: "0.6875rem", p: 0, minWidth: 0, textTransform: "none", color: "#2563eb", fontWeight: 600 }}
+                                >
+                                  {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                                </Button>
+                              </Box>
+                            ) : (
+                              <Box className={styles.editableCellWrap}>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={ing.portionInput}
+                                  onChange={e => handlePortionChange(ing.id, e.target.value)}
+                                  onBlur={() => handlePortionBlur(ing.id)}
+                                  className={styles.cellInput}
+                                  slotProps={{
+                                    htmlInput: {
+                                      step: "0.001",
+                                      min: "0.001",
+                                      style: { textAlign: "right", padding: "6px 8px" },
+                                    },
+                                    input: {
+                                      endAdornment: (
+                                        <span className={styles.inputAdornment}>
+                                          {ing.unit}/suất
+                                        </span>
+                                      ),
+                                    },
+                                  }}
+                                />
+                              </Box>
+                            )}
+                          </TableCell>
 
-                        <TableCell>
-                          <Typography variant="body2" className={styles.supplierText}>
-                            {ing.supplierName}
-                          </Typography>
-                        </TableCell>
+                          {/* Cột 2: Số lượng Đợt 1 (theo 50% suất) */}
+                          <TableCell align="right" className={styles.batch1Cell}>
+                            {ing.isExtraItem ? (
+                              <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
+                                —
+                              </Typography>
+                            ) : (
+                              <Box className={styles.editableCellWrapRight}>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={ing.standardQtyInput}
+                                  onChange={e => handleStandardQtyChange(ing.id, e.target.value)}
+                                  onBlur={() => handleStandardQtyBlur(ing.id)}
+                                  className={`${styles.cellInput} ${styles.batch1CellInput}`}
+                                  slotProps={{
+                                    htmlInput: {
+                                      step: isDiscrete ? "1" : "0.01",
+                                      min: isDiscrete ? "1" : "0.01",
+                                      style: { textAlign: "right", padding: "6px 8px", fontWeight: 700 },
+                                    },
+                                    input: {
+                                      endAdornment: (
+                                        <span className={styles.inputAdornment}>
+                                          {ing.unit}
+                                        </span>
+                                      ),
+                                    },
+                                  }}
+                                />
+                              </Box>
+                            )}
+                          </TableCell>
 
-                        {/* Cột thao tác xóa nếu là hàng giao thêm ngoài */}
-                        <TableCell align="center">
-                          {ing.isExtraItem ? (
-                            <Tooltip title="Xóa món giao thêm" arrow>
-                              <IconButton
-                                size="small"
-                                color="error"
-                                onClick={() => handleRemoveExtraIngredient(ing.id)}
-                                sx={{ p: 0.5 }}
-                              >
-                                <Trash2 size={16} />
-                              </IconButton>
-                            </Tooltip>
-                          ) : null}
-                        </TableCell>
-                      </TableRow>
+                          <TableCell>
+                            <Typography variant="body2" className={styles.supplierText}>
+                              {ing.supplierName}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Dòng mở rộng xem thêm chi tiết cho nguyên liệu đa thực đơn */}
+                        {isExpanded && isMulti && (
+                          <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                            <TableCell colSpan={5} sx={{ py: 1.25, px: 3, borderBottom: "1px solid #e2e8f0" }}>
+                              <Box sx={{ p: 1.5, bgcolor: "#ffffff", borderRadius: 1.5, border: "1px solid #e2e8f0" }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+                                  <Layers size={14} color="#2563eb" /> Chi tiết định lượng &amp; số lượng theo từng thực đơn / khối lớp:
+                                </Typography>
+                                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                                  {ing.breakdown.map((b, bIdx) => (
+                                    <Box key={bIdx} sx={{ bgcolor: "#f8fafc", p: 1, px: 1.5, borderRadius: 1.25, border: "1px solid #e2e8f0", minWidth: 200 }}>
+                                      <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem" }}>
+                                        {b.targetScope || b.menuName}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+                                        {b.portions} suất × {b.qtyPerPortion} {b.unit}/suất
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb", mt: 0.5 }}>
+                                        = {b.calculatedQty} {b.unit}
+                                      </Typography>
+                                    </Box>
+                                  ))}
+                                </Box>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     )
                   })}
                 </TableBody>
@@ -941,7 +1178,7 @@ export default function CreateDeliveryView({
           <Box className={styles.footerWrap}>
             <Box className={styles.summaryBadges}>
               <Chip
-                label={`${freshIngredients.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`}
+                label={`${itemsState.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`}
                 size="small"
                 className={styles.summaryFreshBadge}
               />
@@ -1059,6 +1296,41 @@ export default function CreateDeliveryView({
                   </Typography>
                 </Box>
               </Box>
+
+              {/* Chi tiết phân bổ theo từng khối khi là đa thực đơn */}
+              {isMultiMenu && (
+                <Box sx={{ mt: 2, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
+                  <Typography variant="caption" sx={{ fontWeight: 700, color: "#475569", mb: 1, display: "block" }}>
+                    Chi tiết cân đối theo từng khối lớp:
+                  </Typography>
+                  <Box sx={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 1.5 }}>
+                    {menusPortionsMeta.map(m => {
+                      const info = remainingByMenu[m.id] || { actual: 0, remaining: 0 }
+                      return (
+                        <Paper key={m.id} variant="outlined" sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc" }}>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: "#0f172a" }}>
+                            {m.targetScope || m.name}
+                          </Typography>
+                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 1 }}>
+                            <Typography variant="caption" color="text.secondary">
+                              Sĩ số: <strong>{info.actual}</strong> / {m.maxPortions}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Đợt 1: <strong>{m.batch1Portions}</strong>
+                            </Typography>
+                            <Chip
+                              label={`Đợt 2: +${info.remaining} suất`}
+                              size="small"
+                              color="warning"
+                              sx={{ fontWeight: 700, height: 22, fontSize: "0.75rem" }}
+                            />
+                          </Box>
+                        </Paper>
+                      )
+                    })}
+                  </Box>
+                </Box>
+              )}
             </Box>
           </Paper>
 
@@ -1256,111 +1528,180 @@ export default function CreateDeliveryView({
                 <TableBody>
                   {itemsState.map(ing => {
                     const isDiscrete = isDiscreteUnit(ing.unit)
+                    const isMulti = Boolean(ing.breakdown && ing.breakdown.length > 1)
+                    const isExpanded = Boolean(expandedRows[ing.id])
 
                     return (
-                      <TableRow key={ing.id} hover className={styles.tableRow}>
-                        <TableCell>
-                          <Typography variant="subtitle2" className={styles.ingName}>
-                            {ing.name}
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={ing.handlingType === "DRY_STOCK" ? "Kho khô" : "Tươi sống (Dùng ngay)"}
-                            size="small"
-                            className={styles.freshChip}
-                          />
-                        </TableCell>
-
-                        {/* Cột 1: Định lượng / 1 Suất (KHÓA: Kế thừa 100% từ Đợt 1, không cho sửa) */}
-                        <TableCell align="center">
-                          {ing.isExtraItem ? (
-                            <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
-                              —
-                            </Typography>
-                          ) : (
-                            <Typography variant="body2" className={styles.readOnlyPortionText}>
-                              {ing.qtyPerPortion} {ing.unit}/suất
-                            </Typography>
-                          )}
-                        </TableCell>
-
-                        {/* Cột 2: Số lượng theo suất Đợt 2 (KHÓA: Tự động tính theo Sĩ số bù, không cho sửa) */}
-                        <TableCell align="right" className={styles.batch2Cell}>
-                          {ing.isExtraItem ? (
-                            <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
-                              —
-                            </Typography>
-                          ) : (
-                            <Typography variant="subtitle2" className={styles.batch2QtyText}>
-                              {ing.standardQty} {ing.unit}
-                            </Typography>
-                          )}
-                        </TableCell>
-
-                        {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
-                        <TableCell align="right" className={styles.extraCell}>
-                          <Box className={styles.editableCellWrapRight}>
-                            <TextField
-                              type="number"
+                      <React.Fragment key={ing.id}>
+                        <TableRow hover className={styles.tableRow}>
+                          <TableCell>
+                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                              <Typography variant="subtitle2" className={styles.ingName}>
+                                {ing.name}
+                              </Typography>
+                              {ing.isExtraItem && (
+                                <Chip
+                                  label="Giao thêm ngoài"
+                                  size="small"
+                                  color="warning"
+                                  sx={{ height: 20, fontSize: "0.6875rem", fontWeight: 700 }}
+                                />
+                              )}
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={ing.handlingType === "DRY_STOCK" ? "Kho khô" : "Tươi sống (Dùng ngay)"}
                               size="small"
-                              placeholder="0"
-                              value={ing.extraQtyInput}
-                              onChange={e => handleExtraQtyChange(ing.id, e.target.value)}
-                              onBlur={() => handleExtraQtyBlur(ing.id)}
-                              className={`${styles.cellInput} ${styles.extraCellInput}`}
-                              slotProps={{
-                                htmlInput: {
-                                  step: isDiscrete ? "1" : "0.01",
-                                  min: "0",
-                                  style: {
-                                    textAlign: "right",
-                                    padding: "6px 8px",
-                                    fontWeight: 700,
-                                    color: ing.extraQty > 0 ? "#15803d" : "#64748b",
-                                  },
-                                },
-                                input: {
-                                  endAdornment: (
-                                    <span className={styles.inputAdornment} style={{ color: ing.extraQty > 0 ? "#15803d" : "#64748b" }}>
-                                      {ing.unit}
-                                    </span>
-                                  ),
-                                },
-                              }}
+                              className={styles.freshChip}
                             />
-                          </Box>
-                        </TableCell>
+                          </TableCell>
 
-                        {/* Cột 4: Tổng SL Đợt 2 (= Theo suất + Giao thêm) */}
-                        <TableCell align="right" className={styles.totalCell}>
-                          <Typography variant="subtitle2" className={styles.totalQtyText}>
-                            {ing.batchQty} {ing.unit}
-                          </Typography>
-                        </TableCell>
+                          {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
+                          <TableCell align="center">
+                            {ing.isExtraItem ? (
+                              <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
+                                —
+                              </Typography>
+                            ) : isMulti ? (
+                              <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5 }}>
+                                <Chip
+                                  icon={<Layers size={12} />}
+                                  label={`${ing.breakdown?.length || 2} thực đơn`}
+                                  size="small"
+                                  onClick={() => toggleExpandRow(ing.id)}
+                                  sx={{
+                                    cursor: "pointer",
+                                    bgcolor: "#eff6ff",
+                                    color: "#1d4ed8",
+                                    fontWeight: 700,
+                                    fontSize: "0.75rem",
+                                    height: 22,
+                                    border: "1px solid #bfdbfe",
+                                    "&:hover": { bgcolor: "#dbeafe" },
+                                  }}
+                                />
+                                <Button
+                                  size="small"
+                                  variant="text"
+                                  onClick={() => toggleExpandRow(ing.id)}
+                                  sx={{ fontSize: "0.6875rem", p: 0, minWidth: 0, textTransform: "none", color: "#2563eb", fontWeight: 600 }}
+                                >
+                                  {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                                </Button>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" className={styles.readOnlyPortionText}>
+                                {ing.qtyPerPortion} {ing.unit}/suất
+                              </Typography>
+                            )}
+                          </TableCell>
 
-                        <TableCell>
-                          <Typography variant="body2" className={styles.supplierText}>
-                            {ing.supplierName}
-                          </Typography>
-                        </TableCell>
+                          {/* Cột 2: Số lượng theo suất Đợt 2 (KHÓA: Tự động tính theo Sĩ số bù, không cho sửa) */}
+                          <TableCell align="right" className={styles.batch2Cell}>
+                            {ing.isExtraItem ? (
+                              <Typography variant="body2" sx={{ color: "#94a3b8", fontWeight: 500 }}>
+                                —
+                              </Typography>
+                            ) : (
+                              <Typography variant="subtitle2" className={styles.batch2QtyText}>
+                                {ing.standardQty} {ing.unit}
+                              </Typography>
+                            )}
+                          </TableCell>
 
-                        {/* Cột thao tác xóa nếu là hàng giao thêm ngoài */}
-                        <TableCell align="center">
-                          {ing.isExtraItem ? (
-                            <Tooltip title="Xóa món giao thêm" arrow>
-                              <IconButton
+                          {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
+                          <TableCell align="right" className={styles.extraCell}>
+                            <Box className={styles.editableCellWrapRight}>
+                              <TextField
+                                type="number"
                                 size="small"
-                                color="error"
-                                onClick={() => handleRemoveExtraIngredient(ing.id)}
-                                sx={{ p: 0.5 }}
-                              >
-                                <Trash2 size={16} />
-                              </IconButton>
-                            </Tooltip>
-                          ) : null}
-                        </TableCell>
-                      </TableRow>
+                                placeholder="0"
+                                value={ing.extraQtyInput}
+                                onChange={e => handleExtraQtyChange(ing.id, e.target.value)}
+                                onBlur={() => handleExtraQtyBlur(ing.id)}
+                                className={`${styles.cellInput} ${styles.extraCellInput}`}
+                                slotProps={{
+                                  htmlInput: {
+                                    step: isDiscrete ? "1" : "0.01",
+                                    min: "0",
+                                    style: {
+                                      textAlign: "right",
+                                      padding: "6px 8px",
+                                      fontWeight: 700,
+                                      color: ing.extraQty > 0 ? "#15803d" : "#64748b",
+                                    },
+                                  },
+                                  input: {
+                                    endAdornment: (
+                                      <span className={styles.inputAdornment} style={{ color: ing.extraQty > 0 ? "#15803d" : "#64748b" }}>
+                                        {ing.unit}
+                                      </span>
+                                    ),
+                                  },
+                                }}
+                              />
+                            </Box>
+                          </TableCell>
+
+                          {/* Cột 4: Tổng SL Đợt 2 (= Theo suất + Giao thêm) */}
+                          <TableCell align="right" className={styles.totalCell}>
+                            <Typography variant="subtitle2" className={styles.totalQtyText}>
+                              {ing.batchQty} {ing.unit}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell>
+                            <Typography variant="body2" className={styles.supplierText}>
+                              {ing.supplierName}
+                            </Typography>
+                          </TableCell>
+
+                          {/* Cột thao tác xóa nếu là hàng giao thêm ngoài */}
+                          <TableCell align="center">
+                            {ing.isExtraItem ? (
+                              <Tooltip title="Xóa món giao thêm" arrow>
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => handleRemoveExtraIngredient(ing.id)}
+                                  sx={{ p: 0.5 }}
+                                >
+                                  <Trash2 size={16} />
+                                </IconButton>
+                              </Tooltip>
+                            ) : null}
+                          </TableCell>
+                        </TableRow>
+
+                        {/* Dòng mở rộng phân rã chi tiết cho nguyên liệu đa thực đơn */}
+                        {isExpanded && isMulti && (
+                          <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                            <TableCell colSpan={8} sx={{ py: 1.25, px: 3, borderBottom: "1px solid #e2e8f0" }}>
+                              <Box sx={{ p: 1.5, bgcolor: "#ffffff", borderRadius: 1.5, border: "1px solid #e2e8f0" }}>
+                                <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
+                                  <Layers size={14} color="#2563eb" /> Chi tiết định lượng &amp; số lượng theo từng thực đơn / khối lớp (Đợt 2):
+                                </Typography>
+                                <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                                  {ing.breakdown.map((b, bIdx) => (
+                                    <Box key={bIdx} sx={{ bgcolor: "#f8fafc", p: 1, px: 1.5, borderRadius: 1.25, border: "1px solid #e2e8f0", minWidth: 200 }}>
+                                      <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem" }}>
+                                        {b.targetScope || b.menuName}
+                                      </Typography>
+                                      <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
+                                        {b.portions} suất bù × {b.qtyPerPortion} {b.unit}/suất
+                                      </Typography>
+                                      <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb", mt: 0.5 }}>
+                                        = {b.calculatedQty} {b.unit}
+                                      </Typography>
+                                    </Box>
+                                  ))}
+                                </Box>
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     )
                   })}
                 </TableBody>
@@ -1442,7 +1783,7 @@ export default function CreateDeliveryView({
           </Typography>
 
           <Autocomplete
-            options={MOCK_MASTER_INGREDIENT_CATALOG}
+            options={catalogOptions}
             getOptionLabel={opt => `${opt.name} (${opt.category})`}
             value={selectedIngredient}
             onChange={(e, val) => {
