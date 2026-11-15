@@ -54,6 +54,18 @@
 }
 
 /* Card chung */
+.sectionWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.sectionTitleRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
 .card {
   background-color: var(--bg-surface, #ffffff);
   border-radius: var(--radius-lg, 12px);
@@ -301,6 +313,13 @@
 }
 
 /* Status Badges */
+.statusPending {
+  background-color: #f1f5f9 !important;
+  color: #475569 !important;
+  border: 1px solid #cbd5e1 !important;
+  font-weight: 500 !important;
+}
+
 .statusInTransit {
   background-color: var(--color-info-bg, #eaf3ff) !important;
   color: var(--color-info, #286bbd) !important;

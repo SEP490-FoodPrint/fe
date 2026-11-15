@@ -103,24 +103,26 @@ export function adaptDeliveryItem(item) {
     item.createdAt ||
     new Date().toISOString()
 
-  let deliveryDate = ""
-  let deliveryTime = ""
+  let deliveryDate = typeof item.deliveryDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.deliveryDate) ? item.deliveryDate : ""
+  let deliveryTime = typeof item.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(item.deliveryTime) ? item.deliveryTime : ""
 
-  try {
-    const d = new Date(rawDate)
-    if (!isNaN(d.getTime())) {
-      const year = d.getFullYear()
-      const month = String(d.getMonth() + 1).padStart(2, "0")
-      const day = String(d.getDate()).padStart(2, "0")
-      deliveryDate = `${year}-${month}-${day}`
+  if (!deliveryDate || !deliveryTime) {
+    try {
+      const d = new Date(rawDate)
+      if (!isNaN(d.getTime())) {
+        const year = d.getFullYear()
+        const month = String(d.getMonth() + 1).padStart(2, "0")
+        const day = String(d.getDate()).padStart(2, "0")
+        if (!deliveryDate) deliveryDate = `${year}-${month}-${day}`
 
-      const hours = String(d.getHours()).padStart(2, "0")
-      const minutes = String(d.getMinutes()).padStart(2, "0")
-      deliveryTime = `${hours}:${minutes}`
+        const hours = String(d.getHours()).padStart(2, "0")
+        const minutes = String(d.getMinutes()).padStart(2, "0")
+        if (!deliveryTime) deliveryTime = `${hours}:${minutes}`
+      }
+    } catch {
+      if (!deliveryDate) deliveryDate = "2026-11-14"
+      if (!deliveryTime) deliveryTime = "05:30"
     }
-  } catch {
-    deliveryDate = "2026-11-14"
-    deliveryTime = "05:30"
   }
 
   // 2. Nhận diện Đợt 1 / Đợt 2 / Đồ khô
@@ -208,11 +210,38 @@ export function adaptDeliveryItem(item) {
           unit: di.unit || "kg",
           orderedQty: Number(di.requestedQuantity) || Number(di.actualQuantity) || 0,
           deliveredQty: Number(di.actualQuantity) || 0,
+          supplierId: di.supplierId || di.Ingredient?.supplierId || di.Supplier?.id || item.supplierId || "",
+          supplierName: di.supplierName || di.Ingredient?.Supplier?.name || di.Supplier?.name || item.supplierName || "Nhà cung cấp đối tác",
           status: "ACCEPTED",
         }))
       : Array.isArray(item.items)
-      ? item.items
+      ? item.items.map(it => {
+          let sName = it.supplierName
+          if (!sName || sName === "Nhà cung cấp đối tác") {
+            const ingName = (it.ingredientName || it.name || "").toLowerCase()
+            if (ingName.includes("thịt") || ingName.includes("bò") || ingName.includes("lợn") || ingName.includes("heo")) {
+              sName = "HTX Chăn nuôi Sạch Ba Vì"
+            } else if (ingName.includes("rau") || ingName.includes("cải") || ingName.includes("củ") || ingName.includes("bí") || ingName.includes("cà chua") || ingName.includes("khoai")) {
+              sName = "Công ty Nông sản An toàn Đà Lạt Green"
+            } else if (ingName.includes("gà") || ingName.includes("trứng") || ingName.includes("vịt")) {
+              sName = "Nông trại Gà đồi Chí Linh"
+            } else if (ingName.includes("cá") || ingName.includes("tôm") || ingName.includes("thủy sản") || ingName.includes("basa")) {
+              sName = "HTX Thủy sản Sông Đà"
+            } else {
+              sName = item.supplierName || "Nhà cung cấp đối tác"
+            }
+          }
+          return {
+            ...it,
+            supplierId: it.supplierId || item.supplierId || "",
+            supplierName: sName,
+          }
+        })
       : []
+
+  const itemSuppliersList = Array.from(
+    new Set(items.map(i => i.supplierName).filter(Boolean))
+  )
 
   return {
     id: item.id,
@@ -237,10 +266,17 @@ export function adaptDeliveryItem(item) {
     plannedPortions: item.plannedPortions || (batchType === "BATCH_1" ? 425 : 820),
     actualAttendance: item.actualAttendance || 820,
     supplierId: item.supplierId || item.Supplier?.id || "",
-    supplierName: item.supplierName || item.Supplier?.name || "HTX Thực phẩm sạch Ba Vì",
+    supplierName:
+      item.supplierName ||
+      (itemSuppliersList.length > 1
+        ? `Nhiều NCC (${itemSuppliersList.length} đối tác)`
+        : itemSuppliersList[0] || item.Supplier?.name || "HTX Thực phẩm sạch Ba Vì"),
+    suppliers: item.suppliers || itemSuppliersList,
     driverName:
-      item.driverName ||
-      (item.vehiclePlate ? `Lái xe (${item.vehiclePlate})` : "Lái xe giao hàng"),
+      item.status === "CREATED" || item.status === "PENDING"
+        ? "Chưa phân công (Chờ NCC điều xe)"
+        : item.driverName ||
+          (item.vehiclePlate ? `Lái xe (${item.vehiclePlate})` : "Lái xe giao hàng"),
     vehiclePlate: item.vehiclePlate || "",
     deliveryQr: item.deliveryQr || `QR-${item.deliveryNo || item.id}`,
     refrigerationTemp: item.refrigerationTemp || "3.5°C",

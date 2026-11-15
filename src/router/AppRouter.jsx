@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react"
-import { useRoutes } from "react-router-dom"
+import { useRoutes, Navigate } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
 import MainLayout, { AuthLayout, PublicLayout, SchoolPublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
@@ -65,7 +65,6 @@ const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
 const IngredientOverview = lazy(() => import("src/pages/SCHOOL/IngredientOverview"))
 const SchoolIngredientCatalog = lazy(() => import("src/pages/SCHOOL/IngredientCatalog"))
 const IngredientOrders = lazy(() => import("src/pages/SCHOOL/IngredientOrders"))
-const OrderTracking = lazy(() => import("src/pages/SCHOOL/OrderTracking"))
 
 const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
@@ -323,7 +322,7 @@ const routes = [
               { path: ROUTER.SCHOOL_INGREDIENT_CATALOG, element: <LazyWrapper><SchoolIngredientCatalog /></LazyWrapper> },
               { path: ROUTER.SCHOOL_WAREHOUSE, element: <LazyWrapper><WarehouseManage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_INGREDIENT_ORDERS, element: <LazyWrapper><IngredientOrders /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_ORDER_TRACKING, element: <LazyWrapper><OrderTracking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ORDER_TRACKING, element: <Navigate to={`${ROUTER.SCHOOL_WAREHOUSE}?tab=orders`} replace /> },
 
               { path: ROUTER.SCHOOL_INGREDIENT_REPORTS, element: <LazyWrapper><IngredientReports /></LazyWrapper> },
             ],
