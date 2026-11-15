@@ -366,10 +366,44 @@
 
   &--primary {
     background-color: var(--color-primary, #0a8066) !important;
+    color: #fff !important;
     &:hover {
-      background-color: #086a55 !important;
+      background-color: var(--color-primary-hover, #08735c) !important;
+    }
+    // Khi khóa: nền xám nhạt, chữ xám thay vì nền xanh đậm + chữ xám (khó đọc)
+    &.Mui-disabled {
+      background-color: var(--bg-disabled, #e5e7eb) !important;
+      color: var(--text-disabled, #64748b) !important;
+      box-shadow: none !important;
     }
   }
+}
+
+// Ô chỉ đọc: giữ chữ đậm như bình thường, chỉ bỏ con trỏ nhập và hiệu ứng focus
+.daily-meal-readonly {
+  .MuiInputBase-input {
+    cursor: default;
+    color: var(--text-primary, #1d2b26);
+  }
+  .MuiOutlinedInput-root {
+    background-color: var(--bg-muted, #f8fafc);
+    &.Mui-focused .MuiOutlinedInput-notchedOutline {
+      border-color: var(--border-default, #e2e8f0);
+      border-width: 1px;
+    }
+  }
+}
+
+.daily-meal-history__showing {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted, #64748b);
+}
+
+.daily-meal-card__actions-hint {
+  margin-right: auto;
+  font-size: 12.5px;
+  color: var(--text-muted, #64748b);
 }
 
 /* Status Chips */
@@ -715,6 +749,10 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
       padding: 10px 12px;
+    }
+
+    &__actions-hint {
+      grid-column: 1 / -1;
     }
   }
 

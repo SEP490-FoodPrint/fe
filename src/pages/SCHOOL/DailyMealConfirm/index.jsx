@@ -149,6 +149,10 @@ function DailyMealConfirm() {
 
   const submission = context?.submission
   const finalized = submission?.status === "FINALIZED"
+  const todayISO = dayjs().format("YYYY-MM-DD")
+  const isPastDate = value => dayjs(value).format("YYYY-MM-DD") < todayISO
+  // Chỉ xem: đã chốt hoặc ngày đã qua. Ô nhập vẫn hiển thị rõ, chỉ không sửa được.
+  const readOnly = finalized || isPastDate(date)
   const allergies = context?.class?.classAllergies || []
 
   const payload = useMemo(
@@ -180,7 +184,7 @@ function DailyMealConfirm() {
     })
 
   const submit = async shouldFinalize => {
-    if (!valid || saving || finalized) return
+    if (!valid || saving || readOnly) return
     setSaving(true)
     try {
       const saved = await MealPortionService.saveDraft(payload)
@@ -246,6 +250,10 @@ function DailyMealConfirm() {
       count: filteredHistoryItems.length,
     }
   }, [filteredHistoryItems])
+
+  // Dòng lịch sử đang được hiển thị ở form khai báo phía trên
+  const isShowing = item =>
+    dayjs(item.mealDate).format("YYYY-MM-DD") === date && item.mealType === mealType
 
   const handleSelectHistoryItem = item => {
     const itemDate = dayjs(item.mealDate).format("YYYY-MM-DD")
@@ -377,13 +385,19 @@ function DailyMealConfirm() {
               </button>
             </div>
 
-            {finalized && (
+            {finalized ? (
               <div className="daily-meal-card__finalized-banner">
                 <CheckCircle2 size={16} />
                 <span>
                   Số suất {mealLabel(mealType).toLowerCase()} ngày {formatVNDate(date)} đã được chốt và giữ nguyên để bếp lập kế hoạch.
                 </span>
               </div>
+            ) : (
+              readOnly && (
+                <Alert severity="info" sx={{ borderRadius: 0 }}>
+                  Ngày {formatVNDate(date)} đã qua nên chỉ xem được, không sửa được.
+                </Alert>
+              )
             )}
 
             <div className="daily-meal-card__body">
@@ -394,9 +408,10 @@ function DailyMealConfirm() {
                 label={`Tổng số suất ${mealLabel(mealType).toLowerCase()}`}
                 placeholder="Nhập tổng số suất ăn..."
                 value={totalPortions}
-                disabled={finalized || saving}
+                disabled={saving}
                 onChange={event => setTotalPortions(event.target.value)}
-                inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
+                inputProps={{ min: 0, step: 1, inputMode: "numeric", readOnly }}
+                className={readOnly ? "daily-meal-readonly" : undefined}
               />
 
               <div className="daily-meal-card__allergies">
@@ -415,14 +430,15 @@ function DailyMealConfirm() {
                       type="number"
                       label="Số suất"
                       value={allergyCounts[item.ingredientEntryId] ?? ""}
-                      disabled={finalized || saving}
+                      disabled={saving}
+                      className={readOnly ? "daily-meal-readonly" : undefined}
                       onChange={event =>
                         setAllergyCounts(current => ({
                           ...current,
                           [item.ingredientEntryId]: event.target.value,
                         }))
                       }
-                      inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric" }}
+                      inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric", readOnly }}
                     />
                   </div>
                 ))}
@@ -435,15 +451,23 @@ function DailyMealConfirm() {
                 minRows={2}
                 label="Ghi chú cho bếp (không bắt buộc)"
                 value={allergyNotes}
-                disabled={finalized || saving}
-                placeholder="Ghi chú cho bếp nếu có yêu cầu đặc biệt..."
+                disabled={saving}
+                placeholder={readOnly ? "" : "Ghi chú cho bếp nếu có yêu cầu đặc biệt..."}
                 onChange={event => setAllergyNotes(event.target.value)}
-                inputProps={{ maxLength: 1000 }}
+                inputProps={{ maxLength: 1000, readOnly }}
+                className={readOnly ? "daily-meal-readonly" : undefined}
               />
             </div>
 
-            {!finalized && (
+            {!readOnly && (
               <div className="daily-meal-card__actions">
+                {!valid && (
+                  <span className="daily-meal-card__actions-hint">
+                    {totalPortions === ""
+                      ? "Nhập tổng số suất để lưu hoặc chốt."
+                      : "Số suất chưa hợp lệ, kiểm tra lại các ô đã nhập."}
+                  </span>
+                )}
                 <Button
                   variant="outlined"
                   size="small"
@@ -537,7 +561,7 @@ function DailyMealConfirm() {
                         </TableHead>
                         <TableBody>
                           {filteredHistoryItems.map(item => (
-                            <TableRow key={item.id} hover>
+                            <TableRow key={item.id} hover selected={isShowing(item)}>
                               <TableCell>
                                 <strong>{formatVNDate(item.mealDate)}</strong>
                               </TableCell>
@@ -550,14 +574,23 @@ function DailyMealConfirm() {
                                 <StatusChip status={item.status} />
                               </TableCell>
                               <TableCell align="center">
-                                <Button
-                                  size="small"
-                                  variant="text"
-                                  startIcon={item.status === "FINALIZED" ? <Eye size={14} /> : <Edit3 size={14} />}
-                                  onClick={() => handleSelectHistoryItem(item)}
-                                >
-                                  {item.status === "FINALIZED" ? "Xem" : "Sửa"}
-                                </Button>
+                                {isShowing(item) ? (
+                                  <span className="daily-meal-history__showing">Đang hiển thị ở trên</span>
+                                ) : (
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    startIcon={(item.status === "FINALIZED" || isPastDate(item.mealDate)) ? <Eye size={14} /> : <Edit3 size={14} />}
+                                    onClick={() => handleSelectHistoryItem(item)}
+                                    title={
+                                      item.status === "FINALIZED"
+                                        ? "Mở số suất đã chốt ở form phía trên"
+                                        : "Mở bản nháp ở form phía trên để sửa và chốt"
+                                    }
+                                  >
+                                    {(item.status === "FINALIZED" || isPastDate(item.mealDate)) ? "Xem chi tiết" : "Sửa"}
+                                  </Button>
+                                )}
                               </TableCell>
                             </TableRow>
                           ))}
@@ -588,14 +621,18 @@ function DailyMealConfirm() {
                               </div>
                               <div className="daily-meal-history-day-card__actions">
                                 <StatusChip status={item.status} />
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  onClick={() => handleSelectHistoryItem(item)}
-                                  className="daily-meal-history-day-card__btn"
-                                >
-                                  {item.status === "FINALIZED" ? "Xem" : "Sửa"}
-                                </Button>
+                                {isShowing(item) ? (
+                                  <span className="daily-meal-history__showing">Đang hiển thị</span>
+                                ) : (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    onClick={() => handleSelectHistoryItem(item)}
+                                    className="daily-meal-history-day-card__btn"
+                                  >
+                                    {(item.status === "FINALIZED" || isPastDate(item.mealDate)) ? "Xem" : "Sửa"}
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           ))}
