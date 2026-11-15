@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
-  Alert, Button, CircularProgress, Drawer, FormControl, FormControlLabel,
+  Alert, Button, CircularProgress, Dialog, FormControl, FormControlLabel,
   FormLabel, MenuItem, Radio, RadioGroup, TextField,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
@@ -65,8 +65,8 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
   }
 
   return (
-    <Drawer anchor="right" open onClose={saving ? undefined : onClose}
-      slotProps={{ paper: { className: styles.drawer, role: "dialog", "aria-labelledby": "create-complaint-title" } }}>
+    <Dialog open onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth
+      aria-labelledby="create-complaint-title" slotProps={{ paper: { className: styles.dialog } }}>
       <form className={styles.form} onSubmit={submit}>
         <header className={styles.header}>
           <h2 id="create-complaint-title">Gửi khiếu nại bữa ăn</h2>
@@ -118,6 +118,6 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
           <Button variant="contained" type="submit" disabled={!canSubmit}>{saving ? "Đang gửi…" : "Gửi khiếu nại"}</Button>
         </footer>
       </form>
-    </Drawer>
+    </Dialog>
   );
 }
