@@ -103,6 +103,45 @@ function DailyMealConfirm() {
     setDate(curr => dayjs(curr).add(1, "week").format("YYYY-MM-DD"))
   }
 
+  // Danh sách tuần để chọn nhanh: từ đầu năm học (1/9) tới tuần sau, mới nhất ở trên, nhóm theo tháng
+  const weekGroups = useMemo(() => {
+    const now = dayjs()
+    const startYear = now.month() >= 7 ? now.year() : now.year() - 1
+    const mondayOf = d => {
+      const value = dayjs(d)
+      return value.subtract((value.day() + 6) % 7, "day").startOf("day")
+    }
+    let cursor = mondayOf(`${startYear}-09-01`)
+    const last = mondayOf(now).add(1, "week")
+    const mondays = []
+    while (!cursor.isAfter(last)) {
+      mondays.push(cursor)
+      cursor = cursor.add(1, "week")
+    }
+    const selected = mondayOf(date)
+    if (!mondays.some(m => m.isSame(selected, "day"))) mondays.push(selected)
+
+    const groups = new Map()
+    mondays
+      .sort((a, b) => b.valueOf() - a.valueOf())
+      .forEach(monday => {
+        const sched = getSchoolWeekScheduleFromDate(monday.toDate())
+        const key = monday.format("MM/YYYY")
+        if (!groups.has(key)) groups.set(key, [])
+        groups.get(key).push({
+          value: monday.format("YYYY-MM-DD"),
+          label: `Tuần ${sched.weekNumber} (${monday.format("DD/MM")} – ${monday.add(4, "day").format("DD/MM")})`,
+        })
+      })
+    return Array.from(groups, ([month, weeks]) => ({ month: `Tháng ${month}`, weeks }))
+  }, [date])
+
+  const handleSelectWeek = mondayISO => {
+    // Giữ nguyên thứ trong tuần đang chọn khi nhảy sang tuần khác
+    const offset = (dayjs(date).day() + 6) % 7
+    setDate(dayjs(mondayISO).add(Math.min(offset, 4), "day").format("YYYY-MM-DD"))
+  }
+
   const handleCurrentWeek = () => {
     const today = dayjs()
     const dow = today.day()
@@ -282,10 +321,26 @@ function DailyMealConfirm() {
               <ChevronLeft size={16} />
             </button>
 
-            <div className="daily-meal-week-nav__label">
+            <label className="daily-meal-week-nav__label">
               <CalendarDays size={14} className="daily-meal-week-nav__icon" />
-              <span>{weekLabelShort}</span>
-            </div>
+              <select
+                className="daily-meal-week-nav__select"
+                value={dayjs(weekSchedule.schoolDays[0]?.dateISO).format("YYYY-MM-DD")}
+                onChange={event => handleSelectWeek(event.target.value)}
+                aria-label="Chọn tuần"
+                title={weekLabelShort}
+              >
+                {weekGroups.map(group => (
+                  <optgroup key={group.month} label={group.month}>
+                    {group.weeks.map(week => (
+                      <option key={week.value} value={week.value}>
+                        {week.label}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            </label>
 
             <button
               type="button"
