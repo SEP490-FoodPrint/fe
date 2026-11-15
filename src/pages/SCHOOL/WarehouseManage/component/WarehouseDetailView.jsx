@@ -6,10 +6,18 @@ import {
   Chip,
   Button,
   Paper,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
+  TableContainer,
+  Alert,
 } from "@mui/material"
 import {
   ArrowLeft,
   Plus,
+  Boxes,
 } from "lucide-react"
 import styles from "./WarehouseDetailView.module.scss"
 
@@ -93,11 +101,13 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
             <Box className={styles.infoField}>
               <span className={styles.label}>Trạng thái định mức:</span>
               {(() => {
-                const pct = Math.round((item.currentStock / item.safetyStock) * 100)
-                if (pct < 50) {
+                const safety = Number(item.safetyStock) || 1
+                const current = Number(item.currentStock) || 0
+                const pct = Math.round((current / safety) * 100)
+                if (pct < 30) {
                   return (
                     <Chip
-                      label="Dưới 50%"
+                      label="Báo động (< 30%) - Cần nhập gấp"
                       size="small"
                       style={{
                         width: "fit-content",
@@ -109,10 +119,10 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
                     />
                   )
                 }
-                if (pct < 100) {
+                if (pct < 50) {
                   return (
                     <Chip
-                      label="Trên 50%"
+                      label="Dưới 50% - Cần nhập hàng"
                       size="small"
                       style={{
                         width: "fit-content",
@@ -126,7 +136,7 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
                 }
                 return (
                   <Chip
-                    label="Đủ"
+                    label="Đủ an toàn"
                     size="small"
                     style={{
                       width: "fit-content",
@@ -171,6 +181,65 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
               <span className={styles.value}>Linh hoạt theo thỏa thuận và lịch nhận kho của trường</span>
             </Box>
           </Box>
+        </Paper>
+
+        <Paper className={styles.card} elevation={0} sx={{ gridColumn: "1 / -1", mt: 1 }}>
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 2 }}>
+            <Boxes size={20} color="#15803d" />
+            <Typography variant="subtitle1" className={styles.cardTitle}>
+              Danh sách lô hàng thực tế trong kho ({item.lots?.length || 0} lô)
+            </Typography>
+          </Box>
+
+          {item.lots && item.lots.length > 0 ? (
+            <TableContainer component={Paper} variant="outlined" sx={{ borderRadius: 2 }}>
+              <Table size="small">
+                <TableHead sx={{ backgroundColor: "#f8fafc" }}>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 600 }}>Mã lô</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Ngày sản xuất</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Hạn sử dụng</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Số lượng nhập</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Tồn khả dụng</TableCell>
+                    <TableCell sx={{ fontWeight: 600 }}>Mã phiếu giao</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 600 }}>Trạng thái</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {item.lots.map(lot => (
+                    <TableRow key={lot.id} hover>
+                      <TableCell sx={{ fontWeight: 600, color: "#1e293b" }}>{lot.lotCode}</TableCell>
+                      <TableCell>{lot.manufactureDate || "—"}</TableCell>
+                      <TableCell>{lot.expiryDate || "—"}</TableCell>
+                      <TableCell align="center">{lot.receivedQuantity} {item.unit}</TableCell>
+                      <TableCell
+                        align="center"
+                        sx={{
+                          fontWeight: 700,
+                          color: lot.availableQuantity > 0 ? "#15803d" : "#94a3b8",
+                        }}
+                      >
+                        {lot.availableQuantity} {item.unit}
+                      </TableCell>
+                      <TableCell>{lot.deliveryNo || "—"}</TableCell>
+                      <TableCell align="center">
+                        <Chip
+                          label={lot.status === "AVAILABLE" ? "Khả dụng" : lot.status}
+                          size="small"
+                          color={lot.status === "AVAILABLE" ? "success" : "default"}
+                          sx={{ height: 22, fontSize: 11 }}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          ) : (
+            <Alert severity="info" sx={{ borderRadius: 2 }}>
+              Hiện tại chưa có lô hàng thực tế nào của mặt hàng này được nhập vào kho. Hãy lập phiếu nhập hàng để bổ sung tồn kho.
+            </Alert>
+          )}
         </Paper>
       </Box>
     </Box>

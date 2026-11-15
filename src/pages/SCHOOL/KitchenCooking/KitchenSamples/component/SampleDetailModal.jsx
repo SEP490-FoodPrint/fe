@@ -1,4 +1,5 @@
-import React from "react"
+import React, { useEffect, useState } from "react"
+import KitchenService from "src/services/KitchenService"
 import PropTypes from "prop-types"
 import {
   X,
@@ -20,6 +21,18 @@ export default function SampleDetailModal({
   onOpenDisposeModal,
   onNavigateBatch,
 }) {
+  const [photoUrl, setPhotoUrl] = useState("")
+  const [photoError, setPhotoError] = useState("")
+  useEffect(() => {
+    if (!open || !sample?.id || !sample?.cookingBatchId) return undefined
+    let active = true
+    setPhotoUrl("")
+    setPhotoError("")
+    KitchenService.getBatchSample(sample.cookingBatchId).then(rows => {
+      if (active) setPhotoUrl(rows?.find(row => row.id === sample.id)?.photoUrl || "")
+    }).catch(() => { if (active) setPhotoError("Không tải được ảnh mẫu lưu.") })
+    return () => { active = false }
+  }, [open, sample?.id, sample?.cookingBatchId])
   if (!open || !sample) return null
 
   const info24h = get24hRetainedStatus(sample.sampledAt, sample.status)
@@ -67,6 +80,8 @@ export default function SampleDetailModal({
 
         {/* Modal Body */}
         <div className={styles.body}>
+          {photoError && <p role="alert">{photoError}</p>}
+          {photoUrl && <div><strong>Ảnh mẫu lưu</strong><br /><img src={photoUrl} alt="Ảnh mẫu lưu" style={{ maxWidth: "100%", maxHeight: 260, objectFit: "contain" }} /></div>}
           {/* Dải tiến trình lưu 24h tinh gọn */}
           <div
             className={`${styles.trackingStrip} ${

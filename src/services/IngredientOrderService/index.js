@@ -1,6 +1,7 @@
 import http from "../01_axios"
 import { apiIngredients, apiSuppliers, apiDeliveries, apiSupplyOrders } from "./urls"
-import { adaptCatalogItem } from "./adapter"
+import { adaptCatalogItem, adaptDeliveryItem } from "./adapter"
+import { getStoredDeliveries, saveStoredDelivery } from "../deliveryStorage"
 import { USE_MOCK_API } from "src/lib/config"
 import {
   MOCK_MASTER_INGREDIENT_CATALOG,
@@ -69,26 +70,16 @@ const IngredientOrderService = {
 
       if (apiItems.length > 0) {
         const adaptedApi = apiItems.map(adaptCatalogItem)
-        const hasDryStock = adaptedApi.some(it => it.handlingType === "DRY_STOCK")
-
-        if (!hasDryStock) {
-          const dryItems = MOCK_MASTER_INGREDIENT_CATALOG.filter(it => it.handlingType === "DRY_STOCK").map(adaptCatalogItem)
-          return {
-            items: [...adaptedApi, ...dryItems],
-            total: adaptedApi.length + dryItems.length,
-            isMock: false,
-          }
-        }
         return { items: adaptedApi, total: adaptedApi.length, isMock: false }
       }
     } catch (err) {
-      // Backend chưa có data -> Fallback sang mock chuẩn
+      console.warn("Lỗi tải danh mục nguyên liệu từ Backend:", err)
     }
 
     return {
-      items: MOCK_MASTER_INGREDIENT_CATALOG.map(adaptCatalogItem),
-      total: MOCK_MASTER_INGREDIENT_CATALOG.length,
-      isMock: true,
+      items: [],
+      total: 0,
+      isMock: false,
     }
   },
 
@@ -107,12 +98,12 @@ const IngredientOrderService = {
         skipAuthRedirect: true,
       })
       const data = response?.data || response
-      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, isMock: false }
-      if (Array.isArray(data) && data.length > 0) return { items: data, isMock: false }
+      if (Array.isArray(data?.items) && data.items.length > 0) return { items: data.items, total: data.items.length, isMock: false }
+      if (Array.isArray(data) && data.length > 0) return { items: data, total: data.length, isMock: false }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải danh sách nhà cung cấp từ Backend:", err)
     }
-    return { items: MOCK_SUPPLIERS, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**
@@ -131,54 +122,53 @@ const IngredientOrderService = {
       })
       const data = response?.data || response
       if (Array.isArray(data?.items) && data.items.length > 0) {
-        return { items: data.items, isMock: false }
+        return { items: data.items, total: data.items.length, isMock: false }
       }
     } catch (err) {
-      // Fallback
+      console.warn("Lỗi tải thực đơn duyệt từ Backend:", err)
     }
-    return { items: MOCK_APPROVED_MENUS, isMock: true }
+    return { items: [], total: 0, isMock: false }
   },
 
   /**
    * Lấy danh sách Phiếu giao nhận & Nhập hàng (Deliveries)
    */
   async getDeliveries(params = {}) {
+    // 1. Lấy các phiếu giao nhận đã tạo trong phiên làm việc hoặc lưu trong localStorage
+    const stored = getStoredDeliveries().map(adaptDeliveryItem).filter(Boolean)
+
+    let apiAdapted = []
     if (USE_MOCK_API) {
-      let items = [...localDeliveries]
-      if (params.batchType && params.batchType !== "all") {
-        items = items.filter(d => d.batchType === params.batchType)
+      apiAdapted = localDeliveries.map(adaptDeliveryItem).filter(Boolean)
+    } else {
+      try {
+        const response = await http.get(apiDeliveries, {
+          params: { page: 1, limit: 100 },
+          notifyOnError: false,
+          skipAuthRedirect: true,
+        })
+        const data = response?.data || response
+        const apiItems = Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data)
+          ? data
+          : []
+        apiAdapted = apiItems.map(adaptDeliveryItem).filter(Boolean)
+      } catch (err) {
+        console.warn("Lỗi tải danh sách phiếu giao nhận từ Backend:", err)
       }
-      if (params.status && params.status !== "all") {
-        items = items.filter(d => d.status === params.status)
-      }
-      if (params.search) {
-        const kw = params.search.toLowerCase()
-        items = items.filter(
-          d =>
-            d.deliveryNo.toLowerCase().includes(kw) ||
-            d.orderNo.toLowerCase().includes(kw) ||
-            d.supplierName.toLowerCase().includes(kw) ||
-            d.menuName.toLowerCase().includes(kw)
-        )
-      }
-      return { items, total: items.length, isMock: true }
     }
 
-    try {
-      const response = await http.get(apiDeliveries, {
-        params: { page: 1, limit: 100 },
-        notifyOnError: false,
-        skipAuthRedirect: true,
-      })
-      const data = response?.data || response
-      if (Array.isArray(data?.items) && data.items.length > 0) {
-        return { items: data.items, isMock: false }
-      }
-    } catch (err) {
-      // Fallback
-    }
+    // 2. Hợp nhất danh sách: Các phiếu mới tạo được ưu tiên hiển thị lên đầu
+    // Phiếu nhập hàng chuyên trách đồ tươi 2 đợt (BATCH_1, BATCH_2), không hiển thị đồ khô (DRY_STOCK)
+    const existingIds = new Set(stored.map(d => d.id))
+    const existingNos = new Set(stored.map(d => d.deliveryNo))
+    let items = [
+      ...stored,
+      ...apiAdapted.filter(d => !existingIds.has(d.id) && !existingNos.has(d.deliveryNo)),
+    ].filter(d => d.batchType !== "DRY_STOCK" && d.orderType !== "DRY_STOCK")
 
-    let items = [...localDeliveries]
+    // 3. Áp dụng các bộ lọc
     if (params.batchType && params.batchType !== "all") {
       items = items.filter(d => d.batchType === params.batchType)
     }
@@ -189,13 +179,40 @@ const IngredientOrderService = {
       const kw = params.search.toLowerCase()
       items = items.filter(
         d =>
-          d.deliveryNo.toLowerCase().includes(kw) ||
-          d.orderNo.toLowerCase().includes(kw) ||
-          d.supplierName.toLowerCase().includes(kw) ||
-          d.menuName.toLowerCase().includes(kw)
+          d.deliveryNo?.toLowerCase().includes(kw) ||
+          d.orderNo?.toLowerCase().includes(kw) ||
+          d.supplierName?.toLowerCase().includes(kw) ||
+          d.menuName?.toLowerCase().includes(kw)
       )
     }
-    return { items, isMock: true }
+
+    return { items, total: items.length, isMock: false }
+  },
+
+  /**
+   * Lấy tổng hợp sĩ số điểm danh thực tế từ Giáo viên chủ nhiệm (GVCN)
+   * phục vụ tự động cân đối và lập đơn Đợt 2.
+   */
+  async getDailyAttendanceSummary({ date, mealType = "LUNCH" }) {
+    try {
+      const response = await http.get("/v1/daily-meal-portions", {
+        params: { date, mealType },
+        notifyOnError: false,
+        skipAuthRedirect: true,
+      })
+      const data = response?.data || response
+      return {
+        date: data.date,
+        mealType: data.mealType,
+        totalPortions: Number(data.totalPortions) || 0,
+        finalizedClasses: Number(data.finalizedClasses) || 0,
+        pendingClasses: Number(data.pendingClasses) || 0,
+        classes: Array.isArray(data.classes) ? data.classes : [],
+      }
+    } catch (err) {
+      console.warn("Lỗi lấy tổng hợp sĩ số GVCN:", err)
+      return null
+    }
   },
 
   /**
@@ -229,6 +246,8 @@ const IngredientOrderService = {
             orderedQty: totalQty,
             deliveredQty: 0,
             status: "WAITING",
+            supplierId: it.supplierId || "",
+            supplierName: it.supplierName || "Nhà cung cấp đối tác",
             isCustomized: it.isCustomized || false,
             isExtraItem: it.isExtraItem || false,
             defaultQtyPerPortion: it.defaultQtyPerPortion,
@@ -249,11 +268,23 @@ const IngredientOrderService = {
               orderedQty: stdQty,
               deliveredQty: 0,
               status: "WAITING",
+              supplierId: it.supplierId || "",
+              supplierName: it.supplierName || "Nhà cung cấp đối tác",
               isCustomized: false,
               isExtraItem: false,
               defaultQtyPerPortion: it.qtyPerPortion,
             }
           })
+
+    const uniqueSuppliers = Array.from(
+      new Set(freshItemsBatch1.map(i => i.supplierName).filter(Boolean))
+    )
+    const summarySupplierName =
+      uniqueSuppliers.length === 1
+        ? uniqueSuppliers[0]
+        : uniqueSuppliers.length > 1
+          ? `Nhiều NCC (${uniqueSuppliers.length} đối tác)`
+          : "Nhiều NCC liên kết"
 
     const deliveryBatch1 = {
       id: `deliv-${Date.now()}-01`,
@@ -268,12 +299,13 @@ const IngredientOrderService = {
       maxPortions,
       plannedPortions: batch1Portions,
       supplierId: targetMenu.ingredients[0]?.supplierId || "sup-bavi-01",
-      supplierName: targetMenu.ingredients[0]?.supplierName || "Liên minh NCC thực phẩm sạch",
+      supplierName: summarySupplierName,
+      suppliers: uniqueSuppliers,
       driverName: "Chờ NCC gán xe & tài xế",
       deliveryQr: `QR-LOT-${orderNo.replace("PO-", "")}-01`,
       refrigerationTemp: "Chưa đo (Chờ xe tới)",
-      status: "CONFIRMED",
-      statusLabel: "NCC đang chuẩn bị hàng",
+      status: "CREATED",
+      statusLabel: "Chờ NCC xác nhận",
       note: note || "",
       approvals: {
         ingredientManagement: { approved: null, name: "Ban QL NL" },
@@ -285,6 +317,7 @@ const IngredientOrderService = {
     }
 
     localDeliveries = [deliveryBatch1, ...localDeliveries]
+    saveStoredDelivery(deliveryBatch1)
     return {
       success: true,
       orderNo,
@@ -300,7 +333,10 @@ const IngredientOrderService = {
    * - Số suất giao bù = actualAttendance - batch1Portions
    */
   async createBatch2Order({ batch1DeliveryId, actualAttendance, note, items }) {
-    const batch1Delivery = localDeliveries.find(d => d.id === batch1DeliveryId)
+    let batch1Delivery =
+      localDeliveries.find(d => d.id === batch1DeliveryId) ||
+      getStoredDeliveries().find(d => d.id === batch1DeliveryId)
+
     if (!batch1Delivery) {
       throw new Error("Không tìm thấy thông tin đơn hàng Đợt 1 tương ứng.")
     }
@@ -330,6 +366,8 @@ const IngredientOrderService = {
             orderedQty: totalQty,
             deliveredQty: 0,
             status: "WAITING",
+            supplierId: it.supplierId || b1Item?.supplierId || "",
+            supplierName: it.supplierName || b1Item?.supplierName || "Nhà cung cấp đối tác",
             isCustomized: it.isCustomized || false,
             isExtraItem: it.isExtraItem || false,
             defaultQtyPerPortion: it.defaultQtyPerPortion,
@@ -355,11 +393,23 @@ const IngredientOrderService = {
               orderedQty: stdQty,
               deliveredQty: 0,
               status: "WAITING",
+              supplierId: it.supplierId || b1Item?.supplierId || "",
+              supplierName: it.supplierName || b1Item?.supplierName || "Nhà cung cấp đối tác",
               isCustomized: Math.abs(portionRate - it.qtyPerPortion) > 0.00001,
               isExtraItem: false,
               defaultQtyPerPortion: it.qtyPerPortion,
             }
           })
+
+    const uniqueSuppliers = Array.from(
+      new Set(freshItemsBatch2.map(i => i.supplierName).filter(Boolean))
+    )
+    const summarySupplierName =
+      uniqueSuppliers.length === 1
+        ? uniqueSuppliers[0]
+        : uniqueSuppliers.length > 1
+          ? `Nhiều NCC (${uniqueSuppliers.length} đối tác)`
+          : "Nhiều NCC liên kết"
 
     const deliveryBatch2 = {
       id: `deliv-${Date.now()}-02`,
@@ -376,12 +426,13 @@ const IngredientOrderService = {
       actualAttendance: actualCount,
       plannedPortions: remainingPortions,
       supplierId: batch1Delivery.supplierId,
-      supplierName: batch1Delivery.supplierName,
+      supplierName: summarySupplierName,
+      suppliers: uniqueSuppliers,
       driverName: batch1Delivery.driverName || "--",
       deliveryQr: `QR-LOT-${batch1Delivery.orderNo.replace("PO-", "")}-02`,
       refrigerationTemp: "Chưa đo (Chờ xe tới)",
-      status: "CONFIRMED",
-      statusLabel: `Đã chốt sĩ số (${actualCount} HS) - NCC đang chuẩn bị`,
+      status: "CREATED",
+      statusLabel: "Chờ NCC xác nhận",
       note: note || "",
       approvals: {
         ingredientManagement: { approved: null },
@@ -393,6 +444,7 @@ const IngredientOrderService = {
     }
 
     localDeliveries = [deliveryBatch2, ...localDeliveries]
+    saveStoredDelivery(deliveryBatch2)
     return {
       success: true,
       delivery: deliveryBatch2,

@@ -7,6 +7,61 @@ import viteConfig from "../vite.config.js"
 let server, http, menus, kitchen, adapter, keys, storageTools, respond
 let requests = []
 
+test("grade menu filter lists individual grades and preserves shared menu mappings", async () => {
+  const { menuGradeOptions, default: Filter } = await server.ssrLoadModule("/src/components/MenuScopeSelect.jsx")
+  const menus = [{ id: "shared", gradeIds: ["g1", "g2"], gradeNames: ["Grade 1", "Grade 2"] }, { id: "other", gradeIds: ["g3"], gradeNames: ["Grade 3"] }]
+  assert.deepEqual(menuGradeOptions(menus), [{ key: "g1", label: "Grade 1", menuId: "shared" }, { key: "g2", label: "Grade 2", menuId: "shared" }, { key: "g3", label: "Grade 3", menuId: "other" }])
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const html = renderToStaticMarkup(React.createElement(Filter, { menus, value: "shared", onChange: () => {} }))
+  assert.match(html, /Grade 1/)
+  assert.match(html, /Grade 2/)
+  const allGrades = [{ id: "g1", name: "Grade 1" }, { id: "g2", name: "Grade 2" }]
+  assert.deepEqual(menuGradeOptions([], allGrades), [{ key: "g1", label: "Grade 1", menuId: "" }, { key: "g2", label: "Grade 2", menuId: "" }])
+  const emptyHtml = renderToStaticMarkup(React.createElement(Filter, { menus: [], grades: allGrades, gradeValue: "g2", onChange: () => {} }))
+  assert.match(emptyHtml, /Grade 2/)
+  assert.match(emptyHtml, /value="g2" selected/)
+  const unselectedHtml = renderToStaticMarkup(React.createElement(Filter, { menus: [], grades: allGrades, gradeValue: "", onChange: () => {} }))
+  assert.match(unselectedHtml, /value="" selected/)
+  assert.doesNotMatch(html, /Th\u1ef1c \u0111\u01a1n \/ kh\u1ed1i/)
+})
+
+test("dish catalogue groups categories by newest entry without sorting names", async () => {
+  const { groupDishesByCategory } = await server.ssrLoadModule("/src/services/DishService/index.js")
+  const input = [
+    { id: "newest", name: "Z", category: "SOUP" },
+    { id: "next", name: "A", category: "RICE" },
+    { id: "older-soup", name: "B", category: "SOUP" },
+    { id: "unclassified", name: "C", category: null },
+    { id: "older-rice", name: "D", category: "RICE" },
+    { id: "unclassified-older", name: "E", category: null },
+  ]
+  assert.deepEqual(groupDishesByCategory(input).map(dish => dish.id), ["newest", "older-soup", "next", "older-rice", "unclassified", "unclassified-older"])
+  assert.equal(input[1].id, "next")
+})
+
+test("dish recipe form rejects missing, duplicate and invalid grade quantities", async () => {
+  const { validRecipeLines } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
+  const main = { ingredientEntryId: id(1), ingredientRole: "MAIN", requiredQuantity: "120.125", unit: "g" }
+  const seasoning = { ingredientEntryId: id(2), ingredientRole: "SEASONING", requiredQuantity: "0.250", unit: "g" }
+  assert.equal(validRecipeLines([main, seasoning]), true)
+  assert.equal(validRecipeLines([seasoning]), false)
+  assert.equal(validRecipeLines([main, { ...seasoning, ingredientEntryId: main.ingredientEntryId }]), false)
+  for (const quantity of ["", "0", "1e3", "1.0001"]) assert.equal(validRecipeLines([{ ...main, requiredQuantity: quantity }]), false)
+})
+
+test("dish form applies entered quantities only to selected grades", async () => {
+  const { sharedGradeRecipes } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
+  const lines = [{ ingredientEntryId: id(1), ingredientRole: "MAIN", requiredQuantity: "75", unit: "g" }]
+  const selected = [{ gradeId: id(50) }, { gradeId: id(51) }]
+  const result = sharedGradeRecipes(selected, lines)
+  assert.deepEqual(result.map(profile => profile.gradeId), [id(50), id(51)])
+  assert.deepEqual(result.map(profile => profile.lines[0].requiredQuantity), ["75", "75"])
+  result[0].lines[0].requiredQuantity = "90"
+  assert.equal(result[1].lines[0].requiredQuantity, "75")
+  assert.equal(lines[0].requiredQuantity, "75")
+})
+
 test("grade recipe selection uses the selected profile and keeps missing profiles explicit", async () => {
   const { dishForGrades } = await server.ssrLoadModule("/src/services/DishService/index.js")
   const base = { id: id(40), lines: [{ ingredientId: id(1), ingredientRole: "MAIN", requiredQuantity: "80", unit: "g" }], gradeRecipes: [{ gradeId: id(50), lines: [{ ingredientEntryId: id(41), ingredientId: id(42), ingredientRole: "MAIN", requiredQuantity: "120", unit: "g", name: "Thịt", supplierName: "NCC" }] }] }
@@ -678,6 +733,71 @@ test("approved day rejects both save paths even when its parent week is still a 
   respond = () => week
   for (const submit of [false, true]) await assert.rejects(() => menus.saveMenuDay(week.id, { dateISO: "2026-11-02", LUNCH: [], AFTERNOON: [] }, { submit }))
   assert.equal(requests.every(config => config.method === "get"), true)
+})
+
+test("cooking progress retains substitute dishes and tracks samples separately per batch", async () => {
+  const { batchSampleProgress } = await server.ssrLoadModule("/src/services/KitchenService/adapter.js")
+  const batch = { status: "COMPLETED", dishes: [{ dishId: id(3) }, { dishId: id(4) }], retainedFoodSamples: [{ dishId: id(3) }] }
+  assert.deepEqual(batchSampleProgress(batch), { completed: 1, total: 2, complete: false })
+  assert.equal(batchSampleProgress({ ...batch, retainedFoodSamples: [...batch.retainedFoodSamples, { dishId: id(4) }] }).complete, true)
+  assert.equal(batchSampleProgress({ ...batch, retainedFoodSamples: [] }).complete, false)
+  assert.deepEqual(batchSampleProgress({ dishes: [{ dishId: id(3) }], retainedFoodSamples: [] }), { completed: 0, total: 1, complete: false })
+  assert.deepEqual(batchSampleProgress({ dishes: [{ dishId: id(3) }], retainedFoodSamples: [{ dishId: id(3) }] }), { completed: 1, total: 1, complete: true })
+  const week = snapshot()
+  const original = week.menuDays[0].menuDayDishes[0]
+  week.menuDays[0].menuDayDishes.push({ ...original, dishId: id(4), Dish: { name: "Alternative" } })
+  week.menuDays[0].portionGroups = [
+    { mealType: "LUNCH", isDefault: true, dishes: [{ dishId: id(3) }], avoidances: [] },
+    { mealType: "LUNCH", isDefault: false, dishes: [{ dishId: id(4) }], avoidances: [] },
+  ]
+  const lunch = adapter.menuWeekMeals(week)[0].meals.LUNCH
+  assert(lunch.allDishes.some((dish) => dish.dishId === id(4)))
+})
+
+test("cooking board shows full meal demand and keeps a partially sampled batch awaiting samples", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Board } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/CreateBatch/component/CreateBatchKanban.jsx")
+  const batch = { id: id(1), batchCode: "CB-1", name: "Dish A, Dish B", mealType: "lunch", status: "COMPLETED", plannedPortions: 60, dishes: [{ dishId: id(3) }, { dishId: id(4) }], retainedFoodSamples: [{ dishId: id(3) }] }
+  const html = renderToStaticMarkup(React.createElement(Board, { batches: [batch], pendingDishes: [], mealRequirements: { LUNCH: { portions: 100 } }, selectedMeal: "lunch" }))
+  assert.match(html, /100/)
+  assert.match(html, /1\/2/)
+  const oneDish = { ...batch, dishes: [batch.dishes[0]], retainedFoodSamples: [{ dishId: id(3) }] }
+  const oneDishHtml = renderToStaticMarkup(React.createElement(Board, { batches: [oneDish], pendingDishes: [], mealRequirements: { LUNCH: { portions: 100 } }, selectedMeal: "lunch" }))
+  assert.match(oneDishHtml, /1\/1 l\u00f4/)
+  assert.doesNotMatch(html, /T?t c? 1 l? ch? bi?n ?? n?u xong/)
+})
+
+test("cooking board keeps meal and grade filters available for empty grades", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Board } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/CreateBatch/component/CreateBatchKanban.jsx")
+  const html = renderToStaticMarkup(React.createElement(Board, {
+    grades: [{ id: "g1", name: "Grade 1" }, { id: "g2", name: "Grade 2" }],
+    gradeMenus: [{ id: "menu1", gradeIds: ["g1"] }], gradeValue: "g2", gradeMenuId: "",
+    onGradeChange: () => {}, emptyState: React.createElement("p", null, "No menu for grade"),
+  }))
+  assert.match(html, /aria-label="Chọn bữa ăn"/)
+  assert.match(html, /aria-label="Lọc theo khối lớp"/)
+  assert.match(html, /value="g2" selected=""/)
+  assert.match(html, /No menu for grade/)
+})
+
+test("inspection and sample photos are sent with their own record while photo-free requests stay JSON", async () => {
+  const { decideDeliveryInspection } = await server.ssrLoadModule("/src/services/DeliveryInspectionService/index.js")
+  const photo = new Blob(["photo"], { type: "image/jpeg" })
+  respond = () => ({ id: id(1) })
+  await decideDeliveryInspection(id(1), "REJECT", "damaged", photo)
+  assert(requests[0].data instanceof FormData)
+  assert.equal(requests[0].data.get("decision"), "REJECT")
+  assert.equal(requests[0].data.get("reason"), "damaged")
+  assert.equal(requests[0].data.get("photo").size, photo.size)
+  await kitchen.createBatchSample(id(2), { dishId: id(3), quantity: "150", unit: "g", storageLocation: "A", sampledAt: "2026-11-14T12:00:00Z", photo })
+  assert(requests[1].data instanceof FormData)
+  assert.equal(requests[1].data.get("dishId"), id(3))
+  assert.equal(requests[1].data.get("photo").size, photo.size)
+  await decideDeliveryInspection(id(1), "APPROVE", "", null)
+  assert.deepEqual(JSON.parse(requests[2].data), { decision: "APPROVE", reason: null })
 })
 
 test("weekly editing preserves frozen quantities, seasonings, notes and explicit group identities", () => {

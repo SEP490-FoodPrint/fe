@@ -24,7 +24,6 @@ export default function CatalogTable({ catalog = [] }) {
             <TableCell>Nhóm mặt hàng</TableCell>
             <TableCell>Phân loại kho</TableCell>
             <TableCell align="center">Đơn vị</TableCell>
-            <TableCell align="right">Đơn giá tham chiếu</TableCell>
             <TableCell>Nhà cung cấp đối tác</TableCell>
             <TableCell>Yêu cầu bảo quản & Quy cách</TableCell>
           </TableRow>
@@ -32,7 +31,7 @@ export default function CatalogTable({ catalog = [] }) {
         <TableBody>
           {catalog.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} align="center" className={styles.emptyCell}>
+              <TableCell colSpan={6} align="center" className={styles.emptyCell}>
                 Không có nguyên liệu nào phù hợp với bộ lọc
               </TableCell>
             </TableRow>
@@ -62,11 +61,6 @@ export default function CatalogTable({ catalog = [] }) {
                   <TableCell align="center">
                     <Typography variant="body2" className={styles.unitText}>
                       {item.defaultUnit}
-                    </Typography>
-                  </TableCell>
-                  <TableCell align="right">
-                    <Typography variant="subtitle2" className={styles.amountText}>
-                      {item.unitPriceFormatted || `${item.unitPrice?.toLocaleString("vi-VN")} đ`}
                     </Typography>
                   </TableCell>
                   <TableCell>

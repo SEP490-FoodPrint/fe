@@ -100,6 +100,16 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
     }
 
     switch (item.status) {
+      case "RECEIVED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={14} />}
+            label="Đã nhận hàng & Vào bếp"
+            size="small"
+            className={styles.statusSuccess}
+          />
+        )
+      case "APPROVED":
       case "COMPLETED":
         return (
           <Chip
@@ -109,6 +119,16 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusSuccess}
           />
         )
+      case "ARRIVED":
+        return (
+          <Chip
+            icon={<Clock size={14} />}
+            label="Đã đến cổng - Chờ kiểm tra"
+            size="small"
+            className={styles.statusWarning}
+          />
+        )
+      case "PENDING_APPROVAL":
       case "INSPECTING":
         return (
           <Chip
@@ -118,7 +138,17 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusWarning}
           />
         )
+      case "IN_TRANSIT":
+        return (
+          <Chip
+            icon={<Clock size={14} />}
+            label="NCC đang vận chuyển"
+            size="small"
+            className={styles.statusConfirmed}
+          />
+        )
       case "CONFIRMED":
+      case "CREATED":
         return (
           <Chip
             icon={<Clock size={14} />}
@@ -139,7 +169,6 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
           <TableRow className={styles.headerRow}>
             <TableCell>Số phiếu / Đơn hàng</TableCell>
             <TableCell>Đợt giao &amp; Thời gian</TableCell>
-            <TableCell>Nhà cung cấp</TableCell>
             <TableCell align="center">Hội đồng 4 bên</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="center">Thao tác</TableCell>
@@ -149,7 +178,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         <TableBody>
           {deliveries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} align="center" className={styles.emptyCell}>
+              <TableCell colSpan={5} align="center" className={styles.emptyCell}>
                 <Typography variant="body2" color="text.secondary">
                   Không tìm thấy phiếu giao nhận nào phù hợp với bộ lọc.
                 </Typography>
@@ -201,13 +230,6 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                         {item.deliveryTime} • {item.deliveryDate}
                       </Typography>
                     </Box>
-                  </TableCell>
-
-                  {/* Nhà cung cấp */}
-                  <TableCell>
-                    <Typography variant="body2" className={styles.supplierText}>
-                      {item.supplierName}
-                    </Typography>
                   </TableCell>
 
                   {/* Kiểm tra 4 bên */}

@@ -24,6 +24,7 @@ import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined"
+import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -88,8 +89,24 @@ export const MenuItemSupplier = () => [
     ],
   },
   {
+    key: ROUTER.SUPPLIER_SOURCE_FACILITIES,
+    label: "Cơ sở nguồn cung",
+    icon: <StorefrontOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_SUPPLIER_ADMIN],
+  },
+  {
     key: ROUTER.SUPPLIER_ORDERS,
     label: "Đơn hàng Cung ứng",
+    icon: <ReceiptLongOutlinedIcon />,
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
+  },
+  {
+    key: ROUTER.SUPPLIER_DELIVERIES,
+    label: "Tạo & Quản lý Đơn giao",
     icon: <LocalShippingOutlinedIcon />,
     roles: [
       ROLES.INGREDIENT_SUPPLIER_ADMIN,
@@ -296,12 +313,6 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_ORDERS,
     label: "Phiếu nhập hàng",
     icon: <ReceiptLongOutlinedIcon />,
-    roles: [ROLES.INGREDIENT_MANAGEMENT],
-  },
-  {
-    key: ROUTER.SCHOOL_ORDER_TRACKING,
-    label: "Theo dõi đơn hàng",
-    icon: <LocalShippingOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {

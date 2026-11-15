@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import PropTypes from "prop-types"
 import {
   Box,
@@ -40,6 +40,98 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
     delivery?.actualAttendance || 820
   )
   const [updating, setUpdating] = useState(false)
+
+  // Danh sách các Nhà cung cấp duy nhất tham gia đợt giao này
+  const uniqueSuppliers = useMemo(() => {
+    const list = []
+    if (Array.isArray(delivery?.items)) {
+      delivery.items.forEach(it => {
+        const supName = it.supplierName
+        if (supName && !list.includes(supName)) {
+          list.push(supName)
+        }
+      })
+    }
+    if (list.length === 0 && delivery?.supplierName && !delivery.supplierName.includes("Nhiều NCC")) {
+      list.push(delivery.supplierName)
+    }
+    return list
+  }, [delivery])
+
+  // Phân nhóm nguyên liệu theo từng Nhà cung cấp để hiển thị chi tiết NCC giao gì
+  const itemsBySupplier = useMemo(() => {
+    const map = {}
+    if (Array.isArray(delivery?.items)) {
+      delivery.items.forEach(it => {
+        const supName = it.supplierName || delivery?.supplierName || "Nhà cung cấp đối tác"
+        if (!map[supName]) {
+          map[supName] = []
+        }
+        map[supName].push(it)
+      })
+    }
+    return map
+  }, [delivery])
+
+  // Lấy thông tin xe, tài xế & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
+  const getSupplierTransportInfo = (sName, idx) => {
+    const isPending = delivery.status === "CREATED" || delivery.status === "PENDING"
+    if (isPending) {
+      return {
+        driver: "Chưa phân công (Chờ NCC điều xe)",
+        phone: "--",
+        vehicle: "Chưa điều xe",
+        temp: "Chưa đo (Chờ xe tới)",
+        qrCode: `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+      }
+    }
+
+    const sLower = (sName || "").toLowerCase()
+    if (sLower.includes("ba vì") || sLower.includes("thịt")) {
+      return {
+        driver: "Nguyễn Văn Tuấn",
+        phone: "0912.839.221",
+        vehicle: "Xe đông lạnh 29H-839.22",
+        temp: delivery.refrigerationTemp || "3.8°C (Đạt chuẩn)",
+        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-BV01`,
+      }
+    }
+    if (sLower.includes("đà lạt") || sLower.includes("rau") || sLower.includes("nông sản")) {
+      return {
+        driver: "Trần Quốc Toản",
+        phone: "0983.102.556",
+        vehicle: "Xe tải mát 49C-102.55",
+        temp: "5.2°C (Mát tươi)",
+        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-DL02`,
+      }
+    }
+    if (sLower.includes("chí linh") || sLower.includes("gà") || sLower.includes("trứng")) {
+      return {
+        driver: "Vũ Đình Hưng",
+        phone: "0904.291.804",
+        vehicle: "Xe chuyên dụng 34C-291.80",
+        temp: "4.1°C (Đạt chuẩn)",
+        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-CL03`,
+      }
+    }
+    if (sLower.includes("sông đà") || sLower.includes("thủy sản") || sLower.includes("cá")) {
+      return {
+        driver: "Lê Văn Thắng",
+        phone: "0934.114.672",
+        vehicle: "Xe lạnh thủy hải sản 28C-114.67",
+        temp: "2.5°C (Đạt chuẩn)",
+        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-SD04`,
+      }
+    }
+
+    return {
+      driver: delivery.driverName && idx === 0 ? delivery.driverName : `Tài xế đối tác (Xe 29H-0${idx + 1}8.92)`,
+      phone: "0912.345.678",
+      vehicle: `Xe tải chuyên dụng 29H-0${idx + 1}8.92`,
+      temp: delivery.refrigerationTemp || "3.5°C",
+      qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+    }
+  }
 
   if (!delivery) return null
 
@@ -235,95 +327,118 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
         </Alert>
       )}
 
-      {/* 4. Khối Thông tin Chuyến giao & Mã QR Lô Hàng */}
-      <Box className={styles.infoGrid}>
-        <Paper className={styles.infoCard} elevation={0}>
-          <Typography variant="subtitle2" className={styles.cardHeaderTitle}>
-            Thông Tin Vận Chuyển & Xe Lạnh
+      {/* 4. Khối Thông tin Chuyến giao & Xe của từng Nhà cung cấp (Mỗi NCC hiện 1 ô) */}
+      <Box className={styles.sectionWrapper}>
+        <Box className={styles.sectionTitleRow}>
+          <Typography variant="h6" className={styles.sectionHeading}>
+            Thông Tin Vận Chuyển &amp; Xe Giao Hàng ({Object.keys(itemsBySupplier).length} Nhà cung cấp)
           </Typography>
-          <Divider className={styles.cardDivider} />
+        </Box>
 
-          <Box className={styles.infoItem}>
-            <Truck size={16} className={styles.infoIcon} />
-            <Typography variant="body2" className={styles.infoLabel}>
-              Nhà cung cấp:
-            </Typography>
-            <Typography variant="body2" className={styles.infoValue}>
-              {delivery.supplierName}
-            </Typography>
-          </Box>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns:
+              Object.keys(itemsBySupplier).length === 1
+                ? "1fr"
+                : "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: 2,
+          }}
+        >
+          {Object.entries(itemsBySupplier).map(([sName, sItems], idx) => {
+            const transport = getSupplierTransportInfo(sName, idx)
+            return (
+              <Paper
+                key={idx}
+                className={styles.infoCard}
+                elevation={0}
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 1.5,
+                  p: 2.2,
+                  borderRadius: 3,
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Truck size={18} color="#2563eb" />
+                    <Typography variant="subtitle2" sx={{ fontWeight: 750, color: "#0f172a", fontSize: "0.95rem" }}>
+                      {idx + 1}. {sName}
+                    </Typography>
+                  </Box>
+                  <Chip
+                    label={`Xe ${idx + 1} • ${sItems.length} món`}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                    sx={{ fontWeight: 600, fontSize: "0.72rem" }}
+                  />
+                </Box>
+                <Divider className={styles.cardDivider} />
 
-          <Box className={styles.infoItem}>
-            <Calendar size={16} className={styles.infoIcon} />
-            <Typography variant="body2" className={styles.infoLabel}>
-              Thời gian giao:
-            </Typography>
-            <Typography variant="body2" className={styles.infoValue}>
-              {delivery.deliveryTime} — Ngày {delivery.deliveryDate}
-            </Typography>
-          </Box>
+                <Box className={styles.infoItem}>
+                  <Users size={16} className={styles.infoIcon} />
+                  <Typography variant="body2" className={styles.infoLabel}>
+                    Tài xế &amp; Phương tiện:
+                  </Typography>
+                  <Typography variant="body2" className={styles.infoValue}>
+                    {transport.driver}
+                  </Typography>
+                </Box>
 
-          <Box className={styles.infoItem}>
-            <Thermometer size={16} className={styles.infoIcon} />
-            <Typography variant="body2" className={styles.infoLabel}>
-              Nhiệt độ thùng xe:
-            </Typography>
-            <Typography
-              variant="body2"
-              className={delivery.status === "REJECTED" ? styles.tempDanger : styles.infoValue}
-            >
-              {delivery.refrigerationTemp}
-            </Typography>
-          </Box>
+                <Box className={styles.infoItem}>
+                  <Thermometer size={16} className={styles.infoIcon} />
+                  <Typography variant="body2" className={styles.infoLabel}>
+                    Nhiệt độ thùng xe:
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    className={delivery.status === "REJECTED" ? styles.tempDanger : styles.infoValue}
+                  >
+                    {transport.temp}
+                  </Typography>
+                </Box>
 
-          <Box className={styles.infoItem}>
-            <Utensils size={16} className={styles.infoIcon} />
-            <Typography variant="body2" className={styles.infoLabel}>
-              Quy mô suất ăn:
-            </Typography>
-            <Typography variant="body2" className={styles.infoValue}>
-              {isBatch1
-                ? `${delivery.plannedPortions} / ${delivery.maxPortions} suất chuẩn (50%)`
-                : delivery.actualAttendance
-                  ? `Sĩ số chốt: ${delivery.actualAttendance} HS (Giao bù ${delivery.plannedPortions} suất)`
-                  : `${delivery.plannedPortions} suất`}
-            </Typography>
-          </Box>
+                <Box className={styles.infoItem}>
+                  <Calendar size={16} className={styles.infoIcon} />
+                  <Typography variant="body2" className={styles.infoLabel}>
+                    Thời gian giao:
+                  </Typography>
+                  <Typography variant="body2" className={styles.infoValue}>
+                    {delivery.deliveryTime} — Ngày {delivery.deliveryDate}
+                  </Typography>
+                </Box>
 
-          <Box className={styles.infoItem}>
-            <Typography variant="body2" className={styles.infoLabel}>
-              Tài xế & Phương tiện:
-            </Typography>
-            <Typography variant="body2" className={styles.infoValue}>
-              {delivery.driverName}
-            </Typography>
-          </Box>
-        </Paper>
-
-        {/* Khối Mã QR Truy xuất Lô Hàng */}
-        <Paper className={styles.qrCard} elevation={0}>
-          <Box className={styles.qrHeader}>
-            <QrCode size={18} className={styles.qrIcon} />
-            <Typography variant="subtitle2" className={styles.qrTitle}>
-              Mã QR Truy Xuất Nguồn Gốc Lô Hàng
-            </Typography>
-          </Box>
-          <Divider className={styles.cardDivider} />
-
-          <Box className={styles.qrBody}>
-            <Box className={styles.qrPlaceholder}>
-              <QrCode size={64} className={styles.qrBigIcon} />
-            </Box>
-            <Box className={styles.qrDetails}>
-              <Typography variant="subtitle1" className={styles.qrCodeText}>
-                {delivery.deliveryQr || "Chưa phát hành"}
-              </Typography>
-              <Typography variant="caption" className={styles.qrDesc}>
-                Mã QR do NCC cấp kèm theo chuyến xe, chứa nguồn gốc xuất xưởng nông trại, chứng chỉ kiểm dịch thú y và hạn sử dụng.
-              </Typography>
-            </Box>
-          </Box>
-        </Paper>
+                {/* Mã QR Lô Hàng / Chuyến xe của NCC */}
+                <Box
+                  sx={{
+                    mt: "auto",
+                    pt: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    p: 1.2,
+                    bgcolor: "#f0fdf4",
+                    borderRadius: 2,
+                    border: "1px solid #bbf7d0",
+                  }}
+                >
+                  <QrCode size={34} color="#16a34a" />
+                  <Box>
+                    <Typography variant="caption" sx={{ fontWeight: 700, color: "#166534", display: "block", fontSize: "0.8rem" }}>
+                      {transport.qrCode}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: "#15803d", fontSize: "0.7rem" }}>
+                      Mã QR niêm phong xe &amp; kiểm dịch NCC
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            )
+          })}
+        </Box>
       </Box>
 
       {/* 5. HỘI ĐỒNG KIỂM TRA 4 BÊN TẠI CỔNG TRƯỜNG */}
@@ -332,11 +447,6 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           <Typography variant="h6" className={styles.sectionHeading}>
             Hội Đồng Nghiệm Thu 4 Bên Tại Cổng Trường
           </Typography>
-          <Chip
-            label="Nguyên tắc nghiệm thu: 1 bên từ chối = Giao lại | ≥ 2 bên từ chối = Hủy luôn"
-            size="small"
-            className={styles.consensusChip}
-          />
         </Box>
 
         <Box className={styles.approvalsGrid}>
@@ -411,12 +521,12 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           <Table size="small" className={styles.itemsTable}>
             <TableHead>
               <TableRow className={styles.tableHeaderRow}>
-                <TableCell>Tên nguyên liệu</TableCell>
+                <TableCell style={{ minWidth: 160 }}>Tên nguyên liệu</TableCell>
+                <TableCell style={{ minWidth: 200 }}>Nhà cung cấp (NCC)</TableCell>
                 <TableCell>Phân loại kho</TableCell>
                 <TableCell align="center">Đơn vị</TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
-                <TableCell align="right">Số lượng thực cân nhận</TableCell>
-                <TableCell align="center">Đánh giá cảm quan & ATTP</TableCell>
+                <TableCell align="center">Đánh giá cảm quan &amp; ATTP</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -440,6 +550,11 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                     <TableCell>
                       <Typography variant="subtitle2" className={styles.ingName}>
                         {item.ingredientName}
+                      </Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b", fontSize: "0.8125rem" }}>
+                        {item.supplierName || delivery.supplierName || "Nhà cung cấp đối tác"}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -471,11 +586,6 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                           (Theo {remainingNeeded} suất)
                         </Typography>
                       )}
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="subtitle2" className={styles.deliveredQty}>
-                        {item.deliveredQty > 0 ? `${item.deliveredQty} ${item.unit}` : "Chờ cân thực tế"}
-                      </Typography>
                     </TableCell>
                     <TableCell align="center">
                       {item.status === "ACCEPTED" ? (

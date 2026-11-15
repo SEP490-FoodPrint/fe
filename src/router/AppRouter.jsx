@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from "react"
-import { useRoutes } from "react-router-dom"
+import { useRoutes, Navigate } from "react-router-dom"
 import SpinCustom from "src/components/SpinCustom"
 import MainLayout, { AuthLayout, PublicLayout, SchoolPublicLayout } from "src/components/Layout"
 import AccountLayout from "src/components/Layout/AccountLayout/AccountLayout"
@@ -32,7 +32,9 @@ const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"
 // SUPPLIER pages
 const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
 const IngredientCatalog = lazy(() => import("src/pages/SUPPLIER/IngredientCatalog"))
+const SourceFacilities = lazy(() => import("src/pages/SUPPLIER/SourceFacilities"))
 const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
+const SupplierDeliveries = lazy(() => import("src/pages/SUPPLIER/SupplierDeliveries"))
 
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
@@ -63,7 +65,6 @@ const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
 const IngredientOverview = lazy(() => import("src/pages/SCHOOL/IngredientOverview"))
 const SchoolIngredientCatalog = lazy(() => import("src/pages/SCHOOL/IngredientCatalog"))
 const IngredientOrders = lazy(() => import("src/pages/SCHOOL/IngredientOrders"))
-const OrderTracking = lazy(() => import("src/pages/SCHOOL/OrderTracking"))
 
 const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
@@ -203,7 +204,18 @@ const routes = [
           { path: ROUTER.SUPPLIER_OVERVIEW, element: <LazyWrapper><SupplierOverview /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_INGREDIENTS, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_INGREDIENT_DETAIL, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
+          {
+            element: <RoleRoute allowedRoles={[ROLES.INGREDIENT_SUPPLIER_ADMIN]} />,
+            children: [
+              { path: ROUTER.SUPPLIER_SOURCE_FACILITIES, element: <LazyWrapper><SourceFacilities /></LazyWrapper> },
+              { path: ROUTER.SUPPLIER_SOURCE_FACILITY_DETAIL, element: <LazyWrapper><SourceFacilities /></LazyWrapper> },
+            ],
+          },
           { path: ROUTER.SUPPLIER_ORDERS, element: <LazyWrapper><SupplyOrders /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_ORDER_DETAIL, element: <LazyWrapper><SupplyOrders /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_DELIVERIES, element: <LazyWrapper><SupplierDeliveries /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_DELIVERY_CREATE, element: <LazyWrapper><SupplierDeliveries mode="create" /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_DELIVERY_DETAIL, element: <LazyWrapper><SupplierDeliveries /></LazyWrapper> },
         ],
       },
     ],
@@ -310,7 +322,7 @@ const routes = [
               { path: ROUTER.SCHOOL_INGREDIENT_CATALOG, element: <LazyWrapper><SchoolIngredientCatalog /></LazyWrapper> },
               { path: ROUTER.SCHOOL_WAREHOUSE, element: <LazyWrapper><WarehouseManage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_INGREDIENT_ORDERS, element: <LazyWrapper><IngredientOrders /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_ORDER_TRACKING, element: <LazyWrapper><OrderTracking /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_ORDER_TRACKING, element: <Navigate to={`${ROUTER.SCHOOL_WAREHOUSE}?tab=orders`} replace /> },
 
               { path: ROUTER.SCHOOL_INGREDIENT_REPORTS, element: <LazyWrapper><IngredientReports /></LazyWrapper> },
             ],

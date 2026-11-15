@@ -23,7 +23,7 @@ const SUMMARY_ICONS = {
 const SUMMARY_LABELS = {
   audience: "Khối lớp áp dụng",
   servingPeriod: "Thời gian phục vụ",
-  proposer: "Đơn vị đề xuất",
+  proposer: "Người đề xuất",
   supplier: "Nhà cung cấp nguyên liệu",
 }
 

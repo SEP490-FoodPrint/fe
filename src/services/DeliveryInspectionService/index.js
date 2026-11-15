@@ -11,8 +11,15 @@ export async function getDeliveryInspection(id) {
   if (!response?.id || !Array.isArray(response.deliveryItems) || !Array.isArray(response.requiredRoles)) throw new Error("Không tải được chi tiết đợt giao.")
   return response
 }
-export async function decideDeliveryInspection(id, decision, reason) {
-  return unwrap(await http.post(`/deliveries/${id}/inspection`, { decision, reason: reason?.trim() || null }, { notifyOnError: false }))
+export async function decideDeliveryInspection(id, decision, reason, photo) {
+  let payload = { decision, reason: reason?.trim() || null }
+  if (photo) {
+    payload = new FormData()
+    payload.append("decision", decision)
+    if (reason?.trim()) payload.append("reason", reason.trim())
+    payload.append("photo", photo)
+  }
+  return unwrap(await http.post(`/deliveries/${id}/inspection`, payload, { notifyOnError: false }))
 }
 
 const neutral = { bg: "#f1f5f9", color: "#64748b", border: "#cbd5e1", dot: "#94a3b8" }

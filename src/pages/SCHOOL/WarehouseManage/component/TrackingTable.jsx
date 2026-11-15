@@ -1,0 +1,207 @@
+import React from "react"
+import PropTypes from "prop-types"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Typography,
+  Button,
+  CircularProgress,
+} from "@mui/material"
+import {
+  Truck,
+  Clock,
+  CheckCircle2,
+  Eye,
+  Package,
+} from "lucide-react"
+import styles from "./TrackingTable.module.scss"
+
+export default function TrackingTable({ orders = [], onViewDetail, loading = false }) {
+  const getOrderTypeBadge = type => {
+    switch (type) {
+      case "FRESH_BATCH_1":
+        return (
+          <Chip
+            size="small"
+            label="Đồ tươi (Đợt 1 - 05:30)"
+            className={styles.badgeFresh1}
+          />
+        )
+      case "FRESH_BATCH_2":
+        return (
+          <Chip
+            size="small"
+            label="Đồ tươi (Đợt 2 - Bù sĩ số)"
+            className={styles.badgeFresh2}
+          />
+        )
+      case "DRY_STOCK":
+        return (
+          <Chip
+            size="small"
+            label="Đồ khô & Gia vị"
+            className={styles.badgeDry}
+          />
+        )
+      default:
+        return <Chip size="small" label={type} />
+    }
+  }
+
+  const getStatusBadge = status => {
+    switch (status) {
+      case "CREATED":
+      case "PENDING":
+        return (
+          <Chip
+            label="Chờ NCC xác nhận"
+            size="small"
+            className={styles.statusPending}
+          />
+        )
+      case "ACCEPTED":
+      case "CONFIRMED":
+        return (
+          <Chip
+            label="NCC đã xác nhận"
+            size="small"
+            className={styles.statusAccepted}
+          />
+        )
+      case "IN_TRANSIT":
+        return (
+          <Chip
+            label="Đang giao"
+            size="small"
+            className={styles.statusInTransit}
+          />
+        )
+      case "ARRIVED":
+        return (
+          <Chip
+            label="Đã tới trường (Chờ kiểm duyệt)"
+            size="small"
+            className={styles.statusArrived}
+          />
+        )
+      case "COMPLETED":
+      case "RECEIVED":
+        return (
+          <Chip
+            label="Đã hoàn tất"
+            size="small"
+            className={styles.statusCompleted}
+          />
+        )
+      case "REJECTED":
+        return (
+          <Chip
+            label="Bị từ chối"
+            size="small"
+            color="error"
+          />
+        )
+      case "CANCELLED":
+        return (
+          <Chip
+            label="Đã hủy"
+            size="small"
+          />
+        )
+      default:
+        return <Chip size="small" label={status} />
+    }
+  }
+
+  if (loading) {
+    return (
+      <Paper className={styles.emptyContainer}>
+        <CircularProgress size={36} sx={{ color: "var(--color-primary, #0a8066)", mb: 2 }} />
+        <Typography variant="body1" className={styles.emptyTitle}>
+          Đang tải dữ liệu theo dõi đơn hàng...
+        </Typography>
+      </Paper>
+    )
+  }
+
+  if (orders.length === 0) {
+    return (
+      <Paper className={styles.emptyContainer}>
+        <Package size={48} className={styles.emptyIcon} />
+        <Typography variant="h6" className={styles.emptyTitle}>
+          Không tìm thấy đơn hàng vận chuyển nào
+        </Typography>
+        <Typography variant="body2" className={styles.emptySubtitle}>
+          Thử đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác.
+        </Typography>
+      </Paper>
+    )
+  }
+
+  return (
+    <TableContainer component={Paper} className={styles.tableContainer}>
+      <Table className={styles.table} aria-label="Bảng theo dõi đơn hàng">
+        <TableHead>
+          <TableRow className={styles.headRow}>
+            <TableCell className={styles.thCell}>Mã Đơn / Phiếu Giao</TableCell>
+            <TableCell className={styles.thCell}>Loại Đơn Hàng</TableCell>
+            <TableCell className={styles.thCell}>Lịch Hẹn Giao</TableCell>
+            <TableCell className={styles.thCell}>Trạng Thái Tiến Trình</TableCell>
+            <TableCell className={styles.thCellAction} align="center">Thao Tác</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orders.map(item => (
+            <TableRow key={item.id} hover className={styles.tableRow}>
+              {/* Cột 1: Mã Đơn / Phiếu Giao */}
+              <TableCell className={styles.tdCell}>
+                <Typography className={styles.orderNo}>{item.orderNo}</Typography>
+                <Typography className={styles.deliveryNo}>{item.deliveryNo}</Typography>
+              </TableCell>
+
+              {/* Cột 2: Loại Đơn */}
+              <TableCell className={styles.tdCell}>
+                {getOrderTypeBadge(item.orderType)}
+              </TableCell>
+
+              {/* Cột 3: Lịch Hẹn Giao */}
+              <TableCell className={styles.tdCell}>
+                <Typography className={styles.scheduleText}>{item.deliverySchedule}</Typography>
+              </TableCell>
+
+              {/* Cột 4: Trạng Thái Tiến Trình */}
+              <TableCell className={styles.tdCell}>
+                {getStatusBadge(item.status)}
+              </TableCell>
+
+              {/* Cột 5: Thao Tác */}
+              <TableCell className={styles.tdCellAction} align="center">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<Eye size={14} />}
+                  onClick={() => onViewDetail(item)}
+                  className={styles.detailBtn}
+                >
+                  Chi tiết
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )
+}
+
+TrackingTable.propTypes = {
+  orders: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onViewDetail: PropTypes.func.isRequired,
+  loading: PropTypes.bool,
+}

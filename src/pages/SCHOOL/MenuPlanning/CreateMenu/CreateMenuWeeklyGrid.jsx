@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   AlertCircle,
   HelpCircle,
+  CalendarOff,
 } from "lucide-react"
 import styles from "./CreateMenuWeeklyGrid.module.scss"
 
@@ -42,13 +43,28 @@ export default function CreateMenuWeeklyGrid({
             ? dayMeals.AFTERNOON
             : []
           const seasonings = dayMeals.seasoningsByMeal
-            ? ["LUNCH", "AFTERNOON"].flatMap(mealType =>
-                (dayMeals.seasoningsByMeal[mealType] || []).map(s => ({
-                  ...s,
-                  id: `${mealType}-${s.ingredientEntryId || s.id}`,
-                  name: `${mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${s.name}`,
-                })))
-            : Array.isArray(dayMeals.seasonings) ? dayMeals.seasonings : []
+            ? (() => {
+                const map = new Map()
+                for (const mealType of ["LUNCH", "AFTERNOON"]) {
+                  for (const s of dayMeals.seasoningsByMeal[mealType] || []) {
+                    const key = s.ingredientEntryId || s.name || s.id
+                    if (!map.has(key)) {
+                      map.set(key, {
+                        ...s,
+                        id: s.ingredientEntryId || s.id || key,
+                        name: (s.name || "").replace(/^(Bữa trưa|Bữa xế)\s*[·•-]\s*/i, "").trim(),
+                      })
+                    }
+                  }
+                }
+                return Array.from(map.values())
+              })()
+            : Array.isArray(dayMeals.seasonings)
+            ? dayMeals.seasonings.map(s => ({
+                ...s,
+                name: (s.name || "").replace(/^(Bữa trưa|Bữa xế)\s*[·•-]\s*/i, "").trim(),
+              }))
+            : []
 
           const hasLunch = lunchDishes.length > 0
           const hasAfternoon = afternoonDishes.length > 0
@@ -61,7 +77,13 @@ export default function CreateMenuWeeklyGrid({
             badgeClass: styles.badgeEmpty,
             IconComponent: HelpCircle,
           }
-          if (hasLunch && hasAfternoon) {
+          if (sd.isHoliday) {
+            progress = {
+              label: "Nghỉ",
+              badgeClass: styles.badgeHoliday,
+              IconComponent: CalendarOff,
+            }
+          } else if (hasLunch && hasAfternoon) {
             progress = {
               label: "Đủ ca",
               badgeClass: styles.badgeCompleted,
@@ -127,13 +149,27 @@ export default function CreateMenuWeeklyGrid({
                   </div>
                 </div>
 
-                {/* THÂN THỰC ĐƠN: BỮA TRƯA + BỮA XẾ + GIA VỊ */}
+                {/* THÂN THỰC ĐƠN HOẶC THẺ NGÀY NGHỈ */}
                 <div className={styles.dayMealsBody}>
-                  {sd.isHoliday && <p role="note" className={styles.holidayReason}>Ngày nghỉ: {sd.holidayReason || "Ngày nghỉ toàn trường"}</p>}
-                  {/* ========================================================
-                      KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
-                      ======================================================== */}
-                  <div className={styles.mealBlock}>
+                  {sd.isHoliday ? (
+                    <div className={styles.holidayCardBody}>
+                      <div className={styles.holidayIconWrap}>
+                        <CalendarOff size={28} className={styles.holidayIcon} />
+                      </div>
+                      <span className={styles.holidayTag}>Ngày nghỉ</span>
+                      <div className={styles.holidayReasonBox}>
+                        <span className={styles.holidayReasonText}>
+                          {sd.holidayReason || "Ngày nghỉ toàn trường"}
+                        </span>
+                      </div>
+                      <span className={styles.holidaySubText}>Không phục vụ ăn bán trú</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* ========================================================
+                          KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
+                          ======================================================== */}
+                      <div className={styles.mealBlock}>
                     <div
                       className={styles.lunchBanner}
                       onClick={() => toggleCollapse(sd.dateISO, "LUNCH")}
@@ -392,7 +428,9 @@ export default function CreateMenuWeeklyGrid({
                       </div>
                     )}
                   </div>
-                </div>
+                </>
+              )}
+            </div>
               </div>
             </div>
           )

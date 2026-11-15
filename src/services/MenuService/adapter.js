@@ -914,7 +914,7 @@ export function menuWeekMeals(snapshot) {
           return dish;
         });
 
-      meals[mealType] = { dishes: finalDishes, substituteDish: subDish };
+      meals[mealType] = { dishes: finalDishes, allDishes, substituteDish: subDish };
 
       seasoningsByMeal[mealType] = (day.mealSeasonings || []).filter(row => row.mealType === mealType).map(row => ({
         id: row.ingredientEntryId, ingredientEntryId: row.ingredientEntryId,

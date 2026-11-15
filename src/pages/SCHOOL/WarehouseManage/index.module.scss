@@ -5,3 +5,127 @@
   width: 100%;
   padding-bottom: 32px;
 }
+
+.tabsContainer {
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: 12px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  padding: 4px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.tabs {
+  min-height: 48px;
+
+  :global(.MuiTabs-indicator) {
+    background-color: var(--color-primary, #1e7e34);
+    height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+}
+
+.tabItem {
+  text-transform: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-secondary, #6b7280);
+  min-height: 48px;
+  padding: 10px 20px;
+
+  &:global(.Mui-selected) {
+    color: var(--color-primary, #1e7e34);
+  }
+}
+
+.tabLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.activeBadge {
+  background-color: var(--color-primary-soft, #e6f4ea) !important;
+  color: var(--color-primary, #1e7e34) !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  height: 20px !important;
+}
+
+.inactiveBadge {
+  background-color: #f3f4f6 !important;
+  color: #6b7280 !important;
+  font-weight: 600 !important;
+  font-size: 0.75rem !important;
+  height: 20px !important;
+}
+
+.orderFilterBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  background-color: var(--bg-surface, #ffffff);
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--border-default, #e5e7eb);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.orderFilterInputs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  flex: 1;
+}
+
+.orderSearchInput {
+  min-width: 280px;
+  flex: 1;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 8px;
+    background-color: #f9fafb;
+  }
+}
+
+.orderSelectInput {
+  min-width: 220px;
+
+  :global(.MuiOutlinedInput-root) {
+    border-radius: 8px;
+    background-color: #f9fafb;
+  }
+}
+
+.searchIcon {
+  color: #9ca3af;
+}
+
+.resetBtn {
+  text-transform: none;
+  font-weight: 500;
+  border-color: #d1d5db;
+  color: #4b5563;
+  border-radius: 8px;
+
+  &:hover {
+    border-color: #9ca3af;
+    background-color: #f3f4f6;
+  }
+}
+
+.createOrderBtn {
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 8px;
+  background-color: var(--color-primary, #1e7e34);
+  color: #ffffff;
+  padding: 8px 16px;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: #166527;
+  }
+}

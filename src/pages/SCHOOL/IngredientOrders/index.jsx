@@ -2,10 +2,6 @@ import React, { useState, useEffect, useMemo, useCallback } from "react"
 import { Box } from "@mui/material"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
-import {
-  MOCK_DELIVERIES,
-  MOCK_APPROVED_MENUS,
-} from "./mockData"
 
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryStatsRail from "./component/DeliveryStatsRail"
@@ -21,8 +17,8 @@ const PAGE_SIZE = 10
 
 export default function IngredientOrders() {
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
-  const [deliveries, setDeliveries] = useState(() => MOCK_DELIVERIES)
-  const [approvedMenus, setApprovedMenus] = useState(() => MOCK_APPROVED_MENUS)
+  const [deliveries, setDeliveries] = useState([])
+  const [approvedMenus, setApprovedMenus] = useState([])
   const [, setLoading] = useState(false)
 
   // Sub-view: "list" (mặc định) | "create" | "detail"
@@ -63,26 +59,37 @@ export default function IngredientOrders() {
     fetchData()
   }, [fetchData])
 
-  // Thống kê cho Phiếu giao nhận
+  // Thống kê cho Phiếu giao nhận (chỉ tính đồ tươi 2 đợt)
   const deliveryStats = useMemo(() => {
+    const freshOnly = deliveries.filter(
+      d => d.batchType !== "DRY_STOCK" && d.orderType !== "DRY_STOCK"
+    )
     return {
-      total: deliveries.length,
-      batch1Count: deliveries.filter(d => d.batchType === "BATCH_1").length,
-      batch2Count: deliveries.filter(d => d.batchType === "BATCH_2").length,
-      completedCount: deliveries.filter(d => d.status === "COMPLETED").length,
+      total: freshOnly.length,
+      batch1Count: freshOnly.filter(d => d.batchType === "BATCH_1").length,
+      batch2Count: freshOnly.filter(d => d.batchType === "BATCH_2").length,
+      completedCount: freshOnly.filter(
+        d =>
+          d.status === "COMPLETED" ||
+          d.status === "RECEIVED" ||
+          d.status === "APPROVED"
+      ).length,
     }
   }, [deliveries])
 
   // Lọc dữ liệu Phiếu giao nhận tại Client
   const filteredDeliveries = useMemo(() => {
     return deliveries.filter(d => {
+      // Phiếu nhập hàng chỉ hiển thị đồ tươi 2 đợt, không hiển thị đồ khô
+      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
+
       const kw = deliveryFilters.search.toLowerCase()
       const matchSearch =
         !kw ||
-        d.deliveryNo.toLowerCase().includes(kw) ||
-        d.orderNo.toLowerCase().includes(kw) ||
-        d.supplierName.toLowerCase().includes(kw) ||
-        d.menuName.toLowerCase().includes(kw)
+        d.deliveryNo?.toLowerCase().includes(kw) ||
+        d.orderNo?.toLowerCase().includes(kw) ||
+        d.supplierName?.toLowerCase().includes(kw) ||
+        d.menuName?.toLowerCase().includes(kw)
 
       let matchBatch = true
       if (deliveryFilters.batchType === "BATCH_1") {

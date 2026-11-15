@@ -595,6 +595,7 @@ export default function KitchenSamples() {
         unit: formData.unit,
         storageLocation: formData.storageLocation,
         sampledAt: formData.sampledAt,
+        photo: formData.photo,
       };
       if (formData.dishId) {
         payload.dishId = formData.dishId;
