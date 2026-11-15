@@ -6,6 +6,7 @@ import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import MenuService from "src/services/MenuService"
 import { SCHOOL_DAY_LABELS } from "src/services/MenuService/adapter"
+import { filterMenuCardsByGrade, groupMenuCardsByWeek, groupSimilarMenuCards } from "src/services/MenuService/listGrades"
 
 import MenuListStatsRail from "./component/MenuListStatsRail"
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
@@ -17,16 +18,12 @@ export default function MenuPlanning() {
 
   // Master data: Ban đầu rỗng, tải 100% từ API thật
   const [allMenus, setMenus] = useState([])
-  const [scopeId, setScopeId] = useState("")
-  const [gradeId, setGradeId] = useState("")
-  const [grades, setGrades] = useState([])
-  const [gradeError, setGradeError] = useState("")
-  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, [])
-  const menuOptions = useMemo(() => [...new Map(allMenus.map((menu) => [menu.weeklyMenuId, { id: menu.weeklyMenuId, gradeIds: menu.gradeIds || [], gradeNames: menu.gradeIds?.length ? menu.targetScope.split(", ") : [] }])).values()], [allMenus])
-  const selectedScopeId = gradeId ? (menuOptions.find(menu => menu.gradeIds.includes(gradeId))?.id || menuOptions.find(menu => !menu.gradeIds.length)?.id || "") : menuOptions.some((menu) => menu.id === scopeId) ? scopeId : menuOptions.length === 1 ? menuOptions[0].id : ""
-  const menus = useMemo(() => allMenus.filter((menu) => menu.weeklyMenuId === selectedScopeId), [allMenus, selectedScopeId])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
+  const [gradeOptions, setGradeOptions] = useState([])
+  const [gradeLoading, setGradeLoading] = useState(true)
+  const [gradeError, setGradeError] = useState("")
+  const [gradeRetry, setGradeRetry] = useState(0)
 
   // Danh sách năm học từ cấu hình toàn trường
   const [availableAcademicYears, setAvailableAcademicYears] = useState([])
@@ -40,7 +37,25 @@ export default function MenuPlanning() {
     week: "",
     mealType: "all",
     status: "all",
+    gradeId: "",
   })
+
+  const menus = useMemo(() => filterMenuCardsByGrade(allMenus, filters.gradeId), [allMenus, filters.gradeId])
+  const menuGroups = useMemo(() => groupSimilarMenuCards(groupMenuCardsByWeek(menus)), [menus])
+
+  useEffect(() => {
+    let active = true
+    setGradeLoading(true)
+    setGradeError("")
+    MenuService.getContext({ forceRefresh: true }).then(context => {
+      if (!active) return
+      if (!Array.isArray(context.grades)) throw new Error("Không tải được danh sách khối của trường.")
+      setGradeOptions(context.grades)
+    }).catch(error => {
+      if (active) setGradeError(error.message || "Không tải được danh sách khối của trường.")
+    }).finally(() => { if (active) setGradeLoading(false) })
+    return () => { active = false }
+  }, [gradeRetry])
 
   // Cấu hình năm học hiện tại do BGH setup
   const currentAcademicYearConfig = useMemo(() => {
@@ -150,14 +165,13 @@ export default function MenuPlanning() {
 
   const handleResetFilters = () => {
     const year = defaultYear(availableAcademicYears)
-    setScopeId("")
-    setGradeId("")
     setFilters({
       searchKeyword: "",
       academicYear: year?.academicYear || "",
       week: defaultWeek(year)?.weekStartDate || "",
       mealType: "all",
       status: "all",
+      gradeId: "",
     })
   }
 
@@ -167,7 +181,7 @@ export default function MenuPlanning() {
 
   // Thống kê nhanh theo trạng thái tuần
   const stats = useMemo(() => {
-    const list = Array.isArray(menus) ? menus : []
+    const list = menuGroups.flatMap(group => group.menus)
     const total = list.length
     const draft = list.filter((m) => m.status === "DRAFT").length
     const pending = list.filter((m) => m.status === "PENDING_APPROVAL").length
@@ -175,7 +189,7 @@ export default function MenuPlanning() {
     const approved = list.filter((m) => m.status === "APPROVED").length
 
     return { total, draft, pending, revision, approved }
-  }, [menus])
+  }, [menuGroups])
 
   // Lọc thực đơn theo các tiêu chí
   const filteredMenus = useMemo(() => {
@@ -254,51 +268,22 @@ export default function MenuPlanning() {
     return selectedWeekObj?.weekLabel || ""
   }, [selectedWeekObj])
 
-  // Thông tin trạng thái của CẢ TUẦN dựa 100% trên dữ liệu thực tế
-  const weekStatusInfo = useMemo(() => {
-    const weekMenus = menus
-
-    if (weekMenus.length === 0) {
-      return { status: "DRAFT", statusLabel: "Bản nháp", feedback: "" }
-    }
-    if (weekMenus.some((m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")) {
-      const rev = weekMenus.find((m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")
-      return {
-        status: "REVISION_REQUESTED",
-        statusLabel: "Yêu cầu chỉnh sửa",
-        feedback: rev?.feedback || "Ban Giám Hiệu yêu cầu chỉnh sửa thực đơn tuần này.",
-      }
-    }
-    if (weekMenus.some((m) => m.status === "PENDING_APPROVAL")) {
-      return { status: "PENDING_APPROVAL", statusLabel: "Chờ BGH duyệt", feedback: "" }
-    }
-    if (weekMenus.some((m) => m.status === "DRAFT")) {
-      return { status: "DRAFT", statusLabel: "Bản nháp", feedback: "" }
-    }
-    return { status: "APPROVED", statusLabel: "Đã duyệt BGH", feedback: "" }
-  }, [menus])
-
   // Tiêu đề của thực đơn tuần được chọn
   const weeklyMenuTitle = useMemo(() => {
     return selectedWeekObj ? `Thực đơn tuần ${selectedWeekObj.weekNumber}` : "Thực đơn"
   }, [selectedWeekObj])
-
-  // Đối tượng áp dụng của thực đơn tuần
-  const weeklyTargetScope = useMemo(() => {
-    return menus[0]?.targetScope || "Toàn trường"
-  }, [menus])
 
   const isCurrentWeek = useMemo(() => {
     return Boolean(selectedWeekObj?.isCurrentWeek)
   }, [selectedWeekObj])
 
   // Xử lý gửi BGH duyệt tuần (khi DRAFT)
-  const handleSubmitWeeklyMenu = async () => {
+  const handleSubmitWeeklyMenu = async (weekMenus) => {
     let missingDays = []
     weekSchoolDays.forEach((sd) => {
       if (sd.isHoliday) return
 
-      const dayMenus = filteredMenus.filter(
+      const dayMenus = weekMenus.filter(
         (m) => m.rawDate === sd.dateISO || m.date === sd.dateVN
       )
       const hasLunch = dayMenus.some((m) => m.mealType === "LUNCH")
@@ -316,7 +301,6 @@ export default function MenuPlanning() {
       return
     }
 
-    const weekMenus = menus
     const weeklyId = weekMenus[0]?.weeklyMenuId || weekMenus[0]?.id
 
     if (!weeklyId) {
@@ -325,7 +309,7 @@ export default function MenuPlanning() {
     }
 
     try {
-      await MenuService.submitMenu(weeklyId)
+      await MenuService.submitMenuGroup([...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id))])
       showToast(
         `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
         "success"
@@ -339,8 +323,7 @@ export default function MenuPlanning() {
   }
 
   // Xử lý gửi lại BGH duyệt (khi REVISION_REQUESTED)
-  const handleResubmitWeeklyMenu = async () => {
-    const weekMenus = menus
+  const handleResubmitWeeklyMenu = async (weekMenus) => {
     const weeklyId = weekMenus[0]?.weeklyMenuId || weekMenus[0]?.id
 
     if (!weeklyId) {
@@ -349,7 +332,7 @@ export default function MenuPlanning() {
     }
 
     try {
-      await MenuService.submitMenu(weeklyId)
+      await MenuService.submitMenuGroup([...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id))])
       showToast(
         `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
         "success"
@@ -410,60 +393,54 @@ export default function MenuPlanning() {
         </button>
       </div>
 
-      {/* 2. Dải Quick Status Pills */}
-      <MenuListStatsRail
-        stats={stats}
-        year={filters.academicYear}
-        activeStatus={filters.status}
-        onFilterByStatus={handleFilterByStatus}
-      />
-
       {/* Section 3: Bộ lọc (Năm học, Tuần học theo BGH, Ca ăn) */}
       <MenuListFilterStrip
         filters={filters}
         academicYearOptions={availableAcademicYears}
         weeks={schoolWeeks}
+        gradeOptions={gradeOptions}
+        gradeLoading={gradeLoading}
+        gradeError={gradeError}
+        onRetryGrades={() => setGradeRetry(value => value + 1)}
         onChangeFilter={handleChangeFilter}
         onResetFilters={handleResetFilters}
-        gradeMenus={menuOptions}
-        grades={grades}
-        gradeValue={gradeId}
-        gradeMenuId={selectedScopeId}
-        onGradeMenuChange={(menuId, selectedGrade) => { setGradeId(selectedGrade); setScopeId(menuId) }}
-        gradeDisabled={loading}
+        statusFilters={<MenuListStatsRail
+          stats={{ ...stats, pendingApproval: stats.pending, revisionRequested: stats.revision }}
+          year={filters.academicYear}
+          activeStatus={filters.status}
+          onFilterByStatus={handleFilterByStatus}
+        />}
       />
-
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
       {calendarLoading || loading ? (
         <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <FoodPrintLoading />
         </div>
-      ) : calendarError || loadError || gradeError ? (
-        <p role="alert">{calendarError || loadError || gradeError}</p>
+      ) : calendarError || loadError ? (
+        <p role="alert">{calendarError || loadError}</p>
       ) : !selectedWeekObj ? (
         <p role="status">Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
-      ) : gradeId && !selectedScopeId ? (
-        <p role="status">Khối này chưa có thực đơn trong tuần đã chọn.</p>
-      ) : menuOptions.length > 1 && !selectedScopeId ? (
-        <p role="status">Chọn khối để xem hoặc gửi duyệt.</p>
+      ) : !menuGroups.length ? (
+        <p role="status">{filters.gradeId ? "Khối đã chọn chưa có thực đơn phù hợp trong tuần này." : "Chưa có thực đơn phù hợp trong tuần này."}</p>
       ) : (
-        <MenuListWeeklyVerticalView
+        menuGroups.map(group => <MenuListWeeklyVerticalView
+          key={group.id}
           schoolDays={weekSchoolDays}
-          menus={filteredMenus}
+          menus={group.menus.filter(menu => filteredMenus.some(row => row.id === menu.id))}
           mealTypeFilter={filters.mealType}
           onViewDetail={handleViewDetail}
           onEditMenu={handleEditMenu}
           onNavigateCreate={handleNavigateCreateWithDate}
           selectedWeekLabel={selectedWeekLabel}
           weeklyMenuTitle={weeklyMenuTitle}
-          targetScope={weeklyTargetScope}
+          targetScope={group.targetScope}
           isCurrentWeek={isCurrentWeek}
-          weekStatus={weekStatusInfo.status}
-          weekFeedback={weekStatusInfo.feedback}
-          onSubmitWeeklyMenu={handleSubmitWeeklyMenu}
-          onResubmitWeeklyMenu={handleResubmitWeeklyMenu}
-        />
+          weekStatus={group.status}
+          weekFeedback={group.feedback}
+          onSubmitWeeklyMenu={() => handleSubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
+          onResubmitWeeklyMenu={() => handleResubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
+        />)
       )}
 
       {/* Detail Modal */}

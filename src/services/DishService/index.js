@@ -14,9 +14,9 @@ export const dishForGrades = (dish, gradeIds = []) => {
   const lines = profiles[0].lines;
   const mains = lines.filter((line) => line.ingredientRole === "MAIN");
   return {
-    ...dish, lines,
+    ...dish, lines, gradeRecipeIssue: undefined,
     ingredientStandards: mains.map((line) => ({ ingredientId: line.ingredientId, quantityPerPortion: line.requiredQuantity, unit: line.unit })),
-    ingredientIds: [...new Set(lines.map((line) => line.ingredientId).filter(Boolean))],
+    ingredientIds: [...new Set(profiles.flatMap(profile => profile.lines.map(line => line.ingredientId)).filter(Boolean))],
     ingredients: mains.map((line) => ({ ...line, id: line.ingredientId, portionQty: line.requiredQuantity })),
     mainIngredient: mains.map((line) => line.name).join(", "),
     supplierName: [...new Set(mains.map((line) => line.supplierName).filter(Boolean))].join(", "),

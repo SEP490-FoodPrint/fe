@@ -4,18 +4,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  flex-wrap: wrap;
-  margin-bottom: 2px;
+  flex-flow: row nowrap;
 }
 
 .pillsList {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  flex-flow: row nowrap;
 }
 
 .statusPill {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 6px;

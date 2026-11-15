@@ -12,27 +12,28 @@ export default function MenuDetailDishesTable({ dishes = [], substituteDish = nu
   ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(","), [dishes])
   const [allergyCheck, setAllergyCheck] = useState({ key: "", status: "unknown", conflicts: [], ingredientIds: [] })
   const [retryAttempt, setRetryAttempt] = useState(0)
+  const checkKey = `${gradeKey}:${ingredientKey}`
 
   useEffect(() => {
     let active = true
     if (!ingredientKey) return () => { active = false }
     const ingredientIds = ingredientKey.split(",")
-    setAllergyCheck({ key: ingredientKey, status: "loading", conflicts: [], ingredientIds })
+    setAllergyCheck({ key: checkKey, status: "loading", conflicts: [], ingredientIds })
     const batches = []
     for (let index = 0; index < ingredientIds.length; index += 100) {
       batches.push(ingredientIds.slice(index, index + 100))
     }
     Promise.all(batches.map((ids) => MenuService.checkAllergies(ids, gradeIds)))
       .then((results) => {
-        if (active) setAllergyCheck({ key: ingredientKey, status: "ready", ingredientIds, conflicts: results.flatMap((result) => result.data.conflicts) })
+        if (active) setAllergyCheck({ key: checkKey, status: "ready", ingredientIds, conflicts: results.flatMap((result) => result.data.conflicts) })
       })
       .catch((error) => {
-        if (active) setAllergyCheck({ key: ingredientKey, status: "error", ingredientIds, conflicts: [], message: error.message })
+        if (active) setAllergyCheck({ key: checkKey, status: "error", ingredientIds, conflicts: [], message: error.message })
       })
     return () => { active = false }
-  }, [ingredientKey, gradeKey, retryAttempt])
+  }, [checkKey, retryAttempt])
 
-  const currentCheck = allergyCheck.key === ingredientKey
+  const currentCheck = allergyCheck.key === checkKey
     ? allergyCheck
     : { status: ingredientKey ? "loading" : "unknown", conflicts: [], ingredientIds: [] }
 
