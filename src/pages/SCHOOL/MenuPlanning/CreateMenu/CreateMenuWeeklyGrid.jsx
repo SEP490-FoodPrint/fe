@@ -71,7 +71,7 @@ export default function CreateMenuWeeklyGrid({
           const hasSeasonings = seasonings.length > 0
 
           // Tiến độ ngày: Chuẩn hóa theo đúng yêu cầu
-          // "Thiếu bữa xế", "Thiếu bữa trưa", "Đủ ca", "Chưa tạo"
+          // "Nghỉ", "Thiếu bữa xế", "Thiếu bữa trưa", "Đủ ca", "Chưa tạo"
           let progress = {
             label: "Chưa tạo",
             badgeClass: styles.badgeEmpty,
@@ -123,8 +123,8 @@ export default function CreateMenuWeeklyGrid({
                       <span className={styles.dayLabel}>{sd.dayLabel}</span>
                     </div>
 
-                    {/* Nút + duy nhất để mở menu cho mỗi thứ */}
-                    {canEdit && <button
+                    {/* Nút + duy nhất để mở menu cho mỗi thứ (không hiển thị nếu là ngày nghỉ) */}
+                    {canEdit && !sd.isHoliday && <button
                       type="button"
                       className={styles.dayAddBtn}
                       onClick={() => openDay("LUNCH")}
@@ -150,26 +150,24 @@ export default function CreateMenuWeeklyGrid({
                 </div>
 
                 {/* THÂN THỰC ĐƠN HOẶC THẺ NGÀY NGHỈ */}
-                <div className={styles.dayMealsBody}>
-                  {sd.isHoliday ? (
-                    <div className={styles.holidayCardBody}>
-                      <div className={styles.holidayIconWrap}>
-                        <CalendarOff size={28} className={styles.holidayIcon} />
-                      </div>
-                      <span className={styles.holidayTag}>Ngày nghỉ</span>
-                      <div className={styles.holidayReasonBox}>
-                        <span className={styles.holidayReasonText}>
-                          {sd.holidayReason || "Ngày nghỉ toàn trường"}
-                        </span>
-                      </div>
-                      <span className={styles.holidaySubText}>Không phục vụ ăn bán trú</span>
+                {sd.isHoliday ? (
+                  <div className={styles.holidayCardBody}>
+                    <div className={styles.holidayIconWrap}>
+                      <CalendarOff size={24} className={styles.holidayIcon} />
                     </div>
-                  ) : (
-                    <>
-                      {/* ========================================================
-                          KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
-                          ======================================================== */}
-                      <div className={styles.mealBlock}>
+                    <div className={styles.holidayReasonBox}>
+                      <span className={styles.holidayReasonText}>
+                        {sd.holidayReason || "Ngày nghỉ toàn trường"}
+                      </span>
+                    </div>
+                    <span className={styles.holidaySubText}>Không phục vụ ăn bán trú</span>
+                  </div>
+                ) : (
+                  <div className={styles.dayMealsBody}>
+                    {/* ========================================================
+                        KHỐI BỮA TRƯA: BANNER CÓ MŨI TÊN SỔ LÊN / SỔ XUỐNG
+                        ======================================================== */}
+                  <div className={styles.mealBlock}>
                     <div
                       className={styles.lunchBanner}
                       onClick={() => toggleCollapse(sd.dateISO, "LUNCH")}
@@ -428,9 +426,8 @@ export default function CreateMenuWeeklyGrid({
                       </div>
                     )}
                   </div>
-                </>
+                </div>
               )}
-            </div>
               </div>
             </div>
           )
