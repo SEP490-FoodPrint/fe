@@ -2,12 +2,18 @@
   position: relative;
   min-height: 100vh;
   min-height: 100svh;
+  height: 100vh;
   background-color: #ffffff;
   display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  overflow-x: hidden;
+  overflow: hidden;
   font-family: var(--font-family, "Be Vietnam Pro", sans-serif);
+
+  @media (max-width: 1024px) {
+    height: auto;
+    min-height: 100vh;
+    flex-direction: column;
+    overflow-y: auto;
+  }
 }
 
 .decorLeafTop {
@@ -18,43 +24,31 @@
   z-index: 1;
 }
 
-.decorLeafBottom {
-  position: absolute;
-  bottom: 50px;
-  right: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.mainContent {
-  flex: 1;
-  width: 100%;
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 36px 32px 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-}
-
-.gridContainer {
-  display: grid;
-  grid-template-columns: 1.12fr 0.88fr;
-  gap: 48px;
-  align-items: center;
-  width: 100%;
-}
-
-/* Left Column: Hero Showcase */
+/* Left Column: Full-Height Hero & Visual Showcase */
 .leftCol {
+  flex: 1.15;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  padding-right: 20px;
+  justify-content: space-between;
+  padding: 44px 56px 40px;
+  background: linear-gradient(160deg, #ffffff 0%, #f4fbf7 45%, #ecfdf5 100%);
+  border-right: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+  z-index: 2;
+
+  @media (max-width: 1024px) {
+    flex: none;
+    height: auto;
+    padding: 36px 24px;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f0;
+  }
 }
 
 .logoWrapper {
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .brandLink {
@@ -62,14 +56,23 @@
   text-decoration: none;
 }
 
+.heroCenter {
+  margin: auto 0;
+  padding: 16px 0 24px;
+}
+
 .heroTitle {
   font-family: var(--font-family, "Be Vietnam Pro", sans-serif);
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 800;
-  line-height: 1.18;
+  line-height: 1.16;
   color: #064e3b;
-  margin: 0 0 16px;
+  margin: 0 0 14px;
   letter-spacing: -0.025em;
+
+  @media (max-width: 1200px) {
+    font-size: 34px;
+  }
 }
 
 .highlightText {
@@ -91,76 +94,80 @@
   font-size: 15px;
   line-height: 1.6;
   color: #475569;
-  margin: 0 0 26px;
+  margin: 0 0 20px;
   max-width: 520px;
 }
 
-.featureList {
+.tagList {
   display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 26px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.featureItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-
-.featureIconBadge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background-color: #ecfdf5;
-  color: var(--color-primary, #0A8066);
-  display: flex;
+.tagItem {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.featureText {
-  display: flex;
-  flex-direction: column;
-}
-
-.featureTitle {
-  font-size: 15px;
-  font-weight: 700;
+  gap: 8px;
+  padding: 8px 14px;
+  background-color: #ffffff;
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(10, 128, 102, 0.05);
+  font-size: 13.5px;
+  font-weight: 600;
   color: #0f172a;
-  margin: 0;
-  line-height: 1.3;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(10, 128, 102, 0.08);
+  }
 }
 
-.featureSub {
-  font-size: 13px;
-  color: #64748b;
-  margin: 2px 0 0;
-  line-height: 1.4;
+.tagIcon {
+  color: var(--color-primary, #0A8066);
+  flex-shrink: 0;
 }
 
 .showcaseCard {
   width: 100%;
-  max-width: 530px;
-  border-radius: 16px;
+  border-radius: 20px;
   overflow: hidden;
   border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 30px -8px rgba(10, 128, 102, 0.12);
+  margin-top: 16px;
+  max-height: 280px;
+
+  @media (max-width: 1024px) {
+    max-height: 240px;
+  }
 }
 
 .showcaseImage {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  max-height: 280px;
   object-fit: cover;
 }
 
 /* Right Column: Floating Login Card */
 .rightCol {
+  flex: 0.85;
+  height: 100%;
   display: flex;
+  align-items: center;
   justify-content: center;
+  padding: 32px 48px;
+  background-color: #ffffff;
+  overflow-y: auto;
+  z-index: 2;
+
+  @media (max-width: 1024px) {
+    flex: none;
+    height: auto;
+    padding: 36px 20px 48px;
+  }
 }
 
 .loginCard {
@@ -492,102 +499,7 @@
   line-height: 1.4;
 }
 
-/* Footer */
-.pageFooter {
-  width: 100%;
-  background: #ffffff;
-  border-top: 1px solid #f1f5f9;
-  padding: 16px 32px;
-  z-index: 2;
-}
-
-.footerInner {
-  max-width: 1240px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12.5px;
-  color: #64748b;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.footerLeft,
-.footerRight {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.footerPipe {
-  color: #cbd5e1;
-}
-
-.footerPlatformDesc {
-  color: #64748b;
-  font-size: 12px;
-}
-
-.footerCopyright {
-  color: #64748b;
-}
-
-.footerLink {
-  color: #64748b;
-  text-decoration: none;
-  transition: color 0.2s ease;
-
-  &:hover {
-    color: var(--color-primary, #0A8066);
-    text-decoration: underline;
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 1024px) {
-  .gridContainer {
-    grid-template-columns: 1fr;
-    gap: 36px;
-  }
-
-  .leftCol {
-    padding-right: 0;
-    align-items: center;
-    text-align: center;
-  }
-
-  .heroTitle {
-    font-size: 32px;
-  }
-
-  .heroDescription {
-    max-width: 100%;
-  }
-
-  .featureList {
-    align-items: flex-start;
-    text-align: left;
-    max-width: 440px;
-  }
-
-  .showcaseCard {
-    max-width: 440px;
-  }
-
-  .footerInner {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-  }
-}
-
 @media (max-width: 600px) {
-  .mainContent {
-    padding: 24px 16px;
-  }
-
   .heroTitle {
     font-size: 28px;
   }
@@ -595,9 +507,5 @@
   .loginCard {
     padding: 24px 20px;
     border-radius: 20px;
-  }
-
-  .pageFooter {
-    padding: 16px;
   }
 }
