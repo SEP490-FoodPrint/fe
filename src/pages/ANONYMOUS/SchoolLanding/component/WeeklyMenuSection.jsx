@@ -25,15 +25,15 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
     [];
 
   const defaultGroupId =
-    groups.find((g) => g.isDefault)?.id ||
-    groups.find((g) => g.isDefault)?.key ||
     groups[0]?.id ||
     groups[0]?.key ||
+    groups.find((g) => g.isDefault)?.id ||
+    groups.find((g) => g.isDefault)?.key ||
     "all";
 
   const [activeGroupId, setActiveGroupId] = useState(defaultGroupId);
 
-  // Giữ nhóm đang chọn nếu nhóm đó vẫn có trong dữ liệu tuần mới.
+  // Giữ nhóm đang chọn nếu nhóm đó vẫn có trong dữ liệu tuần mới; nếu không lấy phần tử đầu tiên.
   useEffect(() => {
     if (groups.length > 0) {
       const exists = groups.some((g) => (g.id || g.key) === activeGroupId);
@@ -235,7 +235,12 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
         ) : (
           <div className={styles.daysGrid}>
             {days.map((day, idx) => (
-              <WeeklyDayCard key={day.date || day.id || idx} day={day} schoolCode={schoolCode} />
+              <WeeklyDayCard
+                key={day.date || day.id || idx}
+                day={day}
+                schoolCode={schoolCode}
+                activeGroupId={activeGroupId}
+              />
             ))}
           </div>
         )}

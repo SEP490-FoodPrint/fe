@@ -1,0 +1,131 @@
+.timelineSection {
+  background: var(--bg-surface, #ffffff);
+  border-radius: var(--radius-2xl, 16px);
+  border: 1px solid var(--border-default, #dce5e0);
+  padding: var(--space-5, 20px) var(--space-6, 24px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.timelineHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-5, 20px);
+}
+
+.headerTitleBox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.headerIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sectionTitle {
+  font-size: var(--text-base, 16px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+}
+
+.sectionSubtitle {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary, #52635c);
+  margin: 2px 0 0 0;
+}
+
+.timelineGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 16px);
+  position: relative;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-3, 12px);
+  }
+}
+
+.stepCard {
+  display: flex;
+  gap: var(--space-3, 12px);
+
+  @media (min-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+.stepIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-primary, #0a8066);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 4px var(--color-primary-soft, #e8f5f1);
+}
+
+.stepIconWrapSuccess {
+  background: var(--color-success, #168456);
+  box-shadow: 0 0 0 4px var(--color-success-bg, #e8f6ef);
+}
+
+.stepContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stepTime {
+  font-size: 11px;
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-primary, #0a8066);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stepTitle {
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+}
+
+.stepDesc {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary, #52635c);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.stepBadge {
+  display: inline-block;
+  margin-top: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: monospace;
+  font-weight: var(--font-medium, 500);
+  background: var(--bg-muted, #f1f5f3);
+  color: var(--text-secondary, #52635c);
+  width: fit-content;
+
+  @media (min-width: 768px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

@@ -1,0 +1,152 @@
+.blockchainSection {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #064e3b 100%);
+  color: #ffffff;
+  border-radius: var(--radius-2xl, 16px);
+  padding: var(--space-6, 24px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.blockchainHeader {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding-bottom: var(--space-4, 16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+}
+
+.shieldIconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-xl, 12px);
+  background: rgba(45, 212, 191, 0.15);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  color: #2dd4bf;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.headingRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.heading {
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--font-bold, 700);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+
+.demoTag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: var(--font-bold, 700);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: rgba(45, 212, 191, 0.2);
+  color: #5eead4;
+  border: 1px solid rgba(45, 212, 191, 0.3);
+}
+
+.desc {
+  font-size: var(--text-xs, 12px);
+  color: #cbd5e1;
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+.statusPillPending {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(234, 179, 8, 0.15);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #fde047;
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--font-semibold, 600);
+}
+
+.techGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4, 16px);
+  margin-top: var(--space-5, 20px);
+  font-size: var(--text-xs, 12px);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.techCol {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-xl, 14px);
+  padding: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+}
+
+.techRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.techLabel {
+  color: #94a3b8;
+}
+
+.techVal {
+  font-family: monospace;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.codeBox {
+  font-family: monospace;
+  font-size: 11px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md, 8px);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.emptyNoticeBox {
+  margin-top: var(--space-4, 16px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border-radius: var(--radius-lg, 10px);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: var(--text-xs, 12px);
+  color: #cbd5e1;
+}

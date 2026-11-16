@@ -5,7 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { NO_DATA_TEXT } from "src/constants/ui";
 import styles from "./WeeklyDayCard.module.scss";
 
-function WeeklyDayCard({ day, schoolCode }) {
+function WeeklyDayCard({ day, schoolCode, activeGroupId }) {
   if (!day) return null;
 
   const dayOfWeek = day.dayOfWeek || NO_DATA_TEXT;
@@ -15,9 +15,14 @@ function WeeklyDayCard({ day, schoolCode }) {
   const lunchDishes = day.lunchDishes || [];
   const snackSummary = day.snackSummary || NO_DATA_TEXT;
 
-  // Truyền ngày qua URL để MealDetail mở đúng thực đơn từ thẻ tuần.
+  // Truyền ngày và slug khối qua URL để MealDetail mở đúng thực đơn từ thẻ tuần.
+  const queryParams = new URLSearchParams();
+  if (day.dateIso) queryParams.set("date", day.dateIso);
+  if (activeGroupId && activeGroupId !== "all") queryParams.set("block", activeGroupId);
+  const queryString = queryParams.toString();
+
   const detailTarget = schoolCode
-    ? `/school/${schoolCode}/daily-menu${day.dateIso ? `?date=${day.dateIso}` : ""}`
+    ? `/school/${schoolCode}/daily-menu${queryString ? `?${queryString}` : ""}`
     : "#thuc-don-ngay";
 
   return (
@@ -110,11 +115,13 @@ WeeklyDayCard.propTypes = {
     snackSummary: PropTypes.string,
   }),
   schoolCode: PropTypes.string,
+  activeGroupId: PropTypes.string,
 };
 
 WeeklyDayCard.defaultProps = {
   day: null,
   schoolCode: "",
+  activeGroupId: "",
 };
 
 export default WeeklyDayCard;

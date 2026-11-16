@@ -1,7 +1,8 @@
-import React from "react"
+import React, { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./MenuDetailHeader.module.scss"
 import ROUTER from "src/router/ROUTER"
+import SelectClassTraceModal from "./SelectClassTraceModal"
 
 export default function MenuDetailHeader({
   menu,
@@ -10,6 +11,7 @@ export default function MenuDetailHeader({
   onEdit,
 }) {
   const navigate = useNavigate()
+  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false)
   // Thực đơn chưa được duyệt: bất kỳ trạng thái nào khác "APPROVED" (DRAFT, PENDING_APPROVAL, REVISION_REQUESTED...)
   const isApproved = String(menu?.status || "").toUpperCase() === "APPROVED" ||
                      String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
@@ -64,6 +66,17 @@ export default function MenuDetailHeader({
             <span>Danh sách</span>
           </button>
 
+          {/* Nút Truy xuất suất ăn */}
+          <button
+            type="button"
+            className={styles.btnTrace}
+            onClick={() => setIsTraceModalOpen(true)}
+            title="Truy xuất nguồn gốc suất ăn theo lớp học"
+          >
+            <span className="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+            <span>Truy xuất suất ăn</span>
+          </button>
+
           {/* Nút Chỉnh sửa: Hiển thị khi thực đơn CHƯA ĐƯỢC DUYỆT */}
           {canEdit && onEdit && (
             <button
@@ -89,6 +102,14 @@ export default function MenuDetailHeader({
           )}
         </div>
       </div>
+
+      {/* Modal chọn Khối & Lớp để truy xuất */}
+      <SelectClassTraceModal
+        isOpen={isTraceModalOpen}
+        onClose={() => setIsTraceModalOpen(false)}
+        menuDate={menu.date}
+        mealType={menu.mealType}
+      />
     </div>
   )
 }
