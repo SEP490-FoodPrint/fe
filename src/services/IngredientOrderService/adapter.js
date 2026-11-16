@@ -15,19 +15,22 @@ export const HANDLING_TYPES = {
     bg: "#d1fae5",
     note: "Nhập dùng ngay trong ngày (thịt, cá, rau củ...)",
   },
-}
+};
 
 /**
  * Tự động nhận diện phân loại kho khô (DRY_STOCK) vs tươi sống (DIRECT_USE)
  * dựa theo handlingType hoặc từ khóa tên / nhóm mặt hàng khi dữ liệu DB chưa gắn tag
  */
 export function inferHandlingType(item) {
-  if (item?.handlingType === "DRY_STOCK" || item?.handlingType === "DIRECT_USE") {
-    return item.handlingType
+  if (
+    item?.handlingType === "DRY_STOCK" ||
+    item?.handlingType === "DIRECT_USE"
+  ) {
+    return item.handlingType;
   }
 
-  const category = (item?.category || "").toLowerCase()
-  const name = (item?.name || "").toLowerCase()
+  const category = (item?.category || "").toLowerCase();
+  const name = (item?.name || "").toLowerCase();
 
   const dryKeywords = [
     "khô",
@@ -50,29 +53,32 @@ export function inferHandlingType(item) {
     "dry",
     "nước mắm",
     "dầu ăn",
-  ]
+  ];
 
-  if (dryKeywords.some(kw => category.includes(kw) || name.includes(kw))) {
-    return "DRY_STOCK"
+  if (dryKeywords.some((kw) => category.includes(kw) || name.includes(kw))) {
+    return "DRY_STOCK";
   }
-  return "DIRECT_USE"
+  return "DIRECT_USE";
 }
 
 export function adaptCatalogItem(item) {
-  if (!item) return null
+  if (!item) return null;
 
-  const handlingType = inferHandlingType(item)
-  const handling = HANDLING_TYPES[handlingType] || HANDLING_TYPES.DIRECT_USE
+  const handlingType = inferHandlingType(item);
+  const handling = HANDLING_TYPES[handlingType] || HANDLING_TYPES.DIRECT_USE;
 
   return {
     id: item.id,
     name: item.name || "Nguyên liệu",
     category:
       item.category ||
-      (handlingType === "DRY_STOCK" ? "Kho khô & Gia vị" : "Thực phẩm tươi sống"),
+      (handlingType === "DRY_STOCK"
+        ? "Kho khô & Gia vị"
+        : "Thực phẩm tươi sống"),
     handlingType: handlingType,
     handlingMeta: handling,
-    defaultUnit: item.defaultUnit || (handlingType === "DRY_STOCK" ? "kg" : "kg"),
+    defaultUnit:
+      item.defaultUnit || (handlingType === "DRY_STOCK" ? "kg" : "kg"),
     shelfLifeDays:
       item.shelfLifeDays || (handlingType === "DRY_STOCK" ? 180 : 2),
     storageRequirements:
@@ -82,9 +88,13 @@ export function adaptCatalogItem(item) {
         ? "Kê pallet cách đất 20cm, bảo quản nơi khô ráo thoáng mát"
         : "Bảo quản mát 0 - 4°C, chế biến ngay trong ngày"),
     supplierId: item.supplierId || "",
-    supplierName: item.supplierName || item.Supplier?.name || item.supplier?.name || "Nhà cung cấp đối tác",
+    supplierName:
+      item.supplierName ||
+      item.Supplier?.name ||
+      item.supplier?.name ||
+      "Nhà cung cấp đối tác",
     minOrderQty: item.minOrderQty || (handlingType === "DRY_STOCK" ? 10 : 5),
-  }
+  };
 }
 
 /**
@@ -92,7 +102,7 @@ export function adaptCatalogItem(item) {
  * phù hợp với giao diện DeliveryTable, DeliveryDetailView, DeliveryStatsRail.
  */
 export function adaptDeliveryItem(item) {
-  if (!item) return null
+  if (!item) return null;
 
   // 1. Phân tích thời gian và ngày
   const rawDate =
@@ -101,44 +111,63 @@ export function adaptDeliveryItem(item) {
     item.receivedAt ||
     item.deliveryDate ||
     item.createdAt ||
-    new Date().toISOString()
+    new Date().toISOString();
 
-  let deliveryDate = typeof item.deliveryDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.deliveryDate) ? item.deliveryDate : ""
-  let deliveryTime = typeof item.deliveryTime === "string" && /^\d{2}:\d{2}$/.test(item.deliveryTime) ? item.deliveryTime : ""
+  let deliveryDate =
+    typeof item.deliveryDate === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(item.deliveryDate)
+      ? item.deliveryDate
+      : "";
+  let deliveryTime =
+    typeof item.deliveryTime === "string" &&
+    /^\d{2}:\d{2}$/.test(item.deliveryTime)
+      ? item.deliveryTime
+      : "";
 
   if (!deliveryDate || !deliveryTime) {
     try {
-      const d = new Date(rawDate)
+      const d = new Date(rawDate);
       if (!isNaN(d.getTime())) {
-        const year = d.getFullYear()
-        const month = String(d.getMonth() + 1).padStart(2, "0")
-        const day = String(d.getDate()).padStart(2, "0")
-        if (!deliveryDate) deliveryDate = `${year}-${month}-${day}`
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        if (!deliveryDate) deliveryDate = `${year}-${month}-${day}`;
 
-        const hours = String(d.getHours()).padStart(2, "0")
-        const minutes = String(d.getMinutes()).padStart(2, "0")
-        if (!deliveryTime) deliveryTime = `${hours}:${minutes}`
+        const hours = String(d.getHours()).padStart(2, "0");
+        const minutes = String(d.getMinutes()).padStart(2, "0");
+        if (!deliveryTime) deliveryTime = `${hours}:${minutes}`;
       }
     } catch {
-      if (!deliveryDate) deliveryDate = "2026-11-14"
-      if (!deliveryTime) deliveryTime = "05:30"
+      if (!deliveryDate) deliveryDate = "2026-11-14";
+      if (!deliveryTime) deliveryTime = "05:30";
     }
   }
 
   // 2. Nhận diện Đợt 1 / Đợt 2 / Đồ khô
-  const noteText = `${item.note || ""} ${item.deliveryNo || ""} ${item.orderNo || ""} ${item.requestNo || ""}`.toLowerCase()
-  let batchType = item.batchType
+  const noteText =
+    `${item.note || ""} ${item.deliveryNo || ""} ${item.orderNo || ""} ${item.requestNo || ""}`.toLowerCase();
+  let batchType = item.batchType;
   if (!batchType) {
-    if (noteText.includes("đợt 1") || noteText.includes("d1") || noteText.includes("batch_1") || noteText.includes("sáng")) {
-      batchType = "BATCH_1"
-    } else if (noteText.includes("đợt 2") || noteText.includes("d2") || noteText.includes("batch_2") || noteText.includes("sĩ số")) {
-      batchType = "BATCH_2"
+    if (
+      noteText.includes("đợt 1") ||
+      noteText.includes("d1") ||
+      noteText.includes("batch_1") ||
+      noteText.includes("sáng")
+    ) {
+      batchType = "BATCH_1";
+    } else if (
+      noteText.includes("đợt 2") ||
+      noteText.includes("d2") ||
+      noteText.includes("batch_2") ||
+      noteText.includes("sĩ số")
+    ) {
+      batchType = "BATCH_2";
     } else if (noteText.includes("khô") || noteText.includes("dry")) {
-      batchType = "DRY_STOCK"
+      batchType = "DRY_STOCK";
     } else {
       // Nếu giờ giao trước 7h sáng -> Đợt 1, sau 7h -> Đợt 2
-      const hourNum = parseInt(deliveryTime.split(":")[0], 10) || 5
-      batchType = hourNum < 7 ? "BATCH_1" : "BATCH_2"
+      const hourNum = parseInt(deliveryTime.split(":")[0], 10) || 5;
+      batchType = hourNum < 7 ? "BATCH_1" : "BATCH_2";
     }
   }
 
@@ -146,8 +175,8 @@ export function adaptDeliveryItem(item) {
     batchType === "BATCH_1"
       ? "Đợt 1 (50% Suất tối đa)"
       : batchType === "BATCH_2"
-      ? "Đợt 2 (Cân đối sĩ số)"
-      : "Kho đồ khô"
+        ? "Đợt 2 (Cân đối sĩ số)"
+        : "Kho đồ khô";
 
   // 3. Chuẩn hóa Hội đồng nghiệm thu 4 bên
   const approvals = {
@@ -155,34 +184,76 @@ export function adaptDeliveryItem(item) {
     healthOfficer: { approved: null, name: "Cán bộ Y tế", time: "" },
     parentsCommittee: { approved: null, name: "Ban Phụ huynh", time: "" },
     kitchenStaff: { approved: null, name: "Bếp trưởng", time: "" },
-  }
+  };
 
   if (item.approvals && typeof item.approvals === "object") {
-    Object.assign(approvals, item.approvals)
-  } else if (Array.isArray(item.deliveryApprovals) && item.deliveryApprovals.length > 0) {
+    Object.assign(approvals, item.approvals);
+  } else if (
+    Array.isArray(item.deliveryApprovals) &&
+    item.deliveryApprovals.length > 0
+  ) {
     for (const app of item.deliveryApprovals) {
-      const code = (app.roleCode || "").toUpperCase()
-      const isApproved = app.decision === "APPROVE"
+      const code = (app.roleCode || "").toUpperCase();
+      const isApproved = app.decision === "APPROVE";
       const timeStr = app.decidedAt
-        ? new Date(app.decidedAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })
-        : ""
+        ? new Date(app.decidedAt).toLocaleTimeString("vi-VN", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
+        : "";
 
       if (code.includes("INGREDIENT")) {
-        approvals.ingredientManagement = { approved: isApproved, name: app.userName || "Ban QL NL", time: timeStr }
+        approvals.ingredientManagement = {
+          approved: isApproved,
+          name: app.userName || "Ban QL NL",
+          time: timeStr,
+        };
       } else if (code.includes("NUTRITION") || code.includes("HEALTH")) {
-        approvals.healthOfficer = { approved: isApproved, name: app.userName || "Cán bộ Y tế", time: timeStr }
+        approvals.healthOfficer = {
+          approved: isApproved,
+          name: app.userName || "Cán bộ Y tế",
+          time: timeStr,
+        };
       } else if (code.includes("PARENTS")) {
-        approvals.parentsCommittee = { approved: isApproved, name: app.userName || "Ban Phụ huynh", time: timeStr }
+        approvals.parentsCommittee = {
+          approved: isApproved,
+          name: app.userName || "Ban Phụ huynh",
+          time: timeStr,
+        };
       } else if (code.includes("KITCHEN")) {
-        approvals.kitchenStaff = { approved: isApproved, name: app.userName || "Bếp trưởng", time: timeStr }
+        approvals.kitchenStaff = {
+          approved: isApproved,
+          name: app.userName || "Bếp trưởng",
+          time: timeStr,
+        };
       }
     }
-  } else if (item.status === "RECEIVED" || item.status === "APPROVED" || item.status === "COMPLETED") {
+  } else if (
+    item.status === "RECEIVED" ||
+    item.status === "APPROVED" ||
+    item.status === "COMPLETED"
+  ) {
     // Nếu đơn hàng đã duyệt/hoàn tất trong DB, 4 bên hiển thị đã duyệt đạt
-    approvals.ingredientManagement = { approved: true, name: "Ban QL NL", time: deliveryTime }
-    approvals.healthOfficer = { approved: true, name: "Cán bộ Y tế", time: deliveryTime }
-    approvals.parentsCommittee = { approved: true, name: "Ban Phụ huynh", time: deliveryTime }
-    approvals.kitchenStaff = { approved: true, name: "Bếp trưởng", time: deliveryTime }
+    approvals.ingredientManagement = {
+      approved: true,
+      name: "Ban QL NL",
+      time: deliveryTime,
+    };
+    approvals.healthOfficer = {
+      approved: true,
+      name: "Cán bộ Y tế",
+      time: deliveryTime,
+    };
+    approvals.parentsCommittee = {
+      approved: true,
+      name: "Ban Phụ huynh",
+      time: deliveryTime,
+    };
+    approvals.kitchenStaff = {
+      approved: true,
+      name: "Bếp trưởng",
+      time: deliveryTime,
+    };
   }
 
   // 4. Nhãn trạng thái tiếng Việt
@@ -198,46 +269,57 @@ export function adaptDeliveryItem(item) {
     CONFIRMED: "NCC đã xác nhận",
     REJECTED: "Không đạt yêu cầu",
     CANCELLED: "Đã hủy",
-  }
+  };
 
   // 5. Chuẩn hóa danh sách mặt hàng
   const items =
     Array.isArray(item.deliveryItems) && item.deliveryItems.length > 0
-      ? item.deliveryItems.map(di => ({
+      ? item.deliveryItems.map((di) => ({
           ingredientId: di.id,
           ingredientName: di.ingredientName || di.note || "Nguyên liệu",
           handlingType: di.handlingType || "DIRECT_USE",
           unit: di.unit || "kg",
-          orderedQty: Number(di.requestedQuantity) || Number(di.actualQuantity) || 0,
+          orderedQty:
+            Number(di.requestedQuantity) || Number(di.actualQuantity) || 0,
           deliveredQty: Number(di.actualQuantity) || 0,
-          supplierId: di.supplierId || di.Ingredient?.supplierId || di.Supplier?.id || item.supplierId || "",
-          supplierName: di.supplierName || di.Ingredient?.Supplier?.name || di.Supplier?.name || item.supplierName || "Nhà cung cấp đối tác",
+          supplierId:
+            di.supplierId ||
+            di.Ingredient?.supplierId ||
+            di.Supplier?.id ||
+            item.supplierId ||
+            "",
+          supplierName:
+            di.supplierName ||
+            di.Ingredient?.Supplier?.name ||
+            di.Supplier?.name ||
+            item.supplierName ||
+            "Nhà cung cấp đối tác",
           status: "ACCEPTED",
         }))
       : Array.isArray(item.items)
-      ? item.items.map(it => {
-          const sName =
-            it.supplierName && it.supplierName !== "Nhà cung cấp đối tác"
-              ? it.supplierName
-              : item.supplierName || "Nhà cung cấp đối tác"
-          return {
-            ...it,
-            supplierId: it.supplierId || item.supplierId || "",
-            supplierName: sName,
-            breakdown: it.breakdown || null,
-            qtyPerPortion: it.qtyPerPortion ?? null,
-            standardQty: it.standardQty ?? null,
-            extraQty: it.extraQty ?? 0,
-            isCustomized: it.isCustomized || false,
-            isExtraItem: it.isExtraItem || false,
-            defaultQtyPerPortion: it.defaultQtyPerPortion || null,
-          }
-        })
-      : []
+        ? item.items.map((it) => {
+            const sName =
+              it.supplierName && it.supplierName !== "Nhà cung cấp đối tác"
+                ? it.supplierName
+                : item.supplierName || "Nhà cung cấp đối tác";
+            return {
+              ...it,
+              supplierId: it.supplierId || item.supplierId || "",
+              supplierName: sName,
+              breakdown: it.breakdown || null,
+              qtyPerPortion: it.qtyPerPortion ?? null,
+              standardQty: it.standardQty ?? null,
+              extraQty: it.extraQty ?? 0,
+              isCustomized: it.isCustomized || false,
+              isExtraItem: it.isExtraItem || false,
+              defaultQtyPerPortion: it.defaultQtyPerPortion || null,
+            };
+          })
+        : [];
 
   const itemSuppliersList = Array.from(
-    new Set(items.map(i => i.supplierName).filter(Boolean))
-  )
+    new Set(items.map((i) => i.supplierName).filter(Boolean)),
+  );
 
   return {
     id: item.id,
@@ -246,7 +328,9 @@ export function adaptDeliveryItem(item) {
       item.orderNo ||
       item.requestNo ||
       item.SupplyRequest?.requestNo ||
-      (item.deliveryNo ? `PO-${item.deliveryNo.replace(/^DEL-|^PN-/, "")}` : "PO-UNKNOWN"),
+      (item.deliveryNo
+        ? `PO-${item.deliveryNo.replace(/^DEL-|^PN-/, "")}`
+        : "PO-UNKNOWN"),
     menuId: item.menuId || "menu-live",
     menuIds: item.menuIds || (item.menuId ? [item.menuId] : []),
     menuName:
@@ -262,23 +346,43 @@ export function adaptDeliveryItem(item) {
     deliveryTime,
     batchType,
     batchLabel,
-    maxPortions: item.maxPortions || 850,
-    batch1Portions: item.batch1Portions || (batchType === "BATCH_2" ? 425 : undefined),
-    plannedPortions: item.plannedPortions || (batchType === "BATCH_1" ? 425 : 820),
-    actualAttendance: item.actualAttendance || 820,
+    maxPortions: Number(item.maxPortions) || 0,
+    batch1Portions:
+      item.batch1Portions ||
+      (batchType === "BATCH_2"
+        ? Math.floor((Number(item.maxPortions) || 0) / 2)
+        : undefined),
+    plannedPortions:
+      item.plannedPortions ||
+      (batchType === "BATCH_1"
+        ? Math.floor((Number(item.maxPortions) || 0) / 2)
+        : Number(item.maxPortions) || 0),
+    actualAttendance:
+      Number(item.actualAttendance) || Number(item.plannedPortions) || 0,
     supplierId: item.supplierId || item.Supplier?.id || "",
     supplierName:
       item.supplierName ||
       (itemSuppliersList.length > 1
         ? `Nhiều NCC (${itemSuppliersList.length} đối tác)`
-        : itemSuppliersList[0] || item.Supplier?.name || "Nhà cung cấp đối tác"),
+        : itemSuppliersList[0] ||
+          item.Supplier?.name ||
+          "Nhà cung cấp đối tác"),
     suppliers: item.suppliers || itemSuppliersList,
     driverName:
-      item.status === "CREATED" || item.status === "PENDING" || item.status === "DRAFT" || item.status === "SENT" || item.status === "CONFIRMED" || !item.vehiclePlate
+      item.status === "CREATED" ||
+      item.status === "PENDING" ||
+      item.status === "DRAFT" ||
+      item.status === "SENT" ||
+      item.status === "CONFIRMED" ||
+      !item.vehiclePlate
         ? "Chưa phân công (Chờ NCC điều xe)"
         : item.driverName || `Lái xe (${item.vehiclePlate})`,
     vehiclePlate:
-      item.status === "CREATED" || item.status === "PENDING" || item.status === "DRAFT" || item.status === "SENT" || item.status === "CONFIRMED"
+      item.status === "CREATED" ||
+      item.status === "PENDING" ||
+      item.status === "DRAFT" ||
+      item.status === "SENT" ||
+      item.status === "CONFIRMED"
         ? ""
         : item.vehiclePlate || "",
     deliveryQr: item.deliveryQr || `QR-${item.deliveryNo || item.id}`,
@@ -287,6 +391,5 @@ export function adaptDeliveryItem(item) {
     statusLabel: item.statusLabel || statusLabels[item.status] || item.status,
     approvals,
     items,
-  }
+  };
 }
-

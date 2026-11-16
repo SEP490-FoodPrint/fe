@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from "react"
-import PropTypes from "prop-types"
+import React, { useState, useMemo } from "react";
+import PropTypes from "prop-types";
 import {
   Box,
   Typography,
@@ -16,7 +16,7 @@ import {
   TextField,
   TableContainer,
   Tooltip,
-} from "@mui/material"
+} from "@mui/material";
 import {
   ArrowLeft,
   QrCode,
@@ -35,51 +35,60 @@ import {
   Check,
   Layers,
   ChefHat,
-} from "lucide-react"
-import styles from "./DeliveryDetailView.module.scss"
+} from "lucide-react";
+import styles from "./DeliveryDetailView.module.scss";
 
-export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendance }) {
+export default function DeliveryDetailView({
+  delivery,
+  onBack,
+  onConfirmAttendance,
+}) {
   const [attendanceInput, setAttendanceInput] = useState(
-    delivery?.actualAttendance || 820
-  )
-  const [updating, setUpdating] = useState(false)
-  const [expandedItems, setExpandedItems] = useState({})
+    delivery?.actualAttendance || 820,
+  );
+  const [updating, setUpdating] = useState(false);
+  const [expandedItems, setExpandedItems] = useState({});
 
-  const toggleExpandItem = idx => {
-    setExpandedItems(prev => ({ ...prev, [idx]: !prev[idx] }))
-  }
+  const toggleExpandItem = (idx) => {
+    setExpandedItems((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
 
   // Danh sách các Nhà cung cấp duy nhất tham gia đợt giao này
   const uniqueSuppliers = useMemo(() => {
-    const list = []
+    const list = [];
     if (Array.isArray(delivery?.items)) {
-      delivery.items.forEach(it => {
-        const supName = it.supplierName
+      delivery.items.forEach((it) => {
+        const supName = it.supplierName;
         if (supName && !list.includes(supName)) {
-          list.push(supName)
+          list.push(supName);
         }
-      })
+      });
     }
-    if (list.length === 0 && delivery?.supplierName && !delivery.supplierName.includes("Nhiều NCC")) {
-      list.push(delivery.supplierName)
+    if (
+      list.length === 0 &&
+      delivery?.supplierName &&
+      !delivery.supplierName.includes("Nhiều NCC")
+    ) {
+      list.push(delivery.supplierName);
     }
-    return list
-  }, [delivery])
+    return list;
+  }, [delivery]);
 
   // Phân nhóm nguyên liệu theo từng Nhà cung cấp để hiển thị chi tiết NCC giao gì
   const itemsBySupplier = useMemo(() => {
-    const map = {}
+    const map = {};
     if (Array.isArray(delivery?.items)) {
-      delivery.items.forEach(it => {
-        const supName = it.supplierName || delivery?.supplierName || "Nhà cung cấp đối tác"
+      delivery.items.forEach((it) => {
+        const supName =
+          it.supplierName || delivery?.supplierName || "Nhà cung cấp đối tác";
         if (!map[supName]) {
-          map[supName] = []
+          map[supName] = [];
         }
-        map[supName].push(it)
-      })
+        map[supName].push(it);
+      });
     }
-    return map
-  }, [delivery])
+    return map;
+  }, [delivery]);
 
   // Lấy thông tin xe, tài xế & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
@@ -89,7 +98,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       delivery.status === "INSPECTING" ||
       delivery.status === "RECEIVED" ||
       delivery.status === "APPROVED" ||
-      delivery.status === "COMPLETED"
+      delivery.status === "COMPLETED";
 
     if (!hasDispatched && !delivery.vehiclePlate) {
       return {
@@ -98,7 +107,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
         vehicle: "Chưa điều xe",
         temp: "Chưa đo (Chờ xe tới)",
         qrCode: `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
-      }
+      };
     }
 
     return {
@@ -106,36 +115,43 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       phone: delivery.driverPhone || delivery.phone || "--",
       vehicle: delivery.vehiclePlate || "Xe giao hàng",
       temp: delivery.refrigerationTemp || "--",
-      qrCode: delivery.deliveryQr || `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
-    }
-  }
+      qrCode:
+        delivery.deliveryQr ||
+        `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+    };
+  };
 
-  if (!delivery) return null
+  if (!delivery) return null;
 
-  const isBatch1 = delivery.batchType === "BATCH_1"
-  const isBatch2 = delivery.batchType === "BATCH_2"
-  const isWaitingAttendance = delivery.status === "WAITING_ATTENDANCE"
-  const approvals = delivery.approvals || {}
+  const isBatch1 = delivery.batchType === "BATCH_1";
+  const isBatch2 = delivery.batchType === "BATCH_2";
+  const isWaitingAttendance = delivery.status === "WAITING_ATTENDANCE";
+  const approvals = delivery.approvals || {};
 
   // Đếm số bên từ chối theo nguyên tắc nghiệm thu
-  const rejectCount = Object.values(approvals).filter(a => a?.approved === false).length
-  const isCancelled = delivery.status === "CANCELLED" || rejectCount >= 2
-  const isRedeliver = (delivery.status === "RE_DELIVER" || delivery.status === "REJECTED") && rejectCount === 1
+  const rejectCount = Object.values(approvals).filter(
+    (a) => a?.approved === false,
+  ).length;
+  const isCancelled = delivery.status === "CANCELLED" || rejectCount >= 2;
+  const isRedeliver =
+    (delivery.status === "RE_DELIVER" || delivery.status === "REJECTED") &&
+    rejectCount === 1;
 
-  const maxPortions = delivery.maxPortions || 850
-  const batch1Portions = delivery.batch1Portions || 425
-  const remainingNeeded = Math.max(0, attendanceInput - batch1Portions)
-  const savedPortions = Math.max(0, maxPortions - attendanceInput)
+  const maxPortions = Number(delivery.maxPortions) || 0;
+  const batch1Portions =
+    Number(delivery.batch1Portions) || Math.floor(maxPortions / 2);
+  const remainingNeeded = Math.max(0, attendanceInput - batch1Portions);
+  const savedPortions = Math.max(0, maxPortions - attendanceInput);
 
   const handleConfirm = async () => {
-    if (!onConfirmAttendance) return
-    setUpdating(true)
+    if (!onConfirmAttendance) return;
+    setUpdating(true);
     try {
-      await onConfirmAttendance(delivery.id, Number(attendanceInput))
+      await onConfirmAttendance(delivery.id, Number(attendanceInput));
     } finally {
-      setUpdating(false)
+      setUpdating(false);
     }
-  }
+  };
 
   const roles = [
     {
@@ -162,7 +178,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       icon: <Utensils size={20} />,
       data: approvals.kitchenStaff,
     },
-  ]
+  ];
 
   return (
     <Box className={styles.container}>
@@ -184,7 +200,11 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 Phiếu Giao Nhận: {delivery.deliveryNo}
               </Typography>
               <Chip
-                label={isBatch1 ? "Đợt 1 (50% Suất tối đa)" : "Đợt 2 (Theo sĩ số GVCN)"}
+                label={
+                  isBatch1
+                    ? "Đợt 1 (50% Suất tối đa)"
+                    : "Đợt 2 (Theo sĩ số GVCN)"
+                }
                 size="small"
                 className={isBatch1 ? styles.batch1Chip : styles.batch2Chip}
               />
@@ -193,7 +213,12 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                   icon={<Layers size={13} />}
                   label={`Áp dụng: ${delivery.targetScope}`}
                   size="small"
-                  sx={{ bgcolor: "#f1f5f9", color: "#334155", fontWeight: 600, fontSize: "0.75rem" }}
+                  sx={{
+                    bgcolor: "#f1f5f9",
+                    color: "#334155",
+                    fontWeight: 600,
+                    fontSize: "0.75rem",
+                  }}
                 />
               )}
             </Box>
@@ -201,22 +226,28 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
               Đơn đặt hàng gốc: <strong>{delivery.orderNo}</strong>
               {delivery.menuName && ` • Thực đơn: ${delivery.menuName}`}
             </Typography>
-            {Array.isArray(delivery.menusSummary) && delivery.menusSummary.length > 1 && (
-              <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
-                {delivery.menusSummary.map(ms => (
-                  <Chip
-                    key={ms.id}
-                    icon={<ChefHat size={13} />}
-                    label={`${ms.targetScope || ms.name}: ${ms.batch1Portions || Math.floor((ms.maxPortions || 400) / 2)}/${ms.maxPortions || 400} suất`}
-                    size="small"
-                    sx={{ bgcolor: "#eff6ff", color: "#1d4ed8", fontWeight: 600, fontSize: "0.725rem", border: "1px solid #bfdbfe" }}
-                  />
-                ))}
-              </Box>
-            )}
+            {Array.isArray(delivery.menusSummary) &&
+              delivery.menusSummary.length > 1 && (
+                <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
+                  {delivery.menusSummary.map((ms) => (
+                    <Chip
+                      key={ms.id}
+                      icon={<ChefHat size={13} />}
+                      label={`${ms.targetScope || ms.name}: ${ms.batch1Portions || Math.floor((ms.maxPortions || 400) / 2)}/${ms.maxPortions || 400} suất`}
+                      size="small"
+                      sx={{
+                        bgcolor: "#eff6ff",
+                        color: "#1d4ed8",
+                        fontWeight: 600,
+                        fontSize: "0.725rem",
+                        border: "1px solid #bfdbfe",
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
           </Box>
         </Box>
-
       </Box>
 
       {/* 2. Cảnh báo Từ chối / Hủy đơn theo quy tắc nghiệm thu */}
@@ -226,7 +257,8 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
             ĐƠN HÀNG ĐÃ BỊ HỦY TOÀN BỘ ({rejectCount} BÊN TỪ CHỐI):
           </Typography>
           <Typography variant="body2">
-            {delivery.rejectionReason || "Theo quy chế nghiệm thu, từ 2 bên từ chối trở lên thì hủy toàn bộ đơn hàng. Đợt 1 đã bị hủy nên không thể triển khai Đợt 2."}
+            {delivery.rejectionReason ||
+              "Theo quy chế nghiệm thu, từ 2 bên từ chối trở lên thì hủy toàn bộ đơn hàng. Đợt 1 đã bị hủy nên không thể triển khai Đợt 2."}
           </Typography>
         </Alert>
       )}
@@ -237,7 +269,8 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
             YÊU CẦU NCC GIAO LẠI LÔ HÀNG KHÁC (1 BÊN TỪ CHỐI):
           </Typography>
           <Typography variant="body2">
-            {delivery.rejectionReason || "Có 1 bên không đồng thuận nhận hàng. NCC phải thu hồi lô này và chuyển xe khác đạt chuẩn trước giờ chế biến."}
+            {delivery.rejectionReason ||
+              "Có 1 bên không đồng thuận nhận hàng. NCC phải thu hồi lô này và chuyển xe khác đạt chuẩn trước giờ chế biến."}
           </Typography>
         </Alert>
       )}
@@ -248,11 +281,16 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           <Box className={styles.attendanceHeader}>
             <Users size={22} className={styles.attendanceIcon} />
             <Box>
-              <Typography variant="subtitle1" className={styles.attendanceTitle}>
+              <Typography
+                variant="subtitle1"
+                className={styles.attendanceTitle}
+              >
                 Điểm Danh & Chốt Sĩ Số Đợt 2 Từ GVCN
               </Typography>
               <Typography variant="body2" className={styles.attendanceSubtitle}>
-                Dựa trên sĩ số điểm danh học sinh sáng nay do GVCN báo lên, hệ thống sẽ tính lại số suất ăn Đợt 2 cần giao để sát thực tế nhất, tránh lãng phí thức ăn.
+                Dựa trên sĩ số điểm danh học sinh sáng nay do GVCN báo lên, hệ
+                thống sẽ tính lại số suất ăn Đợt 2 cần giao để sát thực tế nhất,
+                tránh lãng phí thức ăn.
               </Typography>
             </Box>
           </Box>
@@ -286,8 +324,10 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 type="number"
                 size="small"
                 value={attendanceInput}
-                onChange={e =>
-                  setAttendanceInput(Math.max(batch1Portions, Number(e.target.value)))
+                onChange={(e) =>
+                  setAttendanceInput(
+                    Math.max(batch1Portions, Number(e.target.value)),
+                  )
                 }
                 helperText={`Tối thiểu phải bằng số suất Đợt 1 (${batch1Portions} suất) đã nhận.`}
                 className={styles.attendanceInputField}
@@ -295,7 +335,8 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
 
               <Box className={styles.calcResultBox}>
                 <Typography variant="body2" className={styles.calcResultText}>
-                  Số suất Đợt 2 cần bổ sung: <strong>{remainingNeeded} suất</strong>
+                  Số suất Đợt 2 cần bổ sung:{" "}
+                  <strong>{remainingNeeded} suất</strong>
                 </Typography>
                 {savedPortions > 0 && (
                   <Chip
@@ -313,7 +354,9 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 disabled={updating}
                 className={styles.confirmAttendanceBtn}
               >
-                {updating ? "Đang cập nhật..." : "Chốt số lượng & Báo NCC giao Đợt 2"}
+                {updating
+                  ? "Đang cập nhật..."
+                  : "Chốt số lượng & Báo NCC giao Đợt 2"}
               </Button>
             </Box>
           </Box>
@@ -321,8 +364,18 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       )}
 
       {isBatch2 && !isWaitingAttendance && delivery.actualAttendance && (
-        <Alert severity="success" icon={<CheckCircle2 size={18} />} className={styles.confirmedAlert}>
-          GVCN đã chốt sĩ số sáng: <strong>{delivery.actualAttendance} / {delivery.maxPortions} học sinh</strong>. Đợt 2 đã giao bù <strong>{delivery.plannedPortions} suất</strong> (Tiết kiệm {delivery.maxPortions - delivery.actualAttendance} suất ăn so với định mức tối đa).
+        <Alert
+          severity="success"
+          icon={<CheckCircle2 size={18} />}
+          className={styles.confirmedAlert}
+        >
+          GVCN đã chốt sĩ số sáng:{" "}
+          <strong>
+            {delivery.actualAttendance} / {delivery.maxPortions} học sinh
+          </strong>
+          . Đợt 2 đã giao bù <strong>{delivery.plannedPortions} suất</strong>{" "}
+          (Tiết kiệm {delivery.maxPortions - delivery.actualAttendance} suất ăn
+          so với định mức tối đa).
         </Alert>
       )}
 
@@ -330,7 +383,8 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       <Box className={styles.sectionWrapper}>
         <Box className={styles.sectionTitleRow}>
           <Typography variant="h6" className={styles.sectionHeading}>
-            Thông Tin Vận Chuyển &amp; Xe Giao Hàng ({Object.keys(itemsBySupplier).length} Nhà cung cấp)
+            Thông Tin Vận Chuyển &amp; Xe Giao Hàng (
+            {Object.keys(itemsBySupplier).length} Nhà cung cấp)
           </Typography>
         </Box>
 
@@ -345,7 +399,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           }}
         >
           {Object.entries(itemsBySupplier).map(([sName, sItems], idx) => {
-            const transport = getSupplierTransportInfo(sName, idx)
+            const transport = getSupplierTransportInfo(sName, idx);
             return (
               <Paper
                 key={idx}
@@ -360,10 +414,23 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                   border: "1px solid #e2e8f0",
                 }}
               >
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Truck size={18} color="#2563eb" />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 750, color: "#0f172a", fontSize: "0.95rem" }}>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: 750,
+                        color: "#0f172a",
+                        fontSize: "0.95rem",
+                      }}
+                    >
                       {idx + 1}. {sName}
                     </Typography>
                   </Box>
@@ -394,7 +461,11 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                   </Typography>
                   <Typography
                     variant="body2"
-                    className={delivery.status === "REJECTED" ? styles.tempDanger : styles.infoValue}
+                    className={
+                      delivery.status === "REJECTED"
+                        ? styles.tempDanger
+                        : styles.infoValue
+                    }
                   >
                     {transport.temp}
                   </Typography>
@@ -426,16 +497,27 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                 >
                   <QrCode size={34} color="#16a34a" />
                   <Box>
-                    <Typography variant="caption" sx={{ fontWeight: 700, color: "#166534", display: "block", fontSize: "0.8rem" }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 700,
+                        color: "#166534",
+                        display: "block",
+                        fontSize: "0.8rem",
+                      }}
+                    >
                       {transport.qrCode}
                     </Typography>
-                    <Typography variant="caption" sx={{ color: "#15803d", fontSize: "0.7rem" }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: "#15803d", fontSize: "0.7rem" }}
+                    >
                       Mã QR niêm phong xe &amp; kiểm dịch NCC
                     </Typography>
                   </Box>
                 </Box>
               </Paper>
-            )
+            );
           })}
         </Box>
       </Box>
@@ -449,29 +531,44 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
         </Box>
 
         <Box className={styles.approvalsGrid}>
-          {roles.map(r => {
-            const data = r.data
-            const isApproved = data?.approved === true
-            const isRejected = data?.approved === false
-            const isPending = data?.approved === null || data?.approved === undefined
+          {roles.map((r) => {
+            const data = r.data;
+            const isApproved = data?.approved === true;
+            const isRejected = data?.approved === false;
+            const isPending =
+              data?.approved === null || data?.approved === undefined;
 
             return (
               <Box
                 key={r.key}
-                className={`${styles.approvalCard} ${isApproved ? styles.approvedCard : isRejected ? styles.rejectedCard : styles.pendingCard
-                  }`}
+                className={`${styles.approvalCard} ${
+                  isApproved
+                    ? styles.approvedCard
+                    : isRejected
+                      ? styles.rejectedCard
+                      : styles.pendingCard
+                }`}
               >
                 <Box className={styles.cardTop}>
                   <Box className={styles.roleTitleGroup}>
                     {r.icon}
-                    <Typography variant="subtitle2" className={styles.roleTitle}>
+                    <Typography
+                      variant="subtitle2"
+                      className={styles.roleTitle}
+                    >
                       {r.title}
                     </Typography>
                   </Box>
 
-                  {isApproved && <CheckCircle2 size={20} className={styles.checkIcon} />}
-                  {isRejected && <XCircle size={20} className={styles.rejectIcon} />}
-                  {isPending && <Clock size={20} className={styles.clockIcon} />}
+                  {isApproved && (
+                    <CheckCircle2 size={20} className={styles.checkIcon} />
+                  )}
+                  {isRejected && (
+                    <XCircle size={20} className={styles.rejectIcon} />
+                  )}
+                  {isPending && (
+                    <Clock size={20} className={styles.clockIcon} />
+                  )}
                 </Box>
 
                 <Typography variant="caption" className={styles.roleDuty}>
@@ -487,25 +584,34 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                         {data?.name || "Đại diện đã ký"}
                       </Typography>
                       {data?.time && (
-                        <Typography variant="caption" className={styles.signTime}>
+                        <Typography
+                          variant="caption"
+                          className={styles.signTime}
+                        >
                           Ký lúc: {data.time}
                         </Typography>
                       )}
                     </>
                   )}
                   {isRejected && (
-                    <Typography variant="body2" className={styles.rejectSignText}>
+                    <Typography
+                      variant="body2"
+                      className={styles.rejectSignText}
+                    >
                       {data?.name || "TỪ CHỐI NHẬP HÀNG"}
                     </Typography>
                   )}
                   {isPending && (
-                    <Typography variant="caption" className={styles.pendingSignText}>
+                    <Typography
+                      variant="caption"
+                      className={styles.pendingSignText}
+                    >
                       Đang chờ đại diện kiểm tra...
                     </Typography>
                   )}
                 </Box>
               </Box>
-            )
+            );
           })}
         </Box>
       </Box>
@@ -516,47 +622,100 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
           Chi Tiết Mặt Hàng Thực Giao Trong Đợt Này
         </Typography>
 
-        <TableContainer component={Paper} elevation={0} className={styles.tableWrapper}>
+        <TableContainer
+          component={Paper}
+          elevation={0}
+          className={styles.tableWrapper}
+        >
           <Table size="small" className={styles.itemsTable}>
             <TableHead>
               <TableRow className={styles.tableHeaderRow}>
                 <TableCell style={{ minWidth: 160 }}>Tên nguyên liệu</TableCell>
-                <TableCell style={{ minWidth: 200 }}>Nhà cung cấp (NCC)</TableCell>
+                <TableCell style={{ minWidth: 200 }}>
+                  Nhà cung cấp (NCC)
+                </TableCell>
                 <TableCell>Phân loại kho</TableCell>
                 <TableCell align="center">Đơn vị</TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
-                <TableCell align="center">Đánh giá cảm quan &amp; ATTP</TableCell>
+                <TableCell align="center">
+                  Đánh giá cảm quan &amp; ATTP
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {delivery.items?.map((item, idx) => {
-                const isDiscrete = ["quả", "trứng", "hộp", "gói", "chai", "can", "lon", "hũ", "cái", "củ", "bắp", "ổ", "bó", "túi", "con"].includes(
-                  String(item.unit || "").toLowerCase().trim()
-                )
-                const isExtraItem = item.isExtraItem === true || item.isExtra === true
-                const hasExtraQty = typeof item.extraQty === "number" && item.extraQty > 0
-                const portionRate = !isExtraItem && typeof item.qtyPerPortion === "number" && item.qtyPerPortion > 0
-                  ? item.qtyPerPortion
-                  : (!isExtraItem ? Number(((item.orderedQty || 0) / (delivery.plannedPortions || 425)).toFixed(4)) : 0)
+                const isDiscrete = [
+                  "quả",
+                  "trứng",
+                  "hộp",
+                  "gói",
+                  "chai",
+                  "can",
+                  "lon",
+                  "hũ",
+                  "cái",
+                  "củ",
+                  "bắp",
+                  "ổ",
+                  "bó",
+                  "túi",
+                  "con",
+                ].includes(
+                  String(item.unit || "")
+                    .toLowerCase()
+                    .trim(),
+                );
+                const isExtraItem =
+                  item.isExtraItem === true || item.isExtra === true;
+                const hasExtraQty =
+                  typeof item.extraQty === "number" && item.extraQty > 0;
+                const portionRate =
+                  !isExtraItem &&
+                  typeof item.qtyPerPortion === "number" &&
+                  item.qtyPerPortion > 0
+                    ? item.qtyPerPortion
+                    : !isExtraItem
+                      ? Number(
+                          (
+                            (item.orderedQty || 0) /
+                            (delivery.plannedPortions || batch1Portions || 1)
+                          ).toFixed(4),
+                        )
+                      : 0;
 
-                const rawNeeded = portionRate * remainingNeeded
-                const displayedOrderedQty = (isWaitingAttendance && !isExtraItem)
-                  ? (isDiscrete ? Math.ceil(rawNeeded + (item.extraQty || 0)) : Number((rawNeeded + (item.extraQty || 0)).toFixed(2)))
-                  : (isDiscrete && typeof item.orderedQty === "number" ? Math.ceil(item.orderedQty) : item.orderedQty)
+                const rawNeeded = portionRate * remainingNeeded;
+                const displayedOrderedQty =
+                  isWaitingAttendance && !isExtraItem
+                    ? isDiscrete
+                      ? Math.ceil(rawNeeded + (item.extraQty || 0))
+                      : Number((rawNeeded + (item.extraQty || 0)).toFixed(2))
+                    : isDiscrete && typeof item.orderedQty === "number"
+                      ? Math.ceil(item.orderedQty)
+                      : item.orderedQty;
 
-                const isMulti = Boolean(item.breakdown && item.breakdown.length > 1)
-                const isExpanded = Boolean(expandedItems[idx])
+                const isMulti = Boolean(
+                  item.breakdown && item.breakdown.length > 1,
+                );
+                const isExpanded = Boolean(expandedItems[idx]);
 
                 return (
                   <React.Fragment key={idx}>
                     <TableRow hover className={styles.tableRow}>
                       <TableCell>
-                        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                          <Typography variant="subtitle2" className={styles.ingName}>
+                        <Box
+                          sx={{ display: "flex", alignItems: "center", gap: 1 }}
+                        >
+                          <Typography
+                            variant="subtitle2"
+                            className={styles.ingName}
+                          >
                             {item.ingredientName}
                           </Typography>
                           {isMulti && (
-                            <Tooltip title="Nguyên liệu dùng chung cho nhiều thực đơn - Bấm để xem phân rã chi tiết" arrow>
+                            <Tooltip
+                              title="Nguyên liệu dùng chung cho nhiều thực đơn - Bấm để xem phân rã chi tiết"
+                              arrow
+                            >
                               <Chip
                                 icon={<Layers size={12} />}
                                 label={`${item.breakdown.length} thực đơn`}
@@ -578,8 +737,17 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                         </Box>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b", fontSize: "0.8125rem" }}>
-                          {item.supplierName || delivery.supplierName || "Nhà cung cấp đối tác"}
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontWeight: 600,
+                            color: "#1e293b",
+                            fontSize: "0.8125rem",
+                          }}
+                        >
+                          {item.supplierName ||
+                            delivery.supplierName ||
+                            "Nhà cung cấp đối tác"}
                         </Typography>
                       </TableCell>
                       <TableCell>
@@ -593,7 +761,10 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                         <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Typography variant="body2" className={styles.orderedQty}>
+                        <Typography
+                          variant="body2"
+                          className={styles.orderedQty}
+                        >
                           {displayedOrderedQty} {item.unit}
                         </Typography>
                         {isMulti ? (
@@ -601,32 +772,75 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                             size="small"
                             variant="text"
                             onClick={() => toggleExpandItem(idx)}
-                            sx={{ fontSize: "0.6875rem", p: 0, minWidth: 0, textTransform: "none", color: "#2563eb", display: "block", ml: "auto" }}
+                            sx={{
+                              fontSize: "0.6875rem",
+                              p: 0,
+                              minWidth: 0,
+                              textTransform: "none",
+                              color: "#2563eb",
+                              display: "block",
+                              ml: "auto",
+                            }}
                           >
                             {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
                           </Button>
                         ) : hasExtraQty && !isExtraItem ? (
-                          <Typography variant="caption" sx={{ color: "#15803d", display: "block", fontSize: "0.7rem", fontWeight: 600 }}>
-                            (Gồm {item.standardQty} theo suất + {item.extraQty} giao thêm)
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#15803d",
+                              display: "block",
+                              fontSize: "0.7rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            (Gồm {item.standardQty} theo suất + {item.extraQty}{" "}
+                            giao thêm)
                           </Typography>
                         ) : portionRate > 0 && !isExtraItem && !hasExtraQty ? (
-                          <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#64748b",
+                              display: "block",
+                              fontSize: "0.7rem",
+                            }}
+                          >
                             ({portionRate} {item.unit}/suất)
                           </Typography>
                         ) : null}
                         {isWaitingAttendance && !isExtraItem && (
-                          <Typography variant="caption" sx={{ color: "#d97706", display: "block", fontSize: "0.7rem" }}>
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: "#d97706",
+                              display: "block",
+                              fontSize: "0.7rem",
+                            }}
+                          >
                             (Theo {remainingNeeded} suất)
                           </Typography>
                         )}
                       </TableCell>
                       <TableCell align="center">
                         {item.status === "ACCEPTED" ? (
-                          <Chip label="Đạt chuẩn tươi ngon" size="small" className={styles.itemAccepted} />
+                          <Chip
+                            label="Đạt chuẩn tươi ngon"
+                            size="small"
+                            className={styles.itemAccepted}
+                          />
                         ) : item.status === "REJECTED" ? (
-                          <Chip label="Không đạt (Dập nát/Mùi lạ)" size="small" className={styles.itemRejected} />
+                          <Chip
+                            label="Không đạt (Dập nát/Mùi lạ)"
+                            size="small"
+                            className={styles.itemRejected}
+                          />
                         ) : (
-                          <Chip label="Đang kiểm tra" size="small" className={styles.itemChecking} />
+                          <Chip
+                            label="Đang kiểm tra"
+                            size="small"
+                            className={styles.itemChecking}
+                          />
                         )}
                       </TableCell>
                     </TableRow>
@@ -634,21 +848,78 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                     {/* Dòng mở rộng chi tiết phân rã cho nguyên liệu đa thực đơn */}
                     {isExpanded && isMulti && (
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                        <TableCell colSpan={6} sx={{ py: 1.25, px: 3, borderBottom: "1px solid #e2e8f0" }}>
-                          <Box sx={{ p: 1.5, bgcolor: "#ffffff", borderRadius: 1.5, border: "1px solid #e2e8f0" }}>
-                            <Typography variant="caption" sx={{ fontWeight: 700, color: "#1e293b", display: "flex", alignItems: "center", gap: 0.75, mb: 1 }}>
-                              <Layers size={14} color="#2563eb" /> Chi tiết định lượng &amp; số lượng theo từng thực đơn / khối lớp:
+                        <TableCell
+                          colSpan={6}
+                          sx={{
+                            py: 1.25,
+                            px: 3,
+                            borderBottom: "1px solid #e2e8f0",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              p: 1.5,
+                              bgcolor: "#ffffff",
+                              borderRadius: 1.5,
+                              border: "1px solid #e2e8f0",
+                            }}
+                          >
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontWeight: 700,
+                                color: "#1e293b",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 0.75,
+                                mb: 1,
+                              }}
+                            >
+                              <Layers size={14} color="#2563eb" /> Chi tiết định
+                              lượng &amp; số lượng theo từng thực đơn / khối
+                              lớp:
                             </Typography>
-                            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+                            <Box
+                              sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}
+                            >
                               {item.breakdown.map((b, bIdx) => (
-                                <Box key={bIdx} sx={{ bgcolor: "#f8fafc", p: 1, px: 1.5, borderRadius: 1.25, border: "1px solid #e2e8f0", minWidth: 200 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 700, color: "#0f172a", fontSize: "0.8rem" }}>
+                                <Box
+                                  key={bIdx}
+                                  sx={{
+                                    bgcolor: "#f8fafc",
+                                    p: 1,
+                                    px: 1.5,
+                                    borderRadius: 1.25,
+                                    border: "1px solid #e2e8f0",
+                                    minWidth: 200,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontWeight: 700,
+                                      color: "#0f172a",
+                                      fontSize: "0.8rem",
+                                    }}
+                                  >
                                     {b.targetScope || b.menuName}
                                   </Typography>
-                                  <Typography variant="caption" color="text.secondary" sx={{ display: "block", mt: 0.25 }}>
-                                    {b.portions} suất × {b.qtyPerPortion} {b.unit}/suất
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ display: "block", mt: 0.25 }}
+                                  >
+                                    {b.portions} suất × {b.qtyPerPortion}{" "}
+                                    {b.unit}/suất
                                   </Typography>
-                                  <Typography variant="body2" sx={{ fontWeight: 700, color: "#2563eb", mt: 0.5 }}>
+                                  <Typography
+                                    variant="body2"
+                                    sx={{
+                                      fontWeight: 700,
+                                      color: "#2563eb",
+                                      mt: 0.5,
+                                    }}
+                                  >
                                     = {b.calculatedQty} {b.unit}
                                   </Typography>
                                 </Box>
@@ -659,7 +930,7 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                       </TableRow>
                     )}
                   </React.Fragment>
-                )
+                );
               })}
             </TableBody>
           </Table>
@@ -678,11 +949,11 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
         </Button>
       </Box>
     </Box>
-  )
+  );
 }
 
 DeliveryDetailView.propTypes = {
   delivery: PropTypes.object.isRequired,
   onBack: PropTypes.func.isRequired,
   onConfirmAttendance: PropTypes.func,
-}
+};
