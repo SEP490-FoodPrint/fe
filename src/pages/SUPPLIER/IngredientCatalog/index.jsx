@@ -10,6 +10,7 @@ import notice from "src/components/Notice"
 import ROUTER from "src/router/ROUTER"
 import SupplierIngredientService, {
   DEFAULT_UNITS,
+  INGREDIENT_STATUS,
 } from "src/services/SupplierIngredientService"
 import IngredientDetailView from "./component/IngredientDetailView"
 import IngredientFormModal from "./component/IngredientFormModal"
@@ -246,8 +247,14 @@ const IngredientCatalog = () => {
     })
   }
 
-  const handleConfirmHideStatus = async ingredientId => {
-    const updated = await SupplierIngredientService.hide(ingredientId)
+  const handleConfirmStatusChange = async (
+    ingredientId,
+    targetStatus = INGREDIENT_STATUS.INACTIVE,
+  ) => {
+    const updated = await SupplierIngredientService.changeStatus(
+      ingredientId,
+      targetStatus,
+    )
     if (updated) {
       setEditingItem(updated)
       if (detailId && String(detailId) === String(updated.id)) {
@@ -256,7 +263,10 @@ const IngredientCatalog = () => {
     }
     await loadList(currentPage)
     notice({
-      msg: "Ẩn nguyên liệu thành công",
+      msg:
+        targetStatus === INGREDIENT_STATUS.ACTIVE
+          ? "Mở lại nguyên liệu thành công"
+          : "Ẩn nguyên liệu thành công",
       isSuccess: true,
     })
   }
@@ -692,7 +702,7 @@ const IngredientCatalog = () => {
         units={units}
         onClose={handleCloseModal}
         onSubmit={handleSubmitIngredient}
-        onConfirmHideStatus={handleConfirmHideStatus}
+        onConfirmStatusChange={handleConfirmStatusChange}
       />
     </>
   )

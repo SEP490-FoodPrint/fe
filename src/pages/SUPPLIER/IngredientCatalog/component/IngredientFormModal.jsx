@@ -9,6 +9,7 @@ import {
 } from "@mui/icons-material"
 import SupplierIngredientService, {
   DEFAULT_UNITS,
+  INGREDIENT_STATUS,
 } from "src/services/SupplierIngredientService"
 import styles from "../IngredientCatalog.module.scss"
 import ConfirmHideDialog from "./ConfirmHideDialog"
@@ -58,6 +59,7 @@ const IngredientFormModal = ({
   units = DEFAULT_UNITS,
   onClose,
   onSubmit,
+  onConfirmStatusChange,
   onConfirmHideStatus,
 }) => {
   const isEdit = mode === "edit" && Boolean(initialData)
@@ -82,9 +84,10 @@ const IngredientFormModal = ({
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
-  const [confirmHideOpen, setConfirmHideOpen] = useState(false)
-  const [hidingStatus, setHidingStatus] = useState(false)
-  const [hideError, setHideError] = useState("")
+  const [pendingTargetStatus, setPendingTargetStatus] = useState(null)
+  const [changingStatus, setChangingStatus] = useState(false)
+  const [statusError, setStatusError] = useState("")
+  const confirmDialogOpen = pendingTargetStatus !== null
 
   useEffect(() => {
     return () => {
@@ -110,7 +113,11 @@ const IngredientFormModal = ({
       setCategoryId(initialData.categoryId || initialData.category?.id || "")
       setDefaultUnit(initialData.defaultUnit || "")
       setDescription(initialData.description || "")
-      setStatus(initialData.status === "INACTIVE" ? "INACTIVE" : "ACTIVE")
+      setStatus(
+        initialData.status === INGREDIENT_STATUS.INACTIVE
+          ? INGREDIENT_STATUS.INACTIVE
+          : INGREDIENT_STATUS.ACTIVE,
+      )
       setCoverImage(initialData.coverImage || "")
       setImageDescription(
         Array.isArray(initialData.imageDescription)
@@ -122,17 +129,26 @@ const IngredientFormModal = ({
       setCategoryId("")
       setDefaultUnit("")
       setDescription("")
-      setStatus("ACTIVE")
+      setStatus(INGREDIENT_STATUS.ACTIVE)
       setCoverImage("")
       setImageDescription([])
     }
     setErrors({})
     setSubmitError("")
     setSubmitting(false)
-    setConfirmHideOpen(false)
-    setHidingStatus(false)
-    setHideError("")
-  }, [open, isEdit, initialData])
+    setPendingTargetStatus(null)
+    setChangingStatus(false)
+    setStatusError("")
+  }, [open, isEdit, initialData?.id])
+
+  useEffect(() => {
+    if (!open || !isEdit || !initialData) return
+    setStatus(
+      initialData.status === INGREDIENT_STATUS.INACTIVE
+        ? INGREDIENT_STATUS.INACTIVE
+        : INGREDIENT_STATUS.ACTIVE,
+    )
+  }, [open, isEdit, initialData?.status])
 
   useEffect(() => {
     if (!open) return undefined
@@ -141,7 +157,7 @@ const IngredientFormModal = ({
     }, 30)
 
     const handleKeyDown = event => {
-      if (event.key === "Escape" && !confirmHideOpen && !submitting) {
+      if (event.key === "Escape" && !confirmDialogOpen && !submitting) {
         onClose?.()
       }
     }
@@ -150,7 +166,7 @@ const IngredientFormModal = ({
       window.clearTimeout(timer)
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [open, confirmHideOpen, submitting, onClose])
+  }, [open, confirmDialogOpen, submitting, onClose])
 
   if (!open) return null
 
@@ -307,28 +323,40 @@ const IngredientFormModal = ({
   }
 
   const handleToggleStatusClick = () => {
-    if (status === "ACTIVE") {
-      setHideError("")
-      setConfirmHideOpen(true)
-    }
+    if (submitting || uploadingCover || uploadingDesc || changingStatus) return
+    const nextStatus =
+      status === INGREDIENT_STATUS.ACTIVE
+        ? INGREDIENT_STATUS.INACTIVE
+        : INGREDIENT_STATUS.ACTIVE
+    setStatusError("")
+    setPendingTargetStatus(nextStatus)
   }
 
-  const handleConfirmHide = async () => {
-    if (!isEdit || !initialData?.id || hidingStatus) return
-    setHidingStatus(true)
-    setHideError("")
+  const handleConfirmStatusChange = async () => {
+    if (!isEdit || !initialData?.id || !pendingTargetStatus || changingStatus) {
+      return
+    }
+    const targetStatus = pendingTargetStatus
+    setChangingStatus(true)
+    setStatusError("")
     try {
-      await onConfirmHideStatus?.(initialData.id)
-      setStatus("INACTIVE")
-      setConfirmHideOpen(false)
+      if (onConfirmStatusChange) {
+        await onConfirmStatusChange(initialData.id, targetStatus)
+      } else if (targetStatus === INGREDIENT_STATUS.INACTIVE) {
+        await onConfirmHideStatus?.(initialData.id)
+      }
+      setStatus(targetStatus)
+      setPendingTargetStatus(null)
     } catch (error) {
-      setHideError(
+      setStatusError(
         error?.response?.data?.message ||
           error?.message ||
-          "Không thể ẩn nguyên liệu. Vui lòng thử lại.",
+          (targetStatus === INGREDIENT_STATUS.ACTIVE
+            ? "Không thể mở lại nguyên liệu. Vui lòng thử lại."
+            : "Không thể ẩn nguyên liệu. Vui lòng thử lại."),
       )
     } finally {
-      setHidingStatus(false)
+      setChangingStatus(false)
     }
   }
 
@@ -442,7 +470,7 @@ const IngredientFormModal = ({
           if (
             event.target === event.currentTarget &&
             !submitting &&
-            !confirmHideOpen
+            !confirmDialogOpen
           ) {
             onClose?.()
           }
@@ -563,24 +591,44 @@ const IngredientFormModal = ({
                     <span id={`${formId}-status-label`} className={styles.fieldLabel}>
                       Trạng thái hoạt động
                     </span>
-                    <button
-                      type="button"
-                      role="switch"
-                      aria-checked={status === "ACTIVE"}
-                      aria-labelledby={`${formId}-status-label`}
-                      disabled={status !== "ACTIVE"}
-                      title={
-                        status === "ACTIVE"
-                          ? "Gạt để chuyển sang trạng thái Đã ẩn"
-                          : "Nguyên liệu đã ẩn không thể bật lại"
-                      }
-                      className={`${styles.switchBtn} ${
-                        status === "ACTIVE" ? styles.switchOn : ""
-                      }`}
-                      onClick={handleToggleStatusClick}
-                    >
-                      <span className={styles.switchThumb} />
-                    </button>
+                    <div className={styles.statusControlRow}>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={status === INGREDIENT_STATUS.ACTIVE}
+                        aria-labelledby={`${formId}-status-label`}
+                        disabled={
+                          submitting ||
+                          uploadingCover ||
+                          uploadingDesc ||
+                          changingStatus
+                        }
+                        title={
+                          status === INGREDIENT_STATUS.ACTIVE
+                            ? "Gạt để chuyển sang trạng thái Đã ẩn"
+                            : "Gạt để mở lại nguyên liệu sang Đang hoạt động"
+                        }
+                        className={`${styles.switchBtn} ${
+                          status === INGREDIENT_STATUS.ACTIVE
+                            ? styles.switchOn
+                            : ""
+                        }`}
+                        onClick={handleToggleStatusClick}
+                      >
+                        <span className={styles.switchThumb} />
+                      </button>
+                      <span
+                        className={`${styles.statusInlineText} ${
+                          status === INGREDIENT_STATUS.ACTIVE
+                            ? styles.statusInlineActive
+                            : styles.statusInlineInactive
+                        }`}
+                      >
+                        {status === INGREDIENT_STATUS.ACTIVE
+                          ? "Đang hoạt động"
+                          : "Đã ẩn"}
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -852,17 +900,18 @@ const IngredientFormModal = ({
       </div>
 
       <ConfirmHideDialog
-        open={confirmHideOpen}
+        open={confirmDialogOpen}
         ingredientName={name || initialData?.name}
-        submitting={hidingStatus}
-        errorMessage={hideError}
+        targetStatus={pendingTargetStatus || INGREDIENT_STATUS.INACTIVE}
+        submitting={changingStatus}
+        errorMessage={statusError}
         onCancel={() => {
-          if (!hidingStatus) {
-            setConfirmHideOpen(false)
-            setHideError("")
+          if (!changingStatus) {
+            setPendingTargetStatus(null)
+            setStatusError("")
           }
         }}
-        onConfirm={handleConfirmHide}
+        onConfirm={handleConfirmStatusChange}
       />
     </>
   )

@@ -128,3 +128,39 @@ test("uploadImages posts FormData with up to 5 'images' fields to /ingredients/m
   )
   assert.deepEqual(results, batchResults)
 })
+
+test("changeStatus, hide, and activate send PATCH /ingredients/management/:id/status with ACTIVE or INACTIVE", async () => {
+  const ingId = "00000000-0000-4000-8000-000000000401"
+  respond = config => {
+    const body = typeof config.data === "string" ? JSON.parse(config.data) : config.data
+    return success({
+      id: ingId,
+      name: "Cà rốt Đà Lạt",
+      defaultUnit: "kg",
+      status: body.status,
+      imageDescription: [],
+    })
+  }
+
+  const hidden = await SupplierIngredientService.hide(ingId)
+  assert.equal(hidden.status, "INACTIVE")
+  assert.equal(requests[0].method, "patch")
+  assert.equal(requests[0].url, `/ingredients/management/${ingId}/status`)
+  assert.equal(requests[0].headers.get("X-CSRF-Protection"), "1")
+  assert.deepEqual(JSON.parse(requests[0].data), { status: "INACTIVE" })
+
+  const reopened = await SupplierIngredientService.activate(ingId)
+  assert.equal(reopened.status, "ACTIVE")
+  assert.equal(requests[1].method, "patch")
+  assert.equal(requests[1].url, `/ingredients/management/${ingId}/status`)
+  assert.deepEqual(JSON.parse(requests[1].data), { status: "ACTIVE" })
+
+  const toggled = await SupplierIngredientService.changeStatus(ingId, "inactive")
+  assert.equal(toggled.status, "INACTIVE")
+  assert.deepEqual(JSON.parse(requests[2].data), { status: "INACTIVE" })
+
+  await assert.rejects(
+    () => SupplierIngredientService.changeStatus(ingId, "DELETED"),
+    /ACTIVE hoặc INACTIVE/,
+  )
+})

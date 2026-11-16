@@ -3,6 +3,11 @@ import http from "../01_axios"
 const BASE_URL = "/ingredients/management"
 const encodeId = value => encodeURIComponent(String(value ?? "").trim())
 
+export const INGREDIENT_STATUS = {
+  ACTIVE: "ACTIVE",
+  INACTIVE: "INACTIVE",
+}
+
 export const DEFAULT_UNITS = [
   "kg",
   "g",
@@ -207,13 +212,31 @@ const SupplierIngredientService = {
     return adaptIngredient(response?.data || response)
   },
 
-  async hide(ingredientId) {
-    const response = await http.post(
-      `${BASE_URL}/${encodeId(ingredientId)}/hide`,
-      {},
+  async changeStatus(ingredientId, nextStatus) {
+    const normalizedStatus = String(nextStatus ?? "")
+      .trim()
+      .toUpperCase()
+    if (
+      normalizedStatus !== INGREDIENT_STATUS.ACTIVE &&
+      normalizedStatus !== INGREDIENT_STATUS.INACTIVE
+    ) {
+      throw new TypeError("Trạng thái nguyên liệu phải là ACTIVE hoặc INACTIVE")
+    }
+
+    const response = await http.patch(
+      `${BASE_URL}/${encodeId(ingredientId)}/status`,
+      { status: normalizedStatus },
       { notifyOnError: false },
     )
     return adaptIngredient(response?.data || response)
+  },
+
+  async hide(ingredientId) {
+    return this.changeStatus(ingredientId, INGREDIENT_STATUS.INACTIVE)
+  },
+
+  async activate(ingredientId) {
+    return this.changeStatus(ingredientId, INGREDIENT_STATUS.ACTIVE)
   },
 
   async uploadImage(file) {
