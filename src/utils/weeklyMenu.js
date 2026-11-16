@@ -1,17 +1,30 @@
 export function getWeekLabel(week) {
-  const title = week.title?.trim().replace(/^Thực đơn(?:\s+|$)/i, "");
-  return title?.replace(/^tuần(?=\s|$)/i, "Tuần") || `Tuần ${week.weekNumber}`;
+  if (week?.weekNumber) {
+    return `Tuần ${week.weekNumber}`;
+  }
+  const title = week?.title?.trim().replace(/^Thực đơn(?:\s+|$)/i, "");
+  return title?.replace(/^tuần(?=\s|$)/i, "Tuần") || `Tuần ${week?.weekNumber || ""}`;
 }
 
 export function formatWeekRange(weekRange) {
-  return weekRange.replace(/\s*[–—]\s*/g, " - ");
+  return (weekRange || "").replace(/\s*[–—]\s*/g, " - ");
 }
 
 export function getAvailableWeeks(weeklyMenu) {
   const weeks = weeklyMenu?.availableWeeks || weeklyMenu?.available_weeks;
   if (!Array.isArray(weeks)) return [];
 
-  return [...weeks].sort((a, b) =>
+  const seen = new Set();
+  const uniqueWeeks = [];
+  for (const w of weeks) {
+    const key = w.weekStartDate || w.id;
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      uniqueWeeks.push(w);
+    }
+  }
+
+  return uniqueWeeks.sort((a, b) =>
     (a.weekStartDate || "").localeCompare(b.weekStartDate || ""),
   );
 }

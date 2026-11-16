@@ -379,7 +379,7 @@ function formatDateDMY(date) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-// Chuẩn hóa định lượng trên 1 suất ăn học sinh (loại bỏ số đếm tổng học sinh "450 suất")
+// Chuẩn hóa định lượng trên 1 suất ăn học sinh (loại bỏ số đếm tổng học sinh "450 suất" và hậu tố "/suất")
 function formatPerServingPortion(portionStr, defaultPortion) {
   if (!portionStr) return defaultPortion;
   const trimmed = String(portionStr).trim();
@@ -387,13 +387,27 @@ function formatPerServingPortion(portionStr, defaultPortion) {
   if (/^\d+\s*suất$/i.test(trimmed)) {
     return defaultPortion;
   }
-  if (!trimmed.includes("/suất") && (trimmed.includes("g") || trimmed.includes("ml"))) {
-    return `${trimmed}/suất`;
-  }
-  return trimmed;
+  return trimmed.replace(/\s*\/\s*suất$/i, "");
 }
 
 function normalizePublicDish(dish) {
   const ingredients = Array.isArray(dish.ingredients) ? dish.ingredients : [];
-  return {...dish,portion:formatPerServingPortion(dish.portion,"Ch\u01b0a c\u00f3 \u0111\u1ecbnh l\u01b0\u1ee3ng"),ingredients,mainIngredientsText:dish.mainIngredientsText || ingredients.map(i=>i.name).filter(Boolean).join(", "),alternativeDish:dish.alternativeDish || null};
+  const alternativeDish = dish.alternativeDish
+    ? {
+        ...dish.alternativeDish,
+        portion: formatPerServingPortion(
+          dish.alternativeDish.portion,
+          dish.alternativeDish.portion || ""
+        ),
+      }
+    : null;
+  return {
+    ...dish,
+    portion: formatPerServingPortion(dish.portion, "Chưa có định lượng"),
+    ingredients,
+    mainIngredientsText:
+      dish.mainIngredientsText ||
+      ingredients.map((i) => i.name).filter(Boolean).join(", "),
+    alternativeDish,
+  };
 }

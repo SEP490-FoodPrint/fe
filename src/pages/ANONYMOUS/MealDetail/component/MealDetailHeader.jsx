@@ -11,7 +11,7 @@ function MealDetailHeader({ weekTitle, dayOfWeek, formattedDate }) {
     if (dayOfWeek) parts.push(dayOfWeek);
     const prefix = parts.length > 0 ? parts.join(" - ") : "";
     const dateStr = formattedDate ? ` (${formattedDate})` : "";
-    return `Chi tiết thực đơn ${prefix ? `${prefix}${dateStr}` : "ngày"}`;
+    return `Chi tiết ${prefix ? `${prefix}${dateStr}` : "ngày"}`;
   }, [weekTitle, dayOfWeek, formattedDate]);
 
   return (

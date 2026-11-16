@@ -26,7 +26,8 @@ function MealDishesTable({
             </Typography>
           </div>
           <span className={styles.selectTip}>
-            Bấm vào tên món ăn để xem chi tiết thành phần nguyên liệu & nguồn gốc kiểm thực
+            Bấm vào tên món ăn để xem chi tiết thành phần nguyên liệu & nguồn
+            gốc kiểm thực
           </span>
         </div>
       </div>
@@ -59,11 +60,11 @@ function MealDishesTable({
           <thead>
             <tr>
               <th className={styles.colMainDish}>Món ăn chính (Tiêu chuẩn)</th>
-              <th className={styles.colPortion}>Khẩu phần</th>
+              <th className={styles.colPortion}>Định lượng / suất</th>
               <th className={styles.colAltDish}>
                 Món ăn thay thế (Dành cho nhóm dị ứng)
               </th>
-              <th className={styles.colAltPortion}>Khẩu phần</th>
+              <th className={styles.colAltPortion}>Định lượng / suất</th>
             </tr>
           </thead>
           <tbody>
@@ -83,18 +84,15 @@ function MealDishesTable({
                         <span className={styles.dishName}>{dish.name}</span>
                         <Info size={13} className={styles.infoIcon} />
                       </button>
-                      {alt && (
-                        <div className={styles.substituteDishNote}>
-                          ({alt.name})
-                        </div>
-                      )}
                     </div>
                   </td>
 
-                  {/* Cột 2: Khẩu phần món chính */}
+                  {/* Cột 2: Định lượng món chính */}
                   <td className={styles.cellPortion}>
                     <span className={styles.portionBadge}>
-                      {dish.portion || "-"}
+                      {dish.portion
+                        ? String(dish.portion).replace(/\s*\/\s*suất$/i, "")
+                        : "-"}
                     </span>
                   </td>
 
@@ -105,17 +103,23 @@ function MealDishesTable({
                         <button
                           type="button"
                           className={styles.altDishLink}
-                          onClick={() => onOpenDishModal && onOpenDishModal(alt)}
+                          onClick={() =>
+                            onOpenDishModal && onOpenDishModal(alt)
+                          }
                           title="Bấm để xem chi tiết nguyên liệu món thay thế"
                         >
-                          <span className={styles.altDishName}>({alt.name})</span>
+                          <span className={styles.altDishName}>{alt.name}</span>
                           <Info size={13} className={styles.infoIcon} />
                         </button>
                         {alt.allergyGroup && (
                           <div className={styles.allergyTag}>
-                            <AlertCircle size={13} className={styles.allergyIcon} />
+                            <AlertCircle
+                              size={13}
+                              className={styles.allergyIcon}
+                            />
                             <span>
-                              Dành cho nhóm dị ứng: <strong>{alt.allergyGroup}</strong>
+                              Dành cho nhóm dị ứng:{" "}
+                              <strong>{alt.allergyGroup}</strong>
                             </span>
                           </div>
                         )}
@@ -127,11 +131,13 @@ function MealDishesTable({
                     )}
                   </td>
 
-                  {/* Cột 4: Khẩu phần món thay thế */}
+                  {/* Cột 4: Định lượng món thay thế */}
                   <td className={styles.cellAltPortion}>
                     {alt ? (
                       <span className={styles.altPortionBadge}>
-                        {alt.portion || "-"}
+                        {alt.portion
+                          ? String(alt.portion).replace(/\s*\/\s*suất$/i, "")
+                          : "-"}
                       </span>
                     ) : (
                       <span className={styles.dashText}>-</span>
