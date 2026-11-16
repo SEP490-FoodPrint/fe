@@ -423,20 +423,8 @@ export function mapDeliveryItems(deliveryItems = [], defaultSupplierName = "") {
     const name = item.name || item.ingredientName || "Nguyên liệu"
     const nameLower = String(name).toLowerCase().trim()
 
-    let supplierName = item.supplierName || item.supplier?.name
-    if (!supplierName || supplierName === "Nhà cung cấp đối tác" || (supplierName === defaultSupplierName && nameLower.includes("gạo tẻ"))) {
-      if (nameLower.includes("gạo tẻ")) {
-        supplierName = "Nhà cung cấp kiểm thử hợp đồng 1"
-      } else {
-        supplierName = defaultSupplierName || "Nhà cung cấp đối tác"
-      }
-    }
-    const supplierId =
-      item.supplierId ||
-      item.supplier?.id ||
-      (nameLower.includes("gạo tẻ")
-        ? "80000000-0000-4000-8000-000000000001"
-        : "")
+    let supplierName = item.supplierName || item.supplier?.name || defaultSupplierName || "Nhà cung cấp đối tác"
+    const supplierId = item.supplierId || item.supplier?.id || ""
     const spec =
       item.spec ||
       item.note ||
@@ -482,14 +470,21 @@ export function adaptTrackingOrder(delivery) {
     )
   )
 
-  const scheduleDate =
-    delivery.expectedArrivalAt ||
-    delivery.requestedDeliveryDate ||
-    (delivery.deliveryDate
-      ? `${delivery.deliveryDate}T${delivery.deliveryTime || "05:30"}:00`
-      : null) ||
-    delivery.createdAt
-  const deliverySchedule = formatVietnameseDateTime(scheduleDate)
+  let deliverySchedule = delivery.deliverySchedule
+  if (!deliverySchedule || !deliverySchedule.includes(":")) {
+    const timeStr =
+      delivery.deliveryTime ||
+      (orderType.type === "DRY_STOCK" ? "14:30" : orderType.type === "FRESH_BATCH_2" ? "07:45" : "05:30")
+    if (delivery.deliveryDate) {
+      deliverySchedule = formatVietnameseDateTime(`${delivery.deliveryDate}T${timeStr}:00`)
+    } else {
+      const scheduleDate =
+        delivery.expectedArrivalAt ||
+        delivery.requestedDeliveryDate ||
+        delivery.createdAt
+      deliverySchedule = formatVietnameseDateTime(scheduleDate)
+    }
+  }
 
   return {
     id: delivery.id,
