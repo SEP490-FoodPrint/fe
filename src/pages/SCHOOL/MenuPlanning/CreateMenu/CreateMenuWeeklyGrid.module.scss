@@ -4,6 +4,7 @@
    ======================================================== */
 .weeklyGridWrapper {
   width: 100%;
+  container: menu-week / inline-size;
   overflow: visible;
   box-sizing: border-box;
 }
@@ -720,7 +721,9 @@
 
 .holidayCardBody {
   grid-row: 2 / span 3;
-  min-height: 340px;
+  min-height: 100px;
+  container-type: size;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -777,4 +780,24 @@
   color: #dc2626;
   font-style: italic;
   font-weight: 500;
+}
+
+@container (max-height: 180px) {
+  .holidayIconWrap,
+  .holidaySubText {
+    display: none;
+  }
+
+  .holidayReasonBox {
+    max-height: 100%;
+    overflow: auto;
+  }
+}
+
+// Một cột không cần chia sẻ chiều cao; để nội dung ngày nghỉ tự giãn đầy đủ.
+@container menu-week (width < 412px) {
+  .holidayCardBody {
+    container-type: normal;
+    overflow: visible;
+  }
 }

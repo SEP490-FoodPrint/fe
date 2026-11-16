@@ -19,15 +19,13 @@ export default function CreateMenuWeeklyGrid({
   onOpenDayModal,
   readOnly = false,
 }) {
-  // Quản lý trạng thái đóng/mở của từng bữa ăn theo key: `${dateISO}_${mealType}`
-  // Mặc định false (mở đầy đủ)
-  const [collapsedMap, setCollapsedMap] = useState({})
+  // Thu/mở cả hàng để giữ các tiêu đề thẳng nhau và thu gọn hết khoảng trống.
+  const [collapsedMeals, setCollapsedMeals] = useState({})
 
-  const toggleCollapse = (dateISO, mealType) => {
-    const key = `${dateISO}_${mealType}`
-    setCollapsedMap((prev) => ({
+  const toggleCollapse = (mealType) => {
+    setCollapsedMeals((prev) => ({
       ...prev,
-      [key]: !prev[key],
+      [mealType]: !prev[mealType],
     }))
   }
 
@@ -105,9 +103,9 @@ export default function CreateMenuWeeklyGrid({
 
           const ProgressIcon = progress.IconComponent
 
-          const isLunchCollapsed = !!collapsedMap[`${sd.dateISO}_LUNCH`]
-          const isAfternoonCollapsed = !!collapsedMap[`${sd.dateISO}_AFTERNOON`]
-          const isSeasoningCollapsed = !!collapsedMap[`${sd.dateISO}_SEASONINGS`]
+          const isLunchCollapsed = !!collapsedMeals.LUNCH
+          const isAfternoonCollapsed = !!collapsedMeals.AFTERNOON
+          const isSeasoningCollapsed = !!collapsedMeals.SEASONINGS
 
           return (
             <div key={sd.dateISO} className={styles.dayColItem}>
@@ -155,7 +153,7 @@ export default function CreateMenuWeeklyGrid({
                     <div className={styles.holidayIconWrap}>
                       <CalendarOff size={24} className={styles.holidayIcon} />
                     </div>
-                    <div className={styles.holidayReasonBox}>
+                    <div className={styles.holidayReasonBox} title={sd.holidayReason || "Ngày nghỉ toàn trường"}>
                       <span className={styles.holidayReasonText}>
                         {sd.holidayReason || "Ngày nghỉ toàn trường"}
                       </span>
@@ -170,8 +168,8 @@ export default function CreateMenuWeeklyGrid({
                   <div className={styles.mealBlock}>
                     <div
                       className={styles.lunchBanner}
-                      onClick={() => toggleCollapse(sd.dateISO, "LUNCH")}
-                      title="Bấm để sổ lên / sổ xuống bữa trưa"
+                      onClick={() => toggleCollapse("LUNCH")}
+                      title={isLunchCollapsed ? "Mở rộng bữa trưa cả tuần" : "Thu gọn bữa trưa cả tuần"}
                     >
                       <div className={styles.bannerLeft}>
                         <Utensils size={13} className={styles.lunchIcon} />
@@ -187,8 +185,9 @@ export default function CreateMenuWeeklyGrid({
                         <button
                           type="button"
                           className={styles.collapseToggleBtn}
+                          aria-expanded={!isLunchCollapsed}
                           aria-label={
-                            isLunchCollapsed ? "Mở rộng bữa trưa" : "Thu gọn bữa trưa"
+                            isLunchCollapsed ? "Mở rộng bữa trưa cả tuần" : "Thu gọn bữa trưa cả tuần"
                           }
                         >
                           {isLunchCollapsed ? (
@@ -262,8 +261,8 @@ export default function CreateMenuWeeklyGrid({
                   <div className={styles.mealBlock}>
                     <div
                       className={styles.afternoonBanner}
-                      onClick={() => toggleCollapse(sd.dateISO, "AFTERNOON")}
-                      title="Bấm để sổ lên / sổ xuống bữa xế"
+                      onClick={() => toggleCollapse("AFTERNOON")}
+                      title={isAfternoonCollapsed ? "Mở rộng bữa xế cả tuần" : "Thu gọn bữa xế cả tuần"}
                     >
                       <div className={styles.bannerLeft}>
                         <Coffee size={13} className={styles.afternoonIcon} />
@@ -279,10 +278,11 @@ export default function CreateMenuWeeklyGrid({
                         <button
                           type="button"
                           className={styles.collapseToggleBtn}
+                          aria-expanded={!isAfternoonCollapsed}
                           aria-label={
                             isAfternoonCollapsed
-                              ? "Mở rộng bữa xế"
-                              : "Thu gọn bữa xế"
+                              ? "Mở rộng bữa xế cả tuần"
+                              : "Thu gọn bữa xế cả tuần"
                           }
                         >
                           {isAfternoonCollapsed ? (
@@ -356,8 +356,8 @@ export default function CreateMenuWeeklyGrid({
                   <div className={styles.mealBlock}>
                     <div
                       className={styles.seasoningBanner}
-                      onClick={() => toggleCollapse(sd.dateISO, "SEASONINGS")}
-                      title="Bấm để sổ lên / sổ xuống gia vị"
+                      onClick={() => toggleCollapse("SEASONINGS")}
+                      title={isSeasoningCollapsed ? "Mở rộng gia vị cả tuần" : "Thu gọn gia vị cả tuần"}
                     >
                       <div className={styles.bannerLeft}>
                         <Sparkles size={13} className={styles.seasoningIcon} />
@@ -373,10 +373,11 @@ export default function CreateMenuWeeklyGrid({
                         <button
                           type="button"
                           className={styles.collapseToggleBtn}
+                          aria-expanded={!isSeasoningCollapsed}
                           aria-label={
                             isSeasoningCollapsed
-                              ? "Mở rộng gia vị"
-                              : "Thu gọn gia vị"
+                              ? "Mở rộng gia vị cả tuần"
+                              : "Thu gọn gia vị cả tuần"
                           }
                         >
                           {isSeasoningCollapsed ? (
