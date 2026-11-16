@@ -14,7 +14,7 @@ function BrandLogo({
   collapsed = false,
   compact = false,
   variant = "default",
-  subtitle = "School Food Safety",
+  subtitle = "",
   className = "",
   onClick,
   style,
@@ -53,7 +53,9 @@ function BrandLogo({
       {!isIconOnly && (
         <div className={styles.textGroup}>
           <span className={styles.brandTitle}>FoodPrint</span>
-          {!compact && <span className={styles.brandSubtitle}>{subtitle}</span>}
+          {!compact && subtitle ? (
+            <span className={styles.brandSubtitle}>{subtitle}</span>
+          ) : null}
         </div>
       )}
     </Component>

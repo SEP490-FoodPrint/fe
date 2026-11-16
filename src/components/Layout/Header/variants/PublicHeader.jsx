@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   ChevronDown,
@@ -17,6 +17,7 @@ import PublicAccountMenu from "src/components/Common/PublicAccountMenu";
 
 function PublicHeader() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { loginStore, userStore } = useContext(StoreContext);
   const isLoginContext = loginStore?.isLoginContext;
   const user = userStore?.user;
@@ -24,7 +25,93 @@ function PublicHeader() {
   const [schools, setSchools] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [dropdownSearch, setDropdownSearch] = useState("");
+  const [activeNav, setActiveNav] = useState("home");
   const dropdownRef = useRef(null);
+
+  // Theo dõi active navigation item trên trang chủ (theo hash hoặc scroll)
+  useEffect(() => {
+    if (location.pathname !== ROUTER.DEFAULT) {
+      if (location.pathname.startsWith(ROUTER.SCHOOL_LIST)) {
+        setActiveNav("schools");
+      } else {
+        setActiveNav("");
+      }
+      return;
+    }
+
+    // Kiểm tra hash ban đầu khi vào trang chủ
+    const initialHash = window.location.hash.replace("#", "");
+    if (["about", "schools", "how-it-works"].includes(initialHash)) {
+      setActiveNav(initialHash);
+    } else {
+      setActiveNav("home");
+    }
+
+    let ticking = false;
+    const handleScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(() => {
+        ticking = false;
+        const scrollY = window.scrollY;
+        if (scrollY < 180) {
+          setActiveNav("home");
+          return;
+        }
+
+        const sections = [
+          { id: "schools", el: document.getElementById("schools") },
+          { id: "about", el: document.getElementById("about") },
+          { id: "how-it-works", el: document.getElementById("how-it-works") },
+        ];
+
+        const scrollPos = scrollY + 140;
+        let current = "home";
+
+        for (const s of sections) {
+          if (s.el) {
+            const top = s.el.offsetTop;
+            const height = s.el.offsetHeight;
+            if (scrollPos >= top && scrollPos < top + height) {
+              current = s.id;
+              break;
+            } else if (scrollPos >= top) {
+              current = s.id;
+            }
+          }
+        }
+        setActiveNav(current);
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [location.pathname]);
+
+  // Điều hướng hoặc cuộn mượt đến section khi người dùng click
+  const handleNavClick = (sectionId, e) => {
+    if (e && location.pathname === ROUTER.DEFAULT) {
+      e.preventDefault();
+    }
+    setActiveNav(sectionId);
+
+    if (location.pathname === ROUTER.DEFAULT) {
+      if (sectionId === "home") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        if (window.location.hash) {
+          window.history.replaceState(null, "", window.location.pathname);
+        }
+      } else {
+        const el = document.getElementById(sectionId);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+          window.history.replaceState(null, "", `#${sectionId}`);
+        }
+      }
+    } else {
+      navigate(sectionId === "home" ? ROUTER.DEFAULT : `${ROUTER.DEFAULT}#${sectionId}`);
+    }
+  };
 
   // Nạp danh sách trường học từ API /schools/public
   useEffect(() => {
@@ -74,8 +161,13 @@ function PublicHeader() {
   }, [schools, dropdownSearch]);
 
   const leftSlot = (
-    <Link to={ROUTER.DEFAULT} className={styles.brandLink}>
-      <BrandLogo theme="light" />
+    <Link
+      to={ROUTER.DEFAULT}
+      className={styles.brandLink}
+      onClick={(e) => handleNavClick("home", e)}
+      title="FoodPrint - Trang chủ"
+    >
+      <BrandLogo theme="light" subtitle="" />
     </Link>
   );
 
@@ -83,12 +175,17 @@ function PublicHeader() {
     <nav className={styles.navBar} aria-label="Main navigation">
       <Link
         to={ROUTER.DEFAULT}
-        className={`${styles.navItem} ${location.pathname === ROUTER.DEFAULT ? styles.isActive : ""}`}
+        className={`${styles.navItem} ${activeNav === "home" ? styles.isActive : ""}`}
+        onClick={(e) => handleNavClick("home", e)}
       >
         Trang chủ
       </Link>
 
-      <a href={`${ROUTER.DEFAULT}#about`} className={styles.navItem}>
+      <a
+        href={`${ROUTER.DEFAULT}#about`}
+        className={`${styles.navItem} ${activeNav === "about" ? styles.isActive : ""}`}
+        onClick={(e) => handleNavClick("about", e)}
+      >
         Giới thiệu
       </a>
 
@@ -96,8 +193,13 @@ function PublicHeader() {
       <div className={styles.dropdownContainer} ref={dropdownRef}>
         <button
           type="button"
-          className={`${styles.dropdownBtn} ${isDropdownOpen ? styles.isOpen : ""}`}
-          onClick={() => setIsDropdownOpen((prev) => !prev)}
+          className={`${styles.dropdownBtn} ${
+            activeNav === "schools" || isDropdownOpen ? styles.isActive : ""
+          } ${isDropdownOpen ? styles.isOpen : ""}`}
+          onClick={(e) => {
+            setIsDropdownOpen((prev) => !prev);
+            handleNavClick("schools", e);
+          }}
         >
           <span>Khám phá trường học</span>
           <ChevronDown
@@ -168,7 +270,11 @@ function PublicHeader() {
         )}
       </div>
 
-      <a href={`${ROUTER.DEFAULT}#how-it-works`} className={styles.navItem}>
+      <a
+        href={`${ROUTER.DEFAULT}#how-it-works`}
+        className={`${styles.navItem} ${activeNav === "how-it-works" ? styles.isActive : ""}`}
+        onClick={(e) => handleNavClick("how-it-works", e)}
+      >
         Cách hoạt động
       </a>
     </nav>

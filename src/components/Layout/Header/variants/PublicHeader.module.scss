@@ -43,6 +43,7 @@
 }
 
 .dropdownBtn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 4px;
@@ -60,6 +61,22 @@
   &:hover,
   &.isOpen {
     color: var(--color-primary);
+  }
+
+  &.isActive {
+    color: var(--color-primary);
+    font-weight: 600;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: -16px;
+      left: 12px;
+      right: 12px;
+      height: 2.5px;
+      background-color: var(--color-primary);
+      border-radius: var(--radius-full);
+    }
   }
 }
 
