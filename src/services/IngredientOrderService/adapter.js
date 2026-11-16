@@ -216,21 +216,10 @@ export function adaptDeliveryItem(item) {
         }))
       : Array.isArray(item.items)
       ? item.items.map(it => {
-          let sName = it.supplierName
-          if (!sName || sName === "Nhà cung cấp đối tác") {
-            const ingName = (it.ingredientName || it.name || "").toLowerCase()
-            if (ingName.includes("thịt") || ingName.includes("bò") || ingName.includes("lợn") || ingName.includes("heo")) {
-              sName = "HTX Chăn nuôi Sạch Ba Vì"
-            } else if (ingName.includes("rau") || ingName.includes("cải") || ingName.includes("củ") || ingName.includes("bí") || ingName.includes("cà chua") || ingName.includes("khoai")) {
-              sName = "Công ty Nông sản An toàn Đà Lạt Green"
-            } else if (ingName.includes("gà") || ingName.includes("trứng") || ingName.includes("vịt")) {
-              sName = "Nông trại Gà đồi Chí Linh"
-            } else if (ingName.includes("cá") || ingName.includes("tôm") || ingName.includes("thủy sản") || ingName.includes("basa")) {
-              sName = "HTX Thủy sản Sông Đà"
-            } else {
-              sName = item.supplierName || "Nhà cung cấp đối tác"
-            }
-          }
+          const sName =
+            it.supplierName && it.supplierName !== "Nhà cung cấp đối tác"
+              ? it.supplierName
+              : item.supplierName || "Nhà cung cấp đối tác"
           return {
             ...it,
             supplierId: it.supplierId || item.supplierId || "",
@@ -282,14 +271,16 @@ export function adaptDeliveryItem(item) {
       item.supplierName ||
       (itemSuppliersList.length > 1
         ? `Nhiều NCC (${itemSuppliersList.length} đối tác)`
-        : itemSuppliersList[0] || item.Supplier?.name || "HTX Thực phẩm sạch Ba Vì"),
+        : itemSuppliersList[0] || item.Supplier?.name || "Nhà cung cấp đối tác"),
     suppliers: item.suppliers || itemSuppliersList,
     driverName:
-      item.status === "CREATED" || item.status === "PENDING"
+      item.status === "CREATED" || item.status === "PENDING" || item.status === "DRAFT" || item.status === "SENT" || item.status === "CONFIRMED" || !item.vehiclePlate
         ? "Chưa phân công (Chờ NCC điều xe)"
-        : item.driverName ||
-          (item.vehiclePlate ? `Lái xe (${item.vehiclePlate})` : "Lái xe giao hàng"),
-    vehiclePlate: item.vehiclePlate || "",
+        : item.driverName || `Lái xe (${item.vehiclePlate})`,
+    vehiclePlate:
+      item.status === "CREATED" || item.status === "PENDING" || item.status === "DRAFT" || item.status === "SENT" || item.status === "CONFIRMED"
+        ? ""
+        : item.vehiclePlate || "",
     deliveryQr: item.deliveryQr || `QR-${item.deliveryNo || item.id}`,
     refrigerationTemp: item.refrigerationTemp || "3.5°C",
     status: item.status || "ARRIVED",

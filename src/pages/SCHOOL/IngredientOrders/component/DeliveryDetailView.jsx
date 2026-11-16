@@ -83,8 +83,15 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
 
   // Lấy thông tin xe, tài xế & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
-    const isPending = delivery.status === "CREATED" || delivery.status === "PENDING"
-    if (isPending) {
+    const hasDispatched =
+      delivery.status === "IN_TRANSIT" ||
+      delivery.status === "ARRIVED" ||
+      delivery.status === "INSPECTING" ||
+      delivery.status === "RECEIVED" ||
+      delivery.status === "APPROVED" ||
+      delivery.status === "COMPLETED"
+
+    if (!hasDispatched && !delivery.vehiclePlate) {
       return {
         driver: "Chưa phân công (Chờ NCC điều xe)",
         phone: "--",
@@ -94,50 +101,12 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
       }
     }
 
-    const sLower = (sName || "").toLowerCase()
-    if (sLower.includes("ba vì") || sLower.includes("thịt")) {
-      return {
-        driver: "Nguyễn Văn Tuấn",
-        phone: "0912.839.221",
-        vehicle: "Xe đông lạnh 29H-839.22",
-        temp: delivery.refrigerationTemp || "3.8°C (Đạt chuẩn)",
-        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-BV01`,
-      }
-    }
-    if (sLower.includes("đà lạt") || sLower.includes("rau") || sLower.includes("nông sản")) {
-      return {
-        driver: "Trần Quốc Toản",
-        phone: "0983.102.556",
-        vehicle: "Xe tải mát 49C-102.55",
-        temp: "5.2°C (Mát tươi)",
-        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-DL02`,
-      }
-    }
-    if (sLower.includes("chí linh") || sLower.includes("gà") || sLower.includes("trứng")) {
-      return {
-        driver: "Vũ Đình Hưng",
-        phone: "0904.291.804",
-        vehicle: "Xe chuyên dụng 34C-291.80",
-        temp: "4.1°C (Đạt chuẩn)",
-        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-CL03`,
-      }
-    }
-    if (sLower.includes("sông đà") || sLower.includes("thủy sản") || sLower.includes("cá")) {
-      return {
-        driver: "Lê Văn Thắng",
-        phone: "0934.114.672",
-        vehicle: "Xe lạnh thủy hải sản 28C-114.67",
-        temp: "2.5°C (Đạt chuẩn)",
-        qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-SD04`,
-      }
-    }
-
     return {
-      driver: delivery.driverName && idx === 0 ? delivery.driverName : `Tài xế đối tác (Xe 29H-0${idx + 1}8.92)`,
-      phone: "0912.345.678",
-      vehicle: `Xe tải chuyên dụng 29H-0${idx + 1}8.92`,
-      temp: delivery.refrigerationTemp || "3.5°C",
-      qrCode: `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+      driver: delivery.driverName || "Tài xế NCC",
+      phone: delivery.driverPhone || delivery.phone || "--",
+      vehicle: delivery.vehiclePlate || "Xe giao hàng",
+      temp: delivery.refrigerationTemp || "--",
+      qrCode: delivery.deliveryQr || `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
     }
   }
 
@@ -615,9 +584,9 @@ export default function DeliveryDetailView({ delivery, onBack, onConfirmAttendan
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={item.handlingType === "DIRECT_USE" ? "Tươi sống (Dùng ngay)" : "Kho khô"}
+                          label="Tươi sống (Dùng ngay)"
                           size="small"
-                          className={item.handlingType === "DIRECT_USE" ? styles.freshChip : styles.dryChip}
+                          className={styles.freshChip}
                         />
                       </TableCell>
                       <TableCell align="center">

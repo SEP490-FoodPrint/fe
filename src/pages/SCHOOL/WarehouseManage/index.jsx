@@ -24,7 +24,6 @@ import notice from "src/components/Notice"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import WarehouseService from "src/services/WarehouseService"
 import TrackingService from "src/services/TrackingService"
-import { saveStoredDelivery } from "src/services/deliveryStorage"
 
 import WarehouseHeader from "./component/WarehouseHeader"
 import WarehouseStatsRail from "./component/WarehouseStatsRail"
@@ -313,81 +312,27 @@ export default function WarehouseManage() {
     setSelectedOrder(null)
   }
 
-  // Submit tạo đơn mới
+  // Submit tạo đơn mới đẩy trực tiếp lên Database thông qua Backend
   const handleCreateOrder = async orderPayload => {
-    const ordersToSave = Array.isArray(orderPayload) ? orderPayload : [orderPayload]
-
-    ordersToSave.forEach((newOrder, orderIdx) => {
-      const uniqueSuppliers = Array.from(
-        new Set(
-          [
-            ...(Array.isArray(newOrder.suppliers) ? newOrder.suppliers : []),
-            ...(newOrder.items || []).map(it => it.supplierName),
-          ].filter(Boolean)
-        )
-      )
-
-      const dryDelivery = {
-        id: newOrder.id || `po-dry-${Date.now()}-${orderIdx}`,
-        deliveryNo: newOrder.deliveryNo,
-        orderNo: newOrder.orderNo,
-        schoolId: currentSchoolId || "10000000-0000-4000-8000-000000000001",
-        schoolName: currentSchoolName || "Trường Tiểu học Cầu Giấy",
-        supplierId: newOrder.supplierId,
-        supplierName: newOrder.supplierName,
-        suppliers:
-          uniqueSuppliers.length > 0
-            ? uniqueSuppliers
-            : [newOrder.supplierName].filter(Boolean),
-        supplierPhone: newOrder.supplierPhone,
-        deliveryDate: newOrder.deliverySchedule,
-        expectedArrivalAt: new Date(Date.now() + 86400000).toISOString(),
-        deliveryTime: "14:30",
-        batchType: "DRY_STOCK",
-        batchLabel: "Đồ khô & Gia vị",
-        orderType: "DRY_STOCK",
-        orderTypeLabel: "Đồ khô & Gia vị",
-        status: "CREATED",
-        statusLabel: "Chờ NCC xác nhận",
-        note: newOrder.note || "Phiếu nhập đồ khô & gia vị kho trường",
-        deliveryItems: (newOrder.items || []).map((it, idx) => ({
-          id: `di-${Date.now()}-${orderIdx}-${idx}`,
-          ingredientName: it.name,
-          actualQuantity: it.qty,
-          requestedQuantity: it.qty,
-          unit: it.unit,
-          supplierId: it.supplierId,
-          supplierName: it.supplierName,
-          handlingType: "DRY_STOCK",
-          note: "Đồ khô kho trường",
-        })),
-        items: (newOrder.items || []).map(it => ({
-          name: it.name,
-          ingredientName: it.name,
-          actualQuantity: it.qty,
-          orderedQty: it.qty,
-          qty: it.qty,
-          unit: it.unit,
-          supplierId: it.supplierId,
-          supplierName: it.supplierName,
-          handlingType: "DRY_STOCK",
-          spec: "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng",
-        })),
-        createdAt: new Date().toISOString(),
-      }
-      saveStoredDelivery(dryDelivery)
-    })
-
-    setSubView("list")
-    const orderNos = ordersToSave.map(o => o.orderNo).join(", ")
-    notice({
-      msg: `Đã tạo Phiếu nhập hàng (${orderNos})! Bạn có thể theo dõi tại tab Đơn hàng.`,
-      isSuccess: true,
-    })
-    loadInventory()
-    loadOrders()
-    setActiveTab("orders")
-    setSearchParams({ tab: "orders" })
+    try {
+      await WarehouseService.createDryOrder(orderPayload)
+      const ordersToSave = Array.isArray(orderPayload) ? orderPayload : [orderPayload]
+      const orderNos = ordersToSave.map(o => o.orderNo).join(", ")
+      notice({
+        msg: `Đã tạo Phiếu nhập hàng (${orderNos}) thành công trên hệ thống Database!`,
+        isSuccess: true,
+      })
+      setSubView("list")
+      await Promise.all([loadInventory(), loadOrders()])
+      setActiveTab("orders")
+      setSearchParams({ tab: "orders" })
+    } catch (err) {
+      console.error("Lỗi tạo phiếu đồ khô lên DB:", err)
+      notice({
+        msg: "Lỗi tạo phiếu nhập đồ khô lên hệ thống. Vui lòng thử lại!",
+        isSuccess: false,
+      })
+    }
   }
 
   return (

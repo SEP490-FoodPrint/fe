@@ -201,16 +201,18 @@ export default function CreateDeliveryView({
 
   // 1. Quét thực đơn áp dụng theo ngày chọn (Hỗ trợ 1 ngày có nhiều thực đơn)
   const matchingMenusForDate = useMemo(() => {
-    if (!orderDate) return []
+    if (!orderDate) return effectiveMenus
     const target = String(orderDate).slice(0, 10)
-    return effectiveMenus.filter(m => {
+    const matches = effectiveMenus.filter(m => {
       const d1 = String(m.mealDate || "").slice(0, 10)
       const d2 = String(m.date || "").slice(0, 10)
       const d3 = String(m.weekStartDate || "").slice(0, 10)
       if (d1 === target || d2 === target || d3 === target) return true
-      if (Array.isArray(m.days) && m.days.some(d => String(d.date || "").slice(0, 10) === target)) return true
+      if (Array.isArray(m.days) && m.days.some(d => String(d.date || d.menuDate || "").slice(0, 10) === target)) return true
+      if (Array.isArray(m.menuDays) && m.menuDays.some(d => String(d.menuDate || d.date || "").slice(0, 10) === target)) return true
       return false
     })
+    return matches.length > 0 ? matches : effectiveMenus
   }, [effectiveMenus, orderDate])
 
   const isMultiMenuDate = matchingMenusForDate.length > 1
@@ -248,15 +250,27 @@ export default function CreateDeliveryView({
 
   // 3. Phân bổ suất Đợt 1 và Suất tối đa của từng thực đơn
   const menusPortionsMeta = useMemo(() => {
-    return activeMenus.map(m => {
+    return activeMenus.map((m, idx) => {
       const maxP = Number(m.maxPortions) || (isMultiMenu ? 400 : 850)
       const b1P = Math.floor(maxP / 2)
       let scope = m.targetScope
-      if (!scope || scope === "Khối lớp") {
-        if (m.name?.includes("1-3") || m.title?.includes("1-3")) scope = "Khối 1-3"
-        else if (m.name?.includes("4-5") || m.title?.includes("4-5")) scope = "Khối 4-5"
-        else if (Array.isArray(m.gradeNames) && m.gradeNames.length > 0) scope = m.gradeNames.join(" - ")
-        else scope = m.name || "Khối lớp"
+      if (
+        !scope ||
+        scope === "Khối lớp" ||
+        scope === "Khối 1-5" ||
+        scope.includes("Khối lớp 4-5 - Khối lớp 1-3") ||
+        scope.includes("4-5 -") ||
+        scope.includes("1-3 -")
+      ) {
+        if (m.name?.includes("1-3") || m.title?.includes("1-3")) {
+          scope = "Khối 1-3"
+        } else if (m.name?.includes("4-5") || m.title?.includes("4-5")) {
+          scope = "Khối 4-5"
+        } else if (isMultiMenu) {
+          scope = idx === 0 ? "Khối 1-3" : "Khối 4-5"
+        } else {
+          scope = "Toàn trường"
+        }
       }
       return {
         id: m.id,
@@ -346,6 +360,8 @@ export default function CreateDeliveryView({
         if (!groupedMap.has(key)) {
           groupedMap.set(key, {
             id: ing.id,
+            ingredientId: ing.ingredientId || ing.id,
+            ingredientEntryId: ing.ingredientEntryId || ing.id,
             name: ing.name,
             category: ing.category,
             unit: ing.unit,
@@ -708,7 +724,8 @@ export default function CreateDeliveryView({
         orderDate,
         note,
         items: itemsState.map(it => ({
-          ingredientId: it.id,
+          ingredientEntryId: it.ingredientEntryId || it.id,
+          ingredientId: it.ingredientId || it.id,
           ingredientName: it.name,
           handlingType: it.handlingType || "DIRECT_USE",
           unit: it.unit,
@@ -741,7 +758,8 @@ export default function CreateDeliveryView({
         orderDate,
         note,
         items: itemsState.map(it => ({
-          ingredientId: it.id,
+          ingredientEntryId: it.ingredientEntryId || it.id,
+          ingredientId: it.ingredientId || it.id,
           ingredientName: it.name,
           handlingType: it.handlingType || "DIRECT_USE",
           unit: it.unit,
@@ -1018,7 +1036,7 @@ export default function CreateDeliveryView({
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={ing.handlingType === "DRY_STOCK" ? "Kho khô" : "Tươi sống (Dùng ngay)"}
+                              label="Tươi sống (Dùng ngay)"
                               size="small"
                               className={styles.freshChip}
                             />
@@ -1551,7 +1569,7 @@ export default function CreateDeliveryView({
                           </TableCell>
                           <TableCell>
                             <Chip
-                              label={ing.handlingType === "DRY_STOCK" ? "Kho khô" : "Tươi sống (Dùng ngay)"}
+                              label="Tươi sống (Dùng ngay)"
                               size="small"
                               className={styles.freshChip}
                             />
