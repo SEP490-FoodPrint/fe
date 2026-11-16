@@ -1,0 +1,223 @@
+/* ==========================================================================
+   AUTH SPLIT LAYOUT
+   - Split-screen edge-to-edge layout for all authentication & recovery pages.
+   - Left Column (45%): Showcase vertical image with gradient scrim and typography.
+   - Right Column (55%): Centered card area with smooth scroll and clean background.
+   ========================================================================== */
+
+.splitPage {
+  position: relative;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* Ambient glows */
+.ambientGlowTop {
+  position: absolute;
+  top: -120px;
+  right: 5%;
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(10, 128, 102, 0.07) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ambientGlowBottom {
+  position: absolute;
+  bottom: -80px;
+  right: 25%;
+  width: 420px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(148, 245, 213, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   LEFT COLUMN: Showcase Image with Overlay Text
+   ========================================================================== */
+.leftCol {
+  flex: 0 0 45%;
+  width: 45%;
+  max-width: 45%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 1200px) {
+    flex: 0 0 44%;
+    width: 44%;
+    max-width: 44%;
+  }
+
+  @media (max-width: 1024px) {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    min-height: 380px;
+    height: auto;
+  }
+
+  @media (max-width: 600px) {
+    min-height: 320px;
+  }
+}
+
+.bgShowcaseImg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  display: block;
+  z-index: 1;
+}
+
+.leftColOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.78) 22%,
+    rgba(255, 255, 255, 0.42) 48%,
+    rgba(255, 255, 255, 0.15) 75%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+
+  @media (max-width: 1024px) {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.92) 0%,
+      rgba(255, 255, 255, 0.65) 45%,
+      rgba(255, 255, 255, 0.1) 100%
+    );
+  }
+}
+
+.leftColContent {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  padding: 48px 56px 40px;
+  box-sizing: border-box;
+
+  @media (max-width: 1200px) {
+    padding: 36px 40px 32px;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 28px 24px 32px;
+  }
+}
+
+.logoWrapper {
+  display: inline-block;
+}
+
+.brandLink {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+}
+
+.heroCenter {
+  margin-top: 24px;
+  max-width: 520px;
+}
+
+.heroTitle {
+  font-size: clamp(30px, 3.2vw, 42px);
+  font-weight: 850;
+  line-height: 1.18;
+  color: #112d25;
+  letter-spacing: -0.035em;
+  margin: 0 0 16px 0;
+}
+
+.highlightText {
+  position: relative;
+  display: inline-block;
+  color: var(--color-primary, #0A8066);
+  white-space: nowrap;
+}
+
+.brushCurve {
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 12px;
+  pointer-events: none;
+}
+
+.heroDescription {
+  font-size: 15.5px;
+  line-height: 1.6;
+  color: #244238;
+  font-weight: 500;
+  margin: 0;
+  max-width: 440px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: Centered Form Area
+   ========================================================================== */
+.rightCol {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 55%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 48px;
+  background-color: #ffffff;
+  overflow-y: auto;
+  z-index: 4;
+  box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    flex: none;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    padding: 36px 20px 48px;
+    overflow-y: visible;
+  }
+}
+
+.cardContainer {
+  width: 100%;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+}

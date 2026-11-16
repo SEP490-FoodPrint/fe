@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react"
 import { Button } from "@mui/material"
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import CheckOutlinedIcon from "@mui/icons-material/CheckOutlined"
+import { ArrowLeft } from "lucide-react"
 import AuthCard, { AuthHeading, AuthStatusIcon } from "src/components/Auth/AuthCard"
 import AuthInput from "src/components/Auth/AuthInput"
 import EmailCodeForm from "src/components/Auth/EmailCodeForm"
@@ -130,7 +131,7 @@ export default function ActivationForm() {
     code={code} onCodeChange={setCode} errors={errors} message={message} notice={notice}
     sending={sending} verifying={verifying} remaining={remaining} verified={verified}
     onSubmit={verify} onResend={resend} submitLabel="Xác nhận tài khoản"
-    footer={<Button component={Link} to={ROUTER.REGISTER} className={form.link} disabled={sending || verifying}>Quay lại đăng ký</Button>}
+    footer={<Button component={Link} to={ROUTER.REGISTER} className={form.link} startIcon={<ArrowLeft size={16} />} disabled={sending || verifying}>Quay lại đăng ký</Button>}
   >
     {!memoryPassword && <AuthInput id="activation-password" label="Mật khẩu tài khoản" type="password" required span="full" autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} error={errors["activation-password"]} placeholder="Nhập mật khẩu bạn đã đăng ký" hint="Nhập mật khẩu để đăng nhập sau khi xác nhận email." disabled={sending || verifying} />}
   </EmailCodeForm>
