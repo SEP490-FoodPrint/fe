@@ -33,6 +33,35 @@ const TrackingService = {
           ? `PN-${so.requestNo ? so.requestNo.replace("PO-", "").replace("-B2", "") : so.id}-D2`
           : `PN-${so.requestNo ? so.requestNo.replace("PO-", "") : so.id}-D1`
 
+        // Giờ hẹn giao
+        const timeMatch = String(so.note || "").match(/\b(\d{1,2}:\d{2})\b/)
+        const deliveryTime = timeMatch ? timeMatch[1] : isDry ? "14:30" : isB2 ? "07:45" : "05:30"
+        const dateStr = so.requestedDeliveryDate ? String(so.requestedDeliveryDate).slice(0, 10) : "2026-11-16"
+
+        const scheduleMatch = String(so.note || "").match(/Lịch hẹn giao:\s*([^.]+)/i)
+        const deliverySchedule = scheduleMatch ? scheduleMatch[1].trim() : `${deliveryTime} - Ngày ${dateStr}`
+
+        const rawItems = Array.isArray(so.items) ? so.items : Array.isArray(so.supplyRequestItems) ? so.supplyRequestItems : []
+        const deliveryItems = rawItems.map(it => {
+          const q = Number(it.quantity ?? it.requestedQuantity ?? it.qty ?? 0)
+          const n = it.ingredientName || it.name || it.IngredientEntry?.Ingredient?.name || "Nguyên liệu"
+          return {
+            id: it.id,
+            ingredientEntryId: it.ingredientEntryId,
+            ingredientName: n,
+            name: n,
+            qty: q,
+            requestedQuantity: q,
+            actualQuantity: q,
+            orderedQty: q,
+            unit: it.unit || "kg",
+            spec: it.spec || it.note || "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng",
+            supplierId: it.supplierId || so.supplierId,
+            supplierName: it.supplierName || so.supplierName || "Nhà cung cấp đối tác",
+            handlingType: isDry ? "DRY_STOCK" : "DIRECT_USE",
+          }
+        })
+
         return adaptTrackingOrder({
           id: so.id,
           deliveryNo,
@@ -40,25 +69,17 @@ const TrackingService = {
           supplierId: so.supplierId,
           supplierName: so.supplierName || "Nhà cung cấp đối tác",
           supplierPhone: so.supplierPhone || "--",
-          deliveryDate: so.requestedDeliveryDate ? String(so.requestedDeliveryDate).slice(0, 10) : "2026-11-16",
+          deliveryDate: dateStr,
+          deliveryTime,
+          deliverySchedule,
           expectedArrivalAt: so.requestedDeliveryDate,
           batchType: isDry ? "DRY_STOCK" : isB2 ? "BATCH_2" : "BATCH_1",
           orderType,
           status: so.status === "DRAFT" || so.status === "SENT" ? "CONFIRMED" : so.status === "ACCEPTED" ? "CONFIRMED" : so.status,
           rawStatus: so.status,
           note: so.note || (isDry ? "Đồ khô kho trường" : "Thực phẩm tươi sống dùng trong ngày"),
-          deliveryItems: Array.isArray(so.items)
-            ? so.items.map(it => ({
-                id: it.id,
-                ingredientName: it.ingredientName || it.name || "Nguyên liệu",
-                requestedQuantity: it.quantity || 0,
-                actualQuantity: it.quantity || 0,
-                unit: it.unit || "kg",
-                supplierId: so.supplierId,
-                supplierName: so.supplierName || "Nhà cung cấp đối tác",
-                handlingType: isDry ? "DRY_STOCK" : "DIRECT_USE",
-              }))
-            : [],
+          deliveryItems,
+          items: deliveryItems,
         })
       }).filter(Boolean)
     } catch (err) {
@@ -101,7 +122,8 @@ const TrackingService = {
       const suppliersList = Array.from(supNames)
       return {
         ...first,
-        id: `group-${baseOrderNo}`,
+        id: first.id,
+        groupId: `group-${baseOrderNo}`,
         orderNo: baseOrderNo,
         deliveryNo: baseDeliveryNo,
         supplierName:
@@ -144,7 +166,64 @@ const TrackingService = {
           notifyOnError: false,
         })
         const data = response?.data || response
-        if (data) return adaptTrackingOrder(data)
+        if (data) {
+          const so = data
+          const isDry = so.requestNo?.includes("DRY") || so.requestNo?.includes("dry") || so.requestNo?.includes("PNK")
+          const isB2 = so.requestNo?.includes("B2") || so.requestNo?.includes("-D2")
+          const orderType = isDry ? "DRY_STOCK" : isB2 ? "FRESH_BATCH_2" : "FRESH_BATCH_1"
+          const deliveryNo = isDry
+            ? `PNK-${so.requestNo ? so.requestNo.replace("PO-DRY-", "").replace("PO-", "") : so.id}`
+            : isB2
+            ? `PN-${so.requestNo ? so.requestNo.replace("PO-", "").replace("-B2", "") : so.id}-D2`
+            : `PN-${so.requestNo ? so.requestNo.replace("PO-", "") : so.id}-D1`
+
+          const timeMatch = String(so.note || "").match(/\b(\d{1,2}:\d{2})\b/)
+          const deliveryTime = timeMatch ? timeMatch[1] : isDry ? "14:30" : isB2 ? "07:45" : "05:30"
+          const dateStr = so.requestedDeliveryDate ? String(so.requestedDeliveryDate).slice(0, 10) : "2026-11-16"
+          const scheduleMatch = String(so.note || "").match(/Lịch hẹn giao:\s*([^.]+)/i)
+          const deliverySchedule = scheduleMatch ? scheduleMatch[1].trim() : `${deliveryTime} - Ngày ${dateStr}`
+
+          const rawItems = Array.isArray(so.items) ? so.items : Array.isArray(so.supplyRequestItems) ? so.supplyRequestItems : []
+          const deliveryItems = rawItems.map(it => {
+            const q = Number(it.quantity ?? it.requestedQuantity ?? it.qty ?? 0)
+            const n = it.ingredientName || it.name || it.IngredientEntry?.Ingredient?.name || "Nguyên liệu"
+            return {
+              id: it.id,
+              ingredientEntryId: it.ingredientEntryId,
+              ingredientName: n,
+              name: n,
+              qty: q,
+              requestedQuantity: q,
+              actualQuantity: q,
+              orderedQty: q,
+              unit: it.unit || "kg",
+              spec: it.spec || it.note || "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng",
+              supplierId: it.supplierId || so.supplierId,
+              supplierName: it.supplierName || so.supplierName || "Nhà cung cấp đối tác",
+              handlingType: isDry ? "DRY_STOCK" : "DIRECT_USE",
+            }
+          })
+
+          return adaptTrackingOrder({
+            id: so.id,
+            deliveryNo,
+            orderNo: so.requestNo,
+            supplierId: so.supplierId,
+            supplierName: so.supplierName || "Nhà cung cấp đối tác",
+            supplierPhone: so.supplierPhone || "--",
+            deliveryDate: dateStr,
+            deliveryTime,
+            deliverySchedule,
+            expectedArrivalAt: so.requestedDeliveryDate,
+            batchType: isDry ? "DRY_STOCK" : isB2 ? "BATCH_2" : "BATCH_1",
+            orderType,
+            status: so.status === "DRAFT" || so.status === "SENT" ? "CONFIRMED" : so.status === "ACCEPTED" ? "CONFIRMED" : so.status,
+            rawStatus: so.status,
+            note: so.note || (isDry ? "Đồ khô kho trường" : "Thực phẩm tươi sống dùng trong ngày"),
+            deliveryItems,
+            items: deliveryItems,
+          })
+        }
       } catch (err) {
         console.warn(`Lỗi khi tải chi tiết đợt giao ${id}:`, err)
       }

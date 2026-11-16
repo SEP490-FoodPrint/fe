@@ -136,13 +136,20 @@ const WarehouseService = {
         for (let i = 0; i < supplierEntries.length; i++) {
           const [sId, sItems] = supplierEntries[i]
           const reqNo = supplierEntries.length > 1 ? `${order.orderNo}-${i + 1}` : order.orderNo
-          const dateMatch = String(order.deliverySchedule || "").match(/\d{4}-\d{2}-\d{2}/)
-          const requestedDeliveryDate = dateMatch ? dateMatch[0] : new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+          const requestedDeliveryDate =
+            order.deliveryDate ||
+            String(order.deliverySchedule || "").match(/\d{4}-\d{2}-\d{2}/)?.[0] ||
+            new Date(Date.now() + 86400000).toISOString().slice(0, 10)
+
+          const noteText = order.deliverySchedule
+            ? `Lịch hẹn giao: ${order.deliverySchedule}. ${order.note || ""}`.trim()
+            : order.note || "Phiếu nhập đồ khô kho trường"
 
           const payload = {
             supplierId: sId,
             requestNo: reqNo,
             requestedDeliveryDate,
+            note: noteText,
             items: sItems.map(it => {
               // Tìm ingredientEntryId chuẩn từ DB
               let entryId = it.ingredientEntryId || it.id

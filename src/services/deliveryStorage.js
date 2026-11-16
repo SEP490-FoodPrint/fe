@@ -48,24 +48,15 @@ function getAllRawDeliveries() {
         }
       }
 
-      // Phục hồi supplierName cho từng item nếu đơn chưa có hoặc bị gán nhầm 1 NCC
+      // Phục hồi supplierName cho từng item nếu đơn chưa có
       if (Array.isArray(updatedItem.items) && updatedItem.items.length > 0) {
         let itemsChanged = false
         const fixedItems = updatedItem.items.map(it => {
-          const itName = (it.name || it.ingredientName || "").toLowerCase().trim()
-          if (itName.includes("gạo tẻ") && it.supplierName !== "Nhà cung cấp kiểm thử hợp đồng 1") {
+          if (!it.supplierName && updatedItem.supplierName) {
             itemsChanged = true
             return {
               ...it,
-              supplierId: "80000000-0000-4000-8000-000000000001",
-              supplierName: "Nhà cung cấp kiểm thử hợp đồng 1",
-            }
-          }
-          if (!it.supplierName && (updatedItem.supplierName || "").includes("An Nhiên")) {
-            itemsChanged = true
-            return {
-              ...it,
-              supplierName: "Công ty TNHH Thực phẩm An Nhiên",
+              supplierName: updatedItem.supplierName,
             }
           }
           return it
@@ -78,6 +69,9 @@ function getAllRawDeliveries() {
             ...updatedItem,
             items: fixedItems,
             suppliers: uniqueSups.length > 0 ? uniqueSups : updatedItem.suppliers,
+          }
+        }
+      }
           }
         }
       }

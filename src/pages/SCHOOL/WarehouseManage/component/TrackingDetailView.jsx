@@ -48,19 +48,15 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
       return it.supplierName
     }
 
-    // 3. Quy tắc riêng cho mặt hàng Gạo tẻ của trường Cầu Giấy (NCC kiểm thử)
-    if (rawItName.includes("gạo tẻ")) {
-      return "Nhà cung cấp kiểm thử hợp đồng 1"
-    }
-
     return item?.supplierName || "Nhà cung cấp đối tác"
   }
 
   // Phân nhóm nguyên liệu theo từng Nhà cung cấp để hiển thị chi tiết từng NCC giao gì
   const itemsBySupplier = useMemo(() => {
     const map = {}
-    if (Array.isArray(item?.items) && item.items.length > 0) {
-      item.items.forEach(it => {
+    const rawItemList = Array.isArray(item?.items) && item.items.length > 0 ? item.items : Array.isArray(item?.deliveryItems) ? item.deliveryItems : []
+    if (rawItemList.length > 0) {
+      rawItemList.forEach(it => {
         const supName = getItemSupplierName(it)
         if (!map[supName]) {
           map[supName] = []
@@ -404,7 +400,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
               </TableRow>
             </TableHead>
             <TableBody>
-              {item.items?.map((it, idx) => (
+              {(item.items || item.deliveryItems || [])?.map((it, idx) => (
                 <TableRow key={idx}>
                   <TableCell className={styles.itemTdName}>{it.name || it.ingredientName}</TableCell>
                   <TableCell className={styles.itemTd}>
@@ -420,10 +416,10 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                     </Typography>
                   </TableCell>
                   <TableCell className={styles.itemTdQty} align="right">
-                    {it.qty}
+                    {it.qty ?? it.quantity ?? it.requestedQuantity ?? 0}
                   </TableCell>
-                  <TableCell className={styles.itemTd}>{it.unit}</TableCell>
-                  <TableCell className={styles.itemTdSpec}>{it.spec}</TableCell>
+                  <TableCell className={styles.itemTd}>{it.unit || "kg"}</TableCell>
+                  <TableCell className={styles.itemTdSpec}>{it.spec || it.note || "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
