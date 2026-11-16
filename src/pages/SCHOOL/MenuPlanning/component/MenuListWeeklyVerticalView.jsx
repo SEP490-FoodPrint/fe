@@ -3,6 +3,7 @@ import {
   Calendar,
   Utensils,
   Coffee,
+  Sparkles,
   Eye,
   Edit2,
   AlertTriangle,
@@ -151,6 +152,8 @@ export default function MenuListWeeklyVerticalView({
         resolvedAfternoonMenu: resolvedAfternoon,
         lunchDishes: resolvedLunch?.dishes || [],
         afternoonDishes: resolvedAfternoon?.dishes || [],
+        seasonings: [...new Set(dayMenus.flatMap(menu => menu.seasonings || [])
+          .map(item => typeof item === "string" ? item : item.name).filter(Boolean))],
         progress,
         hasAllergy: Boolean(
           resolvedLunch?.hasAllergyMenu || resolvedAfternoon?.hasAllergyMenu
@@ -355,7 +358,7 @@ export default function MenuListWeeklyVerticalView({
 
       {/* 3. LƯỚI 5 CỘT THỰC ĐƠN DỌC - CÁC BỮA THẲNG HÀNG NHAU 100% */}
       <div className={styles.weeklyGridWrapper}>
-        <div className={styles.weeklyGrid}>
+        <div className={`${styles.weeklyGrid} ${mealTypeFilter !== "all" ? styles.singleMealGrid : ""}`}>
           {schoolDays.map((sd) => {
             const dayData = dayEvaluations[sd.dayOfWeek] || {}
             const {
@@ -365,6 +368,7 @@ export default function MenuListWeeklyVerticalView({
               resolvedAfternoonMenu,
               lunchDishes,
               afternoonDishes,
+              seasonings = [],
               progress,
               hasAllergy,
             } = dayData
@@ -430,7 +434,7 @@ export default function MenuListWeeklyVerticalView({
                       <div className={styles.holidayIconWrap}>
                         <CalendarOff size={24} className={styles.holidayIcon} />
                       </div>
-                      <div className={styles.holidayReasonBox}>
+                      <div className={styles.holidayReasonBox} title={sd.holidayReason || "Ngày nghỉ toàn trường"}>
                         <span className={styles.holidayReasonText}>
                           {sd.holidayReason || "Ngày nghỉ toàn trường"}
                         </span>
@@ -440,8 +444,7 @@ export default function MenuListWeeklyVerticalView({
                   ) : (
                     <div className={styles.dayMealsBody}>
                       {/* ========================================================
-                          KHỐI BỮA TRƯA: BANNER (36px) + DANH SÁCH MÓN (250px)
-                          TẤT CẢ 5 CỘT BẮT ĐẦU BỮA TRƯA CHÍNH XÁC TẠI CÙNG 1 ĐỘ CAO!
+                          BỮA TRƯA: CHIỀU CAO THEO NỘI DUNG DÀI NHẤT TRONG TUẦN
                           ======================================================== */}
                       {(mealTypeFilter === "all" || mealTypeFilter === "LUNCH") && (
                         <div className={styles.mealBlock}>
@@ -487,7 +490,7 @@ export default function MenuListWeeklyVerticalView({
                             </div>
                           </div>
 
-                          {/* Danh sách món trưa (Chiều cao cố định 250px) */}
+                          {/* Danh sách món trưa, không giới hạn số dòng */}
                           {hasLunch ? (
                             <div className={styles.dishesListLunch}>
                               {lunchDishes.map((dish) => {
@@ -531,8 +534,7 @@ export default function MenuListWeeklyVerticalView({
                       )}
 
                       {/* ========================================================
-                          KHỐI BỮA XẾ: BANNER (36px) + DANH SÁCH MÓN (100px)
-                          TẤT CẢ 5 CỘT BẮT ĐẦU BỮA XẾ CHÍNH XÁC TẠI CÙNG 1 ĐỘ CAO!
+                          BỮA XẾ: DÙNG CHUNG HÀNG VỚI CÁC NGÀY KHÁC
                           ======================================================== */}
                       {(mealTypeFilter === "all" || mealTypeFilter === "AFTERNOON") && (
                         <div className={styles.mealBlock}>
@@ -578,7 +580,7 @@ export default function MenuListWeeklyVerticalView({
                             </div>
                           </div>
 
-                          {/* Danh sách món xế (Chiều cao cố định 100px) */}
+                          {/* Danh sách món xế, không giới hạn số dòng */}
                           {hasAfternoon ? (
                             <div className={styles.dishesListAfternoon}>
                               {afternoonDishes.map((dish) => {
@@ -620,6 +622,27 @@ export default function MenuListWeeklyVerticalView({
                           )}
                         </div>
                       )}
+                      <div className={styles.mealBlock}>
+                        <div className={styles.seasoningBanner}>
+                          <div className={styles.bannerLeft}>
+                            <Sparkles size={13} className={styles.seasoningIcon} />
+                            <span className={styles.seasoningTitle}>GIA VỊ</span>
+                          </div>
+                        </div>
+                        {seasonings.length ? (
+                          <div className={styles.seasoningsList}>
+                            {seasonings.map(name => (
+                              <div key={name} className={styles.seasoningRow}>
+                                <span className={styles.dishName} title={name}>{name}</span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className={styles.emptySeasoningsBox}>
+                            <span className={styles.emptyMealText}>Không có gia vị</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>

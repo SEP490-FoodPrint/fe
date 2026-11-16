@@ -353,8 +353,10 @@
 }
 
 .weeklyGrid {
+  --menu-grid-rows: 4;
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(var(--menu-grid-rows), auto);
   /* Dãn đều 100% theo chiều ngang */
   gap: 12px;
   align-items: stretch;
@@ -362,21 +364,29 @@
   box-sizing: border-box;
 }
 
+.singleMealGrid {
+  --menu-grid-rows: 3;
+}
+
 .dayColItem {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span var(--menu-grid-rows);
+  row-gap: 0;
   min-width: 0;
-  height: 100%;
+  height: auto;
 }
 
 .dayCard {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / -1;
+  row-gap: 0;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
-  height: 100%;
+  height: auto;
   box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 
@@ -536,15 +546,18 @@
 
 /* Thân thực đơn */
 .dayMealsBody {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 2 / -1;
+  row-gap: 0;
+  min-width: 0;
   background-color: #ffffff;
-  flex: 1;
 }
 
 .mealBlock {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 /* ========================================================
@@ -626,26 +639,21 @@
 }
 
 /* ========================================================
-   DANH SÁCH MÓN BỮA TRƯA: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 250px
-   KHÔNG CÓ THANH LƯỚT DỌC
+   DANH SÁCH MÓN GIÃN THEO NỘI DUNG, KHÔNG CHE MÓN KHI THÊM DÒNG
    ======================================================== */
 .dishesListLunch {
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  height: 250px;
-  min-height: 250px;
-  max-height: 250px;
+  flex: 1;
   box-sizing: border-box;
-  overflow: hidden;
-  /* Tuyệt đối không có thanh lướt */
+  overflow: visible;
 }
 
-/* Khi ngày chưa có bữa trưa: Ô trống cao đúng 250px giữ nhịp bằng nhau */
+/* Ô trống theo cùng hàng với ngày có nhiều món nhất. */
 .emptySingleMealBox {
-  height: 250px;
-  min-height: 250px;
-  max-height: 250px;
+  min-height: 50px;
+  flex: 1;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -658,7 +666,7 @@
 
 /* ========================================================
    DẢI BỮA XẾ: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 36px
-   TẤT CẢ 5 NGÀY ĐỀU BẮT ĐẦU TẠI Y = 64px + 36px + 250px = 350px!
+   BẮT ĐẦU CÙNG HÀNG Ở MỌI NGÀY, THEO NỘI DUNG BỮA TRƯA
    ======================================================== */
 .afternoonBanner {
   display: flex;
@@ -715,26 +723,21 @@
 }
 
 /* ========================================================
-   DANH SÁCH MÓN BỮA XẾ: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 100px
-   KHÔNG CÓ THANH LƯỚT DỌC
+   DANH SÁCH MÓN BỮA XẾ GIÃN TỰ NHIÊN THEO SỐ MÓN
    ======================================================== */
 .dishesListAfternoon {
   display: flex;
   flex-direction: column;
   background-color: #ffffff;
-  height: 100px;
-  min-height: 100px;
-  max-height: 100px;
+  flex: 1;
   box-sizing: border-box;
-  overflow: hidden;
-  /* Tuyệt đối không có thanh lướt */
+  overflow: visible;
 }
 
-/* Khi ngày chưa có bữa xế: Ô trống cao đúng 100px giữ nhịp bằng nhau */
+/* Không giữ một khoảng trống cố định khi chưa có bữa xế. */
 .emptySingleMealBoxSm {
-  height: 100px;
-  min-height: 100px;
-  max-height: 100px;
+  min-height: 50px;
+  flex: 1;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -749,6 +752,61 @@
   color: #94a3b8;
   font-style: italic;
   text-align: center;
+}
+
+.seasoningBanner {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  background-color: var(--color-success-bg);
+  border-top: 1px solid var(--color-success-border);
+  border-bottom: 1px solid var(--color-success-border);
+}
+
+.seasoningIcon {
+  color: var(--color-success);
+  flex-shrink: 0;
+}
+
+.seasoningTitle {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-success);
+  letter-spacing: 0.04em;
+}
+
+.seasoningsList {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.seasoningRow {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 34px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--bg-muted);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.emptySeasoningsBox {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 34px;
+  padding: 5px 10px;
+  box-sizing: border-box;
+  background-color: var(--bg-page);
 }
 
 .addSingleMealBtn {
@@ -777,6 +835,7 @@
    DÒNG MÓN ĂN: CHIỀU CAO CỐ ĐỊNH CHÍNH XÁC 50px
    ======================================================== */
 .lunchDishRow {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -813,6 +872,7 @@
 }
 
 .afternoonDishRow {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -930,7 +990,10 @@
 }
 
 .holidayCardBody {
-  min-height: 422px;
+  grid-row: 2 / -1;
+  min-height: 100px;
+  container-type: size;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1003,6 +1066,18 @@
   font-weight: 500;
 }
 
+@container (max-height: 180px) {
+  .holidayIconWrap,
+  .holidaySubText {
+    display: none;
+  }
+
+  .holidayReasonBox {
+    max-height: 100%;
+    overflow: auto;
+  }
+}
+
 .mobileDayPillHoliday {
   background-color: #f1f5f9 !important;
   border-color: #cbd5e1 !important;
@@ -1018,6 +1093,11 @@
   .weeklyGrid {
     grid-template-columns: 1fr;
     gap: 0;
+  }
+
+  .holidayCardBody {
+    container-type: normal;
+    overflow: visible;
   }
 
   .mobileHidden {

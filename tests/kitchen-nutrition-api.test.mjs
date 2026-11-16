@@ -1245,3 +1245,28 @@ test("daily progress does not mark missing days approved and meal filters do not
   assert.match(filtered, /submitActive/)
   assert.doesNotMatch(filtered, /<button[^>]*disabled=""[^>]*title="Gửi thực đơn cả tuần/)
 })
+
+test("weekly list shows saved seasonings once per day and respects the selected meal", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: View } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuListWeeklyVerticalView.jsx")
+  const week = snapshot()
+  week.menuDays = [week.menuDays[0]]
+  week.menuDays[0].mealSeasonings = [
+    { mealType: "LUNCH", ingredientEntry: { Ingredient: { name: "Muối" } } },
+    { mealType: "AFTERNOON", ingredientEntry: { Ingredient: { name: "Muối" } } },
+    { mealType: "LUNCH", ingredientEntry: { Ingredient: { name: "Nước mắm" } } },
+    { mealType: "AFTERNOON", ingredientEntry: { Ingredient: { name: "Đường" } } },
+  ]
+  const cards = adapter.adaptWeeklyMenuToCardList(week)
+  const props = { schoolDays: [{ dateISO: "2026-11-02", dateVN: "02/11/2026", dayOfWeek: 1, dayLabel: "Thứ Hai" }], allMenus: cards, menus: cards, weekStatus: "DRAFT" }
+  const all = renderToStaticMarkup(React.createElement(View, props))
+  assert.match(all, /GIA VỊ/)
+  assert.equal((all.match(/>Muối<\/span>/g) || []).length, 1)
+  assert.match(all, />Nước mắm<\/span>/)
+  assert.match(all, />Đường<\/span>/)
+  const afternoon = renderToStaticMarkup(React.createElement(View, { ...props, mealTypeFilter: "AFTERNOON", menus: cards.filter(card => card.mealType === "AFTERNOON") }))
+  assert.match(afternoon, />Đường<\/span>/)
+  assert.doesNotMatch(afternoon, />Nước mắm<\/span>/)
+  assert.doesNotMatch(afternoon, /BỮA TRƯA/)
+})
