@@ -22,47 +22,113 @@
   top: 0;
   right: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 5;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
 }
 
-/* Left Column: Full-Height Hero & Visual Showcase */
+/* ==========================================================================
+   LEFT COLUMN: Full-Screen Showcase Image with Overlay Text
+   - Vertical image fills the entire left column (full-bleed, edge-to-edge).
+   - Text overlays cleanly with high contrast and legibility.
+   ========================================================================== */
 .leftCol {
-  flex: 1.15;
+  flex: 1 1 0;
+  min-width: 0;
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 0;
-  background: linear-gradient(160deg, #ffffff 0%, #f4fbf7 45%, #ecfdf5 100%);
-  border-right: 1px solid #e2e8f0;
   position: relative;
   overflow: hidden;
-  z-index: 2;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 1024px) {
     flex: none;
+    width: 100%;
+    min-height: 420px;
     height: auto;
-    border-right: none;
-    border-bottom: 1px solid #e2e8f0;
+  }
+
+  @media (max-width: 600px) {
+    min-height: 340px;
   }
 }
 
+/* Full-bleed vertical image covering the entire left column */
+.bgShowcaseImg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  border-radius: 0;
+  z-index: 1;
+}
+
+/* Smooth gradient overlay to ensure text is crisp and readable */
+.leftColOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.78) 28%,
+    rgba(255, 255, 255, 0.35) 60%,
+    rgba(255, 255, 255, 0.05) 85%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+
+  @media (max-width: 1024px) {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.8) 50%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+  }
+}
+
+/* Content container sitting on top of the image */
 .leftColContent {
-  padding: 36px 56px 0;
+  position: relative;
+  z-index: 3;
+  padding: 44px 56px 36px;
   display: flex;
   flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
 
   @media (max-width: 1200px) {
-    padding: 32px 40px 0;
+    padding: 36px 40px 28px;
   }
 
   @media (max-width: 1024px) {
-    padding: 32px 24px 0;
+    padding: 36px 24px 32px;
+    align-items: center;
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    padding: 28px 18px 24px;
   }
 }
 
 .logoWrapper {
-  margin-bottom: 18px;
+  margin-bottom: 24px;
+  display: flex;
+
+  @media (max-width: 1024px) {
+    justify-content: center;
+    margin-bottom: 18px;
+  }
 }
 
 .brandLink {
@@ -71,7 +137,7 @@
 }
 
 .heroCenter {
-  margin: 8px 0 0;
+  margin: 0;
   padding: 0;
 }
 
@@ -83,9 +149,19 @@
   color: #064e3b;
   margin: 0 0 12px;
   letter-spacing: -0.025em;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+
+  @media (max-width: 1400px) {
+    font-size: 34px;
+  }
 
   @media (max-width: 1200px) {
-    font-size: 32px;
+    font-size: 30px;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 25px;
+    line-height: 1.25;
   }
 }
 
@@ -107,34 +183,58 @@
 .heroDescription {
   font-size: 15px;
   line-height: 1.55;
-  color: #475569;
-  margin: 0 0 16px;
+  color: #1e293b;
+  font-weight: 500;
+  margin: 0 0 18px;
   max-width: 520px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+
+  @media (max-width: 1200px) {
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 1024px) {
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 .tagList {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 9px;
+
+  @media (max-width: 1024px) {
+    justify-content: center;
+  }
 }
 
 .tagItem {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 14px;
-  background-color: #ffffff;
-  border: 1px solid rgba(10, 128, 102, 0.2);
+  padding: 7px 14px;
+  background-color: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(10, 128, 102, 0.28);
   border-radius: 9999px;
-  box-shadow: 0 2px 8px rgba(10, 128, 102, 0.05);
+  box-shadow: 0 4px 12px rgba(10, 128, 102, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
   font-size: 13.5px;
   font-weight: 600;
-  color: #0f172a;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  color: #064e3b;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(10, 128, 102, 0.08);
+    box-shadow: 0 6px 16px rgba(10, 128, 102, 0.14);
+    background-color: #ffffff;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 12px;
+    padding: 6px 11px;
   }
 }
 
@@ -143,73 +243,81 @@
   flex-shrink: 0;
 }
 
-.showcaseCard {
-  width: 100%;
-  margin-top: auto;
-  border-radius: 0;
-  border: none;
-  box-shadow: none;
-  overflow: hidden;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  line-height: 0;
-}
-
-.showcaseImage {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: calc(100vh - 250px);
-  object-fit: cover;
-  object-position: center bottom;
-  border-radius: 0;
-
-  @media (max-width: 1024px) {
-    max-height: 380px;
-  }
-}
-
-/* Right Column: Floating Login Card */
+/* ==========================================================================
+   RIGHT COLUMN: Fixed-Width Floating Login Area
+   - Fixed width so the form NEVER deforms, shrinks or stretches.
+   - Pinned on desktop with independent scrolling if height is compact.
+   ========================================================================== */
 .rightCol {
-  flex: 0.85;
+  width: 480px;
+  flex: 0 0 480px;
+  min-width: 480px;
+  max-width: 480px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 48px;
+  padding: 36px 36px;
   background-color: #ffffff;
   overflow-y: auto;
-  z-index: 2;
+  z-index: 4;
+  box-sizing: border-box;
+  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.04);
+
+  @media (max-width: 1200px) {
+    width: 440px;
+    flex: 0 0 440px;
+    min-width: 440px;
+    max-width: 440px;
+    padding: 32px 28px;
+  }
 
   @media (max-width: 1024px) {
+    width: 100%;
     flex: none;
+    min-width: 0;
+    max-width: 100%;
     height: auto;
-    padding: 36px 20px 48px;
+    min-height: auto;
+    padding: 40px 20px 48px;
+    background-color: #ffffff;
+    box-shadow: none;
   }
 }
 
 .loginCard {
   width: 100%;
-  max-width: 440px;
+  max-width: 408px;
   background: #ffffff;
-  border-radius: 28px;
+  border-radius: 24px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 20px 45px -10px rgba(10, 128, 102, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03);
-  padding: 36px 36px 32px;
+  padding: 34px 32px 30px;
+  box-sizing: border-box;
+
+  @media (max-width: 600px) {
+    padding: 26px 18px 22px;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px -5px rgba(10, 128, 102, 0.08);
+  }
 }
 
 .cardTitle {
   font-size: 26px;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 24px;
+  margin: 0 0 22px;
   letter-spacing: -0.02em;
   text-align: center;
+
+  @media (max-width: 600px) {
+    font-size: 23px;
+    margin-bottom: 18px;
+  }
 }
 
 .alertNotice {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   border-radius: 12px;
   font-size: 13.5px;
 }
@@ -218,14 +326,14 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 11px 13px;
   background-color: #fef2f2;
   border: 1px solid #fecaca;
   border-radius: 12px;
   color: #991b1b;
   font-size: 13.5px;
   font-weight: 500;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   line-height: 1.4;
 }
 
@@ -237,13 +345,13 @@
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 6px;
 }
 
 .fieldLabel {
@@ -311,6 +419,11 @@
   &:disabled {
     cursor: not-allowed;
     background: #f8fafc;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 15px; /* Prevents auto-zoom in mobile Safari */
+    padding: 11px 12px 11px 40px;
   }
 }
 
@@ -480,16 +593,5 @@
     background-color: var(--color-primary-soft, #e6f4ea);
     border-color: var(--color-primary-dark, #08604d);
     color: var(--color-primary-dark, #08604d);
-  }
-}
-
-@media (max-width: 600px) {
-  .heroTitle {
-    font-size: 28px;
-  }
-
-  .loginCard {
-    padding: 28px 20px 24px;
-    border-radius: 20px;
   }
 }

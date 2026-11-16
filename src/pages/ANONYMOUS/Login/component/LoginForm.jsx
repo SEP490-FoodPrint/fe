@@ -67,8 +67,20 @@ export default function LoginForm({
         </svg>
       </div>
 
-      {/* LEFT COLUMN: Hero & Visual Showcase (Full Bleed Edge to Edge) */}
+      {/* LEFT COLUMN: Full-Screen Showcase Image with Overlay Text */}
       <div className={styles.leftCol}>
+        {/* Full-bleed vertical showcase image */}
+        <img
+          src={showcaseImg}
+          alt="Suất ăn học đường an toàn - Hệ thống quản lý và truy xuất nguồn gốc FoodPrint"
+          className={styles.bgShowcaseImg}
+          loading="eager"
+        />
+
+        {/* Soft readable gradient scrim */}
+        <div className={styles.leftColOverlay} aria-hidden="true" />
+
+        {/* Text Content overlaid on top of image */}
         <div className={styles.leftColContent}>
           {/* Top: Brand Logo */}
           <div className={styles.logoWrapper}>
@@ -110,19 +122,9 @@ export default function LoginForm({
             </div>
           </div>
         </div>
-
-        {/* Bottom: Showcase Image (Full Left-Right and Bottom, Sharp Edges, No Crop) */}
-        <div className={styles.showcaseCard}>
-          <img
-            src={showcaseImg}
-            alt="Suất ăn học đường an toàn - Học sinh nhận suất ăn dinh dưỡng"
-            className={styles.showcaseImage}
-            loading="eager"
-          />
-        </div>
       </div>
 
-      {/* RIGHT COLUMN: Floating Login Card */}
+      {/* RIGHT COLUMN: Fixed-Width Floating Login Area */}
       <div className={styles.rightCol}>
         <div className={styles.loginCard}>
           {/* Card Title */}
