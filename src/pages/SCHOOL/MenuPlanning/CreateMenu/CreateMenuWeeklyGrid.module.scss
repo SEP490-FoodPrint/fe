@@ -1,6 +1,6 @@
 /* ========================================================
-   LƯỚI 5 CỘT THỰC ĐƠN TUẦN - CO GIÃN TỰ NHIÊN THEO MÓN ĂN
-   THÊM MÓN THÌ DÀI RA VÀ ĐẨY XUỐNG, KHÔNG CỐ ĐỊNH, KHÔNG MẤT NỘI DUNG
+   CÁC NGÀY DÙNG CHUNG HÀNG CHO HEADER, BỮA TRƯA, BỮA XẾ VÀ GIA VỊ
+   MỖI HÀNG GIÃN THEO CỘT DÀI NHẤT, KHÔNG CẮT NỘI DUNG MÓN ĂN
    ======================================================== */
 .weeklyGridWrapper {
   width: 100%;
@@ -11,8 +11,9 @@
 .weeklyGrid {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-rows: repeat(4, auto);
   gap: 12px;
-  align-items: start; /* Cho phép các cột co giãn dài tự nhiên theo nội dung */
+  align-items: stretch;
   width: 100%;
   box-sizing: border-box;
 
@@ -22,15 +23,19 @@
 }
 
 .dayColItem {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 4;
+  row-gap: 0;
   min-width: 0;
   height: auto;
 }
 
 .dayCard {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 1 / -1;
+  row-gap: 0;
   background-color: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
@@ -183,11 +188,13 @@
 }
 
 /* ========================================================
-   THÂN THỰC ĐƠN: TỰ ĐỘNG DÀI RA KHI THÊM MÓN, ĐẨY XUỐNG DƯỚI
+   DÙNG CHUNG BA HÀNG BỮA ĂN/GIA VỊ VỚI CÁC NGÀY CÙNG DÒNG
    ======================================================== */
 .dayMealsBody {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 2 / span 3;
+  min-width: 0;
   background-color: #ffffff;
   gap: 6px;
   padding-bottom: 6px;
@@ -196,6 +203,7 @@
 .mealBlock {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   height: auto;
   flex-shrink: 0;
 }
@@ -711,6 +719,7 @@
 }
 
 .holidayCardBody {
+  grid-row: 2 / span 3;
   min-height: 340px;
   display: flex;
   flex-direction: column;
