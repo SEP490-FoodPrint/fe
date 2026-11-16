@@ -48,19 +48,15 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
       return it.supplierName
     }
 
-    // 3. Quy tắc riêng cho mặt hàng Gạo tẻ của trường Cầu Giấy (NCC kiểm thử)
-    if (rawItName.includes("gạo tẻ")) {
-      return "Nhà cung cấp kiểm thử hợp đồng 1"
-    }
-
     return item?.supplierName || "Nhà cung cấp đối tác"
   }
 
   // Phân nhóm nguyên liệu theo từng Nhà cung cấp để hiển thị chi tiết từng NCC giao gì
   const itemsBySupplier = useMemo(() => {
     const map = {}
-    if (Array.isArray(item?.items) && item.items.length > 0) {
-      item.items.forEach(it => {
+    const rawItemList = Array.isArray(item?.items) && item.items.length > 0 ? item.items : Array.isArray(item?.deliveryItems) ? item.deliveryItems : []
+    if (rawItemList.length > 0) {
+      rawItemList.forEach(it => {
         const supName = getItemSupplierName(it)
         if (!map[supName]) {
           map[supName] = []
@@ -119,81 +115,28 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
       }
     }
 
-    // Nếu chỉ có 1 NCC và đơn hàng đã có thông tin cụ thể
-    if (
-      supplierCount === 1 &&
-      item.driverName &&
-      item.driverName !== "--" &&
-      !item.driverName.includes("Chờ")
-    ) {
+    // Nếu chỉ có 1 NCC và đơn hàng đã có thông tin cụ thể từ hệ thống
+    if (item.driverName && item.driverName !== "--" && !item.driverName.includes("Chờ") && item.vehiclePlate) {
       return {
         driver: item.driverName,
-        phone: item.driverPhone || "0987 654 321",
-        vehicle: item.vehiclePlate || "29H-456.78 (Xe tải lạnh chuyên dụng)",
-        temp: item.refrigerationTemp || "3.5°C (Đạt chuẩn bảo quản lạnh)",
+        phone: item.driverPhone || "--",
+        vehicle: item.vehiclePlate,
+        temp: item.refrigerationTemp || (item.orderType === "DRY_STOCK" ? "Nhiệt độ phòng (Khô ráo)" : "Chưa đo (Chờ xe tới)"),
         currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
         qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-01`,
       }
     }
 
-    const sLower = (sName || "").toLowerCase()
-    if (sLower.includes("ba vì") || sLower.includes("thịt")) {
-      return {
-        driver: "Nguyễn Văn Tuấn",
-        phone: "0912.839.221",
-        vehicle: "Xe đông lạnh 29H-839.22",
-        temp: item.orderType === "DRY_STOCK" ? "Nhiệt độ phòng (Khô ráo)" : "3.8°C (Đạt chuẩn)",
-        currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
-        qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-BV01`,
-      }
-    }
-    if (sLower.includes("đà lạt") || sLower.includes("rau") || sLower.includes("nông sản")) {
-      return {
-        driver: "Trần Quốc Toản",
-        phone: "0983.102.556",
-        vehicle: "Xe tải mát 49C-102.55",
-        temp: "5.2°C (Mát tươi)",
-        currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
-        qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-DL02`,
-      }
-    }
-    if (sLower.includes("chí linh") || sLower.includes("gà") || sLower.includes("trứng")) {
-      return {
-        driver: "Vũ Đình Hưng",
-        phone: "0904.291.804",
-        vehicle: "Xe chuyên dụng 34C-291.80",
-        temp: item.orderType === "DRY_STOCK" ? "Nhiệt độ phòng (Khô ráo)" : "4.1°C (Đạt chuẩn)",
-        currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
-        qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-CL03`,
-      }
-    }
-    if (sLower.includes("sông đà") || sLower.includes("thủy sản") || sLower.includes("cá")) {
-      return {
-        driver: "Lê Văn Thắng",
-        phone: "0934.114.672",
-        vehicle: "Xe lạnh thủy hải sản 28C-114.67",
-        temp: "2.5°C (Đạt chuẩn)",
-        currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
-        qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-SD04`,
-      }
-    }
-
     return {
-      driver:
-        item.driverName && idx === 0
-          ? item.driverName
-          : `Tài xế đối tác (Xe 29H-0${idx + 1}8.92)`,
-      phone: item.driverPhone && idx === 0 ? item.driverPhone : "0912.345.678",
-      vehicle:
-        item.vehiclePlate && idx === 0
-          ? item.vehiclePlate
-          : `Xe tải chuyên dụng 29H-0${idx + 1}8.92`,
+      driver: item.driverName && !item.driverName.includes("Chờ") ? item.driverName : "Chưa phân công (Chờ NCC điều xe)",
+      phone: item.driverPhone || "--",
+      vehicle: item.vehiclePlate || "Chưa điều xe",
       temp:
         item.refrigerationTemp ||
         (item.orderType === "DRY_STOCK"
           ? "Nhiệt độ phòng (Khô ráo)"
-          : "3.5°C (Đạt chuẩn)"),
-      currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
+          : "Chưa đo (Chờ xe tới)"),
+      currentLocation: item.currentLocation || "Chờ NCC xuất kho & điều xe",
       qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-0${idx + 1}`,
     }
   }
@@ -457,7 +400,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
               </TableRow>
             </TableHead>
             <TableBody>
-              {item.items?.map((it, idx) => (
+              {(item.items || item.deliveryItems || [])?.map((it, idx) => (
                 <TableRow key={idx}>
                   <TableCell className={styles.itemTdName}>{it.name || it.ingredientName}</TableCell>
                   <TableCell className={styles.itemTd}>
@@ -473,10 +416,10 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                     </Typography>
                   </TableCell>
                   <TableCell className={styles.itemTdQty} align="right">
-                    {it.qty}
+                    {it.qty ?? it.quantity ?? it.requestedQuantity ?? 0}
                   </TableCell>
-                  <TableCell className={styles.itemTd}>{it.unit}</TableCell>
-                  <TableCell className={styles.itemTdSpec}>{it.spec}</TableCell>
+                  <TableCell className={styles.itemTd}>{it.unit || "kg"}</TableCell>
+                  <TableCell className={styles.itemTdSpec}>{it.spec || it.note || "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng"}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

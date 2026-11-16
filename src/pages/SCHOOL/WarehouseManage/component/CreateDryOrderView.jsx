@@ -270,6 +270,8 @@ export default function CreateDryOrderView({
       suppliers: uniqueSuppliers,
       supplierPhone: allSelectedItems[0]?.supplierPhone || "",
       orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
+      deliveryDate,
+      deliveryTime,
       deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
       deliveryType,
       deliveryTypeLabel,
