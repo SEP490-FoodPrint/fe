@@ -26,6 +26,7 @@
     vertical-align: middle;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
+    overflow: hidden;
   }
 
   td {
@@ -37,6 +38,7 @@
     color: var(--text-primary);
     border-bottom: 1px solid var(--border-default);
     font-variant-numeric: tabular-nums;
+    overflow: hidden;
   }
 }
 
@@ -108,9 +110,8 @@
 }
 
 .codeChip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline-block;
+  max-width: 100%;
   padding: 4px 8px;
   border-radius: 4px;
   background: var(--bg-page);
@@ -119,6 +120,9 @@
   font-weight: var(--font-medium);
   line-height: 16px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
   font-variant-numeric: tabular-nums;
 }
 
@@ -216,6 +220,7 @@
   line-height: 16px;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
 }
 
 .cardUpdatedText {

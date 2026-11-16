@@ -11,8 +11,8 @@ const TONE_CLASS_MAP = {
   muted: styles.toneMuted,
 }
 
-function DeliveryStatusBadge({ status }) {
-  const meta = getDeliveryStatusMeta(status)
+function DeliveryStatusBadge({ status, statusLabel = "" }) {
+  const meta = getDeliveryStatusMeta(status, statusLabel)
   const toneClass = TONE_CLASS_MAP[meta.tone] || styles.toneMuted
 
   return (
@@ -24,6 +24,7 @@ function DeliveryStatusBadge({ status }) {
 
 DeliveryStatusBadge.propTypes = {
   status: PropTypes.string,
+  statusLabel: PropTypes.string,
 }
 
 export default DeliveryStatusBadge

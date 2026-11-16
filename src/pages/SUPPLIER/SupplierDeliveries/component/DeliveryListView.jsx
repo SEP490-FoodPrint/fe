@@ -13,6 +13,13 @@ import styles from "./DeliveryListView.module.scss"
 
 const SKELETON_ROWS = [0, 1, 2, 3, 4]
 
+function getDeliverySourceLabel(delivery) {
+  if (delivery?.sourceType !== DELIVERY_SOURCE_TYPE.REQUEST) {
+    return "Tạo thủ công"
+  }
+  return delivery.requestNo ? `YC · ${delivery.requestNo}` : "Từ yêu cầu"
+}
+
 function DeliveryListView({
   deliveries,
   pageTotalCount,
@@ -61,7 +68,7 @@ function DeliveryListView({
         <p className={styles.emptyDesc}>
           {hasActiveFilters
             ? "Thử xóa từ khóa hoặc chuyển bộ lọc nguồn tạo và trạng thái để xem toàn bộ đơn."
-            : "Tạo đơn giao từ yêu cầu đã tiếp nhận của trường học hoặc lập đơn giao độc lập cho đối tác liên kết."}
+            : "Đơn giao từ yêu cầu nhà trường sẽ được tạo ngay khi bạn tiếp nhận tại Đơn hàng Cung ứng; hoặc tạo đơn thủ công cho trường liên kết tại đây."}
         </p>
         {hasActiveFilters ? (
           <Button
@@ -80,7 +87,7 @@ function DeliveryListView({
             color="primary"
             startIcon={<Add />}
           >
-            Tạo đơn giao hàng
+            Tạo đơn thủ công
           </Button>
         )}
       </div>
@@ -119,6 +126,7 @@ function DeliveryListView({
               const detailPath = `${ROUTER.SUPPLIER_DELIVERIES}/${delivery.id}`
               const isRequestSource =
                 delivery.sourceType === DELIVERY_SOURCE_TYPE.REQUEST
+              const sourceLabel = getDeliverySourceLabel(delivery)
 
               return (
                 <tr key={delivery.id} className={styles.tableRow}>
@@ -141,27 +149,38 @@ function DeliveryListView({
                       className={`${styles.sourceChip} ${
                         isRequestSource ? styles.sourceChipRequest : ""
                       }`}
+                      title={sourceLabel}
                     >
-                      {isRequestSource
-                        ? delivery.requestNo
-                          ? `YC · ${delivery.requestNo}`
-                          : "Từ yêu cầu"
-                        : "Giao độc lập"}
+                      {sourceLabel}
                     </span>
                   </td>
 
                   <td className={styles.colSchool}>
-                    <Link to={detailPath} className={styles.schoolLink}>
+                    <Link
+                      to={detailPath}
+                      className={styles.schoolLink}
+                      title={delivery.schoolName}
+                    >
                       {delivery.schoolName}
                     </Link>
                   </td>
 
                   <td className={`${styles.colExpected} ${styles.cellMuted}`}>
-                    {formatDateTimeVi(delivery.expectedArrivalAt)}
+                    <span className={styles.expectedDateText}>
+                      {formatDateTimeVi(delivery.expectedArrivalAt)}
+                    </span>
+                    {delivery.vehiclePlate && (
+                      <span className={styles.plateSubText}>
+                        {`Xe: ${delivery.vehiclePlate}`}
+                      </span>
+                    )}
                   </td>
 
                   <td className={styles.colStatus}>
-                    <DeliveryStatusBadge status={delivery.status} />
+                    <DeliveryStatusBadge
+                      status={delivery.status}
+                      statusLabel={delivery.statusLabel}
+                    />
                   </td>
                 </tr>
               )
@@ -175,13 +194,22 @@ function DeliveryListView({
           const detailPath = `${ROUTER.SUPPLIER_DELIVERIES}/${delivery.id}`
           const isRequestSource =
             delivery.sourceType === DELIVERY_SOURCE_TYPE.REQUEST
+          const sourceLabel = getDeliverySourceLabel(delivery)
 
           return (
             <li key={delivery.id} className={styles.mobileItem}>
               <Link to={detailPath} className={styles.mobileRowLink}>
                 <div className={styles.mobileTopRow}>
-                  <span className={styles.mobileCodeChip}>{delivery.deliveryNo}</span>
-                  <DeliveryStatusBadge status={delivery.status} />
+                  <span
+                    className={styles.mobileCodeChip}
+                    title={delivery.deliveryNo}
+                  >
+                    {delivery.deliveryNo}
+                  </span>
+                  <DeliveryStatusBadge
+                    status={delivery.status}
+                    statusLabel={delivery.statusLabel}
+                  />
                 </div>
                 <span className={styles.mobileSchoolName}>{delivery.schoolName}</span>
                 <div className={styles.mobileMetaRow}>
@@ -189,16 +217,16 @@ function DeliveryListView({
                     className={`${styles.sourceChip} ${
                       isRequestSource ? styles.sourceChipRequest : ""
                     }`}
+                    title={sourceLabel}
                   >
-                    {isRequestSource
-                      ? delivery.requestNo
-                        ? `YC · ${delivery.requestNo}`
-                        : "Từ yêu cầu"
-                      : "Giao độc lập"}
+                    {sourceLabel}
                   </span>
                   <span>
                     {`Dự kiến: ${formatDateTimeVi(delivery.expectedArrivalAt)}`}
                   </span>
+                  {delivery.vehiclePlate && (
+                    <span>{`Xe: ${delivery.vehiclePlate}`}</span>
+                  )}
                 </div>
               </Link>
             </li>

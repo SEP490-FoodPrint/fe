@@ -4,63 +4,112 @@ import { Link } from "react-router-dom"
 import { Button, CircularProgress } from "@mui/material"
 import {
   Add,
+  ArrowBack,
+  ArrowForward,
   DeleteOutlined,
+  InfoOutlined,
   KeyboardArrowDown,
   KeyboardArrowLeft,
+  LocalShippingOutlined,
 } from "@mui/icons-material"
 import ROUTER from "src/router/ROUTER"
 import SupplierDeliveryService, {
   DELIVERY_SOURCE_TYPE,
+  DUPLICATE_INGREDIENT_FACILITY_MSG,
   extractApiError,
-  formatDateTimeVi,
+  formatQuantityVi,
+  formatSourceFacilityLabel,
   generateIdempotencyKey,
+  getDuplicateIngredientFacilityIndices,
+  normalizeOptionId,
+  ORDER_CREATION_STAGE,
   toIsoWithTimezoneOffset,
   validateDeliveryDraft,
+  validateDeliveryIngredientsStep,
+  validateDeliveryLogisticsStep,
+  WORKFLOW_STAGE_STATUS,
 } from "src/services/SupplierDeliveryService"
-import SupplierOrderService, {
-  formatDateVi,
-  formatQuantityVi,
-  SUPPLY_ORDER_STATUS,
-} from "src/services/SupplierOrderService"
+import DeliveryStageStepper from "./DeliveryStageStepper"
+import WorkflowStageBadge from "./WorkflowStageBadge"
 import styles from "./DeliveryCreateView.module.scss"
 
-function createEmptyItemRow() {
+const MANUAL_ORDER_STEPS = [
+  {
+    key: ORDER_CREATION_STAGE.INGREDIENTS,
+    title: "1. Trường nhận & nguyên liệu",
+    statusText: "Đang chuẩn bị hàng",
+  },
+  {
+    key: ORDER_CREATION_STAGE.LOGISTICS,
+    title: "2. Vận chuyển & biển số xe",
+    statusText: "Đang giao hàng",
+  },
+]
+
+function createEmptyItemRow(defaultFacilityId = "") {
   return {
     rowKey: generateIdempotencyKey(),
     ingredientId: "",
+    sourceFacilityId: defaultFacilityId,
     actualQuantity: "",
     unit: "",
   }
 }
 
-function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
-  const [sourceType, setSourceType] = useState(
-    initialSupplyRequestId
-      ? DELIVERY_SOURCE_TYPE.REQUEST
-      : DELIVERY_SOURCE_TYPE.REQUEST,
-  )
-  const [supplyRequestId, setSupplyRequestId] = useState(initialSupplyRequestId)
-  const [schoolId, setSchoolId] = useState("")
-  const [items, setItems] = useState(() => [createEmptyItemRow()])
-  const [expectedArrivalLocal, setExpectedArrivalLocal] = useState("")
-  const [vehiclePlate, setVehiclePlate] = useState("")
-  const [note, setNote] = useState("")
+function buildDuplicateItemErrors(rows = []) {
+  const duplicateIndices = getDuplicateIngredientFacilityIndices(rows)
+  if (duplicateIndices.size === 0) return undefined
+  const mapped = {}
+  duplicateIndices.forEach(index => {
+    mapped[index] = {
+      sourceFacilityId: DUPLICATE_INGREDIENT_FACILITY_MSG,
+    }
+  })
+  return mapped
+}
 
-  const [acceptedOrders, setAcceptedOrders] = useState([])
+function mapApiItemsFieldErrors(fieldErrors = {}) {
+  const mapped = {}
+  Object.entries(fieldErrors).forEach(([field, message]) => {
+    const match = /^items\.(\d+)\.(\w+)$/.exec(field)
+    if (!match) return
+    const index = Number(match[1])
+    const key = match[2]
+    if (!Number.isInteger(index) || index < 0) return
+    mapped[index] = {
+      ...(mapped[index] || {}),
+      [key]: message,
+    }
+  })
+  return mapped
+}
+
+function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
   const [schoolOptions, setSchoolOptions] = useState([])
   const [ingredientOptions, setIngredientOptions] = useState([])
+  const [sourceFacilityOptions, setSourceFacilityOptions] = useState([])
   const [loadingOptions, setLoadingOptions] = useState(true)
   const [optionsError, setOptionsError] = useState("")
 
-  const [requestPreview, setRequestPreview] = useState(null)
-  const [loadingPreview, setLoadingPreview] = useState(false)
-  const [previewError, setPreviewError] = useState("")
+  // Proactive manual delivery starts directly at Step 1 (school + ingredients -> preparing)
+  const [stage, setStage] = useState(ORDER_CREATION_STAGE.INGREDIENTS)
+  const [highestStageIndex, setHighestStageIndex] = useState(0)
+  const [pendingDispatchDelivery, setPendingDispatchDelivery] = useState(null)
+
+  // Step 1 state
+  const [schoolId, setSchoolId] = useState("")
+  const [items, setItems] = useState(() => [createEmptyItemRow()])
+  const [prefillNotice, setPrefillNotice] = useState(null)
+
+  // Step 2 state (preserved when navigating back to Step 1)
+  const [expectedArrivalLocal, setExpectedArrivalLocal] = useState("")
+  const [vehiclePlate, setVehiclePlate] = useState("")
+  const [note, setNote] = useState("")
 
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
-  // Preserve key across retries of an identical submission, rotate on payload change.
   const idempotencyKeyRef = useRef(generateIdempotencyKey())
   const rotateKey = () => {
     idempotencyKeyRef.current = generateIdempotencyKey()
@@ -71,13 +120,13 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
     setLoadingOptions(true)
     setOptionsError("")
 
+    const prefillPromise = prefillDeliveryId
+      ? SupplierDeliveryService.getById(prefillDeliveryId, {
+          signal: controller.signal,
+        }).catch(() => null)
+      : Promise.resolve(null)
+
     Promise.all([
-      SupplierOrderService.list({
-        page: 1,
-        limit: 100,
-        status: SUPPLY_ORDER_STATUS.ACCEPTED,
-        signal: controller.signal,
-      }),
       SupplierDeliveryService.listSchoolOptions({
         page: 1,
         limit: 100,
@@ -88,19 +137,75 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
         limit: 100,
         signal: controller.signal,
       }),
+      SupplierDeliveryService.listSourceFacilityOptions({
+        page: 1,
+        limit: 100,
+        signal: controller.signal,
+      }),
+      prefillPromise,
     ])
-      .then(([ordersRes, schoolsRes, ingredientsRes]) => {
+      .then(([schoolsRes, ingredientsRes, facilitiesRes, prefilledDelivery]) => {
         if (controller.signal.aborted) return
-        setAcceptedOrders(ordersRes.items || [])
-        setSchoolOptions(schoolsRes.items || [])
-        setIngredientOptions(ingredientsRes.items || [])
+        const schools = schoolsRes.items || []
+        const ingredients = ingredientsRes.items || []
+        const facilities = facilitiesRes.items || []
+
+        setSchoolOptions(schools)
+        setIngredientOptions(ingredients)
+        setSourceFacilityOptions(facilities)
+
+        const defaultFacilityId =
+          facilities.length === 1 ? facilities[0].id : ""
+
+        if (prefilledDelivery) {
+          const schoolValid = schools.some(
+            s => s.id === prefilledDelivery.schoolId,
+          )
+          setSchoolId(schoolValid ? prefilledDelivery.schoolId : "")
+
+          const validIngMap = new Map(ingredients.map(i => [i.id, i]))
+          const activeFacIds = new Set(facilities.map(f => f.id))
+          const mappedRows = (prefilledDelivery.items || [])
+            .filter(it => validIngMap.has(it.ingredientId))
+            .map(it => {
+              const ing = validIngMap.get(it.ingredientId)
+              const facId =
+                it.sourceFacility?.id && activeFacIds.has(it.sourceFacility.id)
+                  ? it.sourceFacility.id
+                  : defaultFacilityId
+              return {
+                rowKey: generateIdempotencyKey(),
+                ingredientId: it.ingredientId,
+                sourceFacilityId: facId,
+                actualQuantity: it.actualQuantity || "",
+                unit: ing?.defaultUnit || it.unit || "",
+              }
+            })
+
+          setItems(
+            mappedRows.length > 0
+              ? mappedRows
+              : [createEmptyItemRow(defaultFacilityId)],
+          )
+          setPrefillNotice({
+            deliveryNo: prefilledDelivery.deliveryNo || prefilledDelivery.id,
+          })
+        } else if (defaultFacilityId) {
+          setItems(prev =>
+            prev.map(row =>
+              row.sourceFacilityId
+                ? row
+                : { ...row, sourceFacilityId: defaultFacilityId },
+            ),
+          )
+        }
       })
       .catch(error => {
         if (error?.name === "CanceledError" || controller.signal.aborted) return
         setOptionsError(
           extractApiError(
             error,
-            "Không thể tải danh sách yêu cầu, trường học hoặc nguyên liệu.",
+            "Không thể tải danh mục trường học, nguyên liệu và cơ sở nguồn cung.",
           ).message,
         )
       })
@@ -111,94 +216,69 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
       })
 
     return () => controller.abort()
-  }, [])
-
-  useEffect(() => {
-    if (
-      sourceType !== DELIVERY_SOURCE_TYPE.REQUEST ||
-      !String(supplyRequestId || "").trim()
-    ) {
-      setRequestPreview(null)
-      setPreviewError("")
-      return undefined
-    }
-
-    const controller = new AbortController()
-    setLoadingPreview(true)
-    setPreviewError("")
-
-    SupplierOrderService.getById(supplyRequestId, { signal: controller.signal })
-      .then(detail => {
-        if (controller.signal.aborted) return
-        setRequestPreview(detail)
-      })
-      .catch(error => {
-        if (error?.name === "CanceledError" || controller.signal.aborted) return
-        setRequestPreview(null)
-        setPreviewError(
-          extractApiError(error, "Không thể tải chi tiết yêu cầu cung ứng.")
-            .message,
-        )
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoadingPreview(false)
-        }
-      })
-
-    return () => controller.abort()
-  }, [sourceType, supplyRequestId])
+  }, [prefillDeliveryId])
 
   const ingredientMap = useMemo(
     () => new Map(ingredientOptions.map(ing => [ing.id, ing])),
     [ingredientOptions],
   )
 
-  const usedIngredientIds = useMemo(
-    () => new Set(items.map(row => row.ingredientId).filter(Boolean)),
-    [items],
-  )
+  const maxItemRows =
+    ingredientOptions.length > 0 && sourceFacilityOptions.length > 0
+      ? Math.min(100, ingredientOptions.length * sourceFacilityOptions.length)
+      : 100
 
-  const selectedRequestSummary = useMemo(
-    () =>
-      acceptedOrders.find(order => order.id === supplyRequestId) ||
-      requestPreview ||
-      null,
-    [acceptedOrders, supplyRequestId, requestPreview],
-  )
+  const getOtherUsedFacilitySet = (excludeRowKey, targetIngredientId) => {
+    const targetIng = normalizeOptionId(targetIngredientId)
+    const used = new Set()
+    if (!targetIng) return used
+    items.forEach(other => {
+      if (other.rowKey === excludeRowKey) return
+      if (normalizeOptionId(other.ingredientId) !== targetIng) return
+      const facId = normalizeOptionId(other.sourceFacilityId)
+      if (facId) used.add(facId)
+    })
+    return used
+  }
+
+  const singleDefaultFacilityId =
+    sourceFacilityOptions.length === 1 ? sourceFacilityOptions[0].id : ""
 
   const selectedSchoolSummary = useMemo(
     () => schoolOptions.find(school => school.id === schoolId) || null,
     [schoolOptions, schoolId],
   )
 
-  const handleModeChange = nextMode => {
-    if (nextMode === sourceType) return
+  const facilityMap = useMemo(
+    () => new Map(sourceFacilityOptions.map(fac => [fac.id, fac])),
+    [sourceFacilityOptions],
+  )
+
+  const applyItemsChange = nextItems => {
     rotateKey()
-    setSourceType(nextMode)
-    setErrors({})
     setSubmitError("")
+    setItems(nextItems)
+    setErrors(prev => ({
+      ...prev,
+      items: undefined,
+      itemErrors: buildDuplicateItemErrors(nextItems),
+    }))
   }
 
   const handleAddItemRow = () => {
-    if (items.length >= 100) return
-    rotateKey()
-    setItems(prev => [...prev, createEmptyItemRow()])
-    setErrors(prev => ({ ...prev, items: undefined }))
+    if (items.length >= maxItemRows) return
+    applyItemsChange([...items, createEmptyItemRow(singleDefaultFacilityId)])
   }
 
   const handleRemoveItemRow = rowKey => {
     if (items.length <= 1) return
-    rotateKey()
-    setItems(prev => prev.filter(row => row.rowKey !== rowKey))
-    setErrors(prev => ({ ...prev, itemErrors: undefined, items: undefined }))
+    applyItemsChange(items.filter(row => row.rowKey !== rowKey))
   }
 
   const handleIngredientChange = (rowKey, ingredientId) => {
-    rotateKey()
     const picked = ingredientMap.get(ingredientId)
-    setItems(prev =>
-      prev.map(row =>
+    applyItemsChange(
+      items.map(row =>
         row.rowKey === rowKey
           ? {
               ...row,
@@ -208,85 +288,180 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
           : row,
       ),
     )
-    setErrors(prev => ({ ...prev, itemErrors: undefined, items: undefined }))
+  }
+
+  const handleRowFacilityChange = (rowKey, sourceFacilityId) => {
+    applyItemsChange(
+      items.map(row =>
+        row.rowKey === rowKey ? { ...row, sourceFacilityId } : row,
+      ),
+    )
+  }
+
+  const handleApplyAllStandaloneFacilities = sourceFacilityId => {
+    if (!sourceFacilityId) return
+    applyItemsChange(items.map(row => ({ ...row, sourceFacilityId })))
   }
 
   const handleQuantityChange = (rowKey, actualQuantity) => {
-    rotateKey()
-    setItems(prev =>
-      prev.map(row =>
+    applyItemsChange(
+      items.map(row =>
         row.rowKey === rowKey ? { ...row, actualQuantity } : row,
       ),
     )
-    setErrors(prev => ({ ...prev, itemErrors: undefined, items: undefined }))
+  }
+
+  const handleCompleteIngredientsStep = () => {
+    setSubmitError("")
+    const check = validateDeliveryIngredientsStep({
+      sourceType: DELIVERY_SOURCE_TYPE.STANDALONE,
+      schoolId,
+      items,
+    })
+    if (!check.valid) {
+      setErrors(prev => ({
+        ...prev,
+        schoolId: check.errors.schoolId,
+        items: check.errors.items,
+        itemErrors: check.errors.itemErrors,
+      }))
+      return
+    }
+    setErrors(prev => ({
+      ...prev,
+      schoolId: undefined,
+      items: undefined,
+      itemErrors: undefined,
+    }))
+    setHighestStageIndex(prev => Math.max(prev, 1))
+    setStage(ORDER_CREATION_STAGE.LOGISTICS)
+  }
+
+  const handleStepSelect = step => {
+    if (submitting || pendingDispatchDelivery) return
+    if (step.key === ORDER_CREATION_STAGE.INGREDIENTS) {
+      setSubmitError("")
+      setStage(ORDER_CREATION_STAGE.INGREDIENTS)
+      return
+    }
+    if (step.key === ORDER_CREATION_STAGE.LOGISTICS) {
+      handleCompleteIngredientsStep()
+    }
   }
 
   const handleSubmit = async event => {
     event.preventDefault()
     if (submitting) return
+    if (stage !== ORDER_CREATION_STAGE.LOGISTICS) {
+      handleCompleteIngredientsStep()
+      return
+    }
     setSubmitError("")
 
-    const check = validateDeliveryDraft({
-      sourceType,
-      supplyRequestId,
-      schoolId,
-      items,
-      expectedArrivalLocal,
-      vehiclePlate,
-      note,
-    })
+    const check = pendingDispatchDelivery
+      ? validateDeliveryLogisticsStep({
+          expectedArrivalLocal,
+          vehiclePlate,
+        })
+      : validateDeliveryDraft({
+          sourceType: DELIVERY_SOURCE_TYPE.STANDALONE,
+          schoolId,
+          items,
+          expectedArrivalLocal,
+          vehiclePlate,
+          note,
+        })
     setErrors(check.errors)
-    if (!check.valid) return
+    if (!check.valid) {
+      if (
+        !pendingDispatchDelivery &&
+        (check.errors.schoolId || check.errors.items || check.errors.itemErrors)
+      ) {
+        setStage(ORDER_CREATION_STAGE.INGREDIENTS)
+      }
+      return
+    }
 
     setSubmitting(true)
     try {
-      const expectedArrivalAt = expectedArrivalLocal
-        ? toIsoWithTimezoneOffset(expectedArrivalLocal)
-        : null
+      let activeDraft = pendingDispatchDelivery
+      if (!activeDraft) {
+        activeDraft = await SupplierDeliveryService.create(
+          {
+            sourceType: DELIVERY_SOURCE_TYPE.STANDALONE,
+            schoolId,
+            items,
+            note,
+          },
+          idempotencyKeyRef.current,
+        )
+        setPendingDispatchDelivery(activeDraft)
+      }
 
-      const created = await SupplierDeliveryService.create(
-        {
-          sourceType,
-          supplyRequestId,
-          schoolId,
-          items,
-          expectedArrivalAt,
-          vehiclePlate,
-          note,
-        },
-        idempotencyKeyRef.current,
-      )
-      onCreated?.(created)
+      const expectedArrivalAt = toIsoWithTimezoneOffset(expectedArrivalLocal)
+      const dispatched = await SupplierDeliveryService.dispatch(activeDraft.id, {
+        expectedArrivalAt,
+        vehiclePlate,
+      })
+      onCreated?.(dispatched)
     } catch (error) {
       const parsed = extractApiError(
         error,
-        "Không thể tạo đơn giao hàng. Vui lòng kiểm tra lại dữ liệu.",
+        "Không thể tạo đơn thủ công. Vui lòng kiểm tra lại dữ liệu.",
       )
       setSubmitError(parsed.message)
-      if (parsed.status === 409) {
-        // Rotate key if backend rejected because key collided with different payload
-        if (String(parsed.message || "").includes("Idempotency-Key")) {
-          rotateKey()
+      const parsedItemErrors = mapApiItemsFieldErrors(parsed.fieldErrors)
+      const hasLogisticsFieldError = Boolean(
+        parsed.fieldErrors?.expectedArrivalAt ||
+          parsed.fieldErrors?.vehiclePlate ||
+          parsed.fieldErrors?.note,
+      )
+      const hasStep1Error = Boolean(
+        !pendingDispatchDelivery &&
+          (parsed.fieldErrors?.schoolId ||
+            parsed.fieldErrors?.items ||
+            Object.keys(parsedItemErrors).length > 0),
+      )
+
+      if (hasStep1Error || hasLogisticsFieldError) {
+        setErrors(prev => ({
+          ...prev,
+          ...(parsed.fieldErrors?.schoolId
+            ? { schoolId: parsed.fieldErrors.schoolId }
+            : {}),
+          ...(parsed.fieldErrors?.items
+            ? { items: parsed.fieldErrors.items }
+            : {}),
+          ...(Object.keys(parsedItemErrors).length > 0
+            ? { itemErrors: parsedItemErrors }
+            : {}),
+          ...(parsed.fieldErrors?.expectedArrivalAt
+            ? { expectedArrivalAt: parsed.fieldErrors.expectedArrivalAt }
+            : {}),
+          ...(parsed.fieldErrors?.vehiclePlate
+            ? { vehiclePlate: parsed.fieldErrors.vehiclePlate }
+            : {}),
+          ...(parsed.fieldErrors?.note ? { note: parsed.fieldErrors.note } : {}),
+        }))
+        if (hasStep1Error) {
+          setStage(ORDER_CREATION_STAGE.INGREDIENTS)
         }
+      }
+      if (
+        !pendingDispatchDelivery &&
+        parsed.status === 409 &&
+        String(parsed.message || "").includes("Idempotency-Key")
+      ) {
+        rotateKey()
       }
     } finally {
       setSubmitting(false)
     }
   }
 
-  const expectedArrivalPreview = expectedArrivalLocal
-    ? formatDateTimeVi(toIsoWithTimezoneOffset(expectedArrivalLocal))
-    : "Chưa ấn định"
-
-  const summarySchoolName =
-    sourceType === DELIVERY_SOURCE_TYPE.REQUEST
-      ? selectedRequestSummary?.schoolName || "Chưa chọn"
-      : selectedSchoolSummary?.name || "Chưa chọn"
-
-  const summaryItemCount =
-    sourceType === DELIVERY_SOURCE_TYPE.REQUEST
-      ? requestPreview?.items?.length || 0
-      : items.filter(row => row.ingredientId).length
+  const activeStageIndex = stage === ORDER_CREATION_STAGE.LOGISTICS ? 1 : 0
+  const selectedSchoolName = selectedSchoolSummary?.name || "Chưa chọn trường"
+  const isStep1Locked = Boolean(pendingDispatchDelivery)
 
   return (
     <div className={styles.createPage}>
@@ -299,455 +474,454 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
           >
             <KeyboardArrowLeft className={styles.backIcon} />
           </Link>
-          <div className={styles.headingGroup}>
-            <h1 className={styles.pageTitle}>Tạo đơn giao hàng</h1>
-            <p className={styles.pageSubtitle}>
-              Lập phiếu giao từ yêu cầu đã tiếp nhận hoặc chủ động giao độc lập
-              tới trường đang liên kết.
-            </p>
-          </div>
+          <h1 className={styles.pageTitle}>Tạo đơn thủ công</h1>
         </div>
       </header>
 
+      <DeliveryStageStepper
+        activeIndex={activeStageIndex}
+        steps={MANUAL_ORDER_STEPS}
+        onStepSelect={handleStepSelect}
+        isStepClickable={(_step, index) =>
+          !submitting &&
+          !isStep1Locked &&
+          index !== activeStageIndex &&
+          index <= highestStageIndex
+        }
+      />
+
+      {prefillNotice && (
+        <div className={styles.prefillBanner} role="status">
+          <InfoOutlined className={styles.prefillIcon} aria-hidden="true" />
+          <div className={styles.prefillContent}>
+            <strong>{`Lập đơn giao lại từ ${prefillNotice.deliveryNo}`}</strong>
+          </div>
+        </div>
+      )}
+
       <form className={styles.workspaceForm} onSubmit={handleSubmit} noValidate>
-        <div className={styles.mainColumn}>
-          {/* 1. Nguồn tạo đơn */}
-          <section className={styles.panelCard} aria-labelledby="source-mode-heading">
+        {stage === ORDER_CREATION_STAGE.INGREDIENTS ? (
+          <section
+            className={styles.panelCard}
+            aria-labelledby="step-ingredients-heading"
+          >
             <div className={styles.panelHeader}>
-              <h2 id="source-mode-heading" className={styles.panelTitle}>
-                1. Phương thức tạo đơn giao
+              <h2 id="step-ingredients-heading" className={styles.panelTitle}>
+                1. Chọn trường nhận &amp; nguyên liệu
               </h2>
+              <WorkflowStageBadge status={WORKFLOW_STAGE_STATUS.PREPARING} />
             </div>
 
             <div className={styles.panelBody}>
-              <div className={styles.modeGrid} role="radiogroup" aria-label="Phương thức tạo đơn giao">
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={sourceType === DELIVERY_SOURCE_TYPE.REQUEST}
-                  className={`${styles.modeOption} ${
-                    sourceType === DELIVERY_SOURCE_TYPE.REQUEST
-                      ? styles.isModeSelected
-                      : ""
-                  }`}
-                  onClick={() => handleModeChange(DELIVERY_SOURCE_TYPE.REQUEST)}
-                >
-                  <span className={styles.modeLabel}>
-                    Từ yêu cầu đã tiếp nhận
-                  </span>
-                  <span className={styles.modeHint}>
-                    Sao chép tự động mặt hàng và số lượng từ yêu cầu của trường.
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={sourceType === DELIVERY_SOURCE_TYPE.STANDALONE}
-                  className={`${styles.modeOption} ${
-                    sourceType === DELIVERY_SOURCE_TYPE.STANDALONE
-                      ? styles.isModeSelected
-                      : ""
-                  }`}
-                  onClick={() => handleModeChange(DELIVERY_SOURCE_TYPE.STANDALONE)}
-                >
-                  <span className={styles.modeLabel}>Tạo đơn giao độc lập</span>
-                  <span className={styles.modeHint}>
-                    Chọn trường liên kết và danh sách nguyên liệu giao trực tiếp.
-                  </span>
-                </button>
-              </div>
-
               {optionsError && (
                 <p className={styles.fieldError} role="alert">
                   {optionsError}
                 </p>
               )}
-            </div>
-          </section>
 
-          {/* 2. Dữ liệu nguồn theo sourceType */}
-          {sourceType === DELIVERY_SOURCE_TYPE.REQUEST ? (
-            <section className={styles.panelCard} aria-labelledby="request-source-heading">
-              <div className={styles.panelHeader}>
-                <h2 id="request-source-heading" className={styles.panelTitle}>
-                  2. Yêu cầu cung ứng từ nhà trường
-                </h2>
-              </div>
-
-              <div className={styles.panelBody}>
-                {loadingOptions ? (
-                  <div className={styles.loadingBlock} role="status">
-                    <CircularProgress size={18} />
-                    <span>Đang tải danh sách yêu cầu đã tiếp nhận...</span>
+              {loadingOptions ? (
+                <div className={styles.loadingBlock} role="status">
+                  <CircularProgress size={18} />
+                  <span>Đang tải danh mục trường học, nguyên liệu và cơ sở nguồn cung...</span>
+                </div>
+              ) : (
+                <>
+                  <div className={styles.fieldGroup}>
+                    <label htmlFor="school-select" className={styles.fieldLabel}>
+                      <span>{"Trường học nhận hàng "}</span>
+                      <span className={styles.requiredMark}>*</span>
+                    </label>
+                    <div className={styles.selectWrap}>
+                      <select
+                        id="school-select"
+                        value={schoolId}
+                        onChange={event => {
+                          rotateKey()
+                          setSchoolId(event.target.value)
+                          setErrors(prev => ({ ...prev, schoolId: undefined }))
+                        }}
+                        className={`${styles.selectControl} ${
+                          errors.schoolId ? styles.hasError : ""
+                        }`}
+                        aria-invalid={Boolean(errors.schoolId)}
+                      >
+                        <option value="">-- Chọn trường học đang liên kết --</option>
+                        {schoolOptions.map(school => (
+                          <option key={school.id} value={school.id}>
+                            {school.code
+                              ? `${school.name} (${school.code})`
+                              : school.name}
+                          </option>
+                        ))}
+                      </select>
+                      <KeyboardArrowDown
+                        className={styles.selectChevron}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    {errors.schoolId && (
+                      <p className={styles.fieldError} role="alert">
+                        {errors.schoolId}
+                      </p>
+                    )}
+                    {schoolOptions.length === 0 && (
+                      <p className={styles.fieldError}>
+                        Nhà cung cấp hiện chưa có trường liên kết ở trạng thái hoạt động.
+                      </p>
+                    )}
                   </div>
-                ) : acceptedOrders.length === 0 && !supplyRequestId ? (
-                  <div className={styles.infoNotice}>
-                    <span>
-                      Hiện chưa có yêu cầu cung ứng nào ở trạng thái{" "}
-                      <strong>Đã tiếp nhận</strong>. Bạn có thể tiếp nhận đơn từ
-                      nhà trường hoặc chuyển sang tạo đơn giao độc lập.
-                    </span>
-                    <div className={styles.infoNoticeActions}>
+
+                  {sourceFacilityOptions.length === 0 && (
+                    <div className={styles.warningNotice} role="alert">
+                      <span>
+                        Chưa có cơ sở nguồn cung đang hoạt động. Vui lòng thiết lập tại{" "}
+                        <Link
+                          to={ROUTER.SUPPLIER_SOURCE_FACILITIES}
+                          className={styles.inlineLink}
+                        >
+                          Cơ sở nguồn cung
+                        </Link>
+                        .
+                      </span>
+                    </div>
+                  )}
+
+                  {items.length > 1 && sourceFacilityOptions.length > 0 && (
+                    <div className={styles.bulkBar}>
+                      <label
+                        htmlFor="standalone-bulk-facility"
+                        className={styles.bulkLabel}
+                      >
+                        Áp dụng nhanh cơ sở nguồn cung cho tất cả dòng
+                      </label>
+                      <div className={styles.selectWrap}>
+                        <select
+                          id="standalone-bulk-facility"
+                          defaultValue=""
+                          onChange={event => {
+                            if (event.target.value) {
+                              handleApplyAllStandaloneFacilities(event.target.value)
+                              event.target.value = ""
+                            }
+                          }}
+                          className={styles.selectControl}
+                        >
+                          <option value="">
+                            -- Chọn để gán hàng loạt cơ sở nguồn cung --
+                          </option>
+                          {sourceFacilityOptions.map(fac => (
+                            <option key={fac.id} value={fac.id}>
+                              {formatSourceFacilityLabel(fac)}
+                            </option>
+                          ))}
+                        </select>
+                        <KeyboardArrowDown
+                          className={styles.selectChevron}
+                          aria-hidden="true"
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={styles.fieldGroup}>
+                    <div className={styles.fieldRowHeader}>
+                      <span className={styles.fieldLabel}>
+                        <span>{"Nguyên liệu & Cơ sở nguồn cung "}</span>
+                        <span className={styles.requiredMark}>*</span>
+                      </span>
+                      <span className={styles.charHint}>
+                        {`${items.length}/100 dòng`}
+                      </span>
+                    </div>
+
+                    <div className={styles.itemsList}>
+                      {items.map((row, idx) => {
+                        const rowErr = errors.itemErrors?.[idx] || {}
+                        const otherUsedFacilities = row.ingredientId
+                          ? getOtherUsedFacilitySet(row.rowKey, row.ingredientId)
+                          : null
+
+                        return (
+                          <div key={row.rowKey} className={styles.itemRow}>
+                            <span className={styles.rowIndex}>{idx + 1}</span>
+
+                            <div className={styles.rowCell}>
+                              <div className={styles.selectWrap}>
+                                <select
+                                  value={row.ingredientId}
+                                  onChange={event =>
+                                    handleIngredientChange(
+                                      row.rowKey,
+                                      event.target.value,
+                                    )
+                                  }
+                                  className={`${styles.selectControl} ${
+                                    rowErr.ingredientId ? styles.hasError : ""
+                                  }`}
+                                  aria-label={`Nguyên liệu dòng ${idx + 1}`}
+                                  aria-invalid={Boolean(rowErr.ingredientId)}
+                                >
+                                  <option value="">-- Chọn nguyên liệu * --</option>
+                                  {ingredientOptions.map(ing => {
+                                    const usedFacilitiesCount =
+                                      getOtherUsedFacilitySet(
+                                        row.rowKey,
+                                        ing.id,
+                                      ).size
+                                    const allFacilitiesUsed =
+                                      sourceFacilityOptions.length > 0 &&
+                                      usedFacilitiesCount >=
+                                        sourceFacilityOptions.length &&
+                                      normalizeOptionId(ing.id) !==
+                                        normalizeOptionId(row.ingredientId)
+
+                                    return (
+                                      <option
+                                        key={ing.id}
+                                        value={ing.id}
+                                        disabled={allFacilitiesUsed}
+                                      >
+                                        {allFacilitiesUsed
+                                          ? `${ing.name} (${ing.defaultUnit}) — Đã đủ cơ sở`
+                                          : `${ing.name} (${ing.defaultUnit})`}
+                                      </option>
+                                    )
+                                  })}
+                                </select>
+                                <KeyboardArrowDown
+                                  className={styles.selectChevron}
+                                  aria-hidden="true"
+                                />
+                              </div>
+                              {rowErr.ingredientId && (
+                                <p className={styles.fieldError} role="alert">
+                                  {rowErr.ingredientId}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className={styles.rowCell}>
+                              <div className={styles.selectWrap}>
+                                <select
+                                  value={row.sourceFacilityId}
+                                  disabled={sourceFacilityOptions.length === 0}
+                                  onChange={event =>
+                                    handleRowFacilityChange(
+                                      row.rowKey,
+                                      event.target.value,
+                                    )
+                                  }
+                                  className={`${styles.selectControl} ${
+                                    rowErr.sourceFacilityId ? styles.hasError : ""
+                                  }`}
+                                  aria-label={`Cơ sở nguồn cung dòng ${idx + 1}`}
+                                  aria-invalid={Boolean(rowErr.sourceFacilityId)}
+                                >
+                                  <option value="">
+                                    -- Chọn cơ sở nguồn cung * --
+                                  </option>
+                                  {sourceFacilityOptions.map(fac => {
+                                    const facNorm = normalizeOptionId(fac.id)
+                                    const alreadyUsedForIngredient =
+                                      Boolean(otherUsedFacilities?.has(facNorm)) &&
+                                      facNorm !==
+                                        normalizeOptionId(row.sourceFacilityId)
+
+                                    return (
+                                      <option
+                                        key={fac.id}
+                                        value={fac.id}
+                                        disabled={alreadyUsedForIngredient}
+                                      >
+                                        {alreadyUsedForIngredient
+                                          ? `${formatSourceFacilityLabel(fac)} — Đã chọn`
+                                          : formatSourceFacilityLabel(fac)}
+                                      </option>
+                                    )
+                                  })}
+                                </select>
+                                <KeyboardArrowDown
+                                  className={styles.selectChevron}
+                                  aria-hidden="true"
+                                />
+                              </div>
+                              {rowErr.sourceFacilityId && (
+                                <p className={styles.fieldError} role="alert">
+                                  {rowErr.sourceFacilityId}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className={styles.rowCell}>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={row.actualQuantity}
+                                onChange={event =>
+                                  handleQuantityChange(
+                                    row.rowKey,
+                                    event.target.value,
+                                  )
+                                }
+                                placeholder="Số lượng"
+                                className={`${styles.textInput} ${
+                                  rowErr.actualQuantity ? styles.hasError : ""
+                                }`}
+                                aria-label={`Số lượng dòng ${idx + 1}`}
+                                aria-invalid={Boolean(rowErr.actualQuantity)}
+                              />
+                              {rowErr.actualQuantity && (
+                                <p className={styles.fieldError} role="alert">
+                                  {rowErr.actualQuantity}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className={styles.unitBox} aria-label="Đơn vị tính">
+                              {row.unit || "Đơn vị"}
+                            </div>
+
+                            <button
+                              type="button"
+                              className={styles.removeRowBtn}
+                              disabled={items.length <= 1}
+                              onClick={() => handleRemoveItemRow(row.rowKey)}
+                              aria-label={`Xóa dòng nguyên liệu ${idx + 1}`}
+                            >
+                              <DeleteOutlined fontSize="small" />
+                            </button>
+                          </div>
+                        )
+                      })}
+                    </div>
+
+                    {errors.items && (
+                      <p className={styles.fieldError} role="alert">
+                        {errors.items}
+                      </p>
+                    )}
+
+                    <div className={styles.addRowBar}>
                       <Button
                         type="button"
                         variant="outlined"
                         color="primary"
                         size="small"
-                        onClick={() =>
-                          handleModeChange(DELIVERY_SOURCE_TYPE.STANDALONE)
-                        }
+                        startIcon={<Add />}
+                        disabled={items.length >= maxItemRows}
+                        onClick={handleAddItemRow}
                       >
-                        Chuyển sang giao độc lập
-                      </Button>
-                      <Button
-                        component={Link}
-                        to={ROUTER.SUPPLIER_ORDERS}
-                        variant="text"
-                        color="primary"
-                        size="small"
-                      >
-                        Mở Đơn hàng Cung ứng
+                        Thêm nguyên liệu
                       </Button>
                     </div>
                   </div>
-                ) : (
-                  <>
-                    <div className={styles.fieldGroup}>
-                      <label htmlFor="supply-request-select" className={styles.fieldLabel}>
-                        <span>{"Chọn yêu cầu đã tiếp nhận "}</span>
-                        <span className={styles.requiredMark}>*</span>
-                      </label>
-                      <div className={styles.selectWrap}>
-                        <select
-                          id="supply-request-select"
-                          value={supplyRequestId}
-                          onChange={event => {
-                            rotateKey()
-                            setSupplyRequestId(event.target.value)
-                            setErrors(prev => ({
-                              ...prev,
-                              supplyRequestId: undefined,
-                            }))
-                          }}
-                          className={`${styles.selectControl} ${
-                            errors.supplyRequestId ? styles.hasError : ""
-                          }`}
-                          aria-invalid={Boolean(errors.supplyRequestId)}
-                        >
-                          <option value="">-- Chọn mã yêu cầu cần giao --</option>
-                          {acceptedOrders.map(order => (
-                            <option key={order.id} value={order.id}>
-                              {`${order.requestNo} — ${order.schoolName} (Giao: ${formatDateVi(order.requestedDeliveryDate)})`}
-                            </option>
-                          ))}
-                          {supplyRequestId &&
-                            !acceptedOrders.some(o => o.id === supplyRequestId) && (
-                              <option value={supplyRequestId}>
-                                {selectedRequestSummary?.requestNo
-                                  ? `${selectedRequestSummary.requestNo} — ${selectedRequestSummary.schoolName}`
-                                  : supplyRequestId}
-                              </option>
-                            )}
-                        </select>
-                        <KeyboardArrowDown
-                          className={styles.selectChevron}
-                          aria-hidden="true"
-                        />
-                      </div>
-                      {errors.supplyRequestId && (
-                        <p className={styles.fieldError} role="alert">
-                          {errors.supplyRequestId}
-                        </p>
-                      )}
-                    </div>
+                </>
+              )}
+            </div>
 
-                    {loadingPreview && (
-                      <div className={styles.loadingBlock} role="status">
-                        <CircularProgress size={18} />
-                        <span>Đang tải chi tiết nguyên liệu của yêu cầu...</span>
-                      </div>
-                    )}
-
-                    {previewError && (
-                      <p className={styles.fieldError} role="alert">
-                        {previewError}
-                      </p>
-                    )}
-
-                    {requestPreview && (
-                      <>
-                        <div className={styles.infoNotice}>
-                          <span>
-                            Hệ thống sẽ sao chép nguyên vẹn{" "}
-                            <strong>{requestPreview.items.length} mặt hàng</strong>{" "}
-                            từ yêu cầu <strong>{requestPreview.requestNo}</strong>{" "}
-                            và chuyển trạng thái yêu cầu sang{" "}
-                            <strong>Đang giao hàng</strong>.
-                          </span>
-                        </div>
-
-                        {requestPreview.items.length > 0 && (
-                          <div className={styles.previewWrap}>
-                            <table className={styles.previewTable}>
-                              <thead>
-                                <tr>
-                                  <th scope="col">STT</th>
-                                  <th scope="col">Nguyên liệu</th>
-                                  <th scope="col" className={styles.colNum}>
-                                    Số lượng
-                                  </th>
-                                  <th scope="col">Đơn vị</th>
-                                  <th scope="col">Ghi chú</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {requestPreview.items.map((item, idx) => (
-                                  <tr key={item.id || idx}>
-                                    <td>{idx + 1}</td>
-                                    <td>{item.ingredientName}</td>
-                                    <td className={styles.colNum}>
-                                      {formatQuantityVi(item.requestedQuantity)}
-                                    </td>
-                                    <td>{item.unit}</td>
-                                    <td>{item.note || "—"}</td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </>
-                )}
-              </div>
-            </section>
-          ) : (
-            <section
-              className={styles.panelCard}
-              aria-labelledby="standalone-source-heading"
-            >
-              <div className={styles.panelHeader}>
-                <h2 id="standalone-source-heading" className={styles.panelTitle}>
-                  2. Trường nhận & Danh sách nguyên liệu
-                </h2>
-              </div>
-
-              <div className={styles.panelBody}>
-                {loadingOptions ? (
-                  <div className={styles.loadingBlock} role="status">
-                    <CircularProgress size={18} />
-                    <span>Đang tải danh sách trường liên kết và nguyên liệu...</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className={styles.fieldGroup}>
-                      <label htmlFor="school-select" className={styles.fieldLabel}>
-                        <span>{"Trường học nhận hàng "}</span>
-                        <span className={styles.requiredMark}>*</span>
-                      </label>
-                      <div className={styles.selectWrap}>
-                        <select
-                          id="school-select"
-                          value={schoolId}
-                          onChange={event => {
-                            rotateKey()
-                            setSchoolId(event.target.value)
-                            setErrors(prev => ({ ...prev, schoolId: undefined }))
-                          }}
-                          className={`${styles.selectControl} ${
-                            errors.schoolId ? styles.hasError : ""
-                          }`}
-                          aria-invalid={Boolean(errors.schoolId)}
-                        >
-                          <option value="">-- Chọn trường học đang liên kết --</option>
-                          {schoolOptions.map(school => (
-                            <option key={school.id} value={school.id}>
-                              {school.code
-                                ? `${school.name} (${school.code})`
-                                : school.name}
-                            </option>
-                          ))}
-                        </select>
-                        <KeyboardArrowDown
-                          className={styles.selectChevron}
-                          aria-hidden="true"
-                        />
-                      </div>
-                      {errors.schoolId && (
-                        <p className={styles.fieldError} role="alert">
-                          {errors.schoolId}
-                        </p>
-                      )}
-                      {schoolOptions.length === 0 && (
-                        <p className={styles.fieldHelper}>
-                          Nhà cung cấp hiện chưa có trường liên kết ở trạng thái
-                          hoạt động.
-                        </p>
-                      )}
-                    </div>
-
-                    <div className={styles.fieldGroup}>
-                      <div className={styles.fieldRowHeader}>
-                        <span className={styles.fieldLabel}>
-                          <span>{"Nguyên liệu giao "}</span>
-                          <span className={styles.requiredMark}>*</span>
-                        </span>
-                        <span className={styles.charHint}>
-                          {`${items.length}/100 dòng`}
-                        </span>
-                      </div>
-
-                      <div className={styles.itemsList}>
-                        {items.map((row, idx) => {
-                          const rowErr = errors.itemErrors?.[idx] || {}
-                          return (
-                            <div key={row.rowKey} className={styles.itemRow}>
-                              <span className={styles.rowIndex}>{idx + 1}</span>
-
-                              <div className={styles.rowCell}>
-                                <div className={styles.selectWrap}>
-                                  <select
-                                    value={row.ingredientId}
-                                    onChange={event =>
-                                      handleIngredientChange(
-                                        row.rowKey,
-                                        event.target.value,
-                                      )
-                                    }
-                                    className={`${styles.selectControl} ${
-                                      rowErr.ingredientId ? styles.hasError : ""
-                                    }`}
-                                    aria-label={`Nguyên liệu dòng ${idx + 1}`}
-                                    aria-invalid={Boolean(rowErr.ingredientId)}
-                                  >
-                                    <option value="">-- Chọn nguyên liệu --</option>
-                                    {ingredientOptions.map(ing => {
-                                      const alreadyUsed =
-                                        usedIngredientIds.has(ing.id) &&
-                                        ing.id !== row.ingredientId
-                                      return (
-                                        <option
-                                          key={ing.id}
-                                          value={ing.id}
-                                          disabled={alreadyUsed}
-                                        >
-                                          {alreadyUsed
-                                            ? `${ing.name} (${ing.defaultUnit}) — Đã chọn`
-                                            : `${ing.name} (${ing.defaultUnit})`}
-                                        </option>
-                                      )
-                                    })}
-                                  </select>
-                                  <KeyboardArrowDown
-                                    className={styles.selectChevron}
-                                    aria-hidden="true"
-                                  />
-                                </div>
-                                {rowErr.ingredientId && (
-                                  <p className={styles.fieldError} role="alert">
-                                    {rowErr.ingredientId}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div className={styles.rowCell}>
-                                <input
-                                  type="text"
-                                  inputMode="decimal"
-                                  value={row.actualQuantity}
-                                  onChange={event =>
-                                    handleQuantityChange(
-                                      row.rowKey,
-                                      event.target.value,
-                                    )
-                                  }
-                                  placeholder="Số lượng (VD: 12.5)"
-                                  className={`${styles.textInput} ${
-                                    rowErr.actualQuantity ? styles.hasError : ""
-                                  }`}
-                                  aria-label={`Số lượng dòng ${idx + 1}`}
-                                  aria-invalid={Boolean(rowErr.actualQuantity)}
-                                />
-                                {rowErr.actualQuantity && (
-                                  <p className={styles.fieldError} role="alert">
-                                    {rowErr.actualQuantity}
-                                  </p>
-                                )}
-                              </div>
-
-                              <div className={styles.unitBox} aria-label="Đơn vị tính">
-                                {row.unit || "Đơn vị"}
-                              </div>
-
-                              <button
-                                type="button"
-                                className={styles.removeRowBtn}
-                                disabled={items.length <= 1}
-                                onClick={() => handleRemoveItemRow(row.rowKey)}
-                                aria-label={`Xóa dòng nguyên liệu ${idx + 1}`}
-                              >
-                                <DeleteOutlined fontSize="small" />
-                              </button>
-                            </div>
-                          )
-                        })}
-                      </div>
-
-                      {errors.items && (
-                        <p className={styles.fieldError} role="alert">
-                          {errors.items}
-                        </p>
-                      )}
-
-                      <div className={styles.addRowBar}>
-                        <Button
-                          type="button"
-                          variant="outlined"
-                          color="primary"
-                          size="small"
-                          startIcon={<Add />}
-                          disabled={
-                            items.length >= 100 ||
-                            (ingredientOptions.length > 0 &&
-                              items.length >= ingredientOptions.length)
-                          }
-                          onClick={handleAddItemRow}
-                        >
-                          Thêm nguyên liệu
-                        </Button>
-                        <span className={styles.fieldHelper}>
-                          Đơn vị tự động lấy theo đơn vị mặc định của nguyên liệu.
-                        </span>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </section>
-          )}
-
-          {/* 3. Thông tin vận chuyển & ghi chú */}
-          <section className={styles.panelCard} aria-labelledby="logistics-heading">
+            <div className={styles.panelFooter}>
+              <Button
+                component={Link}
+                to={ROUTER.SUPPLIER_DELIVERIES}
+                variant="outlined"
+                color="inherit"
+                className={styles.footerSecondaryBtn}
+              >
+                Hủy
+              </Button>
+              <Button
+                type="button"
+                variant="contained"
+                color="primary"
+                className={styles.footerPrimaryBtn}
+                disabled={loadingOptions}
+                endIcon={<ArrowForward fontSize="small" />}
+                onClick={handleCompleteIngredientsStep}
+              >
+                Hoàn tất nguyên liệu
+              </Button>
+            </div>
+          </section>
+        ) : (
+          <section
+            className={styles.panelCard}
+            aria-labelledby="logistics-heading"
+          >
             <div className={styles.panelHeader}>
               <h2 id="logistics-heading" className={styles.panelTitle}>
-                3. Thông tin vận chuyển & Ghi chú
+                2. Nhập thời gian dự kiến &amp; biển số xe
               </h2>
+              <WorkflowStageBadge status={WORKFLOW_STAGE_STATUS.PREPARING} />
             </div>
 
             <div className={styles.panelBody}>
+              {pendingDispatchDelivery && (
+                <div className={styles.prefillBanner} role="status">
+                  <InfoOutlined className={styles.prefillIcon} aria-hidden="true" />
+                  <div className={styles.prefillContent}>
+                    <strong>
+                      {`Đã tạo đơn ${pendingDispatchDelivery.deliveryNo || ""} (Đang chuẩn bị hàng). Hoàn tất thông tin vận chuyển để bắt đầu giao.`}
+                    </strong>
+                  </div>
+                </div>
+              )}
+
+              <div className={styles.recapBox}>
+                <div className={styles.recapHeader}>
+                  <span>
+                    <strong>{selectedSchoolName}</strong>{" "}
+                    {`· ${items.length} dòng nguyên liệu`}
+                  </span>
+                  <button
+                    type="button"
+                    className={styles.inlineActionBtn}
+                    disabled={submitting || isStep1Locked}
+                    onClick={() => setStage(ORDER_CREATION_STAGE.INGREDIENTS)}
+                  >
+                    Đổi trường / sửa nguyên liệu
+                  </button>
+                </div>
+                <ul className={styles.recapList}>
+                  {items.map((row, idx) => {
+                    const ing = ingredientMap.get(row.ingredientId)
+                    const fac = facilityMap.get(row.sourceFacilityId)
+                    return (
+                      <li key={row.rowKey || idx} className={styles.recapItem}>
+                        <div className={styles.recapItemTop}>
+                          <span className={styles.recapName}>
+                            {ing?.name || "Nguyên liệu"}
+                          </span>
+                          <span className={styles.recapQty}>
+                            {`${formatQuantityVi(row.actualQuantity)} ${row.unit || ""}`.trim()}
+                          </span>
+                        </div>
+                        <span className={styles.recapFacility}>
+                          {fac
+                            ? formatSourceFacilityLabel(fac)
+                            : "Đã gắn cơ sở nguồn cung"}
+                        </span>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+
               <div className={styles.twoColFields}>
                 <div className={styles.fieldGroup}>
-                  <label htmlFor="expected-arrival-input" className={styles.fieldLabel}>
-                    Thời gian dự kiến đến trường
+                  <label
+                    htmlFor="expected-arrival-input"
+                    className={styles.fieldLabel}
+                  >
+                    <span>{"Thời gian dự kiến đến trường "}</span>
+                    <span className={styles.requiredMark}>*</span>
                   </label>
                   <input
                     id="expected-arrival-input"
                     type="datetime-local"
+                    required
                     value={expectedArrivalLocal}
                     onChange={event => {
-                      rotateKey()
+                      if (!isStep1Locked) rotateKey()
                       setExpectedArrivalLocal(event.target.value)
                       setErrors(prev => ({
                         ...prev,
@@ -757,36 +931,42 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
                     className={`${styles.textInput} ${
                       errors.expectedArrivalAt ? styles.hasError : ""
                     }`}
+                    aria-invalid={Boolean(errors.expectedArrivalAt)}
                   />
-                  {errors.expectedArrivalAt ? (
+                  {errors.expectedArrivalAt && (
                     <p className={styles.fieldError} role="alert">
                       {errors.expectedArrivalAt}
-                    </p>
-                  ) : (
-                    <p className={styles.fieldHelper}>
-                      Không bắt buộc — bỏ trống nếu chưa chốt giờ xe đến.
                     </p>
                   )}
                 </div>
 
                 <div className={styles.fieldGroup}>
-                  <label htmlFor="vehicle-plate-input" className={styles.fieldLabel}>
-                    Biển số xe giao hàng
+                  <label
+                    htmlFor="vehicle-plate-input"
+                    className={styles.fieldLabel}
+                  >
+                    <span>{"Biển số xe giao hàng "}</span>
+                    <span className={styles.requiredMark}>*</span>
                   </label>
                   <input
                     id="vehicle-plate-input"
                     type="text"
+                    required
                     maxLength={40}
                     value={vehiclePlate}
                     onChange={event => {
-                      rotateKey()
+                      if (!isStep1Locked) rotateKey()
                       setVehiclePlate(event.target.value)
-                      setErrors(prev => ({ ...prev, vehiclePlate: undefined }))
+                      setErrors(prev => ({
+                        ...prev,
+                        vehiclePlate: undefined,
+                      }))
                     }}
                     placeholder="VD: 51C-12345"
                     className={`${styles.textInput} ${
                       errors.vehiclePlate ? styles.hasError : ""
                     }`}
+                    aria-invalid={Boolean(errors.vehiclePlate)}
                   />
                   {errors.vehiclePlate && (
                     <p className={styles.fieldError} role="alert">
@@ -798,7 +978,10 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
 
               <div className={styles.fieldGroup}>
                 <div className={styles.fieldRowHeader}>
-                  <label htmlFor="delivery-note-input" className={styles.fieldLabel}>
+                  <label
+                    htmlFor="delivery-note-input"
+                    className={styles.fieldLabel}
+                  >
                     Ghi chú đơn giao
                   </label>
                   <span className={styles.charHint}>{`${note.length}/2000`}</span>
@@ -806,6 +989,7 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
                 <textarea
                   id="delivery-note-input"
                   maxLength={2000}
+                  disabled={submitting || isStep1Locked}
                   value={note}
                   onChange={event => {
                     rotateKey()
@@ -823,95 +1007,48 @@ function DeliveryCreateView({ initialSupplyRequestId = "", onCreated }) {
                   </p>
                 )}
               </div>
-            </div>
-          </section>
-        </div>
-
-        {/* Sticky Summary Column */}
-        <aside className={styles.summaryColumn}>
-          <section className={styles.panelCard} aria-labelledby="summary-heading">
-            <div className={styles.panelHeader}>
-              <h2 id="summary-heading" className={styles.panelTitle}>
-                Tóm tắt đơn giao
-              </h2>
-            </div>
-
-            <div className={styles.panelBody}>
-              <dl className={styles.summaryList}>
-                <div className={styles.summaryRow}>
-                  <dt>Phương thức</dt>
-                  <dd>
-                    {sourceType === DELIVERY_SOURCE_TYPE.REQUEST
-                      ? "Từ yêu cầu trường"
-                      : "Giao độc lập"}
-                  </dd>
-                </div>
-
-                {sourceType === DELIVERY_SOURCE_TYPE.REQUEST && (
-                  <div className={styles.summaryRow}>
-                    <dt>Mã yêu cầu</dt>
-                    <dd>{selectedRequestSummary?.requestNo || "Chưa chọn"}</dd>
-                  </div>
-                )}
-
-                <div className={styles.summaryRow}>
-                  <dt>Trường nhận</dt>
-                  <dd>{summarySchoolName}</dd>
-                </div>
-
-                <div className={styles.summaryRow}>
-                  <dt>Số mặt hàng</dt>
-                  <dd>{`${summaryItemCount} mặt hàng`}</dd>
-                </div>
-
-                <div className={styles.summaryRow}>
-                  <dt>Dự kiến đến</dt>
-                  <dd>{expectedArrivalPreview}</dd>
-                </div>
-
-                <div className={styles.summaryRow}>
-                  <dt>Biển số xe</dt>
-                  <dd>{vehiclePlate.trim() || "—"}</dd>
-                </div>
-              </dl>
 
               {submitError && (
                 <p className={styles.submitErrorBanner} role="alert">
                   {submitError}
                 </p>
               )}
+            </div>
 
-              <div className={styles.summaryActions}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  className={styles.submitBtn}
-                  disabled={submitting || loadingOptions}
-                >
-                  {submitting ? "Đang tạo đơn giao..." : "Tạo đơn giao hàng"}
-                </Button>
-                <Button
-                  component={Link}
-                  to={ROUTER.SUPPLIER_DELIVERIES}
-                  variant="outlined"
-                  color="primary"
-                  className={styles.cancelBtn}
-                  disabled={submitting}
-                >
-                  Hủy
-                </Button>
-              </div>
+            <div className={styles.panelFooter}>
+              <Button
+                type="button"
+                variant="outlined"
+                color="inherit"
+                className={styles.footerSecondaryBtn}
+                disabled={submitting || isStep1Locked}
+                startIcon={<ArrowBack fontSize="small" />}
+                onClick={() => setStage(ORDER_CREATION_STAGE.INGREDIENTS)}
+              >
+                Quay lại bước 1
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                className={styles.footerPrimaryBtn}
+                disabled={submitting}
+                startIcon={<LocalShippingOutlined fontSize="small" />}
+              >
+                {submitting
+                  ? "Đang tạo đơn & giao hàng..."
+                  : "Hoàn tất & Giao hàng"}
+              </Button>
             </div>
           </section>
-        </aside>
+        )}
       </form>
     </div>
   )
 }
 
 DeliveryCreateView.propTypes = {
-  initialSupplyRequestId: PropTypes.string,
+  prefillDeliveryId: PropTypes.string,
   onCreated: PropTypes.func,
 }
 

@@ -1,12 +1,14 @@
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  padding: 5px 10px;
+  border-radius: 6px;
   border: 1px solid transparent;
+  font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: var(--font-semibold);
+  font-weight: 500;
   line-height: 16px;
   white-space: nowrap;
 }
@@ -26,9 +28,9 @@
 }
 
 .toneSuccess {
-  background: var(--color-success-bg);
-  color: var(--color-success);
-  border-color: var(--color-success-border);
+  background: #e7f3ee;
+  color: #08735c;
+  border-color: transparent;
 }
 
 .toneInfo {
@@ -38,7 +40,7 @@
 }
 
 .toneMuted {
-  background: var(--bg-muted);
-  color: var(--text-secondary);
-  border-color: var(--border-default);
+  background: #f1f5f3;
+  color: #52635c;
+  border-color: transparent;
 }

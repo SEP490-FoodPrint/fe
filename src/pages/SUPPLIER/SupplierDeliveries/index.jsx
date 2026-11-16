@@ -1,11 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import PropTypes from "prop-types"
-import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
+import {
+  generatePath,
+  Link,
+  Navigate,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom"
 import { Button } from "@mui/material"
-import { Add, RefreshOutlined } from "@mui/icons-material"
+import { Add } from "@mui/icons-material"
 import notice from "src/components/Notice"
 import ROUTER from "src/router/ROUTER"
 import SupplierDeliveryService, {
+  DELIVERY_SOURCE_TYPE,
   extractApiError,
 } from "src/services/SupplierDeliveryService"
 import DeliveryCreateView from "./component/DeliveryCreateView"
@@ -24,6 +32,13 @@ function SupplierDeliveries({ mode = "auto" }) {
   const isCreateView = mode === "create" || id === "create"
   const isDetailView = !isCreateView && Boolean(id)
   const initialSupplyRequestId = searchParams.get("supplyRequestId") || ""
+  const prefillDeliveryId = searchParams.get("prefillDeliveryId") || ""
+  const initialSourceParam = searchParams.get("sourceType") || "ALL"
+  const normalizedInitialSource =
+    initialSourceParam === DELIVERY_SOURCE_TYPE.REQUEST ||
+    initialSourceParam === DELIVERY_SOURCE_TYPE.STANDALONE
+      ? initialSourceParam
+      : "ALL"
 
   const [deliveries, setDeliveries] = useState([])
   const [pagination, setPagination] = useState({
@@ -31,7 +46,7 @@ function SupplierDeliveries({ mode = "auto" }) {
     limit: DEFAULT_PAGE_SIZE,
     hasNext: false,
   })
-  const [sourceFilter, setSourceFilter] = useState("ALL")
+  const [sourceFilter, setSourceFilter] = useState(normalizedInitialSource)
   const [statusFilter, setStatusFilter] = useState("ALL")
   const [searchQuery, setSearchQuery] = useState("")
   const [loadingList, setLoadingList] = useState(false)
@@ -160,7 +175,7 @@ function SupplierDeliveries({ mode = "auto" }) {
 
   const handleCreated = createdDelivery => {
     notice({
-      msg: `Đã tạo đơn giao hàng ${createdDelivery.deliveryNo || ""} thành công.`,
+      msg: `Đã tạo đơn giao hàng ${createdDelivery.deliveryNo || ""} (Đang giao) kèm nhãn QR bao bì.`,
       isSuccess: true,
     })
     if (createdDelivery?.id) {
@@ -170,13 +185,32 @@ function SupplierDeliveries({ mode = "auto" }) {
     }
   }
 
+  if (isCreateView && initialSupplyRequestId) {
+    return (
+      <Navigate
+        to={generatePath(ROUTER.SUPPLIER_ORDER_DETAIL, {
+          id: initialSupplyRequestId,
+        })}
+        replace
+      />
+    )
+  }
+
   if (isCreateView) {
     return (
       <DeliveryCreateView
-        initialSupplyRequestId={initialSupplyRequestId}
+        prefillDeliveryId={prefillDeliveryId}
         onCreated={handleCreated}
       />
     )
+  }
+
+  const handleDispatched = dispatchedDelivery => {
+    setDetailDelivery(dispatchedDelivery)
+    notice({
+      msg: `Đơn giao hàng ${dispatchedDelivery?.deliveryNo || ""} đã chuyển sang Đang giao hàng.`,
+      isSuccess: true,
+    })
   }
 
   if (isDetailView) {
@@ -186,6 +220,7 @@ function SupplierDeliveries({ mode = "auto" }) {
         loading={loadingDetail}
         error={detailError}
         onRetry={refreshCurrent}
+        onDispatched={handleDispatched}
       />
     )
   }
@@ -195,24 +230,9 @@ function SupplierDeliveries({ mode = "auto" }) {
       <header className={styles.pageHeader}>
         <div className={styles.headingGroup}>
           <h1 className={styles.pageTitle}>Tạo & Quản lý Đơn giao hàng</h1>
-          <p className={styles.pageSubtitle}>
-            Lập phiếu giao nguyên liệu từ yêu cầu đã tiếp nhận hoặc tạo đơn giao
-            độc lập gửi tới trường học.
-          </p>
         </div>
 
         <div className={styles.headerActions}>
-          <Button
-            type="button"
-            variant="outlined"
-            color="primary"
-            className={styles.refreshBtn}
-            disabled={loadingList}
-            startIcon={<RefreshOutlined className={styles.btnIcon} />}
-            onClick={refreshCurrent}
-          >
-            Làm mới
-          </Button>
           <Button
             component={Link}
             to={ROUTER.SUPPLIER_DELIVERY_CREATE}
@@ -221,7 +241,7 @@ function SupplierDeliveries({ mode = "auto" }) {
             className={styles.createBtn}
             startIcon={<Add className={styles.btnIcon} />}
           >
-            Tạo đơn giao
+            Tạo đơn thủ công
           </Button>
         </div>
       </header>

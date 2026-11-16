@@ -10,11 +10,53 @@ export const DELIVERY_SOURCE_TYPE = {
 export const DELIVERY_SOURCE_OPTIONS = [
   { value: "ALL", label: "Tất cả nguồn" },
   { value: DELIVERY_SOURCE_TYPE.REQUEST, label: "Từ yêu cầu trường" },
-  { value: DELIVERY_SOURCE_TYPE.STANDALONE, label: "Giao độc lập" },
+  { value: DELIVERY_SOURCE_TYPE.STANDALONE, label: "Tạo đơn thủ công" },
 ]
+
+export const ORDER_CREATION_STAGE = {
+  CONFIRM: "CONFIRM",
+  INGREDIENTS: "INGREDIENTS",
+  LOGISTICS: "LOGISTICS",
+}
+
+export const WORKFLOW_STAGE_STATUS = {
+  DRAFT: "DRAFT",
+  CONFIRMED: "CONFIRMED",
+  PREPARING: "PREPARING",
+  IN_TRANSIT: "IN_TRANSIT",
+}
+
+const WORKFLOW_STAGE_STATUS_META = {
+  [WORKFLOW_STAGE_STATUS.DRAFT]: {
+    label: "Chờ xác nhận",
+    tone: "warning",
+  },
+  [WORKFLOW_STAGE_STATUS.CONFIRMED]: {
+    label: "Đã xác nhận",
+    tone: "success",
+  },
+  [WORKFLOW_STAGE_STATUS.PREPARING]: {
+    label: "Đang chuẩn bị hàng",
+    tone: "warning",
+  },
+  [WORKFLOW_STAGE_STATUS.IN_TRANSIT]: {
+    label: "Đang giao hàng",
+    tone: "info",
+  },
+}
+
+export function getWorkflowStageStatusMeta(status) {
+  return (
+    WORKFLOW_STAGE_STATUS_META[status] || {
+      label: status || "Chờ xác nhận",
+      tone: "muted",
+    }
+  )
+}
 
 export const DELIVERY_STATUS = {
   CREATED: "CREATED",
+  PREPARING: "PREPARING",
   IN_TRANSIT: "IN_TRANSIT",
   ARRIVED: "ARRIVED",
   PENDING_APPROVAL: "PENDING_APPROVAL",
@@ -30,31 +72,43 @@ const VALID_STATUS_SET = new Set(Object.values(DELIVERY_STATUS))
 
 export const DELIVERY_STATUS_OPTIONS = [
   { value: "ALL", label: "Tất cả trạng thái" },
-  { value: DELIVERY_STATUS.CREATED, label: "Mới tạo" },
-  { value: DELIVERY_STATUS.IN_TRANSIT, label: "Đang vận chuyển" },
-  { value: DELIVERY_STATUS.ARRIVED, label: "Đã đến trường" },
-  { value: DELIVERY_STATUS.PENDING_APPROVAL, label: "Chờ kiểm nhận" },
-  { value: DELIVERY_STATUS.APPROVED, label: "Đã duyệt nhận" },
-  { value: DELIVERY_STATUS.RECEIVED, label: "Đã nhập kho" },
-  { value: DELIVERY_STATUS.REJECTED, label: "Từ chối nhận" },
-  { value: DELIVERY_STATUS.CANCELLED_MEAL, label: "Hủy do suất ăn" },
+  { value: DELIVERY_STATUS.PREPARING, label: "Đang chuẩn bị hàng" },
+  { value: DELIVERY_STATUS.IN_TRANSIT, label: "Đang giao" },
+  { value: DELIVERY_STATUS.ARRIVED, label: "Đã đến nơi" },
+  { value: DELIVERY_STATUS.PENDING_APPROVAL, label: "Chờ duyệt" },
+  { value: DELIVERY_STATUS.APPROVED, label: "Đã duyệt" },
+  { value: DELIVERY_STATUS.RECEIVED, label: "Hoàn thành" },
+  { value: DELIVERY_STATUS.REJECTED, label: "Yêu cầu giao hàng lại" },
+  { value: DELIVERY_STATUS.CANCELLED_MEAL, label: "Đã hủy suất ăn" },
   { value: DELIVERY_STATUS.CANCELLED, label: "Đã hủy" },
+  { value: DELIVERY_STATUS.CREATED, label: "Mới tạo" },
 ]
 
 const STATUS_META = {
-  [DELIVERY_STATUS.CREATED]: { label: "Mới tạo", tone: "info" },
-  [DELIVERY_STATUS.IN_TRANSIT]: { label: "Đang vận chuyển", tone: "info" },
-  [DELIVERY_STATUS.ARRIVED]: { label: "Đã đến trường", tone: "warning" },
-  [DELIVERY_STATUS.PENDING_APPROVAL]: { label: "Chờ kiểm nhận", tone: "warning" },
-  [DELIVERY_STATUS.APPROVED]: { label: "Đã duyệt nhận", tone: "success" },
-  [DELIVERY_STATUS.RECEIVED]: { label: "Đã nhập kho", tone: "success" },
-  [DELIVERY_STATUS.REJECTED]: { label: "Từ chối nhận", tone: "error" },
-  [DELIVERY_STATUS.CANCELLED_MEAL]: { label: "Hủy do suất ăn", tone: "muted" },
+  [DELIVERY_STATUS.CREATED]: { label: "Mới tạo", tone: "muted" },
+  [DELIVERY_STATUS.PREPARING]: { label: "Đang chuẩn bị hàng", tone: "warning" },
+  [DELIVERY_STATUS.IN_TRANSIT]: { label: "Đang giao", tone: "info" },
+  [DELIVERY_STATUS.ARRIVED]: { label: "Đã đến nơi", tone: "warning" },
+  [DELIVERY_STATUS.PENDING_APPROVAL]: { label: "Chờ duyệt", tone: "warning" },
+  [DELIVERY_STATUS.APPROVED]: { label: "Đã duyệt", tone: "success" },
+  [DELIVERY_STATUS.RECEIVED]: { label: "Hoàn thành", tone: "success" },
+  [DELIVERY_STATUS.REJECTED]: { label: "Yêu cầu giao hàng lại", tone: "error" },
+  [DELIVERY_STATUS.CANCELLED_MEAL]: { label: "Đã hủy suất ăn", tone: "muted" },
   [DELIVERY_STATUS.CANCELLED]: { label: "Đã hủy", tone: "muted" },
 }
 
-export function getDeliveryStatusMeta(status) {
-  return STATUS_META[status] || { label: status || "Không xác định", tone: "muted" }
+export function getDeliveryStatusMeta(status, statusLabel = "") {
+  const mapped = STATUS_META[status]
+  return {
+    label: String(statusLabel || "").trim() || mapped?.label || status || "Không xác định",
+    tone: mapped?.tone || "muted",
+  }
+}
+
+export function formatSourceFacilityLabel(facility) {
+  if (!facility) return "Chưa gắn cơ sở"
+  const name = facility.name || "Cơ sở nguồn cung"
+  return facility.facilityCode ? `${name} (${facility.facilityCode})` : name
 }
 
 const DECIMAL_QUANTITY_REGEX = /^(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/
@@ -154,42 +208,119 @@ export function extractApiError(
   }
 }
 
-export function validateDeliveryDraft({
+/** Validate Step 1 (selecting receiving school) of manual delivery creation. */
+export function validateStandaloneSchool({ schoolId } = {}) {
+  const errors = {}
+  if (!String(schoolId || "").trim()) {
+    errors.schoolId = "Vui lòng chọn trường học nhận hàng."
+  }
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  }
+}
+
+export const DUPLICATE_INGREDIENT_FACILITY_MSG =
+  "Nguyên liệu này đã chọn cơ sở nguồn cung này."
+
+export function normalizeOptionId(value) {
+  return String(value || "").trim().toLowerCase()
+}
+
+/** Return indices (> first occurrence) where `(ingredientId, sourceFacilityId)` duplicates an earlier row. */
+export function getDuplicateIngredientFacilityIndices(items = []) {
+  const seenPairs = new Set()
+  const duplicateIndices = new Set()
+  if (!Array.isArray(items)) return duplicateIndices
+
+  items.forEach((row, index) => {
+    const ingId = normalizeOptionId(row?.ingredientId)
+    const facId = normalizeOptionId(row?.sourceFacilityId)
+    if (!ingId || !facId) return
+    const pairKey = `${ingId}::${facId}`
+    if (seenPairs.has(pairKey)) {
+      duplicateIndices.add(index)
+    } else {
+      seenPairs.add(pairKey)
+    }
+  })
+
+  return duplicateIndices
+}
+
+/** Validate Step 2 (ingredients & source facilities) for either creation flow. */
+export function validateDeliveryIngredientsStep({
   sourceType,
   supplyRequestId,
+  sources = [],
+  requestItems = [],
   schoolId,
   items = [],
-  expectedArrivalLocal = "",
-  vehiclePlate = "",
-  note = "",
-}) {
+} = {}) {
   const errors = {}
   const itemErrors = {}
+  const sourceErrors = {}
 
   if (sourceType === DELIVERY_SOURCE_TYPE.REQUEST) {
     if (!String(supplyRequestId || "").trim()) {
-      errors.supplyRequestId = "Vui lòng chọn yêu cầu cung ứng đã tiếp nhận."
+      errors.supplyRequestId = "Vui lòng chọn yêu cầu từ nhà trường."
+    }
+
+    const sourceList = Array.isArray(sources) ? sources : []
+    const sourceMap = new Map(
+      sourceList.map(src => [
+        String(src?.supplyRequestItemId || "").trim(),
+        String(src?.sourceFacilityId || "").trim(),
+      ]),
+    )
+
+    if (Array.isArray(requestItems) && requestItems.length > 0) {
+      requestItems.forEach(reqItem => {
+        const reqItemId = String(reqItem?.id || "").trim()
+        if (!reqItemId) return
+        if (!sourceMap.get(reqItemId)) {
+          sourceErrors[reqItemId] = "Chọn cơ sở nguồn cung."
+        }
+      })
+    } else if (sourceList.length === 0) {
+      errors.sources = "Mỗi nguyên liệu trong đơn cần gắn 1 cơ sở nguồn cung."
+    } else {
+      sourceList.forEach(src => {
+        const reqItemId = String(src?.supplyRequestItemId || "").trim()
+        if (!reqItemId || !String(src?.sourceFacilityId || "").trim()) {
+          if (reqItemId) sourceErrors[reqItemId] = "Chọn cơ sở nguồn cung."
+        }
+      })
+    }
+
+    if (Object.keys(sourceErrors).length > 0 && !errors.sources) {
+      errors.sources = "Mỗi nguyên liệu trong đơn cần gắn 1 cơ sở nguồn cung."
     }
   } else {
-    if (!String(schoolId || "").trim()) {
-      errors.schoolId = "Vui lòng chọn trường học nhận hàng."
+    const schoolCheck = validateStandaloneSchool({ schoolId })
+    if (!schoolCheck.valid) {
+      errors.schoolId = schoolCheck.errors.schoolId
     }
 
     if (!Array.isArray(items) || items.length === 0) {
-      errors.items = "Đơn giao độc lập cần ít nhất 1 mặt hàng."
+      errors.items = "Đơn giao thủ công cần ít nhất 1 mặt hàng."
     } else if (items.length > 100) {
       errors.items = "Mỗi đơn giao tối đa 100 dòng nguyên liệu."
     } else {
-      const seenIngredients = new Set()
+      const duplicatePairIndices = getDuplicateIngredientFacilityIndices(items)
       items.forEach((row, index) => {
         const rowErr = {}
-        const ingId = String(row?.ingredientId || "").trim()
+        const ingId = normalizeOptionId(row?.ingredientId)
+        const facId = normalizeOptionId(row?.sourceFacilityId)
+
         if (!ingId) {
           rowErr.ingredientId = "Chọn nguyên liệu."
-        } else if (seenIngredients.has(ingId)) {
-          rowErr.ingredientId = "Nguyên liệu bị trùng lặp."
-        } else {
-          seenIngredients.add(ingId)
+        }
+
+        if (!facId) {
+          rowErr.sourceFacilityId = "Chọn cơ sở nguồn cung."
+        } else if (duplicatePairIndices.has(index)) {
+          rowErr.sourceFacilityId = DUPLICATE_INGREDIENT_FACILITY_MSG
         }
 
         if (!isValidPositiveDecimal(row?.actualQuantity)) {
@@ -208,14 +339,42 @@ export function validateDeliveryDraft({
     }
   }
 
-  if (String(expectedArrivalLocal || "").trim()) {
-    const parsedIso = toIsoWithTimezoneOffset(expectedArrivalLocal)
+  if (Object.keys(itemErrors).length > 0) {
+    errors.itemErrors = itemErrors
+  }
+
+  if (Object.keys(sourceErrors).length > 0) {
+    errors.sourceErrors = sourceErrors
+  }
+
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  }
+}
+
+/** Validate Step 3 (mandatory ETA, vehicle plate, optional note) before dispatch. */
+export function validateDeliveryLogisticsStep({
+  expectedArrivalLocal = "",
+  vehiclePlate = "",
+  note = "",
+} = {}) {
+  const errors = {}
+
+  const rawArrival = String(expectedArrivalLocal || "").trim()
+  if (!rawArrival) {
+    errors.expectedArrivalAt = "Vui lòng chọn thời gian dự kiến đến trường."
+  } else {
+    const parsedIso = toIsoWithTimezoneOffset(rawArrival)
     if (!parsedIso) {
       errors.expectedArrivalAt = "Thời gian dự kiến đến không hợp lệ."
     }
   }
 
-  if (String(vehiclePlate || "").trim().length > 40) {
+  const normalizedPlate = String(vehiclePlate || "").trim()
+  if (!normalizedPlate) {
+    errors.vehiclePlate = "Vui lòng nhập biển số xe giao hàng."
+  } else if (normalizedPlate.length > 40) {
     errors.vehiclePlate = "Biển số xe tối đa 40 ký tự."
   }
 
@@ -223,8 +382,40 @@ export function validateDeliveryDraft({
     errors.note = "Ghi chú tối đa 2000 ký tự."
   }
 
-  if (Object.keys(itemErrors).length > 0) {
-    errors.itemErrors = itemErrors
+  return {
+    valid: Object.keys(errors).length === 0,
+    errors,
+  }
+}
+
+export function validateDeliveryDraft({
+  sourceType,
+  supplyRequestId,
+  sources = [],
+  requestItems = [],
+  schoolId,
+  items = [],
+  expectedArrivalLocal = "",
+  vehiclePlate = "",
+  note = "",
+}) {
+  const ingredientStep = validateDeliveryIngredientsStep({
+    sourceType,
+    supplyRequestId,
+    sources,
+    requestItems,
+    schoolId,
+    items,
+  })
+  const logisticsStep = validateDeliveryLogisticsStep({
+    expectedArrivalLocal,
+    vehiclePlate,
+    note,
+  })
+
+  const errors = {
+    ...ingredientStep.errors,
+    ...logisticsStep.errors,
   }
 
   return {
@@ -237,6 +428,15 @@ function encodeId(id) {
   return encodeURIComponent(String(id || "").trim())
 }
 
+function adaptSourceFacility(facility) {
+  if (!facility || !facility.id) return null
+  return {
+    id: facility.id,
+    name: facility.name || "Cơ sở nguồn cung",
+    facilityCode: facility.facilityCode || "",
+  }
+}
+
 function adaptDeliveryItem(item = {}) {
   return {
     id: item.id || "",
@@ -244,6 +444,8 @@ function adaptDeliveryItem(item = {}) {
     ingredientName: item.ingredientName || "Nguyên liệu",
     ingredientEntryId: item.ingredientEntryId ?? null,
     supplyRequestItemId: item.supplyRequestItemId ?? null,
+    sourceFacility: adaptSourceFacility(item.sourceFacility),
+    traceUrl: item.traceUrl ?? null,
     actualQuantity:
       item.actualQuantity !== undefined && item.actualQuantity !== null
         ? String(item.actualQuantity)
@@ -254,6 +456,7 @@ function adaptDeliveryItem(item = {}) {
 }
 
 function adaptDeliverySummary(row = {}) {
+  const status = row.status || DELIVERY_STATUS.CREATED
   return {
     id: row.id || "",
     deliveryNo: row.deliveryNo || "",
@@ -263,7 +466,11 @@ function adaptDeliverySummary(row = {}) {
     supplierId: row.supplierId || "",
     supplyRequestId: row.supplyRequestId ?? null,
     requestNo: row.requestNo ?? null,
-    status: row.status || DELIVERY_STATUS.CREATED,
+    status,
+    statusLabel: row.statusLabel || STATUS_META[status]?.label || "",
+    traceabilityVersion: row.traceabilityVersion ?? null,
+    workflowVersion: row.workflowVersion ?? null,
+    nextAction: row.nextAction ?? null,
     expectedArrivalAt: row.expectedArrivalAt ?? null,
     arrivedAt: row.arrivedAt ?? null,
     receivedAt: row.receivedAt ?? null,
@@ -272,6 +479,28 @@ function adaptDeliverySummary(row = {}) {
     createdByUserId: row.createdByUserId ?? null,
     createdAt: row.createdAt || null,
     updatedAt: row.updatedAt || null,
+  }
+}
+
+function adaptDeliveryLabel(label = {}) {
+  return {
+    deliveryItemId: label.deliveryItemId || "",
+    deliveryNo: label.deliveryNo || "",
+    supplierName: label.supplierName || "",
+    ingredientName: label.ingredientName || "Nguyên liệu",
+    actualQuantity:
+      label.actualQuantity !== undefined && label.actualQuantity !== null
+        ? String(label.actualQuantity)
+        : "0",
+    unit: label.unit || "",
+    sourceFacility: label.sourceFacility
+      ? {
+          name: label.sourceFacility.name || "Cơ sở nguồn cung",
+          facilityCode: label.sourceFacility.facilityCode || "",
+        }
+      : null,
+    traceUrl: label.traceUrl || "",
+    qrImageDataUrl: label.qrImageDataUrl || "",
   }
 }
 
@@ -374,29 +603,101 @@ const SupplierDeliveryService = {
     }
   },
 
+  async listSourceFacilityOptions({ page = 1, limit = 100, signal } = {}) {
+    const response = await http.get(`${BASE_URL}/options/source-facilities`, {
+      params: { page, limit },
+      signal,
+      notifyOnError: false,
+    })
+    const payload = response?.data || {}
+    return {
+      items: Array.isArray(payload.items)
+        ? payload.items.map(fac => ({
+            id: fac.id,
+            facilityCode: fac.facilityCode || "",
+            name: fac.name || "Cơ sở nguồn cung",
+          }))
+        : [],
+      pagination: {
+        page: payload.pagination?.page ?? page,
+        limit: payload.pagination?.limit ?? limit,
+        hasNext: Boolean(payload.pagination?.hasNext),
+      },
+    }
+  },
+
+  async listLabels(deliveryId, { page = 1, limit = 20, signal } = {}) {
+    const safePage =
+      Number.isInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1
+    const safeLimit =
+      Number.isInteger(Number(limit)) && Number(limit) > 0 && Number(limit) <= 50
+        ? Number(limit)
+        : 20
+
+    const response = await http.get(`${BASE_URL}/${encodeId(deliveryId)}/labels`, {
+      params: { page: safePage, limit: safeLimit },
+      signal,
+      notifyOnError: false,
+    })
+    const payload = response?.data || {}
+    return {
+      items: Array.isArray(payload.items)
+        ? payload.items.map(adaptDeliveryLabel)
+        : [],
+      pagination: {
+        page: payload.pagination?.page ?? safePage,
+        limit: payload.pagination?.limit ?? safeLimit,
+        hasNext: Boolean(payload.pagination?.hasNext),
+      },
+    }
+  },
+
+  async listAllLabels(deliveryId, { limit = 50, signal } = {}) {
+    const collected = []
+    let page = 1
+    let hasNext = true
+    while (hasNext && page <= 20) {
+      const res = await this.listLabels(deliveryId, { page, limit, signal })
+      collected.push(...res.items)
+      hasNext = Boolean(res.pagination?.hasNext)
+      page += 1
+    }
+    return collected
+  },
+
   async create(input, idempotencyKey) {
     const key = String(idempotencyKey || generateIdempotencyKey()).trim().toLowerCase()
-    const vehiclePlate = String(input.vehiclePlate ?? "").trim()
     const note = String(input.note ?? "").trim()
-    const expectedArrivalAt = input.expectedArrivalAt || null
 
     const body =
       input.sourceType === DELIVERY_SOURCE_TYPE.REQUEST
         ? {
             sourceType: DELIVERY_SOURCE_TYPE.REQUEST,
             supplyRequestId: String(input.supplyRequestId || "").trim().toLowerCase(),
-            expectedArrivalAt,
-            vehiclePlate: vehiclePlate || null,
+            sources: (input.sources || []).map(src => ({
+              supplyRequestItemId: String(src.supplyRequestItemId || "")
+                .trim()
+                .toLowerCase(),
+              sourceFacilityId: String(src.sourceFacilityId || "")
+                .trim()
+                .toLowerCase(),
+              ...(src.actualQuantity !== undefined &&
+              src.actualQuantity !== null &&
+              String(src.actualQuantity).trim() !== ""
+                ? { actualQuantity: normalizeDecimalQuantity(src.actualQuantity) }
+                : {}),
+            })),
             note: note || null,
           }
         : {
             sourceType: DELIVERY_SOURCE_TYPE.STANDALONE,
             schoolId: String(input.schoolId || "").trim().toLowerCase(),
-            expectedArrivalAt,
-            vehiclePlate: vehiclePlate || null,
             note: note || null,
             items: (input.items || []).map(item => ({
               ingredientId: String(item.ingredientId || "").trim().toLowerCase(),
+              sourceFacilityId: String(item.sourceFacilityId || "")
+                .trim()
+                .toLowerCase(),
               actualQuantity: normalizeDecimalQuantity(item.actualQuantity),
               unit: String(item.unit || "").trim(),
             })),
@@ -408,6 +709,18 @@ const SupplierDeliveryService = {
       },
       notifyOnError: false,
     })
+    return adaptDeliveryDetail(response?.data || response)
+  },
+
+  async dispatch(deliveryId, { expectedArrivalAt, vehiclePlate } = {}) {
+    const response = await http.post(
+      `${BASE_URL}/${encodeId(deliveryId)}/dispatch`,
+      {
+        expectedArrivalAt,
+        vehiclePlate: String(vehiclePlate ?? "").trim(),
+      },
+      { notifyOnError: false },
+    )
     return adaptDeliveryDetail(response?.data || response)
   },
 }

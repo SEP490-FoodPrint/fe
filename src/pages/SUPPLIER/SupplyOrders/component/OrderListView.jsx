@@ -117,13 +117,21 @@ function OrderListView({
                   </td>
 
                   <td className={styles.colCode}>
-                    <Link to={detailPath} className={styles.codeLink}>
+                    <Link
+                      to={detailPath}
+                      className={styles.codeLink}
+                      title={order.requestNo}
+                    >
                       {order.requestNo}
                     </Link>
                   </td>
 
                   <td className={styles.colSchool}>
-                    <Link to={detailPath} className={styles.schoolLink}>
+                    <Link
+                      to={detailPath}
+                      className={styles.schoolLink}
+                      title={order.schoolName}
+                    >
                       {order.schoolName}
                     </Link>
                   </td>
@@ -155,7 +163,9 @@ function OrderListView({
             <li key={order.id} className={styles.mobileItem}>
               <Link to={detailPath} className={styles.mobileRowLink}>
                 <div className={styles.mobileTopRow}>
-                  <span className={styles.mobileCodeChip}>{order.requestNo}</span>
+                  <span className={styles.mobileCodeChip} title={order.requestNo}>
+                    {order.requestNo}
+                  </span>
                   <OrderStatusBadge status={order.status} showDot={isPending} />
                 </div>
                 <span className={styles.mobileSchoolName}>{order.schoolName}</span>

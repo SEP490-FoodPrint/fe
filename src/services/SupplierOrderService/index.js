@@ -15,7 +15,7 @@ const VALID_STATUS_SET = new Set(Object.values(SUPPLY_ORDER_STATUS))
 export const SUPPLY_ORDER_STATUS_OPTIONS = [
   { value: "ALL", label: "Tất cả" },
   { value: SUPPLY_ORDER_STATUS.SENT, label: "Chờ tiếp nhận" },
-  { value: SUPPLY_ORDER_STATUS.ACCEPTED, label: "Đã tiếp nhận" },
+  { value: SUPPLY_ORDER_STATUS.ACCEPTED, label: "Đã xác nhận" },
   { value: SUPPLY_ORDER_STATUS.IN_PROGRESS, label: "Đang giao hàng" },
   { value: SUPPLY_ORDER_STATUS.COMPLETED, label: "Hoàn thành" },
   { value: SUPPLY_ORDER_STATUS.CANCELLED, label: "Đã hủy" },
@@ -27,8 +27,12 @@ const STATUS_META = {
     tone: "warning",
   },
   [SUPPLY_ORDER_STATUS.ACCEPTED]: {
-    label: "Đã tiếp nhận",
+    label: "Đã xác nhận",
     tone: "success",
+  },
+  PREPARING: {
+    label: "Đang chuẩn bị hàng",
+    tone: "warning",
   },
   [SUPPLY_ORDER_STATUS.IN_PROGRESS]: {
     label: "Đang giao hàng",

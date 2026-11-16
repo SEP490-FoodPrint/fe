@@ -1,0 +1,169 @@
+.stepperNav {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e1e6e2;
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+.stepList {
+  display: grid;
+  grid-template-columns: repeat(var(--step-count, 3), minmax(0, 1fr));
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stepItem {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  border-right: 1px solid #e1e6e2;
+  background: #ffffff;
+  transition: background-color 150ms cubic-bezier(0.2, 0, 0, 1);
+
+  &:last-child {
+    border-right: 0;
+  }
+}
+
+.stepStatic,
+.stepTrigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px 20px;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  font-family: inherit;
+}
+
+.stepTrigger {
+  cursor: pointer;
+
+  &:hover {
+    background: #f4f9f7;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus, #0a8066);
+    outline-offset: -2px;
+  }
+}
+
+.stepDone {
+  background: #fafcfb;
+}
+
+.stepActive {
+  background: #ffffff;
+  box-shadow: inset 0 -2px 0 var(--color-primary, #0a8066);
+}
+
+.stepPending {
+  background: #ffffff;
+}
+
+.stepCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepDone .stepCircle {
+  background: #e7f3ee;
+  color: var(--color-primary, #0a8066);
+}
+
+.stepActive .stepCircle {
+  background: var(--color-primary, #0a8066);
+  color: #ffffff;
+}
+
+.stepPending .stepCircle {
+  background: #f1f5f3;
+  color: #6b7772;
+}
+
+.checkIcon {
+  width: 16px !important;
+  height: 16px !important;
+  font-size: 16px !important;
+}
+
+.stepText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.stepTitle {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #24312d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stepPending .stepTitle {
+  color: #6b7772;
+  font-weight: 500;
+}
+
+.stepStatus {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #6b7772;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stepDone .stepStatus,
+.stepActive .stepStatus {
+  color: var(--color-primary, #0a8066);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .stepList {
+    grid-template-columns: 1fr;
+  }
+
+  .stepItem {
+    border-right: 0;
+    border-bottom: 1px solid #e1e6e2;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .stepStatic,
+  .stepTrigger {
+    padding: 12px 16px;
+  }
+
+  .stepActive {
+    box-shadow: inset 2px 0 0 var(--color-primary, #0a8066);
+  }
+}

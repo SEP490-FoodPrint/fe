@@ -172,8 +172,18 @@ test("accept posts empty object to /supply-requests/:id/accept with X-CSRF-Prote
   assert.equal(result.acceptedAt, acceptedAt)
 })
 
-test("formatters and extractApiError handle dates, quantities, and 409 conflicts", () => {
-  const { formatDateVi, formatQuantityVi, extractApiError } = SupplierOrderServiceModule
+test("formatters, stage metadata, and extractApiError handle dates, quantities, and 409 conflicts", () => {
+  const {
+    formatDateVi,
+    formatQuantityVi,
+    extractApiError,
+    getOrderStatusMeta,
+    SUPPLY_ORDER_STATUS,
+  } = SupplierOrderServiceModule
+
+  assert.equal(getOrderStatusMeta(SUPPLY_ORDER_STATUS.ACCEPTED).label, "Đã xác nhận")
+  assert.equal(getOrderStatusMeta("PREPARING").label, "Đang chuẩn bị hàng")
+  assert.equal(getOrderStatusMeta(SUPPLY_ORDER_STATUS.IN_PROGRESS).label, "Đang giao hàng")
 
   assert.equal(formatDateVi("2026-11-18"), "18/11/2026")
   assert.equal(formatDateVi(null), "Chưa ấn định")

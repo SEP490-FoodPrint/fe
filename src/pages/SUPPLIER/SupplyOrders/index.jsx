@@ -1,13 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams } from "react-router-dom"
 import { Button } from "@mui/material"
 import { RefreshOutlined } from "@mui/icons-material"
 import notice from "src/components/Notice"
+import SupplierDeliveryService, {
+  DELIVERY_SOURCE_TYPE,
+  extractApiError as extractDeliveryApiError,
+  generateIdempotencyKey,
+  ORDER_CREATION_STAGE,
+  toIsoWithTimezoneOffset,
+} from "src/services/SupplierDeliveryService"
 import SupplierOrderService, {
   extractApiError,
   SUPPLY_ORDER_STATUS,
 } from "src/services/SupplierOrderService"
-import ConfirmAcceptDialog from "./component/ConfirmAcceptDialog"
 import OrderDetailView from "./component/OrderDetailView"
 import OrderFilterBar from "./component/OrderFilterBar"
 import OrderListView from "./component/OrderListView"
@@ -34,10 +40,19 @@ function SupplyOrders() {
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [detailError, setDetailError] = useState(null)
 
-  const [acceptDialogOpen, setAcceptDialogOpen] = useState(false)
+  const [fulfillmentStage, setFulfillmentStage] = useState(
+    ORDER_CREATION_STAGE.INGREDIENTS,
+  )
   const [accepting, setAccepting] = useState(false)
   const [acceptError, setAcceptError] = useState("")
+  const [createdDelivery, setCreatedDelivery] = useState(null)
+  const [pendingDispatchDelivery, setPendingDispatchDelivery] = useState(null)
   const [reloadTick, setReloadTick] = useState(0)
+  const deliveryIdempotencyKeyRef = useRef(generateIdempotencyKey())
+
+  const rotateDeliveryKey = useCallback(() => {
+    deliveryIdempotencyKeyRef.current = generateIdempotencyKey()
+  }, [])
 
   const refreshCurrent = useCallback(() => {
     setReloadTick(prev => prev + 1)
@@ -79,10 +94,17 @@ function SupplyOrders() {
   }, [isDetailView, pagination.page, pagination.limit, statusFilter, reloadTick])
 
   useEffect(() => {
+    setCreatedDelivery(null)
+    setPendingDispatchDelivery(null)
+    setFulfillmentStage(ORDER_CREATION_STAGE.INGREDIENTS)
+    setAcceptError("")
+    rotateDeliveryKey()
+  }, [id, rotateDeliveryKey])
+
+  useEffect(() => {
     if (!isDetailView || !id) {
       setDetailOrder(null)
       setDetailError(null)
-      setAcceptDialogOpen(false)
       setAcceptError("")
       return undefined
     }
@@ -143,33 +165,31 @@ function SupplyOrders() {
     setPagination(prev => ({ ...prev, page: nextPage }))
   }
 
-  const handleOpenAcceptDialog = () => {
-    setAcceptError("")
-    setAcceptDialogOpen(true)
-  }
-
-  const handleConfirmAccept = async () => {
+  const handleAcceptOrder = async () => {
     if (!detailOrder?.id || accepting) return
+    if (detailOrder.status !== SUPPLY_ORDER_STATUS.SENT) return
     setAccepting(true)
     setAcceptError("")
+
+    const orderId = detailOrder.id
     try {
-      const accepted = await SupplierOrderService.accept(detailOrder.id)
+      const accepted = await SupplierOrderService.accept(orderId)
       setDetailOrder(prev =>
         prev
           ? {
               ...prev,
-              status: accepted.status,
+              status: accepted.status || SUPPLY_ORDER_STATUS.ACCEPTED,
               acceptedByUserId: accepted.acceptedByUserId,
               acceptedAt: accepted.acceptedAt,
             }
           : prev,
       )
-      setAcceptDialogOpen(false)
+      setFulfillmentStage(ORDER_CREATION_STAGE.INGREDIENTS)
+      rotateDeliveryKey()
       notice({
-        msg: `Đã tiếp nhận đơn hàng ${detailOrder.requestNo || ""} thành công.`,
+        msg: `Đã tiếp nhận ${detailOrder.requestNo || "đơn hàng"} — Trạng thái: Đã xác nhận.`,
         isSuccess: true,
       })
-      setReloadTick(prev => prev + 1)
     } catch (error) {
       const apiErr = extractApiError(
         error,
@@ -181,29 +201,102 @@ function SupplyOrders() {
     }
   }
 
+  const handleChangeFulfillmentStage = nextStage => {
+    setAcceptError("")
+    setFulfillmentStage(nextStage)
+  }
+
+  const handleSubmitDelivery = async ({
+    sources = [],
+    expectedArrivalLocal = "",
+    vehiclePlate = "",
+    note = "",
+  } = {}) => {
+    if (!detailOrder?.id || accepting) return
+    setAccepting(true)
+    setAcceptError("")
+
+    const orderId = detailOrder.id
+    try {
+      let activeDraft =
+        pendingDispatchDelivery &&
+        pendingDispatchDelivery.supplyRequestId === orderId
+          ? pendingDispatchDelivery
+          : null
+
+      if (!activeDraft) {
+        activeDraft = await SupplierDeliveryService.create(
+          {
+            sourceType: DELIVERY_SOURCE_TYPE.REQUEST,
+            supplyRequestId: orderId,
+            sources,
+            note,
+          },
+          deliveryIdempotencyKeyRef.current,
+        )
+        setPendingDispatchDelivery(activeDraft)
+      }
+
+      const expectedArrivalAt = toIsoWithTimezoneOffset(expectedArrivalLocal)
+      const delivery = await SupplierDeliveryService.dispatch(activeDraft.id, {
+        expectedArrivalAt,
+        vehiclePlate,
+      })
+
+      setPendingDispatchDelivery(null)
+      setCreatedDelivery({
+        id: delivery.id,
+        deliveryNo: delivery.deliveryNo,
+        supplyRequestId: orderId,
+      })
+      setDetailOrder(prev =>
+        prev
+          ? {
+              ...prev,
+              status: SUPPLY_ORDER_STATUS.IN_PROGRESS,
+            }
+          : prev,
+      )
+      notice({
+        msg: `Đã tạo đơn giao ${delivery.deliveryNo || ""} — Trạng thái: Đang giao hàng kèm nhãn QR bao bì.`,
+        isSuccess: true,
+      })
+      setReloadTick(prev => prev + 1)
+    } catch (error) {
+      const deliveryErr = extractDeliveryApiError(
+        error,
+        "Không thể tạo đơn giao hàng từ yêu cầu này. Vui lòng thử lại.",
+      )
+      if (
+        !pendingDispatchDelivery &&
+        deliveryErr.status === 409 &&
+        String(deliveryErr.message || "").includes("Idempotency-Key")
+      ) {
+        rotateDeliveryKey()
+      }
+      setAcceptError(deliveryErr.message)
+    } finally {
+      setAccepting(false)
+    }
+  }
+
   if (isDetailView) {
     return (
-      <>
-        <OrderDetailView
-          order={detailOrder}
-          loading={loadingDetail}
-          error={detailError}
-          accepting={accepting}
-          onRetry={refreshCurrent}
-          onRequestAccept={handleOpenAcceptDialog}
-        />
-
-        <ConfirmAcceptDialog
-          open={acceptDialogOpen}
-          order={detailOrder}
-          submitting={accepting}
-          error={acceptError}
-          onCancel={() => {
-            if (!accepting) setAcceptDialogOpen(false)
-          }}
-          onConfirm={handleConfirmAccept}
-        />
-      </>
+      <OrderDetailView
+        order={detailOrder}
+        createdDelivery={createdDelivery}
+        pendingDispatchDelivery={pendingDispatchDelivery}
+        fulfillmentStage={fulfillmentStage}
+        loading={loadingDetail}
+        error={detailError}
+        accepting={accepting}
+        acceptError={acceptError}
+        onRetry={refreshCurrent}
+        onAcceptOrder={handleAcceptOrder}
+        onChangeFulfillmentStage={handleChangeFulfillmentStage}
+        onSubmitDelivery={handleSubmitDelivery}
+        onDraftChange={rotateDeliveryKey}
+      />
     )
   }
 
@@ -212,10 +305,6 @@ function SupplyOrders() {
       <header className={styles.pageHeader}>
         <div className={styles.headingGroup}>
           <h1 className={styles.pageTitle}>Đơn hàng từ nhà trường</h1>
-          <p className={styles.pageSubtitle}>
-            Theo dõi yêu cầu nhập nguyên liệu trường học gửi đến và xác nhận tiếp
-            nhận đơn hàng.
-          </p>
         </div>
 
         <Button
