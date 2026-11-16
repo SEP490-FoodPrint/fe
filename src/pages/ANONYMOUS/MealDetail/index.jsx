@@ -17,6 +17,7 @@ import MealDetailHeader from "./component/MealDetailHeader";
 import MealDetailFilterBar from "./component/MealDetailFilterBar";
 import MealDishesTable from "./component/MealDishesTable";
 import DishIngredientsModal from "./component/DishIngredientsModal";
+import { getWeekLabel } from "src/utils/weeklyMenu";
 import {
   MOCK_GRADE_BLOCKS,
   resolveSchoolGradeBlocks,
@@ -186,7 +187,7 @@ function MealDetail() {
     const found = availableWeeks.find(
       (w) => w.weekStartDate === weekStartDateIso,
     );
-    if (found?.title) return found.title;
+    if (found) return getWeekLabel(found);
     if (weeklyMenu?.weekNumber) return `Tuần ${weeklyMenu.weekNumber}`;
     return "Tuần 1";
   }, [availableWeeks, weekStartDateIso, weeklyMenu]);
