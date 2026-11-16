@@ -6,8 +6,8 @@ import styles from "./AuthLayout.module.scss"
 
 function AuthLayout() {
   const { pathname } = useLocation()
-  const isLoginPage = pathname === ROUTER.LOGIN
-  if (isLoginPage) {
+  const isStandaloneAuth = [ROUTER.LOGIN, ROUTER.REGISTER].includes(pathname)
+  if (isStandaloneAuth) {
     return <Outlet />
   }
 
