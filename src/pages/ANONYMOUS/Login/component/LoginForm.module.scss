@@ -3,19 +3,20 @@
   min-height: 100vh;
   min-height: 100svh;
   height: 100vh;
-  background-color: #ffffff;
+  width: 100%;
   display: flex;
+  background-color: #ffffff;
   overflow: hidden;
-  font-family: var(--font-family, "Be Vietnam Pro", sans-serif);
 
   @media (max-width: 1024px) {
+    flex-direction: column;
     height: auto;
     min-height: 100vh;
-    flex-direction: column;
     overflow-y: auto;
   }
 }
 
+/* Subtle corner decoration */
 .decorLeafTop {
   position: absolute;
   top: 0;
@@ -31,7 +32,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 44px 56px 40px;
+  padding: 0;
   background: linear-gradient(160deg, #ffffff 0%, #f4fbf7 45%, #ecfdf5 100%);
   border-right: 1px solid #e2e8f0;
   position: relative;
@@ -41,14 +42,27 @@
   @media (max-width: 1024px) {
     flex: none;
     height: auto;
-    padding: 36px 24px;
     border-right: none;
     border-bottom: 1px solid #e2e8f0;
   }
 }
 
+.leftColContent {
+  padding: 36px 56px 0;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 1200px) {
+    padding: 32px 40px 0;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 32px 24px 0;
+  }
+}
+
 .logoWrapper {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .brandLink {
@@ -57,21 +71,21 @@
 }
 
 .heroCenter {
-  margin: auto 0;
-  padding: 16px 0 24px;
+  margin: 8px 0 0;
+  padding: 0;
 }
 
 .heroTitle {
   font-family: var(--font-family, "Be Vietnam Pro", sans-serif);
-  font-size: 40px;
+  font-size: 38px;
   font-weight: 800;
-  line-height: 1.16;
+  line-height: 1.18;
   color: #064e3b;
-  margin: 0 0 14px;
+  margin: 0 0 12px;
   letter-spacing: -0.025em;
 
   @media (max-width: 1200px) {
-    font-size: 34px;
+    font-size: 32px;
   }
 }
 
@@ -92,9 +106,9 @@
 
 .heroDescription {
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.55;
   color: #475569;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   max-width: 520px;
 }
 
@@ -131,24 +145,29 @@
 
 .showcaseCard {
   width: 100%;
-  border-radius: 20px;
+  margin-top: auto;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
   overflow: hidden;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  box-shadow: 0 12px 30px -8px rgba(10, 128, 102, 0.12);
-  margin-top: 16px;
-  max-height: 280px;
-
-  @media (max-width: 1024px) {
-    max-height: 240px;
-  }
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  line-height: 0;
 }
 
 .showcaseImage {
   display: block;
   width: 100%;
-  height: 100%;
-  max-height: 280px;
+  height: auto;
+  max-height: calc(100vh - 250px);
   object-fit: cover;
+  object-position: center bottom;
+  border-radius: 0;
+
+  @media (max-width: 1024px) {
+    max-height: 380px;
+  }
 }
 
 /* Right Column: Floating Login Card */
@@ -177,176 +196,171 @@
   border-radius: 28px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 20px 45px -10px rgba(10, 128, 102, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03);
-  padding: 32px 32px 28px;
-}
-
-.cardHeaderIcon {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin-bottom: 22px;
-}
-
-.sproutBadge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 36px 36px 32px;
 }
 
 .cardTitle {
   font-size: 26px;
   font-weight: 800;
   color: #0f172a;
-  margin: 10px 0 0;
+  margin: 0 0 24px;
   letter-spacing: -0.02em;
-}
-
-.cardSubtitle {
-  font-size: 13.5px;
-  color: #64748b;
-  margin: 4px 0 0;
+  text-align: center;
 }
 
 .alertNotice {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  font-size: 13.5px;
 }
 
 .errorAlert {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
   background-color: #fef2f2;
-  border: 1px solid #fee2e2;
-  color: #b91c1c;
-  font-size: 13px;
-  margin-bottom: 16px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  color: #991b1b;
+  font-size: 13.5px;
+  font-weight: 500;
+  margin-bottom: 20px;
+  line-height: 1.4;
 }
 
 .errorIcon {
+  color: #dc2626;
   flex-shrink: 0;
-  margin-top: 1px;
 }
 
-.form {
+.loginForm {
   display: flex;
   flex-direction: column;
+  gap: 18px;
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 15px;
+  gap: 7px;
 }
 
 .fieldLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 600;
-  color: #1e293b;
+  color: #334155;
+  letter-spacing: -0.01em;
 }
 
-.labelIcon {
-  color: #64748b;
-}
-
-.inputContainer {
+.inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
   background: #ffffff;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-color: #cbd5e1;
+  }
 
   &:focus-within {
     border-color: var(--color-primary, #0A8066);
-    box-shadow: 0 0 0 3px rgba(10, 128, 102, 0.12);
+    box-shadow: 0 0 0 3.5px rgba(10, 128, 102, 0.12);
+  }
+
+  &.hasError {
+    border-color: #ef4444;
+    background-color: #fffafa;
+
+    &:focus-within {
+      box-shadow: 0 0 0 3.5px rgba(239, 68, 68, 0.15);
+    }
   }
 }
 
-.hasError {
-  border-color: #ef4444 !important;
-
-  &:focus-within {
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
-  }
-}
-
-.inputLeadingIcon {
+.inputLeadIcon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   color: #94a3b8;
   pointer-events: none;
-  flex-shrink: 0;
+  transition: color 0.2s ease;
+}
+
+.inputWrapper:focus-within .inputLeadIcon {
+  color: var(--color-primary, #0A8066);
 }
 
 .textInput {
   width: 100%;
-  border: 0;
-  outline: none;
+  padding: 12px 14px 12px 42px;
+  border: none;
   background: transparent;
-  font-family: inherit;
-  font-size: 14px;
+  outline: none;
+  font-size: 14.5px;
   color: #0f172a;
-  padding: 11px 12px 11px 38px;
-  border-radius: 10px;
+  font-family: inherit;
 
   &::placeholder {
     color: #94a3b8;
+    font-size: 13.5px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    background: #f8fafc;
   }
 }
 
 .eyeToggleBtn {
-  background: transparent;
-  border: 0;
-  color: #64748b;
-  padding: 0 12px;
-  cursor: pointer;
-  display: flex;
+  position: absolute;
+  right: 12px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  background: none;
+  border: none;
+  padding: 4px;
+  color: #94a3b8;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s ease;
 
   &:hover {
-    color: #0f172a;
+    color: #475569;
   }
 }
 
-.fieldErrorText {
+.fieldError {
   font-size: 12px;
-  color: #ef4444;
-  margin-top: 3px;
+  font-weight: 500;
+  color: #dc2626;
+  margin-top: 1px;
 }
 
-.utilityRow {
+.formOptionsRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  font-size: 13.5px;
+  margin-top: 2px;
 }
 
-.rememberCheckboxLabel {
+.checkboxLabel {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
   user-select: none;
-  color: #334155;
-  font-size: 13.5px;
 }
 
 .hiddenCheckbox {
   position: absolute;
   opacity: 0;
-  pointer-events: none;
   width: 0;
   height: 0;
+  pointer-events: none;
 }
 
 .customCheckbox {
@@ -360,57 +374,65 @@
   justify-content: center;
   color: #ffffff;
   transition: all 0.15s ease;
+
+  &.isChecked {
+    background-color: var(--color-primary, #0A8066);
+    border-color: var(--color-primary, #0A8066);
+  }
 }
 
-.isChecked {
-  background-color: var(--color-primary, #0A8066);
-  border-color: var(--color-primary, #0A8066);
-}
-
-.rememberText {
+.checkboxText {
   font-size: 13px;
-  color: #334155;
+  font-weight: 500;
+  color: #475569;
 }
 
-.forgotPasswordLink {
-  color: var(--color-primary, #0A8066);
+.forgotLink {
+  font-size: 13px;
   font-weight: 600;
+  color: var(--color-primary, #0A8066);
   text-decoration: none;
-  font-size: 13px;
+  transition: opacity 0.15s ease, text-decoration 0.15s ease;
 
   &:hover {
     text-decoration: underline;
+    opacity: 0.85;
   }
 }
 
 .submitBtn {
-  width: 100%;
-  min-height: 46px;
-  border: 0;
-  border-radius: 10px;
-  background-color: var(--color-primary, #0A8066);
-  color: #ffffff;
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
+  margin-top: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
+  padding: 13px;
+  background-color: var(--color-primary, #0A8066);
+  color: #ffffff;
+  border: none;
+  border-radius: 14px;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  box-shadow: 0 4px 14px rgba(10, 128, 102, 0.28);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover:not(:disabled) {
-    background-color: var(--color-primary-hover, #086954);
+    background-color: var(--color-primary-dark, #08604d);
+    box-shadow: 0 6px 18px rgba(10, 128, 102, 0.36);
+    transform: translateY(-1px);
   }
 
   &:active:not(:disabled) {
-    transform: scale(0.99);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(10, 128, 102, 0.2);
   }
 
   &:disabled {
-    opacity: 0.7;
+    opacity: 0.65;
     cursor: not-allowed;
+    box-shadow: none;
   }
 }
 
@@ -418,11 +440,11 @@
   flex-shrink: 0;
 }
 
-.dividerRow {
+.divider {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 18px 0;
+  margin: 18px 0 16px;
+  gap: 14px;
 }
 
 .dividerLine {
@@ -432,71 +454,33 @@
 }
 
 .dividerText {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #94a3b8;
+  font-weight: 500;
   text-transform: lowercase;
 }
 
-.createAccountBtn {
-  width: 100%;
-  min-height: 44px;
-  border: 1.5px solid var(--color-primary, #0A8066);
-  border-radius: 10px;
-  background-color: transparent;
-  color: var(--color-primary, #0A8066);
-  font-family: inherit;
-  font-size: 15px;
-  font-weight: 700;
+.registerBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  width: 100%;
+  padding: 12px;
+  background-color: #ffffff;
+  color: var(--color-primary, #0A8066);
+  border: 1.5px solid var(--color-primary, #0A8066);
+  border-radius: 14px;
+  font-size: 14.5px;
+  font-weight: 700;
   text-decoration: none;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: rgba(10, 128, 102, 0.05);
+    background-color: var(--color-primary-soft, #e6f4ea);
+    border-color: var(--color-primary-dark, #08604d);
+    color: var(--color-primary-dark, #08604d);
   }
-}
-
-/* Role Notice Callout */
-.roleNoticeCard {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  background-color: #f0fdf4;
-  border: 1px solid #dcfce7;
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-top: 20px;
-}
-
-.roleIconCircle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background-color: #dcfce7;
-  color: var(--color-primary, #0A8066);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.roleNoticeTitle {
-  font-size: 13px;
-  font-weight: 700;
-  color: #064e3b;
-  margin: 0;
-  line-height: 1.3;
-}
-
-.roleNoticeDesc {
-  font-size: 12px;
-  color: #166534;
-  margin: 2px 0 0;
-  line-height: 1.4;
 }
 
 @media (max-width: 600px) {
@@ -505,7 +489,7 @@
   }
 
   .loginCard {
-    padding: 24px 20px;
+    padding: 28px 20px 24px;
     border-radius: 20px;
   }
 }

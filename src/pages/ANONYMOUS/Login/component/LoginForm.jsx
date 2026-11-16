@@ -12,7 +12,6 @@ import {
   Mail,
   QrCode,
   ShieldCheck,
-  User,
   UserPlus,
   Users,
 } from "lucide-react"
@@ -68,53 +67,55 @@ export default function LoginForm({
         </svg>
       </div>
 
-      {/* LEFT COLUMN: Hero & Visual Showcase (Full Height Top-to-Bottom) */}
+      {/* LEFT COLUMN: Hero & Visual Showcase (Full Bleed Edge to Edge) */}
       <div className={styles.leftCol}>
-        {/* Top: Brand Logo */}
-        <div className={styles.logoWrapper}>
-          <Link to={ROUTER.DEFAULT} className={styles.brandLink} title="FoodPrint - Trang chủ">
-            <BrandLogo theme="light" />
-          </Link>
-        </div>
+        <div className={styles.leftColContent}>
+          {/* Top: Brand Logo */}
+          <div className={styles.logoWrapper}>
+            <Link to={ROUTER.DEFAULT} className={styles.brandLink} title="FoodPrint - Trang chủ">
+              <BrandLogo theme="light" />
+            </Link>
+          </div>
 
-        {/* Center: Headline & Compact Value Tags */}
-        <div className={styles.heroCenter}>
-          <h1 className={styles.heroTitle}>
-            Bữa ăn học đường<br />
-            <span className={styles.highlightText}>
-              an toàn
-              <svg className={styles.brushCurve} viewBox="0 0 160 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 9C45 3 115 2 157 7" stroke="var(--color-primary, #0A8066)" strokeWidth="3.5" strokeLinecap="round" />
-              </svg>
-            </span>{" "}
-            và minh bạch
-          </h1>
+          {/* Center: Headline & Value Highlights */}
+          <div className={styles.heroCenter}>
+            <h1 className={styles.heroTitle}>
+              Suất ăn học đường<br />
+              <span className={styles.highlightText}>
+                an toàn
+                <svg className={styles.brushCurve} viewBox="0 0 160 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9C45 3 115 2 157 7" stroke="var(--color-primary, #0A8066)" strokeWidth="3.5" strokeLinecap="round" />
+                </svg>
+              </span>{" "}
+              và minh bạch
+            </h1>
 
-          <p className={styles.heroDescription}>
-            Nền tảng quản lý, giám sát và truy xuất nguồn gốc bữa ăn học đường.
-          </p>
+            <p className={styles.heroDescription}>
+              Hệ thống quản lí và Truy xuất nguồn gốc suất ăn học đường.
+            </p>
 
-          <div className={styles.tagList}>
-            <div className={styles.tagItem}>
-              <ShieldCheck size={18} className={styles.tagIcon} />
-              <span>An toàn thực phẩm</span>
-            </div>
-            <div className={styles.tagItem}>
-              <QrCode size={18} className={styles.tagIcon} />
-              <span>Truy xuất minh bạch</span>
-            </div>
-            <div className={styles.tagItem}>
-              <Users size={18} className={styles.tagIcon} />
-              <span>Kết nối hệ sinh thái</span>
+            <div className={styles.tagList}>
+              <div className={styles.tagItem}>
+                <ShieldCheck size={18} className={styles.tagIcon} />
+                <span>An toàn thực phẩm</span>
+              </div>
+              <div className={styles.tagItem}>
+                <QrCode size={18} className={styles.tagIcon} />
+                <span>Truy xuất minh bạch</span>
+              </div>
+              <div className={styles.tagItem}>
+                <Users size={18} className={styles.tagIcon} />
+                <span>Kết nối hệ sinh thái</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom: Large Showcase Visual Card */}
+        {/* Bottom: Showcase Image (Full Left-Right and Bottom, Sharp Edges, No Crop) */}
         <div className={styles.showcaseCard}>
           <img
             src={showcaseImg}
-            alt="Bữa ăn học đường an toàn - Học sinh nhận suất ăn dinh dưỡng"
+            alt="Suất ăn học đường an toàn - Học sinh nhận suất ăn dinh dưỡng"
             className={styles.showcaseImage}
             loading="eager"
           />
@@ -124,28 +125,8 @@ export default function LoginForm({
       {/* RIGHT COLUMN: Floating Login Card */}
       <div className={styles.rightCol}>
         <div className={styles.loginCard}>
-          {/* Card Header Icon (Seedling in bowl) */}
-          <div className={styles.cardHeaderIcon}>
-            <div className={styles.sproutBadge}>
-              <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect width="44" height="44" rx="22" fill="#E8F5E9" />
-                {/* Bowl */}
-                <path d="M13 24C13 29.5 17 34 22 34C27 34 31 29.5 31 24H13Z" fill="#1b5e20" />
-                <rect x="18" y="34" width="8" height="2" rx="1" fill="#1b5e20" />
-                {/* Sprout Stem */}
-                <path d="M22 24V18" stroke="#1b5e20" strokeWidth="2.5" strokeLinecap="round" />
-                {/* Leaves */}
-                <path d="M22 19C19 14.5 14.5 16 14.5 18C14.5 21 19 20 22 19Z" fill="#388e3c" />
-                <path d="M22 19C25 14.5 29.5 16 29.5 18C29.5 21 25 20 22 19Z" fill="#388e3c" />
-                {/* Radiating sparkles */}
-                <circle cx="22" cy="11.5" r="1.5" fill="#66bb6a" />
-                <circle cx="15.5" cy="13.5" r="1.2" fill="#66bb6a" />
-                <circle cx="28.5" cy="13.5" r="1.2" fill="#66bb6a" />
-              </svg>
-            </div>
-            <h2 className={styles.cardTitle}>Đăng nhập</h2>
-            <p className={styles.cardSubtitle}>Chào mừng bạn quay trở lại FoodPrint!</p>
-          </div>
+          {/* Card Title */}
+          <h2 className={styles.cardTitle}>Đăng nhập</h2>
 
           {/* Password Updated Alert */}
           {passwordUpdated && (
@@ -162,76 +143,87 @@ export default function LoginForm({
             </div>
           )}
 
-          {/* Form Body */}
-          <form onSubmit={submit} noValidate aria-label="Đăng nhập FoodPrint" className={styles.form}>
-            {/* Field 1: Email / Số điện thoại */}
+          <form onSubmit={submit} className={styles.loginForm} noValidate>
+            {/* Identifier Input */}
             <div className={styles.fieldGroup}>
-              <label htmlFor="userIdentifier" className={styles.fieldLabel}>
-                <User size={15} className={styles.labelIcon} />
-                <span>Email / Số điện thoại</span>
+              <label htmlFor="login-identifier" className={styles.fieldLabel}>
+                Email / Số điện thoại
               </label>
-              <div className={`${styles.inputContainer} ${errors.identifier ? styles.hasError : ""}`}>
-                <Mail size={18} className={styles.inputLeadingIcon} />
+              <div
+                className={[
+                  styles.inputWrapper,
+                  errors.identifier ? styles.hasError : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                <Mail size={18} className={styles.inputLeadIcon} />
                 <input
-                  id="userIdentifier"
+                  id="login-identifier"
                   type="text"
-                  className={styles.textInput}
-                  placeholder="Nhập email hoặc số điện thoại"
+                  name="identifier"
                   value={identifier}
                   onChange={(e) => {
                     setIdentifier(e.target.value)
-                    if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: undefined }))
+                    if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: "" }))
                   }}
+                  placeholder="Nhập email hoặc số điện thoại"
+                  className={styles.textInput}
                   autoComplete="username"
                   disabled={loading}
-                  maxLength={320}
-                  autoCapitalize="none"
-                  spellCheck="false"
                 />
               </div>
               {errors.identifier && (
-                <span className={styles.fieldErrorText}>{errors.identifier}</span>
+                <span className={styles.fieldError}>{errors.identifier}</span>
               )}
             </div>
 
-            {/* Field 2: Mật khẩu */}
+            {/* Password Input */}
             <div className={styles.fieldGroup}>
-              <label htmlFor="passwordInput" className={styles.fieldLabel}>
-                <Lock size={15} className={styles.labelIcon} />
-                <span>Mật khẩu</span>
+              <label htmlFor="login-password" className={styles.fieldLabel}>
+                Mật khẩu
               </label>
-              <div className={`${styles.inputContainer} ${errors.password ? styles.hasError : ""}`}>
-                <Lock size={18} className={styles.inputLeadingIcon} />
+              <div
+                className={[
+                  styles.inputWrapper,
+                  errors.password ? styles.hasError : "",
+                ]
+                  .filter(Boolean)
+                  .join(" ")}
+              >
+                <Lock size={18} className={styles.inputLeadIcon} />
                 <input
-                  id="passwordInput"
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
-                  className={styles.textInput}
-                  placeholder="Nhập mật khẩu"
+                  name="password"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value)
-                    if (errors.password) setErrors((prev) => ({ ...prev, password: undefined }))
+                    if (errors.password) setErrors((prev) => ({ ...prev, password: "" }))
                   }}
+                  placeholder="Nhập mật khẩu"
+                  className={styles.textInput}
                   autoComplete="current-password"
                   disabled={loading}
                 />
                 <button
                   type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className={styles.eyeToggleBtn}
-                  onClick={() => setShowPassword((prev) => !prev)}
+                  tabIndex={-1}
                   aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.password && (
-                <span className={styles.fieldErrorText}>{errors.password}</span>
+                <span className={styles.fieldError}>{errors.password}</span>
               )}
             </div>
 
-            {/* Utility Row: Remember Me & Forgot Password */}
-            <div className={styles.utilityRow}>
-              <label className={styles.rememberCheckboxLabel}>
+            {/* Remember Me & Forgot Password */}
+            <div className={styles.formOptionsRow}>
+              <label className={styles.checkboxLabel}>
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -241,10 +233,10 @@ export default function LoginForm({
                 <span className={`${styles.customCheckbox} ${rememberMe ? styles.isChecked : ""}`}>
                   {rememberMe && <Check size={12} strokeWidth={3} />}
                 </span>
-                <span className={styles.rememberText}>Ghi nhớ đăng nhập</span>
+                <span className={styles.checkboxText}>Ghi nhớ đăng nhập</span>
               </label>
 
-              <Link to={ROUTER.FORGOT_PASSWORD} className={styles.forgotPasswordLink}>
+              <Link to={ROUTER.FORGOT_PASSWORD} className={styles.forgotLink}>
                 Quên mật khẩu?
               </Link>
             </div>
@@ -254,13 +246,9 @@ export default function LoginForm({
               type="submit"
               disabled={loading}
               className={styles.submitBtn}
-              aria-busy={loading}
             >
               {loading ? (
-                <>
-                  <CircularProgress size={18} color="inherit" />
-                  <span>Đang xác thực thông tin...</span>
-                </>
+                <CircularProgress size={20} color="inherit" />
               ) : (
                 <>
                   <LogIn size={18} className={styles.btnIcon} />
@@ -270,31 +258,18 @@ export default function LoginForm({
             </button>
           </form>
 
-          {/* Divider: hoặc */}
-          <div className={styles.dividerRow}>
+          {/* Divider */}
+          <div className={styles.divider}>
             <span className={styles.dividerLine} />
             <span className={styles.dividerText}>hoặc</span>
             <span className={styles.dividerLine} />
           </div>
 
-          {/* Register Button */}
-          <Link to={ROUTER.REGISTER} className={styles.createAccountBtn}>
+          {/* Register Action Button */}
+          <Link to={ROUTER.REGISTER} className={styles.registerBtn}>
             <UserPlus size={18} className={styles.btnIcon} />
             <span>Tạo tài khoản</span>
           </Link>
-
-          {/* Info / Notice Callout Box */}
-          <div className={styles.roleNoticeCard}>
-            <div className={styles.roleIconCircle}>
-              <Users size={18} className={styles.roleNoticeIcon} />
-            </div>
-            <div className={styles.roleNoticeText}>
-              <h4 className={styles.roleNoticeTitle}>Dành cho Admin, Trường học và Nhà cung cấp</h4>
-              <p className={styles.roleNoticeDesc}>
-                Đăng nhập để quản lý, giám sát và kết nối hoạt động bữa ăn học đường trên FoodPrint.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
