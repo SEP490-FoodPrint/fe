@@ -388,9 +388,17 @@
   transition: all 0.15s ease;
   white-space: nowrap;
 
-  &:hover {
+  &:not(:disabled):hover {
     background-color: #086a55;
     box-shadow: 0 1px 3px rgba(10, 128, 102, 0.25);
+  }
+
+  &:disabled {
+    background-color: #e2e8f0;
+    color: #64748b;
+    opacity: 0.65;
+    cursor: not-allowed;
+    box-shadow: none;
   }
 
   @media (max-width: 640px) {

@@ -193,7 +193,13 @@ export default function DeliveryDetailView({
               className={styles.approvalPrimaryBtn}
               onClick={() => onOpenApprovalModal(delivery)}
               disabled={!delivery.canInspect}
-              title="Đánh giá cảm quan và ra quyết định duyệt hoặc từ chối"
+              title={delivery.canInspect
+                ? "Đánh giá cảm quan và ra quyết định duyệt hoặc từ chối"
+                : delivery.status === "RECEIVED"
+                  ? "Đợt giao đã tiếp nhận, không thể đánh giá lại"
+                  : delivery.status === "REJECTED"
+                    ? "Đợt giao đã bị từ chối, không thể đánh giá tiếp"
+                    : "Bạn chưa thể đánh giá đợt giao này"}
             >
               <ShieldCheck size={16} />
               <span>Đánh giá kiểm thực</span>

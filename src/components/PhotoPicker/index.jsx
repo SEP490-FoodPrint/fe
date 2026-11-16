@@ -5,7 +5,7 @@ import styles from "./style.module.scss";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
-export default function PhotoPicker({ value, onChange, disabled = false }) {
+export default function PhotoPicker({ value, onChange, disabled = false, required = true }) {
   const id = useId();
   const [error, setError] = useState("");
   const [preview, setPreview] = useState("");
@@ -31,7 +31,7 @@ export default function PhotoPicker({ value, onChange, disabled = false }) {
   };
 
   return <div className={styles.picker}>
-    <span className={styles.label}>Ảnh đính kèm <span>(tùy chọn)</span></span>
+    <span className={styles.label}>Ảnh đính kèm <span>({required ? "bắt buộc" : "tùy chọn"})</span></span>
     <div className={styles.actions}>
       <label className={styles.action} htmlFor={`${id}-camera`}><Camera size={16} /> Chụp ảnh<input id={`${id}-camera`} className={styles.input} type="file" accept="image/jpeg,image/png" capture="environment" onChange={select} disabled={disabled} /></label>
       <label className={styles.action} htmlFor={`${id}-upload`}><ImagePlus size={16} /> Tải ảnh lên<input id={`${id}-upload`} className={styles.input} type="file" accept="image/jpeg,image/png" onChange={select} disabled={disabled} /></label>
@@ -44,4 +44,4 @@ export default function PhotoPicker({ value, onChange, disabled = false }) {
   </div>;
 }
 
-PhotoPicker.propTypes = { value: PropTypes.object, onChange: PropTypes.func.isRequired, disabled: PropTypes.bool };
+PhotoPicker.propTypes = { value: PropTypes.object, onChange: PropTypes.func.isRequired, disabled: PropTypes.bool, required: PropTypes.bool };

@@ -91,6 +91,7 @@ export default function RetainedSampleModal({
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!photo) { setErrorMsg("Cần chụp hoặc tải ảnh mẫu lưu trước khi xác nhận."); return; }
     if (batchData.dishes && batchData.dishes.length > 1 && !selectedDishId) {
       setErrorMsg("Vui lòng chọn món ăn cần lưu mẫu.");
       return;
