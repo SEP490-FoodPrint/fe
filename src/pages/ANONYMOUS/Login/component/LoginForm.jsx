@@ -10,10 +10,7 @@ import {
   Lock,
   LogIn,
   Mail,
-  QrCode,
-  ShieldCheck,
   UserPlus,
-  Users,
 } from "lucide-react"
 import BrandLogo from "src/components/Common/BrandLogo"
 import AuthService from "src/services/AuthService"
@@ -105,21 +102,6 @@ export default function LoginForm({
             <p className={styles.heroDescription}>
               Hệ thống quản lí và Truy xuất nguồn gốc suất ăn học đường.
             </p>
-
-            <div className={styles.tagList}>
-              <div className={styles.tagItem}>
-                <ShieldCheck size={18} className={styles.tagIcon} />
-                <span>An toàn thực phẩm</span>
-              </div>
-              <div className={styles.tagItem}>
-                <QrCode size={18} className={styles.tagIcon} />
-                <span>Truy xuất minh bạch</span>
-              </div>
-              <div className={styles.tagItem}>
-                <Users size={18} className={styles.tagIcon} />
-                <span>Kết nối hệ sinh thái</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>
