@@ -193,7 +193,7 @@ export default function LoginForm({
                     if (errors.password) setErrors((prev) => ({ ...prev, password: "" }))
                   }}
                   placeholder="Nhập mật khẩu"
-                  className={styles.textInput}
+                  className={`${styles.textInput} ${styles.textInputWithToggle}`}
                   autoComplete="current-password"
                   disabled={loading}
                 />
