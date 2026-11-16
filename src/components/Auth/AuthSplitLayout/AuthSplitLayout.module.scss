@@ -1,0 +1,256 @@
+/* ==========================================================================
+   AUTH SPLIT LAYOUT
+   - Split-screen edge-to-edge layout for all authentication & recovery pages.
+   - Left Column (45%): Showcase vertical image with gradient scrim and typography.
+   - Right Column (55%): Centered card area with smooth scroll and clean background.
+   ========================================================================== */
+
+.splitPage {
+  position: relative;
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #ffffff;
+  font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+
+  @media (max-width: 1024px) {
+    flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+}
+
+/* Ambient glows */
+.ambientGlowTop {
+  position: absolute;
+  top: -120px;
+  right: 5%;
+  width: 500px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(10, 128, 102, 0.07) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.ambientGlowBottom {
+  position: absolute;
+  bottom: -80px;
+  right: 25%;
+  width: 420px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(148, 245, 213, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ==========================================================================
+   LEFT COLUMN: Showcase Image with Overlay Text
+   ========================================================================== */
+.leftCol {
+  flex: 0 0 45%;
+  width: 45%;
+  max-width: 45%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 1200px) {
+    flex: 0 0 44%;
+    width: 44%;
+    max-width: 44%;
+  }
+
+  @media (max-width: 1024px) {
+    flex: none;
+    width: 100%;
+    max-width: 100%;
+    min-height: 380px;
+    height: auto;
+  }
+
+  @media (max-width: 600px) {
+    min-height: 320px;
+  }
+}
+
+.bgShowcaseImg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  display: block;
+  z-index: 1;
+}
+
+.leftColOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.94) 0%,
+    rgba(255, 255, 255, 0.78) 22%,
+    rgba(255, 255, 255, 0.35) 45%,
+    rgba(255, 255, 255, 0.05) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  z-index: 2;
+  pointer-events: none;
+
+  @media (max-width: 1024px) {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      rgba(255, 255, 255, 0.82) 50%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+  }
+}
+
+/* Content container sitting on top of the image (Placed at top like Login & Register) */
+.leftColContent {
+  position: relative;
+  z-index: 3;
+  padding: 44px 48px 36px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+
+  @media (max-width: 1200px) {
+    padding: 36px 36px 28px;
+  }
+
+  @media (max-width: 1024px) {
+    padding: 36px 24px 32px;
+    align-items: center;
+    text-align: center;
+  }
+
+  @media (max-width: 600px) {
+    padding: 28px 18px 24px;
+  }
+}
+
+.logoWrapper {
+  margin-bottom: 24px;
+  display: flex;
+
+  @media (max-width: 1024px) {
+    justify-content: center;
+    margin-bottom: 18px;
+  }
+}
+
+.brandLink {
+  display: inline-flex;
+  text-decoration: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    opacity: 0.88;
+    transform: translateY(-1px);
+  }
+}
+
+.heroCenter {
+  margin: 0;
+  padding: 0;
+}
+
+.heroTitle {
+  font-family: var(--font-family, "Be Vietnam Pro", sans-serif);
+  font-size: 36px;
+  font-weight: 800;
+  line-height: 1.18;
+  color: #064e3b;
+  margin: 0 0 12px;
+  letter-spacing: -0.025em;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+
+  @media (max-width: 1400px) {
+    font-size: 32px;
+  }
+
+  @media (max-width: 1200px) {
+    font-size: 28px;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 24px;
+  }
+}
+
+.highlightText {
+  position: relative;
+  display: inline-block;
+  color: var(--color-primary, #0A8066);
+  white-space: nowrap;
+}
+
+.brushCurve {
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 12px;
+  pointer-events: none;
+}
+
+.heroDescription {
+  font-size: 15px;
+  line-height: 1.55;
+  color: #1e3a34;
+  font-weight: 500;
+  margin: 0;
+  max-width: 440px;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
+
+  @media (max-width: 1200px) {
+    font-size: 14px;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 13.5px;
+  }
+}
+
+/* ==========================================================================
+   RIGHT COLUMN: Centered Form Area
+   ========================================================================== */
+.rightCol {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 55%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 48px;
+  background-color: #ffffff;
+  overflow-y: auto;
+  z-index: 4;
+  box-sizing: border-box;
+
+  @media (max-width: 1024px) {
+    flex: none;
+    width: 100%;
+    height: auto;
+    min-height: auto;
+    padding: 36px 20px 48px;
+    overflow-y: visible;
+  }
+}
+
+.cardContainer {
+  width: 100%;
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+}

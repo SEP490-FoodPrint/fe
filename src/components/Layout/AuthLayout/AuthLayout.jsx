@@ -6,7 +6,26 @@ import styles from "./AuthLayout.module.scss"
 
 function AuthLayout() {
   const { pathname } = useLocation()
-  const redesigned = [ROUTER.LOGIN, ROUTER.REGISTER, ROUTER.FORGOT_PASSWORD, ROUTER.PASSWORD_RECOVERY_CODE, ROUTER.RESET_PASSWORD].includes(pathname)
+  const isStandaloneAuth = [
+    ROUTER.LOGIN,
+    ROUTER.REGISTER,
+    ROUTER.FORGOT_PASSWORD,
+    ROUTER.PASSWORD_RECOVERY_CODE,
+    ROUTER.RESET_PASSWORD,
+    ROUTER.ACTIVATE_ACCOUNT,
+  ].includes(pathname)
+
+  if (isStandaloneAuth) {
+    return <Outlet />
+  }
+
+  const redesigned = [
+    ROUTER.REGISTER,
+    ROUTER.FORGOT_PASSWORD,
+    ROUTER.PASSWORD_RECOVERY_CODE,
+    ROUTER.RESET_PASSWORD,
+  ].includes(pathname)
+
   return (
     <div className={`${styles.layoutWrapper} ${redesigned ? styles.redesigned : ""}`}>
       {/* 1. Fixed Header kính mờ */}
@@ -16,7 +35,7 @@ function AuthLayout() {
       <div className={styles.haloTop} aria-hidden="true" />
       <div className={styles.haloBottom} aria-hidden="true" />
 
-      {/* 3. Vùng chứa nội dung trang đăng nhập / đăng ký */}
+      {/* 3. Vùng chứa nội dung trang */}
       <main className={styles.authContent}>
         <Outlet />
       </main>

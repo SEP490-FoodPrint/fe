@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "react"
 import { Alert, Button, CircularProgress } from "@mui/material"
 import { Link, Navigate, useLocation, useNavigate } from "react-router-dom"
 import ErrorOutlineOutlinedIcon from "@mui/icons-material/ErrorOutlineOutlined"
+import { ArrowLeft, KeyRound, Lock } from "lucide-react"
 import AuthCard, { AuthHeading, AuthStatusIcon } from "src/components/Auth/AuthCard"
 import AuthInput from "src/components/Auth/AuthInput"
 import EmailCodeForm from "src/components/Auth/EmailCodeForm"
@@ -144,15 +145,16 @@ export default function PasswordRecovery({ step }) {
   if ((step === "verify" && !recovery?.email) || (step === "reset" && (!recovery?.resetToken || (!grantRemaining && !loading)))) return <Navigate to={ROUTER.FORGOT_PASSWORD} replace state={{ recoveryExpired: true }} />
 
   if (step === "verify") return <EmailCodeForm description={genericDelivery} email={recovery.email} code={code} onCodeChange={setCode} codeId="recovery-code" errors={errors} message={message} notice={notice} sending={sending} verifying={loading} remaining={remaining} submitRemaining={verifyRemaining} onSubmit={verify} onResend={resend}
-    footer={<Button component={Link} to={ROUTER.FORGOT_PASSWORD} className={form.link} disabled={loading || sending}>Đổi địa chỉ email</Button>} />
+    footer={<Button component={Link} to={ROUTER.FORGOT_PASSWORD} className={form.link} startIcon={<ArrowLeft size={16} />} disabled={loading || sending}>Đổi địa chỉ email</Button>} />
 
   return <AuthCard component="form" noValidate onSubmit={step === "reset" ? reset : request} aria-busy={loading} aria-label={step === "reset" ? "Đặt lại mật khẩu" : "Quên mật khẩu"}>
+    <AuthStatusIcon>{step === "reset" ? <Lock size={28} /> : <KeyRound size={28} />}</AuthStatusIcon>
     <AuthHeading title={step === "reset" ? "Đặt lại mật khẩu" : "Quên mật khẩu?"} description={step === "reset" ? "Tạo mật khẩu mới để tiếp tục sử dụng tài khoản FoodPrint." : "Nhập email đã đăng ký để nhận mã xác minh đặt lại mật khẩu."} />
     {step === "email" && location.state?.recoveryExpired && <Alert severity="info">Phiên khôi phục không còn hiệu lực. Vui lòng nhập email để nhận mã mới.</Alert>}
     <FormErrors errors={errors} message={message} />
     {step === "reset" ? <NewPasswordFields values={values} onChange={change} errors={errors} disabled={loading} />
       : <AuthInput id="email" label="Email đã đăng ký" type="email" required span="full" autoComplete="email" placeholder="Nhập địa chỉ email" value={email} onChange={event => setEmail(event.target.value)} error={errors.email} inputProps={{ maxLength: 254 }} disabled={loading} />}
     <Button type="submit" variant="contained" className={form.primary} disabled={loading || remaining > 0}>{loading ? <CircularProgress size={22} color="inherit" aria-label={step === "reset" ? "Đang đặt lại mật khẩu" : "Đang gửi mã"} /> : remaining ? `Thử lại sau ${remaining}s` : step === "reset" ? "Cập nhật mật khẩu" : "Gửi mã xác nhận"}</Button>
-    <Button component={Link} to={ROUTER.LOGIN} className={`${form.link} ${styles.back}`} disabled={loading}>Quay lại đăng nhập</Button>
+    <Button component={Link} to={ROUTER.LOGIN} className={`${form.link} ${styles.back}`} startIcon={<ArrowLeft size={16} />} disabled={loading}>Quay lại đăng nhập</Button>
   </AuthCard>
 }
