@@ -52,10 +52,7 @@ function BrandLogo({
 
       {!isIconOnly && (
         <div className={styles.textGroup}>
-          <span className={styles.brandTitle}>
-            <span className={styles.titleFood}>Food</span>
-            <span className={styles.titlePrint}>Print</span>
-          </span>
+          <span className={styles.brandTitle}>FoodPrint</span>
           {!compact && subtitle ? (
             <span className={styles.brandSubtitle}>{subtitle}</span>
           ) : null}
