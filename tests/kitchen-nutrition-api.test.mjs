@@ -158,7 +158,8 @@ test("menu grade filtering includes shared scopes, returns empty for an unused g
   assert.equal(groups[1].targetScope, "Khối 4–5")
   const shared = [{ ...cards[0], gradeIds: [id(50), id(51)] }]
   assert.equal(filterMenuCardsByGrade(shared, id(51)).length, 1)
-  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [] }], id(51)).length, 1)
+  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [], isSchoolWide: true }], id(51)).length, 1)
+  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [], isSchoolWide: false }], id(51)).length, 0)
 })
 
 test("kitchen grade selector lists every school grade without menus and has no current-week shortcut", async () => {
@@ -1131,7 +1132,7 @@ test("common authoring restores a separate saved snapshot for every selected gra
   respond = config => {
     if (config.url.endsWith("/week-schedule")) {
       const selected = availableMenus.find(menu => menu.id === config.params.menuId)
-      return { availableMenus, weeklyMenuId: selected?.id || null, weeklyMenuStatus: "DRAFT", gradeIds: selected?.gradeIds || [], days: [{ date: "2026-11-02", hasMenu: Boolean(selected), status: "DRAFT" }] }
+      return { availableMenus, weeklyMenuId: selected?.id || null, weeklyMenuStatus: selected?.id === second.id ? second.status : first.status, gradeIds: selected?.gradeIds || [], days: [{ date: "2026-11-02", hasMenu: Boolean(selected), status: "DRAFT" }] }
     }
     return config.url.endsWith(`/${first.id}`) ? first : second
   }
@@ -1141,6 +1142,10 @@ test("common authoring restores a separate saved snapshot for every selected gra
   assert.equal(saved[id(50)].LUNCH.dishes[0].ingredientStandards[0].quantityPerPortion, "80.125")
   assert.equal(saved[id(51)].LUNCH.dishes[0].ingredientStandards[0].quantityPerPortion, "110.625")
   second.menuDays[0].menuDayDishes[0].dishId = id(99)
+  menus.invalidateMenuCache()
+  await assert.rejects(loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)]), /lịch món hoặc trạng thái khác nhau/)
+  second.menuDays[0].menuDayDishes[0].dishId = first.menuDays[0].menuDayDishes[0].dishId
+  second.status = "APPROVED"
   menus.invalidateMenuCache()
   await assert.rejects(loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)]), /lịch món hoặc trạng thái khác nhau/)
 })
@@ -1159,4 +1164,58 @@ test("grade preview renders a grade selector and its own quantities while hiding
   const pending = renderToStaticMarkup(React.createElement(Preview, { ...props, loading: true }))
   assert.match(pending, /Đang đối chiếu/)
   assert.doesNotMatch(pending, />80<\/td>/)
+})
+
+test("reopening selected grades ignores unassigned legacy menus instead of treating them as school-wide", async () => {
+  const { loadGradeAuthoringWeek } = await server.ssrLoadModule("/src/services/MenuService/gradeAuthoring.js")
+  const availableMenus = [
+    { id: id(1), gradeIds: [id(50), id(51)], gradeNames: ["Khối 1–3", "Khối 4–5"], isSchoolWide: false },
+    { id: id(60), gradeIds: [], gradeNames: [], isSchoolWide: false },
+  ]
+  const saved = { ...snapshot(), grades: availableMenus[0].gradeIds.map((gradeId, index) => ({ gradeId, grade: { name: availableMenus[0].gradeNames[index] } })) }
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) {
+      assert.notEqual(config.params.menuId, id(60))
+      return { availableMenus, weeklyMenuId: config.params.menuId || null, weeklyMenuStatus: "DRAFT", gradeIds: config.params.menuId ? availableMenus[0].gradeIds : [], days: [{ date: "2026-11-02", hasMenu: Boolean(config.params.menuId), status: "DRAFT" }] }
+    }
+    assert.equal(config.url, `/v1/menus/${saved.id}`)
+    return saved
+  }
+  const reopened = await loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)])
+  assert.equal(reopened.data.gradeMenus.length, 1)
+  assert.equal(reopened.data.weeklyMenuStatus, "DRAFT")
+  assert.equal(reopened.data.days[0].gradeSnapshots[id(51)].LUNCH.dishes[0].dishId, id(3))
+  const cards = adapter.adaptWeeklyMenuToCardList({ ...snapshot(), grades: [], isSchoolWide: false })
+  assert.equal(cards[0].targetScope, "Chưa gán khối")
+  assert.equal(adapter.adaptWeeklyMenuToCardList({ ...snapshot(), grades: [], isSchoolWide: true })[0].targetScope, "Toàn trường")
+})
+
+test("weekly status comes from the parent even if every saved day is approved", async () => {
+  const { groupMenuCardsByWeek } = await server.ssrLoadModule("/src/services/MenuService/listGrades.js")
+  const week = snapshot()
+  week.menuDays = [week.menuDays[0]]
+  week.menuDays[0].approvalStatus = "APPROVED"
+  const cards = adapter.adaptWeeklyMenuToCardList(week)
+  assert.equal(cards[0].status, "APPROVED")
+  assert.equal(cards[0].weeklyStatus, "DRAFT")
+  assert.equal(groupMenuCardsByWeek(cards)[0].status, "DRAFT")
+})
+
+test("daily progress does not mark missing days approved and meal filters do not change weekly completeness", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: View } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuListWeeklyVerticalView.jsx")
+  const schoolDays = [2, 3].map((date, index) => ({ dateISO: `2026-11-0${date}`, dateVN: `0${date}/11/2026`, dayLabel: `Thứ ${index + 2}`, dayOfWeek: index + 1 }))
+  const week = snapshot()
+  week.status = "APPROVED"
+  week.menuDays = [week.menuDays[0]]
+  week.menuDays[0].approvalStatus = "APPROVED"
+  const cards = adapter.adaptWeeklyMenuToCardList(week)
+  const html = renderToStaticMarkup(React.createElement(View, { schoolDays, menus: cards, weekStatus: "APPROVED" }))
+  assert.match(html, /Chưa tạo/)
+  assert.match(html, /chưa đủ ngày\/bữa ăn/)
+  assert.doesNotMatch(html, /title="Tiến độ ngày: Đã duyệt"[^]*Thứ 3[^]*title="Tiến độ ngày: Đã duyệt"/)
+  const filtered = renderToStaticMarkup(React.createElement(View, { schoolDays: schoolDays.slice(0, 1), menus: cards.filter(card => card.mealType === "LUNCH"), allMenus: cards, mealTypeFilter: "LUNCH", weekStatus: "DRAFT" }))
+  assert.match(filtered, /submitActive/)
+  assert.doesNotMatch(filtered, /<button[^>]*disabled=""[^>]*title="Gửi thực đơn cả tuần/)
 })

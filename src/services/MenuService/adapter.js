@@ -1,3 +1,5 @@
+import { menuScopeLabel } from "./scope";
+
 /**
  * Adapter module: Chuẩn hóa dữ liệu giữa Backend Prisma Schema và Giao diện Frontend
  * Giúp các View (MenuPlanning, MenuDetail, CreateMenu, EditMenu) hoạt động trơn tru
@@ -545,11 +547,13 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
         week: weekCategory,
         mealType: "LUNCH",
         mealTypeLabel: "Trưa",
-        targetScope: (weeklyMenu.grades || []).map((row) => row.grade?.name).filter(Boolean).join(", ") || "To\u00e0n tr\u01b0\u1eddng",
+        targetScope: menuScopeLabel(weeklyMenu),
         gradeIds: (weeklyMenu.grades || []).map((row) => row.gradeId),
         portionCount: null,
         hasAllergyMenu: Boolean(allergyGroup),
         allergyNote: allergyGroup ? allergyGroup.name : "Không có",
+        weeklyStatus: normalizeStatus(weeklyMenu.status),
+        isSchoolWide: weeklyMenu.isSchoolWide === true,
         status: dayStatus,
         statusLabel: dayStatusLabel,
         feedback: "",
@@ -574,7 +578,7 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
         week: weekCategory,
         mealType: "AFTERNOON",
         mealTypeLabel: "Chiều",
-        targetScope: (weeklyMenu.grades || []).map((row) => row.grade?.name).filter(Boolean).join(", ") || "To\u00e0n tr\u01b0\u1eddng",
+        targetScope: menuScopeLabel(weeklyMenu),
         gradeIds: (weeklyMenu.grades || []).map((row) => row.gradeId),
         portionCount: null,
         hasAllergyMenu: portionGroups.some(
@@ -584,6 +588,8 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
           portionGroups.find(
             (group) => !group.isDefault && group.mealType === "AFTERNOON"
           )?.name || "Không có",
+        weeklyStatus: normalizeStatus(weeklyMenu.status),
+        isSchoolWide: weeklyMenu.isSchoolWide === true,
         status: dayStatus,
         statusLabel: dayStatusLabel,
         feedback: "",
@@ -738,7 +744,7 @@ export function adaptBackendMenuDetailToView(
     });
 
   // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp
-  const targetScope = (weeklyMenu.grades || []).map((row) => row.grade?.name).filter(Boolean).join(", ") || "Toàn trường";
+  const targetScope = menuScopeLabel(weeklyMenu);
   const formattedTitle = weeklyMenu.title || "Th\u1ef1c \u0111\u01a1n";
 
   return {

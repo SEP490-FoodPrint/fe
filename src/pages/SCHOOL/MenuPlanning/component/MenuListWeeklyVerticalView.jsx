@@ -21,6 +21,7 @@ import styles from "./MenuListWeeklyVerticalView.module.scss"
 export default function MenuListWeeklyVerticalView({
   schoolDays = [],
   menus = [],
+  allMenus = menus,
   mealTypeFilter = "all",
   onViewDetail,
   onEditMenu,
@@ -49,13 +50,15 @@ export default function MenuListWeeklyVerticalView({
   // Trạng thái chung của cả tuần
   const weekStatus = useMemo(() => {
     if (propWeekStatus) return propWeekStatus
-    const dayStatuses = menus.map((m) => m.status).filter(Boolean)
+    const savedStatus = allMenus[0]?.weeklyStatus
+    if (savedStatus) return savedStatus
+    const dayStatuses = allMenus.map((m) => m.status).filter(Boolean)
     if (dayStatuses.includes("REVISION_REQUESTED")) return "REVISION_REQUESTED"
     if (dayStatuses.includes("PENDING_APPROVAL")) return "PENDING_APPROVAL"
     if (dayStatuses.includes("DRAFT")) return "DRAFT"
     if (dayStatuses.length > 0) return dayStatuses[0]
     return "DRAFT"
-  }, [propWeekStatus, menus])
+  }, [propWeekStatus, allMenus])
 
   // Phản hồi chỉnh sửa từ BGH nếu tuần có yêu cầu sửa
   const weekFeedback = useMemo(() => {
@@ -117,92 +120,33 @@ export default function MenuListWeeklyVerticalView({
       const lunchMenu = dayMenus.find((m) => m.mealType === "LUNCH")
       const afternoonMenu = dayMenus.find((m) => m.mealType === "AFTERNOON")
 
-      const hasLunch = Boolean(lunchMenu)
-      const hasAfternoon = Boolean(afternoonMenu)
+      const savedDayMenus = allMenus.filter(m => m.rawDate === sd.dateISO || m.date === sd.dateVN)
+      const hasLunch = savedDayMenus.some(m => m.mealType === "LUNCH" && m.dishes?.length)
+      const hasAfternoon = savedDayMenus.some(m => m.mealType === "AFTERNOON" && m.dishes?.length)
       const isEmpty = !hasLunch && !hasAfternoon
 
-      // Xác định tiến độ / trạng thái của ngày đó
-      let progress = {
-        type: "COMPLETED",
-        label: "Đủ ca",
-        badgeClass: styles.badgeCompleted,
-        IconComponent: CheckCircle2,
-      }
-
-      if (weekStatus === "APPROVED") {
-        progress = {
-          type: "APPROVED",
-          label: "Đã duyệt",
-          badgeClass: styles.badgeApproved,
-          IconComponent: CheckCircle2,
-        }
-      } else if (weekStatus === "PENDING_APPROVAL") {
-        progress = {
-          type: "PENDING",
-          label: "Chờ duyệt",
-          badgeClass: styles.badgePending,
-          IconComponent: Clock,
-        }
-      } else if (weekStatus === "REVISION_REQUESTED") {
-        const isRevisionDay = dayMenus.some(
-          (m) => m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED"
-        )
-        if (isRevisionDay) {
-          const revNote = dayMenus.find((m) => m.feedback)?.feedback || weekFeedback
-          progress = {
-            type: "REVISION_REQUIRED",
-            label: "Cần sửa",
-            badgeClass: styles.badgeRevision,
-            IconComponent: AlertTriangle,
-            note: revNote,
-          }
-        } else {
-          progress = {
-            type: "REVISION_PASSED",
-            label: "Đạt chuẩn",
-            badgeClass: styles.badgeApproved,
-            IconComponent: CheckCircle2,
-          }
-        }
+      const statuses = savedDayMenus.map(menu => menu.status)
+      let progress
+      if (isEmpty) {
+        progress = { type: "EMPTY", label: "Chưa tạo", badgeClass: styles.badgeEmpty, IconComponent: PlusCircle }
+      } else if (!hasLunch || !hasAfternoon) {
+        progress = { type: hasLunch ? "PARTIAL_AFTERNOON" : "PARTIAL_LUNCH", label: hasLunch ? "Thiếu xế" : "Thiếu trưa", badgeClass: styles.badgePartial, IconComponent: AlertCircle }
+      } else if (statuses.some(status => ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(status))) {
+        progress = { type: "REVISION_REQUIRED", label: "Cần sửa", badgeClass: styles.badgeRevision, IconComponent: AlertTriangle, note: savedDayMenus.find(menu => menu.feedback)?.feedback || weekFeedback }
+      } else if (statuses.includes("PENDING_APPROVAL")) {
+        progress = { type: "PENDING", label: "Chờ duyệt", badgeClass: styles.badgePending, IconComponent: Clock }
+      } else if (statuses.length && statuses.every(status => status === "APPROVED")) {
+        progress = { type: "APPROVED", label: "Đã duyệt", badgeClass: styles.badgeApproved, IconComponent: CheckCircle2 }
       } else {
-        // Tuần DRAFT
-        if (isEmpty) {
-          progress = {
-            type: "EMPTY",
-            label: "Chưa tạo",
-            badgeClass: styles.badgeEmpty,
-            IconComponent: PlusCircle,
-          }
-        } else if (hasLunch && hasAfternoon) {
-          progress = {
-            type: "COMPLETED",
-            label: "Đủ ca",
-            badgeClass: styles.badgeCompleted,
-            IconComponent: CheckCircle2,
-          }
-        } else if (hasLunch && !hasAfternoon) {
-          progress = {
-            type: "PARTIAL_AFTERNOON",
-            label: "Thiếu xế",
-            badgeClass: styles.badgePartial,
-            IconComponent: AlertCircle,
-          }
-        } else {
-          progress = {
-            type: "PARTIAL_LUNCH",
-            label: "Thiếu trưa",
-            badgeClass: styles.badgePartial,
-            IconComponent: AlertCircle,
-          }
-        }
+        progress = { type: "COMPLETED", label: "Đủ ca", badgeClass: styles.badgeCompleted, IconComponent: CheckCircle2 }
       }
 
       const resolvedLunch = lunchMenu || null
       const resolvedAfternoon = afternoonMenu || null
 
       map[sd.dayOfWeek] = {
-        hasLunch: Boolean(resolvedLunch),
-        hasAfternoon: Boolean(resolvedAfternoon),
+        hasLunch,
+        hasAfternoon,
         resolvedLunchMenu: resolvedLunch,
         resolvedAfternoonMenu: resolvedAfternoon,
         lunchDishes: resolvedLunch?.dishes || [],
@@ -214,7 +158,7 @@ export default function MenuListWeeklyVerticalView({
       }
     })
     return map
-  }, [schoolDays, menus, weekStatus, weekFeedback])
+  }, [schoolDays, menus, allMenus, weekFeedback])
 
   // Thống kê tiến độ nhập liệu của tuần (bỏ qua ngày nghỉ BGH)
   const weekProgressStats = useMemo(() => {
@@ -321,6 +265,7 @@ export default function MenuListWeeklyVerticalView({
               className={`${styles.submitWeekBtn} ${
                 weekProgressStats.isAllCompleted ? styles.submitActive : styles.submitDisabled
               }`}
+              disabled={!weekProgressStats.isAllCompleted}
               onClick={onSubmitWeeklyMenu}
               title={
                 weekProgressStats.isAllCompleted
@@ -338,6 +283,7 @@ export default function MenuListWeeklyVerticalView({
             <button
               type="button"
               className={styles.resubmitWeekBtn}
+              disabled={!weekProgressStats.isAllCompleted}
               onClick={onResubmitWeeklyMenu}
               title="Gửi lại thực đơn đã chỉnh sửa cho Ban Giám Hiệu phê duyệt"
             >
@@ -347,6 +293,13 @@ export default function MenuListWeeklyVerticalView({
           )}
         </div>
       </div>
+
+      {weekStatus === "APPROVED" && !weekProgressStats.isAllCompleted && (
+        <div className={styles.weekFeedbackBanner} role="status">
+          <AlertTriangle size={16} className={styles.feedbackIcon} />
+          <p className={styles.feedbackText}>Thực đơn đang được ghi nhận đã duyệt nhưng chưa đủ ngày/bữa ăn. Chỉ {weekProgressStats.completedDays}/{weekProgressStats.totalDays} ngày đủ hai bữa; các ngày trống chưa có thực đơn.</p>
+        </div>
+      )}
 
       {/* Banner phản hồi BGH nếu tuần có yêu cầu chỉnh sửa */}
       {weekStatus === "REVISION_REQUESTED" && weekFeedback && (
@@ -419,8 +372,8 @@ export default function MenuListWeeklyVerticalView({
             const isHiddenOnMobile =
               selectedDayOfWeek !== "ALL" && selectedDayOfWeek !== sd.dayOfWeek
 
-            const canEditLunch = canEditWeeklyMenu && Boolean(resolvedLunchMenu)
-            const canEditAfternoon = canEditWeeklyMenu && Boolean(resolvedAfternoonMenu)
+            const canEditLunch = canEditWeeklyMenu && Boolean(resolvedLunchMenu) && resolvedLunchMenu.status !== "APPROVED"
+            const canEditAfternoon = canEditWeeklyMenu && Boolean(resolvedAfternoonMenu) && resolvedAfternoonMenu.status !== "APPROVED"
             const ProgressIcon = progress?.IconComponent || CheckCircle2
 
             return (
@@ -442,10 +395,7 @@ export default function MenuListWeeklyVerticalView({
                         <span className={styles.dayLabel}>{sd.dayLabel}</span>
                       </div>
 
-                      {/* Tiến độ ngày: Ẩn trạng thái "Đã duyệt" của từng thứ vì BGH duyệt cả tuần */}
-                      {progress &&
-                        (progress.type === "HOLIDAY" ||
-                          weekStatus !== "APPROVED") && (
+                      {progress && (
                           <span
                             className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
                             title={

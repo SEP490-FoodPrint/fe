@@ -1,7 +1,9 @@
+import { menuAppliesToGrade, menuScopeLabel } from "./scope"
+
 export function filterMenuCardsByGrade(menus, gradeId = "") {
   return menus.filter(
     (menu) =>
-      !gradeId || !menu.gradeIds?.length || menu.gradeIds.includes(gradeId),
+      !gradeId || menuAppliesToGrade(menu, gradeId),
   )
 }
 
@@ -13,7 +15,7 @@ export function groupMenuCardsByWeek(menus) {
     if (!groups.has(id))
       groups.set(id, {
         id,
-        targetScope: menu.targetScope || "Toàn trường",
+        targetScope: menu.targetScope || menuScopeLabel(menu),
         menus: [],
       })
     groups.get(id).menus.push(menu)
@@ -22,13 +24,13 @@ export function groupMenuCardsByWeek(menus) {
     const revision = group.menus.find((menu) =>
       ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(menu.status),
     )
-    const status = revision
+    const status = group.menus[0]?.weeklyStatus || (revision
       ? "REVISION_REQUESTED"
       : group.menus.some((menu) => menu.status === "PENDING_APPROVAL")
         ? "PENDING_APPROVAL"
         : group.menus.some((menu) => menu.status === "DRAFT")
           ? "DRAFT"
-          : "APPROVED"
+          : "APPROVED")
     return { ...group, status, feedback: revision?.feedback || "" }
   })
 }
