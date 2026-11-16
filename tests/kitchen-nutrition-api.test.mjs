@@ -158,7 +158,8 @@ test("menu grade filtering includes shared scopes, returns empty for an unused g
   assert.equal(groups[1].targetScope, "Khối 4–5")
   const shared = [{ ...cards[0], gradeIds: [id(50), id(51)] }]
   assert.equal(filterMenuCardsByGrade(shared, id(51)).length, 1)
-  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [] }], id(51)).length, 1)
+  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [], isSchoolWide: true }], id(51)).length, 1)
+  assert.equal(filterMenuCardsByGrade([{ ...cards[0], gradeIds: [], isSchoolWide: false }], id(51)).length, 0)
 })
 
 test("kitchen grade selector lists every school grade without menus and has no current-week shortcut", async () => {
@@ -276,6 +277,22 @@ test("catalog and menu use the saved dish category and backend options without i
   Object.assign(menu.menuDays[0].menuDayDishes[0].Dish,{category:"SOUP",categoryLabel:"Món canh"})
   assert.equal(adapter.menuWeekMeals(menu)[0].meals.LUNCH.dishes[0].category,"SOUP")
   assert.equal(adapter.adaptBackendMenuDetailToView(menu,undefined,"LUNCH").dishes[0].categoryLabel,"Món canh")
+})
+
+test("dish catalogue preserves meal classification and sends it for create and edit", async () => {
+  const { loadDishCatalogData, saveDishRecipe, dishMealTypeLabel } = await server.ssrLoadModule("/src/services/DishService/index.js")
+  respond = config => {
+    if (config.method === "get") return { categories: [], items: ["LUNCH", "AFTERNOON", "BOTH", null].map((mealType, index) => ({ id: id(40 + index), name: "Món", mealType, lines: [], gradeRecipes: [] })) }
+    assert.equal(JSON.parse(config.data).mealType, config.method === "post" ? "BOTH" : "AFTERNOON")
+    return { id: id(40), ...JSON.parse(config.data) }
+  }
+  const data = await loadDishCatalogData()
+  assert.deepEqual(data.items.map(row => row.mealType), ["LUNCH", "AFTERNOON", "BOTH", null])
+  assert.deepEqual(data.items.map(row => dishMealTypeLabel(row.mealType)), ["Bữa trưa", "Bữa xế", "Cả hai bữa", "Chưa phân loại"])
+  const created = await saveDishRecipe(undefined, { name: "Món", mealType: "BOTH", lines: [] })
+  assert.equal(created.data.mealType, "BOTH")
+  const updated = await saveDishRecipe(id(40), { name: "Món", mealType: "AFTERNOON", lines: [] })
+  assert.equal(updated.data.mealType, "AFTERNOON")
 })
 
 test("missing backend category options are an API error, not a generated list of dish groups", async () => {
@@ -431,7 +448,7 @@ test("completed child can record its own pending dish samples while parent remai
 })
 const dish = (mealType, n, quantity) => ({ mealType, dishId: id(n), Dish: { name: `Dish ${n}` }, ingredients: [ingredient(n + 10, quantity)] })
 const snapshot = () => ({
-  id: id(1), status: "DRAFT", weekStartDate: "2026-11-02", title: "Week",
+  id: id(1), status: "DRAFT", weekStartDate: "2026-11-02", title: "Week", isSchoolWide: true,
   menuDays: [
     { id: id(2), menuDate: "2026-11-02", approvalStatus: "DRAFT", note: "Monday note", menuDayDishes: [dish("LUNCH", 3, "80.125"), dish("AFTERNOON", 4, "120.250")], mealSeasonings: [{ mealType: "LUNCH", ingredientEntryId: id(21), quantityPerPortion: "0.125", unit: "g" }, { mealType: "AFTERNOON", ingredientEntryId: id(22), quantityPerPortion: "0.250", unit: "g" }], portionGroups: [] },
     { id: id(5), menuDate: "2026-11-03", approvalStatus: "DRAFT", note: "Tuesday note", menuDayDishes: [dish("LUNCH", 6, "90.375")], mealSeasonings: [], portionGroups: [] },
@@ -441,8 +458,8 @@ const edits = () => ({ formState: { name: "Edited", date: "02/11/2026", mealType
 
 test("grade detail compares saved quantities for the same date and meal without refreshing catalogue recipes", async () => {
   const { loadGradeMenuDetails, gradeComparisonRows } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
-  const first = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
-  const second = { ...snapshot(), id: id(60), grades: [{ gradeId: id(51), grade: { name: "Khối 4–5" } }] }
+  const first = { ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const second = { ...snapshot(), id: id(60), isSchoolWide: false, grades: [{ gradeId: id(51), grade: { name: "Khối 4–5" } }] }
   second.menuDays[0].id = id(61)
   second.menuDays[0].menuDayDishes[0].ingredients[0].quantityPerPortion = "110.625"
   first.menuDays[0].mealSeasonings[0].ingredientEntry = { ingredientId: id(70) }
@@ -471,7 +488,7 @@ test("grade detail compares saved quantities for the same date and meal without 
 
 test("grade details never substitute a different day or meal when a grade has no matching menu", async () => {
   const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
-  const first = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const first = { ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
   const missingDay = { ...snapshot(), id: id(60) }
   missingDay.menuDays = [missingDay.menuDays[1]]
   const missingMeal = { ...snapshot(), id: id(61) }
@@ -499,7 +516,7 @@ test("grade details never substitute a different day or meal when a grade has no
 
 test("a shared weekly menu labels combined portions explicitly and fetches one snapshot for both grades", async () => {
   const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
-  const week = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }, { gradeId: id(51), grade: { name: "Khối 4–5" } }] }
+  const week = { ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }, { gradeId: id(51), grade: { name: "Khối 4–5" } }] }
   respond = config => config.url.endsWith("/week-schedule") ? { availableMenus: [] } : { portions: 175, portionsFinalized: true }
   const scopes = await loadGradeMenuDetails(week, id(2), "LUNCH")
   assert.deepEqual(scopes.map(scope => scope.key), [id(50), id(51)])
@@ -512,7 +529,7 @@ test("a shared weekly menu labels combined portions explicitly and fetches one s
 
 test("grade detail keeps the selected snapshot readable when another grade or attendance API fails", async () => {
   const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
-  const week = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const week = { ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
   const unavailable = config => { throw new AxiosError("Unavailable", "ERR_BAD_RESPONSE", config, null, { status: 503, data: { message: "Không tải được dữ liệu" }, headers: {}, config }) }
   respond = config => {
     if (config.url.endsWith("/week-schedule")) return { availableMenus: [
@@ -1123,15 +1140,15 @@ test("new grade authoring cannot inherit dishes or seasonings from an unrelated 
 
 test("common authoring restores a separate saved snapshot for every selected grade", async () => {
   const { loadGradeAuthoringWeek } = await server.ssrLoadModule("/src/services/MenuService/gradeAuthoring.js")
-  const first = { ...snapshot(), grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
-  const second = { ...snapshot(), id: id(60), grades: [{ gradeId: id(51), grade: { name: "Khối 4–5" } }] }
+  const first = { ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  const second = { ...snapshot(), id: id(60), isSchoolWide: false, grades: [{ gradeId: id(51), grade: { name: "Khối 4–5" } }] }
   second.menuDays[0].id = id(61)
   second.menuDays[0].menuDayDishes[0].ingredients[0].quantityPerPortion = "110.625"
   const availableMenus = [first, second].map(week => ({ id: week.id, gradeIds: week.grades.map(row => row.gradeId), gradeNames: week.grades.map(row => row.grade.name) }))
   respond = config => {
     if (config.url.endsWith("/week-schedule")) {
       const selected = availableMenus.find(menu => menu.id === config.params.menuId)
-      return { availableMenus, weeklyMenuId: selected?.id || null, weeklyMenuStatus: "DRAFT", gradeIds: selected?.gradeIds || [], days: [{ date: "2026-11-02", hasMenu: Boolean(selected), status: "DRAFT" }] }
+      return { availableMenus, weeklyMenuId: selected?.id || null, weeklyMenuStatus: selected?.id === second.id ? second.status : first.status, gradeIds: selected?.gradeIds || [], days: [{ date: "2026-11-02", hasMenu: Boolean(selected), status: "DRAFT" }] }
     }
     return config.url.endsWith(`/${first.id}`) ? first : second
   }
@@ -1141,6 +1158,10 @@ test("common authoring restores a separate saved snapshot for every selected gra
   assert.equal(saved[id(50)].LUNCH.dishes[0].ingredientStandards[0].quantityPerPortion, "80.125")
   assert.equal(saved[id(51)].LUNCH.dishes[0].ingredientStandards[0].quantityPerPortion, "110.625")
   second.menuDays[0].menuDayDishes[0].dishId = id(99)
+  menus.invalidateMenuCache()
+  await assert.rejects(loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)]), /lịch món hoặc trạng thái khác nhau/)
+  second.menuDays[0].menuDayDishes[0].dishId = first.menuDays[0].menuDayDishes[0].dishId
+  second.status = "APPROVED"
   menus.invalidateMenuCache()
   await assert.rejects(loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)]), /lịch món hoặc trạng thái khác nhau/)
 })
@@ -1159,4 +1180,109 @@ test("grade preview renders a grade selector and its own quantities while hiding
   const pending = renderToStaticMarkup(React.createElement(Preview, { ...props, loading: true }))
   assert.match(pending, /Đang đối chiếu/)
   assert.doesNotMatch(pending, />80<\/td>/)
+})
+
+test("reopening selected grades ignores unassigned legacy menus instead of treating them as school-wide", async () => {
+  const { loadGradeAuthoringWeek } = await server.ssrLoadModule("/src/services/MenuService/gradeAuthoring.js")
+  const availableMenus = [
+    { id: id(1), gradeIds: [id(50), id(51)], gradeNames: ["Khối 1–3", "Khối 4–5"], isSchoolWide: false },
+    { id: id(60), gradeIds: [], gradeNames: [], isSchoolWide: false },
+  ]
+  const saved = { ...snapshot(), isSchoolWide: false, grades: availableMenus[0].gradeIds.map((gradeId, index) => ({ gradeId, grade: { name: availableMenus[0].gradeNames[index] } })) }
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) {
+      assert.notEqual(config.params.menuId, id(60))
+      return { availableMenus, weeklyMenuId: config.params.menuId || null, weeklyMenuStatus: "DRAFT", gradeIds: config.params.menuId ? availableMenus[0].gradeIds : [], days: [{ date: "2026-11-02", hasMenu: Boolean(config.params.menuId), status: "DRAFT" }] }
+    }
+    assert.equal(config.url, `/v1/menus/${saved.id}`)
+    return saved
+  }
+  const reopened = await loadGradeAuthoringWeek("2026-11-02", [id(50), id(51)])
+  assert.equal(reopened.data.gradeMenus.length, 1)
+  assert.equal(reopened.data.weeklyMenuStatus, "DRAFT")
+  assert.equal(reopened.data.days[0].gradeSnapshots[id(51)].LUNCH.dishes[0].dishId, id(3))
+  const cards = adapter.adaptWeeklyMenuToCardList({ ...snapshot(), isSchoolWide: false, grades: [], isSchoolWide: false })
+  assert.deepEqual(cards, [])
+  assert.equal(adapter.adaptWeeklyMenuToCardList({ ...snapshot(), isSchoolWide: false, grades: [], isSchoolWide: true })[0].targetScope, "Toàn trường")
+})
+
+test("unassigned menus are hidden from all-grade cards, kitchen schedules and grade options", async () => {
+  const { filterMenuCardsByGrade } = await server.ssrLoadModule("/src/services/MenuService/listGrades.js")
+  const { menuGradeOptions } = await server.ssrLoadModule("/src/components/MenuScopeSelect.jsx")
+  const { loadKitchenGradeSchedules } = await server.ssrLoadModule("/src/services/MenuService/gradeSchedule.js")
+  const { loadGradeMenuDetails } = await server.ssrLoadModule("/src/services/MenuService/gradeDetail.js")
+  const orphan = { id: id(60), gradeIds: [], gradeNames: [], isSchoolWide: false }
+  const assigned = { id: id(1), gradeIds: [id(50)], gradeNames: ["Khối 1–3"], isSchoolWide: false }
+  const school = { id: id(61), gradeIds: [], gradeNames: [], isSchoolWide: true }
+  assert.deepEqual(filterMenuCardsByGrade([orphan, assigned, school]).map(menu => menu.id), [assigned.id, school.id])
+  assert.deepEqual(menuGradeOptions([orphan]), [])
+  assert.deepEqual(menuGradeOptions([orphan], [{ id: id(50), name: "Khối 1–3" }]), [{ key: id(50), label: "Khối 1–3", menuId: "" }])
+  assert.equal(menuGradeOptions([school])[0].label, "Toàn trường")
+  respond = config => {
+    if (config.url.endsWith("/week-schedule")) {
+      assert.notEqual(config.params.menuId, orphan.id)
+      return { availableMenus: [orphan, assigned], weeklyMenuId: assigned.id, gradeIds: assigned.gradeIds, days: [{ date: "2026-11-02" }] }
+    }
+    if (config.url.endsWith("/requirements")) return { portionsFinalized: false }
+    assert.equal(config.url, `/v1/menus/${assigned.id}`)
+    return { ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }
+  }
+  assert.deepEqual((await loadKitchenGradeSchedules("2026-11-02")).map(menu => menu.weeklyMenuId), [assigned.id])
+  const details = await loadGradeMenuDetails({ ...snapshot(), isSchoolWide: false, grades: [{ gradeId: id(50), grade: { name: "Khối 1–3" } }] }, id(2), "LUNCH")
+  assert.deepEqual(details.map(detail => detail.candidate.id), [assigned.id])
+})
+
+test("weekly status comes from the parent even if every saved day is approved", async () => {
+  const { groupMenuCardsByWeek } = await server.ssrLoadModule("/src/services/MenuService/listGrades.js")
+  const week = snapshot()
+  week.menuDays = [week.menuDays[0]]
+  week.menuDays[0].approvalStatus = "APPROVED"
+  const cards = adapter.adaptWeeklyMenuToCardList(week)
+  assert.equal(cards[0].status, "APPROVED")
+  assert.equal(cards[0].weeklyStatus, "DRAFT")
+  assert.equal(groupMenuCardsByWeek(cards)[0].status, "DRAFT")
+})
+
+test("daily progress does not mark missing days approved and meal filters do not change weekly completeness", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: View } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuListWeeklyVerticalView.jsx")
+  const schoolDays = [2, 3].map((date, index) => ({ dateISO: `2026-11-0${date}`, dateVN: `0${date}/11/2026`, dayLabel: `Thứ ${index + 2}`, dayOfWeek: index + 1 }))
+  const week = snapshot()
+  week.status = "APPROVED"
+  week.menuDays = [week.menuDays[0]]
+  week.menuDays[0].approvalStatus = "APPROVED"
+  const cards = adapter.adaptWeeklyMenuToCardList(week)
+  const html = renderToStaticMarkup(React.createElement(View, { schoolDays, menus: cards, weekStatus: "APPROVED" }))
+  assert.match(html, /Chưa tạo/)
+  assert.match(html, /chưa đủ ngày\/bữa ăn/)
+  assert.doesNotMatch(html, /title="Tiến độ ngày: Đã duyệt"[^]*Thứ 3[^]*title="Tiến độ ngày: Đã duyệt"/)
+  const filtered = renderToStaticMarkup(React.createElement(View, { schoolDays: schoolDays.slice(0, 1), menus: cards.filter(card => card.mealType === "LUNCH"), allMenus: cards, mealTypeFilter: "LUNCH", weekStatus: "DRAFT" }))
+  assert.match(filtered, /submitActive/)
+  assert.doesNotMatch(filtered, /<button[^>]*disabled=""[^>]*title="Gửi thực đơn cả tuần/)
+})
+
+test("weekly list shows saved seasonings once per day and respects the selected meal", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: View } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuListWeeklyVerticalView.jsx")
+  const week = snapshot()
+  week.menuDays = [week.menuDays[0]]
+  week.menuDays[0].mealSeasonings = [
+    { mealType: "LUNCH", ingredientEntry: { Ingredient: { name: "Muối" } } },
+    { mealType: "AFTERNOON", ingredientEntry: { Ingredient: { name: "Muối" } } },
+    { mealType: "LUNCH", ingredientEntry: { Ingredient: { name: "Nước mắm" } } },
+    { mealType: "AFTERNOON", ingredientEntry: { Ingredient: { name: "Đường" } } },
+  ]
+  const cards = adapter.adaptWeeklyMenuToCardList(week)
+  const props = { schoolDays: [{ dateISO: "2026-11-02", dateVN: "02/11/2026", dayOfWeek: 1, dayLabel: "Thứ Hai" }], allMenus: cards, menus: cards, weekStatus: "DRAFT" }
+  const all = renderToStaticMarkup(React.createElement(View, props))
+  assert.match(all, /GIA VỊ/)
+  assert.equal((all.match(/>Muối<\/span>/g) || []).length, 1)
+  assert.match(all, />Nước mắm<\/span>/)
+  assert.match(all, />Đường<\/span>/)
+  const afternoon = renderToStaticMarkup(React.createElement(View, { ...props, mealTypeFilter: "AFTERNOON", menus: cards.filter(card => card.mealType === "AFTERNOON") }))
+  assert.match(afternoon, />Đường<\/span>/)
+  assert.doesNotMatch(afternoon, />Nước mắm<\/span>/)
+  assert.doesNotMatch(afternoon, /BỮA TRƯA/)
 })

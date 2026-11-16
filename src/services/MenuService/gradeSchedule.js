@@ -1,5 +1,6 @@
 import MenuService from "./index"
 import { filterMenuCardsByGrade } from "./listGrades"
+import { menuScopeLabel } from "./scope"
 
 export async function loadKitchenGradeSchedules(date, gradeId = "") {
   const response = await MenuService.getWeekSchedule(date)
@@ -21,7 +22,7 @@ export async function loadKitchenGradeSchedules(date, gradeId = "") {
       return {
         ...data,
         targetScope:
-          data.targetScope || candidate.gradeNames?.join(", ") || "Toàn trường",
+          data.targetScope || menuScopeLabel(candidate),
       }
     }),
   )

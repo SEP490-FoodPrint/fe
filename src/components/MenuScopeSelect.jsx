@@ -1,8 +1,10 @@
 import React, { useEffect, useId, useMemo, useState } from "react";
 import styles from "./MenuScopeSelect.module.scss";
+import { hasMenuScope } from "src/services/MenuService/scope";
 
 export function menuGradeOptions(menus = [], grades = []) {
-  if (grades.length) return grades.map((grade) => ({ key: grade.id, label: grade.name, menuId: menus.find((menu) => menu.gradeIds?.includes(grade.id))?.id || menus.find((menu) => !menu.gradeIds?.length)?.id || "" }));
+  menus = menus.filter(hasMenuScope);
+  if (grades.length) return grades.map((grade) => ({ key: grade.id, label: grade.name, menuId: menus.find((menu) => menu.gradeIds?.includes(grade.id))?.id || menus.find((menu) => menu.isSchoolWide === true)?.id || "" }));
   const options = new Map();
   for (const menu of menus) {
     const ids = menu.gradeIds || [];

@@ -430,6 +430,7 @@ export default function MenuPlanning() {
         menuGroups.map(group => <MenuListWeeklyVerticalView
           key={group.id}
           schoolDays={weekSchoolDays}
+          allMenus={group.menus}
           menus={group.menus.filter(menu => filteredMenus.some(row => row.id === menu.id))}
           mealTypeFilter={filters.mealType}
           onViewDetail={handleViewDetail}

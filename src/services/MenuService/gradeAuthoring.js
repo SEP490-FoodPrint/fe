@@ -1,5 +1,6 @@
 import MenuService from "./index"
 import { menuContentKey } from "./listGrades"
+import { menuAppliesToGrade, menuScopeLabel } from "./scope"
 
 export function scheduleCards(schedule) {
   return (schedule.days || []).flatMap((day) =>
@@ -26,9 +27,7 @@ export async function loadGradeAuthoringWeek(date, gradeIds) {
   if (!Array.isArray(base.data?.availableMenus))
     throw new Error("Không tải được danh sách thực đơn theo khối.")
   const candidates = base.data.availableMenus.filter(
-    (menu) =>
-      !menu.gradeIds?.length ||
-      menu.gradeIds.some((id) => gradeIds.includes(id)),
+    (menu) => gradeIds.some((id) => menuAppliesToGrade(menu, id)),
   )
   const scopes = await Promise.all(
     candidates.map(async (candidate) =>
@@ -38,6 +37,8 @@ export async function loadGradeAuthoringWeek(date, gradeIds) {
             .data,
     ),
   )
+  if (scopes.some((scope, index) => scope.weeklyMenuId !== candidates[index].id))
+    throw new Error("Không tải được đúng thực đơn của khối đã chọn. Vui lòng tải lại.")
   if (!scopes.length)
     return {
       ...base,
@@ -65,10 +66,13 @@ export async function loadGradeAuthoringWeek(date, gradeIds) {
     }
   const key = menuContentKey(scheduleCards(scopes[0]))
   if (
-    scopes.some((schedule) => menuContentKey(scheduleCards(schedule)) !== key)
+    scopes.some((schedule) =>
+      schedule.weeklyMenuStatus !== scopes[0].weeklyMenuStatus ||
+      menuContentKey(scheduleCards(schedule)) !== key,
+    )
   )
     throw new Error(
-      "Các khối đã có lịch món hoặc trạng thái khác nhau. Chọn từng khối để chỉnh sửa trước khi soạn chung.",
+      `Các khối đã có lịch món hoặc trạng thái khác nhau: ${candidates.map(menuScopeLabel).join("; ")}. Chọn một khối để tiếp tục bản soạn đã lưu; chỉ soạn chung khi lịch món và trạng thái giống nhau.`,
     )
   return {
     ...base,
@@ -84,7 +88,7 @@ export async function loadGradeAuthoringWeek(date, gradeIds) {
         gradeSnapshots: Object.fromEntries(
           gradeIds.flatMap((gradeId) => {
             const scope = scopes.find(
-              (row) => !row.gradeIds?.length || row.gradeIds.includes(gradeId),
+              (row) => menuAppliesToGrade(row, gradeId),
             )
             const stored = scope?.days?.find((row) => row.date === day.date)
             if (!stored) return []

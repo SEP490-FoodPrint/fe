@@ -1,5 +1,12 @@
 import http from "../01_axios";
 
+export const DISH_MEAL_TYPES = [
+  { key: "LUNCH", label: "Bữa trưa" },
+  { key: "AFTERNOON", label: "Bữa xế" },
+  { key: "BOTH", label: "Cả hai bữa" },
+];
+export const dishMealTypeLabel = value => DISH_MEAL_TYPES.find(option => option.key === value)?.label || "Chưa phân loại";
+
 export const dishIngredientIds = dish => [...new Set([
   ...(dish?.ingredientIds || []),
   ...(dish?.ingredientStandards || []).map(line=>line.ingredientId),

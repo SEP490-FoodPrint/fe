@@ -1,6 +1,7 @@
 import http from "../01_axios"
 import { apiMenus, apiMenuDetail } from "./urls"
 import { adaptBackendMenuDetailToView } from "./adapter"
+import { hasMenuScope, menuScopeLabel } from "./scope"
 
 const dateOf = (value) =>
   typeof value === "string"
@@ -30,12 +31,13 @@ export async function loadGradeMenuDetails(
         ...response.data.availableMenus,
         {
           id: weeklyMenu.id,
+          isSchoolWide: weeklyMenu.isSchoolWide,
           gradeIds: (weeklyMenu.grades || []).map((row) => row.gradeId),
           gradeNames: (weeklyMenu.grades || []).map((row) => row.grade?.name),
         },
       ].map((item) => [item.id, item]),
     ).values(),
-  ]
+  ].filter(hasMenuScope)
   const snapshots = await Promise.all(
     candidates.map(async (candidate) => {
       try {
@@ -78,7 +80,7 @@ export async function loadGradeMenuDetails(
             portionLabel = `${Number(demand.portions).toLocaleString("vi-VN")} suất`
             if (candidate.gradeIds?.length > 1)
               portionLabel += ` dùng chung (${(candidate.gradeNames || []).filter(Boolean).join(", ")})`
-            else if (!candidate.gradeIds?.length) portionLabel += " toàn trường"
+            else if (candidate.isSchoolWide === true) portionLabel += " toàn trường"
           } else if (demand) portionLabel = "Chưa chốt đủ suất"
         } catch {
           /* Quantities remain readable when meal attendance is unavailable. */
@@ -119,7 +121,7 @@ export async function loadGradeMenuDetails(
       : [
           {
             key: `school:${snapshot.candidate.id}`,
-            label: "Toàn trường",
+            label: menuScopeLabel(snapshot.candidate),
             gradeIds: [],
           },
         ]

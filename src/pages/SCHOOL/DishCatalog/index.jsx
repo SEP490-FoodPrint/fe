@@ -11,7 +11,7 @@ import {
   Sparkles,
   Utensils,
 } from "lucide-react"
-import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey, groupDishesByCategory } from "src/services/DishService"
+import { loadDishCatalog, loadDishCatalogData, loadRecipeOptions, saveDishRecipe, deleteDishRecipe, dishCategoryKey, groupDishesByCategory, DISH_MEAL_TYPES, dishMealTypeLabel } from "src/services/DishService"
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import DishCategoryModal from "./component/DishCategoryModal"
 import GradeRecipeFields, { sharedGradeRecipes, validRecipeLines } from "./component/GradeRecipeFields"
@@ -30,6 +30,7 @@ const CAT_STYLE = {
 const EMPTY_FORM = {
   name: "",
   category: "",
+  mealType: "",
 }
 
 const PAGE_SIZE = 8
@@ -174,7 +175,7 @@ export default function DishCatalogPage() {
     setEditingDish(dish)
     const firstProfile = (dish.gradeRecipes || [])[0]
     setGradeProfiles(firstProfile ? [{ gradeId: firstProfile.gradeId, lines: [] }] : [])
-    setForm({ name: dish.name || "", category: dish.category || "" })
+    setForm({ name: dish.name || "", category: dish.category || "", mealType: dish.mealType || "" })
 
     // Mỗi lần sửa áp dụng cho khối được chọn; các khối khác được giữ nguyên.
     const sourceLines = firstProfile?.lines || dish.lines || []
@@ -220,6 +221,7 @@ export default function DishCatalogPage() {
 
   const handleFormChange = useCallback((field, value) => {
     setForm((prev) => ({ ...prev, [field]: value }))
+    setCatalogError("")
   }, [])
 
   // Toggle chọn nguyên liệu từ IngredientPickerModal
@@ -278,6 +280,7 @@ export default function DishCatalogPage() {
   const handleSave = async () => {
     setCatalogError("")
     if (!categoryOptions.some(option => option.key === form.category)) { setCatalogError("Vui lòng chọn nhóm món ăn."); return }
+    if (!DISH_MEAL_TYPES.some(option => option.key === form.mealType)) { setCatalogError("Vui lòng chọn bữa ăn áp dụng cho món."); return }
     if (!gradeProfiles.length) { setCatalogError("Vui lòng chọn ít nhất một khối áp dụng."); return }
     if (!validRecipeLines(recipeLines)) { setCatalogError("Cần nguyên liệu chính không trùng, định lượng dương tối đa 3 chữ số thập phân và đơn vị hợp lệ."); return }
     setSaving(true)
@@ -285,6 +288,7 @@ export default function DishCatalogPage() {
       const response = await saveDishRecipe(editingDish?.id, {
         name: form.name.trim(),
         category: form.category,
+        mealType: form.mealType,
         description: editingDish?.description || null,
         gradeRecipes: sharedGradeRecipes(gradeProfiles, recipeLines),
         lines: recipeLines,
@@ -423,8 +427,9 @@ export default function DishCatalogPage() {
                 <th style={{ width: 45, textAlign: "center" }}>#</th>
                 <th style={{ minWidth: 220 }}>Tên món ăn</th>
                 <th style={{ width: 150 }}>Nhóm món</th>
+                <th style={{ width: 145 }}>Bữa ăn</th>
                 <th style={{ minWidth: 280 }}>Nguyên liệu chính & NCC</th>
-                <th style={{ width: 200, textAlign: "center" }}>Thao tác</th>
+                <th style={{ width: 120, textAlign: "center" }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -455,6 +460,11 @@ export default function DishCatalogPage() {
                       </span>
                     </td>
                     {/* Cột Nguyên liệu chính (kèm NCC) */}
+                    <td>
+                      <span className={`${styles.mealBadge} ${dish.mealType === "LUNCH" ? styles.mealLunch : dish.mealType === "AFTERNOON" ? styles.mealAfter : styles.mealBoth}`}>
+                        {dishMealTypeLabel(dish.mealType)}
+                      </span>
+                    </td>
                     <td>
                       <div className={styles.mainIngredientName}>{mainIng}</div>
                       <div className={styles.supplierText}>
@@ -565,7 +575,6 @@ export default function DishCatalogPage() {
                     ? "Cập nhật công thức và định lượng nguyên liệu trên một suất ăn"
                     : "Thiết lập món ăn chuẩn, nguyên liệu chính và định lượng gia vị"}
                 </p>
-                {catalogError && <p role="alert">{catalogError}</p>}
               </div>
               <button
                 type="button"
@@ -596,8 +605,8 @@ export default function DishCatalogPage() {
                   />
                 )}
 
-                {/* Hàng 1: Tên món (60%) + Nhóm món (40%) cùng 1 dòng gọn gàng */}
-                <div className={styles.formTwoColsRow}>
+                {/* Tên món, nhóm món và bữa ăn dùng cùng một hàng trên desktop. */}
+                <div className={styles.formDishInfoRow}>
                   <div>
                     <label className={styles.formLabel}>
                       Tên món ăn <span className={styles.required}>*</span>
@@ -616,6 +625,15 @@ export default function DishCatalogPage() {
                     <select className={styles.formSelect} value={form.category} disabled={saving} onChange={event => handleFormChange("category", event.target.value)} aria-label="Nhóm món ăn" required>
                       <option value="">Chọn nhóm món ăn</option>
                       {categoryOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={styles.formLabel} htmlFor="dish-meal-type">
+                      Bữa ăn <span className={styles.required}>*</span>
+                    </label>
+                    <select id="dish-meal-type" className={styles.formSelect} value={form.mealType} disabled={saving} onChange={event => handleFormChange("mealType", event.target.value)} required>
+                      <option value="">Chọn bữa ăn</option>
+                      {DISH_MEAL_TYPES.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}
                     </select>
                   </div>
                 </div>
@@ -965,6 +983,9 @@ export default function DishCatalogPage() {
                   <div className={styles.detailTitleInfo}>
                     <div className={styles.detailTitleRow}>
                       <h2 className={styles.detailModalTitle}>{viewingDish.name}</h2>
+                      <span className={`${styles.mealBadge} ${viewingDish.mealType === "LUNCH" ? styles.mealLunch : viewingDish.mealType === "AFTERNOON" ? styles.mealAfter : styles.mealBoth}`}>
+                        {dishMealTypeLabel(viewingDish.mealType)}
+                      </span>
                       <span
                         className={`${styles.catBadge} ${
                           CAT_STYLE[viewingDish.category] || ""
