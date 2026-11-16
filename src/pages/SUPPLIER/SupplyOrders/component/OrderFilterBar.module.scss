@@ -1,65 +1,71 @@
 .filterContainer {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid var(--border-default);
-  background: var(--bg-surface);
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e1e6e2;
+  font-family: var(--font-sans);
 }
 
 .topRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
+  padding: 0 20px;
+  border-bottom: 1px solid #e1e6e2;
+  background: #ffffff;
 }
 
 .statusTabs {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 20px;
   min-width: 0;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .statusTab {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  height: 36px;
-  padding: 0 12px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  background: var(--bg-surface);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: var(--font-medium);
-  line-height: 18px;
+  gap: 8px;
+  height: 46px;
+  padding: 0 2px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: #6b7772;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
   white-space: nowrap;
   cursor: pointer;
+  flex-shrink: 0;
   transition:
-    background-color var(--duration-fast) var(--ease-standard),
-    border-color var(--duration-fast) var(--ease-standard),
-    color var(--duration-fast) var(--ease-standard);
+    color 150ms cubic-bezier(0.2, 0, 0, 1),
+    border-color 150ms cubic-bezier(0.2, 0, 0, 1);
 
   &:hover:not(.isActive) {
-    background: var(--bg-page);
-    border-color: var(--border-strong);
-    color: var(--text-primary);
+    color: #24312d;
+  }
+
+  &.isActive {
+    color: var(--color-primary, #0a8066);
+    font-weight: 600;
+    border-bottom-color: var(--color-primary, #0a8066);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--border-focus);
-    outline-offset: 2px;
+    outline: 2px solid var(--border-focus, #0a8066);
+    outline-offset: -2px;
+    border-radius: 4px;
   }
-}
-
-.isActive {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary);
-  color: var(--green-700);
-  font-weight: var(--font-semibold);
 }
 
 .tabBadge {
@@ -67,22 +73,26 @@
   align-items: center;
   justify-content: center;
   min-width: 20px;
-  height: 18px;
+  height: 20px;
   padding: 0 6px;
-  border-radius: var(--radius-full);
+  border-radius: 9999px;
   background: var(--color-warning-bg);
   color: var(--color-warning);
-  border: 1px solid var(--color-warning-border);
-  font-size: 11px;
-  font-weight: var(--font-semibold);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
   font-variant-numeric: tabular-nums;
 }
 
 .searchRow {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 16px;
   flex-wrap: wrap;
+  padding: 16px 20px;
+  background: #ffffff;
 }
 
 .searchInputWrap {
@@ -90,24 +100,24 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1 1 280px;
-  max-width: 460px;
+  flex: 1 1 320px;
+  max-width: 440px;
   height: 40px;
   padding: 0 12px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
+  border: 1px solid #e1e6e2;
+  border-radius: 8px;
+  background: #ffffff;
   transition:
-    border-color var(--duration-fast) var(--ease-standard),
-    box-shadow var(--duration-fast) var(--ease-standard);
+    border-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0, 0, 1);
 
   &:hover {
-    border-color: var(--border-strong);
+    border-color: var(--border-strong, #adbbb3);
   }
 
   &:focus-within {
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 1px var(--color-primary);
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 1px var(--color-primary, #0a8066);
   }
 }
 
@@ -115,7 +125,7 @@
   width: 18px !important;
   height: 18px !important;
   font-size: 18px !important;
-  color: var(--text-muted);
+  color: #6b7772;
   flex-shrink: 0;
 }
 
@@ -126,12 +136,14 @@
   border: 0;
   padding: 0;
   background: transparent;
+  font-family: var(--font-sans);
   font-size: 14px;
+  font-weight: 400;
   line-height: 20px;
-  color: var(--text-primary);
+  color: #24312d;
 
   &::placeholder {
-    color: var(--text-muted);
+    color: #6b7772;
   }
 
   &:focus,
@@ -150,12 +162,12 @@
   border: 0;
   border-radius: 4px;
   background: transparent;
-  color: var(--text-muted);
+  color: #6b7772;
   cursor: pointer;
 
   &:hover {
-    background: var(--bg-muted);
-    color: var(--text-primary);
+    background: #f1f5f3;
+    color: #24312d;
   }
 }
 
@@ -167,28 +179,32 @@
 
 .pageMeta {
   margin-left: auto;
-  font-size: 13px;
-  font-weight: var(--font-medium);
-  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #6b7772;
   font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 767px) {
-  .filterContainer {
-    padding: 12px;
+  .topRow {
+    padding: 4px 12px 0;
   }
 
   .statusTabs {
     flex-wrap: wrap;
-    gap: 6px;
-    width: 100%;
+    gap: 2px 16px;
+    overflow-x: visible;
   }
 
   .statusTab {
-    min-height: 40px;
-    height: auto;
-    padding: 6px 10px;
-    font-size: 12.5px;
+    height: 44px;
+  }
+
+  .searchRow {
+    padding: 12px;
+    gap: 10px;
   }
 
   .searchInputWrap {

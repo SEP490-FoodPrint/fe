@@ -1,0 +1,495 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: var(--overlay-scrim);
+  font-family: var(--font-sans);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 900px;
+  max-height: calc(100vh - 32px);
+  background: #ffffff;
+  border: 1px solid #e1e6e2;
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid #e1e6e2;
+  flex-shrink: 0;
+}
+
+.headerTitleGroup {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-width: 0;
+}
+
+.headerIcon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  font-size: 22px !important;
+  color: var(--color-primary, #0a8066);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #24312d;
+  font-variant-numeric: tabular-nums;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b7772;
+}
+
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid #e1e6e2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #6b7772;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    color 150ms cubic-bezier(0.2, 0, 0, 1);
+
+  &:hover {
+    background: #fafbfa;
+    color: #24312d;
+  }
+}
+
+.scopeBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 24px;
+  background: #e7f3ee;
+  border-bottom: 1px solid #b5e0d4;
+  flex-shrink: 0;
+}
+
+.scopeText {
+  font-size: 14px;
+  color: #08604d;
+  font-weight: 500;
+}
+
+.scopeToggleBtn {
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #6ec1ab;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #08735c;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: #fafbfa;
+  }
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 20px 24px;
+  background: #f8faf9;
+}
+
+.centerState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 16px;
+  text-align: center;
+  color: #6b7772;
+  font-size: 14px;
+
+  p {
+    margin: 0;
+  }
+}
+
+.errorBox {
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: var(--color-error-bg);
+  border: 1px solid var(--color-error-border);
+  color: var(--color-error);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.stickersGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.stickerCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e1e6e2;
+  background: #ffffff;
+  min-width: 0;
+}
+
+.stickerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e1e6e2;
+}
+
+.codeBadge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: #f1f5f3;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 16px;
+  color: #24312d;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.supplierText {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #6b7772;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stickerContent {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.qrFrame {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  padding: 6px;
+  border-radius: 8px;
+  border: 1px solid #e1e6e2;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.qrImage {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.qrFallbackIcon {
+  font-size: 48px !important;
+  color: #6b7772;
+}
+
+.infoCol {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ingredientName {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #24312d;
+  overflow-wrap: anywhere;
+}
+
+.qtyLine {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--color-primary, #0a8066);
+  font-variant-numeric: tabular-nums;
+}
+
+.facilityBox {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f8faf9;
+  border: 1px solid #e1e6e2;
+}
+
+.facilityLabel {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  color: #6b7772;
+}
+
+.facilityValue {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: #24312d;
+  overflow-wrap: anywhere;
+}
+
+.stickerFooter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid #e1e6e2;
+}
+
+.traceUrlText {
+  display: block;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b7772;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.stickerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.miniActionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #e1e6e2;
+  background: #ffffff;
+  color: #24312d;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    background: #fafbfa;
+    border-color: #c8d2cc;
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid #e1e6e2;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.footerBtn {
+  height: 40px !important;
+  padding: 0 18px !important;
+  border-radius: 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+.printOnlySheet {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .header,
+  .body,
+  .footer,
+  .scopeBar {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .stickersGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .stickerContent {
+    grid-template-columns: 96px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .qrFrame {
+    width: 96px;
+    height: 96px;
+  }
+
+  .scopeBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .footerBtn,
+  .closeBtn {
+    min-height: 44px;
+    height: 44px !important;
+  }
+}
+
+@media print {
+  :global(body.printing-qr-labels > *:not([data-qr-print-sheet="true"])) {
+    display: none !important;
+  }
+
+  .printOnlySheet {
+    display: block;
+    padding: 8mm;
+    background: #ffffff;
+    color: #000000;
+    font-family: var(--font-sans), sans-serif;
+  }
+
+  .printSheetHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #d1d5db;
+    font-size: 13px;
+  }
+
+  .printStickersGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .printStickerCard {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    border: 1px solid #9ca3af;
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .stickerTopRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px dashed #d1d5db;
+    padding-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .stickerOrderNo {
+    font-weight: 700;
+  }
+
+  .stickerSupplier {
+    color: #4b5563;
+  }
+
+  .printQrBody {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .printQrImg {
+    width: 88px;
+    height: 88px;
+    flex-shrink: 0;
+  }
+
+  .printMetaCol {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+
+  .stickerIngredient {
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  .stickerQty {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .stickerFacility {
+    font-size: 11px;
+    color: #374151;
+  }
+}

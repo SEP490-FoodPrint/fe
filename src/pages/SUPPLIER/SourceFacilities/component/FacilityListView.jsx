@@ -109,13 +109,20 @@ function FacilityListView({
                   </td>
 
                   <td className={styles.colName}>
-                    <Link to={detailPath} className={styles.nameLink}>
+                    <Link
+                      to={detailPath}
+                      className={styles.nameLink}
+                      title={facility.name}
+                    >
                       {facility.name}
                     </Link>
                   </td>
 
                   <td className={styles.colCode}>
-                    <span className={styles.codeChip}>
+                    <span
+                      className={styles.codeChip}
+                      title={facility.facilityCode || "Chưa cấp mã"}
+                    >
                       {facility.facilityCode || "Chưa cấp mã"}
                     </span>
                   </td>
