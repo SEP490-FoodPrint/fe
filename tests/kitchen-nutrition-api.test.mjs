@@ -279,6 +279,22 @@ test("catalog and menu use the saved dish category and backend options without i
   assert.equal(adapter.adaptBackendMenuDetailToView(menu,undefined,"LUNCH").dishes[0].categoryLabel,"Món canh")
 })
 
+test("dish catalogue preserves meal classification and sends it for create and edit", async () => {
+  const { loadDishCatalogData, saveDishRecipe, dishMealTypeLabel } = await server.ssrLoadModule("/src/services/DishService/index.js")
+  respond = config => {
+    if (config.method === "get") return { categories: [], items: ["LUNCH", "AFTERNOON", "BOTH", null].map((mealType, index) => ({ id: id(40 + index), name: "Món", mealType, lines: [], gradeRecipes: [] })) }
+    assert.equal(JSON.parse(config.data).mealType, config.method === "post" ? "BOTH" : "AFTERNOON")
+    return { id: id(40), ...JSON.parse(config.data) }
+  }
+  const data = await loadDishCatalogData()
+  assert.deepEqual(data.items.map(row => row.mealType), ["LUNCH", "AFTERNOON", "BOTH", null])
+  assert.deepEqual(data.items.map(row => dishMealTypeLabel(row.mealType)), ["Bữa trưa", "Bữa xế", "Cả hai bữa", "Chưa phân loại"])
+  const created = await saveDishRecipe(undefined, { name: "Món", mealType: "BOTH", lines: [] })
+  assert.equal(created.data.mealType, "BOTH")
+  const updated = await saveDishRecipe(id(40), { name: "Món", mealType: "AFTERNOON", lines: [] })
+  assert.equal(updated.data.mealType, "AFTERNOON")
+})
+
 test("missing backend category options are an API error, not a generated list of dish groups", async () => {
   const {loadDishCatalogData}=await server.ssrLoadModule("/src/services/DishService/index.js")
   respond=()=>({items:[]})
