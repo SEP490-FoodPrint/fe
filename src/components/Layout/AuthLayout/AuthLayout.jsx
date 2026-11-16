@@ -6,7 +6,12 @@ import styles from "./AuthLayout.module.scss"
 
 function AuthLayout() {
   const { pathname } = useLocation()
-  const redesigned = [ROUTER.LOGIN, ROUTER.REGISTER, ROUTER.FORGOT_PASSWORD, ROUTER.PASSWORD_RECOVERY_CODE, ROUTER.RESET_PASSWORD].includes(pathname)
+  const isLoginPage = pathname === ROUTER.LOGIN
+  if (isLoginPage) {
+    return <Outlet />
+  }
+
+  const redesigned = [ROUTER.REGISTER, ROUTER.FORGOT_PASSWORD, ROUTER.PASSWORD_RECOVERY_CODE, ROUTER.RESET_PASSWORD].includes(pathname)
   return (
     <div className={`${styles.layoutWrapper} ${redesigned ? styles.redesigned : ""}`}>
       {/* 1. Fixed Header kính mờ */}
