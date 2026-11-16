@@ -47,6 +47,7 @@ export default function DeliveryApprovalModal({
 
   const handlePreSubmit = (e) => {
     e.preventDefault()
+    if (!photo) { setErrorMsg("Cần chụp hoặc tải ảnh kiểm tra nguyên liệu trước khi xác nhận."); return }
 
     // Bắt buộc nhập lý do nếu từ chối
     if (decision === "REJECT" && !reason.trim()) {
@@ -60,6 +61,7 @@ export default function DeliveryApprovalModal({
 
   const handleFinalConfirm = async () => {
     if (saving) return
+    if (!photo) { setIsConfirming(false); setErrorMsg("Cần chụp hoặc tải ảnh kiểm tra nguyên liệu trước khi xác nhận."); return }
     setSaving(true)
     setErrorMsg("")
     try { await onSubmitApproval(decision, reason.trim(), photo) }

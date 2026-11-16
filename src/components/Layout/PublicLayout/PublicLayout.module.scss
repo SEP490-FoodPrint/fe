@@ -61,10 +61,13 @@
 }
 
 .brandName {
+  font-family: "Fraunces", Georgia, serif;
   font-size: var(--text-xl);
-  font-weight: var(--font-bold);
+  font-weight: 700;
+  font-variation-settings: "opsz" 72, "wght" 700, "SOFT" 100, "WONK" 1;
+  font-optical-sizing: auto;
   letter-spacing: -0.02em;
-  color: var(--text-primary);
+  color: #2d3748;
 }
 
 .brandDescription {

@@ -18,10 +18,7 @@ export default function AuthHeader({ minimal = false }) {
           className={styles.brand}
           aria-label="FoodPrint · Về trang chủ"
         >
-          {minimal ? <BrandLogo theme="light" /> : <BrandLogo
-            variant="auth"
-            subtitle="An toàn từ nguồn · An tâm từng bữa"
-          />}
+          <BrandLogo theme="light" />
         </Link>
 
         {/* Navigation links & user icon */}

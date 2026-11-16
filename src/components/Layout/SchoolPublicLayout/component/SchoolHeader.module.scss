@@ -38,8 +38,23 @@
   text-decoration: none;
   transition: color 0.2s ease;
 
+  span {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 700;
+    font-variation-settings: "opsz" 72, "wght" 700, "SOFT" 100, "WONK" 1;
+    font-optical-sizing: auto;
+    letter-spacing: -0.02em;
+    font-size: 15px;
+    color: #2d3748;
+    transition: color 0.2s ease;
+  }
+
   &:hover {
     color: var(--color-primary);
+
+    span {
+      color: #1a202c;
+    }
   }
 
   @media (min-width: 1200px) {
