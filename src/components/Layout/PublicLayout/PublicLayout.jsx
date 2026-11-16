@@ -1,6 +1,7 @@
 import React from "react"
 import { Outlet, Link } from "react-router-dom"
 import { UtensilsCrossed } from "lucide-react"
+import BrandLogo from "src/components/Common/BrandLogo"
 import { PublicHeader } from "../Header"
 import ROUTER from "src/router/ROUTER"
 import styles from "./PublicLayout.module.scss"
@@ -20,10 +21,7 @@ function PublicLayout() {
             {/* Column 1: Brand (5 cols) */}
             <div className={styles.brandCol}>
               <div className={styles.brandLogo}>
-                <div className={styles.logoBadge}>
-                  <UtensilsCrossed size={20} strokeWidth={2.2} />
-                </div>
-                <span className={styles.brandName}>FoodPrint</span>
+                <BrandLogo theme="light" />
               </div>
               <p className={styles.brandDescription}>
                 Hệ thống quản lý và truy xuất nguồn gốc suất ăn học đường. Đồng hành cùng nhà trường xây dựng bữa ăn chuẩn dinh dưỡng và an toàn thực phẩm minh bạch.

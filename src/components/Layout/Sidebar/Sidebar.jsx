@@ -119,7 +119,7 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
       {mobile ? (
         <>
           <div className={styles.drawerHeading}>
-            <span>FoodPrint</span>
+            <BrandLogo theme="light" />
             <IconButton onClick={onClose} aria-label="Đóng điều hướng" autoFocus><CloseIcon /></IconButton>
           </div>
           <p className={styles.portalLabel}>{organizationLabel}</p>
