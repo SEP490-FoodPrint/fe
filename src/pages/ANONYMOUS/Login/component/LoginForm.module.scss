@@ -31,31 +31,38 @@
 
 /* ==========================================================================
    LEFT COLUMN: Full-Screen Showcase Image with Overlay Text
-   - Vertical image fills the entire left column (full-bleed, edge-to-edge).
-   - Text overlays cleanly with high contrast and legibility.
+   - Narrowed down gracefully (45% on desktop) for perfect golden proportions.
    ========================================================================== */
 .leftCol {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 45%;
+  width: 45%;
+  max-width: 45%;
   height: 100%;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 
+  @media (max-width: 1200px) {
+    flex: 0 0 44%;
+    width: 44%;
+    max-width: 44%;
+  }
+
   @media (max-width: 1024px) {
     flex: none;
     width: 100%;
-    min-height: 420px;
+    max-width: 100%;
+    min-height: 380px;
     height: auto;
   }
 
   @media (max-width: 600px) {
-    min-height: 340px;
+    min-height: 320px;
   }
 }
 
-/* Full-bleed vertical image covering the entire left column */
+/* Full-bleed vertical image covering the left column */
 .bgShowcaseImg {
   position: absolute;
   top: 0;
@@ -90,7 +97,7 @@
     background: linear-gradient(
       180deg,
       rgba(255, 255, 255, 0.95) 0%,
-      rgba(255, 255, 255, 0.8) 50%,
+      rgba(255, 255, 255, 0.82) 50%,
       rgba(255, 255, 255, 0.2) 100%
     );
   }
@@ -100,14 +107,14 @@
 .leftColContent {
   position: relative;
   z-index: 3;
-  padding: 44px 56px 36px;
+  padding: 44px 48px 36px;
   display: flex;
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
 
   @media (max-width: 1200px) {
-    padding: 36px 40px 28px;
+    padding: 36px 36px 28px;
   }
 
   @media (max-width: 1024px) {
@@ -143,7 +150,7 @@
 
 .heroTitle {
   font-family: var(--font-family, "Be Vietnam Pro", sans-serif);
-  font-size: 38px;
+  font-size: 36px;
   font-weight: 800;
   line-height: 1.18;
   color: #064e3b;
@@ -152,15 +159,15 @@
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9);
 
   @media (max-width: 1400px) {
-    font-size: 34px;
+    font-size: 32px;
   }
 
   @media (max-width: 1200px) {
-    font-size: 30px;
+    font-size: 28px;
   }
 
   @media (max-width: 600px) {
-    font-size: 25px;
+    font-size: 24px;
     line-height: 1.25;
   }
 }
@@ -181,16 +188,16 @@
 }
 
 .heroDescription {
-  font-size: 15px;
+  font-size: 14.5px;
   line-height: 1.55;
   color: #1e293b;
   font-weight: 500;
   margin: 0;
-  max-width: 520px;
+  max-width: 480px;
   text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
 
   @media (max-width: 1200px) {
-    font-size: 14px;
+    font-size: 13.5px;
   }
 
   @media (max-width: 1024px) {
@@ -200,55 +207,41 @@
 }
 
 /* ==========================================================================
-   RIGHT COLUMN: Fixed-Width Floating Login Area
-   - Fixed width so the form NEVER deforms, shrinks or stretches.
-   - Pinned on desktop with independent scrolling if height is compact.
+   RIGHT COLUMN: Balanced Login Area
+   - Centered inside the spacious right section (55% width).
+   - Card has elegant padding, polished input styling and micro-interactions.
    ========================================================================== */
 .rightCol {
-  width: 480px;
-  flex: 0 0 480px;
-  min-width: 480px;
-  max-width: 480px;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 55%;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 36px 36px;
+  padding: 36px 40px;
   background-color: #ffffff;
   overflow-y: auto;
   z-index: 4;
   box-sizing: border-box;
-  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.04);
-
-  @media (max-width: 1200px) {
-    width: 440px;
-    flex: 0 0 440px;
-    min-width: 440px;
-    max-width: 440px;
-    padding: 32px 28px;
-  }
 
   @media (max-width: 1024px) {
-    width: 100%;
     flex: none;
-    min-width: 0;
-    max-width: 100%;
+    width: 100%;
     height: auto;
     min-height: auto;
     padding: 40px 20px 48px;
-    background-color: #ffffff;
-    box-shadow: none;
   }
 }
 
 .loginCard {
   width: 100%;
-  max-width: 408px;
+  max-width: 418px;
   background: #ffffff;
   border-radius: 24px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 20px 45px -10px rgba(10, 128, 102, 0.08), 0 4px 16px rgba(0, 0, 0, 0.03);
-  padding: 34px 32px 30px;
+  padding: 36px 34px 32px;
   box-sizing: border-box;
 
   @media (max-width: 600px) {
@@ -262,18 +255,18 @@
   font-size: 26px;
   font-weight: 800;
   color: #0f172a;
-  margin: 0 0 22px;
+  margin: 0 0 24px;
   letter-spacing: -0.02em;
   text-align: center;
 
   @media (max-width: 600px) {
     font-size: 23px;
-    margin-bottom: 18px;
+    margin-bottom: 20px;
   }
 }
 
 .alertNotice {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   border-radius: 12px;
   font-size: 13.5px;
 }
@@ -289,7 +282,7 @@
   color: #991b1b;
   font-size: 13.5px;
   font-weight: 500;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   line-height: 1.4;
 }
 
@@ -301,29 +294,42 @@
 .loginForm {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .fieldGroup {
   display: flex;
   flex-direction: column;
+  gap: 7px;
+}
+
+.fieldLabelRow {
+  display: flex;
+  align-items: center;
   gap: 6px;
 }
 
+.labelIcon {
+  color: var(--color-primary, #0A8066);
+  flex-shrink: 0;
+}
+
 .fieldLabel {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: #334155;
+  color: #1e293b;
   letter-spacing: -0.01em;
 }
 
+/* Beautiful refined input wrapper */
 .inputWrapper {
   position: relative;
   display: flex;
   align-items: center;
   border: 1.5px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 12px;
   background: #ffffff;
+  height: 48px;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 
   &:hover {
@@ -359,17 +365,20 @@
 
 .textInput {
   width: 100%;
-  padding: 12px 14px 12px 42px;
+  height: 100%;
+  padding: 0 14px 0 42px;
   border: none;
   background: transparent;
   outline: none;
   font-size: 14.5px;
+  font-weight: 500;
   color: #0f172a;
   font-family: inherit;
 
   &::placeholder {
     color: #94a3b8;
     font-size: 13.5px;
+    font-weight: 400;
   }
 
   &:disabled {
@@ -379,26 +388,26 @@
 
   @media (max-width: 600px) {
     font-size: 15px; /* Prevents auto-zoom in mobile Safari */
-    padding: 11px 12px 11px 40px;
   }
 }
 
 .eyeToggleBtn {
   position: absolute;
-  right: 12px;
+  right: 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
-  padding: 4px;
+  padding: 6px;
   color: #94a3b8;
   cursor: pointer;
-  border-radius: 6px;
-  transition: color 0.15s ease;
+  border-radius: 8px;
+  transition: all 0.15s ease;
 
   &:hover {
-    color: #475569;
+    color: #334155;
+    background-color: #f1f5f9;
   }
 }
 
@@ -470,17 +479,18 @@
 }
 
 .submitBtn {
-  margin-top: 6px;
+  margin-top: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   width: 100%;
-  padding: 13px;
+  height: 48px;
+  padding: 0 16px;
   background-color: var(--color-primary, #0A8066);
   color: #ffffff;
   border: none;
-  border-radius: 14px;
+  border-radius: 12px;
   font-size: 15px;
   font-weight: 700;
   cursor: pointer;
@@ -489,7 +499,7 @@
 
   &:hover:not(:disabled) {
     background-color: var(--color-primary-dark, #08604d);
-    box-shadow: 0 6px 18px rgba(10, 128, 102, 0.36);
+    box-shadow: 0 6px 20px rgba(10, 128, 102, 0.36);
     transform: translateY(-1px);
   }
 
@@ -535,11 +545,12 @@
   justify-content: center;
   gap: 8px;
   width: 100%;
-  padding: 12px;
+  height: 46px;
+  padding: 0 16px;
   background-color: #ffffff;
   color: var(--color-primary, #0A8066);
   border: 1.5px solid var(--color-primary, #0A8066);
-  border-radius: 14px;
+  border-radius: 12px;
   font-size: 14.5px;
   font-weight: 700;
   text-decoration: none;

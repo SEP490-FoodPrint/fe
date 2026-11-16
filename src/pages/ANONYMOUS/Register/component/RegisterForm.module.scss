@@ -35,17 +35,25 @@
    - Text overlays cleanly with high contrast and legibility.
    ========================================================================== */
 .leftCol {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 0 0 45%;
+  width: 45%;
+  max-width: 45%;
   height: 100%;
   position: relative;
   overflow: hidden;
   display: flex;
   flex-direction: column;
 
+  @media (max-width: 1200px) {
+    flex: 0 0 44%;
+    width: 44%;
+    max-width: 44%;
+  }
+
   @media (max-width: 1024px) {
     flex: none;
     width: 100%;
+    max-width: 100%;
     min-height: 380px;
     height: auto;
   }
@@ -205,10 +213,9 @@
    - Pinned on desktop with independent scrolling for smooth UX.
    ========================================================================== */
 .rightCol {
-  width: 560px;
-  flex: 0 0 560px;
-  min-width: 560px;
-  max-width: 560px;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 55%;
   height: 100%;
   display: flex;
   align-items: center;
@@ -218,21 +225,10 @@
   overflow-y: auto;
   z-index: 4;
   box-sizing: border-box;
-  box-shadow: -10px 0 35px rgba(0, 0, 0, 0.04);
-
-  @media (max-width: 1280px) {
-    width: 500px;
-    flex: 0 0 500px;
-    min-width: 500px;
-    max-width: 500px;
-    padding: 24px 24px;
-  }
 
   @media (max-width: 1024px) {
-    width: 100%;
     flex: none;
-    min-width: 0;
-    max-width: 100%;
+    width: 100%;
     height: auto;
     min-height: auto;
     padding: 36px 20px 48px;

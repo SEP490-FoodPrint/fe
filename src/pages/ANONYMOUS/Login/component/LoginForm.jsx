@@ -10,6 +10,7 @@ import {
   Lock,
   LogIn,
   Mail,
+  User,
   UserPlus,
 } from "lucide-react"
 import BrandLogo from "src/components/Common/BrandLogo"
@@ -64,7 +65,7 @@ export default function LoginForm({
         </svg>
       </div>
 
-      {/* LEFT COLUMN: Full-Screen Showcase Image with Overlay Text */}
+      {/* LEFT COLUMN: Showcase Image with Overlay Text (Narrowed for Perfect Proportions) */}
       <div className={styles.leftCol}>
         {/* Full-bleed vertical showcase image */}
         <img
@@ -86,7 +87,7 @@ export default function LoginForm({
             </Link>
           </div>
 
-          {/* Center: Headline & Value Highlights */}
+          {/* Center: Headline & Subtitle */}
           <div className={styles.heroCenter}>
             <h1 className={styles.heroTitle}>
               Suất ăn học đường<br />
@@ -106,7 +107,7 @@ export default function LoginForm({
         </div>
       </div>
 
-      {/* RIGHT COLUMN: Fixed-Width Floating Login Area */}
+      {/* RIGHT COLUMN: Balanced Centered Login Area */}
       <div className={styles.rightCol}>
         <div className={styles.loginCard}>
           {/* Card Title */}
@@ -130,9 +131,12 @@ export default function LoginForm({
           <form onSubmit={submit} className={styles.loginForm} noValidate>
             {/* Identifier Input */}
             <div className={styles.fieldGroup}>
-              <label htmlFor="login-identifier" className={styles.fieldLabel}>
-                Email / Số điện thoại
-              </label>
+              <div className={styles.fieldLabelRow}>
+                <User size={15} className={styles.labelIcon} />
+                <label htmlFor="login-identifier" className={styles.fieldLabel}>
+                  Email / Số điện thoại
+                </label>
+              </div>
               <div
                 className={[
                   styles.inputWrapper,
@@ -164,9 +168,12 @@ export default function LoginForm({
 
             {/* Password Input */}
             <div className={styles.fieldGroup}>
-              <label htmlFor="login-password" className={styles.fieldLabel}>
-                Mật khẩu
-              </label>
+              <div className={styles.fieldLabelRow}>
+                <Lock size={15} className={styles.labelIcon} />
+                <label htmlFor="login-password" className={styles.fieldLabel}>
+                  Mật khẩu
+                </label>
+              </div>
               <div
                 className={[
                   styles.inputWrapper,
