@@ -1,4 +1,4 @@
-import { menuScopeLabel } from "./scope";
+import { hasMenuScope, menuScopeLabel } from "./scope";
 
 /**
  * Adapter module: Chuẩn hóa dữ liệu giữa Backend Prisma Schema và Giao diện Frontend
@@ -402,6 +402,7 @@ function selectedGroupDish(day, group) {
 
 export function adaptWeeklyMenuToCardList(weeklyMenu) {
   if (!weeklyMenu || !weeklyMenu.menuDays) return [];
+  if (!hasMenuScope(weeklyMenu)) return [];
 
   const result = [];
   const menuDays = Array.isArray(weeklyMenu.menuDays)

@@ -1,9 +1,9 @@
-import { menuAppliesToGrade, menuScopeLabel } from "./scope"
+import { hasMenuScope, menuAppliesToGrade, menuScopeLabel } from "./scope"
 
 export function filterMenuCardsByGrade(menus, gradeId = "") {
   return menus.filter(
     (menu) =>
-      !gradeId || menuAppliesToGrade(menu, gradeId),
+      hasMenuScope(menu) && (!gradeId || menuAppliesToGrade(menu, gradeId)),
   )
 }
 
@@ -11,6 +11,7 @@ export function filterMenuCardsByGrade(menus, gradeId = "") {
 export function groupMenuCardsByWeek(menus) {
   const groups = new Map()
   for (const menu of menus) {
+    if (!hasMenuScope(menu)) continue
     const id = menu.weeklyMenuId || menu.id
     if (!groups.has(id))
       groups.set(id, {
