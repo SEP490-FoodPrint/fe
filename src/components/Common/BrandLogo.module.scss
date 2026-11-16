@@ -42,13 +42,15 @@
 }
 
 .brandTitle {
-  font-family: "Dancing Script", "Pacifico", cursive, sans-serif;
-  font-size: 26px;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 22.5px;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  font-variation-settings: "opsz" 72, "wght" 700, "SOFT" 100, "WONK" 1;
+  font-optical-sizing: auto;
+  letter-spacing: -0.02em;
   display: inline-flex;
-  align-items: center;
-  line-height: 1;
+  align-items: baseline;
+  line-height: 1.1;
   color: #0f172a;
   transition: transform 0.2s ease, color 0.2s ease;
 }
@@ -106,9 +108,9 @@
   }
   .textGroup { gap: 2px; }
   .brandTitle {
-    font-size: 24px;
+    font-size: 21px;
     font-weight: 700;
-    line-height: 1;
+    line-height: 1.1;
     color: #0f172a;
   }
   .brandSubtitle { margin: 0; color: var(--text-muted); font-size: 11px; font-weight: var(--font-normal); line-height: var(--leading-tight); text-transform: none; letter-spacing: normal; }
@@ -116,7 +118,7 @@
 
 .compact {
   gap: var(--space-2);
-  .brandTitle { font-size: 22px; }
+  .brandTitle { font-size: 20px; }
 }
 .compact, .iconOnly { .iconBox { width: 38px; height: 38px; } }
 
@@ -125,7 +127,7 @@
   max-width: 100%;
   .iconBox { width: var(--space-12); height: var(--space-12); padding: var(--space-2); border-radius: var(--radius-lg); background: var(--color-primary-soft); transition: none; &:hover { transform: none; } }
   .brandTitle {
-    font-size: 32px;
+    font-size: 30px;
     line-height: 1.2;
     color: #0f172a;
   }
