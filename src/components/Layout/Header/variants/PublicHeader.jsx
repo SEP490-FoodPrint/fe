@@ -41,7 +41,7 @@ function PublicHeader() {
 
     // Kiểm tra hash ban đầu khi vào trang chủ
     const initialHash = window.location.hash.replace("#", "");
-    if (["about", "schools", "how-it-works"].includes(initialHash)) {
+    if (["schools", "how-it-works"].includes(initialHash)) {
       setActiveNav(initialHash);
     } else {
       setActiveNav("home");
@@ -61,7 +61,6 @@ function PublicHeader() {
 
         const sections = [
           { id: "schools", el: document.getElementById("schools") },
-          { id: "about", el: document.getElementById("about") },
           { id: "how-it-works", el: document.getElementById("how-it-works") },
         ];
 
@@ -180,14 +179,6 @@ function PublicHeader() {
       >
         Trang chủ
       </Link>
-
-      <a
-        href={`${ROUTER.DEFAULT}#about`}
-        className={`${styles.navItem} ${activeNav === "about" ? styles.isActive : ""}`}
-        onClick={(e) => handleNavClick("about", e)}
-      >
-        Giới thiệu
-      </a>
 
       {/* Dropdown tìm kiếm trường học nhanh */}
       <div className={styles.dropdownContainer} ref={dropdownRef}>

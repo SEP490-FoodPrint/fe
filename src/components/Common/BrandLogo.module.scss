@@ -37,14 +37,42 @@
 .textGroup {
   display: flex;
   flex-direction: column;
-  line-height: 1.18;
+  justify-content: center;
+  line-height: 1.15;
 }
 
 .brandTitle {
-  font-family: var(--font-sans);
-  font-size: 18.5px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-family: "Plus Jakarta Sans", "Be Vietnam Pro", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  display: inline-flex;
+  align-items: baseline;
+  line-height: 1.1;
+  transition: transform 0.2s ease;
+}
+
+.titleFood {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #0f172a;
+  transition: color 0.2s ease;
+}
+
+.titlePrint {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #059669;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: filter 0.2s ease, opacity 0.2s ease;
+}
+
+.brandContainer:hover {
+  .titlePrint {
+    filter: brightness(1.12);
+  }
 }
 
 .brandSubtitle {
@@ -57,8 +85,15 @@
 
 /* Biến thể Dark Theme: Nền Xanh Forest Emerald (#0A8066) của Sidebar */
 .isDark {
-  .brandTitle {
+  .titleFood {
     color: #ffffff;
+  }
+
+  .titlePrint {
+    color: #34d399;
+    background: linear-gradient(135deg, #a7f3d0 0%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .brandSubtitle {
@@ -68,8 +103,15 @@
 
 /* Biến thể Light Theme: Nền Trắng / Xanh nhạt của Header hoặc Landing */
 .isLight {
-  .brandTitle {
-    color: var(--text-primary, #111827);
+  .titleFood {
+    color: #0f172a;
+  }
+
+  .titlePrint {
+    color: #059669;
+    background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
   }
 
   .brandSubtitle {
@@ -87,18 +129,30 @@
     &:hover { transform: none; }
   }
   .textGroup { gap: 2px; }
-  .brandTitle { color: var(--color-primary); font-size: 19px; font-weight: var(--font-bold); line-height: var(--leading-tight); letter-spacing: normal; }
+  .brandTitle {
+    font-size: 19.5px;
+    font-weight: 800;
+    line-height: var(--leading-tight);
+    letter-spacing: -0.03em;
+  }
   .brandSubtitle { margin: 0; color: var(--text-muted); font-size: 11px; font-weight: var(--font-normal); line-height: var(--leading-tight); text-transform: none; letter-spacing: normal; }
 }
 
-.compact { gap: var(--space-2); .brandTitle { font-size: var(--text-lg); } }
+.compact {
+  gap: var(--space-2);
+  .brandTitle { font-size: 19px; }
+}
 .compact, .iconOnly { .iconBox { width: 38px; height: 38px; } }
 
 .auth {
   width: var(--auth-brand-width);
   max-width: 100%;
   .iconBox { width: var(--space-12); height: var(--space-12); padding: var(--space-2); border-radius: var(--radius-lg); background: var(--color-primary-soft); transition: none; &:hover { transform: none; } }
-  .brandTitle { color: var(--color-primary); font-size: var(--text-2xl); line-height: var(--space-8); letter-spacing: normal; }
+  .brandTitle {
+    font-size: var(--text-2xl);
+    line-height: var(--space-8);
+    letter-spacing: -0.03em;
+  }
   .brandSubtitle { margin: 0; font-size: var(--text-xs); font-weight: var(--font-normal); line-height: var(--text-lg); text-transform: none; letter-spacing: normal; color: var(--text-secondary); }
 }
 

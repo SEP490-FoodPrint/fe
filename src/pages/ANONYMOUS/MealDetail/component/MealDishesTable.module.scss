@@ -91,7 +91,6 @@
   font-size: var(--text-xs);
 
   thead {
-    background-color: var(--bg-muted);
     border-bottom: 1px solid var(--border-default);
 
     th {
@@ -112,31 +111,64 @@
       }
 
       &:hover {
-        background-color: rgba(10, 128, 102, 0.03);
+        .cellMainDish,
+        .cellPortion {
+          background-color: rgba(10, 128, 102, 0.04);
+        }
+
+        .cellAltDish,
+        .cellAltPortion {
+          background-color: var(--bg-accent);
+        }
       }
     }
 
     td {
       padding: 10px 14px;
       vertical-align: middle;
+      transition: background-color 0.15s ease;
     }
   }
 }
 
 .colMainDish {
   width: 38%;
+  background-color: var(--bg-muted);
 }
 
 .colPortion {
   width: 12%;
+  background-color: var(--bg-muted);
 }
 
 .colAltDish {
   width: 38%;
+  background-color: var(--color-secondary-soft);
+  border-left: 1px solid var(--border-default);
 }
 
 .colAltPortion {
   width: 12%;
+  background-color: var(--color-secondary-soft);
+}
+
+.cellMainDish {
+  background-color: var(--bg-surface);
+}
+
+.cellPortion {
+  background-color: var(--bg-surface);
+  white-space: nowrap;
+}
+
+.cellAltDish {
+  background-color: var(--color-secondary-soft);
+  border-left: 1px solid var(--border-default);
+}
+
+.cellAltPortion {
+  background-color: var(--color-secondary-soft);
+  white-space: nowrap;
 }
 
 .dishInfoWrapper {
@@ -216,11 +248,11 @@
   transition: all 0.15s ease;
 
   &:hover {
-    color: var(--color-warning);
+    color: var(--color-primary);
     text-decoration: underline;
 
     .infoIcon {
-      color: var(--color-warning);
+      color: var(--color-primary);
       transform: scale(1.15);
     }
   }
@@ -238,7 +270,7 @@
   font-size: 13px;
   font-weight: var(--font-bold);
   font-style: italic;
-  color: #dc2626;
+  color: var(--text-primary);
 }
 
 .allergyTag {

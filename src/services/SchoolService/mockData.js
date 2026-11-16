@@ -145,157 +145,399 @@ export const MOCK_SCHOOLS = [
 ];
 
 /**
+ * Mock Data: Thực đơn ngày hôm nay dành riêng cho Trường Tiểu học FoodPrint
+ * Ngày: 15/11/2026 (Hôm nay)
+ */
+export const MOCK_FOODPRINT_DAILY_MENU = {
+  date: "2026-11-15",
+  dateLabel: "Chủ Nhật, 15/11/2026",
+  menuDate: "2026-11-15",
+  updatedAt: "07:15 - 15/11/2026 (Đã duyệt bởi BGH)",
+  schoolName: "Trường Tiểu học FoodPrint",
+  schoolCode: "FP-DEMO-SCHOOL-01",
+
+  lunch: {
+    mealType: "LUNCH",
+    title: "Bữa trưa chính dinh dưỡng",
+    servingWindow: "10:45 – 11:30",
+    trayImageUrl:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuCBwNjlhj0HUaFnMG7FVIvzeS-bxQ1dje3G-wVHO79zJkeLyzUMCgpZSQzRVHcxhKW7Cb2tHe69YwcmuaRlixreDNij6Y7ZsBdObiD37TuNldd3XoHeBvD4XoRomsHeDxHj4efUNf-C-jg0ypW5A6nZJDJvBciK-fBx5x48bzgFeitOb2tFLjisidUVeRlKQpSBnE60I8S7O5_XcWObq0d4q_U5jFCkeFfl3D-1i2uppSrVB0G8zJXkAg",
+    trayType: "Khay Inox 5 ngăn kháng khuẩn",
+    standardsNote: "Đáp ứng 4 nhóm dinh dưỡng cân đối theo khuyến nghị Viện Dinh Dưỡng Quốc Gia",
+    allergyWarning:
+      "Lưu ý: Thực đơn tiêu chuẩn có tôm đồng và thịt bò. Lớp 3A có học sinh dị ứng được bếp cấp món thay thế riêng.",
+    dishes: [
+      {
+        id: "fp-dish-01",
+        name: "Cơm gạo tám Điện Biên",
+        portion: "150g",
+        portionSize: 150,
+        portionUnit: "g",
+        category: "Món cung cấp Tinh bột",
+        description: "Gạo tám thơm Điện Biên mùa mới, dẻo ngọt tự nhiên",
+        ingredients: [
+          {
+            id: "ing-01",
+            name: "Gạo tám Điện Biên",
+            portion: "150g",
+            category: "Lương thực",
+            supplierName: "Nhà cung cấp Nông Sản Xanh",
+            note: "Chứng nhận VietGAP số 45/2026, xuất xứ Điện Biên",
+          },
+        ],
+      },
+      {
+        id: "fp-dish-02",
+        name: "Thịt bò Úc xào nấm hương & su hào",
+        portion: "75g",
+        portionSize: 75,
+        portionUnit: "g",
+        category: "Món chính giàu Đạm & Khoáng",
+        description: "Thăn bò mềm xào cùng nấm hương tươi và củ quả giòn ngọt",
+        ingredients: [
+          {
+            id: "ing-02",
+            name: "Thịt thăn bò tươi",
+            portion: "50g",
+            category: "Thịt tươi sống",
+            supplierName: "Nhà cung cấp Nông Sản Xanh",
+            note: "Kiểm dịch thú y số KD-8899, kiểm thực bước 1 đạt lúc 05:45",
+          },
+          {
+            id: "ing-03",
+            name: "Nấm hương tươi & su hào",
+            portion: "25g",
+            category: "Rau củ quả",
+            supplierName: "HTX Nông nghiệp Công nghệ cao Ba Vì",
+            note: "Chứng nhận VietGAP trồng trong nhà màng",
+          },
+        ],
+        alternativeDish: {
+          id: "fp-dish-02-alt",
+          name: "Thịt lợn nạc rim hạt sen & nấm",
+          portion: "75g",
+          allergyGroup: "Dị ứng thịt bò",
+          category: "Món thay thế dị ứng",
+          ingredients: [
+            {
+              id: "ing-02-alt",
+              name: "Thịt nạc vai heo sinh học",
+              portion: "50g",
+              category: "Thịt tươi sống",
+              supplierName: "Nhà cung cấp Nông Sản Xanh",
+              note: "Heo thảo mộc truy xuất mã QR On-chain",
+            },
+          ],
+        },
+      },
+      {
+        id: "fp-dish-03",
+        name: "Trứng cuộn ngũ sắc hấp mềm",
+        portion: "50g",
+        portionSize: 50,
+        portionUnit: "g",
+        category: "Món phụ giàu Đạm & Vitamin",
+        description: "Trứng gà tươi kết hợp cà rốt, bắp ngọt và đậu hà lan",
+        ingredients: [
+          {
+            id: "ing-04",
+            name: "Trứng gà tươi sạch OCOP",
+            portion: "40g",
+            category: "Trứng & Sản phẩm gia cầm",
+            supplierName: "Nhà cung cấp Nông Sản Xanh",
+            note: "Trứng gà thảo dược đạt chuẩn OCOP 4 sao",
+          },
+        ],
+      },
+      {
+        id: "fp-dish-04",
+        name: "Canh bí đỏ nấu tôm đồng tươi",
+        portion: "1 bát (180ml)",
+        portionSize: 180,
+        portionUnit: "ml",
+        category: "Món canh giàu Vitamin A",
+        description: "Bí đỏ ngọt bùi nấu cùng tôm đồng băm tươi",
+        ingredients: [
+          {
+            id: "ing-05",
+            name: "Tôm đồng tươi sống",
+            portion: "30g",
+            category: "Thủy hải sản",
+            supplierName: "Nhà cung cấp Nông Sản Xanh",
+            note: "Kiểm thực tươi sống 100%",
+          },
+          {
+            id: "ing-06",
+            name: "Bí đỏ sạch Mộc Châu",
+            portion: "70g",
+            category: "Rau củ quả",
+            supplierName: "Nhà cung cấp Nông Sản Xanh",
+            note: "VietGAP số 12/2026",
+          },
+        ],
+        alternativeDish: {
+          id: "fp-dish-04-alt",
+          name: "Canh bí đỏ nấu thịt nạc băm",
+          portion: "1 bát (180ml)",
+          allergyGroup: "Dị ứng Tôm / Hải sản (Lớp 3A)",
+          category: "Món thay thế dị ứng",
+          ingredients: [
+            {
+              id: "ing-05-alt",
+              name: "Thịt nạc mông heo xay",
+              portion: "30g",
+              category: "Thịt tươi sống",
+              supplierName: "Nhà cung cấp Nông Sản Xanh",
+              note: "Kiểm dịch thú y đạt chuẩn",
+            },
+          ],
+        },
+      },
+      {
+        id: "fp-dish-05",
+        name: "Tráng miệng: Thanh long ruột đỏ Organic",
+        portion: "2 miếng (80g)",
+        portionSize: 80,
+        portionUnit: "g",
+        category: "Trái cây tráng miệng",
+        description: "Thanh long hữu cơ ngọt mát, giàu chất chống oxy hóa",
+        ingredients: [
+          {
+            id: "ing-07",
+            name: "Thanh long ruột đỏ Bình Thuận",
+            portion: "80g",
+            category: "Trái cây",
+            supplierName: "Nhà cung cấp Nông Sản Xanh",
+            note: "Tiêu chuẩn GlobalGAP xuất khẩu",
+          },
+        ],
+      },
+    ],
+  },
+
+  snack: {
+    mealType: "AFTERNOON",
+    title: "Bữa phụ chiều bổ sung năng lượng",
+    servingWindow: "14:30 – 15:00",
+    imageUrl:
+      "https://lh3.googleusercontent.com/aida-public/AB6AXuDB8VwonYSD-vP1vILXdnxkBR1h3ACxIY6kok371v4s0kGt-K3kgtpdAfnp-r6KncqWukrxhaH0tnLCn7_bb62mhjZxyMHthWz3m60PgtMGFRTc-GpJB55WjsuL2zqDpHaE6_TXDuXXulExFrjBwPAgnk2U-tMkoaMoGV6ZcI2dBbM1KFrsujYjBNx5taqKdy7534TMSoGN_4K5OLUN8Z92zLUeHYGNf4sV2o31gTQ9J8i6Zd57Absd8A",
+    items: [
+      {
+        id: "snack-01",
+        name: "Sữa tươi tiệt trùng TH true MILK ít đường",
+        desc: "Hộp 180ml · 100% sữa tươi sạch từ trang trại TH",
+        icon: "coffee",
+      },
+      {
+        id: "snack-02",
+        name: "Bánh bông lan trứng tươi phô mai",
+        desc: "Bếp trường FoodPrint nướng tươi trong ngày lúc 13:00",
+        icon: "cake",
+      },
+    ],
+    dishes: [
+      {
+        id: "fp-snack-01",
+        name: "Sữa tươi tiệt trùng 180ml",
+        portion: "1 hộp",
+        mealType: "AFTERNOON",
+      },
+      {
+        id: "fp-snack-02",
+        name: "Bánh bông lan phô mai",
+        portion: "1 cái (60g)",
+        mealType: "AFTERNOON",
+      },
+    ],
+  },
+};
+
+/**
  * Mock Data: Thực đơn ngày hôm nay
  */
 export const MOCK_DAILY_MEAL_MENUS = {
-  SCH_ANH_DUONG: {
-    dateLabel: "Hôm nay, Thứ Ba - Ngày 20/10/2026",
-    menuDate: "2026-10-20",
-    updatedAt: "07:15 sáng nay",
-    lunch: {
-      mealType: "LUNCH",
-      title: "Bữa trưa chính",
-      servingWindow: "10:45 – 11:30",
-      trayImageUrl:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuCBwNjlhj0HUaFnMG7FVIvzeS-bxQ1dje3G-wVHO79zJkeLyzUMCgpZSQzRVHcxhKW7Cb2tHe69YwcmuaRlixreDNij6Y7ZsBdObiD37TuNldd3XoHeBvD4XoRomsHeDxHj4efUNf-C-jg0ypW5A6nZJDJvBciK-fBx5x48bzgFeitOb2tFLjisidUVeRlKQpSBnE60I8S7O5_XcWObq0d4q_U5jFCkeFfl3D-1i2uppSrVB0G8zJXkAg",
-      trayType: "Khay chia 5 ngăn",
-      dishes: [
-        { id: "d1", name: "Cơm tám Điện Biên", portion: "150g" },
-        { id: "d2", name: "Bò xào nấm hương rau củ", portion: "75g" },
-        { id: "d3", name: "Trứng cuộn ngũ sắc hấp mềm", portion: "50g" },
-        {
-          id: "d4",
-          name: "Canh bí đỏ nấu tôm đồng tươi",
-          portion: "1 bát con",
-        },
-        {
-          id: "d5",
-          name: "Tráng miệng: Thanh long ruột đỏ",
-          portion: "2 miếng",
-        },
-      ],
-      standardsNote: "Đạt chuẩn 4 nhóm chất (Tinh bột, Đạm, Xơ, Khoáng)",
-    },
-    snack: {
-      mealType: "AFTERNOON",
-      title: "Bữa phụ chiều",
-      servingWindow: "14:30 – 15:00",
-      imageUrl:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuDB8VwonYSD-vP1vILXdnxkBR1h3ACxIY6kok371v4s0kGt-K3kgtpdAfnp-r6KncqWukrxhaH0tnLCn7_bb62mhjZxyMHthWz3m60PgtMGFRTc-GpJB55WjsuL2zqDpHaE6_TXDuXXulExFrjBwPAgnk2U-tMkoaMoGV6ZcI2dBbM1KFrsujYjBNx5taqKdy7534TMSoGN_4K5OLUN8Z92zLUeHYGNf4sV2o31gTQ9J8i6Zd57Absd8A",
-      items: [
-        {
-          id: "s1",
-          name: "Sữa tươi tiệt trùng Vinamilk ít đường",
-          desc: "Hộp 180ml · Giàu Canxi & Vitamin D3",
-          icon: "local_cafe",
-        },
-        {
-          id: "s2",
-          name: "Bánh flan caramel tươi",
-          desc: "Chế biến trong ngày tại bếp ăn bán trú",
-          icon: "cake",
-        },
-      ],
-      note: "Cung cấp năng lượng kịp thời cho học sinh tham gia các hoạt động ngoại khóa buổi chiều.",
-    },
-  },
+  "FP-DEMO-SCHOOL-01": MOCK_FOODPRINT_DAILY_MENU,
+  FP_DEMO_SCHOOL_01: MOCK_FOODPRINT_DAILY_MENU,
+  SCH_ANH_DUONG: MOCK_FOODPRINT_DAILY_MENU,
 };
 
 /**
  * Mock Data: Thực đơn tuần (Thứ 2 đến Thứ 6)
  */
 export const MOCK_WEEKLY_MENUS = {
-  SCH_ANH_DUONG: {
-    weekNumber: 42,
-    weekRange: "19/10/2026 – 23/10/2026",
+  "FP-DEMO-SCHOOL-01": {
+    id: "wm-fp-week-11",
+    title: "Thực đơn Tuần 11",
+    weekNumber: 11,
+    weekStartDate: "2026-11-16",
+    weekEndDate: "2026-11-20",
+    weekRange: "16/11/2026 – 20/11/2026",
     isCurrentWeek: true,
-    gradeGroups: [
-      { key: "GRADE_1_2", label: "Khối 1 – 2" },
-      { key: "GRADE_3_5", label: "Khối 3 – 5" },
-    ],
+    status: "APPROVED",
     portionGroups: [
-      { id: "GRADE_1_2", name: "Khối 1 – 2", isDefault: true },
-      { id: "GRADE_3_5", name: "Khối 3 – 5", isDefault: false },
+      { id: "GRADE_1_3", name: "Khối lớp 1–3", isDefault: true },
+      { id: "GRADE_4_5", name: "Khối lớp 4–5", isDefault: false },
+    ],
+    gradeGroups: [
+      { key: "GRADE_1_3", label: "Khối lớp 1–3" },
+      { key: "GRADE_4_5", label: "Khối lớp 4–5" },
     ],
     days: [
       {
+        id: "day-fp-1",
         dayOfWeek: "Thứ Hai",
-        date: "19/10/2026",
-        status: "SERVED",
-        statusLabel: "Đã phục vụ",
-        isToday: false,
-        lunchDishes: [
-          "Cơm trắng tám thơm",
-          "Gà kho gừng sả",
-          "Cải thìa sốt nấm dầu hào",
-          "Canh mồng tơi nấu ngao thịt",
-          "Tráng miệng: Dưa hấu",
-        ],
-        snackSummary: "Sữa chua uống tiệt trùng Yomost & Bánh quy mè nướng",
-      },
-      {
-        dayOfWeek: "Thứ Ba",
-        date: "20/10/2026",
+        date: "16/11/2026",
+        dateIso: "2026-11-16",
         status: "TODAY",
         statusLabel: "Hôm nay",
         isToday: true,
         lunchDishes: [
-          "Cơm tám Điện Biên",
-          "Bò xào nấm hương rau củ",
-          "Trứng cuộn ngũ sắc",
-          "Canh bí đỏ nấu tôm đồng",
-          "Tráng miệng: Thanh long đỏ",
+          "Cơm gạo tám Điện Biên",
+          "Thịt bò Úc xào nấm hương & su hào",
+          "Trứng cuộn ngũ sắc hấp mềm",
+          "Canh bí đỏ nấu tôm đồng tươi",
+          "Tráng miệng: Thanh long ruột đỏ Organic",
         ],
-        snackSummary: "Sữa tươi Vinamilk 180ml & Bánh flan caramel tươi",
+        snackSummary: "Sữa tươi tiệt trùng TH true MILK & Bánh bông lan phô mai",
+        dishes: MOCK_FOODPRINT_DAILY_MENU.lunch.dishes,
       },
       {
-        dayOfWeek: "Thứ Tư",
-        date: "21/10/2026",
+        id: "day-fp-2",
+        dayOfWeek: "Thứ Ba",
+        date: "17/11/2026",
+        dateIso: "2026-11-17",
         status: "UPCOMING",
         statusLabel: "Sắp diễn ra",
         isToday: false,
         lunchDishes: [
-          "Cơm tấm lá dứa thơm",
-          "Thịt lợn rim mật ong hạt sen",
-          "Su su cà rốt xào thịt nạc",
-          "Canh chua cá lăng nấu dọc mùng",
+          "Cơm trắng tám thơm mùa mới",
+          "Cá hồi Nauy sốt cà chua & thì là",
+          "Bắp cải xào nấm đùi gà",
+          "Canh sườn non hầm rau củ",
           "Tráng miệng: Chuối tiêu chín",
         ],
-        snackSummary: "Chè đậu đỏ nước cốt dừa hạt sen thanh mát",
+        snackSummary: "Sữa chua uống tiệt trùng & Bánh quy yến mạch hạnh nhân",
       },
       {
-        dayOfWeek: "Thứ Năm",
-        date: "22/10/2026",
+        id: "day-fp-3",
+        dayOfWeek: "Thứ Tư",
+        date: "18/11/2026",
+        dateIso: "2026-11-18",
         status: "UPCOMING",
         statusLabel: "Sắp diễn ra",
         isToday: false,
         lunchDishes: [
-          "Cơm gạo lứt huyết rồng trộn",
-          "Tôm biển rim thịt ba chỉ",
-          "Bí xanh luộc chấm muối vừng",
-          "Canh sườn hầm ngô ngọt",
-          "Tráng miệng: Quýt đường",
+          "Cơm gạo lứt phối tám thơm",
+          "Gà ri hấp lá chanh truyền thống",
+          "Đậu phụ non sốt thịt băm",
+          "Canh mồng tơi nấu ngao tươi",
+          "Tráng miệng: Đu đủ ruột đỏ",
         ],
-        snackSummary: "Bánh bao nhân thịt nạc trứng cút & Sữa hạt đậu nành",
+        snackSummary: "Chè hạt sen đậu xanh cốt dừa thanh mát",
       },
       {
-        dayOfWeek: "Thứ Sáu",
-        date: "23/10/2026",
+        id: "day-fp-4",
+        dayOfWeek: "Thứ Năm",
+        date: "19/11/2026",
+        dateIso: "2026-11-19",
         status: "UPCOMING",
         statusLabel: "Sắp diễn ra",
         isToday: false,
         lunchDishes: [
-          "Cơm trắng hạt ngọc trời",
-          "Chả lợn cuốn lá lốt sốt cà chua",
-          "Đậu đũa xào nấm đùi gà",
-          "Canh rau ngót nấu giò sống",
+          "Cơm tám Điện Biên dẻo thơm",
+          "Tôm biển rim thịt ba chỉ cháy cạnh",
+          "Bí xanh non xào tỏi",
+          "Canh cua đồng mùng tơi mướp hương",
+          "Tráng miệng: Quýt đường Mộc Châu",
+        ],
+        snackSummary: "Bánh bao nhân thịt nạc trứng cút & Sữa đậu nành hữu cơ",
+      },
+      {
+        id: "day-fp-5",
+        dayOfWeek: "Thứ Sáu",
+        date: "20/11/2026",
+        dateIso: "2026-11-20",
+        status: "UPCOMING",
+        statusLabel: "Sắp diễn ra",
+        isToday: false,
+        lunchDishes: [
+          "Cơm chiên Dương Châu học đường",
+          "Chả lợn nướng lá lốt thơm lừng",
+          "Salad dưa leo cà chua bi sốt mè",
+          "Canh rong biển thịt bò dinh dưỡng",
           "Tráng miệng: Táo gala nhập khẩu",
         ],
         snackSummary: "Bánh bông lan trứng muối tươi & Nước ép ổi hồng",
       },
     ],
+    availableWeeks: Array.from({ length: 38 }, (_, i) => {
+      const wNum = i + 1;
+      const start = new Date(Date.UTC(2026, 8, 7 + i * 7));
+      const end = new Date(Date.UTC(2026, 8, 7 + i * 7 + 4));
+      const startStr = `${String(start.getUTCDate()).padStart(2, "0")}/${String(start.getUTCMonth() + 1).padStart(2, "0")}/${start.getUTCFullYear()}`;
+      const endStr = `${String(end.getUTCDate()).padStart(2, "0")}/${String(end.getUTCMonth() + 1).padStart(2, "0")}/${end.getUTCFullYear()}`;
+      const startDateIso = start.toISOString().slice(0, 10);
+      return {
+        id: `week-${wNum}`,
+        title: `Thực đơn Tuần ${wNum}`,
+        weekNumber: wNum,
+        weekStartDate: startDateIso,
+        weekEndDate: end.toISOString().slice(0, 10),
+        weekRange: `${startStr} – ${endStr}`,
+        isCurrentWeek: wNum === 11,
+        hasMenu: wNum === 11,
+        status: wNum === 11 ? "APPROVED" : null,
+      };
+    }),
   },
+  FP_DEMO_SCHOOL_01: null,
+  SCH_ANH_DUONG: null,
 };
+MOCK_WEEKLY_MENUS.FP_DEMO_SCHOOL_01 = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
+MOCK_WEEKLY_MENUS.SCH_ANH_DUONG = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
+
+/**
+ * Hàm trả về Mock Thực đơn Ngày cho Trường Tiểu học FoodPrint
+ */
+export function getMockDailyMealMenu(schoolCode, date) {
+  const code = (schoolCode || "FP-DEMO-SCHOOL-01").toUpperCase();
+  const base = MOCK_DAILY_MEAL_MENUS[code] || MOCK_FOODPRINT_DAILY_MENU;
+  const menu = JSON.parse(JSON.stringify(base));
+
+  if (date) {
+    menu.date = date;
+    menu.menuDate = date;
+    const parts = date.split("-");
+    if (parts.length === 3) {
+      menu.dateLabel = `Ngày ${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+  }
+
+  return {
+    success: true,
+    data: menu,
+    message: "Lấy thực đơn ngày thành công (Mock Data)",
+  };
+}
+
+/**
+ * Hàm trả về Mock Thực đơn Tuần cho Trường Tiểu học FoodPrint
+ */
+export function getMockWeeklyMenu(schoolCode, weekStart, grade) {
+  const code = (schoolCode || "FP-DEMO-SCHOOL-01").toUpperCase();
+  const base = MOCK_WEEKLY_MENUS[code] || MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
+  const menu = JSON.parse(JSON.stringify(base));
+
+  if (weekStart) {
+    menu.weekStartDate = weekStart;
+  }
+
+  return {
+    success: true,
+    data: menu,
+    message: "Lấy thực đơn tuần thành công (Mock Data)",
+  };
+}
 
 // Danh sách tài khoản Demo kết nối trực tiếp với DB Cloud (Mật khẩu mặc định: 123456)
 export const MOCK_ACCOUNTS = [
