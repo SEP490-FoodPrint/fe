@@ -26,6 +26,7 @@ import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined"
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"
+import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -304,6 +305,13 @@ export const MenuItemSchool = () => [
     icon: <FactCheckOutlinedIcon />,
     badge: "1",
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+  },
+
+  {
+    key: ROUTER.SCHOOL_KITCHEN_TRACEABILITY,
+    label: "Truy xuất nguồn gốc",
+    icon: <AccountTreeOutlinedIcon />,
+    roles: [ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_MANAGEMENT_BOARD],
   },
 
   {

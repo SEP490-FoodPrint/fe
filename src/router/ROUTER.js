@@ -15,6 +15,7 @@ const ROUTER = {
   SCHOOL_LIST: "/schools",
   SCHOOL_LANDING: "/school/:schoolCode",
   SCHOOL_MEAL_DETAIL: "/school/:schoolCode/daily-menu",
+  SCHOOL_PUBLIC_TRACEABILITY: "/school/:schoolCode/traceability",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",
