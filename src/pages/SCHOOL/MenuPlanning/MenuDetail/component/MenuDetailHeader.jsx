@@ -1,7 +1,41 @@
-import React from "react"
+import React, { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./MenuDetailHeader.module.scss"
 import ROUTER from "src/router/ROUTER"
+import { getMenuISOWeek } from "src/services/MenuService/adapter"
+
+/**
+ * Định dạng tiêu đề thực đơn hiển thị theo tuần (VD: "Thực đơn Tuần 47 (Toàn trường)"),
+ * loại bỏ hoàn toàn ngày tháng khỏi tiêu đề theo yêu cầu người dùng.
+ */
+function formatWeeklyMenuTitle(menu) {
+  if (!menu) return "Thực đơn"
+  const weekNum = menu.weekNumber || getMenuISOWeek(menu)
+  let title = menu.rawWeeklyTitle || menu.name || "Thực đơn"
+
+  if (weekNum) {
+    if (/tuần\s+\d{1,2}\/\d{1,2}\s*[-–—]\s*\d{1,2}\/\d{1,2}/i.test(title)) {
+      title = title.replace(/tuần\s+\d{1,2}\/\d{1,2}\s*[-–—]\s*\d{1,2}\/\d{1,2}/gi, `Tuần ${weekNum}`)
+    } else if (/tuần\s+\d{1,2}\/\d{1,2}/i.test(title)) {
+      title = title.replace(/tuần\s+\d{1,2}\/\d{1,2}/gi, `Tuần ${weekNum}`)
+    } else if (!/tuần\s+\d+/i.test(title)) {
+      const scope = menu.targetScope || (menu.isSchoolWide ? "Toàn trường" : "")
+      title = `Thực đơn Tuần ${weekNum}${scope ? ` (${scope})` : ""}`
+    }
+  }
+
+  // Đảm bảo không còn ngày tháng sót lại trong cụm từ tuần
+  title = title.replace(/\s*\(\d{1,2}\/\d{1,2}\s*[-–—]\s*\d{1,2}\/\d{1,2}\)/g, "")
+  return title
+}
+
+function getDayOfWeekLabel(dateISO) {
+  if (!dateISO) return ""
+  const d = new Date(dateISO)
+  if (isNaN(d.getTime())) return ""
+  const labels = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"]
+  return labels[d.getDay()] || ""
+}
 
 export default function MenuDetailHeader({
   menu,
@@ -10,13 +44,13 @@ export default function MenuDetailHeader({
   onEdit,
 }) {
   const navigate = useNavigate()
-  // Thực đơn chưa được duyệt: bất kỳ trạng thái nào khác "APPROVED" (DRAFT, PENDING_APPROVAL, REVISION_REQUESTED...)
   const isApproved = String(menu?.status || "").toUpperCase() === "APPROVED" ||
                      String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
   const canEdit = !isApproved && ["DRAFT", "PENDING_APPROVAL", "REVISION_REQUIRED", "REVISION_REQUESTED"].includes(menu?.status)
   const canSubmit = menu?.status === "DRAFT" || menu?.status === "REVISION_REQUESTED" || menu?.status === "REVISION_REQUIRED"
 
-  const displayTitle = menu?.rawWeeklyTitle || menu?.name || "Th\u1ef1c \u0111\u01a1n"
+  const displayTitle = useMemo(() => formatWeeklyMenuTitle(menu), [menu])
+  const dayOfWeek = useMemo(() => getDayOfWeekLabel(menu?.rawDate), [menu?.rawDate])
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -35,26 +69,15 @@ export default function MenuDetailHeader({
 
   return (
     <div className={styles.headerContainer}>
-      {/* Main Title Row */}
+      {/* Hàng trên: Tiêu đề Thực đơn Tuần XX + Trạng thái phê duyệt + Nhóm nút hành động */}
       <div className={styles.titleRow}>
-        <div className={styles.titleInfo}>
-          <div className={styles.codeWithStatus}>
-            <span className={styles.codePill}>{menu.code}</span>
-            {getStatusBadge(menu.status)}
-            <span className={styles.dateLabel}>
-              <span className="material-symbols-outlined text-[15px]">calendar_today</span>
-              {menu.date}
-            </span>
-            <span className={styles.mealBadge}>
-              {menu.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
-            </span>
-          </div>
+        <div className={styles.titleLeftGroup}>
           <h1 className={styles.pageTitle}>{displayTitle}</h1>
+          {getStatusBadge(menu?.status)}
         </div>
 
-        {/* Action Buttons */}
+        {/* Nút hành động bên phải */}
         <div className={styles.actionButtons}>
-          {/* Nút Quay lại */}
           <button
             type="button"
             className={styles.btnSecondary}
@@ -64,7 +87,6 @@ export default function MenuDetailHeader({
             <span>Danh sách</span>
           </button>
 
-          {/* Nút Chỉnh sửa: Hiển thị khi thực đơn CHƯA ĐƯỢC DUYỆT */}
           {canEdit && onEdit && (
             <button
               type="button"
@@ -76,7 +98,6 @@ export default function MenuDetailHeader({
             </button>
           )}
 
-          {/* Nút Gửi duyệt BGH (chỉ hiện khi nháp hoặc cần chỉnh sửa) */}
           {canSubmit && (
             <button
               type="button"
@@ -88,6 +109,18 @@ export default function MenuDetailHeader({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Hàng dưới: Thanh metadata ngày phục vụ, ca ăn gọn gàng (đã bỏ mã theo yêu cầu) */}
+      <div className={styles.metaInfoRow}>
+        <span className={styles.dateInfo}>
+          <span className="material-symbols-outlined text-[16px] text-slate-400">calendar_today</span>
+          <span>{dayOfWeek ? `${dayOfWeek}, ${menu?.date}` : menu?.date}</span>
+        </span>
+        <span className={styles.divider}>•</span>
+        <span className={styles.mealBadge}>
+          {menu?.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
+        </span>
       </div>
     </div>
   )

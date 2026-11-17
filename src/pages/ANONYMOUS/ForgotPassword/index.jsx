@@ -14,7 +14,7 @@ export default function ForgotPasswordPage() {
       : "email"
 
   return (
-    <AuthSplitLayout cardMaxWidth={440}>
+    <AuthSplitLayout cardMaxWidth={480}>
       <PasswordRecovery key={location.pathname} step={step} />
     </AuthSplitLayout>
   )

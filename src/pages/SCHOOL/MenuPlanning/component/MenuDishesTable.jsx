@@ -1,3 +1,4 @@
+import { smallQuantity } from "src/utils/quantity"
 import React from "react"
 import styles from "./MenuDishesTable.module.scss"
 
@@ -213,13 +214,13 @@ export default function MenuDishesTable({
                         <input
                           type="number"
                           className={styles.qtyInput}
-                          value={line.quantityPerPortion ?? ""}
+                          value={smallQuantity(line.quantityPerPortion, line.unit).quantity ?? ""}
                           aria-label={`Định lượng ${dish.ingredientDetails?.find(item => item.id === line.ingredientId)?.name || "nguyên liệu"} mỗi suất`}
-                          onChange={(e) => onUpdateDish(dish.id, { ingredientStandards: dish.ingredientStandards.map((item, index) => index === lineIndex ? { ...item, quantityPerPortion: e.target.value } : item) })}
+                          onChange={(e) => onUpdateDish(dish.id, { ingredientStandards: dish.ingredientStandards.map((item, index) => index === lineIndex ? { ...item, quantityPerPortion: e.target.value, unit: smallQuantity(null, item.unit).unit } : item) })}
                           min="0.001"
                           step="0.001"
                         />
-                        <span className={styles.unitBadge}>{line.unit} / suất</span>
+                        <span className={styles.unitBadge}>{smallQuantity(null, line.unit).unit} / suất</span>
                       </div>
                       ))}
                     </td>

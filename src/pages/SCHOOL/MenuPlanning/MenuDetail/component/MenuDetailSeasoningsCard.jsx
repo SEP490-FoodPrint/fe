@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import styles from "./MenuDetailSeasoningsCard.module.scss"
 
@@ -32,7 +33,7 @@ export default function MenuDetailSeasoningsCard({ seasonings = [] }) {
               <span className={styles.seasoningName}>{name}</span>
               {qty != null && (
                 <span className={styles.portionQtyBadge}>
-                  {qty} {unit} / suất
+                  {formatSmallQuantity(qty, unit)} / suất
                 </span>
               )}
             </div>

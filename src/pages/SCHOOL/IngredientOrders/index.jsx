@@ -116,10 +116,15 @@ export default function IngredientOrders() {
     return filteredDeliveries.slice(start, start + PAGE_SIZE)
   }, [filteredDeliveries, page])
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(Math.max(1, totalPages))
+    }
+  }, [page, totalPages])
+
   // Handlers cho bộ lọc
   const handleDeliveryFilterChange = (field, value) => {
     setDeliveryFilters(prev => ({ ...prev, [field]: value }))
-    setPage(1)
   }
 
   const handleResetDeliveryFilters = () => {

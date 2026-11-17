@@ -5,7 +5,7 @@ import ROUTER from "src/router/ROUTER"
 import showcaseImg from "src/assets/images/login-showcase.png"
 import styles from "./AuthSplitLayout.module.scss"
 
-export default function AuthSplitLayout({ children, cardMaxWidth = 420 }) {
+export default function AuthSplitLayout({ children, cardMaxWidth = 480 }) {
   return (
     <div className={styles.splitPage}>
       {/* Ambient background decoration */}

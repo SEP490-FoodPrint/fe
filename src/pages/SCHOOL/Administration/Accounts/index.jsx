@@ -164,25 +164,30 @@ function Accounts() {
     }, [accounts, searchTerm, departmentFilter, statusFilter])
 
     // Cắt danh sách theo phân trang (cố định 10 acc/trang)
+    const totalPages = Math.max(1, Math.ceil(filteredAccounts.length / PAGE_SIZE))
+
+    useEffect(() => {
+        if (currentPage > totalPages) {
+            setCurrentPage(Math.max(1, totalPages))
+        }
+    }, [currentPage, totalPages])
+
     const paginatedAccounts = useMemo(() => {
         const startIndex = (currentPage - 1) * PAGE_SIZE
         return filteredAccounts.slice(startIndex, startIndex + PAGE_SIZE)
     }, [filteredAccounts, currentPage])
 
-    // Reset về trang 1 khi thay đổi bộ lọc
+    // Giữ nguyên trang khi thay đổi bộ lọc (tự động co về totalPages nếu vượt quá)
     const handleSearchChange = (val) => {
         setSearchTerm(val)
-        setCurrentPage(1)
     }
 
     const handleDepartmentChange = (deptId) => {
         setDepartmentFilter(deptId)
-        setCurrentPage(1)
     }
 
     const handleStatusChange = (status) => {
         setStatusFilter(status)
-        setCurrentPage(1)
     }
 
     const handleResetFilters = () => {

@@ -1,3 +1,4 @@
+import { smallQuantity } from "src/utils/quantity"
 import React, { useId, useState } from "react"
 import {
   NativeSelect,
@@ -109,9 +110,9 @@ export default function MenuGradeRecipePreview({
                       <TableRow key={line.ingredientId}>
                         <TableCell>{nameFor(line)}</TableCell>
                         <TableCell align="right">
-                          {line.quantityPerPortion ?? "—"}
+                          {smallQuantity(line.quantityPerPortion, line.unit).quantity ?? "—"}
                         </TableCell>
-                        <TableCell>{line.unit}</TableCell>
+                        <TableCell>{smallQuantity(null, line.unit).unit}</TableCell>
                       </TableRow>
                     ))}
                   </React.Fragment>
@@ -133,9 +134,9 @@ export default function MenuGradeRecipePreview({
                         "Gia vị"}
                     </TableCell>
                     <TableCell align="right">
-                      {line.quantityPerPortion ?? line.portionQty ?? "—"}
+                      {smallQuantity(line.quantityPerPortion ?? line.portionQty, line.unit).quantity ?? "—"}
                     </TableCell>
-                    <TableCell>{line.unit}</TableCell>
+                    <TableCell>{smallQuantity(null, line.unit).unit}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

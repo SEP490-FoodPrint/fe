@@ -1,3 +1,4 @@
+import { smallQuantity } from "src/utils/quantity"
 import http from "../01_axios"
 import { apiMenus, apiMenuDetail } from "./urls"
 import { adaptBackendMenuDetailToView } from "./adapter"
@@ -136,7 +137,8 @@ export function gradeComparisonRows(scopes) {
       sections.set(sectionId, { id: sectionId, name, rows: new Map() })
     const section = sections.get(sectionId)
     lines.forEach((line, index) => {
-      const unit = line.unit || ""
+      const normalized = smallQuantity(line.quantityPerPortion ?? line.portionQty, line.unit)
+      const unit = normalized.unit
       const identity =
         line.ingredientId ||
         line.id ||
@@ -151,7 +153,7 @@ export function gradeComparisonRows(scopes) {
           values: {},
         })
       section.rows.get(key).values[scopeKey] =
-        line.quantityPerPortion ?? line.portionQty ?? null
+        normalized.quantity ?? null
     })
   }
   for (const scope of scopes) {

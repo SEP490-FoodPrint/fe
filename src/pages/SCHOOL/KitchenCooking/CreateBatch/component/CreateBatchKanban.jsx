@@ -367,6 +367,14 @@ export default function CreateBatchKanban({
                     </h3>
 
                     <div className={styles.batchMetaBox}>
+                      {batch.batchNumber ? (
+                        <>
+                          <span className={styles.batchNumberBadge}>
+                            Lô {batch.batchNumber}
+                          </span>
+                          <span className={styles.batchMetaDot}>•</span>
+                        </>
+                      ) : null}
                       <span className={styles.batchCodeText}>
                         {batch.batchCode || "LÔ CHẾ BIẾN"}
                       </span>
@@ -473,6 +481,14 @@ export default function CreateBatchKanban({
                     </h3>
 
                     <div className={styles.batchMetaBox}>
+                      {batch.batchNumber ? (
+                        <>
+                          <span className={styles.batchNumberBadge}>
+                            Lô {batch.batchNumber}
+                          </span>
+                          <span className={styles.batchMetaDot}>•</span>
+                        </>
+                      ) : null}
                       <span className={styles.batchCodeText}>
                         {batch.batchCode || "LÔ CHẾ BIẾN"}
                       </span>
@@ -588,6 +604,14 @@ export default function CreateBatchKanban({
                     </h3>
 
                     <div className={styles.batchMetaBox}>
+                      {batch.batchNumber ? (
+                        <>
+                          <span className={styles.batchNumberBadge}>
+                            Lô {batch.batchNumber}
+                          </span>
+                          <span className={styles.batchMetaDot}>•</span>
+                        </>
+                      ) : null}
                       <span className={styles.batchCodeText}>
                         {batch.batchCode || "LÔ CHẾ BIẾN"}
                       </span>

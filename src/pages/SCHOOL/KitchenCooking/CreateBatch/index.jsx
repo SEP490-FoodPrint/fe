@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import CookingProgressPreview from "../CreateBatch/CookingProgressPreview";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -147,6 +148,7 @@ function CreateBatchPage() {
 
         return {
           id: b.id,
+          batchNumber: b.batchNumber ?? null,
           batchCode: b.batchCode || "",
           dishId: primaryDishId,
           batchDishIds,
@@ -169,7 +171,7 @@ function CreateBatchPage() {
                   lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name ||
                   lot.name || `Lô #${idx + 1}`,
                 code: lot.lotCode || lot.IngredientLot?.lotCode || "",
-                amount: lot.quantityUsed ? `${lot.quantityUsed} ${lot.unit || "kg"}` : "",
+                amount: lot.quantityUsed ? formatSmallQuantity(lot.quantityUsed, lot.unit) : "",
                 quantity: lot.quantityUsed,
                 unit: lot.unit || "kg",
                 dishId: lot.dishId,
@@ -384,7 +386,9 @@ function CreateBatchPage() {
           <p role="status" key={mealType}>{mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}: chưa chốt suất ăn cho {requirement.unfinalizedClasses.map((row) => row.name).join(", ")}.</p>
         ))}
         {loadError || gradeError ? (
-          <p role="alert">{loadError || gradeError}</p>
+          <p role="alert" style={{ color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "12px 16px", borderRadius: "8px", margin: "16px 0", fontSize: "14px", fontWeight: 500 }}>
+            {loadError || gradeError}
+          </p>
         ) : loading ? (
           <div
             style={{

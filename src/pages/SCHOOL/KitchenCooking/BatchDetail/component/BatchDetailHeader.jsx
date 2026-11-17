@@ -75,6 +75,11 @@ export default function BatchDetailHeader({
         <div className={styles.leftGroup}>
           <div className={styles.headingGroup}>
             <h1 className={styles.pageTitle}>Chi tiết lô chế biến</h1>
+            {batchData?.batchNumber ? (
+              <span className={styles.batchNumberBadge}>
+                Lô {batchData.batchNumber}
+              </span>
+            ) : null}
             <span className={styles.batchCode}>#{batchData?.code || "—"}</span>
           </div>
           {getStatusBadge()}

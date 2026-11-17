@@ -38,6 +38,13 @@ export default function MealComplaints() {
     return () => controller.abort();
   }, [page, status, type, loadVersion]);
 
+  useEffect(() => {
+    const totalPages = result?.pagination?.totalPages;
+    if (totalPages && page > totalPages) {
+      setPage(Math.max(1, totalPages));
+    }
+  }, [result, page]);
+
   function created() {
     setShowForm(false);
     setPage(1);
@@ -61,12 +68,12 @@ export default function MealComplaints() {
           <h2>Khiếu nại của tôi</h2>
           <div className={styles.filters}>
             <TextField select size="small" label="Trạng thái" value={status}
-              onChange={(event) => { setStatus(event.target.value); setPage(1); }}>
+              onChange={(event) => { setStatus(event.target.value); }}>
               <MenuItem value="">Tất cả</MenuItem>
               {Object.entries(complaintStatuses).map(([key, item]) => <MenuItem key={key} value={key}>{item.label}</MenuItem>)}
             </TextField>
             <TextField select size="small" label="Loại khiếu nại" value={type}
-              onChange={(event) => { setType(event.target.value); setPage(1); }}>
+              onChange={(event) => { setType(event.target.value); }}>
               <MenuItem value="">Tất cả</MenuItem>
               {Object.entries(complaintTypes).map(([key, label]) => <MenuItem key={key} value={key}>{label}</MenuItem>)}
             </TextField>

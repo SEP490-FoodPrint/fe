@@ -1,3 +1,4 @@
+import { formatSmallQuantity, smallQuantity } from "src/utils/quantity"
 import React, { useEffect, useState } from "react"
 import { Alert, Button } from "@mui/material"
 import { Sparkles, Info } from "lucide-react"
@@ -55,7 +56,7 @@ export default function MenuSeasoningCard({
         ingredientEntryId: selectedCatalogItem.id,
         catalogId: selectedCatalogItem.id,
         name: selectedCatalogItem.name,
-        unit: selectedCatalogItem.defaultUnit || "g",
+        unit: smallQuantity("", selectedCatalogItem.defaultUnit || "g").unit,
       })
     }
   }
@@ -64,14 +65,7 @@ export default function MenuSeasoningCard({
   const calculateTotalBatch = (portionQty, unit) => {
     const qty = Number(portionQty) || 0
     const totalRaw = qty * totalStudents
-    if (unit === "ml") {
-      const liters = totalRaw / 1000
-      return `${liters % 1 === 0 ? liters : liters.toFixed(2)} Lít`
-    } else if (unit === "g") {
-      const kgs = totalRaw / 1000
-      return `${kgs % 1 === 0 ? kgs : kgs.toFixed(2)} Kg`
-    }
-    return `${totalRaw} ${unit}`
+    return formatSmallQuantity(totalRaw, unit)
   }
 
   return (
@@ -149,7 +143,7 @@ export default function MenuSeasoningCard({
               </tr>
             ) : (
               seasonings.map((seas, index) => {
-                const portion = Number(seas.portionQty ?? seas.quantityPerPortion) || 0
+                const portion = smallQuantity(seas.portionQty ?? seas.quantityPerPortion ?? "", seas.unit || "g")
                 return (
                   <tr key={seas.id} className={styles.seasoningRow}>
                     {/* STT */}
@@ -210,11 +204,12 @@ export default function MenuSeasoningCard({
                           min="0.1"
                           step="0.1"
                           className={styles.qtyInput}
-                          value={seas.portionQty ?? seas.quantityPerPortion ?? ""}
+                          value={portion.quantity}
                           aria-label={`Định lượng gia vị thứ ${index + 1} mỗi suất`}
                           onChange={(e) => {
                             const val = parseFloat(e.target.value)
                             onUpdateSeasoning(seas.id, {
+                              unit: portion.unit,
                               portionQty: isNaN(val) ? "" : val,
                               quantityPerPortion: isNaN(val) ? "" : val,
                             })
@@ -222,7 +217,7 @@ export default function MenuSeasoningCard({
                         />
                         <select
                           className={styles.unitSelect}
-                          value={seas.unit || "g"}
+                          value={portion.unit}
                           onChange={(e) =>
                             onUpdateSeasoning(seas.id, { unit: e.target.value })
                           }
@@ -239,7 +234,7 @@ export default function MenuSeasoningCard({
                     <td className={styles.tdBatchQty}>
                       <div className={styles.batchQtyBadge}>
                         <span className={styles.batchValue}>
-                          {calculateTotalBatch(portion, seas.unit || "g")}
+                          {calculateTotalBatch(portion.quantity, portion.unit)}
                         </span>
                         <span className={styles.batchSub}>
                           xuất kho ({totalStudents.toLocaleString()} HS)

@@ -194,6 +194,7 @@ export function adaptCookingBatch(batch) {
   return {
     id: batch.id,
     code: batch.batchCode || "—",
+    batchNumber: batch.batchNumber ?? null,
     batchGroupId,
     batchGroupCode,
     dishes,
@@ -356,6 +357,7 @@ export function adaptBatchDetail(batch) {
   return {
     id: batch.id,
     code: batch.batchCode || batch.id,
+    batchNumber: batch.batchNumber ?? null,
     batchGroupId: batch.batchGroupId || batch.BatchGroup?.id || null,
     batchGroupCode: batch.BatchGroup?.batchCode || "",
     status,

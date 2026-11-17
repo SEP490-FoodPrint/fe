@@ -130,6 +130,10 @@
   color: #0284c7;
 }
 
+.status_warning {
+  color: #b45309;
+}
+
 .actionIconBtn {
   color: var(--text-secondary, #4b5563) !important;
   padding: 6px !important;
@@ -224,6 +228,11 @@
   &.status_success {
     background-color: #dcfce7;
     color: #15803d;
+  }
+
+  &.status_warning {
+    background-color: #fef3c7;
+    color: #b45309;
   }
 }
 

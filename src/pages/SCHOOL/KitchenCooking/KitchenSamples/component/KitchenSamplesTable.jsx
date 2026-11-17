@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import PropTypes from "prop-types"
 import { Eye, X, Edit3, ArrowUpRight } from "lucide-react"
@@ -22,7 +23,7 @@ export default function KitchenSamplesTable({
               <th className={styles.th}>Thời điểm lấy mẫu</th>
               <th className={styles.th}>Thời gian lưu 24h</th>
               <th className={styles.th} style={{ textAlign: "center" }}>
-                Khối lượng (gam)
+                Lượng mẫu
               </th>
               <th className={styles.th}>Vị trí lưu</th>
               <th className={styles.th}>Trạng thái</th>
@@ -114,11 +115,11 @@ export default function KitchenSamplesTable({
                     </div>
                   </td>
 
-                  {/* 5. Khối lượng (gam) */}
+                  {/* 5. Lượng mẫu */}
                   <td className={styles.td} style={{ textAlign: "center" }}>
                     <div className={styles.qtyCol} style={{ justifyContent: "center" }}>
                       <span className={styles.qtyText}>
-                        <strong>{row.quantity}</strong>
+                        <strong>{formatSmallQuantity(row.quantity, row.unit || "g")}</strong>
                       </span>
                     </div>
                   </td>
