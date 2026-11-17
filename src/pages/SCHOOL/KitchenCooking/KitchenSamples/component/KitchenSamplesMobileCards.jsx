@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import PropTypes from "prop-types"
 import { Eye, X, Edit3, ArrowUpRight, Clock, Check, AlertCircle } from "lucide-react"
@@ -79,7 +80,7 @@ export default function KitchenSamplesMobileCards({
               <div className={styles.infoItem}>
                 <span className={styles.infoLabel}>Khối lượng:</span>
                 <span className={styles.infoValueBold}>
-                  {row.quantity} {row.unit}
+                  {formatSmallQuantity(row.quantity, row.unit || "g")}
                 </span>
               </div>
               <div className={styles.infoItem}>

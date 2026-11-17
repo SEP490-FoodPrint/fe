@@ -194,6 +194,7 @@ export function adaptCookingBatch(batch) {
   return {
     id: batch.id,
     code: batch.batchCode || "—",
+    batchNumber: batch.batchNumber ?? null,
     batchGroupId,
     batchGroupCode,
     dishes,
@@ -338,6 +339,12 @@ export function adaptBatchDetail(batch) {
       lot.lotCode ||
       "—";
 
+    const supplierName =
+      lot.supplierName ||
+      lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.Supplier?.name ||
+      lot.IngredientLot?.DeliveryItem?.Ingredient?.Supplier?.name ||
+      "";
+
     const qty = lot.quantityUsed != null ? String(lot.quantityUsed) : (lot.quantity != null ? String(lot.quantity) : "—");
     const unit = lot.unit || "kg";
 
@@ -347,6 +354,7 @@ export function adaptBatchDetail(batch) {
       dishName: lot.dishName,
       name: ingredientName,
       lotCode,
+      supplierName,
       quantity: qty,
       unit,
       expiryDate,
@@ -356,6 +364,7 @@ export function adaptBatchDetail(batch) {
   return {
     id: batch.id,
     code: batch.batchCode || batch.id,
+    batchNumber: batch.batchNumber ?? null,
     batchGroupId: batch.batchGroupId || batch.BatchGroup?.id || null,
     batchGroupCode: batch.BatchGroup?.batchCode || "",
     status,

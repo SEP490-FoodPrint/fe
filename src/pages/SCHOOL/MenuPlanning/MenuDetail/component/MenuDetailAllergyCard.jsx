@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import styles from "./MenuDetailAllergyCard.module.scss"
 
@@ -57,7 +58,7 @@ export default function MenuDetailAllergyCard({ menu }) {
                     <span>{ing.name}</span>
                     {hasQty && (
                       <strong className={styles.ingQtyBadge}>
-                        {ing.quantityPerPortion} {ing.unit || "g"}
+                        {formatSmallQuantity(ing.quantityPerPortion, ing.unit || "g")}
                       </strong>
                     )}
                   </div>

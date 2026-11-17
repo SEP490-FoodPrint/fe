@@ -1,3 +1,6 @@
+import { formatLargeQuantity } from "src/utils/quantity"
+import InlineError from "src/components/InlineError"
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState } from "react"
 import PhotoPicker from "src/components/PhotoPicker"
 import PropTypes from "prop-types"
@@ -20,7 +23,7 @@ export default function DeliveryApprovalModal({
 }) {
   // Lấy danh sách tóm tắt mặt hàng
   const itemsSummary = delivery.deliveryItems
-    ?.map((item) => `${item.ingredientName} (${item.actualQuantity} ${item.unit})`)
+    ?.map((item) => `${item.ingredientName} (${formatLargeQuantity(item.actualQuantity, item.unit)})`)
     .join(", ")
 
   // State quyết định & lý do
@@ -264,7 +267,7 @@ export default function DeliveryApprovalModal({
               <div className={styles.confirmWarningNote}>
                 Lưu ý: Quyết định kiểm thực sau khi xác nhận sẽ được lưu chính thức và không thể sửa đổi.
               </div>
-              {errorMsg && <p role="alert">{errorMsg}</p>}
+              <InlineError messages={errorMsg} />
 
               <div className={styles.confirmActions}>
                 <button

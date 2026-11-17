@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
@@ -30,8 +31,8 @@ export default function HealthAllergyByClass({classList = [], loading = false, e
 
         {/* List of Classes */}
         <div className={styles.allergyList}>
-          {loading && <p role="status">Đang tải hồ sơ dị ứng…</p>}
-          {error && <p role="alert">{error}</p>}
+          {loading && <p role="status" style={{ color: "#64748b", fontSize: "13px", padding: "12px 0" }}>Đang tải hồ sơ dị ứng…</p>}
+          <InlineError messages={error} />
           {!loading && !error && classList.length===0 && <p>Chưa có ghi nhận dị ứng trong dữ liệu của trường.</p>}
           {classList.slice(0,4).map((item) => (
             <div

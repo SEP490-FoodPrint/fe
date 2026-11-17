@@ -222,7 +222,7 @@ export default function SelectClassTraceModal({
 
     onClose();
     const basePath = schoolCode
-      ? `/school/${schoolCode}/meal-traceability`
+      ? ROUTER.SCHOOL_PUBLIC_MEAL_TRACEABILITY.replace(":schoolCode", schoolCode)
       : ROUTER.SCHOOL_MEAL_TRACEABILITY;
     navigate(
       `${basePath}?classId=${classIdToUse}&className=${encodeURIComponent(

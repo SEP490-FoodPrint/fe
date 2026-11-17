@@ -7,6 +7,7 @@ import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
 import { apiMenuDetail } from "src/services/MenuService/urls"
 import { parseDateVNToISO, menuWeekMeals, adaptBackendMenuDetailToView } from "src/services/MenuService/adapter"
+import { academicWeekSearch } from "src/services/MenuService/academicWeekView"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
 import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
@@ -180,7 +181,7 @@ export default function MenuDetail() {
           <button
             type="button"
             className="px-4 py-2 bg-emerald-700 text-white rounded-lg text-sm font-medium hover:bg-emerald-800 transition"
-            onClick={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+            onClick={() => navigate(`${ROUTER.SCHOOL_MENU_PLANNING}${academicWeekSearch("", rawWeeklyMenu?.academicYear, rawWeeklyMenu?.weekStartDate).toString() ? `?${academicWeekSearch("", rawWeeklyMenu?.academicYear, rawWeeklyMenu?.weekStartDate).toString()}` : ""}`)}
           >
             Về danh sách thực đơn
           </button>
@@ -232,18 +233,17 @@ export default function MenuDetail() {
 
         {!comparingGrades && (
           <>
-            {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
+            {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu chính / gia vị theo suất */}
             <MenuDetailDishesTable
               dishes={menu.dishes}
+              substituteDish={menu.substituteDish}
+              mealSeasonings={menu.seasonings}
               gradeIds={selectedScope?.candidate?.id === rawWeeklyMenu?.id
                 ? selectedScope.gradeIds : menu.gradeIds}
             />
 
             {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
             <MenuDetailAllergyCard menu={menu} />
-
-            {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
-            <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
           </>
         )}
       </div>

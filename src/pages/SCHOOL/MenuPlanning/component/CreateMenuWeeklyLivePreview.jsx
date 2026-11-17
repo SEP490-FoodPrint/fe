@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import { Eye, Utensils, Coffee, AlertTriangle, CalendarCheck } from "lucide-react"
 import styles from "./CreateMenuWeeklyLivePreview.module.scss"
@@ -117,7 +118,7 @@ export default function CreateMenuWeeklyLivePreview({
                             )}
                           </div>
                           <span className={styles.dishQtyText}>
-                            {dish.portionQty}{dish.unit || "g"}
+                            {formatSmallQuantity(dish.portionQty, dish.unit || "g")}
                           </span>
                         </div>
                       )
@@ -177,7 +178,7 @@ export default function CreateMenuWeeklyLivePreview({
                             )}
                           </div>
                           <span className={styles.dishQtyText}>
-                            {dish.portionQty}{dish.unit || "g"}
+                            {formatSmallQuantity(dish.portionQty, dish.unit || "g")}
                           </span>
                         </div>
                       )

@@ -15,6 +15,8 @@ const ROUTER = {
   SCHOOL_LIST: "/schools",
   SCHOOL_LANDING: "/school/:schoolCode",
   SCHOOL_MEAL_DETAIL: "/school/:schoolCode/daily-menu",
+  SCHOOL_PUBLIC_TRACEABILITY: "/school/:schoolCode/traceability",
+  SCHOOL_PUBLIC_MEAL_TRACEABILITY: "/school/:schoolCode/meal-traceability",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",
@@ -26,6 +28,7 @@ const ROUTER = {
   SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
   SYSTEM_CONFIG: "/system/config",
+  SYSTEM_CONFIG_DETAIL: "/system/config/:id",
 
   // Phân hệ SUPPLIER (Dành cho INGREDIENT_SUPPLIER)
   SUPPLIER: "/supplier",

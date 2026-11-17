@@ -37,14 +37,16 @@ const normalizeUser = (user) => {
   const isDemoSchool =
     user.schoolId === "4eabb820-f445-52db-8aeb-2fd0f6cb882a" ||
     user.username === "fp_demo_kitchen" ||
+    user.username === "fp_kitchen" ||
     user.email === "fp_demo_kitchen@example.invalid" ||
+    user.email === "kitchen@foodprint.edu.vn" ||
     user.email?.includes("demo_kitchen");
 
   const cookingMode = isDemoSchool
     ? "SEPARATE_BY_LOT"
     : user.cookingMode || "COMBINE_LOTS";
   const schoolName = isDemoSchool
-    ? "Trường Tiểu học FoodPrint (DEMO)"
+    ? "Trường Tiểu học FoodPrint"
     : user.schoolName || user.orgName || "Trường Tiểu học Cầu Giấy";
 
   return {

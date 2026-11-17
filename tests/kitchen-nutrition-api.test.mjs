@@ -558,10 +558,11 @@ test("comparison aligns ingredient identities and units, preserving missing valu
   const sections = gradeComparisonRows(scopes)
   assert.equal(sections.length, 3)
   const lines = sections.find(section => section.id === `dish:${id(3)}`).rows
-  assert.equal(lines.length, 4)
+  assert.equal(lines.length, 3)
   assert.deepEqual(lines[0].values, { A: 0, B: 100 })
-  assert.deepEqual(lines[1].values, { A: 10 })
-  assert.deepEqual(lines[2].values, { B: 0.02 })
+  assert.deepEqual(lines[1].values, { A: 10, B: "20" })
+  assert.equal(lines[1].unit, "g")
+  assert.deepEqual(lines[2].values, { B: 30 })
   assert.equal(sections.find(section => section.id === "seasonings").rows[0].values.A, "0.125")
 })
 
@@ -1286,3 +1287,107 @@ test("weekly list shows saved seasonings once per day and respects the selected 
   assert.doesNotMatch(afternoon, />Nước mắm<\/span>/)
   assert.doesNotMatch(afternoon, /BỮA TRƯA/)
 })
+
+test("nutrition health overview service computes real KPI metrics and pending tasks without missing deliveriesPendingCount", async () => {
+  const { getNutritionOverviewData } = await server.ssrLoadModule("/src/services/HealthOverviewService/index.js")
+  respond = async config => {
+    if (config.url === "/v1/menus" || config.url === "/menus") {
+      return {
+        items: [
+          { id: id(80), title: "Tuần 45", status: "REVISION_REQUIRED", reviewNote: "Giảm muối", weekStartDate: "2026-11-09" },
+          { id: id(81), title: "Tuần 46", status: "DRAFT", weekStartDate: "2026-11-16" },
+          { id: id(82), title: "Tuần 44", status: "APPROVED", weekStartDate: "2026-11-02" },
+        ],
+      }
+    }
+    if (config.url === "/deliveries/inspections") {
+      return {
+        items: [
+          { id: id(90), deliveryNo: "DELIV-01", supplierName: "CP", status: "ARRIVED", canInspect: true, arrivedAt: "2026-11-17T06:00:00Z" },
+        ],
+        stats: { pending: 1, arrived: 1, total: 2 },
+        pagination: { page: 1, limit: 50, totalItems: 2 },
+      }
+    }
+    if (config.url === "/class-allergies/catalog") {
+      return {
+        items: [
+          { classId: id(100), className: "1A", ingredientEntryId: id(101), ingredientName: "Lạc", affectedCount: 2 },
+        ],
+        pagination: { hasNext: false, page: 1, limit: 100 },
+      }
+    }
+    return {}
+  }
+  const result = await getNutritionOverviewData()
+  assert.equal(result.kpis.menusTodoCount, 2)
+  assert.equal(result.kpis.deliveriesPendingCount, 2)
+  assert.equal(result.kpis.allergyClassCount, 1)
+  assert.equal(result.tasks.length, 3)
+  assert.equal(result.tasks[0].statusType, "danger")
+  assert.equal(result.tasks[1].statusType, "warning")
+  assert.equal(result.tasks[2].statusType, "info")
+  assert.equal(result.tasks[2].status, "Bản nháp")
+  assert.equal(result.tasks[2].subtitle, "")
+})
+
+test("recent meal allocations component adapts real backend distribution demands without mock allocations", async () => {
+  const { adaptRecentAllocations } = await server.ssrLoadModule("/src/services/MealAllocationService/adapter.js")
+  
+  // 1. Empty data
+  assert.deepEqual(adaptRecentAllocations(null), [])
+  assert.deepEqual(adaptRecentAllocations({}), [])
+  assert.deepEqual(adaptRecentAllocations({ distribution: { demands: [] } }), [])
+
+  // 2. Real distribution demands
+  const sampleData = {
+    distribution: {
+      status: "READY",
+      demands: [
+        {
+          id: id(200),
+          className: "1A",
+          mealType: "LUNCH",
+          requiredPortions: 35,
+          allocatedPortions: 35,
+          allocationStatus: "ALLOCATED",
+        },
+        {
+          id: id(201),
+          className: "Lớp 1B",
+          mealType: "AFTERNOON",
+          requiredPortions: 32,
+          allocatedPortions: 0,
+          allocationStatus: null,
+        },
+        {
+          id: id(202),
+          className: "2A",
+          mealType: "LUNCH",
+          requiredPortions: 30,
+          allocatedPortions: 30,
+          allocationStatus: "DISTRIBUTED",
+        },
+      ],
+    },
+  }
+
+  const items = adaptRecentAllocations(sampleData)
+  assert.equal(items.length, 3)
+  assert.equal(items[0].target, "Lớp 1A")
+  assert.equal(items[0].timeTag, "Bữa trưa")
+  assert.equal(items[0].portion, "35 suất")
+  assert.equal(items[0].status, "Đã phân bổ")
+  assert.equal(items[0].statusType, "info")
+
+  assert.equal(items[1].target, "Lớp 1B")
+  assert.equal(items[1].timeTag, "Bữa xế")
+  assert.equal(items[1].portion, "32 suất")
+  assert.equal(items[1].status, "Chờ phân bổ")
+  assert.equal(items[1].statusType, "warning")
+
+  assert.equal(items[2].target, "Lớp 2A")
+  assert.equal(items[2].status, "Đã giao")
+  assert.equal(items[2].statusType, "success")
+})
+

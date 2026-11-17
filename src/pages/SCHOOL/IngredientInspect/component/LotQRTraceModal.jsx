@@ -1,3 +1,5 @@
+import { formatLargeQuantity } from "src/utils/quantity"
+import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import PropTypes from "prop-types"
 import {
@@ -142,7 +144,7 @@ export default function LotQRTraceModal({
               <div className={styles.infoRow}>
                 <span className={styles.infoLabel}>Khối lượng kiện/lô:</span>
                 <span className={styles.infoValStrong}>
-                  {lot.receivedQuantity} {lot.unit}
+                  {formatLargeQuantity(lot.receivedQuantity, lot.unit)}
                 </span>
               </div>
             </div>

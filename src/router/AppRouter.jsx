@@ -28,6 +28,7 @@ const DirectoryList = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory"
 const DirectoryDetail = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory").then(module => ({ default: module.DirectoryDetail })))
 const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
 const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
+const SystemConfig = lazy(() => import("src/pages/SYSTEM/SystemConfig"))
 
 // SUPPLIER pages
 const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
@@ -62,6 +63,8 @@ const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCo
 const KitchenBatchDetail = lazy(() => import("src/pages/SCHOOL/KitchenCooking/BatchDetail"))
 const KitchenSamples = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenSamples"))
 const SampleStorage = lazy(() => import("src/pages/SCHOOL/KitchenCooking/SampleStorage"))
+const Traceability = lazy(() => import("src/pages/SCHOOL/Traceability"))
+const SchoolTraceability = lazy(() => import("src/pages/ANONYMOUS/SchoolTraceability"))
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
@@ -151,7 +154,15 @@ const routes = [
         ),
       },
       {
-        path: "/school/:schoolCode/meal-traceability",
+        path: ROUTER.SCHOOL_PUBLIC_TRACEABILITY,
+        element: (
+          <LazyWrapper>
+            <SchoolTraceability />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: ROUTER.SCHOOL_PUBLIC_MEAL_TRACEABILITY,
         element: (
           <LazyWrapper>
             <MealTraceability />
@@ -198,6 +209,8 @@ const routes = [
           { path: ROUTER.SYSTEM_SCHOOL_DETAIL, element: <LazyWrapper><DirectoryDetail kind="school" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_LIST, element: <LazyWrapper><DirectoryList kind="supplier" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_DETAIL, element: <LazyWrapper><DirectoryDetail kind="supplier" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_CONFIG, element: <LazyWrapper><SystemConfig /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_CONFIG_DETAIL, element: <LazyWrapper><SystemConfig /></LazyWrapper> },
         ],
       },
     ],
@@ -327,6 +340,14 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES_DATE, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLE_STORAGE, element: <LazyWrapper><SampleStorage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+            ],
+          },
+
+          // Truy xuất nguồn gốc bữa ăn: những vai trò có quyền traceability.view ở BE
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            children: [
+              { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><Traceability /></LazyWrapper> },
             ],
           },
 

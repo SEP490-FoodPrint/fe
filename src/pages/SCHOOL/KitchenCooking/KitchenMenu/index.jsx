@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect, useMemo } from "react"
+import InlineError from "src/components/InlineError"
+import React, { useState, useEffect, useMemo } from "react"
 import { Button } from "@mui/material"
 import { useNavigate } from "react-router-dom"
 import ROUTER from "src/router/ROUTER"
@@ -38,7 +39,7 @@ export default function KitchenMenu() {
     MenuService.getAcademicCalendar({ forceRefresh: true })
       .then((response) => {
         if (!active) return
-        const rows = response.academicYears
+        const rows = response?.academicYears || response?.data?.academicYears
         if (!Array.isArray(rows))
           throw new Error("Không tải được cấu hình năm học.")
         setYears(rows)
@@ -235,27 +236,17 @@ export default function KitchenMenu() {
         gradeError={gradeError}
         onOpenBatches={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
       />
-      {gradeError && (
-        <div role="alert">
-          <span>{gradeError}</span>
-          <Button size="small" onClick={reload}>
-            Thử lại
-          </Button>
-        </div>
-      )}
+      {!(calendarError || scheduleError) && <InlineError messages={gradeError} onRetry={reload} />}
       {calendarLoading || loading ? (
-        <div role="status" style={{ padding: 80 }}>
-          <FoodPrintLoading />
+        <div role="status" className={styles.loadingWrapper}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : calendarError || scheduleError ? (
-        <div role="alert">
-          <p>{calendarError || scheduleError}</p>
-          <Button onClick={reload}>Thử lại</Button>
-        </div>
+        <InlineError messages={[calendarError, scheduleError]} onRetry={reload} />
       ) : !years.length ? (
-        <p>Chưa có cấu hình năm học của trường.</p>
+        <p className={styles.emptyText}>Chưa có cấu hình năm học của trường.</p>
       ) : !existing.length ? (
-        <p role="status">
+        <p role="status" className={styles.emptyText}>
           {gradeId
             ? "Khối đã chọn chưa có thực đơn trong tuần này."
             : "Chưa có thực đơn trong tuần này."}

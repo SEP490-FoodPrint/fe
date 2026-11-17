@@ -4,7 +4,7 @@ import ActivationForm from "./component/ActivationForm"
 
 export default function AccountActivationPage() {
   return (
-    <AuthSplitLayout cardMaxWidth={440}>
+    <AuthSplitLayout cardMaxWidth={480}>
       <ActivationForm />
     </AuthSplitLayout>
   )

@@ -141,6 +141,11 @@ export default function CookingBatchesTable({
                     <td>
                       <div className={styles.dishWrap}>
                         <div className={styles.dishNameRow}>
+                          {row.batchNumber ? (
+                            <span className={styles.batchNumberBadge}>
+                              Lô {row.batchNumber}
+                            </span>
+                          ) : null}
                           <span className={styles.dishName}>
                             {row.dishName}
                           </span>
@@ -242,6 +247,11 @@ export default function CookingBatchesTable({
                           flexWrap: "wrap",
                         }}
                       >
+                        {row.batchNumber ? (
+                          <span className={styles.batchNumberBadge}>
+                            Lô {row.batchNumber}
+                          </span>
+                        ) : null}
                         <span className={styles.mobileDishName}>
                           {row.dishName}
                         </span>

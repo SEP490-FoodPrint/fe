@@ -240,3 +240,71 @@
     background-color: var(--color-primary-soft, #e8f5f1);
   }
 }
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.emptyIcon {
+  color: #10b981;
+  margin-bottom: 12px;
+}
+
+.emptyTitle {
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px;
+}
+
+.emptyDesc {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  max-width: 360px;
+  line-height: 1.45;
+}
+
+.loadingWrap {
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  font-size: 13.5px;
+}
+
+.errorWrap {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background-color: #fef2f2;
+  border-top: 1px solid #fee2e2;
+  color: #b91c1c;
+  font-size: 13px;
+
+  button {
+    background-color: #ffffff;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+
+    &:hover {
+      background-color: #fee2e2;
+    }
+  }
+}

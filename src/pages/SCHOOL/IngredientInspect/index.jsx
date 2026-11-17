@@ -1,6 +1,8 @@
+import InlineError from "src/components/InlineError"
 import React, { useEffect, useRef, useState } from "react"
 import { CheckCircle2, AlertTriangle, X, ChevronLeft, ChevronRight } from "lucide-react"
-import { getDeliveryInspections, getDeliveryInspection, decideDeliveryInspection } from "src/services/DeliveryInspectionService"
+import { getDeliveryInspections, getDeliveryInspection, decideDeliveryInspection, lookupDeliveryByCode } from "src/services/DeliveryInspectionService"
+import DeliveryQrScanModal from "./component/DeliveryQrScanModal"
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryKPICards from "./component/DeliveryKPICards"
 import DeliveryFilterStrip from "./component/DeliveryFilterStrip"
@@ -9,6 +11,7 @@ import DeliveryMobileCards from "./component/DeliveryMobileCards"
 import DeliveryEmptyState from "./component/DeliveryEmptyState"
 import DeliveryDetailView from "./component/DeliveryDetailView"
 import DeliveryApprovalModal from "./component/DeliveryApprovalModal"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 
 const getTodayDateString = () => {
@@ -46,6 +49,9 @@ export default function IngredientInspect() {
   const [dateFilter, setDateFilter] = useState(getTodayDateString)
   const [page, setPage] = useState(1)
   const [revision, setRevision] = useState(0)
+  const [scanOpen, setScanOpen] = useState(false)
+  const [scanSearching, setScanSearching] = useState(false)
+  const [scanError, setScanError] = useState("")
   const selectionRevision = useRef(0)
   const hasActiveFilters = Boolean(searchTerm.trim() || statusFilter !== "ALL" || (dateFilter && dateFilter !== getTodayDateString()))
 
@@ -74,7 +80,7 @@ export default function IngredientInspect() {
     return () => clearTimeout(timer)
   }, [successToast])
   useEffect(() => () => { selectionRevision.current++ }, [])
-  const changeFilter = setter => value => { setPage(1); setter(value) }
+  const changeFilter = setter => value => { setter(value) }
   const resetFilters = () => { setSearchTerm(""); setStatusFilter("ALL"); setDateFilter(getTodayDateString()); setPage(1) }
 
   const openDelivery = async delivery => {
@@ -86,6 +92,21 @@ export default function IngredientInspect() {
       if (version === selectionRevision.current) setSelectedDelivery(data)
     } catch (failure) { if (version === selectionRevision.current) setError(failure.message) }
     finally { if (version === selectionRevision.current) setDetailLoading(false) }
+  }
+
+  // Quét tem QR khi xe tới: tìm đúng xe giao của trường rồi mở chi tiết để kiểm tra.
+  const handleScanCode = async code => {
+    setScanSearching(true)
+    setScanError("")
+    try {
+      const found = await lookupDeliveryByCode(code)
+      setScanOpen(false)
+      await openDelivery(found)
+    } catch (failure) {
+      setScanError(failure.message || "Không tìm thấy xe giao với mã này.")
+    } finally {
+      setScanSearching(false)
+    }
   }
 
   const submitApproval = async (decision, reason, photo) => {
@@ -108,19 +129,26 @@ export default function IngredientInspect() {
   const totalItems = pagination?.totalItems ?? deliveries.length
   const limit = pagination?.limit || 20
   const totalPages = pagination?.totalPages || Math.max(1, Math.ceil(totalItems / limit))
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(Math.max(1, totalPages))
+    }
+  }, [page, totalPages])
+
   const fromItem = totalItems === 0 ? 0 : (page - 1) * limit + 1
   const toItem = Math.min(page * limit, totalItems)
   const pageNumbers = getPageNumbers(page, totalPages)
 
   return <div className={styles.pageContainer}>
     {successToast && <div className={`${styles.toastSuccess} ${cancelToast ? styles.toastCancellation : ""}`} role={cancelToast ? "alert" : "status"}><div className={styles.toastContent}>{cancelToast ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}<span>{successToast}</span></div><button type="button" onClick={() => setSuccessToast("")} aria-label="Đóng thông báo"><X size={15} /></button></div>}
-    {error && <p role="alert">{error} <button type="button" onClick={() => { setRevision(value => value + 1); if (selectedDelivery) openDelivery(selectedDelivery) }}>Thử lại</button></p>}
-    {detailLoading && <p role="status">Đang tải chi tiết đợt giao…</p>}
+    <InlineError messages={error} onRetry={() => { setRevision(value => value + 1); if (selectedDelivery) openDelivery(selectedDelivery) }} />
+    <DeliveryQrScanModal open={scanOpen} onClose={() => setScanOpen(false)} onSubmitCode={handleScanCode} searching={scanSearching} error={scanError} />
     {selectedDelivery ? <DeliveryDetailView delivery={selectedDelivery} onBack={() => { selectionRevision.current++; setSelectedDelivery(null) }} onOpenApprovalModal={setDeliveryForApproval} /> : <div className={styles.viewContent}>
-      <DeliveryHeader />
+      <DeliveryHeader onScan={() => { setScanError(""); setScanOpen(true) }} />
       {!loading && !error && <DeliveryKPICards stats={stats} />}
       <DeliveryFilterStrip searchTerm={searchTerm} onSearchChange={changeFilter(setSearchTerm)} statusFilter={statusFilter} onStatusChange={changeFilter(setStatusFilter)} dateFilter={dateFilter} onDateChange={changeFilter(setDateFilter)} onResetFilters={resetFilters} hasActiveFilters={hasActiveFilters} />
-      {loading ? <p role="status">Đang tải các đợt giao từ hệ thống…</p> : !error && (deliveries.length ? <>
+      {loading ? <div className={styles.loadingWrap} role="status"><FoodPrintLoading /><p>Đang tải các đợt giao từ hệ thống…</p></div> : !error && (deliveries.length ? <>
         <div className={styles.desktopViewWrap}><DeliveryTableView deliveries={deliveries} onSelectDelivery={openDelivery} /></div>
         <div className={styles.mobileViewWrap}><DeliveryMobileCards deliveries={deliveries} onSelectDelivery={openDelivery} /></div>
         <div className={styles.paginationLeftWrap}>

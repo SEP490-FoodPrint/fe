@@ -5,6 +5,7 @@ import { StoreContext } from "src/contexts"
 import RegistrationService from "src/services/RegistrationService"
 import RequestFields from "src/components/Registration/RequestFields"
 import RequestStatus from "src/components/Registration/RequestStatus"
+import BlockchainProofCard from "src/components/BlockchainProof/BlockchainProofCard"
 import { formatRequestDate, organizationName, requestCode, REQUEST_TYPES } from "src/lib/registration"
 import ROUTER from "src/router/ROUTER"
 import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft"
@@ -56,6 +57,7 @@ export default function RegistrationDetail() {
   const isSupplier = request.request_type === "SUPPLIER"
   const isReviewed = request.status === "APPROVED" || request.status === "REJECTED"
   const organizationLabel = isSupplier ? "nhà cung cấp" : request.request_type === "SCHOOL" ? "trường học" : "đơn vị đăng ký"
+  const permissions = userStore?.user?.permissions || []
   const field = (label, value) => ({ label, value: value == null || typeof value === "string" && !value.trim() ? "Chưa cung cấp" : value })
   const applicantFields = [
     field("Họ và tên", applicant.full_name),
@@ -110,6 +112,14 @@ export default function RegistrationDetail() {
           {request.rejection_reason && <RequestFields columns={1} fields={[field("Lý do từ chối", request.rejection_reason)]} />}
         </> : <p className={styles.description}>Chưa có thông tin xét duyệt.</p>}
       </Card>
+      {!isMock && <BlockchainProofCard
+        kind="registrations"
+        recordId={request.id}
+        title="Niêm phong hồ sơ trên blockchain"
+        canVerify={permissions.includes("registration.view")}
+        canAnchor={permissions.includes("registration.approve")}
+        refreshKey={request.updated_at}
+      />}
       <footer className={styles.footer}>
         <p>Cập nhật lần cuối: {formatRequestDate(request.updated_at, true)}</p>
         {isMock && <p>Dữ liệu và minh chứng minh họa cho giao diện.</p>}

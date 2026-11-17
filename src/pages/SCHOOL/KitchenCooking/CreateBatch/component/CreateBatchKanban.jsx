@@ -11,25 +11,50 @@ import {
   CheckCircle2,
   Sparkles,
   Eye,
-  Plus,
   ShieldCheck,
   FlaskConical,
 } from "lucide-react";
 import styles from "./CreateBatchKanban.module.scss";
+import { batchDisplayName, withDishLotNumbers } from "../batchLabel";
+import useKanbanDrag from "./useKanbanDrag";
+
+const COLUMNS = [
+  { key: "dishes", title: "Danh sách món ăn", empty: "Tất cả món đã được nấu", EmptyIcon: CheckCircle2 },
+  { key: "cooking", title: "Đang nấu", empty: "Chưa có món nào đang nấu", EmptyIcon: CookingPot },
+  { key: "cooked", title: "Đã nấu xong", empty: "Chưa có món cần lưu mẫu", EmptyIcon: CheckCircle2 },
+  { key: "sampled", title: "Đã lưu mẫu", empty: "Chưa có món đã lưu mẫu", EmptyIcon: ShieldCheck },
+];
+
+// Chỉ cho phép kéo sang bước kế tiếp (BE không hỗ trợ chuyển ngược trạng thái lô).
+const NEXT_COLUMN = { dishes: "cooking", cooking: "cooked", cooked: "sampled" };
+const COLUMN_TITLE = Object.fromEntries(COLUMNS.map((column) => [column.key, column.title]));
+
+function MealTag({ mealType }) {
+  const isAfternoon = String(mealType || "").toLowerCase() === "afternoon";
+  return (
+    <span className={`${styles.mealTag} ${isAfternoon ? styles.mealTagAfternoon : styles.mealTagLunch}`}>
+      {isAfternoon ? "Bữa xế" : "Bữa trưa"}
+    </span>
+  );
+}
+
+MealTag.propTypes = { mealType: PropTypes.string };
 
 /**
- * CreateBatchKanban - Bảng Tiến độ chế biến 4 cột chuẩn FoodPrint (Không dùng ảnh):
- * 1. Chờ tạo lô (Thẻ tinh gọn: Tên món + Nút Tạo lô, không tag thừa)
- * 2. Đã tạo lô (Chờ nấu) -> Nút "Chi tiết" đen trắng không viền + Nút "Nấu xong"
- * 3. Đã nấu xong (Chờ lưu mẫu) -> Nút "Chi tiết" đen trắng không viền + Nút "Lưu mẫu"
- * 4. Đã lưu mẫu (Hoàn tất 24h) -> Nút "Xem chi tiết lô" đen trắng không viền
+ * CreateBatchKanban - Tiến độ chế biến 4 cột:
+ * 1. Danh sách món ăn (nút "Nấu": hệ thống tự lập lô theo phương án tồn kho)
+ * 2. Đang nấu -> "Nấu xong"
+ * 3. Đã nấu xong -> "Lưu mẫu"
+ * 4. Đã lưu mẫu
+ * Lô hiển thị theo tên món + số lô trong ngày: "Canh chua (Lô 1)".
  */
 export default function CreateBatchKanban({
   dishes = [],
   pendingDishes: propPendingDishes,
   batches: propBatches,
   mealRequirements = {},
-  selectedMeal = "all",
+  selectedMeal = "lunch",
+  mealTimes = null,
   onSelectMeal,
   gradeMenus = [],
   grades = [],
@@ -40,8 +65,10 @@ export default function CreateBatchKanban({
   emptyState = null,
   onOpenDetail,
   onOpenPlanModal,
+  onStartCooking,
   onOpenSampleModal,
   onCompleteCooking,
+  onNotify,
   submittingId = null,
   actionLoadingId = null,
 }) {
@@ -61,43 +88,6 @@ export default function CreateBatchKanban({
   const yyyy = today.getFullYear();
   const todayDateStr = `${dayOfWeek}, ${dd}/${mm}/${yyyy}`;
 
-  // Hàm hiển thị tiêu đề thẻ lưu mẫu: "Ngày dd/mm/yyyy" (bỏ chữ thức ăn theo yêu cầu)
-  const getSampledFoodTitle = (batch) => {
-    const rawDate =
-      batch.sampledAt ||
-      batch.retainedFoodSample?.sampledAt ||
-      batch.retainedFoodSamples?.[0]?.sampledAt ||
-      batch.completedAt ||
-      batch.createdAt;
-    let dateStr = "";
-    if (rawDate) {
-      try {
-        const d = new Date(rawDate);
-        if (!isNaN(d.getTime())) {
-          dateStr = `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
-        }
-      } catch {
-        // ignore
-      }
-    }
-    if (!dateStr) {
-      dateStr = `${dd}/${mm}/${yyyy}`;
-    }
-
-    const rawName = (batch.name || batch.dishName || "").trim();
-    const cleanName = rawName
-      .replace(/^thức\s*ăn[:,\s-]*/i, "")
-      .replace(/^món\s*ăn[:,\s-]*/i, "")
-      .replace(/ngày\s*\d{1,2}\/\d{1,2}\/\d{4}/gi, "")
-      .replace(/[•,\-:\s]+$/, "")
-      .trim();
-
-    if (!cleanName) {
-      return `Ngày ${dateStr}`;
-    }
-    return `${cleanName} • Ngày ${dateStr}`;
-  };
-
   // Chuẩn hóa danh sách pending dishes và batches
   const effectivePendingDishes = useMemo(() => {
     if (propPendingDishes) return propPendingDishes;
@@ -105,14 +95,14 @@ export default function CreateBatchKanban({
   }, [propPendingDishes, dishes]);
 
   const effectiveBatches = useMemo(() => {
-    if (propBatches) return propBatches;
-    return dishes
+    if (propBatches) return withDishLotNumbers(propBatches);
+    return withDishLotNumbers(dishes
       .filter((d) => d.isBatchCreated)
       .map((d) => ({
         ...d,
         batchCode: d.batchCode || "CB-LÔ",
         status: d.batchStatus || (d.isCompleted ? "COMPLETED" : "UNCONFIRMED"),
-      }));
+      })));
   }, [propBatches, dishes]);
 
   // Lọc theo ca ăn
@@ -144,9 +134,10 @@ export default function CreateBatchKanban({
     () => filteredBatches.filter((batch) => batch.status === "COMPLETED" && batchSampleProgress(batch).complete),
     [filteredBatches]
   );
-  const portionsLabel = selectedMeal === "all"
-    ? ["LUNCH", "AFTERNOON"].filter((type) => mealRequirements[type]).map((type) => `${type === "LUNCH" ? "Trưa" : "Xế"}: ${Number(mealRequirements[type].portions ?? 0).toLocaleString("vi-VN")}`).join(" · ") || "—"
-    : Number(mealRequirements[selectedMeal === "lunch" ? "LUNCH" : "AFTERNOON"]?.portions ?? 0).toLocaleString("vi-VN");
+  const portionMeals = [
+    { type: "LUNCH", key: "lunch", label: "Bữa trưa" },
+    { type: "AFTERNOON", key: "afternoon", label: "Bữa xế" },
+  ].filter((meal) => selectedMeal === "all" || selectedMeal === meal.key);
 
   const allFinished =
     (effectivePendingDishes.length > 0 || effectiveBatches.length > 0) &&
@@ -154,6 +145,47 @@ export default function CreateBatchKanban({
     colCreated.length === 0 &&
     colCooked.length === 0 &&
     colSampled.length > 0;
+
+  const handleDrop = (item, from, to) => {
+    const order = COLUMNS.map((column) => column.key);
+    if (NEXT_COLUMN[from] !== to) {
+      onNotify?.(
+        from === "sampled"
+          ? "Món đã lưu mẫu, không thể chuyển sang cột khác."
+          : order.indexOf(to) < order.indexOf(from)
+            ? "Không thể chuyển ngược về bước trước."
+            : `Chỉ chuyển được sang bước kế tiếp: ${COLUMN_TITLE[NEXT_COLUMN[from]]}.`,
+      );
+      return;
+    }
+    if (from === "dishes") {
+      if (submittingId) return;
+      (onStartCooking || onOpenPlanModal)?.(item);
+    } else if (from === "cooking") {
+      if (item.status !== "CONFIRMED") {
+        onNotify?.("Lô này chưa ở trạng thái đang nấu.");
+        return;
+      }
+      if (actionLoadingId) return;
+      onCompleteCooking?.(item);
+    } else if (from === "cooked") {
+      onOpenSampleModal?.(item);
+    }
+  };
+  const { drag, startPointer, shouldIgnoreClick } = useKanbanDrag({ onDrop: handleDrop });
+  const dropClass = (key) => {
+    if (!drag || key === drag.from) return "";
+    const valid = NEXT_COLUMN[drag.from] === key;
+    if (drag.over === key) return valid ? styles.dropActive : styles.dropInvalid;
+    return valid ? styles.dropTarget : "";
+  };
+
+  const columnItems = {
+    dishes: colPending,
+    cooking: colCreated,
+    cooked: colCooked,
+    sampled: colSampled,
+  };
 
   const formatTime = (iso) => {
     if (!iso) return "";
@@ -180,17 +212,21 @@ export default function CreateBatchKanban({
 
           <div className={styles.metaDivider} aria-hidden="true" />
 
-          {/* Số suất ăn dự kiến */}
-          <div className={styles.metaItem}>
+          {/* Số suất ăn dự kiến theo bữa (đồng bộ từ chốt suất của các lớp) */}
+          <div className={styles.metaItem} title="Số suất đồng bộ từ chốt suất của các lớp">
             <Users size={15} className={styles.metaIcon} />
-            <span className={styles.metaLabelText}>Dự kiến:</span>
-            <span className={styles.portionVal}>
-              {portionsLabel}
-            </span>
-            <span className={styles.unitText}>suất</span>
-            <span className={styles.lockBadge} title="Số liệu đồng bộ từ điểm danh học sinh">
-              Điểm danh
-            </span>
+            <span className={styles.metaLabelText}>Suất dự kiến</span>
+            <div className={styles.portionChips}>
+              {portionMeals.map((meal) => (
+                <span key={meal.type} className={styles.portionChip}>
+                  <span className={styles.portionChipLabel}>{meal.label}</span>
+                  <span className={styles.portionVal}>
+                    {Number(mealRequirements[meal.type]?.portions ?? 0).toLocaleString("vi-VN")}
+                  </span>
+                  <span className={styles.unitText}>suất</span>
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -204,9 +240,8 @@ export default function CreateBatchKanban({
               onChange={(e) => onSelectMeal?.(e.target.value)}
               aria-label="Chọn bữa ăn"
             >
-              <option value="all">Tất cả bữa ăn</option>
-              <option value="lunch">Bữa trưa (11:00)</option>
-              <option value="afternoon">Bữa xế (14:30)</option>
+              <option value="lunch">Bữa trưa{mealTimes?.lunch ? ` (${mealTimes.lunch})` : ""}</option>
+              <option value="afternoon">Bữa xế{mealTimes?.afternoon ? ` (${mealTimes.afternoon})` : ""}</option>
             </select>
             <ChevronDown size={14} className={styles.selectArrow} aria-hidden="true" />
           </div>
@@ -232,403 +267,173 @@ export default function CreateBatchKanban({
 
       {/* 2. Bảng Kanban 4 cột */}
       <div className={styles.kanbanColumns}>
-        {/* ========================================================= */}
-        {/* CỘT 1: CHỜ TẠO LÔ                                         */}
-        {/* ========================================================= */}
-        <div className={styles.columnWrapper}>
-          <div className={styles.columnHeader}>
-            <div className={styles.colTitleLeft}>
-              <span className={styles.colIndicatorPending} />
-              <h2 className={styles.colTitle}>Chờ tạo lô</h2>
-            </div>
-            <span className={styles.colCountBadge}>
-              {colPending.length} món
-            </span>
-          </div>
+        {COLUMNS.map((column) => {
+          const items = columnItems[column.key];
+          const EmptyIcon = column.EmptyIcon;
+          return (
+            <section
+              key={column.key}
+              data-kanban-column={column.key}
+              className={`${styles.columnWrapper} ${dropClass(column.key)}`}
+              aria-label={column.title}
+            >
+              <header className={`${styles.columnHeader} ${styles[`header_${column.key}`]}`}>
+                <div className={styles.colTitleLeft}>
+                  <span className={`${styles.colDot} ${styles[`dot_${column.key}`]}`} aria-hidden="true" />
+                  <h2 className={styles.colTitle}>{column.title}</h2>
+                </div>
+                <span className={styles.colCountBadge}>{items.length}</span>
+              </header>
 
-          <div className={styles.cardsContainer}>
-            {colPending.length === 0 ? (
-              <div className={styles.emptyColCard}>
-                <CheckCircle2 size={24} className={styles.emptyDoneIcon} />
-                <span className={styles.emptyColText}>
-                  Tất cả món đã được tạo lô
-                </span>
+              <div className={styles.cardsContainer}>
+                {items.length === 0 ? (
+                  <div className={styles.emptyColCard}>
+                    <EmptyIcon size={20} aria-hidden="true" />
+                    <span>{column.empty}</span>
+                  </div>
+                ) : column.key === "dishes" ? (
+                  items.map((dish) => (
+                    <article
+                      key={dish.id}
+                      className={`${styles.dishCard} ${styles.draggable} ${drag?.from === "dishes" && drag.item.id === dish.id ? styles.dragSource : ""}`}
+                      onPointerDown={(event) => startPointer(event, dish, "dishes", { title: dish.name, mealType: dish.mealType })}
+                      title="Kéo sang cột Đang nấu để bắt đầu nấu"
+                    >
+                      <div className={styles.cardTop}>
+                        <h3 className={styles.dishCardTitle}>{dish.name}</h3>
+                        <MealTag mealType={dish.mealType} />
+                      </div>
+                      <div className={styles.cardFooter}>
+                        <span className={styles.cardMeta}>
+                          {Number(dish.portionStandard || 0).toLocaleString("vi-VN")} suất
+                        </span>
+                        <button
+                          type="button"
+                          className={styles.primaryBtn}
+                          onClick={() => (onStartCooking || onOpenPlanModal)?.(dish)}
+                          disabled={Boolean(submittingId)}
+                          aria-label={`Nấu ${dish.name}`}
+                        >
+                          <CookingPot size={14} aria-hidden="true" />
+                          <span>{submittingId === dish.id ? "Đang xử lý..." : "Nấu"}</span>
+                        </button>
+                      </div>
+                    </article>
+                  ))
+                ) : (
+                  items.map((batch) => {
+                    const name = batchDisplayName(batch);
+                    const isActing = actionLoadingId === batch.id;
+                    const portions = Number(batch.portionStandard || batch.plannedPortions || 0).toLocaleString("vi-VN");
+                    const lastSample = batch.retainedFoodSamples?.at?.(-1);
+                    const sampleProg = (column.key === "cooked" || column.key === "sampled") ? batchSampleProgress(batch) : null;
+                    const sampleProgressText = sampleProg
+                      ? ` · ${sampleProg.completed}/${sampleProg.total} ${sampleProg.total === 1 ? "lô" : "món"}`
+                      : "";
+                    const time =
+                      column.key === "cooked" && batch.completedAt
+                        ? ` · Xong ${formatTime(batch.completedAt)}`
+                        : column.key === "sampled" && lastSample?.sampledAt
+                          ? ` · Lưu ${formatTime(lastSample.sampledAt)}`
+                          : "";
+                    return (
+                      <article
+                        key={batch.id}
+                        className={`${styles.dishCard} ${styles.clickable} ${column.key !== "sampled" ? styles.draggable : ""} ${drag?.from === column.key && drag.item.id === batch.id ? styles.dragSource : ""}`}
+                        onPointerDown={column.key === "sampled" ? undefined : (event) => startPointer(event, batch, column.key, { title: name, mealType: batch.mealType })}
+                        onClick={() => {
+                          if (!shouldIgnoreClick()) onOpenDetail?.(batch);
+                        }}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            onOpenDetail?.(batch);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`Xem chi tiết ${name}`}
+                      >
+                        <div className={styles.cardTop}>
+                          <h3 className={styles.dishCardTitle}>{name}</h3>
+                          <MealTag mealType={batch.mealType} />
+                        </div>
+                        <div className={styles.cardFooter}>
+                          <span className={styles.cardMeta}>{portions} suất{sampleProgressText}{time}</span>
+                          <div className={styles.cardActions}>
+                            <button
+                              type="button"
+                              className={styles.iconBtn}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onOpenDetail?.(batch);
+                              }}
+                              title="Xem chi tiết"
+                              aria-label={`Xem chi tiết ${name}`}
+                            >
+                              <Eye size={16} aria-hidden="true" />
+                            </button>
+                            {column.key === "cooking" && (
+                              <button
+                                type="button"
+                                className={styles.primaryBtn}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onCompleteCooking?.(batch);
+                                }}
+                                disabled={isActing || batch.status !== "CONFIRMED"}
+                                aria-label={`Nấu xong ${name}`}
+                              >
+                                <CheckCircle2 size={14} aria-hidden="true" />
+                                <span>{isActing ? "Đang xử lý..." : "Nấu xong"}</span>
+                              </button>
+                            )}
+                            {column.key === "cooked" && (
+                              <button
+                                type="button"
+                                className={styles.primaryBtn}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  onOpenSampleModal?.(batch);
+                                }}
+                                aria-label={`Lưu mẫu ${name}`}
+                              >
+                                <FlaskConical size={14} aria-hidden="true" />
+                                <span>Lưu mẫu</span>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
               </div>
-            ) : (
-              colPending.map((dish) => {
-                const isSubmitting = submittingId === dish.id;
-                const mealLabel =
-                  dish.mealType === "afternoon" || dish.mealType === "AFTERNOON"
-                    ? "Bữa xế"
-                    : "Bữa trưa";
-                const isAfternoon =
-                  dish.mealType === "afternoon" || dish.mealType === "AFTERNOON";
-
-                return (
-                  <article
-                    key={dish.id}
-                    className={styles.dishCard}
-                    onClick={() => onOpenPlanModal?.(dish)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Món ${dish.name}, bấm để xem phương án phân lô`}
-                  >
-                    <div className={styles.cardHeaderRow}>
-                      <span
-                        className={`${styles.mealChip} ${
-                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
-                        }`}
-                      >
-                        {mealLabel}
-                      </span>
-                    </div>
-
-                    {/* Nút Tạo nằm cùng hàng với Tên món ăn */}
-                    <div className={styles.dishTitleRow}>
-                      <h3 className={styles.dishCardTitle}>{dish.name}</h3>
-                      <button
-                        type="button"
-                        className={styles.primaryCreateBtnCompact}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenPlanModal?.(dish);
-                        }}
-                        disabled={isSubmitting}
-                        title="Bấm để xem phương án phân lô nguyên liệu"
-                        aria-label={`Tạo lô cho ${dish.name}`}
-                      >
-                        <Plus size={13} />
-                        <span>{isSubmitting ? "Đang xử lý..." : "Tạo"}</span>
-                      </button>
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* CỘT 2: ĐÃ TẠO LÔ (Chờ nấu)                                */}
-        {/* ========================================================= */}
-        <div className={styles.columnWrapper}>
-          <div className={styles.columnHeader}>
-            <div className={styles.colTitleLeft}>
-              <span className={styles.colIndicatorCreated} />
-              <h2 className={styles.colTitle}>Đã tạo lô</h2>
-            </div>
-            <span className={styles.colCountBadge}>
-              {colCreated.length} lô
-            </span>
-          </div>
-
-          <div className={styles.cardsContainer}>
-            {colCreated.length === 0 ? (
-              <div className={styles.emptyColCard}>
-                <CookingPot size={24} className={styles.emptyWaitIcon} />
-                <span className={styles.emptyColText}>
-                  Chưa có lô nào chờ nấu
-                </span>
-              </div>
-            ) : (
-              colCreated.map((batch) => {
-                const mealLabel =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
-                    ? "Bữa xế"
-                    : "Bữa trưa";
-                const isAfternoon =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON";
-                const isActing = actionLoadingId === batch.id;
-
-                return (
-                  <article
-                    key={batch.id}
-                    className={styles.dishCard}
-                    onClick={() => onOpenDetail?.(batch)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Lô ${batch.batchCode}, món ${batch.name || batch.dishName}`}
-                  >
-                    <div className={styles.cardHeaderRow}>
-                      <span
-                        className={`${styles.mealChip} ${
-                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
-                        }`}
-                      >
-                        {mealLabel}
-                      </span>
-                      <span className={styles.statusWaitingCook}>
-                        {batch.status === "CONFIRMED" ? "Đang nấu" : "Chưa xác nhận (dữ liệu cũ)"}
-                      </span>
-                    </div>
-
-                    <h3 className={styles.dishCardTitle}>
-                      {batch.name || batch.dishName}
-                    </h3>
-
-                    <div className={styles.batchMetaBox}>
-                      <span className={styles.batchCodeText}>
-                        {batch.batchCode || "LÔ CHẾ BIẾN"}
-                      </span>
-                      <span className={styles.batchMetaDot}>•</span>
-                      <span className={styles.batchPortionsText}>
-                        {batch.portionStandard || batch.plannedPortions || "—"} suất
-                      </span>
-                    </div>
-
-                    <div className={styles.cardBottomRow}>
-                      {/* Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG */}
-                      <button
-                        type="button"
-                        className={styles.ghostDetailBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenDetail?.(batch);
-                        }}
-                        title="Xem chi tiết lô"
-                        aria-label={`Xem chi tiết lô ${batch.batchCode}`}
-                      >
-                        <Eye size={15} strokeWidth={1.75} />
-                        <span>Chi tiết</span>
-                      </button>
-
-                      {/* Nút Nấu xong */}
-                      <button
-                        type="button"
-                        className={styles.cookCompleteBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onCompleteCooking?.(batch);
-                        }}
-                        disabled={isActing || batch.status !== "CONFIRMED"}
-                        title="Ghi nhận lô này đã nấu xong"
-                        aria-label={`Nấu xong lô ${batch.batchCode}`}
-                      >
-                        <CookingPot size={14} />
-                        <span>{isActing ? "Đang xử lý..." : "Nấu xong"}</span>
-                      </button>
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* CỘT 3: ĐÃ NẤU XONG (Chờ lưu mẫu)                          */}
-        {/* ========================================================= */}
-        <div className={styles.columnWrapper}>
-          <div className={styles.columnHeader}>
-            <div className={styles.colTitleLeft}>
-              <span className={styles.colIndicatorCooked} />
-              <h2 className={styles.colTitle}>Đã nấu xong</h2>
-            </div>
-            <span className={styles.colCountBadge}>
-              {colCooked.length} lô
-            </span>
-          </div>
-
-          <div className={styles.cardsContainer}>
-            {colCooked.length === 0 ? (
-              <div className={styles.emptyColCard}>
-                <CheckCircle2 size={24} className={styles.emptyWaitIcon} />
-                <span className={styles.emptyColText}>
-                  Chưa có lô nào cần lưu mẫu
-                </span>
-              </div>
-            ) : (
-              colCooked.map((batch) => {
-                const mealLabel =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
-                    ? "Bữa xế"
-                    : "Bữa trưa";
-                const isAfternoon =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON";
-
-                return (
-                  <article
-                    key={batch.id}
-                    className={styles.dishCard}
-                    onClick={() => onOpenDetail?.(batch)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Lô đã nấu xong ${batch.batchCode}`}
-                  >
-                    <div className={styles.cardHeaderRow}>
-                      <span
-                        className={`${styles.mealChip} ${
-                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
-                        }`}
-                      >
-                        {mealLabel}
-                      </span>
-                      <span className={styles.statusWaitingSample}>
-                        Chờ lưu mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} {batchSampleProgress(batch).total === 1 ? "lô" : "món"})
-                      </span>
-                    </div>
-
-                    <h3 className={styles.dishCardTitle}>
-                      {batch.name || batch.dishName}
-                    </h3>
-
-                    <div className={styles.batchMetaBox}>
-                      <span className={styles.batchCodeText}>
-                        {batch.batchCode || "LÔ CHẾ BIẾN"}
-                      </span>
-                      <span className={styles.batchMetaDot}>•</span>
-                      <span className={styles.batchPortionsText}>
-                        {batch.portionStandard || batch.plannedPortions || "—"} suất
-                      </span>
-                      {batch.completedAt && (
-                        <>
-                          <span className={styles.batchMetaDot}>•</span>
-                          <span className={styles.completedTimeText}>
-                            Xong {formatTime(batch.completedAt)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className={styles.cardBottomRow}>
-                      {/* Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG */}
-                      <button
-                        type="button"
-                        className={styles.ghostDetailBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenDetail?.(batch);
-                        }}
-                        title="Xem chi tiết lô"
-                        aria-label={`Xem chi tiết lô ${batch.batchCode}`}
-                      >
-                        <Eye size={15} strokeWidth={1.75} />
-                        <span>Chi tiết</span>
-                      </button>
-
-                      {/* Nút Lưu mẫu: Mở Form nhập lưu mẫu 24h ngay tại đây */}
-                      <button
-                        type="button"
-                        className={styles.sampleActionBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenSampleModal?.(batch);
-                        }}
-                        title="Niêm phong lưu mẫu thực phẩm 24h"
-                        aria-label={`Lưu mẫu thực phẩm cho lô ${batch.batchCode}`}
-                      >
-                        <FlaskConical size={14} />
-                        <span>Lưu mẫu</span>
-                      </button>
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-        </div>
-
-        {/* ========================================================= */}
-        {/* CỘT 4: ĐÃ LƯU MẪU (Hoàn tất 24h)                          */}
-        {/* ========================================================= */}
-        <div className={styles.columnWrapper}>
-          <div className={styles.columnHeader}>
-            <div className={styles.colTitleLeft}>
-              <span className={styles.colIndicatorSampled} />
-              <h2 className={styles.colTitle}>Đã lưu mẫu</h2>
-            </div>
-            <span className={styles.colCountBadge}>
-              {colSampled.length} lô
-            </span>
-          </div>
-
-          <div className={styles.cardsContainer}>
-            {colSampled.length === 0 ? (
-              <div className={styles.emptyColCard}>
-                <ShieldCheck size={24} className={styles.emptyWaitIcon} />
-                <span className={styles.emptyColText}>
-                  Chưa có lô nào hoàn tất lưu mẫu
-                </span>
-              </div>
-            ) : (
-              colSampled.map((batch) => {
-                const mealLabel =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON"
-                    ? "Bữa xế"
-                    : "Bữa trưa";
-                const isAfternoon =
-                  batch.mealType === "afternoon" || batch.mealType === "AFTERNOON";
-
-                return (
-                  <article
-                    key={batch.id}
-                    className={styles.dishCard}
-                    onClick={() => onOpenDetail?.(batch)}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Lô đã lưu mẫu ${batch.batchCode}`}
-                  >
-                    <div className={styles.cardHeaderRow}>
-                      <span
-                        className={`${styles.mealChip} ${
-                          isAfternoon ? styles.mealChipAfternoon : styles.mealChipLunch
-                        }`}
-                      >
-                        {mealLabel}
-                      </span>
-                      <span className={styles.statusSampled}>
-                        <ShieldCheck size={12} />
-                        <span>Đã lưu đủ mẫu ({batchSampleProgress(batch).completed}/{batchSampleProgress(batch).total} {batchSampleProgress(batch).total === 1 ? "lô" : "món"})</span>
-                      </span>
-                    </div>
-
-                    {/* Bỏ chữ món ăn đi, thay vào đó là Thức ăn, ngày ... */}
-                    <h3 className={styles.dishCardTitle}>
-                      {getSampledFoodTitle(batch)}
-                    </h3>
-
-                    <div className={styles.batchMetaBox}>
-                      <span className={styles.batchCodeText}>
-                        {batch.batchCode || "LÔ CHẾ BIẾN"}
-                      </span>
-                      <span className={styles.batchMetaDot}>•</span>
-                      <span className={styles.batchPortionsText}>
-                        {batch.portionStandard || batch.plannedPortions || "—"} suất
-                      </span>
-                      {batch.retainedFoodSamples?.length > 0 && (
-                        <>
-                          <span className={styles.batchMetaDot}>•</span>
-                          <span className={styles.completedTimeText}>
-                            Lưu mẫu {formatTime(batch.retainedFoodSamples.at(-1)?.sampledAt)}
-                          </span>
-                        </>
-                      )}
-                    </div>
-
-                    <div className={styles.cardBottomRow}>
-                      {/* Thao tác Xem chi tiết: Icon mắt KHÔNG VIỀN, ĐEN TRẮNG */}
-                      <button
-                        type="button"
-                        className={styles.ghostDetailBtnFull}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenDetail?.(batch);
-                        }}
-                        title="Bấm để xem chi tiết lô và phiếu lưu mẫu"
-                        aria-label={`Xem chi tiết lô ${batch.batchCode}`}
-                      >
-                        <Eye size={15} strokeWidth={1.75} />
-                        <span>Xem chi tiết lô</span>
-                      </button>
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-        </div>
+            </section>
+          );
+        })}
       </div>
       </>}
+
+      {drag && (
+        <div
+          className={styles.dragPreview}
+          style={{ width: drag.width, left: drag.x - drag.offsetX, top: drag.y - drag.offsetY }}
+          aria-hidden="true"
+        >
+          <div className={styles.cardTop}>
+            <span className={styles.dishCardTitle}>{drag.preview.title}</span>
+            <MealTag mealType={drag.preview.mealType} />
+          </div>
+          <span className={styles.cardMeta}>
+            {drag.over && drag.over !== drag.from
+              ? NEXT_COLUMN[drag.from] === drag.over
+                ? `Thả để chuyển sang ${COLUMN_TITLE[drag.over]}`
+                : "Không thể chuyển sang cột này"
+              : `Kéo sang ${COLUMN_TITLE[NEXT_COLUMN[drag.from]]}`}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
@@ -639,6 +444,7 @@ CreateBatchKanban.propTypes = {
   batches: PropTypes.arrayOf(PropTypes.object),
   mealRequirements: PropTypes.object,
   selectedMeal: PropTypes.string,
+  mealTimes: PropTypes.shape({ lunch: PropTypes.string, afternoon: PropTypes.string }),
   onSelectMeal: PropTypes.func,
   gradeMenus: PropTypes.arrayOf(PropTypes.object),
   grades: PropTypes.arrayOf(PropTypes.object),
@@ -649,8 +455,10 @@ CreateBatchKanban.propTypes = {
   emptyState: PropTypes.node,
   onOpenDetail: PropTypes.func,
   onOpenPlanModal: PropTypes.func,
+  onStartCooking: PropTypes.func,
   onOpenSampleModal: PropTypes.func,
   onCompleteCooking: PropTypes.func,
+  onNotify: PropTypes.func,
   submittingId: PropTypes.string,
   actionLoadingId: PropTypes.string,
 };

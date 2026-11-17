@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
@@ -337,6 +338,18 @@ export default function CreateMenu() {
     return count
   }, [schoolDays, weeklyMeals])
 
+  // Ngày học chưa đủ 2 bữa -> chưa được gửi duyệt
+  const missingDayLabels = useMemo(() => schoolDays
+    .filter((sd) => {
+      if (sd.isHoliday) return false
+      const dayData = weeklyMeals[sd.dateISO] || {}
+      return !(dayData.LUNCH?.length > 0 && dayData.AFTERNOON?.length > 0)
+    })
+    .map((sd) => sd.dayLabel), [schoolDays, weeklyMeals])
+  const missingDaysMessage = missingDayLabels.length
+    ? `Chưa đủ thực đơn. Còn thiếu: ${missingDayLabels.join(", ")}.`
+    : ""
+
   // 6. Xử lý Sao chép từ thực đơn tuần trước
   const handleTriggerCopyPreviousWeek = async () => {
     if (!selectedGrades.length) { showToast("Chọn khối áp dụng trước khi sao chép.", "warning"); return }
@@ -582,6 +595,10 @@ export default function CreateMenu() {
       showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần", "warning")
       return
     }
+    if (missingDaysMessage) {
+      showToast(missingDaysMessage, "warning")
+      return
+    }
     setIsConfirmModalOpen(true)
   }
 
@@ -628,7 +645,10 @@ export default function CreateMenu() {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1200)
     } catch (err) {
-      showToast((draftSaved ? "\u0110\u00e3 l\u01b0u b\u1ea3n nh\u00e1p nh\u01b0ng ch\u01b0a g\u1eedi duy\u1ec7t: " : "L\u1ed7i g\u1eedi duy\u1ec7t: ") + (err.message || "Kh\u00f4ng th\u1ec3 g\u1eedi th\u1ef1c \u0111\u01a1n"), "warning")
+      const message = /chưa đầy đủ các ngày\/bữa/.test(err.message || "")
+        ? "Chưa đủ thực đơn cả tuần, chưa thể gửi duyệt."
+        : err.message || "Không thể gửi thực đơn."
+      showToast(draftSaved ? `Đã lưu bản nháp. ${message}` : message, "warning")
     } finally {
       saveLock.current = false
       setSaving(false)
@@ -656,7 +676,7 @@ export default function CreateMenu() {
         {/* Header trang chuẩn mực */}
         <MenuAllergyReport report={allergyReport}/>
         <CreateMenuHeader
-          onBack={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+          onBack={() => navigate(location.state?.returnTo || ROUTER.SCHOOL_MENU_PLANNING)}
           statusLabel="Bản nháp mới"
         />
 
@@ -800,6 +820,17 @@ export default function CreateMenu() {
             <h3 className={styles.sectionTitle}>
               <CalendarDays size={18} />
               <span>Bảng thực đơn tuần (Thứ Hai – Thứ Sáu)</span>
+              {!loadingSchedule && !scheduleError && (() => {
+                const status = academicWeek?.weeklyMenuStatus
+                const meta = ({
+                  DRAFT: ["Bản nháp", styles.weekStatusDraft],
+                  PENDING_APPROVAL: ["Chờ duyệt", styles.weekStatusPending],
+                  REVISION_REQUIRED: ["Cần chỉnh sửa", styles.weekStatusRevision],
+                  REVISION_REQUESTED: ["Cần chỉnh sửa", styles.weekStatusRevision],
+                  APPROVED: ["Đã duyệt", styles.weekStatusApproved],
+                })[status] || ["Chưa tạo", styles.weekStatusEmpty]
+                return <span className={`${styles.weekStatusBadge} ${meta[1]}`} title="Trạng thái thực đơn của tuần">{meta[0]}</span>
+              })()}
             </h3>
 
             <div className={styles.headerActionsWrap}>
@@ -848,14 +879,15 @@ export default function CreateMenu() {
         </div>
       </div>
 
-      {scheduleError && <p role="alert">{scheduleError}</p>}
-      {gradeError && <p role="alert">{gradeError}</p>}
+      <InlineError messages={[scheduleError, gradeError]} />
       {!GRADE_OPTIONS.length && !gradeError && <p role="status">Chưa có khối để lập thực đơn. Ban Giám hiệu cần cấu hình khối trước.</p>}
       {/* Sticky Bottom Bar */}
       <CreateMenuBottomBar
-        onCancel={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+        onCancel={() => navigate(location.state?.returnTo || ROUTER.SCHOOL_MENU_PLANNING)}
         onSaveDraft={handleSaveDraft}
         onSubmitApproval={handleOpenConfirmSubmit}
+        submitDisabled={Boolean(missingDaysMessage)}
+        submitTitle={missingDaysMessage}
         isLoading={loadingSchedule || Boolean(scheduleError)}
         isSubmitting={saving}
         readOnly={academicWeek?.weeklyMenuStatus === "APPROVED"}
@@ -877,7 +909,7 @@ export default function CreateMenu() {
         initialMealType={dayModalState.mealType}
         initialTab={dayModalState.tab}
         onSaveDay={handleSaveDayFromModal}
-        submitText={academicWeek?.weeklyMenuStatus === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Cập nhật vào ngày này"}
+        submitText={academicWeek?.weeklyMenuStatus === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Cập nhật"}
       />
 
       {/* Modal xác nhận gửi BGH duyệt */}

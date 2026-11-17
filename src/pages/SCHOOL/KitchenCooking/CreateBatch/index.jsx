@@ -1,5 +1,11 @@
+import { mealByTime } from "./mealWindow";
+import { formatLargeQuantity } from "src/utils/quantity"
+import useConfirmAction from "./component/useConfirmAction";
+import { batchDisplayName } from "./batchLabel";
+import InlineError from "src/components/InlineError"
+import { formatSmallQuantity } from "src/utils/quantity"
 import CookingProgressPreview from "../CreateBatch/CookingProgressPreview";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
 import notice from "src/components/Notice";
@@ -26,7 +32,8 @@ function CreateBatchPage() {
   const [batches, setBatches] = useState([]);
   const [mealRequirements, setMealRequirements] = useState({});
   const [hasApprovedMenu, setHasApprovedMenu] = useState(false);
-  const [selectedMeal, setSelectedMeal] = useState("all");
+  const [selectedMeal, setSelectedMeal] = useState(() => mealByTime(null));
+  const manualMealRef = useRef(false);
   const [menuId, setMenuId] = useState("");
   const [gradeId, setGradeId] = useState("");
   const [grades, setGrades] = useState([]);
@@ -37,6 +44,44 @@ function CreateBatchPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submittingId, setSubmittingId] = useState(null);
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  // Giờ phục vụ bữa trưa / bữa xế theo cấu hình BGH của trường
+  const [mealTimes, setMealTimes] = useState(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    KitchenService.getContext({ signal: controller.signal })
+      .then((context) => setMealTimes({ lunch: context.lunchTime || "", afternoon: context.afternoonMealTime || "" }))
+      .catch(() => setMealTimes(null));
+    return () => controller.abort();
+  }, []);
+  // Tự chọn bữa theo khung giờ; kiểm tra lại mỗi phút cho tới khi người dùng tự chọn bữa.
+  useEffect(() => {
+    const apply = () => {
+      if (!manualMealRef.current) setSelectedMeal(mealByTime(mealTimes));
+    };
+    apply();
+    const timer = setInterval(apply, 60000);
+    return () => clearInterval(timer);
+  }, [mealTimes]);
+  const handleSelectMeal = (value) => {
+    manualMealRef.current = true;
+    setSelectedMeal(value);
+  };
+  // Hỏi xác nhận ngắn trước khi Nấu / Nấu xong (bấm nút hoặc kéo thả)
+  const { confirm: confirmAction, element: confirmElement } = useConfirmAction();
+  const askStartCooking = (dish) =>
+    confirmAction({
+      title: "Bắt đầu nấu?",
+      message: `Chuyển "${dish.name}" sang Đang nấu.`,
+      confirmText: "Nấu",
+      onConfirm: () => handleStartCooking(dish),
+    });
+  const askCompleteCooking = (batch) =>
+    confirmAction({
+      title: "Xác nhận nấu xong?",
+      message: `"${batchDisplayName(batch)}" sẽ chuyển sang Đã nấu xong.`,
+      confirmText: "Nấu xong",
+      onConfirm: () => handleCompleteCooking(batch),
+    });
 
   // State cho Popup Phương án phân bổ lô chế biến
   const [dishToPlan, setDishToPlan] = useState(null);
@@ -147,6 +192,7 @@ function CreateBatchPage() {
 
         return {
           id: b.id,
+          batchNumber: b.batchNumber ?? null,
           batchCode: b.batchCode || "",
           dishId: primaryDishId,
           batchDishIds,
@@ -169,7 +215,8 @@ function CreateBatchPage() {
                   lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name ||
                   lot.name || `Lô #${idx + 1}`,
                 code: lot.lotCode || lot.IngredientLot?.lotCode || "",
-                amount: lot.quantityUsed ? `${lot.quantityUsed} ${lot.unit || "kg"}` : "",
+                supplierName: lot.supplierName || "",
+                amount: lot.quantityUsed ? formatLargeQuantity(lot.quantityUsed, lot.unit) : "",
                 quantity: lot.quantityUsed,
                 unit: lot.unit || "kg",
                 dishId: lot.dishId,
@@ -233,7 +280,7 @@ function CreateBatchPage() {
       await loadTodayData();
 
       notice({
-        msg: "Đã đồng bộ kế hoạch chế biến của cả bữa ăn.",
+        msg: "Đã chuyển sang Đang nấu.",
         isSuccess: true,
       });
 
@@ -265,7 +312,7 @@ function CreateBatchPage() {
         setSelectedItem((prev) => ({ ...prev, status: "COMPLETED", completedAt: nowISO }));
       }
       notice({
-        msg: `Đã nấu xong: ${batch.name || batch.dishName} (${batch.batchCode})`,
+        msg: `Đã nấu xong: ${batchDisplayName(batch)}`,
         isSuccess: true,
       });
     } catch (err) {
@@ -275,6 +322,37 @@ function CreateBatchPage() {
       });
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  // Nút "Nấu": hệ thống tự lấy phương án lô từ tồn kho rồi tạo lô, chuyển món sang "Đang nấu".
+  const handleStartCooking = async (dish) => {
+    if (!dish || submittingId) return;
+    if (dish.unfinalizedClasses?.length) {
+      notice({ msg: "Các lớp chưa chốt suất ăn, chưa thể nấu.", isSuccess: false });
+      return;
+    }
+    let planned = false;
+    setSubmittingId(dish.id);
+    try {
+      const plan = await KitchenService.getBatchPlan({
+        menuDayId: dish.menuDayId,
+        dishId: dish.dishId || dish.id,
+        mealType: String(dish.mealType).toUpperCase() === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
+      });
+      if (!plan?.batches?.length) {
+        await loadTodayData();
+        notice({ msg: "Món này đã được chuyển sang Đang nấu.", isSuccess: true });
+        return;
+      }
+      planned = true;
+      await handleCreateBatchForDish({ ...dish, planVersion: plan.planVersion });
+    } catch (err) {
+      if (!planned) {
+        notice({ msg: err.message || "Không thể bắt đầu nấu. Vui lòng kiểm tra nguyên liệu.", isSuccess: false });
+      }
+    } finally {
+      setSubmittingId(null);
     }
   };
 
@@ -317,7 +395,7 @@ function CreateBatchPage() {
         }));
       }
       notice({
-        msg: `Đã lưu mẫu 24h: ${sampleBatch.name || sampleBatch.dishName} (${sampleBatch.batchCode})`,
+        msg: `Đã lưu mẫu 24h: ${batchDisplayName(sampleBatch)}`,
         isSuccess: true,
       });
       setIsSampleModalOpen(false);
@@ -379,12 +457,8 @@ function CreateBatchPage() {
           title="Tiến độ chế biến"
           subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
         />
-
-        {!loading && Object.entries(mealRequirements).map(([mealType, requirement]) => requirement.unfinalizedClasses?.length > 0 && (
-          <p role="status" key={mealType}>{mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}: chưa chốt suất ăn cho {requirement.unfinalizedClasses.map((row) => row.name).join(", ")}.</p>
-        ))}
         {loadError || gradeError ? (
-          <p role="alert">{loadError || gradeError}</p>
+          <InlineError messages={[loadError, gradeError]} />
         ) : loading ? (
           <div
             style={{
@@ -409,7 +483,7 @@ function CreateBatchPage() {
         ) : menuOptions.length > 1 && !menuId ? (
           <p role="status">Chọn khối để xem tiến độ chế biến.</p>
         ) : !hasAnyData && hasApprovedMenu ? (
-          <p role="status">Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
+          <p role="status" className={styles.portionWarning}>Chưa có nhu cầu suất ăn cần chế biến. Vui lòng kiểm tra việc chốt suất của các lớp.</p>
         ) : !hasAnyData ? (
           <div className="p-8 my-6 text-center bg-white rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-slate-800 font-semibold text-lg mb-2">
@@ -433,12 +507,14 @@ function CreateBatchPage() {
             batches={batches}
             mealRequirements={mealRequirements}
             selectedMeal={selectedMeal}
-            onSelectMeal={setSelectedMeal}
+            onSelectMeal={handleSelectMeal}
             onOpenDetail={handleOpenDetail}
-            onOpenPlanModal={handleOpenPlanModal}
+            onStartCooking={askStartCooking}
+            mealTimes={mealTimes}
+            onNotify={(msg) => notice({ msg, isSuccess: false })}
             onOpenSampleModal={handleOpenSampleModal}
             onQuickCreate={handleCreateBatchForDish}
-            onCompleteCooking={handleCompleteCooking}
+            onCompleteCooking={askCompleteCooking}
             onViewBatchDetail={handleViewFullPage}
             submittingId={submittingId}
             actionLoadingId={actionLoadingId}
@@ -446,12 +522,14 @@ function CreateBatchPage() {
         )}
 
         {/* Modal chi tiết lô dạng Popup xem nhanh với icon con mắt */}
+        {confirmElement}
+
         <CreateBatchDetailModal
           open={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           item={selectedItem}
-          onConfirmCreate={handleOpenPlanModal}
-          onCompleteCooking={handleCompleteCooking}
+          onConfirmCreate={askStartCooking}
+          onCompleteCooking={askCompleteCooking}
           onOpenSampleModal={handleOpenSampleModal}
           submitting={Boolean(submittingId || actionLoadingId)}
           onViewBatchDetail={handleViewFullPage}

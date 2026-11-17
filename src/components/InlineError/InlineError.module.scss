@@ -1,0 +1,29 @@
+.inlineError {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+  color: #dc2626;
+  font-size: 14px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.retry {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #b91c1c;
+  font: inherit;
+  font-style: normal;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+  }
+}

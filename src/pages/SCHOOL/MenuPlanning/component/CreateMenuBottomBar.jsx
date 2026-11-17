@@ -11,6 +11,8 @@ export default function CreateMenuBottomBar({
   onView,
   draftText = "Lưu bản nháp",
   submitText = "Gửi BGH phê duyệt",
+  submitDisabled = false,
+  submitTitle = "",
 }) {
   return (
     <div className={styles.bottomBarContainer}>
@@ -48,7 +50,8 @@ export default function CreateMenuBottomBar({
             type="button"
             className={styles.submitBtn}
             onClick={onSubmitApproval}
-            disabled={isSubmitting || isLoading}
+            disabled={isSubmitting || isLoading || submitDisabled}
+            title={submitTitle || undefined}
           >
             <span className={`material-symbols-outlined ${styles.btnIcon}`}>send</span>
             <span>{submitText}</span>

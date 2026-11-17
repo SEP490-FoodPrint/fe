@@ -1,4 +1,5 @@
-import React, { useState } from "react"
+import { formatSmallQuantity } from "src/utils/quantity"
+import React from "react"
 import styles from "./MenuDetailModal.module.scss"
 import SelectClassTraceModal from "../MenuDetail/component/SelectClassTraceModal"
 
@@ -130,7 +131,7 @@ export default function MenuDetailModal({
                               {ing.name}
                               {ing.quantityPerPortion != null && (
                                 <strong className="ml-1 text-[#0f172a]">
-                                  ({ing.quantityPerPortion}{ing.unit || "g"})
+                                  ({formatSmallQuantity(ing.quantityPerPortion, ing.unit || "g")})
                                 </strong>
                               )}
                             </span>
@@ -164,7 +165,7 @@ export default function MenuDetailModal({
                         {ing.name}
                         {ing.quantityPerPortion != null && (
                           <strong className="ml-1 text-[#0f172a]">
-                            ({ing.quantityPerPortion}{ing.unit || "g"})
+                            ({formatSmallQuantity(ing.quantityPerPortion, ing.unit || "g")})
                           </strong>
                         )}
                       </span>

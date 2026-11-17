@@ -1,3 +1,5 @@
+import InlineError from "src/components/InlineError"
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useEffect, useState } from "react"
 import KitchenService from "src/services/KitchenService"
 import PropTypes from "prop-types"
@@ -80,7 +82,7 @@ export default function SampleDetailModal({
 
         {/* Modal Body */}
         <div className={styles.body}>
-          {photoError && <p role="alert">{photoError}</p>}
+          <InlineError messages={photoError} />
           {photoUrl && <div><strong>Ảnh mẫu lưu</strong><br /><img src={photoUrl} alt="Ảnh mẫu lưu" style={{ maxWidth: "100%", maxHeight: 260, objectFit: "contain" }} /></div>}
           {/* Dải tiến trình lưu 24h tinh gọn */}
           <div
@@ -185,7 +187,7 @@ export default function SampleDetailModal({
             <div className={styles.infoItem}>
               <span className={styles.infoLabel}>Lượng mẫu lưu</span>
               <span className={styles.infoValueBold}>
-                {sample.quantity} {sample.unit}
+                {formatSmallQuantity(sample.quantity, sample.unit || "g")}
               </span>
             </div>
 
