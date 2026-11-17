@@ -1,5 +1,12 @@
 import React from "react";
-import { Boxes, ChevronRight, MapPin, Truck, Clock, ShieldCheck } from "lucide-react";
+import {
+  Boxes,
+  ChevronRight,
+  MapPin,
+  Truck,
+  Clock,
+  ShieldCheck,
+} from "lucide-react";
 import styles from "./TraceabilityIngredientsFlow.module.scss";
 
 export default function TraceabilityIngredientsFlow({ dish }) {
@@ -12,7 +19,8 @@ export default function TraceabilityIngredientsFlow({ dish }) {
   batches.forEach((b, bIdx) => {
     const ings = Array.isArray(b?.ingredients) ? b.ingredients : [];
     ings.forEach((ing, ingIdx) => {
-      const key = ing?.ingredientLotId || ing?.lotCode || `ing-${bIdx}-${ingIdx}`;
+      const key =
+        ing?.ingredientLotId || ing?.lotCode || `ing-${bIdx}-${ingIdx}`;
       if (!ingredientsMap.has(key)) {
         ingredientsMap.set(key, {
           ...ing,
@@ -48,7 +56,8 @@ export default function TraceabilityIngredientsFlow({ dish }) {
               Truy xuất chuỗi cung ứng nguyên liệu: {dish?.dishName || "Món ăn"}
             </h2>
             <p className={styles.subInfo}>
-              Sơ đồ quan hệ: Món ăn → Lô chế biến → Lô nguyên liệu → Vùng trồng → Đơn giao hàng → Nhà cung cấp
+              Sơ đồ quan hệ: Món ăn → Lô chế biến → Lô nguyên liệu → Vùng trồng
+              → Đơn giao hàng → Nhà cung cấp
             </p>
           </div>
         </div>
@@ -71,7 +80,10 @@ export default function TraceabilityIngredientsFlow({ dish }) {
       </div>
 
       {ingredients.length === 0 ? (
-        <div className={styles.ingCard} style={{ textAlign: "center", padding: "24px" }}>
+        <div
+          className={styles.ingCard}
+          style={{ textAlign: "center", padding: "24px" }}
+        >
           <p style={{ color: "var(--text-secondary)", margin: 0 }}>
             Chưa có thông tin xuất kho lô nguyên liệu cấu thành món ăn này.
           </p>
@@ -92,7 +104,13 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                   <span className={styles.dotGreen} />
                   Nguyên liệu {idx + 1}: {ing.ingredientName || "Nguyên liệu"}
                 </h3>
-                <span style={{ fontSize: "11px", fontWeight: "bold", color: "var(--color-primary)" }}>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                    color: "var(--color-primary)",
+                  }}
+                >
                   MÃ LÔ: {ing.lotCode || "N/A"}
                 </span>
               </div>
@@ -101,13 +119,17 @@ export default function TraceabilityIngredientsFlow({ dish }) {
               <div className={styles.lotDetailsGrid}>
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Mã lô nguyên liệu</span>
-                  <span className={`${styles.detailValue} ${styles.detailValueHighlight}`}>
+                  <span
+                    className={`${styles.detailValue} ${styles.detailValueHighlight}`}
+                  >
                     {ing.lotCode || "N/A"}
                   </span>
                 </div>
 
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Ngày sản xuất / Thu hoạch</span>
+                  <span className={styles.detailLabel}>
+                    Ngày sản xuất / Thu hoạch
+                  </span>
                   <span className={styles.detailValue}>
                     {ing.manufactureDate || "14/11/2026"}
                   </span>
@@ -115,13 +137,18 @@ export default function TraceabilityIngredientsFlow({ dish }) {
 
                 <div className={styles.detailItem}>
                   <span className={styles.detailLabel}>Hạn sử dụng</span>
-                  <span className={styles.detailValue} style={{ color: "var(--color-success)" }}>
+                  <span
+                    className={styles.detailValue}
+                    style={{ color: "var(--color-success)" }}
+                  >
                     {ing.expiryDate || "19/11/2026"}
                   </span>
                 </div>
 
                 <div className={styles.detailItem}>
-                  <span className={styles.detailLabel}>Tổng khối lượng xuất nấu</span>
+                  <span className={styles.detailLabel}>
+                    Tổng khối lượng xuất nấu
+                  </span>
                   <span className={styles.detailValue}>
                     {totalUsed || ing.quantityUsed || 0} {ing.unit || "kg"}
                   </span>
@@ -131,12 +158,21 @@ export default function TraceabilityIngredientsFlow({ dish }) {
               {/* Source Facility / Farm origin */}
               {fac && (
                 <div className={styles.sourceFacilityBox}>
-                  <MapPin size={16} color="var(--color-primary)" style={{ flexShrink: 0, marginTop: "1px" }} />
+                  <MapPin
+                    size={16}
+                    color="var(--color-primary)"
+                    style={{ flexShrink: 0, marginTop: "1px" }}
+                  />
                   <div>
                     <strong>Cơ sở sản xuất / Vùng trồng gốc: </strong>
                     <span>{fac.name}</span>
                     {fac.facilityCode && <code> ({fac.facilityCode})</code>}
-                    {fac.address && <span style={{ color: "var(--text-secondary)" }}> · Địa chỉ: {fac.address}</span>}
+                    {fac.address && (
+                      <span style={{ color: "var(--text-secondary)" }}>
+                        {" "}
+                        · Địa chỉ: {fac.address}
+                      </span>
+                    )}
                   </div>
                 </div>
               )}
@@ -146,16 +182,22 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                 <div className={styles.supplierBox}>
                   <div className={styles.supplierTop}>
                     <div>
-                      <h4 className={styles.supplierName}>{del.supplierName}</h4>
+                      <h4 className={styles.supplierName}>
+                        {del.supplierName}
+                      </h4>
                       <p className={styles.supplierMeta}>
-                        Mã số thuế: <code>{del.taxCode || "0101234567"}</code> · {del.supplierAddress || "Hà Nội"}
+                        Mã số thuế: <code>{del.taxCode || "0101234567"}</code> ·{" "}
+                        {del.supplierAddress || "Hà Nội"}
                       </p>
                     </div>
 
                     <div className={styles.certBadges}>
                       {(del.certifications || []).map((c, i) => (
                         <span key={i} className={styles.certPill}>
-                          <ShieldCheck size={12} style={{ display: "inline", marginRight: "3px" }} />
+                          <ShieldCheck
+                            size={12}
+                            style={{ display: "inline", marginRight: "3px" }}
+                          />
                           {c.certificationType}
                         </span>
                       ))}
@@ -165,17 +207,27 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                   <div className={styles.deliveryMetaGrid}>
                     <div className={styles.deliveryInfoCol}>
                       <Truck size={14} color="var(--text-muted)" />
-                      <span>Đơn giao: <strong>{del.deliveryNo || "Chưa có mã"}</strong></span>
+                      <span>
+                        Đơn giao:{" "}
+                        <strong>{del.deliveryNo || "Chưa có mã"}</strong>
+                      </span>
                     </div>
 
                     <div className={styles.deliveryInfoCol}>
                       <Clock size={14} color="var(--text-muted)" />
-                      <span>Thời gian nhận: <strong>15/11 lúc 08:00</strong></span>
+                      <span>
+                        Thời gian nhận: <strong>15/11 lúc 08:00</strong>
+                      </span>
                     </div>
 
                     <div className={styles.deliveryInfoCol}>
                       <ShieldCheck size={14} color="var(--color-success)" />
-                      <span>Kiểm thực: <strong style={{ color: "var(--color-success)" }}>ĐẠT TIÊU CHUẨN</strong></span>
+                      <span>
+                        Kiểm thực:{" "}
+                        <strong style={{ color: "var(--color-success)" }}>
+                          ĐẠT TIÊU CHUẨN
+                        </strong>
+                      </span>
                     </div>
                   </div>
                 </div>

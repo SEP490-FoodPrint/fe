@@ -21,18 +21,28 @@ export default function TraceabilityCookingBatches({
             </h2>
           </div>
           <p className={styles.subInfo}>
-            Tổng số suất cấp cho lớp: <strong>{totalAllocationPortions} suất</strong>. Nhóm mẻ chế biến trong ca nấu:
+            Tổng số suất cấp cho lớp:{" "}
+            <strong>{totalAllocationPortions} suất</strong>. Nhóm mẻ chế biến
+            trong ca nấu:
           </p>
         </div>
 
         <div className={styles.tagRight}>
-          Lớp nhận từ <strong>{batches.length} lô nấu riêng biệt</strong> để đảm bảo tươi ngon nóng sốt
+          Lớp nhận từ <strong>{batches.length} lô nấu riêng biệt</strong> để đảm
+          bảo tươi ngon nóng sốt
         </div>
       </div>
 
       <div className={styles.batchesGrid}>
         {batches.length === 0 ? (
-          <div className={styles.batchCard} style={{ gridColumn: "1 / -1", textAlign: "center", padding: "24px" }}>
+          <div
+            className={styles.batchCard}
+            style={{
+              gridColumn: "1 / -1",
+              textAlign: "center",
+              padding: "24px",
+            }}
+          >
             <p style={{ color: "var(--text-secondary)", margin: 0 }}>
               Chưa có dữ liệu lô nấu chi tiết cho món ăn này.
             </p>
@@ -40,24 +50,32 @@ export default function TraceabilityCookingBatches({
         ) : (
           batches.map((batch, index) => {
             const portions = batch?.allocatedPortions || 0;
-            const percentage = totalAllocationPortions > 0
-              ? Math.round((portions / totalAllocationPortions) * 100)
-              : 100;
+            const percentage =
+              totalAllocationPortions > 0
+                ? Math.round((portions / totalAllocationPortions) * 100)
+                : 100;
 
             const sample = batch?.retainedSample;
 
             return (
-              <div key={batch?.cookingBatchId || index} className={styles.batchCard}>
+              <div
+                key={batch?.cookingBatchId || index}
+                className={styles.batchCard}
+              >
                 <div className={styles.batchTop}>
                   <div>
                     <div style={{ display: "flex", alignItems: "center" }}>
                       <span style={{ fontWeight: "bold", fontSize: "14px" }}>
-                        Lô chế biến #{index + 1 < 10 ? `0${index + 1}` : index + 1}
+                        Lô chế biến #
+                        {index + 1 < 10 ? `0${index + 1}` : index + 1}
                       </span>
-                      <span className={styles.batchCodePill}>{batch?.batchCode || `BATCH-${index + 1}`}</span>
+                      <span className={styles.batchCodePill}>
+                        {batch?.batchCode || `BATCH-${index + 1}`}
+                      </span>
                     </div>
                     <p className={styles.batchMeta}>
-                      Hoàn tất nấu lúc: <strong>11:{15 + index * 10}</strong> · Trạng thái: {batch?.status || "COMPLETED"}
+                      Hoàn tất nấu lúc: <strong>11:{15 + index * 10}</strong> ·
+                      Trạng thái: {batch?.status || "COMPLETED"}
                     </p>
                   </div>
                   <span className={styles.statusPill}>COMPLETED</span>
@@ -70,7 +88,8 @@ export default function TraceabilityCookingBatches({
                       Số suất đóng góp cho lớp:
                     </span>
                     <span className={styles.portionCount}>
-                      {portions} / {totalAllocationPortions} suất ({percentage}%)
+                      {portions} / {totalAllocationPortions} suất ({percentage}
+                      %)
                     </span>
                   </div>
 
@@ -85,7 +104,9 @@ export default function TraceabilityCookingBatches({
                     <span>Nhân viên bếp đã ký hoàn tất</span>
                     {sample ? (
                       <span className={styles.sampleLocation}>
-                        Lưu mẫu: {sample.quantity || 200}{sample.unit || "g"} · {sample.storageLocation || "Tủ lưu mẫu"}
+                        Lưu mẫu: {sample.quantity || 200}
+                        {sample.unit || "g"} ·{" "}
+                        {sample.storageLocation || "Tủ lưu mẫu"}
                       </span>
                     ) : (
                       <span>Chưa có mẫu lưu</span>
@@ -94,30 +115,55 @@ export default function TraceabilityCookingBatches({
                 </div>
 
                 {/* Ingredients in this batch */}
-                {Array.isArray(batch?.ingredients) && batch.ingredients.length > 0 && (
-                  <div className={styles.ingredientsBox}>
-                    <div className={styles.ingHeader}>
-                      <span>Định lượng nguyên liệu dùng cho mẻ:</span>
-                      <span style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: "normal" }}>
-                        (lấy từ CookingBatchLot)
-                      </span>
-                    </div>
-
-                    {batch.ingredients.map((ing, ingIdx) => (
-                      <div key={ing?.ingredientLotId || ingIdx} className={styles.ingItemRow}>
-                        <span style={{ fontWeight: 500, color: "var(--text-primary)" }}>
-                          {ing?.ingredientName || "Nguyên liệu"}{" "}
-                          <code style={{ fontSize: "11px", color: "var(--color-primary)" }}>
-                            ({ing?.lotCode || "N/A"})
-                          </code>
-                        </span>
-                        <span style={{ fontWeight: "bold", color: "var(--text-primary)" }}>
-                          {ing?.quantityUsed} {ing?.unit}
+                {Array.isArray(batch?.ingredients) &&
+                  batch.ingredients.length > 0 && (
+                    <div className={styles.ingredientsBox}>
+                      <div className={styles.ingHeader}>
+                        <span>Định lượng nguyên liệu dùng cho mẻ:</span>
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            color: "var(--text-muted)",
+                            fontWeight: "normal",
+                          }}
+                        >
+                          (lấy từ CookingBatchLot)
                         </span>
                       </div>
-                    ))}
-                  </div>
-                )}
+
+                      {batch.ingredients.map((ing, ingIdx) => (
+                        <div
+                          key={ing?.ingredientLotId || ingIdx}
+                          className={styles.ingItemRow}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 500,
+                              color: "var(--text-primary)",
+                            }}
+                          >
+                            {ing?.ingredientName || "Nguyên liệu"}{" "}
+                            <code
+                              style={{
+                                fontSize: "11px",
+                                color: "var(--color-primary)",
+                              }}
+                            >
+                              ({ing?.lotCode || "N/A"})
+                            </code>
+                          </span>
+                          <span
+                            style={{
+                              fontWeight: "bold",
+                              color: "var(--text-primary)",
+                            }}
+                          >
+                            {ing?.quantityUsed} {ing?.unit}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
               </div>
             );
           })
@@ -127,7 +173,10 @@ export default function TraceabilityCookingBatches({
       <div className={styles.transparencyAlert}>
         <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: "2px" }} />
         <div>
-          <strong>Nguyên tắc minh bạch chia lô:</strong> Các lô chế biến được nấu theo quy trình một chiều nghiêm ngặt tại bếp trường. Tổng suất ăn của lớp được phân bổ cụ thể từ từng lô, có hồ sơ lưu mẫu và định lượng xuất kho rõ ràng.
+          <strong>Nguyên tắc minh bạch chia lô:</strong> Các lô chế biến được
+          nấu theo quy trình một chiều nghiêm ngặt tại bếp trường. Tổng suất ăn
+          của lớp được phân bổ cụ thể từ từng lô, có hồ sơ lưu mẫu và định lượng
+          xuất kho rõ ràng.
         </div>
       </div>
     </section>

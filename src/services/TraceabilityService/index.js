@@ -49,6 +49,39 @@ const TraceabilityService = {
   getDemoMockData(params) {
     return mockTraceabilityService.getMealTraceability(params);
   },
+
+  // Gọi chuỗi bằng chứng blockchain của suất ăn (public endpoint)
+  async getBlockchainChain(mealAllocationId, verify = false, signal) {
+    if (!mealAllocationId) return null;
+    try {
+      const response = await http.get(
+        `/blockchain-proofs/public/meal-allocations/${mealAllocationId}`,
+        {
+          params: verify ? { verify: true } : undefined,
+          signal,
+          notifyOnError: false,
+          skipAuthRedirect: true,
+        },
+      );
+      if (response && typeof response === "object") {
+        if ("data" in response && response.data) {
+          return response.data;
+        }
+        return response;
+      }
+      return null;
+    } catch (error) {
+      console.warn(
+        "[TraceabilityService] Không thể tải chuỗi blockchain:",
+        error,
+      );
+      return null;
+    }
+  },
+
+  async verifyBlockchainChain(mealAllocationId) {
+    return this.getBlockchainChain(mealAllocationId, true);
+  },
 };
 
 export default TraceabilityService;

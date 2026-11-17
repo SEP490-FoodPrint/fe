@@ -14,7 +14,12 @@
   left: 0;
   right: 0;
   height: 6px;
-  background: linear-gradient(90deg, var(--color-primary, #0a8066) 0%, #30a387 50%, #9bd6c5 100%);
+  background: linear-gradient(
+    90deg,
+    var(--color-primary, #0a8066) 0%,
+    #30a387 50%,
+    #9bd6c5 100%
+  );
 }
 
 .heroContent {

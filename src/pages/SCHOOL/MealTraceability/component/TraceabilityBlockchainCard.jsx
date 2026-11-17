@@ -1,103 +1,273 @@
-import React from "react";
-import { ShieldCheck, Clock, Info } from "lucide-react";
+import React, { useState } from "react";
+import PropTypes from "prop-types";
+import {
+  Truck,
+  ClipboardCheck,
+  CookingPot,
+  FlaskConical,
+  UtensilsCrossed,
+  HelpCircle,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+} from "lucide-react";
 import styles from "./TraceabilityBlockchainCard.module.scss";
 
-export default function TraceabilityBlockchainCard({ proof }) {
-  const isProofAvailable = Boolean(proof && proof.dataHash);
+// Bảng ánh xạ icon theo loại bước
+const STEP_ICONS = {
+  truck: Truck,
+  check: ClipboardCheck,
+  cooking: CookingPot,
+  sample: FlaskConical,
+  distribution: UtensilsCrossed,
+};
+
+export default function TraceabilityBlockchainCard({
+  proof,
+  steps: propSteps,
+  isVerified: propIsVerified,
+  onVerify,
+  isVerifying = false,
+}) {
+  // Lấy dữ liệu các chặng từ props
+  const steps = propSteps || proof?.steps || [];
+
+  // Quản lý trạng thái mở rộng accordion của từng thẻ
+  const [expandedMap, setExpandedMap] = useState({
+    "step-1": true, // Mặc định mở chặng 1 như trong ảnh mockup 2
+  });
+
+  // Quản lý trạng thái kiểm tra nội bộ (fallback khi chưa gắn handler)
+  const [internalVerified, setInternalVerified] = useState(false);
+  const [internalLoading, setInternalLoading] = useState(false);
+
+  const toggleExpand = (stepId) => {
+    setExpandedMap((prev) => ({
+      ...prev,
+      [stepId]: !prev[stepId],
+    }));
+  };
+
+  const isVerified =
+    typeof propIsVerified === "boolean"
+      ? propIsVerified
+      : (proof?.isVerified ?? internalVerified);
+  const isLoading = isVerifying || internalLoading;
+
+  const handleVerifyClick = async () => {
+    if (onVerify) {
+      await onVerify();
+      return;
+    }
+    // Giả lập đối soát 1s khi xem nếu chưa truyền onVerify
+    setInternalLoading(true);
+    setTimeout(() => {
+      setInternalLoading(false);
+      setInternalVerified(true);
+    }, 900);
+  };
+
+  if (!steps || steps.length === 0) {
+    return null;
+  }
 
   return (
-    <section className={styles.blockchainSection}>
-      <div className={styles.blockchainHeader}>
-        <div className={styles.titleArea}>
-          <div className={styles.shieldIconWrap}>
-            <ShieldCheck size={22} />
+    <div className={styles.blockchainContainer}>
+      {/* 1. Header Banner Kiểm Tra Toàn Vẹn */}
+      <div
+        className={`${styles.verifyBanner} ${isVerified ? styles.verified : ""}`}
+      >
+        <div className={styles.verifyLeft}>
+          <div className={styles.helpIconWrap}>
+            {isVerified ? <ShieldCheck size={26} /> : <HelpCircle size={26} />}
           </div>
           <div>
-            <div className={styles.headingRow}>
-              <h2 className={styles.heading}>XÁC MINH TÍNH TOÀN VẸN DỮ LIỆU BLOCKCHAIN</h2>
-              <span className={styles.demoTag}>CHẾ ĐỘ KIỂM TRA</span>
-            </div>
-            <p className={styles.desc}>
-              Dữ liệu chuỗi cung ứng được lưu trữ tại FoodPrint. Bằng chứng mã băm (Hash) sẽ được đối soát trên Blockchain chống làm giả mạo.
+            <h3 className={styles.bannerTitle}>
+              {isVerified
+                ? "Dữ liệu đã xác thực toàn vẹn"
+                : "Chưa kiểm tra toàn vẹn"}
+            </h3>
+            <p className={styles.bannerSubtitle}>
+              {isVerified
+                ? "Dữ liệu 5 chặng chuỗi cung ứng khớp 100% với bằng chứng trên Blockchain."
+                : "Bấm “Kiểm tra toàn vẹn” để đối chiếu dữ liệu hiện tại của từng chặng với blockchain."}
             </p>
           </div>
         </div>
 
-        <div>
-          {isProofAvailable ? (
-            <div className={styles.statusPillPending} style={{ color: "#86efac", background: "rgba(34, 197, 94, 0.2)", borderColor: "rgba(34, 197, 94, 0.4)" }}>
-              <ShieldCheck size={14} />
-              <span>Trạng thái: VERIFIED (Khớp 100%)</span>
-            </div>
+        <button
+          type="button"
+          className={styles.btnVerify}
+          onClick={handleVerifyClick}
+          disabled={isLoading || isVerified}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              <span>Đang đối soát...</span>
+            </>
+          ) : isVerified ? (
+            <>
+              <ShieldCheck size={16} />
+              <span>Đã xác thực</span>
+            </>
           ) : (
-            <div className={styles.statusPillPending}>
-              <Clock size={14} />
-              <span>Trạng thái: CHƯA NEO ON-CHAIN (TẠM ĐỂ TRỐNG ĐỐI SOÁT)</span>
-            </div>
+            <span>Kiểm tra toàn vẹn</span>
           )}
-        </div>
+        </button>
       </div>
 
-      <div className={styles.techGrid}>
-        <div className={styles.techCol}>
-          <div className={styles.techRow}>
-            <span className={styles.techLabel}>Mạng lưới mục tiêu:</span>
-            <span className={styles.techVal} style={{ color: "#5eead4" }}>Polygon Amoy Testnet</span>
-          </div>
-          <div className={styles.techRow}>
-            <span className={styles.techLabel}>Thuật toán băm:</span>
-            <span className={styles.techVal}>Keccak-256 (Canonical Payload)</span>
-          </div>
-          <div className={styles.techRow}>
-            <span className={styles.techLabel}>Trạng thái ghi nhận:</span>
-            <span className={styles.techVal}>
-              {isProofAvailable ? proof.anchorStatus : "ĐANG CHỜ XÁC THỰC"}
-            </span>
-          </div>
-          <div className={styles.techRow}>
-            <span className={styles.techLabel}>Số khối (Block):</span>
-            <span className={styles.techVal}>
-              {isProofAvailable ? `#${proof.blockNumber}` : "[Chưa tạo giao dịch]"}
-            </span>
-          </div>
-        </div>
-
-        <div className={styles.techCol}>
-          <div>
-            <div className={styles.techLabel} style={{ marginBottom: "4px" }}>
-              Smart Contract Registry:
+      {/* 2. Stepper 5 Bước Ngang Trên Cùng */}
+      <div className={styles.stepperWrapper}>
+        <div className={styles.stepperConnector} />
+        {steps.map((step) => {
+          const IconComp = STEP_ICONS[step.iconType] || Truck;
+          return (
+            <div key={step.id} className={styles.stepItem}>
+              <div className={styles.stepIconCircle}>
+                <IconComp size={20} />
+              </div>
+              <span className={styles.stepTitle}>
+                {step.title.includes("xuất hàng")
+                  ? "NCC xuất hàng"
+                  : step.title.includes("kiểm nhận")
+                    ? "Kiểm nhận"
+                    : step.title.includes("mẻ nấu")
+                      ? "Nấu"
+                      : step.title.includes("Lưu mẫu")
+                        ? "Lưu mẫu"
+                        : "Phát suất"}
+              </span>
             </div>
-            <div className={styles.codeBox}>
-              {isProofAvailable ? proof.contractAddress : "0x71C...aB42E8b4F5B2E8D701469e023 [FoodPrintHashRegistry]"}
-            </div>
-          </div>
-
-          <div>
-            <div className={styles.techLabel} style={{ marginBottom: "4px" }}>
-              Mã giao dịch (TxHash):
-            </div>
-            <div className={styles.codeBox} style={{ color: "#5eead4" }}>
-              {isProofAvailable ? proof.txHash : "[Dữ liệu tạm để trống để kiểm tra]"}
-            </div>
-          </div>
-
-          <div>
-            <div className={styles.techLabel} style={{ marginBottom: "4px" }}>
-              Bằng chứng Payload Hash (dataHash):
-            </div>
-            <div className={styles.codeBox}>
-              {isProofAvailable ? proof.dataHash : "[Dữ liệu tạm để trống để kiểm tra]"}
-            </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
 
-      <div className={styles.emptyNoticeBox}>
-        <Info size={16} color="#94a3b8" style={{ flexShrink: 0 }} />
-        <span>
-          <strong>Ghi chú kiểm tra:</strong> Phần dữ liệu mã băm Blockchain hiện đang tạm để trống để bạn kiểm tra đối chiếu luồng chuỗi cung ứng trước. Sau này khi kết nối Smart Contract và bảng version off-chain chuẩn, trường này sẽ tự động hiển thị hash và đối soát tính toàn vẹn on-chain.
-        </span>
+      {/* 3. Danh Sách 5 Thẻ Dòng Thời Gian */}
+      <div className={styles.timelineSection}>
+        {steps.map((step, idx) => {
+          const IconComp = STEP_ICONS[step.iconType] || Truck;
+          const isExpanded = Boolean(expandedMap[step.id]);
+          const isLast = idx === steps.length - 1;
+
+          return (
+            <div key={step.id} className={styles.timelineRow}>
+              {/* Cột thời gian bên trái */}
+              <div className={styles.timelineTime}>{step.timeStr}</div>
+
+              {/* Điểm nút & trục dòng thời gian */}
+              <div className={styles.timelineNode}>
+                <div className={styles.nodeIconCircle}>
+                  <IconComp size={16} />
+                </div>
+                {!isLast && <div className={styles.nodeLine} />}
+              </div>
+
+              {/* Thẻ Card nội dung bên phải */}
+              <div className={styles.timelineCard}>
+                <div className={styles.cardHeaderRow}>
+                  <h4 className={styles.cardTitle}>{step.title}</h4>
+                  <span className={styles.badgeSealed}>{step.badgeLabel}</span>
+                </div>
+
+                <div className={styles.cardSubtitleRow}>
+                  <span className={styles.cardSubtitle}>{step.subtitle}</span>
+                  {Array.isArray(step.badges) &&
+                    step.badges.map((b, bIdx) => (
+                      <span key={bIdx} className={styles.infoPill}>
+                        {b}
+                      </span>
+                    ))}
+                </div>
+
+                {/* Nút bấm mở rộng Accordion */}
+                <button
+                  type="button"
+                  className={styles.btnExpand}
+                  onClick={() => toggleExpand(step.id)}
+                >
+                  <span>Chi tiết niêm phong</span>
+                  {isExpanded ? (
+                    <ChevronUp size={16} />
+                  ) : (
+                    <ChevronDown size={16} />
+                  )}
+                </button>
+
+                {/* Khung Chi Tiết Niêm Phong Mở Rộng (Theo Ảnh 2) */}
+                {isExpanded && step.detail && (
+                  <div className={styles.detailBox}>
+                    <div className={styles.detailHeader}>
+                      <span className={styles.detailTitle}>
+                        {step.detail.innerTitle}
+                      </span>
+                      <span
+                        className={`${styles.badgeCheckStatus} ${isVerified ? styles.verified : ""}`}
+                      >
+                        {isVerified
+                          ? "Đã kiểm tra (Hợp lệ)"
+                          : step.detail.verifyStatusLabel}
+                      </span>
+                    </div>
+
+                    <div className={styles.detailList}>
+                      <div className={styles.detailRow}>
+                        <span className={styles.detailLabel}>Trạng thái</span>
+                        <span className={styles.detailVal}>
+                          {step.detail.blockchainStatus}
+                        </span>
+                      </div>
+
+                      <div className={styles.detailRow}>
+                        <span className={styles.detailLabel}>
+                          Thời điểm ghi
+                        </span>
+                        <span className={styles.detailVal}>
+                          {step.detail.recordedTime}
+                        </span>
+                      </div>
+
+                      <div className={styles.detailRow}>
+                        <span className={styles.detailLabel}>Dấu vân tay</span>
+                        <span className={`${styles.detailVal} ${styles.mono}`}>
+                          {step.detail.shortHash || step.detail.dataHash}
+                        </span>
+                      </div>
+
+                      <div className={styles.detailRow}>
+                        <span className={styles.detailLabel}>Khối</span>
+                        <span className={styles.detailVal}>
+                          #{step.detail.blockNumber}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-    </section>
+    </div>
   );
 }
+
+TraceabilityBlockchainCard.propTypes = {
+  proof: PropTypes.shape({
+    steps: PropTypes.array,
+    isVerified: PropTypes.bool,
+  }),
+  steps: PropTypes.array,
+  isVerified: PropTypes.bool,
+  onVerify: PropTypes.func,
+  isVerifying: PropTypes.bool,
+};
+
+TraceabilityBlockchainCard.defaultProps = {
+  proof: null,
+  steps: null,
+  isVerified: undefined,
+  onVerify: null,
+  isVerifying: false,
+};

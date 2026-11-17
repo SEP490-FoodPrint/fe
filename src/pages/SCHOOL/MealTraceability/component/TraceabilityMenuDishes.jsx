@@ -44,7 +44,10 @@ export default function TraceabilityMenuDishes({
                     {dish.dishCategory || "Món ăn"}
                   </span>
                   {isActive && (
-                    <div className={styles.activeCheckIcon} title="Đang xem truy xuất chi tiết">
+                    <div
+                      className={styles.activeCheckIcon}
+                      title="Đang xem truy xuất chi tiết"
+                    >
                       <Check size={14} />
                     </div>
                   )}
@@ -60,7 +63,11 @@ export default function TraceabilityMenuDishes({
 
               <div className={styles.dishFooter}>
                 <Search size={14} />
-                <span>{isActive ? "Đang chọn xem truy xuất" : "Bấm để xem truy xuất"}</span>
+                <span>
+                  {isActive
+                    ? "Đang chọn xem truy xuất"
+                    : "Bấm để xem truy xuất"}
+                </span>
               </div>
             </div>
           );
@@ -70,7 +77,8 @@ export default function TraceabilityMenuDishes({
       <div className={styles.nutritionNote}>
         <Info size={14} />
         <span>
-          Ghi chú: Bấm vào từng món ăn phía trên để xem các lô chế biến, mẫu lưu kiểm nghiệm và nguồn gốc nguyên liệu của món đó.
+          Ghi chú: Bấm vào từng món ăn phía trên để xem các lô chế biến, mẫu lưu
+          kiểm nghiệm và nguồn gốc nguyên liệu của món đó.
         </span>
       </div>
     </section>

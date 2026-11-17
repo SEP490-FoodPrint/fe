@@ -1,5 +1,11 @@
 import React from "react";
-import { GitCommit, ClipboardCheck, Flame, Layers, CheckCheck } from "lucide-react";
+import {
+  GitCommit,
+  ClipboardCheck,
+  Flame,
+  Layers,
+  CheckCheck,
+} from "lucide-react";
 import styles from "./TraceabilityTimeline.module.scss";
 
 export default function TraceabilityTimeline({ allocation, classInfo }) {
@@ -16,7 +22,8 @@ export default function TraceabilityTimeline({ allocation, classInfo }) {
           <div>
             <h2 className={styles.sectionTitle}>Tiến trình phục vụ bữa ăn</h2>
             <p className={styles.sectionSubtitle}>
-              Các mốc xác nhận trên hệ thống FoodPrint cho bữa ăn ngày {mealDate}
+              Các mốc xác nhận trên hệ thống FoodPrint cho bữa ăn ngày{" "}
+              {mealDate}
             </p>
           </div>
         </div>
@@ -62,7 +69,8 @@ export default function TraceabilityTimeline({ allocation, classInfo }) {
             <span className={styles.stepTime}>11:30 · 16/11</span>
             <h3 className={styles.stepTitle}>Phân bổ suất ăn</h3>
             <p className={styles.stepDesc}>
-              Chia {allocation?.totalPortions || 30} suất cho {className} từ các lô nấu
+              Chia {allocation?.totalPortions || 30} suất cho {className} từ các
+              lô nấu
             </p>
             <span className={styles.stepBadge}>status: CONFIRMED</span>
           </div>
@@ -70,7 +78,9 @@ export default function TraceabilityTimeline({ allocation, classInfo }) {
 
         {/* Step 4 */}
         <div className={styles.stepCard}>
-          <div className={`${styles.stepIconWrap} ${styles.stepIconWrapSuccess}`}>
+          <div
+            className={`${styles.stepIconWrap} ${styles.stepIconWrapSuccess}`}
+          >
             <CheckCheck size={20} />
           </div>
           <div className={styles.stepContent}>
