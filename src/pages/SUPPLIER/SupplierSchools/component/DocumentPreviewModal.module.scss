@@ -1,0 +1,231 @@
+.dialogPaper {
+  border-radius: 12px !important;
+  border: 1px solid #e1e6e2;
+  box-shadow: 0 12px 32px rgba(24, 39, 34, 0.14) !important;
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+.dialogHeader {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px !important;
+  border-bottom: 1px solid #eef2ef;
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  min-width: 0;
+  flex: 1;
+}
+
+.fileName {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+  color: #24312d;
+  word-break: break-word;
+}
+
+.fileKindPill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: #f1f5f3;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: #4f5c57;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.closeIconBtn {
+  width: 40px;
+  height: 40px;
+  color: #4f5c57 !important;
+  flex-shrink: 0;
+}
+
+.dialogContent {
+  padding: 16px 20px !important;
+  background: #f7f9f8;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 1;
+  min-height: 320px;
+  text-align: center;
+  padding: 24px;
+}
+
+.errorIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fef2f2;
+  color: #b91c1c;
+  margin-bottom: 4px;
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #24312d;
+}
+
+.stateDesc {
+  margin: 0;
+  max-width: 460px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b7772;
+}
+
+.retryBtn {
+  margin-top: 8px;
+  height: 40px;
+  padding: 0 16px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+.imageStage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 360px;
+  max-height: 68vh;
+  overflow: auto;
+  border: 1px solid #e1e6e2;
+  border-radius: 10px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.previewImage {
+  max-width: 100%;
+  max-height: 64vh;
+  object-fit: contain;
+  display: block;
+}
+
+.pdfFrame {
+  width: 100%;
+  height: 68vh;
+  min-height: 420px;
+  border: 1px solid #e1e6e2;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.dialogActions {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between !important;
+  gap: 10px;
+  padding: 12px 20px !important;
+  border-top: 1px solid #eef2ef;
+  background: #ffffff;
+}
+
+.actionGroupLeft,
+.actionGroupRight {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.primaryBtn,
+.secondaryBtn,
+.closeBtn {
+  height: 40px;
+  padding: 0 16px !important;
+  border-radius: 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+}
+
+.primaryBtn {
+  background: #0a8066 !important;
+  color: #ffffff !important;
+
+  &:hover:not(:disabled) {
+    background: #08735c !important;
+  }
+}
+
+.closeBtn {
+  border-color: #d5ddd8 !important;
+  color: #24312d !important;
+}
+
+@media (max-width: 767px) {
+  .dialogHeader {
+    padding: 12px 16px !important;
+  }
+
+  .closeIconBtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .dialogContent {
+    padding: 12px 16px !important;
+    min-height: 280px;
+  }
+
+  .pdfFrame {
+    height: 55vh;
+    min-height: 300px;
+  }
+
+  .dialogActions {
+    padding: 12px 16px !important;
+    flex-direction: column-reverse;
+    align-items: stretch;
+
+    & > :not(style) ~ :not(style) {
+      margin-left: 0 !important;
+    }
+  }
+
+  .actionGroupLeft,
+  .actionGroupRight {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .primaryBtn,
+  .secondaryBtn,
+  .closeBtn {
+    width: 100%;
+    height: 44px;
+  }
+}

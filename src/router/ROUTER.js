@@ -41,6 +41,8 @@ const ROUTER = {
   SUPPLIER_DELIVERY_DETAIL: "/supplier/deliveries/:id",
   SUPPLIER_STAFF: "/supplier/staff",
   SUPPLIER_STAFF_DETAIL: "/supplier/staff/:id",
+  SUPPLIER_SCHOOLS: "/supplier/schools",
+  SUPPLIER_SCHOOL_DETAIL: "/supplier/schools/:id",
 
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
   SCHOOL: "/school",
