@@ -12,7 +12,7 @@ export default function DeliveryHeader() {
         </Box>
         <Box>
           <Typography variant="h5" className={styles.pageTitle}>
-            Phiếu Nhập Hàng
+            Yêu Cầu Nhập Hàng
           </Typography>
         </Box>
       </Box>

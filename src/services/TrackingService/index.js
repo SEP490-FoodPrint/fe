@@ -36,7 +36,11 @@ const TrackingService = {
         // Giờ hẹn giao
         const timeMatch = String(so.note || "").match(/\b(\d{1,2}:\d{2})\b/)
         const deliveryTime = timeMatch ? timeMatch[1] : isDry ? "14:30" : isB2 ? "07:45" : "05:30"
-        const dateStr = so.requestedDeliveryDate ? String(so.requestedDeliveryDate).slice(0, 10) : "2026-11-16"
+        const dateStr = so.requestedDeliveryDate
+          ? String(so.requestedDeliveryDate).slice(0, 10)
+          : so.createdAt
+          ? String(so.createdAt).slice(0, 10)
+          : new Date().toISOString().slice(0, 10)
 
         const scheduleMatch = String(so.note || "").match(/Lịch hẹn giao:\s*([^.]+)/i)
         const deliverySchedule = scheduleMatch ? scheduleMatch[1].trim() : `${deliveryTime} - Ngày ${dateStr}`
@@ -179,7 +183,11 @@ const TrackingService = {
 
           const timeMatch = String(so.note || "").match(/\b(\d{1,2}:\d{2})\b/)
           const deliveryTime = timeMatch ? timeMatch[1] : isDry ? "14:30" : isB2 ? "07:45" : "05:30"
-          const dateStr = so.requestedDeliveryDate ? String(so.requestedDeliveryDate).slice(0, 10) : "2026-11-16"
+          const dateStr = so.requestedDeliveryDate
+            ? String(so.requestedDeliveryDate).slice(0, 10)
+            : so.createdAt
+            ? String(so.createdAt).slice(0, 10)
+            : new Date().toISOString().slice(0, 10)
           const scheduleMatch = String(so.note || "").match(/Lịch hẹn giao:\s*([^.]+)/i)
           const deliverySchedule = scheduleMatch ? scheduleMatch[1].trim() : `${deliveryTime} - Ngày ${dateStr}`
 

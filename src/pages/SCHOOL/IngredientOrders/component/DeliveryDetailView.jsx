@@ -197,7 +197,7 @@ export default function DeliveryDetailView({
           <Box className={styles.titleInfo}>
             <Box className={styles.titleWithBadge}>
               <Typography variant="h5" className={styles.mainTitle}>
-                Phiếu Giao Nhận: {delivery.deliveryNo}
+                Mã nhập hàng: {delivery.deliveryNo}
               </Typography>
               <Chip
                 label={
@@ -223,8 +223,7 @@ export default function DeliveryDetailView({
               )}
             </Box>
             <Typography variant="body2" className={styles.subTitle}>
-              Đơn đặt hàng gốc: <strong>{delivery.orderNo}</strong>
-              {delivery.menuName && ` • Thực đơn: ${delivery.menuName}`}
+              Mã đặt hàng theo đợt: <strong>{delivery.orderNo}</strong>
             </Typography>
             {Array.isArray(delivery.menusSummary) &&
               delivery.menusSummary.length > 1 && (
@@ -452,6 +451,8 @@ export default function DeliveryDetailView({
                   <Typography variant="body2" className={styles.infoValue}>
                     {transport.driver}
                   </Typography>
+
+
                 </Box>
 
                 <Box className={styles.infoItem}>
@@ -478,6 +479,15 @@ export default function DeliveryDetailView({
                   </Typography>
                   <Typography variant="body2" className={styles.infoValue}>
                     {delivery.deliveryTime} — Ngày {delivery.deliveryDate}
+                  </Typography>
+                </Box>
+                <Box className={styles.infoItem}>
+                  <Clock size={16} className={styles.infoIcon} />
+                  <Typography variant="body2" className={styles.infoLabel}>
+                    Ghi chú:
+                  </Typography>
+                  <Typography variant="body2" className={styles.infoValue}>
+                    {delivery.menuName}
                   </Typography>
                 </Box>
 
@@ -541,13 +551,12 @@ export default function DeliveryDetailView({
             return (
               <Box
                 key={r.key}
-                className={`${styles.approvalCard} ${
-                  isApproved
-                    ? styles.approvedCard
-                    : isRejected
-                      ? styles.rejectedCard
-                      : styles.pendingCard
-                }`}
+                className={`${styles.approvalCard} ${isApproved
+                  ? styles.approvedCard
+                  : isRejected
+                    ? styles.rejectedCard
+                    : styles.pendingCard
+                  }`}
               >
                 <Box className={styles.cardTop}>
                   <Box className={styles.roleTitleGroup}>
@@ -671,16 +680,16 @@ export default function DeliveryDetailView({
                   typeof item.extraQty === "number" && item.extraQty > 0;
                 const portionRate =
                   !isExtraItem &&
-                  typeof item.qtyPerPortion === "number" &&
-                  item.qtyPerPortion > 0
+                    typeof item.qtyPerPortion === "number" &&
+                    item.qtyPerPortion > 0
                     ? item.qtyPerPortion
                     : !isExtraItem
                       ? Number(
-                          (
-                            (item.orderedQty || 0) /
-                            (delivery.plannedPortions || batch1Portions || 1)
-                          ).toFixed(4),
-                        )
+                        (
+                          (item.orderedQty || 0) /
+                          (delivery.plannedPortions || batch1Portions || 1)
+                        ).toFixed(4),
+                      )
                       : 0;
 
                 const rawNeeded = portionRate * remainingNeeded;

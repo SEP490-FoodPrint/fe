@@ -14,46 +14,12 @@ import {
   CircularProgress,
 } from "@mui/material"
 import {
-  Truck,
-  Clock,
-  CheckCircle2,
   Eye,
   Package,
 } from "lucide-react"
 import styles from "./TrackingTable.module.scss"
 
 export default function TrackingTable({ orders = [], onViewDetail, loading = false }) {
-  const getOrderTypeBadge = type => {
-    switch (type) {
-      case "FRESH_BATCH_1":
-        return (
-          <Chip
-            size="small"
-            label="Đồ tươi (Đợt 1 - 05:30)"
-            className={styles.badgeFresh1}
-          />
-        )
-      case "FRESH_BATCH_2":
-        return (
-          <Chip
-            size="small"
-            label="Đồ tươi (Đợt 2 - Bù sĩ số)"
-            className={styles.badgeFresh2}
-          />
-        )
-      case "DRY_STOCK":
-        return (
-          <Chip
-            size="small"
-            label="Đồ khô & Gia vị"
-            className={styles.badgeDry}
-          />
-        )
-      default:
-        return <Chip size="small" label={type} />
-    }
-  }
-
   const getStatusBadge = status => {
     switch (status) {
       case "CREATED":
@@ -149,38 +115,33 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
       <Table className={styles.table} aria-label="Bảng theo dõi đơn hàng">
         <TableHead>
           <TableRow className={styles.headRow}>
-            <TableCell className={styles.thCell}>Mã Đơn / Phiếu Giao</TableCell>
-            <TableCell className={styles.thCell}>Loại Đơn Hàng</TableCell>
+            <TableCell className={styles.thCell}>Mã Nhập Hàng</TableCell>
             <TableCell className={styles.thCell}>Lịch Hẹn Giao</TableCell>
-            <TableCell className={styles.thCell}>Trạng Thái Tiến Trình</TableCell>
+            <TableCell className={styles.thCell}>Trạng Thái</TableCell>
             <TableCell className={styles.thCellAction} align="center">Thao Tác</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {orders.map(item => (
             <TableRow key={item.id} hover className={styles.tableRow}>
-              {/* Cột 1: Mã Đơn / Phiếu Giao */}
+              {/* Cột 1: Mã Phiếu (Gọn gàng, chỉ hiển thị mã định danh chính) */}
               <TableCell className={styles.tdCell}>
-                <Typography className={styles.orderNo}>{item.orderNo}</Typography>
-                <Typography className={styles.deliveryNo}>{item.deliveryNo}</Typography>
+                <Typography className={styles.orderNo}>
+                  {item.orderNo || item.deliveryNo}
+                </Typography>
               </TableCell>
 
-              {/* Cột 2: Loại Đơn */}
-              <TableCell className={styles.tdCell}>
-                {getOrderTypeBadge(item.orderType)}
-              </TableCell>
-
-              {/* Cột 3: Lịch Hẹn Giao */}
+              {/* Cột 2: Lịch Hẹn Giao */}
               <TableCell className={styles.tdCell}>
                 <Typography className={styles.scheduleText}>{item.deliverySchedule}</Typography>
               </TableCell>
 
-              {/* Cột 4: Trạng Thái Tiến Trình */}
+              {/* Cột 3: Trạng Thái Tiến Trình */}
               <TableCell className={styles.tdCell}>
                 {getStatusBadge(item.status)}
               </TableCell>
 
-              {/* Cột 5: Thao Tác */}
+              {/* Cột 4: Thao Tác */}
               <TableCell className={styles.tdCellAction} align="center">
                 <Button
                   size="small"

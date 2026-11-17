@@ -312,13 +312,13 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_WAREHOUSE,
-    label: "Kho đồ khô",
+    label: "Đồ khô",
     icon: <WarehouseOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_ORDERS,
-    label: "Phiếu nhập hàng",
+    label: "Đồ tươi",
     icon: <ReceiptLongOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
