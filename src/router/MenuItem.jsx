@@ -127,6 +127,16 @@ export const MenuItemSupplier = () => [
       ROLES.INGREDIENT_SUPPLIER,
     ],
   },
+  {
+    key: ROUTER.SUPPLIER_COMPLAINTS,
+    label: "Danh sách khiếu nại",
+    icon: <ChatBubbleOutlineOutlinedIcon />,
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
+  },
 ];
 
 /**
