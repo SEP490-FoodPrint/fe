@@ -137,9 +137,23 @@ export default function IngredientOrders() {
   }
 
   // Xem chi tiết phiếu giao nhận
-  const handleViewDetail = deliveryItem => {
+  const handleViewDetail = async (deliveryItem) => {
     setSelectedDelivery(deliveryItem)
     setDeliverySubView("detail")
+
+    if (!deliveryItem?.items || deliveryItem.items.length === 0) {
+      try {
+        const fullDetail = await IngredientOrderService.getDeliveryDetail(
+          deliveryItem.id,
+          deliveryItem,
+        )
+        if (fullDetail) {
+          setSelectedDelivery(fullDetail)
+        }
+      } catch (err) {
+        console.warn("Lỗi tải chi tiết đơn hàng:", err)
+      }
+    }
   }
 
   // Quay lại danh sách phiếu giao nhận

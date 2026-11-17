@@ -191,9 +191,11 @@ export const buildWarehouseInventory = (
     })
 
     const availableSupplierIds = Array.from(matchingSupIds)
+    const matchedEntry = entries.find(e => e.ingredientId === ing.id || e.id === ing.id)
 
     items.push({
       id: ing.id,
+      ingredientEntryId: matchedEntry?.id || null,
       code,
       name: ing.name,
       category: ing.category || "Lương thực & Gia vị",

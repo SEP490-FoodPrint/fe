@@ -8,6 +8,43 @@ import {
 import { adaptCatalogItem, adaptDeliveryItem } from "./adapter";
 
 /**
+ * Tải toàn bộ các trang dữ liệu từ API có phân trang (tuân thủ giới hạn limit <= 100 của Backend)
+ */
+const fetchAllPages = async (url, params = {}) => {
+  let page = 1;
+  let allItems = [];
+  while (page <= 20) {
+    const res = await http
+      .get(url, {
+        params: { ...params, page, limit: 100 },
+        notifyOnError: false,
+        skipAuthRedirect: true,
+      })
+      .catch(() => null);
+    const data = res?.data || res;
+    const items = Array.isArray(data?.items)
+      ? data.items
+      : Array.isArray(data)
+        ? data
+        : [];
+    allItems = allItems.concat(items);
+    if (!data?.pagination?.hasNext || items.length < 100) {
+      break;
+    }
+    page++;
+  }
+  return allItems;
+};
+
+const getTodayStr = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+/**
  * Tìm contractId ACTIVE cho 1 supplierId từ danh sách supplier-partnerships,
  * sau đó gọi send (DRAFT → SENT) để NCC thấy được đơn trên hệ thống.
  */
@@ -16,12 +53,7 @@ const sendDraftOrder = async (orderId, supplierId, partnershipsCache) => {
   try {
     let partnerships = partnershipsCache;
     if (!partnerships) {
-      const pRes = await http.get("/supplier-partnerships", {
-        params: { status: "ACTIVE", page: 1, limit: 100 },
-        notifyOnError: false,
-      });
-      const pData = pRes?.data || pRes;
-      partnerships = Array.isArray(pData?.items) ? pData.items : [];
+      partnerships = await fetchAllPages("/supplier-partnerships", { status: "ACTIVE" });
     }
     const partnership = partnerships.find(
       (p) => (p.supplier?.id || p.supplierId) === supplierId,
@@ -36,9 +68,12 @@ const sendDraftOrder = async (orderId, supplierId, partnershipsCache) => {
         { contractId: activeContract.id },
         { notifyOnError: false },
       );
+      console.log(`[sendDraftOrder] Đã gửi đơn ${orderId} sang NCC ${supplierId} với HĐ ${activeContract.id}`);
+    } else {
+      console.warn(`[sendDraftOrder] Không tìm thấy hợp đồng ACTIVE cho NCC ${supplierId}`);
     }
   } catch (err) {
-    console.warn("[sendDraftOrder] Gửi đơn thất bại:", err);
+    console.warn("[sendDraftOrder] Gửi đơn thất bại:", err?.response?.data?.message || err?.message);
   }
 };
 
@@ -242,15 +277,10 @@ const IngredientOrderService = {
         try {
           const queryDate = params?.date
             ? String(params.date).slice(0, 10)
-            : "2026-11-16";
-          const [entryRes, attendanceRes] = await Promise.all([
-            http
-              .get("/ingredient-entries", {
-                params: { limit: 100 },
-                notifyOnError: false,
-                skipAuthRedirect: true,
-              })
-              .catch(() => null),
+            : getTodayStr();
+          const [rawEntries, allIngs, attendanceRes] = await Promise.all([
+            fetchAllPages("/ingredient-entries"),
+            fetchAllPages("/ingredients"),
             http
               .get("/v1/daily-meal-portions", {
                 params: { date: queryDate, mealType: "LUNCH" },
@@ -260,12 +290,13 @@ const IngredientOrderService = {
               .catch(() => null),
           ]);
 
-          const entryData = entryRes?.data || entryRes;
-          entries = Array.isArray(entryData?.items)
-            ? entryData.items
-            : Array.isArray(entryData)
-              ? entryData
-              : [];
+          entries = rawEntries.map((e) => {
+            const matchedIng = allIngs.find((i) => i.id === e.ingredientId);
+            return {
+              ...e,
+              Ingredient: matchedIng || e.Ingredient,
+            };
+          });
 
           const attendanceData = attendanceRes?.data || attendanceRes;
           if (Array.isArray(attendanceData?.classes)) {
@@ -555,17 +586,51 @@ const IngredientOrderService = {
           ? supplyData
           : [];
 
+      // Lấy danh sách NCC để map tên nhà cung cấp
+      const supRes = await this.getSuppliers().catch(() => ({ items: [] }));
+      const supplierMap = new Map(
+        (supRes?.items || []).map((s) => [s.id, s.name]),
+      );
+
       // Lọc các đơn từ /supply-requests: CHỈ LẤY THỰC PHẨM TƯƠI SỐNG 2 ĐỢT (BATCH_1, BATCH_2), LOẠI BỎ ĐỒ KHÔ
-      supplyList = supplyItems
-        .filter((so) => {
-          const reqNo = String(so.requestNo || "").toUpperCase();
-          const isDry =
-            reqNo.includes("DRY") ||
-            reqNo.includes("PNK") ||
-            so.orderType === "DRY_STOCK" ||
-            so.batchType === "DRY_STOCK";
-          return !isDry;
-        })
+      const freshSupplyItems = supplyItems.filter((so) => {
+        const reqNo = String(so.requestNo || "").toUpperCase();
+        const isDry =
+          reqNo.includes("DRY") ||
+          reqNo.includes("PNK") ||
+          so.orderType === "DRY_STOCK" ||
+          so.batchType === "DRY_STOCK";
+        return !isDry;
+      });
+
+      // Lấy chi tiết song song cho các đơn hàng tươi sống vừa lấy để có đầy đủ items, ngày giao, ghi chú
+      const detailedFreshSupply = await Promise.all(
+        freshSupplyItems.map(async (so) => {
+          try {
+            const detailRes = await http
+              .get(`/supply-requests/${so.id}`, {
+                notifyOnError: false,
+                skipAuthRedirect: true,
+              })
+              .catch(() => null);
+            const detailData = detailRes?.data || detailRes;
+            if (detailData && detailData.id) {
+              return {
+                ...so,
+                ...detailData,
+                items: detailData.items || so.items || [],
+                requestedDeliveryDate:
+                  detailData.requestedDeliveryDate || so.requestedDeliveryDate,
+              };
+            }
+          } catch {
+            // bỏ qua lỗi nếu có
+          }
+          return so;
+        }),
+      );
+
+      supplyList = detailedFreshSupply
         .map((so) => {
           const reqNo = String(so.requestNo || "").toUpperCase();
           const isB2 =
@@ -577,21 +642,42 @@ const IngredientOrderService = {
           const deliveryTime = isB2 ? "07:45" : "05:30";
           const dateStr = so.requestedDeliveryDate
             ? String(so.requestedDeliveryDate).slice(0, 10)
-            : "2026-11-16";
+            : getTodayStr();
 
           // DeliveryNo hiển thị
           const cleanNo = so.requestNo
             ? so.requestNo.replace(/^PO-/, "")
             : so.id;
           const deliveryNo = `PN-${cleanNo}`;
+          const sName =
+            so.supplierName ||
+            supplierMap.get(so.supplierId) ||
+            so.Supplier?.name ||
+            "Nhà cung cấp đối tác";
+
+          const rawItems = Array.isArray(so.items) ? so.items : [];
+          const deliveryItems = rawItems.map((it) => ({
+            id: it.id,
+            ingredientId: it.ingredientEntryId || it.id,
+            ingredientName:
+              it.ingredientName || it.name || "Nguyên liệu tươi",
+            requestedQuantity: Number(it.requestedQuantity || it.quantity || 0),
+            actualQuantity: Number(it.requestedQuantity || it.quantity || 0),
+            orderedQty: Number(it.requestedQuantity || it.quantity || 0),
+            deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
+            unit: it.unit || "kg",
+            supplierId: so.supplierId,
+            supplierName: it.supplierName || sName,
+            handlingType: "DIRECT_USE",
+            status: "ACCEPTED",
+          }));
 
           return adaptDeliveryItem({
             id: so.id,
             deliveryNo,
             orderNo: so.requestNo,
             supplierId: so.supplierId,
-            supplierName:
-              so.supplierName || so.Supplier?.name || "Nhà cung cấp đối tác",
+            supplierName: sName,
             supplierPhone: so.supplierPhone || so.Supplier?.phone || "--",
             deliveryDate: dateStr,
             deliveryTime,
@@ -612,22 +698,9 @@ const IngredientOrderService = {
               (isB2
                 ? "Thực phẩm tươi sống Đợt 2 (Cân đối sĩ số)"
                 : "Thực phẩm tươi sống Đợt 1 (50% Suất)"),
-            deliveryItems: Array.isArray(so.items)
-              ? so.items.map((it) => ({
-                  id: it.id,
-                  ingredientName:
-                    it.ingredientName || it.name || "Nguyên liệu tươi",
-                  requestedQuantity: it.quantity || 0,
-                  actualQuantity: it.quantity || 0,
-                  unit: it.unit || "kg",
-                  supplierId: so.supplierId,
-                  supplierName:
-                    so.supplierName ||
-                    so.Supplier?.name ||
-                    "Nhà cung cấp đối tác",
-                  handlingType: "DIRECT_USE",
-                }))
-              : [],
+            deliveryItems,
+            items: deliveryItems,
+            subOrderIds: [so.id],
           });
         })
         .filter(Boolean);
@@ -693,6 +766,8 @@ const IngredientOrderService = {
               : suppliersList[0] || first.supplierName,
           suppliers: suppliersList,
           items: allItems,
+          deliveryItems: allItems,
+          subOrderIds: group.map((g) => g.id),
         };
       },
     );
@@ -720,6 +795,151 @@ const IngredientOrderService = {
     }
 
     return { items, total: items.length, isMock: false };
+  },
+
+  /**
+   * Lấy chi tiết 1 đơn hàng/phiếu giao nhận theo ID hoặc đối tượng fallbackDelivery
+   * Truy vấn /supply-requests/:id hoặc /deliveries/:id
+   */
+  async getDeliveryDetail(id, fallbackDelivery = null) {
+    if (!id && !fallbackDelivery) return null;
+    try {
+      // 1. Nếu fallbackDelivery đã có items đầy đủ thì ưu tiên dùng
+      if (
+        Array.isArray(fallbackDelivery?.items) &&
+        fallbackDelivery.items.length > 0
+      ) {
+        return fallbackDelivery;
+      }
+
+      // 2. Lấy danh sách suppliers để map tên
+      const supRes = await this.getSuppliers().catch(() => ({ items: [] }));
+      const supplierMap = new Map(
+        (supRes?.items || []).map((s) => [s.id, s.name]),
+      );
+
+      // 3. Nếu fallbackDelivery có subOrderIds (đơn gộp nhiều NCC)
+      const subIds = fallbackDelivery?.subOrderIds || (id ? [id] : []);
+      if (subIds.length > 0) {
+        const details = await Promise.all(
+          subIds.map((subId) =>
+            http
+              .get(`/supply-requests/${subId}`, {
+                notifyOnError: false,
+                skipAuthRedirect: true,
+              })
+              .then((r) => r?.data || r)
+              .catch(() => null),
+          ),
+        );
+
+        const validDetails = details.filter((d) => d && d.id);
+        if (validDetails.length > 0) {
+          const allItems = [];
+          const supNames = new Set();
+          let latestDate = fallbackDelivery?.deliveryDate;
+
+          validDetails.forEach((d) => {
+            const sName =
+              d.supplierName ||
+              supplierMap.get(d.supplierId) ||
+              "Nhà cung cấp đối tác";
+            if (sName) supNames.add(sName);
+            if (d.requestedDeliveryDate) {
+              latestDate = String(d.requestedDeliveryDate).slice(0, 10);
+            }
+            if (Array.isArray(d.items)) {
+              d.items.forEach((it) => {
+                allItems.push({
+                  id: it.id,
+                  ingredientId: it.ingredientEntryId || it.id,
+                  ingredientName:
+                    it.ingredientName || it.name || "Nguyên liệu tươi",
+                  requestedQuantity: Number(
+                    it.requestedQuantity || it.quantity || 0,
+                  ),
+                  actualQuantity: Number(
+                    it.requestedQuantity || it.quantity || 0,
+                  ),
+                  orderedQty: Number(it.requestedQuantity || it.quantity || 0),
+                  deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
+                  unit: it.unit || "kg",
+                  supplierId: d.supplierId,
+                  supplierName: sName,
+                  handlingType: "DIRECT_USE",
+                  status: "ACCEPTED",
+                });
+              });
+            }
+          });
+
+          const suppliersList = Array.from(supNames);
+          const first = validDetails[0];
+          const reqNo = String(
+            first.requestNo || fallbackDelivery?.orderNo || "",
+          ).toUpperCase();
+          const isB2 =
+            reqNo.includes("B2") ||
+            reqNo.includes("-D2") ||
+            reqNo.includes("DOT 2") ||
+            reqNo.includes("ĐỢT 2");
+          const batchType = isB2 ? "BATCH_2" : "BATCH_1";
+          const deliveryTime = isB2 ? "07:45" : "05:30";
+
+          return adaptDeliveryItem({
+            ...(fallbackDelivery || {}),
+            id: fallbackDelivery?.id || first.id,
+            deliveryNo:
+              fallbackDelivery?.deliveryNo ||
+              `PN-${first.requestNo?.replace(/^PO-/, "")}`,
+            orderNo: fallbackDelivery?.orderNo || first.requestNo,
+            supplierId: first.supplierId,
+            supplierName:
+              suppliersList.length > 1
+                ? `Nhiều NCC (${suppliersList.length} đối tác: ${suppliersList.join(", ")})`
+                : suppliersList[0] ||
+                  fallbackDelivery?.supplierName ||
+                  "Nhà cung cấp đối tác",
+            suppliers: suppliersList,
+            deliveryDate:
+              latestDate || fallbackDelivery?.deliveryDate || getTodayStr(),
+            deliveryTime,
+            batchType,
+            status:
+              first.status === "ACCEPTED"
+                ? "CONFIRMED"
+                : first.status === "SENT" || first.status === "DRAFT"
+                  ? "CREATED"
+                  : first.status,
+            statusLabel:
+              first.status === "ACCEPTED"
+                ? "NCC đã xác nhận"
+                : "Chờ NCC xác nhận",
+            note: first.note || fallbackDelivery?.note,
+            deliveryItems: allItems,
+            items: allItems,
+            subOrderIds: subIds,
+          });
+        }
+      }
+
+      // 4. Nếu là đơn từ /deliveries/:id
+      if (id) {
+        const delivRes = await http
+          .get(`/deliveries/${id}`, {
+            notifyOnError: false,
+            skipAuthRedirect: true,
+          })
+          .catch(() => null);
+        const delivData = delivRes?.data || delivRes;
+        if (delivData && delivData.id) {
+          return adaptDeliveryItem(delivData);
+        }
+      }
+    } catch (err) {
+      console.warn("Lỗi tải chi tiết đơn hàng:", err);
+    }
+    return fallbackDelivery;
   },
 
   /**
@@ -767,53 +987,83 @@ const IngredientOrderService = {
     const isMulti = Array.isArray(menus) && menus.length > 1;
     const dateFormatted = orderDate
       ? String(orderDate).slice(0, 10)
-      : new Date().toISOString().slice(0, 10);
-    const orderNo = `PO-${dateFormatted.replace(/-/g, "")}-${Math.floor(10 + Math.random() * 90)}`;
+      : getTodayStr();
+    const deliveryDate = dateFormatted;
+    const orderNo = `PO-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
 
-    // Tải danh mục ingredient-entries và active contracts từ DB
-    const [entriesRes, pRes] = await Promise.all([
-      http
-        .get("/ingredient-entries", {
-          params: { limit: 100 },
-          notifyOnError: false,
-        })
-        .catch(() => null),
-      http
-        .get("/supplier-partnerships", {
-          params: { status: "ACTIVE", page: 1, limit: 100 },
-          notifyOnError: false,
-        })
-        .catch(() => null),
+    // Tải danh mục ingredient-entries, active partnerships và danh mục ingredients từ DB (đầy đủ các trang)
+    const [entries, partnerships, allIngredients] = await Promise.all([
+      fetchAllPages("/ingredient-entries"),
+      fetchAllPages("/supplier-partnerships", { status: "ACTIVE" }),
+      fetchAllPages("/ingredients"),
     ]);
-    const entries = Array.isArray(entriesRes?.data?.items)
-      ? entriesRes.data.items
-      : Array.isArray(entriesRes?.data)
-        ? entriesRes.data
-        : [];
-    const partnerships = Array.isArray(pRes?.data?.items)
-      ? pRes.data.items
-      : [];
+
+    // Xây dựng danh bạ các IngredientEntry HỢP LỆ THẬT SỰ của trường trong DB
+    const schoolActiveEntries = entries
+      .filter((e) => e.status === "ACTIVE" || !e.status)
+      .map((e) => {
+        const ing = allIngredients.find((i) => i.id === e.ingredientId);
+        return {
+          entryId: e.id,
+          ingredientId: e.ingredientId,
+          supplierId: ing?.supplierId || ing?.Supplier?.id || "",
+          supplierName: ing?.Supplier?.name || "Nhà cung cấp đối tác",
+          name: ing?.name || "",
+          normName: String(ing?.name || "").trim().toLowerCase(),
+          unit: ing?.defaultUnit || "kg",
+          handlingType: e.handlingType || "DIRECT_USE",
+        };
+      })
+      .filter((e) => e.supplierId);
 
     // 1. Chuẩn hóa items và xác định đúng ingredientEntryId & supplierId từ DB
     const freshItemsBatch1 = (Array.isArray(items) ? items : []).map((it) => {
-      let entryId = it.ingredientEntryId || it.id;
-      const match = entries.find(
+      const itNorm = String(it.ingredientName || it.name || "").trim().toLowerCase();
+
+      // Tìm entry hợp lệ trong DB của trường
+      let targetEntry = schoolActiveEntries.find(
         (e) =>
-          e.id === entryId ||
-          e.ingredientId === it.id ||
-          e.ingredientId === it.ingredientId,
+          e.entryId === it.ingredientEntryId ||
+          e.entryId === it.id ||
+          e.ingredientId === it.ingredientId ||
+          e.ingredientId === it.id,
       );
-      if (match) entryId = match.id;
+
+      // Nếu chưa khớp ID, khớp qua tên và nhà cung cấp
+      if (!targetEntry && itNorm) {
+        if (it.supplierId) {
+          targetEntry = schoolActiveEntries.find(
+            (e) =>
+              e.supplierId === it.supplierId &&
+              (e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName)),
+          );
+        }
+        if (!targetEntry) {
+          targetEntry = schoolActiveEntries.find(
+            (e) => e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName),
+          );
+        }
+      }
+
+      // Fallback an toàn: chọn 1 entry tươi sống ACTIVE thật của trường
+      if (!targetEntry) {
+        targetEntry =
+          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE" && e.supplierId === it.supplierId) ||
+          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE") ||
+          schoolActiveEntries[0];
+      }
 
       const sId =
+        targetEntry?.supplierId ||
         it.supplierId ||
-        match?.Ingredient?.supplierId ||
-        match?.supplierId ||
+        partnerships[0]?.supplier?.id ||
+        partnerships[0]?.supplierId ||
         "";
       const sName =
+        targetEntry?.supplierName ||
         it.supplierName ||
-        match?.Ingredient?.Supplier?.name ||
         "Nhà cung cấp đối tác";
+      const entryId = targetEntry?.entryId || it.ingredientEntryId || it.id;
 
       return {
         ...it,
@@ -831,10 +1081,7 @@ const IngredientOrderService = {
     // 2. Gom items theo từng supplierId thực tế
     const itemsBySupplier = {};
     freshItemsBatch1.forEach((it) => {
-      const sId =
-        it.supplierId ||
-        partnerships[0]?.supplier?.id ||
-        partnerships[0]?.supplierId;
+      const sId = it.supplierId;
       if (!sId) return;
       if (!itemsBySupplier[sId]) itemsBySupplier[sId] = [];
       itemsBySupplier[sId].push(it);
@@ -871,10 +1118,15 @@ const IngredientOrderService = {
         }
       });
 
+      const noteText = note
+        ? `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. ${note}`.trim()
+        : `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 1 thực phẩm tươi sống`;
+
       const payload = {
         supplierId: sId,
         requestNo: reqNo,
-        requestedDeliveryDate: dateFormatted,
+        requestedDeliveryDate: deliveryDate,
+        note: noteText,
         items: Array.from(mergedItemsMap.entries()).map(
           ([ingredientEntryId, quantity]) => ({
             ingredientEntryId,
@@ -952,36 +1204,37 @@ const IngredientOrderService = {
     const deliveryDate =
       orderDate ||
       batch1Delivery.deliveryDate ||
-      new Date().toISOString().slice(0, 10);
+      getTodayStr();
     const actualCount = Number(actualAttendance) || 0;
     const maxPortions = Number(batch1Delivery.maxPortions) || 0;
     const batch1Portions =
       batch1Delivery.plannedPortions || Math.floor(maxPortions / 2);
     const remainingPortions = Math.max(0, actualCount - batch1Portions);
 
-    // Tải danh mục ingredient-entries và active contracts từ DB
-    const [entriesRes, pRes] = await Promise.all([
-      http
-        .get("/ingredient-entries", {
-          params: { limit: 100 },
-          notifyOnError: false,
-        })
-        .catch(() => null),
-      http
-        .get("/supplier-partnerships", {
-          params: { status: "ACTIVE", page: 1, limit: 100 },
-          notifyOnError: false,
-        })
-        .catch(() => null),
+    // Tải danh mục ingredient-entries, active partnerships và danh mục ingredients từ DB (đầy đủ các trang)
+    const [entries, partnerships, allIngredients] = await Promise.all([
+      fetchAllPages("/ingredient-entries"),
+      fetchAllPages("/supplier-partnerships", { status: "ACTIVE" }),
+      fetchAllPages("/ingredients"),
     ]);
-    const entries = Array.isArray(entriesRes?.data?.items)
-      ? entriesRes.data.items
-      : Array.isArray(entriesRes?.data)
-        ? entriesRes.data
-        : [];
-    const partnerships = Array.isArray(pRes?.data?.items)
-      ? pRes.data.items
-      : [];
+
+    // Xây dựng danh bạ các IngredientEntry HỢP LỆ THẬT SỰ của trường trong DB
+    const schoolActiveEntries = entries
+      .filter((e) => e.status === "ACTIVE" || !e.status)
+      .map((e) => {
+        const ing = allIngredients.find((i) => i.id === e.ingredientId);
+        return {
+          entryId: e.id,
+          ingredientId: e.ingredientId,
+          supplierId: ing?.supplierId || ing?.Supplier?.id || "",
+          supplierName: ing?.Supplier?.name || "Nhà cung cấp đối tác",
+          name: ing?.name || "",
+          normName: String(ing?.name || "").trim().toLowerCase(),
+          unit: ing?.defaultUnit || "kg",
+          handlingType: e.handlingType || "DIRECT_USE",
+        };
+      })
+      .filter((e) => e.supplierId);
 
     // 2. Chuẩn hóa items Đợt 2
     const sourceItems =
@@ -989,24 +1242,49 @@ const IngredientOrderService = {
         ? items
         : batch1Delivery.items || [];
     const freshItemsBatch2 = sourceItems.map((it) => {
-      let entryId = it.ingredientEntryId || it.id;
-      const match = entries.find(
+      const itNorm = String(it.ingredientName || it.name || "").trim().toLowerCase();
+
+      let targetEntry = schoolActiveEntries.find(
         (e) =>
-          e.id === entryId ||
-          e.ingredientId === it.id ||
-          e.ingredientId === it.ingredientId,
+          e.entryId === it.ingredientEntryId ||
+          e.entryId === it.id ||
+          e.ingredientId === it.ingredientId ||
+          e.ingredientId === it.id,
       );
-      if (match) entryId = match.id;
+
+      if (!targetEntry && itNorm) {
+        if (it.supplierId) {
+          targetEntry = schoolActiveEntries.find(
+            (e) =>
+              e.supplierId === it.supplierId &&
+              (e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName)),
+          );
+        }
+        if (!targetEntry) {
+          targetEntry = schoolActiveEntries.find(
+            (e) => e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName),
+          );
+        }
+      }
+
+      if (!targetEntry) {
+        targetEntry =
+          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE" && e.supplierId === it.supplierId) ||
+          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE") ||
+          schoolActiveEntries[0];
+      }
 
       const sId =
+        targetEntry?.supplierId ||
         it.supplierId ||
-        match?.Ingredient?.supplierId ||
-        match?.supplierId ||
+        partnerships[0]?.supplier?.id ||
+        partnerships[0]?.supplierId ||
         "";
       const sName =
+        targetEntry?.supplierName ||
         it.supplierName ||
-        match?.Ingredient?.Supplier?.name ||
         "Nhà cung cấp đối tác";
+      const entryId = targetEntry?.entryId || it.ingredientEntryId || it.id;
 
       let ordQty = it.orderedQty;
       if (ordQty === undefined || ordQty === null) {
@@ -1031,10 +1309,7 @@ const IngredientOrderService = {
     // 3. Gom items theo từng supplierId
     const itemsBySupplier = {};
     freshItemsBatch2.forEach((it) => {
-      const sId =
-        it.supplierId ||
-        partnerships[0]?.supplier?.id ||
-        partnerships[0]?.supplierId;
+      const sId = it.supplierId;
       if (!sId) return;
       if (!itemsBySupplier[sId]) itemsBySupplier[sId] = [];
       itemsBySupplier[sId].push(it);

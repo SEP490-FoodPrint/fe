@@ -220,6 +220,7 @@ export default function CreateDryOrderView({
 
       allSelectedItems.push({
         id: it.id,
+        ingredientEntryId: it.ingredientEntryId || it.id,
         name: it.name,
         qty,
         unit: it.unit || "kg",

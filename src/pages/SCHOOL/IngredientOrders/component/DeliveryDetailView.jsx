@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
+import IngredientOrderService from "src/services/IngredientOrderService";
 import {
   Box,
   Typography,
@@ -50,13 +51,47 @@ const formatPortionRate = (rate, unit) => {
 };
 
 export default function DeliveryDetailView({
-  delivery,
+  delivery: propDelivery,
   onBack,
   onConfirmAttendance,
 }) {
+  const [internalDelivery, setInternalDelivery] = useState(propDelivery);
+
+  useEffect(() => {
+    setInternalDelivery(propDelivery);
+  }, [propDelivery]);
+
+  useEffect(() => {
+    if (
+      internalDelivery?.id &&
+      (!internalDelivery.items || internalDelivery.items.length === 0)
+    ) {
+      let isMounted = true;
+      IngredientOrderService.getDeliveryDetail(
+        internalDelivery.id,
+        internalDelivery,
+      ).then((res) => {
+        if (isMounted && res && res.items && res.items.length > 0) {
+          setInternalDelivery(res);
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }
+  }, [internalDelivery?.id, internalDelivery?.items?.length]);
+
+  const delivery = internalDelivery || propDelivery;
+
   const [attendanceInput, setAttendanceInput] = useState(
     delivery?.actualAttendance || 820,
   );
+
+  useEffect(() => {
+    if (delivery?.actualAttendance) {
+      setAttendanceInput(delivery.actualAttendance);
+    }
+  }, [delivery?.actualAttendance]);
   const [updating, setUpdating] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
