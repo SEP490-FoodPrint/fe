@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
 import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
@@ -12,9 +12,13 @@ import MenuListStatsRail from "./component/MenuListStatsRail"
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
 import MenuDetailModal from "./component/MenuDetailModal"
 import MenuListWeeklyVerticalView from "./component/MenuListWeeklyVerticalView"
+import MenuYearWeeksTable from "./component/MenuYearWeeksTable"
+import { academicWeekSearch, resolveAcademicWeekView } from "src/services/MenuService/academicWeekView"
 
 export default function MenuPlanning() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Master data: Ban đầu rỗng, tải 100% từ API thật
   const [allMenus, setMenus] = useState([])
@@ -24,6 +28,7 @@ export default function MenuPlanning() {
   const [gradeLoading, setGradeLoading] = useState(true)
   const [gradeError, setGradeError] = useState("")
   const [gradeRetry, setGradeRetry] = useState(0)
+  const [calendarRetry, setCalendarRetry] = useState(0)
 
   // Danh sách năm học từ cấu hình toàn trường
   const [availableAcademicYears, setAvailableAcademicYears] = useState([])
@@ -81,16 +86,15 @@ export default function MenuPlanning() {
 
   useEffect(() => {
     let active = true
+    setCalendarLoading(true)
+    setCalendarError("")
     MenuService.getAcademicCalendar({ forceRefresh: true })
       .then(({ academicYears }) => {
         if (!active) return
         setAvailableAcademicYears(academicYears)
-        const year = defaultYear(academicYears)
-        setFilters((prev) => ({
-          ...prev,
-          academicYear: year?.academicYear || "",
-          week: defaultWeek(year)?.weekStartDate || "",
-        }))
+        const selection = resolveAcademicWeekView(academicYears, location.search)
+        setFilters((prev) => ({ ...prev, academicYear: selection.year?.academicYear || "", week: selection.week?.weekStartDate || "" }))
+        setCalendarError(selection.invalidSelection ? "Tuần đã chọn không thuộc năm học hiện tại. Đã mở tuần mặc định của năm học." : "")
       })
       .catch((error) => {
         if (active) setCalendarError(error.message || "Không tải được năm học.")
@@ -99,7 +103,9 @@ export default function MenuPlanning() {
         if (active) setCalendarLoading(false)
       })
     return () => { active = false }
-  }, [])
+  }, [calendarRetry])
+
+  const selectedWeekView = searchParams.has("week")
 
   // Tải dữ liệu thực tế từ backend API
   useEffect(() => {
@@ -347,12 +353,13 @@ export default function MenuPlanning() {
 
   // Navigation handlers
   const handleNavigateCreate = () => {
-    navigate(ROUTER.SCHOOL_MENU_CREATE)
+    navigate(ROUTER.SCHOOL_MENU_CREATE, { state: { returnTo: `${location.pathname}${academicWeekSearch(location.search, filters.academicYear).toString() ? `?${academicWeekSearch(location.search, filters.academicYear).toString()}` : ""}` } })
   }
 
   const handleNavigateCreateWithDate = (dateISO, mealType) => {
+    const query = academicWeekSearch(location.search, filters.academicYear, filters.week)
     navigate(ROUTER.SCHOOL_MENU_CREATE, {
-      state: { initialDate: dateISO, initialMealType: mealType },
+      state: { initialDate: dateISO, initialMealType: mealType, returnTo: `${location.pathname}?${query.toString()}` },
     })
   }
 
@@ -368,6 +375,21 @@ export default function MenuPlanning() {
     })
   }
 
+  if (!selectedWeekView) return (
+    <div className={styles.menuListPage}>
+      <MenuYearWeeksTable
+        academicYears={availableAcademicYears}
+        academicYear={filters.academicYear}
+        loading={calendarLoading}
+        error={calendarError}
+        onRetry={() => setCalendarRetry(value => value + 1)}
+        onYearChange={(value) => { const year = availableAcademicYears.find(item => item.academicYear === value); const week = defaultWeek(year); const query = academicWeekSearch(location.search, value); setSearchParams(query); setFilters(previous => ({ ...previous, academicYear: value, week: week?.weekStartDate || "" })) }}
+        onSelectWeek={(week) => { const query = academicWeekSearch(location.search, filters.academicYear, week.weekStartDate); setSearchParams(query); setFilters(previous => ({ ...previous, week: week.weekStartDate })) }}
+        action={<button type="button" className={styles.createBtn} onClick={handleNavigateCreate}><Plus size={16} /><span>Tạo thực đơn</span></button>}
+      />
+    </div>
+  )
+
   return (
     <div className={styles.menuListPage}>
       {/* Toast Notification */}
@@ -382,6 +404,7 @@ export default function MenuPlanning() {
 
       {/* 1. Tiêu đề màn hình chuẩn mực (Clean, tối giản) */}
       <div className={styles.pageHeader}>
+        <button type="button" className={styles.backToWeeks} onClick={() => { const query = academicWeekSearch(location.search, filters.academicYear); setSearchParams(query) }}>‹ Danh sách tuần</button>
         <h1 className={styles.pageTitle}>Danh sách thực đơn</h1>
         <button
           type="button"

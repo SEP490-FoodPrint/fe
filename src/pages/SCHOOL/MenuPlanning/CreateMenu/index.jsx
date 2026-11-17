@@ -656,7 +656,7 @@ export default function CreateMenu() {
         {/* Header trang chuẩn mực */}
         <MenuAllergyReport report={allergyReport}/>
         <CreateMenuHeader
-          onBack={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+          onBack={() => navigate(location.state?.returnTo || ROUTER.SCHOOL_MENU_PLANNING)}
           statusLabel="Bản nháp mới"
         />
 
@@ -853,7 +853,7 @@ export default function CreateMenu() {
       {!GRADE_OPTIONS.length && !gradeError && <p role="status">Chưa có khối để lập thực đơn. Ban Giám hiệu cần cấu hình khối trước.</p>}
       {/* Sticky Bottom Bar */}
       <CreateMenuBottomBar
-        onCancel={() => navigate(ROUTER.SCHOOL_MENU_PLANNING)}
+        onCancel={() => navigate(location.state?.returnTo || ROUTER.SCHOOL_MENU_PLANNING)}
         onSaveDraft={handleSaveDraft}
         onSubmitApproval={handleOpenConfirmSubmit}
         isLoading={loadingSchedule || Boolean(scheduleError)}

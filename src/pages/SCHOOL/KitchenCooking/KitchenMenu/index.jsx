@@ -244,8 +244,8 @@ export default function KitchenMenu() {
         </div>
       )}
       {calendarLoading || loading ? (
-        <div role="status" style={{ padding: 80 }}>
-          <FoodPrintLoading />
+        <div role="status" className={styles.loadingWrapper}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : calendarError || scheduleError ? (
         <div role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "12px 16px", borderRadius: "8px", margin: "16px 0", fontSize: "14px", fontWeight: 500 }}>
@@ -253,9 +253,9 @@ export default function KitchenMenu() {
           <Button variant="outlined" color="error" size="small" onClick={reload}>Thử lại</Button>
         </div>
       ) : !years.length ? (
-        <p>Chưa có cấu hình năm học của trường.</p>
+        <p className={styles.emptyText}>Chưa có cấu hình năm học của trường.</p>
       ) : !existing.length ? (
-        <p role="status">
+        <p role="status" className={styles.emptyText}>
           {gradeId
             ? "Khối đã chọn chưa có thực đơn trong tuần này."
             : "Chưa có thực đơn trong tuần này."}
