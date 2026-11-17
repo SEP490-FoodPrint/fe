@@ -603,38 +603,84 @@
 }
 
 .columnStickyHeaderRight {
-  padding: 10px 18px;
+  padding: 12px 18px;
   background-color: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mealPickerLabel {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .mealTypeSwitchTabs {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
 
 .mealTabBtn {
-  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  gap: 10px;
+  min-height: 56px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #e2e8f0;
   background-color: #ffffff;
   color: #64748b;
-  font-size: 13px;
-  font-weight: 600;
+  text-align: left;
+  font: inherit;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 
   &:hover {
-    background-color: #f1f5f9;
-    color: #0f172a;
     border-color: #cbd5e1;
+    background-color: #f8fafc;
   }
+
+  &:focus-visible {
+    outline: 2px solid #0a8066;
+    outline-offset: 2px;
+  }
+}
+
+.mealTabRadio {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #cbd5e1;
+  background: #ffffff;
+  color: #ffffff;
+}
+
+.mealTabText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mealTabName {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.mealTabMeta {
+  font-size: 12px;
+  color: #64748b;
 }
 
 .activeMealTabLunch {
@@ -642,10 +688,10 @@
   border-color: #0a8066;
   color: #08604d;
 
-  &:hover {
-    background-color: #d8eee7;
-    border-color: #0a8066;
-  }
+  .mealTabRadio { background: #0a8066; border-color: #0a8066; }
+  .mealTabName { color: #08604d; }
+
+  &:hover { background-color: #e8f5f1; border-color: #0a8066; }
 }
 
 .activeMealTabAfternoon {
@@ -653,18 +699,68 @@
   border-color: #75635c;
   color: #4a3d38;
 
-  &:hover {
-    background-color: #ece1db;
-    border-color: #75635c;
-  }
+  .mealTabRadio { background: #75635c; border-color: #75635c; }
+  .mealTabName { color: #4a3d38; }
+
+  &:hover { background-color: #f4eeea; border-color: #75635c; }
 }
 
-.mealTabCountBadge {
+.mealPickerHint {
+  margin: 0;
+  font-size: 12.5px;
+  color: #475569;
+
+  strong { color: #0f172a; }
+}
+
+.bothMealBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #3730a3;
   font-size: 11px;
-  font-weight: 700;
-  padding: 1px 7px;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.categorySearch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 4px 6px;
+  padding: 6px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #94a3b8;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    font-size: 13px;
+    color: #0f172a;
+    background: transparent;
+  }
+
+  &:focus-within { border-color: #0a8066; }
+}
+
+.categoryEmpty {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: #94a3b8;
+}
+
+.mealUnclassifiedNote {
+  margin: 0 18px 8px;
+  font-size: 12px;
+  color: #92400e;
 }
 
 .catalogAreaWrap {
@@ -1500,4 +1596,25 @@
   display: flex;
   justify-content: flex-end;
   background-color: #f8fafc;
+}
+
+.dropdownCheckItem {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.dropdownCheckbox {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: #0a8066;
+  cursor: pointer;
+}
+
+.dropdownCheckItem .dropdownItemCount {
+  margin-left: auto;
 }

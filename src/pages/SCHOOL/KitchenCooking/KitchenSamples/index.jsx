@@ -107,6 +107,8 @@ export default function KitchenSamples() {
           id: b.id,
           cookingBatchId: b.id,
           batchCode: b.batchCode,
+          batchNumber: b.batchNumber ?? null,
+          menuDate: b.MenuDay?.menuDate || "",
           batchGroupId: b.batchGroupId,
           batchGroupCode: b.BatchGroup?.batchCode || "",
           dishName,
@@ -954,7 +956,8 @@ export default function KitchenSamples() {
       {/* SCREEN 02: Modal Ghi nhận mẫu lưu */}
       <CreateSampleModal
         open={isCreateOpen}
-        availableBatches={unsampledBatches}
+        availableBatches={activeDate ? unsampledBatches.filter((batch) => batch.menuDate === activeDate) : unsampledBatches}
+        dateLabel={activeDate ? activeDate.split("-").reverse().join("/") : ""}
         onClose={() => setIsCreateOpen(false)}
         onSubmit={handleCreateSampleSubmit}
         submitting={submitting}

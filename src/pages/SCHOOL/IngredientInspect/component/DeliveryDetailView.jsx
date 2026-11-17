@@ -1,3 +1,4 @@
+import { formatLargeQuantity } from "src/utils/quantity"
 import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useContext, useState } from "react"
 import PropTypes from "prop-types"
@@ -85,7 +86,7 @@ export default function DeliveryDetailView({
         sourceFacility: "--",
         manufactureDate: null,
         expiryDate: null,
-        quantityText: formatSmallQuantity(item.actualQuantity, item.unit),
+        quantityText: formatLargeQuantity(item.actualQuantity, item.unit),
         status: null,
         lot: null,
       })
@@ -103,7 +104,7 @@ export default function DeliveryDetailView({
           sourceFacility: lot.sourceFacility,
           manufactureDate: lot.manufactureDate,
           expiryDate: lot.expiryDate,
-          quantityText: formatSmallQuantity(lot.receivedQuantity, lot.unit),
+          quantityText: formatLargeQuantity(lot.receivedQuantity, lot.unit),
           status: lot.status,
           lot: lot,
         })
@@ -145,6 +146,8 @@ export default function DeliveryDetailView({
             <h1 className={styles.pageTitle}>Chi tiết giao hàng</h1>
             <span className={styles.deliveryCode}>{delivery.deliveryNo}</span>
             <DeliveryStatusBadge status={delivery.status} />
+            {delivery.vehiclePlate && <span className={styles.vehiclePlate} title="Biển số xe giao">{delivery.vehiclePlate}</span>}
+            {delivery.requestNo && <span className={styles.requestNo}>Đơn {delivery.requestNo}</span>}
           </div>
         </div>
 

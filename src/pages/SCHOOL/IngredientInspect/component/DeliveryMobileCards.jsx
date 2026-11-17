@@ -2,56 +2,74 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Eye } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
+import { approvalProgress, groupDeliveriesByRound, groupSummary } from "./deliveryGroups"
 import styles from "./DeliveryMobileCards.module.scss"
 
-export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
-  const formatDateTime = (expectedAt, arrivedAt) => {
-    const timeSrc = arrivedAt || expectedAt
-    if (!timeSrc) return "--"
-    try {
-      const d = new Date(timeSrc)
-      const day = String(d.getDate()).padStart(2, "0")
-      const month = String(d.getMonth() + 1).padStart(2, "0")
-      const year = d.getFullYear()
-      const hours = String(d.getHours()).padStart(2, "0")
-      const minutes = String(d.getMinutes()).padStart(2, "0")
-      return `${hours}:${minutes} • ${day}/${month}/${year}`
-    } catch {
-      return "--"
-    }
-  }
+const formatDateTime = (expectedAt, arrivedAt) => {
+  const timeSrc = arrivedAt || expectedAt
+  if (!timeSrc) return "--"
+  const d = new Date(timeSrc)
+  if (Number.isNaN(d.getTime())) return "--"
+  const pad = (n) => String(n).padStart(2, "0")
+  return `${pad(d.getHours())}:${pad(d.getMinutes())} • ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
+}
 
+export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
   return (
     <div className={styles.cardsWrap}>
-      {deliveries.map((item) => (
-        <div key={item.id} className={styles.card}>
-          <div className={styles.cardHeader}>
-            <span className={styles.supplierName}>{item.supplierName}</span>
-            <small>{item.deliveryNo}</small>
-            <DeliveryStatusBadge status={item.status} />
-          </div>
+      {groupDeliveriesByRound(deliveries).map((group) => (
+        <section key={group.key} className={styles.group} aria-label={group.label}>
+          <header className={styles.groupHeader}>
+            <span className={styles.groupLabel}>{group.label}</span>
+            <span className={styles.groupSummary}>{groupSummary(group)}</span>
+          </header>
+          {group.items.map((item) => {
+            const progress = approvalProgress(item)
+            return (
+              <div key={item.id} className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <span className={styles.supplierName}>{item.supplierName}</span>
+                  <DeliveryStatusBadge status={item.status} />
+                </div>
 
-          <div className={styles.cardBody}>
-            <div className={styles.infoRow}>
-              <span className={styles.label}>Thời gian giao:</span>
-              <span className={styles.value}>
-                {formatDateTime(item.expectedArrivalAt, item.arrivedAt)}
-              </span>
-            </div>
-          </div>
+                <div className={styles.cardBody}>
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>Biển số xe:</span>
+                    <span className={styles.value}>{item.vehiclePlate || "—"}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>Thời gian giao:</span>
+                    <span className={styles.value}>{formatDateTime(item.expectedArrivalAt, item.arrivedAt)}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.label}>Bộ phận đã ký:</span>
+                    <span className={styles.value}>
+                      {progress.rejected ? "Có bộ phận từ chối" : `${progress.approved}/${progress.total}`}
+                    </span>
+                  </div>
+                  {item.requestNo && (
+                    <div className={styles.infoRow}>
+                      <span className={styles.label}>Đơn:</span>
+                      <span className={styles.value}>{item.requestNo}</span>
+                    </div>
+                  )}
+                </div>
 
-          <div className={styles.cardFooter}>
-            <button
-              type="button"
-              className={styles.viewBtn}
-              onClick={() => onSelectDelivery(item)}
-              aria-label={`Xem chi tiết đợt giao của ${item.supplierName}`}
-            >
-              <Eye size={16} />
-              <span>Xem chi tiết</span>
-            </button>
-          </div>
-        </div>
+                <div className={styles.cardFooter}>
+                  <button
+                    type="button"
+                    className={styles.viewBtn}
+                    onClick={() => onSelectDelivery(item)}
+                    aria-label={`Xem chi tiết xe giao của ${item.supplierName}`}
+                  >
+                    <Eye size={16} />
+                    <span>Xem chi tiết</span>
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </section>
       ))}
     </div>
   )

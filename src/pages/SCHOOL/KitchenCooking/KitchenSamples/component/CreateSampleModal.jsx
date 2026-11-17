@@ -16,6 +16,7 @@ import styles from "./CreateSampleModal.module.scss";
 export default function CreateSampleModal({
   open = false,
   availableBatches = [],
+  dateLabel = "",
   onClose,
   onSubmit,
   submitting = false,
@@ -203,12 +204,11 @@ export default function CreateSampleModal({
                 >
                   {availableBatches.map((b) => (
                     <option key={b.id} value={b.id}>
-                      {b.batchCode || b.id} — {b.dishName} (
+                      {b.dishName}
+                      {b.batchNumber ? ` (Lô ${b.batchNumber})` : ""} —{" "}
                       {b.mealLabel ||
-                        (b.mealType === "AFTERNOON"
-                          ? "Bữa xế"
-                          : "Bữa trưa")}{" "}
-                      • {b.portions || 400} suất)
+                        (b.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")}{" "}
+                      • {Number(b.portions || 0).toLocaleString("vi-VN")} suất
                     </option>
                   ))}
                 </select>
@@ -218,7 +218,9 @@ export default function CreateSampleModal({
               <div className={styles.noBatchWarning}>
                 <AlertCircle size={16} />
                 <span>
-                  Tất cả các lô chế biến trong ca đã được ghi nhận mẫu lưu.
+                  Chưa có lô nào đã nấu xong cần lưu mẫu
+                  {dateLabel ? ` trong ngày ${dateLabel}` : ""}. Mẫu chỉ lưu được
+                  sau khi lô được ghi nhận "Nấu xong" ở Tiến độ chế biến.
                 </span>
               </div>
             )}
@@ -405,6 +407,7 @@ export default function CreateSampleModal({
 }
 
 CreateSampleModal.propTypes = {
+  dateLabel: PropTypes.string,
   open: PropTypes.bool.isRequired,
   availableBatches: PropTypes.arrayOf(PropTypes.object),
   onClose: PropTypes.func.isRequired,

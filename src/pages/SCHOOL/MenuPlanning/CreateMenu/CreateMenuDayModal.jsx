@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import { formatSmallQuantity } from "src/utils/quantity"
 import { dishForGrades } from "src/services/DishService"
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
@@ -52,7 +53,7 @@ export default function CreateMenuDayModal({
   dayMenu,
   initialMealType = "LUNCH",
   onSaveDay,
-  submitText = "Cập nhật vào ngày này",
+  submitText = "Cập nhật",
 }) {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
@@ -77,7 +78,7 @@ export default function CreateMenuDayModal({
   const [dishCatalog, setDishCatalog] = useState([])
   const [categoryOptions, setCategoryOptions] = useState([])
   const DISH_CATEGORIES = useMemo(() => [
-    { key: "ALL", label: "Tất cả món" },
+    { key: "ALL", label: "Tất cả loại món" },
     ...categoryOptions,
     { key: "UNCLASSIFIED", label: "Chưa phân nhóm" },
   ], [categoryOptions])
@@ -97,20 +98,46 @@ export default function CreateMenuDayModal({
     AFTERNOON: { hasConflict: false, conflicts: [] },
   })
 
-  const seasonings = seasoningsByMeal[selectedMealType] || []
+  // Gia vị theo suất của cả ngày: cộng dồn bữa trưa + bữa xế theo cùng gia vị và đơn vị.
+  const seasonings = useMemo(() => {
+    const merged = new Map()
+    for (const item of [...(seasoningsByMeal.LUNCH || []), ...(seasoningsByMeal.AFTERNOON || [])]) {
+      const unit = item.unit || "g"
+      const key = `${item.ingredientEntryId || item.id || item.name}:${unit}`
+      const qty = Number(item.portionQty)
+      const existing = merged.get(key)
+      if (!existing) {
+        merged.set(key, { ...item, unit, portionQty: Number.isFinite(qty) ? qty : item.portionQty })
+      } else if (Number.isFinite(qty) && Number.isFinite(Number(existing.portionQty))) {
+        existing.portionQty = Number(existing.portionQty) + qty
+      }
+    }
+    return [...merged.values()]
+  }, [seasoningsByMeal])
 
   // Search & filter món ăn từ kho
   const [searchKeyword, setSearchKeyword] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("ALL")
+  const [selectedCategories, setSelectedCategories] = useState([])
   const [isCatDropdownOpen, setIsCatDropdownOpen] = useState(false)
+  const [categoryKeyword, setCategoryKeyword] = useState("")
   const catDropdownRef = useRef(null)
 
-  const selectedCategoryObj = useMemo(() => {
-    return (
-      DISH_CATEGORIES.find((c) => c.key === selectedCategory) ||
-      DISH_CATEGORIES[0]
-    )
-  }, [selectedCategory, DISH_CATEGORIES])
+  const visibleCategories = useMemo(() => {
+    const keyword = categoryKeyword.trim().toLowerCase()
+    return DISH_CATEGORIES.filter((cat) => cat.label.toLowerCase().includes(keyword))
+  }, [DISH_CATEGORIES, categoryKeyword])
+
+  const categoryTriggerLabel = useMemo(() => {
+    if (!selectedCategories.length) return "Loại món ăn"
+    if (selectedCategories.length === 1) {
+      return DISH_CATEGORIES.find((c) => c.key === selectedCategories[0])?.label || "Loại món ăn"
+    }
+    return `${selectedCategories.length} loại món`
+  }, [selectedCategories, DISH_CATEGORIES])
+
+  const toggleCategory = (key) => {
+    setSelectedCategories((prev) => prev.includes(key) ? prev.filter((item) => item !== key) : [...prev, key])
+  }
 
   // Đóng dropdown phân loại khi click ra ngoài
   useEffect(() => {
@@ -181,7 +208,7 @@ export default function CreateMenuDayModal({
       setSelectingSubstituteFor(null)
 
       setSearchKeyword("")
-      setSelectedCategory("ALL")
+      setSelectedCategories([])
       setIsCatDropdownOpen(false)
     }
   }, [isOpen, dayMenu, initialMealType])
@@ -272,11 +299,21 @@ export default function CreateMenuDayModal({
     [allergiesByMeal]
   )
 
-  // Đếm số lượng món theo từng phân loại
+  // Chỉ hiện món thuộc bữa đang chọn; món "BOTH" xuất hiện ở cả hai bữa.
+  const mealCatalog = useMemo(
+    () => dishCatalog.filter((dish) => dish.mealType === selectedMealType || dish.mealType === "BOTH"),
+    [dishCatalog, selectedMealType]
+  )
+  const unclassifiedMealCount = useMemo(
+    () => dishCatalog.filter((dish) => !dish.mealType).length,
+    [dishCatalog]
+  )
+
+  // Đếm số lượng món theo từng phân loại (trong bữa đang chọn)
   const categoryCounts = useMemo(() => {
     const counts = Object.fromEntries(DISH_CATEGORIES.map(option => [option.key, 0]))
-    counts.ALL = dishCatalog.length
-    dishCatalog.forEach((dish) => {
+    counts.ALL = mealCatalog.length
+    mealCatalog.forEach((dish) => {
       const cat = dishCategoryKey(dish)
       if (counts[cat] !== undefined) {
         counts[cat]++
@@ -285,11 +322,11 @@ export default function CreateMenuDayModal({
       }
     })
     return counts
-  }, [dishCatalog, DISH_CATEGORIES])
+  }, [mealCatalog, DISH_CATEGORIES])
 
   // Lọc danh mục món ăn theo từ khóa, phân loại và chế độ chọn món thay thế dị ứng
   const filteredCatalog = useMemo(() => {
-    return dishCatalog.filter((dish) => {
+    return mealCatalog.filter((dish) => {
       // Khi đang chọn món riêng thay thế cho học sinh dị ứng:
       // Hiển thị tất cả món, nhưng loại trừ chính món đang bị dị ứng cần thay thế
       if (selectingSubstituteFor?.dish) {
@@ -300,9 +337,8 @@ export default function CreateMenuDayModal({
         }
       }
 
-      if (selectedCategory !== "ALL") {
-        const cat = dishCategoryKey(dish)
-        if (cat !== selectedCategory) return false
+      if (selectedCategories.length && !selectedCategories.includes(dishCategoryKey(dish))) {
+        return false
       }
       if (searchKeyword.trim()) {
         const kw = searchKeyword.trim().toLowerCase()
@@ -317,7 +353,7 @@ export default function CreateMenuDayModal({
       }
       return true
     })
-  }, [dishCatalog, selectedCategory, searchKeyword, selectingSubstituteFor])
+  }, [mealCatalog, selectedCategories, searchKeyword, selectingSubstituteFor])
 
   // Set các món đã chọn trong ca hiện tại
   const currentMealDishes =
@@ -655,22 +691,6 @@ export default function CreateMenuDayModal({
               CỘT TRÁI (50%): TỔNG QUÁT HÔM ĐÓ
               ======================================================== */}
           <div className={styles.previewColumn}>
-            {/* Thanh tóm tắt nhanh */}
-            <div className={styles.columnStickyHeader}>
-              <div className={styles.summaryBar}>
-                <span className={styles.summaryItem}>
-                  Trưa: <strong>{lunchDishes.length}</strong> món
-                </span>
-                <span className={styles.summaryDivider}>•</span>
-                <span className={styles.summaryItem}>
-                  Xế: <strong>{afternoonDishes.length}</strong> món
-                </span>
-                <span className={styles.summaryDivider}>•</span>
-                <span className={styles.summaryItem}>
-                  Gia vị: <strong>{seasonings.length}</strong> loại
-                </span>
-              </div>
-            </div>
 
             <div className={styles.previewScrollArea}>
               <MenuGradeRecipePreview previews={gradePreviewsByMeal[selectedMealType]} grades={gradeOptions} dishes={[...lunchDishes, ...afternoonDishes, ...dishCatalog]} ingredientOptions={recipeOptions} loading={allergyLoading} />
@@ -1118,54 +1138,41 @@ export default function CreateMenuDayModal({
           <div className={styles.pickerColumn}>
             {/* Header Tabs: Chọn Ca Bữa trưa / Bữa xế */}
             <div className={styles.columnStickyHeaderRight}>
-              <div className={styles.mealTypeSwitchTabs}>
-                <button
-                  type="button"
-                  className={`${styles.mealTabBtn} ${
-                    selectedMealType === "LUNCH"
-                      ? styles.activeMealTabLunch
-                      : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedMealType("LUNCH")
-                    if (
-                      selectingSubstituteFor &&
-                      selectingSubstituteFor.mealType !== "LUNCH"
-                    ) {
-                      setSelectingSubstituteFor(null)
-                    }
-                  }}
-                >
-                  <Utensils size={14} />
-                  <span>Món Bữa trưa</span>
-                  <span className={styles.mealTabCountBadge}>
-                    {lunchDishes.length}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.mealTabBtn} ${
-                    selectedMealType === "AFTERNOON"
-                      ? styles.activeMealTabAfternoon
-                      : ""
-                  }`}
-                  onClick={() => {
-                    setSelectedMealType("AFTERNOON")
-                    if (
-                      selectingSubstituteFor &&
-                      selectingSubstituteFor.mealType !== "AFTERNOON"
-                    ) {
-                      setSelectingSubstituteFor(null)
-                    }
-                  }}
-                >
-                  <Coffee size={14} />
-                  <span>Món Bữa xế</span>
-                  <span className={styles.mealTabCountBadge}>
-                    {afternoonDishes.length}
-                  </span>
-                </button>
+              <p className={styles.mealPickerLabel} id="meal-picker-label">Chọn bữa để thêm món</p>
+              <div className={styles.mealTypeSwitchTabs} role="radiogroup" aria-labelledby="meal-picker-label">
+                {[
+                  { key: "LUNCH", label: "Bữa trưa", Icon: Utensils, count: lunchDishes.length, activeClass: styles.activeMealTabLunch },
+                  { key: "AFTERNOON", label: "Bữa xế", Icon: Coffee, count: afternoonDishes.length, activeClass: styles.activeMealTabAfternoon },
+                ].map(({ key, label, Icon, count, activeClass }) => {
+                  const active = selectedMealType === key
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      role="radio"
+                      aria-checked={active}
+                      className={`${styles.mealTabBtn} ${active ? activeClass : ""}`}
+                      onClick={() => {
+                        setSelectedMealType(key)
+                        setSelectedCategories([])
+                        if (selectingSubstituteFor && selectingSubstituteFor.mealType !== key) {
+                          setSelectingSubstituteFor(null)
+                        }
+                      }}
+                    >
+                      <span className={styles.mealTabRadio} aria-hidden="true">{active && <Check size={12} />}</span>
+                      <Icon size={16} aria-hidden="true" />
+                      <span className={styles.mealTabText}>
+                        <span className={styles.mealTabName}>{label}</span>
+                        <span className={styles.mealTabMeta}>{count} món đã chọn</span>
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
+              <p className={styles.mealPickerHint}>
+                Món bạn chọn bên dưới sẽ được thêm vào <strong>{selectedMealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}</strong>.
+              </p>
             </div>
 
             <div className={styles.catalogAreaWrap}>
@@ -1230,22 +1237,24 @@ export default function CreateMenuDayModal({
                     className={`${styles.filterDropdownTrigger} ${
                       isCatDropdownOpen ? styles.triggerOpen : ""
                     } ${
-                      selectedCategory !== "ALL"
+                      selectedCategories.length
                         ? styles.triggerActiveFilter
                         : ""
                     }`}
-                    onClick={() => setIsCatDropdownOpen((prev) => !prev)}
+                    onClick={() => { setCategoryKeyword(""); setIsCatDropdownOpen((prev) => !prev) }}
                     aria-haspopup="listbox"
                     aria-expanded={isCatDropdownOpen}
-                    title="Lọc món ăn theo phân loại"
+                    title="Chọn loại món ăn"
                   >
                     <div className={styles.triggerLeft}>
                       <Filter size={14} className={styles.filterIcon} />
                       <span className={styles.triggerText}>
-                        {selectedCategoryObj.label}
+                        {categoryTriggerLabel}
                       </span>
                       <span className={styles.triggerCountBadge}>
-                        {categoryCounts[selectedCategory] || 0}
+                        {selectedCategories.length
+                          ? selectedCategories.reduce((total, key) => total + (categoryCounts[key] || 0), 0)
+                          : categoryCounts.ALL || 0}
                       </span>
                     </div>
                     <ChevronDown
@@ -1257,45 +1266,60 @@ export default function CreateMenuDayModal({
                   </button>
 
                   {isCatDropdownOpen && (
-                    <div className={styles.dropdownMenu} role="listbox">
-                      {DISH_CATEGORIES.map((cat) => {
-                        const isSelected = selectedCategory === cat.key
+                    <div className={styles.dropdownMenu}>
+                      <div className={styles.categorySearch}>
+                        <Search size={14} aria-hidden="true" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={categoryKeyword}
+                          onChange={(e) => setCategoryKeyword(e.target.value)}
+                          placeholder="Tìm loại món..."
+                          aria-label="Tìm loại món ăn"
+                        />
+                      </div>
+                      <div role="listbox" aria-label="Loại món ăn">
+                      {!visibleCategories.length && (
+                        <p className={styles.categoryEmpty}>Không có loại món phù hợp.</p>
+                      )}
+                      {visibleCategories.map((cat) => {
+                        const isAll = cat.key === "ALL"
+                        const isSelected = isAll ? !selectedCategories.length : selectedCategories.includes(cat.key)
                         const count = categoryCounts[cat.key] || 0
                         return (
-                          <button
+                          <label
                             key={cat.key}
-                            type="button"
                             role="option"
                             aria-selected={isSelected}
-                            className={`${styles.dropdownItem} ${
+                            className={`${styles.dropdownItem} ${styles.dropdownCheckItem} ${
                               isSelected ? styles.dropdownItemSelected : ""
                             }`}
-                            onClick={() => {
-                              setSelectedCategory(cat.key)
-                              setIsCatDropdownOpen(false)
-                            }}
                           >
-                            <div className={styles.dropdownItemLeft}>
-                              <span className={styles.dropdownItemText}>
-                                {cat.label}
-                              </span>
-                              <span className={styles.dropdownItemCount}>
-                                ({count})
-                              </span>
-                            </div>
-                            {isSelected && (
-                              <Check
-                                size={14}
-                                className={styles.dropdownItemCheck}
-                              />
-                            )}
-                          </button>
+                            <input
+                              type="checkbox"
+                              className={styles.dropdownCheckbox}
+                              checked={isSelected}
+                              onChange={() => (isAll ? setSelectedCategories([]) : toggleCategory(cat.key))}
+                            />
+                            <span className={styles.dropdownItemText}>
+                              {cat.label}
+                            </span>
+                            <span className={styles.dropdownItemCount}>
+                              ({count})
+                            </span>
+                          </label>
                         )
                       })}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
+              {unclassifiedMealCount > 0 && !selectingSubstituteFor && (
+                <p className={styles.mealUnclassifiedNote}>
+                  {unclassifiedMealCount} món chưa được gán bữa ăn nên không hiển thị. Cập nhật bữa ăn cho món trong Danh mục món ăn.
+                </p>
+              )}
 
               {/* Danh sách món ăn từ Kho (Có thể cuộn lên/xuống mượt mà) */}
               <div className={styles.catalogListScroll}>
@@ -1307,7 +1331,7 @@ export default function CreateMenuDayModal({
                 ) : filteredCatalog.length === 0 ? (
                   <div className={styles.emptyCatalog}>
                     <AlertCircle size={24} />
-                    <p>Không tìm thấy món ăn nào phù hợp với bộ lọc hiện tại.</p>
+                    <p>{mealCatalog.length ? "Không tìm thấy món ăn nào phù hợp với bộ lọc hiện tại." : `Chưa có món nào thuộc ${selectedMealType === "LUNCH" ? "bữa trưa" : "bữa xế"}.`}</p>
                   </div>
                 ) : (
                   filteredCatalog.map((dish) => {
@@ -1353,16 +1377,6 @@ export default function CreateMenuDayModal({
                               )}
                             </div>
                             {dish.gradeRecipeIssue && <p role="status">{dish.gradeRecipeIssue}</p>}
-                          {dish.mainIngredient && (
-                              <p className={styles.dishMainIngredient}>
-                                Nguyên liệu chính: {dish.mainIngredient}
-                              </p>
-                            )}
-                            {dish.supplierName && (
-                              <span className={styles.dishSupplierBadge}>
-                                NCC: {dish.supplierName}
-                              </span>
-                            )}
                           </div>
 
                           <button
@@ -1409,16 +1423,6 @@ export default function CreateMenuDayModal({
                             {renderCategoryBadge(dish)}
                           </div>
                           {dish.gradeRecipeIssue && <p role="status">{dish.gradeRecipeIssue}</p>}
-                          {dish.mainIngredient && (
-                            <p className={styles.dishMainIngredient}>
-                              Nguyên liệu chính: {dish.mainIngredient}
-                            </p>
-                          )}
-                          {dish.supplierName && (
-                            <span className={styles.dishSupplierBadge}>
-                              NCC: {dish.supplierName}
-                            </span>
-                          )}
                         </div>
 
                         <button
@@ -1474,15 +1478,10 @@ export default function CreateMenuDayModal({
                 </span>
               </div>
             ) : null}
-            {!allergyLoading && allergyIssues.map(message => (
-              <div key={message} className={styles.footerStatusWarn} role="alert">
-                <AlertTriangle size={15} />
-                <span>{message}</span>
-              </div>
-            ))}
+
           </div>
 
-          {saveError && <p role="alert">{saveError}</p>}
+          <InlineError messages={[saveError, ...(allergyLoading ? [] : allergyIssues)]} />
           <div className={styles.footerBtns}>
             <button
               type="button"

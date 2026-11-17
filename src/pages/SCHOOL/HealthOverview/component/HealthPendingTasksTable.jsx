@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React from "react"
 import PropTypes from "prop-types"
 import { useNavigate } from "react-router-dom"
@@ -67,17 +68,7 @@ export default function HealthPendingTasksTable({
 
       {/* Error State */}
       {!loading && error && (
-        <div className={styles.errorWrap} role="alert">
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <AlertCircle size={16} />
-            <span>{error}</span>
-          </div>
-          {onRetry && (
-            <button type="button" onClick={onRetry}>
-              Thử lại
-            </button>
-          )}
-        </div>
+        <InlineError messages={error} onRetry={onRetry} />
       )}
 
       {/* Empty State */}

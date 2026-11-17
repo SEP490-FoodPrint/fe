@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import { formatSmallQuantity, smallQuantity } from "src/utils/quantity"
 import React, { useState, useMemo, useCallback, useEffect } from "react"
 import {
@@ -402,9 +403,7 @@ export default function DishCatalogPage() {
 
   return (
     <div className={styles.page}>
-      {catalogError && <p role="alert" className={styles.errorAlert}>{catalogError}</p>}
-      {catalogLoadError && <p role="alert" className={styles.errorAlert}>{catalogLoadError}</p>}
-      {recipeOptionsError && <p role="alert" className={styles.errorAlert}>{recipeOptionsError}</p>}
+      <InlineError messages={[catalogError, catalogLoadError, recipeOptionsError]} />
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.titleBlock}>
@@ -686,12 +685,10 @@ export default function DishCatalogPage() {
             </div>
 
             <div className={styles.modalBody}>
-              {catalogError && <p role="alert" className={styles.errorAlert}>{catalogError}</p>}
+              <InlineError messages={[catalogError, gradeError]} />
               <div className={styles.formGrid}>
                 {gradeError ? (
-                  <p role="alert" style={{ gridColumn: "1 / -1", color: "#ef4444" }}>
-                    {gradeError}
-                  </p>
+                  null
                 ) : (
                   <GradeRecipeFields
                     grades={grades}
@@ -1123,7 +1120,7 @@ export default function DishCatalogPage() {
               {/* Body chi tiết */}
               <div className={styles.detailModalBody}>
                 <label className={styles.formLabel}>Định lượng áp dụng <select className={styles.formSelect} value={selectedGradeId} onChange={event => setDetailGradeId(event.target.value)} disabled={!grades.length}><option value="" disabled>Chưa có khối lớp</option>{grades.map(grade => <option key={grade.id} value={grade.id}>{grade.name}</option>)}</select></label>
-                {gradeError && <p role="alert" className={styles.errorAlert}>{gradeError}</p>}
+                <InlineError messages={gradeError} />
                 {selectedGradeId && !profile && (
                   <p role="status">
                     {viewingDish.lines?.length
@@ -1292,7 +1289,7 @@ export default function DishCatalogPage() {
               tác này sẽ không thể hoàn tác.
             </p>
             <div className={styles.confirmActions}>
-              {catalogError && <p role="alert" className={styles.errorAlert}>{catalogError}</p>}
+              <InlineError messages={catalogError} />
               <button
                 type="button"
                 className={styles.confirmCancel}

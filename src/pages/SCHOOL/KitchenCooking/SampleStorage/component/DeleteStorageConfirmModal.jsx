@@ -81,7 +81,7 @@ export default function DeleteStorageConfirmModal({ unit, isOpen, onClose, onSuc
             </div>
           ) : (
             <p style={{ fontSize: 14, color: "#334155", lineHeight: 1.6, margin: 0 }}>
-              Bạn có chắc chắn muốn xóa tủ lưu mẫu <strong>{unit.name}</strong> khỏi hệ thống master data không? Dữ liệu cấu hình của tủ sẽ bị
+              Bạn có chắc chắn muốn xóa tủ lưu mẫu <strong>{unit.name}</strong> khỏi hệ thống không? Dữ liệu cấu hình của tủ sẽ bị
               xóa vĩnh viễn.
             </p>
           )}

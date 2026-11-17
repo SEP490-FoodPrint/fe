@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React, { useEffect, useState } from "react"
 import {
   Button,
@@ -298,17 +299,13 @@ export default function MenuGradeDetails({
           {compare ? "Xem từng khối" : "So sánh định lượng"}
         </Button>
       </div>
-      {current.error && (
-        <div className={styles.notice} role="alert">
-          {current.error}
-          {retryButton}
-        </div>
-      )}
-      {current.scopes.some((scope) => scope.loadFailed) && (
-        <div className={styles.notice} role="alert">
-          Chưa tải được thực đơn của một số khối.{retryButton}
-        </div>
-      )}
+      <InlineError
+        messages={[
+          current.error,
+          current.scopes.some((scope) => scope.loadFailed) ? "Chưa tải được thực đơn của một số khối." : "",
+        ]}
+      />
+      {(current.error || current.scopes.some((scope) => scope.loadFailed)) && retryButton}
 
       {compare && (
         <>

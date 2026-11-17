@@ -8,6 +8,7 @@ export default function MenuListStatsRail({
   activeStatus = "all",
   onFilterByStatus,
   onNavigateCreate,
+  readOnly = false,
 }) {
   const {
     total = 0,
@@ -68,6 +69,25 @@ export default function MenuListStatsRail({
       activeClass: styles.activeRevision,
       tooltip: "Lọc các thực đơn BGH yêu cầu chỉnh sửa",
     })
+  }
+
+  if (readOnly) {
+    return (
+      <div className={styles.statCards} role="region" aria-label="Thống kê trạng thái thực đơn">
+        {items.map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.key} className={styles.statCard}>
+              <div className={styles.statHead}>
+                <span className={styles.statLabel}>{item.label}</span>
+                <span className={styles.statIcon}><Icon size={18} aria-hidden="true" /></span>
+              </div>
+              <span className={styles.statValue}>{item.count.toLocaleString("vi-VN")}</span>
+            </div>
+          )
+        })}
+      </div>
+    )
   }
 
   return (

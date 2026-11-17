@@ -339,6 +339,12 @@ export function adaptBatchDetail(batch) {
       lot.lotCode ||
       "—";
 
+    const supplierName =
+      lot.supplierName ||
+      lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.Supplier?.name ||
+      lot.IngredientLot?.DeliveryItem?.Ingredient?.Supplier?.name ||
+      "";
+
     const qty = lot.quantityUsed != null ? String(lot.quantityUsed) : (lot.quantity != null ? String(lot.quantity) : "—");
     const unit = lot.unit || "kg";
 
@@ -348,6 +354,7 @@ export function adaptBatchDetail(batch) {
       dishName: lot.dishName,
       name: ingredientName,
       lotCode,
+      supplierName,
       quantity: qty,
       unit,
       expiryDate,

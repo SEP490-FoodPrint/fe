@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import { smallQuantity } from "src/utils/quantity"
 import React, { useId, useState } from "react"
 import {
@@ -69,9 +70,7 @@ export default function MenuGradeRecipePreview({
       ) : (
         <>
           {selected.issues?.length ? (
-            <p className={styles.warning} role="alert">
-              {selected.issues.join(" ")}
-            </p>
+            <InlineError messages={selected.issues} />
           ) : selected.allergies?.hasConflict ? (
             <p className={styles.warning}>
               Có nguyên liệu trùng hồ sơ dị ứng của khối này. Kiểm tra phương án
