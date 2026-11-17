@@ -28,6 +28,7 @@ const DirectoryList = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory"
 const DirectoryDetail = lazy(() => import("src/pages/SYSTEM/OrganizationDirectory").then(module => ({ default: module.DirectoryDetail })))
 const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
 const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
+const SystemConfig = lazy(() => import("src/pages/SYSTEM/SystemConfig"))
 
 // SUPPLIER pages
 const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
@@ -181,6 +182,8 @@ const routes = [
           { path: ROUTER.SYSTEM_SCHOOL_DETAIL, element: <LazyWrapper><DirectoryDetail kind="school" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_LIST, element: <LazyWrapper><DirectoryList kind="supplier" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_DETAIL, element: <LazyWrapper><DirectoryDetail kind="supplier" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_CONFIG, element: <LazyWrapper><SystemConfig /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_CONFIG_DETAIL, element: <LazyWrapper><SystemConfig /></LazyWrapper> },
         ],
       },
     ],
