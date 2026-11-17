@@ -265,7 +265,7 @@ export default function CreateDeliveryView({
       }
       return [
         effectiveMenus.find((m) => m.id === batch1ForDate.menuId) ||
-          effectiveMenus[0],
+        effectiveMenus[0],
       ].filter(Boolean);
     }
 
@@ -489,8 +489,8 @@ export default function CreateDeliveryView({
 
       const displayRate = isMulti
         ? entry.contributions
-            .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
-            .join(" | ")
+          .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
+          .join(" | ")
         : entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
 
       return {
@@ -1455,7 +1455,7 @@ export default function CreateDeliveryView({
               >
                 {submitting
                   ? "Đang gửi..."
-                  : "Tạo đơn mua hàng Đợt 1 & Gửi NCC"}
+                  : "Tạo"}
               </Button>
             </Box>
           </Box>
