@@ -38,6 +38,17 @@ import {
 } from "lucide-react";
 import styles from "./DeliveryDetailView.module.scss";
 
+// Helper định dạng định lượng/suất: nếu đơn vị là kg thì quy đổi sang gam (g), tổng vẫn giữ kg
+const formatPortionRate = (rate, unit) => {
+  if (rate == null || isNaN(rate) || Number(rate) <= 0) return "";
+  const u = String(unit || "").toLowerCase().trim();
+  if (u === "kg" || u === "kilogram") {
+    const grams = Number((Number(rate) * 1000).toFixed(2));
+    return `${grams} g`;
+  }
+  return `${rate} ${unit}`;
+};
+
 export default function DeliveryDetailView({
   delivery,
   onBack,
@@ -643,7 +654,6 @@ export default function DeliveryDetailView({
                 <TableCell style={{ minWidth: 200 }}>
                   Nhà cung cấp (NCC)
                 </TableCell>
-                <TableCell>Phân loại kho</TableCell>
                 <TableCell align="center">Đơn vị</TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
                 <TableCell align="center">
@@ -759,13 +769,6 @@ export default function DeliveryDetailView({
                             "Nhà cung cấp đối tác"}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip
-                          label="Tươi sống (Dùng ngay)"
-                          size="small"
-                          className={styles.freshChip}
-                        />
-                      </TableCell>
                       <TableCell align="center">
                         <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
@@ -815,7 +818,7 @@ export default function DeliveryDetailView({
                               fontSize: "0.7rem",
                             }}
                           >
-                            ({portionRate} {item.unit}/suất)
+                            ({formatPortionRate(portionRate, item.unit)}/suất)
                           </Typography>
                         ) : null}
                         {isWaitingAttendance && !isExtraItem && (
@@ -858,7 +861,7 @@ export default function DeliveryDetailView({
                     {isExpanded && isMulti && (
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         <TableCell
-                          colSpan={6}
+                          colSpan={5}
                           sx={{
                             py: 1.25,
                             px: 3,
@@ -918,8 +921,12 @@ export default function DeliveryDetailView({
                                     color="text.secondary"
                                     sx={{ display: "block", mt: 0.25 }}
                                   >
-                                    {b.portions} suất × {b.qtyPerPortion}{" "}
-                                    {b.unit}/suất
+                                    {b.portions} suất ×{" "}
+                                    {formatPortionRate(
+                                      b.qtyPerPortion,
+                                      b.unit || item.unit,
+                                    )}
+                                    /suất
                                   </Typography>
                                   <Typography
                                     variant="body2"
@@ -929,7 +936,7 @@ export default function DeliveryDetailView({
                                       mt: 0.5,
                                     }}
                                   >
-                                    = {b.calculatedQty} {b.unit}
+                                    = {b.calculatedQty} {b.unit || item.unit}
                                   </Typography>
                                 </Box>
                               ))}
