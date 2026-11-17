@@ -1,0 +1,116 @@
+.dialogPaper {
+  border-radius: var(--radius-lg, 12px) !important;
+  overflow: hidden;
+}
+
+.dialogTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px 24px 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 26px !important;
+  color: #24312d !important;
+}
+
+.enableIcon {
+  color: #0a8066;
+  font-size: 22px !important;
+  flex-shrink: 0;
+}
+
+.disableIcon {
+  color: #b45309;
+  font-size: 22px !important;
+  flex-shrink: 0;
+}
+
+.dialogContent {
+  padding: 8px 24px 16px !important;
+}
+
+.message {
+  margin: 0 0 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  color: #24312d;
+}
+
+.hint {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 19px;
+  color: #596661;
+}
+
+.warningNote {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  background: #fffbeb;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 19px;
+  color: #92400e;
+}
+
+.dialogActions {
+  padding: 12px 24px 20px !important;
+  gap: 10px;
+}
+
+.cancelBtn {
+  height: 40px;
+  border-radius: 8px !important;
+  border-color: #d5ddd8 !important;
+  color: #24312d !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+.confirmEnableBtn {
+  height: 40px;
+  border-radius: 8px !important;
+  background: #0a8066 !important;
+  color: #ffffff !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+
+  &:hover:not(:disabled) {
+    background: #08735c !important;
+  }
+}
+
+.confirmDisableBtn {
+  height: 40px;
+  border-radius: 8px !important;
+  background: #b45309 !important;
+  color: #ffffff !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+
+  &:hover:not(:disabled) {
+    background: #92400e !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .cancelBtn,
+  .confirmEnableBtn,
+  .confirmDisableBtn {
+    min-height: 44px;
+  }
+}

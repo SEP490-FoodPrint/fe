@@ -26,6 +26,7 @@ const ROUTER = {
   SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
   SYSTEM_CONFIG: "/system/config",
+  SYSTEM_CONFIG_DETAIL: "/system/config/:id",
 
   // Phân hệ SUPPLIER (Dành cho INGREDIENT_SUPPLIER)
   SUPPLIER: "/supplier",
