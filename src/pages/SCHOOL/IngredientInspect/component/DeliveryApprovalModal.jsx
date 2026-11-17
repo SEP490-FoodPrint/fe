@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState } from "react"
 import PhotoPicker from "src/components/PhotoPicker"
 import PropTypes from "prop-types"
@@ -20,7 +21,7 @@ export default function DeliveryApprovalModal({
 }) {
   // Lấy danh sách tóm tắt mặt hàng
   const itemsSummary = delivery.deliveryItems
-    ?.map((item) => `${item.ingredientName} (${item.actualQuantity} ${item.unit})`)
+    ?.map((item) => `${item.ingredientName} (${formatSmallQuantity(item.actualQuantity, item.unit)})`)
     .join(", ")
 
   // State quyết định & lý do

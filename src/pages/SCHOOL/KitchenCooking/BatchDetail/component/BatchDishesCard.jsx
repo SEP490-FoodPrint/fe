@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState, useEffect } from "react"
 import { Utensils, ChevronDown, ChevronUp, Package, Sparkles } from "lucide-react"
 import { loadDishCatalog } from "src/services/DishService"
@@ -176,7 +177,7 @@ export default function BatchDishesCard({ batchData = {} }) {
                                 <span className={styles.chipName}>{ing.name}</span>
                                 {ing.requiredQuantity && (
                                   <span className={styles.chipQty}>
-                                    {ing.requiredQuantity} {ing.unit}
+                                    {formatSmallQuantity(ing.requiredQuantity, ing.unit)}
                                   </span>
                                 )}
                               </div>
@@ -205,7 +206,7 @@ export default function BatchDishesCard({ batchData = {} }) {
                                 <span className={styles.chipName}>{sea.name}</span>
                                 {sea.requiredQuantity && (
                                   <span className={styles.chipQty}>
-                                    {sea.requiredQuantity} {sea.unit}
+                                    {formatSmallQuantity(sea.requiredQuantity, sea.unit)}
                                   </span>
                                 )}
                               </div>

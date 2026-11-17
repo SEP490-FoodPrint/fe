@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useEffect, useState } from "react";
 import { Dialog, DialogTitle, DialogContent, DialogActions } from "@mui/material";
 import KitchenService from "src/services/KitchenService";
@@ -41,10 +42,10 @@ export default function BatchPlanModal({ open, onClose, dish, onConfirm, submitt
         {batch.dishes.map((row) => <div key={row.dishId}>
           <h4>{row.name} · {row.plannedPortions} suất</h4>
           <table style={{ width: "100%", textAlign: "left", marginBottom: 16 }}><thead><tr><th>Nguyên liệu</th><th>Lô nguồn</th><th>Lượng dùng</th></tr></thead>
-            <tbody>{row.lots.map((lot) => <tr key={lot.ingredientLotId}><td>{lot.ingredientName || "Nguyên liệu"}</td><td>{lot.lotCode || lot.ingredientLotId}</td><td>{lot.quantityUsed} {lot.unit}</td></tr>)}</tbody></table>
+            <tbody>{row.lots.map((lot) => <tr key={lot.ingredientLotId}><td>{lot.ingredientName || "Nguyên liệu"}</td><td>{lot.lotCode || lot.ingredientLotId}</td><td>{formatSmallQuantity(lot.quantityUsed, lot.unit)}</td></tr>)}</tbody></table>
         </div>)}
       </section>)}
-      {plan?.seasonings?.length > 0 && <section><h3>Gia vị dùng chung cho cả bữa</h3><ul>{plan.seasonings.map((lot) => <li key={lot.ingredientLotId}>{lot.ingredientName || "Gia vị"} · {lot.lotCode || lot.ingredientLotId}: {lot.quantityUsed} {lot.unit}</li>)}</ul></section>}
+      {plan?.seasonings?.length > 0 && <section><h3>Gia vị dùng chung cho cả bữa</h3><ul>{plan.seasonings.map((lot) => <li key={lot.ingredientLotId}>{lot.ingredientName || "Gia vị"} · {lot.lotCode || lot.ingredientLotId}: {formatSmallQuantity(lot.quantityUsed, lot.unit)}</li>)}</ul></section>}
     </DialogContent>
     <DialogActions>
       <button className={styles.cancelBtn} type="button" onClick={onClose} disabled={submitting}>Đóng</button>

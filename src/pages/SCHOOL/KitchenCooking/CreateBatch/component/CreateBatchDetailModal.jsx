@@ -1,3 +1,4 @@
+import { formatSmallQuantity, formatSmallQuantityText } from "src/utils/quantity"
 import { batchSampleProgress } from "src/services/KitchenService/adapter";
 import React, { useMemo } from "react";
 import {
@@ -79,7 +80,7 @@ export default function CreateBatchDetailModal({
       id: ing.id || idx,
       name: ing.name || ing.dishName || ing.ingredientName || "Nguyên liệu",
       lotCode: ing.lotCode || ing.code || "",
-      amount: ing.amount || (ing.quantity ? `${ing.quantity} ${ing.unit || "kg"}` : "Theo định mức"),
+      amount: ing.amount ? formatSmallQuantityText(ing.amount) : (ing.quantity != null ? formatSmallQuantity(ing.quantity, ing.unit) : "Theo định mức"),
     }));
 
     // Gia vị thực tế nếu có trong dữ liệu
@@ -88,7 +89,7 @@ export default function CreateBatchDetailModal({
       id: s.id || idx,
       name: s.name || s.ingredientName || "Gia vị",
       lotCode: s.lotCode || s.code || "",
-      amount: s.amount || (s.quantity ? `${s.quantity} ${s.unit || "kg"}` : "Theo định mức"),
+      amount: s.amount ? formatSmallQuantityText(s.amount) : (s.quantity != null ? formatSmallQuantity(s.quantity, s.unit) : "Theo định mức"),
     }));
 
     return { mainIngredients: mains, seasonings: seasonList };
@@ -224,7 +225,7 @@ export default function CreateBatchDetailModal({
                 <span className={styles.sampleTitle}>Thông tin niêm phong lưu mẫu thực phẩm</span>
                 <span className={styles.sampleLocationText}>
                   Vị trí: <strong>{sampleData?.storageLocation || "Chưa cập nhật vị trí"}</strong>
-                  {sampleData?.quantity ? ` • Lượng mẫu: ${sampleData.quantity} ${sampleData.unit || "g"}` : ""}
+                  {sampleData?.quantity ? ` • Lượng mẫu: ${formatSmallQuantity(sampleData.quantity, sampleData.unit || "g")}` : ""}
                 </span>
               </div>
             </div>

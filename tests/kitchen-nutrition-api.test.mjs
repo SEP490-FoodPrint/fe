@@ -558,10 +558,11 @@ test("comparison aligns ingredient identities and units, preserving missing valu
   const sections = gradeComparisonRows(scopes)
   assert.equal(sections.length, 3)
   const lines = sections.find(section => section.id === `dish:${id(3)}`).rows
-  assert.equal(lines.length, 4)
+  assert.equal(lines.length, 3)
   assert.deepEqual(lines[0].values, { A: 0, B: 100 })
-  assert.deepEqual(lines[1].values, { A: 10 })
-  assert.deepEqual(lines[2].values, { B: 0.02 })
+  assert.deepEqual(lines[1].values, { A: 10, B: "20" })
+  assert.equal(lines[1].unit, "g")
+  assert.deepEqual(lines[2].values, { B: 30 })
   assert.equal(sections.find(section => section.id === "seasonings").rows[0].values.A, "0.125")
 })
 

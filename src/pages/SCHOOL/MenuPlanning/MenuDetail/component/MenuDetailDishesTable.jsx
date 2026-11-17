@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useEffect, useMemo, useState } from "react"
 import { Button, Chip } from "@mui/material"
 import { ClipboardCheck, CircleHelp, LoaderCircle, ShieldAlert } from "lucide-react"
@@ -119,7 +120,7 @@ export default function MenuDetailDishesTable({ dishes = [], substituteDish = nu
                               <span className={styles.ingName}>{ing.name}</span>
                               {hasQty && (
                                 <span className={styles.ingQtyBadge}>
-                                  {ing.quantityPerPortion} {ing.unit || "g"}
+                                  {formatSmallQuantity(ing.quantityPerPortion, ing.unit || "g")}
                                 </span>
                               )}
                             </div>

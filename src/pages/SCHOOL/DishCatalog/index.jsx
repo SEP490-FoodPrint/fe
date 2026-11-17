@@ -1,3 +1,4 @@
+import { formatSmallQuantity, smallQuantity } from "src/utils/quantity"
 import React, { useState, useMemo, useCallback, useEffect } from "react"
 import {
   Pencil,
@@ -233,7 +234,7 @@ export default function DishCatalogPage() {
   const handleUpdateIngredientPortion = useCallback(
     (ingId, field, val) => {
       setSelectedIngredients((prev) =>
-        prev.map((i) => (i.id === ingId ? { ...i, [field]: val } : i))
+        prev.map((i) => (i.id === ingId ? { ...i, portionQty: smallQuantity(i.portionQty, i.unit || "g").quantity, unit: smallQuantity(null, i.unit || "g").unit, [field]: val } : i))
       )
     },
     []
@@ -263,7 +264,7 @@ export default function DishCatalogPage() {
   // Cập nhật định lượng gia vị
   const handleUpdateSeasoning = useCallback((seasId, field, val) => {
     setSelectedSeasonings((prev) =>
-      prev.map((s) => (s.id === seasId ? { ...s, [field]: val } : s))
+      prev.map((s) => (s.id === seasId ? { ...s, portionQty: smallQuantity(s.portionQty, s.unit || "g").quantity, unit: smallQuantity(null, s.unit || "g").unit, [field]: val } : s))
     )
   }, [])
 
@@ -740,7 +741,7 @@ export default function DishCatalogPage() {
                                       min="0.001"
                                       step="0.001"
                                       className={styles.portionQtyInput}
-                                      value={ing.portionQty ?? ""}
+                                      value={smallQuantity(ing.portionQty, ing.unit || "g").quantity ?? ""}
                                       onChange={(e) =>
                                         handleUpdateIngredientPortion(
                                           ing.id,
@@ -752,7 +753,7 @@ export default function DishCatalogPage() {
                                     />
                                     <select
                                       className={styles.portionUnitSelect}
-                                      value={ing.unit || "g"}
+                                      value={smallQuantity(null, ing.unit || "g").unit}
                                       onChange={(e) =>
                                         handleUpdateIngredientPortion(
                                           ing.id,
@@ -874,7 +875,7 @@ export default function DishCatalogPage() {
                                     min="0.001"
                                     step="0.001"
                                     className={styles.portionQtyInput}
-                                    value={seas.portionQty || ""}
+                                    value={smallQuantity(seas.portionQty, seas.unit || "g").quantity ?? ""}
                                     onChange={(e) =>
                                       handleUpdateSeasoning(
                                         seas.id,
@@ -886,7 +887,7 @@ export default function DishCatalogPage() {
                                   />
                                   <select
                                     className={styles.portionUnitSelect}
-                                    value={seas.unit || "g"}
+                                    value={smallQuantity(null, seas.unit || "g").unit}
                                     onChange={(e) =>
                                       handleUpdateSeasoning(
                                         seas.id,
@@ -1096,7 +1097,7 @@ export default function DishCatalogPage() {
                             </td>
                             <td style={{ textAlign: "right" }}>
                               <span className={styles.detailPortionBadge}>
-                                {ing.portionQty ?? "—"} {ing.unit || ""}
+                                {formatSmallQuantity(ing.portionQty, ing.unit || "g")}
                               </span>
                             </td>
                           </tr>
@@ -1142,7 +1143,7 @@ export default function DishCatalogPage() {
                             </td>
                             <td style={{ textAlign: "right" }}>
                               <span className={styles.detailPortionBadgeBrown}>
-                                {s.portionQty} {s.unit || "g"}
+                                {formatSmallQuantity(s.portionQty, s.unit || "g")}
                               </span>
                             </td>
                           </tr>

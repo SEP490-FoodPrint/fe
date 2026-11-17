@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState } from "react"
 import PropTypes from "prop-types"
 import {
@@ -80,7 +81,7 @@ export default function DeliveryDetailView({
         sourceFacility: "--",
         manufactureDate: null,
         expiryDate: null,
-        quantityText: `${item.actualQuantity} ${item.unit}`,
+        quantityText: formatSmallQuantity(item.actualQuantity, item.unit),
         status: null,
         lot: null,
       })
@@ -98,7 +99,7 @@ export default function DeliveryDetailView({
           sourceFacility: lot.sourceFacility,
           manufactureDate: lot.manufactureDate,
           expiryDate: lot.expiryDate,
-          quantityText: `${lot.receivedQuantity} ${lot.unit}`,
+          quantityText: formatSmallQuantity(lot.receivedQuantity, lot.unit),
           status: lot.status,
           lot: lot,
         })

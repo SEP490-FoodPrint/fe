@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import CookingProgressPreview from "../CreateBatch/CookingProgressPreview";
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -169,7 +170,7 @@ function CreateBatchPage() {
                   lot.IngredientLot?.DeliveryItem?.SupplyRequestItem?.IngredientEntry?.Ingredient?.name ||
                   lot.name || `Lô #${idx + 1}`,
                 code: lot.lotCode || lot.IngredientLot?.lotCode || "",
-                amount: lot.quantityUsed ? `${lot.quantityUsed} ${lot.unit || "kg"}` : "",
+                amount: lot.quantityUsed ? formatSmallQuantity(lot.quantityUsed, lot.unit) : "",
                 quantity: lot.quantityUsed,
                 unit: lot.unit || "kg",
                 dishId: lot.dishId,

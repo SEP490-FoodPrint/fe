@@ -1,3 +1,4 @@
+import { smallQuantity } from "src/utils/quantity"
 import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
 import { X, Edit3, AlertCircle, Check } from "lucide-react"
@@ -27,8 +28,9 @@ export default function UpdateSampleModal({
           )
         }
       }
-      setQuantity(sample.quantity || "150")
-      setUnit(sample.unit || "g")
+      const amount = smallQuantity(sample.quantity || "150", sample.unit || "g")
+      setQuantity(amount.quantity)
+      setUnit(amount.unit)
       setStorageLocation(sample.storageLocation || "")
       setErrorMsg("")
     }

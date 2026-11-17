@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import { dishForGrades } from "src/services/DishService"
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react"
 import {
@@ -1098,7 +1099,7 @@ export default function CreateMenuDayModal({
                               <td
                                 className={`${styles.seasoningPortionCell} ${styles.alignRight}`}
                               >
-                                {gradeIds?.length > 1 ? "Theo khối" : `${s.portionQty ?? "—"} ${s.unit || "g"}`}
+                                {gradeIds?.length > 1 ? "Theo khối" : formatSmallQuantity(s.portionQty, s.unit || "g")}
                               </td>
                             </tr>
                           ))}

@@ -1,3 +1,4 @@
+import { formatSmallQuantityText } from "src/utils/quantity"
 import React from "react";
 import { CookingPot, Layers, CheckCircle2, ArrowRight } from "lucide-react";
 import styles from "./ProposedBatchSection.module.scss";
@@ -109,7 +110,7 @@ export default function ProposedBatchSection({
                     <span className={styles.lotCode}>{lot.code}</span>
                   </td>
                   <td className={styles.lotName}>{lot.name}</td>
-                  <td className={styles.lotAmount}>{lot.amount}</td>
+                  <td className={styles.lotAmount}>{formatSmallQuantityText(lot.amount)}</td>
                 </tr>
               ))}
             </tbody>

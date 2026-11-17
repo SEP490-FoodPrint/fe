@@ -1,3 +1,4 @@
+import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
 import { X, Trash2, AlertTriangle, Check, Clock } from "lucide-react"
@@ -88,7 +89,7 @@ export default function DisposeSampleModal({
             <div className={styles.contextRow}>
               <span className={styles.contextLabel}>Lượng & vị trí lưu:</span>
               <span className={styles.contextVal}>
-                {sample.quantity} {sample.unit} • {sample.storageLocation}
+                {formatSmallQuantity(sample.quantity, sample.unit || "g")} • {sample.storageLocation}
               </span>
             </div>
           </div>
