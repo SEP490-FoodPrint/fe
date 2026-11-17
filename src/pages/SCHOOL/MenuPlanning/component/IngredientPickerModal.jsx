@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React, { useState, useMemo, useEffect } from "react"
 import styles from "./IngredientPickerModal.module.scss"
 import MenuService from "src/services/MenuService"
@@ -122,7 +123,7 @@ export default function IngredientPickerModal({
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContainer} onClick={(e) => e.stopPropagation()}>
         {loading && <p role="status">Đang tải nguyên liệu từ nhà cung cấp liên kết…</p>}
-        {catalogError && <p role="alert">{catalogError}</p>}
+        <InlineError messages={catalogError} />
         {/* Header Modal */}
         <div className={styles.modalHeader}>
           <div className={styles.headerTitleWrap}>

@@ -6,6 +6,12 @@ export async function getDeliveryInspections(query = {}, signal) {
   if (!Array.isArray(response?.items) || !response.pagination || !response.stats) throw new Error("Dữ liệu kiểm tra giao hàng không hợp lệ.")
   return response
 }
+// Tìm xe giao của trường từ nội dung tem QR (link truy xuất / mã QR lô) hoặc mã đợt giao.
+export async function lookupDeliveryByCode(code) {
+  const response = unwrap(await http.get("/deliveries/inspections/lookup", { params: { code }, notifyOnError: false }))
+  if (!response?.id) throw new Error("Không tìm thấy xe giao với mã này.")
+  return response
+}
 export async function getDeliveryInspection(id) {
   const response = unwrap(await http.get(`/deliveries/${id}/inspection`, { notifyOnError: false }))
   if (!response?.id || !Array.isArray(response.deliveryItems) || !Array.isArray(response.requiredRoles)) throw new Error("Không tải được chi tiết đợt giao.")

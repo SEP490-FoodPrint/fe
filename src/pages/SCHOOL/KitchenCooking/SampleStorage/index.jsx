@@ -3,9 +3,6 @@ import KitchenOutlinedIcon from "@mui/icons-material/KitchenOutlined";
 import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import RefreshOutlinedIcon from "@mui/icons-material/RefreshOutlined";
-import CheckCircleOutlineOutlinedIcon from "@mui/icons-material/CheckCircleOutlineOutlined";
-import BuildOutlinedIcon from "@mui/icons-material/BuildOutlined";
-import ScienceOutlinedIcon from "@mui/icons-material/ScienceOutlined";
 import ThermostatOutlinedIcon from "@mui/icons-material/ThermostatOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import RemoveRedEyeOutlinedIcon from "@mui/icons-material/RemoveRedEyeOutlined";
@@ -144,8 +141,16 @@ export default function SampleStorage() {
             Danh sách tủ lưu mẫu
           </h1>
           <p className={styles.pageSubtitle}>
-            Quản lý Master Data các tủ lưu mẫu thức ăn chuyên dụng phục vụ kiểm thực 3 bước và lưu
-            mẫu tối thiểu 24h theo QĐ 1246/QĐ-BYT
+            Quản lý các tủ lưu mẫu thức ăn chuyên dụng phục vụ kiểm thực 3 bước và lưu mẫu tối thiểu
+            24h theo{" "}
+            <a
+              className={styles.legalLink}
+              href="https://thuvienphapluat.vn/van-ban/The-thao-Y-te/Quyet-dinh-1246-QD-BYT-che-do-kiem-thuc-ba-buoc-luu-mau-thuc-an-kinh-doanh-dich-vu-an-uong-2017-345320.aspx"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              QĐ 1246/QĐ-BYT
+            </a>
           </p>
         </div>
 
@@ -164,45 +169,30 @@ export default function SampleStorage() {
       {/* KPI METRIC CARDS STRIP */}
       <div className={styles.kpiStrip}>
         <div className={styles.kpiCard}>
-          <div className={`${styles.kpiIconWrapper} ${styles.kpiIconBlue}`}>
-            <KitchenOutlinedIcon />
-          </div>
           <div className={styles.kpiContent}>
             <span className={styles.kpiNumber}>{stats.totalUnits}</span>
             <span className={styles.kpiLabel}>Tổng số tủ lưu mẫu</span>
-            <span className={styles.kpiSub}>Cấu hình tại nhà trường</span>
           </div>
         </div>
 
         <div className={styles.kpiCard}>
-          <div className={`${styles.kpiIconWrapper} ${styles.kpiIconGreen}`}>
-            <CheckCircleOutlineOutlinedIcon />
-          </div>
           <div className={styles.kpiContent}>
             <span className={styles.kpiNumber}>{stats.activeUnits}</span>
-            <span className={styles.kpiLabel}>Đang hoạt động tốt</span>
-            <span className={styles.kpiSub}>Sẵn sàng tiếp nhận mẫu</span>
+            <span className={styles.kpiLabel}>Đang hoạt động</span>
           </div>
         </div>
 
         <div className={styles.kpiCard}>
-          <div className={`${styles.kpiIconWrapper} ${styles.kpiIconAmber}`}>
-            <BuildOutlinedIcon />
-          </div>
           <div className={styles.kpiContent}>
             <span className={styles.kpiNumber}>{stats.maintenanceUnits}</span>
-            <span className={styles.kpiLabel}>Đang bảo trì / Kiểm định</span>
-            <span className={styles.kpiSub}>Tạm ngưng nhận mẫu mới</span>
+            <span className={styles.kpiLabel}>Đang bảo trì</span>
           </div>
         </div>
 
         <div className={styles.kpiCard}>
-          <div className={`${styles.kpiIconWrapper} ${styles.kpiIconPurple}`}>
-            <ScienceOutlinedIcon />
-          </div>
           <div className={styles.kpiContent}>
             <span className={styles.kpiNumber}>{stats.totalCapacity} mẫu</span>
-            <span className={styles.kpiLabel}>Tổng sức chứa toàn bếp</span>
+            <span className={styles.kpiLabel}>Tổng sức chứa</span>
             <span className={styles.kpiSub}>
               Đang bảo quản {stats.totalStoredSamples} mẫu thức ăn
             </span>

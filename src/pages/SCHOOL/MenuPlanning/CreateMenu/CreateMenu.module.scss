@@ -606,3 +606,19 @@
     padding: 14px 14px 110px 14px;
   }
 }
+
+.weekStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.weekStatusDraft { background: #f1f5f9; color: #475569; border-color: #e2e8f0; }
+.weekStatusPending { background: #e0f2fe; color: #0369a1; border-color: #bae6fd; }
+.weekStatusRevision { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+.weekStatusApproved { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
+.weekStatusEmpty { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }

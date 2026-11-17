@@ -84,7 +84,7 @@ export default function MenuListWeeklyVerticalView({
         return "Bản nháp"
       case "APPROVED":
       default:
-        return "Đã duyệt BGH"
+        return "Đã duyệt"
     }
   }
 
@@ -139,7 +139,7 @@ export default function MenuListWeeklyVerticalView({
       } else if (statuses.length && statuses.every(status => status === "APPROVED")) {
         progress = { type: "APPROVED", label: "Đã duyệt", badgeClass: styles.badgeApproved, IconComponent: CheckCircle2 }
       } else {
-        progress = { type: "COMPLETED", label: "Đủ ca", badgeClass: styles.badgeCompleted, IconComponent: CheckCircle2 }
+        progress = { type: "COMPLETED", label: "Đủ bữa", badgeClass: styles.badgeCompleted, IconComponent: CheckCircle2 }
       }
 
       const resolvedLunch = lunchMenu || null
@@ -220,7 +220,7 @@ export default function MenuListWeeklyVerticalView({
             title="Thực đơn tuần này đã được Ban Giám Hiệu phê duyệt chính thức"
           >
             <CheckCircle2 size={13} />
-            <span>Đã duyệt BGH</span>
+            <span>Đã duyệt</span>
           </span>
         )
     }
@@ -400,18 +400,18 @@ export default function MenuListWeeklyVerticalView({
                       </div>
 
                       {progress && (
-                          <span
-                            className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                            title={
-                              progress.note
-                                ? `BGH: ${progress.note}`
-                                : `Tiến độ ngày: ${progress.label}`
-                            }
-                          >
-                            <ProgressIcon size={12} />
-                            <span>{progress.label}</span>
-                          </span>
-                        )}
+                        <span
+                          className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
+                          title={
+                            progress.note
+                              ? `BGH: ${progress.note}`
+                              : `Tiến độ ngày: ${progress.label}`
+                          }
+                        >
+                          <ProgressIcon size={12} />
+                          <span>{progress.label}</span>
+                        </span>
+                      )}
                     </div>
 
                     <div className={styles.dayDateRow}>

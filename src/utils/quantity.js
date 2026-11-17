@@ -1,4 +1,5 @@
-// Operational meal screens use g and ml even when stock/history uses kg or l.
+// Định lượng theo suất (recipe, gia vị/suất, lượng mẫu) dùng đơn vị nhỏ nhất: g, ml.
+// Tổng lượng (lượng dùng của lô, số lượng giao/nhận, tổng lượng ca ăn) dùng formatLargeQuantity: kg, l.
 // Count units stay unchanged: there is no weight-to-volume or count conversion.
 const UNITS = {
   kg: ["g", 3], kilogram: ["g", 3], kilogam: ["g", 3],
@@ -37,4 +38,25 @@ export function formatSmallQuantity(quantity, unit = "") {
 export function formatSmallQuantityText(text) {
   const match = String(text ?? "").trim().match(/^(-?\d+(?:\.\d+)?)\s*([^\d\s]+)$/u)
   return match ? formatSmallQuantity(match[1], match[2]) : text
+}
+
+const LARGE_UNITS = { g: "kg", ml: "l" }
+
+// Tổng lượng: từ 1000 g / 1000 ml trở lên hiển thị kg / l; nhỏ hơn giữ g / ml cho dễ đọc.
+export function formatLargeQuantity(quantity, unit = "") {
+  const small = smallQuantity(quantity, unit)
+  if (small.quantity == null || small.quantity === "") return "—"
+  const value = Number(small.quantity)
+  if (!/^-?\d+(?:\.\d+)?$/.test(String(small.quantity).trim())) return "—"
+  const largeUnit = LARGE_UNITS[small.unit]
+  if (!largeUnit || !Number.isFinite(value)) return formatSmallQuantity(quantity, unit)
+  const format = (number) => number.toLocaleString("vi-VN", { maximumFractionDigits: 3 })
+  return Math.abs(value) >= 1000
+    ? `${format(value / 1000)} ${largeUnit}`
+    : `${format(value)} ${small.unit}`
+}
+
+export function formatLargeQuantityText(text) {
+  const match = String(text ?? "").trim().match(/^(-?\d+(?:\.\d+)?)\s*([^\d\s]+)$/u)
+  return match ? formatLargeQuantity(match[1], match[2]) : text
 }

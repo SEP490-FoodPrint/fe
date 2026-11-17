@@ -69,7 +69,7 @@ export default function CreateMenuWeeklyGrid({
           const hasSeasonings = seasonings.length > 0
 
           // Tiến độ ngày: Chuẩn hóa theo đúng yêu cầu
-          // "Nghỉ", "Thiếu bữa xế", "Thiếu bữa trưa", "Đủ ca", "Chưa tạo"
+          // "Nghỉ", "Thiếu bữa xế", "Thiếu bữa trưa", "Đủ bữa", "Chưa tạo"
           let progress = {
             label: "Chưa tạo",
             badgeClass: styles.badgeEmpty,
@@ -83,7 +83,7 @@ export default function CreateMenuWeeklyGrid({
             }
           } else if (hasLunch && hasAfternoon) {
             progress = {
-              label: "Đủ ca",
+              label: "Đủ bữa",
               badgeClass: styles.badgeCompleted,
               IconComponent: CheckCircle2,
             }
@@ -136,7 +136,7 @@ export default function CreateMenuWeeklyGrid({
                   <div className={styles.dayDateRow}>
                     <span className={styles.dayDateText}>{sd.dateVN}</span>
 
-                    {/* Tiến độ ngày: "Đủ ca", "Thiếu bữa xế", "Thiếu bữa trưa", "Chưa tạo" */}
+                    {/* Tiến độ ngày: "Đủ bữa", "Thiếu bữa xế", "Thiếu bữa trưa", "Chưa tạo" */}
                     <span
                       className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
                       title={`Tiến độ ngày: ${progress.label}`}

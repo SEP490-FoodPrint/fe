@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React, { useState, useMemo, useEffect } from "react"
 import {
   getSchoolClassAllergies,
@@ -112,10 +113,7 @@ export default function HealthAllergyPage() {
           <p>Đang tải dữ liệu dị ứng…</p>
         </div>
       ) : error ? (
-        <div role="alert" className={styles.errorAlert}>
-          <span>{error}</span>
-          <button type="button" onClick={() => setRevision((value) => value + 1)}>Thử lại</button>
-        </div>
+        <InlineError messages={error} onRetry={() => setRevision((value) => value + 1)} />
       ) : filteredList.length === 0 ? (
         <AllergyEmptyState
           isSearching={isFiltered}

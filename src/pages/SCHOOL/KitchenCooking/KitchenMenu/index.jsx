@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React, { useState, useEffect, useMemo } from "react"
 import { Button } from "@mui/material"
 import { useNavigate } from "react-router-dom"
@@ -235,27 +236,17 @@ export default function KitchenMenu() {
         gradeError={gradeError}
         onOpenBatches={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
       />
-      {gradeError && (
-        <div role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "10px 16px", borderRadius: "8px", margin: "12px 0", fontSize: "14px", fontWeight: 500 }}>
-          <span>{gradeError}</span>
-          <Button size="small" variant="outlined" color="error" onClick={reload}>
-            Thử lại
-          </Button>
-        </div>
-      )}
+      {!(calendarError || scheduleError) && <InlineError messages={gradeError} onRetry={reload} />}
       {calendarLoading || loading ? (
-        <div role="status" style={{ padding: 80 }}>
-          <FoodPrintLoading />
+        <div role="status" className={styles.loadingWrapper}>
+          <FoodPrintLoading size="large" />
         </div>
       ) : calendarError || scheduleError ? (
-        <div role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "12px 16px", borderRadius: "8px", margin: "16px 0", fontSize: "14px", fontWeight: 500 }}>
-          <p style={{ margin: 0 }}>{calendarError || scheduleError}</p>
-          <Button variant="outlined" color="error" size="small" onClick={reload}>Thử lại</Button>
-        </div>
+        <InlineError messages={[calendarError, scheduleError]} onRetry={reload} />
       ) : !years.length ? (
-        <p>Chưa có cấu hình năm học của trường.</p>
+        <p className={styles.emptyText}>Chưa có cấu hình năm học của trường.</p>
       ) : !existing.length ? (
-        <p role="status">
+        <p role="status" className={styles.emptyText}>
           {gradeId
             ? "Khối đã chọn chưa có thực đơn trong tuần này."
             : "Chưa có thực đơn trong tuần này."}

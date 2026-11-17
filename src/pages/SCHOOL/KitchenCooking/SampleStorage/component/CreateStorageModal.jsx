@@ -86,7 +86,7 @@ export default function CreateStorageModal({ isOpen, onClose, onSuccess }) {
               Thêm tủ lưu mẫu mới
             </h3>
             <p className={styles.headerSubtitle}>
-              Khai báo tủ lưu mẫu thức ăn chuyên dụng vào danh mục Master Data của trường
+              Khai báo tủ lưu mẫu thức ăn chuyên dụng vào danh mục của trường
             </p>
           </div>
           <button type="button" className={styles.closeBtn} onClick={onClose} aria-label="Đóng">

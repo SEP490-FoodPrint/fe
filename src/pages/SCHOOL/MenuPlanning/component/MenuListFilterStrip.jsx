@@ -1,3 +1,4 @@
+import InlineError from "src/components/InlineError"
 import React from "react"
 import { Button, NativeSelect } from "@mui/material"
 import {
@@ -148,12 +149,7 @@ export default function MenuListFilterStrip({
         </button>
       </div>
 
-      {gradeError && (
-        <div className={styles.gradeError} role="alert">
-          <span>{gradeError}</span>
-          <Button size="small" onClick={onRetryGrades}>Thử lại</Button>
-        </div>
-      )}
+      <InlineError messages={gradeError} onRetry={onRetryGrades} />
     </>
   )
 }
