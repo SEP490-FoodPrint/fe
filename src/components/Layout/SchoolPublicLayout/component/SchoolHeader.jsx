@@ -21,6 +21,7 @@ function SchoolHeader({ school }) {
   const location = useLocation();
 
   const isDailyMenuPage = location.pathname.includes("/daily-menu");
+  const isTracePage = location.pathname.endsWith("/traceability");
   const schoolCode = school?.code || "";
 
   const [schools, setSchools] = useState([]);
@@ -61,7 +62,8 @@ function SchoolHeader({ school }) {
     };
   }, []);
 
-  const homeHref = isDailyMenuPage ? `/school/${schoolCode}` : "#";
+  const homeHref = isDailyMenuPage || isTracePage ? `/school/${schoolCode}` : "#";
+  const traceHref = `/school/${schoolCode}/traceability`;
   const dailyHref = `/school/${schoolCode}/daily-menu`;
 
   return (
@@ -95,7 +97,7 @@ function SchoolHeader({ school }) {
         <nav className={styles.navBar} aria-label="School Navigation">
           <a
             href={homeHref}
-            className={`${styles.navItem} ${!isDailyMenuPage ? styles.isActive : ""}`}
+            className={`${styles.navItem} ${!isDailyMenuPage && !isTracePage ? styles.isActive : ""}`}
           >
             Trang chủ
           </a>
@@ -104,6 +106,12 @@ function SchoolHeader({ school }) {
             className={`${styles.navItem} ${isDailyMenuPage ? styles.isActive : ""}`}
           >
             Thực đơn
+          </Link>
+          <Link
+            to={traceHref}
+            className={`${styles.navItem} ${isTracePage ? styles.isActive : ""}`}
+          >
+            Truy xuất nguồn gốc
           </Link>
         </nav>
 
@@ -129,7 +137,9 @@ function SchoolHeader({ school }) {
                   {schools.map((item) => {
                     const targetTo = isDailyMenuPage
                       ? `/school/${item.code}/daily-menu${location.search}`
-                      : `/school/${item.code}`;
+                      : isTracePage
+                        ? `/school/${item.code}/traceability`
+                        : `/school/${item.code}`;
 
                     return (
                       <Link

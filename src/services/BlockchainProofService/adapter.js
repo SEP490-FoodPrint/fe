@@ -1,6 +1,8 @@
 // Turns blockchain proof versions into plain-language states for people who do not know blockchain.
 
 export const EVENT_LABELS = {
+  DELIVERY_DECLARED: "Nhà cung cấp khai báo giao hàng",
+  MEAL_DISTRIBUTED: "Xác nhận phân phối suất ăn",
   DELIVERY_INSPECTED: "Chốt biên bản kiểm nhận",
   COOKING_COMPLETED: "Hoàn thành mẻ nấu",
   SAMPLE_STORED: "Lưu mẫu thực phẩm",
