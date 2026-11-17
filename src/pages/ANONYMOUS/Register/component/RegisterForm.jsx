@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import {
   AlertCircle,
   ArrowRight,
+  Check,
   LogIn,
   School,
   Truck,
@@ -150,30 +151,42 @@ export default function RegisterForm() {
             Tạo tài khoản đại diện quản lý cho trường học hoặc đối tác nhà cung cấp trên FoodPrint.
           </p>
 
-          {/* Role Switcher Tabs */}
-          <div className={styles.roleTabs} role="tablist">
-            <button
-              type="button"
-              className={`${styles.roleTab} ${requestType === "SCHOOL" ? styles.activeRoleTab : ""}`}
-              onClick={() => setParams({ type: "SCHOOL" }, { replace: true })}
-              role="tab"
-              aria-selected={requestType === "SCHOOL"}
-              disabled={loading}
-            >
-              <School size={16} />
-              <span>Đăng ký nhà trường</span>
-            </button>
-            <button
-              type="button"
-              className={`${styles.roleTab} ${requestType === "SUPPLIER" ? styles.activeRoleTab : ""}`}
-              onClick={() => setParams({ type: "SUPPLIER" }, { replace: true })}
-              role="tab"
-              aria-selected={requestType === "SUPPLIER"}
-              disabled={loading}
-            >
-              <Truck size={16} />
-              <span>Đăng ký nhà cung cấp</span>
-            </button>
+          {/* Checkbox chọn vai trò đăng ký (Nhà trường / Nhà cung cấp) */}
+          <div className={styles.roleSelectionBox}>
+            <span className={styles.roleSelectionLabel}>Đơn vị đăng ký:</span>
+            <div className={styles.roleCheckboxes}>
+              <label className={`${styles.roleCheckboxItem} ${requestType === "SCHOOL" ? styles.checkedRole : ""}`}>
+                <input
+                  type="checkbox"
+                  className={styles.hiddenCheckbox}
+                  checked={requestType === "SCHOOL"}
+                  onChange={() => setParams({ type: "SCHOOL" }, { replace: true })}
+                  disabled={loading}
+                  aria-label="Đăng ký nhà trường"
+                />
+                <span className={styles.customCheckmark}>
+                  {requestType === "SCHOOL" && <Check size={13} strokeWidth={3} />}
+                </span>
+                <School size={17} className={styles.roleIcon} />
+                <span className={styles.roleText}>Đăng ký nhà trường</span>
+              </label>
+
+              <label className={`${styles.roleCheckboxItem} ${requestType === "SUPPLIER" ? styles.checkedRole : ""}`}>
+                <input
+                  type="checkbox"
+                  className={styles.hiddenCheckbox}
+                  checked={requestType === "SUPPLIER"}
+                  onChange={() => setParams({ type: "SUPPLIER" }, { replace: true })}
+                  disabled={loading}
+                  aria-label="Đăng ký nhà cung cấp"
+                />
+                <span className={styles.customCheckmark}>
+                  {requestType === "SUPPLIER" && <Check size={13} strokeWidth={3} />}
+                </span>
+                <Truck size={17} className={styles.roleIcon} />
+                <span className={styles.roleText}>Đăng ký nhà cung cấp</span>
+              </label>
+            </div>
           </div>
 
           {/* Error Alert */}

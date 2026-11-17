@@ -121,3 +121,31 @@
   background-color: #175b92;
   color: #ffffff;
 }
+
+.errorAlert {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 16px 0;
+}
+
+.statusNotice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background-color: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  color: #64748b;
+  font-size: 14.5px;
+  margin: 16px 0;
+  text-align: center;
+}

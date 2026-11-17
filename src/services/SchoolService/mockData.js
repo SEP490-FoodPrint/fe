@@ -356,7 +356,9 @@ export const MOCK_FOODPRINT_DAILY_MENU = {
  * Mock Data: Thực đơn ngày hôm nay
  */
 export const MOCK_DAILY_MEAL_MENUS = {
+  "FP-SCHOOL-01": MOCK_FOODPRINT_DAILY_MENU,
   "FP-DEMO-SCHOOL-01": MOCK_FOODPRINT_DAILY_MENU,
+  FP_SCHOOL_01: MOCK_FOODPRINT_DAILY_MENU,
   FP_DEMO_SCHOOL_01: MOCK_FOODPRINT_DAILY_MENU,
   SCH_ANH_DUONG: MOCK_FOODPRINT_DAILY_MENU,
 };
@@ -490,9 +492,13 @@ export const MOCK_WEEKLY_MENUS = {
       };
     }),
   },
+  "FP-SCHOOL-01": null,
+  FP_SCHOOL_01: null,
   FP_DEMO_SCHOOL_01: null,
   SCH_ANH_DUONG: null,
 };
+MOCK_WEEKLY_MENUS["FP-SCHOOL-01"] = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
+MOCK_WEEKLY_MENUS.FP_SCHOOL_01 = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
 MOCK_WEEKLY_MENUS.FP_DEMO_SCHOOL_01 = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
 MOCK_WEEKLY_MENUS.SCH_ANH_DUONG = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
 
@@ -500,7 +506,7 @@ MOCK_WEEKLY_MENUS.SCH_ANH_DUONG = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
  * Hàm trả về Mock Thực đơn Ngày cho Trường Tiểu học FoodPrint
  */
 export function getMockDailyMealMenu(schoolCode, date) {
-  const code = (schoolCode || "FP-DEMO-SCHOOL-01").toUpperCase();
+  const code = (schoolCode || "FP-SCHOOL-01").toUpperCase();
   const base = MOCK_DAILY_MEAL_MENUS[code] || MOCK_FOODPRINT_DAILY_MENU;
   const menu = JSON.parse(JSON.stringify(base));
 
@@ -552,69 +558,69 @@ export const MOCK_ACCOUNTS = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=SystemAdmin",
   },
   {
-    userId: "fp_demo_bgh",
-    username: "fp_demo_bgh",
-    fullName: "BGH Demo (Hiệu trưởng)",
+    userId: "fp_bgh",
+    username: "fp_bgh",
+    fullName: "Ban Giám Hiệu (Hiệu trưởng)",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
-    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    orgName: "Trường Tiểu học FoodPrint",
     role: ROLES.SCHOOL_MANAGEMENT_BOARD,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Principal",
   },
   {
-    userId: "fp_demo_health",
-    username: "fp_demo_health",
-    fullName: "Nhân viên dinh dưỡng Demo",
+    userId: "fp_health",
+    username: "fp_health",
+    fullName: "Nguyễn Thu Trang (Nhân viên Dinh dưỡng)",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
-    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    orgName: "Trường Tiểu học FoodPrint",
     role: ROLES.SCHOOL_NUTRITION_OFFICER,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=HealthOfficer",
   },
   {
-    userId: "fp_demo_kitchen",
-    username: "fp_demo_kitchen",
-    fullName: "Nhân viên bếp Demo",
+    userId: "fp_kitchen",
+    username: "fp_kitchen",
+    fullName: "Nhân viên bếp (Phương án B: Nấu riêng)",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
-    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    orgName: "Trường Tiểu học FoodPrint",
     role: ROLES.SCHOOL_KITCHEN_STAFF,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=KitchenStaff",
   },
   {
-    userId: "fp_demo_teacher",
-    username: "fp_demo_teacher",
-    fullName: "Giáo viên chủ nhiệm Demo",
+    userId: "fp_teacher",
+    username: "fp_teacher",
+    fullName: "Giáo viên chủ nhiệm",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
-    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    orgName: "Trường Tiểu học FoodPrint",
     role: ROLES.HOMEROOM_TEACHER,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Teacher",
   },
   {
-    userId: "fp_demo_parents",
-    username: "fp_demo_parents",
-    fullName: "Ban đại diện phụ huynh Demo",
+    userId: "fp_parents",
+    username: "fp_parents",
+    fullName: "Ban đại diện phụ huynh",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
-    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    orgName: "Trường Tiểu học FoodPrint",
     role: ROLES.PARENTS_COMMITTEE,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Parent",
   },
   {
-    userId: "fp_demo_ingredients",
-    username: "fp_demo_ingredients",
-    fullName: "Nhân viên quản lý nguyên liệu Demo",
+    userId: "fp_ingredients",
+    username: "fp_ingredients",
+    fullName: "Nhân viên quản lý kho & nguyên liệu",
     orgType: ORG_TYPES.SCHOOL,
     orgId: "sch_cau_giay_01",
-    orgName: "Trường Tiểu học FoodPrint (DEMO)",
+    orgName: "Trường Tiểu học FoodPrint",
     role: ROLES.INGREDIENT_MANAGEMENT,
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Warehouse",
   },
   {
-    userId: "fp_demo_supplier_admin",
-    username: "fp_demo_supplier_admin",
-    fullName: "Quản trị Supplier Demo",
+    userId: "fp_supplier_admin",
+    username: "fp_supplier_admin",
+    fullName: "Quản trị viên Nhà cung cấp",
     orgType: ORG_TYPES.SUPPLIER,
     orgId: "sup_fresh_food",
     orgName: "Nhà cung cấp Nguyên liệu Sạch",
@@ -622,9 +628,9 @@ export const MOCK_ACCOUNTS = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=SupplierAdmin",
   },
   {
-    userId: "fp_demo_supplier_staff",
-    username: "fp_demo_supplier_staff",
-    fullName: "Nhân viên Supplier Demo",
+    userId: "fp_supplier_staff",
+    username: "fp_supplier_staff",
+    fullName: "Nhân viên Nhà cung cấp",
     orgType: ORG_TYPES.SUPPLIER,
     orgId: "sup_fresh_food",
     orgName: "Nhà cung cấp Nguyên liệu Sạch",
@@ -632,9 +638,9 @@ export const MOCK_ACCOUNTS = [
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=SupplierStaff",
   },
   {
-    userId: "fp_demo_authority",
-    username: "fp_demo_authority",
-    fullName: "Cán bộ ATTP Demo",
+    userId: "fp_authority",
+    username: "fp_authority",
+    fullName: "Cán bộ An toàn Thực phẩm",
     orgType: ORG_TYPES.AUTHORITY,
     orgId: "commune_authority_01",
     orgName: "UBND Xã - Trạm Y tế Cấp Xã",

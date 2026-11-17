@@ -84,9 +84,14 @@ export default function IngredientCatalog() {
     return filteredCatalog.slice(start, start + PAGE_SIZE)
   }, [filteredCatalog, page])
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(Math.max(1, totalPages))
+    }
+  }, [page, totalPages])
+
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }))
-    setPage(1)
   }
 
   return (

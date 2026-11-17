@@ -10,6 +10,7 @@ import AllergyTableView from "./component/AllergyTableView"
 import AllergyMobileCards from "./component/AllergyMobileCards"
 import AllergyEmptyState from "./component/AllergyEmptyState"
 import AllergyClassDetailView from "./component/AllergyClassDetailView"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 
 export default function HealthAllergyPage() {
@@ -105,7 +106,17 @@ export default function HealthAllergyPage() {
       />
 
       {/* D. Allergy List & E. Empty State */}
-      {loading ? <p role="status">Đang tải dữ liệu dị ứng…</p> : error ? <div role="alert"><p>{error}</p><button onClick={()=>setRevision(value=>value+1)}>Thử lại</button></div> : filteredList.length === 0 ? (
+      {loading ? (
+        <div className={styles.loadingWrap} role="status">
+          <FoodPrintLoading />
+          <p>Đang tải dữ liệu dị ứng…</p>
+        </div>
+      ) : error ? (
+        <div role="alert" className={styles.errorAlert}>
+          <span>{error}</span>
+          <button type="button" onClick={() => setRevision((value) => value + 1)}>Thử lại</button>
+        </div>
+      ) : filteredList.length === 0 ? (
         <AllergyEmptyState
           isSearching={isFiltered}
           onResetFilters={handleResetFilters}

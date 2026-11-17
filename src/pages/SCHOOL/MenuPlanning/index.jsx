@@ -421,11 +421,17 @@ export default function MenuPlanning() {
           <FoodPrintLoading />
         </div>
       ) : calendarError || loadError ? (
-        <p role="alert">{calendarError || loadError}</p>
+        <div role="alert" className={styles.errorAlert}>
+          <p>{calendarError || loadError}</p>
+        </div>
       ) : !selectedWeekObj ? (
-        <p role="status">Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
+        <div className={styles.statusNotice} role="status">
+          <p>Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
+        </div>
       ) : !menuGroups.length ? (
-        <p role="status">{filters.gradeId ? "Khối đã chọn chưa có thực đơn phù hợp trong tuần này." : "Chưa có thực đơn phù hợp trong tuần này."}</p>
+        <div className={styles.statusNotice} role="status">
+          <p>{filters.gradeId ? "Khối đã chọn chưa có thực đơn phù hợp trong tuần này." : "Chưa có thực đơn phù hợp trong tuần này."}</p>
+        </div>
       ) : (
         menuGroups.map(group => <MenuListWeeklyVerticalView
           key={group.id}

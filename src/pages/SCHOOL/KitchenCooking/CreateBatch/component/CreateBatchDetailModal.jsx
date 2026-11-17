@@ -187,6 +187,11 @@ export default function CreateBatchDetailModal({
         {/* 2. Thanh Tóm Tắt Trạng Thái & Mã Lô (Balance Bar) */}
         <div className={styles.summaryBar}>
           <div className={styles.summaryLeft}>
+            {currentItem?.batchNumber ? (
+              <span className={styles.batchNumberBadge}>
+                Lô {currentItem.batchNumber}
+              </span>
+            ) : null}
             <span className={styles.batchCodeLabel}>Mã lô:</span>
             <span className={styles.batchCodeValue}>{batchCode || "CHƯA TẠO"}</span>
           </div>

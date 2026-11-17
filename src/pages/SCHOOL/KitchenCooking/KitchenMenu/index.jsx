@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { Button } from "@mui/material"
 import { useNavigate } from "react-router-dom"
 import ROUTER from "src/router/ROUTER"
@@ -38,7 +38,7 @@ export default function KitchenMenu() {
     MenuService.getAcademicCalendar({ forceRefresh: true })
       .then((response) => {
         if (!active) return
-        const rows = response.academicYears
+        const rows = response?.academicYears || response?.data?.academicYears
         if (!Array.isArray(rows))
           throw new Error("Không tải được cấu hình năm học.")
         setYears(rows)
@@ -236,9 +236,9 @@ export default function KitchenMenu() {
         onOpenBatches={() => navigate(ROUTER.SCHOOL_KITCHEN_BATCHES)}
       />
       {gradeError && (
-        <div role="alert">
+        <div role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "10px 16px", borderRadius: "8px", margin: "12px 0", fontSize: "14px", fontWeight: 500 }}>
           <span>{gradeError}</span>
-          <Button size="small" onClick={reload}>
+          <Button size="small" variant="outlined" color="error" onClick={reload}>
             Thử lại
           </Button>
         </div>
@@ -248,9 +248,9 @@ export default function KitchenMenu() {
           <FoodPrintLoading />
         </div>
       ) : calendarError || scheduleError ? (
-        <div role="alert">
-          <p>{calendarError || scheduleError}</p>
-          <Button onClick={reload}>Thử lại</Button>
+        <div role="alert" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", color: "#dc2626", backgroundColor: "#fef2f2", border: "1px solid #fecaca", padding: "12px 16px", borderRadius: "8px", margin: "16px 0", fontSize: "14px", fontWeight: 500 }}>
+          <p style={{ margin: 0 }}>{calendarError || scheduleError}</p>
+          <Button variant="outlined" color="error" size="small" onClick={reload}>Thử lại</Button>
         </div>
       ) : !years.length ? (
         <p>Chưa có cấu hình năm học của trường.</p>

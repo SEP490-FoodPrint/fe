@@ -5,13 +5,33 @@ import MenuService from "src/services/MenuService"
 // Helper icon cho phân loại
 const getCategoryIcon = (cat) => {
   switch (cat) {
-    case "Thịt & Gia cầm": return "lunch_dining"
-    case "Thủy hải sản": return "set_meal"
-    case "Rau củ quả": return "eco"
-    case "Trứng gia cầm": return "egg"
-    case "Tinh bột & Ngũ cốc": return "grain"
-    case "Sữa & Tráng miệng": return "icecream"
-    default: return "restaurant"
+    case "Thịt tươi":
+    case "Thịt & Gia cầm":
+      return "lunch_dining"
+    case "Thủy sản":
+    case "Thủy hải sản":
+      return "set_meal"
+    case "Rau củ":
+    case "Rau củ quả":
+      return "eco"
+    case "Trái cây":
+      return "nutrition"
+    case "Gạo / ngũ cốc":
+    case "Ngũ cốc":
+    case "Các loại hạt":
+    case "Tinh bột & Ngũ cốc":
+      return "grain"
+    case "Lương thực khô":
+      return "inventory_2"
+    case "Thực phẩm chế biến":
+      return "fastfood"
+    case "Sản phẩm từ sữa":
+    case "Sữa & Tráng miệng":
+      return "icecream"
+    case "Gia vị / Phụ gia":
+      return "soup_kitchen"
+    default:
+      return "restaurant"
   }
 }
 

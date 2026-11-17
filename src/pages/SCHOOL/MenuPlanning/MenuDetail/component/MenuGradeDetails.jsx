@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   Button,
   FormControl,
@@ -236,58 +236,60 @@ export default function MenuGradeDetails({
       aria-label="Định lượng thực đơn theo khối"
     >
       <div className={styles.toolbar}>
-        <div className={styles.filter}>
-          <span id="menu-grade-label">Khối áp dụng</span>
-          <FormControl className={styles.gradeSelect} size="small">
-            <Select
-              labelId="menu-grade-label"
-              id="menu-grade-select"
-              value={selected?.key || ""}
-              displayEmpty
-              disabled={current.loading || !current.scopes.length}
-              onChange={(event) => {
-                const scope = current.scopes.find(
-                  (item) => item.key === event.target.value,
-                )
-                if (!scope?.menu) return
-                onScopeChange(scope)
-                if (scope.candidate.id !== weeklyMenu.id) onNavigate(scope)
-              }}
-            >
-              {!current.scopes.length && (
-                <MenuItem value="">
-                  {current.loading ? "Đang tải khối…" : "Chưa tải được khối"}
-                </MenuItem>
-              )}
-              {current.scopes.map((scope) => (
-                <MenuItem
-                  key={scope.key}
-                  value={scope.key}
-                  disabled={!scope.menu}
-                >
-                  {scope.label}
-                  {scope.loadFailed
-                    ? " — tải không thành công"
-                    : !scope.menu
-                      ? " — chưa có bữa ăn"
-                      : ""}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+        <div className={styles.leftGroup}>
+          <div className={styles.filter}>
+            <span id="menu-grade-label" className={styles.filterLabel}>Khối áp dụng</span>
+            <FormControl className={styles.gradeSelect} size="small">
+              <Select
+                labelId="menu-grade-label"
+                id="menu-grade-select"
+                value={selected?.key || ""}
+                displayEmpty
+                disabled={current.loading || !current.scopes.length}
+                onChange={(event) => {
+                  const scope = current.scopes.find(
+                    (item) => item.key === event.target.value,
+                  )
+                  if (!scope?.menu) return
+                  onScopeChange(scope)
+                  if (scope.candidate.id !== weeklyMenu.id) onNavigate(scope)
+                }}
+              >
+                {!current.scopes.length && (
+                  <MenuItem value="">
+                    {current.loading ? "Đang tải khối…" : "Chưa tải được khối"}
+                  </MenuItem>
+                )}
+                {current.scopes.map((scope) => (
+                  <MenuItem
+                    key={scope.key}
+                    value={scope.key}
+                    disabled={!scope.menu}
+                  >
+                    {scope.label}
+                    {scope.loadFailed
+                      ? " — tải không thành công"
+                      : !scope.menu
+                        ? " — chưa có bữa ăn"
+                        : ""}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </div>
+          {selected && (
+            <span className={styles.portions}>
+              {selected.portionLabel || selected.error}
+            </span>
+          )}
         </div>
-        {selected && (
-          <span className={styles.portions}>
-            {selected.portionLabel || selected.error}
-          </span>
-        )}
         <Button
           className={styles.compareButton}
           variant="outlined"
           size="small"
           aria-pressed={compare}
           disabled={current.loading || current.scopes.length < 2}
-          startIcon={<ArrowLeftRight size={15} />}
+          startIcon={<ArrowLeftRight size={14} />}
           onClick={() => {
             setCompare(!compare)
             onModeChange(!compare)
@@ -307,11 +309,7 @@ export default function MenuGradeDetails({
           Chưa tải được thực đơn của một số khối.{retryButton}
         </div>
       )}
-      {!compare && selected && (
-        <p className={styles.hint}>
-          Định lượng cho một suất · {selected.label}
-        </p>
-      )}
+
       {compare && (
         <>
           <p className={styles.hint}>

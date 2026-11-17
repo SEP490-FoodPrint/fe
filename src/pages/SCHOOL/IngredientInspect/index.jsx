@@ -9,6 +9,7 @@ import DeliveryMobileCards from "./component/DeliveryMobileCards"
 import DeliveryEmptyState from "./component/DeliveryEmptyState"
 import DeliveryDetailView from "./component/DeliveryDetailView"
 import DeliveryApprovalModal from "./component/DeliveryApprovalModal"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 
 const getTodayDateString = () => {
@@ -74,7 +75,7 @@ export default function IngredientInspect() {
     return () => clearTimeout(timer)
   }, [successToast])
   useEffect(() => () => { selectionRevision.current++ }, [])
-  const changeFilter = setter => value => { setPage(1); setter(value) }
+  const changeFilter = setter => value => { setter(value) }
   const resetFilters = () => { setSearchTerm(""); setStatusFilter("ALL"); setDateFilter(getTodayDateString()); setPage(1) }
 
   const openDelivery = async delivery => {
@@ -108,19 +109,25 @@ export default function IngredientInspect() {
   const totalItems = pagination?.totalItems ?? deliveries.length
   const limit = pagination?.limit || 20
   const totalPages = pagination?.totalPages || Math.max(1, Math.ceil(totalItems / limit))
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(Math.max(1, totalPages))
+    }
+  }, [page, totalPages])
+
   const fromItem = totalItems === 0 ? 0 : (page - 1) * limit + 1
   const toItem = Math.min(page * limit, totalItems)
   const pageNumbers = getPageNumbers(page, totalPages)
 
   return <div className={styles.pageContainer}>
     {successToast && <div className={`${styles.toastSuccess} ${cancelToast ? styles.toastCancellation : ""}`} role={cancelToast ? "alert" : "status"}><div className={styles.toastContent}>{cancelToast ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}<span>{successToast}</span></div><button type="button" onClick={() => setSuccessToast("")} aria-label="Đóng thông báo"><X size={15} /></button></div>}
-    {error && <p role="alert">{error} <button type="button" onClick={() => { setRevision(value => value + 1); if (selectedDelivery) openDelivery(selectedDelivery) }}>Thử lại</button></p>}
-    {detailLoading && <p role="status">Đang tải chi tiết đợt giao…</p>}
+    {error && <div role="alert" className={styles.errorAlert}><span>{error}</span> <button type="button" onClick={() => { setRevision(value => value + 1); if (selectedDelivery) openDelivery(selectedDelivery) }}>Thử lại</button></div>}
     {selectedDelivery ? <DeliveryDetailView delivery={selectedDelivery} onBack={() => { selectionRevision.current++; setSelectedDelivery(null) }} onOpenApprovalModal={setDeliveryForApproval} /> : <div className={styles.viewContent}>
       <DeliveryHeader />
       {!loading && !error && <DeliveryKPICards stats={stats} />}
       <DeliveryFilterStrip searchTerm={searchTerm} onSearchChange={changeFilter(setSearchTerm)} statusFilter={statusFilter} onStatusChange={changeFilter(setStatusFilter)} dateFilter={dateFilter} onDateChange={changeFilter(setDateFilter)} onResetFilters={resetFilters} hasActiveFilters={hasActiveFilters} />
-      {loading ? <p role="status">Đang tải các đợt giao từ hệ thống…</p> : !error && (deliveries.length ? <>
+      {loading ? <div className={styles.loadingWrap} role="status"><FoodPrintLoading /><p>Đang tải các đợt giao từ hệ thống…</p></div> : !error && (deliveries.length ? <>
         <div className={styles.desktopViewWrap}><DeliveryTableView deliveries={deliveries} onSelectDelivery={openDelivery} /></div>
         <div className={styles.mobileViewWrap}><DeliveryMobileCards deliveries={deliveries} onSelectDelivery={openDelivery} /></div>
         <div className={styles.paginationLeftWrap}>

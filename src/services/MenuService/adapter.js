@@ -391,11 +391,22 @@ function selectedGroupDish(day, group) {
     ingredients: (chosen.ingredients || [])
       .map((line) => line.ingredient?.name)
       .filter(Boolean),
+    ingredientIds: (chosen.ingredients || []).map((line) => line.ingredientId),
     ingredientDetails: (chosen.ingredients || []).map((line) => ({
+      id: line.ingredientId,
       name: line.ingredient?.name || "",
+      category:
+        line.ingredient?.ingredientCategory?.categoryName ||
+        line.ingredient?.category ||
+        "Nguyên liệu",
       quantityPerPortion:
         line.quantityPerPortion != null ? Number(line.quantityPerPortion) : null,
       unit: line.unit || line.ingredient?.defaultUnit || "g",
+    })),
+    ingredientStandards: (chosen.ingredients || []).map((line) => ({
+      ingredientId: line.ingredientId,
+      quantityPerPortion: String(line.quantityPerPortion),
+      unit: line.unit,
     })),
   };
 }
@@ -744,9 +755,13 @@ export function adaptBackendMenuDetailToView(
       return dish;
     });
 
-  // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp
+  // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp (hiển thị số tuần, không để ngày)
   const targetScope = menuScopeLabel(weeklyMenu);
-  const formattedTitle = weeklyMenu.title || "Th\u1ef1c \u0111\u01a1n";
+  const weekNumber = getISOWeekNumber(new Date(currentDay.menuDate || weeklyMenu.weekStartDate));
+  let formattedTitle = weeklyMenu.title || "Thực đơn";
+  if (weekNumber && /tuần\s+\d{1,2}\/\d{1,2}\s*[-–—]\s*\d{1,2}\/\d{1,2}/i.test(formattedTitle)) {
+    formattedTitle = formattedTitle.replace(/tuần\s+\d{1,2}\/\d{1,2}\s*[-–—]\s*\d{1,2}\/\d{1,2}/gi, `Tuần ${weekNumber}`);
+  }
 
   return {
     id: weeklyMenu.id,
@@ -906,8 +921,17 @@ export function menuWeekMeals(snapshot) {
         categoryLabel: row.Dish?.categoryLabel ?? null,
         ingredientIds: (row.ingredients || []).map(line => line.ingredientId),
         ingredientStandards: (row.ingredients || []).map(line => ({ ingredientId: line.ingredientId, quantityPerPortion: String(line.quantityPerPortion), unit: line.unit })),
-        ingredientDetails: (row.ingredients || []).map(line => ({ id: line.ingredientId, name: line.ingredient?.name || "" })),
-        ingredients: (row.ingredients || []).map(line => ({ name: line.ingredient?.name || "", quantityPerPortion: String(line.quantityPerPortion), unit: line.unit })),
+        ingredientDetails: (row.ingredients || []).map(line => ({
+          id: line.ingredientId,
+          name: line.ingredient?.name || "",
+          category: line.ingredient?.ingredientCategory?.categoryName || line.ingredient?.category || "",
+        })),
+        ingredients: (row.ingredients || []).map(line => ({
+          name: line.ingredient?.name || "",
+          category: line.ingredient?.ingredientCategory?.categoryName || line.ingredient?.category || "",
+          quantityPerPortion: String(line.quantityPerPortion),
+          unit: line.unit,
+        })),
         portionQty: row.ingredients?.[0]?.quantityPerPortion ?? "",
         unit: row.ingredients?.[0]?.unit ?? "",
       }));

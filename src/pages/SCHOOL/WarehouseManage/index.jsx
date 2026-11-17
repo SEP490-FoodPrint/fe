@@ -243,6 +243,12 @@ export default function WarehouseManage() {
   const currentTotal = filteredInventory.length
   const totalPages = Math.ceil(currentTotal / PAGE_SIZE) || 1
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(Math.max(1, totalPages))
+    }
+  }, [page, totalPages])
+
   const paginatedInventory = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE
     return filteredInventory.slice(start, start + PAGE_SIZE)
@@ -251,11 +257,9 @@ export default function WarehouseManage() {
   // Handlers Tab 1
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }))
-    setPage(1)
   }
 
   const handleFilterStat = statId => {
-    setPage(1)
     setFilters(prev => ({
       ...prev,
       status: statId, // "all" | "CRITICAL_LOW" | "WARNING" | "SAFE"

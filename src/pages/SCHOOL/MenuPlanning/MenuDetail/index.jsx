@@ -232,18 +232,17 @@ export default function MenuDetail() {
 
         {!comparingGrades && (
           <>
-            {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu / suất */}
+            {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu chính / gia vị theo suất */}
             <MenuDetailDishesTable
               dishes={menu.dishes}
+              substituteDish={menu.substituteDish}
+              mealSeasonings={menu.seasonings}
               gradeIds={selectedScope?.candidate?.id === rawWeeklyMenu?.id
                 ? selectedScope.gradeIds : menu.gradeIds}
             />
 
             {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
             <MenuDetailAllergyCard menu={menu} />
-
-            {/* Khối 4: Danh mục gia vị sử dụng từ kho nhà trường */}
-            <MenuDetailSeasoningsCard seasonings={menu.seasonings} />
           </>
         )}
       </div>
