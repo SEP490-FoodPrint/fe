@@ -63,6 +63,8 @@ const KitchenCreateBatchSeparate = lazy(() => import("src/pages/SCHOOL/KitchenCo
 const KitchenBatchDetail = lazy(() => import("src/pages/SCHOOL/KitchenCooking/BatchDetail"))
 const KitchenSamples = lazy(() => import("src/pages/SCHOOL/KitchenCooking/KitchenSamples"))
 const SampleStorage = lazy(() => import("src/pages/SCHOOL/KitchenCooking/SampleStorage"))
+const Traceability = lazy(() => import("src/pages/SCHOOL/Traceability"))
+const SchoolTraceability = lazy(() => import("src/pages/ANONYMOUS/SchoolTraceability"))
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
@@ -139,6 +141,14 @@ const routes = [
         element: (
           <LazyWrapper>
             <MealDetail />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: ROUTER.SCHOOL_PUBLIC_TRACEABILITY,
+        element: (
+          <LazyWrapper>
+            <SchoolTraceability />
           </LazyWrapper>
         ),
       },
@@ -313,7 +323,14 @@ const routes = [
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLES_DATE, element: <LazyWrapper><KitchenSamples /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLE_STORAGE, element: <LazyWrapper><SampleStorage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_KITCHEN_HANDOVER, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
-              { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><KitchenCooking /></LazyWrapper> },
+            ],
+          },
+
+          // Truy xuất nguồn gốc bữa ăn: những vai trò có quyền traceability.view ở BE
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            children: [
+              { path: ROUTER.SCHOOL_KITCHEN_TRACEABILITY, element: <LazyWrapper><Traceability /></LazyWrapper> },
             ],
           },
 
