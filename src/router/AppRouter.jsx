@@ -35,6 +35,9 @@ const IngredientCatalog = lazy(() => import("src/pages/SUPPLIER/IngredientCatalo
 const SourceFacilities = lazy(() => import("src/pages/SUPPLIER/SourceFacilities"))
 const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 const SupplierDeliveries = lazy(() => import("src/pages/SUPPLIER/SupplierDeliveries"))
+const SupplierStaff = lazy(() => import("src/pages/SUPPLIER/SupplierStaff"))
+const SupplierSchools = lazy(() => import("src/pages/SUPPLIER/SupplierSchools"))
+const SupplierComplaints = lazy(() => import("src/pages/SUPPLIER/SupplierComplaints"))
 
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
@@ -226,6 +229,10 @@ const routes = [
             children: [
               { path: ROUTER.SUPPLIER_SOURCE_FACILITIES, element: <LazyWrapper><SourceFacilities /></LazyWrapper> },
               { path: ROUTER.SUPPLIER_SOURCE_FACILITY_DETAIL, element: <LazyWrapper><SourceFacilities /></LazyWrapper> },
+              { path: ROUTER.SUPPLIER_STAFF, element: <LazyWrapper><SupplierStaff /></LazyWrapper> },
+              { path: ROUTER.SUPPLIER_STAFF_DETAIL, element: <LazyWrapper><SupplierStaff /></LazyWrapper> },
+              { path: ROUTER.SUPPLIER_SCHOOLS, element: <LazyWrapper><SupplierSchools /></LazyWrapper> },
+              { path: ROUTER.SUPPLIER_SCHOOL_DETAIL, element: <LazyWrapper><SupplierSchools /></LazyWrapper> },
             ],
           },
           { path: ROUTER.SUPPLIER_ORDERS, element: <LazyWrapper><SupplyOrders /></LazyWrapper> },
@@ -233,6 +240,8 @@ const routes = [
           { path: ROUTER.SUPPLIER_DELIVERIES, element: <LazyWrapper><SupplierDeliveries /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_DELIVERY_CREATE, element: <LazyWrapper><SupplierDeliveries mode="create" /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_DELIVERY_DETAIL, element: <LazyWrapper><SupplierDeliveries /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_COMPLAINTS, element: <LazyWrapper><SupplierComplaints /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_COMPLAINT_DETAIL, element: <LazyWrapper><SupplierComplaints /></LazyWrapper> },
         ],
       },
     ],

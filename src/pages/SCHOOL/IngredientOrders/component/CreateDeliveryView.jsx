@@ -80,6 +80,26 @@ export const isDiscreteUnit = (unit = "") => {
   return discreteUnits.includes(u);
 };
 
+export const isKgUnit = (unit) => {
+  const u = String(unit || "")
+    .toLowerCase()
+    .trim();
+  return u === "kg" || u === "kilogram";
+};
+
+export const getPortionUnit = (unit) => {
+  return isKgUnit(unit) ? "g" : unit || "";
+};
+
+export const formatPortionRate = (rate, unit) => {
+  if (rate == null || isNaN(rate) || Number(rate) <= 0) return "";
+  if (isKgUnit(unit)) {
+    const grams = Number((Number(rate) * 1000).toFixed(2));
+    return `${grams} g`;
+  }
+  return `${rate} ${unit}`;
+};
+
 /**
  * Tính số lượng đợt: nếu đơn vị đếm được (trứng gà, quả...) thì tự động đẩy tròn lên (Math.ceil)
  * Ví dụ: 431 * 0.5 = 215.5 quả -> 216 quả; 425 * 0.5 = 212.5 quả -> 213 quả
@@ -265,7 +285,7 @@ export default function CreateDeliveryView({
       }
       return [
         effectiveMenus.find((m) => m.id === batch1ForDate.menuId) ||
-          effectiveMenus[0],
+        effectiveMenus[0],
       ].filter(Boolean);
     }
 
@@ -489,9 +509,16 @@ export default function CreateDeliveryView({
 
       const displayRate = isMulti
         ? entry.contributions
-            .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
-            .join(" | ")
+          .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
+          .join(" | ")
         : entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
+
+      const isKg = isKgUnit(entry.unit);
+      const rawPortion =
+        entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
+      const displayPortion = isKg
+        ? Number((Number(rawPortion) * 1000).toFixed(2))
+        : rawPortion;
 
       return {
         id: entry.id,
@@ -505,11 +532,8 @@ export default function CreateDeliveryView({
         isMultiMenu: isMulti,
         breakdown: entry.contributions,
         defaultQtyPerPortion: entry.defaultQtyPerPortion,
-        qtyPerPortion:
-          entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion,
-        portionInput: String(
-          entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion,
-        ),
+        qtyPerPortion: rawPortion,
+        portionInput: String(displayPortion),
         displayRate,
         standardQty: stdQty,
         standardQtyInput: String(stdQty),
@@ -658,7 +682,9 @@ export default function CreateDeliveryView({
 
         if (!isNaN(num) && num > 0) {
           const isDiscrete = isDiscreteUnit(item.unit);
-          const newStdQty = calcBatchQty(num, batch1Portions, item.unit);
+          const isKg = isKgUnit(item.unit);
+          const rateInItemUnit = isKg ? num / 1000 : num;
+          const newStdQty = calcBatchQty(rateInItemUnit, batch1Portions, item.unit);
           const extra = Number(item.extraQty) || 0;
           const total = isDiscrete
             ? Math.ceil(newStdQty + extra)
@@ -667,7 +693,7 @@ export default function CreateDeliveryView({
           return {
             ...item,
             portionInput: val,
-            qtyPerPortion: num,
+            qtyPerPortion: rateInItemUnit,
             standardQty: newStdQty,
             standardQtyInput: String(newStdQty),
             batchQty: total,
@@ -694,8 +720,12 @@ export default function CreateDeliveryView({
 
         if (!isNaN(num) && num > 0 && batch1Portions > 0) {
           const isDiscrete = isDiscreteUnit(item.unit);
+          const isKg = isKgUnit(item.unit);
           const finalStdQty = isDiscrete ? Math.round(num) : num;
           const newPortion = calcQtyPerPortion(finalStdQty, batch1Portions);
+          const displayPortion = isKg
+            ? Number((newPortion * 1000).toFixed(2))
+            : newPortion;
           const extra = Number(item.extraQty) || 0;
           const total = isDiscrete
             ? Math.ceil(finalStdQty + extra)
@@ -706,7 +736,7 @@ export default function CreateDeliveryView({
             standardQtyInput: val,
             standardQty: finalStdQty,
             qtyPerPortion: newPortion,
-            portionInput: String(newPortion),
+            portionInput: String(displayPortion),
             batchQty: total,
           };
         }
@@ -759,9 +789,13 @@ export default function CreateDeliveryView({
         if (item.id !== id) return item;
         const num = parseFloat(item.portionInput);
         if (isNaN(num) || num <= 0) {
+          const isKg = isKgUnit(item.unit);
+          const fallback = isKg
+            ? Number((Number(item.qtyPerPortion) * 1000).toFixed(2))
+            : item.qtyPerPortion;
           return {
             ...item,
-            portionInput: String(item.qtyPerPortion),
+            portionInput: String(fallback),
           };
         }
         return item;
@@ -1140,7 +1174,6 @@ export default function CreateDeliveryView({
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell>Tên thực phẩm</TableCell>
-                    <TableCell>Phân loại</TableCell>
                     <TableCell align="center" style={{ width: 145 }}>
                       Định lượng / 1 Suất
                     </TableCell>
@@ -1172,13 +1205,6 @@ export default function CreateDeliveryView({
                             >
                               {ing.name}
                             </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label="Tươi sống (Dùng ngay)"
-                              size="small"
-                              className={styles.freshChip}
-                            />
                           </TableCell>
 
                           {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
@@ -1244,8 +1270,8 @@ export default function CreateDeliveryView({
                                   className={styles.cellInput}
                                   slotProps={{
                                     htmlInput: {
-                                      step: "0.001",
-                                      min: "0.001",
+                                      step: isKgUnit(ing.unit) ? "1" : "0.001",
+                                      min: isKgUnit(ing.unit) ? "1" : "0.001",
                                       style: {
                                         textAlign: "right",
                                         padding: "6px 8px",
@@ -1254,7 +1280,7 @@ export default function CreateDeliveryView({
                                     input: {
                                       endAdornment: (
                                         <span className={styles.inputAdornment}>
-                                          {ing.unit}/suất
+                                          {getPortionUnit(ing.unit)}/suất
                                         </span>
                                       ),
                                     },
@@ -1327,7 +1353,7 @@ export default function CreateDeliveryView({
                         {isExpanded && isMulti && (
                           <TableRow sx={{ bgcolor: "#f8fafc" }}>
                             <TableCell
-                              colSpan={5}
+                              colSpan={4}
                               sx={{
                                 py: 1.25,
                                 px: 3,
@@ -1391,8 +1417,12 @@ export default function CreateDeliveryView({
                                         color="text.secondary"
                                         sx={{ display: "block", mt: 0.25 }}
                                       >
-                                        {b.portions} suất × {b.qtyPerPortion}{" "}
-                                        {b.unit}/suất
+                                        {b.portions} suất ×{" "}
+                                        {formatPortionRate(
+                                          b.qtyPerPortion,
+                                          b.unit || ing.unit,
+                                        )}
+                                        /suất
                                       </Typography>
                                       <Typography
                                         variant="body2"
@@ -1402,7 +1432,7 @@ export default function CreateDeliveryView({
                                           mt: 0.5,
                                         }}
                                       >
-                                        = {b.calculatedQty} {b.unit}
+                                        = {b.calculatedQty} {b.unit || ing.unit}
                                       </Typography>
                                     </Box>
                                   ))}
@@ -1455,7 +1485,7 @@ export default function CreateDeliveryView({
               >
                 {submitting
                   ? "Đang gửi..."
-                  : "Tạo đơn mua hàng Đợt 1 & Gửi NCC"}
+                  : "Tạo"}
               </Button>
             </Box>
           </Box>
@@ -1917,7 +1947,6 @@ export default function CreateDeliveryView({
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell>Tên thực phẩm</TableCell>
-                    <TableCell>Phân loại</TableCell>
                     <TableCell align="center" style={{ width: 145 }}>
                       Định lượng / 1 Suất
                     </TableCell>
@@ -1985,13 +2014,6 @@ export default function CreateDeliveryView({
                               )}
                             </Box>
                           </TableCell>
-                          <TableCell>
-                            <Chip
-                              label="Tươi sống (Dùng ngay)"
-                              size="small"
-                              className={styles.freshChip}
-                            />
-                          </TableCell>
 
                           {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
                           <TableCell align="center">
@@ -2048,7 +2070,8 @@ export default function CreateDeliveryView({
                                 variant="body2"
                                 className={styles.readOnlyPortionText}
                               >
-                                {ing.qtyPerPortion} {ing.unit}/suất
+                                {formatPortionRate(ing.qtyPerPortion, ing.unit)}
+                                /suất
                               </Typography>
                             )}
                           </TableCell>
@@ -2164,7 +2187,7 @@ export default function CreateDeliveryView({
                         {isExpanded && isMulti && (
                           <TableRow sx={{ bgcolor: "#f8fafc" }}>
                             <TableCell
-                              colSpan={8}
+                              colSpan={7}
                               sx={{
                                 py: 1.25,
                                 px: 3,
@@ -2228,8 +2251,12 @@ export default function CreateDeliveryView({
                                         color="text.secondary"
                                         sx={{ display: "block", mt: 0.25 }}
                                       >
-                                        {b.portions} suất bù × {b.qtyPerPortion}{" "}
-                                        {b.unit}/suất
+                                        {b.portions} suất bù ×{" "}
+                                        {formatPortionRate(
+                                          b.qtyPerPortion,
+                                          b.unit || ing.unit,
+                                        )}
+                                        /suất
                                       </Typography>
                                       <Typography
                                         variant="body2"
@@ -2239,7 +2266,7 @@ export default function CreateDeliveryView({
                                           mt: 0.5,
                                         }}
                                       >
-                                        = {b.calculatedQty} {b.unit}
+                                        = {b.calculatedQty} {b.unit || ing.unit}
                                       </Typography>
                                     </Box>
                                   ))}
@@ -2414,11 +2441,7 @@ export default function CreateDeliveryView({
                 {selectedIngredient.supplierName}
               </Typography>
               <Typography variant="caption" color="text.secondary">
-                Phân loại:{" "}
-                {selectedIngredient.handlingType === "DIRECT_USE"
-                  ? "Tươi sống (Dùng trong ngày)"
-                  : "Kho khô"}{" "}
-                • Đơn vị:{" "}
+                Đơn vị:{" "}
                 {selectedIngredient.defaultUnit || selectedIngredient.unit}
               </Typography>
             </Box>
