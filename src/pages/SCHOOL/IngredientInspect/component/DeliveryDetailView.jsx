@@ -1,5 +1,5 @@
 import { formatSmallQuantity } from "src/utils/quantity"
-import React, { useState } from "react"
+import React, { useContext, useState } from "react"
 import PropTypes from "prop-types"
 import {
   ArrowLeft,
@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   XCircle,
 } from "lucide-react"
+import { StoreContext } from "src/contexts"
+import BlockchainProofCard from "src/components/BlockchainProof/BlockchainProofCard"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import LotQRTraceModal from "./LotQRTraceModal"
 import { LOT_STATUS_CONFIG } from "src/services/DeliveryInspectionService"
@@ -24,6 +26,8 @@ export default function DeliveryDetailView({
   onBack,
   onOpenApprovalModal,
 }) {
+  const { userStore } = useContext(StoreContext) || {}
+  const permissions = userStore?.user?.permissions || []
   // State xem tem nhãn QR của lô
   const [activeQRLot, setActiveQRLot] = useState(null)
   const [activeQRIngredient, setActiveQRIngredient] = useState("")
@@ -220,6 +224,18 @@ export default function DeliveryDetailView({
           })}</tbody>
         </table></div>
       </section>
+
+      {/* Biên bản đã chốt (nhận hoặc từ chối) được niêm phong trên blockchain */}
+      {(delivery.status === "RECEIVED" || delivery.status === "REJECTED") && permissions.includes("traceability.view") && (
+        <BlockchainProofCard
+          kind="deliveries"
+          recordId={delivery.id}
+          title="Niêm phong biên bản kiểm nhận"
+          canVerify={permissions.includes("traceability.verify")}
+          canAnchor={permissions.includes("traceability.verify")}
+          refreshKey={delivery.status}
+        />
+      )}
 
       {/* 2. Thanh tóm tắt thông tin chuyến giao */}
       <div className={styles.summaryBar}>

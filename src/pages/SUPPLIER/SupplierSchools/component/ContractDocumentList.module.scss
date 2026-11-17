@@ -1,0 +1,142 @@
+.emptyDocs {
+  padding: 10px 0 2px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #6b7772;
+}
+
+.docList {
+  display: flex;
+  flex-direction: column;
+}
+
+.docRowWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 4px;
+  border-bottom: 1px solid #eef2ef;
+
+  &:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.docRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.docMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.docIconBox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #e7f3ee;
+  color: #0a8066;
+  flex-shrink: 0;
+}
+
+.docTypeIcon {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.docMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.docName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #24312d;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.docSub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  line-height: 16px;
+  color: #6b7772;
+}
+
+.docStat {
+  font-variant-numeric: tabular-nums;
+}
+
+.docActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.iconActionBtn {
+  width: 36px;
+  height: 36px;
+  color: #4f5c57 !important;
+  border-radius: 8px !important;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+
+  &:hover:not(:disabled) {
+    background: #e7f3ee !important;
+    color: #0a8066 !important;
+  }
+}
+
+.actionSvg {
+  width: 19px !important;
+  height: 19px !important;
+}
+
+.docErrorBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.docErrorIcon {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+@media (max-width: 767px) {
+  .iconActionBtn {
+    width: 44px;
+    height: 44px;
+  }
+}

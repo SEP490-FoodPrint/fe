@@ -26,6 +26,7 @@ const ROUTER = {
   SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
   SYSTEM_CONFIG: "/system/config",
+  SYSTEM_CONFIG_DETAIL: "/system/config/:id",
 
   // Phân hệ SUPPLIER (Dành cho INGREDIENT_SUPPLIER)
   SUPPLIER: "/supplier",
@@ -39,6 +40,12 @@ const ROUTER = {
   SUPPLIER_DELIVERIES: "/supplier/deliveries",
   SUPPLIER_DELIVERY_CREATE: "/supplier/deliveries/create",
   SUPPLIER_DELIVERY_DETAIL: "/supplier/deliveries/:id",
+  SUPPLIER_STAFF: "/supplier/staff",
+  SUPPLIER_STAFF_DETAIL: "/supplier/staff/:id",
+  SUPPLIER_SCHOOLS: "/supplier/schools",
+  SUPPLIER_SCHOOL_DETAIL: "/supplier/schools/:id",
+  SUPPLIER_COMPLAINTS: "/supplier/complaints",
+  SUPPLIER_COMPLAINT_DETAIL: "/supplier/complaints/:id",
 
   // Phân hệ SCHOOL (Dành cho 7 roles thuộc Trường)
   SCHOOL: "/school",

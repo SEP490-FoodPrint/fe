@@ -167,9 +167,9 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
       <Table className={styles.deliveryTable} size="small">
         <TableHead>
           <TableRow className={styles.headerRow}>
-            <TableCell>Số phiếu / Đơn hàng</TableCell>
+            <TableCell>Mã nhập hàng</TableCell>
             <TableCell>Đợt giao &amp; Thời gian</TableCell>
-            <TableCell align="center">Hội đồng 4 bên</TableCell>
+            <TableCell align="center">Kiểm tra 4 bên</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="center">Thao tác</TableCell>
           </TableRow>

@@ -270,6 +270,8 @@ export default function CreateDryOrderView({
       suppliers: uniqueSuppliers,
       supplierPhone: allSelectedItems[0]?.supplierPhone || "",
       orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
+      deliveryDate,
+      deliveryTime,
       deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
       deliveryType,
       deliveryTypeLabel,
@@ -300,7 +302,7 @@ export default function CreateDryOrderView({
 
         <Box className={styles.headerText}>
           <Typography variant="h5" className={styles.title}>
-            Lập Phiếu Nhập Đồ Khô
+            Tạo Yêu Cầu Nhập Đồ Khô
           </Typography>
         </Box>
       </Box>
@@ -543,7 +545,7 @@ export default function CreateDryOrderView({
             disabled={selectedCount === 0}
             className={styles.submitBtn}
           >
-            Tạo phiếu nhập đồ khô &amp; Gửi NCC
+            Tạo
           </Button>
         </Box>
       </Box>

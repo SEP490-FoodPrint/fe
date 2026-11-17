@@ -1,0 +1,515 @@
+.detailPage {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 24px);
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  min-width: 0;
+  color: #24312d;
+  font-family: var(--font-sans);
+  caret-color: var(--color-primary, #0a8066);
+
+  &::selection,
+  *::selection {
+    background: #e7f3ee;
+    color: #08604d;
+  }
+}
+
+.detailHeaderBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.detailNavLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 40px;
+  border: 1px solid #e1e6e2;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--color-primary, #0a8066);
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    background-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    border-color 150ms cubic-bezier(0.2, 0, 0, 1);
+
+  &:hover {
+    background: #fafbfa;
+    border-color: #c8d2cc;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus, #0a8066);
+    outline-offset: 2px;
+  }
+}
+
+.backIcon {
+  width: 22px !important;
+  height: 22px !important;
+  display: block;
+}
+
+.pageTitle {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 28px;
+  letter-spacing: -0.01em;
+  color: #24312d;
+}
+
+.detailCard {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #e1e6e2;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.coverBannerWrap {
+  width: 100%;
+  height: 150px;
+  border-bottom: 1px solid #eef2ef;
+  background: #f4f7f5;
+  overflow: hidden;
+}
+
+.coverBannerImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.schoolOverviewRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #eef2ef;
+}
+
+.schoolIconTile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: #f3f8f5;
+  color: #0a8066;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.schoolLogoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.schoolIconSvg {
+  width: 24px !important;
+  height: 24px !important;
+}
+
+.schoolOverviewContent {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+
+.schoolNameHeading {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 24px;
+  color: #24312d;
+}
+
+.overviewInlineCode {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b7772;
+  font-variant-numeric: tabular-nums;
+}
+
+.overviewCodeValue {
+  font-weight: 500;
+  color: #4f5c57;
+}
+
+.relStatusLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 18px;
+  margin-top: 2px;
+}
+
+.relIcon {
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+}
+
+.relStatusSuccess {
+  color: #0a8066;
+}
+
+.relStatusWarning {
+  color: #b45309;
+}
+
+.relStatusMuted {
+  color: #64748b;
+}
+
+.infoRowsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px 36px;
+  margin: 0;
+  padding: 20px 24px;
+}
+
+.inlineRow {
+  display: grid;
+  grid-template-columns: 152px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+}
+
+.fullSpanRow {
+  grid-column: 1 / -1;
+}
+
+.metaLabel {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: #6b7772;
+}
+
+.metaValue {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: #24312d;
+  font-variant-numeric: tabular-nums;
+  word-break: break-word;
+}
+
+.websiteLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #0a8066;
+  text-decoration: none;
+  word-break: break-all;
+
+  &:hover {
+    text-decoration: underline;
+    color: #08735c;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #0a8066;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.externalIcon {
+  width: 15px !important;
+  height: 15px !important;
+  flex-shrink: 0;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 24px;
+  border-bottom: 1px solid #e1e6e2;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #24312d;
+}
+
+.contractCountText {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #6b7772;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.stateBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 56px 24px;
+  text-align: center;
+}
+
+.emptyContractIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #e7f3ee;
+  color: #0a8066;
+
+  svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.stateTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: #24312d;
+}
+
+.stateDesc {
+  margin: 0;
+  max-width: 460px;
+  font-size: 14px;
+  line-height: 20px;
+  color: #6b7772;
+}
+
+.stateActionBtn {
+  margin-top: 6px;
+  height: 40px;
+  padding: 0 18px !important;
+  border-radius: 8px !important;
+  font-family: var(--font-sans) !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+.contractSkeletonList {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 24px 16px;
+}
+
+.contractSkeletonRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 0;
+  border-bottom: 1px solid #eef2ef;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.skeletonBarLg,
+.skeletonBarMd,
+.skeletonBarSm {
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #f2f5f3 25%, #e6ece8 50%, #f2f5f3 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonBarLg {
+  width: 44%;
+}
+
+.skeletonBarMd {
+  width: 82%;
+}
+
+.skeletonBarSm {
+  width: 64%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.contractList {
+  display: flex;
+  flex-direction: column;
+}
+
+.contractItem {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #e1e6e2;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.contractHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.contractTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 22px;
+  color: #24312d;
+  font-variant-numeric: tabular-nums;
+}
+
+.paginationFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px;
+  border-top: 1px solid #e1e6e2;
+  background: #ffffff;
+}
+
+.paginationInfo {
+  font-size: 13px;
+  line-height: 18px;
+  color: #6b7772;
+  font-variant-numeric: tabular-nums;
+}
+
+.paginationActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pageBtn {
+  min-width: 78px !important;
+  height: 36px;
+  border-radius: 8px !important;
+  border-color: #d5ddd8 !important;
+  color: #24312d !important;
+  font-family: var(--font-sans) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+}
+
+@media (max-width: 959px) {
+  .infoRowsGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .detailPage {
+    gap: 16px;
+  }
+
+  .backBtn {
+    width: 44px;
+    height: 44px;
+  }
+
+  .schoolOverviewRow {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .cardHeader {
+    padding: 14px 16px;
+  }
+
+  .infoRowsGrid {
+    padding: 16px;
+  }
+
+  .inlineRow {
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .contractItem {
+    padding: 16px;
+  }
+
+  .paginationFooter {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .paginationActions {
+    justify-content: space-between;
+  }
+
+  .pageBtn {
+    flex: 1;
+    height: 44px;
+  }
+}

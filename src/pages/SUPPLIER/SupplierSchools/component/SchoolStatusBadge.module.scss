@@ -1,0 +1,45 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.toneSuccess {
+  background: #e7f3ee;
+  color: #08604d;
+  border-color: #bfe0d3;
+}
+
+.toneWarning {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+
+.toneInfo {
+  background: #e0f2fe;
+  color: #0369a1;
+  border-color: #bae6fd;
+}
+
+.toneMuted {
+  background: #f1f5f9;
+  color: #475569;
+  border-color: #e2e8f0;
+}

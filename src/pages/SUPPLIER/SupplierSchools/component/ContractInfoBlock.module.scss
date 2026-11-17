@@ -1,0 +1,84 @@
+.contractBody {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metaRowsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 36px;
+  margin: 0;
+}
+
+.inlineRow {
+  display: grid;
+  grid-template-columns: 152px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 12px;
+  min-width: 0;
+
+  dt {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    color: #6b7772;
+  }
+
+  dd {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    color: #24312d;
+    font-variant-numeric: tabular-nums;
+    word-break: break-word;
+  }
+}
+
+.fullSpanRow {
+  grid-column: 1 / -1;
+}
+
+.mutedValue {
+  font-weight: 500;
+  color: #6b7772;
+}
+
+.ingredientList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ingredientTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f2f5f3;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 18px;
+  color: #24312d;
+}
+
+.documentsSection {
+  padding-top: 10px;
+  border-top: 1px solid #eef2ef;
+}
+
+@media (max-width: 959px) {
+  .metaRowsGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 767px) {
+  .inlineRow {
+    grid-template-columns: 132px minmax(0, 1fr);
+    gap: 10px;
+  }
+}

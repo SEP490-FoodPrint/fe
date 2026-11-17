@@ -25,6 +25,7 @@ import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined"
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
+import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -95,6 +96,18 @@ export const MenuItemSupplier = () => [
     roles: [ROLES.INGREDIENT_SUPPLIER_ADMIN],
   },
   {
+    key: ROUTER.SUPPLIER_STAFF,
+    label: "Quản lý nhân viên",
+    icon: <GroupOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_SUPPLIER_ADMIN],
+  },
+  {
+    key: ROUTER.SUPPLIER_SCHOOLS,
+    label: "Trường đã liên kết",
+    icon: <SchoolOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_SUPPLIER_ADMIN],
+  },
+  {
     key: ROUTER.SUPPLIER_ORDERS,
     label: "Đơn hàng Cung ứng",
     icon: <ReceiptLongOutlinedIcon />,
@@ -108,6 +121,16 @@ export const MenuItemSupplier = () => [
     key: ROUTER.SUPPLIER_DELIVERIES,
     label: "Tạo & Quản lý Đơn giao",
     icon: <LocalShippingOutlinedIcon />,
+    roles: [
+      ROLES.INGREDIENT_SUPPLIER_ADMIN,
+      ROLES.INGREDIENT_SUPPLIER_STAFF,
+      ROLES.INGREDIENT_SUPPLIER,
+    ],
+  },
+  {
+    key: ROUTER.SUPPLIER_COMPLAINTS,
+    label: "Danh sách khiếu nại",
+    icon: <ChatBubbleOutlineOutlinedIcon />,
     roles: [
       ROLES.INGREDIENT_SUPPLIER_ADMIN,
       ROLES.INGREDIENT_SUPPLIER_STAFF,
@@ -305,13 +328,13 @@ export const MenuItemSchool = () => [
   },
   {
     key: ROUTER.SCHOOL_WAREHOUSE,
-    label: "Kho đồ khô",
+    label: "Đồ khô",
     icon: <WarehouseOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {
     key: ROUTER.SCHOOL_INGREDIENT_ORDERS,
-    label: "Phiếu nhập hàng",
+    label: "Đồ tươi",
     icon: <ReceiptLongOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },

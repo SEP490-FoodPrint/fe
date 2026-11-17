@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
 import { Alert, Button } from "@mui/material";
@@ -11,6 +11,8 @@ import {
   Check,
 } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
+import { StoreContext } from "src/contexts";
+import BlockchainProofCard from "src/components/BlockchainProof/BlockchainProofCard";
 import notice from "src/components/Notice";
 import KitchenService from "src/services/KitchenService";
 import { adaptBatchDetail, canRecordBatchSample } from "src/services/KitchenService/adapter";
@@ -25,6 +27,10 @@ import styles from "./index.module.scss";
 export default function KitchenBatchDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { userStore } = useContext(StoreContext) || {};
+  const permissions = userStore?.user?.permissions || [];
+  const canSeeProof = permissions.includes("traceability.view");
+  const canVerifyProof = permissions.includes("traceability.verify");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -250,6 +256,35 @@ export default function KitchenBatchDetail() {
 
         {/* 3. Thông tin bổ sung tinh gọn */}
         <BatchAdditionalInfo batchData={batchData} />
+
+        {/* 4. Niêm phong blockchain: mẻ đã hoàn thành và từng mẫu lưu */}
+        {isCompleted && canSeeProof && (
+          <>
+            <BlockchainProofCard
+              kind="cooking-batches"
+              recordId={batchData.id}
+              title="Niêm phong mẻ nấu"
+              canVerify={canVerifyProof}
+              canAnchor={canVerifyProof}
+            />
+            {(batchData.retainedFoodSamples || [])
+              .filter((sample) => sample?.id)
+              .map((sample) => {
+                const dish = batchData.dishes?.find((d) => d.dishId === sample.dishId);
+                return (
+                  <BlockchainProofCard
+                    key={sample.id}
+                    kind="retained-samples"
+                    recordId={sample.id}
+                    title={`Niêm phong mẫu lưu${dish?.name ? ` – ${dish.name}` : ""}`}
+                    canVerify={canVerifyProof}
+                    canAnchor={canVerifyProof}
+                    refreshKey={sample.disposedAt || sample.updatedAt || ""}
+                  />
+                );
+              })}
+          </>
+        )}
       </div>
 
       {/* 4. Thanh thao tác nhanh cố định trên Mobile (< 768px) */}

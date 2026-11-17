@@ -1,17 +1,26 @@
 import React, { useMemo } from "react";
 import PropTypes from "prop-types";
 import { Typography } from "@mui/material";
+import { getWeekLabel } from "src/utils/weeklyMenu";
 import styles from "./MealDetailHeader.module.scss";
 
 function MealDetailHeader({ weekTitle, dayOfWeek, formattedDate }) {
-  // Ghép thông tin đã được page xác định để hiển thị tiêu đề.
+  // Cấu trúc tiêu đề: Chi tiết thực đơn [Thứ x] [(ngày tháng năm)] - [Tuần]
+  // Ví dụ: Chi tiết thực đơn Thứ Hai (16/11/2026) - Tuần 11
   const displayTitle = useMemo(() => {
+    const cleanWeek = weekTitle
+      ? getWeekLabel({ title: weekTitle })
+      : "";
+
+    const dateStr = formattedDate ? `(${formattedDate})` : "";
+    const dayWithDate = [dayOfWeek, dateStr].filter(Boolean).join(" ");
+
     const parts = [];
-    if (weekTitle) parts.push(weekTitle);
-    if (dayOfWeek) parts.push(dayOfWeek);
-    const prefix = parts.length > 0 ? parts.join(" - ") : "";
-    const dateStr = formattedDate ? ` (${formattedDate})` : "";
-    return `Chi tiết ${prefix ? `${prefix}${dateStr}` : "ngày"}`;
+    if (dayWithDate) parts.push(dayWithDate);
+    if (cleanWeek) parts.push(cleanWeek);
+
+    const suffix = parts.length > 0 ? ` ${parts.join(" - ")}` : "";
+    return `Chi tiết thực đơn${suffix}`;
   }, [weekTitle, dayOfWeek, formattedDate]);
 
   return (
