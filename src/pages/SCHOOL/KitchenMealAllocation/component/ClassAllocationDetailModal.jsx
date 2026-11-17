@@ -53,7 +53,12 @@ export default function ClassAllocationDetailModal({ open, onClose, classData })
                   (dish.batches || []).map((b, idx) => (
                     <div key={idx} className={styles.batchBadge}>
                       <Layers size={13} color="var(--color-primary)" />
-                      <span>{b.batchCode || b.batchName || `Lô ${idx + 1}`}:</span>
+                      <span>
+                        {b.batchNumber != null
+                          ? `Lô ${b.batchNumber}`
+                          : b.batchCode || b.batchName || `Lô ${idx + 1}`}
+                        :
+                      </span>
                       <b>{b.allocatedPortions} suất</b>
                     </div>
                   ))

@@ -49,7 +49,10 @@ function getView(data, draft = {}) {
           return {
             ...batchSlot,
             id: batchSlot.cookingBatchId,
-            name: batchSlot.batchCode || `Lô ${idx + 1}`,
+            name:
+              batchSlot.batchNumber != null
+                ? `Lô ${batchSlot.batchNumber}`
+                : batchSlot.batchCode || `Lô ${idx + 1}`,
             total,
             allocated,
             remaining,
@@ -114,8 +117,10 @@ function getView(data, draft = {}) {
     return {
       ...batch,
       name:
-        batch.name ||
-        `Lô ${index + 1} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${batch.scopeLabel || "Toàn trường"}`,
+        batch.batchNumber != null
+          ? `Lô ${batch.batchNumber} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${batch.scopeLabel || "Toàn trường"}`
+          : batch.name ||
+            `Lô ${index + 1} · ${batch.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"} · ${batch.scopeLabel || "Toàn trường"}`,
       total,
       entries,
       editableCapacity: total - lockedCount,

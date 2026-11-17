@@ -42,7 +42,14 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
   const batchesById = new Map(
     (data?.batches || []).map((batch, index) => [
       batch.id,
-      { ...batch, name: batch.name || `Lô chế biến ${index + 1}`, recipients: [] },
+      {
+        ...batch,
+        name:
+          batch.batchNumber != null
+            ? `Lô ${batch.batchNumber}`
+            : batch.name || `Lô chế biến ${index + 1}`,
+        recipients: [],
+      },
     ]),
   );
 
@@ -92,7 +99,10 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
         allocatedPortions: b.allocatedPortions,
         batches: [
           {
-            batchCode: batchesById.get(b.batchId)?.name || "Lô chế biến",
+            batchCode:
+              b.batchNumber != null
+                ? `Lô ${b.batchNumber}`
+                : batchesById.get(b.batchId)?.name || "Lô chế biến",
             allocatedPortions: b.allocatedPortions,
           },
         ],
@@ -121,7 +131,10 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
           const count = entry.allocatedPortions || entry.portions;
           totalDishAllocated += count;
           matchingBatches.push({
-            batchCode: batchSlot.batchCode || "Lô chế biến",
+            batchCode:
+              batchSlot.batchNumber != null
+                ? `Lô ${batchSlot.batchNumber}`
+                : batchSlot.batchCode || "Lô chế biến",
             allocatedPortions: count,
           });
         }
@@ -223,7 +236,11 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
                         return (
                           <AllocationRow
                             key={batchRowKey}
-                            title={batchSlot.batchCode || `Lô chế biến`}
+                            title={
+                              batchSlot.batchNumber != null
+                                ? `Lô ${batchSlot.batchNumber}`
+                                : batchSlot.batchCode || `Lô chế biến`
+                            }
                             expanded={expandedBatches.has(batchRowKey)}
                             onChange={(_, expanded) => {
                               setExpandedBatches((prev) => {

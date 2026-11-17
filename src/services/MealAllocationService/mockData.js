@@ -105,6 +105,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-ga-k1",
               batchCode: "Lô G1",
+              batchNumber: 1,
               plannedPortions: 68,
               availablePortions: 0,
               autoAssigned: true,
@@ -125,6 +126,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-bo-k1-1",
               batchCode: "Lô B1",
+              batchNumber: 1,
               plannedPortions: 34,
               availablePortions: 0,
               autoAssigned: false,
@@ -135,6 +137,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-bo-k1-2",
               batchCode: "Lô B2",
+              batchNumber: 2,
               plannedPortions: 34,
               availablePortions: 0,
               autoAssigned: false,
@@ -165,6 +168,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-thit-k23",
               batchCode: "Lô T1",
+              batchNumber: 1,
               plannedPortions: 102,
               availablePortions: 0,
               autoAssigned: true,
@@ -186,6 +190,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-canh-k23",
               batchCode: "Lô C1",
+              batchNumber: 1,
               plannedPortions: 102,
               availablePortions: 0,
               autoAssigned: true,
@@ -220,6 +225,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-ca-k45",
               batchCode: "Lô CH1",
+              batchNumber: 1,
               plannedPortions: 155,
               availablePortions: 0,
               autoAssigned: true,
@@ -243,6 +249,7 @@ const initialAllocationData = {
             {
               cookingBatchId: "batch-rau-k45",
               batchCode: "Lô R1",
+              batchNumber: 1,
               plannedPortions: 155,
               availablePortions: 0,
               autoAssigned: true,
