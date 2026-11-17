@@ -37,6 +37,7 @@ const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
 const SupplierDeliveries = lazy(() => import("src/pages/SUPPLIER/SupplierDeliveries"))
 const SupplierStaff = lazy(() => import("src/pages/SUPPLIER/SupplierStaff"))
 const SupplierSchools = lazy(() => import("src/pages/SUPPLIER/SupplierSchools"))
+const SupplierComplaints = lazy(() => import("src/pages/SUPPLIER/SupplierComplaints"))
 
 // SCHOOL pages
 const SchoolOverview = lazy(() => import("src/pages/SCHOOL/SchoolOverview"))
@@ -222,6 +223,8 @@ const routes = [
           { path: ROUTER.SUPPLIER_DELIVERIES, element: <LazyWrapper><SupplierDeliveries /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_DELIVERY_CREATE, element: <LazyWrapper><SupplierDeliveries mode="create" /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_DELIVERY_DETAIL, element: <LazyWrapper><SupplierDeliveries /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_COMPLAINTS, element: <LazyWrapper><SupplierComplaints /></LazyWrapper> },
+          { path: ROUTER.SUPPLIER_COMPLAINT_DETAIL, element: <LazyWrapper><SupplierComplaints /></LazyWrapper> },
         ],
       },
     ],
