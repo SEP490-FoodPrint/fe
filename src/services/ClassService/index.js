@@ -14,7 +14,7 @@ import {
 // Các thao tác quản lý lớp tự hiển thị lỗi trong dialog nên tắt thông báo mặc định.
 const silent = { notifyOnError: false }
 
-const getClasses = params => http.get(apiGetClasses, { params })
+const getClasses = (params, config = {}) => http.get(apiGetClasses, { params, ...config })
 const getAcademicYears = () => http.get(apiGetAcademicYears)
 const getEligibleTeachers = academicYear =>
   http.get(apiGetEligibleTeachers, { params: { academicYear } })

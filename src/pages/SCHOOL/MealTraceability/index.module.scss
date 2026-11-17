@@ -1,0 +1,109 @@
+.pageContainer {
+  width: 100%;
+  min-height: 100%;
+  background-color: var(--bg-page, #f8faf9);
+  padding: var(--space-6, 24px) var(--space-4, 16px);
+}
+
+.contentWrapper {
+  max-width: 1040px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5, 20px);
+}
+
+.topBarActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2, 8px);
+}
+
+.btnBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default, #dce5e0);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-secondary, #52635c);
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-medium, 500);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--bg-muted, #f1f5f3);
+    color: var(--text-primary, #1d2b26);
+  }
+}
+
+.btnShare {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-default, #dce5e0);
+  background: var(--bg-surface, #ffffff);
+  color: var(--text-primary, #1d2b26);
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-semibold, 600);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--color-primary-soft, #e8f5f1);
+    color: var(--color-primary, #0a8066);
+    border-color: rgba(10, 128, 102, 0.3);
+  }
+}
+
+.loadingBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  color: var(--text-secondary, #52635c);
+}
+
+.errorBox {
+  padding: 40px 20px;
+  text-align: center;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--color-error-border, #f4c3c3);
+  border-radius: var(--radius-xl, 14px);
+  color: var(--color-error, #d64545);
+}
+
+.toastNotice {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-xl, 12px);
+  background: #1d2b26;
+  color: #ffffff;
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-medium, 500);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

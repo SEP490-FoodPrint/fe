@@ -17,11 +17,8 @@ import MealDetailHeader from "./component/MealDetailHeader";
 import MealDetailFilterBar from "./component/MealDetailFilterBar";
 import MealDishesTable from "./component/MealDishesTable";
 import DishIngredientsModal from "./component/DishIngredientsModal";
+import SelectClassTraceModal from "src/pages/SCHOOL/MenuPlanning/MenuDetail/component/SelectClassTraceModal";
 import { getWeekLabel } from "src/utils/weeklyMenu";
-import {
-  MOCK_GRADE_BLOCKS,
-  resolveSchoolGradeBlocks,
-} from "./component/mockGradeBlocks";
 
 import "./style.scss";
 
@@ -38,32 +35,75 @@ function MealDetail() {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const dateParam = searchParams.get("date") || "";
+  const blockParam = searchParams.get("block") || searchParams.get("grade") || "";
 
   const [dailyMenu, setDailyMenu] = useState(null);
   const [weeklyMenu, setWeeklyMenu] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Khối hiện chỉ là lựa chọn trên giao diện. Request thực đơn dùng mã trường và ngày.
+  // Danh sách khối học đọc trực tiếp từ chuẩn portionGroups của Backend (PublicWeeklyMenuDTO)
   const gradeBlocks = useMemo(() => {
-    return resolveSchoolGradeBlocks(
-      school?.gradeBlocks || outletContext.gradeBlocks,
-      school?.defaultGradeBlock || "Khối 1 - 3",
-    );
-  }, [school, outletContext.gradeBlocks]);
+    if (
+      Array.isArray(weeklyMenu?.portionGroups) &&
+      weeklyMenu.portionGroups.length > 0
+    ) {
+      return weeklyMenu.portionGroups;
+    }
+    return [];
+  }, [weeklyMenu?.portionGroups]);
 
-  const [selectedBlockId, setSelectedBlockId] = useState(
-    () => MOCK_GRADE_BLOCKS[0]?.id || "BLOCK_1_3",
-  );
+  // Khởi tạo khối: Ưu tiên slug từ URL
+  const [selectedBlockId, setSelectedBlockId] = useState(() => blockParam || "");
+
+  // Tự động đẩy theo khối mặc định/đầu tiên từ Backend nếu trên URL không có slug khối
+  useEffect(() => {
+    if (gradeBlocks.length > 0) {
+      const currentParam = searchParams.get("block") || searchParams.get("grade");
+      const matched = gradeBlocks.find((b) => b.id === currentParam);
+
+      if (matched) {
+        if (selectedBlockId !== matched.id) {
+          setSelectedBlockId(matched.id);
+        }
+      } else {
+        const defaultBlock =
+          gradeBlocks.find((b) => b.isDefault) || gradeBlocks[0];
+        if (defaultBlock) {
+          setSelectedBlockId(defaultBlock.id);
+          if (!currentParam) {
+            setSearchParams(
+              (prev) => {
+                const next = new URLSearchParams(prev);
+                next.set("block", defaultBlock.id);
+                return next;
+              },
+              { replace: true },
+            );
+          }
+        }
+      }
+    }
+  }, [gradeBlocks, searchParams, setSearchParams, selectedBlockId]);
+
+  const selectedBlockObj = useMemo(() => {
+    return (
+      gradeBlocks.find((b) => b.id === selectedBlockId) ||
+      gradeBlocks[0] ||
+      null
+    );
+  }, [gradeBlocks, selectedBlockId]);
+
+  const selectedBlockName = selectedBlockObj?.name || "";
 
   const [currentMealType, setCurrentMealType] = useState("LUNCH");
 
   // Quản lý Popup Modal xem chi tiết nguyên liệu món ăn
   const [modalDish, setModalDish] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false);
 
-  // Luồng tải chính: đồng bộ thực đơn ngày và tuần theo mã trường và ?date=.
+  // Luồng tải chính: đồng bộ thực đơn ngày và tuần theo mã trường, ngày và khối đã chọn
   useEffect(() => {
-    // Cleanup chặn phản hồi từ lượt tải cũ cập nhật state sau khi đổi trường hoặc ngày.
     let isMounted = true;
     const fetchData = async () => {
       if (!activeCode) return;
@@ -71,7 +111,11 @@ function MealDetail() {
       try {
         const [dailyRes, weeklyRes] = await Promise.all([
           SchoolService.getDailyMealMenu(activeCode, dateParam),
-          SchoolService.getWeeklyMenu(activeCode, dateParam),
+          SchoolService.getWeeklyMenu(
+            activeCode,
+            dateParam,
+            blockParam || undefined,
+          ),
         ]);
 
         if (isMounted) {
@@ -104,18 +148,37 @@ function MealDetail() {
     return () => {
       isMounted = false;
     };
-  }, [activeCode, dateParam]);
+  }, [activeCode, dateParam, blockParam]);
 
-  // Chọn tuần hoặc ngày sẽ đổi ?date=, kích hoạt lại Effect tải thực đơn.
+  // Chọn tuần hoặc ngày sẽ đổi ?date=, giữ nguyên tham số khối.
   const handleSelectWeek = (newWeekStart) => {
     if (newWeekStart) {
-      setSearchParams({ date: newWeekStart });
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("date", newWeekStart);
+        return next;
+      });
     }
   };
 
   const handleSelectDate = (newDate) => {
     if (newDate) {
-      setSearchParams({ date: newDate });
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("date", newDate);
+        return next;
+      });
+    }
+  };
+
+  const handleSelectBlock = (newBlockId) => {
+    if (newBlockId) {
+      setSelectedBlockId(newBlockId);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("block", newBlockId);
+        return next;
+      });
     }
   };
 
@@ -271,6 +334,8 @@ function MealDetail() {
               weekTitle={currentWeekTitle}
               dayOfWeek={dayOfWeekName}
               formattedDate={formattedActiveDate}
+              gradeName={selectedBlockName}
+              onOpenTraceModal={() => setIsTraceModalOpen(true)}
             />
 
             {/* 2. Thanh bộ lọc 3 Dropdowns: Tuần học, Ngày trong tuần, Khối */}
@@ -283,7 +348,7 @@ function MealDetail() {
               onSelectDate={handleSelectDate}
               gradeBlocks={gradeBlocks}
               selectedBlockId={selectedBlockId}
-              onSelectBlock={setSelectedBlockId}
+              onSelectBlock={handleSelectBlock}
             />
 
             {/* 3. Bảng Thực Đơn Học Đường Tích Hợp (Món chính + Món thay thế dị ứng) */}
@@ -342,6 +407,17 @@ function MealDetail() {
         open={modalOpen}
         onClose={handleCloseDishModal}
         dish={modalDish}
+      />
+
+      {/* Modal chọn Lớp để truy xuất suất ăn */}
+      <SelectClassTraceModal
+        isOpen={isTraceModalOpen}
+        onClose={() => setIsTraceModalOpen(false)}
+        menuDate={activeDateIso}
+        mealType={currentMealType}
+        schoolCode={activeCode}
+        gradeId={selectedBlockId}
+        gradeName={selectedBlockName}
       />
     </div>
   );

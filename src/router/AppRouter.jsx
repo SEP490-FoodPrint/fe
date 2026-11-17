@@ -81,6 +81,7 @@ const SchoolGrades = lazy(() => import("src/pages/SCHOOL/SchoolGrades"))
 const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
 const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
 const AcademicYearConfiguration = lazy(() => import("src/pages/SCHOOL/AcademicYearConfiguration"))
+const MealTraceability = lazy(() => import("src/pages/SCHOOL/MealTraceability"))
 
 function LazyWrapper({ children }) {
   return (
@@ -108,6 +109,14 @@ const routes = [
         element: (
           <LazyWrapper>
             <SchoolListPage />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: ROUTER.SCHOOL_MEAL_TRACEABILITY,
+        element: (
+          <LazyWrapper>
+            <MealTraceability />
           </LazyWrapper>
         ),
       },
@@ -149,6 +158,14 @@ const routes = [
         element: (
           <LazyWrapper>
             <SchoolTraceability />
+          </LazyWrapper>
+        ),
+      },
+      {
+        path: ROUTER.SCHOOL_PUBLIC_MEAL_TRACEABILITY,
+        element: (
+          <LazyWrapper>
+            <MealTraceability />
           </LazyWrapper>
         ),
       },
@@ -287,9 +304,9 @@ const routes = [
             ],
           },
 
-          // Lập thực đơn & cảnh báo dị ứng: Nhân viên Dinh dưỡng
+          // Lập thực đơn & cảnh báo dị ứng: Nhân viên Dinh dưỡng, BGH, Admin, Bếp
           {
-            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER]} />,
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_MANAGEMENT_BOARD, ROLES.SCHOOL_ADMINISTRATION, ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_MENU_PLANNING, element: <LazyWrapper><MenuPlanning /></LazyWrapper> },
               { path: ROUTER.SCHOOL_MENU_CREATE, element: <LazyWrapper><CreateMenu /></LazyWrapper> },

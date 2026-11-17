@@ -1,0 +1,221 @@
+.ingFlowSection {
+  background: var(--bg-surface, #ffffff);
+  border-radius: var(--radius-2xl, 16px);
+  border: 1px solid var(--border-default, #dce5e0);
+  padding: var(--space-5, 20px) var(--space-6, 24px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.flowHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--space-4, 16px);
+  border-bottom: 1px solid var(--border-default, #dce5e0);
+}
+
+.titleArea {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+}
+
+.headerIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-success-bg, #e8f6ef);
+  color: var(--color-success, #168456);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sectionHeading {
+  font-size: var(--text-base, 16px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+}
+
+.subInfo {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary, #52635c);
+  margin: 2px 0 0 0;
+}
+
+.flowBanner {
+  margin: var(--space-4, 16px) 0;
+  padding: var(--space-3, 12px);
+  border-radius: var(--radius-xl, 12px);
+  background: var(--bg-muted, #f8faf9);
+  border: 1px solid var(--border-default, #dce5e0);
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary, #52635c);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.flowBannerHighlight {
+  font-weight: var(--font-bold, 700);
+  color: var(--color-primary, #0a8066);
+}
+
+.ingCard {
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: var(--radius-xl, 14px);
+  padding: var(--space-4, 16px);
+  background: #ffffff;
+  margin-bottom: var(--space-4, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.ingCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ingTitle {
+  font-size: var(--text-base, 16px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dotGreen {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-success, #168456);
+}
+
+.lotDetailsGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-2, 8px);
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.detailItem {
+  padding: 8px 10px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-muted, #f8faf9);
+  border: 1px solid var(--border-default, #dce5e0);
+}
+
+.detailLabel {
+  font-size: 10px;
+  color: var(--text-muted, #6b7c74);
+  display: block;
+}
+
+.detailValue {
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary, #1d2b26);
+  margin-top: 2px;
+}
+
+.detailValueHighlight {
+  color: var(--color-primary, #0a8066);
+}
+
+.sourceFacilityBox {
+  padding: 10px 12px;
+  border-radius: var(--radius-lg, 10px);
+  background: var(--color-primary-soft, #e8f5f1);
+  border: 1px solid rgba(10, 128, 102, 0.2);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-xs, 12px);
+}
+
+.supplierBox {
+  background: var(--bg-muted, #f8faf9);
+  border-radius: var(--radius-xl, 12px);
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  border: 1px solid var(--border-default, #dce5e0);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+}
+
+.supplierTop {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+
+  @media (min-width: 600px) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.supplierName {
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary, #1d2b26);
+  margin: 0;
+}
+
+.supplierMeta {
+  font-size: 11px;
+  color: var(--text-secondary, #52635c);
+  margin: 2px 0 0 0;
+}
+
+.certBadges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.certPill {
+  font-size: 11px;
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-primary, #0a8066);
+  background: var(--color-primary-soft, #e8f5f1);
+  border: 1px solid rgba(10, 128, 102, 0.25);
+  padding: 2px 8px;
+  border-radius: 9999px;
+}
+
+.deliveryMetaGrid {
+  border-top: 1px dashed var(--border-default, #dce5e0);
+  padding-top: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  font-size: var(--text-xs, 12px);
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.deliveryInfoCol {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary, #52635c);
+}

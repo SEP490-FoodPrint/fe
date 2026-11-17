@@ -16,6 +16,7 @@ const ROUTER = {
   SCHOOL_LANDING: "/school/:schoolCode",
   SCHOOL_MEAL_DETAIL: "/school/:schoolCode/daily-menu",
   SCHOOL_PUBLIC_TRACEABILITY: "/school/:schoolCode/traceability",
+  SCHOOL_PUBLIC_MEAL_TRACEABILITY: "/school/:schoolCode/meal-traceability",
 
   // Phân hệ SYSTEM (Dành cho SYSTEM_ADMIN)
   SYSTEM: "/system",
@@ -81,6 +82,7 @@ const ROUTER = {
   SCHOOL_KITCHEN_SAMPLE_STORAGE: "/school/sample-storage", // Master data Tủ lưu mẫu
   SCHOOL_KITCHEN_HANDOVER: "/school/handover", // Bàn giao suất ăn
   SCHOOL_KITCHEN_TRACEABILITY: "/school/traceability", // Truy xuất nguồn gốc
+  SCHOOL_MEAL_TRACEABILITY: "/school/meal-traceability", // Truy xuất nguồn gốc suất ăn lớp
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho, Bếp
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu

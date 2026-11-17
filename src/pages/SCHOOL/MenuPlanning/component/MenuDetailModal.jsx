@@ -1,6 +1,7 @@
 import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import styles from "./MenuDetailModal.module.scss"
+import SelectClassTraceModal from "../MenuDetail/component/SelectClassTraceModal"
 
 export default function MenuDetailModal({
   isOpen,
@@ -8,6 +9,7 @@ export default function MenuDetailModal({
   menu,
   onEditMenu
 }) {
+  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false)
   if (!isOpen || !menu) return null
 
   const canEdit = menu?.weeklyStatus !== "APPROVED" && ["DRAFT", "PENDING_APPROVAL", "REVISION_REQUIRED", "REVISION_REQUESTED"].includes(menu?.status)
@@ -206,6 +208,18 @@ export default function MenuDetailModal({
           <button type="button" className={styles.cancelBtn} onClick={onClose}>
             Đóng
           </button>
+
+          {/* Nút Truy xuất suất ăn */}
+          <button
+            type="button"
+            className={styles.traceBtn}
+            onClick={() => setIsTraceModalOpen(true)}
+            title="Truy xuất nguồn gốc suất ăn theo lớp học"
+          >
+            <span className="material-symbols-outlined text-[18px]">qr_code_scanner</span>
+            <span>Truy xuất suất ăn</span>
+          </button>
+
           {canEdit && (
             <button
               type="button"
@@ -221,6 +235,14 @@ export default function MenuDetailModal({
           )}
         </div>
       </div>
+
+      {/* Modal chọn Khối & Lớp để truy xuất */}
+      <SelectClassTraceModal
+        isOpen={isTraceModalOpen}
+        onClose={() => setIsTraceModalOpen(false)}
+        menuDate={menu.date}
+        mealType={menu.mealType}
+      />
     </div>
   )
 }
