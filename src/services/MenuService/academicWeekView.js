@@ -27,3 +27,24 @@ export function academicWeekSearch(search, academicYear, weekStartDate = "") {
   else params.delete("week")
   return params
 }
+
+export function weekMenuSummary(menus = []) {
+  const menuIds = new Set(menus.map((menu) => menu.weeklyMenuId || menu.id).filter(Boolean))
+  const statuses = new Set(menus.map((menu) => menu.weeklyStatus || menu.status).filter(Boolean))
+  const status = statuses.has("REVISION_REQUESTED") ? "REVISION_REQUESTED"
+    : statuses.has("REVISION_REQUIRED") ? "REVISION_REQUESTED"
+      : statuses.has("PENDING_APPROVAL") ? "PENDING_APPROVAL"
+        : statuses.has("DRAFT") ? "DRAFT"
+          : statuses.has("APPROVED") && statuses.size === 1 ? "APPROVED"
+            : menus.length ? "INCOMPLETE" : "EMPTY"
+  return {
+    status,
+    label: ({ APPROVED: "Đã duyệt", PENDING_APPROVAL: "Chờ duyệt", DRAFT: "Bản nháp", REVISION_REQUESTED: "Cần chỉnh sửa", INCOMPLETE: "Chưa đủ thực đơn", EMPTY: "Chưa tạo" })[status],
+    dishCount: menus.reduce((total, menu) => total + (Array.isArray(menu.dishes) ? menu.dishes.length : 0), 0),
+    menuCount: menuIds.size,
+  }
+}
+
+export function statusTone(status) {
+  return ({ APPROVED: "approved", PENDING_APPROVAL: "pending", DRAFT: "draft", REVISION_REQUESTED: "revision", INCOMPLETE: "incomplete", EMPTY: "empty" })[status] || "empty"
+}

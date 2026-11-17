@@ -3,6 +3,7 @@ import { TablePagination } from "@mui/material"
 import { ChevronRight } from "lucide-react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import { formatDateVN } from "src/services/MenuService/adapter"
+import { statusTone, weekMenuSummary } from "src/services/MenuService/academicWeekView"
 import styles from "./MenuYearWeeksTable.module.scss"
 
 export default function MenuYearWeeksTable({
@@ -34,6 +35,9 @@ export default function MenuYearWeeksTable({
           </select>
         </label>
         {!loading && year && <span className={styles.count}>{weeks.length} tuần học</span>}
+        {year && <div className={styles.statusLegend} aria-label="Chú giải trạng thái">
+          <span><i className={styles.dotDraft} />Bản nháp</span><span><i className={styles.dotPending} />Chờ duyệt</span><span><i className={styles.dotApproved} />Đã duyệt</span><span><i className={styles.dotRevision} />Cần chỉnh sửa</span>
+        </div>}
       </div>
       {loading ? (
         <div className={styles.notice} role="status"><FoodPrintLoading /></div>
@@ -46,15 +50,45 @@ export default function MenuYearWeeksTable({
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className={styles.srOnly}>Danh sách tuần năm học {academicYear}</caption>
-              <thead><tr><th scope="col">Tuần học</th><th scope="col">Thời gian</th><th scope="col"><span className={styles.srOnly}>Thao tác</span></th></tr></thead>
+              <thead><tr><th scope="col">Tuần học</th><th scope="col">Thời gian</th><th scope="col">Trạng thái</th><th scope="col">Món ăn</th><th scope="col"><span className={styles.srOnly}>Thao tác</span></th></tr></thead>
               <tbody>
-                {rows.map((week) => (
-                  <tr key={week.weekStartDate} className={week.isCurrentWeek ? styles.currentRow : undefined} onClick={() => onSelectWeek(week)}>
-                    <th scope="row"><span>{week.weekLabel || `Tuần ${week.weekNumber}`}</span>{week.isCurrentWeek && <span className={styles.currentLabel}>Tuần hiện tại</span>}</th>
-                    <td><span className={styles.date}>{formatDateVN(week.weekStartDate)}</span><span className={styles.dateDivider}> – </span><span className={styles.date}>{formatDateVN(week.weekEndDate)}</span></td>
-                    <td className={styles.actionCell}><button type="button" className={styles.textButton} aria-label={`Xem thực đơn ${week.weekLabel || `Tuần ${week.weekNumber}`}`}><span className={styles.actionText}>Xem thực đơn</span><ChevronRight size={16} aria-hidden="true" /></button></td>
-                  </tr>
-                ))}
+                {rows.map((week) => {
+                  const summary = weekMenuSummary(weekMenus[week.weekStartDate] || [])
+                  const tone = statusTone(summary.status)
+                  return (
+                    <tr
+                      key={week.weekStartDate}
+                      className={week.isCurrentWeek ? styles.currentRow : undefined}
+                      onClick={() => onSelectWeek(week)}
+                    >
+                      <th scope="row">
+                        <span>{week.weekLabel || `Tuần ${week.weekNumber}`}</span>
+                        {week.isCurrentWeek && <span className={styles.currentLabel}>Tuần hiện tại</span>}
+                      </th>
+                      <td>
+                        <span className={styles.date}>{formatDateVN(week.weekStartDate)}</span>
+                        <span className={styles.dateDivider}> – </span>
+                        <span className={styles.date}>{formatDateVN(week.weekEndDate)}</span>
+                      </td>
+                      <td>
+                        <span className={`${styles.statusBadge} ${styles[tone]}`}>{summary.label}</span>
+                      </td>
+                      <td>
+                        <span className={styles.dishCount}>{summary.dishCount.toLocaleString("vi-VN")}</span>
+                      </td>
+                      <td className={styles.actionCell}>
+                        <button
+                          type="button"
+                          className={styles.textButton}
+                          aria-label={`Xem thực đơn ${week.weekLabel || `Tuần ${week.weekNumber}`}`}
+                        >
+                          <span className={styles.actionText}>Xem thực đơn</span>
+                          <ChevronRight size={16} aria-hidden="true" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
