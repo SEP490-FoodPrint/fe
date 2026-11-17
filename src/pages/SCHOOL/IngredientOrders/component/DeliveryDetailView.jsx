@@ -38,6 +38,17 @@ import {
 } from "lucide-react";
 import styles from "./DeliveryDetailView.module.scss";
 
+// Helper định dạng định lượng/suất: nếu đơn vị là kg thì quy đổi sang gam (g), tổng vẫn giữ kg
+const formatPortionRate = (rate, unit) => {
+  if (rate == null || isNaN(rate) || Number(rate) <= 0) return "";
+  const u = String(unit || "").toLowerCase().trim();
+  if (u === "kg" || u === "kilogram") {
+    const grams = Number((Number(rate) * 1000).toFixed(2));
+    return `${grams} g`;
+  }
+  return `${rate} ${unit}`;
+};
+
 export default function DeliveryDetailView({
   delivery,
   onBack,
@@ -197,7 +208,7 @@ export default function DeliveryDetailView({
           <Box className={styles.titleInfo}>
             <Box className={styles.titleWithBadge}>
               <Typography variant="h5" className={styles.mainTitle}>
-                Phiếu Giao Nhận: {delivery.deliveryNo}
+                Mã nhập hàng: {delivery.deliveryNo}
               </Typography>
               <Chip
                 label={
@@ -223,8 +234,7 @@ export default function DeliveryDetailView({
               )}
             </Box>
             <Typography variant="body2" className={styles.subTitle}>
-              Đơn đặt hàng gốc: <strong>{delivery.orderNo}</strong>
-              {delivery.menuName && ` • Thực đơn: ${delivery.menuName}`}
+              Mã đặt hàng theo đợt: <strong>{delivery.orderNo}</strong>
             </Typography>
             {Array.isArray(delivery.menusSummary) &&
               delivery.menusSummary.length > 1 && (
@@ -452,6 +462,8 @@ export default function DeliveryDetailView({
                   <Typography variant="body2" className={styles.infoValue}>
                     {transport.driver}
                   </Typography>
+
+
                 </Box>
 
                 <Box className={styles.infoItem}>
@@ -478,6 +490,15 @@ export default function DeliveryDetailView({
                   </Typography>
                   <Typography variant="body2" className={styles.infoValue}>
                     {delivery.deliveryTime} — Ngày {delivery.deliveryDate}
+                  </Typography>
+                </Box>
+                <Box className={styles.infoItem}>
+                  <Clock size={16} className={styles.infoIcon} />
+                  <Typography variant="body2" className={styles.infoLabel}>
+                    Ghi chú:
+                  </Typography>
+                  <Typography variant="body2" className={styles.infoValue}>
+                    {delivery.menuName}
                   </Typography>
                 </Box>
 
@@ -541,13 +562,12 @@ export default function DeliveryDetailView({
             return (
               <Box
                 key={r.key}
-                className={`${styles.approvalCard} ${
-                  isApproved
-                    ? styles.approvedCard
-                    : isRejected
-                      ? styles.rejectedCard
-                      : styles.pendingCard
-                }`}
+                className={`${styles.approvalCard} ${isApproved
+                  ? styles.approvedCard
+                  : isRejected
+                    ? styles.rejectedCard
+                    : styles.pendingCard
+                  }`}
               >
                 <Box className={styles.cardTop}>
                   <Box className={styles.roleTitleGroup}>
@@ -634,7 +654,6 @@ export default function DeliveryDetailView({
                 <TableCell style={{ minWidth: 200 }}>
                   Nhà cung cấp (NCC)
                 </TableCell>
-                <TableCell>Phân loại kho</TableCell>
                 <TableCell align="center">Đơn vị</TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
                 <TableCell align="center">
@@ -671,16 +690,16 @@ export default function DeliveryDetailView({
                   typeof item.extraQty === "number" && item.extraQty > 0;
                 const portionRate =
                   !isExtraItem &&
-                  typeof item.qtyPerPortion === "number" &&
-                  item.qtyPerPortion > 0
+                    typeof item.qtyPerPortion === "number" &&
+                    item.qtyPerPortion > 0
                     ? item.qtyPerPortion
                     : !isExtraItem
                       ? Number(
-                          (
-                            (item.orderedQty || 0) /
-                            (delivery.plannedPortions || batch1Portions || 1)
-                          ).toFixed(4),
-                        )
+                        (
+                          (item.orderedQty || 0) /
+                          (delivery.plannedPortions || batch1Portions || 1)
+                        ).toFixed(4),
+                      )
                       : 0;
 
                 const rawNeeded = portionRate * remainingNeeded;
@@ -750,13 +769,6 @@ export default function DeliveryDetailView({
                             "Nhà cung cấp đối tác"}
                         </Typography>
                       </TableCell>
-                      <TableCell>
-                        <Chip
-                          label="Tươi sống (Dùng ngay)"
-                          size="small"
-                          className={styles.freshChip}
-                        />
-                      </TableCell>
                       <TableCell align="center">
                         <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
@@ -806,7 +818,7 @@ export default function DeliveryDetailView({
                               fontSize: "0.7rem",
                             }}
                           >
-                            ({portionRate} {item.unit}/suất)
+                            ({formatPortionRate(portionRate, item.unit)}/suất)
                           </Typography>
                         ) : null}
                         {isWaitingAttendance && !isExtraItem && (
@@ -849,7 +861,7 @@ export default function DeliveryDetailView({
                     {isExpanded && isMulti && (
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         <TableCell
-                          colSpan={6}
+                          colSpan={5}
                           sx={{
                             py: 1.25,
                             px: 3,
@@ -909,8 +921,12 @@ export default function DeliveryDetailView({
                                     color="text.secondary"
                                     sx={{ display: "block", mt: 0.25 }}
                                   >
-                                    {b.portions} suất × {b.qtyPerPortion}{" "}
-                                    {b.unit}/suất
+                                    {b.portions} suất ×{" "}
+                                    {formatPortionRate(
+                                      b.qtyPerPortion,
+                                      b.unit || item.unit,
+                                    )}
+                                    /suất
                                   </Typography>
                                   <Typography
                                     variant="body2"
@@ -920,7 +936,7 @@ export default function DeliveryDetailView({
                                       mt: 0.5,
                                     }}
                                   >
-                                    = {b.calculatedQty} {b.unit}
+                                    = {b.calculatedQty} {b.unit || item.unit}
                                   </Typography>
                                 </Box>
                               ))}

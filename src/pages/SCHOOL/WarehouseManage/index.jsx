@@ -404,7 +404,7 @@ export default function WarehouseManage() {
                 iconPosition="start"
                 label={
                   <Box className={styles.tabLabel}>
-                    <span>Đơn hàng</span>
+                    <span>Tiếp nhận nguyên liệu</span>
                     {orders.length > 0 && (
                       <Chip
                         label={orders.length}
@@ -526,7 +526,7 @@ export default function WarehouseManage() {
                   }}
                   className={styles.createOrderBtn}
                 >
-                  Lập phiếu nhập đồ khô
+                  Yêu cầu nhập đồ khô
                 </Button>
               </Box>
 

@@ -302,7 +302,7 @@ export default function CreateDryOrderView({
 
         <Box className={styles.headerText}>
           <Typography variant="h5" className={styles.title}>
-            Lập Phiếu Nhập Đồ Khô
+            Tạo Yêu Cầu Nhập Đồ Khô
           </Typography>
         </Box>
       </Box>
@@ -545,7 +545,7 @@ export default function CreateDryOrderView({
             disabled={selectedCount === 0}
             className={styles.submitBtn}
           >
-            Tạo phiếu nhập đồ khô &amp; Gửi NCC
+            Tạo
           </Button>
         </Box>
       </Box>

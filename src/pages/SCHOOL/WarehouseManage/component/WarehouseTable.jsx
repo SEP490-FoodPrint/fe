@@ -32,7 +32,7 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
       <Table className={styles.table}>
         <TableHead className={styles.tableHead}>
           <TableRow>
-            <TableCell style={{ width: "27%" }}>Nguyên liệu &amp; Mã</TableCell>
+            <TableCell style={{ width: "27%" }}>Nguyên liệu &amp; Loại</TableCell>
             <TableCell style={{ width: "25%" }}>Tồn kho / Ngưỡng an toàn</TableCell>
             <TableCell style={{ width: "18%" }}>Đơn giá</TableCell>
             <TableCell style={{ width: "20%" }}>Nhà cung cấp</TableCell>
@@ -57,7 +57,6 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
                       {it.name}
                     </Typography>
                     <Box className={styles.codeRow}>
-                      <span className={styles.codeText}>{it.code}</span>
                       <Chip label={it.category} size="small" className={styles.categoryChip} />
                     </Box>
                   </Box>

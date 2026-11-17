@@ -52,6 +52,99 @@ export function formatVietnameseDateTime(dateInput) {
 }
 
 /**
+ * Định dạng Lịch hẹn giao chuẩn xác: 14:30 - Thứ Ba 17/11/2026
+ * Tránh lỗi lệch múi giờ (07:00 do UTC 00:00Z) hoặc hardcode ngày
+ */
+export function formatDeliverySchedule(delivery, orderType) {
+  if (!delivery) return "Chưa ấn định"
+
+  const note = String(delivery.note || "")
+  const scheduleInput = String(delivery.deliverySchedule || "")
+
+  // 1. Tìm giờ hẹn: từ deliveryTime -> note/deliverySchedule -> expectedArrivalAt -> mặc định theo loại đơn
+  let targetTime = ""
+  if (delivery.deliveryTime && String(delivery.deliveryTime).includes(":")) {
+    targetTime = String(delivery.deliveryTime).trim()
+  } else {
+    const timeMatch = (scheduleInput + " " + note).match(/\b([01]?\d|2[0-3]):([0-5]\d)\b/)
+    if (timeMatch) {
+      targetTime = `${timeMatch[1].padStart(2, "0")}:${timeMatch[2]}`
+    } else if (delivery.expectedArrivalAt) {
+      const expD = new Date(delivery.expectedArrivalAt)
+      if (!isNaN(expD.getTime())) {
+        const h = expD.getHours()
+        const m = expD.getMinutes()
+        // Nếu không phải 00:00 UTC (tức 07:00 VN)
+        if (h !== 0 && h !== 7) {
+          targetTime = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`
+        }
+      }
+    }
+  }
+
+  if (!targetTime) {
+    const type = orderType?.type || delivery.orderType || delivery.batchType
+    targetTime = type === "DRY_STOCK" ? "14:30" : type === "FRESH_BATCH_2" ? "07:45" : "05:30"
+  }
+
+  // 2. Tìm ngày hẹn
+  let y = null
+  let m = null
+  let d = null
+
+  // Ưu tiên ngày trong chuỗi deliverySchedule hoặc note nếu có dạng YYYY-MM-DD hoặc DD/MM/YYYY
+  const isoMatch = (scheduleInput + " " + note).match(/\b(\d{4})-(\d{2})-(\d{2})\b/)
+  const dmyMatch = (scheduleInput + " " + note).match(/\b(\d{1,2})\/(\d{1,2})\/(\d{4})\b/)
+
+  if (isoMatch) {
+    y = Number(isoMatch[1])
+    m = Number(isoMatch[2])
+    d = Number(isoMatch[3])
+  } else if (dmyMatch) {
+    d = Number(dmyMatch[1])
+    m = Number(dmyMatch[2])
+    y = Number(dmyMatch[3])
+  } else {
+    const rawDateStr =
+      delivery.deliveryDate ||
+      delivery.requestedDeliveryDate ||
+      delivery.expectedArrivalAt ||
+      delivery.createdAt
+
+    if (rawDateStr) {
+      const rawIso = String(rawDateStr).match(/\b(\d{4})-(\d{2})-(\d{2})\b/)
+      if (rawIso) {
+        y = Number(rawIso[1])
+        m = Number(rawIso[2])
+        d = Number(rawIso[3])
+      } else {
+        const dt = new Date(rawDateStr)
+        if (!isNaN(dt.getTime())) {
+          y = dt.getFullYear()
+          m = dt.getMonth() + 1
+          d = dt.getDate()
+        }
+      }
+    }
+  }
+
+  if (!y || !m || !d) {
+    const now = new Date()
+    y = now.getFullYear()
+    m = now.getMonth() + 1
+    d = now.getDate()
+  }
+
+  const [hours, minutes] = targetTime.split(":").map(Number)
+  const dateObj = new Date(y, m - 1, d, hours || 0, minutes || 0)
+  const dayName = WEEKDAY_NAMES[dateObj.getDay()] || "Thứ"
+  const formattedDay = String(d).padStart(2, "0")
+  const formattedMonth = String(m).padStart(2, "0")
+
+  return `${targetTime} - ${dayName} ${formattedDay}/${formattedMonth}/${y}`
+}
+
+/**
  * Định dạng ngày giờ rút gọn: 27/10 05:30
  */
 export function formatTimeShort(dateInput) {
@@ -470,21 +563,7 @@ export function adaptTrackingOrder(delivery) {
     )
   )
 
-  let deliverySchedule = delivery.deliverySchedule
-  if (!deliverySchedule || !deliverySchedule.includes(":")) {
-    const timeStr =
-      delivery.deliveryTime ||
-      (orderType.type === "DRY_STOCK" ? "14:30" : orderType.type === "FRESH_BATCH_2" ? "07:45" : "05:30")
-    if (delivery.deliveryDate) {
-      deliverySchedule = formatVietnameseDateTime(`${delivery.deliveryDate}T${timeStr}:00`)
-    } else {
-      const scheduleDate =
-        delivery.expectedArrivalAt ||
-        delivery.requestedDeliveryDate ||
-        delivery.createdAt
-      deliverySchedule = formatVietnameseDateTime(scheduleDate)
-    }
-  }
+  const deliverySchedule = formatDeliverySchedule(delivery, orderType)
 
   return {
     id: delivery.id,
