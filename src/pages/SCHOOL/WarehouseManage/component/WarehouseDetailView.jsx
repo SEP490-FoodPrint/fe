@@ -20,6 +20,24 @@ import {
   Boxes,
 } from "lucide-react"
 import styles from "./WarehouseDetailView.module.scss"
+import { daysUntilExpiry, expiryTone, formatLotDate } from "src/utils/lotExpiry"
+
+
+// Nhãn trạng thái lô. BE trả EXPIRED cho lô còn hàng nhưng đã quá hạn dùng (không tính vào tồn khả dụng).
+const LOT_STATUS_CHIP = {
+  AVAILABLE: { label: "Khả dụng", color: "success" },
+  EXPIRED: { label: "Hết hạn", color: "error" },
+  DEPLETED: { label: "Đã dùng hết", color: "default" },
+  BLOCKED: { label: "Chờ kiểm tra", color: "warning" },
+  DISPOSED: { label: "Đã hủy", color: "default" },
+}
+function lotStatusChip(lot) {
+  if (lot.status === "AVAILABLE") {
+    const daysLeft = daysUntilExpiry(lot.expiryDate)
+    if (expiryTone(daysLeft) === "near") return { label: `Sắp hết hạn (còn ${daysLeft} ngày)`, color: "warning" }
+  }
+  return LOT_STATUS_CHIP[lot.status] || { label: lot.status || "—", color: "default" }
+}
 
 export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
   if (!item) return null
@@ -209,8 +227,8 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
                   {item.lots.map(lot => (
                     <TableRow key={lot.id} hover>
                       <TableCell sx={{ fontWeight: 600, color: "#1e293b" }}>{lot.lotCode}</TableCell>
-                      <TableCell>{lot.manufactureDate || "—"}</TableCell>
-                      <TableCell>{lot.expiryDate || "—"}</TableCell>
+                      <TableCell>{formatLotDate(lot.manufactureDate)}</TableCell>
+                      <TableCell>{formatLotDate(lot.expiryDate)}</TableCell>
                       <TableCell align="center">{lot.receivedQuantity} {item.unit}</TableCell>
                       <TableCell
                         align="center"
@@ -224,9 +242,9 @@ export default function WarehouseDetailView({ item, onBack, onQuickOrder }) {
                       <TableCell>{lot.deliveryNo || "—"}</TableCell>
                       <TableCell align="center">
                         <Chip
-                          label={lot.status === "AVAILABLE" ? "Khả dụng" : lot.status}
+                          label={lotStatusChip(lot).label}
                           size="small"
-                          color={lot.status === "AVAILABLE" ? "success" : "default"}
+                          color={lotStatusChip(lot).color}
                           sx={{ height: 22, fontSize: 11 }}
                         />
                       </TableCell>

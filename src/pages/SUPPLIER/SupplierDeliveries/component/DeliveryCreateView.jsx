@@ -53,6 +53,9 @@ function createEmptyItemRow(defaultFacilityId = "") {
     sourceFacilityId: defaultFacilityId,
     actualQuantity: "",
     unit: "",
+    // Ngày của lô: bắt buộc nếu trường xếp nguyên liệu là đồ khô (BE kiểm tra theo danh mục của trường).
+    manufactureDate: "",
+    expiryDate: "",
   }
 }
 
@@ -301,6 +304,12 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
   const handleApplyAllStandaloneFacilities = sourceFacilityId => {
     if (!sourceFacilityId) return
     applyItemsChange(items.map(row => ({ ...row, sourceFacilityId })))
+  }
+
+  const handleLotDateChange = (rowKey, field, value) => {
+    applyItemsChange(
+      items.map(row => (row.rowKey === rowKey ? { ...row, [field]: value } : row)),
+    )
   }
 
   const handleQuantityChange = (rowKey, actualQuantity) => {
@@ -779,6 +788,26 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
 
                             <div className={styles.unitBox} aria-label="Đơn vị tính">
                               {row.unit || "Đơn vị"}
+                            </div>
+
+                            <div className={styles.rowCell} title="Bắt buộc với đồ khô">
+                              <input
+                                type="date"
+                                value={row.manufactureDate || ""}
+                                onChange={event => handleLotDateChange(row.rowKey, "manufactureDate", event.target.value)}
+                                className={styles.textInput}
+                                aria-label={`Ngày sản xuất dòng ${idx + 1} (bắt buộc với đồ khô)`}
+                              />
+                            </div>
+
+                            <div className={styles.rowCell} title="Bắt buộc với đồ khô">
+                              <input
+                                type="date"
+                                value={row.expiryDate || ""}
+                                onChange={event => handleLotDateChange(row.rowKey, "expiryDate", event.target.value)}
+                                className={styles.textInput}
+                                aria-label={`Hạn sử dụng dòng ${idx + 1} (bắt buộc với đồ khô)`}
+                              />
                             </div>
 
                             <button

@@ -120,6 +120,8 @@ function adaptOrderItem(item = {}) {
     id: item.id || "",
     ingredientEntryId: item.ingredientEntryId || "",
     ingredientName: item.ingredientName || "Nguyên liệu",
+    // DRY_STOCK: NCC phải nhập ngày sản xuất và hạn sử dụng của lô khi tạo chuyến giao.
+    handlingType: item.handlingType || null,
     requestedQuantity:
       item.requestedQuantity !== undefined && item.requestedQuantity !== null
         ? String(item.requestedQuantity)

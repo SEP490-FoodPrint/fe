@@ -666,6 +666,11 @@ const SupplierDeliveryService = {
   },
 
   async create(input, idempotencyKey) {
+    // Ngày của lô (YYYY-MM-DD): chỉ gửi khi có; đồ khô bắt buộc, đồ tươi bỏ trống.
+    const lotDatesPayload = line => ({
+      ...(String(line?.manufactureDate || "").trim() ? { manufactureDate: String(line.manufactureDate).trim() } : {}),
+      ...(String(line?.expiryDate || "").trim() ? { expiryDate: String(line.expiryDate).trim() } : {}),
+    })
     const key = String(idempotencyKey || generateIdempotencyKey()).trim().toLowerCase()
     const note = String(input.note ?? "").trim()
 
@@ -686,6 +691,7 @@ const SupplierDeliveryService = {
               String(src.actualQuantity).trim() !== ""
                 ? { actualQuantity: normalizeDecimalQuantity(src.actualQuantity) }
                 : {}),
+              ...lotDatesPayload(src),
             })),
             note: note || null,
           }
@@ -700,6 +706,7 @@ const SupplierDeliveryService = {
                 .toLowerCase(),
               actualQuantity: normalizeDecimalQuantity(item.actualQuantity),
               unit: String(item.unit || "").trim(),
+              ...lotDatesPayload(item),
             })),
           }
 

@@ -158,3 +158,16 @@
   border: 1px dashed #cbd5e1;
   border-radius: 12px;
 }
+
+/* Cột "Hạn gần nhất": ngày + nhãn cảnh báo (dùng lại criticalChip / warningChip) */
+.expiryCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.expiryDate {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}

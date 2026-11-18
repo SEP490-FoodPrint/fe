@@ -21,6 +21,9 @@ function RequestSourcesAssigner({
   disabled = false,
   onChangeSource,
   onApplyAll,
+  lotDatesByItemId = {},
+  lotDateErrors = {},
+  onChangeLotDate,
 }) {
   const assignedCount = items.reduce((count, item) => {
     const val = String(sourceByItemId?.[item.id] || "").trim()
@@ -132,6 +135,40 @@ function RequestSourcesAssigner({
                     {item.note && (
                       <p className={styles.itemNote}>{`Ghi chú: ${item.note}`}</p>
                     )}
+                    {item.handlingType === "DRY_STOCK" && (
+                      <div className={styles.lotDates}>
+                        <span className={styles.dryChip}>Đồ khô</span>
+                        <label className={styles.lotDateField}>
+                          <span>
+                            Ngày sản xuất <span className={styles.requiredMark}>*</span>
+                          </span>
+                          <input
+                            type="date"
+                            value={lotDatesByItemId[item.id]?.manufactureDate || ""}
+                            disabled={disabled}
+                            onChange={event => onChangeLotDate?.(item.id, "manufactureDate", event.target.value)}
+                            className={`${styles.dateControl} ${lotDateErrors[item.id] ? styles.hasError : ""}`}
+                          />
+                        </label>
+                        <label className={styles.lotDateField}>
+                          <span>
+                            Hạn sử dụng <span className={styles.requiredMark}>*</span>
+                          </span>
+                          <input
+                            type="date"
+                            value={lotDatesByItemId[item.id]?.expiryDate || ""}
+                            disabled={disabled}
+                            onChange={event => onChangeLotDate?.(item.id, "expiryDate", event.target.value)}
+                            className={`${styles.dateControl} ${lotDateErrors[item.id] ? styles.hasError : ""}`}
+                          />
+                        </label>
+                        {lotDateErrors[item.id] && (
+                          <p className={styles.errorText} role="alert">
+                            {lotDateErrors[item.id]}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className={styles.selectCol}>
@@ -191,6 +228,7 @@ RequestSourcesAssigner.propTypes = {
       requestedQuantity: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
       unit: PropTypes.string,
       note: PropTypes.string,
+      handlingType: PropTypes.string,
     }),
   ),
   sourceByItemId: PropTypes.object,
@@ -208,6 +246,9 @@ RequestSourcesAssigner.propTypes = {
   disabled: PropTypes.bool,
   onChangeSource: PropTypes.func,
   onApplyAll: PropTypes.func,
+  lotDatesByItemId: PropTypes.object,
+  lotDateErrors: PropTypes.object,
+  onChangeLotDate: PropTypes.func,
 }
 
 export default RequestSourcesAssigner

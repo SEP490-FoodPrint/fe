@@ -51,6 +51,7 @@ import {
   Layers,
 } from "lucide-react";
 import IngredientOrderService from "src/services/IngredientOrderService";
+import notice from "src/components/Notice";
 import styles from "./CreateDeliveryView.module.scss";
 
 /**
@@ -872,6 +873,12 @@ export default function CreateDeliveryView({
           breakdown: it.breakdown || null,
         })),
       });
+    } catch (error) {
+      // Ví dụ: nguyên liệu không có trong danh mục trường hoặc trùng tên nhiều NCC; không đơn nào được tạo.
+      notice({
+        msg: error?.response?.data?.message || error?.message || "Không tạo được đơn đặt hàng.",
+        isSuccess: false,
+      });
     } finally {
       setSubmitting(false);
     }
@@ -905,6 +912,12 @@ export default function CreateDeliveryView({
           defaultQtyPerPortion: it.defaultQtyPerPortion,
           breakdown: it.breakdown || null,
         })),
+      });
+    } catch (error) {
+      // Ví dụ: nguyên liệu không có trong danh mục trường hoặc trùng tên nhiều NCC; không đơn nào được tạo.
+      notice({
+        msg: error?.response?.data?.message || error?.message || "Không tạo được đơn đặt hàng.",
+        isSuccess: false,
       });
     } finally {
       setSubmitting(false);
