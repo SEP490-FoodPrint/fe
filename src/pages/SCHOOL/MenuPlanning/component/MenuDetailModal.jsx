@@ -1,5 +1,5 @@
 import { formatSmallQuantity } from "src/utils/quantity"
-import React from "react"
+import React, { useState } from "react"
 import styles from "./MenuDetailModal.module.scss"
 import SelectClassTraceModal from "../MenuDetail/component/SelectClassTraceModal"
 

@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from "react";
 import PhotoPicker from "src/components/PhotoPicker";
 import PropTypes from "prop-types";
+import { minimumSampleQuantity, sampleQuantityError } from "src/utils/sampleRules";
+import StorageUnitField, { storageUnitBlockReason } from "./StorageUnitField";
 import {
   X,
   FlaskConical,
@@ -31,7 +33,9 @@ export default function CreateSampleModal({
   });
   const [quantity, setQuantity] = useState("150");
   const [unit, setUnit] = useState("g");
-  const [storageLocation, setStorageLocation] = useState("Tủ A1 - Ngăn 02");
+  const [storageUnitId, setStorageUnitId] = useState("");
+  const [storagePosition, setStoragePosition] = useState("");
+  const [storageUnits, setStorageUnits] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [photo, setPhoto] = useState(null);
   useEffect(() => { if (open) setPhoto(null); }, [open]);
@@ -45,9 +49,6 @@ export default function CreateSampleModal({
       }
       if (availableBatches[0].defaultUnit) {
         setUnit(availableBatches[0].defaultUnit);
-      }
-      if (availableBatches[0].defaultStorage) {
-        setStorageLocation(availableBatches[0].defaultStorage);
       }
     }
   }, [open, availableBatches, selectedBatchId]);
@@ -90,7 +91,6 @@ export default function CreateSampleModal({
     if (found) {
       if (found.defaultQuantity) setQuantity(found.defaultQuantity);
       if (found.defaultUnit) setUnit(found.defaultUnit);
-      if (found.defaultStorage) setStorageLocation(found.defaultStorage);
     }
   };
 
@@ -128,9 +128,14 @@ export default function CreateSampleModal({
       return;
     }
 
-    const qtyNum = Number(quantity);
-    if (quantity && (isNaN(qtyNum) || qtyNum <= 0)) {
-      setErrorMsg("Khối lượng mẫu phải là số dương hợp lệ.");
+    const quantityError = sampleQuantityError(quantity, unit);
+    if (quantityError) {
+      setErrorMsg(quantityError);
+      return;
+    }
+    const storageError = storageUnitBlockReason(storageUnits.find((item) => item.id === storageUnitId));
+    if (storageError) {
+      setErrorMsg(storageError);
       return;
     }
 
@@ -140,9 +145,10 @@ export default function CreateSampleModal({
       batchData: activeBatch,
       dishId: selectedDishId || undefined,
       sampledAt: new Date(sampledAt).toISOString(),
-      quantity: quantity ? String(qtyNum) : "150",
+      quantity: String(Number(quantity)),
       unit: unit || "g",
-      storageLocation: storageLocation.trim() || "Tủ lưu mẫu 01",
+      storageUnitId,
+      storageLocation: storagePosition.trim() || undefined,
       photo,
     });
   };
@@ -321,7 +327,7 @@ export default function CreateSampleModal({
                   <input
                     id="sample-qty"
                     type="number"
-                    min="50"
+                    min={minimumSampleQuantity(unit)}
                     step="10"
                     placeholder="150"
                     className={styles.textInput}
@@ -340,6 +346,16 @@ export default function CreateSampleModal({
                   </select>
                 </div>
               </div>
+              {/* 3. Tủ lưu mẫu (bắt buộc) và ngăn trong tủ */}
+              <StorageUnitField
+                styles={styles}
+                unitId={storageUnitId}
+                onUnitChange={setStorageUnitId}
+                position={storagePosition}
+                onPositionChange={setStoragePosition}
+                disabled={submitting}
+                onUnitsLoaded={setStorageUnits}
+              />
             </div>
           </div>
 

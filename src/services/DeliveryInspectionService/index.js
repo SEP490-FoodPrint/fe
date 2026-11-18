@@ -17,6 +17,12 @@ export async function getDeliveryInspection(id) {
   if (!response?.id || !Array.isArray(response.deliveryItems) || !Array.isArray(response.requiredRoles)) throw new Error("Không tải được chi tiết đợt giao.")
   return response
 }
+// Trường xác nhận xe đã đến (IN_TRANSIT → ARRIVED). Trả về chi tiết đợt giao kèm receiptIssue.
+export async function confirmDeliveryArrival(id) {
+  const response = unwrap(await http.post(`/deliveries/${id}/arrival`, {}, { notifyOnError: false }))
+  if (!response?.id) throw new Error("Không xác nhận được xe đến.")
+  return response
+}
 export async function decideDeliveryInspection(id, decision, reason, photo) {
   let payload = { decision, reason: reason?.trim() || null }
   if (photo) {

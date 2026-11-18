@@ -27,7 +27,9 @@ export default function DeliveryApprovalModal({
     .join(", ")
 
   // State quyết định & lý do
-  const [decision, setDecision] = useState("APPROVE")
+  // BE báo dữ liệu không thể tiếp nhận (receiptIssue): chỉ cho chọn "Từ chối".
+  const approveBlocked = Boolean(delivery.receiptIssue)
+  const [decision, setDecision] = useState(approveBlocked ? "REJECT" : "APPROVE")
   const [reason, setReason] = useState("")
   const [errorMsg, setErrorMsg] = useState("")
   const [photo, setPhoto] = useState(null)
@@ -128,6 +130,8 @@ export default function DeliveryApprovalModal({
             </div>
           )}
 
+          {approveBlocked && <InlineError messages={`Không thể duyệt tiếp nhận: ${delivery.receiptIssue}`} />}
+
           {/* 1. Chọn Quyết định Kiểm thực: APPROVE vs REJECT */}
           <div className={styles.decisionGroup}>
             <label className={styles.decisionGroupLabel}>
@@ -141,6 +145,8 @@ export default function DeliveryApprovalModal({
                 className={`${styles.decisionCard} ${styles.approveCard} ${
                   decision === "APPROVE" ? styles.selectedApprove : ""
                 }`}
+                disabled={approveBlocked}
+                title={approveBlocked ? delivery.receiptIssue : undefined}
                 onClick={() => {
                   setDecision("APPROVE")
                   setErrorMsg("")

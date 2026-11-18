@@ -190,9 +190,13 @@ function DailyMealConfirm() {
   const finalized = submission?.status === "FINALIZED"
   const todayISO = dayjs().format("YYYY-MM-DD")
   const isPastDate = value => dayjs(value).format("YYYY-MM-DD") < todayISO
-  // Chỉ xem: đã chốt hoặc ngày đã qua. Ô nhập vẫn hiển thị rõ, chỉ không sửa được.
-  const readOnly = finalized || isPastDate(date)
+  // Chỉ khai và chốt cho đúng hôm nay (BE cũng chặn). Ngày khác chỉ xem.
+  const isToday = dayjs(date).format("YYYY-MM-DD") === todayISO
+  const readOnly = finalized || !isToday
   const allergies = context?.class?.classAllergies || []
+  // Số suất không được vượt số suất đăng ký của lớp (BGH cấu hình ở danh sách lớp).
+  const registeredPortions = Number(context?.class?.registeredMealPortions ?? 0)
+  const overRegistered = totalPortions !== "" && Number(totalPortions) > registeredPortions
 
   const payload = useMemo(
     () => ({
@@ -212,6 +216,7 @@ function DailyMealConfirm() {
     totalPortions !== "" &&
     Number.isInteger(Number(totalPortions)) &&
     Number(totalPortions) >= 0 &&
+    !overRegistered &&
     allergies.every(item => {
       const count = Number(allergyCounts[item.ingredientEntryId] || 0)
       return (
@@ -450,7 +455,9 @@ function DailyMealConfirm() {
             ) : (
               readOnly && (
                 <Alert severity="info" sx={{ borderRadius: 0 }}>
-                  Ngày {formatVNDate(date)} đã qua nên chỉ xem được, không sửa được.
+                  {isPastDate(date)
+                    ? `Ngày ${formatVNDate(date)} đã qua nên chỉ xem được, không sửa được.`
+                    : `Chỉ khai và chốt suất ăn trong ngày hôm nay. Ngày ${formatVNDate(date)} chưa tới.`}
                 </Alert>
               )
             )}
@@ -465,8 +472,14 @@ function DailyMealConfirm() {
                 value={totalPortions}
                 disabled={saving}
                 onChange={event => setTotalPortions(event.target.value)}
-                inputProps={{ min: 0, step: 1, inputMode: "numeric", readOnly }}
+                inputProps={{ min: 0, max: registeredPortions, step: 1, inputMode: "numeric", readOnly }}
                 className={readOnly ? "daily-meal-readonly" : undefined}
+                error={overRegistered}
+                helperText={
+                  overRegistered
+                    ? `Không vượt số suất đăng ký của lớp (${registeredPortions} suất).`
+                    : `Số suất đăng ký của lớp: ${registeredPortions} suất.`
+                }
               />
 
               <div className="daily-meal-card__allergies">
@@ -520,7 +533,9 @@ function DailyMealConfirm() {
                   <span className="daily-meal-card__actions-hint">
                     {totalPortions === ""
                       ? "Nhập tổng số suất để lưu hoặc chốt."
-                      : "Số suất chưa hợp lệ, kiểm tra lại các ô đã nhập."}
+                      : overRegistered
+                        ? `Tối đa ${registeredPortions} suất theo số suất đăng ký của lớp.`
+                        : "Số suất chưa hợp lệ, kiểm tra lại các ô đã nhập."}
                   </span>
                 )}
                 <Button

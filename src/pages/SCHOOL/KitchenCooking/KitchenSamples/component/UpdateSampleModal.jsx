@@ -1,6 +1,7 @@
 import { smallQuantity } from "src/utils/quantity"
 import React, { useState, useEffect } from "react"
 import PropTypes from "prop-types"
+import { minimumSampleQuantity, sampleQuantityError } from "src/utils/sampleRules"
 import { X, Edit3, AlertCircle, Check } from "lucide-react"
 import styles from "./UpdateSampleModal.module.scss"
 
@@ -40,9 +41,9 @@ export default function UpdateSampleModal({
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const qtyNum = Number(quantity)
-    if (quantity && (isNaN(qtyNum) || qtyNum <= 0)) {
-      setErrorMsg("Khối lượng mẫu phải là số dương hợp lệ.")
+    const quantityError = sampleQuantityError(quantity, unit)
+    if (quantityError) {
+      setErrorMsg(quantityError)
       return
     }
 
@@ -50,7 +51,7 @@ export default function UpdateSampleModal({
     onSubmit({
       ...sample,
       sampledAt: new Date(sampledAt).toISOString(),
-      quantity: quantity ? String(qtyNum) : sample.quantity,
+      quantity: String(Number(quantity)),
       unit: unit || "g",
       storageLocation: storageLocation.trim() || sample.storageLocation,
     })
@@ -129,7 +130,7 @@ export default function UpdateSampleModal({
                 <input
                   id="edit-sample-qty"
                   type="number"
-                  min="50"
+                  min={minimumSampleQuantity(unit)}
                   step="10"
                   className={styles.textInput}
                   value={quantity}

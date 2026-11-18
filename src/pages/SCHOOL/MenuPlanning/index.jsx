@@ -13,6 +13,7 @@ import MenuListFilterStrip from "./component/MenuListFilterStrip"
 import MenuDetailModal from "./component/MenuDetailModal"
 import MenuListWeeklyVerticalView from "./component/MenuListWeeklyVerticalView"
 import MenuYearWeeksTable from "./component/MenuYearWeeksTable"
+import MenuDeadlineBanner from "./component/MenuDeadlineBanner"
 import { academicWeekSearch, mondayOfIsoDate, resolveAcademicWeekView } from "src/services/MenuService/academicWeekView"
 
 export default function MenuPlanning() {
@@ -373,6 +374,12 @@ export default function MenuPlanning() {
 
   if (!selectedWeekView) return (
     <div className={styles.menuListPage}>
+      <MenuDeadlineBanner
+        academicYears={availableAcademicYears}
+        weekMenus={weekMenusMap}
+        grades={gradeOptions}
+        onCreate={(weekStartDate) => handleNavigateCreateWithDate(weekStartDate, "LUNCH")}
+      />
       <MenuYearWeeksTable
         academicYears={availableAcademicYears}
         academicYear={filters.academicYear}
