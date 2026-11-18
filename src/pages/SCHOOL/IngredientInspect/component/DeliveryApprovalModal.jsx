@@ -1,4 +1,3 @@
-import { formatLargeQuantity } from "src/utils/quantity"
 import InlineError from "src/components/InlineError"
 import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState } from "react"
@@ -21,11 +20,6 @@ export default function DeliveryApprovalModal({
   onClose,
   onSubmitApproval,
 }) {
-  // Lấy danh sách tóm tắt mặt hàng
-  const itemsSummary = delivery.deliveryItems
-    ?.map((item) => `${item.ingredientName} (${formatLargeQuantity(item.actualQuantity, item.unit)})`)
-    .join(", ")
-
   // State quyết định & lý do
   // BE báo dữ liệu không thể tiếp nhận (receiptIssue): chỉ cho chọn "Từ chối".
   const approveBlocked = Boolean(delivery.receiptIssue)
@@ -114,10 +108,6 @@ export default function DeliveryApprovalModal({
             <span className={styles.contextValue}>
               {formatDate(delivery.expectedArrivalAt || delivery.arrivedAt)}
             </span>
-          </div>
-          <div className={`${styles.contextItem} ${styles.fullWidthItem}`}>
-            <span className={styles.contextLabel}>Mặt hàng giao:</span>
-            <span className={styles.contextValue}>{itemsSummary || "Chưa có danh sách mặt hàng"}</span>
           </div>
         </div>
 
