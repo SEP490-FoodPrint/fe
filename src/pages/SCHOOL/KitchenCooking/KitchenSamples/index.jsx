@@ -595,6 +595,7 @@ export default function KitchenSamples() {
       const payload = {
         quantity: formData.quantity,
         unit: formData.unit,
+        storageUnitId: formData.storageUnitId,
         storageLocation: formData.storageLocation,
         sampledAt: formData.sampledAt,
         photo: formData.photo,

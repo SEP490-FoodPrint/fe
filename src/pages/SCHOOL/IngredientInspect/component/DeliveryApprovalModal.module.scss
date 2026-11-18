@@ -208,6 +208,17 @@
     border-color: #cbd5e1;
     background-color: #fafafa;
   }
+
+  /* Khóa "Duyệt tiếp nhận" khi đợt giao không thể nhập kho (receiptIssue). */
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: #e2e8f0;
+      background-color: #ffffff;
+    }
+  }
 }
 
 .cardRadioCircle {

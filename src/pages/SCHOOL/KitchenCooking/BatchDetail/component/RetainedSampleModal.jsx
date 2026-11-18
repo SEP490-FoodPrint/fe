@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import PhotoPicker from "src/components/PhotoPicker";
 import PropTypes from "prop-types";
+import { minimumSampleQuantity, sampleQuantityError } from "src/utils/sampleRules";
+import StorageUnitField, { storageUnitBlockReason } from "../../KitchenSamples/component/StorageUnitField";
 import {
   X,
   FlaskConical,
@@ -32,6 +34,9 @@ export default function RetainedSampleModal({
   });
   const [quantity, setQuantity] = useState("150");
   const [unit, setUnit] = useState("g");
+  const [storageUnitId, setStorageUnitId] = useState("");
+  const [storagePosition, setStoragePosition] = useState("");
+  const [storageUnits, setStorageUnits] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [photo, setPhoto] = useState(null);
 
@@ -96,9 +101,14 @@ export default function RetainedSampleModal({
       setErrorMsg("Vui lòng chọn món ăn cần lưu mẫu.");
       return;
     }
-    const num = Number(quantity);
-    if (isNaN(num) || num <= 0) {
-      setErrorMsg("Lượng mẫu lưu phải là số dương hợp lệ.");
+    const quantityError = sampleQuantityError(quantity, unit);
+    if (quantityError) {
+      setErrorMsg(quantityError);
+      return;
+    }
+    const storageError = storageUnitBlockReason(storageUnits.find((item) => item.id === storageUnitId));
+    if (storageError) {
+      setErrorMsg(storageError);
       return;
     }
 
@@ -110,9 +120,10 @@ export default function RetainedSampleModal({
     }
     onConfirm({
       ...(selectedDishId ? { dishId: selectedDishId } : {}),
-      quantity: String(num),
+      quantity: String(Number(quantity)),
       unit,
-      storageLocation: "Tủ lưu mẫu Bếp 01 - Ngăn A",
+      storageUnitId,
+      ...(storagePosition.trim() ? { storageLocation: storagePosition.trim() } : {}),
       sampledAt: selectedTime.toISOString(),
       photo,
     });
@@ -265,7 +276,7 @@ export default function RetainedSampleModal({
                   <input
                     id="sample-qty"
                     type="number"
-                    min="50"
+                    min={minimumSampleQuantity(unit)}
                     step="10"
                     placeholder="150"
                     className={styles.textInput}
@@ -285,6 +296,16 @@ export default function RetainedSampleModal({
                   </select>
                 </div>
               </div>
+              {/* 3. Tủ lưu mẫu (bắt buộc) và ngăn trong tủ */}
+              <StorageUnitField
+                styles={styles}
+                unitId={storageUnitId}
+                onUnitChange={setStorageUnitId}
+                position={storagePosition}
+                onPositionChange={setStoragePosition}
+                disabled={loading}
+                onUnitsLoaded={setStorageUnits}
+              />
             </div>
           </div>
 

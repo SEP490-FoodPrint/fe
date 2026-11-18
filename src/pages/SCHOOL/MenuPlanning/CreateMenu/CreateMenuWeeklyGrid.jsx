@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { isPastMenuDay } from "src/utils/menuDays"
 import {
   Utensils,
   Coffee,
@@ -34,7 +35,7 @@ export default function CreateMenuWeeklyGrid({
       <div className={styles.weeklyGrid}>
         {schoolDays.map((sd) => {
           const dayMeals = weeklyMeals[sd.dateISO] || {}
-          const canEdit = !readOnly && !sd.isHoliday && dayMeals.canEdit !== false && dayMeals.approvalStatus !== "APPROVED" && dayMeals.weeklyStatus !== "APPROVED"
+          const canEdit = !readOnly && !sd.isHoliday && !isPastMenuDay(sd.dateISO) && dayMeals.canEdit !== false && dayMeals.approvalStatus !== "APPROVED" && dayMeals.weeklyStatus !== "APPROVED"
           const openDay = mealType => { if (canEdit) onOpenDayModal(sd, mealType, "DISHES") }
           const lunchDishes = Array.isArray(dayMeals.LUNCH) ? dayMeals.LUNCH : []
           const afternoonDishes = Array.isArray(dayMeals.AFTERNOON)

@@ -14,7 +14,9 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
+  Truck,
 } from "lucide-react"
+import InlineError from "src/components/InlineError"
 import { StoreContext } from "src/contexts"
 import BlockchainProofCard from "src/components/BlockchainProof/BlockchainProofCard"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
@@ -26,6 +28,7 @@ export default function DeliveryDetailView({
   delivery,
   onBack,
   onOpenApprovalModal,
+  onConfirmArrival,
 }) {
   const { userStore } = useContext(StoreContext) || {}
   const permissions = userStore?.user?.permissions || []
@@ -181,6 +184,16 @@ export default function DeliveryDetailView({
               <ShieldAlert size={15} />
               <span>Đợt giao đã hủy</span>
             </button>
+          ) : delivery.status === "IN_TRANSIT" && onConfirmArrival && permissions.includes("delivery.inspect") ? (
+            <button
+              type="button"
+              className={styles.approvalPrimaryBtn}
+              onClick={() => onConfirmArrival(delivery)}
+              title="Xác nhận xe giao đã đến trường để 4 bộ phận bắt đầu kiểm tra"
+            >
+              <Truck size={16} />
+              <span>Xác nhận xe đến</span>
+            </button>
           ) : isBeforeArrival ? (
             <button
               type="button"
@@ -216,6 +229,7 @@ export default function DeliveryDetailView({
         </div>
       </div>
 
+      {delivery.receiptIssue && <InlineError messages={`Đợt giao chưa thể tiếp nhận vào kho: ${delivery.receiptIssue}. Các bộ phận chỉ có thể đánh giá "Không đạt".`} />}
       {delivery.cancellationNotice && <div className={styles.rejectedBanner} role="alert"><AlertTriangle size={18} /><p>{delivery.cancellationNotice}</p></div>}
       <section className={styles.contentSection} aria-label="Kết quả kiểm tra của bốn bộ phận">
         <div className={styles.sectionHeading}><h2 className={styles.sectionTitle}>Kết quả kiểm tra từng bộ phận</h2><span className={styles.countText}>Số lần phải giao lại của đơn: {delivery.redeliveryRequiredCount}/{delivery.redeliveryLimit}</span></div>

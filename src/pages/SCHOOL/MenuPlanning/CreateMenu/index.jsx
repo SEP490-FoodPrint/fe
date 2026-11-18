@@ -1,4 +1,5 @@
 import InlineError from "src/components/InlineError"
+import { isPastMenuDay } from "src/utils/menuDays"
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
 import {
@@ -75,6 +76,9 @@ export default function CreateMenu() {
   }), [weekInfo, academicWeek])
 
   // 2. Thông tin thực đơn tuần
+  // BE (week-schedule): quá hạn chót Chủ nhật và BGH chưa yêu cầu sửa thì khóa cả tuần.
+  const deadlineLocked = academicWeek?.editLocked === true
+  const deadlineLockReason = deadlineLocked ? academicWeek?.editLockReason || "Đã quá hạn lập và gửi duyệt thực đơn tuần này." : ""
   const menuTitle = academicWeek?.weeklyMenuTitle || (academicWeek?.weekNumber != null ? `Thực đơn tuần ${academicWeek.weekNumber}` : "")
 
   // Các khối do Ban Giám hiệu cấu hình cho trường.
@@ -261,7 +265,7 @@ export default function CreateMenu() {
   const handleOpenDayModal = useCallback((dayData, mealType = "LUNCH", tab = "DISHES") => {
     if (!selectedGrades.length) { showToast("Chọn khối áp dụng trước khi chọn món.", "warning"); return }
     const stored = weeklyMeals[dayData.dateISO]
-    if (loadingSchedule || scheduleError || saving || dayData.isHoliday || academicWeek?.weeklyMenuStatus === "APPROVED" || stored?.canEdit === false || stored?.approvalStatus === "APPROVED") return
+    if (loadingSchedule || scheduleError || saving || dayData.isHoliday || isPastMenuDay(dayData.dateISO) || academicWeek?.editLocked === true || academicWeek?.weeklyMenuStatus === "APPROVED" || stored?.canEdit === false || stored?.approvalStatus === "APPROVED") return
     setDayModalState({
       isOpen: true,
       dayData,
@@ -447,7 +451,7 @@ export default function CreateMenu() {
       let copiedCount = 0
 
       schoolDays.forEach((sd, index) => {
-        if (sd.isHoliday || weeklyMeals[sd.dateISO]?.canEdit === false || weeklyMeals[sd.dateISO]?.approvalStatus === "APPROVED") return
+        if (sd.isHoliday || isPastMenuDay(sd.dateISO) || weeklyMeals[sd.dateISO]?.canEdit === false || weeklyMeals[sd.dateISO]?.approvalStatus === "APPROVED") return
 
         const srcDay =
           sourceDays[index] ||
@@ -851,7 +855,7 @@ export default function CreateMenu() {
                 type="button"
                 className={styles.copyPrevWeekBtn}
                 onClick={handleTriggerCopyPreviousWeek}
-                disabled={isCopying || loadingSchedule || saving || Boolean(scheduleError) || academicWeek?.weeklyMenuStatus === "APPROVED"}
+                disabled={isCopying || loadingSchedule || saving || Boolean(scheduleError) || deadlineLocked || academicWeek?.weeklyMenuStatus === "APPROVED"}
                 title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
               >
                 {isCopying ? (
@@ -874,12 +878,12 @@ export default function CreateMenu() {
             schoolDays={schoolDays}
             weeklyMeals={weeklyMeals}
             onOpenDayModal={handleOpenDayModal}
-            readOnly={loadingSchedule || saving || Boolean(scheduleError) || academicWeek?.weeklyMenuStatus === "APPROVED"}
+            readOnly={loadingSchedule || saving || Boolean(scheduleError) || deadlineLocked || academicWeek?.weeklyMenuStatus === "APPROVED"}
           />
         </div>
       </div>
 
-      <InlineError messages={[scheduleError, gradeError]} />
+      <InlineError messages={[scheduleError, gradeError, deadlineLockReason]} />
       {!GRADE_OPTIONS.length && !gradeError && <p role="status">Chưa có khối để lập thực đơn. Ban Giám hiệu cần cấu hình khối trước.</p>}
       {/* Sticky Bottom Bar */}
       <CreateMenuBottomBar
@@ -890,7 +894,7 @@ export default function CreateMenu() {
         submitTitle={missingDaysMessage}
         isLoading={loadingSchedule || Boolean(scheduleError)}
         isSubmitting={saving}
-        readOnly={academicWeek?.weeklyMenuStatus === "APPROVED"}
+        readOnly={deadlineLocked || academicWeek?.weeklyMenuStatus === "APPROVED"}
         submitText={academicWeek?.weeklyMenuStatus === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Gửi BGH duyệt"}
       />
 

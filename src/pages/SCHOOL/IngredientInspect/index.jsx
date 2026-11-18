@@ -1,7 +1,8 @@
 import InlineError from "src/components/InlineError"
 import React, { useEffect, useRef, useState } from "react"
 import { CheckCircle2, AlertTriangle, X, ChevronLeft, ChevronRight } from "lucide-react"
-import { getDeliveryInspections, getDeliveryInspection, decideDeliveryInspection, lookupDeliveryByCode } from "src/services/DeliveryInspectionService"
+import { getDeliveryInspections, getDeliveryInspection, decideDeliveryInspection, lookupDeliveryByCode, confirmDeliveryArrival } from "src/services/DeliveryInspectionService"
+import useConfirmAction from "src/pages/SCHOOL/KitchenCooking/CreateBatch/component/useConfirmAction"
 import DeliveryQrScanModal from "./component/DeliveryQrScanModal"
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryKPICards from "./component/DeliveryKPICards"
@@ -53,6 +54,7 @@ export default function IngredientInspect() {
   const [scanSearching, setScanSearching] = useState(false)
   const [scanError, setScanError] = useState("")
   const selectionRevision = useRef(0)
+  const { confirm, element: confirmDialog } = useConfirmAction()
   const hasActiveFilters = Boolean(searchTerm.trim() || statusFilter !== "ALL" || (dateFilter && dateFilter !== getTodayDateString()))
 
   useEffect(() => {
@@ -90,8 +92,36 @@ export default function IngredientInspect() {
     try {
       const data = await getDeliveryInspection(delivery.id)
       if (version === selectionRevision.current) setSelectedDelivery(data)
+      return data
     } catch (failure) { if (version === selectionRevision.current) setError(failure.message) }
     finally { if (version === selectionRevision.current) setDetailLoading(false) }
+    return null
+  }
+
+  // Xác nhận xe đã đến trường: hỏi lại ngắn, rồi chuyển đợt giao sang "Đã đến" để 4 bộ phận kiểm tra.
+  const askConfirmArrival = delivery => {
+    if (!delivery || delivery.status !== "IN_TRANSIT") return
+    const vehicle = delivery.vehiclePlate ? `xe ${delivery.vehiclePlate}` : "xe giao"
+    confirm({
+      title: "Xác nhận xe đã đến?",
+      message: `Xác nhận ${vehicle} của ${delivery.supplierName || "nhà cung cấp"} (${delivery.deliveryNo}) đã đến trường. Sau đó 4 bộ phận bắt đầu kiểm tra.`,
+      confirmText: "Xe đã đến",
+      onConfirm: async () => {
+        const version = selectionRevision.current
+        setError("")
+        try {
+          const result = await confirmDeliveryArrival(delivery.id)
+          if (version === selectionRevision.current) setSelectedDelivery(result)
+          setRevision(value => value + 1)
+          setCancelToast(Boolean(result.receiptIssue))
+          setSuccessToast(result.receiptIssue
+            ? `Đã ghi nhận xe đến, nhưng đợt giao chưa thể tiếp nhận: ${result.receiptIssue}`
+            : "Đã ghi nhận xe đến trường. Bốn bộ phận có thể bắt đầu kiểm tra.")
+        } catch (failure) {
+          setError(failure?.response?.data?.message || failure.message || "Không xác nhận được xe đến.")
+        }
+      },
+    })
   }
 
   // Quét tem QR khi xe tới: tìm đúng xe giao của trường rồi mở chi tiết để kiểm tra.
@@ -101,7 +131,9 @@ export default function IngredientInspect() {
     try {
       const found = await lookupDeliveryByCode(code)
       setScanOpen(false)
-      await openDelivery(found)
+      const detail = await openDelivery(found)
+      // Quét tem khi xe tới cổng: hỏi xác nhận xe đến ngay nếu xe đang trên đường.
+      if (detail?.status === "IN_TRANSIT") askConfirmArrival(detail)
     } catch (failure) {
       setScanError(failure.message || "Không tìm thấy xe giao với mã này.")
     } finally {
@@ -144,7 +176,7 @@ export default function IngredientInspect() {
     {successToast && <div className={`${styles.toastSuccess} ${cancelToast ? styles.toastCancellation : ""}`} role={cancelToast ? "alert" : "status"}><div className={styles.toastContent}>{cancelToast ? <AlertTriangle size={18} /> : <CheckCircle2 size={18} />}<span>{successToast}</span></div><button type="button" onClick={() => setSuccessToast("")} aria-label="Đóng thông báo"><X size={15} /></button></div>}
     <InlineError messages={error} onRetry={() => { setRevision(value => value + 1); if (selectedDelivery) openDelivery(selectedDelivery) }} />
     <DeliveryQrScanModal open={scanOpen} onClose={() => setScanOpen(false)} onSubmitCode={handleScanCode} searching={scanSearching} error={scanError} />
-    {selectedDelivery ? <DeliveryDetailView delivery={selectedDelivery} onBack={() => { selectionRevision.current++; setSelectedDelivery(null) }} onOpenApprovalModal={setDeliveryForApproval} /> : <div className={styles.viewContent}>
+    {selectedDelivery ? <DeliveryDetailView delivery={selectedDelivery} onBack={() => { selectionRevision.current++; setSelectedDelivery(null) }} onOpenApprovalModal={setDeliveryForApproval} onConfirmArrival={askConfirmArrival} /> : <div className={styles.viewContent}>
       <DeliveryHeader onScan={() => { setScanError(""); setScanOpen(true) }} />
       {!loading && !error && <DeliveryKPICards stats={stats} />}
       <DeliveryFilterStrip searchTerm={searchTerm} onSearchChange={changeFilter(setSearchTerm)} statusFilter={statusFilter} onStatusChange={changeFilter(setStatusFilter)} dateFilter={dateFilter} onDateChange={changeFilter(setDateFilter)} onResetFilters={resetFilters} hasActiveFilters={hasActiveFilters} />
@@ -203,6 +235,7 @@ export default function IngredientInspect() {
         </div>
       </> : <DeliveryEmptyState onResetFilters={hasActiveFilters ? resetFilters : null} />)}
     </div>}
+    {confirmDialog}
     {deliveryForApproval && <DeliveryApprovalModal delivery={deliveryForApproval} onClose={() => setDeliveryForApproval(null)} onSubmitApproval={submitApproval} />}
   </div>
 }
