@@ -82,6 +82,7 @@ export function formatDeliverySchedule(delivery, orderType) {
     }
   }
 
+  // Giờ hẹn mặc định theo loại đơn khi không có dữ liệu: đồ khô 14:30, đợt 2 07:45, đợt 1 05:30.
   if (!targetTime) {
     const type = orderType?.type || delivery.orderType || delivery.batchType
     targetTime = type === "DRY_STOCK" ? "14:30" : type === "FRESH_BATCH_2" ? "07:45" : "05:30"
@@ -128,20 +129,17 @@ export function formatDeliverySchedule(delivery, orderType) {
     }
   }
 
-  if (!y || !m || !d) {
-    const now = new Date()
-    y = now.getFullYear()
-    m = now.getMonth() + 1
-    d = now.getDate()
-  }
+  // Không có ngày hẹn thật thì không tự lấy ngày hôm nay.
+  if (!y || !m || !d) return "Chưa ấn định"
 
-  const [hours, minutes] = targetTime.split(":").map(Number)
+  const [hours, minutes] = (targetTime || "00:00").split(":").map(Number)
   const dateObj = new Date(y, m - 1, d, hours || 0, minutes || 0)
   const dayName = WEEKDAY_NAMES[dateObj.getDay()] || "Thứ"
   const formattedDay = String(d).padStart(2, "0")
   const formattedMonth = String(m).padStart(2, "0")
 
-  return `${targetTime} - ${dayName} ${formattedDay}/${formattedMonth}/${y}`
+  const dateText = `${dayName} ${formattedDay}/${formattedMonth}/${y}`
+  return targetTime ? `${targetTime} - ${dateText}` : dateText
 }
 
 /**
@@ -489,38 +487,29 @@ export function parseTransportInfo(delivery, orderType) {
     if (driverMatch && driverMatch[1]?.trim()) {
       driverName = driverMatch[1].trim()
     } else {
-      driverName = "Tài xế giao hàng"
+      driverName = "Chưa có thông tin tài xế"
     }
   }
 
-  let driverPhone = delivery?.driverPhone || delivery?.supplierPhone || "0987 654 321"
+  let driverPhone = delivery?.driverPhone || delivery?.supplierPhone || "—"
   const phoneMatch = note.match(/(?:sđt|điện thoại|phone|hotline)\s*[:\-]?\s*([0-9\.\s]{10,12})/i)
   if (phoneMatch && phoneMatch[1]?.trim()) {
     driverPhone = phoneMatch[1].trim()
   }
 
-  let vehiclePlate = delivery?.vehiclePlate
-  if (!vehiclePlate) {
-    vehiclePlate =
-      orderType.type === "DRY_STOCK"
-        ? "29C-789.12 (Xe tải thùng kín)"
-        : "29H-456.78 (Xe tải lạnh chuyên dụng)"
-  }
+  // Chỉ hiển thị dữ liệu thật; hệ thống chưa ghi nhiệt độ xe nên không tự điền số đo.
+  const vehiclePlate = delivery?.vehiclePlate || "Chưa có biển số"
 
-  let refrigerationTemp = "--"
-  if (orderType.type === "DRY_STOCK") {
-    refrigerationTemp = "Nhiệt độ phòng (Khô ráo)"
-  } else {
-    refrigerationTemp = "3.5°C (Đạt chuẩn bảo quản lạnh)"
-  }
+  const refrigerationTemp =
+    orderType.type === "DRY_STOCK" ? "Không yêu cầu bảo quản lạnh" : "Chưa có dữ liệu nhiệt độ"
 
-  let currentLocation = "Kho tổng NCC"
+  let currentLocation = "Chưa xuất xe"
   if (rawStatus === "ARRIVED") {
-    currentLocation = "Cổng phụ số 2 / Khu tiếp nhận bếp trường"
+    currentLocation = "Đã đến trường"
   } else if (rawStatus === "RECEIVED" || rawStatus === "COMPLETED") {
-    currentLocation = "Kho trường / Bếp ăn bán trú"
+    currentLocation = "Đã nhập kho trường"
   } else if (rawStatus === "IN_TRANSIT") {
-    currentLocation = "Đang di chuyển trên đường đến trường"
+    currentLocation = "Đang trên đường đến trường"
   }
 
   return {
@@ -545,18 +534,13 @@ export function mapDeliveryItems(deliveryItems = [], defaultSupplierName = "") {
     const qty = Number(
       item.qty ?? item.actualQuantity ?? item.requestedQuantity ?? item.orderedQty ?? item.quantity ?? 0
     )
-    const unit = item.unit || "kg"
-    const name = item.name || item.ingredientName || "Nguyên liệu"
+    const unit = item.unit || ""
+    const name = item.name || item.ingredientName || "—"
     const nameLower = String(name).toLowerCase().trim()
 
-    let supplierName = item.supplierName || item.supplier?.name || defaultSupplierName || "Nhà cung cấp đối tác"
+    let supplierName = item.supplierName || item.supplier?.name || defaultSupplierName || "—"
     const supplierId = item.supplierId || item.supplier?.id || ""
-    const spec =
-      item.spec ||
-      item.note ||
-      (item.handlingType === "DIRECT_USE"
-        ? "Đóng gói tiêu chuẩn, tem QR truy xuất, có kiểm dịch"
-        : "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng")
+    const spec = item.spec || item.note || "—"
 
     return {
       name,
@@ -600,16 +584,13 @@ export function adaptTrackingOrder(delivery) {
 
   return {
     id: delivery.id,
-    orderNo:
-      delivery.orderNo ||
-      delivery.requestNo ||
-      `PO-${delivery.deliveryNo || delivery.id.slice(0, 8)}`,
-    deliveryNo: delivery.deliveryNo || `DEL-${delivery.id.slice(0, 8)}`,
+    orderNo: delivery.orderNo || delivery.requestNo || "—",
+    deliveryNo: delivery.deliveryNo || "Chưa có chuyến giao",
     orderType: orderType.type,
     batchType: orderType.type,
     orderTypeLabel: orderType.label,
-    supplierName: delivery.supplierName || "Liên minh Hợp tác xã Cung ứng",
-    supplierPhone: delivery.supplierPhone || "0987 654 321",
+    supplierName: delivery.supplierName || "—",
+    supplierPhone: delivery.supplierPhone || "—",
     suppliers:
       uniqueSuppliers.length > 0
         ? uniqueSuppliers

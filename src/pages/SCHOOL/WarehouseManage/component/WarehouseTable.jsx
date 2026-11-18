@@ -15,6 +15,7 @@ import {
 } from "@mui/material"
 import { Eye } from "lucide-react"
 import styles from "./WarehouseTable.module.scss"
+import { daysUntilExpiry, expiryTone, formatLotDate, nearestLotExpiry } from "src/utils/lotExpiry"
 
 export default function WarehouseTable({ items = [], onViewDetail }) {
   if (!items || items.length === 0) {
@@ -32,10 +33,11 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
       <Table className={styles.table}>
         <TableHead className={styles.tableHead}>
           <TableRow>
-            <TableCell style={{ width: "27%" }}>Nguyên liệu &amp; Loại</TableCell>
-            <TableCell style={{ width: "25%" }}>Tồn kho / Ngưỡng an toàn</TableCell>
-            <TableCell style={{ width: "18%" }}>Đơn giá</TableCell>
-            <TableCell style={{ width: "20%" }}>Nhà cung cấp</TableCell>
+            <TableCell style={{ width: "24%" }}>Nguyên liệu &amp; Loại</TableCell>
+            <TableCell style={{ width: "22%" }}>Tồn kho / Ngưỡng an toàn</TableCell>
+            <TableCell style={{ width: "16%" }}>Hạn gần nhất</TableCell>
+            <TableCell style={{ width: "12%" }}>Đơn giá</TableCell>
+            <TableCell style={{ width: "16%" }}>Nhà cung cấp</TableCell>
             <TableCell align="center" style={{ width: "10%" }}>Thao tác</TableCell>
           </TableRow>
         </TableHead>
@@ -47,6 +49,10 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
             const stockPct = Math.round((current / safety) * 100)
             const isCritical = stockPct < 30
             const isWarning = stockPct >= 30 && stockPct < 50
+            // Hạn dùng sớm nhất của các lô còn trong kho; lô chưa nhập kho chỉ ghi chú.
+            const { expiry, pendingExpiry } = nearestLotExpiry(it.lots || [])
+            const daysLeft = daysUntilExpiry(expiry)
+            const tone = expiryTone(daysLeft)
 
             return (
               <TableRow key={it.id} className={styles.tableRow} hover>
@@ -104,7 +110,27 @@ export default function WarehouseTable({ items = [], onViewDetail }) {
                   </Box>
                 </TableCell>
 
-                {/* 3. Giá & NCC */}
+                {/* 3. Hạn dùng gần nhất của lô còn hàng */}
+                <TableCell>
+                  <Box className={styles.expiryCell}>
+                    <Typography variant="body2" className={styles.expiryDate}>
+                      {expiry ? formatLotDate(expiry) : "—"}
+                    </Typography>
+                    {tone === "expired" && (
+                      <Chip label="Hết hạn" size="small" className={styles.criticalChip} />
+                    )}
+                    {tone === "near" && (
+                      <Chip label={`Còn ${daysLeft} ngày`} size="small" className={styles.warningChip} />
+                    )}
+                    {!expiry && pendingExpiry && (
+                      <Typography variant="caption" className={styles.supplierText}>
+                        Lô chờ nhập kho: hạn {formatLotDate(pendingExpiry)}
+                      </Typography>
+                    )}
+                  </Box>
+                </TableCell>
+
+                {/* 4. Giá & NCC */}
                 <TableCell>
                   <Typography variant="body2" className={styles.priceText}>
                     {it.unitPrice.toLocaleString("vi-VN")} đ/{it.unit}

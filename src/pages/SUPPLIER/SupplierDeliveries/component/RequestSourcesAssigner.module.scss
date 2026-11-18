@@ -239,6 +239,52 @@
   text-underline-offset: 2px;
 }
 
+/* Ngày sản xuất / hạn sử dụng của lô (đồ khô) */
+.lotDates {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.dryChip {
+  align-self: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: var(--beige-100);
+  color: var(--beige-800);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.lotDateField {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dateControl {
+  min-height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--border-default);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+
+  &.hasError {
+    border-color: var(--color-error);
+  }
+}
+
+.lotDates .errorText {
+  flex-basis: 100%;
+}
+
 .errorText {
   margin: 0;
   font-size: 12px;

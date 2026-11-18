@@ -32,6 +32,8 @@ function OrderFulfillmentWorkflow({
   const [facilitiesError, setFacilitiesError] = useState("")
 
   const [sourceByItemId, setSourceByItemId] = useState({})
+  // Ngày sản xuất / hạn sử dụng của lô theo từng mặt hàng (chỉ đồ khô).
+  const [lotDatesByItemId, setLotDatesByItemId] = useState({})
   const [expectedArrivalLocal, setExpectedArrivalLocal] = useState("")
   const [vehiclePlate, setVehiclePlate] = useState("")
   const [note, setNote] = useState("")
@@ -65,6 +67,7 @@ function OrderFulfillmentWorkflow({
   useEffect(() => {
     if (!order?.id) return
     setSourceByItemId({})
+    setLotDatesByItemId({})
     setExpectedArrivalLocal("")
     setVehiclePlate("")
     setNote("")
@@ -81,7 +84,33 @@ function OrderFulfillmentWorkflow({
         supplyRequestItemId: item.id,
         sourceFacilityId: String(sourceByItemId[item.id] || "").trim(),
         actualQuantity: normalizeDecimalQuantity(item.requestedQuantity),
+        ...(item.handlingType === "DRY_STOCK" ? lotDatesByItemId[item.id] || {} : {}),
       }))
+
+  const handleLotDateChange = (itemId, field, value) => {
+    setLotDatesByItemId(prev => ({ ...prev, [itemId]: { ...(prev[itemId] || {}), [field]: value } }))
+    setFieldErrors(prev => {
+      if (!prev.lotDateErrors?.[itemId]) return prev
+      const next = { ...prev.lotDateErrors }
+      delete next[itemId]
+      return { ...prev, lotDateErrors: next }
+    })
+    onDraftChange?.()
+  }
+
+  // Đồ khô: bắt buộc ngày sản xuất (không sau hôm nay) và hạn sử dụng (không trước ngày sản xuất).
+  const validateLotDates = () => {
+    const today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
+    const errors = {}
+    items.forEach(item => {
+      if (item.handlingType !== "DRY_STOCK" || !item.id) return
+      const { manufactureDate = "", expiryDate = "" } = lotDatesByItemId[item.id] || {}
+      if (!manufactureDate || !expiryDate) errors[item.id] = "Đồ khô cần nhập ngày sản xuất và hạn sử dụng."
+      else if (manufactureDate > today) errors[item.id] = "Ngày sản xuất không được sau hôm nay."
+      else if (expiryDate < manufactureDate) errors[item.id] = "Hạn sử dụng phải sau hoặc bằng ngày sản xuất."
+    })
+    return errors
+  }
 
   const handleSourceChange = (itemId, facilityId) => {
     setSourceByItemId(prev => ({ ...prev, [itemId]: facilityId }))
@@ -122,8 +151,9 @@ function OrderFulfillmentWorkflow({
       requestItems: items,
     })
 
-    if (!check.valid) {
-      setFieldErrors(check.errors)
+    const lotDateErrors = validateLotDates()
+    if (!check.valid || Object.keys(lotDateErrors).length) {
+      setFieldErrors({ ...(check.valid ? {} : check.errors), lotDateErrors })
       return
     }
 
@@ -189,6 +219,9 @@ function OrderFulfillmentWorkflow({
             disabled={submitting}
             onChangeSource={handleSourceChange}
             onApplyAll={handleApplyAllFacilities}
+            lotDatesByItemId={lotDatesByItemId}
+            lotDateErrors={fieldErrors.lotDateErrors || {}}
+            onChangeLotDate={handleLotDateChange}
           />
         </div>
 

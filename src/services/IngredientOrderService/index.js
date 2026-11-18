@@ -77,6 +77,54 @@ const sendDraftOrder = async (orderId, supplierId, partnershipsCache) => {
   }
 };
 
+// Chuẩn hóa tên để so khớp đúng tên (không phân biệt hoa thường, bỏ khoảng trắng thừa).
+const normalizeIngredientName = (value) =>
+  String(value || "").normalize("NFC").replace(/\s+/g, " ").trim().toLowerCase();
+
+/**
+ * Xác định đúng dòng danh mục nguyên liệu của trường cho một mặt hàng đặt.
+ * 1) Khớp mã: ingredientEntryId, rồi ingredientId (hoặc id nếu trùng một trong hai).
+ * 2) Khớp đúng tên (đã chuẩn hóa), lọc theo NCC nếu mặt hàng có supplierId.
+ * Không khớp hoặc trùng tên nhiều NCC thì ghi vào `unresolved` và trả về null; KHÔNG chọn nguyên liệu thay thế.
+ */
+const resolveSchoolEntry = (it, entries, unresolved) => {
+  const byId = (field, value) =>
+    value ? entries.filter((e) => e[field] === value) : [];
+  const idMatches = [
+    ...byId("entryId", it.ingredientEntryId),
+    ...byId("entryId", it.id),
+    ...byId("ingredientId", it.ingredientId),
+    ...byId("ingredientId", it.id),
+  ];
+  const label = it.ingredientName || it.name || it.ingredientEntryId || it.ingredientId || it.id || "(không tên)";
+  if (idMatches.length) {
+    const unique = [...new Map(idMatches.map((e) => [e.entryId, e])).values()];
+    if (unique.length === 1) return unique[0];
+    unresolved.ambiguous.push(label);
+    return null;
+  }
+  const wanted = normalizeIngredientName(it.ingredientName || it.name);
+  if (!wanted) {
+    unresolved.missing.push(label);
+    return null;
+  }
+  let candidates = entries.filter((e) => normalizeIngredientName(e.name) === wanted);
+  if (it.supplierId) candidates = candidates.filter((e) => e.supplierId === it.supplierId);
+  if (candidates.length === 1) return candidates[0];
+  (candidates.length ? unresolved.ambiguous : unresolved.missing).push(label);
+  return null;
+};
+
+// Dừng tạo đơn khi còn mặt hàng không xác định được, để không gửi nhầm nguyên liệu cho NCC.
+const assertAllResolved = (unresolved) => {
+  const messages = [];
+  if (unresolved.missing.length)
+    messages.push(`Không tìm thấy trong danh mục nguyên liệu của trường: ${[...new Set(unresolved.missing)].join(", ")}`);
+  if (unresolved.ambiguous.length)
+    messages.push(`Có nhiều nguyên liệu trùng tên, cần chọn đúng nhà cung cấp: ${[...new Set(unresolved.ambiguous)].join(", ")}`);
+  if (messages.length) throw new Error(`${messages.join(". ")}. Chưa tạo đơn nào.`);
+};
+
 const isValidUuid = (id) =>
   typeof id === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -1017,53 +1065,13 @@ const IngredientOrderService = {
       .filter((e) => e.supplierId);
 
     // 1. Chuẩn hóa items và xác định đúng ingredientEntryId & supplierId từ DB
+    const unresolved = { missing: [], ambiguous: [] };
     const freshItemsBatch1 = (Array.isArray(items) ? items : []).map((it) => {
-      const itNorm = String(it.ingredientName || it.name || "").trim().toLowerCase();
-
-      // Tìm entry hợp lệ trong DB của trường
-      let targetEntry = schoolActiveEntries.find(
-        (e) =>
-          e.entryId === it.ingredientEntryId ||
-          e.entryId === it.id ||
-          e.ingredientId === it.ingredientId ||
-          e.ingredientId === it.id,
-      );
-
-      // Nếu chưa khớp ID, khớp qua tên và nhà cung cấp
-      if (!targetEntry && itNorm) {
-        if (it.supplierId) {
-          targetEntry = schoolActiveEntries.find(
-            (e) =>
-              e.supplierId === it.supplierId &&
-              (e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName)),
-          );
-        }
-        if (!targetEntry) {
-          targetEntry = schoolActiveEntries.find(
-            (e) => e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName),
-          );
-        }
-      }
-
-      // Fallback an toàn: chọn 1 entry tươi sống ACTIVE thật của trường
-      if (!targetEntry) {
-        targetEntry =
-          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE" && e.supplierId === it.supplierId) ||
-          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE") ||
-          schoolActiveEntries[0];
-      }
-
-      const sId =
-        targetEntry?.supplierId ||
-        it.supplierId ||
-        partnerships[0]?.supplier?.id ||
-        partnerships[0]?.supplierId ||
-        "";
-      const sName =
-        targetEntry?.supplierName ||
-        it.supplierName ||
-        "Nhà cung cấp đối tác";
-      const entryId = targetEntry?.entryId || it.ingredientEntryId || it.id;
+      // Chỉ ghép theo mã hoặc đúng tên trong danh mục trường; không đoán, không lấy nguyên liệu thay thế.
+      const targetEntry = resolveSchoolEntry(it, schoolActiveEntries, unresolved);
+      const sId = targetEntry?.supplierId || "";
+      const sName = targetEntry?.supplierName || "";
+      const entryId = targetEntry?.entryId || "";
 
       return {
         ...it,
@@ -1077,6 +1085,7 @@ const IngredientOrderService = {
     if (freshItemsBatch1.length === 0) {
       throw new Error("Không có nguyên liệu tươi sống nào để đặt đơn Đợt 1.");
     }
+    assertAllResolved(unresolved);
 
     // 2. Gom items theo từng supplierId thực tế
     const itemsBySupplier = {};
@@ -1241,50 +1250,13 @@ const IngredientOrderService = {
       Array.isArray(items) && items.length > 0
         ? items
         : batch1Delivery.items || [];
+    const unresolvedBatch2 = { missing: [], ambiguous: [] };
     const freshItemsBatch2 = sourceItems.map((it) => {
-      const itNorm = String(it.ingredientName || it.name || "").trim().toLowerCase();
-
-      let targetEntry = schoolActiveEntries.find(
-        (e) =>
-          e.entryId === it.ingredientEntryId ||
-          e.entryId === it.id ||
-          e.ingredientId === it.ingredientId ||
-          e.ingredientId === it.id,
-      );
-
-      if (!targetEntry && itNorm) {
-        if (it.supplierId) {
-          targetEntry = schoolActiveEntries.find(
-            (e) =>
-              e.supplierId === it.supplierId &&
-              (e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName)),
-          );
-        }
-        if (!targetEntry) {
-          targetEntry = schoolActiveEntries.find(
-            (e) => e.normName === itNorm || e.normName.includes(itNorm) || itNorm.includes(e.normName),
-          );
-        }
-      }
-
-      if (!targetEntry) {
-        targetEntry =
-          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE" && e.supplierId === it.supplierId) ||
-          schoolActiveEntries.find((e) => e.handlingType === "DIRECT_USE") ||
-          schoolActiveEntries[0];
-      }
-
-      const sId =
-        targetEntry?.supplierId ||
-        it.supplierId ||
-        partnerships[0]?.supplier?.id ||
-        partnerships[0]?.supplierId ||
-        "";
-      const sName =
-        targetEntry?.supplierName ||
-        it.supplierName ||
-        "Nhà cung cấp đối tác";
-      const entryId = targetEntry?.entryId || it.ingredientEntryId || it.id;
+      // Chỉ ghép theo mã hoặc đúng tên trong danh mục trường; không đoán, không lấy nguyên liệu thay thế.
+      const targetEntry = resolveSchoolEntry(it, schoolActiveEntries, unresolvedBatch2);
+      const sId = targetEntry?.supplierId || "";
+      const sName = targetEntry?.supplierName || "";
+      const entryId = targetEntry?.entryId || "";
 
       let ordQty = it.orderedQty;
       if (ordQty === undefined || ordQty === null) {
@@ -1305,6 +1277,7 @@ const IngredientOrderService = {
     if (freshItemsBatch2.length === 0) {
       throw new Error("Không có nguyên liệu tươi sống nào cho Đợt 2.");
     }
+    assertAllResolved(unresolvedBatch2);
 
     // 3. Gom items theo từng supplierId
     const itemsBySupplier = {};
