@@ -10,12 +10,19 @@ export const isReceived = (item) => item.status === "RECEIVED";
 export const isInspecting = (item) => ["ARRIVED", "PENDING_APPROVAL"].includes(item.status);
 export const isRejected = (item) => item.status === "REJECTED";
 
-// Tiến độ ký của 4 bộ phận cho một xe.
+// Tiến độ ký duyệt của các bộ phận bắt buộc (PRIMARY + REQUIRED) cho một xe.
 export function approvalProgress(item) {
-  const approvals = item.deliveryApprovals || [];
+  if (item?.approvalSummary) {
+    return {
+      approved: item.approvalSummary.requiredApproved ?? 0,
+      total: item.approvalSummary.requiredTotal ?? 0,
+      rejected: item.status === "REJECTED",
+    };
+  }
+  const approvals = item?.deliveryApprovals || [];
   return {
     approved: approvals.filter((approval) => approval.decision === "APPROVE").length,
-    total: item.requiredRoles?.length || 4,
+    total: item?.requiredRoles?.length || 4,
     rejected: approvals.some((approval) => approval.decision === "REJECT"),
   };
 }

@@ -32,6 +32,8 @@ export default function DeliveryApprovalModal({
   const [isConfirming, setIsConfirming] = useState(false)
   const [saving, setSaving] = useState(false)
   const roleName = delivery.requiredRoles?.find(role => role.code === delivery.currentRole)?.name || "Bộ phận kiểm tra"
+  const currentTier = delivery.currentTier || (delivery.requiredRoles?.find(role => role.code === delivery.currentRole)?.tier) || "REQUIRED"
+  const isOptional = currentTier === "OPTIONAL"
 
   // Format date helper
   const formatDate = (isoString) => {
@@ -80,7 +82,7 @@ export default function DeliveryApprovalModal({
             </div>
             <h2 className={styles.modalTitle}>Đánh giá & Phê duyệt Giao nhận Nguyên liệu</h2>
             <p className={styles.modalDesc}>
-              {roleName} ghi nhận kết quả kiểm tra đợt giao. Chỉ tiếp nhận nguyên liệu khi đủ cả 4 bên đồng ý.
+              {roleName} ghi nhận kết quả kiểm tra đợt giao. {isOptional ? "Ý kiến của bạn là tùy chọn và không chặn việc tiếp nhận đợt giao." : "Chỉ tiếp nhận nguyên liệu khi đủ các bộ phận bắt buộc đồng ý."}
             </p>
           </div>
           <button
@@ -107,6 +109,12 @@ export default function DeliveryApprovalModal({
             <span className={styles.contextLabel}>Ngày giao:</span>
             <span className={styles.contextValue}>
               {formatDate(delivery.expectedArrivalAt || delivery.arrivedAt)}
+            </span>
+          </div>
+          <div className={styles.contextItem}>
+            <span className={styles.contextLabel}>Vai trò duyệt:</span>
+            <span className={styles.contextValue}>
+              {roleName} {isOptional ? "(Tùy chọn - Tham khảo)" : "(Bắt buộc)"}
             </span>
           </div>
         </div>
@@ -248,10 +256,17 @@ export default function DeliveryApprovalModal({
 
               <p className={styles.confirmDesc}>
                 {decision === "REJECT" ? (
-                  <>
-                    Đợt giao hàng <strong>{delivery.deliveryNo}</strong> sẽ bị chuyển sang trạng thái{" "}
-                    <strong className={styles.dangerText}>Bị từ chối</strong> và cần giao lại. Nếu tổng số lần phải giao lại của đơn vượt 2, hệ thống sẽ hủy phần chưa nhận và hiển thị thông báo hủy.
-                  </>
+                  isOptional ? (
+                    <>
+                      Ghi nhận ý kiến <strong>KHÔNG ĐỒNG Ý</strong> từ {roleName} cho chuyến giao{" "}
+                      <strong>{delivery.deliveryNo}</strong>. Đây là ý kiến tham khảo và không làm từ chối hay chặn tiếp nhận đợt giao.
+                    </>
+                  ) : (
+                    <>
+                      Đợt giao hàng <strong>{delivery.deliveryNo}</strong> sẽ bị chuyển sang trạng thái{" "}
+                      <strong className={styles.dangerText}>Bị từ chối</strong> và cần giao lại. Nếu tổng số lần phải giao lại của đơn vượt 2, hệ thống sẽ hủy phần chưa nhận và hiển thị thông báo hủy.
+                    </>
+                  )
                 ) : (
                   <>
                     Ghi nhận kết quả đánh giá <strong className={styles.successText}>ĐẠT CHUẨN</strong> từ {roleName} cho chuyến giao{" "}

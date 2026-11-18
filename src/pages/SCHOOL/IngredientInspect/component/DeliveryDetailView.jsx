@@ -130,6 +130,14 @@ export default function DeliveryDetailView({
   const isCancelled =
     delivery.status === "CANCELLED" || delivery.status === "CANCELLED_MEAL" || Boolean(delivery.cancellationNotice)
 
+  const primaryRole = (delivery.requiredRoles || []).find((r) => r.tier === "PRIMARY")
+  const primaryRoleName = primaryRole?.name || "Bếp trưởng"
+
+  const tierOrder = { PRIMARY: 1, REQUIRED: 2, OPTIONAL: 3 }
+  const sortedRoles = [...(delivery.requiredRoles || [])].sort((a, b) => {
+    return (tierOrder[a.tier] || 2) - (tierOrder[b.tier] || 2)
+  })
+
   return (
     <div className={styles.detailWrapper}>
       {/* 1. Header Bar: Tiêu đề + Nút thao tác nằm ngang hàng 2 bên */}
@@ -184,15 +192,27 @@ export default function DeliveryDetailView({
               <span>Đợt giao đã hủy</span>
             </button>
           ) : delivery.status === "IN_TRANSIT" && onConfirmArrival && permissions.includes("delivery.inspect") ? (
-            <button
-              type="button"
-              className={styles.approvalPrimaryBtn}
-              onClick={() => onConfirmArrival(delivery)}
-              title="Xác nhận xe giao đã đến trường để 4 bộ phận bắt đầu kiểm tra"
-            >
-              <Truck size={16} />
-              <span>Xác nhận xe đến</span>
-            </button>
+            delivery.canConfirmArrival ? (
+              <button
+                type="button"
+                className={styles.approvalPrimaryBtn}
+                onClick={() => onConfirmArrival(delivery)}
+                title="Xác nhận xe giao đã đến trường để các bộ phận bắt đầu kiểm tra"
+              >
+                <Truck size={16} />
+                <span>Xác nhận xe đến</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.approvalDisabledBtn}
+                disabled
+                title={`Chờ người duyệt chính (${primaryRoleName}) xác nhận xe đến`}
+              >
+                <Truck size={16} />
+                <span>Chờ {primaryRoleName} xác nhận</span>
+              </button>
+            )
           ) : isBeforeArrival ? (
             <button
               type="button"
@@ -230,15 +250,88 @@ export default function DeliveryDetailView({
 
       {delivery.receiptIssue && <InlineError messages={`Đợt giao chưa thể tiếp nhận vào kho: ${delivery.receiptIssue}. Các bộ phận chỉ có thể đánh giá "Không đạt".`} />}
       {delivery.cancellationNotice && <div className={styles.rejectedBanner} role="alert"><AlertTriangle size={18} /><p>{delivery.cancellationNotice}</p></div>}
-      <section className={styles.contentSection} aria-label="Kết quả kiểm tra của bốn bộ phận">
-        <div className={styles.sectionHeading}><h2 className={styles.sectionTitle}>Kết quả kiểm tra từng bộ phận</h2><span className={styles.countText}>Số lần phải giao lại của đơn: {delivery.redeliveryRequiredCount}/{delivery.redeliveryLimit}</span></div>
-        <div className={styles.tableResponsive}><table className={styles.flatTable}>
-          <thead><tr><th>Bộ phận</th><th>Người kiểm tra</th><th>Kết quả</th><th>Nhận xét</th><th>Thời gian</th></tr></thead>
-          <tbody>{(delivery.requiredRoles || []).map(role => {
-            const decision = delivery.deliveryApprovals?.find(item => item.roleCode === role.code)
-            return <tr key={role.code}><td>{role.name}</td><td>{decision?.userName || "—"}</td><td>{decision ? (decision.decision === "APPROVE" ? "Đồng ý" : "Từ chối") : "Chưa kiểm tra"}</td><td>{decision?.reason || "—"}{decision?.photoUrl && <div><img src={decision.photoUrl} alt={`Ảnh kiểm tra của ${role.name}`} style={{ maxWidth: 130, maxHeight: 100, objectFit: "contain" }} /></div>}</td><td>{formatDateTime(decision?.decidedAt)}</td></tr>
-          })}</tbody>
-        </table></div>
+      <section className={styles.contentSection} aria-label="Kết quả kiểm tra của các bộ phận">
+        <div className={styles.sectionHeading}>
+          <h2 className={styles.sectionTitle}>Kết quả kiểm tra từng bộ phận</h2>
+          <span className={styles.countText}>
+            Số lần phải giao lại của đơn: {delivery.redeliveryRequiredCount}/{delivery.redeliveryLimit}
+          </span>
+        </div>
+        <div className={styles.tableResponsive}>
+          <table className={styles.flatTable}>
+            <thead>
+              <tr>
+                <th>Bộ phận</th>
+                <th>Nhóm</th>
+                <th>Người kiểm tra</th>
+                <th>Kết quả</th>
+                <th>Nhận xét</th>
+                <th>Thời gian</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sortedRoles.map((role) => {
+                const decision = delivery.deliveryApprovals?.find(
+                  (item) => item.roleCode === role.code
+                )
+                const isOptional = role.tier === "OPTIONAL"
+                const tierClass =
+                  role.tier === "PRIMARY"
+                    ? styles.tierBadgePrimary
+                    : role.tier === "REQUIRED"
+                      ? styles.tierBadgeRequired
+                      : styles.tierBadgeOptional
+                const tierLabel =
+                  role.tierLabel ||
+                  (role.tier === "PRIMARY"
+                    ? "Duyệt chính"
+                    : role.tier === "REQUIRED"
+                      ? "Bắt buộc"
+                      : "Tùy chọn")
+                return (
+                  <tr key={role.code}>
+                    <td>{role.name}</td>
+                    <td>
+                      <span className={tierClass}>{tierLabel}</span>
+                    </td>
+                    <td>{decision?.userName || "—"}</td>
+                    <td>
+                      {decision
+                        ? decision.decision === "APPROVE"
+                          ? "Đồng ý"
+                          : "Từ chối"
+                        : isOptional
+                          ? "Không bắt buộc"
+                          : "Chưa kiểm tra"}
+                    </td>
+                    <td>
+                      {decision?.reason || "—"}
+                      {decision?.decision === "REJECT" && isOptional && (
+                        <span className={styles.optionalRefNote}>
+                          (Ý kiến tham khảo, không làm từ chối đợt giao)
+                        </span>
+                      )}
+                      {decision?.photoUrl && (
+                        <div>
+                          <img
+                            src={decision.photoUrl}
+                            alt={`Ảnh kiểm tra của ${role.name}`}
+                            style={{
+                              maxWidth: 130,
+                              maxHeight: 100,
+                              objectFit: "contain",
+                            }}
+                          />
+                        </div>
+                      )}
+                    </td>
+                    <td>{formatDateTime(decision?.decidedAt)}</td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        </div>
       </section>
 
       {/* Biên bản đã chốt (nhận hoặc từ chối) được niêm phong trên blockchain */}
@@ -311,7 +404,7 @@ export default function DeliveryDetailView({
         <div className={styles.transitNotice}>
           <Clock size={15} className={styles.transitNoticeIcon} />
           <span>
-            Xe hàng đang trên đường vận chuyển đến trường. Bốn bộ phận sẽ kiểm tra nguyên liệu khi xe đến nơi.
+            Xe hàng đang trên đường vận chuyển đến trường. Các bộ phận sẽ kiểm tra nguyên liệu khi xe đến nơi.
           </span>
         </div>
       )}
