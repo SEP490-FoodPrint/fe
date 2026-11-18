@@ -1,5 +1,5 @@
 import http from "../01_axios";
-import { apiMealTraceability } from "./urls";
+import { apiMealTraceability, apiPublicSchoolClasses } from "./urls";
 import { mockTraceabilityService } from "./mockData";
 
 const isMockEnabled = () => {
@@ -10,7 +10,20 @@ const isMockEnabled = () => {
   );
 };
 
+// Bóc tách envelope chuẩn: { success: true, data: result }
+const unwrap = (response) => {
+  if (response && typeof response === "object") {
+    if ("data" in response) return response.data ?? null;
+    return response;
+  }
+  return null;
+};
+
 const TraceabilityService = {
+  /**
+   * API duy nhất của trang truy xuất: dữ liệu 5 module + chuỗi bằng chứng
+   * blockchain (`blockchainProof`). `verify: true` để BE đối soát on-chain.
+   */
   async getMealTraceability(params, signal) {
     if (isMockEnabled()) {
       return mockTraceabilityService.getMealTraceability(params, signal);
@@ -22,17 +35,9 @@ const TraceabilityService = {
         notifyOnError: false,
         skipAuthRedirect: true,
       });
-
-      // Bóc tách envelope chuẩn xác: { success: true, data: result }
-      if (response && typeof response === "object") {
-        if ("data" in response && response.data) {
-          return response.data;
-        }
-        return response;
-      }
-      return null;
+      return unwrap(response);
     } catch (error) {
-      // Nếu API trả về 404 (chưa có bản ghi phân bổ trong CSDL thật)
+      // 404: chưa có bản ghi phân bổ cho lớp/ngày/bữa đã chọn
       if (error.response?.status === 404) {
         return {
           isNotFound: true,
@@ -45,42 +50,20 @@ const TraceabilityService = {
     }
   },
 
-  // Hỗ trợ nạp dữ liệu mô phỏng chuỗi cung ứng khi DB chưa seed dữ liệu thực tế
-  getDemoMockData(params) {
-    return mockTraceabilityService.getMealTraceability(params);
+  verifyMealTraceability(params, signal) {
+    return this.getMealTraceability({ ...params, verify: true }, signal);
   },
 
-  // Gọi chuỗi bằng chứng blockchain của suất ăn (public endpoint)
-  async getBlockchainChain(mealAllocationId, verify = false, signal) {
-    if (!mealAllocationId) return null;
-    try {
-      const response = await http.get(
-        `/blockchain-proofs/public/meal-allocations/${mealAllocationId}`,
-        {
-          params: verify ? { verify: true } : undefined,
-          signal,
-          notifyOnError: false,
-          skipAuthRedirect: true,
-        },
-      );
-      if (response && typeof response === "object") {
-        if ("data" in response && response.data) {
-          return response.data;
-        }
-        return response;
-      }
-      return null;
-    } catch (error) {
-      console.warn(
-        "[TraceabilityService] Không thể tải chuỗi blockchain:",
-        error,
-      );
-      return null;
-    }
-  },
-
-  async verifyBlockchainChain(mealAllocationId) {
-    return this.getBlockchainChain(mealAllocationId, true);
+  /** Lớp học công khai của một trường (Guest không cần token). */
+  async getPublicSchoolClasses(schoolCode, signal) {
+    if (!schoolCode) return [];
+    const response = await http.get(apiPublicSchoolClasses(schoolCode), {
+      signal,
+      notifyOnError: false,
+      skipAuthRedirect: true,
+    });
+    const data = unwrap(response);
+    return Array.isArray(data) ? data : [];
   },
 };
 

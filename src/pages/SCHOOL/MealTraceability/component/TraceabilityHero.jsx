@@ -2,6 +2,12 @@ import React from "react";
 import { School, MapPin, Sun, CheckCircle } from "lucide-react";
 import styles from "./TraceabilityHero.module.scss";
 
+const STATUS_LABELS = {
+  ALLOCATED: "Đã phân bổ",
+  DISTRIBUTED: "Đã phát suất",
+  FINALIZED: "Đã chốt",
+};
+
 export default function TraceabilityHero({ data }) {
   if (!data) return null;
 
@@ -10,7 +16,7 @@ export default function TraceabilityHero({ data }) {
   const allocation = data?.allocation || {};
 
   const formatMealDate = (d) => {
-    if (!d) return "16/11/2026";
+    if (!d) return "—";
     if (typeof d === "string" && d.includes("-")) {
       const parts = d.split("-");
       if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
@@ -27,28 +33,29 @@ export default function TraceabilityHero({ data }) {
         <div className={styles.leftContext}>
           <div className={styles.badgeGroup}>
             <span className={styles.pillPrimary}>
-              <School size={14} /> {school?.code || "TH-LVT-001"}
+              <School size={14} /> {school?.code || "—"}
             </span>
-            <span className={styles.pillNeutral}>
-              Niên khóa: {classInfo?.academicYear || "2026 - 2027"}
-            </span>
+            {classInfo?.academicYear && (
+              <span className={styles.pillNeutral}>
+                Niên khóa: {classInfo.academicYear}
+              </span>
+            )}
             <span className={styles.pillSuccess}>
               <CheckCircle size={14} />{" "}
-              {allocation?.status === "DISTRIBUTED"
-                ? "Đã phân phối hoàn tất"
-                : allocation?.status || "Đã phân bổ"}
+              {STATUS_LABELS[allocation?.status] || allocation?.status || "—"}
             </span>
           </div>
 
           <div>
             <h1 className={styles.schoolTitle}>
-              {school?.name || "Trường Tiểu Học Lê Văn Tám"}
+              {school?.name || "—"}
             </h1>
-            <p className={styles.schoolAddress}>
-              <MapPin size={14} />
-              {school?.address ||
-                "15 Đường Tân Mỹ, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh"}
-            </p>
+            {school?.address && (
+              <p className={styles.schoolAddress}>
+                <MapPin size={14} />
+                {school.address}
+              </p>
+            )}
           </div>
 
           {/* Metric Grid */}
@@ -58,7 +65,19 @@ export default function TraceabilityHero({ data }) {
               <div
                 className={`${styles.metricValue} ${styles.metricHighlight}`}
               >
-                {classInfo?.name || "Lớp 2A"}
+                {classInfo?.name || "—"}
+                {classInfo?.gradeName && (
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      fontWeight: "normal",
+                      color: "var(--text-muted)",
+                    }}
+                  >
+                    {" "}
+                    · {classInfo.gradeName}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -80,9 +99,7 @@ export default function TraceabilityHero({ data }) {
             <div className={styles.metricCard}>
               <div className={styles.metricLabel}>Số suất ăn lớp</div>
               <div className={styles.metricValue}>
-                {allocation?.totalPortions != null
-                  ? allocation.totalPortions
-                  : 35}{" "}
+                {allocation?.totalPortions ?? "—"}{" "}
                 <span
                   style={{
                     fontSize: "12px",
