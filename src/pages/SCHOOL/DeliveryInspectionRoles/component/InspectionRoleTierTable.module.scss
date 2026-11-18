@@ -1,0 +1,139 @@
+.tableWrapper {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--space-6);
+}
+
+.tableHeaderRow {
+  background-color: var(--bg-muted);
+  border-bottom: 1px solid var(--border-default);
+}
+
+.tableHeaderCell {
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  padding: var(--space-4);
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--border-default);
+  transition: background-color 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background-color: var(--color-secondary-soft);
+  }
+}
+
+.roleCell {
+  padding: var(--space-4);
+  vertical-align: middle;
+}
+
+.roleName {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  display: block;
+}
+
+.roleCode {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-top: var(--space-1);
+}
+
+.tierCell {
+  padding: var(--space-4);
+  vertical-align: middle;
+}
+
+.permCell {
+  padding: var(--space-4);
+  vertical-align: middle;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.radioGroupHoriz {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-3);
+  align-items: center;
+
+  @media (max-width: 900px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+}
+
+.fixedChipWrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.fixedHint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.permPrimary {
+  color: var(--color-primary);
+  font-weight: var(--font-medium);
+}
+
+.permRequired {
+  color: var(--color-info);
+  font-weight: var(--font-medium);
+}
+
+.permOptional {
+  color: var(--text-muted);
+}
+
+/* Mobile Cards View */
+.mobileCardList {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+
+  @media (max-width: 600px) {
+    display: flex;
+  }
+}
+
+.desktopTable {
+  display: table;
+  width: 100%;
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+}
+
+.mobileCard {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.mobileCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}

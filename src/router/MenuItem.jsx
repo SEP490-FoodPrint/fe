@@ -202,6 +202,12 @@ export const MenuItemSchool = () => [
         icon: <CalendarMonthOutlinedIcon />,
         roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
       },
+      {
+        key: ROUTER.SCHOOL_DELIVERY_INSPECTION_ROLES,
+        label: "Phân quyền duyệt nguyên liệu",
+        icon: <FactCheckOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
     ],
   },
   {
