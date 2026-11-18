@@ -4,15 +4,8 @@ import { Eye } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import { approvalProgress, groupDeliveriesByRound, groupSummary } from "./deliveryGroups"
 import styles from "./DeliveryMobileCards.module.scss"
+import { deliveryTimeLines } from "src/utils/deliveryTime"
 
-const formatDateTime = (expectedAt, arrivedAt) => {
-  const timeSrc = arrivedAt || expectedAt
-  if (!timeSrc) return "--"
-  const d = new Date(timeSrc)
-  if (Number.isNaN(d.getTime())) return "--"
-  const pad = (n) => String(n).padStart(2, "0")
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} • ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
-}
 
 export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
   return (
@@ -39,7 +32,7 @@ export default function DeliveryMobileCards({ deliveries, onSelectDelivery }) {
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.label}>Thời gian giao:</span>
-                    <span className={styles.value}>{formatDateTime(item.expectedArrivalAt, item.arrivedAt)}</span>
+                    <span className={styles.value}>{deliveryTimeLines(item).map((line) => <span key={line.label} style={{ display: "block" }}>{line.label}: {line.value}</span>)}</span>
                   </div>
                   <div className={styles.infoRow}>
                     <span className={styles.label}>Bộ phận đã ký:</span>

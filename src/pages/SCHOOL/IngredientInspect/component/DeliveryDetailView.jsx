@@ -1,4 +1,5 @@
 import { formatLargeQuantity } from "src/utils/quantity"
+import { deliveryTimeLines } from "src/utils/deliveryTime"
 import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useContext, useState } from "react"
 import PropTypes from "prop-types"
@@ -115,8 +116,6 @@ export default function DeliveryDetailView({
     }
   })
 
-  // Thời gian giao nhận chuẩn (ưu tiên arrivedAt hoặc receivedAt, fallback expectedArrivalAt)
-  const deliveryTime = delivery.arrivedAt || delivery.receivedAt || delivery.expectedArrivalAt
 
   // Kiểm tra nếu đợt giao bị từ chối tiếp nhận
   const rejectApproval = delivery.deliveryApprovals?.find(
@@ -268,10 +267,12 @@ export default function DeliveryDetailView({
 
         <div className={styles.summaryCol}>
           <span className={styles.summaryLabel}>Thời gian giao</span>
-          <div className={styles.summaryValRow}>
-            <Clock size={15} className={styles.summaryIcon} />
-            <span className={styles.summaryValue}>{formatDateTime(deliveryTime)}</span>
-          </div>
+          {deliveryTimeLines(delivery).map((line) => (
+            <div key={line.label} className={styles.summaryValRow}>
+              <Clock size={15} className={styles.summaryIcon} />
+              <span className={styles.summaryValue}>{line.label}: {line.value}</span>
+            </div>
+          ))}
         </div>
 
         {delivery.note && (

@@ -4,15 +4,8 @@ import { Eye } from "lucide-react"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import { approvalProgress, groupDeliveriesByRound, groupSummary } from "./deliveryGroups"
 import styles from "./DeliveryTableView.module.scss"
+import { deliveryTimeLines } from "src/utils/deliveryTime"
 
-const formatDateTime = (expectedAt, arrivedAt) => {
-  const timeSrc = arrivedAt || expectedAt
-  if (!timeSrc) return "--"
-  const d = new Date(timeSrc)
-  if (Number.isNaN(d.getTime())) return "--"
-  const pad = (n) => String(n).padStart(2, "0")
-  return `${pad(d.getHours())}:${pad(d.getMinutes())} • ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
-}
 
 /** Danh sách xe giao, gom theo Đợt 1 / Đợt 2…; mỗi xe kiểm tra độc lập với 4 bộ phận. */
 export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
@@ -58,7 +51,7 @@ export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
                     <span className={styles.plate}>{item.vehiclePlate || "—"}</span>
                   </td>
                   <td className={styles.tdDate}>
-                    <span className={styles.dateText}>{formatDateTime(item.expectedArrivalAt, item.arrivedAt)}</span>
+                    {deliveryTimeLines(item).map((line) => <span key={line.label} className={styles.dateText} style={{ display: "block" }}>{line.label}: {line.value}</span>)}
                   </td>
                   <td>
                     <span className={progress.rejected ? styles.progressRejected : progress.approved === progress.total ? styles.progressDone : styles.progress}>

@@ -370,6 +370,11 @@ export default function CreateDeliveryView({
 
   // Tính số suất giao bù ở Đợt 2
   const parsedAttendance = Number(actualAttendance) || 0;
+  // Đợt 2 chỉ tạo được khi mọi lớp có đăng ký suất ăn đã chốt điểm danh (BE cũng chặn).
+  const unfinalizedClasses = (attendanceSummary?.classes || []).filter(
+    (cls) => Number(cls.registeredPortions) > 0 && cls.status !== "FINALIZED",
+  );
+  const attendanceReady = Boolean(attendanceSummary) && unfinalizedClasses.length === 0;
 
   const remainingByMenu = useMemo(() => {
     const res = {};
@@ -886,7 +891,7 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 2
   const handleSubmitBatch2 = async () => {
-    if (!batch1ForDate || parsedAttendance <= 0) return;
+    if (!batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
     setSubmitting(true);
     try {
       await onSubmitBatch2({
@@ -2327,9 +2332,11 @@ export default function CreateDeliveryView({
               {/* NÚT CHỐT ĐƠN ĐỢT 2: CHỈ BẤM ĐƯỢC KHI ĐÃ CÓ SĨ SỐ GVCN */}
               <Tooltip
                 title={
-                  parsedAttendance <= 0
-                    ? "Nút bị khóa: Vui lòng nhập sĩ số GVCN báo để chốt đơn Đợt 2"
-                    : ""
+                  !attendanceReady
+                    ? `Nút bị khóa: còn ${unfinalizedClasses.length || "các"} lớp chưa chốt điểm danh${unfinalizedClasses.length ? ` (${unfinalizedClasses.map((cls) => cls.className).join(", ")})` : ""}`
+                    : parsedAttendance <= 0
+                      ? "Nút bị khóa: Vui lòng nhập sĩ số GVCN báo để chốt đơn Đợt 2"
+                      : ""
                 }
               >
                 <span>
@@ -2338,7 +2345,7 @@ export default function CreateDeliveryView({
                     variant="contained"
                     color="warning"
                     startIcon={<Send size={18} />}
-                    disabled={submitting || parsedAttendance <= 0}
+                    disabled={submitting || parsedAttendance <= 0 || !attendanceReady}
                     className={styles.submitBtnBatch2}
                   >
                     {submitting ? "Đang gửi..." : "Chốt đơn Đợt 2 & Gửi NCC"}
