@@ -814,7 +814,7 @@ export default function DeliveryDetailView({
                         >
                           {displayedOrderedQty} {item.unit}
                         </Typography>
-                        {isMulti ? (
+                        {isMulti && (
                           <Button
                             size="small"
                             variant="text"
@@ -831,42 +831,6 @@ export default function DeliveryDetailView({
                           >
                             {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
                           </Button>
-                        ) : hasExtraQty && !isExtraItem ? (
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "#15803d",
-                              display: "block",
-                              fontSize: "0.7rem",
-                              fontWeight: 600,
-                            }}
-                          >
-                            (Gồm {item.standardQty} theo suất + {item.extraQty}{" "}
-                            giao thêm)
-                          </Typography>
-                        ) : portionRate > 0 && !isExtraItem && !hasExtraQty ? (
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "#64748b",
-                              display: "block",
-                              fontSize: "0.7rem",
-                            }}
-                          >
-                            ({formatPortionRate(portionRate, item.unit)}/suất)
-                          </Typography>
-                        ) : null}
-                        {isWaitingAttendance && !isExtraItem && (
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              color: "#d97706",
-                              display: "block",
-                              fontSize: "0.7rem",
-                            }}
-                          >
-                            (Theo {remainingNeeded} suất)
-                          </Typography>
                         )}
                       </TableCell>
                       <TableCell align="center">

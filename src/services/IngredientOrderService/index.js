@@ -1340,10 +1340,15 @@ const IngredientOrderService = {
         }
       });
 
+      const noteText = note
+        ? `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. ${note}`.trim()
+        : `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)`;
+
       const payload = {
         supplierId: sId,
         requestNo: reqNo,
         requestedDeliveryDate: deliveryDate,
+        note: noteText,
         items: Array.from(mergedItemsMap.entries()).map(
           ([ingredientEntryId, quantity]) => ({
             ingredientEntryId,

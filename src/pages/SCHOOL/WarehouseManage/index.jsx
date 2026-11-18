@@ -229,6 +229,10 @@ export default function WarehouseManage() {
             item.status === "CONFIRMED" ||
             item.rawStatus === "ACCEPTED" ||
             item.rawStatus === "CONFIRMED")) ||
+        (orderFilters.status === "IN_TRANSIT" &&
+          (item.status === "IN_TRANSIT" ||
+            item.rawStatus === "IN_TRANSIT" ||
+            item.rawStatus === "IN_PROGRESS")) ||
         (orderFilters.status === "COMPLETED" &&
           (item.status === "COMPLETED" ||
             item.status === "RECEIVED" ||
