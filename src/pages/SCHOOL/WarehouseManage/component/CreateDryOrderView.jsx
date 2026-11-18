@@ -14,6 +14,7 @@ import {
   TableBody,
   Paper,
   Checkbox,
+  CircularProgress,
 } from "@mui/material"
 import {
   ArrowLeft,
@@ -38,6 +39,7 @@ export default function CreateDryOrderView({
   const [note, setNote] = useState("Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.")
   const [orderQtys, setOrderQtys] = useState({})
   const [itemSuppliers, setItemSuppliers] = useState({})
+  const [submitting, setSubmitting] = useState(false)
 
   // 1. Tổng hợp danh sách tất cả NCC liên kết trong hệ thống
   const allSuppliers = useMemo(() => {
@@ -198,7 +200,7 @@ export default function CreateDryOrderView({
     return supNames.size
   }, [orderQtys, inventoryItems])
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // 1. Tổng hợp tất cả các mặt hàng được chọn kèm NCC tương ứng
     const allSelectedItems = []
 
@@ -284,7 +286,12 @@ export default function CreateDryOrderView({
       items: allSelectedItems,
     }
 
-    onSubmit(orderToCreate)
+    try {
+      setSubmitting(true)
+      await onSubmit(orderToCreate)
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -296,6 +303,7 @@ export default function CreateDryOrderView({
           startIcon={<ArrowLeft size={18} />}
           variant="outlined"
           color="inherit"
+          disabled={submitting}
           className={styles.backBtn}
         >
           Quay lại danh sách kho
@@ -534,7 +542,7 @@ export default function CreateDryOrderView({
         </Box>
 
         <Box className={styles.footerActions}>
-          <Button onClick={onBack} variant="outlined" color="inherit">
+          <Button onClick={onBack} variant="outlined" color="inherit" disabled={submitting}>
             Hủy bỏ
           </Button>
 
@@ -542,11 +550,17 @@ export default function CreateDryOrderView({
             onClick={handleSubmit}
             variant="contained"
             color="primary"
-            startIcon={<Send size={18} />}
-            disabled={selectedCount === 0}
+            startIcon={
+              submitting ? (
+                <CircularProgress size={18} color="inherit" />
+              ) : (
+                <Send size={18} />
+              )
+            }
+            disabled={selectedCount === 0 || submitting}
             className={styles.submitBtn}
           >
-            Tạo
+            {submitting ? "Đang gửi..." : "Tạo"}
           </Button>
         </Box>
       </Box>

@@ -149,12 +149,11 @@ export function adaptDeliveryItem(item) {
   let batchType = item.batchType;
   if (!batchType) {
     if (
-      noteText.includes("đợt 1") ||
-      noteText.includes("d1") ||
-      noteText.includes("batch_1") ||
-      noteText.includes("sáng")
+      noteText.includes("khô") ||
+      noteText.includes("dry") ||
+      noteText.includes("pnk")
     ) {
-      batchType = "BATCH_1";
+      batchType = "DRY_STOCK";
     } else if (
       noteText.includes("đợt 2") ||
       noteText.includes("d2") ||
@@ -162,8 +161,13 @@ export function adaptDeliveryItem(item) {
       noteText.includes("sĩ số")
     ) {
       batchType = "BATCH_2";
-    } else if (noteText.includes("khô") || noteText.includes("dry")) {
-      batchType = "DRY_STOCK";
+    } else if (
+      noteText.includes("đợt 1") ||
+      noteText.includes("d1") ||
+      noteText.includes("batch_1") ||
+      noteText.includes("sáng")
+    ) {
+      batchType = "BATCH_1";
     } else {
       // Nếu giờ giao trước 7h sáng -> Đợt 1, sau 7h -> Đợt 2
       const hourNum = parseInt(deliveryTime.split(":")[0], 10) || 5;

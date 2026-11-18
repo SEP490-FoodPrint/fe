@@ -181,10 +181,46 @@ export function determineOrderType(delivery) {
     }
   }
 
-  const note = (delivery?.note || "").toLowerCase()
-  const items = delivery?.deliveryItems || []
+  // 1. Kiểm tra mã đơn hoặc mã phiếu (DRY, PNK, D2, D1...)
+  const codeStr = `${delivery?.orderNo || ""} ${delivery?.requestNo || ""} ${delivery?.deliveryNo || ""} ${delivery?.id || ""}`.toUpperCase()
+  if (codeStr.includes("DRY") || codeStr.includes("PNK")) {
+    return {
+      type: "DRY_STOCK",
+      label: "Đồ khô & Gia vị",
+    }
+  }
+  if (codeStr.includes("-D2") || codeStr.includes("-B2") || codeStr.includes("BATCH_2") || codeStr.includes("DOT_2")) {
+    return {
+      type: "FRESH_BATCH_2",
+      label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
+    }
+  }
+  if (codeStr.includes("-D1") || codeStr.includes("-B1") || codeStr.includes("BATCH_1") || codeStr.includes("DOT_1")) {
+    return {
+      type: "FRESH_BATCH_1",
+      label: "Đồ tươi (Đợt 1 - 05:30)",
+    }
+  }
 
-  // Ưu tiên 1: Ghi chú có nhắc đến Đợt 2 hoặc bù sĩ số
+  const note = (delivery?.note || "").toLowerCase()
+  const items = delivery?.deliveryItems || delivery?.items || []
+
+  // 2. Ghi chú có nhắc đến đồ khô hoặc kho thực phẩm khô
+  if (
+    note.includes("đồ khô") ||
+    note.includes("kho khô") ||
+    note.includes("kho thực phẩm khô") ||
+    note.includes("gia vị") ||
+    note.includes("dry") ||
+    note.includes("nhập kho")
+  ) {
+    return {
+      type: "DRY_STOCK",
+      label: "Đồ khô & Gia vị",
+    }
+  }
+
+  // 3. Ghi chú có nhắc đến Đợt 2 hoặc bù sĩ số
   if (
     note.includes("đợt 2") ||
     note.includes("bù") ||
@@ -197,36 +233,33 @@ export function determineOrderType(delivery) {
     }
   }
 
-  // Ưu tiên 2: Kiểm tra phân loại handlingType của mặt hàng
-  const hasDirectUse = items.some(
-    it =>
-      it.handlingType === "DIRECT_USE" ||
-      (it.ingredientName &&
-        !DRY_KEYWORDS.some(k => it.ingredientName.toLowerCase().includes(k)))
-  )
+  // 4. Kiểm tra phân loại handlingType của mặt hàng
   const hasWarehouse = items.some(
     it =>
+      it.handlingType === "DRY_STOCK" ||
       it.handlingType === "CENTRAL_WAREHOUSE" ||
       it.handlingType === "PRE_PORTIONED"
   )
+  const hasDirectUse = items.some(
+    it => it.handlingType === "DIRECT_USE"
+  )
+
+  if (hasWarehouse && !hasDirectUse) {
+    return {
+      type: "DRY_STOCK",
+      label: "Đồ khô & Gia vị",
+    }
+  }
 
   // Kiểm tra giờ hẹn (Đợt 2 thường từ 07:00 đến 09:00 sáng)
   if (delivery?.expectedArrivalAt) {
     const d = new Date(delivery.expectedArrivalAt)
     const h = d.getHours()
-    if (h >= 7 && h <= 9 && hasDirectUse) {
+    if (h >= 7 && h <= 9) {
       return {
         type: "FRESH_BATCH_2",
         label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
       }
-    }
-  }
-
-  // Nếu toàn đồ kho/gia vị
-  if (hasWarehouse && !hasDirectUse) {
-    return {
-      type: "DRY_STOCK",
-      label: "Đồ khô & Gia vị",
     }
   }
 
@@ -510,7 +543,7 @@ export function mapDeliveryItems(deliveryItems = [], defaultSupplierName = "") {
 
   return deliveryItems.map(item => {
     const qty = Number(
-      item.qty ?? item.actualQuantity ?? item.requestedQuantity ?? item.orderedQty ?? 0
+      item.qty ?? item.actualQuantity ?? item.requestedQuantity ?? item.orderedQty ?? item.quantity ?? 0
     )
     const unit = item.unit || "kg"
     const name = item.name || item.ingredientName || "Nguyên liệu"
@@ -573,6 +606,7 @@ export function adaptTrackingOrder(delivery) {
       `PO-${delivery.deliveryNo || delivery.id.slice(0, 8)}`,
     deliveryNo: delivery.deliveryNo || `DEL-${delivery.id.slice(0, 8)}`,
     orderType: orderType.type,
+    batchType: orderType.type,
     orderTypeLabel: orderType.label,
     supplierName: delivery.supplierName || "Liên minh Hợp tác xã Cung ứng",
     supplierPhone: delivery.supplierPhone || "0987 654 321",
