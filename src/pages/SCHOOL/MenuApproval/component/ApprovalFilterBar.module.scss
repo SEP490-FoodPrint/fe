@@ -1,0 +1,106 @@
+// Thanh lọc cấp trang: chọn tuần (‹ ›) và khối lớp — chỉ dùng token của globals.css
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.weekNavigator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.weekControl {
+  min-width: 18rem;
+}
+
+.gradeControl {
+  min-width: 10rem;
+}
+
+.option {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.optionText {
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+}
+
+.calendarIcon {
+  flex-shrink: 0;
+  color: var(--color-primary);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-normal);
+  white-space: nowrap;
+}
+
+.badgePending {
+  color: var(--color-warning);
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.badgeDone {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-color: var(--color-success-border);
+}
+
+.count {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+
+  strong {
+    color: var(--text-primary);
+    font-weight: var(--font-semibold);
+  }
+}
+
+@media (max-width: 600px) {
+  .filters,
+  .weekNavigator,
+  .gradeControl {
+    width: 100%;
+  }
+
+  .weekControl {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media print {
+  .bar {
+    display: none;
+  }
+}
