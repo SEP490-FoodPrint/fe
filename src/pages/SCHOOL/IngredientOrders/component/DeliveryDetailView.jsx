@@ -210,6 +210,7 @@ export default function DeliveryDetailView({
         qrCode:
           supInfo.qrCode ||
           `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+        note: supInfo.note || "",
       };
     }
 
@@ -532,7 +533,7 @@ export default function DeliveryDetailView({
       <Box className={styles.sectionWrapper}>
         <Box className={styles.sectionTitleRow}>
           <Typography variant="h6" className={styles.sectionHeading}>
-            Thông Tin Vận Chuyển &amp; Nghiệm Thu Từng Xe (
+            Thông Tin Vận Chuyển &amp; Nghiệm Thu (
             {Object.keys(itemsBySupplier).length} Nhà cung cấp)
           </Typography>
         </Box>
@@ -582,7 +583,7 @@ export default function DeliveryDetailView({
                     </Typography>
                   </Box>
                   <Chip
-                    label={`Xe ${idx + 1} • ${sItems.length} NL`}
+                    label={`${sItems.length} nguyên liệu`}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -647,7 +648,9 @@ export default function DeliveryDetailView({
                         Ghi chú:
                       </Typography>
                       <Typography variant="body2" className={styles.infoValue}>
-                        {displayNote}
+                        {formatVehicle(transport.vehicle) === "Chưa phân công (Chờ NCC điều xe)"
+                          ? "Chưa có ghi chú"
+                          : (transport.note || displayNote || "Chưa có ghi chú")}
                       </Typography>
                     </Box>
                   </Box>
@@ -715,7 +718,7 @@ export default function DeliveryDetailView({
                       }}
                     >
                       <ShieldCheck size={17} color="#2563eb" />
-                      Hội đồng nghiệm thu (Xe {idx + 1}):
+                      Hội đồng nghiệm thu
                     </Typography>
                     <Chip
                       label="Cổng tiếp nhận"
@@ -752,10 +755,10 @@ export default function DeliveryDetailView({
                         <Box
                           key={r.key}
                           className={`${styles.approvalCard} ${isApproved
-                              ? styles.approvedCard
-                              : isRejected
-                                ? styles.rejectedCard
-                                : styles.pendingCard
+                            ? styles.approvedCard
+                            : isRejected
+                              ? styles.rejectedCard
+                              : styles.pendingCard
                             }`}
                           sx={{ p: 1.25, borderRadius: 2 }}
                         >

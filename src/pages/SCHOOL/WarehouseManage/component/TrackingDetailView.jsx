@@ -132,6 +132,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         qrCode:
           supInfo.qrCode ||
           `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
+        note: supInfo.note || "",
       }
     }
 
@@ -254,7 +255,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
             <Truck size={20} />
           </Box>
           <Typography variant="subtitle1" className={styles.cardTitle}>
-            Thông Tin Vận Chuyển &amp; Xe Giao Hàng ({supplierCount} Nhà cung cấp)
+            Thông Tin Vận Chuyển ({supplierCount} Nhà cung cấp)
           </Typography>
         </Box>
 
@@ -303,7 +304,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                     </Typography>
                   </Box>
                   <Chip
-                    label={`Xe ${idx + 1} • ${sItems.length} NL`}
+                    label={`${sItems.length} nguyên liệu`}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -365,7 +366,9 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                         Ghi chú:
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                        {displayNote}
+                        {formatVehicle(transport.vehicle) === "Chưa phân công (Chờ NCC điều xe)"
+                          ? "Chưa có ghi chú"
+                          : (transport.note || displayNote || "Chưa có ghi chú")}
                       </Typography>
                     </Box>
                   </Box>

@@ -336,6 +336,7 @@ const TrackingService = {
                 d.status === "ARRIVED" ||
                 d.status === "APPROVED",
               ),
+              note: d.note || "",
             }
           } else {
             allApproved = false
@@ -349,6 +350,7 @@ const TrackingService = {
               qrCode: `QR-PENDING-${finalDeliveryNo}-${String(vehicleIdx).padStart(2, "0")}`,
               status: entry.supplyItem?.status || "CREATED",
               hasDispatched: false,
+              note: "",
             }
           }
         })

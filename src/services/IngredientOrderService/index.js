@@ -1037,6 +1037,7 @@ const IngredientOrderService = {
                 d.status === "ARRIVED" ||
                 d.status === "APPROVED",
               ),
+              note: d.note || "",
             };
 
             supplierApprovals[sName] = d.approvals || {};
