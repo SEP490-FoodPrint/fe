@@ -7,7 +7,7 @@ import styles from "./DeliveryTableView.module.scss"
 import { deliveryTimeLines } from "src/utils/deliveryTime"
 
 
-/** Danh sách xe giao, gom theo Đợt 1 / Đợt 2…; mỗi xe kiểm tra độc lập với 4 bộ phận. */
+/** Danh sách xe giao, gom theo Đợt 1 / Đợt 2…; mỗi xe kiểm tra độc lập theo các nhóm bộ phận. */
 export default function DeliveryTableView({ deliveries, onSelectDelivery }) {
   const groups = groupDeliveriesByRound(deliveries)
 

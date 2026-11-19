@@ -543,3 +543,47 @@
   font-size: var(--text-xs);
   white-space: nowrap;
 }
+
+.tierBadgePrimary {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--status-warning-bg, #fef3c7);
+  color: var(--status-warning-text, #92400e);
+  border: 1px solid var(--status-warning-border, #fde68a);
+}
+
+.tierBadgeRequired {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  background-color: var(--status-info-bg, #eff6ff);
+  color: var(--status-info-text, #1e40af);
+  border: 1px solid var(--status-info-border, #bfdbfe);
+}
+
+.tierBadgeOptional {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 500;
+  background-color: var(--status-neutral-bg, #f1f5f9);
+  color: var(--status-neutral-text, #475569);
+  border: 1px solid var(--status-neutral-border, #cbd5e1);
+}
+
+.optionalRefNote {
+  display: block;
+  font-size: 11px;
+  color: var(--text-muted, #64748b);
+  margin-top: 2px;
+}
+

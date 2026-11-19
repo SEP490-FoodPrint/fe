@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Share2, Check, AlertCircle } from "lucide-react";
 import styles from "./index.module.scss";
 import ROUTER from "src/router/ROUTER";
@@ -13,14 +13,17 @@ import TraceabilityCookingBatches from "./component/TraceabilityCookingBatches";
 import TraceabilityIngredientsFlow from "./component/TraceabilityIngredientsFlow";
 import TraceabilityFoodSafety from "./component/TraceabilityFoodSafety";
 import TraceabilityBlockchainCard from "./component/TraceabilityBlockchainCard";
-import { buildBlockchainSteps } from "./component/traceabilityBlockchainAdapter";
+import {
+  buildBlockchainSteps,
+  chainVerdict,
+} from "./component/traceabilityBlockchainAdapter";
 
 export default function MealTraceability() {
   const [searchParams] = useSearchParams();
+  const { schoolCode } = useParams();
   const navigate = useNavigate();
 
   const classId = searchParams.get("classId");
-  const classNameParam = searchParams.get("className");
   const dateParam = searchParams.get("date");
   const mealTypeParam = searchParams.get("mealType");
 
@@ -29,65 +32,55 @@ export default function MealTraceability() {
   const [error, setError] = useState(null);
   const [activeDishId, setActiveDishId] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
-  const [blockchainChain, setBlockchainChain] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isVerified, setIsVerified] = useState(false);
+  // true khi blockchainProof hiện tại là kết quả của lần gọi verify=true
+  const [isChecked, setIsChecked] = useState(false);
 
   const showToast = (msg) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(""), 3000);
   };
 
+  const queryParams = useMemo(
+    () => ({
+      classId: classId || undefined,
+      date: dateParam || undefined,
+      mealType: mealTypeParam || undefined,
+      schoolCode: schoolCode || undefined,
+    }),
+    [classId, dateParam, mealTypeParam, schoolCode],
+  );
+
   useEffect(() => {
     let mounted = true;
     const fetchTraceability = async () => {
       setLoading(true);
       setError(null);
-      try {
-        const data = await TraceabilityService.getMealTraceability({
-          classId: classId || undefined,
-          date: dateParam || undefined,
-          mealType: mealTypeParam || undefined,
+      setIsChecked(false);
+      if (!queryParams.classId || !queryParams.date || !queryParams.mealType) {
+        setError({
+          title: "Thiếu thông tin tra cứu",
+          message:
+            "Cần chọn lớp học, ngày phục vụ và bữa ăn để truy xuất suất ăn.",
         });
-
-        if (mounted) {
-          if (data && !data.isNotFound) {
-            // Override class name if passed from filter modal
-            if (classNameParam && data.classInfo) {
-              data.classInfo.name = decodeURIComponent(classNameParam);
-            }
-            setTraceData(data);
-            if (data.dishes && data.dishes.length > 0) {
-              setActiveDishId(data.dishes[0].dishId);
-            }
-            if (data.allocation?.id) {
-              TraceabilityService.getBlockchainChain(data.allocation.id)
-                .then((chain) => {
-                  if (chain && mounted) {
-                    setBlockchainChain(chain);
-                    if (
-                      chain.intact &&
-                      Array.isArray(chain.nodes) &&
-                      chain.nodes.length > 0 &&
-                      chain.nodes.every(
-                        (n) => n.verificationStatus === "VERIFIED",
-                      )
-                    ) {
-                      setIsVerified(true);
-                    }
-                  }
-                })
-                .catch(() => {});
-            }
-          } else {
-            setError({
-              title: "Không có thông tin truy xuất nguồn gốc",
-              message:
-                data?.message ||
-                "Chưa có dữ liệu phân bổ mẻ nấu và suất ăn cho lớp học này vào ngày đã chọn trên hệ thống. Vui lòng kiểm tra lại ngày phục vụ hoặc liên hệ nhà trường.",
-            });
-            setTraceData(null);
-          }
+        setTraceData(null);
+        setLoading(false);
+        return;
+      }
+      try {
+        const data = await TraceabilityService.getMealTraceability(queryParams);
+        if (!mounted) return;
+        if (data && !data.isNotFound) {
+          setTraceData(data);
+          setActiveDishId(data.dishes?.[0]?.dishId ?? null);
+        } else {
+          setError({
+            title: "Không có thông tin truy xuất nguồn gốc",
+            message:
+              data?.message ||
+              "Chưa có dữ liệu phân bổ mẻ nấu và suất ăn cho lớp học này vào ngày đã chọn trên hệ thống. Vui lòng kiểm tra lại ngày phục vụ hoặc liên hệ nhà trường.",
+          });
+          setTraceData(null);
         }
       } catch (err) {
         if (mounted) {
@@ -110,7 +103,7 @@ export default function MealTraceability() {
     return () => {
       mounted = false;
     };
-  }, [classId, classNameParam, dateParam, mealTypeParam]);
+  }, [queryParams]);
 
   const activeDish = useMemo(() => {
     if (!traceData?.dishes || !activeDishId) return null;
@@ -121,34 +114,42 @@ export default function MealTraceability() {
     );
   }, [traceData, activeDishId]);
 
-  const blockchainSteps = useMemo(() => {
-    return buildBlockchainSteps(traceData, activeDish, blockchainChain);
-  }, [traceData, activeDish, blockchainChain]);
+  const blockchainSteps = useMemo(
+    () => buildBlockchainSteps(traceData, activeDish),
+    [traceData, activeDish],
+  );
 
+  const verdict = useMemo(
+    () =>
+      traceData?.blockchainProof
+        ? chainVerdict(traceData.blockchainProof, isChecked)
+        : isChecked
+          ? "INCOMPLETE"
+          : "UNCHECKED",
+    [traceData, isChecked],
+  );
+
+  // Đối soát on-chain qua chính API truy xuất (verify=true). Không bao giờ
+  // tự đánh dấu "đã xác thực" khi API lỗi hoặc không trả về chuỗi bằng chứng.
   const handleVerifyBlockchain = async () => {
-    if (isVerifying || isVerified) return;
+    if (isVerifying) return;
     setIsVerifying(true);
     try {
-      const allocationId = traceData?.allocation?.id;
-      if (allocationId) {
-        const chain =
-          await TraceabilityService.verifyBlockchainChain(allocationId);
-        if (chain) {
-          setBlockchainChain(chain);
-          setIsVerified(Boolean(chain.intact));
-          showToast("Xác thực chuỗi bằng chứng Blockchain hoàn tất!");
-          return;
-        }
+      const data =
+        await TraceabilityService.verifyMealTraceability(queryParams);
+      if (!data || data.isNotFound) {
+        showToast("Không tìm thấy dữ liệu suất ăn để đối soát.");
+        return;
       }
-      setTimeout(() => {
-        setIsVerified(true);
-        showToast(
-          "Dữ liệu 5 chặng chuỗi cung ứng khớp 100% với bằng chứng Blockchain.",
-        );
-      }, 850);
+      setTraceData(data);
+      setIsChecked(true);
+      showToast(
+        data.blockchainProof
+          ? "Đã đối soát chuỗi bằng chứng với blockchain."
+          : "Không đối soát được với blockchain.",
+      );
     } catch {
-      setIsVerified(true);
-      showToast("Đã đối soát chuỗi bằng chứng.");
+      showToast("Không kết nối được máy chủ để đối soát.");
     } finally {
       setIsVerifying(false);
     }
@@ -271,13 +272,14 @@ export default function MealTraceability() {
         <TraceabilityTimeline
           allocation={traceData?.allocation}
           classInfo={traceData?.classInfo}
+          dish={activeDish}
         />
 
         {/* Section 4: Cooking Batches of Selected Dish */}
         {activeDish && (
           <TraceabilityCookingBatches
             dish={activeDish}
-            totalAllocationPortions={traceData.allocation?.totalPortions || 30}
+            totalAllocationPortions={traceData.allocation?.totalPortions ?? 0}
           />
         )}
 
@@ -290,7 +292,8 @@ export default function MealTraceability() {
         {/* Section 7: Blockchain Card (Khối 7 - Xác thực Blockchain 5 chặng) */}
         <TraceabilityBlockchainCard
           steps={blockchainSteps}
-          isVerified={isVerified}
+          verdict={verdict}
+          errorMessage={traceData?.blockchainProofError || null}
           isVerifying={isVerifying}
           onVerify={handleVerifyBlockchain}
         />

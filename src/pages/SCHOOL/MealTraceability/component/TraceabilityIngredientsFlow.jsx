@@ -8,6 +8,24 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import styles from "./TraceabilityIngredientsFlow.module.scss";
+import { formatStepTime } from "./traceabilityBlockchainAdapter";
+
+const formatDay = (value) => {
+  if (!value) return "—";
+  const [y, m, d] = String(value).slice(0, 10).split("-");
+  return d ? `${d}/${m}/${y}` : String(value);
+};
+
+const inspectionSummary = (del) => {
+  const approvals = Array.isArray(del?.approvals) ? del.approvals : [];
+  const approved = approvals.filter((a) => a.decision === "APPROVE").length;
+  if (del?.status === "RECEIVED")
+    return `Đã tiếp nhận (${approved}/${approvals.length} vai trò đạt)`;
+  if (del?.status === "REJECTED") return "Bị từ chối";
+  return approvals.length
+    ? `Đang kiểm nhận (${approved}/${approvals.length} vai trò đạt)`
+    : "Chưa kiểm nhận";
+};
 
 export default function TraceabilityIngredientsFlow({ dish }) {
   if (!dish) return null;
@@ -26,17 +44,17 @@ export default function TraceabilityIngredientsFlow({ dish }) {
           ...ing,
           usedAcrossBatches: [
             {
-              batchCode: b?.batchCode || "BATCH",
-              quantityUsed: ing?.quantityUsed || 0,
-              unit: ing?.unit || "kg",
+              batchCode: b?.batchCode || "",
+              quantityUsed: Number(ing?.quantityUsed) || 0,
+              unit: ing?.unit || "",
             },
           ],
         });
       } else {
         ingredientsMap.get(key).usedAcrossBatches.push({
-          batchCode: b?.batchCode || "BATCH",
-          quantityUsed: ing?.quantityUsed || 0,
-          unit: ing?.unit || "kg",
+          batchCode: b?.batchCode || "",
+          quantityUsed: Number(ing?.quantityUsed) || 0,
+          unit: ing?.unit || "",
         });
       }
     });
@@ -53,7 +71,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
           </div>
           <div>
             <h2 className={styles.sectionHeading}>
-              Truy xuất chuỗi cung ứng nguyên liệu: {dish?.dishName || "Món ăn"}
+              Truy xuất chuỗi cung ứng nguyên liệu: {dish?.dishName || "—"}
             </h2>
             <p className={styles.subInfo}>
               Sơ đồ quan hệ: Món ăn → Lô chế biến → Lô nguyên liệu → Vùng trồng
@@ -65,18 +83,16 @@ export default function TraceabilityIngredientsFlow({ dish }) {
 
       <div className={styles.flowBanner}>
         <span className={styles.flowBannerHighlight}>
-          Món ăn: {dish?.dishName || "Món ăn"}
+          Món ăn: {dish?.dishName || "—"}
         </span>
         <ChevronRight size={14} color="var(--text-muted)" />
-        <span>{batches.length || 1} Lô nấu</span>
+        <span>{batches.length} Lô nấu</span>
         <ChevronRight size={14} color="var(--text-muted)" />
         <span>{ingredients.length} Lô nguyên liệu kho</span>
         <ChevronRight size={14} color="var(--text-muted)" />
-        <span>Kiểm thực 3 bước tại bếp</span>
+        <span>Kiểm nhận tại cổng trường</span>
         <ChevronRight size={14} color="var(--text-muted)" />
-        <span style={{ fontWeight: 600, color: "var(--color-success)" }}>
-          Đơn vị cung ứng có chứng nhận
-        </span>
+        <span>Nhà cung cấp</span>
       </div>
 
       {ingredients.length === 0 ? (
@@ -102,7 +118,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
               <div className={styles.ingCardHeader}>
                 <h3 className={styles.ingTitle}>
                   <span className={styles.dotGreen} />
-                  Nguyên liệu {idx + 1}: {ing.ingredientName || "Nguyên liệu"}
+                  Nguyên liệu {idx + 1}: {ing.ingredientName || "—"}
                 </h3>
                 <span
                   style={{
@@ -111,7 +127,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                     color: "var(--color-primary)",
                   }}
                 >
-                  MÃ LÔ: {ing.lotCode || "N/A"}
+                  MÃ LÔ: {ing.lotCode || "—"}
                 </span>
               </div>
 
@@ -122,7 +138,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                   <span
                     className={`${styles.detailValue} ${styles.detailValueHighlight}`}
                   >
-                    {ing.lotCode || "N/A"}
+                    {ing.lotCode || "—"}
                   </span>
                 </div>
 
@@ -131,7 +147,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                     Ngày sản xuất / Thu hoạch
                   </span>
                   <span className={styles.detailValue}>
-                    {ing.manufactureDate || "14/11/2026"}
+                    {formatDay(ing.manufactureDate)}
                   </span>
                 </div>
 
@@ -141,7 +157,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                     className={styles.detailValue}
                     style={{ color: "var(--color-success)" }}
                   >
-                    {ing.expiryDate || "19/11/2026"}
+                    {formatDay(ing.expiryDate)}
                   </span>
                 </div>
 
@@ -150,7 +166,7 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                     Tổng khối lượng xuất nấu
                   </span>
                   <span className={styles.detailValue}>
-                    {totalUsed || ing.quantityUsed || 0} {ing.unit || "kg"}
+                    {totalUsed} {ing.unit || ""}
                   </span>
                 </div>
               </div>
@@ -186,14 +202,23 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                         {del.supplierName}
                       </h4>
                       <p className={styles.supplierMeta}>
-                        Mã số thuế: <code>{del.taxCode || "0101234567"}</code> ·{" "}
-                        {del.supplierAddress || "Hà Nội"}
+                        {del.taxCode && (
+                          <>
+                            Mã số thuế: <code>{del.taxCode}</code>
+                          </>
+                        )}
+                        {del.taxCode && del.supplierAddress ? " · " : ""}
+                        {del.supplierAddress}
                       </p>
                     </div>
 
                     <div className={styles.certBadges}>
-                      {(del.certifications || []).map((c, i) => (
-                        <span key={i} className={styles.certPill}>
+                      {(del.certifications || []).map((c) => (
+                        <span
+                          key={`${c.certificationType}-${c.certificateNo}`}
+                          className={styles.certPill}
+                          title={`Số: ${c.certificateNo}${c.expiryDate ? ` · HSD: ${formatDay(c.expiryDate)}` : ""}`}
+                        >
                           <ShieldCheck
                             size={12}
                             style={{ display: "inline", marginRight: "3px" }}
@@ -209,24 +234,40 @@ export default function TraceabilityIngredientsFlow({ dish }) {
                       <Truck size={14} color="var(--text-muted)" />
                       <span>
                         Đơn giao:{" "}
-                        <strong>{del.deliveryNo || "Chưa có mã"}</strong>
+                        <strong>{del.deliveryNo || "—"}</strong>
+                      </span>
+                    </div>
+
+                    <div className={styles.deliveryInfoCol}>
+                      <Truck size={14} color="var(--text-muted)" />
+                      <span>
+                        Biển số xe: <strong>{del.vehiclePlate || "—"}</strong>
                       </span>
                     </div>
 
                     <div className={styles.deliveryInfoCol}>
                       <Clock size={14} color="var(--text-muted)" />
                       <span>
-                        Thời gian nhận: <strong>15/11 lúc 08:00</strong>
+                        Thời gian nhận:{" "}
+                        <strong>
+                          {del.receivedAt
+                            ? formatStepTime(del.receivedAt)
+                            : "Chưa nhận"}
+                        </strong>
                       </span>
                     </div>
 
                     <div className={styles.deliveryInfoCol}>
-                      <ShieldCheck size={14} color="var(--color-success)" />
+                      <ShieldCheck
+                        size={14}
+                        color={
+                          del.status === "RECEIVED"
+                            ? "var(--color-success)"
+                            : "var(--color-warning)"
+                        }
+                      />
                       <span>
-                        Kiểm thực:{" "}
-                        <strong style={{ color: "var(--color-success)" }}>
-                          ĐẠT TIÊU CHUẨN
-                        </strong>
+                        Kiểm nhận: <strong>{inspectionSummary(del)}</strong>
                       </span>
                     </div>
                   </div>
