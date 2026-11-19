@@ -66,6 +66,32 @@ export const formatDateVN = (dateInput) => {
   return str;
 };
 
+// Thứ Hai của tuần chứa ngày ISO (yyyy-mm-dd), khớp chuẩn weekStartDate
+export const mondayOfIsoDate = (iso) => {
+  if (!iso) return "";
+  const date = new Date(`${String(iso).slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
+};
+
+// Thứ Sáu của tuần chứa ngày Thứ Hai
+export const fridayOfIsoDate = (mondayIso) => {
+  if (!mondayIso) return "";
+  const date = new Date(`${String(mondayIso).slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setUTCDate(date.getUTCDate() + 4);
+  return date.toISOString().slice(0, 10);
+};
+
+export const getTodayStr = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
 /**
  * Kiểm tra đơn vị đếm được (nguyên quả, nguyên con, gói, chai...)
  * Không thể giao lẻ nửa đơn vị (ví dụ không giao 212.5 quả hay 215.5 quả)
@@ -133,7 +159,7 @@ export const calcQtyPerPortion = (batchQty, portions) => {
 export default function CreateDeliveryView({
   menus = [],
   deliveries = [],
-  initialDate = "2026-11-16",
+  initialDate,
   onBack,
   onSubmitBatch1,
   onSubmitBatch2,
@@ -144,9 +170,7 @@ export default function CreateDeliveryView({
 
   const [orderDate, setOrderDate] = useState(() => {
     if (initialDate) return String(initialDate).slice(0, 10);
-    if (effectiveMenus[0]?.mealDate)
-      return String(effectiveMenus[0].mealDate).slice(0, 10);
-    return "2026-11-16";
+    return getTodayStr();
   });
   const [selectedMenuId, setSelectedMenuId] = useState(
     () => effectiveMenus[0]?.id || "",
@@ -248,45 +272,92 @@ export default function CreateDeliveryView({
     }
   }, [mode, orderDate, fetchAttendance]);
 
-  // 1. Quét thực đơn áp dụng theo ngày chọn (Hỗ trợ 1 ngày có nhiều thực đơn)
-  const matchingMenusForDate = useMemo(() => {
-    if (!orderDate) return effectiveMenus;
-    const target = String(orderDate).slice(0, 10);
-    const matches = effectiveMenus.filter((m) => {
-      const d1 = String(m.mealDate || "").slice(0, 10);
-      const d2 = String(m.date || "").slice(0, 10);
-      const d3 = String(m.weekStartDate || "").slice(0, 10);
-      if (d1 === target || d2 === target || d3 === target) return true;
-      if (
-        Array.isArray(m.days) &&
-        m.days.some(
-          (d) => String(d.date || d.menuDate || "").slice(0, 10) === target,
-        )
-      )
-        return true;
+  // Tuần hiện tại của ngày giao hàng được chọn (Thứ Hai và Thứ Sáu)
+  const targetMonday = useMemo(() => {
+    return mondayOfIsoDate(orderDate);
+  }, [orderDate]);
+
+  const targetFriday = useMemo(() => {
+    return fridayOfIsoDate(targetMonday);
+  }, [targetMonday]);
+
+  // 1. Lọc toàn bộ thực đơn đã duyệt của ĐÚNG TUẦN ĐÓ
+  const menusInCurrentWeek = useMemo(() => {
+    if (!targetMonday) return [];
+    return effectiveMenus.filter((m) => {
+      const mWeek = mondayOfIsoDate(m.weekStartDate || m.mealDate || m.date);
+      if (mWeek === targetMonday) return true;
       if (
         Array.isArray(m.menuDays) &&
         m.menuDays.some(
-          (d) => String(d.menuDate || d.date || "").slice(0, 10) === target,
+          (d) => mondayOfIsoDate(d.menuDate || d.date) === targetMonday,
         )
-      )
+      ) {
         return true;
+      }
+      if (
+        Array.isArray(m.days) &&
+        m.days.some((d) => mondayOfIsoDate(d.date) === targetMonday)
+      ) {
+        return true;
+      }
       return false;
     });
-    return matches.length > 0 ? matches : effectiveMenus;
-  }, [effectiveMenus, orderDate]);
+  }, [effectiveMenus, targetMonday]);
+
+  const hasMenusInWeek = menusInCurrentWeek.length > 0;
+
+  // Tự động đồng bộ selectedMenuId khi đổi tuần / đổi ngày
+  useEffect(() => {
+    if (menusInCurrentWeek.length > 0) {
+      const isCurrentValid = menusInCurrentWeek.some(
+        (m) => m.id === selectedMenuId,
+      );
+      if (!isCurrentValid) {
+        setSelectedMenuId(menusInCurrentWeek[0].id);
+      }
+    } else {
+      setSelectedMenuId("");
+    }
+  }, [menusInCurrentWeek, selectedMenuId]);
+
+  // 2. Quét thực đơn áp dụng theo ngày chọn trong tuần đó
+  const matchingMenusForDate = useMemo(() => {
+    if (!orderDate || !hasMenusInWeek) return [];
+    const target = String(orderDate).slice(0, 10);
+
+    const matches = menusInCurrentWeek.filter((m) => {
+      if (Array.isArray(m.menuDays) && m.menuDays.length > 0) {
+        return m.menuDays.some(
+          (d) => String(d.menuDate || d.date || "").slice(0, 10) === target,
+        );
+      }
+      if (Array.isArray(m.days) && m.days.length > 0) {
+        return m.days.some(
+          (d) => String(d.date || "").slice(0, 10) === target,
+        );
+      }
+      return true;
+    });
+
+    // Chỉ trả về các thực đơn thuộc đúng tuần đó, TUYỆT ĐỐI không fallback sang tuần khác!
+    return matches.length > 0 ? matches : menusInCurrentWeek;
+  }, [orderDate, hasMenusInWeek, menusInCurrentWeek]);
 
   const isMultiMenuDate = matchingMenusForDate.length > 1;
 
-  // 2. Danh sách thực đơn hiệu lực (activeMenus)
+  // 3. Danh sách thực đơn hiệu lực (activeMenus) có trích xuất món ăn & nguyên liệu theo ngày
   const activeMenus = useMemo(() => {
+    if (!hasMenusInWeek) return [];
+
+    let baseList = [];
     if (mode === "BATCH_2" && batch1ForDate) {
       if (
         Array.isArray(batch1ForDate.menusSummary) &&
         batch1ForDate.menusSummary.length > 1
       ) {
-        return batch1ForDate.menusSummary.map((ms) => {
-          const found = effectiveMenus.find((m) => m.id === ms.id);
+        baseList = batch1ForDate.menusSummary.map((ms) => {
+          const found = menusInCurrentWeek.find((m) => m.id === ms.id);
           return (
             found || {
               ...ms,
@@ -295,31 +366,46 @@ export default function CreateDeliveryView({
             }
           );
         });
+      } else {
+        const b1Menu =
+          menusInCurrentWeek.find((m) => m.id === batch1ForDate.menuId) ||
+          matchingMenusForDate[0] ||
+          menusInCurrentWeek[0];
+        baseList = b1Menu ? [b1Menu] : [];
       }
-      return [
-        effectiveMenus.find((m) => m.id === batch1ForDate.menuId) ||
-        effectiveMenus[0],
-      ].filter(Boolean);
+    } else if (isMultiMenuDate) {
+      baseList = matchingMenusForDate;
+    } else if (matchingMenusForDate.length === 1) {
+      baseList = matchingMenusForDate;
+    } else {
+      const found = menusInCurrentWeek.find((m) => m.id === selectedMenuId);
+      baseList = found ? [found] : [menusInCurrentWeek[0]].filter(Boolean);
     }
 
-    if (isMultiMenuDate) {
-      return matchingMenusForDate;
-    }
-
-    if (matchingMenusForDate.length === 1) {
-      return matchingMenusForDate;
-    }
-
-    return [
-      effectiveMenus.find((m) => m.id === selectedMenuId) || effectiveMenus[0],
-    ].filter(Boolean);
+    const target = String(orderDate || "").slice(0, 10);
+    return baseList.map((m) => {
+      if (m.menuDaysMap && m.menuDaysMap[target]) {
+        const dayData = m.menuDaysMap[target];
+        return {
+          ...m,
+          dishes: dayData.dishes?.length > 0 ? dayData.dishes : m.dishes,
+          ingredients:
+            dayData.ingredients?.length > 0
+              ? dayData.ingredients
+              : m.ingredients,
+        };
+      }
+      return m;
+    });
   }, [
+    hasMenusInWeek,
     mode,
     batch1ForDate,
     isMultiMenuDate,
     matchingMenusForDate,
-    effectiveMenus,
+    menusInCurrentWeek,
     selectedMenuId,
+    orderDate,
   ]);
 
   const isMultiMenu = activeMenus.length > 1;
@@ -368,7 +454,7 @@ export default function CreateDeliveryView({
     return sum > 0 ? sum : Math.floor(totalMaxPortions / 2);
   }, [menusPortionsMeta, totalMaxPortions]);
 
-  const currentMenu = activeMenus[0] || effectiveMenus[0];
+  const currentMenu = activeMenus[0] || menusInCurrentWeek[0] || null;
   const maxPortions = totalMaxPortions;
   const batch1Portions = totalBatch1Portions;
 
@@ -866,7 +952,13 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 1 (Chuyên biệt thực phẩm tươi sống trong ngày)
   const handleSubmitBatch1 = async () => {
-    if (!activeMenus || activeMenus.length === 0) return;
+    if (!hasMenusInWeek || !activeMenus || activeMenus.length === 0) {
+      notice({
+        msg: "Tuần này chưa có thực đơn được duyệt từ bên Dinh dưỡng. Không thể tạo yêu cầu nhập hàng!",
+        isSuccess: false,
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       await onSubmitBatch1({
@@ -910,7 +1002,7 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 2
   const handleSubmitBatch2 = async () => {
-    if (!batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
+    if (!hasMenusInWeek || !batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
     setSubmitting(true);
     try {
       await onSubmitBatch2({
@@ -977,21 +1069,54 @@ export default function CreateDeliveryView({
       {/* 2. Thanh chọn Ngày giao & Thực đơn */}
       <Paper className={styles.formCard} elevation={0}>
         <Box className={styles.formRow}>
-          <TextField
-            type="date"
-            label="Ngày áp dụng / Ngày giao hàng"
-            value={orderDate}
-            onChange={(e) => {
-              setOrderDate(e.target.value);
-              setActualAttendance(""); // Reset sĩ số khi đổi ngày
-            }}
-            size="small"
-            className={styles.dateInput}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+            <TextField
+              type="date"
+              label="Ngày áp dụng / Ngày giao hàng"
+              value={orderDate}
+              onChange={(e) => {
+                setOrderDate(e.target.value);
+                setActualAttendance(""); // Reset sĩ số khi đổi ngày
+              }}
+              size="small"
+              className={styles.dateInput}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            {targetMonday && targetFriday && (
+              <Chip
+                icon={
+                  <CalendarCheck
+                    size={14}
+                    color={hasMenusInWeek ? "#1d4ed8" : "#dc2626"}
+                  />
+                }
+                label={`Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)}`}
+                size="small"
+                sx={{
+                  height: 24,
+                  bgcolor: hasMenusInWeek ? "#eff6ff" : "#fef2f2",
+                  color: hasMenusInWeek ? "#1e40af" : "#b91c1c",
+                  borderColor: hasMenusInWeek ? "#bfdbfe" : "#fecaca",
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                  border: "1px solid",
+                }}
+              />
+            )}
+          </Box>
 
           {mode === "BATCH_1" ? (
-            isMultiMenuDate ? (
+            !hasMenusInWeek ? (
+              <TextField
+                label="Thực đơn áp dụng (Đã duyệt)"
+                value="Tuần này chưa có thực đơn được duyệt từ Dinh dưỡng"
+                className={styles.menuSelect}
+                size="small"
+                fullWidth
+                disabled
+                error
+              />
+            ) : isMultiMenuDate ? (
               <Box
                 sx={{
                   display: "flex",
@@ -1029,8 +1154,9 @@ export default function CreateDeliveryView({
                 className={styles.menuSelect}
                 size="small"
                 fullWidth
+                disabled={!hasMenusInWeek}
               >
-                {effectiveMenus.map((menu) => (
+                {menusInCurrentWeek.map((menu) => (
                   <MenuItem key={menu.id} value={menu.id}>
                     {menu.name} — {menu.targetScope} ({menu.maxPortions} suất
                     chuẩn)
@@ -1071,17 +1197,51 @@ export default function CreateDeliveryView({
               ) : (
                 <TextField
                   label="Thực đơn đã chọn"
-                  value={`${currentMenu?.name || ""} (${maxPortions} suất tối đa)`}
+                  value={
+                    currentMenu
+                      ? `${currentMenu.name} (${maxPortions} suất tối đa)`
+                      : "Không có thực đơn hợp lệ"
+                  }
                   size="small"
                   disabled
                   className={styles.menuSelect}
                   fullWidth
+                  error={!hasMenusInWeek}
                 />
               )}
             </Box>
           )}
         </Box>
       </Paper>
+
+      {/* Cảnh báo khi tuần này chưa có thực đơn được duyệt từ bên Dinh dưỡng */}
+      {!hasMenusInWeek && (
+        <Alert
+          severity="warning"
+          icon={<AlertTriangle size={24} />}
+          sx={{
+            my: 2,
+            borderRadius: 2.5,
+            border: "1px solid #fed7aa",
+            bgcolor: "#fffbeb",
+            "& .MuiAlert-message": { width: "100%" },
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 700, color: "#9a3412", mb: 0.5 }}
+          >
+            Tuần này chưa có thực đơn được phê duyệt!
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#c2410c" }}>
+            Hệ thống không tìm thấy thực đơn đã duyệt (APPROVED) cho tuần từ{" "}
+            <strong>{formatDateVN(targetMonday)}</strong> đến{" "}
+            <strong>{formatDateVN(targetFriday)}</strong>. Vui lòng kiểm tra lại
+            với chuyên viên Dinh dưỡng hoặc BGH để phê duyệt thực đơn tuần trước
+            khi lập yêu cầu nhập hàng.
+          </Typography>
+        </Alert>
+      )}
 
       {/* =====================================================================
           CASE 3: NGÀY ĐÓ ĐÃ CÓ CẢ 2 ĐỢT (HOÀN TẤT)
@@ -1526,7 +1686,7 @@ export default function CreateDeliveryView({
                     <Send size={18} />
                   )
                 }
-                disabled={submitting}
+                disabled={submitting || !hasMenusInWeek || activeMenus.length === 0}
                 className={styles.submitBtn}
               >
                 {submitting
@@ -2367,7 +2527,12 @@ export default function CreateDeliveryView({
                     <Send size={18} />
                   )
                 }
-                    disabled={submitting || parsedAttendance <= 0 || !attendanceReady}
+                    disabled={
+                      submitting ||
+                      parsedAttendance <= 0 ||
+                      !attendanceReady ||
+                      !hasMenusInWeek
+                    }
                     className={styles.submitBtnBatch2}
                   >
                     {submitting ? "Đang gửi..." : "Tạo"}

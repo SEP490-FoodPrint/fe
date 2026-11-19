@@ -180,7 +180,6 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
           <TableRow className={styles.headerRow}>
             <TableCell>Mã nhập hàng</TableCell>
             <TableCell>Đợt giao &amp; Thời gian</TableCell>
-            <TableCell align="center">Kiểm tra</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="center">Thao tác</TableCell>
           </TableRow>
@@ -189,7 +188,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         <TableBody>
           {deliveries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} align="center" className={styles.emptyCell}>
+              <TableCell colSpan={4} align="center" className={styles.emptyCell}>
                 <Typography variant="body2" color="text.secondary">
                   Không tìm thấy phiếu giao nhận nào phù hợp với bộ lọc.
                 </Typography>
@@ -238,11 +237,6 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                         {item.deliveryTime} • {formatDateVN(item.deliveryDate)}
                       </Typography>
                     </Box>
-                  </TableCell>
-
-                  {/* Kiểm tra 4 bên */}
-                  <TableCell align="center">
-                    {renderApprovalMatrix(item.approvals)}
                   </TableCell>
 
                   {/* Trạng thái */}

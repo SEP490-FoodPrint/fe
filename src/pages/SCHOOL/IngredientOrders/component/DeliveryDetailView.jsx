@@ -50,32 +50,18 @@ const formatDateVN = (dateInput) => {
   return str;
 };
 
-// Helper gộp thông tin Tài xế & Phương tiện
-const formatDriverVehicle = (driver, vehicle) => {
-  const isDriverEmpty =
-    !driver ||
-    driver === "Chưa phân công (Chờ NCC điều xe)" ||
-    driver === "Tài xế NCC" ||
-    driver === "--";
-  const isVehicleEmpty =
+// Helper format thông tin Phương tiện vận chuyển
+const formatVehicle = (vehicle) => {
+  if (
     !vehicle ||
     vehicle === "Chưa phân công (Chờ NCC điều xe)" ||
     vehicle === "Chưa có biển số xe" ||
-    vehicle === "--";
-
-  if (isDriverEmpty && isVehicleEmpty) {
+    vehicle === "--" ||
+    vehicle.includes("Chờ")
+  ) {
     return "Chưa phân công (Chờ NCC điều xe)";
   }
-
-  if (!isDriverEmpty && !isVehicleEmpty) {
-    return `${driver} - ${vehicle}`;
-  }
-
-  if (!isDriverEmpty) {
-    return `${driver} - Chờ gán xe`;
-  }
-
-  return `Chờ gán tài xế - ${vehicle}`;
+  return vehicle;
 };
 
 // Helper format giờ HH:mm
@@ -191,7 +177,7 @@ export default function DeliveryDetailView({
     return map;
   }, [delivery]);
 
-  // Lấy thông tin xe, tài xế & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
+  // Lấy thông tin phương tiện & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
     // 1. Kiểm tra nếu có dữ liệu vận chuyển chi tiết của từng NCC trong đơn gộp
     const tMap = delivery.transportsBySupplier || {};
@@ -216,16 +202,7 @@ export default function DeliveryDetailView({
         supInfo.status === "APPROVED" ||
         supInfo.status === "COMPLETED";
 
-      const driverDisplay =
-        supInfo.driver && supInfo.driver !== "Chưa phân công (Chờ NCC điều xe)"
-          ? `${supInfo.driver}${supInfo.phone && supInfo.phone !== "--" && !supInfo.driver.includes("(") ? ` (${supInfo.phone})` : ""}`
-          : hasSpecificDispatched
-            ? "Tài xế NCC"
-            : "Chưa phân công (Chờ NCC điều xe)";
-
       return {
-        driver: driverDisplay,
-        phone: supInfo.phone || "--",
         vehicle:
           supInfo.vehicle ||
           (hasSpecificDispatched ? "Xe giao hàng NCC" : "Chưa phân công (Chờ NCC điều xe)"),
@@ -246,12 +223,6 @@ export default function DeliveryDetailView({
 
     if (!hasDispatched && !delivery.vehiclePlate) {
       return {
-        driver:
-          delivery.driverName &&
-          delivery.driverName !== "Chưa phân công (Chờ NCC điều xe)"
-            ? `${delivery.driverName}${delivery.driverPhone ? ` (${delivery.driverPhone})` : ""}`
-            : "Chưa phân công (Chờ NCC điều xe)",
-        phone: delivery.driverPhone || delivery.phone || "--",
         vehicle: delivery.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
         expectedTime: delivery.expectedArrivalAt
           ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
@@ -261,12 +232,6 @@ export default function DeliveryDetailView({
     }
 
     return {
-      driver:
-        delivery.driverName &&
-        delivery.driverName !== "Chưa phân công (Chờ NCC điều xe)"
-          ? `${delivery.driverName}${delivery.driverPhone ? ` (${delivery.driverPhone})` : ""}`
-          : "Tài xế NCC",
-      phone: delivery.driverPhone || delivery.phone || "--",
       vehicle: delivery.vehiclePlate || "Chưa có biển số xe",
       expectedTime: delivery.expectedArrivalAt
         ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
@@ -545,23 +510,23 @@ export default function DeliveryDetailView({
 
       {Boolean(
         isBatch2 &&
-          !isWaitingAttendance &&
-          Number(delivery.actualAttendance) > 0,
+        !isWaitingAttendance &&
+        Number(delivery.actualAttendance) > 0,
       ) && (
-        <Alert
-          severity="success"
-          icon={<CheckCircle2 size={18} />}
-          className={styles.confirmedAlert}
-        >
-          GVCN đã chốt sĩ số sáng:{" "}
-          <strong>
-            {delivery.actualAttendance} / {delivery.maxPortions} học sinh
-          </strong>
-          . Đợt 2 đã giao bù <strong>{delivery.plannedPortions} suất</strong>{" "}
-          (Tiết kiệm {delivery.maxPortions - delivery.actualAttendance} suất ăn
-          so với định mức tối đa).
-        </Alert>
-      )}
+          <Alert
+            severity="success"
+            icon={<CheckCircle2 size={18} />}
+            className={styles.confirmedAlert}
+          >
+            GVCN đã chốt sĩ số sáng:{" "}
+            <strong>
+              {delivery.actualAttendance} / {delivery.maxPortions} học sinh
+            </strong>
+            . Đợt 2 đã giao bù <strong>{delivery.plannedPortions} suất</strong>{" "}
+            (Tiết kiệm {delivery.maxPortions - delivery.actualAttendance} suất ăn
+            so với định mức tối đa).
+          </Alert>
+        )}
 
       {/* 4. Khối Thông tin Chuyến giao & Xe của từng Nhà cung cấp (Mỗi NCC là 1 hàng độc lập) */}
       <Box className={styles.sectionWrapper}>
@@ -651,10 +616,10 @@ export default function DeliveryDetailView({
                         className={styles.infoLabel}
                         sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
                       >
-                        Tài xế &amp; Phương tiện:
+                        Phương tiện vận chuyển:
                       </Typography>
                       <Typography variant="body2" className={styles.infoValue}>
-                        {formatDriverVehicle(transport.driver, transport.vehicle)}
+                        {formatVehicle(transport.vehicle)}
                       </Typography>
                     </Box>
 
@@ -750,7 +715,7 @@ export default function DeliveryDetailView({
                       }}
                     >
                       <ShieldCheck size={17} color="#2563eb" />
-                      Hội đồng nghiệm thu 4 bên tại cổng trường (Xe {idx + 1}):
+                      Hội đồng nghiệm thu (Xe {idx + 1}):
                     </Typography>
                     <Chip
                       label="Cổng tiếp nhận"
@@ -786,13 +751,12 @@ export default function DeliveryDetailView({
                       return (
                         <Box
                           key={r.key}
-                          className={`${styles.approvalCard} ${
-                            isApproved
+                          className={`${styles.approvalCard} ${isApproved
                               ? styles.approvedCard
                               : isRejected
                                 ? styles.rejectedCard
                                 : styles.pendingCard
-                          }`}
+                            }`}
                           sx={{ p: 1.25, borderRadius: 2 }}
                         >
                           <Box className={styles.cardTop} sx={{ mb: 0.5 }}>
