@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
 
@@ -19,7 +20,8 @@ export default function IngredientOrders() {
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
   const [deliveries, setDeliveries] = useState([])
   const [approvedMenus, setApprovedMenus] = useState([])
-  const [, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [detailLoading, setDetailLoading] = useState(false)
 
   // Sub-view: "list" (mặc định) | "create" | "detail"
   const [deliverySubView, setDeliverySubView] = useState("list")
@@ -142,6 +144,7 @@ export default function IngredientOrders() {
     setDeliverySubView("detail")
 
     if (!deliveryItem?.items || deliveryItem.items.length === 0) {
+      setDetailLoading(true)
       try {
         const fullDetail = await IngredientOrderService.getDeliveryDetail(
           deliveryItem.id,
@@ -152,6 +155,8 @@ export default function IngredientOrders() {
         }
       } catch (err) {
         console.warn("Lỗi tải chi tiết đơn hàng:", err)
+      } finally {
+        setDetailLoading(false)
       }
     }
   }
@@ -171,7 +176,7 @@ export default function IngredientOrders() {
       setDeliverySubView("list")
 
       notice({
-        msg: `Đã tạo Đơn mua hàng Đợt 1 ${res.orderNo} (Thực phẩm tươi sống ca sáng)! Bạn có thể tiếp tục tạo Đợt 2 khi GVCN chốt sĩ số sáng.`,
+        msg: `Đã tạo Phiếu nhập hàng Đợt 1 ${res.deliveryNo || res.orderNo} (Thực phẩm tươi sống ca sáng)! Bạn có thể tiếp tục tạo Đợt 2 khi GVCN chốt sĩ số sáng.`,
         isSuccess: true,
       })
     }
@@ -238,24 +243,48 @@ export default function IngredientOrders() {
             }}
           />
 
-          {/* Bảng Phiếu giao nhận */}
-          <DeliveryTable
-            deliveries={paginatedDeliveries}
-            onViewDetail={handleViewDetail}
-            onAddBatch2={item => {
-              setCreateTargetDate(String(item.deliveryDate || "").slice(0, 10))
-              setDeliverySubView("create")
-            }}
-          />
+          {/* Bảng Phiếu giao nhận hoặc Loading Spinner */}
+          {loading ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                py: 10,
+                gap: 2,
+                bgcolor: "#ffffff",
+                borderRadius: 3,
+                border: "1px solid #e2e8f0",
+                my: 2,
+              }}
+            >
+              <FoodPrintLoading size="large" />
+              <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+                Đang tải danh sách phiếu nhập thực phẩm tươi sống...
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              <DeliveryTable
+                deliveries={paginatedDeliveries}
+                onViewDetail={handleViewDetail}
+                onAddBatch2={item => {
+                  setCreateTargetDate(String(item.deliveryDate || "").slice(0, 10))
+                  setDeliverySubView("create")
+                }}
+              />
 
-          {/* Phân trang */}
-          <OrderPagination
-            page={page}
-            count={totalPages}
-            totalItems={filteredDeliveries.length}
-            pageSize={PAGE_SIZE}
-            onPageChange={setPage}
-          />
+              {/* Phân trang */}
+              <OrderPagination
+                page={page}
+                count={totalPages}
+                totalItems={filteredDeliveries.length}
+                pageSize={PAGE_SIZE}
+                onPageChange={setPage}
+              />
+            </>
+          )}
         </>
       )}
 
@@ -273,11 +302,33 @@ export default function IngredientOrders() {
 
       {/* Sub-view 3: Chi tiết Phiếu giao nhận & Nghiệm thu 4 bên */}
       {deliverySubView === "detail" && selectedDelivery && (
-        <DeliveryDetailView
-          delivery={selectedDelivery}
-          onBack={handleBackToList}
-          onConfirmAttendance={handleConfirmAttendance}
-        />
+        detailLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              py: 12,
+              gap: 2,
+              bgcolor: "#ffffff",
+              borderRadius: 3,
+              border: "1px solid #e2e8f0",
+              my: 2,
+            }}
+          >
+            <FoodPrintLoading size="large" />
+            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+              Đang tải chi tiết phiếu nhập hàng và danh sách nguyên liệu...
+            </Typography>
+          </Box>
+        ) : (
+          <DeliveryDetailView
+            delivery={selectedDelivery}
+            onBack={handleBackToList}
+            onConfirmAttendance={handleConfirmAttendance}
+          />
+        )
       )}
     </Box>
   )

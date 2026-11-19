@@ -17,6 +17,7 @@ import {
   TextField,
   TableContainer,
   Tooltip,
+  CircularProgress,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -28,7 +29,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Thermometer,
   Truck,
   Printer,
   Calendar,
@@ -38,6 +38,33 @@ import {
   ChefHat,
 } from "lucide-react";
 import styles from "./DeliveryDetailView.module.scss";
+
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
+// Helper format giờ HH:mm
+const formatTimeStr = (isoString) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (!isNaN(d.getTime())) {
+      const h = String(d.getHours()).padStart(2, "0");
+      const m = String(d.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+  } catch {
+    // fallback
+  }
+  return "";
+};
 
 // Helper định dạng định lượng/suất: nếu đơn vị là kg thì quy đổi sang gam (g), tổng vẫn giữ kg
 const formatPortionRate = (rate, unit) => {
@@ -148,24 +175,46 @@ export default function DeliveryDetailView({
 
     if (!hasDispatched && !delivery.vehiclePlate) {
       return {
-        driver: "Chưa phân công (Chờ NCC điều xe)",
-        phone: "--",
-        vehicle: "Chưa điều xe",
-        temp: "Chưa đo (Chờ xe tới)",
+        driver:
+          delivery.driverName &&
+          delivery.driverName !== "Chưa phân công (Chờ NCC điều xe)"
+            ? `${delivery.driverName}${delivery.driverPhone ? ` (${delivery.driverPhone})` : ""}`
+            : "Chưa phân công (Chờ NCC điều xe)",
+        phone: delivery.driverPhone || delivery.phone || "--",
+        vehicle: delivery.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
+        expectedTime: delivery.expectedArrivalAt
+          ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
+          : "Chờ NCC cập nhật",
         qrCode: `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
       };
     }
 
     return {
-      driver: delivery.driverName || "Tài xế NCC",
+      driver:
+        delivery.driverName &&
+        delivery.driverName !== "Chưa phân công (Chờ NCC điều xe)"
+          ? `${delivery.driverName}${delivery.driverPhone ? ` (${delivery.driverPhone})` : ""}`
+          : "Tài xế NCC",
       phone: delivery.driverPhone || delivery.phone || "--",
-      vehicle: delivery.vehiclePlate || "Xe giao hàng",
-      temp: delivery.refrigerationTemp || "--",
+      vehicle: delivery.vehiclePlate || "Chưa có biển số xe",
+      expectedTime: delivery.expectedArrivalAt
+        ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
+        : delivery.deliveryTime
+          ? `${delivery.deliveryTime} — Ngày ${formatDateVN(delivery.deliveryDate)}`
+          : "Chờ NCC cập nhật",
       qrCode:
         delivery.deliveryQr ||
         `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
     };
   };
+
+  const displayNote = useMemo(() => {
+    const raw = String(delivery?.note || delivery?.menuName || "").trim();
+    const cleaned = raw
+      .replace(/^Lịch hẹn giao:[^.\n]*?(\.|\n|$)\s*/i, "")
+      .trim();
+    return cleaned || "Không có ghi chú thêm";
+  }, [delivery?.note, delivery?.menuName]);
 
   if (!delivery) return null;
 
@@ -199,32 +248,39 @@ export default function DeliveryDetailView({
     }
   };
 
-  const roles = [
-    {
-      key: "ingredientManagement",
-      title: "1. Ban QL Nguyên liệu",
-      icon: <ShieldCheck size={20} />,
-      data: approvals.ingredientManagement,
-    },
-    {
-      key: "healthOfficer",
-      title: "2. Y tế học đường",
-      icon: <Stethoscope size={20} />,
-      data: approvals.healthOfficer,
-    },
-    {
-      key: "parentsCommittee",
-      title: "3. Đại diện Ban Phụ huynh",
-      icon: <HeartHandshake size={20} />,
-      data: approvals.parentsCommittee,
-    },
-    {
-      key: "kitchenStaff",
-      title: "4. Đại diện Nhà Bếp",
-      icon: <Utensils size={20} />,
-      data: approvals.kitchenStaff,
-    },
-  ];
+  const getRolesForSupplier = (sName) => {
+    const sApp =
+      delivery.supplierApprovals?.[sName] ||
+      delivery.supplierApprovals?.[sName?.toLowerCase()] ||
+      delivery.approvals ||
+      {};
+    return [
+      {
+        key: "ingredientManagement",
+        title: "1. Ban QL Nguyên liệu",
+        icon: <ShieldCheck size={16} />,
+        data: sApp.ingredientManagement,
+      },
+      {
+        key: "healthOfficer",
+        title: "2. Y tế học đường",
+        icon: <Stethoscope size={16} />,
+        data: sApp.healthOfficer,
+      },
+      {
+        key: "parentsCommittee",
+        title: "3. Ban Phụ huynh",
+        icon: <HeartHandshake size={16} />,
+        data: sApp.parentsCommittee,
+      },
+      {
+        key: "kitchenStaff",
+        title: "4. Đại diện Nhà Bếp",
+        icon: <Utensils size={16} />,
+        data: sApp.kitchenStaff,
+      },
+    ];
+  };
 
   return (
     <Box className={styles.container}>
@@ -268,9 +324,6 @@ export default function DeliveryDetailView({
                 />
               )}
             </Box>
-            <Typography variant="body2" className={styles.subTitle}>
-              Mã đặt hàng theo đợt: <strong>{delivery.orderNo}</strong>
-            </Typography>
             {Array.isArray(delivery.menusSummary) &&
               delivery.menusSummary.length > 1 && (
                 <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
@@ -398,6 +451,11 @@ export default function DeliveryDetailView({
                 onClick={handleConfirm}
                 disabled={updating}
                 className={styles.confirmAttendanceBtn}
+                startIcon={
+                  updating ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : null
+                }
               >
                 {updating
                   ? "Đang cập nhật..."
@@ -408,7 +466,11 @@ export default function DeliveryDetailView({
         </Paper>
       )}
 
-      {isBatch2 && !isWaitingAttendance && delivery.actualAttendance && (
+      {Boolean(
+        isBatch2 &&
+          !isWaitingAttendance &&
+          Number(delivery.actualAttendance) > 0,
+      ) && (
         <Alert
           severity="success"
           icon={<CheckCircle2 size={18} />}
@@ -424,23 +486,20 @@ export default function DeliveryDetailView({
         </Alert>
       )}
 
-      {/* 4. Khối Thông tin Chuyến giao & Xe của từng Nhà cung cấp (Mỗi NCC hiện 1 ô) */}
+      {/* 4. Khối Thông tin Chuyến giao & Xe của từng Nhà cung cấp (Mỗi NCC là 1 hàng độc lập) */}
       <Box className={styles.sectionWrapper}>
         <Box className={styles.sectionTitleRow}>
           <Typography variant="h6" className={styles.sectionHeading}>
-            Thông Tin Vận Chuyển &amp; Xe Giao Hàng (
+            Thông Tin Vận Chuyển &amp; Nghiệm Thu Từng Xe (
             {Object.keys(itemsBySupplier).length} Nhà cung cấp)
           </Typography>
         </Box>
 
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns:
-              Object.keys(itemsBySupplier).length === 1
-                ? "1fr"
-                : "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2.5,
           }}
         >
           {Object.entries(itemsBySupplier).map(([sName, sItems], idx) => {
@@ -453,12 +512,13 @@ export default function DeliveryDetailView({
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
-                  p: 2.2,
+                  gap: 2,
+                  p: 2.5,
                   borderRadius: 3,
                   border: "1px solid #e2e8f0",
                 }}
               >
+                {/* Header NCC & Badge Xe */}
                 <Box
                   sx={{
                     display: "flex",
@@ -466,206 +526,264 @@ export default function DeliveryDetailView({
                     alignItems: "center",
                   }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Truck size={18} color="#2563eb" />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Truck size={20} color="#2563eb" />
                     <Typography
-                      variant="subtitle2"
+                      variant="subtitle1"
                       sx={{
                         fontWeight: 750,
                         color: "#0f172a",
-                        fontSize: "0.95rem",
+                        fontSize: "1rem",
                       }}
                     >
                       {idx + 1}. {sName}
                     </Typography>
                   </Box>
                   <Chip
-                    label={`Xe ${idx + 1} • ${sItems.length} món`}
+                    label={`Xe ${idx + 1} • ${sItems.length} NL`}
                     size="small"
                     color="primary"
                     variant="outlined"
-                    sx={{ fontWeight: 600, fontSize: "0.72rem" }}
+                    sx={{ fontWeight: 600, fontSize: "0.75rem" }}
                   />
                 </Box>
                 <Divider className={styles.cardDivider} />
 
-                <Box className={styles.infoItem}>
-                  <Users size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Tài xế &amp; Phương tiện:
-                  </Typography>
-                  <Typography variant="body2" className={styles.infoValue}>
-                    {transport.driver}
-                  </Typography>
-
-
-                </Box>
-
-                <Box className={styles.infoItem}>
-                  <Thermometer size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Nhiệt độ thùng xe:
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    className={
-                      delivery.status === "REJECTED"
-                        ? styles.tempDanger
-                        : styles.infoValue
-                    }
-                  >
-                    {transport.temp}
-                  </Typography>
-                </Box>
-
-                <Box className={styles.infoItem}>
-                  <Calendar size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Thời gian giao:
-                  </Typography>
-                  <Typography variant="body2" className={styles.infoValue}>
-                    {delivery.deliveryTime} — Ngày {delivery.deliveryDate}
-                  </Typography>
-                </Box>
-                <Box className={styles.infoItem}>
-                  <Clock size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Ghi chú:
-                  </Typography>
-                  <Typography variant="body2" className={styles.infoValue}>
-                    {delivery.menuName}
-                  </Typography>
-                </Box>
-
-                {/* Mã QR Lô Hàng / Chuyến xe của NCC */}
+                {/* Thông tin chuyến xe (trái 2 cột) + Mã QR (phải) */}
                 <Box
                   sx={{
-                    mt: "auto",
-                    pt: 1,
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
+                    gap: 2.5,
                     alignItems: "center",
-                    gap: 1.5,
-                    p: 1.2,
-                    bgcolor: "#f0fdf4",
-                    borderRadius: 2,
-                    border: "1px solid #bbf7d0",
                   }}
                 >
-                  <QrCode size={34} color="#16a34a" />
-                  <Box>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
+                      gap: 1.5,
+                    }}
+                  >
+                    <Box className={styles.infoItem}>
+                      <Users size={16} className={styles.infoIcon} />
+                      <Typography variant="body2" className={styles.infoLabel}>
+                        Tài xế:
+                      </Typography>
+                      <Typography variant="body2" className={styles.infoValue}>
+                        {transport.driver}
+                      </Typography>
+                    </Box>
+
+                    <Box className={styles.infoItem}>
+                      <Truck size={16} className={styles.infoIcon} />
+                      <Typography variant="body2" className={styles.infoLabel}>
+                        Phương tiện:
+                      </Typography>
+                      <Typography variant="body2" className={styles.infoValue}>
+                        {transport.vehicle}
+                      </Typography>
+                    </Box>
+
+                    <Box className={styles.infoItem}>
+                      <Calendar size={16} className={styles.infoIcon} />
+                      <Typography variant="body2" className={styles.infoLabel}>
+                        Thời gian dự kiến:
+                      </Typography>
+                      <Typography variant="body2" className={styles.infoValue}>
+                        {transport.expectedTime}
+                      </Typography>
+                    </Box>
+
+                    <Box className={styles.infoItem}>
+                      <Clock size={16} className={styles.infoIcon} />
+                      <Typography variant="body2" className={styles.infoLabel}>
+                        Ghi chú:
+                      </Typography>
+                      <Typography variant="body2" className={styles.infoValue}>
+                        {displayNote}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Mã QR Lô Hàng / Chuyến xe của NCC */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      p: 1.5,
+                      bgcolor: "#f0fdf4",
+                      borderRadius: 2.5,
+                      border: "1px solid #bbf7d0",
+                      minWidth: { sm: 260 },
+                    }}
+                  >
+                    <QrCode size={38} color="#16a34a" />
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          color: "#166534",
+                          display: "block",
+                          fontSize: "0.825rem",
+                        }}
+                      >
+                        {transport.qrCode}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "#15803d", fontSize: "0.72rem" }}
+                      >
+                        Mã QR niêm phong xe &amp; kiểm dịch NCC
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+
+                <Divider className={styles.cardDivider} />
+
+                {/* Hội đồng nghiệm thu 4 bên riêng cho chuyến xe này (4 cột dàn đều ngang hàng) */}
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <Typography
-                      variant="caption"
+                      variant="subtitle2"
                       sx={{
-                        fontWeight: 700,
-                        color: "#166534",
-                        display: "block",
-                        fontSize: "0.8rem",
+                        fontWeight: 750,
+                        color: "#0f172a",
+                        fontSize: "0.875rem",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 0.75,
                       }}
                     >
-                      {transport.qrCode}
+                      <ShieldCheck size={17} color="#2563eb" />
+                      Hội đồng nghiệm thu 4 bên tại cổng trường (Xe {idx + 1}):
                     </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "#15803d", fontSize: "0.7rem" }}
-                    >
-                      Mã QR niêm phong xe &amp; kiểm dịch NCC
-                    </Typography>
+                    <Chip
+                      label="Cổng tiếp nhận"
+                      size="small"
+                      sx={{
+                        fontSize: "0.7rem",
+                        height: 22,
+                        bgcolor: "#f1f5f9",
+                        color: "#475569",
+                        fontWeight: 600,
+                      }}
+                    />
+                  </Box>
+
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: {
+                        xs: "1fr",
+                        sm: "repeat(2, 1fr)",
+                        md: "repeat(4, 1fr)",
+                      },
+                      gap: 1.25,
+                    }}
+                  >
+                    {getRolesForSupplier(sName).map((r) => {
+                      const data = r.data;
+                      const isApproved = data?.approved === true;
+                      const isRejected = data?.approved === false;
+                      const isPending =
+                        data?.approved === null || data?.approved === undefined;
+
+                      return (
+                        <Box
+                          key={r.key}
+                          className={`${styles.approvalCard} ${
+                            isApproved
+                              ? styles.approvedCard
+                              : isRejected
+                                ? styles.rejectedCard
+                                : styles.pendingCard
+                          }`}
+                          sx={{ p: 1.25, borderRadius: 2 }}
+                        >
+                          <Box className={styles.cardTop} sx={{ mb: 0.5 }}>
+                            <Box className={styles.roleTitleGroup} sx={{ gap: 0.6 }}>
+                              {r.icon}
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: "0.78rem",
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {r.title}
+                              </Typography>
+                            </Box>
+
+                            {isApproved && (
+                              <CheckCircle2 size={16} className={styles.checkIcon} />
+                            )}
+                            {isRejected && (
+                              <XCircle size={16} className={styles.rejectIcon} />
+                            )}
+                            {isPending && (
+                              <Clock size={16} className={styles.clockIcon} />
+                            )}
+                          </Box>
+
+                          <Divider sx={{ my: 0.5 }} />
+
+                          <Box className={styles.cardBottom}>
+                            {isApproved && (
+                              <>
+                                <Typography
+                                  variant="caption"
+                                  className={styles.signerName}
+                                  sx={{ fontSize: "0.74rem", fontWeight: 600, display: "block" }}
+                                >
+                                  {data?.name || "Đại diện đã ký"}
+                                </Typography>
+                                {data?.time && (
+                                  <Typography
+                                    variant="caption"
+                                    className={styles.signTime}
+                                    sx={{ fontSize: "0.68rem" }}
+                                  >
+                                    Ký lúc: {data.time}
+                                  </Typography>
+                                )}
+                              </>
+                            )}
+                            {isRejected && (
+                              <Typography
+                                variant="caption"
+                                className={styles.rejectSignText}
+                                sx={{ fontSize: "0.74rem", fontWeight: 700 }}
+                              >
+                                {data?.name || "TỪ CHỐI NHẬP HÀNG"}
+                              </Typography>
+                            )}
+                            {isPending && (
+                              <Typography
+                                variant="caption"
+                                className={styles.pendingSignText}
+                                sx={{ fontSize: "0.72rem" }}
+                              >
+                                Đang chờ đại diện kiểm tra...
+                              </Typography>
+                            )}
+                          </Box>
+                        </Box>
+                      );
+                    })}
                   </Box>
                 </Box>
               </Paper>
-            );
-          })}
-        </Box>
-      </Box>
-
-      {/* 5. HỘI ĐỒNG KIỂM TRA 4 BÊN TẠI CỔNG TRƯỜNG */}
-      <Box className={styles.sectionWrapper}>
-        <Box className={styles.sectionTitleRow}>
-          <Typography variant="h6" className={styles.sectionHeading}>
-            Hội Đồng Nghiệm Thu 4 Bên Tại Cổng Trường
-          </Typography>
-        </Box>
-
-        <Box className={styles.approvalsGrid}>
-          {roles.map((r) => {
-            const data = r.data;
-            const isApproved = data?.approved === true;
-            const isRejected = data?.approved === false;
-            const isPending =
-              data?.approved === null || data?.approved === undefined;
-
-            return (
-              <Box
-                key={r.key}
-                className={`${styles.approvalCard} ${isApproved
-                  ? styles.approvedCard
-                  : isRejected
-                    ? styles.rejectedCard
-                    : styles.pendingCard
-                  }`}
-              >
-                <Box className={styles.cardTop}>
-                  <Box className={styles.roleTitleGroup}>
-                    {r.icon}
-                    <Typography
-                      variant="subtitle2"
-                      className={styles.roleTitle}
-                    >
-                      {r.title}
-                    </Typography>
-                  </Box>
-
-                  {isApproved && (
-                    <CheckCircle2 size={20} className={styles.checkIcon} />
-                  )}
-                  {isRejected && (
-                    <XCircle size={20} className={styles.rejectIcon} />
-                  )}
-                  {isPending && (
-                    <Clock size={20} className={styles.clockIcon} />
-                  )}
-                </Box>
-
-                <Typography variant="caption" className={styles.roleDuty}>
-                  {r.roleDuty}
-                </Typography>
-
-                <Divider className={styles.roleDivider} />
-
-                <Box className={styles.cardBottom}>
-                  {isApproved && (
-                    <>
-                      <Typography variant="body2" className={styles.signerName}>
-                        {data?.name || "Đại diện đã ký"}
-                      </Typography>
-                      {data?.time && (
-                        <Typography
-                          variant="caption"
-                          className={styles.signTime}
-                        >
-                          Ký lúc: {data.time}
-                        </Typography>
-                      )}
-                    </>
-                  )}
-                  {isRejected && (
-                    <Typography
-                      variant="body2"
-                      className={styles.rejectSignText}
-                    >
-                      {data?.name || "TỪ CHỐI NHẬP HÀNG"}
-                    </Typography>
-                  )}
-                  {isPending && (
-                    <Typography
-                      variant="caption"
-                      className={styles.pendingSignText}
-                    >
-                      Đang chờ đại diện kiểm tra...
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
             );
           })}
         </Box>

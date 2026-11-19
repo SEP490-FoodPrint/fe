@@ -28,6 +28,17 @@ import {
 } from "lucide-react"
 import styles from "./DeliveryTable.module.scss"
 
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
 export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatch2 }) {
   // Render badge trạng thái 4 bên
   const renderApprovalMatrix = approvals => {
@@ -208,13 +219,10 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                   className={styles.tableRow}
                   onClick={() => onViewDetail && onViewDetail(item)}
                 >
-                  {/* Số phiếu & Đơn hàng */}
+                  {/* Mã nhập hàng */}
                   <TableCell>
                     <Typography variant="subtitle2" className={styles.deliveryNo}>
                       {item.deliveryNo}
-                    </Typography>
-                    <Typography variant="caption" className={styles.orderNo}>
-                      {item.orderNo}
                     </Typography>
                   </TableCell>
 
@@ -227,7 +235,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                         className={isBatch1 ? styles.batch1Chip : styles.batch2Chip}
                       />
                       <Typography variant="caption" className={styles.timeText}>
-                        {item.deliveryTime} • {item.deliveryDate}
+                        {item.deliveryTime} • {formatDateVN(item.deliveryDate)}
                       </Typography>
                     </Box>
                   </TableCell>

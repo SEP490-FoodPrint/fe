@@ -12,6 +12,7 @@ import {
   MenuItem,
   InputAdornment,
   Button,
+  Typography,
 } from "@mui/material"
 import {
   Package,
@@ -447,7 +448,25 @@ export default function WarehouseManage() {
 
               {/* Bảng Dữ liệu Tồn kho hoặc Loading */}
               {loading ? (
-                <FoodPrintLoading />
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 10,
+                    gap: 2,
+                    bgcolor: "#ffffff",
+                    borderRadius: 3,
+                    border: "1px solid #e2e8f0",
+                    my: 2,
+                  }}
+                >
+                  <FoodPrintLoading size="large" />
+                  <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+                    Đang tải danh sách tồn kho nguyên liệu đồ khô...
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   <WarehouseTable

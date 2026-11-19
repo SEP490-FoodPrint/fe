@@ -23,6 +23,7 @@ import {
   Autocomplete,
   IconButton,
   TableContainer,
+  CircularProgress,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -53,6 +54,17 @@ import {
 import IngredientOrderService from "src/services/IngredientOrderService";
 import notice from "src/components/Notice";
 import styles from "./CreateDeliveryView.module.scss";
+
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+export const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
 
 /**
  * Kiểm tra đơn vị đếm được (nguyên quả, nguyên con, gói, chai...)
@@ -1080,7 +1092,7 @@ export default function CreateDeliveryView({
             <CalendarCheck size={36} className={styles.completedIcon} />
             <Box>
               <Typography variant="h6" className={styles.completedTitle}>
-                Ngày {orderDate} Đã Hoàn Thành Lập Cả 2 Đợt Giao Hàng!
+                Ngày {formatDateVN(orderDate)} Đã Hoàn Thành Lập Cả 2 Đợt Giao Hàng!
               </Typography>
               <Typography variant="body2" className={styles.completedDesc}>
                 Đơn hàng đã được chia 2 đợt đầy đủ: Đợt 1 (
@@ -1117,7 +1129,7 @@ export default function CreateDeliveryView({
                 variant="h6"
                 sx={{ color: "#dc2626", fontWeight: 700 }}
               >
-                Đợt 1 Ngày {orderDate} Đã Bị Hủy Nghiệm Thu!
+                Đợt 1 Ngày {formatDateVN(orderDate)} Đã Bị Hủy Nghiệm Thu!
               </Typography>
               <Typography variant="body2" sx={{ color: "#475569", mt: 0.5 }}>
                 Đợt 1 của ngày này đã bị từ chối từ 2 bên trở lên trong Hội đồng
@@ -1507,7 +1519,13 @@ export default function CreateDeliveryView({
               <Button
                 onClick={handleSubmitBatch1}
                 variant="contained"
-                startIcon={<Send size={18} />}
+                startIcon={
+                  submitting ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <Send size={18} />
+                  )
+                }
                 disabled={submitting}
                 className={styles.submitBtn}
               >
@@ -1571,7 +1589,7 @@ export default function CreateDeliveryView({
                     </Alert>
                   ) : (
                     <Alert severity="info" icon={<Clock size={18} />}>
-                      Chưa có lớp nào chốt sĩ số điểm danh cho ngày {orderDate}.
+                      Chưa có lớp nào chốt sĩ số điểm danh cho ngày {formatDateVN(orderDate)}.
                       Khi GVCN các lớp chốt báo cơm, hệ thống sẽ tự động cập
                       nhật số suất cần giao.
                     </Alert>
@@ -1592,11 +1610,18 @@ export default function CreateDeliveryView({
                       mt: 0.5,
                     }}
                   >
-                    {attendanceLoading
-                      ? "Đang tải..."
-                      : parsedAttendance > 0
-                        ? `${parsedAttendance} học sinh`
-                        : "0 học sinh"}
+                    {attendanceLoading ? (
+                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
+                        <CircularProgress size={16} color="primary" />
+                        <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 600 }}>
+                          Đang tải sĩ số...
+                        </Typography>
+                      </Box>
+                    ) : parsedAttendance > 0 ? (
+                      `${parsedAttendance} học sinh`
+                    ) : (
+                      "0 học sinh"
+                    )}
                   </Typography>
                 </Box>
 
@@ -1751,7 +1776,7 @@ export default function CreateDeliveryView({
                     Chi Tiết Điểm Danh Báo Cơm Các Lớp
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Ngày: {orderDate} • Bữa trưa (LUNCH)
+                    Ngày: {formatDateVN(orderDate)} • Bữa trưa (LUNCH)
                   </Typography>
                 </Box>
               </Box>
@@ -2335,7 +2360,13 @@ export default function CreateDeliveryView({
                     onClick={handleSubmitBatch2}
                     variant="contained"
                     color="warning"
-                    startIcon={<Send size={18} />}
+                    startIcon={
+                  submitting ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <Send size={18} />
+                  )
+                }
                     disabled={submitting || parsedAttendance <= 0 || !attendanceReady}
                     className={styles.submitBtnBatch2}
                   >

@@ -329,12 +329,11 @@ export function adaptDeliveryItem(item) {
     id: item.id,
     deliveryNo: item.deliveryNo || "PN-UNKNOWN",
     orderNo:
+      item.deliveryNo ||
       item.orderNo ||
       item.requestNo ||
       item.SupplyRequest?.requestNo ||
-      (item.deliveryNo
-        ? `PO-${item.deliveryNo.replace(/^DEL-|^PN-/, "")}`
-        : "PO-UNKNOWN"),
+      "PN-UNKNOWN",
     menuId: item.menuId || "menu-live",
     menuIds: item.menuIds || (item.menuId ? [item.menuId] : []),
     menuName:
@@ -343,6 +342,7 @@ export function adaptDeliveryItem(item) {
       (batchType === "BATCH_1"
         ? "Thực đơn dinh dưỡng học đường (Đợt 1)"
         : "Thực đơn bổ sung (Đợt 2)"),
+    note: item.note || "",
     menusSummary: item.menusSummary || null,
     targetScope: item.targetScope || "",
     actualAttendanceByGrade: item.actualAttendanceByGrade || null,

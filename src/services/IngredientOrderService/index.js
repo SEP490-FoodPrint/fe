@@ -692,9 +692,9 @@ const IngredientOrderService = {
             ? String(so.requestedDeliveryDate).slice(0, 10)
             : getTodayStr();
 
-          // DeliveryNo hiển thị
+          // DeliveryNo hiển thị chuẩn PN-...
           const cleanNo = so.requestNo
-            ? so.requestNo.replace(/^PO-/, "")
+            ? so.requestNo.replace(/^PN-|^PO-|^DEL-/, "")
             : so.id;
           const deliveryNo = `PN-${cleanNo}`;
           const sName =
@@ -939,8 +939,10 @@ const IngredientOrderService = {
             id: fallbackDelivery?.id || first.id,
             deliveryNo:
               fallbackDelivery?.deliveryNo ||
-              `PN-${first.requestNo?.replace(/^PO-/, "")}`,
-            orderNo: fallbackDelivery?.orderNo || first.requestNo,
+              `PN-${first.requestNo?.replace(/^PN-|^PO-|^DEL-/, "")}`,
+            orderNo:
+              fallbackDelivery?.deliveryNo ||
+              `PN-${first.requestNo?.replace(/^PN-|^PO-|^DEL-/, "")}`,
             supplierId: first.supplierId,
             supplierName:
               suppliersList.length > 1
@@ -1037,7 +1039,7 @@ const IngredientOrderService = {
       ? String(orderDate).slice(0, 10)
       : getTodayStr();
     const deliveryDate = dateFormatted;
-    const orderNo = `PO-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+    const orderNo = `PN-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
 
     // Tải danh mục ingredient-entries, active partnerships và danh mục ingredients từ DB (đầy đủ các trang)
     const [entries, partnerships, allIngredients] = await Promise.all([
@@ -1127,9 +1129,8 @@ const IngredientOrderService = {
         }
       });
 
-      const noteText = note
-        ? `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. ${note}`.trim()
-        : `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 1 thực phẩm tươi sống`;
+      const noteText =
+        note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống";
 
       const payload = {
         supplierId: sId,
@@ -1162,6 +1163,7 @@ const IngredientOrderService = {
     return {
       success: true,
       orderNo,
+      deliveryNo: orderNo,
       attachedDryCount: 0,
     };
   },
@@ -1206,10 +1208,9 @@ const IngredientOrderService = {
       );
     }
 
-    const baseOrderNo = String(batch1Delivery.orderNo || "").replace(
-      /-D1(-\d+)?$/,
-      "",
-    );
+    const baseOrderNo = String(
+      batch1Delivery.deliveryNo || batch1Delivery.orderNo || "",
+    ).replace(/-D1(-\d+)?$/, "");
     const deliveryDate =
       orderDate ||
       batch1Delivery.deliveryDate ||
@@ -1313,9 +1314,9 @@ const IngredientOrderService = {
         }
       });
 
-      const noteText = note
-        ? `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. ${note}`.trim()
-        : `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)`;
+      const noteText =
+        note?.trim() ||
+        "Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)";
 
       const payload = {
         supplierId: sId,
