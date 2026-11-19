@@ -22,8 +22,36 @@ import {
   MapPin,
   Calendar,
   QrCode,
+  Clock,
 } from "lucide-react"
 import styles from "./TrackingDetailView.module.scss"
+
+// Helper gộp thông tin Tài xế & Phương tiện
+const formatDriverVehicle = (driver, vehicle) => {
+  const isDriverEmpty =
+    !driver ||
+    driver.includes("Chưa phân công") ||
+    driver.includes("Chờ") ||
+    driver === "Tài xế NCC" ||
+    driver === "--"
+  const isVehicleEmpty =
+    !vehicle ||
+    vehicle.includes("Chưa điều") ||
+    vehicle.includes("Chưa phân công") ||
+    vehicle.includes("Chờ") ||
+    vehicle === "--"
+
+  if (isDriverEmpty && isVehicleEmpty) {
+    return "Chưa phân công (Chờ NCC điều xe)"
+  }
+  if (!isDriverEmpty && !isVehicleEmpty) {
+    return `${driver} - ${vehicle}`
+  }
+  if (!isDriverEmpty) {
+    return `${driver} - Chờ gán phương tiện`
+  }
+  return `Chờ gán tài xế - ${vehicle}`
+}
 
 export default function TrackingDetailView({ item, inventoryItems = [], onBack }) {
   if (!item) return null
@@ -79,8 +107,56 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
   const supplierEntries = Object.entries(itemsBySupplier)
   const supplierCount = supplierEntries.length
 
+  // Ghi chú không lặp lại lịch hẹn giao
+  const displayNote = useMemo(() => {
+    const raw = String(item?.note || "").trim()
+    const cleaned = raw.replace(/^Lịch hẹn giao:[^.\n]*?(\.|\n|$)\s*/i, "").trim()
+    return cleaned || "Vận chuyển hàng khô, kiểm tra bao bì nguyên đai nguyên kiện."
+  }, [item?.note])
+
   // Lấy thông tin phương tiện, tài xế cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
+    const tMap = item?.transportsBySupplier || {}
+    const norm = String(sName || "").trim().toLowerCase()
+    const supInfo =
+      tMap[sName] ||
+      tMap[norm] ||
+      Object.entries(tMap).find(([k]) => {
+        const kNorm = String(k).trim().toLowerCase()
+        return kNorm === norm || norm.includes(kNorm) || kNorm.includes(norm)
+      })?.[1]
+
+    if (supInfo) {
+      const hasSpecificDispatched =
+        supInfo.hasDispatched ||
+        Boolean(supInfo.vehicle && !supInfo.vehicle.includes("Chưa phân công") && !supInfo.vehicle.includes("Chưa điều")) ||
+        supInfo.status === "IN_TRANSIT" ||
+        supInfo.status === "ARRIVED" ||
+        supInfo.status === "INSPECTING" ||
+        supInfo.status === "RECEIVED" ||
+        supInfo.status === "APPROVED" ||
+        supInfo.status === "COMPLETED"
+
+      const driverDisplay =
+        supInfo.driver && !supInfo.driver.includes("Chờ") && !supInfo.driver.includes("Chưa")
+          ? `${supInfo.driver}${supInfo.phone && supInfo.phone !== "--" && !supInfo.driver.includes("(") ? ` (${supInfo.phone})` : ""}`
+          : hasSpecificDispatched
+            ? "Tài xế NCC"
+            : "Chưa phân công (Chờ NCC điều xe)"
+
+      return {
+        driver: driverDisplay,
+        phone: supInfo.phone || "--",
+        vehicle:
+          supInfo.vehicle ||
+          (hasSpecificDispatched ? "Xe giao hàng NCC" : "Chưa phân công (Chờ NCC điều xe)"),
+        expectedTime: supInfo.expectedTime || item.deliverySchedule || "Chờ NCC cập nhật",
+        qrCode:
+          supInfo.qrCode ||
+          `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
+      }
+    }
+
     const isPending =
       item.status === "CREATED" ||
       item.status === "PENDING" ||
@@ -91,9 +167,8 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
       return {
         driver: "Chưa phân công (Chờ NCC điều xe)",
         phone: "--",
-        vehicle: "Chưa điều xe",
-        temp: "Chưa đo (Chờ xe tới)",
-        currentLocation: "Kho NCC (Chờ xác nhận đơn)",
+        vehicle: "Chưa phân công (Chờ NCC điều xe)",
+        expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
         qrCode: `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
       }
     }
@@ -106,37 +181,19 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
 
     if (isAccepted) {
       return {
-        driver: "Đang phân công",
+        driver: "Đang phân công (Chờ điều xe)",
         phone: "--",
-        vehicle: "Đang điều phối xe",
-        temp: "Chưa đo (Chờ xuất xe)",
-        currentLocation: "Kho NCC (Đang chuẩn bị hàng)",
+        vehicle: "Đang phân công (Chờ điều xe)",
+        expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
         qrCode: `QR-CONFIRMED-${item.deliveryNo || "DEL"}-0${idx + 1}`,
-      }
-    }
-
-    // Nếu chỉ có 1 NCC và đơn hàng đã có thông tin cụ thể từ hệ thống
-    if (item.driverName && item.driverName !== "--" && !item.driverName.includes("Chờ") && item.vehiclePlate) {
-      return {
-        driver: item.driverName,
-        phone: item.driverPhone || "--",
-        vehicle: item.vehiclePlate,
-        temp: item.refrigerationTemp || (item.orderType === "DRY_STOCK" ? "Nhiệt độ phòng (Khô ráo)" : "Chưa đo (Chờ xe tới)"),
-        currentLocation: item.currentLocation || "Đang di chuyển trên đường đến trường",
-        qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-01`,
       }
     }
 
     return {
       driver: item.driverName && !item.driverName.includes("Chờ") ? item.driverName : "Chưa phân công (Chờ NCC điều xe)",
       phone: item.driverPhone || "--",
-      vehicle: item.vehiclePlate || "Chưa điều xe",
-      temp:
-        item.refrigerationTemp ||
-        (item.orderType === "DRY_STOCK"
-          ? "Nhiệt độ phòng (Khô ráo)"
-          : "Chưa đo (Chờ xe tới)"),
-      currentLocation: item.currentLocation || "Chờ NCC xuất kho & điều xe",
+      vehicle: item.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
+      expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
       qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-0${idx + 1}`,
     }
   }
@@ -238,12 +295,9 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
 
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns:
-              supplierCount === 1
-                ? "1fr"
-                : "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2.5,
           }}
         >
           {supplierEntries.map(([sName, sItems], idx) => {
@@ -256,124 +310,132 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
-                  p: 2.2,
+                  gap: 2,
+                  p: 2.5,
                   borderRadius: 3,
                   border: "1px solid var(--border-default, #dce5e0)",
                 }}
               >
+                {/* Header NCC & Badge Xe */}
                 <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Truck size={18} color="var(--color-primary, #0a8066)" />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Truck size={20} color="var(--color-primary, #0a8066)" />
                     <Typography
-                      variant="subtitle2"
+                      variant="subtitle1"
                       sx={{
                         fontWeight: 700,
                         color: "var(--text-primary, #1d2b26)",
-                        fontSize: "0.95rem",
+                        fontSize: "1rem",
                       }}
                     >
                       {supplierCount > 1 ? `${idx + 1}. ${sName}` : sName}
                     </Typography>
                   </Box>
                   <Chip
-                    label={`Xe ${idx + 1} • ${sItems.length} món`}
+                    label={`Xe ${idx + 1} • ${sItems.length} NL`}
                     size="small"
                     color="primary"
                     variant="outlined"
-                    sx={{ fontWeight: 600, fontSize: "0.72rem" }}
+                    sx={{ fontWeight: 600, fontSize: "0.75rem" }}
                   />
                 </Box>
                 <Divider className={styles.cardDivider} />
 
-                <Box
-                  className={styles.infoRowGrid}
-                  sx={{
-                    gridTemplateColumns:
-                      supplierCount > 1
-                        ? "repeat(2, 1fr) !important"
-                        : "repeat(3, 1fr)",
-                    gap: 1.5,
-                  }}
-                >
-                  <Box className={styles.infoField}>
-                    <span className={styles.label}>Tài xế phụ trách:</span>
-                    <span className={styles.valueBold}>{transport.driver}</span>
-                  </Box>
-
-                  <Box className={styles.infoField}>
-                    <span className={styles.label}>Số điện thoại:</span>
-                    {transport.phone && transport.phone !== "--" ? (
-                      <span className={styles.phoneValue}>
-                        <a href={`tel:${transport.phone}`}>
-                          <Phone size={14} /> {transport.phone}
-                        </a>
-                      </span>
-                    ) : (
-                      <span className={styles.value}>--</span>
-                    )}
-                  </Box>
-
-                  <Box className={styles.infoField}>
-                    <span className={styles.label}>Biển số &amp; Loại xe:</span>
-                    <span className={styles.valueBold}>{transport.vehicle}</span>
-                  </Box>
-
-                  <Box className={styles.infoField}>
-                    <span className={styles.label}>Lịch hẹn giao:</span>
-                    <span className={styles.value}>
-                      <Calendar size={14} className={styles.inlineIcon} /> {item.deliverySchedule}
-                    </span>
-                  </Box>
-
-                  <Box className={styles.infoField}>
-                    <span className={styles.label}>Nhiệt độ thùng xe:</span>
-                    <span className={styles.value}>
-                      <Thermometer size={14} className={styles.inlineIcon} /> {transport.temp}
-                    </span>
-                  </Box>
-
-                  <Box className={styles.infoField}>
-                    <span className={styles.label}>Vị trí cập nhật:</span>
-                    <span className={styles.value}>
-                      <MapPin size={14} className={styles.inlineIcon} /> {transport.currentLocation}
-                    </span>
-                  </Box>
-                </Box>
-
-                {/* Mã QR Lô Hàng / Niêm phong xe của NCC */}
+                {/* 2 Cột: Bên trái là Thông tin vận chuyển, Bên phải là Mã QR */}
                 <Box
                   sx={{
-                    mt: "auto",
-                    pt: 1,
-                    display: "flex",
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
+                    gap: 3,
                     alignItems: "center",
-                    gap: 1.5,
-                    p: 1.2,
-                    bgcolor: "var(--color-primary-soft, #e8f5f1)",
-                    borderRadius: 2,
-                    border: "1px solid var(--border-default, #dce5e0)",
                   }}
                 >
-                  <QrCode size={30} color="var(--color-primary, #0a8066)" />
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 700,
-                        color: "var(--color-primary, #0a8066)",
-                        display: "block",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      {transport.qrCode}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: "var(--text-secondary, #52635c)", fontSize: "0.7rem" }}
-                    >
-                      Mã QR niêm phong xe &amp; kiểm dịch NCC
-                    </Typography>
+                  {/* Cột 1: Thông tin vận chuyển */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.25,
+                      minWidth: 0,
+                    }}
+                  >
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                      <Truck size={16} color="#64748b" style={{ flexShrink: 0 }} />
+                      <Typography
+                        variant="body2"
+                        sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
+                      >
+                        Tài xế &amp; Phương tiện:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                        {formatDriverVehicle(transport.driver, transport.vehicle)}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                      <Calendar size={16} color="#64748b" style={{ flexShrink: 0 }} />
+                      <Typography
+                        variant="body2"
+                        sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
+                      >
+                        Thời gian dự kiến:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                        {transport.expectedTime}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                      <Clock size={16} color="#64748b" style={{ flexShrink: 0 }} />
+                      <Typography
+                        variant="body2"
+                        sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
+                      >
+                        Ghi chú:
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                        {displayNote}
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  {/* Cột 2: Mã QR Lô Hàng / Niêm phong xe của NCC */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.75,
+                      p: 1.75,
+                      bgcolor: "var(--color-primary-soft, #e8f5f1)",
+                      borderRadius: 2.5,
+                      border: "1px solid var(--border-default, #bbf7d0)",
+                      minWidth: { xs: "auto", sm: 280, md: 300 },
+                      maxWidth: "100%",
+                      boxSizing: "border-box",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <QrCode size={40} color="var(--color-primary, #0a8066)" style={{ flexShrink: 0 }} />
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          color: "var(--color-primary, #0a8066)",
+                          display: "block",
+                          fontSize: "0.825rem",
+                          letterSpacing: "0.01em",
+                        }}
+                      >
+                        {transport.qrCode}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: "var(--text-secondary, #52635c)", fontSize: "0.72rem", display: "block", mt: 0.25 }}
+                      >
+                        Mã QR niêm phong xe &amp; kiểm dịch NCC
+                      </Typography>
+                    </Box>
                   </Box>
                 </Box>
               </Paper>

@@ -50,6 +50,34 @@ const formatDateVN = (dateInput) => {
   return str;
 };
 
+// Helper gộp thông tin Tài xế & Phương tiện
+const formatDriverVehicle = (driver, vehicle) => {
+  const isDriverEmpty =
+    !driver ||
+    driver === "Chưa phân công (Chờ NCC điều xe)" ||
+    driver === "Tài xế NCC" ||
+    driver === "--";
+  const isVehicleEmpty =
+    !vehicle ||
+    vehicle === "Chưa phân công (Chờ NCC điều xe)" ||
+    vehicle === "Chưa có biển số xe" ||
+    vehicle === "--";
+
+  if (isDriverEmpty && isVehicleEmpty) {
+    return "Chưa phân công (Chờ NCC điều xe)";
+  }
+
+  if (!isDriverEmpty && !isVehicleEmpty) {
+    return `${driver} - ${vehicle}`;
+  }
+
+  if (!isDriverEmpty) {
+    return `${driver} - Chờ gán xe`;
+  }
+
+  return `Chờ gán tài xế - ${vehicle}`;
+};
+
 // Helper format giờ HH:mm
 const formatTimeStr = (isoString) => {
   if (!isoString) return "";
@@ -165,6 +193,49 @@ export default function DeliveryDetailView({
 
   // Lấy thông tin xe, tài xế & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
+    // 1. Kiểm tra nếu có dữ liệu vận chuyển chi tiết của từng NCC trong đơn gộp
+    const tMap = delivery.transportsBySupplier || {};
+    const norm = String(sName || "").trim().toLowerCase();
+    const supInfo =
+      tMap[sName] ||
+      tMap[norm] ||
+      Object.entries(tMap).find(([k]) => {
+        const kNorm = String(k).trim().toLowerCase();
+        return kNorm === norm || norm.includes(kNorm) || kNorm.includes(norm);
+      })?.[1] ||
+      (Array.isArray(delivery.transportsList) ? delivery.transportsList[idx] : null);
+
+    if (supInfo) {
+      const hasSpecificDispatched =
+        supInfo.hasDispatched ||
+        Boolean(supInfo.vehicle && !supInfo.vehicle.includes("Chưa phân công")) ||
+        supInfo.status === "IN_TRANSIT" ||
+        supInfo.status === "ARRIVED" ||
+        supInfo.status === "INSPECTING" ||
+        supInfo.status === "RECEIVED" ||
+        supInfo.status === "APPROVED" ||
+        supInfo.status === "COMPLETED";
+
+      const driverDisplay =
+        supInfo.driver && supInfo.driver !== "Chưa phân công (Chờ NCC điều xe)"
+          ? `${supInfo.driver}${supInfo.phone && supInfo.phone !== "--" && !supInfo.driver.includes("(") ? ` (${supInfo.phone})` : ""}`
+          : hasSpecificDispatched
+            ? "Tài xế NCC"
+            : "Chưa phân công (Chờ NCC điều xe)";
+
+      return {
+        driver: driverDisplay,
+        phone: supInfo.phone || "--",
+        vehicle:
+          supInfo.vehicle ||
+          (hasSpecificDispatched ? "Xe giao hàng NCC" : "Chưa phân công (Chờ NCC điều xe)"),
+        expectedTime: supInfo.expectedTime || "Chờ NCC cập nhật",
+        qrCode:
+          supInfo.qrCode ||
+          `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+      };
+    }
+
     const hasDispatched =
       delivery.status === "IN_TRANSIT" ||
       delivery.status === "ARRIVED" ||
@@ -249,11 +320,17 @@ export default function DeliveryDetailView({
   };
 
   const getRolesForSupplier = (sName) => {
-    const sApp =
-      delivery.supplierApprovals?.[sName] ||
-      delivery.supplierApprovals?.[sName?.toLowerCase()] ||
-      delivery.approvals ||
-      {};
+    const sMap = delivery.supplierApprovals || {};
+    const norm = String(sName || "").trim().toLowerCase();
+    const matchedApp =
+      sMap[sName] ||
+      sMap[norm] ||
+      Object.entries(sMap).find(([k]) => {
+        const kNorm = String(k).trim().toLowerCase();
+        return kNorm === norm || norm.includes(kNorm) || kNorm.includes(norm);
+      })?.[1];
+
+    const sApp = matchedApp || delivery.approvals || {};
     return [
       {
         key: "ingredientManagement",
@@ -549,45 +626,45 @@ export default function DeliveryDetailView({
                 </Box>
                 <Divider className={styles.cardDivider} />
 
-                {/* Thông tin chuyến xe (trái 2 cột) + Mã QR (phải) */}
+                {/* 2 Cột: Bên trái là Thông tin vận chuyển, Bên phải là Mã QR */}
                 <Box
                   sx={{
                     display: "grid",
                     gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
-                    gap: 2.5,
+                    gap: 3,
                     alignItems: "center",
                   }}
                 >
+                  {/* Cột 1: Thông tin vận chuyển */}
                   <Box
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)" },
-                      gap: 1.5,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 1.25,
+                      minWidth: 0,
                     }}
                   >
                     <Box className={styles.infoItem}>
-                      <Users size={16} className={styles.infoIcon} />
-                      <Typography variant="body2" className={styles.infoLabel}>
-                        Tài xế:
-                      </Typography>
-                      <Typography variant="body2" className={styles.infoValue}>
-                        {transport.driver}
-                      </Typography>
-                    </Box>
-
-                    <Box className={styles.infoItem}>
                       <Truck size={16} className={styles.infoIcon} />
-                      <Typography variant="body2" className={styles.infoLabel}>
-                        Phương tiện:
+                      <Typography
+                        variant="body2"
+                        className={styles.infoLabel}
+                        sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
+                      >
+                        Tài xế &amp; Phương tiện:
                       </Typography>
                       <Typography variant="body2" className={styles.infoValue}>
-                        {transport.vehicle}
+                        {formatDriverVehicle(transport.driver, transport.vehicle)}
                       </Typography>
                     </Box>
 
                     <Box className={styles.infoItem}>
                       <Calendar size={16} className={styles.infoIcon} />
-                      <Typography variant="body2" className={styles.infoLabel}>
+                      <Typography
+                        variant="body2"
+                        className={styles.infoLabel}
+                        sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
+                      >
                         Thời gian dự kiến:
                       </Typography>
                       <Typography variant="body2" className={styles.infoValue}>
@@ -597,7 +674,11 @@ export default function DeliveryDetailView({
 
                     <Box className={styles.infoItem}>
                       <Clock size={16} className={styles.infoIcon} />
-                      <Typography variant="body2" className={styles.infoLabel}>
+                      <Typography
+                        variant="body2"
+                        className={styles.infoLabel}
+                        sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
+                      >
                         Ghi chú:
                       </Typography>
                       <Typography variant="body2" className={styles.infoValue}>
@@ -606,21 +687,24 @@ export default function DeliveryDetailView({
                     </Box>
                   </Box>
 
-                  {/* Mã QR Lô Hàng / Chuyến xe của NCC */}
+                  {/* Cột 2: Mã QR Lô Hàng / Chuyến xe của NCC */}
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 1.5,
-                      p: 1.5,
+                      gap: 1.75,
+                      p: 1.75,
                       bgcolor: "#f0fdf4",
                       borderRadius: 2.5,
                       border: "1px solid #bbf7d0",
-                      minWidth: { sm: 260 },
+                      minWidth: { xs: "auto", sm: 280, md: 300 },
+                      maxWidth: "100%",
+                      boxSizing: "border-box",
+                      flexShrink: 0,
                     }}
                   >
-                    <QrCode size={38} color="#16a34a" />
-                    <Box>
+                    <QrCode size={40} color="#16a34a" style={{ flexShrink: 0 }} />
+                    <Box sx={{ minWidth: 0 }}>
                       <Typography
                         variant="caption"
                         sx={{
@@ -628,13 +712,14 @@ export default function DeliveryDetailView({
                           color: "#166534",
                           display: "block",
                           fontSize: "0.825rem",
+                          letterSpacing: "0.01em",
                         }}
                       >
                         {transport.qrCode}
                       </Typography>
                       <Typography
                         variant="caption"
-                        sx={{ color: "#15803d", fontSize: "0.72rem" }}
+                        sx={{ color: "#15803d", fontSize: "0.72rem", display: "block", mt: 0.25 }}
                       >
                         Mã QR niêm phong xe &amp; kiểm dịch NCC
                       </Typography>

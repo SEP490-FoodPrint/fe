@@ -325,15 +325,48 @@ export function adaptDeliveryItem(item) {
     new Set(items.map((i) => i.supplierName).filter(Boolean)),
   );
 
+  // Chuẩn hóa mã phiếu: Ưu tiên tuyệt đối mã chuẩn PN-... của trường học, không để mã FP- của NCC đè lên
+  const findPnCode = (...codes) => {
+    for (const c of codes) {
+      if (!c) continue;
+      const s = String(c).trim();
+      if (/^PN-/i.test(s)) return s;
+      if (/^PO-/i.test(s)) return s.replace(/^PO-/i, "PN-");
+    }
+    for (const c of codes) {
+      if (!c) continue;
+      const s = String(c).trim();
+      if (!/^FP-/i.test(s)) return s.replace(/^PO-|^DEL-/, "PN-");
+    }
+    return "";
+  };
+
+  const rawPn = findPnCode(
+    item.orderNo,
+    item.requestNo,
+    item.SupplyRequest?.requestNo,
+    item.deliveryNo,
+  );
+
+  const cleanDeliveryNo =
+    rawPn ||
+    (item.deliveryNo
+      ? `PN-${String(item.deliveryNo).replace(/^FP-DE-|^FP-|^DEL-/, "")}`
+      : "PN-UNKNOWN");
+  const baseOrderNo = cleanDeliveryNo.replace(/-\d+$/, "");
+
   return {
     id: item.id,
-    deliveryNo: item.deliveryNo || "PN-UNKNOWN",
-    orderNo:
-      item.deliveryNo ||
-      item.orderNo ||
-      item.requestNo ||
-      item.SupplyRequest?.requestNo ||
-      "PN-UNKNOWN",
+    deliveryNo: cleanDeliveryNo,
+    orderNo: baseOrderNo,
+    supplierDeliveryNo: item.deliveryNo,
+    deliveryQr: item.deliveryQr || item.deliveryNo || `QR-${cleanDeliveryNo}`,
+    driverName: item.driverName || "Chưa phân công (Chờ NCC điều xe)",
+    driverPhone: item.driverPhone || item.phone || "--",
+    vehiclePlate: item.vehiclePlate || "",
+    expectedArrivalAt: item.expectedArrivalAt || null,
+    arrivedAt: item.arrivedAt || null,
+    receivedAt: item.receivedAt || null,
     menuId: item.menuId || "menu-live",
     menuIds: item.menuIds || (item.menuId ? [item.menuId] : []),
     menuName:

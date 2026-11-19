@@ -138,7 +138,7 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
               {/* Cột 1: Mã Phiếu (Gọn gàng, chỉ hiển thị mã định danh chính) */}
               <TableCell className={styles.tdCell}>
                 <Typography className={styles.orderNo}>
-                  {item.orderNo || item.deliveryNo}
+                  {String(item.orderNo || item.deliveryNo || "PN-UNKNOWN").replace(/^PO-/, "PN-").replace(/-\d+$/, "")}
                 </Typography>
               </TableCell>
 
