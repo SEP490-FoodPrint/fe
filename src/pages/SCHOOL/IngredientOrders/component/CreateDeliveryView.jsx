@@ -1192,6 +1192,7 @@ export default function CreateDeliveryView({
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell>Tên thực phẩm</TableCell>
+                    <TableCell>Nhà cung cấp đối tác</TableCell>
                     <TableCell align="center" style={{ width: 145 }}>
                       Định lượng / 1 Suất
                     </TableCell>
@@ -1200,9 +1201,10 @@ export default function CreateDeliveryView({
                       className={styles.batch1Col}
                       style={{ width: 160 }}
                     >
-                      Số lượng Đợt 1 ({batch1Portions} suất)
+                      SL theo suất
+                      <br />
+                      ({batch1Portions} suất)
                     </TableCell>
-                    <TableCell>Nhà cung cấp đối tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1222,6 +1224,15 @@ export default function CreateDeliveryView({
                               className={styles.ingName}
                             >
                               {ing.name}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              className={styles.supplierText}
+                            >
+                              {ing.supplierName}
                             </Typography>
                           </TableCell>
 
@@ -1355,15 +1366,6 @@ export default function CreateDeliveryView({
                                 />
                               </Box>
                             )}
-                          </TableCell>
-
-                          <TableCell>
-                            <Typography
-                              variant="body2"
-                              className={styles.supplierText}
-                            >
-                              {ing.supplierName}
-                            </Typography>
                           </TableCell>
                         </TableRow>
 
@@ -1965,15 +1967,14 @@ export default function CreateDeliveryView({
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell>Tên thực phẩm</TableCell>
-                    <TableCell align="center" style={{ width: 145 }}>
-                      Định lượng / 1 Suất
-                    </TableCell>
                     <TableCell
                       align="right"
                       className={styles.batch2Col}
                       style={{ width: 160 }}
                     >
-                      SL theo suất ({remainingPortions} suất)
+                      SL theo suất
+                      <br />
+                      ({remainingPortions} suất)
                     </TableCell>
                     <TableCell
                       align="right"
@@ -2010,6 +2011,7 @@ export default function CreateDeliveryView({
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 1,
+                                flexWrap: "wrap",
                               }}
                             >
                               <Typography
@@ -2030,68 +2032,48 @@ export default function CreateDeliveryView({
                                   }}
                                 />
                               )}
-                            </Box>
-                          </TableCell>
-
-                          {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
-                          <TableCell align="center">
-                            {ing.isExtraItem ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: "#94a3b8", fontWeight: 500 }}
-                              >
-                                —
-                              </Typography>
-                            ) : isMulti ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: 0.5,
-                                }}
-                              >
-                                <Chip
-                                  icon={<Layers size={12} />}
-                                  label={`${ing.breakdown?.length || 2} thực đơn`}
-                                  size="small"
-                                  onClick={() => toggleExpandRow(ing.id)}
+                              {isMulti && (
+                                <Box
                                   sx={{
-                                    cursor: "pointer",
-                                    bgcolor: "#eff6ff",
-                                    color: "#1d4ed8",
-                                    fontWeight: 700,
-                                    fontSize: "0.75rem",
-                                    height: 22,
-                                    border: "1px solid #bfdbfe",
-                                    "&:hover": { bgcolor: "#dbeafe" },
-                                  }}
-                                />
-                                <Button
-                                  size="small"
-                                  variant="text"
-                                  onClick={() => toggleExpandRow(ing.id)}
-                                  sx={{
-                                    fontSize: "0.6875rem",
-                                    p: 0,
-                                    minWidth: 0,
-                                    textTransform: "none",
-                                    color: "#2563eb",
-                                    fontWeight: 600,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
                                   }}
                                 >
-                                  {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
-                                </Button>
-                              </Box>
-                            ) : (
-                              <Typography
-                                variant="body2"
-                                className={styles.readOnlyPortionText}
-                              >
-                                {formatPortionRate(ing.qtyPerPortion, ing.unit)}
-                                /suất
-                              </Typography>
-                            )}
+                                  <Chip
+                                    icon={<Layers size={12} />}
+                                    label={`${ing.breakdown?.length || 2} thực đơn`}
+                                    size="small"
+                                    onClick={() => toggleExpandRow(ing.id)}
+                                    sx={{
+                                      cursor: "pointer",
+                                      bgcolor: "#eff6ff",
+                                      color: "#1d4ed8",
+                                      fontWeight: 700,
+                                      fontSize: "0.75rem",
+                                      height: 22,
+                                      border: "1px solid #bfdbfe",
+                                      "&:hover": { bgcolor: "#dbeafe" },
+                                    }}
+                                  />
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={() => toggleExpandRow(ing.id)}
+                                    sx={{
+                                      fontSize: "0.6875rem",
+                                      p: 0,
+                                      minWidth: 0,
+                                      textTransform: "none",
+                                      color: "#2563eb",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                                  </Button>
+                                </Box>
+                              )}
+                            </Box>
                           </TableCell>
 
                           {/* Cột 2: Số lượng theo suất Đợt 2 (KHÓA: Tự động tính theo Sĩ số bù, không cho sửa) */}
@@ -2205,7 +2187,7 @@ export default function CreateDeliveryView({
                         {isExpanded && isMulti && (
                           <TableRow sx={{ bgcolor: "#f8fafc" }}>
                             <TableCell
-                              colSpan={7}
+                              colSpan={6}
                               sx={{
                                 py: 1.25,
                                 px: 3,
@@ -2348,7 +2330,7 @@ export default function CreateDeliveryView({
                     disabled={submitting || parsedAttendance <= 0 || !attendanceReady}
                     className={styles.submitBtnBatch2}
                   >
-                    {submitting ? "Đang gửi..." : "Chốt đơn Đợt 2 & Gửi NCC"}
+                    {submitting ? "Đang gửi..." : "Tạo"}
                   </Button>
                 </span>
               </Tooltip>

@@ -169,7 +169,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
           <TableRow className={styles.headerRow}>
             <TableCell>Mã nhập hàng</TableCell>
             <TableCell>Đợt giao &amp; Thời gian</TableCell>
-            <TableCell align="center">Kiểm tra 4 bên</TableCell>
+            <TableCell align="center">Kiểm tra</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="center">Thao tác</TableCell>
           </TableRow>
