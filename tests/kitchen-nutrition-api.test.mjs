@@ -101,12 +101,31 @@ test("weekly schedule requests and cache distinguish menus for the same week", a
   assert.equal(requests.at(-1).params.gradeIds, [id(50), id(52)].join(","))
 })
 
-test("approval list reads every page and labels menus with their grade scope", async () => {
-  respond = config => ({ items: [{ id: id(config.params.page), status: "PENDING_APPROVAL", weekStartDate: "2026-11-09", grades: [{ grade: { name: `Khối ${config.params.page}` } }] }], pagination: { totalItems: 2 } })
-  const rows = await menus.getApprovalWeeks()
-  assert.equal(rows.length, 2)
-  assert.deepEqual(rows.map(row => row.gradeNames), [["Khối 1"], ["Khối 2"]])
-  assert.deepEqual(requests.map(config => config.params.page), [1, 2])
+test("approval week loads every grade menu of a week in one request and renders one card per grade", async () => {
+  const menu = (n, status) => ({ id: id(n), title: null, isSchoolWide: false, grades: [{ id: id(50 + n), name: `Khối ${n}` }], status, canDecide: status === "PENDING_APPROVAL", submittedAt: "30/10/2026 08:00", submissionVersion: null, summary: { proposer: "Y tế", supplier: "2 nhà cung cấp" }, days: [{ id: id(90 + n), shortLabel: "Thứ Hai", date: "02/11/2026", portions: 10, lunch: [{ name: `Cơm ${n}` }], snack: [] }], approval: { approver: null, role: "Ban Giám hiệu", note: "", reviewedAt: null } })
+  respond = config => {
+    assert.equal(config.url, "/v1/menus/approval-week")
+    return { weekStartDate: "2026-11-02", weekEndDate: "2026-11-06", weekNumber: 9, weeks: [{ weekStartDate: "2026-11-02", weekEndDate: "2026-11-06", total: 2, pending: 1 }], menus: [menu(1, "PENDING_APPROVAL"), menu(2, "APPROVED")] }
+  }
+  const week = await menus.getApprovalWeek("2026-11-06")
+  assert.equal(requests.length, 1)
+  assert.deepEqual(requests[0].params, { date: "2026-11-06" })
+  assert.equal(week.menus.length, 2)
+
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Header } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuApproval/component/MenuApprovalHeader.jsx")
+  const { default: Card } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuApproval/component/GradeMenuCard.jsx")
+  const header = renderToStaticMarkup(React.createElement(Header, { week, pendingCount: 1, totalCount: 2, onPrint: () => {} }))
+  assert.match(header, /Duyệt thực đơn tuần 9 \(02\/11\/2026 – 06\/11\/2026\)/)
+  const cards = week.menus.map((item, index) => renderToStaticMarkup(React.createElement(Card, { menu: item, position: index + 1, total: 2, onApprove: () => {}, onReject: () => {} })))
+  assert.match(cards[0], /Khối 1/)
+  assert.match(cards[0], /Thực đơn 1\/2/)
+  assert.match(cards[0], /Phê duyệt/)
+  assert.match(cards[0], /Cơm 1/)
+  // Thực đơn đã duyệt không còn nút quyết định; tên khối đứng trước bảng món
+  assert.doesNotMatch(cards[1], /Yêu cầu chỉnh sửa<\/button>/)
+  assert.ok(cards[1].indexOf("Khối 2") < cards[1].indexOf("Cơm 2"))
 })
 
 test("menu planning can load all grade menus without changing ordinary pagination", async () => {

@@ -32,3 +32,6 @@ export const apiMealRequirements = (menuDayId, mealType) =>
 
 // Hồ sơ duyệt thực đơn tuần của Ban Giám Hiệu
 export const apiGetMenuApprovalDetail = menuId => `/v1/menus/${menuId}/approval-detail`
+
+// Chi tiết mọi thực đơn đã gửi của một tuần (date: ngày bất kỳ trong tuần)
+export const apiGetMenuApprovalWeek = "/v1/menus/approval-week"

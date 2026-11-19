@@ -1,207 +1,160 @@
-import { menuGradeOptions } from "src/components/MenuScopeSelect";
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Skeleton } from "@mui/material"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
+import ApprovalFilterBar from "./component/ApprovalFilterBar"
 import DecisionDialog from "./component/DecisionDialog"
+import GradeMenuCard from "./component/GradeMenuCard"
 import MenuApprovalHeader from "./component/MenuApprovalHeader"
-import MenuReview from "./component/MenuReview"
-import MenuSchedule from "./component/MenuSchedule"
-import MenuSummary from "./component/MenuSummary"
+import { menuScopeLabel } from "src/utils/approvalWeek"
 import "./style.scss"
 
-// Ưu tiên tuần chờ duyệt gần nhất; nếu không có tuần chờ thì mở tuần gần nhất
-const pickDefaultWeek = weeks => {
-  if (!weeks || !weeks.length) return null
-  const pending = weeks.filter(week => week.status === "PENDING_APPROVAL")
-  if (pending.length > 0) {
-    const sortedPending = [...pending].sort(
-      (a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime(),
-    )
-    return sortedPending[0].id
-  }
-  const sortedAll = [...weeks].sort(
-    (a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime(),
+const EMPTY_WEEK = { weekStartDate: null, weekEndDate: null, weekNumber: null, weeks: [], menus: [] }
+
+// Thực đơn toàn trường áp dụng cho mọi khối nên luôn khớp bộ lọc khối
+const matchesGrade = (menu, gradeId) =>
+  !gradeId || menu.isSchoolWide || !menu.grades?.length || menu.grades.some(grade => grade.id === gradeId)
+
+const errorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback
+
+function ListSkeleton() {
+  return (
+    <div className="menu-approval-page__list" aria-busy="true">
+      <Skeleton variant="rounded" height={320} />
+      <Skeleton variant="rounded" height={320} />
+    </div>
   )
-  return sortedAll[0].id
 }
 
+// Ban Giám hiệu duyệt theo tuần: một tuần gồm N thực đơn (mỗi thực đơn cho một hoặc nhiều khối)
 function MenuApproval() {
-  const [weeks, setWeeks] = useState([])
-  const [gradeFilter, setGradeFilter] = useState("")
-  const [grades, setGrades] = useState([])
-  const [gradeError, setGradeError] = useState("")
-  useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, [])
-  const gradeOptions = useMemo(() => menuGradeOptions(weeks, grades).filter((option) => !option.key.startsWith("school:")), [weeks, grades])
-  const filteredWeeks = useMemo(() => gradeFilter ? weeks.filter((week) => !week.gradeIds?.length || week.gradeIds.includes(gradeFilter)) : weeks, [weeks, gradeFilter])
-  const [menuId, setMenuId] = useState(null)
-  const [menu, setMenu] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [week, setWeek] = useState(EMPTY_WEEK)
+  const [initialLoading, setInitialLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [gradeFilter, setGradeFilter] = useState("")
+  const [schoolGrades, setSchoolGrades] = useState([])
   const [dialog, setDialog] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
+  const [submittingId, setSubmittingId] = useState(null)
+  const requestSeq = useRef(0)
   const submitLock = useRef(false)
 
-  useEffect(() => {
-    let mounted = true
-
-    const loadWeeks = async () => {
-      setLoading(true)
-      setError("")
-      try {
-        const items = await MenuService.getApprovalWeeks()
-        if (!mounted) return
-        const sortedWeeks = [...items].sort(
-          (a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime(),
-        )
-        setWeeks(sortedWeeks)
-        setMenuId(pickDefaultWeek(sortedWeeks))
-        if (!sortedWeeks.length) setLoading(false)
-      } catch (requestError) {
-        if (mounted) {
-          setError(
-            requestError?.response?.data?.message ||
-              "Không thể tải danh sách tuần thực đơn. Vui lòng thử lại.",
-          )
-          setLoading(false)
-        }
+  // Chỉ nhận kết quả của lần tải mới nhất khi người dùng chuyển tuần liên tục
+  const loadWeek = useCallback(async (date, { silent = false } = {}) => {
+    const seq = ++requestSeq.current
+    if (!silent) setLoading(true)
+    setError("")
+    try {
+      const data = await MenuService.getApprovalWeek(date)
+      if (seq !== requestSeq.current) return
+      setWeek({ ...EMPTY_WEEK, ...data })
+    } catch (requestError) {
+      if (seq !== requestSeq.current) return
+      if (silent) throw requestError
+      setError(errorMessage(requestError, "Không thể tải thực đơn của tuần. Vui lòng thử lại."))
+    } finally {
+      if (seq === requestSeq.current) {
+        setLoading(false)
+        setInitialLoading(false)
       }
-    }
-
-    loadWeeks()
-    return () => {
-      mounted = false
     }
   }, [])
 
   useEffect(() => {
-    if (!menuId) return undefined
-    let mounted = true
+    loadWeek()
+  }, [loadWeek])
 
-    const loadMenu = async () => {
-      setLoading(true)
-      setError("")
-      try {
-        const response = await MenuService.getApprovalDetail(menuId)
-        if (mounted) setMenu(response?.data || response)
-      } catch (requestError) {
-        if (mounted) {
-          setError(
-            requestError?.response?.data?.message ||
-              "Không thể tải hồ sơ thực đơn. Vui lòng thử lại.",
-          )
-        }
-      } finally {
-        if (mounted) setLoading(false)
-      }
-    }
+  // Danh sách khối của trường cho bộ lọc; lỗi ở đây không chặn trang (dùng khối có trong tuần)
+  useEffect(() => {
+    let active = true
+    MenuService.getContext({ forceRefresh: true })
+      .then(data => { if (active) setSchoolGrades(data?.grades || []) })
+      .catch(() => {})
+    return () => { active = false }
+  }, [])
 
-    loadMenu()
-    return () => {
-      mounted = false
-    }
-  }, [menuId])
+  const gradeOptions = useMemo(() => {
+    if (schoolGrades.length) return schoolGrades.map(grade => ({ id: grade.id, name: grade.name }))
+    const fromMenus = new Map()
+    week.menus.forEach(menu => menu.grades?.forEach(grade => fromMenus.set(grade.id, grade)))
+    return [...fromMenus.values()]
+  }, [schoolGrades, week.menus])
 
-  // Thực đơn chỉ được duyệt hoặc trả về theo cả tuần
-  const canDecide = menu?.status === "PENDING_APPROVAL" && Boolean(menu?.canDecide)
+  const visibleMenus = useMemo(
+    () => week.menus.filter(menu => matchesGrade(menu, gradeFilter)),
+    [week.menus, gradeFilter],
+  )
+  const pendingCount = week.menus.filter(menu => menu.status === "PENDING_APPROVAL").length
+  const busy = loading || Boolean(submittingId) || Boolean(dialog)
+  const dialogMenu = dialog ? week.menus.find(menu => menu.id === dialog.menuId) : null
 
-  const openDecision = type => {
-    if (!canDecide || submitting) return
-    setDialog({ type, submissionVersion: menu.submissionVersion })
+  const changeWeek = weekStartDate => {
+    if (busy || weekStartDate === week.weekStartDate) return
+    loadWeek(weekStartDate)
   }
 
-  const changeGrade = gradeId => {
-    if (submitting || dialog) return
-    setGradeFilter(gradeId)
-    const eligible = gradeId ? weeks.filter(week => !week.gradeIds?.length || week.gradeIds.includes(gradeId)) : weeks
-    if (!eligible.some(week => week.id === menuId)) {
-      setMenu(null)
-      setMenuId(pickDefaultWeek(eligible))
-    }
+  const openDecision = (menu, type) => {
+    if (!menu.canDecide || busy) return
+    setDialog({ type, menuId: menu.id, submissionVersion: menu.submissionVersion })
   }
 
-  const changeWeek = weekId => {
-    if (submitting || dialog || weekId === menuId) return
-    setMenuId(weekId)
-  }
-
-  const applyDecision = async (type, text) => {
+  const applyDecision = async (type, feedback) => {
     if (!dialog || submitLock.current) return
     submitLock.current = true
-    setSubmitting(true)
+    const { menuId, submissionVersion } = dialog
+    setSubmittingId(menuId)
     try {
-      const response = await MenuService.reviewMenu(
-        menu.id,
-        type === "approve"
-          ? { decision: "APPROVED", ...(dialog.submissionVersion ? { submissionVersion: dialog.submissionVersion } : {}) }
-          : { decision: "REVISION_REQUESTED", feedback: text, ...(dialog.submissionVersion ? { submissionVersion: dialog.submissionVersion } : {}) },
-      )
-      const status = response.data.weeklyStatus
-      setWeeks(current =>
-        current.map(week => (week.id === menu.id ? { ...week, status } : week)),
-      )
-      setMenu(current => ({ ...current, status, canDecide: false }))
-      setDialog(null)
-      notice({
-        msg: type === "approve" ? "Đã phê duyệt thực đơn tuần" : "Đã yêu cầu Y tế chỉnh sửa thực đơn",
+      await MenuService.reviewMenu(menuId, {
+        decision: type === "approve" ? "APPROVED" : "REVISION_REQUESTED",
+        ...(type === "approve" ? {} : { feedback }),
+        ...(submissionVersion ? { submissionVersion } : {}),
       })
+      setDialog(null)
+      notice({ msg: type === "approve" ? "Đã phê duyệt thực đơn tuần" : "Đã yêu cầu Y tế chỉnh sửa thực đơn" })
+      // Tải lại cả tuần để cập nhật trạng thái thực đơn vừa duyệt và số tuần còn chờ
       try {
-        const detail = await MenuService.getApprovalDetail(menu.id)
-        setMenu(detail.data)
+        await loadWeek(week.weekStartDate, { silent: true })
       } catch {
-        notice({ msg: "Đã lưu quyết định; vui lòng tải lại để xem nhận xét mới nhất.", isSuccess: false })
+        notice({ msg: "Đã lưu quyết định; vui lòng tải lại để xem trạng thái mới nhất.", isSuccess: false })
       }
     } catch (requestError) {
-      notice({
-        msg: "Không thể xử lý thực đơn",
-        desc: requestError?.response?.data?.message,
-        isSuccess: false,
-      })
+      notice({ msg: "Không thể xử lý thực đơn", desc: requestError?.response?.data?.message, isSuccess: false })
     } finally {
       submitLock.current = false
-      setSubmitting(false)
+      setSubmittingId(null)
     }
   }
 
-  const handleApprove = async () => {
-    await applyDecision("approve")
-  }
-
-  const handleRequestRevision = async reason => {
-    await applyDecision("reject", reason)
-  }
-
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="menu-approval-page menu-approval-page--loading">
-        <Skeleton variant="rounded" height={148} />
-        <div className="menu-approval-page__skeleton-grid">
-          <Skeleton variant="rounded" height={260} />
-          <Skeleton variant="rounded" height={260} />
-        </div>
-        <Skeleton variant="rounded" height={420} />
+        <Skeleton variant="rounded" height={72} />
+        <Skeleton variant="rounded" height={56} />
+        <ListSkeleton />
       </div>
     )
   }
 
-  if (!error && !weeks.length) {
+  const renderList = () => {
+    if (loading) return <ListSkeleton />
+    if (error) return <Alert severity="error">{error}</Alert>
+    if (!week.weeks.length) return <Alert severity="info">Chưa có thực đơn tuần nào được Y tế gửi duyệt.</Alert>
+    if (!week.menus.length) return <Alert severity="info">Tuần này chưa có thực đơn nào được gửi duyệt.</Alert>
+    if (!visibleMenus.length) return <Alert severity="info">Tuần này không có thực đơn cho khối đã chọn.</Alert>
     return (
-      <div className="menu-approval-page">
-        <label htmlFor="approval-empty-grade">Khối lớp </label><select id="approval-empty-grade" value={gradeFilter} onChange={event => setGradeFilter(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select>
-        {gradeError && <Alert severity="error">{gradeError}</Alert>}
-        <Alert severity="info">Chưa có thực đơn tuần nào được Y tế gửi duyệt.</Alert>
-      </div>
-    )
-  }
-
-  if (!error && !menu && gradeFilter && filteredWeeks.length === 0) {
-    return <div className="menu-approval-page"><label htmlFor="approval-grade">Khối lớp </label><select id="approval-grade" value={gradeFilter} onChange={event => changeGrade(event.target.value)}><option value="">Tất cả khối</option>{gradeOptions.map(option => <option key={option.key} value={option.key}>{option.label}</option>)}</select><p>Không có thực đơn cho khối này.</p></div>
-  }
-
-  if (error || gradeError || !menu) {
-    return (
-      <div className="menu-approval-page">
-        <Alert severity="error">{error || gradeError || "Không tìm thấy thực đơn."}</Alert>
+      <div className="menu-approval-page__list">
+        {visibleMenus.map((menu, index) => (
+          <GradeMenuCard
+            key={menu.id}
+            menu={menu}
+            position={index + 1}
+            total={visibleMenus.length}
+            submitting={submittingId === menu.id}
+            disabled={busy}
+            onApprove={() => openDecision(menu, "approve")}
+            onReject={() => openDecision(menu, "reject")}
+          />
+        ))}
       </div>
     )
   }
@@ -209,37 +162,39 @@ function MenuApproval() {
   return (
     <div className="menu-approval-page">
       <MenuApprovalHeader
-        menu={menu}
-        canDecide={canDecide}
-        submitting={submitting}
-        onApprove={() => openDecision("approve")}
-        onReject={() => openDecision("reject")}
+        week={week}
+        pendingCount={pendingCount}
+        totalCount={week.menus.length}
         onPrint={() => window.print()}
       />
-      <MenuSchedule
-        days={menu.days}
-        weeks={filteredWeeks}
-        gradeOptions={gradeOptions}
-        gradeFilter={gradeFilter}
-        onGradeChange={changeGrade}
-        selectedWeekId={menuId}
-        onWeekChange={changeWeek}
-        disabled={submitting || Boolean(dialog)}
-      />
-      <MenuSummary menu={menu} />
-      <MenuReview
-        approval={menu.approval}
-        status={menu.status}
-      />
-      <DecisionDialog
-        type={dialog?.type || null}
-        menu={menu}
-        open={Boolean(dialog)}
-        submitting={submitting}
-        onClose={() => setDialog(null)}
-        onApprove={handleApprove}
-        onReject={handleRequestRevision}
-      />
+
+      {week.weeks.length > 0 && (
+        <ApprovalFilterBar
+          weeks={week.weeks}
+          selectedWeek={week.weekStartDate}
+          onWeekChange={changeWeek}
+          gradeOptions={gradeOptions}
+          gradeFilter={gradeFilter}
+          onGradeChange={setGradeFilter}
+          shownCount={visibleMenus.length}
+          totalCount={week.menus.length}
+          disabled={busy}
+        />
+      )}
+
+      {renderList()}
+
+      {dialogMenu && (
+        <DecisionDialog
+          type={dialog.type}
+          menu={{ ...dialogMenu, title: dialogMenu.title || menuScopeLabel(dialogMenu) }}
+          open
+          submitting={submittingId === dialogMenu.id}
+          onClose={() => setDialog(null)}
+          onApprove={() => applyDecision("approve")}
+          onReject={reason => applyDecision("reject", reason)}
+        />
+      )}
     </div>
   )
 }

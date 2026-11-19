@@ -10,6 +10,7 @@ import {
   apiIngredientOptions,
   apiPortionGroups,
   apiGetMenuApprovalDetail,
+  apiGetMenuApprovalWeek,
 } from "./urls";
 import {
   adaptWeeklyMenuToCardList,
@@ -579,27 +580,19 @@ const MenuService = {
   },
 
   /**
-   * Danh sách tuần thực đơn Y tế đã gửi (bỏ bản nháp), mới nhất trước
-   */
-  getApprovalWeeks: async () => {
-    const items = []
-    for (let page = 1; ; page++) {
-      const response = await http.get(apiMenus, { params: { page, limit: 100 }, notifyOnError: false })
-      if (!Array.isArray(response?.data?.items)) throw new Error("Không tải được danh sách thực đơn.")
-      items.push(...response.data.items)
-      const pagination = response.data.pagination
-      if (!(pagination?.hasNext ?? (items.length < (pagination?.totalItems || 0))) || !response.data.items.length) break
-    }
-    return items
-      .filter(week => week.status !== "DRAFT")
-      .map(week => ({ ...week, gradeNames: week.gradeNames || (week.grades || []).map(row => row.grade?.name).filter(Boolean) }))
-      .sort((a, b) => new Date(b.weekStartDate).getTime() - new Date(a.weekStartDate).getTime())
-  },
-
-  /**
    * Hồ sơ duyệt thực đơn tuần cho Ban Giám Hiệu
    */
   getApprovalDetail: (menuId) => http.get(apiGetMenuApprovalDetail(menuId)),
+
+  /**
+   * Mọi thực đơn đã gửi của một tuần kèm chi tiết, trong một lần gọi.
+   * date: ngày bất kỳ trong tuần (YYYY-MM-DD); bỏ trống để BE chọn tuần mặc định.
+   * Trả về { weekStartDate, weekEndDate, weekNumber, weeks[], menus[] }
+   */
+  getApprovalWeek: async (date) => {
+    const response = await http.get(apiGetMenuApprovalWeek, { params: date ? { date } : {} })
+    return response?.data || response
+  },
 
   /**
    * Quyết định cho cả tuần (body: { decision: "APPROVED" | "REVISION_REQUESTED", feedback? })
