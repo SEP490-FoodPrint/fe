@@ -1764,7 +1764,7 @@ export default function CreateDeliveryView({
                       className={styles.batch1Col}
                       style={{ width: 160 }}
                     >
-                      SL theo suất (kg)
+                      SL theo suất
                       <br />
                       ({batch1Portions} suất)
                     </TableCell>
