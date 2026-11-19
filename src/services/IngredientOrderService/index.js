@@ -304,8 +304,9 @@ const IngredientOrderService = {
       console.log(
         "[IngredientOrderService] Đang tải danh sách thực đơn đã duyệt từ /v1/menus ...",
       );
+      const queryParams = { status: "APPROVED", page: 1, limit: 50, ...params };
       let response = await http.get("/v1/menus", {
-        params: { status: "APPROVED", page: 1, limit: 50 },
+        params: queryParams,
         notifyOnError: false,
         skipAuthRedirect: true,
       });
@@ -321,7 +322,7 @@ const IngredientOrderService = {
       if (apiItems.length === 0) {
         try {
           const fallbackRes = await http.get("/menus", {
-            params: { status: "APPROVED", page: 1, limit: 50 },
+            params: queryParams,
             notifyOnError: false,
             skipAuthRedirect: true,
           });
@@ -389,12 +390,13 @@ const IngredientOrderService = {
         );
 
         const enrichedApi = apiItems.map((m) => {
-          const cleanDate =
-            (m.menuDays?.[0]?.menuDate
-              ? String(m.menuDays[0].menuDate).slice(0, 10)
-              : "") ||
-            String(m.weekStartDate || "").slice(0, 10) ||
-            "2026-11-16";
+          const rawWeekStart = m.weekStartDate
+            ? String(m.weekStartDate).slice(0, 10)
+            : "";
+          const firstDayDate = m.menuDays?.[0]?.menuDate
+            ? String(m.menuDays[0].menuDate).slice(0, 10)
+            : "";
+          const cleanDate = rawWeekStart || firstDayDate || "2026-11-16";
 
           // 1. Trích xuất tên khối từ grades hoặc gradeNames
           let gradeNames = Array.isArray(m.grades)
@@ -475,17 +477,23 @@ const IngredientOrderService = {
             }
           }
 
-          // 2. Trích xuất món ăn và nguyên liệu từ menuDays trong DB
+          // 2. Trích xuất món ăn và nguyên liệu từ menuDays trong DB (tính cả toàn tuần lẫn từng ngày)
           const dishesFromDb = [];
           const extractedIngredientsMap = new Map();
+          const menuDaysMap = {};
 
           if (Array.isArray(m.menuDays)) {
             for (const day of m.menuDays) {
+              const dayDate = String(day.menuDate || "").slice(0, 10);
+              const dayDishes = [];
+              const dayIngredientsMap = new Map();
+
               if (Array.isArray(day.menuDayDishes)) {
                 for (const mdd of day.menuDayDishes) {
                   const dName = mdd.Dish?.name || mdd.dishName;
-                  if (dName && !dishesFromDb.includes(dName)) {
-                    dishesFromDb.push(dName);
+                  if (dName) {
+                    if (!dishesFromDb.includes(dName)) dishesFromDb.push(dName);
+                    if (!dayDishes.includes(dName)) dayDishes.push(dName);
                   }
 
                   // Quét danh sách nguyên liệu của từng món ăn
@@ -524,6 +532,7 @@ const IngredientOrderService = {
                       const qtyPerPortion =
                         Number(ingItem.quantityPerPortion) || 0.05;
 
+                      // Gom chung cho toàn menu (fallback)
                       if (extractedIngredientsMap.has(ing.id)) {
                         const existing = extractedIngredientsMap.get(ing.id);
                         existing.qtyPerPortion = Number(
@@ -545,9 +554,42 @@ const IngredientOrderService = {
                           supplierName,
                         });
                       }
+
+                      // Gom riêng cho ngày cụ thể này
+                      if (dayDate) {
+                        if (dayIngredientsMap.has(ing.id)) {
+                          const existingDay = dayIngredientsMap.get(ing.id);
+                          existingDay.qtyPerPortion = Number(
+                            (existingDay.qtyPerPortion + qtyPerPortion).toFixed(4),
+                          );
+                        } else {
+                          dayIngredientsMap.set(ing.id, {
+                            id: ing.id,
+                            ingredientId: ing.id,
+                            ingredientEntryId,
+                            name: ing.name,
+                            category:
+                              ing.ingredientCategory?.categoryName ||
+                              "Thực phẩm tươi sống",
+                            handlingType: "DIRECT_USE",
+                            unit,
+                            qtyPerPortion,
+                            supplierId,
+                            supplierName,
+                          });
+                        }
+                      }
                     }
                   }
                 }
+              }
+
+              if (dayDate) {
+                menuDaysMap[dayDate] = {
+                  date: dayDate,
+                  dishes: dayDishes,
+                  ingredients: Array.from(dayIngredientsMap.values()),
+                };
               }
             }
           }
@@ -581,7 +623,10 @@ const IngredientOrderService = {
             title: m.title || `Thực đơn ${cleanDate}`,
             mealDate: cleanDate,
             date: cleanDate,
-            weekStartDate: cleanDate,
+            weekStartDate: rawWeekStart || cleanDate,
+            menuDaysMap,
+            menuDays: m.menuDays,
+            status: m.status || "APPROVED",
             days:
               Array.isArray(m.menuDays) && m.menuDays.length > 0
                 ? m.menuDays.map((d) => ({
@@ -596,6 +641,13 @@ const IngredientOrderService = {
             mealTypeLabel: "Bữa trưa",
             targetScope,
             gradeNames,
+            isSchoolWide: Boolean(m.isSchoolWide),
+            gradeIds: Array.isArray(m.gradeIds)
+              ? m.gradeIds
+              : Array.isArray(m.grades)
+                ? m.grades.map((g) => g.gradeId || g.id).filter(Boolean)
+                : [],
+            grades: m.grades || [],
             maxPortions: calculatedMaxPortions,
             dishes:
               dishesFromDb.length > 0 ? dishesFromDb : ["Món ăn dinh dưỡng"],
@@ -745,6 +797,16 @@ const IngredientOrderService = {
             status: "ACCEPTED",
           }));
 
+          let parsedMax = 0;
+          let parsedPlanned = 0;
+          const portionMatch = String(so.note || "").match(
+            /Sĩ số:\s*(\d+)\s*HS\s*\|\s*Đợt 1:\s*(\d+)\s*suất/i,
+          );
+          if (portionMatch) {
+            parsedMax = Number(portionMatch[1]) || 0;
+            parsedPlanned = Number(portionMatch[2]) || 0;
+          }
+
           return adaptDeliveryItem({
             id: so.id,
             deliveryNo,
@@ -755,6 +817,9 @@ const IngredientOrderService = {
             deliveryDate: dateStr,
             deliveryTime,
             batchType,
+            maxPortions: parsedMax || undefined,
+            plannedPortions: parsedPlanned || undefined,
+            batch1Portions: parsedPlanned || undefined,
             status:
               so.status === "ACCEPTED"
                 ? "CONFIRMED"
@@ -992,6 +1057,7 @@ const IngredientOrderService = {
                 d.status === "ARRIVED" ||
                 d.status === "APPROVED",
               ),
+              note: d.note || "",
             };
 
             supplierApprovals[sName] = d.approvals || {};
@@ -1041,6 +1107,9 @@ const IngredientOrderService = {
             batch === "BATCH_1"
               ? "Đợt 1 (50% Suất tối đa)"
               : "Đợt 2 (Cân đối sĩ số)",
+          maxPortions: rep.maxPortions || 0,
+          plannedPortions: rep.plannedPortions || 0,
+          batch1Portions: rep.batch1Portions || rep.plannedPortions || 0,
           supplierName:
             supNames.length > 1
               ? `Nhiều NCC (${supNames.length} đối tác: ${supNames.join(", ")})`
@@ -1287,6 +1356,9 @@ const IngredientOrderService = {
     menuId,
     menuIds,
     menus,
+    menusSummary,
+    plannedPortions,
+    maxPortions,
     note,
     orderDate,
     items,
@@ -1387,8 +1459,12 @@ const IngredientOrderService = {
         }
       });
 
+      const portionsTag = plannedPortions
+        ? ` [Sĩ số: ${maxPortions || 0} HS | Đợt 1: ${plannedPortions} suất]`
+        : "";
       const noteText =
-        note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống";
+        (note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống") +
+        portionsTag;
 
       const payload = {
         supplierId: sId,

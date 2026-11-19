@@ -24,6 +24,7 @@ import {
   IconButton,
   TableContainer,
   CircularProgress,
+  Collapse,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -52,6 +53,8 @@ import {
   Layers,
 } from "lucide-react";
 import IngredientOrderService from "src/services/IngredientOrderService";
+import MenuService from "src/services/MenuService";
+import FoodPrintLoading from "src/components/FoodPrintLoading";
 import notice from "src/components/Notice";
 import styles from "./CreateDeliveryView.module.scss";
 
@@ -65,6 +68,32 @@ export const formatDateVN = (dateInput) => {
   }
   return str;
 };
+
+// Thứ Hai của tuần chứa ngày ISO (yyyy-mm-dd), khớp chuẩn weekStartDate
+export const mondayOfIsoDate = (iso) => {
+  if (!iso) return "";
+  const date = new Date(`${String(iso).slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  return date.toISOString().slice(0, 10);
+};
+
+// Thứ Sáu của tuần chứa ngày Thứ Hai
+export const fridayOfIsoDate = (mondayIso) => {
+  if (!mondayIso) return "";
+  const date = new Date(`${String(mondayIso).slice(0, 10)}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setUTCDate(date.getUTCDate() + 4);
+  return date.toISOString().slice(0, 10);
+};
+
+export const getTodayStr = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
 /**
  * Kiểm tra đơn vị đếm được (nguyên quả, nguyên con, gói, chai...)
@@ -131,9 +160,10 @@ export const calcQtyPerPortion = (batchQty, portions) => {
 };
 
 export default function CreateDeliveryView({
+  loading = false,
   menus = [],
   deliveries = [],
-  initialDate = "2026-11-16",
+  initialDate,
   onBack,
   onSubmitBatch1,
   onSubmitBatch2,
@@ -144,9 +174,7 @@ export default function CreateDeliveryView({
 
   const [orderDate, setOrderDate] = useState(() => {
     if (initialDate) return String(initialDate).slice(0, 10);
-    if (effectiveMenus[0]?.mealDate)
-      return String(effectiveMenus[0].mealDate).slice(0, 10);
-    return "2026-11-16";
+    return getTodayStr();
   });
   const [selectedMenuId, setSelectedMenuId] = useState(
     () => effectiveMenus[0]?.id || "",
@@ -248,45 +276,280 @@ export default function CreateDeliveryView({
     }
   }, [mode, orderDate, fetchAttendance]);
 
-  // 1. Quét thực đơn áp dụng theo ngày chọn (Hỗ trợ 1 ngày có nhiều thực đơn)
-  const matchingMenusForDate = useMemo(() => {
-    if (!orderDate) return effectiveMenus;
-    const target = String(orderDate).slice(0, 10);
-    const matches = effectiveMenus.filter((m) => {
-      const d1 = String(m.mealDate || "").slice(0, 10);
-      const d2 = String(m.date || "").slice(0, 10);
-      const d3 = String(m.weekStartDate || "").slice(0, 10);
-      if (d1 === target || d2 === target || d3 === target) return true;
-      if (
-        Array.isArray(m.days) &&
-        m.days.some(
-          (d) => String(d.date || d.menuDate || "").slice(0, 10) === target,
-        )
-      )
-        return true;
+  // Tuần hiện tại của ngày giao hàng được chọn (Thứ Hai và Thứ Sáu)
+  const targetMonday = useMemo(() => {
+    return mondayOfIsoDate(orderDate);
+  }, [orderDate]);
+
+  const targetFriday = useMemo(() => {
+    return fridayOfIsoDate(targetMonday);
+  }, [targetMonday]);
+
+  // 1. Lọc toàn bộ thực đơn đã duyệt của ĐÚNG TUẦN ĐÓ
+  const menusInCurrentWeek = useMemo(() => {
+    if (!targetMonday) return [];
+    return effectiveMenus.filter((m) => {
+      const mWeek = mondayOfIsoDate(m.weekStartDate || m.mealDate || m.date);
+      if (mWeek === targetMonday) return true;
       if (
         Array.isArray(m.menuDays) &&
         m.menuDays.some(
-          (d) => String(d.menuDate || d.date || "").slice(0, 10) === target,
+          (d) => mondayOfIsoDate(d.menuDate || d.date) === targetMonday,
         )
-      )
+      ) {
         return true;
+      }
+      if (
+        Array.isArray(m.days) &&
+        m.days.some((d) => mondayOfIsoDate(d.date) === targetMonday)
+      ) {
+        return true;
+      }
       return false;
     });
-    return matches.length > 0 ? matches : effectiveMenus;
-  }, [effectiveMenus, orderDate]);
+  }, [effectiveMenus, targetMonday]);
+
+  const hasMenusInWeek = menusInCurrentWeek.length > 0;
+
+  // Tự động đồng bộ selectedMenuId khi đổi tuần / đổi ngày
+  useEffect(() => {
+    if (menusInCurrentWeek.length > 0) {
+      const isCurrentValid = menusInCurrentWeek.some(
+        (m) => m.id === selectedMenuId,
+      );
+      if (!isCurrentValid) {
+        setSelectedMenuId(menusInCurrentWeek[0].id);
+      }
+    } else {
+      setSelectedMenuId("");
+    }
+  }, [menusInCurrentWeek, selectedMenuId]);
+
+  const [schoolGrades, setSchoolGrades] = useState([]);
+  const [bypassIncompleteMenu, setBypassIncompleteMenu] = useState(false);
+  const [remindStatus, setRemindStatus] = useState(null);
+
+  // Tải danh sách khối chuẩn của trường từ MenuService context
+  useEffect(() => {
+    let active = true;
+    MenuService.getContext()
+      .then((ctx) => {
+        if (active && Array.isArray(ctx?.grades)) {
+          setSchoolGrades(ctx.grades);
+        }
+      })
+      .catch((err) => {
+        console.warn("[CreateDeliveryView] Không thể tải danh sách khối trường:", err);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Reset bypass và trạng thái nhắc nhở khi chuyển tuần
+  useEffect(() => {
+    setBypassIncompleteMenu(false);
+    setRemindStatus(null);
+  }, [targetMonday]);
+
+  // Kiểm tra độ hoàn thiện thực đơn của tuần (Toàn trường vs Từng khối)
+  const menuCompleteness = useMemo(() => {
+    if (!targetMonday) {
+      return {
+        isComplete: false,
+        isSchoolWide: false,
+        coveredGrades: [],
+        missingGrades: [],
+        totalGrades: 0,
+      };
+    }
+
+    if (!hasMenusInWeek) {
+      return {
+        isComplete: false,
+        isSchoolWide: false,
+        coveredGrades: [],
+        missingGrades:
+          schoolGrades.length > 0
+            ? schoolGrades.map((g) => g.name || g.label)
+            : ["Toàn trường"],
+        totalGrades: schoolGrades.length,
+        hasNoMenu: true,
+      };
+    }
+
+    // 1. Nếu có thực đơn áp dụng Toàn trường
+    const schoolWideMenu = menusInCurrentWeek.find(
+      (m) =>
+        m.isSchoolWide === true ||
+        m.targetScope === "Toàn trường" ||
+        String(m.name || m.title || "").toLowerCase().includes("toàn trường"),
+    );
+
+    if (schoolWideMenu) {
+      return {
+        isComplete: true,
+        isSchoolWide: true,
+        coveredGrades:
+          schoolGrades.length > 0
+            ? schoolGrades.map((g) => g.name)
+            : ["Toàn trường"],
+        missingGrades: [],
+        totalGrades: schoolGrades.length,
+      };
+    }
+
+    // 2. Nếu chia theo khối, tập hợp tất cả các khối đã có thực đơn duyệt
+    const coveredGradeIds = new Set();
+    const coveredNames = new Set();
+
+    menusInCurrentWeek.forEach((m) => {
+      if (Array.isArray(m.gradeIds)) {
+        m.gradeIds.forEach((id) => coveredGradeIds.add(id));
+      }
+      if (Array.isArray(m.grades)) {
+        m.grades.forEach((g) => {
+          if (g.id || g.gradeId) coveredGradeIds.add(g.id || g.gradeId);
+          if (g.name || g.grade?.name)
+            coveredNames.add(g.name || g.grade?.name);
+        });
+      }
+      if (Array.isArray(m.gradeNames)) {
+        m.gradeNames.forEach((n) => coveredNames.add(n));
+      }
+      if (m.targetScope && m.targetScope !== "Khối lớp") {
+        coveredNames.add(m.targetScope);
+      }
+      const titleLower = String(m.title || m.name || "").toLowerCase();
+      if (
+        titleLower.includes("1-3") ||
+        titleLower.includes("khối 1") ||
+        titleLower.includes("khối 2") ||
+        titleLower.includes("khối 3")
+      ) {
+        coveredNames.add("Khối 1-3");
+      }
+      if (
+        titleLower.includes("4-5") ||
+        titleLower.includes("khối 4") ||
+        titleLower.includes("khối 5")
+      ) {
+        coveredNames.add("Khối 4-5");
+      }
+    });
+
+    let missing = [];
+
+    if (schoolGrades.length > 0) {
+      missing = schoolGrades
+        .filter((g) => {
+          const idMatched = coveredGradeIds.has(g.id);
+          const nameMatched = Array.from(coveredNames).some((cName) => {
+            const normC = String(cName).toLowerCase();
+            const normG = String(g.name).toLowerCase();
+            return (
+              normC === normG ||
+              normC.includes(normG) ||
+              normG.includes(normC)
+            );
+          });
+          return !idMatched && !nameMatched;
+        })
+        .map((g) => g.name);
+    } else {
+      // Nhận diện theo 2 nhóm phổ biến (Khối 1-3 và Khối 4-5) nếu DB chưa có bảng Khối
+      const coveredList = Array.from(coveredNames).join(" ");
+      const hasK13 =
+        coveredList.includes("1-3") ||
+        coveredList.includes("1") ||
+        coveredList.includes("2") ||
+        coveredList.includes("3");
+      const hasK45 =
+        coveredList.includes("4-5") ||
+        coveredList.includes("4") ||
+        coveredList.includes("5");
+
+      if (hasK13 && !hasK45) {
+        missing = ["Khối 4-5"];
+      } else if (!hasK13 && hasK45) {
+        missing = ["Khối 1-3"];
+      }
+    }
+
+    return {
+      isComplete: missing.length === 0,
+      isSchoolWide: false,
+      coveredGrades: Array.from(coveredNames),
+      missingGrades: missing,
+      totalGrades: schoolGrades.length,
+    };
+  }, [targetMonday, hasMenusInWeek, menusInCurrentWeek, schoolGrades]);
+
+  const isOrderAllowed =
+    hasMenusInWeek && (menuCompleteness.isComplete || bypassIncompleteMenu);
+
+  const handleRemindNutrition = () => {
+    const missingStr =
+      menuCompleteness.missingGrades.length > 0
+        ? menuCompleteness.missingGrades.join(", ")
+        : "các khối còn lại";
+
+    const timeStr = new Intl.DateTimeFormat("vi-VN", {
+      timeZone: "Asia/Ho_Chi_Minh",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(new Date());
+
+    setRemindStatus({
+      sent: true,
+      time: timeStr,
+      missingGrades: missingStr,
+    });
+
+    notice({
+      msg: "Đã gửi thông báo nhắc nhở đến bộ phận Dinh dưỡng!",
+      desc: `Yêu cầu hoàn tất thực đơn tuần (${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)}) cho ${missingStr} để Ban QLNL tiến hành nhập hàng.`,
+      isSuccess: true,
+    });
+  };
+
+  // 2. Quét thực đơn áp dụng theo ngày chọn trong tuần đó
+  const matchingMenusForDate = useMemo(() => {
+    if (!orderDate || !hasMenusInWeek) return [];
+    const target = String(orderDate).slice(0, 10);
+
+    const matches = menusInCurrentWeek.filter((m) => {
+      if (Array.isArray(m.menuDays) && m.menuDays.length > 0) {
+        return m.menuDays.some(
+          (d) => String(d.menuDate || d.date || "").slice(0, 10) === target,
+        );
+      }
+      if (Array.isArray(m.days) && m.days.length > 0) {
+        return m.days.some(
+          (d) => String(d.date || "").slice(0, 10) === target,
+        );
+      }
+      return true;
+    });
+
+    // Chỉ trả về các thực đơn thuộc đúng tuần đó, TUYỆT ĐỐI không fallback sang tuần khác!
+    return matches.length > 0 ? matches : menusInCurrentWeek;
+  }, [orderDate, hasMenusInWeek, menusInCurrentWeek]);
 
   const isMultiMenuDate = matchingMenusForDate.length > 1;
 
-  // 2. Danh sách thực đơn hiệu lực (activeMenus)
+  // 3. Danh sách thực đơn hiệu lực (activeMenus) có trích xuất món ăn & nguyên liệu theo ngày
   const activeMenus = useMemo(() => {
+    if (!hasMenusInWeek) return [];
+
+    let baseList = [];
     if (mode === "BATCH_2" && batch1ForDate) {
       if (
         Array.isArray(batch1ForDate.menusSummary) &&
         batch1ForDate.menusSummary.length > 1
       ) {
-        return batch1ForDate.menusSummary.map((ms) => {
-          const found = effectiveMenus.find((m) => m.id === ms.id);
+        baseList = batch1ForDate.menusSummary.map((ms) => {
+          const found = menusInCurrentWeek.find((m) => m.id === ms.id);
           return (
             found || {
               ...ms,
@@ -295,31 +558,57 @@ export default function CreateDeliveryView({
             }
           );
         });
+      } else if (
+        Array.isArray(batch1ForDate.menuIds) &&
+        batch1ForDate.menuIds.length > 1
+      ) {
+        baseList = batch1ForDate.menuIds
+          .map((id) => menusInCurrentWeek.find((m) => m.id === id))
+          .filter(Boolean);
+        if (baseList.length === 0) baseList = matchingMenusForDate;
+      } else if (matchingMenusForDate.length > 0) {
+        // Đợt 2 luôn luôn ăn theo toàn bộ thực đơn áp dụng của ngày hôm đó (kế thừa trọn vẹn từ Đợt 1)
+        baseList = matchingMenusForDate;
+      } else {
+        const b1Menu =
+          menusInCurrentWeek.find((m) => m.id === batch1ForDate.menuId) ||
+          matchingMenusForDate[0] ||
+          menusInCurrentWeek[0];
+        baseList = b1Menu ? [b1Menu] : [];
       }
-      return [
-        effectiveMenus.find((m) => m.id === batch1ForDate.menuId) ||
-        effectiveMenus[0],
-      ].filter(Boolean);
+    } else if (isMultiMenuDate) {
+      baseList = matchingMenusForDate;
+    } else if (matchingMenusForDate.length === 1) {
+      baseList = matchingMenusForDate;
+    } else {
+      const found = menusInCurrentWeek.find((m) => m.id === selectedMenuId);
+      baseList = found ? [found] : [menusInCurrentWeek[0]].filter(Boolean);
     }
 
-    if (isMultiMenuDate) {
-      return matchingMenusForDate;
-    }
-
-    if (matchingMenusForDate.length === 1) {
-      return matchingMenusForDate;
-    }
-
-    return [
-      effectiveMenus.find((m) => m.id === selectedMenuId) || effectiveMenus[0],
-    ].filter(Boolean);
+    const target = String(orderDate || "").slice(0, 10);
+    return baseList.map((m) => {
+      if (m.menuDaysMap && m.menuDaysMap[target]) {
+        const dayData = m.menuDaysMap[target];
+        return {
+          ...m,
+          dishes: dayData.dishes?.length > 0 ? dayData.dishes : m.dishes,
+          ingredients:
+            dayData.ingredients?.length > 0
+              ? dayData.ingredients
+              : m.ingredients,
+        };
+      }
+      return m;
+    });
   }, [
+    hasMenusInWeek,
     mode,
     batch1ForDate,
     isMultiMenuDate,
     matchingMenusForDate,
-    effectiveMenus,
+    menusInCurrentWeek,
     selectedMenuId,
+    orderDate,
   ]);
 
   const isMultiMenu = activeMenus.length > 1;
@@ -368,9 +657,15 @@ export default function CreateDeliveryView({
     return sum > 0 ? sum : Math.floor(totalMaxPortions / 2);
   }, [menusPortionsMeta, totalMaxPortions]);
 
-  const currentMenu = activeMenus[0] || effectiveMenus[0];
-  const maxPortions = totalMaxPortions;
-  const batch1Portions = totalBatch1Portions;
+  const currentMenu = activeMenus[0] || menusInCurrentWeek[0] || null;
+  const maxPortions =
+    mode === "BATCH_2" && Number(batch1ForDate?.maxPortions) > 0
+      ? Number(batch1ForDate.maxPortions)
+      : totalMaxPortions;
+  const batch1Portions =
+    mode === "BATCH_2" && Number(batch1ForDate?.plannedPortions) > 0
+      ? Number(batch1ForDate.plannedPortions)
+      : totalBatch1Portions;
 
   // State sĩ số theo khối và đóng mở xem chi tiết phân rã
   const [gradeAttendance, setGradeAttendance] = useState({});
@@ -390,16 +685,105 @@ export default function CreateDeliveryView({
 
   const remainingByMenu = useMemo(() => {
     const res = {};
-    menusPortionsMeta.forEach((m) => {
+    const classes = attendanceSummary?.classes || [];
+
+    const isClassInMenu = (cls, m, idx) => {
+      if (m.isSchoolWide || m.targetScope === "Toàn trường") return true;
+
+      // 1. Đối chiếu theo gradeId nếu có
+      if (
+        Array.isArray(m.gradeIds) &&
+        cls.gradeId &&
+        m.gradeIds.includes(cls.gradeId)
+      ) {
+        return true;
+      }
+      if (
+        Array.isArray(m.grades) &&
+        cls.gradeId &&
+        m.grades.some((g) => (g.id || g.gradeId) === cls.gradeId)
+      ) {
+        return true;
+      }
+
+      // 2. Đối chiếu theo tên khối hoặc tên lớp
+      const cGrade = String(cls.gradeName || "").toLowerCase();
+      const cName = String(cls.className || "").trim();
+      const mText = `${m.targetScope || ""} ${m.name || ""} ${m.title || ""}`.toLowerCase();
+
+      // Khối 1-3
+      if (
+        mText.includes("1-3") ||
+        (!mText.includes("4-5") &&
+          (mText.includes("1") || mText.includes("2") || mText.includes("3")))
+      ) {
+        if (
+          cGrade.includes("1") ||
+          cGrade.includes("2") ||
+          cGrade.includes("3")
+        )
+          return true;
+        if (/^[123]/i.test(cName)) return true;
+      }
+
+      // Khối 4-5
+      if (
+        mText.includes("4-5") ||
+        (!mText.includes("1-3") &&
+          (mText.includes("4") || mText.includes("5")))
+      ) {
+        if (cGrade.includes("4") || cGrade.includes("5")) return true;
+        if (/^[45]/i.test(cName)) return true;
+      }
+
+      // Khi có 2 menu: menu đầu tiên là 1-3, menu thứ hai là 4-5
+      if (menusPortionsMeta.length === 2) {
+        if (idx === 0) return /^[123]/i.test(cName);
+        if (idx === 1) return /^[45]/i.test(cName);
+      }
+
+      return false;
+    };
+
+    menusPortionsMeta.forEach((m, idx) => {
       let actual = gradeAttendance[m.id];
+      let menuClasses = [];
+
+      if (classes.length > 0) {
+        menuClasses = classes.filter((cls) => isClassInMenu(cls, m, idx));
+      }
+
+      // Nếu chưa nhập thủ công và có danh sách lớp thực tế thuộc khối này:
+      // Tính chính xác tổng sĩ số thực tế của các lớp đã chốt (FINALIZED)
+      if (
+        (typeof actual !== "number" || isNaN(actual)) &&
+        menuClasses.length > 0
+      ) {
+        actual = menuClasses
+          .filter((cls) => cls.status === "FINALIZED")
+          .reduce((sum, cls) => sum + (Number(cls.actualPortions) || 0), 0);
+      }
+
+      // Fallback chỉ khi không tìm thấy lớp nào được gán
       if (typeof actual !== "number" || isNaN(actual)) {
         const ratio =
           totalMaxPortions > 0 ? m.maxPortions / totalMaxPortions : 0.5;
         actual = Math.round(parsedAttendance * ratio);
       }
+
+      // Sĩ số tối đa đăng ký của riêng khối này từ danh sách lớp
+      let maxP = m.maxPortions;
+      if (menuClasses.length > 0) {
+        const regSum = menuClasses.reduce(
+          (sum, cls) => sum + (Number(cls.registeredPortions) || 0),
+          0,
+        );
+        if (regSum > 0) maxP = regSum;
+      }
+
       const rem = Math.max(0, actual - m.batch1Portions);
       res[m.id] = {
-        maxPortions: m.maxPortions,
+        maxPortions: maxP,
         batch1Portions: m.batch1Portions,
         actual,
         remaining: rem,
@@ -407,7 +791,13 @@ export default function CreateDeliveryView({
       };
     });
     return res;
-  }, [menusPortionsMeta, gradeAttendance, parsedAttendance, totalMaxPortions]);
+  }, [
+    menusPortionsMeta,
+    gradeAttendance,
+    parsedAttendance,
+    totalMaxPortions,
+    attendanceSummary,
+  ]);
 
   const remainingPortions = useMemo(() => {
     if (parsedAttendance <= 0) return 0;
@@ -420,6 +810,13 @@ export default function CreateDeliveryView({
     );
   }, [parsedAttendance, isMultiMenu, totalBatch1Portions, remainingByMenu]);
 
+  // State thu gọn / mở rộng chi tiết cân đối theo từng khối lớp
+  const [showGradeBalance, setShowGradeBalance] = useState(false);
+
+  // Loading state cho danh mục nguyên liệu theo thực đơn
+  const [itemsLoading, setItemsLoading] = useState(true);
+  const isTableLoading = Boolean(loading || itemsLoading);
+
   // Quản lý danh sách nguyên liệu và định lượng/số lượng tùy chỉnh 2 chiều
   const [itemsState, setItemsState] = useState([]);
 
@@ -431,143 +828,153 @@ export default function CreateDeliveryView({
   // Khởi tạo itemsState khi đổi menu, đổi ngày (hoặc đổi mode Đợt 1 / Đợt 2)
   // Tự động gộp nguyên liệu chung của các thực đơn và lưu cấu trúc breakdown
   useEffect(() => {
-    if (!activeMenus || activeMenus.length === 0) return;
+    setItemsLoading(true);
+    const timer = setTimeout(() => {
+      if (!activeMenus || activeMenus.length === 0) {
+        setItemsState([]);
+        setItemsLoading(false);
+        return;
+      }
 
-    const groupedMap = new Map();
+      const groupedMap = new Map();
 
-    activeMenus.forEach((menu) => {
-      const fresh = (menu.ingredients || []).filter(
-        (it) => it.handlingType === "DIRECT_USE",
-      );
-      const mPortions =
-        mode === "BATCH_1"
-          ? Math.floor((Number(menu.maxPortions) || 0) / 2)
-          : remainingByMenu[menu.id]?.remaining || 0;
+      activeMenus.forEach((menu) => {
+        const fresh = (menu.ingredients || []).filter(
+          (it) => it.handlingType === "DIRECT_USE",
+        );
+        const mPortions =
+          mode === "BATCH_1"
+            ? Math.floor((Number(menu.maxPortions) || 0) / 2)
+            : remainingByMenu[menu.id]?.remaining || 0;
 
-      fresh.forEach((ing) => {
-        const key = (ing.name || "").trim().toLowerCase();
-        const itemUnit = isDiscreteUnit(ing.unit) ? ing.unit : "kg";
-        let rawRate = Number(ing.qtyPerPortion) || 0.05;
-        if (itemUnit === "kg" && rawRate >= 1) {
-          rawRate = Number((rawRate / 1000).toFixed(4));
-        }
+        fresh.forEach((ing) => {
+          const key = (ing.name || "").trim().toLowerCase();
+          const itemUnit = isDiscreteUnit(ing.unit) ? ing.unit : "kg";
+          let rawRate = Number(ing.qtyPerPortion) || 0.05;
+          if (itemUnit === "kg" && rawRate >= 1) {
+            rawRate = Number((rawRate / 1000).toFixed(4));
+          }
 
-        if (!groupedMap.has(key)) {
-          groupedMap.set(key, {
-            id: ing.id,
-            ingredientId: ing.ingredientId || ing.id,
-            ingredientEntryId: ing.ingredientEntryId || ing.id,
-            name: ing.name,
-            category: ing.category,
-            unit: itemUnit,
-            supplierId: ing.supplierId,
-            supplierName: ing.supplierName,
-            handlingType: ing.handlingType || "DIRECT_USE",
-            isExtraItem: false,
-            defaultQtyPerPortion: rawRate,
-            qtyPerPortion: rawRate,
-            contributions: [],
-          });
-        }
+          if (!groupedMap.has(key)) {
+            groupedMap.set(key, {
+              id: ing.id,
+              ingredientId: ing.ingredientId || ing.id,
+              ingredientEntryId: ing.ingredientEntryId || ing.id,
+              name: ing.name,
+              category: ing.category,
+              unit: itemUnit,
+              supplierId: ing.supplierId,
+              supplierName: ing.supplierName,
+              handlingType: ing.handlingType || "DIRECT_USE",
+              isExtraItem: false,
+              defaultQtyPerPortion: rawRate,
+              qtyPerPortion: rawRate,
+              contributions: [],
+            });
+          }
 
-        const entry = groupedMap.get(key);
-        let rate = rawRate;
+          const entry = groupedMap.get(key);
+          let rate = rawRate;
 
-        // Kế thừa định lượng Đợt 1 nếu là Đợt 2
-        if (mode === "BATCH_2" && batch1ForDate) {
-          const b1Item = batch1ForDate.items?.find(
-            (b) =>
-              (b.ingredientId && b.ingredientId === ing.id) ||
-              b.ingredientName?.trim().toLowerCase() === key,
-          );
-          if (b1Item) {
-            if (
-              Array.isArray(b1Item.breakdown) &&
-              b1Item.breakdown.length > 0
-            ) {
-              const bContr = b1Item.breakdown.find(
-                (bd) => bd.menuId === menu.id,
-              );
-              if (bContr?.qtyPerPortion) rate = bContr.qtyPerPortion;
-            } else if (
-              typeof b1Item.qtyPerPortion === "number" &&
-              b1Item.qtyPerPortion > 0
-            ) {
-              rate = b1Item.qtyPerPortion;
+          // Kế thừa định lượng Đợt 1 nếu là Đợt 2
+          if (mode === "BATCH_2" && batch1ForDate) {
+            const b1Item = batch1ForDate.items?.find(
+              (b) =>
+                (b.ingredientId && b.ingredientId === ing.id) ||
+                b.ingredientName?.trim().toLowerCase() === key,
+            );
+            if (b1Item) {
+              if (
+                Array.isArray(b1Item.breakdown) &&
+                b1Item.breakdown.length > 0
+              ) {
+                const bContr = b1Item.breakdown.find(
+                  (bd) => bd.menuId === menu.id,
+                );
+                if (bContr?.qtyPerPortion) rate = bContr.qtyPerPortion;
+              } else if (
+                typeof b1Item.qtyPerPortion === "number" &&
+                b1Item.qtyPerPortion > 0
+              ) {
+                rate = b1Item.qtyPerPortion;
+              }
             }
           }
-        }
 
-        let mScope = menu.targetScope;
-        if (!mScope || mScope === "Khối lớp") {
-          if (menu.name?.includes("1-3") || menu.title?.includes("1-3"))
-            mScope = "Khối 1-3";
-          else if (menu.name?.includes("4-5") || menu.title?.includes("4-5"))
-            mScope = "Khối 4-5";
-          else if (Array.isArray(menu.gradeNames) && menu.gradeNames.length > 0)
-            mScope = menu.gradeNames.join(" - ");
-          else mScope = menu.name || "Khối lớp";
-        }
+          let mScope = menu.targetScope;
+          if (!mScope || mScope === "Khối lớp") {
+            if (menu.name?.includes("1-3") || menu.title?.includes("1-3"))
+              mScope = "Khối 1-3";
+            else if (menu.name?.includes("4-5") || menu.title?.includes("4-5"))
+              mScope = "Khối 4-5";
+            else if (Array.isArray(menu.gradeNames) && menu.gradeNames.length > 0)
+              mScope = menu.gradeNames.join(" - ");
+            else mScope = menu.name || "Khối lớp";
+          }
 
-        const calcContribution = Number((rate * mPortions).toFixed(2));
-        entry.contributions.push({
-          menuId: menu.id,
-          menuName: menu.name,
-          targetScope: mScope,
-          qtyPerPortion: rate,
-          portions: mPortions,
-          calculatedQty: calcContribution,
-          unit: itemUnit,
+          const calcContribution = Number((rate * mPortions).toFixed(2));
+          entry.contributions.push({
+            menuId: menu.id,
+            menuName: menu.name,
+            targetScope: mScope,
+            qtyPerPortion: rate,
+            portions: mPortions,
+            calculatedQty: calcContribution,
+            unit: itemUnit,
+          });
         });
       });
-    });
 
-    const initialItems = Array.from(groupedMap.values()).map((entry) => {
-      const isDiscrete = isDiscreteUnit(entry.unit);
-      const rawSum = entry.contributions.reduce(
-        (acc, c) => acc + c.calculatedQty,
-        0,
-      );
-      const stdQty = isDiscrete ? Math.ceil(rawSum) : Number(rawSum.toFixed(2));
-      const isMulti = entry.contributions.length > 1;
+      const initialItems = Array.from(groupedMap.values()).map((entry) => {
+        const isDiscrete = isDiscreteUnit(entry.unit);
+        const rawSum = entry.contributions.reduce(
+          (acc, c) => acc + c.calculatedQty,
+          0,
+        );
+        const stdQty = isDiscrete ? Math.ceil(rawSum) : Number(rawSum.toFixed(2));
+        const isMulti = entry.contributions.length > 1;
 
-      const displayRate = isMulti
-        ? entry.contributions
-          .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
-          .join(" | ")
-        : entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
+        const displayRate = isMulti
+          ? entry.contributions
+            .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
+            .join(" | ")
+          : entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
 
-      const isKg = isKgUnit(entry.unit);
-      const rawPortion =
-        entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
-      const displayPortion = isKg
-        ? Number((Number(rawPortion) * 1000).toFixed(2))
-        : rawPortion;
+        const isKg = isKgUnit(entry.unit);
+        const rawPortion =
+          entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
+        const displayPortion = isKg
+          ? Number((Number(rawPortion) * 1000).toFixed(2))
+          : rawPortion;
 
-      return {
-        id: entry.id,
-        name: entry.name,
-        category: entry.category,
-        unit: entry.unit,
-        supplierId: entry.supplierId,
-        supplierName: entry.supplierName,
-        handlingType: entry.handlingType,
-        isExtraItem: false,
-        isMultiMenu: isMulti,
-        breakdown: entry.contributions,
-        defaultQtyPerPortion: entry.defaultQtyPerPortion,
-        qtyPerPortion: rawPortion,
-        portionInput: String(displayPortion),
-        displayRate,
-        standardQty: stdQty,
-        standardQtyInput: String(stdQty),
-        extraQty: 0,
-        extraQtyInput: "",
-        batchQty: stdQty,
-      };
-    });
+        return {
+          id: entry.id,
+          name: entry.name,
+          category: entry.category,
+          unit: entry.unit,
+          supplierId: entry.supplierId,
+          supplierName: entry.supplierName,
+          handlingType: entry.handlingType,
+          isExtraItem: false,
+          isMultiMenu: isMulti,
+          breakdown: entry.contributions,
+          defaultQtyPerPortion: entry.defaultQtyPerPortion,
+          qtyPerPortion: rawPortion,
+          portionInput: String(displayPortion),
+          displayRate,
+          standardQty: stdQty,
+          standardQtyInput: String(stdQty),
+          extraQty: 0,
+          extraQtyInput: "",
+          batchQty: stdQty,
+        };
+      });
 
-    setItemsState(initialItems);
+      setItemsState(initialItems);
+      setItemsLoading(false);
+    }, 250);
+
+    return () => clearTimeout(timer);
   }, [activeMenus, mode, batch1ForDate, orderDate]);
 
   // Cập nhật lại số lượng Đợt 2 khi GVCN cập nhật Sĩ số (dựa trên định lượng đã kế thừa từ Đợt 1)
@@ -866,13 +1273,42 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 1 (Chuyên biệt thực phẩm tươi sống trong ngày)
   const handleSubmitBatch1 = async () => {
-    if (!activeMenus || activeMenus.length === 0) return;
+    if (!hasMenusInWeek || !activeMenus || activeMenus.length === 0) {
+      notice({
+        msg: "Tuần này chưa có thực đơn được duyệt từ bên Dinh dưỡng. Không thể tạo yêu cầu nhập hàng!",
+        isSuccess: false,
+      });
+      return;
+    }
+    if (!isOrderAllowed) {
+      notice({
+        msg: `Chưa đủ thực đơn cho cả trường trong tuần này! Còn thiếu: ${menuCompleteness.missingGrades.join(", ")}. Vui lòng chờ Dinh dưỡng duyệt đủ hoặc xác nhận không ăn bán trú.`,
+        isSuccess: false,
+      });
+      return;
+    }
+    if (itemsState.length === 0) {
+      notice({
+        msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
+        isSuccess: false,
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       await onSubmitBatch1({
         menuId: activeMenus[0].id,
         menuIds: activeMenus.map((m) => m.id),
         menus: activeMenus,
+        menusSummary: activeMenus.map((m) => ({
+          id: m.id,
+          name: m.name,
+          title: m.title,
+          targetScope: m.targetScope,
+          maxPortions: m.maxPortions,
+        })),
+        plannedPortions: totalBatch1Portions,
+        maxPortions: totalMaxPortions,
         targetScope: activeMenus
           .map((m) => m.targetScope)
           .filter(Boolean)
@@ -910,7 +1346,21 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 2
   const handleSubmitBatch2 = async () => {
-    if (!batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
+    if (!hasMenusInWeek || !batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
+    if (!isOrderAllowed) {
+      notice({
+        msg: `Chưa đủ thực đơn cho cả trường trong tuần này! Còn thiếu: ${menuCompleteness.missingGrades.join(", ")}. Không thể tạo yêu cầu nhập hàng Đợt 2.`,
+        isSuccess: false,
+      });
+      return;
+    }
+    if (itemsState.length === 0) {
+      notice({
+        msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
+        isSuccess: false,
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       await onSubmitBatch2({
@@ -977,21 +1427,81 @@ export default function CreateDeliveryView({
       {/* 2. Thanh chọn Ngày giao & Thực đơn */}
       <Paper className={styles.formCard} elevation={0}>
         <Box className={styles.formRow}>
-          <TextField
-            type="date"
-            label="Ngày áp dụng / Ngày giao hàng"
-            value={orderDate}
-            onChange={(e) => {
-              setOrderDate(e.target.value);
-              setActualAttendance(""); // Reset sĩ số khi đổi ngày
-            }}
-            size="small"
-            className={styles.dateInput}
-            slotProps={{ inputLabel: { shrink: true } }}
-          />
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+            <TextField
+              type="date"
+              label="Ngày áp dụng / Ngày giao hàng"
+              value={orderDate}
+              onChange={(e) => {
+                setOrderDate(e.target.value);
+                setActualAttendance(""); // Reset sĩ số khi đổi ngày
+              }}
+              size="small"
+              className={styles.dateInput}
+              slotProps={{ inputLabel: { shrink: true } }}
+            />
+            {targetMonday && targetFriday && (
+              <Chip
+                icon={
+                  <CalendarCheck
+                    size={14}
+                    color={
+                      !hasMenusInWeek
+                        ? "#dc2626"
+                        : !menuCompleteness.isComplete
+                          ? "#ea580c"
+                          : "#1d4ed8"
+                    }
+                  />
+                }
+                label={
+                  !hasMenusInWeek
+                    ? `Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} (Chưa có thực đơn)`
+                    : !menuCompleteness.isComplete
+                      ? `Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} (Thiếu: ${menuCompleteness.missingGrades.join(", ")})`
+                      : `Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} (Đủ thực đơn toàn trường)`
+                }
+                size="small"
+                sx={{
+                  height: 24,
+                  bgcolor:
+                    !hasMenusInWeek
+                      ? "#fef2f2"
+                      : !menuCompleteness.isComplete
+                        ? "#fff7ed"
+                        : "#eff6ff",
+                  color:
+                    !hasMenusInWeek
+                      ? "#b91c1c"
+                      : !menuCompleteness.isComplete
+                        ? "#c2410c"
+                        : "#1e40af",
+                  borderColor:
+                    !hasMenusInWeek
+                      ? "#fecaca"
+                      : !menuCompleteness.isComplete
+                        ? "#fed7aa"
+                        : "#bfdbfe",
+                  fontWeight: 600,
+                  fontSize: "0.75rem",
+                  border: "1px solid",
+                }}
+              />
+            )}
+          </Box>
 
           {mode === "BATCH_1" ? (
-            isMultiMenuDate ? (
+            !hasMenusInWeek ? (
+              <TextField
+                label="Thực đơn áp dụng (Đã duyệt)"
+                value="Tuần này chưa có thực đơn được duyệt từ Dinh dưỡng"
+                className={styles.menuSelect}
+                size="small"
+                fullWidth
+                disabled
+                error
+              />
+            ) : isMultiMenuDate ? (
               <Box
                 sx={{
                   display: "flex",
@@ -1029,8 +1539,9 @@ export default function CreateDeliveryView({
                 className={styles.menuSelect}
                 size="small"
                 fullWidth
+                disabled={!hasMenusInWeek}
               >
-                {effectiveMenus.map((menu) => (
+                {menusInCurrentWeek.map((menu) => (
                   <MenuItem key={menu.id} value={menu.id}>
                     {menu.name} — {menu.targetScope} ({menu.maxPortions} suất
                     chuẩn)
@@ -1071,17 +1582,50 @@ export default function CreateDeliveryView({
               ) : (
                 <TextField
                   label="Thực đơn đã chọn"
-                  value={`${currentMenu?.name || ""} (${maxPortions} suất tối đa)`}
+                  value={
+                    currentMenu
+                      ? `${currentMenu.name} (${maxPortions} suất tối đa)`
+                      : "Không có thực đơn hợp lệ"
+                  }
                   size="small"
                   disabled
                   className={styles.menuSelect}
                   fullWidth
+                  error={!hasMenusInWeek}
                 />
               )}
             </Box>
           )}
         </Box>
       </Paper>
+
+      {/* Cảnh báo khi tuần này chưa có thực đơn được duyệt từ bên Dinh dưỡng */}
+      {!hasMenusInWeek && (
+        <Alert
+          severity="warning"
+          sx={{
+            my: 2,
+            borderRadius: 2.5,
+            border: "1px solid #fed7aa",
+            bgcolor: "#fffbeb",
+            "& .MuiAlert-message": { width: "100%" },
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{ fontWeight: 700, color: "#9a3412", mb: 0.5 }}
+          >
+            Tuần này chưa có thực đơn được phê duyệt!
+          </Typography>
+          <Typography variant="body2" sx={{ color: "#c2410c" }}>
+            Hệ thống không tìm thấy thực đơn đã duyệt (APPROVED) cho tuần từ{" "}
+            <strong>{formatDateVN(targetMonday)}</strong> đến{" "}
+            <strong>{formatDateVN(targetFriday)}</strong>. Vui lòng kiểm tra lại
+            với chuyên viên Dinh dưỡng hoặc BGH để phê duyệt thực đơn tuần trước
+            khi lập yêu cầu nhập hàng.
+          </Typography>
+        </Alert>
+      )}
 
       {/* =====================================================================
           CASE 3: NGÀY ĐÓ ĐÃ CÓ CẢ 2 ĐỢT (HOÀN TẤT)
@@ -1199,7 +1743,7 @@ export default function CreateDeliveryView({
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip
-                  label={`${itemsState.length} mặt hàng`}
+                  label={isTableLoading ? "Đang tải..." : `${itemsState.length} mặt hàng`}
                   size="small"
                   className={styles.freshItemCountBadge}
                 />
@@ -1227,263 +1771,309 @@ export default function CreateDeliveryView({
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {itemsState.map((ing) => {
-                    const isDiscrete = isDiscreteUnit(ing.unit);
-                    const isMulti = Boolean(
-                      ing.breakdown && ing.breakdown.length > 1,
-                    );
-                    const isExpanded = Boolean(expandedRows[ing.id]);
-
-                    return (
-                      <React.Fragment key={ing.id}>
-                        <TableRow hover className={styles.tableRow}>
-                          <TableCell>
-                            <Typography
-                              variant="subtitle2"
-                              className={styles.ingName}
-                            >
-                              {ing.name}
-                            </Typography>
-                          </TableCell>
-
-                          <TableCell>
-                            <Typography
-                              variant="body2"
-                              className={styles.supplierText}
-                            >
-                              {ing.supplierName}
-                            </Typography>
-                          </TableCell>
-
-                          {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
-                          <TableCell align="center">
-                            {ing.isExtraItem ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: "#94a3b8", fontWeight: 500 }}
-                              >
-                                —
-                              </Typography>
-                            ) : isMulti ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: 0.5,
-                                }}
-                              >
-                                <Chip
-                                  icon={<Layers size={12} />}
-                                  label={`${ing.breakdown.length} thực đơn`}
-                                  size="small"
-                                  onClick={() => toggleExpandRow(ing.id)}
-                                  sx={{
-                                    cursor: "pointer",
-                                    bgcolor: "#eff6ff",
-                                    color: "#1d4ed8",
-                                    fontWeight: 700,
-                                    fontSize: "0.75rem",
-                                    height: 22,
-                                    border: "1px solid #bfdbfe",
-                                    "&:hover": { bgcolor: "#dbeafe" },
-                                  }}
-                                />
-                                <Button
-                                  size="small"
-                                  variant="text"
-                                  onClick={() => toggleExpandRow(ing.id)}
-                                  sx={{
-                                    fontSize: "0.6875rem",
-                                    p: 0,
-                                    minWidth: 0,
-                                    textTransform: "none",
-                                    color: "#2563eb",
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
-                                </Button>
-                              </Box>
-                            ) : (
-                              <Box className={styles.editableCellWrap}>
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  value={ing.portionInput}
-                                  onChange={(e) =>
-                                    handlePortionChange(ing.id, e.target.value)
-                                  }
-                                  onBlur={() => handlePortionBlur(ing.id)}
-                                  className={styles.cellInput}
-                                  slotProps={{
-                                    htmlInput: {
-                                      step: isKgUnit(ing.unit) ? "1" : "0.001",
-                                      min: isKgUnit(ing.unit) ? "1" : "0.001",
-                                      style: {
-                                        textAlign: "right",
-                                        padding: "6px 8px",
-                                      },
-                                    },
-                                    input: {
-                                      endAdornment: (
-                                        <span className={styles.inputAdornment}>
-                                          {getPortionUnit(ing.unit)}/suất
-                                        </span>
-                                      ),
-                                    },
-                                  }}
-                                />
-                              </Box>
-                            )}
-                          </TableCell>
-
-                          {/* Cột 2: Số lượng Đợt 1 (theo 50% suất) */}
-                          <TableCell
-                            align="right"
-                            className={styles.batch1Cell}
+                  {isTableLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                            py: 2,
+                          }}
+                        >
+                          <FoodPrintLoading size="large" />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#64748b", fontWeight: 500 }}
                           >
-                            {ing.isExtraItem ? (
+                            Đang tải danh mục nguyên liệu theo thực đơn...
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : itemsState.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <Package size={36} color="#94a3b8" />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#64748b", fontWeight: 500 }}
+                          >
+                            Không có nguyên liệu trực tiếp (tươi sống) nào cho ngày này.
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    itemsState.map((ing) => {
+                      const isDiscrete = isDiscreteUnit(ing.unit);
+                      const isMulti = Boolean(
+                        ing.breakdown && ing.breakdown.length > 1,
+                      );
+                      const isExpanded = Boolean(expandedRows[ing.id]);
+
+                      return (
+                        <React.Fragment key={ing.id}>
+                          <TableRow hover className={styles.tableRow}>
+                            <TableCell>
+                              <Typography
+                                variant="subtitle2"
+                                className={styles.ingName}
+                              >
+                                {ing.name}
+                              </Typography>
+                            </TableCell>
+
+                            <TableCell>
                               <Typography
                                 variant="body2"
-                                sx={{ color: "#94a3b8", fontWeight: 500 }}
+                                className={styles.supplierText}
                               >
-                                —
+                                {ing.supplierName}
                               </Typography>
-                            ) : (
-                              <Box className={styles.editableCellWrapRight}>
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  value={ing.standardQtyInput}
-                                  onChange={(e) =>
-                                    handleStandardQtyChange(
-                                      ing.id,
-                                      e.target.value,
-                                    )
-                                  }
-                                  onBlur={() => handleStandardQtyBlur(ing.id)}
-                                  className={`${styles.cellInput} ${styles.batch1CellInput}`}
-                                  slotProps={{
-                                    htmlInput: {
-                                      step: isDiscrete ? "1" : "0.01",
-                                      min: isDiscrete ? "1" : "0.01",
-                                      style: {
-                                        textAlign: "right",
-                                        padding: "6px 8px",
-                                        fontWeight: 700,
-                                      },
-                                    },
-                                    input: {
-                                      endAdornment: (
-                                        <span className={styles.inputAdornment}>
-                                          {isDiscrete ? ing.unit : "kg"}
-                                        </span>
-                                      ),
-                                    },
-                                  }}
-                                />
-                              </Box>
-                            )}
-                          </TableCell>
-                        </TableRow>
+                            </TableCell>
 
-                        {/* Dòng mở rộng xem thêm chi tiết cho nguyên liệu đa thực đơn */}
-                        {isExpanded && isMulti && (
-                          <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                            <TableCell
-                              colSpan={4}
-                              sx={{
-                                py: 1.25,
-                                px: 3,
-                                borderBottom: "1px solid #e2e8f0",
-                              }}
-                            >
-                              <Box
-                                sx={{
-                                  p: 1.5,
-                                  bgcolor: "#ffffff",
-                                  borderRadius: 1.5,
-                                  border: "1px solid #e2e8f0",
-                                }}
-                              >
+                            {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
+                            <TableCell align="center">
+                              {ing.isExtraItem ? (
                                 <Typography
-                                  variant="caption"
-                                  sx={{
-                                    fontWeight: 700,
-                                    color: "#1e293b",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 0.75,
-                                    mb: 1,
-                                  }}
+                                  variant="body2"
+                                  sx={{ color: "#94a3b8", fontWeight: 500 }}
                                 >
-                                  <Layers size={14} color="#2563eb" /> Chi tiết
-                                  định lượng &amp; số lượng theo từng thực đơn /
-                                  khối lớp:
+                                  —
                                 </Typography>
+                              ) : isMulti ? (
                                 <Box
                                   sx={{
                                     display: "flex",
-                                    gap: 2,
-                                    flexWrap: "wrap",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    gap: 0.5,
                                   }}
                                 >
-                                  {ing.breakdown.map((b, bIdx) => (
-                                    <Box
-                                      key={bIdx}
-                                      sx={{
-                                        bgcolor: "#f8fafc",
-                                        p: 1,
-                                        px: 1.5,
-                                        borderRadius: 1.25,
-                                        border: "1px solid #e2e8f0",
-                                        minWidth: 200,
-                                      }}
-                                    >
-                                      <Typography
-                                        variant="body2"
-                                        sx={{
-                                          fontWeight: 700,
-                                          color: "#0f172a",
-                                          fontSize: "0.8rem",
-                                        }}
-                                      >
-                                        {b.targetScope || b.menuName}
-                                      </Typography>
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{ display: "block", mt: 0.25 }}
-                                      >
-                                        {b.portions} suất ×{" "}
-                                        {formatPortionRate(
-                                          b.qtyPerPortion,
-                                          b.unit || ing.unit,
-                                        )}
-                                        /suất
-                                      </Typography>
-                                      <Typography
-                                        variant="body2"
-                                        sx={{
-                                          fontWeight: 700,
-                                          color: "#2563eb",
-                                          mt: 0.5,
-                                        }}
-                                      >
-                                        = {b.calculatedQty}{" "}
-                                        {isDiscrete ? b.unit || ing.unit : "kg"}
-                                      </Typography>
-                                    </Box>
-                                  ))}
+                                  <Chip
+                                    icon={<Layers size={12} />}
+                                    label={`${ing.breakdown.length} thực đơn`}
+                                    size="small"
+                                    onClick={() => toggleExpandRow(ing.id)}
+                                    sx={{
+                                      cursor: "pointer",
+                                      bgcolor: "#eff6ff",
+                                      color: "#1d4ed8",
+                                      fontWeight: 700,
+                                      fontSize: "0.75rem",
+                                      height: 22,
+                                      border: "1px solid #bfdbfe",
+                                      "&:hover": { bgcolor: "#dbeafe" },
+                                    }}
+                                  />
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={() => toggleExpandRow(ing.id)}
+                                    sx={{
+                                      fontSize: "0.6875rem",
+                                      p: 0,
+                                      minWidth: 0,
+                                      textTransform: "none",
+                                      color: "#2563eb",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                                  </Button>
                                 </Box>
-                              </Box>
+                              ) : (
+                                <Box className={styles.editableCellWrap}>
+                                  <TextField
+                                    type="number"
+                                    size="small"
+                                    value={ing.portionInput}
+                                    onChange={(e) =>
+                                      handlePortionChange(ing.id, e.target.value)
+                                    }
+                                    onBlur={() => handlePortionBlur(ing.id)}
+                                    className={styles.cellInput}
+                                    slotProps={{
+                                      htmlInput: {
+                                        step: isKgUnit(ing.unit) ? "1" : "0.001",
+                                        min: isKgUnit(ing.unit) ? "1" : "0.001",
+                                        style: {
+                                          textAlign: "right",
+                                          padding: "6px 8px",
+                                        },
+                                      },
+                                      input: {
+                                        endAdornment: (
+                                          <span className={styles.inputAdornment}>
+                                            {getPortionUnit(ing.unit)}/suất
+                                          </span>
+                                        ),
+                                      },
+                                    }}
+                                  />
+                                </Box>
+                              )}
+                            </TableCell>
+
+                            {/* Cột 2: Số lượng Đợt 1 (theo 50% suất) */}
+                            <TableCell
+                              align="right"
+                              className={styles.batch1Cell}
+                            >
+                              {ing.isExtraItem ? (
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: "#94a3b8", fontWeight: 500 }}
+                                >
+                                  —
+                                </Typography>
+                              ) : (
+                                <Box className={styles.editableCellWrapRight}>
+                                  <TextField
+                                    type="number"
+                                    size="small"
+                                    value={ing.standardQtyInput}
+                                    onChange={(e) =>
+                                      handleStandardQtyChange(
+                                        ing.id,
+                                        e.target.value,
+                                      )
+                                    }
+                                    onBlur={() => handleStandardQtyBlur(ing.id)}
+                                    className={`${styles.cellInput} ${styles.batch1CellInput}`}
+                                    slotProps={{
+                                      htmlInput: {
+                                        step: isDiscrete ? "1" : "0.01",
+                                        min: isDiscrete ? "1" : "0.01",
+                                        style: {
+                                          textAlign: "right",
+                                          padding: "6px 8px",
+                                          fontWeight: 700,
+                                        },
+                                      },
+                                      input: {
+                                        endAdornment: (
+                                          <span className={styles.inputAdornment}>
+                                            {isDiscrete ? ing.unit : "kg"}
+                                          </span>
+                                        ),
+                                      },
+                                    }}
+                                  />
+                                </Box>
+                              )}
                             </TableCell>
                           </TableRow>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
+
+                          {/* Dòng mở rộng xem thêm chi tiết cho nguyên liệu đa thực đơn */}
+                          {isExpanded && isMulti && (
+                            <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                              <TableCell
+                                colSpan={4}
+                                sx={{
+                                  py: 1.25,
+                                  px: 3,
+                                  borderBottom: "1px solid #e2e8f0",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    p: 1.5,
+                                    bgcolor: "#ffffff",
+                                    borderRadius: 1.5,
+                                    border: "1px solid #e2e8f0",
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontWeight: 700,
+                                      color: "#1e293b",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 0.75,
+                                      mb: 1,
+                                    }}
+                                  >
+                                    <Layers size={14} color="#2563eb" /> Chi tiết
+                                    định lượng &amp; số lượng theo từng thực đơn /
+                                    khối lớp:
+                                  </Typography>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      gap: 2,
+                                      flexWrap: "wrap",
+                                    }}
+                                  >
+                                    {ing.breakdown.map((b, bIdx) => (
+                                      <Box
+                                        key={bIdx}
+                                        sx={{
+                                          bgcolor: "#f8fafc",
+                                          p: 1,
+                                          px: 1.5,
+                                          borderRadius: 1.25,
+                                          border: "1px solid #e2e8f0",
+                                          minWidth: 200,
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            fontWeight: 700,
+                                            color: "#0f172a",
+                                            fontSize: "0.8rem",
+                                          }}
+                                        >
+                                          {b.targetScope || b.menuName}
+                                        </Typography>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                          sx={{ display: "block", mt: 0.25 }}
+                                        >
+                                          {b.portions} suất ×{" "}
+                                          {formatPortionRate(
+                                            b.qtyPerPortion,
+                                            b.unit || ing.unit,
+                                          )}
+                                          /suất
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            fontWeight: 700,
+                                            color: "#2563eb",
+                                            mt: 0.5,
+                                          }}
+                                        >
+                                          = {b.calculatedQty}{" "}
+                                          {isDiscrete ? b.unit || ing.unit : "kg"}
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </Box>
@@ -1506,7 +2096,7 @@ export default function CreateDeliveryView({
           <Box className={styles.footerWrap}>
             <Box className={styles.summaryBadges}>
               <Chip
-                label={`${itemsState.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`}
+                label={isTableLoading ? "Đang tải..." : `${itemsState.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`}
                 size="small"
                 className={styles.summaryFreshBadge}
               />
@@ -1516,23 +2106,52 @@ export default function CreateDeliveryView({
               <Button onClick={onBack} variant="outlined" color="inherit">
                 Hủy bỏ
               </Button>
-              <Button
-                onClick={handleSubmitBatch1}
-                variant="contained"
-                startIcon={
-                  submitting ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <Send size={18} />
-                  )
+              <Tooltip
+                title={
+                  !hasMenusInWeek
+                    ? "Tuần này chưa có thực đơn được duyệt"
+                    : !isOrderAllowed
+                      ? `Nút bị khóa: Chưa đủ thực đơn toàn trường (Còn thiếu: ${menuCompleteness.missingGrades.join(", ")})`
+                      : itemsState.length === 0
+                        ? "Không có nguyên liệu tươi sống nào để tạo đơn"
+                        : ""
                 }
-                disabled={submitting}
-                className={styles.submitBtn}
               >
-                {submitting
-                  ? "Đang gửi..."
-                  : "Tạo"}
-              </Button>
+                <span
+                  style={{
+                    cursor:
+                      !hasMenusInWeek || !isOrderAllowed || itemsState.length === 0 || isTableLoading
+                        ? "not-allowed"
+                        : "default",
+                    display: "inline-block",
+                  }}
+                >
+                  <Button
+                    onClick={handleSubmitBatch1}
+                    variant="contained"
+                    startIcon={
+                      submitting ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        <Send size={18} />
+                      )
+                    }
+                    disabled={
+                      submitting ||
+                      !hasMenusInWeek ||
+                      !isOrderAllowed ||
+                      activeMenus.length === 0 ||
+                      itemsState.length === 0 ||
+                      isTableLoading
+                    }
+                    className={styles.submitBtn}
+                  >
+                    {submitting
+                      ? "Đang gửi..."
+                      : "Tạo"}
+                  </Button>
+                </span>
+              </Tooltip>
             </Box>
           </Box>
         </>
@@ -1555,10 +2174,6 @@ export default function CreateDeliveryView({
                   >
                     Sĩ Số Ăn Bán Trú Thực Tế Từ Giáo Viên Chủ Nhiệm (GVCN)
                   </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    Hệ thống tự động tổng hợp số lượng học sinh ăn bán trú từ
-                    các lớp đã chốt điểm danh
-                  </Typography>
                 </Box>
               </Box>
 
@@ -1576,26 +2191,6 @@ export default function CreateDeliveryView({
             </Box>
 
             <Box className={styles.attendanceBody}>
-              {attendanceSummary && (
-                <Box>
-                  {attendanceSummary.finalizedClasses > 0 ? (
-                    <Alert severity="success" icon={<CheckCircle2 size={18} />}>
-                      Đã tự động lấy dữ liệu từ GVCN:{" "}
-                      <strong>
-                        {attendanceSummary.totalPortions} học sinh
-                      </strong>{" "}
-                      ({attendanceSummary.finalizedClasses} lớp đã chốt điểm
-                      danh sáng nay).
-                    </Alert>
-                  ) : (
-                    <Alert severity="info" icon={<Clock size={18} />}>
-                      Chưa có lớp nào chốt sĩ số điểm danh cho ngày {formatDateVN(orderDate)}.
-                      Khi GVCN các lớp chốt báo cơm, hệ thống sẽ tự động cập
-                      nhật số suất cần giao.
-                    </Alert>
-                  )}
-                </Box>
-              )}
 
               <Box className={styles.attendanceStatsRow}>
                 <Box className={styles.attendanceStatBox}>
@@ -1611,9 +2206,9 @@ export default function CreateDeliveryView({
                     }}
                   >
                     {attendanceLoading ? (
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
-                        <CircularProgress size={16} color="primary" />
-                        <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 600 }}>
+                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                        <FoodPrintLoading size={18} />
+                        <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
                           Đang tải sĩ số...
                         </Typography>
                       </Box>
@@ -1673,79 +2268,144 @@ export default function CreateDeliveryView({
 
               {/* Chi tiết phân bổ theo từng khối khi là đa thực đơn */}
               {isMultiMenu && (
-                <Box sx={{ mt: 2, pt: 2, borderTop: "1px dashed #cbd5e1" }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      fontWeight: 700,
-                      color: "#475569",
-                      mb: 1,
-                      display: "block",
-                    }}
-                  >
-                    Chi tiết cân đối theo từng khối lớp:
-                  </Typography>
+                <Box sx={{ mt: 2, pt: 1.5, borderTop: "1px dashed #cbd5e1" }}>
                   <Box
+                    onClick={() => setShowGradeBalance((prev) => !prev)}
                     sx={{
-                      display: "grid",
-                      gridTemplateColumns:
-                        "repeat(auto-fit, minmax(260px, 1fr))",
-                      gap: 1.5,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      cursor: "pointer",
+                      py: 0.75,
+                      px: 1,
+                      borderRadius: 1.5,
+                      transition: "all 0.2s ease",
+                      bgcolor: showGradeBalance ? "#f1f5f9" : "transparent",
+                      "&:hover": {
+                        bgcolor: "#f1f5f9",
+                      },
                     }}
                   >
-                    {menusPortionsMeta.map((m) => {
-                      const info = remainingByMenu[m.id] || {
-                        actual: 0,
-                        remaining: 0,
-                      };
-                      return (
-                        <Paper
-                          key={m.id}
-                          variant="outlined"
-                          sx={{ p: 1.5, borderRadius: 2, bgcolor: "#f8fafc" }}
-                        >
-                          <Typography
-                            variant="subtitle2"
-                            sx={{ fontWeight: 700, color: "#0f172a" }}
-                          >
-                            {m.targetScope || m.name}
-                          </Typography>
-                          <Box
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontWeight: 700,
+                          color: "#334155",
+                          fontSize: "0.8125rem",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 0.5,
+                        }}
+                      >
+                        Chi tiết cân đối theo từng khối lớp:
+                      </Typography>
+                      <Chip
+                        label={`${menusPortionsMeta.length} khối`}
+                        size="small"
+                        sx={{
+                          height: 20,
+                          fontSize: "0.6875rem",
+                          fontWeight: 600,
+                          bgcolor: "#e2e8f0",
+                          color: "#475569",
+                        }}
+                      />
+                    </Box>
+
+                    <Button
+                      size="small"
+                      variant="text"
+                      endIcon={
+                        showGradeBalance ? (
+                          <ChevronUp size={16} />
+                        ) : (
+                          <ChevronDown size={16} />
+                        )
+                      }
+                      sx={{
+                        textTransform: "none",
+                        fontSize: "0.75rem",
+                        fontWeight: 600,
+                        color: "#2563eb",
+                        p: 0,
+                        minWidth: 0,
+                        "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+                      }}
+                    >
+                      {showGradeBalance ? "Thu gọn" : "Xem chi tiết"}
+                    </Button>
+                  </Box>
+
+                  <Collapse in={showGradeBalance} timeout="auto">
+                    <Box
+                      sx={{
+                        display: "grid",
+                        gridTemplateColumns:
+                          "repeat(auto-fit, minmax(260px, 1fr))",
+                        gap: 1.5,
+                        mt: 1.5,
+                      }}
+                    >
+                      {menusPortionsMeta.map((m) => {
+                        const info = remainingByMenu[m.id] || {
+                          actual: 0,
+                          remaining: 0,
+                        };
+                        return (
+                          <Paper
+                            key={m.id}
+                            variant="outlined"
                             sx={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              mt: 1,
+                              p: 1.5,
+                              borderRadius: 2,
+                              bgcolor: "#f8fafc",
+                              border: "1px solid #e2e8f0",
                             }}
                           >
                             <Typography
-                              variant="caption"
-                              color="text.secondary"
+                              variant="subtitle2"
+                              sx={{ fontWeight: 700, color: "#0f172a" }}
                             >
-                              Sĩ số: <strong>{info.actual}</strong> /{" "}
-                              {m.maxPortions}
+                              {m.targetScope || m.name}
                             </Typography>
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                            >
-                              Đợt 1: <strong>{m.batch1Portions}</strong>
-                            </Typography>
-                            <Chip
-                              label={`Đợt 2: +${info.remaining} suất`}
-                              size="small"
-                              color="warning"
+                            <Box
                               sx={{
-                                fontWeight: 700,
-                                height: 22,
-                                fontSize: "0.75rem",
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                mt: 1,
                               }}
-                            />
-                          </Box>
-                        </Paper>
-                      );
-                    })}
-                  </Box>
+                            >
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Sĩ số: <strong>{info.actual}</strong> /{" "}
+                                {info.maxPortions || m.maxPortions}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                Đợt 1: <strong>{m.batch1Portions}</strong>
+                              </Typography>
+                              <Chip
+                                label={`Đợt 2: +${info.remaining} suất`}
+                                size="small"
+                                color="warning"
+                                sx={{
+                                  fontWeight: 700,
+                                  height: 22,
+                                  fontSize: "0.75rem",
+                                }}
+                              />
+                            </Box>
+                          </Paper>
+                        );
+                      })}
+                    </Box>
+                  </Collapse>
                 </Box>
               )}
             </Box>
@@ -1971,7 +2631,7 @@ export default function CreateDeliveryView({
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip
-                  label={`Đợt 2: ${itemsState.length} mặt hàng`}
+                  label={isTableLoading ? "Đang tải..." : `Đợt 2: ${itemsState.length} mặt hàng`}
                   size="small"
                   color={parsedAttendance > 0 ? "warning" : "default"}
                 />
@@ -2021,297 +2681,343 @@ export default function CreateDeliveryView({
                       className={styles.totalCol}
                       style={{ width: 135 }}
                     >
-                      Tổng Đợt 2 (kg)
+                      Tổng Đợt 2
                     </TableCell>
                     <TableCell>Nhà cung cấp đối tác</TableCell>
                     <TableCell align="center" style={{ width: 50 }}></TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {itemsState.map((ing) => {
-                    const isDiscrete = isDiscreteUnit(ing.unit);
-                    const isMulti = Boolean(
-                      ing.breakdown && ing.breakdown.length > 1,
-                    );
-                    const isExpanded = Boolean(expandedRows[ing.id]);
-
-                    return (
-                      <React.Fragment key={ing.id}>
-                        <TableRow hover className={styles.tableRow}>
-                          <TableCell>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 1,
-                                flexWrap: "wrap",
-                              }}
-                            >
-                              <Typography
-                                variant="subtitle2"
-                                className={styles.ingName}
-                              >
-                                {ing.name}
-                              </Typography>
-                              {ing.isExtraItem && (
-                                <Chip
-                                  label="Giao thêm ngoài"
-                                  size="small"
-                                  color="warning"
-                                  sx={{
-                                    height: 20,
-                                    fontSize: "0.6875rem",
-                                    fontWeight: 700,
-                                  }}
-                                />
-                              )}
-                              {isMulti && (
-                                <Box
-                                  sx={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: 0.5,
-                                  }}
-                                >
-                                  <Chip
-                                    icon={<Layers size={12} />}
-                                    label={`${ing.breakdown?.length || 2} thực đơn`}
-                                    size="small"
-                                    onClick={() => toggleExpandRow(ing.id)}
-                                    sx={{
-                                      cursor: "pointer",
-                                      bgcolor: "#eff6ff",
-                                      color: "#1d4ed8",
-                                      fontWeight: 700,
-                                      fontSize: "0.75rem",
-                                      height: 22,
-                                      border: "1px solid #bfdbfe",
-                                      "&:hover": { bgcolor: "#dbeafe" },
-                                    }}
-                                  />
-                                  <Button
-                                    size="small"
-                                    variant="text"
-                                    onClick={() => toggleExpandRow(ing.id)}
-                                    sx={{
-                                      fontSize: "0.6875rem",
-                                      p: 0,
-                                      minWidth: 0,
-                                      textTransform: "none",
-                                      color: "#2563eb",
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
-                                  </Button>
-                                </Box>
-                              )}
-                            </Box>
-                          </TableCell>
-
-                          {/* Cột 2: Số lượng theo suất Đợt 2 (KHÓA: Tự động tính theo Sĩ số bù, không cho sửa) */}
-                          <TableCell
-                            align="right"
-                            className={styles.batch2Cell}
+                  {isTableLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 2,
+                            py: 2,
+                          }}
+                        >
+                          <FoodPrintLoading size="large" />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#64748b", fontWeight: 500 }}
                           >
-                            {ing.isExtraItem ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: "#94a3b8", fontWeight: 500 }}
-                              >
-                                —
-                              </Typography>
-                            ) : (
-                              <Typography
-                                variant="subtitle2"
-                                className={styles.batch2QtyText}
-                              >
-                                {ing.standardQty} {isDiscrete ? ing.unit : "kg"}
-                              </Typography>
-                            )}
-                          </TableCell>
+                            Đang tải danh mục nguyên liệu giao thêm Đợt 2...
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : itemsState.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <Package size={36} color="#94a3b8" />
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#64748b", fontWeight: 500 }}
+                          >
+                            Không có nguyên liệu nào cần giao thêm cho Đợt 2.
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    itemsState.map((ing) => {
+                      const isDiscrete = isDiscreteUnit(ing.unit);
+                      const isMulti = Boolean(
+                        ing.breakdown && ing.breakdown.length > 1,
+                      );
+                      const isExpanded = Boolean(expandedRows[ing.id]);
 
-                          {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
-                          <TableCell align="right" className={styles.extraCell}>
-                            <Box className={styles.editableCellWrapRight}>
-                              <TextField
-                                type="number"
-                                size="small"
-                                placeholder="0"
-                                value={ing.extraQtyInput}
-                                onChange={(e) =>
-                                  handleExtraQtyChange(ing.id, e.target.value)
-                                }
-                                onBlur={() => handleExtraQtyBlur(ing.id)}
-                                className={`${styles.cellInput} ${styles.extraCellInput}`}
-                                slotProps={{
-                                  htmlInput: {
-                                    step: isDiscrete ? "1" : "0.01",
-                                    min: "0",
-                                    style: {
-                                      textAlign: "right",
-                                      padding: "6px 8px",
-                                      fontWeight: 700,
-                                      color:
-                                        ing.extraQty > 0
-                                          ? "#15803d"
-                                          : "#64748b",
-                                    },
-                                  },
-                                  input: {
-                                    endAdornment: (
-                                      <span
-                                        className={styles.inputAdornment}
-                                        style={{
-                                          color:
-                                            ing.extraQty > 0
-                                              ? "#15803d"
-                                              : "#64748b",
-                                        }}
-                                      >
-                                        {isDiscrete ? ing.unit : "kg"}
-                                      </span>
-                                    ),
-                                  },
-                                }}
-                              />
-                            </Box>
-                          </TableCell>
-
-                          {/* Cột 4: Tổng SL Đợt 2 (= Theo suất + Giao thêm) */}
-                          <TableCell align="right" className={styles.totalCell}>
-                            <Typography
-                              variant="subtitle2"
-                              className={styles.totalQtyText}
-                            >
-                              {ing.batchQty} {isDiscrete ? ing.unit : "kg"}
-                            </Typography>
-                          </TableCell>
-
-                          <TableCell>
-                            <Typography
-                              variant="body2"
-                              className={styles.supplierText}
-                            >
-                              {ing.supplierName}
-                            </Typography>
-                          </TableCell>
-
-                          {/* Cột thao tác xóa nếu là hàng giao thêm ngoài */}
-                          <TableCell align="center">
-                            {ing.isExtraItem ? (
-                              <Tooltip title="Xóa món giao thêm" arrow>
-                                <IconButton
-                                  size="small"
-                                  color="error"
-                                  onClick={() =>
-                                    handleRemoveExtraIngredient(ing.id)
-                                  }
-                                  sx={{ p: 0.5 }}
-                                >
-                                  <Trash2 size={16} />
-                                </IconButton>
-                              </Tooltip>
-                            ) : null}
-                          </TableCell>
-                        </TableRow>
-
-                        {/* Dòng mở rộng phân rã chi tiết cho nguyên liệu đa thực đơn */}
-                        {isExpanded && isMulti && (
-                          <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                            <TableCell
-                              colSpan={6}
-                              sx={{
-                                py: 1.25,
-                                px: 3,
-                                borderBottom: "1px solid #e2e8f0",
-                              }}
-                            >
+                      return (
+                        <React.Fragment key={ing.id}>
+                          <TableRow hover className={styles.tableRow}>
+                            <TableCell>
                               <Box
                                 sx={{
-                                  p: 1.5,
-                                  bgcolor: "#ffffff",
-                                  borderRadius: 1.5,
-                                  border: "1px solid #e2e8f0",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 1,
+                                  flexWrap: "wrap",
                                 }}
                               >
                                 <Typography
-                                  variant="caption"
-                                  sx={{
-                                    fontWeight: 700,
-                                    color: "#1e293b",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: 0.75,
-                                    mb: 1,
-                                  }}
+                                  variant="subtitle2"
+                                  className={styles.ingName}
                                 >
-                                  <Layers size={14} color="#2563eb" /> Chi tiết
-                                  định lượng &amp; số lượng theo từng thực đơn /
-                                  khối lớp (Đợt 2):
+                                  {ing.name}
                                 </Typography>
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    gap: 2,
-                                    flexWrap: "wrap",
-                                  }}
-                                >
-                                  {ing.breakdown.map((b, bIdx) => (
-                                    <Box
-                                      key={bIdx}
+                                {ing.isExtraItem && (
+                                  <Chip
+                                    label="Giao thêm ngoài"
+                                    size="small"
+                                    color="warning"
+                                    sx={{
+                                      height: 20,
+                                      fontSize: "0.6875rem",
+                                      fontWeight: 700,
+                                    }}
+                                  />
+                                )}
+                                {isMulti && (
+                                  <Box
+                                    sx={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 0.5,
+                                    }}
+                                  >
+                                    <Chip
+                                      icon={<Layers size={12} />}
+                                      label={`${ing.breakdown?.length || 2} thực đơn`}
+                                      size="small"
+                                      onClick={() => toggleExpandRow(ing.id)}
                                       sx={{
-                                        bgcolor: "#f8fafc",
-                                        p: 1,
-                                        px: 1.5,
-                                        borderRadius: 1.25,
-                                        border: "1px solid #e2e8f0",
-                                        minWidth: 200,
+                                        cursor: "pointer",
+                                        bgcolor: "#eff6ff",
+                                        color: "#1d4ed8",
+                                        fontWeight: 700,
+                                        fontSize: "0.75rem",
+                                        height: 22,
+                                        border: "1px solid #bfdbfe",
+                                        "&:hover": { bgcolor: "#dbeafe" },
+                                      }}
+                                    />
+                                    <Button
+                                      size="small"
+                                      variant="text"
+                                      onClick={() => toggleExpandRow(ing.id)}
+                                      sx={{
+                                        fontSize: "0.6875rem",
+                                        p: 0,
+                                        minWidth: 0,
+                                        textTransform: "none",
+                                        color: "#2563eb",
+                                        fontWeight: 600,
                                       }}
                                     >
-                                      <Typography
-                                        variant="body2"
-                                        sx={{
-                                          fontWeight: 700,
-                                          color: "#0f172a",
-                                          fontSize: "0.8rem",
-                                        }}
-                                      >
-                                        {b.targetScope || b.menuName}
-                                      </Typography>
-                                      <Typography
-                                        variant="caption"
-                                        color="text.secondary"
-                                        sx={{ display: "block", mt: 0.25 }}
-                                      >
-                                        {b.portions} suất bù ×{" "}
-                                        {formatPortionRate(
-                                          b.qtyPerPortion,
-                                          b.unit || ing.unit,
-                                        )}
-                                        /suất
-                                      </Typography>
-                                      <Typography
-                                        variant="body2"
-                                        sx={{
-                                          fontWeight: 700,
-                                          color: "#2563eb",
-                                          mt: 0.5,
-                                        }}
-                                      >
-                                        = {b.calculatedQty}{" "}
-                                        {isDiscrete ? b.unit || ing.unit : "kg"}
-                                      </Typography>
-                                    </Box>
-                                  ))}
-                                </Box>
+                                      {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                                    </Button>
+                                  </Box>
+                                )}
                               </Box>
                             </TableCell>
+
+                            {/* Cột 2: Số lượng theo suất Đợt 2 (KHÓA: Tự động tính theo Sĩ số bù, không cho sửa) */}
+                            <TableCell
+                              align="right"
+                              className={styles.batch2Cell}
+                            >
+                              {ing.isExtraItem ? (
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: "#94a3b8", fontWeight: 500 }}
+                                >
+                                  —
+                                </Typography>
+                              ) : (
+                                <Typography
+                                  variant="subtitle2"
+                                  className={styles.batch2QtyText}
+                                >
+                                  {ing.standardQty} {isDiscrete ? ing.unit : "kg"}
+                                </Typography>
+                              )}
+                            </TableCell>
+
+                            {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
+                            <TableCell align="right" className={styles.extraCell}>
+                              <Box className={styles.editableCellWrapRight}>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  placeholder="0"
+                                  value={ing.extraQtyInput}
+                                  onChange={(e) =>
+                                    handleExtraQtyChange(ing.id, e.target.value)
+                                  }
+                                  onBlur={() => handleExtraQtyBlur(ing.id)}
+                                  className={`${styles.cellInput} ${styles.extraCellInput}`}
+                                  slotProps={{
+                                    htmlInput: {
+                                      step: isDiscrete ? "1" : "0.01",
+                                      min: "0",
+                                      style: {
+                                        textAlign: "right",
+                                        padding: "6px 8px",
+                                        fontWeight: 700,
+                                        color:
+                                          ing.extraQty > 0
+                                            ? "#15803d"
+                                            : "#64748b",
+                                      },
+                                    },
+                                    input: {
+                                      endAdornment: (
+                                        <span
+                                          className={styles.inputAdornment}
+                                          style={{
+                                            color:
+                                              ing.extraQty > 0
+                                                ? "#15803d"
+                                                : "#64748b",
+                                          }}
+                                        >
+                                          {isDiscrete ? ing.unit : "kg"}
+                                        </span>
+                                      ),
+                                    },
+                                  }}
+                                />
+                              </Box>
+                            </TableCell>
+
+                            {/* Cột 4: Tổng SL Đợt 2 (= Theo suất + Giao thêm) */}
+                            <TableCell align="right" className={styles.totalCell}>
+                              <Typography
+                                variant="subtitle2"
+                                className={styles.totalQtyText}
+                              >
+                                {ing.batchQty} {isDiscrete ? ing.unit : "kg"}
+                              </Typography>
+                            </TableCell>
+
+                            <TableCell>
+                              <Typography
+                                variant="body2"
+                                className={styles.supplierText}
+                              >
+                                {ing.supplierName}
+                              </Typography>
+                            </TableCell>
+
+                            {/* Cột thao tác xóa nếu là hàng giao thêm ngoài */}
+                            <TableCell align="center">
+                              {ing.isExtraItem ? (
+                                <Tooltip title="Xóa món giao thêm" arrow>
+                                  <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() =>
+                                      handleRemoveExtraIngredient(ing.id)
+                                    }
+                                    sx={{ p: 0.5 }}
+                                  >
+                                    <Trash2 size={16} />
+                                  </IconButton>
+                                </Tooltip>
+                              ) : null}
+                            </TableCell>
                           </TableRow>
-                        )}
-                      </React.Fragment>
-                    );
-                  })}
+
+                          {/* Dòng mở rộng phân rã chi tiết cho nguyên liệu đa thực đơn */}
+                          {isExpanded && isMulti && (
+                            <TableRow sx={{ bgcolor: "#f8fafc" }}>
+                              <TableCell
+                                colSpan={6}
+                                sx={{
+                                  py: 1.25,
+                                  px: 3,
+                                  borderBottom: "1px solid #e2e8f0",
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    p: 1.5,
+                                    bgcolor: "#ffffff",
+                                    borderRadius: 1.5,
+                                    border: "1px solid #e2e8f0",
+                                  }}
+                                >
+                                  <Typography
+                                    variant="caption"
+                                    sx={{
+                                      fontWeight: 700,
+                                      color: "#1e293b",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 0.75,
+                                      mb: 1,
+                                    }}
+                                  >
+                                    <Layers size={14} color="#2563eb" /> Chi tiết
+                                    định lượng &amp; số lượng theo từng thực đơn /
+                                    khối lớp (Đợt 2):
+                                  </Typography>
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      gap: 2,
+                                      flexWrap: "wrap",
+                                    }}
+                                  >
+                                    {ing.breakdown.map((b, bIdx) => (
+                                      <Box
+                                        key={bIdx}
+                                        sx={{
+                                          bgcolor: "#f8fafc",
+                                          p: 1,
+                                          px: 1.5,
+                                          borderRadius: 1.25,
+                                          border: "1px solid #e2e8f0",
+                                          minWidth: 200,
+                                        }}
+                                      >
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            fontWeight: 700,
+                                            color: "#0f172a",
+                                            fontSize: "0.8rem",
+                                          }}
+                                        >
+                                          {b.targetScope || b.menuName}
+                                        </Typography>
+                                        <Typography
+                                          variant="caption"
+                                          color="text.secondary"
+                                          sx={{ display: "block", mt: 0.25 }}
+                                        >
+                                          {b.portions} suất bù ×{" "}
+                                          {formatPortionRate(
+                                            b.qtyPerPortion,
+                                            b.unit || ing.unit,
+                                          )}
+                                          /suất
+                                        </Typography>
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            fontWeight: 700,
+                                            color: "#2563eb",
+                                            mt: 0.5,
+                                          }}
+                                        >
+                                          = {b.calculatedQty}{" "}
+                                          {isDiscrete ? b.unit || ing.unit : "kg"}
+                                        </Typography>
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                </Box>
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      );
+                    })
+                  )}
                 </TableBody>
               </Table>
             </Box>
@@ -2334,7 +3040,7 @@ export default function CreateDeliveryView({
           <Box className={styles.footerWrap}>
             <Box className={styles.summaryBadges}>
               <Chip
-                label={`${itemsState.length} mặt hàng (Đợt 2: ${remainingPortions} suất)`}
+                label={isTableLoading ? "Đang tải..." : `${itemsState.length} mặt hàng (Đợt 2: ${remainingPortions} suất)`}
                 size="small"
                 className={styles.summaryFreshBadge}
               />
@@ -2348,26 +3054,52 @@ export default function CreateDeliveryView({
               {/* NÚT CHỐT ĐƠN ĐỢT 2: CHỈ BẤM ĐƯỢC KHI ĐÃ CÓ SĨ SỐ GVCN */}
               <Tooltip
                 title={
-                  !attendanceReady
-                    ? `Nút bị khóa: còn ${unfinalizedClasses.length || "các"} lớp chưa chốt điểm danh${unfinalizedClasses.length ? ` (${unfinalizedClasses.map((cls) => cls.className).join(", ")})` : ""}`
-                    : parsedAttendance <= 0
-                      ? "Nút bị khóa: Vui lòng nhập sĩ số GVCN báo để chốt đơn Đợt 2"
-                      : ""
+                  !isOrderAllowed
+                    ? `Nút bị khóa: Chưa đủ thực đơn toàn trường (Còn thiếu: ${menuCompleteness.missingGrades.join(", ")})`
+                    : !attendanceReady
+                      ? `Nút bị khóa: còn ${unfinalizedClasses.length || "các"} lớp chưa chốt điểm danh${unfinalizedClasses.length ? ` (${unfinalizedClasses.map((cls) => cls.className).join(", ")})` : ""}`
+                      : parsedAttendance <= 0
+                        ? "Nút bị khóa: Vui lòng nhập sĩ số GVCN báo để chốt đơn Đợt 2"
+                        : itemsState.length === 0
+                          ? "Không có nguyên liệu nào để tạo đơn"
+                          : ""
                 }
               >
-                <span>
+                <span
+                  style={{
+                    cursor:
+                      submitting ||
+                        parsedAttendance <= 0 ||
+                        !attendanceReady ||
+                        !hasMenusInWeek ||
+                        !isOrderAllowed ||
+                        itemsState.length === 0 ||
+                        isTableLoading
+                        ? "not-allowed"
+                        : "default",
+                    display: "inline-block",
+                  }}
+                >
                   <Button
                     onClick={handleSubmitBatch2}
                     variant="contained"
                     color="warning"
                     startIcon={
-                  submitting ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <Send size={18} />
-                  )
-                }
-                    disabled={submitting || parsedAttendance <= 0 || !attendanceReady}
+                      submitting ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        <Send size={18} />
+                      )
+                    }
+                    disabled={
+                      submitting ||
+                      parsedAttendance <= 0 ||
+                      !attendanceReady ||
+                      !hasMenusInWeek ||
+                      !isOrderAllowed ||
+                      itemsState.length === 0 ||
+                      isTableLoading
+                    }
                     className={styles.submitBtnBatch2}
                   >
                     {submitting ? "Đang gửi..." : "Tạo"}

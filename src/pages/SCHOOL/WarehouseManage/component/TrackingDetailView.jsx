@@ -26,31 +26,18 @@ import {
 } from "lucide-react"
 import styles from "./TrackingDetailView.module.scss"
 
-// Helper gộp thông tin Tài xế & Phương tiện
-const formatDriverVehicle = (driver, vehicle) => {
-  const isDriverEmpty =
-    !driver ||
-    driver.includes("Chưa phân công") ||
-    driver.includes("Chờ") ||
-    driver === "Tài xế NCC" ||
-    driver === "--"
-  const isVehicleEmpty =
+// Helper format thông tin Phương tiện vận chuyển
+const formatVehicle = (vehicle) => {
+  if (
     !vehicle ||
     vehicle.includes("Chưa điều") ||
     vehicle.includes("Chưa phân công") ||
     vehicle.includes("Chờ") ||
     vehicle === "--"
-
-  if (isDriverEmpty && isVehicleEmpty) {
+  ) {
     return "Chưa phân công (Chờ NCC điều xe)"
   }
-  if (!isDriverEmpty && !isVehicleEmpty) {
-    return `${driver} - ${vehicle}`
-  }
-  if (!isDriverEmpty) {
-    return `${driver} - Chờ gán phương tiện`
-  }
-  return `Chờ gán tài xế - ${vehicle}`
+  return vehicle
 }
 
 export default function TrackingDetailView({ item, inventoryItems = [], onBack }) {
@@ -114,7 +101,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
     return cleaned || "Vận chuyển hàng khô, kiểm tra bao bì nguyên đai nguyên kiện."
   }, [item?.note])
 
-  // Lấy thông tin phương tiện, tài xế cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
+  // Lấy thông tin phương tiện cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
     const tMap = item?.transportsBySupplier || {}
     const norm = String(sName || "").trim().toLowerCase()
@@ -137,16 +124,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         supInfo.status === "APPROVED" ||
         supInfo.status === "COMPLETED"
 
-      const driverDisplay =
-        supInfo.driver && !supInfo.driver.includes("Chờ") && !supInfo.driver.includes("Chưa")
-          ? `${supInfo.driver}${supInfo.phone && supInfo.phone !== "--" && !supInfo.driver.includes("(") ? ` (${supInfo.phone})` : ""}`
-          : hasSpecificDispatched
-            ? "Tài xế NCC"
-            : "Chưa phân công (Chờ NCC điều xe)"
-
       return {
-        driver: driverDisplay,
-        phone: supInfo.phone || "--",
         vehicle:
           supInfo.vehicle ||
           (hasSpecificDispatched ? "Xe giao hàng NCC" : "Chưa phân công (Chờ NCC điều xe)"),
@@ -154,6 +132,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         qrCode:
           supInfo.qrCode ||
           `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
+        note: supInfo.note || "",
       }
     }
 
@@ -165,8 +144,6 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
 
     if (isPending) {
       return {
-        driver: "Chưa phân công (Chờ NCC điều xe)",
-        phone: "--",
         vehicle: "Chưa phân công (Chờ NCC điều xe)",
         expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
         qrCode: `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
@@ -181,8 +158,6 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
 
     if (isAccepted) {
       return {
-        driver: "Đang phân công (Chờ điều xe)",
-        phone: "--",
         vehicle: "Đang phân công (Chờ điều xe)",
         expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
         qrCode: `QR-CONFIRMED-${item.deliveryNo || "DEL"}-0${idx + 1}`,
@@ -190,8 +165,6 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
     }
 
     return {
-      driver: item.driverName && !item.driverName.includes("Chờ") ? item.driverName : "Chưa phân công (Chờ NCC điều xe)",
-      phone: item.driverPhone || "--",
       vehicle: item.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
       expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
       qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-0${idx + 1}`,
@@ -222,7 +195,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         <Box className={styles.headerTextGroup}>
           <Box className={styles.titleRow}>
             <Typography variant="h5" className={styles.title}>
-              Chi Tiết Đơn Hàng: {item.orderNo}
+              Mã nhập hàng: {item.deliveryNo || item.orderNo}
             </Typography>
             <Chip
               label={item.statusLabel}
@@ -241,9 +214,8 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
             />
           </Box>
           <Typography variant="body2" className={styles.subtitle}>
-            Mã phiếu giao: {item.deliveryNo} &bull; {item.orderTypeLabel} &bull;{" "}
             {supplierCount > 1 ? (
-              <strong>Bao gồm {supplierCount} Nhà cung cấp đối tác</strong>
+              <strong>Bao gồm {supplierCount} Nhà cung cấp</strong>
             ) : (
               <>NCC: <strong>{supplierEntries[0]?.[0] || item.supplierName}</strong></>
             )}
@@ -283,13 +255,13 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
             <Truck size={20} />
           </Box>
           <Typography variant="subtitle1" className={styles.cardTitle}>
-            Thông Tin Vận Chuyển &amp; Xe Giao Hàng ({supplierCount} Nhà cung cấp)
+            Thông Tin Vận Chuyển ({supplierCount} Nhà cung cấp)
           </Typography>
         </Box>
 
         {isPendingOverall && (
           <Alert severity="info" sx={{ mb: 1.5, borderRadius: 2 }}>
-            Đơn hàng đang chờ Nhà cung cấp tiếp nhận và phân công xe giao. Thông tin tài xế và biển số xe sẽ được cập nhật ngay khi NCC xác nhận đơn.
+            Đơn hàng đang chờ Nhà cung cấp tiếp nhận và phân công xe giao. Thông tin biển số xe sẽ được cập nhật ngay khi NCC xác nhận đơn.
           </Alert>
         )}
 
@@ -332,7 +304,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                     </Typography>
                   </Box>
                   <Chip
-                    label={`Xe ${idx + 1} • ${sItems.length} NL`}
+                    label={`${sItems.length} nguyên liệu`}
                     size="small"
                     color="primary"
                     variant="outlined"
@@ -365,10 +337,10 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                         variant="body2"
                         sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
                       >
-                        Tài xế &amp; Phương tiện:
+                        Phương tiện vận chuyển:
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                        {formatDriverVehicle(transport.driver, transport.vehicle)}
+                        {formatVehicle(transport.vehicle)}
                       </Typography>
                     </Box>
 
@@ -394,7 +366,9 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                         Ghi chú:
                       </Typography>
                       <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                        {displayNote}
+                        {formatVehicle(transport.vehicle) === "Chưa phân công (Chờ NCC điều xe)"
+                          ? "Chưa có ghi chú"
+                          : (transport.note || displayNote || "Chưa có ghi chú")}
                       </Typography>
                     </Box>
                   </Box>

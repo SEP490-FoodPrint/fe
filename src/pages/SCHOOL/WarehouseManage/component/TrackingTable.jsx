@@ -115,7 +115,7 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
           Không tìm thấy đơn hàng vận chuyển nào
         </Typography>
         <Typography variant="body2" className={styles.emptySubtitle}>
-          Thử đổi từ khóa tìm kiếm hoặc chọn bộ lọc trạng thái khác.
+          Thử đổi mốc thời gian hoặc chọn bộ lọc trạng thái khác.
         </Typography>
       </Paper>
     )

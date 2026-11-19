@@ -16,7 +16,17 @@ import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
 
+const getTodayStr = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date())
+
 export default function IngredientOrders() {
+  const todayStr = useMemo(() => getTodayStr(), [])
+
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
   const [deliveries, setDeliveries] = useState([])
   const [approvedMenus, setApprovedMenus] = useState([])
@@ -28,13 +38,14 @@ export default function IngredientOrders() {
   const [selectedDelivery, setSelectedDelivery] = useState(null)
 
   // Ngày được chọn khi mở màn hình Tạo đơn (để tự động nhận diện Đợt 1 / Đợt 2)
-  const [createTargetDate, setCreateTargetDate] = useState("2026-11-16")
+  const [createTargetDate, setCreateTargetDate] = useState(() => getTodayStr())
 
-  // Filter state cho Phiếu giao nhận
+  // Filter state cho Phiếu giao nhận - MẶC ĐỊNH LỌC TỪ HÔM NAY ĐI TIẾP ĐẾN TƯƠNG LAI
   const [deliveryFilters, setDeliveryFilters] = useState({
     search: "",
     batchType: "all",
     status: "all",
+    timeScope: "today_forward",
   })
 
   // Pagination state
@@ -61,11 +72,18 @@ export default function IngredientOrders() {
     fetchData()
   }, [fetchData])
 
-  // Thống kê cho Phiếu giao nhận (chỉ tính đồ tươi 2 đợt)
+  // Thống kê cho Phiếu giao nhận (chỉ tính đồ tươi 2 đợt theo bộ lọc thời gian)
   const deliveryStats = useMemo(() => {
-    const freshOnly = deliveries.filter(
-      d => d.batchType !== "DRY_STOCK" && d.orderType !== "DRY_STOCK"
-    )
+    const freshOnly = deliveries.filter(d => {
+      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
+      const delivDate = String(d.deliveryDate || "").slice(0, 10)
+      if (deliveryFilters.timeScope === "today_forward") {
+        if (delivDate && delivDate < todayStr) return false
+      } else if (deliveryFilters.timeScope === "past") {
+        if (delivDate && delivDate >= todayStr) return false
+      }
+      return true
+    })
     return {
       total: freshOnly.length,
       batch1Count: freshOnly.filter(d => d.batchType === "BATCH_1").length,
@@ -77,13 +95,21 @@ export default function IngredientOrders() {
           d.status === "APPROVED"
       ).length,
     }
-  }, [deliveries])
+  }, [deliveries, deliveryFilters.timeScope, todayStr])
 
   // Lọc dữ liệu Phiếu giao nhận tại Client
   const filteredDeliveries = useMemo(() => {
-    return deliveries.filter(d => {
+    const list = deliveries.filter(d => {
       // Phiếu nhập hàng chỉ hiển thị đồ tươi 2 đợt, không hiển thị đồ khô
       if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
+
+      // Lọc theo mốc thời gian: Mặc định là từ hôm nay đi tiếp đến tương lai
+      const delivDate = String(d.deliveryDate || "").slice(0, 10)
+      if (deliveryFilters.timeScope === "today_forward") {
+        if (delivDate && delivDate < todayStr) return false
+      } else if (deliveryFilters.timeScope === "past") {
+        if (delivDate && delivDate >= todayStr) return false
+      }
 
       const kw = deliveryFilters.search.toLowerCase()
       const matchSearch =
@@ -109,7 +135,28 @@ export default function IngredientOrders() {
 
       return matchSearch && matchBatch && matchStatus
     })
-  }, [deliveries, deliveryFilters])
+
+    // Sắp xếp:
+    // Nếu là từ hôm nay trở đi: Sắp xếp tăng dần theo ngày (từ hôm nay -> tương lai)
+    // Cùng ngày: Đợt 1 (05:30) trước Đợt 2 (07:45)
+    return list.sort((a, b) => {
+      const dateA = String(a.deliveryDate || "")
+      const dateB = String(b.deliveryDate || "")
+      if (deliveryFilters.timeScope === "today_forward") {
+        const dDiff = dateA.localeCompare(dateB)
+        if (dDiff !== 0) return dDiff
+        const timeA = a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
+        const timeB = b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
+        return timeA.localeCompare(timeB)
+      }
+      // Ngược lại (tất cả hoặc quá khứ): ngày mới nhất lên đầu (desc)
+      const dDiff = dateB.localeCompare(dateA)
+      if (dDiff !== 0) return dDiff
+      const timeA = a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
+      const timeB = b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
+      return timeB.localeCompare(timeA)
+    })
+  }, [deliveries, deliveryFilters, todayStr])
 
   // Phân trang
   const totalPages = Math.ceil(filteredDeliveries.length / PAGE_SIZE) || 1
@@ -134,6 +181,7 @@ export default function IngredientOrders() {
       search: "",
       batchType: "all",
       status: "all",
+      timeScope: "today_forward",
     })
     setPage(1)
   }
@@ -237,8 +285,7 @@ export default function IngredientOrders() {
             onFilterChange={handleDeliveryFilterChange}
             onResetFilters={handleResetDeliveryFilters}
             onOpenCreate={() => {
-              const defaultDate = approvedMenus[0]?.mealDate || "2026-11-16"
-              setCreateTargetDate(String(defaultDate).slice(0, 10))
+              setCreateTargetDate(todayStr)
               setDeliverySubView("create")
             }}
           />
@@ -291,6 +338,7 @@ export default function IngredientOrders() {
       {/* Sub-view 2: Tạo Đơn Mua Hàng Từ Thực Đơn (Tự động nhận diện Đợt 1 / Đợt 2 theo Ngày) */}
       {deliverySubView === "create" && (
         <CreateDeliveryView
+          loading={loading}
           menus={approvedMenus}
           deliveries={deliveries}
           initialDate={createTargetDate}
