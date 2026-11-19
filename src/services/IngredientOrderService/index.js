@@ -641,6 +641,13 @@ const IngredientOrderService = {
             mealTypeLabel: "Bữa trưa",
             targetScope,
             gradeNames,
+            isSchoolWide: Boolean(m.isSchoolWide),
+            gradeIds: Array.isArray(m.gradeIds)
+              ? m.gradeIds
+              : Array.isArray(m.grades)
+                ? m.grades.map((g) => g.gradeId || g.id).filter(Boolean)
+                : [],
+            grades: m.grades || [],
             maxPortions: calculatedMaxPortions,
             dishes:
               dishesFromDb.length > 0 ? dishesFromDb : ["Món ăn dinh dưỡng"],
@@ -790,6 +797,16 @@ const IngredientOrderService = {
             status: "ACCEPTED",
           }));
 
+          let parsedMax = 0;
+          let parsedPlanned = 0;
+          const portionMatch = String(so.note || "").match(
+            /Sĩ số:\s*(\d+)\s*HS\s*\|\s*Đợt 1:\s*(\d+)\s*suất/i,
+          );
+          if (portionMatch) {
+            parsedMax = Number(portionMatch[1]) || 0;
+            parsedPlanned = Number(portionMatch[2]) || 0;
+          }
+
           return adaptDeliveryItem({
             id: so.id,
             deliveryNo,
@@ -800,6 +817,9 @@ const IngredientOrderService = {
             deliveryDate: dateStr,
             deliveryTime,
             batchType,
+            maxPortions: parsedMax || undefined,
+            plannedPortions: parsedPlanned || undefined,
+            batch1Portions: parsedPlanned || undefined,
             status:
               so.status === "ACCEPTED"
                 ? "CONFIRMED"
@@ -1087,6 +1107,9 @@ const IngredientOrderService = {
             batch === "BATCH_1"
               ? "Đợt 1 (50% Suất tối đa)"
               : "Đợt 2 (Cân đối sĩ số)",
+          maxPortions: rep.maxPortions || 0,
+          plannedPortions: rep.plannedPortions || 0,
+          batch1Portions: rep.batch1Portions || rep.plannedPortions || 0,
           supplierName:
             supNames.length > 1
               ? `Nhiều NCC (${supNames.length} đối tác: ${supNames.join(", ")})`
@@ -1333,6 +1356,9 @@ const IngredientOrderService = {
     menuId,
     menuIds,
     menus,
+    menusSummary,
+    plannedPortions,
+    maxPortions,
     note,
     orderDate,
     items,
@@ -1433,8 +1459,12 @@ const IngredientOrderService = {
         }
       });
 
+      const portionsTag = plannedPortions
+        ? ` [Sĩ số: ${maxPortions || 0} HS | Đợt 1: ${plannedPortions} suất]`
+        : "";
       const noteText =
-        note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống";
+        (note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống") +
+        portionsTag;
 
       const payload = {
         supplierId: sId,

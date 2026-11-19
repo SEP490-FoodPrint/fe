@@ -338,6 +338,7 @@ export default function IngredientOrders() {
       {/* Sub-view 2: Tạo Đơn Mua Hàng Từ Thực Đơn (Tự động nhận diện Đợt 1 / Đợt 2 theo Ngày) */}
       {deliverySubView === "create" && (
         <CreateDeliveryView
+          loading={loading}
           menus={approvedMenus}
           deliveries={deliveries}
           initialDate={createTargetDate}
