@@ -44,6 +44,31 @@ const getTodayStr = () =>
     day: "2-digit",
   }).format(new Date());
 
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
+const formatTimeStr = (isoString) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (!isNaN(d.getTime())) {
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    }
+  } catch {
+    // ignore
+  }
+  return "";
+};
+
 /**
  * Tìm contractId ACTIVE cho 1 supplierId từ danh sách supplier-partnerships,
  * sau đó gọi send (DRAFT → SENT) để NCC thấy được đơn trên hệ thống.
@@ -692,9 +717,9 @@ const IngredientOrderService = {
             ? String(so.requestedDeliveryDate).slice(0, 10)
             : getTodayStr();
 
-          // DeliveryNo hiển thị
+          // DeliveryNo hiển thị chuẩn PN-...
           const cleanNo = so.requestNo
-            ? so.requestNo.replace(/^PO-/, "")
+            ? so.requestNo.replace(/^PN-|^PO-|^DEL-/, "")
             : so.id;
           const deliveryNo = `PN-${cleanNo}`;
           const sName =
@@ -756,71 +781,284 @@ const IngredientOrderService = {
       console.warn("Lỗi tải danh sách phiếu giao nhận từ Backend:", err);
     }
 
-    // Gộp supply requests và deliveries, ưu tiên deliveries nếu cùng deliveryNo hoặc orderNo
-    const existingNos = new Set(
-      deliveriesList.map((d) => d.deliveryNo).filter(Boolean),
-    );
-    const existingOrderNos = new Set(
-      deliveriesList.map((d) => d.orderNo).filter(Boolean),
-    );
+    // -------------------------------------------------------------
+    // GOM NHÓM ĐỒNG BỘ: HỢP NHẤT SUPPLY REQUESTS & DELIVERIES THÀNH 1 PHIẾU NHẬP HÀNG TỔNG
+    // Mỗi đợt (Batch 1 / Batch 2) cho 1 ngày ăn chỉ có DUY NHẤT 1 phiếu mang mã chuẩn PN-...
+    // Dù các NCC có xác nhận lệch giờ nhau, tất cả các xe đều được gộp chung vào phiếu này.
+    // -------------------------------------------------------------
+    const getBaseOrderNo = (item) => {
+      const candidates = [
+        item.orderNo,
+        item.requestNo,
+        item.deliveryNo,
+        item.SupplyRequest?.requestNo,
+      ];
+      for (const c of candidates) {
+        if (!c) continue;
+        const s = String(c).trim();
+        if (/^PN-/i.test(s) || /^PO-/i.test(s)) {
+          return s.replace(/^PO-/i, "PN-").replace(/-\d+$/, "");
+        }
+      }
+      for (const c of candidates) {
+        if (!c) continue;
+        const s = String(c).trim();
+        if (!/^FP-/i.test(s)) {
+          return s.replace(/^DEL-/, "PN-").replace(/-\d+$/, "");
+        }
+      }
+      return "";
+    };
 
-    const uniqueSupply = supplyList.filter(
-      (s) => !existingNos.has(s.deliveryNo) && !existingOrderNos.has(s.orderNo),
-    );
+    const masterGroups = new Map();
 
-    // Hợp nhất sub-orders nếu 1 đơn bị tách theo nhiều NCC (ví dụ: PO-...-D1-1, PO-...-D1-2)
-    const groupedSupply = new Map();
-    uniqueSupply.forEach((order) => {
-      const rawOrderNo = String(order.orderNo || "");
-      const baseOrderNo = rawOrderNo.replace(/-\d+$/, "");
-      const key = `${baseOrderNo}_${order.deliveryDate || ""}_${order.batchType || ""}`;
-      if (!groupedSupply.has(key)) groupedSupply.set(key, []);
-      groupedSupply.get(key).push(order);
-    });
+    const addToGroup = (item, isDeliveryRecord) => {
+      if (!item) return;
+      if (item.batchType === "DRY_STOCK" || item.orderType === "DRY_STOCK") return;
 
-    const consolidatedSupply = Array.from(groupedSupply.values()).map(
+      const baseNo = getBaseOrderNo(item);
+      const date = item.deliveryDate || "";
+      const batch = item.batchType || "BATCH_1";
+      const key = baseNo ? `${baseNo}_${batch}` : `${date}_${batch}`;
+
+      if (!masterGroups.has(key)) {
+        masterGroups.set(key, {
+          baseNo,
+          date,
+          batch,
+          deliveries: [],
+          supplyRequests: [],
+        });
+      }
+
+      const g = masterGroups.get(key);
+      if (isDeliveryRecord) {
+        g.deliveries.push(item);
+      } else {
+        g.supplyRequests.push(item);
+      }
+    };
+
+    deliveriesList.forEach((d) => addToGroup(d, true));
+    supplyList.forEach((s) => addToGroup(s, false));
+
+    const consolidatedDeliveries = Array.from(masterGroups.values()).map(
       (group) => {
-        if (group.length === 1) return group[0];
-        const first = group[0];
-        const rawOrderNo = String(first.orderNo || "");
-        const baseOrderNo = rawOrderNo.replace(/-\d+$/, "");
-        const baseDeliveryNo = String(first.deliveryNo || "").replace(
-          /-\d+$/,
-          "",
-        );
-        const allItems = [];
-        const supNames = new Set();
-        group.forEach((g) => {
-          if (g.supplierName && g.supplierName !== "Nhà cung cấp đối tác")
-            supNames.add(g.supplierName);
-          if (Array.isArray(g.items)) {
-            g.items.forEach((it) =>
-              allItems.push({
-                ...it,
-                supplierName: it.supplierName || g.supplierName,
-              }),
-            );
+        const { baseNo, date, batch, deliveries, supplyRequests } = group;
+        const rep = deliveries[0] || supplyRequests[0] || {};
+        const finalDeliveryNo =
+          baseNo ||
+          `PN-${String(rep.deliveryNo || rep.orderNo || date).replace(/-\d+$/, "").replace(/^PO-|^DEL-|^FP-DE-/, "")}`;
+
+        // Tập hợp tất cả các NCC tham gia trong đợt này
+        const supplierMap = new Map();
+
+        supplyRequests.forEach((so) => {
+          const sName =
+            so.supplierName && so.supplierName !== "Nhà cung cấp đối tác"
+              ? so.supplierName
+              : "Nhà cung cấp đối tác";
+          const norm = sName.toLowerCase().trim();
+          if (!supplierMap.has(norm)) {
+            supplierMap.set(norm, {
+              name: sName,
+              id: so.supplierId,
+              supplyItem: so,
+              deliveryItem: null,
+            });
+          } else {
+            const entry = supplierMap.get(norm);
+            if (!entry.supplyItem) entry.supplyItem = so;
+            if (!entry.id && so.supplierId) entry.id = so.supplierId;
           }
         });
-        const suppliersList = Array.from(supNames);
+
+        deliveries.forEach((deliv) => {
+          const sName =
+            deliv.supplierName && deliv.supplierName !== "Nhà cung cấp đối tác"
+              ? deliv.supplierName
+              : "";
+          let matchedKey = null;
+
+          if (sName) {
+            const norm = sName.toLowerCase().trim();
+            if (supplierMap.has(norm)) {
+              matchedKey = norm;
+            } else {
+              for (const [k, v] of supplierMap.entries()) {
+                if (
+                  (deliv.supplierId && v.id === deliv.supplierId) ||
+                  norm.includes(k) ||
+                  k.includes(norm)
+                ) {
+                  matchedKey = k;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (matchedKey) {
+            const entry = supplierMap.get(matchedKey);
+            entry.deliveryItem = deliv;
+          } else {
+            const norm = (sName || `NCC-${deliv.supplierId || deliveries.indexOf(deliv) + 1}`).toLowerCase().trim();
+            supplierMap.set(norm, {
+              name: sName || "Nhà cung cấp đối tác",
+              id: deliv.supplierId,
+              supplyItem: null,
+              deliveryItem: deliv,
+            });
+          }
+        });
+
+        const allItems = [];
+        const supNames = [];
+        const transportsBySupplier = {};
+        const supplierApprovals = {};
+        const subOrderIds = [];
+        const deliveryIds = [];
+
+        let vehicleIdx = 0;
+        let anyInTransit = false;
+        let anyArrived = false;
+        let allApproved = true;
+        let anyConfirmed = false;
+
+        const entries = Array.from(supplierMap.values());
+        if (entries.length === 0) {
+          allApproved = false;
+        }
+
+        entries.forEach((entry) => {
+          vehicleIdx++;
+          const sName = entry.name;
+          supNames.push(sName);
+
+          if (entry.supplyItem?.id) subOrderIds.push(entry.supplyItem.id);
+          if (entry.deliveryItem?.id) deliveryIds.push(entry.deliveryItem.id);
+
+          const srcItems =
+            entry.deliveryItem?.items && entry.deliveryItem.items.length > 0
+              ? entry.deliveryItem.items
+              : entry.supplyItem?.items || [];
+
+          srcItems.forEach((it) => {
+            allItems.push({
+              ...it,
+              supplierName: it.supplierName || sName,
+              supplierId: it.supplierId || entry.id,
+            });
+          });
+
+          if (entry.deliveryItem) {
+            const d = entry.deliveryItem;
+            anyConfirmed = true;
+            if (d.status === "IN_TRANSIT") anyInTransit = true;
+            if (d.status === "ARRIVED" || d.status === "INSPECTING") anyArrived = true;
+            if (
+              d.status !== "APPROVED" &&
+              d.status !== "RECEIVED" &&
+              d.status !== "COMPLETED"
+            ) {
+              allApproved = false;
+            }
+
+            const expectedTimeStr = d.expectedArrivalAt
+              ? `${formatTimeStr(d.expectedArrivalAt)} — Ngày ${formatDateVN(d.expectedArrivalAt)}`
+              : d.deliveryTime
+                ? `${d.deliveryTime} — Ngày ${formatDateVN(d.deliveryDate || date)}`
+                : "Chờ NCC cập nhật";
+
+            transportsBySupplier[sName] = {
+              supplierId: entry.id,
+              supplierName: sName,
+              driver:
+                d.driverName && d.driverName !== "Chưa phân công (Chờ NCC điều xe)"
+                  ? `${d.driverName}${d.driverPhone && d.driverPhone !== "--" && !d.driverName.includes("(") ? ` (${d.driverPhone})` : ""}`
+                  : d.vehiclePlate ? "Tài xế NCC" : "Chưa phân công (Chờ NCC điều xe)",
+              phone: d.driverPhone || d.phone || "--",
+              vehicle: d.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
+              expectedTime: expectedTimeStr,
+              qrCode:
+                d.supplierDeliveryNo ||
+                d.deliveryQr ||
+                d.deliveryNo ||
+                `QR-LOT-${finalDeliveryNo}-${String(vehicleIdx).padStart(2, "0")}`,
+              status: d.status,
+              hasDispatched: Boolean(
+                d.vehiclePlate ||
+                d.status === "IN_TRANSIT" ||
+                d.status === "ARRIVED" ||
+                d.status === "APPROVED",
+              ),
+            };
+
+            supplierApprovals[sName] = d.approvals || {};
+          } else {
+            allApproved = false;
+            transportsBySupplier[sName] = {
+              supplierId: entry.id,
+              supplierName: sName,
+              driver: "Chưa phân công (Chờ NCC điều xe)",
+              phone: "--",
+              vehicle: "Chưa phân công (Chờ NCC điều xe)",
+              expectedTime: "Chờ NCC cập nhật",
+              qrCode: `QR-PENDING-${finalDeliveryNo}-${String(vehicleIdx).padStart(2, "0")}`,
+              status: entry.supplyItem?.status || "CREATED",
+              hasDispatched: false,
+            };
+            supplierApprovals[sName] = {};
+          }
+        });
+
+        let masterStatus = "CREATED";
+        let masterStatusLabel = "Chờ NCC xác nhận";
+
+        if (allApproved && entries.length > 0) {
+          masterStatus = "APPROVED";
+          masterStatusLabel = "4/4 Đã duyệt & Bàn giao bếp";
+        } else if (anyArrived) {
+          masterStatus = "INSPECTING";
+          masterStatusLabel = "Đang kiểm tra 4 bên";
+        } else if (anyInTransit) {
+          masterStatus = "IN_TRANSIT";
+          masterStatusLabel = "NCC đang vận chuyển";
+        } else if (anyConfirmed) {
+          masterStatus = "CONFIRMED";
+          masterStatusLabel = "NCC đã xác nhận";
+        }
+
         return {
-          ...first,
-          id: first.id,
-          orderNo: baseOrderNo,
-          deliveryNo: baseDeliveryNo,
+          ...rep,
+          id: deliveries[0]?.id || supplyRequests[0]?.id || finalDeliveryNo,
+          deliveryNo: finalDeliveryNo,
+          orderNo: finalDeliveryNo,
+          deliveryDate: date || rep.deliveryDate || getTodayStr(),
+          deliveryTime: rep.deliveryTime || (batch === "BATCH_2" ? "07:45" : "05:30"),
+          batchType: batch,
+          batchLabel:
+            batch === "BATCH_1"
+              ? "Đợt 1 (50% Suất tối đa)"
+              : "Đợt 2 (Cân đối sĩ số)",
           supplierName:
-            suppliersList.length > 1
-              ? `Nhiều NCC (${suppliersList.length} đối tác: ${suppliersList.join(", ")})`
-              : suppliersList[0] || first.supplierName,
-          suppliers: suppliersList,
+            supNames.length > 1
+              ? `Nhiều NCC (${supNames.length} đối tác: ${supNames.join(", ")})`
+              : supNames[0] || rep.supplierName || "Nhà cung cấp đối tác",
+          suppliers: supNames,
           items: allItems,
           deliveryItems: allItems,
-          subOrderIds: group.map((g) => g.id),
+          transportsBySupplier,
+          supplierApprovals,
+          status: masterStatus,
+          statusLabel: masterStatusLabel,
+          subOrderIds,
+          deliveryIds,
         };
       },
     );
 
-    let items = [...consolidatedSupply, ...deliveriesList].filter(
+    let items = consolidatedDeliveries.filter(
       (d) => d.batchType !== "DRY_STOCK" && d.orderType !== "DRY_STOCK",
     );
 
@@ -852,12 +1090,32 @@ const IngredientOrderService = {
   async getDeliveryDetail(id, fallbackDelivery = null) {
     if (!id && !fallbackDelivery) return null;
     try {
-      // 1. Nếu fallbackDelivery đã có items đầy đủ thì ưu tiên dùng
+      // 1. Nếu fallbackDelivery đã có items đầy đủ và có map transportsBySupplier thì ưu tiên dùng
       if (
         Array.isArray(fallbackDelivery?.items) &&
-        fallbackDelivery.items.length > 0
+        fallbackDelivery.items.length > 0 &&
+        fallbackDelivery.transportsBySupplier
       ) {
         return fallbackDelivery;
+      }
+
+      // 2. Tra cứu từ danh sách phiếu nhập hàng tổng đã được gộp chuẩn
+      const delivRes = await this.getDeliveries();
+      const allMaster = delivRes?.items || [];
+      const matched = allMaster.find(
+        (m) =>
+          m.id === id ||
+          m.deliveryNo === id ||
+          m.orderNo === id ||
+          m.subOrderIds?.includes(id) ||
+          m.deliveryIds?.includes(id) ||
+          (fallbackDelivery &&
+            (m.deliveryNo === fallbackDelivery.deliveryNo ||
+              m.orderNo === fallbackDelivery.orderNo)),
+      );
+
+      if (matched) {
+        return matched;
       }
 
       // 2. Lấy danh sách suppliers để map tên
@@ -939,8 +1197,10 @@ const IngredientOrderService = {
             id: fallbackDelivery?.id || first.id,
             deliveryNo:
               fallbackDelivery?.deliveryNo ||
-              `PN-${first.requestNo?.replace(/^PO-/, "")}`,
-            orderNo: fallbackDelivery?.orderNo || first.requestNo,
+              `PN-${first.requestNo?.replace(/^PN-|^PO-|^DEL-/, "")}`,
+            orderNo:
+              fallbackDelivery?.deliveryNo ||
+              `PN-${first.requestNo?.replace(/^PN-|^PO-|^DEL-/, "")}`,
             supplierId: first.supplierId,
             supplierName:
               suppliersList.length > 1
@@ -1037,7 +1297,7 @@ const IngredientOrderService = {
       ? String(orderDate).slice(0, 10)
       : getTodayStr();
     const deliveryDate = dateFormatted;
-    const orderNo = `PO-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+    const orderNo = `PN-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
 
     // Tải danh mục ingredient-entries, active partnerships và danh mục ingredients từ DB (đầy đủ các trang)
     const [entries, partnerships, allIngredients] = await Promise.all([
@@ -1127,9 +1387,8 @@ const IngredientOrderService = {
         }
       });
 
-      const noteText = note
-        ? `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. ${note}`.trim()
-        : `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 1 thực phẩm tươi sống`;
+      const noteText =
+        note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống";
 
       const payload = {
         supplierId: sId,
@@ -1162,6 +1421,7 @@ const IngredientOrderService = {
     return {
       success: true,
       orderNo,
+      deliveryNo: orderNo,
       attachedDryCount: 0,
     };
   },
@@ -1206,10 +1466,9 @@ const IngredientOrderService = {
       );
     }
 
-    const baseOrderNo = String(batch1Delivery.orderNo || "").replace(
-      /-D1(-\d+)?$/,
-      "",
-    );
+    const baseOrderNo = String(
+      batch1Delivery.deliveryNo || batch1Delivery.orderNo || "",
+    ).replace(/-D1(-\d+)?$/, "");
     const deliveryDate =
       orderDate ||
       batch1Delivery.deliveryDate ||
@@ -1313,9 +1572,9 @@ const IngredientOrderService = {
         }
       });
 
-      const noteText = note
-        ? `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. ${note}`.trim()
-        : `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)`;
+      const noteText =
+        note?.trim() ||
+        "Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)";
 
       const payload = {
         supplierId: sId,

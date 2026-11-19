@@ -23,6 +23,7 @@ import {
   Autocomplete,
   IconButton,
   TableContainer,
+  CircularProgress,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -54,6 +55,17 @@ import IngredientOrderService from "src/services/IngredientOrderService";
 import notice from "src/components/Notice";
 import styles from "./CreateDeliveryView.module.scss";
 
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+export const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
 /**
  * Kiểm tra đơn vị đếm được (nguyên quả, nguyên con, gói, chai...)
  * Không thể giao lẻ nửa đơn vị (ví dụ không giao 212.5 quả hay 215.5 quả)
@@ -82,10 +94,10 @@ export const isDiscreteUnit = (unit = "") => {
 };
 
 export const isKgUnit = (unit) => {
-  const u = String(unit || "")
-    .toLowerCase()
-    .trim();
-  return u === "kg" || u === "kilogram";
+  if (!unit) return true;
+  const u = String(unit).toLowerCase().trim();
+  if (isDiscreteUnit(u)) return false;
+  return true;
 };
 
 export const getPortionUnit = (unit) => {
@@ -434,6 +446,12 @@ export default function CreateDeliveryView({
 
       fresh.forEach((ing) => {
         const key = (ing.name || "").trim().toLowerCase();
+        const itemUnit = isDiscreteUnit(ing.unit) ? ing.unit : "kg";
+        let rawRate = Number(ing.qtyPerPortion) || 0.05;
+        if (itemUnit === "kg" && rawRate >= 1) {
+          rawRate = Number((rawRate / 1000).toFixed(4));
+        }
+
         if (!groupedMap.has(key)) {
           groupedMap.set(key, {
             id: ing.id,
@@ -441,19 +459,19 @@ export default function CreateDeliveryView({
             ingredientEntryId: ing.ingredientEntryId || ing.id,
             name: ing.name,
             category: ing.category,
-            unit: ing.unit,
+            unit: itemUnit,
             supplierId: ing.supplierId,
             supplierName: ing.supplierName,
             handlingType: ing.handlingType || "DIRECT_USE",
             isExtraItem: false,
-            defaultQtyPerPortion: ing.qtyPerPortion,
-            qtyPerPortion: ing.qtyPerPortion,
+            defaultQtyPerPortion: rawRate,
+            qtyPerPortion: rawRate,
             contributions: [],
           });
         }
 
         const entry = groupedMap.get(key);
-        let rate = ing.qtyPerPortion;
+        let rate = rawRate;
 
         // Kế thừa định lượng Đợt 1 nếu là Đợt 2
         if (mode === "BATCH_2" && batch1ForDate) {
@@ -499,7 +517,7 @@ export default function CreateDeliveryView({
           qtyPerPortion: rate,
           portions: mPortions,
           calculatedQty: calcContribution,
-          unit: ing.unit,
+          unit: itemUnit,
         });
       });
     });
@@ -612,8 +630,9 @@ export default function CreateDeliveryView({
     const num = parseFloat(extraQtyInput);
     if (isNaN(num) || num <= 0) return;
 
-    const unit =
+    const rawUnit =
       selectedIngredient.defaultUnit || selectedIngredient.unit || "kg";
+    const unit = isDiscreteUnit(rawUnit) ? rawUnit : "kg";
     const isDiscrete = isDiscreteUnit(unit);
     const addQty = isDiscrete ? Math.ceil(num) : Number(num.toFixed(2));
 
@@ -1073,7 +1092,7 @@ export default function CreateDeliveryView({
             <CalendarCheck size={36} className={styles.completedIcon} />
             <Box>
               <Typography variant="h6" className={styles.completedTitle}>
-                Ngày {orderDate} Đã Hoàn Thành Lập Cả 2 Đợt Giao Hàng!
+                Ngày {formatDateVN(orderDate)} Đã Hoàn Thành Lập Cả 2 Đợt Giao Hàng!
               </Typography>
               <Typography variant="body2" className={styles.completedDesc}>
                 Đơn hàng đã được chia 2 đợt đầy đủ: Đợt 1 (
@@ -1110,7 +1129,7 @@ export default function CreateDeliveryView({
                 variant="h6"
                 sx={{ color: "#dc2626", fontWeight: 700 }}
               >
-                Đợt 1 Ngày {orderDate} Đã Bị Hủy Nghiệm Thu!
+                Đợt 1 Ngày {formatDateVN(orderDate)} Đã Bị Hủy Nghiệm Thu!
               </Typography>
               <Typography variant="body2" sx={{ color: "#475569", mt: 0.5 }}>
                 Đợt 1 của ngày này đã bị từ chối từ 2 bên trở lên trong Hội đồng
@@ -1192,6 +1211,7 @@ export default function CreateDeliveryView({
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell>Tên thực phẩm</TableCell>
+                    <TableCell>Nhà cung cấp đối tác</TableCell>
                     <TableCell align="center" style={{ width: 145 }}>
                       Định lượng / 1 Suất
                     </TableCell>
@@ -1200,9 +1220,10 @@ export default function CreateDeliveryView({
                       className={styles.batch1Col}
                       style={{ width: 160 }}
                     >
-                      Số lượng Đợt 1 ({batch1Portions} suất)
+                      SL theo suất (kg)
+                      <br />
+                      ({batch1Portions} suất)
                     </TableCell>
-                    <TableCell>Nhà cung cấp đối tác</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1222,6 +1243,15 @@ export default function CreateDeliveryView({
                               className={styles.ingName}
                             >
                               {ing.name}
+                            </Typography>
+                          </TableCell>
+
+                          <TableCell>
+                            <Typography
+                              variant="body2"
+                              className={styles.supplierText}
+                            >
+                              {ing.supplierName}
                             </Typography>
                           </TableCell>
 
@@ -1347,7 +1377,7 @@ export default function CreateDeliveryView({
                                     input: {
                                       endAdornment: (
                                         <span className={styles.inputAdornment}>
-                                          {ing.unit}
+                                          {isDiscrete ? ing.unit : "kg"}
                                         </span>
                                       ),
                                     },
@@ -1355,15 +1385,6 @@ export default function CreateDeliveryView({
                                 />
                               </Box>
                             )}
-                          </TableCell>
-
-                          <TableCell>
-                            <Typography
-                              variant="body2"
-                              className={styles.supplierText}
-                            >
-                              {ing.supplierName}
-                            </Typography>
                           </TableCell>
                         </TableRow>
 
@@ -1450,7 +1471,8 @@ export default function CreateDeliveryView({
                                           mt: 0.5,
                                         }}
                                       >
-                                        = {b.calculatedQty} {b.unit || ing.unit}
+                                        = {b.calculatedQty}{" "}
+                                        {isDiscrete ? b.unit || ing.unit : "kg"}
                                       </Typography>
                                     </Box>
                                   ))}
@@ -1497,7 +1519,13 @@ export default function CreateDeliveryView({
               <Button
                 onClick={handleSubmitBatch1}
                 variant="contained"
-                startIcon={<Send size={18} />}
+                startIcon={
+                  submitting ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <Send size={18} />
+                  )
+                }
                 disabled={submitting}
                 className={styles.submitBtn}
               >
@@ -1561,7 +1589,7 @@ export default function CreateDeliveryView({
                     </Alert>
                   ) : (
                     <Alert severity="info" icon={<Clock size={18} />}>
-                      Chưa có lớp nào chốt sĩ số điểm danh cho ngày {orderDate}.
+                      Chưa có lớp nào chốt sĩ số điểm danh cho ngày {formatDateVN(orderDate)}.
                       Khi GVCN các lớp chốt báo cơm, hệ thống sẽ tự động cập
                       nhật số suất cần giao.
                     </Alert>
@@ -1582,11 +1610,18 @@ export default function CreateDeliveryView({
                       mt: 0.5,
                     }}
                   >
-                    {attendanceLoading
-                      ? "Đang tải..."
-                      : parsedAttendance > 0
-                        ? `${parsedAttendance} học sinh`
-                        : "0 học sinh"}
+                    {attendanceLoading ? (
+                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.75 }}>
+                        <CircularProgress size={16} color="primary" />
+                        <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 600 }}>
+                          Đang tải sĩ số...
+                        </Typography>
+                      </Box>
+                    ) : parsedAttendance > 0 ? (
+                      `${parsedAttendance} học sinh`
+                    ) : (
+                      "0 học sinh"
+                    )}
                   </Typography>
                 </Box>
 
@@ -1741,7 +1776,7 @@ export default function CreateDeliveryView({
                     Chi Tiết Điểm Danh Báo Cơm Các Lớp
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
-                    Ngày: {orderDate} • Bữa trưa (LUNCH)
+                    Ngày: {formatDateVN(orderDate)} • Bữa trưa (LUNCH)
                   </Typography>
                 </Box>
               </Box>
@@ -1965,15 +2000,14 @@ export default function CreateDeliveryView({
                 <TableHead>
                   <TableRow className={styles.tableHeaderRow}>
                     <TableCell>Tên thực phẩm</TableCell>
-                    <TableCell align="center" style={{ width: 145 }}>
-                      Định lượng / 1 Suất
-                    </TableCell>
                     <TableCell
                       align="right"
                       className={styles.batch2Col}
                       style={{ width: 160 }}
                     >
-                      SL theo suất ({remainingPortions} suất)
+                      SL theo suất
+                      <br />
+                      ({remainingPortions} suất)
                     </TableCell>
                     <TableCell
                       align="right"
@@ -1987,7 +2021,7 @@ export default function CreateDeliveryView({
                       className={styles.totalCol}
                       style={{ width: 135 }}
                     >
-                      Tổng Đợt 2
+                      Tổng Đợt 2 (kg)
                     </TableCell>
                     <TableCell>Nhà cung cấp đối tác</TableCell>
                     <TableCell align="center" style={{ width: 50 }}></TableCell>
@@ -2010,6 +2044,7 @@ export default function CreateDeliveryView({
                                 display: "flex",
                                 alignItems: "center",
                                 gap: 1,
+                                flexWrap: "wrap",
                               }}
                             >
                               <Typography
@@ -2030,68 +2065,48 @@ export default function CreateDeliveryView({
                                   }}
                                 />
                               )}
-                            </Box>
-                          </TableCell>
-
-                          {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
-                          <TableCell align="center">
-                            {ing.isExtraItem ? (
-                              <Typography
-                                variant="body2"
-                                sx={{ color: "#94a3b8", fontWeight: 500 }}
-                              >
-                                —
-                              </Typography>
-                            ) : isMulti ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: 0.5,
-                                }}
-                              >
-                                <Chip
-                                  icon={<Layers size={12} />}
-                                  label={`${ing.breakdown?.length || 2} thực đơn`}
-                                  size="small"
-                                  onClick={() => toggleExpandRow(ing.id)}
+                              {isMulti && (
+                                <Box
                                   sx={{
-                                    cursor: "pointer",
-                                    bgcolor: "#eff6ff",
-                                    color: "#1d4ed8",
-                                    fontWeight: 700,
-                                    fontSize: "0.75rem",
-                                    height: 22,
-                                    border: "1px solid #bfdbfe",
-                                    "&:hover": { bgcolor: "#dbeafe" },
-                                  }}
-                                />
-                                <Button
-                                  size="small"
-                                  variant="text"
-                                  onClick={() => toggleExpandRow(ing.id)}
-                                  sx={{
-                                    fontSize: "0.6875rem",
-                                    p: 0,
-                                    minWidth: 0,
-                                    textTransform: "none",
-                                    color: "#2563eb",
-                                    fontWeight: 600,
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 0.5,
                                   }}
                                 >
-                                  {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
-                                </Button>
-                              </Box>
-                            ) : (
-                              <Typography
-                                variant="body2"
-                                className={styles.readOnlyPortionText}
-                              >
-                                {formatPortionRate(ing.qtyPerPortion, ing.unit)}
-                                /suất
-                              </Typography>
-                            )}
+                                  <Chip
+                                    icon={<Layers size={12} />}
+                                    label={`${ing.breakdown?.length || 2} thực đơn`}
+                                    size="small"
+                                    onClick={() => toggleExpandRow(ing.id)}
+                                    sx={{
+                                      cursor: "pointer",
+                                      bgcolor: "#eff6ff",
+                                      color: "#1d4ed8",
+                                      fontWeight: 700,
+                                      fontSize: "0.75rem",
+                                      height: 22,
+                                      border: "1px solid #bfdbfe",
+                                      "&:hover": { bgcolor: "#dbeafe" },
+                                    }}
+                                  />
+                                  <Button
+                                    size="small"
+                                    variant="text"
+                                    onClick={() => toggleExpandRow(ing.id)}
+                                    sx={{
+                                      fontSize: "0.6875rem",
+                                      p: 0,
+                                      minWidth: 0,
+                                      textTransform: "none",
+                                      color: "#2563eb",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
+                                  </Button>
+                                </Box>
+                              )}
+                            </Box>
                           </TableCell>
 
                           {/* Cột 2: Số lượng theo suất Đợt 2 (KHÓA: Tự động tính theo Sĩ số bù, không cho sửa) */}
@@ -2111,7 +2126,7 @@ export default function CreateDeliveryView({
                                 variant="subtitle2"
                                 className={styles.batch2QtyText}
                               >
-                                {ing.standardQty} {ing.unit}
+                                {ing.standardQty} {isDiscrete ? ing.unit : "kg"}
                               </Typography>
                             )}
                           </TableCell>
@@ -2154,7 +2169,7 @@ export default function CreateDeliveryView({
                                               : "#64748b",
                                         }}
                                       >
-                                        {ing.unit}
+                                        {isDiscrete ? ing.unit : "kg"}
                                       </span>
                                     ),
                                   },
@@ -2169,7 +2184,7 @@ export default function CreateDeliveryView({
                               variant="subtitle2"
                               className={styles.totalQtyText}
                             >
-                              {ing.batchQty} {ing.unit}
+                              {ing.batchQty} {isDiscrete ? ing.unit : "kg"}
                             </Typography>
                           </TableCell>
 
@@ -2205,7 +2220,7 @@ export default function CreateDeliveryView({
                         {isExpanded && isMulti && (
                           <TableRow sx={{ bgcolor: "#f8fafc" }}>
                             <TableCell
-                              colSpan={7}
+                              colSpan={6}
                               sx={{
                                 py: 1.25,
                                 px: 3,
@@ -2284,7 +2299,8 @@ export default function CreateDeliveryView({
                                           mt: 0.5,
                                         }}
                                       >
-                                        = {b.calculatedQty} {b.unit || ing.unit}
+                                        = {b.calculatedQty}{" "}
+                                        {isDiscrete ? b.unit || ing.unit : "kg"}
                                       </Typography>
                                     </Box>
                                   ))}
@@ -2344,11 +2360,17 @@ export default function CreateDeliveryView({
                     onClick={handleSubmitBatch2}
                     variant="contained"
                     color="warning"
-                    startIcon={<Send size={18} />}
+                    startIcon={
+                  submitting ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : (
+                    <Send size={18} />
+                  )
+                }
                     disabled={submitting || parsedAttendance <= 0 || !attendanceReady}
                     className={styles.submitBtnBatch2}
                   >
-                    {submitting ? "Đang gửi..." : "Chốt đơn Đợt 2 & Gửi NCC"}
+                    {submitting ? "Đang gửi..." : "Tạo"}
                   </Button>
                 </span>
               </Tooltip>

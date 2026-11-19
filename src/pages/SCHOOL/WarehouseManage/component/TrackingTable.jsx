@@ -17,6 +17,7 @@ import {
   Eye,
   Package,
 } from "lucide-react"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./TrackingTable.module.scss"
 
 export default function TrackingTable({ orders = [], onViewDetail, loading = false }) {
@@ -87,10 +88,20 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
 
   if (loading) {
     return (
-      <Paper className={styles.emptyContainer}>
-        <CircularProgress size={36} sx={{ color: "var(--color-primary, #0a8066)", mb: 2 }} />
-        <Typography variant="body1" className={styles.emptyTitle}>
-          Đang tải dữ liệu theo dõi đơn hàng...
+      <Paper
+        className={styles.emptyContainer}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          py: 10,
+          gap: 2,
+        }}
+      >
+        <FoodPrintLoading size="large" />
+        <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+          Đang tải dữ liệu theo dõi đơn hàng đồ khô...
         </Typography>
       </Paper>
     )
@@ -127,7 +138,7 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
               {/* Cột 1: Mã Phiếu (Gọn gàng, chỉ hiển thị mã định danh chính) */}
               <TableCell className={styles.tdCell}>
                 <Typography className={styles.orderNo}>
-                  {item.orderNo || item.deliveryNo}
+                  {String(item.orderNo || item.deliveryNo || "PN-UNKNOWN").replace(/^PO-/, "PN-").replace(/-\d+$/, "")}
                 </Typography>
               </TableCell>
 
