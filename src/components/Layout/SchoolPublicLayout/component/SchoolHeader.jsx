@@ -24,6 +24,12 @@ function SchoolHeader({ school }) {
   const isTracePage = location.pathname.endsWith("/traceability");
   const schoolCode = school?.code || "";
 
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  useEffect(() => {
+    setLogoFailed(false);
+  }, [school?.logoUrl]);
+
   const [schools, setSchools] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -80,7 +86,16 @@ function SchoolHeader({ school }) {
 
           <Link to={`/school/${schoolCode}`} className={styles.schoolBrand}>
             <div className={styles.logoBadge}>
-              <Sun size={22} strokeWidth={2.2} />
+              {school?.logoUrl && !logoFailed ? (
+                <img
+                  src={school.logoUrl}
+                  alt={school.name || "Logo trường"}
+                  className={styles.schoolLogo}
+                  onError={() => setLogoFailed(true)}
+                />
+              ) : (
+                <Sun size={22} strokeWidth={2.2} />
+              )}
             </div>
             <div className={styles.schoolMeta}>
               <span className={styles.schoolName}>

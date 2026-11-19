@@ -623,6 +623,25 @@ test("menu filters send server enums, dates and search and cache by user scope",
   assert.equal(requests.length, 2)
 })
 
+test("nutrition view loads the latest whole-week revision reason from review history", async () => {
+  const older = { decision: "REVISION_REQUESTED", menuDayId: null, feedback: "Lý do cũ", reviewedAt: "2026-11-01T08:00:00.000Z", reviewer: { fullName: "Hiệu trưởng" } }
+  const latest = { ...older, feedback: "Cần thay món có tôm", reviewedAt: "2026-11-18T08:00:00.000Z" }
+  respond = () => ({ items: [{ ...latest, menuDayId: id(2), feedback: "Nhận xét ngày" }, latest, older], pagination: { hasNext: false } })
+  const result = await menus.getLatestRevisionReview(id(1))
+  assert.deepEqual(result, latest)
+  assert.equal(requests[0].url, `/v1/menus/${id(1)}/reviews`)
+  assert.deepEqual(requests[0].params, { page: 1, limit: 20 })
+
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Notice } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuRevisionNotice.jsx")
+  const html = renderToStaticMarkup(React.createElement(Notice, { review: result }))
+  assert.match(html, /Cần thay món có tôm/)
+  assert.match(html, /Hiệu trưởng/)
+  assert.match(html, /Chỉnh sửa thực đơn theo nhận xét/)
+  assert.doesNotMatch(html, /Lý do cũ|Nhận xét ngày/)
+})
+
 test("week schedule loads actual dishes and separate seasoning standards for both meals", async () => {
   respond = config => config.url.endsWith("/week-schedule")
     ? { weeklyMenuId: id(1), weekNumber: 9, days: [{ date: "2026-11-02", status: "DRAFT" }] }

@@ -1,6 +1,7 @@
 .card { display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-6); min-width: 0; padding: var(--space-6); border: 1px solid var(--border-default); border-radius: var(--radius-lg); background: var(--bg-surface); }
 .topRow { display: flex; justify-content: space-between; align-items: center; gap: var(--space-3); margin-bottom: var(--space-5); }
-.avatarBox { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--color-primary-soft); color: var(--color-primary); font-size: var(--text-sm); font-weight: var(--font-bold); }
+.avatarBox { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--color-primary-soft); color: var(--color-primary); font-size: var(--text-sm); font-weight: var(--font-bold); overflow: hidden; }
+.avatarImg { width: 100%; height: 100%; object-fit: contain; border-radius: inherit; background: #ffffff; padding: 3px; }
 .statusPill { display: inline-flex; align-items: center; gap: var(--space-2); color: var(--text-secondary); font-size: var(--text-xs); }
 .activeDot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-primary); }
 .schoolName { margin: 0 0 var(--space-3); font-size: var(--text-lg); line-height: var(--leading-tight); color: var(--text-primary); overflow-wrap: anywhere; }

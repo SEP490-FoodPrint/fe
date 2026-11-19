@@ -5,6 +5,7 @@ import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
+import useMenuRevisionReview from "src/services/MenuService/useMenuRevisionReview"
 import { apiMenuDetail } from "src/services/MenuService/urls"
 import { parseDateVNToISO, menuWeekMeals, adaptBackendMenuDetailToView } from "src/services/MenuService/adapter"
 import { academicWeekSearch } from "src/services/MenuService/academicWeekView"
@@ -25,6 +26,9 @@ export default function MenuDetail() {
 
   const [menu, setMenu] = useState(null)
   const [rawWeeklyMenu, setRawWeeklyMenu] = useState(null)
+  const revisionRequested = rawWeeklyMenu?.status === "REVISION_REQUIRED"
+  const { review, loading: reviewLoading, error: reviewError, retry: retryReview } =
+    useMenuRevisionReview(rawWeeklyMenu?.id, revisionRequested)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState("")
   const [selectedScope, setSelectedScope] = useState(() =>
@@ -159,6 +163,7 @@ export default function MenuDetail() {
         status: "PENDING_APPROVAL",
         statusLabel: "Chờ BGH duyệt",
       }))
+      await fetchDetail()
       showToast("Đã gửi hồ sơ thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
     } catch (e) {
       showToast(e.message || "Không thể gửi duyệt thực đơn.", "warning")
@@ -212,7 +217,7 @@ export default function MenuDetail() {
         />
 
         {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
-        <MenuDetailBGHFeedback menu={menu} />
+        <MenuDetailBGHFeedback menu={menu} revisionRequested={revisionRequested} review={review} loading={reviewLoading} error={reviewError} onRetry={retryReview} />
 
         <MenuGradeDetails
           weeklyMenu={rawWeeklyMenu}
@@ -258,6 +263,11 @@ export default function MenuDetail() {
           dayMenu={dayMeals}
           initialMealType={menu.mealType || "LUNCH"}
           onSaveDay={handleSaveDay}
+          revisionRequested={revisionRequested}
+          revisionReview={review}
+          revisionLoading={reviewLoading}
+          revisionError={reviewError}
+          onRetryRevision={retryReview}
           submitText={menu.status === "PENDING_APPROVAL" || rawWeeklyMenu.status === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Lưu thay đổi"}
         />
       )}

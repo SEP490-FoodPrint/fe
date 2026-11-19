@@ -11,7 +11,18 @@ function SchoolCard({ school }) {
       <div>
         <div className={styles.topRow}>
           <div className={`${styles.avatarBox} ${styles.avatarEmerald}`}>
-            {school.shortName || school.code?.slice(0, 2) || "TH"}
+            {school.logoUrl ? (
+              <img
+                src={school.logoUrl}
+                alt={school.name}
+                className={styles.avatarImg}
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                }}
+              />
+            ) : (
+              school.shortName || school.code?.slice(0, 2) || "TH"
+            )}
           </div>
 
           <div className={styles.statusPill}>
