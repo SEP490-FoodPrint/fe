@@ -86,7 +86,6 @@ const ROUTER = {
   SCHOOL_DAILY_CONFIRM: "/school/daily-meal-confirmation", // GVCN
   SCHOOL_INGREDIENT_INSPECT: "/school/ingredient-inspection", // Y tế, Phụ huynh, Kho, Bếp
   SCHOOL_WAREHOUSE: "/school/warehouse-management",        // Kho / Nguyên liệu
-  SCHOOL_INGREDIENT_OVERVIEW: "/school/ingredient-overview", // Tổng quan Kho & Nguyên liệu
   SCHOOL_INGREDIENT_CATALOG: "/school/ingredient-catalog",   // Danh mục Nguyên liệu Master Data
   SCHOOL_INGREDIENT_ORDERS: "/school/ingredient-orders",     // Phiếu nhập & Đơn hàng
   SCHOOL_ORDER_TRACKING: "/school/order-tracking",           // Theo dõi đơn hàng

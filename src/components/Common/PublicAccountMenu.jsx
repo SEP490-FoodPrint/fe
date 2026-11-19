@@ -11,7 +11,7 @@ import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined"
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined"
 import { StoreContext } from "src/contexts"
-import { getAuthRedirect, getRegistrationDestination } from "src/lib/utils"
+import { canAccessRegistration, getAuthRedirect, getRegistrationDestination } from "src/lib/utils"
 import ROUTER from "src/router/ROUTER"
 import styles from "./PublicAccountMenu.module.scss"
 
@@ -50,7 +50,7 @@ export default function PublicAccountMenu() {
     <Menu id="public-account-menu" anchorEl={anchor} open={open} onClose={close} anchorOrigin={{ vertical: "bottom", horizontal: "right" }} transformOrigin={{ vertical: "top", horizontal: "right" }} slotProps={{ list: { "aria-labelledby": "public-account-button" }, paper: { className: styles.menu } }}>
       {hasDashboard && <MenuItem component={Link} to={dashboardPath} onClick={close}><ListItemIcon><DashboardOutlinedIcon /></ListItemIcon>Bảng điều khiển</MenuItem>}
       <MenuItem component={Link} to={ROUTER.PROFILE} onClick={close}><ListItemIcon><PersonOutlineOutlinedIcon /></ListItemIcon>Profile</MenuItem>
-      <MenuItem component={Link} to={getRegistrationDestination(user)} onClick={close}><ListItemIcon><DescriptionOutlinedIcon /></ListItemIcon>Hồ sơ đăng ký</MenuItem>
+      {canAccessRegistration(user) && <MenuItem component={Link} to={getRegistrationDestination(user)} onClick={close}><ListItemIcon><DescriptionOutlinedIcon /></ListItemIcon>Hồ sơ đăng ký</MenuItem>}
       <MenuItem onClick={logout} disabled={loggingOut} className={styles.logout}><ListItemIcon><LogoutOutlinedIcon /></ListItemIcon>{loggingOut ? "Đang đăng xuất…" : "Đăng xuất"}</MenuItem>
     </Menu>
   </>

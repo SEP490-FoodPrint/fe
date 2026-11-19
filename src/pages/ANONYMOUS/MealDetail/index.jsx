@@ -12,6 +12,11 @@ import {
 import { UtensilsCrossed } from "lucide-react";
 
 import SchoolService from "src/services/SchoolService";
+import {
+  getPublicMealData,
+  isPublicMealError,
+  pickDefaultGradeId,
+} from "src/utils/publicMeal";
 
 import MealDetailHeader from "./component/MealDetailHeader";
 import MealDetailFilterBar from "./component/MealDetailFilterBar";
@@ -39,59 +44,54 @@ function MealDetail() {
 
   const [dailyMenu, setDailyMenu] = useState(null);
   const [weeklyMenu, setWeeklyMenu] = useState(null);
+  const [menuError, setMenuError] = useState(false);
+  const [schoolGrades, setSchoolGrades] = useState([]);
+  const [gradesLoaded, setGradesLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Danh sách khối học đọc trực tiếp từ chuẩn portionGroups của Backend (PublicWeeklyMenuDTO)
+  // Danh sách khối chỉ lấy từ danh mục khối gốc của trường (API /grades),
+  // độc lập với thực đơn để vẫn hiển thị khi không có menu hoặc menu lỗi.
+  // Không có lựa chọn "Toàn trường": thực đơn toàn trường hiển thị ở mọi khối.
   const gradeBlocks = useMemo(() => {
-    if (
-      Array.isArray(weeklyMenu?.portionGroups) &&
-      weeklyMenu.portionGroups.length > 0
-    ) {
-      return weeklyMenu.portionGroups;
-    }
-    return [];
-  }, [weeklyMenu?.portionGroups]);
+    const seen = new Set();
+    return (schoolGrades || [])
+      .filter((g) => {
+        if (!g?.id || seen.has(g.id)) return false;
+        seen.add(g.id);
+        return true;
+      })
+      .map((g) => ({ id: g.id, name: g.name, hasMenu: Boolean(g.hasMenu) }));
+  }, [schoolGrades]);
 
-  // Khởi tạo khối: Ưu tiên slug từ URL
-  const [selectedBlockId, setSelectedBlockId] = useState(() => blockParam || "");
+  // Khối hợp lệ trên URL; null khi chưa tải xong hoặc tham số không phải khối của trường
+  const resolvedBlockId = useMemo(
+    () => (gradeBlocks.some((b) => b.id === blockParam) ? blockParam : null),
+    [gradeBlocks, blockParam],
+  );
+  const selectedBlockId = resolvedBlockId || "";
 
-  // Tự động đẩy theo khối mặc định/đầu tiên từ Backend nếu trên URL không có slug khối
+  // Khi đã tải xong danh mục khối mà URL không có khối hợp lệ (trống, "all"
+  // hoặc id nhóm suất ăn cũ), chuyển sang khối đầu tiên có thực đơn.
   useEffect(() => {
-    if (gradeBlocks.length > 0) {
-      const currentParam = searchParams.get("block") || searchParams.get("grade");
-      const matched = gradeBlocks.find((b) => b.id === currentParam);
-
-      if (matched) {
-        if (selectedBlockId !== matched.id) {
-          setSelectedBlockId(matched.id);
-        }
-      } else {
-        const defaultBlock =
-          gradeBlocks.find((b) => b.isDefault) || gradeBlocks[0];
-        if (defaultBlock) {
-          setSelectedBlockId(defaultBlock.id);
-          if (!currentParam) {
-            setSearchParams(
-              (prev) => {
-                const next = new URLSearchParams(prev);
-                next.set("block", defaultBlock.id);
-                return next;
-              },
-              { replace: true },
-            );
-          }
-        }
-      }
-    }
-  }, [gradeBlocks, searchParams, setSearchParams, selectedBlockId]);
-
-  const selectedBlockObj = useMemo(() => {
-    return (
-      gradeBlocks.find((b) => b.id === selectedBlockId) ||
-      gradeBlocks[0] ||
-      null
+    if (!gradesLoaded || resolvedBlockId) return;
+    const defaultBlockId = pickDefaultGradeId(gradeBlocks);
+    if (!defaultBlockId && !blockParam) return;
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("grade");
+        if (defaultBlockId) next.set("block", defaultBlockId);
+        else next.delete("block");
+        return next;
+      },
+      { replace: true },
     );
-  }, [gradeBlocks, selectedBlockId]);
+  }, [gradesLoaded, resolvedBlockId, gradeBlocks, blockParam, setSearchParams]);
+
+  const selectedBlockObj = useMemo(
+    () => gradeBlocks.find((b) => b.id === selectedBlockId) || null,
+    [gradeBlocks, selectedBlockId],
+  );
 
   const selectedBlockName = selectedBlockObj?.name || "";
 
@@ -102,40 +102,60 @@ function MealDetail() {
   const [modalOpen, setModalOpen] = useState(false);
   const [isTraceModalOpen, setIsTraceModalOpen] = useState(false);
 
-  // Luồng tải chính: đồng bộ thực đơn ngày và tuần theo mã trường, ngày và khối đã chọn
+  // Danh mục khối gốc của trường: tải riêng, không phụ thuộc thực đơn
+  useEffect(() => {
+    let isMounted = true;
+    setGradesLoaded(false);
+    // hasMenu theo tuần của ngày đang xem khi mở trang, dùng để chọn khối mặc định
+    SchoolService.getSchoolGrades(activeCode, dateParam || undefined)
+      .then((res) => {
+        if (!isMounted) return;
+        const gradesData = res?.data?.data || res?.data || [];
+        setSchoolGrades(Array.isArray(gradesData) ? gradesData : []);
+      })
+      .catch((err) => {
+        console.error("Lỗi khi tải danh sách khối:", err);
+        if (isMounted) setSchoolGrades([]);
+      })
+      .finally(() => {
+        if (isMounted) setGradesLoaded(true);
+      });
+    return () => {
+      isMounted = false;
+    };
+    // Chỉ tải lại khi đổi trường; đổi ngày không cần đổi khối mặc định
+  }, [activeCode]);
+
+  // Luồng tải thực đơn ngày và tuần theo mã trường, ngày và khối đã chọn
   useEffect(() => {
     let isMounted = true;
     const fetchData = async () => {
-      if (!activeCode) return;
+      if (!activeCode || !gradesLoaded) return;
+      // Chờ URL được chuẩn hóa sang khối hợp lệ trước khi tải thực đơn
+      if (!resolvedBlockId && gradeBlocks.length > 0) return;
       setLoading(true);
       try {
-        const [dailyRes, weeklyRes] = await Promise.all([
-          SchoolService.getDailyMealMenu(activeCode, dateParam),
-          SchoolService.getWeeklyMenu(
-            activeCode,
-            dateParam,
-            blockParam || undefined,
-          ),
+        const gradeQuery = resolvedBlockId || undefined;
+        const [dailyResult, weeklyResult] = await Promise.allSettled([
+          SchoolService.getDailyMealMenu(activeCode, dateParam, gradeQuery),
+          SchoolService.getWeeklyMenu(activeCode, dateParam, gradeQuery),
         ]);
 
         if (isMounted) {
-          const dailyData =
-            dailyRes?.data && !dailyRes.data.data
-              ? dailyRes.data
-              : dailyRes?.data?.data || dailyRes?.data || null;
+          const dailyRes = dailyResult.status === "fulfilled" ? dailyResult.value : null;
+          const weeklyRes = weeklyResult.status === "fulfilled" ? weeklyResult.value : null;
 
-          const weeklyData =
-            weeklyRes?.data && !weeklyRes.data.data
-              ? weeklyRes.data
-              : weeklyRes?.data?.data || weeklyRes?.data || null;
-
-          setDailyMenu(dailyData);
-          setWeeklyMenu(weeklyData);
+          setDailyMenu(getPublicMealData(dailyRes));
+          setWeeklyMenu(getPublicMealData(weeklyRes));
+          setMenuError(
+            dailyResult.status === "rejected" || isPublicMealError(dailyRes),
+          );
         }
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu thực đơn:", err);
         if (isMounted) {
           setDailyMenu(null);
+          setMenuError(true);
         }
       } finally {
         if (isMounted) {
@@ -148,7 +168,7 @@ function MealDetail() {
     return () => {
       isMounted = false;
     };
-  }, [activeCode, dateParam, blockParam]);
+  }, [activeCode, dateParam, gradesLoaded, resolvedBlockId, gradeBlocks.length]);
 
   // Chọn tuần hoặc ngày sẽ đổi ?date=, giữ nguyên tham số khối.
   const handleSelectWeek = (newWeekStart) => {
@@ -173,7 +193,6 @@ function MealDetail() {
 
   const handleSelectBlock = (newBlockId) => {
     if (newBlockId) {
-      setSelectedBlockId(newBlockId);
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         next.set("block", newBlockId);
@@ -360,13 +379,28 @@ function MealDetail() {
                       <UtensilsCrossed size={32} />
                     </div>
                     <Typography variant="h2" className="emptyTitle">
-                      Chưa có thực đơn cho {dayOfWeekName} ({formattedActiveDate})
+                      {menuError ? "Không tải được thực đơn cho" : "Chưa có thực đơn cho"}{" "}
+                      {dayOfWeekName} ({formattedActiveDate})
+                      {selectedBlockName
+                        ? ` (${selectedBlockName})`
+                        : ""}
                     </Typography>
-                    <p className="emptyDesc">
-                      Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục
-                      vụ bán trú vào ngày này. Phụ huynh vui lòng chọn ngày khác
-                      trong danh sách thả xuống ở bộ lọc bên trên.
-                    </p>
+                    {menuError ? (
+                      <p className="emptyDesc">
+                        Đã xảy ra lỗi khi tải thực đơn. Vui lòng thử lại sau hoặc
+                        chọn ngày, khối khác trong bộ lọc bên trên.
+                      </p>
+                    ) : (
+                      <p className="emptyDesc">
+                        Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục
+                        vụ bán trú vào ngày này
+                        {selectedBlockName
+                          ? ` cho ${selectedBlockName}`
+                          : ""}
+                        . Phụ huynh vui lòng chọn ngày hoặc khối khác
+                        trong danh sách thả xuống ở bộ lọc bên trên.
+                      </p>
+                    )}
                     {activeCode && (
                       <Link
                         to={`/school/${activeCode}#thuc-don-tuan`}

@@ -68,7 +68,6 @@ const SchoolTraceability = lazy(() => import("src/pages/ANONYMOUS/SchoolTraceabi
 const DailyMealConfirm = lazy(() => import("src/pages/SCHOOL/DailyMealConfirm"))
 const IngredientInspect = lazy(() => import("src/pages/SCHOOL/IngredientInspect"))
 const WarehouseManage = lazy(() => import("src/pages/SCHOOL/WarehouseManage"))
-const IngredientOverview = lazy(() => import("src/pages/SCHOOL/IngredientOverview"))
 const SchoolIngredientCatalog = lazy(() => import("src/pages/SCHOOL/IngredientCatalog"))
 const IngredientOrders = lazy(() => import("src/pages/SCHOOL/IngredientOrders"))
 
@@ -365,7 +364,6 @@ const routes = [
           {
             element: <RoleRoute allowedRoles={[ROLES.INGREDIENT_MANAGEMENT]} />,
             children: [
-              { path: ROUTER.SCHOOL_INGREDIENT_OVERVIEW, element: <LazyWrapper><IngredientOverview /></LazyWrapper> },
               { path: ROUTER.SCHOOL_INGREDIENT_CATALOG, element: <LazyWrapper><SchoolIngredientCatalog /></LazyWrapper> },
               { path: ROUTER.SCHOOL_WAREHOUSE, element: <LazyWrapper><WarehouseManage /></LazyWrapper> },
               { path: ROUTER.SCHOOL_INGREDIENT_ORDERS, element: <LazyWrapper><IngredientOrders /></LazyWrapper> },

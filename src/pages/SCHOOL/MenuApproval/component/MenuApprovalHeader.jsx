@@ -1,94 +1,54 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Button } from "@mui/material"
-import { CheckCircle2, ClipboardCheck, Printer, RotateCcw } from "lucide-react"
+import { Printer } from "lucide-react"
+import { formatDate } from "src/utils/approvalWeek"
 import styles from "./MenuApprovalHeader.module.scss"
 
-const STATUS_CONFIG = {
-  PENDING_APPROVAL: {
-    label: "Chờ BGH phê duyệt",
-    className: styles.statusPending,
-    icon: <ClipboardCheck size={14} />,
-  },
-  APPROVED: {
-    label: "Đã phê duyệt",
-    className: styles.statusApproved,
-    icon: <CheckCircle2 size={14} />,
-  },
-  REVISION_REQUIRED: {
-    label: "Yêu cầu điều chỉnh",
-    className: styles.statusRejected,
-    icon: <RotateCcw size={14} />,
-  },
+// Tiêu đề trang theo tuần đang xem: "Duyệt thực đơn tuần X (dd/mm/yyyy – dd/mm/yyyy)"
+const pageTitle = ({ weekNumber, weekStartDate, weekEndDate }) => {
+  if (!weekStartDate) return "Duyệt thực đơn"
+  const range = `(${formatDate(weekStartDate)} – ${formatDate(weekEndDate)})`
+  return weekNumber ? `Duyệt thực đơn tuần ${weekNumber} ${range}` : `Duyệt thực đơn tuần ${range}`
 }
 
-function MenuApprovalHeader({
-  menu,
-  onApprove,
-  onReject,
-  onPrint,
-  canDecide,
-  submitting,
-}) {
-  const status = STATUS_CONFIG[menu.status] || { label: "Chưa gửi duyệt", className: styles.statusPending }
-
+function MenuApprovalHeader({ week, pendingCount, totalCount, onPrint }) {
   return (
-    <>
-      <header className={styles.header}>
-        <div>
-          <nav className={styles.breadcrumb} aria-label="Đường dẫn trang">
-            <span>Ban Giám hiệu</span>
-            <span>/</span>
-            <strong>Phê duyệt thực đơn</strong>
-          </nav>
-          <h1 id="menu-approval-title" className={styles.title}>Phê duyệt thực đơn</h1>
-        </div>
-      </header>
+    <header className={styles.header}>
+      <div>
+        <nav className={styles.breadcrumb} aria-label="Đường dẫn trang">
+          <span>Ban Giám hiệu</span>
+          <span>/</span>
+          <strong>Phê duyệt thực đơn</strong>
+        </nav>
+        <h1 className={styles.title}>{pageTitle(week)}</h1>
+        {totalCount > 0 && (
+          <p className={styles.subtitle}>
+            {totalCount} thực đơn · {pendingCount > 0 ? `${pendingCount} chờ phê duyệt` : "đã xử lý hết"}
+          </p>
+        )}
+      </div>
 
-      <section className={styles.decisionBar} aria-labelledby="menu-approval-title">
-        <div className={styles.decisionInfo}>
-          <span className={`${styles.status} ${status.className}`}>
-            {status.icon}
-            {status.label}
-          </span>        </div>
-
+      {totalCount > 0 && (
         <div className={styles.actions}>
-          <Button
-            variant="text"
-            color="inherit"
-            startIcon={<Printer size={17} />}
-            onClick={onPrint}
-          >
+          <Button variant="text" color="inherit" startIcon={<Printer size={17} />} onClick={onPrint}>
             In / Xuất PDF
           </Button>
-          {canDecide && (
-            <>
-              <Button variant="outlined" color="error" onClick={onReject} disabled={submitting}>
-                Yêu cầu chỉnh sửa
-              </Button>
-              <Button
-                variant="contained"
-                startIcon={<CheckCircle2 size={17} />}
-                onClick={onApprove}
-                disabled={submitting}
-              >
-                Phê duyệt
-              </Button>
-            </>
-          )}
         </div>
-      </section>
-    </>
+      )}
+    </header>
   )
 }
 
 MenuApprovalHeader.propTypes = {
-  menu: PropTypes.object.isRequired,
-  onApprove: PropTypes.func.isRequired,
-  onReject: PropTypes.func.isRequired,
+  week: PropTypes.shape({
+    weekNumber: PropTypes.number,
+    weekStartDate: PropTypes.string,
+    weekEndDate: PropTypes.string,
+  }).isRequired,
+  pendingCount: PropTypes.number.isRequired,
+  totalCount: PropTypes.number.isRequired,
   onPrint: PropTypes.func.isRequired,
-  canDecide: PropTypes.bool.isRequired,
-  submitting: PropTypes.bool.isRequired,
 }
 
 export default MenuApprovalHeader
