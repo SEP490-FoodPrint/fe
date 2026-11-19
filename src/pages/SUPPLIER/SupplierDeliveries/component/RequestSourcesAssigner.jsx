@@ -24,6 +24,7 @@ function RequestSourcesAssigner({
   lotDatesByItemId = {},
   lotDateErrors = {},
   onChangeLotDate,
+  onApplyAllLotDates,
 }) {
   const assignedCount = items.reduce((count, item) => {
     const val = String(sourceByItemId?.[item.id] || "").trim()
@@ -162,6 +163,17 @@ function RequestSourcesAssigner({
                             className={`${styles.dateControl} ${lotDateErrors[item.id] ? styles.hasError : ""}`}
                           />
                         </label>
+                        {onApplyAllLotDates && items.filter(it => it.handlingType === "DRY_STOCK").length > 1 && (
+                          <button
+                            type="button"
+                            disabled={disabled || !lotDatesByItemId[item.id]?.manufactureDate || !lotDatesByItemId[item.id]?.expiryDate}
+                            onClick={() => onApplyAllLotDates(lotDatesByItemId[item.id]?.manufactureDate, lotDatesByItemId[item.id]?.expiryDate)}
+                            className={styles.applyDateAllBtn}
+                            title="Áp dụng ngày sản xuất và hạn sử dụng này cho tất cả đồ khô"
+                          >
+                            Áp dụng ngày cho tất cả
+                          </button>
+                        )}
                         {lotDateErrors[item.id] && (
                           <p className={styles.errorText} role="alert">
                             {lotDateErrors[item.id]}
@@ -249,6 +261,7 @@ RequestSourcesAssigner.propTypes = {
   lotDatesByItemId: PropTypes.object,
   lotDateErrors: PropTypes.object,
   onChangeLotDate: PropTypes.func,
+  onApplyAllLotDates: PropTypes.func,
 }
 
 export default RequestSourcesAssigner

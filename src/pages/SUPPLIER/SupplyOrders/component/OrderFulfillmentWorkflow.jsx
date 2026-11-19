@@ -67,7 +67,27 @@ function OrderFulfillmentWorkflow({
   useEffect(() => {
     if (!order?.id) return
     setSourceByItemId({})
-    setLotDatesByItemId({})
+    
+    // Tự động điền Ngày sản xuất hôm nay và Hạn sử dụng tương ứng cho toàn bộ đồ khô
+    const today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
+    const initialLotDates = {}
+    items.forEach(item => {
+      if (item.handlingType === "DRY_STOCK" && item.id) {
+        const isDairy = /sữa|flan|pudding|váng sữa|phô mai/i.test(item.ingredientName || "")
+        const exp = new Date(Date.now() + 7 * 3600 * 1000)
+        if (isDairy) {
+          exp.setMonth(exp.getMonth() + 6)
+        } else {
+          exp.setFullYear(exp.getFullYear() + 1)
+        }
+        initialLotDates[item.id] = {
+          manufactureDate: today,
+          expiryDate: exp.toISOString().slice(0, 10),
+        }
+      }
+    })
+    setLotDatesByItemId(initialLotDates)
+
     setExpectedArrivalLocal("")
     setVehiclePlate("")
     setNote("")
@@ -75,7 +95,7 @@ function OrderFulfillmentWorkflow({
     if (order.status === SUPPLY_ORDER_STATUS.ACCEPTED) {
       loadFacilities()
     }
-  }, [order?.id, order?.status, loadFacilities])
+  }, [order?.id, order?.status, items, loadFacilities])
 
   const buildSourcesPayload = () =>
     items
@@ -138,6 +158,22 @@ function OrderFulfillmentWorkflow({
       ...prev,
       sources: undefined,
       sourceErrors: {},
+    }))
+    onDraftChange?.()
+  }
+
+  const handleApplyAllLotDates = (mfgDate, expDate) => {
+    if (!mfgDate || !expDate) return
+    const next = {}
+    items.forEach(item => {
+      if (item.handlingType === "DRY_STOCK" && item.id) {
+        next[item.id] = { manufactureDate: mfgDate, expiryDate: expDate }
+      }
+    })
+    setLotDatesByItemId(next)
+    setFieldErrors(prev => ({
+      ...prev,
+      lotDateErrors: {},
     }))
     onDraftChange?.()
   }
@@ -222,6 +258,7 @@ function OrderFulfillmentWorkflow({
             lotDatesByItemId={lotDatesByItemId}
             lotDateErrors={fieldErrors.lotDateErrors || {}}
             onChangeLotDate={handleLotDateChange}
+            onApplyAllLotDates={handleApplyAllLotDates}
           />
         </div>
 

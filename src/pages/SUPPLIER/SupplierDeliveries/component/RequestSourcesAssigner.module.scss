@@ -281,6 +281,31 @@
   }
 }
 
+.applyDateAllBtn {
+  align-self: flex-end;
+  margin-bottom: 2px;
+  padding: 6px 10px;
+  border: 1px dashed #08735c;
+  border-radius: 6px;
+  background: rgba(8, 115, 92, 0.05);
+  color: #08735c;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: rgba(8, 115, 92, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
 .lotDates .errorText {
   flex-basis: 100%;
 }
