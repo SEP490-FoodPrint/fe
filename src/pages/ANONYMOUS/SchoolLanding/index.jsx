@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useOutletContext, useParams } from "react-router-dom";
 import SchoolService from "src/services/SchoolService";
-import { getPublicMealData } from "src/utils/publicMeal";
+import {
+  getPublicMealData,
+  isPublicMealError,
+  pickDefaultGradeId,
+} from "src/utils/publicMeal";
 import { resolveWeekStartDate } from "src/utils/weeklyMenu";
 import SchoolHero from "./component/SchoolHero";
 import QuickStatsStrip from "./component/QuickStatsStrip";
@@ -18,10 +22,27 @@ function SchoolLanding() {
 
   const [dailyMeal, setDailyMeal] = useState(null);
   const [weeklyMenu, setWeeklyMenu] = useState(null);
+  const [weeklyMenuError, setWeeklyMenuError] = useState(false);
+  const [schoolGrades, setSchoolGrades] = useState([]);
+  const [selectedGradeId, setSelectedGradeId] = useState("");
   const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false);
   const [, setLoading] = useState(true);
 
-  // Khi vào trang hoặc đổi trường, tải thực đơn ngày và tuần cho trường đang xem.
+  // Tên khối đang chọn, lấy từ danh mục khối gốc của trường
+  const selectedGradeName = React.useMemo(() => {
+    if (!selectedGradeId) return "";
+    const found = schoolGrades.find((g) => g.id === selectedGradeId);
+    return found?.name || "";
+  }, [selectedGradeId, schoolGrades]);
+
+  const applyWeeklyResponse = (res) => {
+    setWeeklyMenuError(isPublicMealError(res));
+    setWeeklyMenu(getPublicMealData(res));
+  };
+
+  // Khi vào trang hoặc đổi trường: tải danh sách khối trước, chọn khối đầu tiên có thực đơn,
+  // rồi tải thực đơn ngày và tuần theo khối đó. Khối không có thực đơn riêng sẽ
+  // nhận thực đơn toàn trường (BE lọc theo khối hoặc isSchoolWide).
   useEffect(() => {
     let isMounted = true;
 
@@ -29,21 +50,39 @@ function SchoolLanding() {
       try {
         setLoading(true);
 
-        // Hiển thị phần tải thành công kể cả khi request còn lại lỗi.
+        let grades = [];
+        try {
+          const gradesRes = await SchoolService.getSchoolGrades(activeCode);
+          const gradesData = gradesRes?.data?.data || gradesRes?.data || [];
+          grades = Array.isArray(gradesData) ? gradesData : [];
+        } catch (err) {
+          console.error("Lỗi khi tải danh sách khối:", err);
+        }
+        if (!isMounted) return;
+        setSchoolGrades(grades);
+        const firstGradeId = pickDefaultGradeId(grades);
+        setSelectedGradeId(firstGradeId);
+        const gradeQuery = firstGradeId || undefined;
+
         const [dailyResult, weeklyResult] = await Promise.allSettled([
-          SchoolService.getDailyMealMenu(activeCode),
-          SchoolService.getWeeklyMenu(activeCode),
+          SchoolService.getDailyMealMenu(activeCode, undefined, gradeQuery),
+          SchoolService.getWeeklyMenu(activeCode, undefined, gradeQuery),
         ]);
 
         if (isMounted) {
           // Xử lý thực đơn ngày
           if (dailyResult.status === "fulfilled" && dailyResult.value) {
             setDailyMeal(getPublicMealData(dailyResult.value));
+          } else {
+            setDailyMeal(null);
           }
 
-          // Xử lý thực đơn tuần
-          if (weeklyResult.status === "fulfilled" && weeklyResult.value) {
-            setWeeklyMenu(getPublicMealData(weeklyResult.value));
+          // Xử lý thực đơn tuần (lỗi menu không ảnh hưởng danh sách khối)
+          if (weeklyResult.status === "fulfilled") {
+            applyWeeklyResponse(weeklyResult.value);
+          } else {
+            setWeeklyMenu(null);
+            setWeeklyMenuError(true);
           }
         }
       } catch (err) {
@@ -63,12 +102,24 @@ function SchoolLanding() {
     };
   }, [activeCode]);
 
-  // Hai thao tác của WeeklyMenuSection chỉ tải lại phần thực đơn tuần.
-  const handleWeekChange = (weekValue, groupId) =>
-    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi tuần:");
+  // Đổi tuần giữ nguyên khối đang chọn
+  const handleWeekChange = (weekValue, groupId) => {
+    const activeGroup = groupId || selectedGradeId;
+    loadWeeklyMenu(weekValue, activeGroup, "Lỗi khi chuyển đổi tuần:");
+  };
 
-  const handleGroupChange = (groupId, weekValue) =>
-    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi nhóm bán trú:");
+  // Đổi khối: cập nhật đồng bộ cả thực đơn ngày và thực đơn tuần theo id khối
+  const handleGradeChange = async (groupId, weekValue) => {
+    setSelectedGradeId(groupId);
+    loadWeeklyMenu(weekValue, groupId, "Lỗi khi chuyển đổi khối tuần:");
+    try {
+      const res = await SchoolService.getDailyMealMenu(activeCode, undefined, groupId);
+      setDailyMeal(getPublicMealData(res));
+    } catch (err) {
+      console.error("Lỗi khi lọc thực đơn ngày theo khối:", err);
+      setDailyMeal(null);
+    }
+  };
 
   const loadWeeklyMenu = async (weekValue, groupId, errorMessage) => {
     try {
@@ -77,9 +128,11 @@ function SchoolLanding() {
         resolveWeekStartDate(weekValue),
         groupId,
       );
-      setWeeklyMenu(getPublicMealData(res));
+      applyWeeklyResponse(res);
     } catch (err) {
       console.error(errorMessage, err);
+      setWeeklyMenu(null);
+      setWeeklyMenuError(true);
     }
   };
 
@@ -95,6 +148,7 @@ function SchoolLanding() {
         {/* Thực đơn hôm nay */}
         <DailyMealSection
           dailyMeal={dailyMeal}
+          selectedGradeName={selectedGradeName}
           onOpenAllergyModal={() => setIsAllergyModalOpen(true)}
         />
 
@@ -102,8 +156,12 @@ function SchoolLanding() {
         <WeeklyMenuSection
           weeklyMenu={weeklyMenu}
           schoolCode={activeCode}
+          schoolGrades={schoolGrades}
+          selectedGradeId={selectedGradeId}
+          selectedGradeName={selectedGradeName}
+          menuError={weeklyMenuError}
           onWeekChange={handleWeekChange}
-          onGroupChange={handleGroupChange}
+          onGroupChange={handleGradeChange}
         />
       </main>
 

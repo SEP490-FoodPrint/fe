@@ -58,7 +58,7 @@ export const getDefaultRedirectByUser = user => {
     user.role === "INGREDIENT_MANAGEMENT_DEPARTMENT" ||
     user.role === ROLES?.INGREDIENT_MANAGEMENT
   ) {
-    return ROUTER.SCHOOL_INGREDIENT_OVERVIEW
+    return ROUTER.SCHOOL_INGREDIENT_CATALOG
   }
   return getDefaultRedirectByOrg(user.orgType)
 }
@@ -70,6 +70,17 @@ export const getAuthRedirect = user => {
 }
 
 export const needsRegistrationCompletion = user => Boolean(user && ["SCHOOL", "SUPPLIER"].includes(user.orgType) && user.onboardingRequired && (!user.registrationRequest || user.registrationRequest.status === "REJECTED"))
+
+// Chỉ School Admin / Supplier Admin tự đăng ký, đã xác minh email nhưng hồ sơ chưa được duyệt (status UNVERIFIED).
+// Tài khoản đã duyệt (ACTIVE) và tài khoản nội bộ (staff do admin tạo) không thấy mục Hồ sơ đăng ký.
+export const canAccessRegistration = user => Boolean(
+  user
+  && [ROLES.SCHOOL_ADMINISTRATION, ROLES.INGREDIENT_SUPPLIER_ADMIN].includes(user.role)
+  && ["SCHOOL", "SUPPLIER"].includes(user.orgType)
+  && user.status === "UNVERIFIED"
+  && user.onboardingRequired
+  && user.emailVerifiedAt
+)
 
 export const getRegistrationDestination = user => (user?.role === "SYSTEM_ADMIN" || user?.role === ROLES?.SYSTEM_ADMIN) ? ROUTER.SYSTEM_ORG_APPROVAL
   : user?.registrationRequest ? ROUTER.REGISTRATION_STATUS : ROUTER.REGISTRATION_PROFILE
