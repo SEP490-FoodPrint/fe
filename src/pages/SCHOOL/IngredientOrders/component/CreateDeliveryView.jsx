@@ -82,10 +82,10 @@ export const isDiscreteUnit = (unit = "") => {
 };
 
 export const isKgUnit = (unit) => {
-  const u = String(unit || "")
-    .toLowerCase()
-    .trim();
-  return u === "kg" || u === "kilogram";
+  if (!unit) return true;
+  const u = String(unit).toLowerCase().trim();
+  if (isDiscreteUnit(u)) return false;
+  return true;
 };
 
 export const getPortionUnit = (unit) => {
@@ -434,6 +434,12 @@ export default function CreateDeliveryView({
 
       fresh.forEach((ing) => {
         const key = (ing.name || "").trim().toLowerCase();
+        const itemUnit = isDiscreteUnit(ing.unit) ? ing.unit : "kg";
+        let rawRate = Number(ing.qtyPerPortion) || 0.05;
+        if (itemUnit === "kg" && rawRate >= 1) {
+          rawRate = Number((rawRate / 1000).toFixed(4));
+        }
+
         if (!groupedMap.has(key)) {
           groupedMap.set(key, {
             id: ing.id,
@@ -441,19 +447,19 @@ export default function CreateDeliveryView({
             ingredientEntryId: ing.ingredientEntryId || ing.id,
             name: ing.name,
             category: ing.category,
-            unit: ing.unit,
+            unit: itemUnit,
             supplierId: ing.supplierId,
             supplierName: ing.supplierName,
             handlingType: ing.handlingType || "DIRECT_USE",
             isExtraItem: false,
-            defaultQtyPerPortion: ing.qtyPerPortion,
-            qtyPerPortion: ing.qtyPerPortion,
+            defaultQtyPerPortion: rawRate,
+            qtyPerPortion: rawRate,
             contributions: [],
           });
         }
 
         const entry = groupedMap.get(key);
-        let rate = ing.qtyPerPortion;
+        let rate = rawRate;
 
         // Kế thừa định lượng Đợt 1 nếu là Đợt 2
         if (mode === "BATCH_2" && batch1ForDate) {
@@ -499,7 +505,7 @@ export default function CreateDeliveryView({
           qtyPerPortion: rate,
           portions: mPortions,
           calculatedQty: calcContribution,
-          unit: ing.unit,
+          unit: itemUnit,
         });
       });
     });
@@ -612,8 +618,9 @@ export default function CreateDeliveryView({
     const num = parseFloat(extraQtyInput);
     if (isNaN(num) || num <= 0) return;
 
-    const unit =
+    const rawUnit =
       selectedIngredient.defaultUnit || selectedIngredient.unit || "kg";
+    const unit = isDiscreteUnit(rawUnit) ? rawUnit : "kg";
     const isDiscrete = isDiscreteUnit(unit);
     const addQty = isDiscrete ? Math.ceil(num) : Number(num.toFixed(2));
 
@@ -1201,7 +1208,7 @@ export default function CreateDeliveryView({
                       className={styles.batch1Col}
                       style={{ width: 160 }}
                     >
-                      SL theo suất
+                      SL theo suất (kg)
                       <br />
                       ({batch1Portions} suất)
                     </TableCell>
@@ -1358,7 +1365,7 @@ export default function CreateDeliveryView({
                                     input: {
                                       endAdornment: (
                                         <span className={styles.inputAdornment}>
-                                          {ing.unit}
+                                          {isDiscrete ? ing.unit : "kg"}
                                         </span>
                                       ),
                                     },
@@ -1452,7 +1459,8 @@ export default function CreateDeliveryView({
                                           mt: 0.5,
                                         }}
                                       >
-                                        = {b.calculatedQty} {b.unit || ing.unit}
+                                        = {b.calculatedQty}{" "}
+                                        {isDiscrete ? b.unit || ing.unit : "kg"}
                                       </Typography>
                                     </Box>
                                   ))}
@@ -1988,7 +1996,7 @@ export default function CreateDeliveryView({
                       className={styles.totalCol}
                       style={{ width: 135 }}
                     >
-                      Tổng Đợt 2
+                      Tổng Đợt 2 (kg)
                     </TableCell>
                     <TableCell>Nhà cung cấp đối tác</TableCell>
                     <TableCell align="center" style={{ width: 50 }}></TableCell>
@@ -2093,7 +2101,7 @@ export default function CreateDeliveryView({
                                 variant="subtitle2"
                                 className={styles.batch2QtyText}
                               >
-                                {ing.standardQty} {ing.unit}
+                                {ing.standardQty} {isDiscrete ? ing.unit : "kg"}
                               </Typography>
                             )}
                           </TableCell>
@@ -2136,7 +2144,7 @@ export default function CreateDeliveryView({
                                               : "#64748b",
                                         }}
                                       >
-                                        {ing.unit}
+                                        {isDiscrete ? ing.unit : "kg"}
                                       </span>
                                     ),
                                   },
@@ -2151,7 +2159,7 @@ export default function CreateDeliveryView({
                               variant="subtitle2"
                               className={styles.totalQtyText}
                             >
-                              {ing.batchQty} {ing.unit}
+                              {ing.batchQty} {isDiscrete ? ing.unit : "kg"}
                             </Typography>
                           </TableCell>
 
@@ -2266,7 +2274,8 @@ export default function CreateDeliveryView({
                                           mt: 0.5,
                                         }}
                                       >
-                                        = {b.calculatedQty} {b.unit || ing.unit}
+                                        = {b.calculatedQty}{" "}
+                                        {isDiscrete ? b.unit || ing.unit : "kg"}
                                       </Typography>
                                     </Box>
                                   ))}

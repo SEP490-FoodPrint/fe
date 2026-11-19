@@ -689,8 +689,8 @@ export default function DeliveryDetailView({
                 <TableCell style={{ minWidth: 200 }}>
                   Nhà cung cấp (NCC)
                 </TableCell>
-                <TableCell align="center">Đơn vị</TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
+                <TableCell align="left">Đơn vị</TableCell>
                 <TableCell align="center">
                   Đánh giá cảm quan &amp; ATTP
                 </TableCell>
@@ -804,15 +804,12 @@ export default function DeliveryDetailView({
                             "Nhà cung cấp đối tác"}
                         </Typography>
                       </TableCell>
-                      <TableCell align="center">
-                        <Typography variant="body2">{item.unit}</Typography>
-                      </TableCell>
                       <TableCell align="right">
                         <Typography
                           variant="body2"
                           className={styles.orderedQty}
                         >
-                          {displayedOrderedQty} {item.unit}
+                          {displayedOrderedQty}
                         </Typography>
                         {isMulti && (
                           <Button
@@ -832,6 +829,9 @@ export default function DeliveryDetailView({
                             {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
                           </Button>
                         )}
+                      </TableCell>
+                      <TableCell align="left">
+                        <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
                       <TableCell align="center">
                         {item.status === "ACCEPTED" ? (
