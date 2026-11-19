@@ -119,7 +119,7 @@ function DishIngredientsModal({ open, onClose, dish }) {
                       </td>
                       <td className={styles.tdCategory}>
                         <span className={styles.categoryPill}>
-                          {ing.category || "Thực phẩm"}
+                          {ing.category || "Chưa phân loại"}
                         </span>
                       </td>
                       <td className={styles.tdSupplier}>
@@ -129,7 +129,7 @@ function DishIngredientsModal({ open, onClose, dish }) {
                             className={styles.supplierIcon}
                           />
                           <span>
-                            {ing.supplierName || "HTX Nông sản an toàn"}
+                            {ing.supplierName || "Chưa cập nhật"}
                           </span>
                         </div>
                       </td>

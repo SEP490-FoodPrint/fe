@@ -329,12 +329,6 @@ export const MenuItemSchool = () => [
 
   // === CÁC TÍNH NĂNG CHUYÊN BIỆT CHO BỘ PHẬN QUẢN LÝ KHO & NGUYÊN LIỆU (INGREDIENT_MANAGEMENT) - 7 MỤC QUY CHUẨN ===
   {
-    key: ROUTER.SCHOOL_INGREDIENT_OVERVIEW,
-    label: "Tổng quan",
-    icon: <DashboardOutlinedIcon />,
-    roles: [ROLES.INGREDIENT_MANAGEMENT],
-  },
-  {
     key: ROUTER.SCHOOL_INGREDIENT_CATALOG,
     label: "Danh mục nguyên liệu",
     icon: <Inventory2OutlinedIcon />,

@@ -5,7 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
-  Users,
+  Layers,
 } from "lucide-react";
 import { FormControl, Select, MenuItem, InputAdornment } from "@mui/material";
 import { NO_DATA_TEXT } from "src/constants/ui";
@@ -18,30 +18,45 @@ import {
 import WeeklyDayCard from "./WeeklyDayCard";
 import styles from "./WeeklyMenuSection.module.scss";
 
-function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode }) {
-  const groups =
-    weeklyMenu?.portionGroups ||
-    weeklyMenu?.gradeGroups ||
-    [];
+function WeeklyMenuSection({
+  weeklyMenu,
+  onWeekChange,
+  onGroupChange,
+  schoolCode,
+  schoolGrades = [],
+  selectedGradeId,
+  selectedGradeName,
+  menuError = false,
+}) {
+  // Danh sách khối chỉ lấy từ danh mục khối gốc của trường (API /grades),
+  // độc lập với thực đơn để vẫn hiển thị khi tuần không có menu hoặc menu lỗi.
+  // Không có lựa chọn "Toàn trường": thực đơn toàn trường hiển thị ở mọi khối.
+  const gradeOptions = useMemo(() => {
+    const seen = new Set();
+    return (schoolGrades || []).filter((g) => {
+      if (!g?.id || seen.has(g.id)) return false;
+      seen.add(g.id);
+      return true;
+    }).map((g) => ({ id: g.id, name: g.name }));
+  }, [schoolGrades]);
 
-  const defaultGroupId =
-    groups[0]?.id ||
-    groups[0]?.key ||
-    groups.find((g) => g.isDefault)?.id ||
-    groups.find((g) => g.isDefault)?.key ||
-    "all";
+  const [activeGroupId, setActiveGroupId] = useState(selectedGradeId || "");
 
-  const [activeGroupId, setActiveGroupId] = useState(defaultGroupId);
-
-  // Giữ nhóm đang chọn nếu nhóm đó vẫn có trong dữ liệu tuần mới; nếu không lấy phần tử đầu tiên.
   useEffect(() => {
-    if (groups.length > 0) {
-      const exists = groups.some((g) => (g.id || g.key) === activeGroupId);
-      if (!exists) {
-        setActiveGroupId(defaultGroupId);
-      }
+    if (selectedGradeId !== undefined) {
+      setActiveGroupId(selectedGradeId);
     }
-  }, [groups, defaultGroupId, activeGroupId]);
+  }, [selectedGradeId]);
+
+  const currentGroupId =
+    selectedGradeId !== undefined ? selectedGradeId : activeGroupId;
+
+  // Tên khối đang chọn
+  const displayGradeName = useMemo(() => {
+    if (selectedGradeName) return selectedGradeName;
+    const found = gradeOptions.find((g) => g.id === currentGroupId);
+    return found?.name || "";
+  }, [selectedGradeName, gradeOptions, currentGroupId]);
 
   // Điều hướng theo các tuần API công bố, kể cả khi lịch có tuần bị bỏ trống.
   const availableWeeks = useMemo(() => getAvailableWeeks(weeklyMenu), [weeklyMenu]);
@@ -63,19 +78,19 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
   const handlePrevWeek = () => {
     if (!canGoPrev || !onWeekChange) return;
     const prevWeek = availableWeeks[currentWeekIndex - 1];
-    onWeekChange(prevWeek.weekStartDate, activeGroupId);
+    onWeekChange(prevWeek.weekStartDate, currentGroupId);
   };
 
   const handleNextWeek = () => {
     if (!canGoNext || !onWeekChange) return;
     const nextWeek = availableWeeks[currentWeekIndex + 1];
-    onWeekChange(nextWeek.weekStartDate, activeGroupId);
+    onWeekChange(nextWeek.weekStartDate, currentGroupId);
   };
 
   const handleSelectWeek = (e) => {
     const targetDate = e.target.value;
     if (onWeekChange && targetDate && targetDate !== currentWeekDate) {
-      onWeekChange(targetDate, activeGroupId);
+      onWeekChange(targetDate, currentGroupId);
     }
   };
 
@@ -184,51 +199,75 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
             </button>
           </div>
 
-          {/* Dynamic Portion/Grade Groups */}
+          {/* Tách riêng Dropdown chọn Khối */}
           <div className={styles.rightActions}>
-            {groups.length > 1 ? (
-              <div className={styles.gradeTabs}>
-                {groups.map((group) => {
-                  const gId = group.id || group.key;
-                  const gName = group.name || group.label;
-                  const isActive = activeGroupId === gId;
-                  return (
-                    <button
-                      key={gId}
-                      type="button"
-                      className={`${styles.gradeTab} ${
-                        isActive ? styles.activeGrade : ""
-                      }`}
-                      onClick={() => handleSelectGroup(gId)}
-                    >
-                      {gName}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : groups.length === 1 ? (
-              <div className={styles.singleGroupBadge}>
-                <Users size={14} />
-                <span>
-                  Khẩu phần: {groups[0].name || groups[0].label || "Toàn trường"}
-                </span>
-              </div>
-            ) : null}
+            <div className={styles.gradeDropdownWrapper}>
+              <FormControl size="small" className={styles.gradeFormControl}>
+                <Select
+                  id="gradeSelect"
+                  value={gradeOptions.some((g) => g.id === currentGroupId) ? currentGroupId : ""}
+                  onChange={(e) => handleSelectGroup(e.target.value)}
+                  displayEmpty
+                  disabled={gradeOptions.length === 0}
+                  renderValue={() => displayGradeName || "Chưa có khối"}
+                  className={styles.gradeMuiSelect}
+                  startAdornment={
+                    <InputAdornment position="start" className={styles.calendarAdornment}>
+                      <Layers size={16} />
+                    </InputAdornment>
+                  }
+                  MenuProps={{
+                    PaperProps: {
+                      className: styles.weekDropdownPaper,
+                    },
+                  }}
+                >
+                  {gradeOptions.map((opt) => (
+                    <MenuItem key={opt.id} value={opt.id} className={styles.weekMenuItem}>
+                      <span className={styles.weekItemTitle}>{opt.name}</span>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
           </div>
         </div>
 
         {/* Nội dung: Hiển thị Empty State Banner trong container hoặc Lưới 5 ngày */}
-        {!hasDays ? (
+        {menuError ? (
+          <div className={styles.emptyContainer}>
+            <div className={styles.emptyIconBox}>
+              <CalendarX size={32} />
+            </div>
+            <h3 className={styles.emptyTitle}>
+              Không tải được thực đơn tuần
+              {displayGradeName
+                ? ` (${displayGradeName})`
+                : ""}
+            </h3>
+            <p className={styles.emptyDescription}>
+              Đã xảy ra lỗi khi tải thực đơn. Vui lòng thử lại sau hoặc chọn tuần,
+              khối khác.
+            </p>
+          </div>
+        ) : !hasDays ? (
           <div className={styles.emptyContainer}>
             <div className={styles.emptyIconBox}>
               <CalendarX size={32} />
             </div>
             <h3 className={styles.emptyTitle}>
               Chưa có thực đơn bán trú cho tuần này
+              {displayGradeName
+                ? ` (${displayGradeName})`
+                : ""}
             </h3>
             <p className={styles.emptyDescription}>
               Nhà trường hiện chưa công bố thực đơn tuần được phê duyệt cho khoảng
-              thời gian này. Phụ huynh có thể chọn các tuần khác trong danh sách thả xuống
+              thời gian này
+              {displayGradeName
+                ? ` áp dụng cho ${displayGradeName}`
+                : ""}
+              . Phụ huynh có thể chọn các tuần hoặc khối khác trong danh sách thả xuống
               ở trên hoặc liên hệ bộ phận bán trú của nhà trường.
             </p>
           </div>
@@ -239,7 +278,7 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
                 key={day.date || day.id || idx}
                 day={day}
                 schoolCode={schoolCode}
-                activeGroupId={activeGroupId}
+                activeGroupId={currentGroupId}
               />
             ))}
           </div>
@@ -251,14 +290,16 @@ function WeeklyMenuSection({ weeklyMenu, onWeekChange, onGroupChange, schoolCode
 
 WeeklyMenuSection.propTypes = {
   schoolCode: PropTypes.string,
+  schoolGrades: PropTypes.array,
+  selectedGradeId: PropTypes.string,
+  selectedGradeName: PropTypes.string,
+  menuError: PropTypes.bool,
   weeklyMenu: PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,
     weekNumber: PropTypes.number,
     weekStartDate: PropTypes.string,
     weekRange: PropTypes.string,
-    portionGroups: PropTypes.array,
-    gradeGroups: PropTypes.array,
     days: PropTypes.array,
     availableWeeks: PropTypes.array,
     available_weeks: PropTypes.array,

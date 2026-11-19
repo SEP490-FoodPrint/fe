@@ -18,7 +18,7 @@ function WeeklyDayCard({ day, schoolCode, activeGroupId }) {
   // Truyền ngày và slug khối qua URL để MealDetail mở đúng thực đơn từ thẻ tuần.
   const queryParams = new URLSearchParams();
   if (day.dateIso) queryParams.set("date", day.dateIso);
-  if (activeGroupId && activeGroupId !== "all") queryParams.set("block", activeGroupId);
+  if (activeGroupId) queryParams.set("block", activeGroupId);
   const queryString = queryParams.toString();
 
   const detailTarget = schoolCode
@@ -27,72 +27,72 @@ function WeeklyDayCard({ day, schoolCode, activeGroupId }) {
 
   return (
     <div className={`${styles.card} ${isToday ? styles.todayCard : ""}`}>
-      <div className={styles.topSection}>
-        {/* Day Header */}
-        <div className={styles.dayHeader}>
-          <div>
-            <span className={`${styles.dayTitle} ${isToday ? styles.todayText : ""}`}>
-              {dayOfWeek}
-            </span>
-            <span className={`${styles.dateText} ${isToday ? styles.todayText : ""}`}>
-              {date}
-            </span>
-          </div>
-
-          <span
-            className={`${styles.statusBadge} ${
-              isToday
-                ? styles.todayBadge
-                : day.status === "SERVED"
-                ? styles.servedBadge
-                : styles.upcomingBadge
-            }`}
-          >
-            {statusLabel}
+      {/* 1. Header Ngày */}
+      <div className={styles.dayHeader}>
+        <div>
+          <span className={`${styles.dayTitle} ${isToday ? styles.todayText : ""}`}>
+            {dayOfWeek}
+          </span>
+          <span className={`${styles.dateText} ${isToday ? styles.todayText : ""}`}>
+            {date}
           </span>
         </div>
 
-        {/* Lunch Dishes */}
-        <div className={styles.mealBlock}>
-          <span className={styles.blockTitle}>Bữa trưa chính</span>
-          {lunchDishes.length > 0 ? (
-            <ul className={styles.dishList}>
-              {lunchDishes.map((dish, i) => {
-                const dishName = typeof dish === "string" ? dish : dish.name
-                const sub =
-                  typeof dish === "object"
-                    ? dish.substituteDish ||
-                      dish.alternativeDish ||
-                      dish.substitute
-                    : null
-                return (
-                  <li key={i} className={styles.dishItem}>
-                    <span className={styles.bullet}>•</span>
-                    <div className={styles.dishTextCol}>
-                      <span className={styles.dishText}>{dishName}</span>
-                      {sub && (
-                        <span className={styles.substituteDishNote}>
-                          ({sub.name || sub})
-                        </span>
-                      )}
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
-          ) : (
-            <p className={styles.snackDesc}>{NO_DATA_TEXT}</p>
-          )}
-        </div>
-
-        {/* Snack */}
-        <div className={styles.snackBlock}>
-          <span className={styles.snackTitle}>Bữa xế chiều</span>
-          <p className={styles.snackDesc}>{snackSummary}</p>
-        </div>
+        <span
+          className={`${styles.statusBadge} ${
+            isToday
+              ? styles.todayBadge
+              : day.status === "SERVED"
+              ? styles.servedBadge
+              : styles.upcomingBadge
+          }`}
+        >
+          {statusLabel}
+        </span>
       </div>
 
-      {/* Bottom Link */}
+      {/* 2. Bữa trưa chính (Tự co giãn chiều cao linh hoạt, không đẩy lệch bữa xế) */}
+      <div className={styles.mealBlock}>
+        <span className={styles.blockTitle}>Bữa trưa chính</span>
+        {lunchDishes.length > 0 ? (
+          <ul className={styles.dishList}>
+            {lunchDishes.map((dish, i) => {
+              const dishName = typeof dish === "string" ? dish : dish.name;
+              const sub =
+                typeof dish === "object"
+                  ? dish.substituteDish ||
+                    dish.alternativeDish ||
+                    dish.substitute
+                  : null;
+              return (
+                <li key={i} className={styles.dishItem}>
+                  <span className={styles.bullet}>•</span>
+                  <div className={styles.dishTextCol}>
+                    <span className={styles.dishText}>{dishName}</span>
+                    {sub && (
+                      <span className={styles.substituteDishNote}>
+                        ({sub.name || sub})
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className={styles.emptyLunchText}>{NO_DATA_TEXT}</p>
+        )}
+      </div>
+
+      {/* 3. Bữa xế chiều (Vạch đứt phân cách như cũ, cố định vị trí ngang hàng cả 5 ngày) */}
+      <div className={styles.snackBlock}>
+        <span className={styles.snackTitle}>Bữa xế chiều</span>
+        <p className={styles.snackDesc} title={snackSummary}>
+          {snackSummary}
+        </p>
+      </div>
+
+      {/* 4. Bottom Link */}
       <div className={styles.bottomSection}>
         <Link to={detailTarget} className={isToday ? styles.todayActionLink : styles.viewDetailLink}>
           <span>{isToday ? "Đang phục vụ hôm nay" : "Xem chi tiết suất ăn"}</span>
