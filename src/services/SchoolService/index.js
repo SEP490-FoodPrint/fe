@@ -8,6 +8,7 @@ import {
   apiGetWeeklyMenu,
   apiCookingMode,
   apiMealTimes,
+  apiDeliveryInspectionRoles,
 } from "./urls";
 import { getMockDailyMealMenu, getMockWeeklyMenu } from "./mockData";
 
@@ -123,6 +124,22 @@ const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMod
 const getMealTimes = () => http.get(apiMealTimes, { notifyOnError: false });
 const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnError: false });
 
+/**
+ * Lấy cấu hình nhóm duyệt kiểm nhận nguyên liệu của trường
+ */
+export const getDeliveryInspectionRoles = async () => {
+  const res = await http.get(apiDeliveryInspectionRoles);
+  return res;
+};
+
+/**
+ * Cập nhật cấu hình nhóm duyệt kiểm nhận nguyên liệu của trường
+ */
+export const updateDeliveryInspectionRoles = async (roles) => {
+  const res = await http.put(apiDeliveryInspectionRoles, { roles });
+  return res;
+};
+
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getPublicLocations: getPublicLocationsApi,
@@ -134,6 +151,8 @@ const SchoolService = {
   updateCookingMode,
   getMealTimes,
   updateMealTimes,
+  getDeliveryInspectionRoles,
+  updateDeliveryInspectionRoles,
 };
 
 export default SchoolService;

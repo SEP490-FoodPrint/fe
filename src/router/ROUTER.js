@@ -99,6 +99,7 @@ const ROUTER = {
   SCHOOL_COOKING_MODE: "/school/cooking-mode",             // BGH cấu hình chế độ nấu
   SCHOOL_MEAL_TIMES: "/school/meal-serving-times",          // BGH cấu hình giờ phục vụ
   SCHOOL_ACADEMIC_YEARS: "/school/academic-years",
+  SCHOOL_DELIVERY_INSPECTION_ROLES: "/school/delivery-inspection-roles", // BGH cấu hình nhóm duyệt kiểm nhận
 
   // Common/Error
   FORBIDDEN: "/403",
