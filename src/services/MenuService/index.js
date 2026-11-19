@@ -6,6 +6,7 @@ import {
   apiMenuDetail,
   apiSubmitMenu,
   apiReviewMenu,
+  apiMenuReviews,
   apiAllergyCheck,
   apiIngredientOptions,
   apiPortionGroups,
@@ -583,6 +584,20 @@ const MenuService = {
    * Hồ sơ duyệt thực đơn tuần cho Ban Giám Hiệu
    */
   getApprovalDetail: (menuId) => http.get(apiGetMenuApprovalDetail(menuId)),
+
+  /** Nhận xét BGH gần nhất cho yêu cầu sửa cả tuần. */
+  getLatestRevisionReview: async (menuId) => {
+    const response = await http.get(apiMenuReviews(menuId), {
+      params: { page: 1, limit: 20 },
+      notifyOnError: false,
+    });
+    if (!Array.isArray(response?.data?.items)) {
+      throw new Error("Không tải được lý do yêu cầu chỉnh sửa.");
+    }
+    return response.data.items.find((item) =>
+      item.decision === "REVISION_REQUESTED" && !item.menuDayId
+    ) || null;
+  },
 
   /**
    * Mọi thực đơn đã gửi của một tuần kèm chi tiết, trong một lần gọi.

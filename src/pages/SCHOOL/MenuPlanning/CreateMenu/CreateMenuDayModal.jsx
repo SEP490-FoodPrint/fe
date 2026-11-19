@@ -27,6 +27,7 @@ import {
 } from "src/services/DishService"
 import { inspectMenuMealSelection } from "src/services/MenuService"
 import MenuGradeRecipePreview from "../component/MenuGradeRecipePreview"
+import MenuRevisionNotice from "../component/MenuRevisionNotice"
 
 export const renderCategoryBadge = (dish) => {
   const cat = dishCategoryKey(dish)
@@ -54,6 +55,11 @@ export default function CreateMenuDayModal({
   initialMealType = "LUNCH",
   onSaveDay,
   submitText = "Cập nhật",
+  revisionRequested = false,
+  revisionReview = null,
+  revisionLoading = false,
+  revisionError = "",
+  onRetryRevision,
 }) {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
@@ -684,6 +690,10 @@ export default function CreateMenuDayModal({
             <X size={20} />
           </button>
         </div>
+
+        {revisionRequested && (
+          <MenuRevisionNotice review={revisionReview} loading={revisionLoading} error={revisionError} onRetry={onRetryRevision} compact />
+        )}
 
         {/* Modal Body: 50/50 Split View */}
         <div className={styles.modalBody}>

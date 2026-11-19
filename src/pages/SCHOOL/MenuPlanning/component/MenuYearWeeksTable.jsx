@@ -122,7 +122,14 @@ export default function MenuYearWeeksTable({
                           </td>
                         )}
                         <td>{group ? <span className={styles.scope}>{group.scope || "Chưa gán khối"}</span> : <span className={styles.muted}>—</span>}</td>
-                        <td><span className={`${styles.statusBadge} ${styles[statusTone(group?.status || "EMPTY")]}`}>{group?.label || "Chưa tạo"}</span></td>
+                        <td>
+                          <span className={`${styles.statusBadge} ${styles[statusTone(group?.status || "EMPTY")]}`}>{group?.label || "Chưa tạo"}</span>
+                          {group?.status === "REVISION_REQUESTED" && (
+                            <button type="button" className={styles.textButton} onClick={(event) => { event.stopPropagation(); onSelectWeek(week) }} aria-label={`Xem lý do yêu cầu chỉnh sửa ${label}, ${group.scope || "toàn trường"}`}>
+                              Xem lý do
+                            </button>
+                          )}
+                        </td>
                         <td className={styles.num}>{group ? `${group.plannedDays}/${group.schoolDays} ngày` : <span className={styles.muted}>—</span>}</td>
                         <td className={styles.num}>{group ? group.dishCount.toLocaleString("vi-VN") : <span className={styles.muted}>—</span>}</td>
                         {index === 0 && (

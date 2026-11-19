@@ -1,24 +1,13 @@
 import React from "react"
 import styles from "./MenuDetailBGHFeedback.module.scss"
+import MenuRevisionNotice from "../../component/MenuRevisionNotice"
 
-export default function MenuDetailBGHFeedback({ menu, feedback, status }) {
+export default function MenuDetailBGHFeedback({ menu, feedback, status, revisionRequested, review, loading, error, onRetry }) {
   const currentStatus = menu?.status || status
   const feedbackText = menu?.feedback || feedback
 
-  if (currentStatus === "REVISION_REQUESTED" || currentStatus === "REVISION_REQUIRED" || (feedbackText && currentStatus !== "APPROVED")) {
-    return (
-      <div className={styles.alertRevision} role="alert">
-        <div className={styles.alertHeader}>
-          <div className={styles.alertTitleGroup}>
-            <span className={`material-symbols-outlined ${styles.alertIconRevision}`}>report_problem</span>
-            <div className={styles.alertTextWrap}>
-              <h3 className={styles.alertTitle}>Ý kiến yêu cầu chỉnh sửa từ Ban Giám Hiệu</h3>
-              {feedbackText && <p className={styles.alertComment}>{feedbackText}</p>}
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+  if (revisionRequested || currentStatus === "REVISION_REQUESTED" || currentStatus === "REVISION_REQUIRED") {
+    return <MenuRevisionNotice review={review} loading={loading} error={error} onRetry={onRetry} />
   }
 
   if (currentStatus === "APPROVED" && feedbackText) {

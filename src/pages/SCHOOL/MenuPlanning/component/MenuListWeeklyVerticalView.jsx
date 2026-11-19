@@ -18,6 +18,8 @@ import {
   CalendarOff,
 } from "lucide-react"
 import styles from "./MenuListWeeklyVerticalView.module.scss"
+import useMenuRevisionReview from "src/services/MenuService/useMenuRevisionReview"
+import MenuRevisionNotice from "./MenuRevisionNotice"
 
 export default function MenuListWeeklyVerticalView({
   schoolDays = [],
@@ -32,7 +34,6 @@ export default function MenuListWeeklyVerticalView({
   targetScope = "",
   isCurrentWeek = false,
   weekStatus: propWeekStatus,
-  weekFeedback: propWeekFeedback,
   onSubmitWeeklyMenu,
   onResubmitWeeklyMenu,
 }) {
@@ -61,14 +62,9 @@ export default function MenuListWeeklyVerticalView({
     return "DRAFT"
   }, [propWeekStatus, allMenus])
 
-  // Phản hồi chỉnh sửa từ BGH nếu tuần có yêu cầu sửa
-  const weekFeedback = useMemo(() => {
-    if (propWeekFeedback) return propWeekFeedback
-    const revMenu = menus.find(
-      (m) => m.feedback && (m.status === "REVISION_REQUESTED" || m.status === "REVISION_REQUIRED")
-    )
-    return revMenu?.feedback || ""
-  }, [propWeekFeedback, menus])
+  const weeklyMenuId = allMenus[0]?.weeklyMenuId || allMenus[0]?.id
+  const { review, loading: reviewLoading, error: reviewError, retry: retryReview } =
+    useMenuRevisionReview(weeklyMenuId, weekStatus === "REVISION_REQUESTED")
 
   // Quyền chỉnh sửa: Chỉ tuần DRAFT hoặc REVISION_REQUESTED mới được sửa/thêm
   const canEditWeeklyMenu =
@@ -133,7 +129,7 @@ export default function MenuListWeeklyVerticalView({
       } else if (!hasLunch || !hasAfternoon) {
         progress = { type: hasLunch ? "PARTIAL_AFTERNOON" : "PARTIAL_LUNCH", label: hasLunch ? "Thiếu xế" : "Thiếu trưa", badgeClass: styles.badgePartial, IconComponent: AlertCircle }
       } else if (statuses.some(status => ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(status))) {
-        progress = { type: "REVISION_REQUIRED", label: "Cần sửa", badgeClass: styles.badgeRevision, IconComponent: AlertTriangle, note: savedDayMenus.find(menu => menu.feedback)?.feedback || weekFeedback }
+        progress = { type: "REVISION_REQUIRED", label: "Cần sửa", badgeClass: styles.badgeRevision, IconComponent: AlertTriangle, note: "Xem lý do của BGH ở đầu trang" }
       } else if (statuses.includes("PENDING_APPROVAL")) {
         progress = { type: "PENDING", label: "Chờ duyệt", badgeClass: styles.badgePending, IconComponent: Clock }
       } else if (statuses.length && statuses.every(status => status === "APPROVED")) {
@@ -161,7 +157,7 @@ export default function MenuListWeeklyVerticalView({
       }
     })
     return map
-  }, [schoolDays, menus, allMenus, weekFeedback])
+  }, [schoolDays, menus, allMenus])
 
   // Thống kê tiến độ nhập liệu của tuần (bỏ qua ngày nghỉ BGH)
   const weekProgressStats = useMemo(() => {
@@ -305,17 +301,8 @@ export default function MenuListWeeklyVerticalView({
       )}
 
       {/* Banner phản hồi BGH nếu tuần có yêu cầu chỉnh sửa */}
-      {weekStatus === "REVISION_REQUESTED" && weekFeedback && (
-        <div className={styles.weekFeedbackBanner}>
-          <AlertTriangle size={16} className={styles.feedbackIcon} />
-          <div className={styles.feedbackContent}>
-            <div className={styles.feedbackTitleRow}>
-              <span className={styles.feedbackTitle}>Yêu cầu chỉnh sửa từ Ban Giám Hiệu:</span>
-              <span className={styles.feedbackSub}>Vui lòng hoàn thiện các ngày đánh dấu đỏ rồi gửi lại</span>
-            </div>
-            <p className={styles.feedbackText}>{weekFeedback}</p>
-          </div>
-        </div>
+      {weekStatus === "REVISION_REQUESTED" && (
+        <MenuRevisionNotice review={review} loading={reviewLoading} error={reviewError} onRetry={retryReview} />
       )}
 
       {/* 2. Dải chọn ngày trên điện thoại */}

@@ -463,7 +463,6 @@ export default function MenuPlanning() {
           targetScope={group.targetScope}
           isCurrentWeek={isCurrentWeek}
           weekStatus={group.status}
-          weekFeedback={group.feedback}
           onSubmitWeeklyMenu={() => handleSubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
           onResubmitWeeklyMenu={() => handleResubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
         />)
