@@ -211,6 +211,7 @@ export default function DeliveryDetailView({
           supInfo.qrCode ||
           `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
         note: supInfo.note || "",
+        status: supInfo.status || delivery.status || "CREATED",
       };
     }
 
@@ -229,6 +230,7 @@ export default function DeliveryDetailView({
           ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
           : "Chờ NCC cập nhật",
         qrCode: `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+        status: delivery.status || "CREATED",
       };
     }
 
@@ -242,7 +244,179 @@ export default function DeliveryDetailView({
       qrCode:
         delivery.deliveryQr ||
         `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+      status: delivery.status || "IN_TRANSIT",
     };
+  };
+
+  // Render badge trạng thái riêng của từng Nhà cung cấp trong đợt giao đồ tươi
+  const renderSupplierStatusBadge = (status) => {
+    switch (status) {
+      case "CREATED":
+      case "PENDING":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Chờ NCC xác nhận"
+            size="small"
+            sx={{
+              bgcolor: "#f1f5f9",
+              color: "#475569",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #cbd5e1",
+            }}
+          />
+        );
+      case "CONFIRMED":
+      case "ACCEPTED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={13} />}
+            label="NCC đã xác nhận"
+            size="small"
+            sx={{
+              bgcolor: "#e0f2fe",
+              color: "#0369a1",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #bae6fd",
+            }}
+          />
+        );
+      case "IN_TRANSIT":
+        return (
+          <Chip
+            icon={<Truck size={13} />}
+            label="NCC đang vận chuyển"
+            size="small"
+            sx={{
+              bgcolor: "#e0f2fe",
+              color: "#0284c7",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #b9e6fe",
+            }}
+          />
+        );
+      case "ARRIVED":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Đã đến cổng - Chờ kiểm tra"
+            size="small"
+            sx={{
+              bgcolor: "#fef3c7",
+              color: "#b45309",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fde68a",
+            }}
+          />
+        );
+      case "PENDING_APPROVAL":
+      case "INSPECTING":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Đang kiểm tra 4 bên"
+            size="small"
+            sx={{
+              bgcolor: "#fef3c7",
+              color: "#b45309",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fde68a",
+            }}
+          />
+        );
+      case "APPROVED":
+      case "COMPLETED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={13} />}
+            label="4/4 Đã duyệt & Bàn giao bếp"
+            size="small"
+            sx={{
+              bgcolor: "#dcfce7",
+              color: "#15803d",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #bbf7d0",
+            }}
+          />
+        );
+      case "RECEIVED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={13} />}
+            label="Đã nhận hàng & Vào bếp"
+            size="small"
+            sx={{
+              bgcolor: "#dcfce7",
+              color: "#15803d",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #bbf7d0",
+            }}
+          />
+        );
+      case "RE_DELIVER":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Yêu cầu giao lại"
+            size="small"
+            sx={{
+              bgcolor: "#fff7ed",
+              color: "#c2410c",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fed7aa",
+            }}
+          />
+        );
+      case "REJECTED":
+        return (
+          <Chip
+            icon={<XCircle size={13} />}
+            label="Bị từ chối"
+            size="small"
+            sx={{
+              bgcolor: "#fee2e2",
+              color: "#b91c1c",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fca5a5",
+            }}
+          />
+        );
+      case "CANCELLED":
+        return (
+          <Chip
+            label="Đã hủy"
+            size="small"
+            sx={{
+              bgcolor: "#f1f5f9",
+              color: "#64748b",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+            }}
+          />
+        );
+      default:
+        return (
+          <Chip
+            label={status || "Chờ NCC xác nhận"}
+            size="small"
+            sx={{
+              bgcolor: "#f1f5f9",
+              color: "#475569",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+            }}
+          />
+        );
+    }
   };
 
   const displayNote = useMemo(() => {
@@ -567,6 +741,8 @@ export default function DeliveryDetailView({
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1.25,
                   }}
                 >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
@@ -582,13 +758,16 @@ export default function DeliveryDetailView({
                       {idx + 1}. {sName}
                     </Typography>
                   </Box>
-                  <Chip
-                    label={`${sItems.length} nguyên liệu`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ fontWeight: 600, fontSize: "0.75rem" }}
-                  />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {renderSupplierStatusBadge(transport.status)}
+                    <Chip
+                      label={`${sItems.length} mặt hàng`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ fontWeight: 600, fontSize: "0.75rem" }}
+                    />
+                  </Box>
                 </Box>
                 <Divider className={styles.cardDivider} />
 

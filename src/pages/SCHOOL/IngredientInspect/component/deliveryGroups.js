@@ -31,12 +31,33 @@ export function groupDeliveriesByRound(items = []) {
   const groups = new Map();
   for (const item of items) {
     const round = deliveryRound(item.requestNo);
-    const key = round ? `round-${round}` : item.requestNo ? "other" : "standalone";
+    const isDry =
+      item.isDryOnly ||
+      (Array.isArray(item.requiredRoles) &&
+        item.requiredRoles.length === 1 &&
+        item.requiredRoles[0]?.code === "INGREDIENT_MANAGEMENT_DEPARTMENT") ||
+      String(item.requestNo || "").toUpperCase().includes("DRY") ||
+      String(item.deliveryNo || "").toUpperCase().includes("DRY");
+
+    const key = round
+      ? `round-${round}`
+      : isDry
+        ? "dry-stock"
+        : item.requestNo
+          ? "other"
+          : "standalone";
+
     if (!groups.has(key)) {
       groups.set(key, {
         key,
-        order: round ?? (key === "other" ? 900 : 1000),
-        label: round ? `Đợt ${round}` : key === "other" ? "Đơn khác" : "Giao không theo đơn",
+        order: round ?? (key === "dry-stock" ? 800 : key === "other" ? 900 : 1000),
+        label: round
+          ? `Đợt ${round}`
+          : key === "dry-stock"
+            ? "Đồ khô (Kho & Lương thực)"
+            : key === "other"
+              ? "Đơn khác"
+              : "Giao không theo đơn",
         items: [],
       });
     }

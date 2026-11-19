@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react"
-import { Box } from "@mui/material"
+import { Box, Typography } from "@mui/material"
+import FoodPrintLoading from "src/components/FoodPrintLoading"
 import IngredientOrderService from "src/services/IngredientOrderService"
 
 import CatalogHeader from "./component/CatalogHeader"
@@ -15,7 +16,7 @@ const PAGE_SIZE = 10
 export default function IngredientCatalog() {
   const [catalog, setCatalog] = useState([])
   const [suppliers, setSuppliers] = useState([])
-  const [, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   // Filter state
   const [filters, setFilters] = useState({
@@ -113,17 +114,41 @@ export default function IngredientCatalog() {
         suppliers={suppliers}
       />
 
-      {/* 4. Bảng danh mục */}
-      <CatalogTable catalog={paginatedCatalog} />
+      {/* 4. Bảng danh mục hoặc Trạng thái tải dữ liệu */}
+      {loading ? (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            py: 10,
+            gap: 2,
+            bgcolor: "#ffffff",
+            borderRadius: 3,
+            border: "1px solid #e2e8f0",
+            my: 2,
+          }}
+        >
+          <FoodPrintLoading size="large" />
+          <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+            Đang tải danh mục nguyên liệu thực phẩm...
+          </Typography>
+        </Box>
+      ) : (
+        <>
+          <CatalogTable catalog={paginatedCatalog} />
 
-      {/* 5. Phân trang */}
-      <CatalogPagination
-        page={page}
-        count={totalPages}
-        totalItems={filteredCatalog.length}
-        pageSize={PAGE_SIZE}
-        onPageChange={setPage}
-      />
+          {/* 5. Phân trang */}
+          <CatalogPagination
+            page={page}
+            count={totalPages}
+            totalItems={filteredCatalog.length}
+            pageSize={PAGE_SIZE}
+            onPageChange={setPage}
+          />
+        </>
+      )}
     </Box>
   )
 }

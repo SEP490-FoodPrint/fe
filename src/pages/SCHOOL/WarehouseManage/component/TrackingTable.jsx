@@ -140,6 +140,11 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
                 <Typography className={styles.orderNo}>
                   {String(item.orderNo || item.deliveryNo || "PN-UNKNOWN").replace(/^PO-/, "PN-").replace(/-\d+$/, "")}
                 </Typography>
+                {Array.isArray(item.suppliers) && item.suppliers.length > 1 && (
+                  <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.725rem", mt: 0.25 }}>
+                    Gồm {item.suppliers.length} NCC
+                  </Typography>
+                )}
               </TableCell>
 
               {/* Cột 2: Lịch Hẹn Giao */}

@@ -133,6 +133,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
           supInfo.qrCode ||
           `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
         note: supInfo.note || "",
+        status: supInfo.status || item.status || "CREATED",
       }
     }
 
@@ -147,6 +148,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         vehicle: "Chưa phân công (Chờ NCC điều xe)",
         expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
         qrCode: `QR-PENDING-${item.deliveryNo || "DEL"}-0${idx + 1}`,
+        status: "CREATED",
       }
     }
 
@@ -161,6 +163,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         vehicle: "Đang phân công (Chờ điều xe)",
         expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
         qrCode: `QR-CONFIRMED-${item.deliveryNo || "DEL"}-0${idx + 1}`,
+        status: "CONFIRMED",
       }
     }
 
@@ -168,6 +171,79 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
       vehicle: item.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
       expectedTime: item.deliverySchedule || "Chờ NCC cập nhật",
       qrCode: `QR-LOT-${item.deliveryNo || "DEL"}-0${idx + 1}`,
+      status: item.status || "CREATED",
+    }
+  }
+
+  // Render badge trạng thái riêng của từng Nhà cung cấp
+  const renderSupplierStatusBadge = (status) => {
+    switch (status) {
+      case "CREATED":
+      case "PENDING":
+        return (
+          <Chip
+            label="Chờ NCC xác nhận"
+            size="small"
+            className={styles.statusPending}
+          />
+        )
+      case "ACCEPTED":
+      case "CONFIRMED":
+        return (
+          <Chip
+            label="NCC đã xác nhận"
+            size="small"
+            className={styles.statusAccepted}
+          />
+        )
+      case "IN_TRANSIT":
+        return (
+          <Chip
+            label="Đang giao"
+            size="small"
+            className={styles.statusInTransit}
+          />
+        )
+      case "ARRIVED":
+        return (
+          <Chip
+            label="Đã tới trường (Chờ kiểm duyệt)"
+            size="small"
+            className={styles.statusArrived}
+          />
+        )
+      case "COMPLETED":
+      case "RECEIVED":
+        return (
+          <Chip
+            label="Đã hoàn tất"
+            size="small"
+            className={styles.statusCompleted}
+          />
+        )
+      case "REJECTED":
+        return (
+          <Chip
+            label="Bị từ chối"
+            size="small"
+            color="error"
+          />
+        )
+      case "CANCELLED":
+        return (
+          <Chip
+            label="Đã hủy"
+            size="small"
+          />
+        )
+      default:
+        return (
+          <Chip
+            label={status || "Chờ NCC xác nhận"}
+            size="small"
+            className={styles.statusPending}
+          />
+        )
     }
   }
 
@@ -197,29 +273,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
             <Typography variant="h5" className={styles.title}>
               Mã nhập hàng: {item.deliveryNo || item.orderNo}
             </Typography>
-            <Chip
-              label={item.statusLabel}
-              size="small"
-              className={
-                item.status === "CREATED" || item.status === "PENDING"
-                  ? styles.statusPending
-                  : item.status === "IN_TRANSIT"
-                    ? styles.statusInTransit
-                    : item.status === "ARRIVED"
-                      ? styles.statusArrived
-                      : item.status === "COMPLETED" || item.status === "RECEIVED"
-                        ? styles.statusCompleted
-                        : styles.statusAccepted
-              }
-            />
           </Box>
-          <Typography variant="body2" className={styles.subtitle}>
-            {supplierCount > 1 ? (
-              <strong>Bao gồm {supplierCount} Nhà cung cấp</strong>
-            ) : (
-              <>NCC: <strong>{supplierEntries[0]?.[0] || item.supplierName}</strong></>
-            )}
-          </Typography>
         </Box>
       </Box>
 
@@ -289,13 +343,21 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                 }}
               >
                 {/* Header NCC & Badge Xe */}
-                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1.25,
+                  }}
+                >
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
                     <Truck size={20} color="var(--color-primary, #0a8066)" />
                     <Typography
                       variant="subtitle1"
                       sx={{
-                        fontWeight: 700,
+                        fontWeight: 750,
                         color: "var(--text-primary, #1d2b26)",
                         fontSize: "1rem",
                       }}
@@ -303,13 +365,16 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                       {supplierCount > 1 ? `${idx + 1}. ${sName}` : sName}
                     </Typography>
                   </Box>
-                  <Chip
-                    label={`${sItems.length} nguyên liệu`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ fontWeight: 600, fontSize: "0.75rem" }}
-                  />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {renderSupplierStatusBadge(transport.status)}
+                    <Chip
+                      label={`${sItems.length} mặt hàng`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ fontWeight: 600, fontSize: "0.75rem" }}
+                    />
+                  </Box>
                 </Box>
                 <Divider className={styles.cardDivider} />
 

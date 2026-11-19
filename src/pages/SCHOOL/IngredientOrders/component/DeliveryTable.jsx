@@ -223,6 +223,11 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                     <Typography variant="subtitle2" className={styles.deliveryNo}>
                       {item.deliveryNo}
                     </Typography>
+                    {Array.isArray(item.suppliers) && item.suppliers.length > 1 && (
+                      <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.725rem", mt: 0.25 }}>
+                        Gồm {item.suppliers.length} NCC
+                      </Typography>
+                    )}
                   </TableCell>
 
                   {/* Đợt giao & Thời gian */}
@@ -240,7 +245,9 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                   </TableCell>
 
                   {/* Trạng thái */}
-                  <TableCell>{getStatusBadge(item)}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(item)}
+                  </TableCell>
 
                   {/* Thao tác */}
                   <TableCell align="center" onClick={e => e.stopPropagation()}>
