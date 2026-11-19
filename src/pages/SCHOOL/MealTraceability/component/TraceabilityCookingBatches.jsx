@@ -1,6 +1,13 @@
 import React from "react";
 import { ShieldAlert } from "lucide-react";
 import styles from "./TraceabilityCookingBatches.module.scss";
+import { formatStepTime } from "./traceabilityBlockchainAdapter";
+
+const BATCH_STATUS = {
+  UNCONFIRMED: "Chưa xác nhận",
+  CONFIRMED: "Đã xác nhận kế hoạch",
+  COMPLETED: "Đã hoàn tất",
+};
 
 export default function TraceabilityCookingBatches({
   dish,
@@ -28,8 +35,7 @@ export default function TraceabilityCookingBatches({
         </div>
 
         <div className={styles.tagRight}>
-          Lớp nhận từ <strong>{batches.length} lô nấu riêng biệt</strong> để đảm
-          bảo tươi ngon nóng sốt
+          Lớp nhận từ <strong>{batches.length} lô nấu</strong>
         </div>
       </div>
 
@@ -53,7 +59,7 @@ export default function TraceabilityCookingBatches({
             const percentage =
               totalAllocationPortions > 0
                 ? Math.round((portions / totalAllocationPortions) * 100)
-                : 100;
+                : 0;
 
             const sample = batch?.retainedSample;
 
@@ -70,15 +76,27 @@ export default function TraceabilityCookingBatches({
                         {index + 1 < 10 ? `0${index + 1}` : index + 1}
                       </span>
                       <span className={styles.batchCodePill}>
-                        {batch?.batchCode || `BATCH-${index + 1}`}
+                        {batch?.batchCode || "—"}
                       </span>
                     </div>
                     <p className={styles.batchMeta}>
-                      Hoàn tất nấu lúc: <strong>11:{15 + index * 10}</strong> ·
-                      Trạng thái: {batch?.status || "COMPLETED"}
+                      Hoàn tất nấu lúc:{" "}
+                      <strong>
+                        {batch?.completedAt
+                          ? formatStepTime(batch.completedAt)
+                          : "Chưa hoàn tất"}
+                      </strong>
+                      {batch?.completedByName
+                        ? ` · Người xác nhận: ${batch.completedByName}`
+                        : ""}
+                      {batch?.plannedPortions != null
+                        ? ` · Mẻ món này: ${batch.plannedPortions} suất`
+                        : ""}
                     </p>
                   </div>
-                  <span className={styles.statusPill}>COMPLETED</span>
+                  <span className={styles.statusPill}>
+                    {BATCH_STATUS[batch?.status] || batch?.status || "—"}
+                  </span>
                 </div>
 
                 {/* Portions Contribution */}
@@ -101,12 +119,20 @@ export default function TraceabilityCookingBatches({
                   </div>
 
                   <div className={styles.sampleSubRow}>
-                    <span>Nhân viên bếp đã ký hoàn tất</span>
+                    <span>
+                      {batch?.status === "COMPLETED"
+                        ? "Bếp đã xác nhận hoàn tất"
+                        : "Bếp chưa xác nhận hoàn tất"}
+                    </span>
                     {sample ? (
                       <span className={styles.sampleLocation}>
-                        Lưu mẫu: {sample.quantity || 200}
-                        {sample.unit || "g"} ·{" "}
-                        {sample.storageLocation || "Tủ lưu mẫu"}
+                        Lưu mẫu:{" "}
+                        {sample.quantity != null
+                          ? `${sample.quantity} ${sample.unit || ""}`
+                          : "—"}
+                        {sample.storageUnit?.name || sample.storageLocation
+                          ? ` · ${sample.storageUnit?.name || sample.storageLocation}`
+                          : ""}
                       </span>
                     ) : (
                       <span>Chưa có mẫu lưu</span>
@@ -120,15 +146,6 @@ export default function TraceabilityCookingBatches({
                     <div className={styles.ingredientsBox}>
                       <div className={styles.ingHeader}>
                         <span>Định lượng nguyên liệu dùng cho mẻ:</span>
-                        <span
-                          style={{
-                            fontSize: "10px",
-                            color: "var(--text-muted)",
-                            fontWeight: "normal",
-                          }}
-                        >
-                          (lấy từ CookingBatchLot)
-                        </span>
                       </div>
 
                       {batch.ingredients.map((ing, ingIdx) => (
@@ -142,14 +159,14 @@ export default function TraceabilityCookingBatches({
                               color: "var(--text-primary)",
                             }}
                           >
-                            {ing?.ingredientName || "Nguyên liệu"}{" "}
+                            {ing?.ingredientName || "—"}{" "}
                             <code
                               style={{
                                 fontSize: "11px",
                                 color: "var(--color-primary)",
                               }}
                             >
-                              ({ing?.lotCode || "N/A"})
+                              ({ing?.lotCode || "—"})
                             </code>
                           </span>
                           <span

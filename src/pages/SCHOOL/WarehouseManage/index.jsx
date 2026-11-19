@@ -10,13 +10,12 @@ import {
   Chip,
   TextField,
   MenuItem,
-  InputAdornment,
   Button,
+  Typography,
 } from "@mui/material"
 import {
   Package,
   ClipboardList,
-  Search,
   RotateCcw,
   Plus,
 } from "lucide-react"
@@ -41,7 +40,17 @@ import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
 
+const getTodayStr = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date())
+
 export default function WarehouseManage() {
+  const todayStr = useMemo(() => getTodayStr(), [])
+
   const { userStore } = useContext(StoreContext)
   const currentUser = userStore?.user || getStorage(STORAGE.USER_INFO)
   const currentSchoolId = currentUser?.schoolId || currentUser?.school_id || currentUser?.orgId || ""
@@ -75,9 +84,9 @@ export default function WarehouseManage() {
     category: "all",
   })
 
-  // Filter state cho Tab 2 (Đơn hàng đồ khô)
+  // Filter state cho Tab 2 (Đơn hàng đồ khô) - Mặc định lọc từ hôm nay trở đi
   const [orderFilters, setOrderFilters] = useState({
-    search: "",
+    timeScope: "today_forward",
     status: "all",
   })
 
@@ -199,21 +208,30 @@ export default function WarehouseManage() {
 
   // Lọc dữ liệu đơn hàng đồ khô (Tab 2)
   const filteredDryOrders = useMemo(() => {
-    return orders.filter(item => {
-      const kw = orderFilters.search.trim().toLowerCase()
-      const matchSearch =
-        !kw ||
-        item.orderNo?.toLowerCase().includes(kw) ||
-        item.deliveryNo?.toLowerCase().includes(kw) ||
-        item.supplierName?.toLowerCase().includes(kw) ||
-        (Array.isArray(item.suppliers) &&
-          item.suppliers.some(s => s?.toLowerCase().includes(kw))) ||
-        (Array.isArray(item.items) &&
-          item.items.some(
-            it =>
-              it.name?.toLowerCase().includes(kw) ||
-              it.supplierName?.toLowerCase().includes(kw)
-          ))
+    const list = orders.filter(item => {
+      // Lọc theo mốc thời gian: Mặc định là từ hôm nay đi tiếp đến tương lai
+      const rawDate =
+        item.deliveryDate ||
+        item.requestedDeliveryDate ||
+        item.expectedArrivalAt ||
+        item.deliverySchedule ||
+        ""
+      const isoMatch = String(rawDate).match(/\b(\d{4})-(\d{2})-(\d{2})\b/)
+      let delivDate = ""
+      if (isoMatch) {
+        delivDate = isoMatch[0]
+      } else {
+        const dmyMatch = String(rawDate).match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/)
+        if (dmyMatch) {
+          delivDate = `${dmyMatch[3]}-${dmyMatch[2]}-${dmyMatch[1]}`
+        }
+      }
+
+      if (orderFilters.timeScope === "today_forward") {
+        if (delivDate && delivDate < todayStr) return false
+      } else if (orderFilters.timeScope === "past") {
+        if (delivDate && delivDate >= todayStr) return false
+      }
 
       const matchStatus =
         orderFilters.status === "all" ||
@@ -238,9 +256,39 @@ export default function WarehouseManage() {
             item.status === "RECEIVED" ||
             item.rawStatus === "RECEIVED"))
 
-      return matchSearch && matchStatus
+      return matchStatus
     })
-  }, [orders, orderFilters])
+
+    // Sắp xếp:
+    // Nếu là từ hôm nay trở đi: Sắp xếp tăng dần theo ngày (từ hôm nay -> tương lai)
+    return list.sort((a, b) => {
+      const getIso = item => {
+        const raw =
+          item.deliveryDate ||
+          item.requestedDeliveryDate ||
+          item.expectedArrivalAt ||
+          item.deliverySchedule ||
+          ""
+        const m = String(raw).match(/\b(\d{4})-(\d{2})-(\d{2})\b/)
+        if (m) return m[0]
+        const dmy = String(raw).match(/\b(\d{2})\/(\d{2})\/(\d{4})\b/)
+        if (dmy) return `${dmy[3]}-${dmy[2]}-${dmy[1]}`
+        return ""
+      }
+      const dateA = getIso(a)
+      const dateB = getIso(b)
+
+      if (orderFilters.timeScope === "today_forward") {
+        if (!dateA && dateB) return 1
+        if (dateA && !dateB) return -1
+        return dateA.localeCompare(dateB)
+      }
+      // Ngược lại (tất cả hoặc quá khứ): ngày mới nhất lên đầu (desc)
+      if (!dateA && dateB) return 1
+      if (dateA && !dateB) return -1
+      return dateB.localeCompare(dateA)
+    })
+  }, [orders, orderFilters, todayStr])
 
   // Phân trang Tab 1
   const currentTotal = filteredInventory.length
@@ -447,7 +495,25 @@ export default function WarehouseManage() {
 
               {/* Bảng Dữ liệu Tồn kho hoặc Loading */}
               {loading ? (
-                <FoodPrintLoading />
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    py: 10,
+                    gap: 2,
+                    bgcolor: "#ffffff",
+                    borderRadius: 3,
+                    border: "1px solid #e2e8f0",
+                    my: 2,
+                  }}
+                >
+                  <FoodPrintLoading size="large" />
+                  <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+                    Đang tải danh sách tồn kho nguyên liệu đồ khô...
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   <WarehouseTable
@@ -475,23 +541,19 @@ export default function WarehouseManage() {
               <Box className={styles.orderFilterBar}>
                 <Box className={styles.orderFilterInputs}>
                   <TextField
+                    select
                     size="small"
-                    placeholder="Tìm theo mã đơn, mã phiếu, nhà cung cấp..."
-                    value={orderFilters.search}
+                    label="Thời gian giao"
+                    value={orderFilters.timeScope || "today_forward"}
                     onChange={e =>
-                      setOrderFilters(prev => ({ ...prev, search: e.target.value }))
+                      setOrderFilters(prev => ({ ...prev, timeScope: e.target.value }))
                     }
-                    className={styles.orderSearchInput}
-                    slotProps={{
-                      input: {
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Search size={18} className={styles.searchIcon} />
-                          </InputAdornment>
-                        ),
-                      },
-                    }}
-                  />
+                    className={styles.orderSelectInput}
+                  >
+                    <MenuItem value="today_forward">Sắp tới</MenuItem>
+                    <MenuItem value="all">Tất cả các ngày</MenuItem>
+                    <MenuItem value="past">Đã qua</MenuItem>
+                  </TextField>
 
                   <TextField
                     select
@@ -512,12 +574,12 @@ export default function WarehouseManage() {
                     <MenuItem value="REJECTED">Bị từ chối tiếp nhận</MenuItem>
                   </TextField>
 
-                  {(orderFilters.search || orderFilters.status !== "all") && (
+                  {(orderFilters.timeScope !== "today_forward" || orderFilters.status !== "all") && (
                     <Button
                       variant="outlined"
                       size="small"
                       startIcon={<RotateCcw size={16} />}
-                      onClick={() => setOrderFilters({ search: "", status: "all" })}
+                      onClick={() => setOrderFilters({ timeScope: "today_forward", status: "all" })}
                       className={styles.resetBtn}
                     >
                       Đặt lại

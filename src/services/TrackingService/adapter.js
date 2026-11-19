@@ -582,10 +582,42 @@ export function adaptTrackingOrder(delivery) {
 
   const deliverySchedule = formatDeliverySchedule(delivery, orderType)
 
+  // Chuẩn hóa mã phiếu: Ưu tiên tuyệt đối mã chuẩn PN-... của trường học, không để mã FP- của NCC đè lên
+  const findPnCode = (...codes) => {
+    for (const c of codes) {
+      if (!c) continue
+      const s = String(c).trim()
+      if (/^PN-/i.test(s) || /^PNK-/i.test(s)) return s
+      if (/^PO-/i.test(s)) return s.replace(/^PO-/i, "PN-")
+    }
+    for (const c of codes) {
+      if (!c) continue
+      const s = String(c).trim()
+      if (!/^FP-/i.test(s)) return s.replace(/^PO-|^DEL-/, "PN-")
+    }
+    return ""
+  }
+
+  const rawPn = findPnCode(
+    delivery.orderNo,
+    delivery.requestNo,
+    delivery.SupplyRequest?.requestNo,
+    delivery.deliveryNo
+  )
+
+  const cleanDeliveryNo =
+    rawPn ||
+    (delivery.deliveryNo
+      ? `PN-${String(delivery.deliveryNo).replace(/^FP-DE-|^FP-|^DEL-/, "")}`
+      : "PN-UNKNOWN")
+  const baseOrderNo = cleanDeliveryNo.replace(/-\d+$/, "")
+
   return {
     id: delivery.id,
-    orderNo: delivery.orderNo || delivery.requestNo || "—",
-    deliveryNo: delivery.deliveryNo || "Chưa có chuyến giao",
+    orderNo: baseOrderNo,
+    deliveryNo: cleanDeliveryNo,
+    supplierDeliveryNo: delivery.deliveryNo,
+    deliveryQr: delivery.deliveryQr || delivery.deliveryNo || `QR-${cleanDeliveryNo}`,
     orderType: orderType.type,
     batchType: orderType.type,
     orderTypeLabel: orderType.label,

@@ -383,3 +383,44 @@
     text-decoration: underline;
   }
 }
+
+/* Trạng thái đối soát thật: không khớp / chưa đủ bằng chứng */
+.verifyBanner.mismatch {
+  background: var(--color-error-bg);
+  border-color: var(--color-error-border);
+}
+
+.verifyBanner.incomplete {
+  background: var(--color-warning-bg);
+  border-color: var(--color-warning-border);
+}
+
+.badgeSealed.pending {
+  color: var(--neutral-700, #52635c);
+  background: var(--neutral-200, #e8eeeb);
+  border-color: var(--neutral-300, #dce5e0);
+}
+
+.badgeCheckStatus.mismatch {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+  border: 1px solid var(--color-error-border);
+}
+
+.recordBlock + .recordBlock {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--neutral-300, #dce5e0);
+}
+
+.emptyRecord {
+  font-size: 13px;
+  color: var(--neutral-600, #6b7c74);
+  margin: 0;
+}
+
+.errorNote {
+  font-size: 13px;
+  color: var(--color-error);
+  margin: 4px 0 0;
+}

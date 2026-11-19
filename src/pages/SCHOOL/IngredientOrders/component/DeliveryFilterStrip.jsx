@@ -13,22 +13,19 @@ export default function DeliveryFilterStrip({
   return (
     <Box className={styles.filterBar}>
       <Box className={styles.filterInputs}>
+
         <TextField
+          select
           size="small"
-          placeholder="Tìm theo mã phiếu, mã đơn, NCC hoặc thực đơn..."
-          value={filters.search}
-          onChange={e => onFilterChange("search", e.target.value)}
-          className={styles.searchInput}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search size={18} className={styles.searchIcon} />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
+          label="Thời gian giao"
+          value={filters.timeScope || "today_forward"}
+          onChange={e => onFilterChange("timeScope", e.target.value)}
+          className={styles.selectInput}
+        >
+          <MenuItem value="today_forward">Sắp tới</MenuItem>
+          <MenuItem value="all">Tất cả các ngày</MenuItem>
+          <MenuItem value="past">Đã qua</MenuItem>
+        </TextField>
 
         <TextField
           select
@@ -81,6 +78,7 @@ DeliveryFilterStrip.propTypes = {
     search: PropTypes.string,
     batchType: PropTypes.string,
     status: PropTypes.string,
+    timeScope: PropTypes.string,
   }).isRequired,
   onFilterChange: PropTypes.func.isRequired,
   onResetFilters: PropTypes.func.isRequired,

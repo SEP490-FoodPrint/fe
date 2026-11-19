@@ -14,17 +14,14 @@ export default function TraceabilityMenuDishes({
       <div className={styles.menuHeader}>
         <div className={styles.titleBox}>
           <Utensils size={18} className={styles.titleIcon} />
-          <h2 className={styles.menuTitle}>Thực đơn phục vụ chính thức</h2>
+          <h2 className={styles.menuTitle}>Món ăn trong bữa</h2>
         </div>
-        <span className={styles.statusPill}>
-          Thực đơn đã phê duyệt bởi Ban Giám Hiệu
-        </span>
       </div>
 
       <div className={styles.dishesGrid}>
         {dishes.map((dish) => {
           const isActive = dish.dishId === activeDishId;
-          const totalBatches = dish.batches?.length || 1;
+          const totalBatches = dish.batches?.length ?? 0;
           const totalPortions = dish.batches?.reduce(
             (acc, b) => acc + (b.allocatedPortions || 0),
             0,

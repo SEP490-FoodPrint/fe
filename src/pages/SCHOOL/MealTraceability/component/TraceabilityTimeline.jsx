@@ -1,16 +1,70 @@
 import React from "react";
 import {
   GitCommit,
-  ClipboardCheck,
+  Truck,
   Flame,
+  FlaskConical,
   Layers,
   CheckCheck,
 } from "lucide-react";
 import styles from "./TraceabilityTimeline.module.scss";
+import { formatStepTime } from "./traceabilityBlockchainAdapter";
 
-export default function TraceabilityTimeline({ allocation, classInfo }) {
-  const className = classInfo?.name || "Lớp 2A";
-  const mealDate = allocation?.mealDate || "16/11/2026";
+const earliest = (values) =>
+  values.filter(Boolean).sort((a, b) => new Date(a) - new Date(b))[0] || null;
+const latest = (values) =>
+  values.filter(Boolean).sort((a, b) => new Date(b) - new Date(a))[0] || null;
+
+/** Các mốc thật của món đang chọn, lấy từ 5 module quy trình. */
+export default function TraceabilityTimeline({ allocation, classInfo, dish }) {
+  const batches = Array.isArray(dish?.batches) ? dish.batches : [];
+  const deliveries = batches.flatMap((b) =>
+    (b?.ingredients || []).map((i) => i?.delivery).filter(Boolean),
+  );
+  const samples = batches.map((b) => b?.retainedSample).filter(Boolean);
+  const className = classInfo?.name || "lớp";
+
+  const steps = [
+    {
+      key: "receive",
+      icon: Truck,
+      title: "Tiếp nhận nguyên liệu",
+      desc: `${new Set(deliveries.map((d) => d.id)).size} đơn giao hàng đã kiểm nhận`,
+      time: latest(deliveries.map((d) => d.receivedAt)),
+    },
+    {
+      key: "cook",
+      icon: Flame,
+      title: "Hoàn tất chế biến",
+      desc: `${batches.length} mẻ nấu ${dish?.dishName || ""}`,
+      time: latest(batches.map((b) => b?.completedAt)),
+    },
+    {
+      key: "sample",
+      icon: FlaskConical,
+      title: "Lưu mẫu thức ăn",
+      desc: `${samples.length}/${batches.length} mẻ đã lưu mẫu`,
+      time: earliest(samples.map((s) => s.sampledAt)),
+    },
+    {
+      key: "allocate",
+      icon: Layers,
+      title: "Phân bổ suất ăn",
+      desc: `Chia ${allocation?.totalPortions ?? 0} suất cho ${className}`,
+      time: allocation?.allocatedAt,
+    },
+    {
+      key: "distribute",
+      icon: CheckCheck,
+      title: "Phát suất đến lớp",
+      desc:
+        allocation?.status === "DISTRIBUTED"
+          ? "Bếp đã xác nhận giao suất ăn"
+          : "Chưa xác nhận giao suất ăn",
+      time: allocation?.distributedAt,
+      success: true,
+    },
+  ];
 
   return (
     <section className={styles.timelineSection}>
@@ -23,75 +77,34 @@ export default function TraceabilityTimeline({ allocation, classInfo }) {
             <h2 className={styles.sectionTitle}>Tiến trình phục vụ bữa ăn</h2>
             <p className={styles.sectionSubtitle}>
               Các mốc xác nhận trên hệ thống FoodPrint cho bữa ăn ngày{" "}
-              {mealDate}
+              {allocation?.mealDate || "—"}
             </p>
           </div>
         </div>
       </div>
 
       <div className={styles.timelineGrid}>
-        {/* Step 1 */}
-        <div className={styles.stepCard}>
-          <div className={styles.stepIconWrap}>
-            <ClipboardCheck size={20} />
-          </div>
-          <div className={styles.stepContent}>
-            <span className={styles.stepTime}>09:00 · 16/11</span>
-            <h3 className={styles.stepTitle}>Thực đơn phê duyệt</h3>
-            <p className={styles.stepDesc}>
-              BGH & Y tế kiểm duyệt đạt chuẩn dinh dưỡng
-            </p>
-            <span className={styles.stepBadge}>status: APPROVED</span>
-          </div>
-        </div>
-
-        {/* Step 2 */}
-        <div className={styles.stepCard}>
-          <div className={styles.stepIconWrap}>
-            <Flame size={20} />
-          </div>
-          <div className={styles.stepContent}>
-            <span className={styles.stepTime}>10:30 - 11:25</span>
-            <h3 className={styles.stepTitle}>Hoàn tất chế biến</h3>
-            <p className={styles.stepDesc}>
-              Bếp nấu chín và kiểm tra nhiệt độ đạt chuẩn
-            </p>
-            <span className={styles.stepBadge}>status: COMPLETED</span>
-          </div>
-        </div>
-
-        {/* Step 3 */}
-        <div className={styles.stepCard}>
-          <div className={styles.stepIconWrap}>
-            <Layers size={20} />
-          </div>
-          <div className={styles.stepContent}>
-            <span className={styles.stepTime}>11:30 · 16/11</span>
-            <h3 className={styles.stepTitle}>Phân bổ suất ăn</h3>
-            <p className={styles.stepDesc}>
-              Chia {allocation?.totalPortions || 30} suất cho {className} từ các
-              lô nấu
-            </p>
-            <span className={styles.stepBadge}>status: CONFIRMED</span>
-          </div>
-        </div>
-
-        {/* Step 4 */}
-        <div className={styles.stepCard}>
-          <div
-            className={`${styles.stepIconWrap} ${styles.stepIconWrapSuccess}`}
-          >
-            <CheckCheck size={20} />
-          </div>
-          <div className={styles.stepContent}>
-            <span className={styles.stepTime}>13:15 · 16/11</span>
-            <h3 className={styles.stepTitle}>Phân phối đến lớp</h3>
-            <p className={styles.stepDesc}>
-              GVCN nhận suất ăn tại lớp và hoàn tất hồ sơ
-            </p>
-            <span className={styles.stepBadge}>status: DISTRIBUTED</span>
-          </div>
-        </div>
+        {steps.map((step) => {
+          const Icon = step.icon;
+          return (
+            <div key={step.key} className={styles.stepCard}>
+              <div
+                className={`${styles.stepIconWrap} ${
+                  step.success && step.time ? styles.stepIconWrapSuccess : ""
+                }`}
+              >
+                <Icon size={20} />
+              </div>
+              <div className={styles.stepContent}>
+                <span className={styles.stepTime}>
+                  {step.time ? formatStepTime(step.time) : "Chưa ghi nhận"}
+                </span>
+                <h3 className={styles.stepTitle}>{step.title}</h3>
+                <p className={styles.stepDesc}>{step.desc}</p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
