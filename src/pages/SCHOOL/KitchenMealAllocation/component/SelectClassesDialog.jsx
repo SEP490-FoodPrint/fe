@@ -1,4 +1,5 @@
 import React, { useState } from "react"
+import { formatAllocationDecimal as fmt, sumAllocationPortions } from "src/utils/allocationDecimal"
 import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, LinearProgress } from "@mui/material"
 import { ArrowDown, ArrowUp, Check, LockKeyhole, X } from "lucide-react"
 import { formatRemainingPortions, previewBatchAllocation } from "src/utils/mealAllocation"
@@ -7,7 +8,7 @@ import styles from "./SelectClassesDialog.module.scss"
 export default function SelectClassesDialog({ batch, classes, dishName, onClose, onApply }) {
   const [orderedIds, setOrderedIds] = useState(() => batch.entries.map(entry => entry.id))
   const preview = previewBatchAllocation(batch.total, classes, orderedIds)
-  const used = batch.total - preview.remaining
+  const used = sumAllocationPortions(preview.entries.map(entry => entry.portions))
   const full = preview.remaining === 0
 
   const toggleClass = id => {
@@ -100,8 +101,8 @@ export default function SelectClassesDialog({ batch, classes, dishName, onClose,
                   <span className={styles.position}>{index + 1}</span>
                   <strong>{entry.name}</strong>
                   <span className={styles.quantity} data-partial={entry.remaining > 0}>
-                    <b>{entry.portions}</b> suất
-                    {entry.remaining > 0 && <small>Còn thiếu {entry.remaining}</small>}
+                    <b>{fmt(entry.portions)}</b> suất
+                    {entry.remaining > 0 && <small>Còn thiếu {fmt(entry.remaining)}</small>}
                   </span>
                   <div className={styles.orderActions}>
                     <IconButton className={styles.action} aria-label={`Đưa lớp ${entry.name} lên`} disabled={index === 0} onClick={() => moveClass(index, -1)}>
@@ -125,11 +126,11 @@ export default function SelectClassesDialog({ batch, classes, dishName, onClose,
         <div className={styles.capacity}>
           <div>
             <span><strong>Tổng dung lượng lô:</strong> {batch.total} suất</span>
-            <strong aria-live="polite">Đã phân: {used} / {batch.total} (Còn lại {preview.remaining} suất)</strong>
+            <strong aria-live="polite">Đã phân: {fmt(used)} / {fmt(batch.total)} (Còn lại {fmt(preview.remaining)} suất)</strong>
           </div>
           <LinearProgress variant="determinate" value={batch.total ? used / batch.total * 100 : 0} aria-label="Dung lượng phân bổ" />
           <div>
-            <span>{full ? "Đã sử dụng hết số suất khả dụng của lô này" : `Còn ${preview.remaining} suất có thể phân bổ`}</span>
+            <span>{full ? "Đã sử dụng hết số suất khả dụng cho khối này" : `Còn ${fmt(preview.remaining)} suất có thể phân bổ cho khối`}</span>
             <span>Khẩu phần chuẩn: 01 suất / học sinh</span>
           </div>
         </div>

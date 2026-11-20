@@ -1,4 +1,5 @@
 import React from "react";
+import { formatAllocationDecimal as fmt } from "src/utils/allocationDecimal";
 import { ShieldAlert } from "lucide-react";
 import styles from "./TraceabilityCookingBatches.module.scss";
 import { formatStepTime } from "./traceabilityBlockchainAdapter";
@@ -106,10 +107,13 @@ export default function TraceabilityCookingBatches({
                       Số suất đóng góp cho lớp:
                     </span>
                     <span className={styles.portionCount}>
-                      {portions} / {totalAllocationPortions} suất ({percentage}
+                      {fmt(portions)} / {fmt(totalAllocationPortions)} suất ({percentage}
                       %)
                     </span>
                   </div>
+                  {(batch.materials || []).map(material=><p key={material.ingredientLotId}>
+                    {batch.ingredients?.find(ingredient=>ingredient.ingredientLotId===material.ingredientLotId)?.ingredientName || "Nguyên liệu"} cấp cho lớp · {fmt(material.quantity,3)} {material.unit}
+                  </p>)}
 
                   <div className={styles.progressBarBg}>
                     <div
