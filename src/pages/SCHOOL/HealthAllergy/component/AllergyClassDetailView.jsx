@@ -1,4 +1,5 @@
 import React from "react"
+import { classAffectedStudents } from "src/services/AllergyService"
 import PropTypes from "prop-types"
 import {
   ArrowLeft,
@@ -86,6 +87,18 @@ export default function AllergyClassDetailView({ classData, onBack }) {
             </span>
           </div>
         </div>
+
+        <div className={styles.summaryDivider}></div>
+
+        <div className={styles.summaryCol}>
+          <span className={styles.summaryLabel}>Học sinh dị ứng</span>
+          <div className={styles.summaryValueRow}>
+            <Users size={16} className={styles.iconWarning} />
+            <span className={`${styles.summaryValue} ${styles.warningValue}`}>
+              {classAffectedStudents(allergies)} học sinh
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* 3. Bảng Danh sách nguyên liệu dị ứng (Thuần chữ, Học sinh ảnh hưởng căn giữa) */}
@@ -110,17 +123,11 @@ export default function AllergyClassDetailView({ classData, onBack }) {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th style={{ width: "45%" }}>
+                    <th style={{ width: "55%" }}>
                       <span>Tên nguyên liệu</span>
                     </th>
-                    <th style={{ width: "35%" }}>
-                      <span>Nhóm nguyên liệu</span>
-                    </th>
-                    <th className={styles.thCount} style={{ width: "20%" }}>
-                      <span className={styles.thContentCenter}>
-                        <Users size={13} />
-                        <span>Học sinh ảnh hưởng</span>
-                      </span>
+                    <th style={{ width: "45%" }}>
+                      <span>Nhà cung cấp</span>
                     </th>
                   </tr>
                 </thead>
@@ -132,15 +139,11 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                         <span className={styles.ingredientName}>{alg.ingredientName}</span>
                       </td>
 
-                      {/* Nhóm nguyên liệu */}
+                      {/* Nhà cung cấp */}
                       <td>
-                        <span className={styles.categoryText}>{alg.category}</span>
+                        <span className={styles.categoryText}>{alg.supplierName || "—"}</span>
                       </td>
 
-                      {/* Học sinh ảnh hưởng (Căn giữa ra giữa) */}
-                      <td className={styles.tdCount}>
-                        <span className={styles.countText}>{alg.affectedCount}</span>
-                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -153,11 +156,10 @@ export default function AllergyClassDetailView({ classData, onBack }) {
                 <div key={alg.id} className={styles.mobileItem}>
                   <div className={styles.mobileItemHeader}>
                     <span className={styles.mobileIngName}>{alg.ingredientName}</span>
-                    <span className={styles.countText}>{alg.affectedCount} hs</span>
                   </div>
                   <div className={styles.mobileMetaRow}>
-                    <span className={styles.metaLabel}>Nhóm nguyên liệu:</span>
-                    <span className={styles.categoryText}>{alg.category}</span>
+                    <span className={styles.metaLabel}>Nhà cung cấp:</span>
+                    <span className={styles.categoryText}>{alg.supplierName || "—"}</span>
                   </div>
                 </div>
               ))}
@@ -179,7 +181,8 @@ AllergyClassDetailView.propTypes = {
       PropTypes.shape({
         id: PropTypes.string.isRequired,
         ingredientName: PropTypes.string.isRequired,
-        category: PropTypes.string.isRequired,
+        category: PropTypes.string,
+        supplierName: PropTypes.string,
         affectedCount: PropTypes.number.isRequired,
       })
     ).isRequired,

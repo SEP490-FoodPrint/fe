@@ -13,6 +13,7 @@ import {
 import { Link } from "react-router-dom"
 import MealPortionService from "src/services/MealPortionService"
 import ROUTER from "src/router/ROUTER"
+import ClassAllergyDialog from "./component/ClassAllergyDialog"
 import "./style.scss"
 
 const meals = [
@@ -31,6 +32,7 @@ function HomeroomOverview() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [allergyDialogOpen, setAllergyDialogOpen] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -122,18 +124,31 @@ function HomeroomOverview() {
           {allergies.length
             ? <AlertTriangle size={20} aria-hidden="true" />
             : <ShieldCheck size={20} aria-hidden="true" />}
-          <div>
-            <h2>Dị ứng của lớp</h2>
+          <div className="homeroom-overview__notice-body">
+            <div className="homeroom-overview__notice-heading">
+              <h2>Dị ứng của lớp</h2>
+              <Button size="small" variant="outlined" onClick={() => setAllergyDialogOpen(true)}>
+                Cập nhật
+              </Button>
+            </div>
             <p>{allergies.length
-              ? `${allergies.length} nguyên liệu cần lưu ý khi xác nhận suất ăn.`
+              ? `${Math.max(...allergies.map(item => Number(item.affectedCount) || 0))} học sinh dị ứng · ${allergies.length} nguyên liệu cần tránh.`
               : "Lớp chưa có nguyên liệu dị ứng được ghi nhận."}</p>
             {allergies.length > 0 && <div className="homeroom-overview__allergy-list">
               {allergies.map(item => <span key={item.ingredientEntryId}>
-                {item.IngredientEntry?.Ingredient?.name} ({item.affectedCount})
+                {item.IngredientEntry?.Ingredient?.name}
               </span>)}
             </div>}
           </div>
         </section>
+
+        <ClassAllergyDialog
+          open={allergyDialogOpen}
+          onClose={() => setAllergyDialogOpen(false)}
+          onSaved={() => { setAllergyDialogOpen(false); load() }}
+          allergies={allergies}
+          maxStudents={data.class.registeredMealPortions}
+        />
 
         <Link className="homeroom-overview__feedback" to={ROUTER.SCHOOL_MEAL_COMPLAINTS}
           aria-label="Mở trang phản ánh bữa ăn">

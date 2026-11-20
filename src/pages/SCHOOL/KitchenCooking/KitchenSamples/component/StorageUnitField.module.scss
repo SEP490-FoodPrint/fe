@@ -1,0 +1,90 @@
+.compartmentContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.compartmentHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compartmentCountBadge {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+  background-color: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.chipGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chipBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  border: 1px solid var(--border-default, #cbd5e1);
+  background-color: #ffffff;
+  color: #334155;
+  font-size: 13px;
+  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.15s ease-in-out;
+  box-sizing: border-box;
+
+  &:hover:not(:disabled) {
+    background-color: #f8fafc;
+    border-color: #94a3b8;
+    color: #0f172a;
+  }
+
+  &:focus-visible {
+    border-color: var(--color-primary, #0a8066);
+    box-shadow: 0 0 0 2px rgba(10, 128, 102, 0.15);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.chipBtnActive {
+  background-color: var(--color-primary, #0a8066);
+  border-color: var(--color-primary, #0a8066);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(10, 128, 102, 0.25);
+
+  &:hover:not(:disabled) {
+    background-color: #086b55;
+    border-color: #086b55;
+    color: #ffffff;
+  }
+}
+
+.chipBtnOccupied {
+  background-color: #f1f5f9;
+  color: #64748b;
+  opacity: 1 !important;
+}
+
+.compartmentHint {
+  margin: 0;
+  color: #64748b;
+  font-size: 12px;
+}

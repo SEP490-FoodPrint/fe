@@ -1,7 +1,7 @@
 import { formatLargeQuantity } from "src/utils/quantity"
 import { deliveryTimeLines } from "src/utils/deliveryTime"
 import { formatSmallQuantity } from "src/utils/quantity"
-import React, { useContext, useState } from "react"
+import React, { useContext, useEffect, useState } from "react"
 import PropTypes from "prop-types"
 import {
   ArrowLeft,
@@ -34,13 +34,19 @@ export default function DeliveryDetailView({
   const { userStore } = useContext(StoreContext) || {}
   const permissions = userStore?.user?.permissions || []
   // State xem tem nhãn QR của lô
-  const [activeQRLot, setActiveQRLot] = useState(null)
-  const [activeQRIngredient, setActiveQRIngredient] = useState("")
+  const [activeQRRow, setActiveQRRow] = useState(null)
+  // Ảnh thực tế của bộ phận kiểm tra đang phóng to
+  const [zoomPhoto, setZoomPhoto] = useState(null)
 
-  const handleOpenQRModal = (lot, ingredientName) => {
-    setActiveQRLot(lot)
-    setActiveQRIngredient(ingredientName)
-  }
+  const handleOpenQRModal = (row) => setActiveQRRow(row)
+
+  // Esc để đóng ảnh đang phóng to
+  useEffect(() => {
+    if (!zoomPhoto) return undefined
+    const onKey = event => { if (event.key === "Escape") setZoomPhoto(null) }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [zoomPhoto])
 
   // Kiểm tra đánh giá của Cán bộ Y tế
   const healthApproval = delivery.deliveryApprovals?.find(
@@ -93,6 +99,11 @@ export default function DeliveryDetailView({
         quantityText: formatLargeQuantity(item.actualQuantity, item.unit),
         status: null,
         lot: null,
+        traceUrl: item.traceUrl || "",
+        qrImageDataUrl: item.qrImageDataUrl || "",
+        itemQuantity: item.actualQuantity,
+        itemUnit: item.unit,
+        itemFacility: item.sourceFacility?.name || "",
       })
     } else {
       item.ingredientLots.forEach((lot, idx) => {
@@ -111,6 +122,8 @@ export default function DeliveryDetailView({
           quantityText: formatLargeQuantity(lot.receivedQuantity, lot.unit),
           status: lot.status,
           lot: lot,
+          traceUrl: item.traceUrl || "",
+          qrImageDataUrl: item.qrImageDataUrl || "",
         })
       })
     }
@@ -154,7 +167,6 @@ export default function DeliveryDetailView({
           </button>
           <div className={styles.titleGroup}>
             <h1 className={styles.pageTitle}>Chi tiết giao hàng</h1>
-            <span className={styles.deliveryCode}>{delivery.deliveryNo}</span>
             <DeliveryStatusBadge status={delivery.status} />
             {delivery.vehiclePlate && <span className={styles.vehiclePlate} title="Biển số xe giao">{delivery.vehiclePlate}</span>}
             {delivery.requestNo && <span className={styles.requestNo}>Đơn {delivery.requestNo}</span>}
@@ -258,15 +270,15 @@ export default function DeliveryDetailView({
           </span>
         </div>
         <div className={styles.tableResponsive}>
-          <table className={styles.flatTable}>
+          <table className={`${styles.flatTable} ${styles.inspectionTable}`}>
             <thead>
               <tr>
-                <th>Bộ phận</th>
-                <th>Nhóm</th>
-                <th>Người kiểm tra</th>
-                <th>Kết quả</th>
-                <th>Nhận xét</th>
-                <th>Thời gian</th>
+                <th className={styles.thRole}>Bộ phận</th>
+                <th className={styles.thTier}>Nhóm</th>
+                <th className={styles.thInspector}>Người kiểm tra</th>
+                <th className={styles.thResult}>Kết quả</th>
+                <th className={styles.thPhoto}>Ảnh thực tế</th>
+                <th className={styles.thTime}>Thời gian</th>
               </tr>
             </thead>
             <tbody>
@@ -274,6 +286,7 @@ export default function DeliveryDetailView({
                 const decision = delivery.deliveryApprovals?.find(
                   (item) => item.roleCode === role.code
                 )
+                const approved = decision?.decision === "APPROVE"
                 const isOptional = role.tier === "OPTIONAL"
                 const tierClass =
                   role.tier === "PRIMARY"
@@ -288,44 +301,49 @@ export default function DeliveryDetailView({
                     : role.tier === "REQUIRED"
                       ? "Bắt buộc"
                       : "Tùy chọn")
+                const photoAlt = `Ảnh kiểm tra thực tế của ${role.name}`
                 return (
                   <tr key={role.code}>
-                    <td>{role.name}</td>
+                    <td className={styles.tdRole}>{role.name}</td>
                     <td>
                       <span className={tierClass}>{tierLabel}</span>
                     </td>
-                    <td>{decision?.userName || "—"}</td>
+                    <td>{decision?.userName || <span className={styles.emptyText}>—</span>}</td>
                     <td>
-                      {decision
-                        ? decision.decision === "APPROVE"
-                          ? "Đồng ý"
-                          : "Từ chối"
-                        : isOptional
-                          ? "Không bắt buộc"
-                          : "Chưa kiểm tra"}
-                    </td>
-                    <td>
-                      {decision?.reason || "—"}
+                      {decision ? (
+                        <span className={`${styles.resultPill} ${approved ? styles.resultApprove : styles.resultReject}`}>
+                          {approved ? <CheckCircle2 size={13} /> : <XCircle size={13} />}
+                          {approved ? "Đồng ý" : "Từ chối"}
+                        </span>
+                      ) : (
+                        <span className={`${styles.resultPill} ${styles.resultPending}`}>
+                          <Clock size={13} /> {isOptional ? "Không bắt buộc" : "Chưa kiểm tra"}
+                        </span>
+                      )}
+                      {decision?.reason && <p className={styles.resultReason}>{decision.reason}</p>}
                       {decision?.decision === "REJECT" && isOptional && (
                         <span className={styles.optionalRefNote}>
                           (Ý kiến tham khảo, không làm từ chối đợt giao)
                         </span>
                       )}
-                      {decision?.photoUrl && (
-                        <div>
-                          <img
-                            src={decision.photoUrl}
-                            alt={`Ảnh kiểm tra của ${role.name}`}
-                            style={{
-                              maxWidth: 130,
-                              maxHeight: 100,
-                              objectFit: "contain",
-                            }}
-                          />
-                        </div>
+                    </td>
+                    <td>
+                      {decision?.photoUrl ? (
+                        <button
+                          type="button"
+                          className={styles.photoThumbBtn}
+                          onClick={() => setZoomPhoto({ src: decision.photoUrl, alt: photoAlt })}
+                          title="Bấm để phóng to ảnh"
+                          aria-label={`Phóng to ${photoAlt.toLowerCase()}`}
+                        >
+                          <img src={decision.photoUrl} alt={photoAlt} className={styles.photoThumb} />
+                          <span className={styles.photoZoomHint}><Eye size={12} /> Phóng to</span>
+                        </button>
+                      ) : (
+                        <span className={styles.emptyText}>Không có ảnh</span>
                       )}
                     </td>
-                    <td>{formatDateTime(decision?.decidedAt)}</td>
+                    <td className={styles.tdTime}>{formatDateTime(decision?.decidedAt)}</td>
                   </tr>
                 )
               })}
@@ -505,11 +523,11 @@ export default function DeliveryDetailView({
 
                     {/* Thao tác Tem QR */}
                     <td className={styles.tdAction}>
-                      {row.lot ? (
+                      {row.lot || row.traceUrl ? (
                         <button
                           type="button"
                           className={styles.qrIconBtn}
-                          onClick={() => handleOpenQRModal(row.lot, row.ingredientName)}
+                          onClick={() => handleOpenQRModal(row)}
                           title={`Quét / Xem tem QR lô ${row.lotCode}`}
                           aria-label={`Xem mã QR của lô ${row.lotCode}`}
                         >
@@ -528,13 +546,39 @@ export default function DeliveryDetailView({
       </div>
 
       {/* Modal Xem / Quét tem QR truy xuất nguồn gốc */}
-      {activeQRLot && (
+      {activeQRRow && (
         <LotQRTraceModal
-          lot={activeQRLot}
-          ingredientName={activeQRIngredient}
+          lot={activeQRRow.lot || {
+            lotCode: "Chưa tạo lô",
+            sourceFacility: activeQRRow.itemFacility,
+            manufactureDate: null,
+            expiryDate: null,
+            receivedQuantity: activeQRRow.itemQuantity,
+            unit: activeQRRow.itemUnit,
+          }}
+          ingredientName={activeQRRow.ingredientName}
           supplierName={delivery.supplierName}
-          onClose={() => setActiveQRLot(null)}
+          qrImageDataUrl={activeQRRow.qrImageDataUrl}
+          traceUrl={activeQRRow.traceUrl}
+          onClose={() => setActiveQRRow(null)}
         />
+      )}
+
+      {/* Phóng to ảnh thực tế của bộ phận kiểm tra */}
+      {zoomPhoto && (
+        <div
+          className={styles.photoLightbox}
+          role="dialog"
+          aria-modal="true"
+          aria-label={zoomPhoto.alt}
+          onClick={() => setZoomPhoto(null)}
+        >
+          <button type="button" className={styles.photoLightboxClose} onClick={() => setZoomPhoto(null)} aria-label="Đóng ảnh">
+            <XCircle size={28} />
+          </button>
+          <img src={zoomPhoto.src} alt={zoomPhoto.alt} className={styles.photoLightboxImg} onClick={event => event.stopPropagation()} />
+          <span className={styles.photoLightboxCaption}>{zoomPhoto.alt}</span>
+        </div>
       )}
     </div>
   )

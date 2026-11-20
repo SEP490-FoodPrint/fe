@@ -73,19 +73,19 @@ export default function MenuListStatsRail({
 
   if (readOnly) {
     return (
-      <div className={styles.statCards} role="region" aria-label="Thống kê trạng thái thực đơn">
-        {items.map((item) => {
-          const Icon = item.icon
-          return (
-            <div key={item.key} className={styles.statCard}>
-              <div className={styles.statHead}>
-                <span className={styles.statLabel}>{item.label}</span>
-                <span className={styles.statIcon}><Icon size={18} aria-hidden="true" /></span>
-              </div>
-              <span className={styles.statValue}>{item.count.toLocaleString("vi-VN")}</span>
-            </div>
-          )
-        })}
+      // Cùng kiểu thẻ thống kê với màn Danh sách món ăn: số to màu xanh, nhãn nhỏ bên dưới
+      <div
+        className={styles.kpiRow}
+        style={{ "--kpi-columns": items.length }}
+        role="region"
+        aria-label="Thống kê trạng thái thực đơn"
+      >
+        {items.map((item) => (
+          <div key={item.key} className={styles.kpiCard} title={item.tooltip}>
+            <div className={styles.kpiNum}>{item.count.toLocaleString("vi-VN")}</div>
+            <div className={styles.kpiLabel}>{item.key === "all" ? "Tổng số thực đơn" : item.label}</div>
+          </div>
+        ))}
       </div>
     )
   }

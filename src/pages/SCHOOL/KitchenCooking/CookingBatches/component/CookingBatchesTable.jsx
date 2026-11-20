@@ -117,17 +117,25 @@ export default function CookingBatchesTable({
       ) : (
         <>
           <div className={styles.desktopTableWrap}>
-            <table className={styles.table} aria-label="Danh sách lô chế biến">
+            <table className={`${styles.table} ${styles.evenTable}`} aria-label="Danh sách lô chế biến">
+              {/* Chia đều tỉ lệ các cột để bảng cân đối */}
+              <colgroup>
+                <col style={{ width: "32%" }} />
+                <col style={{ width: "12%" }} />
+                <col style={{ width: "17%" }} />
+                <col style={{ width: "19%" }} />
+                <col style={{ width: "20%" }} />
+              </colgroup>
               <thead>
                 <tr>
                   <th scope="col">Món ăn &amp; Ca ăn</th>
-                  <th scope="col" style={{ width: 100 }}>
+                  <th scope="col" className={styles.thCenter}>
                     Số suất
                   </th>
-                  <th scope="col" style={{ width: 130 }}>
+                  <th scope="col" className={styles.thCenter}>
                     Trạng thái
                   </th>
-                  <th scope="col" style={{ width: 160 }}>
+                  <th scope="col" className={styles.thCenter}>
                     Lưu mẫu
                   </th>
                   <th scope="col" className={styles.thActions}>
@@ -181,9 +189,9 @@ export default function CookingBatchesTable({
                         </span>
                       </div>
                     </td>
-                    <td className={styles.portionBold}>{row.portion}</td>
-                    <td>{statusBadge(row)}</td>
-                    <td>
+                    <td className={`${styles.portionBold} ${styles.tdCenter}`}>{row.portion}</td>
+                    <td className={styles.tdCenter}>{statusBadge(row)}</td>
+                    <td className={styles.tdCenter}>
                       {row.status === "COMPLETED" ? (
                         row.allSamplesDone ? (
                           <span

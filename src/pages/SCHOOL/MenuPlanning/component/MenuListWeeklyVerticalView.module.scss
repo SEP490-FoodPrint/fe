@@ -382,7 +382,7 @@
   grid-template-rows: subgrid;
   grid-row: 1 / -1;
   row-gap: 0;
-  background-color: #ffffff;
+  background-color: var(--day-tint, #ffffff);
   border: 1px solid #e2e8f0;
   border-radius: 12px;
   overflow: hidden;
@@ -399,15 +399,11 @@
 /* Cột Hôm nay: Sắc nét, đồng đều */
 .todayDayCard {
   border: 2px solid #0a8066 !important;
-  box-shadow: inset 0 0 0 1px #0a8066, 0 3px 12px rgba(10, 128, 102, 0.12) !important;
+  box-shadow: 0 3px 12px rgba(10, 128, 102, 0.12) !important;
   border-radius: 12px !important;
   box-sizing: border-box !important;
   position: relative;
   z-index: 2;
-
-  .dayHeader {
-    background-color: #f0fdf4;
-  }
 }
 
 /* ========================================================
@@ -423,7 +419,7 @@
   max-height: 64px;
   box-sizing: border-box;
   padding: 8px 10px;
-  background-color: #ffffff;
+  background-color: transparent;
   border-bottom: 1px solid #f1f5f9;
   border-top-left-radius: 11px;
   border-top-right-radius: 11px;
@@ -551,7 +547,7 @@
   grid-row: 2 / -1;
   row-gap: 0;
   min-width: 0;
-  background-color: #ffffff;
+  background-color: transparent;
 }
 
 .mealBlock {
@@ -644,7 +640,7 @@
 .dishesListLunch {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: transparent;
   flex: 1;
   box-sizing: border-box;
   overflow: visible;
@@ -660,7 +656,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background-color: #fafbfc;
+  background-color: transparent;
   border-bottom: 1px solid #f1f5f9;
 }
 
@@ -728,7 +724,7 @@
 .dishesListAfternoon {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: transparent;
   flex: 1;
   box-sizing: border-box;
   overflow: visible;
@@ -744,7 +740,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  background-color: #fafbfc;
+  background-color: transparent;
 }
 
 .emptyMealText {
@@ -806,7 +802,7 @@
   min-height: 34px;
   padding: 5px 10px;
   box-sizing: border-box;
-  background-color: var(--bg-page);
+  background-color: transparent;
 }
 
 .addSingleMealBtn {
@@ -844,7 +840,7 @@
   box-sizing: border-box;
   padding: 4px 10px;
   border-bottom: 1px solid #f8fafc;
-  background-color: #ffffff;
+  background-color: transparent;
   cursor: pointer;
   transition: background-color 0.12s ease;
 
@@ -881,7 +877,7 @@
   box-sizing: border-box;
   padding: 4px 10px;
   border-bottom: 1px solid #f8fafc;
-  background-color: #ffffff;
+  background-color: transparent;
   cursor: pointer;
   transition: background-color 0.12s ease;
 
@@ -926,7 +922,7 @@
 .substituteDishNote {
   font-size: 11.5px;
   font-style: italic;
-  color: #dc2626;
+  color: #1f2937;
   margin-top: 2px;
   padding-left: 12px;
   line-height: 1.3;

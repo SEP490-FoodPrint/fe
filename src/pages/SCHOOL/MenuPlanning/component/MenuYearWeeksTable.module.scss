@@ -123,3 +123,44 @@
 .moreButton:hover { background: var(--color-primary-soft); }
 .moreButton:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; }
 .iconButton:disabled { color: var(--text-muted); opacity: 0.5; cursor: not-allowed; background: transparent; }
+
+/* Cột yêu cầu chỉnh sửa của BGH: nút mở popup lịch sử nhận xét */
+.table .revisionCol {
+  white-space: nowrap;
+}
+
+.revisionButton,
+.historyButton {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:focus-visible {
+    outline: 2px solid #0a8066;
+    outline-offset: 2px;
+  }
+}
+
+.revisionButton {
+  color: #b91c1c;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+
+  &:hover {
+    background-color: #fee2e2;
+  }
+}
+
+.historyButton {
+  color: #475569;
+  background-color: transparent;
+  border: 1px solid #e2e8f0;
+
+  &:hover {
+    background-color: #f8fafc;
+    border-color: #cbd5e1;
+  }
+}

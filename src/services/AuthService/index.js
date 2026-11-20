@@ -45,15 +45,14 @@ const normalizeUser = (user) => {
   const cookingMode = isDemoSchool
     ? "SEPARATE_BY_LOT"
     : user.cookingMode || "COMBINE_LOTS";
-  const schoolName = isDemoSchool
-    ? "Trường Tiểu học FoodPrint"
-    : user.schoolName || user.orgName || "Trường Tiểu học Cầu Giấy";
+  // Tên đơn vị lấy từ dữ liệu đăng ký (backend trả organizationName); không gán cứng tên trường
+  const schoolName = user.organizationName || user.schoolName || user.orgName || "";
 
   return {
     ...user,
     cookingMode,
     schoolName,
-    orgName: schoolName,
+    orgName: schoolName || null,
     roleCode: user.role,
     role: roleAliases[user.role] || user.role,
     userId: user.id,

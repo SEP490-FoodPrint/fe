@@ -4,6 +4,7 @@ import { Eye, RotateCcw } from "lucide-react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import { formatDateVN } from "src/services/MenuService/adapter"
 import { sortWeeksCurrentFirst, statusTone, visibleAcademicWeeks, weekMenuGroups, weekSchoolDates } from "src/services/MenuService/academicWeekView"
+import RevisionHistoryDialog from "./RevisionHistoryDialog"
 import MenuListStatsRail from "./MenuListStatsRail"
 import styles from "./MenuYearWeeksTable.module.scss"
 
@@ -39,6 +40,34 @@ export default function MenuYearWeeksTable({
     })
     .filter((row) => !row.hidden), [availableWeeks, listWeeks, weekFilter, statusFilter, weekMenus, year])
   const weeks = weekRows
+
+  // Popup lịch sử yêu cầu chỉnh sửa của BGH (nhận xét có thể dài và nhiều lần nếu sửa đi sửa lại)
+  const [revisionDialog, setRevisionDialog] = useState(null)
+  const WEEKDAY = ["CN", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"]
+  const openRevisions = (event, week, group, label) => {
+    event.stopPropagation()
+    const dayLabels = {}
+    for (const row of weekMenus[week.weekStartDate] || []) {
+      if ((row.weeklyMenuId || row.id) !== group.id || !row.menuDayId || !row.rawDate) continue
+      const day = new Date(`${row.rawDate}T00:00:00Z`)
+      dayLabels[row.menuDayId] = `${WEEKDAY[day.getUTCDay()]} ${row.rawDate.slice(8, 10)}/${row.rawDate.slice(5, 7)}`
+    }
+    setRevisionDialog({ menuId: group.id, title: `${label}${group.scope ? ` · ${group.scope}` : ""}`, dayLabels })
+  }
+  const revisionCell = (week, group, label) => {
+    if (!group) return <span className={styles.muted}>—</span>
+    const needsRevision = group.status === "REVISION_REQUESTED"
+    return (
+      <button
+        type="button"
+        className={needsRevision ? styles.revisionButton : styles.historyButton}
+        onClick={(event) => openRevisions(event, week, group, label)}
+        aria-label={`Xem yêu cầu chỉnh sửa của BGH cho ${label}${group.scope ? `, ${group.scope}` : ""}`}
+      >
+        {needsRevision ? "Xem yêu cầu" : "Lịch sử nhận xét"}
+      </button>
+    )
+  }
   // Thống kê số thực đơn tuần (mỗi nhóm khối một thực đơn) trong cả năm học đang chọn.
   const stats = useMemo(() => {
     const groups = availableWeeks.flatMap((week) => weekMenuGroups(weekMenus[week.weekStartDate] || [], weekSchoolDates(week, year?.holidays)))
@@ -99,7 +128,7 @@ export default function MenuYearWeeksTable({
           <div className={styles.tableWrap}>
             <table className={styles.table}>
               <caption className={styles.srOnly}>Danh sách tuần năm học {academicYear}</caption>
-              <thead><tr><th scope="col">Tuần học</th><th scope="col">Thời gian</th><th scope="col">Khối</th><th scope="col">Trạng thái</th><th scope="col" className={styles.num}>Số ngày có thực đơn</th><th scope="col" className={styles.num}>Số món ăn</th><th scope="col" className={styles.actionCell}><span className={styles.srOnly}>Thao tác</span></th></tr></thead>
+              <thead><tr><th scope="col">Tuần học</th><th scope="col">Thời gian</th><th scope="col">Khối</th><th scope="col">Trạng thái</th><th scope="col" className={styles.revisionCol}>Yêu cầu chỉnh sửa của BGH</th><th scope="col" className={styles.num}>Số món ăn</th><th scope="col" className={styles.actionCell}><span className={styles.srOnly}>Thao tác</span></th></tr></thead>
               {weeks.map(({ week, schoolDates, groups }) => {
                 const rows = groups.length ? groups : [null]
                 const label = week.weekLabel || `Tuần ${week.weekNumber}`
@@ -124,13 +153,8 @@ export default function MenuYearWeeksTable({
                         <td>{group ? <span className={styles.scope}>{group.scope || "Chưa gán khối"}</span> : <span className={styles.muted}>—</span>}</td>
                         <td>
                           <span className={`${styles.statusBadge} ${styles[statusTone(group?.status || "EMPTY")]}`}>{group?.label || "Chưa tạo"}</span>
-                          {group?.status === "REVISION_REQUESTED" && (
-                            <button type="button" className={styles.textButton} onClick={(event) => { event.stopPropagation(); onSelectWeek(week) }} aria-label={`Xem lý do yêu cầu chỉnh sửa ${label}, ${group.scope || "toàn trường"}`}>
-                              Xem lý do
-                            </button>
-                          )}
                         </td>
-                        <td className={styles.num}>{group ? `${group.plannedDays}/${group.schoolDays} ngày` : <span className={styles.muted}>—</span>}</td>
+                        <td className={styles.revisionCol}>{revisionCell(week, group, label)}</td>
                         <td className={styles.num}>{group ? group.dishCount.toLocaleString("vi-VN") : <span className={styles.muted}>—</span>}</td>
                         {index === 0 && (
                           <td rowSpan={rows.length} className={styles.actionCell}>
@@ -155,6 +179,13 @@ export default function MenuYearWeeksTable({
           )}
         </div>
       )}
+      <RevisionHistoryDialog
+        open={Boolean(revisionDialog)}
+        menuId={revisionDialog?.menuId}
+        title={revisionDialog?.title}
+        dayLabels={revisionDialog?.dayLabels}
+        onClose={() => setRevisionDialog(null)}
+      />
     </section>
   )
 }

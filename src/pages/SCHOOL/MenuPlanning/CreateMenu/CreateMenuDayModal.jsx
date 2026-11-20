@@ -523,12 +523,40 @@ export default function CreateMenuDayModal({
   }
 
   // Xây dựng danh sách nhóm suất ăn (Portion Groups) tự động theo chuẩn Backend
-  const buildPortionGroupsForMeal = (mealDishes, mealSubsMap) => {
+  // Giữ lại các nhóm suất riêng chỉ kiêng món (bớt món, không có món thay thế) đã lưu trước đó.
+  const keptAvoidanceGroups = (mealType, regularDishIds) => {
+    const stored = dayMenu?.portionGroupsByMeal?.[mealType] || []
+    const storedDefault = stored.find((g) => g.isDefault)
+    if (!storedDefault) return []
+    const defaultIds = new Set(storedDefault.dishIds || [])
+    const current = new Set(regularDishIds)
+    return stored
+      .filter((g) => !g.isDefault)
+      .filter((g) => (g.dishIds || []).every((id) => defaultIds.has(id)))
+      .map((g) => {
+        const groupIds = new Set(g.dishIds || [])
+        const excluded = [...defaultIds].filter((id) => !groupIds.has(id) && current.has(id))
+        return {
+          id: g.id,
+          name: g.name,
+          isDefault: false,
+          dishIds: regularDishIds.filter((id) => !excluded.includes(id)),
+          avoidedIngredientEntryIds: g.avoidedIngredientEntryIds || [],
+          excludedCount: excluded.length,
+        }
+      })
+      // Món bị kiêng đã bị xoá khỏi bữa thì nhóm trùng suất thường, bỏ đi.
+      .filter((g) => g.excludedCount > 0 && g.dishIds.length > 0)
+      .map(({ excludedCount, ...g }) => g)
+  }
+
+  const buildPortionGroupsForMeal = (mealDishes, mealSubsMap, mealType) => {
     const subs = Object.values(mealSubsMap || {})
     const regularDishes = mealDishes.filter(
       (d) => !subs.some((s) => s.dishId === d.dishId)
     )
     const regularDishIds = regularDishes.map((d) => d.dishId || d.id)
+    const kept = keptAvoidanceGroups(mealType, regularDishIds)
 
     if (subs.length === 0) {
       return [
@@ -538,6 +566,7 @@ export default function CreateMenuDayModal({
           dishIds: regularDishIds,
           avoidedIngredientEntryIds: [],
         },
+        ...kept,
       ]
     }
 
@@ -573,7 +602,8 @@ export default function CreateMenuDayModal({
       })
     })
 
-    return groups
+    const usedNames = new Set(groups.map((g) => g.name))
+    return [...groups, ...kept.filter((g) => !usedNames.has(g.name))]
   }
 
   // Lưu và cập nhật về ngày
@@ -609,10 +639,11 @@ export default function CreateMenuDayModal({
     })
 
     const portionGroupsByMeal = !edited && dayMenu?.portionGroupsByMeal ? { ...dayMenu.portionGroupsByMeal } : {
-      LUNCH: buildPortionGroupsForMeal(lunchDishes, substitutesByMeal.LUNCH),
+      LUNCH: buildPortionGroupsForMeal(lunchDishes, substitutesByMeal.LUNCH, "LUNCH"),
       AFTERNOON: buildPortionGroupsForMeal(
         afternoonDishes,
-        substitutesByMeal.AFTERNOON
+        substitutesByMeal.AFTERNOON,
+        "AFTERNOON"
       ),
     }
 
@@ -622,11 +653,17 @@ export default function CreateMenuDayModal({
       null
 
     for (const mealType of ["LUNCH", "AFTERNOON"]) {
-      portionGroupsByMeal[mealType] = (portionGroupsByMeal[mealType] || []).map(group => {
+      const groupsForMeal = portionGroupsByMeal[mealType] || []
+      const usedIds = new Set(groupsForMeal.map(group => group.id).filter(Boolean))
+      portionGroupsByMeal[mealType] = groupsForMeal.map(group => {
+        if (group.id) return group
         const previous = dayMenu?.portionGroupsByMeal?.[mealType]?.find(old =>
+          !usedIds.has(old.id) &&
           old.isDefault === group.isDefault &&
           JSON.stringify([...old.avoidedIngredientEntryIds].sort()) === JSON.stringify([...group.avoidedIngredientEntryIds].sort()))
-        return previous?.id ? { ...group, id: previous.id, name: previous.name } : group
+        if (!previous?.id) return group
+        usedIds.add(previous.id)
+        return { ...group, id: previous.id, name: previous.name }
       })
     }
 

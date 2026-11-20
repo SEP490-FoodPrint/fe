@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { lotDateError } from "src/utils/lotDates"
 import PropTypes from "prop-types"
 import { Button } from "@mui/material"
 import { ArrowBack, ArrowForward, LocalShippingOutlined, QrCode2Outlined } from "@mui/icons-material"
@@ -11,7 +12,6 @@ import SupplierDeliveryService, {
   generateIdempotencyKey,
   getAllocationTotalStatus,
   getMinArrivalTime,
-  getVnTodayDate,
   normalizeDecimalQuantity,
   ORDER_CREATION_STAGE,
   thousandthsToQuantity,
@@ -102,7 +102,7 @@ function OrderFulfillmentWorkflow({
     if (order.status === SUPPLY_ORDER_STATUS.ACCEPTED) {
       loadFacilities()
     }
-  }, [order?.id, order?.status, loadFacilities])
+  }, [order?.id, order?.status, items, loadFacilities])
 
   // Danh sách phân bổ phẳng (giữ key để gắn lỗi theo từng dòng con).
   const buildAllocationList = () =>
@@ -202,16 +202,19 @@ function OrderFulfillmentWorkflow({
   }
 
   // Đồ khô: mỗi lô bắt buộc ngày sản xuất (không sau hôm nay) và hạn sử dụng (không trước ngày sản xuất).
+  // NSX không sau hôm nay; HSD không trước NSX, không trước hôm nay, đồ khô còn hạn ít nhất 7 ngày.
   const validateLotDates = () => {
-    const today = getVnTodayDate()
     const errors = {}
     items.forEach(item => {
       if (item.handlingType !== "DRY_STOCK" || !item.id) return
       ;(allocationsByItemId[item.id] || []).forEach(row => {
-        const { manufactureDate = "", expiryDate = "" } = row
-        if (!manufactureDate || !expiryDate) errors[row.key] = "Đồ khô cần nhập ngày sản xuất và hạn sử dụng."
-        else if (manufactureDate > today) errors[row.key] = "Ngày sản xuất không được sau hôm nay."
-        else if (expiryDate < manufactureDate) errors[row.key] = "Hạn sử dụng phải sau hoặc bằng ngày sản xuất."
+        const message = lotDateError({
+          manufactureDate: row.manufactureDate || "",
+          expiryDate: row.expiryDate || "",
+          isDryStock: true,
+          required: true,
+        })
+        if (message) errors[row.key] = message
       })
     })
     return errors

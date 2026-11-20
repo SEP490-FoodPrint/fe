@@ -1,4 +1,5 @@
 import InlineError from "src/components/InlineError"
+import { Alert } from "@mui/material"
 import { isPastMenuDay } from "src/utils/menuDays"
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import { useNavigate, useLocation } from "react-router-dom"
@@ -78,8 +79,16 @@ export default function CreateMenu() {
   // 2. Thông tin thực đơn tuần
   // BE (week-schedule): quá hạn chót Chủ nhật và BGH chưa yêu cầu sửa thì khóa cả tuần.
   const deadlineLocked = academicWeek?.editLocked === true
-  const deadlineLockReason = deadlineLocked ? academicWeek?.editLockReason || "Đã quá hạn lập và gửi duyệt thực đơn tuần này." : ""
-  const menuTitle = academicWeek?.weeklyMenuTitle || (academicWeek?.weekNumber != null ? `Thực đơn tuần ${academicWeek.weekNumber}` : "")
+  // Tuần đã được BGH duyệt: không báo "quá hạn" mà báo thực đơn đã tạo thành công
+  // Đã chọn khối: theo thực đơn của khối đó. Chưa chọn khối: tuần có thực đơn và mọi thực đơn của tuần đều đã duyệt.
+  const weekMenus = Array.isArray(academicWeek?.availableMenus) ? academicWeek.availableMenus : []
+  const weekApproved = academicWeek?.weeklyMenuId
+    ? academicWeek.weeklyMenuStatus === "APPROVED"
+    : weekMenus.length > 0 && weekMenus.every(menu => menu.status === "APPROVED")
+  const deadlineLockReason = deadlineLocked && !weekApproved
+    ? academicWeek?.editLockReason || "Đã quá hạn lập và gửi duyệt thực đơn tuần này."
+    : ""
+  const menuTitle = academicWeek?.weeklyMenuTitle || (academicWeek?.weekNumber != null ? `Thực đơn dinh dưỡng tuần ${academicWeek.weekNumber}` : "")
 
   // Các khối do Ban Giám hiệu cấu hình cho trường.
   const [GRADE_OPTIONS, setGradeOptions] = useState([])
@@ -328,19 +337,6 @@ export default function CreateMenu() {
     return count
   }, [weeklyMeals])
 
-  // Tính số ngày đã hoàn thành đủ 2 ca
-  const completedDaysCount = useMemo(() => {
-    let count = 0
-    schoolDays.forEach((sd) => {
-      if (sd.isHoliday) return
-      const dayData = weeklyMeals[sd.dateISO] || {}
-      const hasLunch = Array.isArray(dayData.LUNCH) && dayData.LUNCH.length > 0
-      const hasAfternoon =
-        Array.isArray(dayData.AFTERNOON) && dayData.AFTERNOON.length > 0
-      if (hasLunch && hasAfternoon) count += 1
-    })
-    return count
-  }, [schoolDays, weeklyMeals])
 
   // Ngày học chưa đủ 2 bữa -> chưa được gửi duyệt
   const missingDayLabels = useMemo(() => schoolDays
@@ -679,15 +675,101 @@ export default function CreateMenu() {
       <div className={styles.contentWrapper}>
         {/* Header trang chuẩn mực */}
         <MenuAllergyReport report={allergyReport}/>
-        <CreateMenuHeader
-          onBack={() => navigate(location.state?.returnTo || ROUTER.SCHOOL_MENU_PLANNING)}
-          statusLabel="Bản nháp mới"
-        />
+        {(() => {
+          // Tiêu đề theo trạng thái thực đơn của tuần đang chọn
+          const status = loadingSchedule || scheduleError ? null : academicWeek?.weeklyMenuStatus
+          const header = ({
+            DRAFT: {
+              title: "Tiếp tục soạn thực đơn",
+              subtitle: "Hoàn thiện các ngày còn thiếu rồi gửi Ban Giám hiệu duyệt.",
+            },
+            PENDING_APPROVAL: {
+              title: "Sửa thực đơn",
+              subtitle: "Thực đơn tuần đang chờ Ban Giám hiệu duyệt. Bạn vẫn có thể sửa; thay đổi sẽ được gửi duyệt lại.",
+            },
+            REVISION_REQUIRED: {
+              title: "Sửa thực đơn theo yêu cầu BGH",
+              subtitle: "Sửa thực đơn theo nhận xét của Ban Giám hiệu, sau đó gửi duyệt lại.",
+            },
+            REVISION_REQUESTED: {
+              title: "Sửa thực đơn theo yêu cầu BGH",
+              subtitle: "Sửa thực đơn theo nhận xét của Ban Giám hiệu, sau đó gửi duyệt lại.",
+            },
+            APPROVED: {
+              title: "Xem thực đơn",
+              subtitle: "Thực đơn tuần đã được Ban Giám hiệu duyệt.",
+            },
+          })[status] || { title: "Tạo thực đơn" }
+          return (
+            <CreateMenuHeader
+              onBack={() => navigate(location.state?.returnTo || ROUTER.SCHOOL_MENU_PLANNING)}
+              title={header.title}
+              subtitle={header.subtitle}
+              showStatus={false}
+            />
+          )
+        })()}
 
         {/* 1. THANH ĐIỀU KHIỂN ĐẦU TRANG: CHỌN TUẦN & THÔNG TIN THỰC ĐƠN */}
         <div className={styles.topControlsCard}>
-          <div className={styles.controlsTopRow}>
-            {/* Bộ chọn tuần */}
+          <div className={styles.sectionHeaderRow}>
+            <h3 className={styles.sectionTitle}>
+              <CalendarDays size={18} />
+              <span>Bảng thực đơn tuần</span>
+              {!loadingSchedule && !scheduleError && (() => {
+                const status = academicWeek?.weeklyMenuStatus
+                const meta = ({
+                  DRAFT: ["Bản nháp", styles.weekStatusDraft],
+                  PENDING_APPROVAL: ["Chờ duyệt", styles.weekStatusPending],
+                  REVISION_REQUIRED: ["Cần chỉnh sửa", styles.weekStatusRevision],
+                  REVISION_REQUESTED: ["Cần chỉnh sửa", styles.weekStatusRevision],
+                  APPROVED: ["Đã duyệt", styles.weekStatusApproved],
+                })[status] || ["Chưa tạo", styles.weekStatusEmpty]
+                return <span className={`${styles.weekStatusBadge} ${meta[1]}`} title="Trạng thái thực đơn của tuần">{meta[0]}</span>
+              })()}
+            </h3>
+
+            <div className={styles.headerActionsWrap}>
+              {hasCopiedPreviousWeek && (
+                <button
+                  type="button"
+                  className={styles.undoCopyBtn}
+                  onClick={handleUndoCopyPreviousWeek}
+                  title="Hủy bỏ sao chép và khôi phục lại thực đơn trước khi sao chép"
+                >
+                  <RotateCcw size={14} />
+                  <span>Bỏ sao chép</span>
+                </button>
+              )}
+
+              {/* Nút Sao chép thực đơn tuần trước */}
+              <button
+                type="button"
+                className={styles.copyPrevWeekBtn}
+                onClick={handleTriggerCopyPreviousWeek}
+                disabled={isCopying || loadingSchedule || saving || Boolean(scheduleError) || deadlineLocked || academicWeek?.weeklyMenuStatus === "APPROVED"}
+                title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
+              >
+                {isCopying ? (
+                  <Loader2 size={15} className={styles.spin} />
+                ) : (
+                  <Copy size={15} />
+                )}
+                <span>
+                  {isCopying
+                    ? "Đang sao chép..."
+                    : hasCopiedPreviousWeek
+                    ? "Sao chép lại"
+                    : "Sao chép từ tuần trước"}
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Hàng điều khiển gọn: Tuần · Tên thực đơn · Khối áp dụng */}
+          <div className={styles.compactControlsRow}>
+            <div className={styles.compactField}>
+              <span className={styles.compactLabel}>Tuần</span>
             <div className={styles.weekStepper}>
               <button
                 type="button"
@@ -713,39 +795,21 @@ export default function CreateMenu() {
                 <ChevronRight size={16} />
               </button>
             </div>
-
-            {/* Thống kê tiến độ tuần */}
-            <div className={styles.weekQuickStats}>
-              <span className={styles.statPill}>
-                Tiến độ: <strong>{completedDaysCount}/{schoolDays.filter(d=>!d.isHoliday).length}</strong> ngày học đủ 2 ca
-              </span>
-              <span className={styles.statPill}>
-                Tổng số món: <strong>{totalWeeklyDishesCount}</strong> món
-              </span>
             </div>
-          </div>
 
-          {/* Dòng nhập Tên thực đơn & Đối tượng áp dụng (Đã bỏ gợi ý thừa, bố cục cân đối) */}
-          <div className={styles.controlsInputsRow}>
-            <div className={styles.inputGroup}>
-              <label className={styles.inputLabel}>
-                Tên thực đơn tuần <span className={styles.inputRequired}>*</span>
-              </label>
-              <input
-                type="text"
-                className={styles.textInput}
-                value={menuTitle}
-                readOnly
-                aria-readonly="true"
-                placeholder={loadingSchedule ? "Đang tải tuần học..." : "Chưa xác định được tuần học"}
-              />
+            {/* Tên thực đơn do hệ thống đặt theo tuần: hiện dạng chữ, không cần ô nhập */}
+            <div className={`${styles.compactField} ${styles.compactFieldGrow}`}>
+              <span className={styles.compactLabel}>Tên thực đơn</span>
+              <span className={`${styles.compactValue} ${!menuTitle ? styles.compactValueMuted : ""}`} title={menuTitle || undefined}>
+                {menuTitle || (loadingSchedule ? "Đang tải tuần học..." : "Chưa xác định được tuần học")}
+              </span>
             </div>
 
             {/* Select sổ xuống có checkbox chọn nhiều khối lớp */}
-            <div className={styles.inputGroup} ref={gradeDropdownRef}>
-              <label className={styles.inputLabel}>
-                Đối tượng áp dụng <span className={styles.inputRequired}>*</span>
-              </label>
+            <div className={`${styles.compactField} ${styles.compactFieldGrade}`} ref={gradeDropdownRef}>
+              <span className={styles.compactLabel}>
+                Khối áp dụng <span className={styles.inputRequired}>*</span>
+              </span>
 
               <div className={styles.multiSelectContainer}>
                 <div
@@ -763,7 +827,7 @@ export default function CreateMenu() {
                       !targetScopeText ? styles.selectPlaceholder : ""
                     }`}
                   >
-                    {targetScopeText || "Chọn khối lớp áp dụng..."}
+                    {targetScopeText || "Chọn khối..."}
                   </span>
                   {isGradeDropdownOpen ? (
                     <ChevronUp size={16} className={styles.selectChevron} />
@@ -820,60 +884,6 @@ export default function CreateMenu() {
 
         {/* 2. 1 HÀNG DÀI THỰC ĐƠN TUẦN (WEEKLY GRID: 5 CỘT T2 - T6) */}
         <div className={styles.weeklySectionWrap}>
-          <div className={styles.sectionHeaderRow}>
-            <h3 className={styles.sectionTitle}>
-              <CalendarDays size={18} />
-              <span>Bảng thực đơn tuần (Thứ Hai – Thứ Sáu)</span>
-              {!loadingSchedule && !scheduleError && (() => {
-                const status = academicWeek?.weeklyMenuStatus
-                const meta = ({
-                  DRAFT: ["Bản nháp", styles.weekStatusDraft],
-                  PENDING_APPROVAL: ["Chờ duyệt", styles.weekStatusPending],
-                  REVISION_REQUIRED: ["Cần chỉnh sửa", styles.weekStatusRevision],
-                  REVISION_REQUESTED: ["Cần chỉnh sửa", styles.weekStatusRevision],
-                  APPROVED: ["Đã duyệt", styles.weekStatusApproved],
-                })[status] || ["Chưa tạo", styles.weekStatusEmpty]
-                return <span className={`${styles.weekStatusBadge} ${meta[1]}`} title="Trạng thái thực đơn của tuần">{meta[0]}</span>
-              })()}
-            </h3>
-
-            <div className={styles.headerActionsWrap}>
-              {hasCopiedPreviousWeek && (
-                <button
-                  type="button"
-                  className={styles.undoCopyBtn}
-                  onClick={handleUndoCopyPreviousWeek}
-                  title="Hủy bỏ sao chép và khôi phục lại thực đơn trước khi sao chép"
-                >
-                  <RotateCcw size={14} />
-                  <span>Bỏ sao chép</span>
-                </button>
-              )}
-
-              {/* Nút Sao chép thực đơn tuần trước */}
-              <button
-                type="button"
-                className={styles.copyPrevWeekBtn}
-                onClick={handleTriggerCopyPreviousWeek}
-                disabled={isCopying || loadingSchedule || saving || Boolean(scheduleError) || deadlineLocked || academicWeek?.weeklyMenuStatus === "APPROVED"}
-                title="Sao chép toàn bộ món ăn và gia vị từ thực đơn của tuần liền trước sang tuần này"
-              >
-                {isCopying ? (
-                  <Loader2 size={15} className={styles.spin} />
-                ) : (
-                  <Copy size={15} />
-                )}
-                <span>
-                  {isCopying
-                    ? "Đang sao chép..."
-                    : hasCopiedPreviousWeek
-                    ? "Sao chép lại"
-                    : "Sao chép từ tuần trước"}
-                </span>
-              </button>
-            </div>
-          </div>
-
           <CreateMenuWeeklyGrid
             schoolDays={schoolDays}
             weeklyMeals={weeklyMeals}
@@ -884,6 +894,11 @@ export default function CreateMenu() {
       </div>
 
       <InlineError messages={[scheduleError, gradeError, deadlineLockReason]} />
+      {weekApproved && !loadingSchedule && !scheduleError && (
+        <Alert severity="success" sx={{ mt: 2 }}>
+          Thực đơn tuần {(weekInfo?.schoolDays?.[0]?.dateVN || "").slice(0, 10)}–{(weekInfo?.schoolDays?.at(-1)?.dateVN || "").slice(0, 10)} đã được tạo và Ban Giám hiệu duyệt thành công.
+        </Alert>
+      )}
       {!GRADE_OPTIONS.length && !gradeError && <p role="status">Chưa có khối để lập thực đơn. Ban Giám hiệu cần cấu hình khối trước.</p>}
       {/* Sticky Bottom Bar */}
       <CreateMenuBottomBar

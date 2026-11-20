@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
+import { vietnamToday } from "src/utils/lotDates"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
 import { Button, CircularProgress } from "@mui/material"
@@ -796,7 +797,9 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                                 type="date"
                                 value={row.manufactureDate || ""}
                                 onChange={event => handleLotDateChange(row.rowKey, "manufactureDate", event.target.value)}
-                                className={styles.textInput}
+                                max={vietnamToday()}
+                                className={`${styles.textInput} ${rowErr.lotDates ? styles.hasError : ""}`}
+                                aria-invalid={Boolean(rowErr.lotDates)}
                                 aria-label={`Ngày sản xuất dòng ${idx + 1} (bắt buộc với đồ khô)`}
                               />
                             </div>
@@ -806,9 +809,16 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                                 type="date"
                                 value={row.expiryDate || ""}
                                 onChange={event => handleLotDateChange(row.rowKey, "expiryDate", event.target.value)}
-                                className={styles.textInput}
+                                min={vietnamToday()}
+                                className={`${styles.textInput} ${rowErr.lotDates ? styles.hasError : ""}`}
+                                aria-invalid={Boolean(rowErr.lotDates)}
                                 aria-label={`Hạn sử dụng dòng ${idx + 1} (bắt buộc với đồ khô)`}
                               />
+                              {rowErr.lotDates && (
+                                <p className={styles.fieldError} role="alert">
+                                  {rowErr.lotDates}
+                                </p>
+                              )}
                             </div>
 
                             <button

@@ -1,4 +1,5 @@
 import React from "react"
+import { DRY_MIN_SHELF_DAYS, vietnamDateAfterDays, vietnamToday } from "src/utils/lotDates"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
 import { CircularProgress } from "@mui/material"
@@ -293,6 +294,7 @@ function RequestSourcesAssigner({
                                 <input
                                   type="date"
                                   value={row.manufactureDate || ""}
+                                  max={vietnamToday()}
                                   disabled={disabled}
                                   onChange={event =>
                                     onChangeAllocation?.(
@@ -312,6 +314,7 @@ function RequestSourcesAssigner({
                                 <input
                                   type="date"
                                   value={row.expiryDate || ""}
+                                  min={vietnamDateAfterDays(DRY_MIN_SHELF_DAYS)}
                                   disabled={disabled}
                                   onChange={event =>
                                     onChangeAllocation?.(

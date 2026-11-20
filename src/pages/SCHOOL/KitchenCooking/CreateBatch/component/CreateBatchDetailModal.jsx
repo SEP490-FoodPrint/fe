@@ -1,7 +1,8 @@
 import { formatLargeQuantity, formatLargeQuantityText } from "src/utils/quantity"
 import { formatSmallQuantity, formatSmallQuantityText } from "src/utils/quantity"
 import { batchSampleProgress } from "src/services/KitchenService/adapter";
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import KitchenService from "src/services/KitchenService";
 import { Dialog, DialogContent, IconButton } from "@mui/material";
 import {
   X,
@@ -11,6 +12,9 @@ import {
   ShieldCheck,
   ArrowRight,
   FlaskConical,
+  ZoomIn,
+  CameraOff,
+  Image as ImageIcon,
 } from "lucide-react";
 import { batchDisplayName } from "../batchLabel";
 import styles from "./CreateBatchDetailModal.module.scss";
@@ -63,7 +67,52 @@ export default function CreateBatchDetailModal({
   const portions = Number(current?.portionStandard ?? current?.plannedPortions ?? current?.portions ?? 0);
   const isCreated = Boolean(current?.isBatchCreated || current?.batchCode || current?.code || current?.status);
   const status = current?.status || (isCreated ? "UNCONFIRMED" : "PENDING");
-  const hasSample = batchSampleProgress(current).complete;
+  const [samplesData, setSamplesData] = useState([]);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  const initialSamples = useMemo(() => {
+    if (!current) return [];
+    if (Array.isArray(current.retainedFoodSamples) && current.retainedFoodSamples.length > 0) {
+      return current.retainedFoodSamples;
+    }
+    if (current.retainedFoodSample) {
+      return [current.retainedFoodSample];
+    }
+    return [];
+  }, [current]);
+
+  useEffect(() => {
+    if (!open || !current?.id) {
+      setSamplesData([]);
+      setPhotoPreview(null);
+      return;
+    }
+
+    if (initialSamples.length > 0) {
+      setSamplesData(initialSamples);
+    }
+
+    let active = true;
+    KitchenService.getBatchSample(current.id)
+      .then((res) => {
+        if (!active) return;
+        const list = Array.isArray(res) ? res : res ? [res] : [];
+        if (list.length > 0) {
+          setSamplesData(list);
+        }
+      })
+      .catch((err) => {
+        console.warn("Không thể tải ảnh mẫu lưu từ API:", err);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [open, current?.id, initialSamples]);
+
+  const activeSamples = samplesData.length > 0 ? samplesData : initialSamples;
+  const sample = activeSamples.length > 0 ? activeSamples[0] : null;
+  const hasSample = batchSampleProgress(current).complete || activeSamples.length > 0;
 
   const stage = hasSample
     ? { key: "sampled", label: "Đã lưu mẫu", Icon: ShieldCheck }
@@ -72,11 +121,6 @@ export default function CreateBatchDetailModal({
       : status === "CONFIRMED"
         ? { key: "cooking", label: "Đang nấu", Icon: Flame }
         : { key: "pending", label: "Chưa nấu", Icon: CookingPot };
-
-  const sample = useMemo(() => {
-    if (!current) return null;
-    return current.retainedFoodSamples?.at?.(-1) || current.retainedFoodSamples?.[0] || current.retainedFoodSample || null;
-  }, [current]);
 
   const mainIngredients = useMemo(() => toLines(current?.ingredients || current?.cookingBatchLots || []), [current]);
   const seasonings = useMemo(() => toLines(current?.seasonings || current?.mealSeasonings || []), [current]);
@@ -126,8 +170,9 @@ export default function CreateBatchDetailModal({
   const StageIcon = stage.Icon;
 
   return (
-    <Dialog
-      open={open}
+    <>
+      <Dialog
+        open={open}
       onClose={submitting ? undefined : onClose}
       maxWidth="sm"
       fullWidth
@@ -168,23 +213,104 @@ export default function CreateBatchDetailModal({
           </ol>
         )}
 
-        {hasSample && (
-          <section className={styles.sampleCard}>
-            <FlaskConical size={18} className={styles.sampleIcon} aria-hidden="true" />
-            <dl className={styles.sampleGrid}>
-              <div>
-                <dt>Thời điểm lưu</dt>
-                <dd>{formatDateTime(sample?.sampledAt)}</dd>
+        {hasSample && activeSamples.length > 0 && (
+          <section className={styles.sampleSection}>
+            <div className={styles.sampleSectionHeader}>
+              <div className={styles.sampleHeaderTitle}>
+                <FlaskConical size={18} className={styles.sampleIcon} aria-hidden="true" />
+                <h3 className={styles.sampleSectionHeading}>Thông tin mẫu lưu thực phẩm (24h)</h3>
               </div>
-              <div>
-                <dt>Vị trí lưu</dt>
-                <dd>{sample?.storageLocation || "Chưa cập nhật"}</dd>
-              </div>
-              <div>
-                <dt>Lượng mẫu</dt>
-                <dd>{sample?.quantity ? formatSmallQuantity(sample.quantity, sample.unit || "g") : "—"}</dd>
-              </div>
-            </dl>
+              <span className={styles.sampleBadgeDone}>
+                <ShieldCheck size={14} />
+                <span>Đã lưu mẫu</span>
+              </span>
+            </div>
+
+            <div className={styles.sampleList}>
+              {activeSamples.map((s, idx) => {
+                const dishName =
+                  s.dishName ||
+                  s.CookingBatch?.Dish?.name ||
+                  current.dishes?.find((d) => d.dishId === s.dishId)?.name ||
+                  (current.dishes?.length === 1 ? current.dishes[0].name : "") ||
+                  batchDisplayName(current);
+
+                return (
+                  <div key={s.id || idx} className={styles.sampleCard}>
+                    {activeSamples.length > 1 && (
+                      <div className={styles.sampleDishTitle}>
+                        <span className={styles.dishDot} />
+                        <strong>Món: {dishName}</strong>
+                      </div>
+                    )}
+                    <div className={styles.sampleBody}>
+                      <dl className={styles.sampleGrid}>
+                        <div>
+                          <dt>Thời điểm lưu</dt>
+                          <dd>{formatDateTime(s.sampledAt)}</dd>
+                        </div>
+                        <div>
+                          <dt>Lượng mẫu</dt>
+                          <dd>{s.quantity ? formatSmallQuantity(s.quantity, s.unit || "g") : "—"}</dd>
+                        </div>
+                        <div className={styles.locationItem}>
+                          <dt>Vị trí tủ lưu</dt>
+                          <dd>{s.storageLocation || s.storageUnitName || "Chưa cập nhật"}</dd>
+                        </div>
+                        {s.recordedByName && (
+                          <div>
+                            <dt>Người ghi nhận</dt>
+                            <dd>{s.recordedByName}</dd>
+                          </div>
+                        )}
+                        {s.status === "DISPOSED" && (
+                          <div>
+                            <dt>Trạng thái</dt>
+                            <dd className={styles.disposedText}>Đã tiêu hủy {formatTime(s.disposedAt)}</dd>
+                          </div>
+                        )}
+                      </dl>
+
+                      <div className={styles.samplePhotoContainer}>
+                        {s.photoUrl ? (
+                          <button
+                            type="button"
+                            className={styles.photoThumbButton}
+                            onClick={() =>
+                              setPhotoPreview({
+                                url: s.photoUrl,
+                                dishName,
+                                sampledAt: formatDateTime(s.sampledAt),
+                                location: s.storageLocation || s.storageUnitName,
+                                quantity: s.quantity ? formatSmallQuantity(s.quantity, s.unit || "g") : null,
+                              })
+                            }
+                            title="Bấm để xem ảnh phóng to"
+                            aria-label={`Xem ảnh mẫu lưu ${dishName}`}
+                          >
+                            <img
+                              src={s.photoUrl}
+                              alt={`Ảnh mẫu lưu ${dishName}`}
+                              className={styles.sampleThumbImg}
+                              loading="lazy"
+                            />
+                            <div className={styles.photoOverlay}>
+                              <ZoomIn size={15} />
+                              <span>Phóng to</span>
+                            </div>
+                          </button>
+                        ) : (
+                          <div className={styles.noPhotoBox}>
+                            <CameraOff size={18} className={styles.noPhotoIcon} />
+                            <span>Chưa có ảnh</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
 
@@ -228,5 +354,55 @@ export default function CreateBatchDetailModal({
         )}
       </footer>
     </Dialog>
+
+    {/* Lightbox phóng to ảnh mẫu lưu */}
+    {photoPreview && (
+      <Dialog
+        open={Boolean(photoPreview)}
+        onClose={() => setPhotoPreview(null)}
+        maxWidth="md"
+        classes={{ paper: styles.photoDialogPaper }}
+      >
+        <div className={styles.photoDialogHeader}>
+          <div className={styles.photoDialogTitleWrap}>
+            <ImageIcon size={18} className={styles.photoDialogIcon} />
+            <h3 className={styles.photoDialogTitle}>
+              Ảnh mẫu lưu – {photoPreview.dishName || "Chi tiết"}
+            </h3>
+          </div>
+          <IconButton
+            onClick={() => setPhotoPreview(null)}
+            size="small"
+            className={styles.photoDialogClose}
+            aria-label="Đóng ảnh"
+          >
+            <X size={18} />
+          </IconButton>
+        </div>
+        <div className={styles.photoDialogBody}>
+          <img
+            src={photoPreview.url}
+            alt="Ảnh chụp mẫu lưu thực phẩm chi tiết"
+            className={styles.photoDialogImg}
+          />
+        </div>
+        <div className={styles.photoDialogFooter}>
+          <span className={styles.photoMetaItem}>
+            <strong>Thời điểm:</strong> {photoPreview.sampledAt}
+          </span>
+          {photoPreview.quantity && (
+            <span className={styles.photoMetaItem}>
+              <strong>Lượng mẫu:</strong> {photoPreview.quantity}
+            </span>
+          )}
+          {photoPreview.location && (
+            <span className={styles.photoMetaItem}>
+              <strong>Vị trí:</strong> {photoPreview.location}
+            </span>
+          )}
+        </div>
+      </Dialog>
+    )}
+  </>
   );
 }

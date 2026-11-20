@@ -199,7 +199,7 @@ export default function KitchenMenu() {
           schedules.length === 1
             ? schedules[0].weeklyMenuTitle
             : week
-              ? `Thực đơn tuần ${week.weekNumber}`
+              ? `Thực đơn dinh dưỡng tuần ${week.weekNumber}`
               : "Thực đơn"
         }
         targetScope={

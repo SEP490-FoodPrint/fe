@@ -622,3 +622,72 @@
 .weekStatusRevision { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
 .weekStatusApproved { background: #d1fae5; color: #065f46; border-color: #a7f3d0; }
 .weekStatusEmpty { background: #f8fafc; color: #94a3b8; border-color: #e2e8f0; }
+
+/* Tiêu đề "Bảng thực đơn tuần" + trạng thái nằm trên cùng khung chọn tuần, ngăn cách nhẹ với bộ lọc */
+.topControlsCard > .sectionHeaderRow {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* ===== Hàng điều khiển gọn: Tuần · Tên thực đơn · Khối áp dụng ===== */
+.compactControlsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px 24px;
+}
+
+.compactField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.compactFieldGrow {
+  flex: 1 1 240px;
+}
+
+.compactFieldGrade {
+  flex: 0 1 280px;
+  min-width: 220px;
+}
+
+.compactLabel {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #64748b;
+}
+
+.compactValue {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.compactValueMuted {
+  font-weight: 400;
+  color: #94a3b8;
+}
+
+@media (max-width: 640px) {
+  .compactFieldGrade {
+    flex: 1 1 100%;
+  }
+}
+
+
+/* Bộ chọn tuần cao bằng ô chọn khối để cả hàng thẳng nhau */
+.compactField .weekStepper {
+  min-height: 38px;
+  box-sizing: border-box;
+  background-color: #ffffff;
+}

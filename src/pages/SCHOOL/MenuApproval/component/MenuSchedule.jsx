@@ -1,4 +1,5 @@
 import React from "react"
+import { dayTint } from "src/utils/dayTint"
 import PropTypes from "prop-types"
 import { Tooltip } from "@mui/material"
 import { Cookie, Users, Utensils } from "lucide-react"
@@ -51,7 +52,7 @@ function MenuSchedule({ days, label }) {
           <tr>
             <th scope="col" className={styles.corner} aria-label="Bữa ăn" />
             {days.map(day => (
-              <th scope="col" key={day.id} className={styles.dayHead}>
+              <th scope="col" key={day.id} className={styles.dayHead} style={{ backgroundColor: dayTint(day.date) || undefined }}>
                 <span className={styles.dayName}>{day.shortLabel}</span>
                 <span className={styles.dayDate}>{day.date}</span>
               </th>
@@ -65,7 +66,7 @@ function MenuSchedule({ days, label }) {
                 <Icon size={16} /> {mealLabel}
               </th>
               {days.map(day => (
-                <td key={day.id} className={day[key].length ? undefined : styles.emptyCell}>
+                <td key={day.id} className={day[key].length ? undefined : styles.emptyCell} style={{ backgroundColor: dayTint(day.date) || undefined }}>
                   <DishCell dishes={day[key]} />
                 </td>
               ))}
@@ -76,7 +77,7 @@ function MenuSchedule({ days, label }) {
               <Users size={16} /> Số suất
             </th>
             {days.map(day => (
-              <td key={day.id}>{(Number(day.portions) || 0).toLocaleString("vi-VN")}</td>
+              <td key={day.id} style={{ backgroundColor: dayTint(day.date) || undefined }}>{(Number(day.portions) || 0).toLocaleString("vi-VN")}</td>
             ))}
           </tr>
         </tbody>

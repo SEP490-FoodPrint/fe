@@ -11,9 +11,7 @@ import { parseDateVNToISO, menuWeekMeals, adaptBackendMenuDetailToView } from "s
 import { academicWeekSearch } from "src/services/MenuService/academicWeekView"
 
 import MenuDetailHeader from "./component/MenuDetailHeader"
-import MenuDetailBGHFeedback from "./component/MenuDetailBGHFeedback"
 import MenuDetailDishesTable from "./component/MenuDetailDishesTable"
-import MenuDetailAllergyCard from "./component/MenuDetailAllergyCard"
 import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
 import MenuGradeDetails from "./component/MenuGradeDetails"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
@@ -216,8 +214,6 @@ export default function MenuDetail() {
           onSubmitApproval={() => setIsConfirmSubmitOpen(true)}
         />
 
-        {/* Khối Ý kiến phản hồi của Ban Giám Hiệu (nếu có yêu cầu chỉnh sửa) */}
-        <MenuDetailBGHFeedback menu={menu} revisionRequested={revisionRequested} review={review} loading={reviewLoading} error={reviewError} onRetry={retryReview} />
 
         <MenuGradeDetails
           weeklyMenu={rawWeeklyMenu}
@@ -243,12 +239,8 @@ export default function MenuDetail() {
               dishes={menu.dishes}
               substituteDish={menu.substituteDish}
               mealSeasonings={menu.seasonings}
-              gradeIds={selectedScope?.candidate?.id === rawWeeklyMenu?.id
-                ? selectedScope.gradeIds : menu.gradeIds}
             />
 
-            {/* Khối 3: Phương án an toàn suất ăn riêng dị ứng */}
-            <MenuDetailAllergyCard menu={menu} />
           </>
         )}
       </div>

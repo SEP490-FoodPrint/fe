@@ -1,4 +1,5 @@
 import http from "src/services/01_axios"
+import { lotDateError } from "src/utils/lotDates"
 
 const BASE_URL = "/deliveries/management"
 
@@ -450,6 +451,12 @@ export function validateDeliveryIngredientsStep({
         if (!String(row?.unit || "").trim()) {
           rowErr.unit = "Thiếu đơn vị tính."
         }
+
+        const dateError = lotDateError({
+          manufactureDate: String(row?.manufactureDate || "").trim(),
+          expiryDate: String(row?.expiryDate || "").trim(),
+        })
+        if (dateError) rowErr.lotDates = dateError
 
         if (Object.keys(rowErr).length > 0) {
           itemErrors[index] = rowErr

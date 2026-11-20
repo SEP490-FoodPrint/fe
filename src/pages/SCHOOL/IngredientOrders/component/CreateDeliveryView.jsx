@@ -118,6 +118,8 @@ export const isDiscreteUnit = (unit = "") => {
     "bó",
     "túi",
     "con",
+    "miếng",
+    "lát",
   ];
   return discreteUnits.includes(u);
 };

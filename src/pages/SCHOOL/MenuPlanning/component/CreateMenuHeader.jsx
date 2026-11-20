@@ -1,7 +1,7 @@
 import React from "react"
 import styles from "./CreateMenuHeader.module.scss"
 
-export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = false, statusLabel, title, subtitle }) {
+export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = false, statusLabel, title, subtitle, showStatus = true }) {
   const hasMeal = Boolean(selectedDayMenu?.hasMeal)
   return (
     <div className={styles.headerContainer}>
@@ -9,10 +9,12 @@ export default function CreateMenuHeader({ onBack, selectedDayMenu, readOnly = f
         <div className={styles.titleBlock}>
           <div className={styles.titleWithBadge}>
             <h1 className={styles.pageTitle}>{title || (readOnly ? "Xem thực đơn" : hasMeal ? "Chỉnh sửa thực đơn" : "Tạo thực đơn")}</h1>
-            <span className={styles.statusPill}>
-              <span className={styles.statusDot}></span>
-              {statusLabel || (hasMeal ? "Chỉnh sửa" : "Bản nháp mới")}
-            </span>
+            {showStatus && (
+              <span className={styles.statusPill}>
+                <span className={styles.statusDot}></span>
+                {statusLabel || (hasMeal ? "Chỉnh sửa" : "Bản nháp mới")}
+              </span>
+            )}
           </div>
           <p className={styles.pageSubtitle}>
             {subtitle || "Chọn món từ danh sách món ăn bán trú để thiết lập cơ cấu dinh dưỡng và hoàn thiện thực đơn tuần học đường."}

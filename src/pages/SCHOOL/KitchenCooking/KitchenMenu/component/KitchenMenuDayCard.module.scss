@@ -1,7 +1,7 @@
 .dayColumn {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: var(--day-tint, #ffffff);
   border: 1px solid #e2e8f0;
   border-radius: 8px;
   overflow: hidden;
@@ -18,14 +18,10 @@
 /* Cột hôm nay */
 .todayColumn {
   border: 2px solid #0a8066 !important;
-  box-shadow: inset 0 0 0 1px #0a8066, 0 3px 12px rgba(10, 128, 102, 0.12) !important;
+  box-shadow: 0 3px 12px rgba(10, 128, 102, 0.12) !important;
   box-sizing: border-box !important;
   position: relative;
   z-index: 2;
-
-  .dayHeader {
-    background-color: #f0fdf4;
-  }
 }
 
 /* Cột ngày nghỉ theo setup Ban Giám Hiệu */
@@ -50,7 +46,7 @@
   max-height: 64px;
   box-sizing: border-box;
   padding: 8px 10px;
-  background-color: #ffffff;
+  background-color: transparent;
   border-bottom: 1px solid #f1f5f9;
   gap: 4px;
   overflow: hidden;
@@ -173,7 +169,7 @@
 .dishesBody {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: transparent;
   flex: 1;
 }
 
@@ -230,7 +226,7 @@
 .dishesListLunch {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: transparent;
   min-height: 250px;
 }
 
@@ -285,7 +281,7 @@
 .dishesListAfternoon {
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: transparent;
   min-height: 50px;
 }
 

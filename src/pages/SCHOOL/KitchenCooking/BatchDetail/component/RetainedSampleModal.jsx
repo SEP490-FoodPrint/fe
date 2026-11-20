@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import PhotoPicker from "src/components/PhotoPicker";
 import PropTypes from "prop-types";
 import { minimumSampleQuantity, sampleQuantityError } from "src/utils/sampleRules";
-import StorageUnitField, { storageUnitBlockReason } from "../../KitchenSamples/component/StorageUnitField";
+import StorageUnitField, { storageUnitBlockReason, storageCompartmentBlockReason } from "../../KitchenSamples/component/StorageUnitField";
 import {
   X,
   FlaskConical,
@@ -69,6 +69,7 @@ export default function RetainedSampleModal({
       );
       setErrorMsg("");
       setPhoto(null);
+      setStoragePosition("");
     }
   }, [isOpen]);
 
@@ -106,7 +107,8 @@ export default function RetainedSampleModal({
       setErrorMsg(quantityError);
       return;
     }
-    const storageError = storageUnitBlockReason(storageUnits.find((item) => item.id === storageUnitId));
+    const selectedStorageUnit = storageUnits.find((item) => item.id === storageUnitId);
+    const storageError = storageUnitBlockReason(selectedStorageUnit) || storageCompartmentBlockReason(selectedStorageUnit, storagePosition);
     if (storageError) {
       setErrorMsg(storageError);
       return;
@@ -123,7 +125,7 @@ export default function RetainedSampleModal({
       quantity: String(Number(quantity)),
       unit,
       storageUnitId,
-      ...(storagePosition.trim() ? { storageLocation: storagePosition.trim() } : {}),
+      storageLocation: storagePosition,
       sampledAt: selectedTime.toISOString(),
       photo,
     });

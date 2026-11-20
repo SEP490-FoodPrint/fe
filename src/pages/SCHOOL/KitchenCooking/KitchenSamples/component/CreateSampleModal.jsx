@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import PhotoPicker from "src/components/PhotoPicker";
 import PropTypes from "prop-types";
 import { minimumSampleQuantity, sampleQuantityError } from "src/utils/sampleRules";
-import StorageUnitField, { storageUnitBlockReason } from "./StorageUnitField";
+import StorageUnitField, { storageUnitBlockReason, storageCompartmentBlockReason } from "./StorageUnitField";
 import {
   X,
   FlaskConical,
@@ -38,7 +38,12 @@ export default function CreateSampleModal({
   const [storageUnits, setStorageUnits] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
   const [photo, setPhoto] = useState(null);
-  useEffect(() => { if (open) setPhoto(null); }, [open]);
+  useEffect(() => {
+    if (open) {
+      setPhoto(null);
+      setStoragePosition("");
+    }
+  }, [open]);
 
   // Tự động chọn mẻ đầu tiên khi mở modal
   useEffect(() => {
@@ -133,7 +138,8 @@ export default function CreateSampleModal({
       setErrorMsg(quantityError);
       return;
     }
-    const storageError = storageUnitBlockReason(storageUnits.find((item) => item.id === storageUnitId));
+    const selectedStorageUnit = storageUnits.find((item) => item.id === storageUnitId);
+    const storageError = storageUnitBlockReason(selectedStorageUnit) || storageCompartmentBlockReason(selectedStorageUnit, storagePosition);
     if (storageError) {
       setErrorMsg(storageError);
       return;
@@ -148,7 +154,7 @@ export default function CreateSampleModal({
       quantity: String(Number(quantity)),
       unit: unit || "g",
       storageUnitId,
-      storageLocation: storagePosition.trim() || undefined,
+      storageLocation: storagePosition,
       photo,
     });
   };

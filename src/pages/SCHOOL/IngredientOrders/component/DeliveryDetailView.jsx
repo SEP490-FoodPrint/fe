@@ -1094,6 +1094,8 @@ export default function DeliveryDetailView({
                   "bó",
                   "túi",
                   "con",
+                  "miếng",
+                  "lát",
                 ].includes(
                   String(item.unit || "")
                     .toLowerCase()

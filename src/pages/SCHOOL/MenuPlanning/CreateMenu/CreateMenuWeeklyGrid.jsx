@@ -1,15 +1,16 @@
 import React, { useState } from "react"
+import { dayTintStyle } from "src/utils/dayTint"
 import { isPastMenuDay } from "src/utils/menuDays"
 import {
   Utensils,
   Coffee,
   Sparkles,
   Plus,
+  Pencil,
   ChevronDown,
   ChevronUp,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
   CalendarOff,
 } from "lucide-react"
 import styles from "./CreateMenuWeeklyGrid.module.scss"
@@ -70,12 +71,8 @@ export default function CreateMenuWeeklyGrid({
           const hasSeasonings = seasonings.length > 0
 
           // Tiến độ ngày: Chuẩn hóa theo đúng yêu cầu
-          // "Nghỉ", "Thiếu bữa xế", "Thiếu bữa trưa", "Đủ bữa", "Chưa tạo"
-          let progress = {
-            label: "Chưa tạo",
-            badgeClass: styles.badgeEmpty,
-            IconComponent: HelpCircle,
-          }
+          // "Nghỉ", "Thiếu bữa xế", "Thiếu bữa trưa", "Đủ bữa"; chưa có món thì không hiện nhãn
+          let progress = null
           if (sd.isHoliday) {
             progress = {
               label: "Nghỉ",
@@ -102,7 +99,7 @@ export default function CreateMenuWeeklyGrid({
             }
           }
 
-          const ProgressIcon = progress.IconComponent
+          const ProgressIcon = progress?.IconComponent
 
           const isLunchCollapsed = !!collapsedMeals.LUNCH
           const isAfternoonCollapsed = !!collapsedMeals.AFTERNOON
@@ -114,6 +111,7 @@ export default function CreateMenuWeeklyGrid({
                 className={`${styles.dayCard} ${
                   sd.isToday ? styles.todayDayCard : ""
                 } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
+                style={dayTintStyle(sd.dateISO, { holiday: sd.isHoliday })}
               >
                 {/* HÀNG 1: HEADER CỘT NGÀY - CÓ 1 DẤU "+" DUY NHẤT ĐỂ THÊM/SỬA MENU CHO THỨ NÀY */}
                 <div className={styles.dayHeader}>
@@ -123,28 +121,43 @@ export default function CreateMenuWeeklyGrid({
                     </div>
 
                     {/* Nút + duy nhất để mở menu cho mỗi thứ (không hiển thị nếu là ngày nghỉ) */}
-                    {canEdit && !sd.isHoliday && <button
-                      type="button"
-                      className={styles.dayAddBtn}
-                      onClick={() => openDay("LUNCH")}
-                      title={`Thêm / chỉnh sửa thực đơn ${sd.dayLabel}`}
-                      aria-label="Thêm thực đơn ngày"
-                    >
-                      <Plus size={14} />
-                    </button>}
+                    {/* Ngày đã có thực đơn ở trạng thái Bản nháp / Chờ duyệt / Cần chỉnh sửa: bút chì (sửa); ngày chưa có món: dấu + (thêm) */}
+                    {canEdit && !sd.isHoliday && (() => {
+                      const statusText = {
+                        DRAFT: "bản nháp",
+                        PENDING_APPROVAL: "đang chờ BGH duyệt",
+                        REVISION_REQUIRED: "BGH yêu cầu chỉnh sửa",
+                        REVISION_REQUESTED: "BGH yêu cầu chỉnh sửa",
+                      }
+                      const status = [dayMeals.approvalStatus, dayMeals.weeklyStatus].find(value => statusText[value])
+                      const editable = Boolean(status) && (hasLunch || hasAfternoon || hasSeasonings)
+                      return (
+                        <button
+                          type="button"
+                          className={styles.dayAddBtn}
+                          onClick={() => openDay("LUNCH")}
+                          title={editable ? `Sửa thực đơn ${sd.dayLabel} (${statusText[status]})` : `Thêm thực đơn ${sd.dayLabel}`}
+                          aria-label={editable ? "Sửa thực đơn ngày" : "Thêm thực đơn ngày"}
+                        >
+                          {editable ? <Pencil size={13} /> : <Plus size={14} />}
+                        </button>
+                      )
+                    })()}
                   </div>
 
                   <div className={styles.dayDateRow}>
                     <span className={styles.dayDateText}>{sd.dateVN}</span>
 
-                    {/* Tiến độ ngày: "Đủ bữa", "Thiếu bữa xế", "Thiếu bữa trưa", "Chưa tạo" */}
-                    <span
-                      className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
-                      title={`Tiến độ ngày: ${progress.label}`}
-                    >
-                      <ProgressIcon size={11} />
-                      <span>{progress.label}</span>
-                    </span>
+                    {/* Tiến độ ngày: "Đủ bữa", "Thiếu bữa xế", "Thiếu bữa trưa" (chưa có món thì không hiện) */}
+                    {progress && (
+                      <span
+                        className={`${styles.dayProgressBadge} ${progress.badgeClass}`}
+                        title={`Tiến độ ngày: ${progress.label}`}
+                      >
+                        <ProgressIcon size={11} />
+                        <span>{progress.label}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
 

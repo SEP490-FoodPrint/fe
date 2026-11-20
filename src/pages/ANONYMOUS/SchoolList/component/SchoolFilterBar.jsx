@@ -134,10 +134,10 @@ function SchoolFilterBar({
           </FormControl>
         </div>
 
-        {/* 3. Dropdown 2: Quận / Huyện / Phường (MUI v6 Select) */}
+        {/* 3. Dropdown 2: Xã / Phường / Thị trấn (MUI v6 Select) */}
         <div className={styles.selectCol}>
           <label id="districtSelectLabel" htmlFor="districtSelect" className={styles.filterLabel}>
-            Quận / Huyện / Phường
+            Xã / Phường / Thị trấn
           </label>
           <FormControl fullWidth size="small" className={styles.formControl}>
             <Select
@@ -163,7 +163,7 @@ function SchoolFilterBar({
             >
               <MenuItem value="" className={styles.placeholderItem}>
                 {selectedCity
-                  ? "Tất cả Quận / Huyện / Phường"
+                  ? "Tất cả Xã / Phường"
                   : "— Chọn Tỉnh/TP trước —"}
               </MenuItem>
               {districts.map((d) => (

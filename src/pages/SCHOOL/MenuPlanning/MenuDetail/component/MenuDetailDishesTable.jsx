@@ -1,10 +1,6 @@
 import { formatSmallQuantity } from "src/utils/quantity"
-import React, { useEffect, useMemo, useState } from "react"
-import { Button, Chip } from "@mui/material"
-import { ClipboardCheck, CircleHelp, LoaderCircle, ShieldAlert } from "lucide-react"
+import React from "react"
 import styles from "./MenuDetailDishesTable.module.scss"
-import MenuService from "src/services/MenuService"
-import { getDishAllergyState } from "src/services/MenuService/adapter"
 
 /**
  * Kiểm tra xem một nguyên liệu có thuộc nhóm gia vị / phụ gia nêm nếm hay không.
@@ -59,48 +55,7 @@ export default function MenuDetailDishesTable({
   dishes = [],
   substituteDish = null,
   mealSeasonings = [],
-  gradeIds = [],
 }) {
-  const gradeKey = [...gradeIds].sort().join(",")
-  
-  const ingredientKey = useMemo(() => {
-    const list = Array.isArray(dishes) ? dishes : []
-    const allDishes = [...list]
-    if (substituteDish) allDishes.push(substituteDish)
-    list.forEach(d => {
-      if (d.substituteDish) allDishes.push(d.substituteDish)
-    })
-    return [...new Set(allDishes.flatMap((dish) =>
-      dish.ingredientIds || dish.ingredientStandards?.map((line) => line.ingredientId) || []
-    ))].filter((id) => /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(id)).sort().join(",")
-  }, [dishes, substituteDish])
-
-  const [allergyCheck, setAllergyCheck] = useState({ key: "", status: "unknown", conflicts: [], ingredientIds: [] })
-  const [retryAttempt, setRetryAttempt] = useState(0)
-  const checkKey = `${gradeKey}:${ingredientKey}`
-
-  useEffect(() => {
-    let active = true
-    if (!ingredientKey) return () => { active = false }
-    const ingredientIds = ingredientKey.split(",")
-    setAllergyCheck({ key: checkKey, status: "loading", conflicts: [], ingredientIds })
-    const batches = []
-    for (let index = 0; index < ingredientIds.length; index += 100) {
-      batches.push(ingredientIds.slice(index, index + 100))
-    }
-    Promise.all(batches.map((ids) => MenuService.checkAllergies(ids, gradeIds)))
-      .then((results) => {
-        if (active) setAllergyCheck({ key: checkKey, status: "ready", ingredientIds, conflicts: results.flatMap((result) => result.data.conflicts) })
-      })
-      .catch((error) => {
-        if (active) setAllergyCheck({ key: checkKey, status: "error", ingredientIds, conflicts: [], message: error.message })
-      })
-    return () => { active = false }
-  }, [checkKey, retryAttempt])
-
-  const currentCheck = allergyCheck.key === checkKey
-    ? allergyCheck
-    : { status: ingredientKey ? "loading" : "unknown", conflicts: [], ingredientIds: [] }
 
   if (!dishes || dishes.length === 0) {
     return (
@@ -122,13 +77,6 @@ export default function MenuDetailDishesTable({
         </div>
       </div>
 
-      {currentCheck.status === "error" && (
-        <div className={styles.allergyNotice} role="status">
-          <span>{currentCheck.message || "Chưa tải được kết quả đối soát dị ứng."}</span>
-          <Button size="small" onClick={() => setRetryAttempt((value) => value + 1)}>Thử lại</Button>
-        </div>
-      )}
-
       <div className={styles.tableResponsive}>
         <table className={styles.table} aria-label="Cơ cấu món ăn và định lượng nguyên liệu, gia vị trên suất">
           <thead>
@@ -137,39 +85,30 @@ export default function MenuDetailDishesTable({
               <th scope="col" className={styles.thDish}>Tên món ăn</th>
               <th scope="col" className={styles.thMainIngredients}>Nguyên liệu chính</th>
               <th scope="col" className={styles.thSeasonings}>Gia vị</th>
-              <th scope="col" className={styles.thAllergy}>Đối soát dị ứng</th>
             </tr>
           </thead>
           <tbody>
             {dishes.map((dish, idx) => {
-              const allergy = getDishAllergyState(dish, currentCheck)
-              const AllergyIcon = allergy.status === "conflict" ? ShieldAlert
-                : allergy.status === "clear" ? ClipboardCheck
-                  : allergy.status === "loading" ? LoaderCircle : CircleHelp
-
               const ingredientsList = getDishIngredientsList(dish)
               const { mainIngredients, seasonings } = splitIngredients(ingredientsList, mealSeasonings)
 
               const dishKey = dish.dishId || dish.id
-              const sub =
-                dish.substituteDish ||
-                (substituteDish?.substituteForDishId === dishKey
-                  ? substituteDish
-                  : null)
+              const subs = dish.substituteDishes?.length
+                ? dish.substituteDishes
+                : dish.substituteDish
+                  ? [dish.substituteDish]
+                  : substituteDish?.substituteForDishId === dishKey
+                    ? [substituteDish]
+                    : []
 
               const rowClass = `${styles.tr} ${idx % 2 === 0 ? styles.rowEven : styles.rowOdd}`
 
-              let subRow = null
-              if (sub) {
-                const subAllergy = getDishAllergyState(sub, currentCheck)
-                const SubAllergyIcon = subAllergy.status === "conflict" ? ShieldAlert
-                  : subAllergy.status === "clear" ? ClipboardCheck
-                    : subAllergy.status === "loading" ? LoaderCircle : CircleHelp
+              const subRows = subs.map((sub, subIdx) => {
                 const subIngredientsList = getDishIngredientsList(sub)
                 const subSplit = splitIngredients(subIngredientsList, mealSeasonings)
 
-                subRow = (
-                  <tr key={`sub-${dishKey}-${idx}`} className={`${styles.tr} ${styles.substituteRow}`}>
+                return (
+                  <tr key={`sub-${dishKey}-${sub.dishId || sub.id || subIdx}`} className={`${styles.tr} ${styles.substituteRow}`}>
                     <td className={`${styles.tdIndex} ${styles.tdSubIndex}`}>
                       <span className={styles.subArrowIcon}>↳</span>
                     </td>
@@ -231,25 +170,9 @@ export default function MenuDetailDishesTable({
                         )}
                       </div>
                     </td>
-                    {/* Đối soát dị ứng: không viền, không màu nền, chữ mờ màu xám "Chưa ghi nhận" */}
-                    <td className={styles.tdAllergy}>
-                      {subAllergy.status === "conflict" ? (
-                        <div className={styles.allergyStatus}>
-                          <span className={`${styles.allergyConflictText} ${styles.subItemText}`}>{subAllergy.label}</span>
-                          {subAllergy.description && (
-                            <span className={styles.allergyDescription}>{subAllergy.description}</span>
-                          )}
-                          {subAllergy.classes?.length > 0 && (
-                            <span className={styles.affectedClasses}>Lớp: {subAllergy.classes.join(", ")}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className={`${styles.unrecordedText} ${styles.subItemText}`}>Chưa ghi nhận</span>
-                      )}
-                    </td>
                   </tr>
                 )
-              }
+              })
 
               return (
                 <React.Fragment key={dishKey || idx}>
@@ -315,24 +238,25 @@ export default function MenuDetailDishesTable({
                       </div>
                     </td>
 
-                    {/* Đối soát dị ứng: không viền, không màu nền, chữ mờ màu xám "Chưa ghi nhận" */}
-                    <td className={styles.tdAllergy}>
-                      {allergy.status === "conflict" ? (
-                        <div className={styles.allergyStatus}>
-                          <span className={styles.allergyConflictText}>{allergy.label}</span>
-                          {allergy.description && (
-                            <span className={styles.allergyDescription}>{allergy.description}</span>
-                          )}
-                          {allergy.classes?.length > 0 && (
-                            <span className={styles.affectedClasses}>Lớp: {allergy.classes.join(", ")}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className={styles.unrecordedText}>Chưa ghi nhận</span>
-                      )}
-                    </td>
                   </tr>
-                  {subRow}
+                  {subRows}
+                  {dish.excludedInGroups?.length > 0 && (
+                    <tr className={`${styles.tr} ${styles.substituteRow}`}>
+                      <td className={`${styles.tdIndex} ${styles.tdSubIndex}`}>
+                        <span className={styles.subArrowIcon}>↳</span>
+                      </td>
+                      <td className={`${styles.tdDish} ${styles.tdSubDish}`} colSpan={3}>
+                        <div className={styles.subDishContainer}>
+                          <div className={styles.subDishHeader}>
+                            <span className={styles.subDishTag}>Suất kiêng dị ứng</span>
+                          </div>
+                          <span className={styles.subDishName}>
+                            Không dùng món này cho {dish.excludedInGroups.join(", ")} (chưa có món thay thế)
+                          </span>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </React.Fragment>
               )
             })}

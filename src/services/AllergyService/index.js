@@ -5,7 +5,7 @@ export function groupAllergiesByClass(rows) {
   for (const row of rows) {
     if (!row.classId || !row.ingredientEntryId || !Number.isInteger(row.affectedCount) || row.affectedCount < 1) throw new Error("Dữ liệu dị ứng không hợp lệ.")
     const item = classes.get(row.classId) || {id:row.classId,className:row.className,academicYear:row.academicYear || "",allergies:[]}
-    item.allergies.push({id:`${row.classId}:${row.ingredientEntryId}`,ingredientEntryId:row.ingredientEntryId,ingredientId:row.ingredientId,ingredientName:row.ingredientName,category:row.category || "",affectedCount:row.affectedCount,updatedAt:row.updatedAt})
+    item.allergies.push({id:`${row.classId}:${row.ingredientEntryId}`,ingredientEntryId:row.ingredientEntryId,ingredientId:row.ingredientId,ingredientName:row.ingredientName,category:row.category || "",supplierName:row.supplierName || "",affectedCount:row.affectedCount,updatedAt:row.updatedAt})
     classes.set(row.classId,item)
   }
   return [...classes.values()].sort((a,b)=>a.className.localeCompare(b.className,"vi"))
@@ -15,9 +15,14 @@ export function computeAllergySummary(classList = []) {
   return {totalClasses:classList.filter(row=>row.allergies.length).length,totalIngredients:new Set(classList.flatMap(row=>row.allergies.map(line=>line.ingredientEntryId))).size}
 }
 
+// Lớp khai dị ứng theo một danh sách chung: mọi nguyên liệu cùng một số học sinh dị ứng.
+// Lấy số lớn nhất để hồ sơ cũ còn lệch số giữa các nguyên liệu vẫn không bị hiện thiếu.
+export function classAffectedStudents(allergies = []) {
+  return allergies.length ? Math.max(...allergies.map(line => Number(line.affectedCount) || 0)) : 0
+}
+
 export function affectedCountsLabel(allergies = []) {
-  if (allergies.length === 1) return String(allergies[0].affectedCount)
-  return allergies.map(line=>`${line.ingredientName}: ${line.affectedCount}`).join("; ")
+  return String(classAffectedStudents(allergies))
 }
 
 export async function getSchoolClassAllergies({ signal } = {}) {

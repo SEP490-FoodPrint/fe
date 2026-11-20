@@ -86,6 +86,8 @@
   &__notice--warning > svg { color: var(--color-warning); }
   &__notice--clear { border: 1px solid var(--border-default); background: var(--bg-muted); }
   &__notice--clear > svg { color: var(--color-success); }
+  &__notice-body { flex: 1; min-width: 0; }
+  &__notice-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
   &__allergy-list { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
   &__allergy-list span { padding: var(--space-1) var(--space-2); border-radius: var(--radius-md); color: var(--text-secondary); background: var(--bg-surface); font-size: var(--text-sm); }
 

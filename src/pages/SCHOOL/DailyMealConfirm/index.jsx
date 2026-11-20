@@ -4,6 +4,7 @@ import {
   Alert,
   Button,
   Checkbox,
+  Chip,
   CircularProgress,
   Dialog,
   DialogActions,
@@ -55,7 +56,10 @@ function DailyMealConfirm() {
   const [error, setError] = useState("")
   const [portions, setPortions] = useState("")
   const [selected, setSelected] = useState({ LUNCH: true, AFTERNOON: true })
-  const [allergyCounts, setAllergyCounts] = useState({})
+  // Một số suất dị ứng chung cho cả danh sách nguyên liệu dị ứng của lớp (không cộng theo nguyên liệu)
+  const [allergyCount, setAllergyCount] = useState("")
+  // Nguyên liệu GVCN bấm × bỏ khỏi danh sách hôm nay (em dị ứng nguyên liệu đó nghỉ)
+  const [removedAllergyIds, setRemovedAllergyIds] = useState([])
   const [notes, setNotes] = useState("")
   const [showNotes, setShowNotes] = useState(false)
   const [sending, setSending] = useState(false)
@@ -94,9 +98,14 @@ function DailyMealConfirm() {
       setPortions(draft ? draft.totalPortions : registered)
       setNotes(draft?.allergyNotes || "")
       setShowNotes(Boolean(draft?.allergyNotes))
-      setAllergyCounts(Object.fromEntries(
-        (draft?.dailyAllergyPortions || []).map(item => [item.ingredientEntryId, item.portionCount]),
-      ))
+      // Bản nháp không ghi dòng 0 suất: có bản nháp mà không có dòng nào nghĩa là đã nhập 0.
+      const savedRows = draft?.dailyAllergyPortions || []
+      setAllergyCount(draft ? (savedRows.length ? Math.max(...savedRows.map(row => Number(row.portionCount) || 0)) : 0) : "")
+      // Nguyên liệu không có dòng nào trong bản nháp (khi có dòng) là nguyên liệu đã bị bỏ hôm đó
+      const savedIds = new Set(savedRows.map(row => row.ingredientEntryId))
+      setRemovedAllergyIds(savedIds.size
+        ? (next.LUNCH.class.classAllergies || []).map(item => item.ingredientEntryId).filter(id => !savedIds.has(id))
+        : [])
     } catch (failure) {
       setContexts(null)
       setError(errorMessage(failure, "Không thể tải thông tin lớp. Vui lòng thử lại."))
@@ -116,7 +125,14 @@ function DailyMealConfirm() {
   const chosen = openMeals.map(meal => meal.type).filter(type => selected[type])
   const portionCount = portions === "" ? null : Number(portions)
   const absent = portionCount === null ? null : registered - portionCount
-  const allergyValid = allergies.every(item => Number(allergyCounts[item.ingredientEntryId] || 0) <= (portionCount ?? 0))
+  const activeAllergies = allergies.filter(item => !removedAllergyIds.includes(item.ingredientEntryId))
+  const removedAllergies = allergies.filter(item => removedAllergyIds.includes(item.ingredientEntryId))
+  // Số học sinh dị ứng chung của lớp (mọi nguyên liệu trong hồ sơ cùng một số)
+  const allergyStudents = allergies.length ? Math.max(...allergies.map(item => Number(item.affectedCount) || 0)) : 0
+  const allergyMax = Math.min(allergyStudents, portionCount ?? 0)
+  // Bắt buộc nhập số suất dị ứng (kể cả 0) khi còn nguyên liệu dị ứng trong danh sách hôm nay
+  const allergyValid = !activeAllergies.length
+    || (allergyCount !== "" && Number(allergyCount) >= 0 && Number(allergyCount) <= allergyMax)
   const canSend = chosen.length > 0 && portionCount !== null && allergyValid && !sending
   const deadline = deadlineState(now)
 
@@ -130,7 +146,7 @@ function DailyMealConfirm() {
       allergyNotes: notes.trim() || null,
       allergies: allergies.map(item => ({
         ingredientEntryId: item.ingredientEntryId,
-        portionCount: Number(allergyCounts[item.ingredientEntryId] || 0),
+        portionCount: removedAllergyIds.includes(item.ingredientEntryId) ? 0 : Number(allergyCount || 0),
       })),
     }
     const done = []
@@ -198,7 +214,7 @@ function DailyMealConfirm() {
               <ul>
                 {sentMeals.map(meal => {
                   const item = submissions[meal.type]
-                  const allergyTotal = (item.dailyAllergyPortions || []).reduce((sum, row) => sum + row.portionCount, 0)
+                  const allergyTotal = Math.max(0, ...(item.dailyAllergyPortions || []).map(row => row.portionCount))
                   return (
                     <li key={meal.type}>
                       <span>{meal.label}</span>
@@ -261,21 +277,44 @@ function DailyMealConfirm() {
               {allergies.length > 0 && (
                 <div className="meal-report__allergies">
                   <span className="meal-report__label">Suất tránh nguyên liệu dị ứng</span>
-                  {allergies.map(item => (
-                    <div key={item.ingredientEntryId} className="meal-report__allergy">
+                  {/* Bấm × để bỏ nguyên liệu khi em dị ứng nguyên liệu đó nghỉ hôm nay */}
+                  <div className="meal-report__allergy-chips">
+                    {activeAllergies.map(item => (
+                      <Chip
+                        key={item.ingredientEntryId}
+                        label={item.IngredientEntry?.Ingredient?.name}
+                        color="warning"
+                        variant="outlined"
+                        onDelete={sending ? undefined : () =>
+                          setRemovedAllergyIds(current => [...current, item.ingredientEntryId])}
+                        title="Bấm × nếu em dị ứng nguyên liệu này nghỉ hôm nay"
+                      />
+                    ))}
+                    {!activeAllergies.length && (
+                      <span className="meal-report__allergy-empty">Hôm nay không có suất cần tránh nguyên liệu.</span>
+                    )}
+                  </div>
+                  {removedAllergies.length > 0 && (
+                    <div className="meal-report__allergy-removed">
+                      <span>Đã bỏ hôm nay: {removedAllergies.map(item => item.IngredientEntry?.Ingredient?.name).join(", ")}</span>
+                      <Button size="small" disabled={sending} onClick={() => setRemovedAllergyIds([])}>Hoàn tác</Button>
+                    </div>
+                  )}
+                  {activeAllergies.length > 0 && (
+                    <div className="meal-report__allergy">
                       <span>
-                        <strong>{item.IngredientEntry?.Ingredient?.name}</strong>
-                        <small>Lớp có {item.affectedCount} em</small>
+                        <strong>Số suất dị ứng</strong>
+                        <small>Lớp có {allergyStudents} em dị ứng · bắt buộc nhập (0 nếu không có)</small>
                       </span>
                       <PortionStepper
-                        label={`suất tránh ${item.IngredientEntry?.Ingredient?.name || "nguyên liệu"}`}
-                        value={allergyCounts[item.ingredientEntryId] ?? 0}
-                        max={Math.min(item.affectedCount, portionCount ?? 0)}
+                        label="số suất tránh nguyên liệu dị ứng"
+                        value={allergyCount}
+                        max={allergyMax}
                         disabled={sending}
-                        onChange={value => setAllergyCounts(current => ({ ...current, [item.ingredientEntryId]: value }))}
+                        onChange={setAllergyCount}
                       />
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 

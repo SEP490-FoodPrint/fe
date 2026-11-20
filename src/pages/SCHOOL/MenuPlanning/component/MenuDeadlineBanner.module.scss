@@ -1,7 +1,7 @@
 /* Nhắc hạn chót thực đơn tuần tới – token FoodPrint (globals.css) */
 .banner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-3);
   margin-bottom: var(--space-4);
   padding: var(--space-3) var(--space-4);
@@ -56,7 +56,89 @@
   }
 }
 
+.body {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Mỗi việc cần làm một dòng: chấm đỏ = chưa tạo, chấm cam = chưa hoàn thành */
+.items {
+  margin: var(--space-1) 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.items li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.items li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.6em;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.itemCreate::before {
+  background: var(--color-error);
+}
+
+.itemComplete::before {
+  background: var(--color-warning);
+}
+
+.deadline {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
+.actionSecondary {
+  flex-shrink: 0;
+  min-height: var(--control-height-md);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-primary-bg, #e8f5f1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+}
+
 @media (max-width: 600px) {
+  .actions {
+    width: 100%;
+  }
+
+  .actionSecondary {
+    width: 100%;
+    min-height: 44px;
+  }
+
   .banner {
     flex-wrap: wrap;
   }
