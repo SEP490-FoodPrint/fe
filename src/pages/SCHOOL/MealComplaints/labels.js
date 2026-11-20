@@ -12,7 +12,7 @@ export const complaintStatuses = {
   CLOSED: { label: "Đã đóng", color: "default" },
 };
 
-export const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa chiều" };
+export const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" };
 
 export const formatMealDate = (date) => date.split("-").reverse().join("/");
 

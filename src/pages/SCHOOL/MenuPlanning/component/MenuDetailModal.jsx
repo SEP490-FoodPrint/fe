@@ -75,7 +75,7 @@ export default function MenuDetailModal({
             <div className={styles.metricItem}>
               <span className={styles.metricLabel}>Bữa ăn</span>
               <span className={styles.metricValue}>
-                {menu.mealType === "LUNCH" ? "Bữa trưa" : "Bữa chiều"}
+                {menu.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế"}
               </span>
             </div>
             <div className={styles.metricItem}>

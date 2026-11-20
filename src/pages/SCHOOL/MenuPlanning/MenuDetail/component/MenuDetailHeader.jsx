@@ -132,7 +132,7 @@ export default function MenuDetailHeader({
         </span>
         <span className={styles.divider}>•</span>
         <span className={styles.mealBadge}>
-          {menu?.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
+          {menu?.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"}
         </span>
       </div>
 

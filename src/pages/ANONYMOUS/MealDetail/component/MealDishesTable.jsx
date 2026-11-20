@@ -32,7 +32,7 @@ function MealDishesTable({
         </div>
       </div>
 
-      {/* Tabs Chuyển Bữa: Bữa trưa chính & Bữa phụ chiều */}
+      {/* Tabs Chuyển Bữa: Bữa trưa chính & Bữa xế */}
       <div className={styles.mealTypeTabs}>
         <button
           type="button"
@@ -50,7 +50,7 @@ function MealDishesTable({
           }`}
           onClick={() => onSelectMealType("AFTERNOON")}
         >
-          Bữa phụ chiều ({snackDishes.length} món)
+          Bữa xế ({snackDishes.length} món)
         </button>
       </div>
 
