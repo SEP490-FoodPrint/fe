@@ -50,6 +50,13 @@ import {
 import Service from "src/services/SupplierRelationshipService"
 import notice from "src/components/Notice"
 import RelationshipStatus from "./RelationshipStatus"
+import SuppliedIngredients from "./SuppliedIngredients"
+import { HANDLING_TYPE_LABELS, HANDLING_TYPE_OPTIONS } from "src/constants/ui"
+import {
+  contractItems,
+  missingHandling as findMissingHandling,
+  toHandlingMap,
+} from "src/lib/ingredientHandling"
 import DateFieldVN from "src/components/Common/DateFieldVN"
 
 const dateText = (value) =>
@@ -104,6 +111,7 @@ const actionLabels = {
   SUSPENDED: "Tạm dừng hợp tác",
   RESUMED: "Khôi phục hợp tác",
   UNLINKED: "Ngừng liên kết",
+  INGREDIENT_HANDLING_CHANGED: "Đổi loại nguyên liệu",
 }
 const toForm = (contract) => ({
   number: contract?.number || "",
@@ -116,6 +124,18 @@ const toForm = (contract) => ({
   ingredientIds: (contract?.items || [])
     .map((item) => item.ingredientId)
     .sort(),
+  // Loại Lưu kho / Dùng ngay theo từng nguyên liệu; bắt buộc, không có giá trị ngầm định
+  handling: toHandlingMap(contract?.items),
+})
+// So sánh chỉ theo các nguyên liệu đang chọn để giữ lựa chọn cũ khi bỏ chọn rồi chọn lại
+const formKey = (form) =>
+  JSON.stringify({
+    ...form,
+    handling: form.ingredientIds.map((id) => form.handling[id] || ""),
+  })
+const contractBody = ({ handling, ingredientIds, ...rest }) => ({
+  ...rest,
+  items: contractItems(ingredientIds, handling),
 })
 
 function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
@@ -212,15 +232,19 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   }
   const dirty =
     Boolean(contract?.id) &&
-    JSON.stringify(form) !== JSON.stringify(toForm(contract))
+    formKey(form) !== formKey(toForm(contract))
   const closeWorkspace = () => {
     if (busy) return
     const unsaved =
       dirty ||
       (!contract?.id &&
         editing &&
-        Object.values(form).some((value) =>
-          Array.isArray(value) ? value.length : Boolean(value),
+        Object.entries(form).some(([key, value]) =>
+          key === "handling"
+            ? false
+            : Array.isArray(value)
+              ? value.length
+              : Boolean(value),
         ))
     if (unsaved) setConfirmLeave(true)
     else onClose()
@@ -262,6 +286,12 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   }, [data?.supplier?.ingredients, ingredientSearch])
 
   const allIngredients = data?.supplier?.ingredients || []
+  const missingHandling = findMissingHandling(form.ingredientIds, form.handling)
+  const setHandling = (ingredientId, value) =>
+    setForm((previous) => ({
+      ...previous,
+      handling: { ...previous.handling, [ingredientId]: value },
+    }))
 
   const toggleCategory = (catName) => {
     if (!canEdit) return
@@ -295,9 +325,13 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
   // Lưu nháp và trả về id hợp đồng đã lưu
   const persistDraft = async () => {
     if (datesInvalid) throw new Error("Vui lòng sửa lỗi ngày trước khi lưu.")
+    if (missingHandling.length)
+      throw new Error(
+        `Chọn loại Lưu kho hoặc Dùng ngay cho ${missingHandling.length} nguyên liệu trước khi lưu.`,
+      )
     const response = await Service.saveDraft(
       {
-        ...form,
+        ...contractBody(form),
         ...(contract?.id ? { revision: contract.revision } : { supplierId }),
       },
       contract?.id,
@@ -362,6 +396,12 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
       setReason("")
       notice({ msg: "Đã cập nhật và lưu lịch sử", isSuccess: true })
     })
+
+  const saveHandling = async (items) => {
+    await Service.updateIngredientHandling(supplierId, items)
+    await refresh(contract?.id)
+    notice({ msg: "Đã cập nhật loại nguyên liệu", isSuccess: true })
+  }
 
   const openDecision = (type, id, title) => {
     setDecision({ type, id, title })
@@ -510,8 +550,15 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                         </Alert>
                       )}
                     </section>
+                    {data.suppliedIngredients && (
+                      <SuppliedIngredients
+                        items={data.suppliedIngredients}
+                        canManage={data.canManage}
+                        onSave={saveHandling}
+                      />
+                    )}
                     <section className="supplier-section-block">
-                      <h3>Nguyên liệu NCC đang bán</h3>
+                      <h3>Danh mục của nhà cung cấp</h3>
                       <div className="supplier-ingredient-chips">
                         {data.supplier.ingredients.map((item) => (
                           <Chip
@@ -759,7 +806,9 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                 />
                               </div>
                               <p className="supplier-help">
-                                Bếp chỉ đặt được những nguyên liệu được chọn ở đây.
+                                Bếp chỉ đặt được những nguyên liệu được chọn ở đây. Mỗi nguyên liệu
+                                cần chọn loại: &ldquo;Lưu kho&rdquo; (đồ khô dùng nhiều ngày) hoặc
+                                &ldquo;Dùng ngay&rdquo; (đồ tươi chế biến trong ngày).
                               </p>
                             </div>
                           </div>
@@ -808,6 +857,13 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                               </div>
                             )}
                           </div>
+
+                          {canEdit && missingHandling.length > 0 && (
+                            <Alert severity="warning" sx={{ mb: 2 }}>
+                              Còn {missingHandling.length} nguyên liệu chưa chọn loại Lưu kho /
+                              Dùng ngay.
+                            </Alert>
+                          )}
 
                           {/* Danh sách các nhóm nguyên liệu */}
                           {Object.keys(groupedIngredients).length > 0 ? (
@@ -877,6 +933,35 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                                                 {item.defaultUnit}
                                               </span>
                                             </div>
+                                            {isSelected && (
+                                              <TextField
+                                                select
+                                                size="small"
+                                                required
+                                                value={form.handling[item.id] || ""}
+                                                disabled={!canEdit}
+                                                error={canEdit && !form.handling[item.id]}
+                                                onClick={(event) => event.stopPropagation()}
+                                                onChange={(event) =>
+                                                  setHandling(item.id, event.target.value)
+                                                }
+                                                SelectProps={{
+                                                  displayEmpty: true,
+                                                  renderValue: (value) =>
+                                                    HANDLING_TYPE_LABELS[value] || "Chọn loại",
+                                                }}
+                                                inputProps={{
+                                                  "aria-label": `Loại của ${item.name}`,
+                                                }}
+                                                className="supplier-ingredient-handling"
+                                              >
+                                                {HANDLING_TYPE_OPTIONS.map((option) => (
+                                                  <MenuItem key={option.value} value={option.value}>
+                                                    {option.label}
+                                                  </MenuItem>
+                                                ))}
+                                              </TextField>
+                                            )}
                                           </div>
                                         )
                                       })}
