@@ -266,39 +266,140 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
     }
   }
 
-  // State cho Popup Modal phóng to mã QR niêm phong xe
-  const [qrModalOpen, setQrModalOpen] = useState(false)
-  const [selectedQrData, setSelectedQrData] = useState(null)
-  const [qrCopied, setQrCopied] = useState(false)
+  // State cho Popup Modal hiển thị nhãn QR dán bao bì nguyên liệu (giống NCC)
+  const [itemQrModalOpen, setItemQrModalOpen] = useState(false)
+  const [focusedItemId, setFocusedItemId] = useState(null)
+  const [showAllLabels, setShowAllLabels] = useState(true)
+  const [copiedLabelId, setCopiedLabelId] = useState("")
 
-  const handleOpenQrModal = (transport, sName) => {
-    setSelectedQrData({
-      ...transport,
-      supplierName: sName,
-    })
-    setQrModalOpen(true)
-    setQrCopied(false)
+  const handleOpenItemQrModal = (it) => {
+    const targetId = it?.id || it?.ingredientId || it?.name || null
+    setFocusedItemId(targetId)
+    setShowAllLabels(false)
+    setItemQrModalOpen(true)
+    setCopiedLabelId("")
   }
 
-  const handleCloseQrModal = () => {
-    setQrModalOpen(false)
-    setSelectedQrData(null)
-    setQrCopied(false)
+  const handleCloseItemQrModal = () => {
+    setItemQrModalOpen(false)
+    setFocusedItemId(null)
+    setCopiedLabelId("")
   }
 
-  const handleCopyQrCode = async (text) => {
-    if (!text) return
+  const handleCopyTraceUrl = async (labelId, url) => {
+    if (!url) return
     try {
       if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text)
+        await navigator.clipboard.writeText(url)
       }
-      setQrCopied(true)
-      notice({ msg: `Đã sao chép mã QR: ${text}`, isSuccess: true })
-      setTimeout(() => setQrCopied(false), 2500)
+      setCopiedLabelId(labelId)
+      notice({ msg: "Đã sao chép liên kết truy xuất nguồn gốc!", isSuccess: true })
+      setTimeout(() => setCopiedLabelId(""), 2000)
     } catch {
       // fallback
     }
   }
+
+  // Kiểm tra NCC đã bàn giao xe vận chuyển xong hay chưa
+  const isVehicleDispatched = (it, idx) => {
+    const dStatus = String(item?.status || item?.rawStatus || "").toUpperCase()
+    if (
+      dStatus === "CREATED" ||
+      dStatus === "PENDING" ||
+      dStatus === "DRAFT" ||
+      dStatus === "IN_PROGRESS" ||
+      dStatus === "SENT"
+    ) {
+      return false
+    }
+
+    const sName = getItemSupplierName(it)
+    const transport = getSupplierTransportInfo(sName, idx)
+    const sStatus = String(transport?.status || "").toUpperCase()
+
+    if (
+      sStatus === "CREATED" ||
+      sStatus === "PENDING" ||
+      sStatus === "DRAFT" ||
+      sStatus === "IN_PROGRESS" ||
+      sStatus === "SENT"
+    ) {
+      return false
+    }
+
+    const validDispatchedStatuses = [
+      "IN_TRANSIT",
+      "ARRIVED",
+      "INSPECTING",
+      "PENDING_APPROVAL",
+      "RECEIVED",
+      "APPROVED",
+      "COMPLETED",
+    ]
+
+    if (validDispatchedStatuses.includes(sStatus) || validDispatchedStatuses.includes(dStatus)) {
+      return true
+    }
+
+    const transportVehicle = String(transport?.vehicle || "")
+    const hasValidTransportVehicle =
+      Boolean(transportVehicle) &&
+      !transportVehicle.includes("Chưa") &&
+      !transportVehicle.includes("Chờ")
+
+    const itemVehicle = String(item?.vehiclePlate || "")
+    const hasValidItemVehicle =
+      Boolean(itemVehicle) &&
+      !itemVehicle.includes("Chưa") &&
+      !itemVehicle.includes("Chờ")
+
+    return hasValidTransportVehicle || hasValidItemVehicle
+  }
+
+  const rawItems = (item.items || item.deliveryItems || [])
+  const allLabels = useMemo(() => {
+    return rawItems.map((it, idx) => {
+      const sName = getItemSupplierName(it)
+      const idKey = it.id || it.ingredientId || `dry-item-${idx + 1}`
+      const token =
+        it.qrToken ||
+        it.qrCode ||
+        `TOKEN-${item?.deliveryNo || "DRY"}-${String(idKey).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8)}`
+
+      const origin = typeof window !== "undefined" ? window.location.origin : ""
+      const traceUrl =
+        it.qrUrl ||
+        it.traceUrl ||
+        `${origin}/api/public/delivery-items/${token}`
+
+      return {
+        deliveryItemId: idKey,
+        deliveryNo: item?.deliveryNo || "DRY",
+        supplierName: sName,
+        ingredientName: it.name || it.ingredientName || "Nguyên liệu khô",
+        actualQuantity: it.qty ?? it.quantity ?? it.requestedQuantity ?? 0,
+        unit: it.unit || "kg",
+        sourceFacility: {
+          name: it.sourceFacility?.name || it.sourceFacilityName || "Kho tổng nguyên liệu khô chuẩn VietGAP",
+          facilityCode: it.sourceFacility?.facilityCode || it.sourceFacilityCode || "",
+        },
+        traceUrl,
+        qrToken: token,
+        qrImageDataUrl: it.qrImageDataUrl || null,
+      }
+    })
+  }, [rawItems, item?.deliveryNo])
+
+  const visibleLabels = useMemo(() => {
+    if (showAllLabels || !focusedItemId) return allLabels
+    const matched = allLabels.filter(
+      (lb) =>
+        lb.deliveryItemId === focusedItemId ||
+        lb.ingredientName === focusedItemId ||
+        String(lb.deliveryItemId) === String(focusedItemId),
+    )
+    return matched.length > 0 ? matched : allLabels
+  }, [allLabels, showAllLabels, focusedItemId])
 
   const isPendingOverall =
     !item.isAssigned ||
@@ -431,124 +532,55 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                 </Box>
                 <Divider className={styles.cardDivider} />
 
-                {/* 2 Cột: Bên trái là Thông tin vận chuyển, Bên phải là Mã QR */}
+                {/* Thông tin vận chuyển của chuyến xe */}
                 <Box
                   sx={{
-                    display: "grid",
-                    gridTemplateColumns: { xs: "1fr", md: "1fr auto" },
-                    gap: 3,
-                    alignItems: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1.25,
+                    minWidth: 0,
                   }}
                 >
-                  {/* Cột 1: Thông tin vận chuyển */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 1.25,
-                      minWidth: 0,
-                    }}
-                  >
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                      <Truck size={16} color="#64748b" style={{ flexShrink: 0 }} />
-                      <Typography
-                        variant="body2"
-                        sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
-                      >
-                        Phương tiện vận chuyển:
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                        {formatVehicle(transport.vehicle)}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                      <Calendar size={16} color="#64748b" style={{ flexShrink: 0 }} />
-                      <Typography
-                        variant="body2"
-                        sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
-                      >
-                        Thời gian dự kiến:
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                        {transport.expectedTime}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
-                      <Clock size={16} color="#64748b" style={{ flexShrink: 0 }} />
-                      <Typography
-                        variant="body2"
-                        sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
-                      >
-                        Ghi chú:
-                      </Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                        {formatVehicle(transport.vehicle) === "Chưa phân công (Chờ NCC điều xe)"
-                          ? "Chưa có ghi chú"
-                          : (transport.note || displayNote || "Chưa có ghi chú")}
-                      </Typography>
-                    </Box>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Truck size={16} color="#64748b" style={{ flexShrink: 0 }} />
+                    <Typography
+                      variant="body2"
+                      sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
+                    >
+                      Phương tiện vận chuyển:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                      {formatVehicle(transport.vehicle)}
+                    </Typography>
                   </Box>
 
-                  {/* Cột 2: Mã QR Lô Hàng / Niêm phong xe của NCC (Bấm để xem nổi) */}
-                  <Tooltip title="Bấm để xem nổi mã QR niêm phong chuyến xe" arrow>
-                    <Box
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => handleOpenQrModal(transport, sName)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault()
-                          handleOpenQrModal(transport, sName)
-                        }
-                      }}
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1.75,
-                        p: 1.75,
-                        bgcolor: "var(--color-primary-soft, #e8f5f1)",
-                        borderRadius: 2.5,
-                        border: "1px solid var(--border-default, #bbf7d0)",
-                        minWidth: { xs: "auto", sm: 280, md: 300 },
-                        maxWidth: "100%",
-                        boxSizing: "border-box",
-                        flexShrink: 0,
-                        cursor: "pointer",
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                          bgcolor: "#d1fae5",
-                          borderColor: "var(--color-primary, #0a8066)",
-                          transform: "translateY(-1px)",
-                          boxShadow: "0 4px 12px rgba(10, 128, 102, 0.15)",
-                        },
-                      }}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Calendar size={16} color="#64748b" style={{ flexShrink: 0 }} />
+                    <Typography
+                      variant="body2"
+                      sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
                     >
-                      <QrCode size={40} color="var(--color-primary, #0a8066)" style={{ flexShrink: 0 }} />
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            fontWeight: 700,
-                            color: "var(--color-primary, #0a8066)",
-                            display: "block",
-                            fontSize: "0.825rem",
-                            letterSpacing: "0.01em",
-                          }}
-                        >
-                          {transport.qrCode}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: "var(--text-secondary, #52635c)", fontSize: "0.72rem", display: "block", mt: 0.25 }}
-                        >
-                          Mã QR niêm phong xe &amp; kiểm dịch NCC
-                        </Typography>
-                      </Box>
-                      <Maximize2 size={16} color="var(--color-primary, #0a8066)" style={{ flexShrink: 0, opacity: 0.7 }} />
-                    </Box>
-                  </Tooltip>
+                      Thời gian dự kiến:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                      {transport.expectedTime}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Clock size={16} color="#64748b" style={{ flexShrink: 0 }} />
+                    <Typography
+                      variant="body2"
+                      sx={{ minWidth: { sm: 165 }, flexShrink: 0, color: "#64748b", fontWeight: 500 }}
+                    >
+                      Ghi chú:
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                      {formatVehicle(transport.vehicle) === "Chưa phân công (Chờ NCC điều xe)"
+                        ? "Chưa có ghi chú"
+                        : (transport.note || displayNote || "Chưa có ghi chú")}
+                    </Typography>
+                  </Box>
                 </Box>
               </Paper>
             )
@@ -571,6 +603,7 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                 <TableCell className={styles.itemTh} align="right">Số Lượng</TableCell>
                 <TableCell className={styles.itemTh}>Đơn Vị</TableCell>
                 <TableCell className={styles.itemTh}>Quy Cách / Tiêu Chuẩn</TableCell>
+                <TableCell className={styles.itemTh} align="center">QR bao bì</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -594,6 +627,39 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
                   </TableCell>
                   <TableCell className={styles.itemTd}>{it.unit || "kg"}</TableCell>
                   <TableCell className={styles.itemTdSpec}>{it.spec || it.note || "Bao bì nguyên đai nguyên kiện, hạn sử dụng rõ ràng"}</TableCell>
+                  <TableCell align="center">
+                    {isVehicleDispatched(it, idx) ? (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleOpenItemQrModal(it)}
+                        startIcon={<QrCode size={15} color="#0a8066" />}
+                        sx={{
+                          borderColor: "#cbd5e1",
+                          bgcolor: "#ffffff",
+                          color: "#0a8066",
+                          textTransform: "none",
+                          fontSize: "0.8rem",
+                          fontWeight: 600,
+                          borderRadius: 1.5,
+                          py: 0.5,
+                          px: 1.25,
+                          boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                          "&:hover": {
+                            borderColor: "#0a8066",
+                            bgcolor: "#e8f5f1",
+                            color: "#08604d",
+                          },
+                        }}
+                      >
+                        Xem QR
+                      </Button>
+                    ) : (
+                      <Typography variant="body2" sx={{ color: "#94a3b8", fontSize: "0.85rem" }}>
+                        —
+                      </Typography>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -615,17 +681,20 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
         )}
       </Paper>
 
-      {/* Modal phóng to mã QR niêm phong xe & kiểm dịch NCC */}
+      {/* Modal hiển thị Nhãn QR dán bao bì nguyên liệu (Giống NCC) */}
       <Dialog
-        open={qrModalOpen}
-        onClose={handleCloseQrModal}
-        maxWidth="xs"
+        open={itemQrModalOpen}
+        onClose={handleCloseItemQrModal}
+        maxWidth="md"
         fullWidth
         PaperProps={{
           sx: {
             borderRadius: 3,
-            p: 1,
-            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
           },
         }}
       >
@@ -634,164 +703,276 @@ export default function TrackingDetailView({ item, inventoryItems = [], onBack }
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            pb: 1,
-            pt: 1.5,
-            px: 2,
+            px: 3,
+            py: 2,
+            borderBottom: "1px solid #e2e8f0",
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <QrCode size={22} color="var(--color-primary, #0a8066)" />
-            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f172a" }}>
-              Mã QR Niêm Phong Vận Chuyển
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <QrCode size={22} color="#0a8066" />
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.05rem", color: "#1e293b" }}>
+              Nhãn QR dán bao bì · {item.deliveryNo || ""}
             </Typography>
           </Box>
-          <IconButton onClick={handleCloseQrModal} size="small" sx={{ color: "#64748b" }}>
-            <X size={18} />
+          <IconButton onClick={handleCloseItemQrModal} size="small" sx={{ color: "#64748b" }}>
+            <X size={20} />
           </IconButton>
         </DialogTitle>
 
-        <DialogContent sx={{ px: 2, py: 1.5, textAlign: "center" }}>
-          {selectedQrData && (
-            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-              <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.85rem" }}>
-                Đơn vị cung cấp: <strong style={{ color: "#0f172a" }}>{selectedQrData.supplierName || "Nhà cung cấp đối tác"}</strong>
-              </Typography>
+        {focusedItemId && allLabels.length > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              px: 3,
+              py: 1.25,
+              bgcolor: "#e8f5f1",
+              borderBottom: "1px solid #bbf7d0",
+              flexShrink: 0,
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "#08604d", fontWeight: 600, fontSize: "0.85rem" }}>
+              {showAllLabels
+                ? `Đang xem toàn bộ ${allLabels.length} nhãn nguyên liệu trong đơn giao.`
+                : "Đang xem nhãn QR của nguyên liệu đã chọn."}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setShowAllLabels((prev) => !prev)}
+              sx={{
+                bgcolor: "#ffffff",
+                borderColor: "#6ee7b7",
+                color: "#08604d",
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "0.78rem",
+                borderRadius: 1.5,
+                "&:hover": { bgcolor: "#fafbfa", borderColor: "#0a8066" },
+              }}
+            >
+              {showAllLabels ? "Chỉ xem dòng đã chọn" : `Hiển thị tất cả (${allLabels.length} nhãn)`}
+            </Button>
+          </Box>
+        )}
 
-              {/* Khung hiển thị QR lớn */}
-              <Box
-                sx={{
-                  p: 2,
-                  bgcolor: "#ffffff",
-                  borderRadius: 3,
-                  border: "2px solid #e2e8f0",
-                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
-                  display: "inline-flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <img
-                  src={
-                    selectedQrData.qrImageDataUrl ||
-                    `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(
-                      selectedQrData.qrCode || "FOODPRINT-DELIVERY",
-                    )}`
-                  }
-                  alt={`Mã QR ${selectedQrData.qrCode}`}
-                  style={{
-                    width: 220,
-                    height: 220,
-                    display: "block",
-                    borderRadius: 8,
-                  }}
-                  onError={(e) => {
-                    e.currentTarget.style.display = "none"
-                    if (e.currentTarget.nextSibling) {
-                      e.currentTarget.nextSibling.style.display = "flex"
-                    }
-                  }}
-                />
-                <Box
+        <DialogContent sx={{ p: 3, bgcolor: "#f8faf9", flex: 1, overflowY: "auto" }}>
+          {visibleLabels.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 5, color: "#64748b" }}>
+              <Typography variant="body2">Chưa có nhãn QR bao bì nào cho đợt giao này.</Typography>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: visibleLabels.length > 1 ? "repeat(2, 1fr)" : "1fr" },
+                gap: 2,
+              }}
+            >
+              {visibleLabels.map((label, idx) => (
+                <Paper
+                  key={label.deliveryItemId || idx}
+                  elevation={0}
                   sx={{
-                    display: "none",
-                    width: 220,
-                    height: 220,
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: "#f8fafc",
-                    borderRadius: 2,
                     p: 2,
+                    borderRadius: 2.5,
+                    border: "1px solid #e1e6e2",
+                    bgcolor: "#ffffff",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1.5,
                   }}
                 >
-                  <QrCode size={96} color="var(--color-primary, #0a8066)" />
-                  <Typography variant="caption" sx={{ mt: 1, color: "#64748b", textAlign: "center" }}>
-                    {selectedQrData.qrCode}
-                  </Typography>
-                </Box>
-              </Box>
-
-              {/* Khối sao chép mã */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 1,
-                  bgcolor: "#f1f5f9",
-                  px: 2,
-                  py: 1,
-                  borderRadius: 2,
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-              >
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontFamily: "monospace",
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    color: "#0f172a",
-                    letterSpacing: "0.03em",
-                  }}
-                >
-                  {selectedQrData.qrCode}
-                </Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => handleCopyQrCode(selectedQrData.qrCode)}
-                  sx={{ color: qrCopied ? "#16a34a" : "#475569" }}
-                  title="Sao chép mã QR"
-                >
-                  {qrCopied ? <Check size={16} /> : <Copy size={16} />}
-                </IconButton>
-              </Box>
-
-              {/* Thông tin chuyến xe đi kèm */}
-              <Box
-                sx={{
-                  width: "100%",
-                  bgcolor: "#f8fafc",
-                  borderRadius: 2,
-                  p: 1.5,
-                  border: "1px solid #e2e8f0",
-                  textAlign: "left",
-                  fontSize: "0.8rem",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 0.75,
-                }}
-              >
-                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography variant="caption" sx={{ color: "#64748b" }}>Phương tiện:</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                    {formatVehicle(selectedQrData.vehicle)}
-                  </Typography>
-                </Box>
-                {selectedQrData.driver && (
-                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography variant="caption" sx={{ color: "#64748b" }}>Tài xế:</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                      {selectedQrData.driver} {selectedQrData.phone ? `(${selectedQrData.phone})` : ""}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      pb: 1,
+                      borderBottom: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <Chip
+                      label={label.deliveryNo || item.deliveryNo}
+                      size="small"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.75rem",
+                        bgcolor: "#f1f5f3",
+                        color: "#24312d",
+                        borderRadius: 1,
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#6b7772",
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {label.supplierName}
                     </Typography>
                   </Box>
-                )}
-                {selectedQrData.expectedTime && (
-                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography variant="caption" sx={{ color: "#64748b" }}>Thời gian dự kiến:</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 600, color: "#1e293b" }}>
-                      {selectedQrData.expectedTime}
-                    </Typography>
+
+                  <Box sx={{ display: "grid", gridTemplateColumns: "116px 1fr", gap: 1.75, alignItems: "start" }}>
+                    <Box
+                      sx={{
+                        width: 116,
+                        height: 116,
+                        p: 0.75,
+                        borderRadius: 2,
+                        border: "1px solid #e1e6e2",
+                        bgcolor: "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <img
+                        src={
+                          label.qrImageDataUrl ||
+                          `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(
+                            label.traceUrl || label.qrToken || label.ingredientName,
+                          )}`
+                        }
+                        alt={`Mã QR ${label.ingredientName}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          display: "block",
+                          borderRadius: 4,
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none"
+                          if (e.currentTarget.nextSibling) {
+                            e.currentTarget.nextSibling.style.display = "flex"
+                          }
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          display: "none",
+                          width: "100%",
+                          height: "100%",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <QrCode size={48} color="#0a8066" />
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75, minWidth: 0 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: "0.95rem",
+                          color: "#24312d",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {label.ingredientName}
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: "0.875rem",
+                          color: "#0a8066",
+                        }}
+                      >
+                        Định lượng: {label.actualQuantity} {label.unit}
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          p: 1,
+                          bgcolor: "#f8faf9",
+                          borderRadius: 1.5,
+                          border: "1px solid #e1e6e2",
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ color: "#6b7772", display: "block", fontSize: "0.7rem" }}>
+                          Cơ sở nguồn cung:
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: "#24312d",
+                            display: "block",
+                            fontSize: "0.75rem",
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {label.sourceFacility?.name || "Kho tổng nguyên liệu khô chuẩn VietGAP"}
+                          {label.sourceFacility?.facilityCode ? ` (${label.sourceFacility.facilityCode})` : ""}
+                        </Typography>
+                      </Box>
+                    </Box>
                   </Box>
-                )}
-              </Box>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                      pt: 1,
+                      borderTop: "1px dashed #e1e6e2",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#6b7772",
+                        fontSize: "0.72rem",
+                        fontFamily: "monospace",
+                        maxWidth: "calc(100% - 110px)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={label.traceUrl}
+                    >
+                      {label.traceUrl}
+                    </Typography>
+
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => handleCopyTraceUrl(label.deliveryItemId, label.traceUrl)}
+                      startIcon={copiedLabelId === label.deliveryItemId ? <Check size={13} /> : <Copy size={13} />}
+                      sx={{
+                        fontSize: "0.72rem",
+                        color: copiedLabelId === label.deliveryItemId ? "#0a8066" : "#2563eb",
+                        textTransform: "none",
+                        p: "2px 6px",
+                        minWidth: 0,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {copiedLabelId === label.deliveryItemId ? "Đã sao chép" : "Sao chép URL"}
+                    </Button>
+                  </Box>
+                </Paper>
+              ))}
             </Box>
           )}
         </DialogContent>
 
-        <DialogActions sx={{ px: 2, pb: 1.5 }}>
-          <Button onClick={handleCloseQrModal} variant="contained" fullWidth sx={{ borderRadius: 2 }}>
+        <DialogActions sx={{ px: 3, py: 1.5, borderTop: "1px solid #e1e6e2" }}>
+          <Button onClick={handleCloseItemQrModal} variant="contained" sx={{ borderRadius: 2, bgcolor: "#0a8066", "&:hover": { bgcolor: "#086a55" } }}>
             Đóng
           </Button>
         </DialogActions>
