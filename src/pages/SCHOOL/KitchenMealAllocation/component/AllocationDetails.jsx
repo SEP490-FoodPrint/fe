@@ -7,7 +7,7 @@ import { BarChart3, CheckCircle2, ChevronDown, GraduationCap, Info } from "lucid
 import ClassAllocationDetailModal from "./ClassAllocationDetailModal";
 import styles from "./AllocationDetails.module.scss";
 
-const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa chiều" };
+const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" };
 const mealTypes = Object.keys(mealLabels);
 
 function AllocationRow({ title, summary, icon, badge, expanded, onChange, children }) {

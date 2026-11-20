@@ -43,13 +43,10 @@
   &__section { display: flex; flex-direction: column; gap: var(--space-4); }
   &__section-heading h2, &__notice h2 { color: var(--text-primary); font-size: var(--text-lg); }
   &__section-heading p { margin-top: var(--space-1); color: var(--text-muted); font-size: var(--text-sm); }
-  &__meal-list {
-    overflow: hidden;
+  &__meal-card {
     border: 1px solid var(--border-default);
     border-radius: var(--radius-xl);
     background: var(--bg-surface);
-  }
-  &__meal-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -60,11 +57,10 @@
     text-decoration: none;
     transition: background-color var(--duration-fast) var(--ease-standard);
   }
-  &__meal-card + &__meal-card { border-top: 1px solid var(--border-default); }
-  &__meal-info { display: flex; flex-direction: column; gap: var(--space-1); min-width: 0; }
-  &__meal-info strong { color: var(--text-primary); font-size: var(--text-base); }
-  &__meal-info span { color: var(--text-muted); font-size: var(--text-sm); }
-  &__meal-action { display: flex; align-items: center; gap: var(--space-4); flex-shrink: 0; }
+  &__meal-rows { display: flex; flex: 1; flex-direction: column; gap: var(--space-2); min-width: 0; margin: 0; padding: 0; list-style: none; }
+  &__meal-rows li { display: grid; grid-template-columns: 6rem 1fr auto; align-items: center; gap: var(--space-3); }
+  &__meal-rows strong { color: var(--text-primary); font-size: var(--text-base); }
+  &__meal-rows span { color: var(--text-muted); font-size: var(--text-sm); }
   &__meal-link { display: inline-flex; align-items: center; gap: var(--space-1); color: var(--color-primary); font-size: var(--text-sm); font-weight: var(--font-semibold); }
   &__meal-link svg { transition: transform var(--duration-fast) var(--ease-standard); }
   &__status.MuiChip-root {
@@ -124,14 +120,14 @@
     &__class h1 { font-size: var(--text-xl); }
     &__date { padding-left: calc(var(--control-height-lg) + var(--space-3)); }
     &__meal-card { min-height: 5.5rem; padding: var(--space-3) var(--space-4); }
-    &__meal-action { gap: var(--space-2); }
     &__meal-link { font-size: var(--text-xs); }
     &__notice { padding: var(--space-4); }
     &__feedback { padding: var(--space-4); }
   }
 
   @media (max-width: 420px) {
-    &__meal-card { align-items: flex-start; }
-    &__meal-action { align-items: flex-end; flex-direction: column; }
+    &__meal-card { align-items: stretch; flex-direction: column; }
+    &__meal-rows li { grid-template-columns: 4.5rem 1fr auto; }
+    &__meal-link { align-self: flex-end; }
   }
 }

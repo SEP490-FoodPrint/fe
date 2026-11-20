@@ -2,7 +2,7 @@
 // proof shows at the step where it happened instead of disappearing from the list.
 import { proofVersion } from "./adapter.js"
 
-export const MEAL_TYPE_LABELS = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa chiều" }
+export const MEAL_TYPE_LABELS = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" }
 
 export const ALLOCATION_STATUS_LABELS = {
   ALLOCATED: "Đã phân bổ",

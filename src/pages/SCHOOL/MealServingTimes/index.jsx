@@ -215,11 +215,11 @@ function MealServingTimes() {
               />
               <TextField
                 type="time"
-                label="Bữa phụ"
+                label="Bữa xế"
                 value={form.afternoonMealTime}
                 disabled={saving}
                 error={!orderedMeals}
-                helperText={!orderedMeals ? "Bữa phụ phải sau bữa trưa" : undefined}
+                helperText={!orderedMeals ? "Bữa xế phải sau bữa trưa" : undefined}
                 onChange={event => setForm(current => ({ ...current, afternoonMealTime: event.target.value }))}
                 slotProps={{ inputLabel: { shrink: true } }}
               />

@@ -3,747 +3,341 @@ import FoodPrintLoading from "src/components/FoodPrintLoading"
 import {
   Alert,
   Button,
-  Chip,
+  Checkbox,
+  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+  FormControlLabel,
   TextField,
 } from "@mui/material"
 import dayjs from "dayjs"
-import {
-  CalendarDays,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
-  Coffee,
-  Edit3,
-  Eye,
-  RotateCcw,
-  Save,
-  Utensils,
-} from "lucide-react"
-import { useSearchParams } from "react-router-dom"
+import { CheckCircle2, Clock, MessageSquarePlus, Send, Users } from "lucide-react"
 import notice from "src/components/Notice"
 import MealPortionService from "src/services/MealPortionService"
-import { getSchoolWeekScheduleFromDate } from "src/services/MenuService/adapter"
+import PortionStepper from "./component/PortionStepper"
+import RecentDays from "./component/RecentDays"
 import "./style.scss"
 
+const MEALS = [
+  { type: "LUNCH", label: "Bữa trưa" },
+  { type: "AFTERNOON", label: "Bữa xế" },
+]
+const WEEKDAYS = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"]
+// Theo quyết định nghiệp vụ: số suất khoá lúc 8:30, sau đó điều chỉnh qua BGH.
+const DEADLINE = { hour: 8, minute: 30 }
+
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
-const statusLabel = status => (status === "FINALIZED" ? "Đã chốt" : "Bản nháp")
-const mealLabel = mealType => (mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa")
-const statusTone = status => {
-  if (!status) return "neutral"
-  return status === "FINALIZED" ? "success" : "warning"
+const labelOf = type => MEALS.find(meal => meal.type === type)?.label || type
+const joinMeals = types => types.map(type => labelOf(type).toLowerCase()).join(" và ")
+
+function deadlineState(now) {
+  const deadline = now.hour(DEADLINE.hour).minute(DEADLINE.minute).second(0)
+  const minutes = deadline.diff(now, "minute")
+  if (minutes < 0) return { tone: "late", text: "Đã quá giờ chốt 8:30" }
+  if (minutes <= 60) return { tone: "soon", text: `Hạn gửi 8:30 · còn ${minutes} phút` }
+  return { tone: "normal", text: "Hạn gửi bếp trước 8:30" }
 }
 
-const VN_WEEKDAYS = ["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"]
-const formatVNDate = dateStr => {
-  const d = dayjs(dateStr)
-  if (!d.isValid()) return ""
-  return `${VN_WEEKDAYS[d.day()]}, ${d.format("DD/MM/YYYY")}`
-}
-
-const StatusChip = ({ status }) => (
-  <Chip
-    size="small"
-    label={status ? statusLabel(status) : "Chưa khai báo"}
-    className={`daily-meal-status-chip daily-meal-status-chip--${statusTone(status)}`}
-  />
-)
-
-const getInitialDate = param => {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(param || "")) return param
-  const today = dayjs()
-  const dow = today.day()
-  if (dow === 0 || dow === 6) {
-    const sched = getSchoolWeekScheduleFromDate(today.toDate())
-    return sched.schoolDays[0]?.dateISO || today.format("YYYY-MM-DD")
-  }
-  return today.format("YYYY-MM-DD")
-}
-
+/**
+ * GVCN báo số suất ăn hôm nay cho bếp: điền sẵn sĩ số đăng ký, chỉnh số em vắng bằng −/+,
+ * tích bữa cần báo rồi bấm một nút "Gửi bếp". Gửi xong thì chỉ xem, cần sửa thì báo BGH.
+ */
 function DailyMealConfirm() {
-  const [searchParams] = useSearchParams()
-  const initialMealType = searchParams.get("mealType") === "AFTERNOON" ? "AFTERNOON" : "LUNCH"
-  const [date, setDate] = useState(() => getInitialDate(searchParams.get("date")))
-  const [mealType, setMealType] = useState(initialMealType)
-  const [historyMealFilter, setHistoryMealFilter] = useState("ALL")
-  const [context, setContext] = useState(null)
+  const today = useMemo(() => dayjs().format("YYYY-MM-DD"), [])
+  const isWeekend = [0, 6].includes(dayjs(today).day())
+
+  const [contexts, setContexts] = useState(null)
   const [history, setHistory] = useState([])
-  const [totalPortions, setTotalPortions] = useState("")
-  const [allergyNotes, setAllergyNotes] = useState("")
-  const [allergyCounts, setAllergyCounts] = useState({})
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
+  const [portions, setPortions] = useState("")
+  const [selected, setSelected] = useState({ LUNCH: true, AFTERNOON: true })
+  const [allergyCounts, setAllergyCounts] = useState({})
+  const [notes, setNotes] = useState("")
+  const [showNotes, setShowNotes] = useState(false)
+  const [sending, setSending] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [sendErrors, setSendErrors] = useState([])
+  const [now, setNow] = useState(() => dayjs())
 
-  const weekSchedule = useMemo(() => getSchoolWeekScheduleFromDate(date), [date])
-
-  const isCurrentWeekSelected = useMemo(() => {
-    const nowSched = getSchoolWeekScheduleFromDate(new Date())
-    return nowSched.weekNumber === weekSchedule.weekNumber
-  }, [weekSchedule.weekNumber])
-
-  const handlePrevWeek = () => {
-    setDate(curr => dayjs(curr).subtract(1, "week").format("YYYY-MM-DD"))
-  }
-
-  const handleNextWeek = () => {
-    setDate(curr => dayjs(curr).add(1, "week").format("YYYY-MM-DD"))
-  }
-
-  // Danh sách tuần để chọn nhanh: từ đầu năm học (1/9) tới tuần sau, mới nhất ở trên, nhóm theo tháng
-  const weekGroups = useMemo(() => {
-    const now = dayjs()
-    const startYear = now.month() >= 7 ? now.year() : now.year() - 1
-    const mondayOf = d => {
-      const value = dayjs(d)
-      return value.subtract((value.day() + 6) % 7, "day").startOf("day")
-    }
-    let cursor = mondayOf(`${startYear}-09-01`)
-    const last = mondayOf(now).add(1, "week")
-    const mondays = []
-    while (!cursor.isAfter(last)) {
-      mondays.push(cursor)
-      cursor = cursor.add(1, "week")
-    }
-    const selected = mondayOf(date)
-    if (!mondays.some(m => m.isSame(selected, "day"))) mondays.push(selected)
-
-    const groups = new Map()
-    mondays
-      .sort((a, b) => b.valueOf() - a.valueOf())
-      .forEach(monday => {
-        const sched = getSchoolWeekScheduleFromDate(monday.toDate())
-        const key = monday.format("MM/YYYY")
-        if (!groups.has(key)) groups.set(key, [])
-        groups.get(key).push({
-          value: monday.format("YYYY-MM-DD"),
-          label: `Tuần ${sched.weekNumber} (${monday.format("DD/MM")} – ${monday.add(4, "day").format("DD/MM")})`,
-        })
-      })
-    return Array.from(groups, ([month, weeks]) => ({ month: `Tháng ${month}`, weeks }))
-  }, [date])
-
-  const handleSelectWeek = mondayISO => {
-    // Giữ nguyên thứ trong tuần đang chọn khi nhảy sang tuần khác
-    const offset = (dayjs(date).day() + 6) % 7
-    setDate(dayjs(mondayISO).add(Math.min(offset, 4), "day").format("YYYY-MM-DD"))
-  }
-
-  const handleCurrentWeek = () => {
-    const today = dayjs()
-    const dow = today.day()
-    if (dow === 0 || dow === 6) {
-      const sched = getSchoolWeekScheduleFromDate(today.toDate())
-      setDate(sched.schoolDays[0].dateISO)
-    } else {
-      setDate(today.format("YYYY-MM-DD"))
-    }
-  }
+  useEffect(() => {
+    const timer = setInterval(() => setNow(dayjs()), 30000)
+    return () => clearInterval(timer)
+  }, [])
 
   const load = useCallback(async () => {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return
     setLoading(true)
     setError("")
     try {
-      const [contextResponse, historyResponse] = await Promise.all([
-        MealPortionService.getMyClassMeal({ date, mealType }),
-        MealPortionService.getHistory({ page: 1, limit: 100 }),
+      const historyRequest = MealPortionService.getHistory({ page: 1, limit: 100 })
+      if (isWeekend) {
+        setHistory((await historyRequest).data.items || [])
+        setContexts(null)
+        return
+      }
+      const [lunch, afternoon, historyResponse] = await Promise.all([
+        ...MEALS.map(meal => MealPortionService.getMyClassMeal({ date: today, mealType: meal.type })),
+        historyRequest,
       ])
-      const next = contextResponse.data
-      const sub = next.submission
-      setContext(next)
+      const next = { LUNCH: lunch.data, AFTERNOON: afternoon.data }
+      setContexts(next)
       setHistory(historyResponse.data.items || [])
-      setTotalPortions(sub ? String(sub.totalPortions) : "")
-      setAllergyNotes(sub?.allergyNotes || "")
-      setAllergyCounts(
-        Object.fromEntries(
-          (sub?.dailyAllergyPortions || []).map(item => [item.ingredientEntryId, item.portionCount]),
-        ),
-      )
+
+      const open = MEALS.map(meal => meal.type).filter(type => next[type].submission?.status !== "FINALIZED")
+      setSelected(Object.fromEntries(MEALS.map(meal => [meal.type, open.includes(meal.type)])))
+      // Điền sẵn: bản nháp đang dở, nếu không có thì sĩ số đăng ký (giả định đủ lớp).
+      const draft = open.map(type => next[type].submission).find(Boolean)
+      const registered = Number(next.LUNCH.class.registeredMealPortions || 0)
+      setPortions(draft ? draft.totalPortions : registered)
+      setNotes(draft?.allergyNotes || "")
+      setShowNotes(Boolean(draft?.allergyNotes))
+      setAllergyCounts(Object.fromEntries(
+        (draft?.dailyAllergyPortions || []).map(item => [item.ingredientEntryId, item.portionCount]),
+      ))
     } catch (failure) {
-      setContext(null)
-      setHistory([])
-      setError(errorMessage(failure, "Không thể tải thông tin suất ăn của lớp."))
+      setContexts(null)
+      setError(errorMessage(failure, "Không thể tải thông tin lớp. Vui lòng thử lại."))
     } finally {
       setLoading(false)
     }
-  }, [date, mealType])
+  }, [isWeekend, today])
 
-  useEffect(() => {
-    load()
-  }, [load])
+  useEffect(() => { load() }, [load])
 
-  const submission = context?.submission
-  const finalized = submission?.status === "FINALIZED"
-  const todayISO = dayjs().format("YYYY-MM-DD")
-  const isPastDate = value => dayjs(value).format("YYYY-MM-DD") < todayISO
-  // Chỉ khai và chốt cho đúng hôm nay (BE cũng chặn). Ngày khác chỉ xem.
-  const isToday = dayjs(date).format("YYYY-MM-DD") === todayISO
-  const readOnly = finalized || !isToday
-  const allergies = context?.class?.classAllergies || []
-  // Số suất không được vượt số suất đăng ký của lớp (BGH cấu hình ở danh sách lớp).
-  const registeredPortions = Number(context?.class?.registeredMealPortions ?? 0)
-  const overRegistered = totalPortions !== "" && Number(totalPortions) > registeredPortions
+  const klass = contexts?.LUNCH?.class
+  const registered = Number(klass?.registeredMealPortions || 0)
+  const allergies = klass?.classAllergies || []
+  const submissions = Object.fromEntries(MEALS.map(meal => [meal.type, contexts?.[meal.type]?.submission || null]))
+  const sentMeals = MEALS.filter(meal => submissions[meal.type]?.status === "FINALIZED")
+  const openMeals = MEALS.filter(meal => submissions[meal.type]?.status !== "FINALIZED")
+  const chosen = openMeals.map(meal => meal.type).filter(type => selected[type])
+  const portionCount = portions === "" ? null : Number(portions)
+  const absent = portionCount === null ? null : registered - portionCount
+  const allergyValid = allergies.every(item => Number(allergyCounts[item.ingredientEntryId] || 0) <= (portionCount ?? 0))
+  const canSend = chosen.length > 0 && portionCount !== null && allergyValid && !sending
+  const deadline = deadlineState(now)
 
-  const payload = useMemo(
-    () => ({
-      date,
-      mealType,
-      totalPortions: Number(totalPortions),
-      allergyNotes: allergyNotes || null,
+  const send = async () => {
+    setConfirmOpen(false)
+    setSending(true)
+    setSendErrors([])
+    const payload = {
+      date: today,
+      totalPortions: portionCount,
+      allergyNotes: notes.trim() || null,
       allergies: allergies.map(item => ({
         ingredientEntryId: item.ingredientEntryId,
         portionCount: Number(allergyCounts[item.ingredientEntryId] || 0),
       })),
-    }),
-    [allergies, allergyCounts, allergyNotes, date, mealType, totalPortions],
+    }
+    const done = []
+    const failed = []
+    for (const type of chosen) {
+      try {
+        const saved = await MealPortionService.saveDraft({ ...payload, mealType: type })
+        await MealPortionService.finalize(saved.data.id)
+        done.push(type)
+      } catch (failure) {
+        failed.push({ type, message: errorMessage(failure, "Không gửi được, vui lòng thử lại.") })
+      }
+    }
+    if (done.length) notice({ msg: `Đã gửi bếp ${portionCount} suất ${joinMeals(done)}` })
+    setSendErrors(failed)
+    setSending(false)
+    await load()
+  }
+
+  const header = (
+    <header className="meal-report__header">
+      <div>
+        <h1>Báo suất ăn hôm nay</h1>
+        <p>
+          {klass && <><Users size={16} aria-hidden /> <strong>{klass.name}</strong> · </>}
+          {WEEKDAYS[dayjs(today).day()]}, {dayjs(today).format("DD/MM/YYYY")}
+        </p>
+      </div>
+      {contexts && openMeals.length > 0 && (
+        <span className={`meal-report__deadline meal-report__deadline--${deadline.tone}`}>
+          <Clock size={16} aria-hidden /> {deadline.text}
+        </span>
+      )}
+    </header>
   )
 
-  const valid =
-    totalPortions !== "" &&
-    Number.isInteger(Number(totalPortions)) &&
-    Number(totalPortions) >= 0 &&
-    !overRegistered &&
-    allergies.every(item => {
-      const count = Number(allergyCounts[item.ingredientEntryId] || 0)
-      return (
-        Number.isInteger(count) &&
-        count >= 0 &&
-        count <= item.affectedCount &&
-        count <= Number(totalPortions)
-      )
-    })
-
-  const submit = async shouldFinalize => {
-    if (!valid || saving || readOnly) return
-    setSaving(true)
-    try {
-      const saved = await MealPortionService.saveDraft(payload)
-      if (shouldFinalize) await MealPortionService.finalize(saved.data.id)
-      notice({ msg: shouldFinalize ? "Đã chốt số suất ăn của lớp" : "Đã lưu bản nháp" })
-      await load()
-    } catch (failure) {
-      notice({ msg: errorMessage(failure, "Không thể lưu số suất ăn."), isSuccess: false })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const selectedMondayISO = weekSchedule.schoolDays[0]?.dateISO
-
-  // Gom nhóm lịch sử theo từng ngày trong tuần học
-  const groupedHistoryByDay = useMemo(() => {
-    if (!history || !history.length || !selectedMondayISO) return []
-
-    const weekItems = history.filter(item => {
-      const itemSched = getSchoolWeekScheduleFromDate(item.mealDate)
-      const itemMonday = itemSched.schoolDays[0]?.dateISO
-      if (itemMonday !== selectedMondayISO) return false
-      if (historyMealFilter === "LUNCH") return item.mealType === "LUNCH"
-      if (historyMealFilter === "AFTERNOON") return item.mealType === "AFTERNOON"
-      return true
-    })
-
-    const map = new Map()
-    for (const item of weekItems) {
-      const d = dayjs(item.mealDate).format("YYYY-MM-DD")
-      if (!map.has(d)) {
-        map.set(d, {
-          dateISO: d,
-          dateFormatted: formatVNDate(item.mealDate),
-          items: [],
-        })
-      }
-      map.get(d).items.push(item)
-    }
-
-    return Array.from(map.values())
-      .sort((a, b) => b.dateISO.localeCompare(a.dateISO))
-      .map(dayGroup => ({
-        ...dayGroup,
-        items: dayGroup.items.sort((a, b) => (a.mealType === "LUNCH" ? -1 : 1)),
-      }))
-  }, [history, selectedMondayISO, historyMealFilter])
-
-  const filteredHistoryItems = useMemo(() => {
-    return groupedHistoryByDay.flatMap(g => g.items)
-  }, [groupedHistoryByDay])
-
-  const weekHistoryStats = useMemo(() => {
-    const totalPortions = filteredHistoryItems.reduce(
-      (sum, it) => sum + Number(it.totalPortions || 0),
-      0,
-    )
-    const finalizedCount = filteredHistoryItems.filter(it => it.status === "FINALIZED").length
-    return {
-      totalPortions,
-      finalizedCount,
-      count: filteredHistoryItems.length,
-    }
-  }, [filteredHistoryItems])
-
-  // Dòng lịch sử đang được hiển thị ở form khai báo phía trên
-  const isShowing = item =>
-    dayjs(item.mealDate).format("YYYY-MM-DD") === date && item.mealType === mealType
-
-  const handleSelectHistoryItem = item => {
-    const itemDate = dayjs(item.mealDate).format("YYYY-MM-DD")
-    setDate(itemDate)
-    setMealType(item.mealType)
-    window.scrollTo({ top: 0, behavior: "smooth" })
-  }
-
-  const weekLabelShort = `Tuần ${weekSchedule.weekNumber} (${weekSchedule.schoolDays[0]?.dateVN?.slice(0, 5)} – ${weekSchedule.schoolDays[4]?.dateVN?.slice(0, 5)})`
-
   return (
-    <div className="daily-meal-page">
-      {/* 1. HÀNG TIÊU ĐỀ & ĐIỀU HƯỚNG TUẦN TINH GỌN */}
-      <div className="daily-meal-header">
-        <h1 className="daily-meal-header__title">Chốt số suất ăn của lớp</h1>
+    <div className="meal-report">
+      {header}
 
-        <div className="daily-meal-week-nav">
-          <div className="daily-meal-week-nav__box">
-            <button
-              type="button"
-              className="daily-meal-week-nav__arrow"
-              onClick={handlePrevWeek}
-              title="Tuần trước"
-              aria-label="Tuần trước"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            <label className="daily-meal-week-nav__label">
-              <CalendarDays size={14} className="daily-meal-week-nav__icon" />
-              <select
-                className="daily-meal-week-nav__select"
-                value={dayjs(weekSchedule.schoolDays[0]?.dateISO).format("YYYY-MM-DD")}
-                onChange={event => handleSelectWeek(event.target.value)}
-                aria-label="Chọn tuần"
-                title={weekLabelShort}
-              >
-                {weekGroups.map(group => (
-                  <optgroup key={group.month} label={group.month}>
-                    {group.weeks.map(week => (
-                      <option key={week.value} value={week.value}>
-                        {week.label}
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </label>
-
-            <button
-              type="button"
-              className="daily-meal-week-nav__arrow"
-              onClick={handleNextWeek}
-              title="Tuần sau"
-              aria-label="Tuần sau"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          <button
-            type="button"
-            className={`daily-meal-week-nav__today-btn ${isCurrentWeekSelected ? "daily-meal-week-nav__today-btn--active" : ""}`}
-            onClick={handleCurrentWeek}
-            title="Nhảy nhanh về tuần hiện tại"
-          >
-            <RotateCcw size={12} />
-            <span>Tuần này</span>
-          </button>
-        </div>
-      </div>
-
-      {/* 2. DẢI 5 NGÀY HỌC ĐỐI XỨNG CÂN BẰNG (T2 -> T6) */}
-      <div className="daily-meal-day-strip">
-        {weekSchedule.schoolDays.map(day => {
-          const isSelected = day.dateISO === date
-          const isToday = day.dateISO === dayjs().format("YYYY-MM-DD")
-
-          return (
-            <button
-              type="button"
-              key={day.dateISO}
-              className={`daily-meal-day-pill ${isSelected ? "daily-meal-day-pill--active" : ""} ${isToday ? "daily-meal-day-pill--today" : ""}`}
-              onClick={() => setDate(day.dateISO)}
-              title={isToday ? "Hôm nay" : undefined}
-            >
-              <span className="daily-meal-day-pill__day">{day.dayIndexLabel}</span>
-              <span className="daily-meal-day-pill__date">{day.dateVN?.slice(0, 5)}</span>
-            </button>
-          )
-        })}
-      </div>
-
-      {loading && (
-        <div className="daily-meal-loading" role="status" aria-live="polite">
-          <FoodPrintLoading size="medium" />
-        </div>
-      )}
+      {loading && <div className="meal-report__loading" role="status"><FoodPrintLoading size="medium" /></div>}
 
       {!loading && error && (
-        <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>
-          {error}
-        </Alert>
+        <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>
       )}
 
-      {!loading && context && (
+      {!loading && isWeekend && (
+        <div className="meal-report__card meal-report__rest">Hôm nay là cuối tuần, lớp không có bữa bán trú.</div>
+      )}
+
+      {!loading && contexts && (
         <>
-          {/* 3. CARD KHAI BÁO SUẤT ĂN */}
-          <Paper variant="outlined" className="daily-meal-card" aria-busy={saving}>
-            {/* Header: Thông tin lớp & Ngày chọn & Trạng thái */}
-            <div className="daily-meal-card__header">
-              <div className="daily-meal-card__title-row">
-                <div className="daily-meal-card__class-tag">
-                  <ClipboardList size={16} />
-                  <strong>{context.class.name}</strong>
-                </div>
-                <span className="daily-meal-card__date-text">
-                  {formatVNDate(date)}
-                </span>
+          {sendErrors.length > 0 && (
+            <Alert severity="error">
+              {sendErrors.map(item => <div key={item.type}><strong>{labelOf(item.type)}:</strong> {item.message}</div>)}
+            </Alert>
+          )}
+
+          {sentMeals.length > 0 && (
+            <section className="meal-report__card meal-report__sent" aria-label="Đã gửi bếp">
+              <div className="meal-report__sent-head">
+                <CheckCircle2 size={22} aria-hidden />
+                <strong>{openMeals.length ? "Đã gửi bếp" : "Đã gửi bếp cả hai bữa"}</strong>
               </div>
-              <StatusChip status={submission?.status} />
-            </div>
-
-            {/* Tab chuyển ca ăn nằm ngay trong Card khai báo */}
-            <div className="daily-meal-card__shift-tabs" role="tablist" aria-label="Chọn ca ăn">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mealType === "LUNCH"}
-                className={`daily-meal-card__shift-tab ${mealType === "LUNCH" ? "daily-meal-card__shift-tab--lunch-active" : ""}`}
-                onClick={() => setMealType("LUNCH")}
-              >
-                <Utensils size={14} />
-                <span>Bữa trưa</span>
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={mealType === "AFTERNOON"}
-                className={`daily-meal-card__shift-tab ${mealType === "AFTERNOON" ? "daily-meal-card__shift-tab--afternoon-active" : ""}`}
-                onClick={() => setMealType("AFTERNOON")}
-              >
-                <Coffee size={14} />
-                <span>Bữa xế</span>
-              </button>
-            </div>
-
-            {finalized ? (
-              <div className="daily-meal-card__finalized-banner">
-                <CheckCircle2 size={16} />
-                <span>
-                  Số suất {mealLabel(mealType).toLowerCase()} ngày {formatVNDate(date)} đã được chốt và giữ nguyên để bếp lập kế hoạch.
-                </span>
-              </div>
-            ) : (
-              readOnly && (
-                <Alert severity="info" sx={{ borderRadius: 0 }}>
-                  {isPastDate(date)
-                    ? `Ngày ${formatVNDate(date)} đã qua nên chỉ xem được, không sửa được.`
-                    : `Chỉ khai và chốt suất ăn trong ngày hôm nay. Ngày ${formatVNDate(date)} chưa tới.`}
-                </Alert>
-              )
-            )}
-
-            <div className="daily-meal-card__body">
-              <TextField
-                fullWidth
-                size="small"
-                type="number"
-                label={`Tổng số suất ${mealLabel(mealType).toLowerCase()}`}
-                placeholder="Nhập tổng số suất ăn..."
-                value={totalPortions}
-                disabled={saving}
-                onChange={event => setTotalPortions(event.target.value)}
-                inputProps={{ min: 0, max: registeredPortions, step: 1, inputMode: "numeric", readOnly }}
-                className={readOnly ? "daily-meal-readonly" : undefined}
-                error={overRegistered}
-                helperText={
-                  overRegistered
-                    ? `Không vượt số suất đăng ký của lớp (${registeredPortions} suất).`
-                    : `Số suất đăng ký của lớp: ${registeredPortions} suất.`
-                }
-              />
-
-              <div className="daily-meal-card__allergies">
-                <h3>Suất cần tránh nguyên liệu</h3>
-                {!allergies.length && (
-                  <Alert severity="info">Lớp chưa có thông tin dị ứng tổng hợp.</Alert>
-                )}
-                {allergies.map(item => (
-                  <div className="daily-meal-allergy-row" key={item.ingredientEntryId}>
-                    <div>
-                      <strong>{item.IngredientEntry.Ingredient.name}</strong>
-                      <span>Tối đa {item.affectedCount} suất theo hồ sơ lớp</span>
-                    </div>
-                    <TextField
-                      size="small"
-                      type="number"
-                      label="Số suất"
-                      value={allergyCounts[item.ingredientEntryId] ?? ""}
-                      disabled={saving}
-                      className={readOnly ? "daily-meal-readonly" : undefined}
-                      onChange={event =>
-                        setAllergyCounts(current => ({
-                          ...current,
-                          [item.ingredientEntryId]: event.target.value,
-                        }))
-                      }
-                      inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric", readOnly }}
-                    />
-                  </div>
-                ))}
-              </div>
-
-              <TextField
-                fullWidth
-                multiline
-                size="small"
-                minRows={2}
-                label="Ghi chú cho bếp (không bắt buộc)"
-                value={allergyNotes}
-                disabled={saving}
-                placeholder={readOnly ? "" : "Ghi chú cho bếp nếu có yêu cầu đặc biệt..."}
-                onChange={event => setAllergyNotes(event.target.value)}
-                inputProps={{ maxLength: 1000, readOnly }}
-                className={readOnly ? "daily-meal-readonly" : undefined}
-              />
-            </div>
-
-            {!readOnly && (
-              <div className="daily-meal-card__actions">
-                {!valid && (
-                  <span className="daily-meal-card__actions-hint">
-                    {totalPortions === ""
-                      ? "Nhập tổng số suất để lưu hoặc chốt."
-                      : overRegistered
-                        ? `Tối đa ${registeredPortions} suất theo số suất đăng ký của lớp.`
-                        : "Số suất chưa hợp lệ, kiểm tra lại các ô đã nhập."}
-                  </span>
-                )}
-                <Button
-                  variant="outlined"
-                  size="small"
-                  startIcon={<Save size={16} />}
-                  disabled={!valid || saving}
-                  onClick={() => submit(false)}
-                  className="daily-meal-btn"
-                >
-                  Lưu nháp
-                </Button>
-                <Button
-                  variant="contained"
-                  size="small"
-                  startIcon={<CheckCircle2 size={16} />}
-                  disabled={!valid || saving}
-                  onClick={() => setConfirmOpen(true)}
-                  className="daily-meal-btn daily-meal-btn--primary"
-                >
-                  {saving ? "Đang xử lý..." : "Chốt số suất"}
-                </Button>
-              </div>
-            )}
-          </Paper>
-
-          {/* 4. LỊCH SỬ KHAI BÁO THEO TUẦN ĐANG CHỌN */}
-          <section className="daily-meal-history">
-            <div className="daily-meal-history__header">
-              <div className="daily-meal-history__title-block">
-                <h2>Lịch sử tuần {weekSchedule.weekNumber}</h2>
-                {filteredHistoryItems.length > 0 && (
-                  <div className="daily-meal-history__stats">
-                    <Chip
-                      size="small"
-                      icon={<Utensils size={13} />}
-                      label={`Tổng ${weekHistoryStats.totalPortions} suất`}
-                      variant="outlined"
-                      className="daily-meal-stats-chip"
-                    />
-                    <Chip
-                      size="small"
-                      icon={<CheckCircle2 size={13} />}
-                      label={`${weekHistoryStats.finalizedCount}/${weekHistoryStats.count} ca đã chốt`}
-                      className="daily-meal-stats-chip daily-meal-stats-chip--success"
-                    />
-                  </div>
-                )}
-              </div>
-
-              {/* Bộ lọc ca ăn dạng Filter Pills nhỏ gọn */}
-              <div className="daily-meal-filter-pills" role="group" aria-label="Lọc ca ăn lịch sử">
-                <button
-                  type="button"
-                  className={`daily-meal-filter-pill ${historyMealFilter === "ALL" ? "daily-meal-filter-pill--active" : ""}`}
-                  onClick={() => setHistoryMealFilter("ALL")}
-                >
-                  Tất cả ca
-                </button>
-                <button
-                  type="button"
-                  className={`daily-meal-filter-pill ${historyMealFilter === "LUNCH" ? "daily-meal-filter-pill--active" : ""}`}
-                  onClick={() => setHistoryMealFilter("LUNCH")}
-                >
-                  Bữa trưa
-                </button>
-                <button
-                  type="button"
-                  className={`daily-meal-filter-pill ${historyMealFilter === "AFTERNOON" ? "daily-meal-filter-pill--active" : ""}`}
-                  onClick={() => setHistoryMealFilter("AFTERNOON")}
-                >
-                  Bữa xế
-                </button>
-              </div>
-            </div>
-
-            <div className="daily-meal-history__content">
-              {groupedHistoryByDay.length > 0 ? (
-                <>
-                  {/* DESKTOP TABLE */}
-                  <div className="daily-meal-history-desktop">
-                    <TableContainer component={Paper} variant="outlined" className="daily-meal-history-table">
-                      <Table size="small">
-                        <TableHead>
-                          <TableRow>
-                            <TableCell>Ngày</TableCell>
-                            <TableCell>Ca ăn</TableCell>
-                            <TableCell>Lớp</TableCell>
-                            <TableCell align="right">Số suất</TableCell>
-                            <TableCell>Trạng thái</TableCell>
-                            <TableCell align="center">Thao tác</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {filteredHistoryItems.map(item => (
-                            <TableRow key={item.id} hover selected={isShowing(item)}>
-                              <TableCell>
-                                <strong>{formatVNDate(item.mealDate)}</strong>
-                              </TableCell>
-                              <TableCell>{mealLabel(item.mealType)}</TableCell>
-                              <TableCell>{item.Class?.name || context.class.name}</TableCell>
-                              <TableCell align="right">
-                                <strong>{item.totalPortions}</strong>
-                              </TableCell>
-                              <TableCell>
-                                <StatusChip status={item.status} />
-                              </TableCell>
-                              <TableCell align="center">
-                                {isShowing(item) ? (
-                                  <span className="daily-meal-history__showing">Đang hiển thị ở trên</span>
-                                ) : (
-                                  <Button
-                                    size="small"
-                                    variant="text"
-                                    startIcon={(item.status === "FINALIZED" || isPastDate(item.mealDate)) ? <Eye size={14} /> : <Edit3 size={14} />}
-                                    onClick={() => handleSelectHistoryItem(item)}
-                                    title={
-                                      item.status === "FINALIZED"
-                                        ? "Mở số suất đã chốt ở form phía trên"
-                                        : "Mở bản nháp ở form phía trên để sửa và chốt"
-                                    }
-                                  >
-                                    {(item.status === "FINALIZED" || isPastDate(item.mealDate)) ? "Xem chi tiết" : "Sửa"}
-                                  </Button>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </div>
-
-                  {/* MOBILE GROUPED DAY CARDS (Gom theo từng ngày, không lặp ngày) */}
-                  <div className="daily-meal-history-mobile">
-                    {groupedHistoryByDay.map(dayGroup => (
-                      <div key={dayGroup.dateISO} className="daily-meal-history-day-card">
-                        <div className="daily-meal-history-day-card__header">
-                          <span className="daily-meal-history-day-card__date-label">
-                            {dayGroup.dateFormatted}
-                          </span>
-                        </div>
-                        <div className="daily-meal-history-day-card__rows">
-                          {dayGroup.items.map(item => (
-                            <div key={item.id} className="daily-meal-history-day-card__row">
-                              <div className="daily-meal-history-day-card__meal-info">
-                                <span className={`daily-meal-history-day-card__meal-badge daily-meal-history-day-card__meal-badge--${item.mealType.toLowerCase()}`}>
-                                  {mealLabel(item.mealType)}
-                                </span>
-                                <span className="daily-meal-history-day-card__portions">
-                                  <strong>{item.totalPortions}</strong> suất
-                                </span>
-                              </div>
-                              <div className="daily-meal-history-day-card__actions">
-                                <StatusChip status={item.status} />
-                                {isShowing(item) ? (
-                                  <span className="daily-meal-history__showing">Đang hiển thị</span>
-                                ) : (
-                                  <Button
-                                    size="small"
-                                    variant="outlined"
-                                    onClick={() => handleSelectHistoryItem(item)}
-                                    className="daily-meal-history-day-card__btn"
-                                  >
-                                    {(item.status === "FINALIZED" || isPastDate(item.mealDate)) ? "Xem" : "Sửa"}
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <Paper variant="outlined" className="daily-meal-empty-history">
-                  Chưa có lịch sử khai báo nào trong tuần này{historyMealFilter !== "ALL" ? ` cho ${mealLabel(historyMealFilter).toLowerCase()}` : ""}.
-                </Paper>
+              <ul>
+                {sentMeals.map(meal => {
+                  const item = submissions[meal.type]
+                  const allergyTotal = (item.dailyAllergyPortions || []).reduce((sum, row) => sum + row.portionCount, 0)
+                  return (
+                    <li key={meal.type}>
+                      <span>{meal.label}</span>
+                      <b>{item.totalPortions} suất</b>
+                      <small>
+                        {item.finalizedAt ? `lúc ${dayjs(item.finalizedAt).format("HH:mm")}` : ""}
+                        {allergyTotal ? ` · ${allergyTotal} suất tránh dị ứng` : ""}
+                      </small>
+                    </li>
+                  )
+                })}
+              </ul>
+              {!openMeals.length && (
+                <p className="meal-report__hint">Cần thay đổi sau khi đã gửi? Vui lòng báo Ban giám hiệu để điều chỉnh với bếp.</p>
               )}
-            </div>
-          </section>
+            </section>
+          )}
 
-          <Dialog open={confirmOpen} onClose={() => !saving && setConfirmOpen(false)} maxWidth="xs" fullWidth>
-            <DialogTitle>Chốt số suất ăn?</DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                Sau khi chốt, số suất ngày <strong>{formatVNDate(date)}</strong> ({mealLabel(mealType).toLowerCase()}) sẽ được giữ nguyên để bếp lập kế hoạch và không thể sửa trực tiếp.
-              </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-              <Button disabled={saving} onClick={() => setConfirmOpen(false)}>
-                Quay lại
-              </Button>
-              <Button
-                variant="contained"
-                disabled={saving}
-                onClick={async () => {
-                  setConfirmOpen(false)
-                  await submit(true)
-                }}
-              >
-                Xác nhận chốt
-              </Button>
-            </DialogActions>
-          </Dialog>
+          {openMeals.length > 0 && (
+            <section className="meal-report__card" aria-busy={sending}>
+              <fieldset className="meal-report__meals">
+                <legend>Báo cho bữa</legend>
+                {openMeals.map(meal => (
+                  <FormControlLabel
+                    key={meal.type}
+                    className={`meal-report__meal ${selected[meal.type] ? "meal-report__meal--on" : ""}`}
+                    control={(
+                      <Checkbox
+                        checked={selected[meal.type]}
+                        disabled={sending}
+                        onChange={event => setSelected(current => ({ ...current, [meal.type]: event.target.checked }))}
+                      />
+                    )}
+                    label={(
+                      <span>
+                        {meal.label}
+                        {submissions[meal.type] && <small>Có bản nháp {submissions[meal.type].totalPortions} suất</small>}
+                      </span>
+                    )}
+                  />
+                ))}
+              </fieldset>
+
+              <div className="meal-report__portions">
+                <span className="meal-report__label">Số suất ăn mỗi bữa</span>
+                <PortionStepper
+                  size="lg"
+                  label="số suất ăn"
+                  value={portions}
+                  max={registered}
+                  disabled={sending}
+                  onChange={setPortions}
+                />
+                <p className="meal-report__absent">
+                  Đăng ký {registered} suất
+                  {absent !== null && (absent > 0 ? <> · <b>vắng {absent}</b></> : " · đủ sĩ số")}
+                </p>
+              </div>
+
+              {allergies.length > 0 && (
+                <div className="meal-report__allergies">
+                  <span className="meal-report__label">Suất tránh nguyên liệu dị ứng</span>
+                  {allergies.map(item => (
+                    <div key={item.ingredientEntryId} className="meal-report__allergy">
+                      <span>
+                        <strong>{item.IngredientEntry?.Ingredient?.name}</strong>
+                        <small>Lớp có {item.affectedCount} em</small>
+                      </span>
+                      <PortionStepper
+                        label={`suất tránh ${item.IngredientEntry?.Ingredient?.name || "nguyên liệu"}`}
+                        value={allergyCounts[item.ingredientEntryId] ?? 0}
+                        max={Math.min(item.affectedCount, portionCount ?? 0)}
+                        disabled={sending}
+                        onChange={value => setAllergyCounts(current => ({ ...current, [item.ingredientEntryId]: value }))}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {showNotes ? (
+                <TextField
+                  multiline
+                  minRows={2}
+                  size="small"
+                  label="Ghi chú cho bếp"
+                  value={notes}
+                  disabled={sending}
+                  onChange={event => setNotes(event.target.value)}
+                  inputProps={{ maxLength: 1000 }}
+                />
+              ) : (
+                <Button
+                  className="meal-report__add-note"
+                  size="small"
+                  startIcon={<MessageSquarePlus size={16} aria-hidden />}
+                  onClick={() => setShowNotes(true)}
+                >
+                  Thêm ghi chú cho bếp
+                </Button>
+              )}
+
+              <div className="meal-report__actions">
+                <Button
+                  fullWidth
+                  size="large"
+                  variant="contained"
+                  disabled={!canSend}
+                  onClick={() => setConfirmOpen(true)}
+                  startIcon={sending ? <CircularProgress size={18} color="inherit" /> : <Send size={18} aria-hidden />}
+                >
+                  {sending
+                    ? "Đang gửi…"
+                    : chosen.length
+                      ? `Gửi bếp ${portionCount ?? 0} suất · ${chosen.map(labelOf).join(" + ")}`
+                      : "Chọn bữa cần báo"}
+                </Button>
+              </div>
+            </section>
+          )}
         </>
       )}
+
+      {!loading && <RecentDays items={history} today={today} />}
+
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>Gửi số suất cho bếp?</DialogTitle>
+        <DialogContent>
+          <DialogContentText component="div">
+            <p className="meal-report__confirm-number">{portionCount} suất</p>
+            <p>cho {joinMeals(chosen)} hôm nay{absent > 0 ? ` (vắng ${absent} em)` : ""}.</p>
+            <p>Sau khi gửi sẽ không tự sửa được, cần thay đổi thì báo Ban giám hiệu.</p>
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>Kiểm tra lại</Button>
+          <Button variant="contained" onClick={send} startIcon={<Send size={16} aria-hidden />}>Gửi bếp</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   )
 }
