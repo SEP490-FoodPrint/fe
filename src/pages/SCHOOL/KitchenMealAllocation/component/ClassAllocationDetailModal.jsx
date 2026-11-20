@@ -1,4 +1,5 @@
 import React from "react";
+import { formatAllocationDecimal as fmt } from "src/utils/allocationDecimal";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton } from "@mui/material";
 import { Layers, X } from "lucide-react";
 import styles from "./ClassAllocationDetailModal.module.scss";
@@ -44,7 +45,7 @@ export default function ClassAllocationDetailModal({ open, onClose, classData })
               <div className={styles.dishHeader}>
                 <strong>{dish.dishName}</strong>
                 <span style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)" }}>
-                  Tổng nhận: <b>{dish.allocatedPortions}</b> / {totalPortions} suất
+                  Tổng nhận: <b>{fmt(dish.allocatedPortions)}</b> / {fmt(totalPortions)} suất
                 </span>
               </div>
 
@@ -59,7 +60,7 @@ export default function ClassAllocationDetailModal({ open, onClose, classData })
                           : b.batchCode || b.batchName || `Lô ${idx + 1}`}
                         :
                       </span>
-                      <b>{b.allocatedPortions} suất</b>
+                      <b>{fmt(b.allocatedPortions)} suất</b>
                     </div>
                   ))
                 ) : (

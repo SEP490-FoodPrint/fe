@@ -1,4 +1,4 @@
-import { mealByTime } from "./mealWindow";
+import { mealByTime } from "src/utils/mealWindow";
 import { formatLargeQuantity } from "src/utils/quantity"
 import useConfirmAction from "./component/useConfirmAction";
 import { batchDisplayName } from "./batchLabel";
