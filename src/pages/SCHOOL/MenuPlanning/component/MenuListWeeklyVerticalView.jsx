@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react"
+import { dayTintStyle } from "src/utils/dayTint"
 import {
   Calendar,
   Utensils,
@@ -12,7 +13,6 @@ import {
   CheckCircle2,
   Clock,
   FileEdit,
-  PlusCircle,
   AlertCircle,
   CalendarCheck,
   CalendarOff,
@@ -122,19 +122,14 @@ export default function MenuListWeeklyVerticalView({
       const hasAfternoon = savedDayMenus.some(m => m.mealType === "AFTERNOON" && m.dishes?.length)
       const isEmpty = !hasLunch && !hasAfternoon
 
-      const statuses = savedDayMenus.map(menu => menu.status)
       let progress
       if (isEmpty) {
-        progress = { type: "EMPTY", label: "Chưa tạo", badgeClass: styles.badgeEmpty, IconComponent: PlusCircle }
+        // Chưa có món: không hiện nhãn ở thứ đó
+        progress = null
       } else if (!hasLunch || !hasAfternoon) {
-        progress = { type: hasLunch ? "PARTIAL_AFTERNOON" : "PARTIAL_LUNCH", label: hasLunch ? "Thiếu xế" : "Thiếu trưa", badgeClass: styles.badgePartial, IconComponent: AlertCircle }
-      } else if (statuses.some(status => ["REVISION_REQUESTED", "REVISION_REQUIRED"].includes(status))) {
-        progress = { type: "REVISION_REQUIRED", label: "Cần sửa", badgeClass: styles.badgeRevision, IconComponent: AlertTriangle, note: "Xem lý do của BGH ở đầu trang" }
-      } else if (statuses.includes("PENDING_APPROVAL")) {
-        progress = { type: "PENDING", label: "Chờ duyệt", badgeClass: styles.badgePending, IconComponent: Clock }
-      } else if (statuses.length && statuses.every(status => status === "APPROVED")) {
-        progress = { type: "APPROVED", label: "Đã duyệt", badgeClass: styles.badgeApproved, IconComponent: CheckCircle2 }
+        progress = { type: hasLunch ? "PARTIAL_AFTERNOON" : "PARTIAL_LUNCH", label: hasLunch ? "Thiếu bữa xế" : "Thiếu bữa trưa", badgeClass: styles.badgePartial, IconComponent: AlertCircle }
       } else {
+        // Mỗi thứ chỉ báo đủ/thiếu bữa; trạng thái duyệt là của cả tuần, không hiện theo ngày.
         progress = { type: "COMPLETED", label: "Đủ bữa", badgeClass: styles.badgeCompleted, IconComponent: CheckCircle2 }
       }
 
@@ -261,9 +256,8 @@ export default function MenuListWeeklyVerticalView({
           {weekStatus === "DRAFT" && (
             <button
               type="button"
-              className={`${styles.submitWeekBtn} ${
-                weekProgressStats.isAllCompleted ? styles.submitActive : styles.submitDisabled
-              }`}
+              className={`${styles.submitWeekBtn} ${weekProgressStats.isAllCompleted ? styles.submitActive : styles.submitDisabled
+                }`}
               disabled={!weekProgressStats.isAllCompleted}
               onClick={onSubmitWeeklyMenu}
               title={
@@ -314,11 +308,9 @@ export default function MenuListWeeklyVerticalView({
               <button
                 key={day.dayOfWeek}
                 type="button"
-                className={`${styles.mobileDayPill} ${
-                  isSelected ? styles.mobileDayPillActive : ""
-                } ${day.isToday ? styles.mobileDayPillToday : ""} ${
-                  day.isHoliday ? styles.mobileDayPillHoliday : ""
-                }`}
+                className={`${styles.mobileDayPill} ${isSelected ? styles.mobileDayPillActive : ""
+                  } ${day.isToday ? styles.mobileDayPillToday : ""} ${day.isHoliday ? styles.mobileDayPillHoliday : ""
+                  }`}
                 onClick={() => setSelectedDayOfWeek(day.dayOfWeek)}
               >
                 <span className={styles.pillIndex}>
@@ -332,9 +324,8 @@ export default function MenuListWeeklyVerticalView({
           })}
           <button
             type="button"
-            className={`${styles.mobileDayPill} ${
-              selectedDayOfWeek === "ALL" ? styles.mobileDayPillActive : ""
-            }`}
+            className={`${styles.mobileDayPill} ${selectedDayOfWeek === "ALL" ? styles.mobileDayPillActive : ""
+              }`}
             onClick={() => setSelectedDayOfWeek("ALL")}
           >
             <span className={styles.pillIndex}>Cả tuần</span>
@@ -370,14 +361,13 @@ export default function MenuListWeeklyVerticalView({
             return (
               <div
                 key={sd.dayOfWeek}
-                className={`${styles.dayColItem} ${
-                  isHiddenOnMobile ? styles.mobileHidden : ""
-                }`}
+                className={`${styles.dayColItem} ${isHiddenOnMobile ? styles.mobileHidden : ""
+                  }`}
               >
                 <div
-                  className={`${styles.dayCard} ${
-                    sd.isToday ? styles.todayDayCard : ""
-                  } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
+                  className={`${styles.dayCard} ${sd.isToday ? styles.todayDayCard : ""
+                    } ${sd.isHoliday ? styles.holidayDayCard : ""}`}
+                  style={dayTintStyle(sd.dayOfWeek, { holiday: sd.isHoliday })}
                 >
                   {/* HÀNG 1: Header Cột Ngày - CHIỀU CAO CỐ ĐỊNH 64px ĐỒNG BỘ CẢ 5 NGÀY */}
                   <div className={styles.dayHeader}>
@@ -458,11 +448,10 @@ export default function MenuListWeeklyVerticalView({
                               {canEditLunch && (
                                 <button
                                   type="button"
-                                  className={`${styles.mealIconBtn} ${styles.lunchEditBtn} ${
-                                    progress?.type === "REVISION_REQUIRED"
-                                      ? styles.revisionEditBtn
-                                      : ""
-                                  }`}
+                                  className={`${styles.mealIconBtn} ${styles.lunchEditBtn} ${progress?.type === "REVISION_REQUIRED"
+                                    ? styles.revisionEditBtn
+                                    : ""
+                                    }`}
                                   onClick={() => onEditMenu(resolvedLunchMenu)}
                                   title={
                                     progress?.type === "REVISION_REQUIRED"
@@ -482,11 +471,7 @@ export default function MenuListWeeklyVerticalView({
                             <div className={styles.dishesListLunch}>
                               {lunchDishes.map((dish) => {
                                 const dishKey = dish.id || dish.dishId
-                                const sub =
-                                  dish.substituteDish ||
-                                  (resolvedLunchMenu?.substituteDish?.substituteForDishId === dishKey
-                                    ? resolvedLunchMenu.substituteDish
-                                    : null)
+                                const substitutes = dish.substituteDishes || []
 
                                 return (
                                   <div
@@ -502,9 +487,14 @@ export default function MenuListWeeklyVerticalView({
                                           {dish.name}
                                         </span>
                                       </div>
-                                      {sub && (
-                                        <div className={styles.substituteDishNote}>
+                                      {substitutes.map(sub => (
+                                        <div key={sub.dishId} className={styles.substituteDishNote}>
                                           ({sub.name})
+                                        </div>
+                                      ))}
+                                      {dish.excludedInGroups?.length > 0 && (
+                                        <div className={styles.substituteDishNote}>
+                                          (Không dùng cho {dish.excludedInGroups.join(", ")})
                                         </div>
                                       )}
                                     </div>
@@ -548,11 +538,10 @@ export default function MenuListWeeklyVerticalView({
                               {canEditAfternoon && (
                                 <button
                                   type="button"
-                                  className={`${styles.mealIconBtn} ${styles.afternoonEditBtn} ${
-                                    progress?.type === "REVISION_REQUIRED"
-                                      ? styles.revisionEditBtn
-                                      : ""
-                                  }`}
+                                  className={`${styles.mealIconBtn} ${styles.afternoonEditBtn} ${progress?.type === "REVISION_REQUIRED"
+                                    ? styles.revisionEditBtn
+                                    : ""
+                                    }`}
                                   onClick={() => onEditMenu(resolvedAfternoonMenu)}
                                   title={
                                     progress?.type === "REVISION_REQUIRED"
@@ -572,11 +561,7 @@ export default function MenuListWeeklyVerticalView({
                             <div className={styles.dishesListAfternoon}>
                               {afternoonDishes.map((dish) => {
                                 const dishKey = dish.id || dish.dishId
-                                const sub =
-                                  dish.substituteDish ||
-                                  (resolvedAfternoonMenu?.substituteDish?.substituteForDishId === dishKey
-                                    ? resolvedAfternoonMenu.substituteDish
-                                    : null)
+                                const substitutes = dish.substituteDishes || []
 
                                 return (
                                   <div
@@ -592,9 +577,14 @@ export default function MenuListWeeklyVerticalView({
                                           {dish.name}
                                         </span>
                                       </div>
-                                      {sub && (
-                                        <div className={styles.substituteDishNote}>
+                                      {substitutes.map(sub => (
+                                        <div key={sub.dishId} className={styles.substituteDishNote}>
                                           ({sub.name})
+                                        </div>
+                                      ))}
+                                      {dish.excludedInGroups?.length > 0 && (
+                                        <div className={styles.substituteDishNote}>
+                                          (Không dùng cho {dish.excludedInGroups.join(", ")})
                                         </div>
                                       )}
                                     </div>

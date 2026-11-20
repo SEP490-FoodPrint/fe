@@ -1,7 +1,7 @@
 import InlineError from "src/components/InlineError"
 import React, { useState, useMemo, useEffect } from "react"
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom"
-import { CheckCircle2, AlertTriangle, Info, Plus } from "lucide-react"
+import { CheckCircle2, AlertTriangle, Info, Plus, Pencil } from "lucide-react"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
@@ -108,12 +108,18 @@ export default function MenuPlanning() {
   }, [calendarRetry])
 
   const selectedWeekView = searchParams.has("week")
+  // Khoá của lượt tải ứng với màn đang xem; menus đang giữ thuộc lượt tải menusKey
+  const menusRequestKey = `${filters.status}|${selectedWeekView ? selectedWeekObj?.weekStartDate || "none" : "all"}`
+  const [menusKey, setMenusKey] = useState(null)
+  // Dữ liệu chưa khớp màn đang xem (vd. vừa bấm xem tuần, còn giữ thực đơn cả năm): coi như đang tải, tránh nháy giao diện
+  const menusLoading = loading || menusKey !== menusRequestKey
 
   // Tải dữ liệu thực tế từ backend API
   useEffect(() => {
     let isMounted = true
     if (!selectedWeekObj && selectedWeekView) {
       setMenus([])
+      setMenusKey(menusRequestKey)
       setLoading(false)
       return
     }
@@ -125,14 +131,17 @@ export default function MenuPlanning() {
           allPages: true,
           status: filters.status,
           weekStartDate: selectedWeekView ? selectedWeekObj?.weekStartDate : undefined,
+          includeAllergyDishes: selectedWeekView,
         })
         if (isMounted && Array.isArray(res?.data)) {
           setMenus(res.data)
+          setMenusKey(menusRequestKey)
         }
       } catch (err) {
         console.warn("Lỗi tải thực đơn:", err)
         if (isMounted) {
           setMenus([])
+          setMenusKey(menusRequestKey)
           setLoadError(err.message || "Không tải được thực đơn tuần.")
         }
       } finally {
@@ -218,7 +227,8 @@ export default function MenuPlanning() {
       if (search) {
         const nameMatch = item.name?.toLowerCase().includes(search)
         const dishMatch = item.dishes?.some((d) =>
-          d.name?.toLowerCase().includes(search)
+          d.name?.toLowerCase().includes(search) ||
+          d.substituteDishes?.some(substitute => substitute.name?.toLowerCase().includes(search))
         )
         if (!nameMatch && !dishMatch) {
           return false
@@ -274,7 +284,7 @@ export default function MenuPlanning() {
 
   // Tiêu đề của thực đơn tuần được chọn
   const weeklyMenuTitle = useMemo(() => {
-    return selectedWeekObj ? `Thực đơn tuần ${selectedWeekObj.weekNumber}` : "Thực đơn"
+    return selectedWeekObj ? `Thực đơn dinh dưỡng tuần ${selectedWeekObj.weekNumber}` : "Thực đơn"
   }, [selectedWeekObj])
 
   const isCurrentWeek = useMemo(() => {
@@ -319,7 +329,7 @@ export default function MenuPlanning() {
         "success"
       )
       // Tải lại danh sách từ API
-      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week })
+      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week, includeAllergyDishes: true })
       if (Array.isArray(res?.data)) setMenus(res.data)
     } catch (err) {
       showToast(err.message || "Không thể gửi duyệt thực đơn.", "warning")
@@ -341,7 +351,7 @@ export default function MenuPlanning() {
         `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
         "success"
       )
-      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week })
+      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week, includeAllergyDishes: true })
       if (Array.isArray(res?.data)) setMenus(res.data)
     } catch (err) {
       showToast(err.message || "Không thể gửi lại thực đơn.", "warning")
@@ -374,16 +384,20 @@ export default function MenuPlanning() {
 
   if (!selectedWeekView) return (
     <div className={styles.menuListPage}>
-      <MenuDeadlineBanner
-        academicYears={availableAcademicYears}
-        weekMenus={weekMenusMap}
-        grades={gradeOptions}
-        onCreate={(weekStartDate) => handleNavigateCreateWithDate(weekStartDate, "LUNCH")}
-      />
+      {/* Chỉ báo hạn chót khi đã tải xong thực đơn (tránh nhấp nháy "chưa được tạo" lúc danh sách còn rỗng)
+          và đang xem mọi trạng thái (lọc theo trạng thái sẽ làm thiếu thực đơn của tuần tới) */}
+      {!calendarLoading && !menusLoading && !loadError && filters.status === "all" && (
+        <MenuDeadlineBanner
+          academicYears={availableAcademicYears}
+          weekMenus={weekMenusMap}
+          grades={gradeOptions}
+          onCreate={(weekStartDate) => handleNavigateCreateWithDate(weekStartDate, "LUNCH")}
+        />
+      )}
       <MenuYearWeeksTable
         academicYears={availableAcademicYears}
         academicYear={filters.academicYear}
-        loading={calendarLoading || (!selectedWeekView && loading)}
+        loading={calendarLoading || (!selectedWeekView && menusLoading)}
         error={calendarError || (!selectedWeekView ? loadError : "")}
         onRetry={() => { setCalendarRetry(value => value + 1); }}
         onYearChange={(value) => { const year = availableAcademicYears.find(item => item.academicYear === value); const week = defaultWeek(year); const query = academicWeekSearch(location.search, value); setSearchParams(query); setFilters(previous => ({ ...previous, academicYear: value, week: week?.weekStartDate || "" })) }}
@@ -409,15 +423,37 @@ export default function MenuPlanning() {
       {/* 1. Tiêu đề màn hình chuẩn mực (Clean, tối giản) */}
       <div className={styles.pageHeader}>
         <button type="button" className={styles.backToWeeks} onClick={() => { const query = academicWeekSearch(location.search, filters.academicYear); setSearchParams(query) }}>‹ Danh sách tuần</button>
-        <button
-          type="button"
-          className={styles.createBtn}
-          onClick={handleNavigateCreate}
-          title="Tạo thực đơn mới"
-        >
-          <Plus size={16} />
-          <span>Tạo thực đơn</span>
-        </button>
+        {/* Nút theo trạng thái thực đơn của tuần đang xem */}
+        {(() => {
+          const statuses = new Set(menuGroups.map(group => group.status))
+          const editAction =
+            statuses.has("REVISION_REQUESTED") ? { label: "Sửa theo yêu cầu BGH", title: "Sửa thực đơn tuần theo nhận xét của Ban Giám hiệu" }
+              : statuses.has("DRAFT") ? { label: "Tiếp tục soạn thực đơn", title: "Tiếp tục soạn bản nháp thực đơn tuần" }
+                : statuses.has("PENDING_APPROVAL") ? { label: "Sửa thực đơn", title: "Thực đơn đang chờ BGH duyệt, vẫn sửa được" }
+                  : null
+          const weekStart = selectedWeekObj?.weekStartDate
+          return editAction ? (
+            <button
+              type="button"
+              className={styles.createBtn}
+              onClick={() => (weekStart ? handleNavigateCreateWithDate(weekStart, "LUNCH") : handleNavigateCreate())}
+              title={editAction.title}
+            >
+              <Pencil size={15} />
+              <span>{editAction.label}</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className={styles.createBtn}
+              onClick={() => (weekStart ? handleNavigateCreateWithDate(weekStart, "LUNCH") : handleNavigateCreate())}
+              title="Tạo thực đơn mới"
+            >
+              <Plus size={16} />
+              <span>Tạo thực đơn</span>
+            </button>
+          )
+        })()}
       </div>
 
       {/* 3. Bộ lọc chi tiết (Năm học, Tuần học theo BGH, Khối, Ca ăn, Tìm kiếm) */}
@@ -434,7 +470,7 @@ export default function MenuPlanning() {
       />
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
-      {calendarLoading || loading ? (
+      {calendarLoading || menusLoading ? (
         <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
           <FoodPrintLoading />
         </div>

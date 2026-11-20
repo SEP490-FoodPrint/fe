@@ -362,10 +362,9 @@ function selectedGroupDish(day, group) {
   const subGroupDish = (group.dishes || []).find(
     (d) => !defaultDishIds.has(d.dishId)
   );
-  const targetDishId = subGroupDish
-    ? subGroupDish.dishId
-    : group.dishes?.[0]?.dishId;
-  if (!targetDishId) return null;
+  // Nhóm chỉ bớt món (kiêng) thì không có món thay thế; không được đoán bằng món đầu nhóm.
+  if (!subGroupDish) return null;
+  const targetDishId = subGroupDish.dishId;
 
   // Xác định món gốc bị thay thế trong nhóm mặc định
   const subDishIds = new Set((group.dishes || []).map((d) => d.dishId));
@@ -411,6 +410,53 @@ function selectedGroupDish(day, group) {
   };
 }
 
+function groupMenuCardDishes(day, mealType, dishes) {
+  const groups = (day.portionGroups || []).filter(group => group.mealType === mealType);
+  const regularGroup = groups.find(group => group.isDefault);
+  const regularIds = new Set((regularGroup?.dishes || []).map(dish => dish.dishId));
+  const dishIds = new Set(dishes.map(dish => dish.id));
+  const substitutesByDish = new Map();
+  const substituteIds = new Set();
+  const excludedByDish = new Map();
+
+  for (const group of groups) {
+    if (group.isDefault || !group.dishes?.length || !regularIds.size) continue;
+    const groupIds = new Set(group.dishes.map(dish => dish.dishId));
+    const removed = [...regularIds].filter(id => !groupIds.has(id));
+    const added = [...groupIds].filter(id => !regularIds.has(id));
+    // Nhóm chỉ kiêng: bớt món mà không thêm món thay thế.
+    if (!added.length) {
+      for (const id of removed) {
+        if (!dishIds.has(id)) continue;
+        excludedByDish.set(id, [...(excludedByDish.get(id) || []), group.name]);
+      }
+      continue;
+    }
+    // The group identifies a replacement only when exactly one dish was swapped.
+    if (removed.length !== 1 || added.length !== 1 ||
+      !dishIds.has(removed[0]) || !dishIds.has(added[0])) continue;
+
+    const substitute = selectedGroupDish(day, group);
+    if (!substitute) continue;
+    const alternatives = substitutesByDish.get(removed[0]) || new Map();
+    alternatives.set(substitute.dishId, substitute);
+    substitutesByDish.set(removed[0], alternatives);
+    substituteIds.add(substitute.dishId);
+  }
+
+  return dishes.filter(dish => !substituteIds.has(dish.id)).map(dish => {
+    const substitutes = substitutesByDish.get(dish.id);
+    const excludedInGroups = excludedByDish.get(dish.id);
+    if (!substitutes && !excludedInGroups) return dish;
+    const substituteDishes = substitutes ? [...substitutes.values()] : [];
+    return {
+      ...dish,
+      ...(substituteDishes.length ? { substituteDish: substituteDishes[0], substituteDishes } : {}),
+      ...(excludedInGroups ? { excludedInGroups } : {}),
+    };
+  });
+}
+
 export function adaptWeeklyMenuToCardList(weeklyMenu) {
   if (!weeklyMenu || !weeklyMenu.menuDays) return [];
   if (!hasMenuScope(weeklyMenu)) return [];
@@ -448,8 +494,8 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
             : "50g",
           ingredients: Array.isArray(dishRow.ingredients)
             ? dishRow.ingredients.map(
-                (ing) => ing.ingredient?.name || "Nguyên liệu",
-              )
+              (ing) => ing.ingredient?.name || "Nguyên liệu",
+            )
             : [],
         };
         if (dishesByMeal[mealType]) {
@@ -482,69 +528,10 @@ export function adaptWeeklyMenuToCardList(weeklyMenu) {
       : [];
     const allergyGroup = portionGroups.find((g) => !g.isDefault);
 
-    const subLunch = selectedGroupDish(
-      day,
-      portionGroups.find((group) => !group.isDefault && group.mealType === "LUNCH")
-    );
-    const defaultLunchGroup = portionGroups.find(
-      (g) => g.isDefault && g.mealType === "LUNCH"
-    );
-    const defaultLunchDishIds = defaultLunchGroup
-      ? new Set((defaultLunchGroup.dishes || []).map((d) => d.dishId))
-      : null;
-    const finalLunchDishes = (dishesByMeal.LUNCH || [])
-      .filter(
-        (dish) =>
-          !(
-            defaultLunchDishIds &&
-            subLunch &&
-            !defaultLunchDishIds.has(dish.id) &&
-            dish.id === subLunch.dishId
-          )
-      )
-      .map((dish) => {
-        if (
-          subLunch &&
-          subLunch.substituteForDishId &&
-          dish.id === subLunch.substituteForDishId
-        ) {
-          return { ...dish, substituteDish: subLunch };
-        }
-        return dish;
-      });
-
-    const subAfternoon = selectedGroupDish(
-      day,
-      portionGroups.find(
-        (group) => !group.isDefault && group.mealType === "AFTERNOON"
-      )
-    );
-    const defaultAfternoonGroup = portionGroups.find(
-      (g) => g.isDefault && g.mealType === "AFTERNOON"
-    );
-    const defaultAfternoonDishIds = defaultAfternoonGroup
-      ? new Set((defaultAfternoonGroup.dishes || []).map((d) => d.dishId))
-      : null;
-    const finalAfternoonDishes = (dishesByMeal.AFTERNOON || [])
-      .filter(
-        (dish) =>
-          !(
-            defaultAfternoonDishIds &&
-            subAfternoon &&
-            !defaultAfternoonDishIds.has(dish.id) &&
-            dish.id === subAfternoon.dishId
-          )
-      )
-      .map((dish) => {
-        if (
-          subAfternoon &&
-          subAfternoon.substituteForDishId &&
-          dish.id === subAfternoon.substituteForDishId
-        ) {
-          return { ...dish, substituteDish: subAfternoon };
-        }
-        return dish;
-      });
+    const finalLunchDishes = groupMenuCardDishes(day, "LUNCH", dishesByMeal.LUNCH);
+    const finalAfternoonDishes = groupMenuCardDishes(day, "AFTERNOON", dishesByMeal.AFTERNOON);
+    const subLunch = finalLunchDishes.find(dish => dish.substituteDish)?.substituteDish || null;
+    const subAfternoon = finalAfternoonDishes.find(dish => dish.substituteDish)?.substituteDish || null;
 
     // Tạo card cho bữa trưa (nếu có món trưa hoặc là bữa mặc định)
     if (finalLunchDishes.length > 0 || finalAfternoonDishes.length === 0) {
@@ -638,8 +625,8 @@ export function adaptBackendMenuDetailToView(
     typeof currentDay.menuDate === "string"
       ? currentDay.menuDate.slice(0, 10)
       : new Date(currentDay.menuDate || weeklyMenu.weekStartDate)
-          .toISOString()
-          .slice(0, 10);
+        .toISOString()
+        .slice(0, 10);
 
   const status = normalizeStatus(
     currentDay.approvalStatus || weeklyMenu.status,
@@ -673,19 +660,19 @@ export function adaptBackendMenuDetailToView(
             : [],
           ingredientDetails: Array.isArray(d.ingredients)
             ? d.ingredients.map((i) => ({
-                id: i.ingredientId,
-                name: i.ingredient?.name || "Nguyên liệu",
-                category: i.ingredient?.ingredientCategory?.categoryName || i.ingredient?.category || "Nguyên liệu",
-                quantityPerPortion: i.quantityPerPortion != null ? Number(i.quantityPerPortion) : null,
-                unit: i.unit || i.ingredient?.defaultUnit || "g",
-              }))
+              id: i.ingredientId,
+              name: i.ingredient?.name || "Nguyên liệu",
+              category: i.ingredient?.ingredientCategory?.categoryName || i.ingredient?.category || "Nguyên liệu",
+              quantityPerPortion: i.quantityPerPortion != null ? Number(i.quantityPerPortion) : null,
+              unit: i.unit || i.ingredient?.defaultUnit || "g",
+            }))
             : [],
           ingredientStandards: Array.isArray(d.ingredients)
             ? d.ingredients.map((i) => ({
-                ingredientId: i.ingredientId,
-                quantityPerPortion: String(i.quantityPerPortion),
-                unit: i.unit,
-              }))
+              ingredientId: i.ingredientId,
+              quantityPerPortion: String(i.quantityPerPortion),
+              unit: i.unit,
+            }))
             : [],
         });
       });
@@ -720,40 +707,11 @@ export function adaptBackendMenuDetailToView(
     ? currentDay.portionGroups
     : [];
   const allergyGroup = portionGroups.find((g) => !g.isDefault);
-  const subDish = selectedGroupDish(
-    currentDay,
-    portionGroups.find(
-      (group) => !group.isDefault && group.mealType === targetMealType
-    )
-  );
-  const defaultGroup = portionGroups.find(
-    (g) => g.isDefault && g.mealType === targetMealType
-  );
-  const defaultDishIds = defaultGroup
-    ? new Set((defaultGroup.dishes || []).map((d) => d.dishId))
-    : null;
-
-  const finalDishes = dishes
-    .filter(
-      (dish) =>
-        !(
-          defaultDishIds &&
-          subDish &&
-          !defaultDishIds.has(dish.dishId || dish.id) &&
-          (dish.dishId || dish.id) === subDish.dishId
-        )
-    )
-    .map((dish) => {
-      const dishKey = dish.dishId || dish.id;
-      if (
-        subDish &&
-        subDish.substituteForDishId &&
-        dishKey === subDish.substituteForDishId
-      ) {
-        return { ...dish, substituteDish: subDish };
-      }
-      return dish;
-    });
+  // Dùng chung logic với danh sách: duyệt mọi nhóm suất riêng của bữa,
+  // gắn (các) món thay thế vào ngay dưới món gốc bị thay.
+  const finalDishes = groupMenuCardDishes(currentDay, targetMealType, dishes);
+  const subDish =
+    finalDishes.find((dish) => dish.substituteDish)?.substituteDish || null;
 
   // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp (hiển thị số tuần, không để ngày)
   const targetScope = menuScopeLabel(weeklyMenu);
@@ -842,15 +800,15 @@ export function adaptFormToBackendWrite({
 
       dishObj.ingredients = Array.isArray(d.ingredientStandards)
         ? d.ingredientStandards.map((standard) => ({
-            ingredientId: standard.ingredientId,
-            quantityPerPortion: String(standard.quantityPerPortion),
-            unit: standard.unit,
-          }))
+          ingredientId: standard.ingredientId,
+          quantityPerPortion: String(standard.quantityPerPortion),
+          unit: standard.unit,
+        }))
         : ingIds.map((id) => ({
-            ingredientId: id,
-            quantityPerPortion: qtyStr,
-            unit: unitStr,
-          }));
+          ingredientId: id,
+          quantityPerPortion: qtyStr,
+          unit: unitStr,
+        }));
 
       return dishObj;
     });
@@ -902,16 +860,6 @@ export function menuWeekMeals(snapshot) {
     const substitutesByMeal = { LUNCH: {}, AFTERNOON: {} };
 
     for (const mealType of ["LUNCH", "AFTERNOON"]) {
-      const defaultGroup = portionGroups.find(g => g.isDefault && g.mealType === mealType);
-      const defaultDishIds = defaultGroup ? new Set((defaultGroup.dishes || []).map(d => d.dishId)) : null;
-      const subDish = selectedGroupDish(
-        day,
-        portionGroups.find(g => !g.isDefault && g.mealType === mealType)
-      );
-
-      if (subDish && subDish.substituteForDishId) {
-        substitutesByMeal[mealType][subDish.substituteForDishId] = subDish;
-      }
 
       const allDishes = (day.menuDayDishes || []).filter(row => row.mealType === mealType).map(row => ({
         id: row.dishId,
@@ -936,14 +884,11 @@ export function menuWeekMeals(snapshot) {
         unit: row.ingredients?.[0]?.unit ?? "",
       }));
 
-      const finalDishes = allDishes
-        .filter(dish => !(defaultDishIds && subDish && !defaultDishIds.has(dish.dishId) && dish.dishId === subDish.dishId))
-        .map(dish => {
-          if (subDish && subDish.substituteForDishId && dish.dishId === subDish.substituteForDishId) {
-            return { ...dish, substituteDish: subDish };
-          }
-          return dish;
-        });
+      const finalDishes = groupMenuCardDishes(day, mealType, allDishes);
+      for (const dish of finalDishes) {
+        if (dish.substituteDish) substitutesByMeal[mealType][dish.dishId] = dish.substituteDish;
+      }
+      const subDish = finalDishes.find(dish => dish.substituteDish)?.substituteDish || null;
 
       meals[mealType] = { dishes: finalDishes, allDishes, substituteDish: subDish };
 
@@ -956,7 +901,7 @@ export function menuWeekMeals(snapshot) {
     const portionGroupsByMeal = {};
     for (const mealType of ["LUNCH", "AFTERNOON"]) {
       const groups = portionGroups.filter(g => g.mealType === mealType);
-      if (groups.length) portionGroupsByMeal[mealType] = groups.map(g => ({id:g.id, name:g.name, isDefault:g.isDefault, dishIds:(g.dishes || []).map(d=>d.dishId), avoidedIngredientEntryIds:(g.avoidances || []).map(a=>a.ingredientEntryId)}));
+      if (groups.length) portionGroupsByMeal[mealType] = groups.map(g => ({ id: g.id, name: g.name, isDefault: g.isDefault, dishIds: (g.dishes || []).map(d => d.dishId), avoidedIngredientEntryIds: (g.avoidances || []).map(a => a.ingredientEntryId) }));
     }
     const firstSub = Object.values(substitutesByMeal.LUNCH)[0] || Object.values(substitutesByMeal.AFTERNOON)[0] || null;
     return {
@@ -1022,9 +967,11 @@ export function menuDayWrite(day) {
       mealType,
       dishes: [...new Map(dishes.map(dish => [dish.dishId || dish.id, dish])).values()].map(dish => ({
         dishId: dish.dishId || dish.id,
-        ...(day.useDishRecipes ? {} : { ingredients: (dish.ingredientStandards || []).map(line => ({
-          ingredientId: line.ingredientId, quantityPerPortion: String(line.quantityPerPortion), unit: line.unit,
-        })) }),
+        ...(day.useDishRecipes ? {} : {
+          ingredients: (dish.ingredientStandards || []).map(line => ({
+            ingredientId: line.ingredientId, quantityPerPortion: String(line.quantityPerPortion), unit: line.unit,
+          }))
+        }),
       })),
       ...(day.useDishRecipes ? { useDishRecipes: true } : {}),
       ...(day.portionGroupsByMeal?.[mealType] ? { portionGroups: day.portionGroupsByMeal[mealType] } : {}),

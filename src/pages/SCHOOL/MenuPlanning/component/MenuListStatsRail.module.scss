@@ -231,3 +231,41 @@
   .statCard { min-height: 88px; padding: var(--space-3) var(--space-4); }
   .statValue { font-size: var(--text-2xl); }
 }
+
+/* ===== Thẻ thống kê (chế độ xem) – cùng kiểu với màn Danh sách món ăn ===== */
+.kpiRow {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(var(--kpi-columns, 4), 1fr);
+  }
+}
+
+.kpiCard {
+  background-color: #ffffff;
+  border-radius: 8px;
+  border: 1px solid #e8eeeb;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+}
+
+.kpiNum {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0a8066;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.kpiLabel {
+  font-size: 12px;
+  color: #52635c;
+  font-weight: 500;
+}
+

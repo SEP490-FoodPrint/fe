@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import PropTypes from "prop-types"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Check } from "lucide-react"
 import SampleStorageService from "src/services/SampleStorageService"
+import fieldStyles from "./StorageUnitField.module.scss"
 
 const UNAVAILABLE_LABEL = { MAINTENANCE: "đang bảo trì", INACTIVE: "ngưng dùng" }
 
@@ -13,14 +14,32 @@ export const storageUnitBlockReason = unit => {
   return ""
 }
 
+export const storageCompartmentBlockReason = (unit, position) => {
+  const count = Number(unit?.compartmentCount) || 0
+  return Array.from({ length: count }, (_, index) => `Ngăn ${index + 1}`).includes(position)
+    ? ""
+    : "Vui lòng chọn ngăn còn trống trong tủ lưu mẫu."
+}
+
 /**
- * Chọn tủ lưu mẫu của trường (bắt buộc) và ngăn/vị trí trong tủ (không bắt buộc).
+ * Chọn tủ lưu mẫu của trường (bắt buộc) và ngăn/vị trí trong tủ (theo số ngăn của tủ).
  * Tủ đầy, bảo trì hoặc ngưng dùng hiển thị nhưng không chọn được.
  */
-export default function StorageUnitField({ styles, unitId, onUnitChange, position, onPositionChange, disabled, onUnitsLoaded }) {
+export default function StorageUnitField({
+  styles,
+  unitId,
+  onUnitChange,
+  position,
+  onPositionChange,
+  disabled,
+  onUnitsLoaded,
+}) {
   const [units, setUnits] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [occupiedCompartments, setOccupiedCompartments] = useState([])
+  const [loadedUnitId, setLoadedUnitId] = useState("")
+  const [compartmentError, setCompartmentError] = useState("")
 
   useEffect(() => {
     let active = true
@@ -43,6 +62,44 @@ export default function StorageUnitField({ styles, unitId, onUnitChange, positio
     return () => { active = false }
   }, []) // Chỉ tải một lần khi mở form.
 
+  const selectedUnit = useMemo(() => units.find(unit => unit.id === unitId), [units, unitId])
+  const compartmentCount = Number(selectedUnit?.compartmentCount) || 0
+
+  useEffect(() => {
+    if (!unitId) return
+    let active = true
+    setCompartmentError("")
+    setLoadedUnitId("")
+    SampleStorageService.getSampleStorageUnitDetail(unitId)
+      .then(res => {
+        if (!active) return
+        const data = res?.data?.data || res?.data || res
+        const occupied = (data?.retainedSamples || [])
+          .map(sample => /(?:^| – )(Ngăn [1-9]\d*)$/.exec(sample.storageLocation || "")?.[1])
+          .filter(Boolean)
+        setOccupiedCompartments(occupied)
+        if (occupied.includes(position)) onPositionChange("")
+        setLoadedUnitId(unitId)
+      })
+      .catch(() => { if (active) setCompartmentError("Không tải được tình trạng các ngăn. Vui lòng thử lại.") })
+    return () => { active = false }
+  }, [unitId])
+
+  const standardCompartments = useMemo(() => {
+    if (!selectedUnit || compartmentCount <= 0) return []
+    return Array.from({ length: compartmentCount }, (_, i) => `Ngăn ${i + 1}`)
+  }, [selectedUnit, compartmentCount])
+
+  const handleSelectCompartment = (comp) => {
+    if (disabled || loadedUnitId !== unitId || occupiedCompartments.includes(comp)) return
+    if (position === comp) {
+      // Nhấn lại ngăn đang chọn để bỏ chọn nếu muốn
+      onPositionChange("")
+    } else {
+      onPositionChange(comp)
+    }
+  }
+
   const noUsableUnit = !loading && !error && !units.some(unit => !storageUnitBlockReason(unit))
 
   return (
@@ -56,7 +113,10 @@ export default function StorageUnitField({ styles, unitId, onUnitChange, positio
             id="sample-storage-unit"
             className={styles.selectInput}
             value={unitId}
-            onChange={event => onUnitChange(event.target.value)}
+            onChange={event => {
+              onPositionChange("")
+              onUnitChange(event.target.value)
+            }}
             disabled={disabled || loading || Boolean(error) || !units.length}
             required
           >
@@ -84,20 +144,46 @@ export default function StorageUnitField({ styles, unitId, onUnitChange, positio
           </p>
         )}
       </div>
+
       <div className={styles.formGroupFull}>
-        <label className={styles.fieldLabel} htmlFor="sample-storage-position">
-          Ngăn / vị trí trong tủ
-        </label>
-        <input
-          id="sample-storage-position"
-          type="text"
-          maxLength={255}
-          className={styles.textInput}
-          placeholder="Ví dụ: Ngăn 2"
-          value={position}
-          onChange={event => onPositionChange(event.target.value)}
-          disabled={disabled}
-        />
+        <div className={fieldStyles.compartmentHeader}>
+          <span className={styles.fieldLabel}>Ngăn trong tủ <span className={styles.required}>*</span></span>
+          {selectedUnit && compartmentCount > 0 && (
+            <span className={fieldStyles.compartmentCountBadge}>
+              Tủ có {compartmentCount} ngăn
+            </span>
+          )}
+        </div>
+
+        {selectedUnit && standardCompartments.length > 0 ? (
+          <div className={fieldStyles.compartmentContainer}>
+            <div className={fieldStyles.chipGroup} role="group" aria-label="Ngăn trong tủ">
+              {standardCompartments.map((comp) => {
+                const active = position === comp
+                const occupied = occupiedCompartments.includes(comp)
+                return (
+                  <button
+                    key={comp}
+                    type="button"
+                    className={`${fieldStyles.chipBtn} ${active ? fieldStyles.chipBtnActive : ""} ${occupied ? fieldStyles.chipBtnOccupied : ""}`}
+                    onClick={() => handleSelectCompartment(comp)}
+                    disabled={disabled || loadedUnitId !== unitId || occupied}
+                    aria-pressed={active}
+                    title={occupied ? `${comp} đã có mẫu lưu` : `Chọn ${comp}`}
+                  >
+                    {active && <Check size={14} />}
+                    {comp}{occupied ? " · Đã dùng" : ""}
+                  </button>
+                )
+              })}
+            </div>
+            {loadedUnitId !== unitId && !compartmentError && <p className={fieldStyles.compartmentHint}>Đang kiểm tra ngăn còn trống...</p>}
+            {loadedUnitId === unitId && standardCompartments.every(comp => occupiedCompartments.includes(comp)) && <p className={styles.alertError}>Các ngăn của tủ đã có mẫu lưu. Vui lòng chọn tủ khác.</p>}
+            {compartmentError && <p className={styles.alertError} role="alert">{compartmentError}</p>}
+          </div>
+        ) : (
+          <p className={fieldStyles.compartmentHint}>{unitId ? "Tủ chưa khai báo ngăn lưu mẫu." : "Vui lòng chọn tủ lưu mẫu trước."}</p>
+        )}
       </div>
     </>
   )

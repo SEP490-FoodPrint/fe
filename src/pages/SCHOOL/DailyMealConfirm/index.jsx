@@ -36,6 +36,7 @@ import { useSearchParams } from "react-router-dom"
 import notice from "src/components/Notice"
 import MealPortionService from "src/services/MealPortionService"
 import { getSchoolWeekScheduleFromDate } from "src/services/MenuService/adapter"
+import MenuService from "src/services/MenuService"
 import "./style.scss"
 
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
@@ -82,7 +83,10 @@ function DailyMealConfirm() {
   const [history, setHistory] = useState([])
   const [totalPortions, setTotalPortions] = useState("")
   const [allergyNotes, setAllergyNotes] = useState("")
-  const [allergyCounts, setAllergyCounts] = useState({})
+  // Một số suất dị ứng chung cho cả danh sách nguyên liệu dị ứng của lớp
+  const [allergyCount, setAllergyCount] = useState("")
+  // Nguyên liệu GVCN bấm × bỏ khỏi danh sách hôm nay (em dị ứng nguyên liệu đó nghỉ)
+  const [removedAllergyIds, setRemovedAllergyIds] = useState([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
@@ -90,10 +94,35 @@ function DailyMealConfirm() {
 
   const weekSchedule = useMemo(() => getSchoolWeekScheduleFromDate(date), [date])
 
+  // Tuần theo năm học do BGH cấu hình (vd. "Tuần 12"), không dùng số tuần ISO của năm dương lịch
+  const [academicYears, setAcademicYears] = useState([])
+  useEffect(() => {
+    let active = true
+    MenuService.getAcademicCalendar()
+      .then(data => { if (active) setAcademicYears(data.academicYears || []) })
+      .catch(() => { /* Không tải được lịch năm học: vẫn chọn tuần theo ngày, chỉ thiếu số tuần */ })
+    return () => { active = false }
+  }, [])
+  const academicWeeks = useMemo(
+    () => academicYears.flatMap(year => (year.weeks || []).map(week => ({ ...week, academicYear: year.academicYear }))),
+    [academicYears],
+  )
+  const academicWeekOf = useCallback(
+    mondayISO => academicWeeks.find(week => week.weekStartDate === mondayISO) || null,
+    [academicWeeks],
+  )
+  const weekRangeLabel = monday =>
+    `${dayjs(monday).format("DD/MM")} – ${dayjs(monday).add(4, "day").format("DD/MM")}`
+  const weekLabelOf = mondayISO => {
+    const week = academicWeekOf(mondayISO)
+    const name = week ? week.weekLabel || `Tuần ${week.weekNumber}` : "Tuần"
+    return `${name} (${weekRangeLabel(mondayISO)})`
+  }
+
   const isCurrentWeekSelected = useMemo(() => {
     const nowSched = getSchoolWeekScheduleFromDate(new Date())
-    return nowSched.weekNumber === weekSchedule.weekNumber
-  }, [weekSchedule.weekNumber])
+    return nowSched.schoolDays[0]?.dateISO === weekSchedule.schoolDays[0]?.dateISO
+  }, [weekSchedule])
 
   const handlePrevWeek = () => {
     setDate(curr => dayjs(curr).subtract(1, "week").format("YYYY-MM-DD"))
@@ -103,38 +132,32 @@ function DailyMealConfirm() {
     setDate(curr => dayjs(curr).add(1, "week").format("YYYY-MM-DD"))
   }
 
-  // Danh sách tuần để chọn nhanh: từ đầu năm học (1/9) tới tuần sau, mới nhất ở trên, nhóm theo tháng
+  // Danh sách tuần để chọn nhanh: các tuần của năm học (BGH cấu hình) tới tuần sau, mới nhất ở trên, nhóm theo tháng
   const weekGroups = useMemo(() => {
-    const now = dayjs()
-    const startYear = now.month() >= 7 ? now.year() : now.year() - 1
     const mondayOf = d => {
       const value = dayjs(d)
       return value.subtract((value.day() + 6) % 7, "day").startOf("day")
     }
-    let cursor = mondayOf(`${startYear}-09-01`)
-    const last = mondayOf(now).add(1, "week")
-    const mondays = []
-    while (!cursor.isAfter(last)) {
-      mondays.push(cursor)
-      cursor = cursor.add(1, "week")
-    }
-    const selected = mondayOf(date)
-    if (!mondays.some(m => m.isSame(selected, "day"))) mondays.push(selected)
+    const nextMonday = mondayOf(dayjs()).add(1, "week").format("YYYY-MM-DD")
+    const selected = mondayOf(date).format("YYYY-MM-DD")
+    const year = academicYears.find(item => item.weeks?.some(week => week.weekStartDate === selected))
+      || academicYears.find(item => item.isCurrent)
+    const mondays = new Set((year?.weeks || [])
+      .map(week => week.weekStartDate)
+      .filter(monday => monday <= nextMonday))
+    mondays.add(selected)
 
     const groups = new Map()
-    mondays
-      .sort((a, b) => b.valueOf() - a.valueOf())
+    ;[...mondays]
+      .sort((a, b) => b.localeCompare(a))
       .forEach(monday => {
-        const sched = getSchoolWeekScheduleFromDate(monday.toDate())
-        const key = monday.format("MM/YYYY")
+        const key = dayjs(monday).format("MM/YYYY")
         if (!groups.has(key)) groups.set(key, [])
-        groups.get(key).push({
-          value: monday.format("YYYY-MM-DD"),
-          label: `Tuần ${sched.weekNumber} (${monday.format("DD/MM")} – ${monday.add(4, "day").format("DD/MM")})`,
-        })
+        groups.get(key).push({ value: monday, label: weekLabelOf(monday) })
       })
     return Array.from(groups, ([month, weeks]) => ({ month: `Tháng ${month}`, weeks }))
-  }, [date])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [date, academicYears, academicWeekOf])
 
   const handleSelectWeek = mondayISO => {
     // Giữ nguyên thứ trong tuần đang chọn khi nhảy sang tuần khác
@@ -168,11 +191,16 @@ function DailyMealConfirm() {
       setHistory(historyResponse.data.items || [])
       setTotalPortions(sub ? String(sub.totalPortions) : "")
       setAllergyNotes(sub?.allergyNotes || "")
-      setAllergyCounts(
-        Object.fromEntries(
-          (sub?.dailyAllergyPortions || []).map(item => [item.ingredientEntryId, item.portionCount]),
-        ),
-      )
+      // Bản đã lưu không ghi dòng 0 suất: có bản lưu mà không có dòng nào nghĩa là GVCN đã nhập 0.
+      const savedCounts = (sub?.dailyAllergyPortions || []).map(item => Number(item.portionCount) || 0)
+      setAllergyCount(sub ? String(savedCounts.length ? Math.max(...savedCounts) : 0) : "")
+      // Bản đã lưu có suất dị ứng: nguyên liệu không có dòng nào là nguyên liệu đã bị bỏ hôm đó
+      const savedIds = new Set((sub?.dailyAllergyPortions || []).map(item => item.ingredientEntryId))
+      setRemovedAllergyIds(savedIds.size
+        ? (next.class?.classAllergies || [])
+          .map(item => item.ingredientEntryId)
+          .filter(id => !savedIds.has(id))
+        : [])
     } catch (failure) {
       setContext(null)
       setHistory([])
@@ -197,6 +225,13 @@ function DailyMealConfirm() {
   // Số suất không được vượt số suất đăng ký của lớp (BGH cấu hình ở danh sách lớp).
   const registeredPortions = Number(context?.class?.registeredMealPortions ?? 0)
   const overRegistered = totalPortions !== "" && Number(totalPortions) > registeredPortions
+  // Ô số suất dị ứng bắt buộc nhập (kể cả 0), không tự hiểu ô trống là 0
+  const isBlank = value => value === undefined || value === null || String(value).trim() === ""
+  const activeAllergies = allergies.filter(item => !removedAllergyIds.includes(item.ingredientEntryId))
+  const removedAllergies = allergies.filter(item => removedAllergyIds.includes(item.ingredientEntryId))
+  const missingAllergy = activeAllergies.length > 0 && isBlank(allergyCount)
+  // Số học sinh dị ứng chung của lớp (mọi nguyên liệu trong hồ sơ cùng một số)
+  const allergyStudents = allergies.length ? Math.max(...allergies.map(item => Number(item.affectedCount) || 0)) : 0
 
   const payload = useMemo(
     () => ({
@@ -204,12 +239,14 @@ function DailyMealConfirm() {
       mealType,
       totalPortions: Number(totalPortions),
       allergyNotes: allergyNotes || null,
+      // Cùng một số suất cho mọi nguyên liệu dị ứng của lớp (không cộng theo nguyên liệu)
+      // Nguyên liệu bị bỏ hôm nay gửi 0 suất; còn lại dùng chung số suất dị ứng
       allergies: allergies.map(item => ({
         ingredientEntryId: item.ingredientEntryId,
-        portionCount: Number(allergyCounts[item.ingredientEntryId] || 0),
+        portionCount: removedAllergyIds.includes(item.ingredientEntryId) ? 0 : Number(allergyCount || 0),
       })),
     }),
-    [allergies, allergyCounts, allergyNotes, date, mealType, totalPortions],
+    [allergies, allergyCount, allergyNotes, date, mealType, removedAllergyIds, totalPortions],
   )
 
   const valid =
@@ -217,15 +254,11 @@ function DailyMealConfirm() {
     Number.isInteger(Number(totalPortions)) &&
     Number(totalPortions) >= 0 &&
     !overRegistered &&
-    allergies.every(item => {
-      const count = Number(allergyCounts[item.ingredientEntryId] || 0)
-      return (
-        Number.isInteger(count) &&
-        count >= 0 &&
-        count <= item.affectedCount &&
-        count <= Number(totalPortions)
-      )
-    })
+    !missingAllergy &&
+    (!activeAllergies.length || (() => {
+      const count = Number(allergyCount || 0)
+      return Number.isInteger(count) && count >= 0 && count <= allergyStudents && count <= Number(totalPortions)
+    })())
 
   const submit = async shouldFinalize => {
     if (!valid || saving || readOnly) return
@@ -306,7 +339,7 @@ function DailyMealConfirm() {
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
-  const weekLabelShort = `Tuần ${weekSchedule.weekNumber} (${weekSchedule.schoolDays[0]?.dateVN?.slice(0, 5)} – ${weekSchedule.schoolDays[4]?.dateVN?.slice(0, 5)})`
+  const weekLabelShort = weekLabelOf(weekSchedule.schoolDays[0]?.dateISO)
 
   return (
     <div className="daily-meal-page">
@@ -470,7 +503,7 @@ function DailyMealConfirm() {
                 label={`Tổng số suất ${mealLabel(mealType).toLowerCase()}`}
                 placeholder="Nhập tổng số suất ăn..."
                 value={totalPortions}
-                disabled={saving}
+                disabled={saving || readOnly}
                 onChange={event => setTotalPortions(event.target.value)}
                 inputProps={{ min: 0, max: registeredPortions, step: 1, inputMode: "numeric", readOnly }}
                 className={readOnly ? "daily-meal-readonly" : undefined}
@@ -487,29 +520,57 @@ function DailyMealConfirm() {
                 {!allergies.length && (
                   <Alert severity="info">Lớp chưa có thông tin dị ứng tổng hợp.</Alert>
                 )}
-                {allergies.map(item => (
-                  <div className="daily-meal-allergy-row" key={item.ingredientEntryId}>
-                    <div>
-                      <strong>{item.IngredientEntry.Ingredient.name}</strong>
-                      <span>Tối đa {item.affectedCount} suất theo hồ sơ lớp</span>
+                {allergies.length > 0 && (
+                  <div className="daily-meal-allergy-list">
+                    <div className="daily-meal-allergy-chips">
+                      {activeAllergies.map(item => (
+                        <Chip
+                          key={item.ingredientEntryId}
+                          label={item.IngredientEntry.Ingredient.name}
+                          color="warning"
+                          variant="outlined"
+                          onDelete={readOnly || saving ? undefined : () =>
+                            setRemovedAllergyIds(current => [...current, item.ingredientEntryId])}
+                          title={readOnly ? undefined : "Bấm × nếu em dị ứng nguyên liệu này nghỉ hôm nay"}
+                        />
+                      ))}
+                      {!activeAllergies.length && (
+                        <span className="daily-meal-allergy-empty">Hôm nay không có suất cần tránh nguyên liệu.</span>
+                      )}
                     </div>
-                    <TextField
-                      size="small"
-                      type="number"
-                      label="Số suất"
-                      value={allergyCounts[item.ingredientEntryId] ?? ""}
-                      disabled={saving}
-                      className={readOnly ? "daily-meal-readonly" : undefined}
-                      onChange={event =>
-                        setAllergyCounts(current => ({
-                          ...current,
-                          [item.ingredientEntryId]: event.target.value,
-                        }))
-                      }
-                      inputProps={{ min: 0, max: item.affectedCount, step: 1, inputMode: "numeric", readOnly }}
-                    />
+                    {removedAllergies.length > 0 && (
+                      <div className="daily-meal-allergy-removed">
+                        <span>Đã bỏ hôm nay: {removedAllergies.map(item => item.IngredientEntry.Ingredient.name).join(", ")}</span>
+                        {!readOnly && (
+                          <Button size="small" disabled={saving} onClick={() => setRemovedAllergyIds([])}>
+                            Hoàn tác
+                          </Button>
+                        )}
+                      </div>
+                    )}
+                    {activeAllergies.length > 0 && (
+                      <div className="daily-meal-allergy-row">
+                        <div>
+                          <strong>Số suất dị ứng</strong>
+                          <span>Tối đa {allergyStudents} suất theo hồ sơ lớp</span>
+                        </div>
+                        <TextField
+                          size="small"
+                          type="number"
+                          label="Số suất"
+                          required
+                          value={allergyCount}
+                          error={!readOnly && isBlank(allergyCount)}
+                          helperText={!readOnly && isBlank(allergyCount) ? "Bắt buộc (nhập 0 nếu không có)" : " "}
+                          disabled={saving || readOnly}
+                          className={readOnly ? "daily-meal-readonly" : undefined}
+                          onChange={event => setAllergyCount(event.target.value)}
+                          inputProps={{ min: 0, max: allergyStudents, step: 1, inputMode: "numeric", readOnly }}
+                        />
+                      </div>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
 
               <TextField
@@ -519,7 +580,7 @@ function DailyMealConfirm() {
                 minRows={2}
                 label="Ghi chú cho bếp (không bắt buộc)"
                 value={allergyNotes}
-                disabled={saving}
+                disabled={saving || readOnly}
                 placeholder={readOnly ? "" : "Ghi chú cho bếp nếu có yêu cầu đặc biệt..."}
                 onChange={event => setAllergyNotes(event.target.value)}
                 inputProps={{ maxLength: 1000, readOnly }}
@@ -533,6 +594,8 @@ function DailyMealConfirm() {
                   <span className="daily-meal-card__actions-hint">
                     {totalPortions === ""
                       ? "Nhập tổng số suất để lưu hoặc chốt."
+                      : missingAllergy
+                        ? "Nhập số suất dị ứng (nhập 0 nếu không có)."
                       : overRegistered
                         ? `Tối đa ${registeredPortions} suất theo số suất đăng ký của lớp.`
                         : "Số suất chưa hợp lệ, kiểm tra lại các ô đã nhập."}
@@ -566,7 +629,7 @@ function DailyMealConfirm() {
           <section className="daily-meal-history">
             <div className="daily-meal-history__header">
               <div className="daily-meal-history__title-block">
-                <h2>Lịch sử tuần {weekSchedule.weekNumber}</h2>
+                <h2>Lịch sử {weekLabelShort}</h2>
                 {filteredHistoryItems.length > 0 && (
                   <div className="daily-meal-history__stats">
                     <Chip

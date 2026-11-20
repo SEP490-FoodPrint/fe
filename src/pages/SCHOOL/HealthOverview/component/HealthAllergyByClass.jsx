@@ -1,4 +1,5 @@
 import InlineError from "src/components/InlineError"
+import { classAffectedStudents } from "src/services/AllergyService"
 import React from "react"
 import { useNavigate } from "react-router-dom"
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward"
@@ -50,7 +51,7 @@ export default function HealthAllergyByClass({classList = [], loading = false, e
             >
               <div className={styles.itemLeft}>
                 <span className={styles.className}>{item.className}</span>
-                <span className={styles.allergyType}>{item.allergies.map(line=>`${line.ingredientName}: ${line.affectedCount}`).join("; ")}</span>
+                <span className={styles.allergyType}>{item.allergies.map(line => line.ingredientName).join(", ")} · {classAffectedStudents(item.allergies)} học sinh</span>
               </div>
 
               <div className={styles.caseBadge}>

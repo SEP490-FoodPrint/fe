@@ -21,12 +21,14 @@ function formatWeeklyMenuTitle(menu) {
       title = title.replace(/tuần\s+\d{1,2}\/\d{1,2}/gi, `Tuần ${weekNum}`)
     } else if (!/tuần\s+\d+/i.test(title)) {
       const scope = menu.targetScope || (menu.isSchoolWide ? "Toàn trường" : "")
-      title = `Thực đơn Tuần ${weekNum}${scope ? ` (${scope})` : ""}`
+      title = `Thực đơn dinh dưỡng tuần ${weekNum}${scope ? ` (${scope})` : ""}`
     }
   }
 
   // Đảm bảo không còn ngày tháng sót lại trong cụm từ tuần
   title = title.replace(/\s*\(\d{1,2}\/\d{1,2}\s*[-–—]\s*\d{1,2}\/\d{1,2}\)/g, "")
+  // Bỏ phần mô tả phụ sau "Tuần N" (vd. "Thực đơn Tuần 11 - Dinh dưỡng chuẩn Quốc Tế" -> "Thực đơn Tuần 11")
+  title = title.replace(/^(.*?tuần\s+\d+)\s*[-–—:]\s+.*$/i, "$1")
   return title
 }
 

@@ -919,3 +919,22 @@
   background: transparent !important;
   border: none !important;
 }
+
+/* Bảng chia cột theo tỉ lệ cố định (colgroup), các cột số/trạng thái/lưu mẫu căn giữa */
+.evenTable {
+  table-layout: fixed;
+
+  td {
+    overflow-wrap: anywhere;
+  }
+}
+
+.thCenter,
+.tdCenter {
+  text-align: center !important;
+}
+
+.evenTable .thActions {
+  min-width: 0;
+}
+

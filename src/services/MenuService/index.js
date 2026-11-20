@@ -193,6 +193,7 @@ const MenuService = {
       page: params.page || 1,
       limit: params.limit || 50,
       allPages: Boolean(params.allPages),
+      includeAllergyDishes: Boolean(params.includeAllergyDishes),
       gen: menuListGeneration,
     });
 
@@ -236,8 +237,33 @@ const MenuService = {
           }
         }
 
-        const cardList = Array.isArray(rawItems)
-          ? rawItems.flatMap(adaptWeeklyMenuToCardList)
+        const weeklyMenus = params.includeAllergyDishes && Array.isArray(rawItems)
+          ? await Promise.all(rawItems.map(async (menu) => {
+            // The list identifies separate portions; dish membership is in the detail.
+            const needsDetail = menu.menuDays?.some(day =>
+              day.portionGroups?.some(group => !group.isDefault) &&
+              day.portionGroups.some(group => !Array.isArray(group.dishes)),
+            );
+            if (!needsDetail) return menu;
+
+            const response = await http.get(apiMenuDetail(menu.id), { notifyOnError: false });
+            const detail = response?.data || response;
+            if (detail?.id !== menu.id || !Array.isArray(detail.menuDays)) {
+              throw new Error("Không tải được món thay thế dị ứng của thực đơn tuần.");
+            }
+            const daysById = new Map(detail.menuDays.map(day => [day.id, day]));
+            return {
+              ...menu,
+              menuDays: menu.menuDays.map(day => ({
+                ...day,
+                portionGroups: daysById.get(day.id)?.portionGroups ?? day.portionGroups,
+              })),
+            };
+          }))
+          : rawItems;
+
+        const cardList = Array.isArray(weeklyMenus)
+          ? weeklyMenus.flatMap(adaptWeeklyMenuToCardList)
           : [];
 
         const result = {
@@ -603,6 +629,25 @@ const MenuService = {
   getApprovalDetail: (menuId) => http.get(apiGetMenuApprovalDetail(menuId)),
 
   /** Nhận xét BGH gần nhất cho yêu cầu sửa cả tuần. */
+  /** Toàn bộ các lần BGH yêu cầu chỉnh sửa của một thực đơn tuần, mới nhất trước. */
+  getRevisionReviewHistory: async (menuId) => {
+    const items = [];
+    for (let page = 1; page <= 10; page += 1) {
+      const response = await http.get(apiMenuReviews(menuId), {
+        params: { page, limit: 50 },
+        notifyOnError: false,
+      });
+      if (!Array.isArray(response?.data?.items)) {
+        throw new Error("Không tải được nhận xét của Ban Giám hiệu.");
+      }
+      items.push(...response.data.items);
+      if (!response.data.pagination?.hasNext) break;
+    }
+    return items
+      .filter((item) => item.decision === "REVISION_REQUESTED")
+      .sort((a, b) => String(b.reviewedAt).localeCompare(String(a.reviewedAt)));
+  },
+
   getLatestRevisionReview: async (menuId) => {
     const response = await http.get(apiMenuReviews(menuId), {
       params: { page: 1, limit: 20 },

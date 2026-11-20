@@ -1,4 +1,5 @@
 import { formatSmallQuantity } from "src/utils/quantity"
+import { dayTintStyle } from "src/utils/dayTint"
 import React from "react"
 import { Eye, Utensils, Coffee, AlertTriangle, CalendarCheck } from "lucide-react"
 import styles from "./CreateMenuWeeklyLivePreview.module.scss"
@@ -64,7 +65,7 @@ export default function CreateMenuWeeklyLivePreview({
             activeMealType === "AFTERNOON"
 
           return (
-            <div key={sd.dateISO} className={styles.dayColumn}>
+            <div key={sd.dateISO} className={styles.dayColumn} style={dayTintStyle(sd.dateISO, { holiday: sd.isHoliday })}>
               {/* Header ngày */}
               <div className={styles.dayHeader}>
                 <span className={styles.dayLabel}>{sd.dayLabel}</span>

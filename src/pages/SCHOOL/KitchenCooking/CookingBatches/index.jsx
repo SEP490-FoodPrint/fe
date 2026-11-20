@@ -1,11 +1,13 @@
 import React, { useState, useContext, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Alert, Button } from "@mui/material";
-import { Plus, Clock } from "lucide-react";
+import { Plus, Clock, Eye, Pencil } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
 import STORAGE, { getStorage } from "src/lib/storage";
 import { StoreContext } from "src/contexts";
 import KitchenService from "src/services/KitchenService";
+import { loadKitchenGradeSchedules } from "src/services/MenuService/gradeSchedule";
+import { getDishBatchState } from "src/services/KitchenService/adapter";
 import {
   EMPTY_BATCH_FILTERS,
   COOKING_MODES,
@@ -294,6 +296,70 @@ export default function CookingBatches() {
 
   const reload = () => setRefresh((value) => value + 1);
 
+  // Tình trạng lô chế biến hôm nay: none (chưa tạo) / partial (còn món chưa tạo lô) / done (đã tạo đủ)
+  const [todayBatch, setTodayBatch] = useState({ state: "unknown", created: 0, total: 0 });
+  useEffect(() => {
+    let active = true;
+    const todayISO = localDateISO();
+    // Gộp mọi thực đơn của hôm nay (mỗi khối / nhóm khối một thực đơn), mỗi thực đơn có ngày thực đơn riêng
+    Promise.all([
+      loadKitchenGradeSchedules(todayISO),
+      KitchenService.getAllBatches({ date: todayISO }),
+    ])
+      .then(([schedules, batchesRes]) => {
+        if (!active) return;
+        const allBatches = batchesRes?.items || [];
+        let total = 0;
+        let created = 0;
+        const todayDayIds = new Set();
+        for (const schedule of schedules || []) {
+          const today = schedule?.days?.find((day) => day.date === todayISO);
+          if (!today?.menuDayId || todayDayIds.has(today.menuDayId)) continue;
+          todayDayIds.add(today.menuDayId);
+          for (const mealType of ["LUNCH", "AFTERNOON"]) {
+            const dishes = today.meals?.[mealType]?.allDishes || today.meals?.[mealType]?.dishes || [];
+            for (const dish of dishes) {
+              total += 1;
+              if (getDishBatchState(allBatches, dish.dishId || dish.id, mealType, today.menuDayId).isBatchCreated)
+                created += 1;
+            }
+          }
+        }
+        const todayBatches = allBatches.filter((batch) => todayDayIds.has(batch.menuDayId));
+        const state = !todayBatches.length
+          ? "none"
+          : total && created < total
+            ? "partial"
+            : "done";
+        setTodayBatch({ state, created, total });
+      })
+      .catch(() => {
+        if (active) setTodayBatch({ state: "unknown", created: 0, total: 0 });
+      });
+    return () => {
+      active = false;
+    };
+  }, [refresh]);
+
+  // Nhãn theo chế độ nấu của trường: nấu chung (gộp lô nguyên liệu) / nấu riêng theo lô
+  const batchKind =
+    school?.cookingMode === "SEPARATE_BY_LOT"
+      ? "lô nấu riêng"
+      : school?.cookingMode === "COMBINE_LOTS"
+        ? "lô nấu chung"
+        : "lô chế biến";
+  const createButton =
+    todayBatch.state === "done"
+      ? { label: `Xem ${batchKind} hôm nay`, icon: Eye, title: `Chế độ ${COOKING_MODES[school?.cookingMode] || "chưa cấu hình"} · Hôm nay đã tạo lô cho tất cả món` }
+      : todayBatch.state === "partial"
+        ? {
+            label: `Tiếp tục tạo ${batchKind}`,
+            icon: Pencil,
+            title: `Chế độ ${COOKING_MODES[school?.cookingMode] || "chưa cấu hình"} · Hôm nay đã tạo lô ${todayBatch.created}/${todayBatch.total} món`,
+          }
+        : { label: `Tạo ${batchKind}`, icon: Plus, title: COOKING_MODES[school?.cookingMode] || "Chưa có cấu hình chế biến" };
+  const CreateIcon = createButton.icon;
+
   const navigateCreate = () => {
     if (canCreate)
       navigate(
@@ -325,12 +391,10 @@ export default function CookingBatches() {
             className={styles.createBtn}
             onClick={navigateCreate}
             disabled={!canCreate}
-            title={
-              COOKING_MODES[school?.cookingMode] || "Chưa có cấu hình chế biến"
-            }
-            startIcon={<Plus size={18} />}
+            title={createButton.title}
+            startIcon={<CreateIcon size={18} />}
           >
-            {isSeparateMode ? "Tạo lô nấu riêng" : "Tạo lô chế biến"}
+            {createButton.label}
           </Button>
         </div>
       </div>
@@ -409,9 +473,9 @@ export default function CookingBatches() {
           className={styles.mobileCreateBtn}
           onClick={navigateCreate}
           disabled={!canCreate}
-          startIcon={<Plus size={19} />}
+          startIcon={<CreateIcon size={19} />}
         >
-          {isSeparateMode ? "Tạo lô nấu riêng" : "Tạo lô chế biến"}
+          {createButton.label}
         </Button>
       </div>
     </div>

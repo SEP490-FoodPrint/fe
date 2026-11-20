@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { lotDateError } from "src/utils/lotDates"
 import PropTypes from "prop-types"
 import { Button } from "@mui/material"
 import { ArrowBack, ArrowForward, LocalShippingOutlined, QrCode2Outlined } from "@mui/icons-material"
@@ -68,25 +69,8 @@ function OrderFulfillmentWorkflow({
     if (!order?.id) return
     setSourceByItemId({})
     
-    // Tự động điền Ngày sản xuất hôm nay và Hạn sử dụng tương ứng cho toàn bộ đồ khô
-    const today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
-    const initialLotDates = {}
-    items.forEach(item => {
-      if (item.handlingType === "DRY_STOCK" && item.id) {
-        const isDairy = /sữa|flan|pudding|váng sữa|phô mai/i.test(item.ingredientName || "")
-        const exp = new Date(Date.now() + 7 * 3600 * 1000)
-        if (isDairy) {
-          exp.setMonth(exp.getMonth() + 6)
-        } else {
-          exp.setFullYear(exp.getFullYear() + 1)
-        }
-        initialLotDates[item.id] = {
-          manufactureDate: today,
-          expiryDate: exp.toISOString().slice(0, 10),
-        }
-      }
-    })
-    setLotDatesByItemId(initialLotDates)
+    // NSX/HSD của đồ khô do NCC tự nhập tay theo lô thực tế, không điền sẵn.
+    setLotDatesByItemId({})
 
     setExpectedArrivalLocal("")
     setVehiclePlate("")
@@ -118,16 +102,13 @@ function OrderFulfillmentWorkflow({
     onDraftChange?.()
   }
 
-  // Đồ khô: bắt buộc ngày sản xuất (không sau hôm nay) và hạn sử dụng (không trước ngày sản xuất).
+  // Đồ khô: bắt buộc NSX (không sau hôm nay) và HSD (không trước NSX, không trước hôm nay, còn ít nhất 7 ngày).
   const validateLotDates = () => {
-    const today = new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10)
     const errors = {}
     items.forEach(item => {
       if (item.handlingType !== "DRY_STOCK" || !item.id) return
-      const { manufactureDate = "", expiryDate = "" } = lotDatesByItemId[item.id] || {}
-      if (!manufactureDate || !expiryDate) errors[item.id] = "Đồ khô cần nhập ngày sản xuất và hạn sử dụng."
-      else if (manufactureDate > today) errors[item.id] = "Ngày sản xuất không được sau hôm nay."
-      else if (expiryDate < manufactureDate) errors[item.id] = "Hạn sử dụng phải sau hoặc bằng ngày sản xuất."
+      const message = lotDateError({ ...lotDatesByItemId[item.id], isDryStock: true, required: true })
+      if (message) errors[item.id] = message
     })
     return errors
   }
@@ -158,22 +139,6 @@ function OrderFulfillmentWorkflow({
       ...prev,
       sources: undefined,
       sourceErrors: {},
-    }))
-    onDraftChange?.()
-  }
-
-  const handleApplyAllLotDates = (mfgDate, expDate) => {
-    if (!mfgDate || !expDate) return
-    const next = {}
-    items.forEach(item => {
-      if (item.handlingType === "DRY_STOCK" && item.id) {
-        next[item.id] = { manufactureDate: mfgDate, expiryDate: expDate }
-      }
-    })
-    setLotDatesByItemId(next)
-    setFieldErrors(prev => ({
-      ...prev,
-      lotDateErrors: {},
     }))
     onDraftChange?.()
   }
@@ -258,7 +223,6 @@ function OrderFulfillmentWorkflow({
             lotDatesByItemId={lotDatesByItemId}
             lotDateErrors={fieldErrors.lotDateErrors || {}}
             onChangeLotDate={handleLotDateChange}
-            onApplyAllLotDates={handleApplyAllLotDates}
           />
         </div>
 

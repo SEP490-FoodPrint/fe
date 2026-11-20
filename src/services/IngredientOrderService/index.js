@@ -148,6 +148,8 @@ const isDiscreteUnit = (unit = "") => {
     "bó",
     "túi",
     "con",
+    "miếng",
+    "lát",
   ];
   return discreteUnits.includes(u);
 };
@@ -495,9 +497,26 @@ const IngredientOrderService = {
                         ing.Supplier?.name ||
                         entry?.Ingredient?.Supplier?.name ||
                         "Nhà cung cấp đối tác";
-                      const unit = ingItem.unit || ing.defaultUnit || "kg";
-                      const qtyPerPortion =
-                        Number(ingItem.quantityPerPortion) || 0.05;
+                      const targetUnit = ing.defaultUnit || ingItem.unit || "kg";
+                      const itemUnit = String(ingItem.unit || "").toLowerCase().trim();
+                      let qtyPerPortion = Number(ingItem.quantityPerPortion) || 0;
+
+                      // Quy đổi gam -> kg và ml -> lít để đồng bộ với đơn vị giao nhận
+                      if (
+                        (itemUnit === "g" || itemUnit === "gram") &&
+                        (targetUnit.toLowerCase() === "kg" || targetUnit.toLowerCase() === "kilogram")
+                      ) {
+                        qtyPerPortion = qtyPerPortion / 1000;
+                      } else if (
+                        (itemUnit === "ml" || itemUnit === "mililit") &&
+                        (targetUnit.toLowerCase() === "lít" || targetUnit.toLowerCase() === "lit" || targetUnit.toLowerCase() === "l")
+                      ) {
+                        qtyPerPortion = qtyPerPortion / 1000;
+                      } else if (qtyPerPortion <= 0) {
+                        qtyPerPortion = isDiscreteUnit(targetUnit) ? 1 : 0.05;
+                      }
+
+                      const unit = targetUnit;
 
                       if (extractedIngredientsMap.has(ing.id)) {
                         const existing = extractedIngredientsMap.get(ing.id);
@@ -528,26 +547,6 @@ const IngredientOrderService = {
           }
 
           let ingredients = Array.from(extractedIngredientsMap.values());
-
-          // Nếu món trong thực đơn chưa được gán nguyên liệu cụ thể, lấy các nguyên liệu DIRECT_USE thật từ DB
-          if (ingredients.length === 0 && entries.length > 0) {
-            const freshEntries = entries.filter(
-              (e) => e.handlingType !== "DRY_STOCK",
-            );
-            ingredients = freshEntries.slice(0, 4).map((e) => ({
-              id: e.ingredientId || e.id,
-              ingredientId: e.ingredientId || e.id,
-              ingredientEntryId: e.id,
-              name: e.Ingredient?.name || e.name || "Nguyên liệu tươi",
-              category: "Thực phẩm tươi sống",
-              handlingType: "DIRECT_USE",
-              unit: e.Ingredient?.defaultUnit || e.unit || "kg",
-              qtyPerPortion: 0.05,
-              supplierId: e.Ingredient?.supplierId || e.supplierId || "",
-              supplierName:
-                e.Ingredient?.Supplier?.name || "Nhà cung cấp đối tác",
-            }));
-          }
 
           return {
             id: m.id,

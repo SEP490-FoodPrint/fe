@@ -1282,6 +1282,51 @@ test("daily progress does not mark missing days approved and meal filters do not
   assert.doesNotMatch(filtered, /<button[^>]*disabled=""[^>]*title="Gửi thực đơn cả tuần/)
 })
 
+test("nutrition weekly list nests each allergy replacement under its original dish", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: View } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/component/MenuListWeeklyVerticalView.jsx")
+  const week = snapshot()
+  const day = week.menuDays[0]
+  day.menuDayDishes.push(
+    dish("LUNCH", 7, "80"), dish("LUNCH", 8, "80"), dish("LUNCH", 9, "80"),
+    dish("AFTERNOON", 10, "80"),
+  )
+  const group = (mealType, isDefault, ids) => ({
+    mealType, isDefault, dishes: ids.map(n => ({ dishId: id(n) })),
+  })
+  day.portionGroups = [
+    group("LUNCH", true, [3, 7]),
+    group("LUNCH", false, [3, 9]),
+    group("LUNCH", false, [7, 8]),
+    group("LUNCH", false, [7, 8]),
+    group("AFTERNOON", true, [4]),
+    group("AFTERNOON", false, [10]),
+  ]
+  const summary = structuredClone(week)
+  for (const group of summary.menuDays[0].portionGroups) delete group.dishes
+  respond = config => {
+    if (config.url === "/v1/menus") return { items: [summary] }
+    assert.equal(config.url, `/v1/menus/${week.id}`)
+    return week
+  }
+
+  const query = { weekStartDate: week.weekStartDate }
+  await menus.getMenus(query)
+  assert.equal(requests.length, 1)
+  const { data: cards } = await menus.getMenus({ ...query, includeAllergyDishes: true })
+  assert.equal(requests.filter(request => request.url === `/v1/menus/${week.id}`).length, 1)
+  const html = renderToStaticMarkup(React.createElement(View, {
+    schoolDays: [{ dateISO: day.menuDate, dayOfWeek: 1 }],
+    menus: cards,
+  }))
+  assert.match(html, />Dish 3<\/span><\/div><div[^>]*>\(Dish 8\)<\/div>/)
+  assert.match(html, />Dish 7<\/span><\/div><div[^>]*>\(Dish 9\)<\/div>/)
+  assert.match(html, />Dish 4<\/span><\/div><div[^>]*>\(Dish 10\)<\/div>/)
+  assert.equal((html.match(/\(Dish 8\)/g) || []).length, 1)
+  assert.doesNotMatch(html, />Dish (8|9|10)<\/span>/)
+})
+
 test("weekly list shows saved seasonings once per day and respects the selected meal", async () => {
   const React = await import("react")
   const { renderToStaticMarkup } = await import("react-dom/server")

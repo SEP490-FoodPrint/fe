@@ -11,6 +11,7 @@ import {
   Edit3,
   Trash2,
   ArrowUpRight,
+  ZoomIn,
 } from "lucide-react"
 import { get24hRetainedStatus, formatSampleDateTime } from "../retainedStatusHelper"
 import styles from "./SampleDetailModal.module.scss"
@@ -23,18 +24,23 @@ export default function SampleDetailModal({
   onOpenDisposeModal,
   onNavigateBatch,
 }) {
-  const [photoUrl, setPhotoUrl] = useState("")
+  const [photoUrl, setPhotoUrl] = useState(sample?.photoUrl || "")
   const [photoError, setPhotoError] = useState("")
+  const [isZoomOpen, setIsZoomOpen] = useState(false)
   useEffect(() => {
-    if (!open || !sample?.id || !sample?.cookingBatchId) return undefined
+    if (!open || !sample?.id) return undefined
     let active = true
-    setPhotoUrl("")
-    setPhotoError("")
-    KitchenService.getBatchSample(sample.cookingBatchId).then(rows => {
-      if (active) setPhotoUrl(rows?.find(row => row.id === sample.id)?.photoUrl || "")
-    }).catch(() => { if (active) setPhotoError("Không tải được ảnh mẫu lưu.") })
+    if (sample.photoUrl) {
+      setPhotoUrl(sample.photoUrl)
+    } else if (sample.cookingBatchId) {
+      setPhotoUrl("")
+      setPhotoError("")
+      KitchenService.getBatchSample(sample.cookingBatchId).then(rows => {
+        if (active) setPhotoUrl(rows?.find(row => row.id === sample.id)?.photoUrl || "")
+      }).catch(() => { if (active) setPhotoError("Không tải được ảnh mẫu lưu.") })
+    }
     return () => { active = false }
-  }, [open, sample?.id, sample?.cookingBatchId])
+  }, [open, sample?.id, sample?.cookingBatchId, sample?.photoUrl])
   if (!open || !sample) return null
 
   const info24h = get24hRetainedStatus(sample.sampledAt, sample.status)
@@ -83,7 +89,53 @@ export default function SampleDetailModal({
         {/* Modal Body */}
         <div className={styles.body}>
           <InlineError messages={photoError} />
-          {photoUrl && <div><strong>Ảnh mẫu lưu</strong><br /><img src={photoUrl} alt="Ảnh mẫu lưu" style={{ maxWidth: "100%", maxHeight: 260, objectFit: "contain" }} /></div>}
+          {photoUrl && (
+            <div style={{ marginBottom: "16px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 600, color: "var(--text-secondary)", marginBottom: "6px" }}>
+                Ảnh mẫu lưu (Bấm để xem phóng to)
+              </div>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setIsZoomOpen(true)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") setIsZoomOpen(true) }}
+                style={{
+                  position: "relative",
+                  display: "inline-block",
+                  borderRadius: "8px",
+                  overflow: "hidden",
+                  cursor: "pointer",
+                  border: "1px solid var(--border-default)",
+                  maxHeight: "220px",
+                }}
+              >
+                <img
+                  src={photoUrl}
+                  alt="Ảnh mẫu lưu"
+                  style={{ maxWidth: "100%", maxHeight: "220px", objectFit: "contain", display: "block" }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "8px",
+                    right: "8px",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "4px 8px",
+                    borderRadius: "6px",
+                    backgroundColor: "rgba(0, 0, 0, 0.65)",
+                    color: "#fff",
+                    fontSize: "11px",
+                    fontWeight: 600,
+                  }}
+                >
+                  <ZoomIn size={14} />
+                  <span>Phóng to</span>
+                </div>
+              </div>
+            </div>
+          )}
           {/* Dải tiến trình lưu 24h tinh gọn */}
           <div
             className={`${styles.trackingStrip} ${
@@ -242,6 +294,103 @@ export default function SampleDetailModal({
           )}
         </div>
       </div>
+
+      {isZoomOpen && photoUrl && (
+        <div
+          onClick={() => setIsZoomOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: "rgba(0, 0, 0, 0.8)",
+            backdropFilter: "blur(4px)",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              maxWidth: "90vw",
+              maxHeight: "85vh",
+              display: "flex",
+              flexDirection: "column",
+              backgroundColor: "var(--bg-surface, #fff)",
+              borderRadius: "12px",
+              overflow: "hidden",
+              boxShadow: "0 20px 50px rgba(0, 0, 0, 0.4)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "12px 16px",
+                borderBottom: "1px solid var(--border-default, #e2e8f0)",
+              }}
+            >
+              <h4 style={{ margin: 0, fontSize: "14px", fontWeight: 700 }}>
+                Ảnh chụp mẫu lưu – {sample.dishName}
+              </h4>
+              <button
+                type="button"
+                onClick={() => setIsZoomOpen(false)}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--text-secondary, #64748b)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "4px",
+                }}
+                aria-label="Đóng ảnh"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div
+              style={{
+                padding: "16px",
+                backgroundColor: "#0f172a",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <img
+                src={photoUrl}
+                alt={`Ảnh mẫu lưu ${sample.dishName}`}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "70vh",
+                  objectFit: "contain",
+                  borderRadius: "4px",
+                }}
+              />
+            </div>
+            <div
+              style={{
+                padding: "10px 16px",
+                fontSize: "12px",
+                color: "var(--text-secondary, #64748b)",
+                backgroundColor: "var(--bg-surface, #fff)",
+                borderTop: "1px solid var(--border-default, #e2e8f0)",
+              }}
+            >
+              <span>Thời điểm lưu: {sampledDisplay.time} · {sampledDisplay.date}</span>
+              {sample.storageLocation && <span> · Vị trí: {sample.storageLocation}</span>}
+              {sample.quantity && <span> · Lượng mẫu: {sample.quantity} {sample.unit || "g"}</span>}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

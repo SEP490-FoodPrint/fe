@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react"
 import KitchenMenuDayCard from "./KitchenMenuDayCard"
 import styles from "./KitchenMenuWeeklyGrid.module.scss"
+import nv from "src/pages/SCHOOL/MenuPlanning/component/MenuListWeeklyVerticalView.module.scss"
 
 export default function KitchenMenuWeeklyGrid({
   schoolDays = [],
@@ -66,7 +67,11 @@ export default function KitchenMenuWeeklyGrid({
 
       {/* 2. Lưới 5 cột phẳng theo 5 ngày trong tuần (Thứ Hai -> Thứ Sáu) */}
       <div className={styles.daysGridWrapper}>
-        <div className={styles.daysGrid}>
+        {/* Dùng chung lưới của màn Dinh dưỡng: các hàng (đầu ngày, bữa trưa, bữa xế) thẳng hàng giữa 5 ngày */}
+        <div
+          className={nv.weeklyGrid}
+          style={{ "--menu-grid-rows": mealTypeFilter === "ALL" ? 3 : 2 }}
+        >
           {schoolDays.map((day) => {
             const isToday = day.dateISO === todayISO
             // Trên mobile, nếu chọn một ngày cụ thể thì ẩn các ngày còn lại
@@ -76,7 +81,7 @@ export default function KitchenMenuWeeklyGrid({
             return (
               <div
                 key={day.dayOfWeek}
-                className={`${styles.dayColItem} ${
+                className={`${nv.dayColItem} ${
                   isHiddenOnMobile ? styles.mobileHidden : ""
                 }`}
               >

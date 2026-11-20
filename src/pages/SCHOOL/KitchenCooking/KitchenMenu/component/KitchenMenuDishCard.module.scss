@@ -70,7 +70,7 @@
 .substituteDishNote {
   font-size: 11.5px;
   font-style: italic;
-  color: #dc2626;
+  color: #1f2937;
   margin-top: 2px;
   line-height: 1.3;
 }
@@ -136,4 +136,9 @@
 
 .btnIcon {
   flex-shrink: 0;
+}
+
+/* Món chưa lập lô: không bấm được, bỏ con trỏ tay của dòng món dùng chung */
+.notClickable {
+  cursor: default !important;
 }

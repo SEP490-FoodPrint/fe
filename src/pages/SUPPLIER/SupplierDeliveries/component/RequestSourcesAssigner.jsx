@@ -1,4 +1,5 @@
 import React from "react"
+import { DRY_MIN_SHELF_DAYS, vietnamDateAfterDays, vietnamToday } from "src/utils/lotDates"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
 import { CircularProgress } from "@mui/material"
@@ -24,7 +25,6 @@ function RequestSourcesAssigner({
   lotDatesByItemId = {},
   lotDateErrors = {},
   onChangeLotDate,
-  onApplyAllLotDates,
 }) {
   const assignedCount = items.reduce((count, item) => {
     const val = String(sourceByItemId?.[item.id] || "").trim()
@@ -146,6 +146,7 @@ function RequestSourcesAssigner({
                           <input
                             type="date"
                             value={lotDatesByItemId[item.id]?.manufactureDate || ""}
+                            max={vietnamToday()}
                             disabled={disabled}
                             onChange={event => onChangeLotDate?.(item.id, "manufactureDate", event.target.value)}
                             className={`${styles.dateControl} ${lotDateErrors[item.id] ? styles.hasError : ""}`}
@@ -158,22 +159,12 @@ function RequestSourcesAssigner({
                           <input
                             type="date"
                             value={lotDatesByItemId[item.id]?.expiryDate || ""}
+                            min={vietnamDateAfterDays(DRY_MIN_SHELF_DAYS)}
                             disabled={disabled}
                             onChange={event => onChangeLotDate?.(item.id, "expiryDate", event.target.value)}
                             className={`${styles.dateControl} ${lotDateErrors[item.id] ? styles.hasError : ""}`}
                           />
                         </label>
-                        {onApplyAllLotDates && items.filter(it => it.handlingType === "DRY_STOCK").length > 1 && (
-                          <button
-                            type="button"
-                            disabled={disabled || !lotDatesByItemId[item.id]?.manufactureDate || !lotDatesByItemId[item.id]?.expiryDate}
-                            onClick={() => onApplyAllLotDates(lotDatesByItemId[item.id]?.manufactureDate, lotDatesByItemId[item.id]?.expiryDate)}
-                            className={styles.applyDateAllBtn}
-                            title="Áp dụng ngày sản xuất và hạn sử dụng này cho tất cả đồ khô"
-                          >
-                            Áp dụng ngày cho tất cả
-                          </button>
-                        )}
                         {lotDateErrors[item.id] && (
                           <p className={styles.errorText} role="alert">
                             {lotDateErrors[item.id]}
@@ -261,7 +252,6 @@ RequestSourcesAssigner.propTypes = {
   lotDatesByItemId: PropTypes.object,
   lotDateErrors: PropTypes.object,
   onChangeLotDate: PropTypes.func,
-  onApplyAllLotDates: PropTypes.func,
 }
 
 export default RequestSourcesAssigner
