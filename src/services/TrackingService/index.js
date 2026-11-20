@@ -1,5 +1,5 @@
 import http from "../01_axios"
-import { adaptTrackingOrder } from "./adapter"
+import { adaptTrackingOrder, determineOrderType } from "./adapter"
 
 const PAGE_LIMIT = 100
 const MAX_PAGES = 50
@@ -71,9 +71,9 @@ const TrackingService = {
       deliveriesList = delivItems.map(adaptTrackingOrder).filter(Boolean)
 
       supplyList = supplyItems.map(so => {
-        const isDry = so.requestNo?.includes("DRY") || so.requestNo?.includes("dry") || so.requestNo?.includes("PNK")
-        const isB2 = so.requestNo?.includes("B2") || so.requestNo?.includes("-D2")
-        const orderType = isDry ? "DRY_STOCK" : isB2 ? "FRESH_BATCH_2" : "FRESH_BATCH_1"
+        const orderType = determineOrderType(so).type
+        const isDry = orderType === "DRY_STOCK"
+        const isB2 = orderType === "FRESH_BATCH_2"
 
         // Giờ hẹn giao: lấy từ ghi chú của đơn, không có thì dùng giờ mặc định theo loại đơn (đồ khô 14:30, đợt 2 07:45, đợt 1 05:30).
         const timeMatch = String(so.note || "").match(/\b(\d{1,2}:\d{2})\b/)
@@ -451,9 +451,9 @@ const TrackingService = {
 
         if (data) {
           const so = data
-          const isDry = so.requestNo?.includes("DRY") || so.requestNo?.includes("dry") || so.requestNo?.includes("PNK")
-          const isB2 = so.requestNo?.includes("B2") || so.requestNo?.includes("-D2")
-          const orderType = isDry ? "DRY_STOCK" : isB2 ? "FRESH_BATCH_2" : "FRESH_BATCH_1"
+          const orderType = determineOrderType(so).type
+          const isDry = orderType === "DRY_STOCK"
+          const isB2 = orderType === "FRESH_BATCH_2"
           const deliveryNo = isDry
             ? `PNK-${so.requestNo ? so.requestNo.replace("PO-DRY-", "").replace("PO-", "") : so.id}`
             : isB2
