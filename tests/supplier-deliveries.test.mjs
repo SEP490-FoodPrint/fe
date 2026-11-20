@@ -12,6 +12,8 @@ const INGREDIENT_ID_2 = "00000000-0000-4000-8000-000000000606"
 const FACILITY_ID_1 = "00000000-0000-4000-8000-000000000608"
 const FACILITY_ID_2 = "00000000-0000-4000-8000-000000000609"
 const REQUEST_ITEM_ID_1 = "00000000-0000-4000-8000-000000000901"
+// 16/11/2026 00:00 giờ Việt Nam: mọi giờ trong ngày 16/11 đều ở tương lai.
+const ARRIVAL_TEST_NOW = new Date("2026-11-15T17:00:00.000Z")
 
 const DELIVERY_LIST_ITEM = {
   id: DELIVERY_ID,
@@ -492,7 +494,8 @@ test("validateDeliveryDraft enforces source facilities and mandatory vehiclePlat
     supplyRequestId: REQUEST_ID,
     requestItems: [{ id: REQUEST_ITEM_ID_1 }],
     sources: [{ supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_1 }],
-    expectedArrivalLocal: "2026-11-16T06:30",
+    expectedArrivalLocal: "06:30",
+    now: ARRIVAL_TEST_NOW,
     vehiclePlate: "51D-123.45",
   })
   assert.equal(reqValid.valid, true)
@@ -531,7 +534,8 @@ test("validateDeliveryDraft enforces source facilities and mandatory vehiclePlat
   const dupPairStandalone = validateDeliveryDraft({
     sourceType: "STANDALONE",
     schoolId: SCHOOL_ID,
-    expectedArrivalLocal: "2026-11-16T06:30",
+    expectedArrivalLocal: "06:30",
+    now: ARRIVAL_TEST_NOW,
     vehiclePlate: "51D-123.45",
     items: [
       {
@@ -560,7 +564,8 @@ test("validateDeliveryDraft enforces source facilities and mandatory vehiclePlat
   const validStandalone = validateDeliveryDraft({
     sourceType: "STANDALONE",
     schoolId: SCHOOL_ID,
-    expectedArrivalLocal: "2026-11-16T06:30",
+    expectedArrivalLocal: "06:30",
+    now: ARRIVAL_TEST_NOW,
     vehiclePlate: "51D-123.45",
     items: [
       {
@@ -661,9 +666,112 @@ test("3-stage validators and workflow stage metadata support both creation flows
   assert.ok(step3Missing.errors.vehiclePlate)
 
   const step3Valid = validateDeliveryLogisticsStep({
-    expectedArrivalLocal: "2026-11-16T06:30",
+    expectedArrivalLocal: "06:30",
+    now: ARRIVAL_TEST_NOW,
     vehiclePlate: "51D-123.45",
     note: "Giao cổng phụ",
   })
   assert.equal(step3Valid.valid, true)
+})
+
+test("REQUEST step allows splitting one ingredient across facilities; totals must equal the requested quantity", () => {
+  const {
+    DELIVERY_SOURCE_TYPE,
+    DUPLICATE_INGREDIENT_FACILITY_MSG,
+    getAllocationTotalStatus,
+    quantityToThousandths,
+    thousandthsToQuantity,
+    validateDeliveryIngredientsStep,
+  } = DeliveryServiceModule
+
+  assert.equal(quantityToThousandths("1.5"), 1500)
+  assert.equal(quantityToThousandths("0,125"), 125)
+  assert.equal(quantityToThousandths("abc"), null)
+  assert.equal(thousandthsToQuantity(2500), "2.5")
+  assert.equal(thousandthsToQuantity(3000), "3")
+
+  // 0.1 + 0.2 must equal 0.3 exactly (no float drift)
+  assert.equal(
+    getAllocationTotalStatus("0.3", [{ actualQuantity: "0.1" }, { actualQuantity: "0.2" }]).status,
+    "MATCH",
+  )
+  const under = getAllocationTotalStatus("10", [{ actualQuantity: "4" }, { actualQuantity: "5" }])
+  assert.equal(under.status, "UNDER")
+  assert.equal(under.difference, 1000)
+  assert.equal(getAllocationTotalStatus("10", [{ actualQuantity: "11" }]).status, "OVER")
+  assert.equal(getAllocationTotalStatus("10", [{ actualQuantity: "" }]).status, "INVALID")
+
+  const requestItems = [{ id: REQUEST_ITEM_ID_1, requestedQuantity: "10.5" }]
+  const base = {
+    sourceType: DELIVERY_SOURCE_TYPE.REQUEST,
+    supplyRequestId: REQUEST_ID,
+    requestItems,
+  }
+
+  const split = validateDeliveryIngredientsStep({
+    ...base,
+    sources: [
+      { key: "a", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_1, actualQuantity: "6" },
+      { key: "b", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_2, actualQuantity: "4.5" },
+    ],
+  })
+  assert.equal(split.valid, true)
+
+  const mismatch = validateDeliveryIngredientsStep({
+    ...base,
+    sources: [
+      { key: "a", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_1, actualQuantity: "6" },
+      { key: "b", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_2, actualQuantity: "4" },
+    ],
+  })
+  assert.equal(mismatch.valid, false)
+  assert.ok(mismatch.errors.sourceErrors[REQUEST_ITEM_ID_1])
+
+  const duplicate = validateDeliveryIngredientsStep({
+    ...base,
+    sources: [
+      { key: "a", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_1, actualQuantity: "6" },
+      { key: "b", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: FACILITY_ID_1.toUpperCase(), actualQuantity: "4.5" },
+    ],
+  })
+  assert.equal(duplicate.valid, false)
+  assert.equal(duplicate.errors.allocationErrors.b.sourceFacilityId, DUPLICATE_INGREDIENT_FACILITY_MSG)
+  assert.equal(duplicate.errors.allocationErrors.a, undefined)
+
+  const badQty = validateDeliveryIngredientsStep({
+    ...base,
+    sources: [
+      { key: "a", supplyRequestItemId: REQUEST_ITEM_ID_1, sourceFacilityId: "", actualQuantity: "0" },
+    ],
+  })
+  assert.equal(badQty.valid, false)
+  assert.ok(badQty.errors.allocationErrors.a.sourceFacilityId)
+  assert.ok(badQty.errors.allocationErrors.a.actualQuantity)
+})
+
+test("Expected arrival is a time today (Vietnam time) and must be after now", () => {
+  const {
+    buildTodayArrivalIso,
+    getMinArrivalTime,
+    getVnTodayDate,
+    validateDeliveryLogisticsStep,
+  } = DeliveryServiceModule
+
+  // 21/11/2026 09:15:30 giờ Việt Nam
+  const now = new Date("2026-11-21T02:15:30.000Z")
+  assert.equal(getVnTodayDate(now), "2026-11-21")
+  assert.equal(getMinArrivalTime(now), "09:16")
+  assert.equal(buildTodayArrivalIso("14:05", now), "2026-11-21T14:05:00+07:00")
+  assert.equal(buildTodayArrivalIso("2026-11-21T14:05", now), null)
+  assert.equal(buildTodayArrivalIso("25:00", now), null)
+  // 23:30 VN on 20/11 is 16:30Z: "today" must still be the Vietnam date
+  assert.equal(getVnTodayDate(new Date("2026-11-20T17:30:00.000Z")), "2026-11-21")
+
+  const check = time =>
+    validateDeliveryLogisticsStep({ expectedArrivalLocal: time, vehiclePlate: "29C-12345", now })
+  assert.equal(check("09:30").valid, true)
+  assert.ok(check("09:15").errors.expectedArrivalAt)
+  assert.ok(check("08:00").errors.expectedArrivalAt)
+  assert.ok(check("").errors.expectedArrivalAt)
+  assert.ok(check("2026-11-21T10:00").errors.expectedArrivalAt)
 })

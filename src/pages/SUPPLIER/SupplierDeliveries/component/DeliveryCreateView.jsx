@@ -23,7 +23,8 @@ import SupplierDeliveryService, {
   getDuplicateIngredientFacilityIndices,
   normalizeOptionId,
   ORDER_CREATION_STAGE,
-  toIsoWithTimezoneOffset,
+  buildTodayArrivalIso,
+  getMinArrivalTime,
   validateDeliveryDraft,
   validateDeliveryIngredientsStep,
   validateDeliveryLogisticsStep,
@@ -407,7 +408,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
         setPendingDispatchDelivery(activeDraft)
       }
 
-      const expectedArrivalAt = toIsoWithTimezoneOffset(expectedArrivalLocal)
+      const expectedArrivalAt = buildTodayArrivalIso(expectedArrivalLocal)
       const dispatched = await SupplierDeliveryService.dispatch(activeDraft.id, {
         expectedArrivalAt,
         vehiclePlate,
@@ -941,12 +942,13 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                     htmlFor="expected-arrival-input"
                     className={styles.fieldLabel}
                   >
-                    <span>{"Thời gian dự kiến đến trường "}</span>
+                    <span>{"Giờ dự kiến đến trường (hôm nay) "}</span>
                     <span className={styles.requiredMark}>*</span>
                   </label>
                   <input
                     id="expected-arrival-input"
-                    type="datetime-local"
+                    type="time"
+                    min={getMinArrivalTime()}
                     required
                     value={expectedArrivalLocal}
                     onChange={event => {
