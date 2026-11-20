@@ -70,19 +70,20 @@ export function formatRemainingPortions({ remaining, total }) {
 export function previewBatchAllocation(capacity, classes, orderedIds) {
   const classesById = new Map(classes.map(item => [item.id, item]))
   const entries = []
-  let remaining = capacity
+  let remaining = portionCents(capacity)
 
   for (const id of new Set(orderedIds)) {
-    if (remaining <= 0) break
+    if (remaining <= 0n) break
     const item = classesById.get(id)
     if (!item) continue
-
-    const portions = Math.min(item.remaining, remaining)
-    entries.push({ id, name: item.name, portions, remaining: item.remaining - portions })
+    const needed = portionCents(item.remaining)
+    if (needed === 0n) continue
+    const portions = needed < remaining ? needed : remaining
+    entries.push({ id, name: item.name, portions: Number(portions) / 100, remaining: Number(needed - portions) / 100 })
     remaining -= portions
   }
 
-  return { entries, remaining }
+  return { entries, remaining: Number(remaining) / 100 }
 }
 
 export function applyBatchAllocation(data, batchId, orderedIds, now, createId) {
@@ -125,3 +126,4 @@ export function applyBatchAllocation(data, batchId, orderedIds, now, createId) {
 
   return { ...data, mealAllocations, mealAllocationBatches }
 }
+import { portionCents } from "./allocationDecimal.js";

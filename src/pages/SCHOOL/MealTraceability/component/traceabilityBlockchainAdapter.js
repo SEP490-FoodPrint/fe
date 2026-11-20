@@ -128,10 +128,7 @@ export function buildBlockchainSteps(traceData, activeDish) {
   const earliest = (values) =>
     values.filter(Boolean).sort((a, b) => new Date(a) - new Date(b))[0] || null;
   const plates = unique([...deliveries.values()].map((d) => d.vehiclePlate));
-  const allocatedPortions = batches.reduce(
-    (sum, b) => sum + (Number(b?.allocatedPortions) || 0),
-    0,
-  );
+  const allocatedPortions = sumAllocationPortions(batches.map(batch=>batch?.allocatedPortions || 0));
 
   const declared = pick("delivery-declarations", deliveryIds);
   const inspected = pick("deliveries", deliveryIds);
@@ -177,7 +174,7 @@ export function buildBlockchainSteps(traceData, activeDish) {
       subtitle: dishName,
       badges: [
         `${batches.length} mẻ`,
-        `${allocatedPortions} suất cho ${classInfo.name || "lớp"}`,
+        `${formatAllocationDecimal(allocatedPortions)} suất cho ${classInfo.name || "lớp"}`,
       ],
       timeStr: formatStepTime(earliest(batches.map((b) => b?.completedAt))),
       iconType: "cooking",
@@ -214,3 +211,4 @@ export function buildBlockchainSteps(traceData, activeDish) {
     },
   ];
 }
+import { sumAllocationPortions, formatAllocationDecimal } from "../../../../utils/allocationDecimal.js";

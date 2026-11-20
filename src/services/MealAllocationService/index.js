@@ -11,18 +11,24 @@ const isMockEnabled = () => {
 };
 
 const MealAllocationService = {
-  async getToday(signal) {
+  async getToday(signal, mealType) {
     if (isMockEnabled()) {
       return mockMealAllocationService.getToday(signal);
     }
-    const response = await http.get(apiMealAllocations, { signal, notifyOnError: false });
+    const response = await http.get(apiMealAllocations, {
+      signal,
+      params: mealType ? { mealType } : {},
+      notifyOnError: false,
+    });
     return response.data;
   },
   async apply(payload) {
     if (isMockEnabled()) {
       return mockMealAllocationService.apply(payload);
     }
-    const response = await http.put(apiMealAllocations, payload, { notifyOnError: false });
+    const response = await http.put(apiMealAllocations, payload, {
+      notifyOnError: false,
+    });
     return response.data;
   },
   async confirmDistribution(revision) {

@@ -1,4 +1,5 @@
 import React from "react";
+import { sumAllocationPortions, formatAllocationDecimal } from "src/utils/allocationDecimal";
 import { Utensils, Check, Search, Info } from "lucide-react";
 import styles from "./TraceabilityMenuDishes.module.scss";
 
@@ -22,10 +23,7 @@ export default function TraceabilityMenuDishes({
         {dishes.map((dish) => {
           const isActive = dish.dishId === activeDishId;
           const totalBatches = dish.batches?.length ?? 0;
-          const totalPortions = dish.batches?.reduce(
-            (acc, b) => acc + (b.allocatedPortions || 0),
-            0,
-          );
+          const totalPortions = sumAllocationPortions((dish.batches || []).map(batch=>batch.allocatedPortions || 0));
 
           return (
             <div
@@ -53,7 +51,7 @@ export default function TraceabilityMenuDishes({
                 <h3 className={styles.dishName}>{dish.dishName}</h3>
                 <p className={styles.dishDesc}>
                   {totalPortions > 0
-                    ? `Phân bổ ${totalPortions} suất (từ ${totalBatches} lô chế biến)`
+                    ? `Phân bổ ${formatAllocationDecimal(totalPortions)} suất (từ ${totalBatches} lô chế biến)`
                     : "Được chế biến đạt chuẩn tại bếp trường"}
                 </p>
               </div>
