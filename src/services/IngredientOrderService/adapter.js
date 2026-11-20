@@ -1,6 +1,7 @@
 /**
  * Adapter chuẩn hóa dữ liệu Danh mục nguyên liệu và Phân hệ Đơn hàng
  */
+import { batchTypeOf } from "../../utils/supplyBatch";
 
 export const HANDLING_TYPES = {
   DRY_STOCK: {
@@ -143,44 +144,17 @@ export function adaptDeliveryItem(item) {
     }
   }
 
-  // 2. Nhận diện Đợt 1 / Đợt 2 / Đồ khô
-  const noteText =
-    `${item.note || ""} ${item.deliveryNo || ""} ${item.orderNo || ""} ${item.requestNo || ""}`.toLowerCase();
-  let batchType = item.batchType;
-  if (!batchType) {
-    if (
-      noteText.includes("khô") ||
-      noteText.includes("dry") ||
-      noteText.includes("pnk")
-    ) {
-      batchType = "DRY_STOCK";
-    } else if (
-      noteText.includes("đợt 2") ||
-      noteText.includes("d2") ||
-      noteText.includes("batch_2") ||
-      noteText.includes("sĩ số")
-    ) {
-      batchType = "BATCH_2";
-    } else if (
-      noteText.includes("đợt 1") ||
-      noteText.includes("d1") ||
-      noteText.includes("batch_1") ||
-      noteText.includes("sáng")
-    ) {
-      batchType = "BATCH_1";
-    } else {
-      // Nếu giờ giao trước 7h sáng -> Đợt 1, sau 7h -> Đợt 2
-      const hourNum = parseInt(deliveryTime.split(":")[0], 10) || 5;
-      batchType = hourNum < 7 ? "BATCH_1" : "BATCH_2";
-    }
-  }
+  // 2. Đợt / loại đơn: chỉ đọc orderType + batchNo từ API (null = chưa xác định, không đoán)
+  const batchType = item.batchType ?? batchTypeOf(item);
 
   const batchLabel =
     batchType === "BATCH_1"
       ? "Đợt 1 (50% Suất tối đa)"
       : batchType === "BATCH_2"
         ? "Đợt 2 (Cân đối sĩ số)"
-        : "Kho đồ khô";
+        : batchType === "DRY_STOCK"
+          ? "Kho đồ khô"
+          : "Chưa xác định đợt";
 
   // 3. Chuẩn hóa Hội đồng nghiệm thu 4 bên
   const approvals = {

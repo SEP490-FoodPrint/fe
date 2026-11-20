@@ -257,6 +257,8 @@ const WarehouseService = {
           const payload = {
             supplierId: sId,
             requestNo: reqNo,
+            orderType: "DRY_STOCK",
+            batchNo: null,
             requestedDeliveryDate,
             note: noteText,
             items: Array.from(mergedItemsMap.entries()).map(([ingredientEntryId, quantity]) => ({

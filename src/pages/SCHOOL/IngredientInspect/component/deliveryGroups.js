@@ -30,14 +30,17 @@ export function approvalProgress(item) {
 export function groupDeliveriesByRound(items = []) {
   const groups = new Map();
   for (const item of items) {
-    const round = deliveryRound(item.requestNo);
+    // Đợt lấy từ batchNo của API; regex mã đơn chỉ là fallback cho API cũ chưa trả batchNo.
+    const round =
+      item.batchNo !== undefined
+        ? (item.batchNo ?? null)
+        : deliveryRound(item.requestNo);
     const isDry =
+      item.orderType === "DRY_STOCK" ||
       item.isDryOnly ||
       (Array.isArray(item.requiredRoles) &&
         item.requiredRoles.length === 1 &&
-        item.requiredRoles[0]?.code === "INGREDIENT_MANAGEMENT_DEPARTMENT") ||
-      String(item.requestNo || "").toUpperCase().includes("DRY") ||
-      String(item.deliveryNo || "").toUpperCase().includes("DRY");
+        item.requiredRoles[0]?.code === "INGREDIENT_MANAGEMENT_DEPARTMENT");
 
     const key = round
       ? `round-${round}`

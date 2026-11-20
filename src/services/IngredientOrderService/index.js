@@ -6,6 +6,7 @@ import {
   apiSupplyOrders,
 } from "./urls";
 import { adaptCatalogItem, adaptDeliveryItem } from "./adapter";
+import { batchTypeOf, BATCH_TYPE } from "../../utils/supplyBatch";
 
 /**
  * Tải toàn bộ các trang dữ liệu từ API có phân trang (tuân thủ giới hạn limit <= 100 của Backend)
@@ -722,13 +723,7 @@ const IngredientOrderService = {
 
       // Lọc các đơn từ /supply-requests: CHỈ LẤY THỰC PHẨM TƯƠI SỐNG 2 ĐỢT (BATCH_1, BATCH_2), LOẠI BỎ ĐỒ KHÔ
       const freshSupplyItems = supplyItems.filter((so) => {
-        const reqNo = String(so.requestNo || "").toUpperCase();
-        const isDry =
-          reqNo.includes("DRY") ||
-          reqNo.includes("PNK") ||
-          so.orderType === "DRY_STOCK" ||
-          so.batchType === "DRY_STOCK";
-        return !isDry;
+        return so.orderType !== "DRY_STOCK";
       });
 
       // Lấy chi tiết song song cho các đơn hàng tươi sống vừa lấy để có đầy đủ items, ngày giao, ghi chú
@@ -760,13 +755,8 @@ const IngredientOrderService = {
 
       supplyList = detailedFreshSupply
         .map((so) => {
-          const reqNo = String(so.requestNo || "").toUpperCase();
-          const isB2 =
-            reqNo.includes("B2") ||
-            reqNo.includes("-D2") ||
-            reqNo.includes("DOT 2") ||
-            reqNo.includes("ĐỢT 2");
-          const batchType = isB2 ? "BATCH_2" : "BATCH_1";
+          const batchType = batchTypeOf(so);
+          const isB2 = batchType === BATCH_TYPE.BATCH_2;
           const deliveryTime = isB2 ? "07:45" : "05:30";
           const dateStr = so.requestedDeliveryDate
             ? String(so.requestedDeliveryDate).slice(0, 10)
@@ -897,8 +887,9 @@ const IngredientOrderService = {
 
       const baseNo = getBaseOrderNo(item);
       const date = item.deliveryDate || "";
-      const batch = item.batchType || "BATCH_1";
-      const key = baseNo ? `${baseNo}_${batch}` : `${date}_${batch}`;
+      // Cùng ngày + cùng đợt = 1 phiếu tổng (nhiều NCC gộp trong đó); baseNo chỉ để hiển thị mã.
+      const batch = item.batchType || "UNKNOWN";
+      const key = `${date}_${batch}`;
 
       if (!masterGroups.has(key)) {
         masterGroups.set(key, {
@@ -1299,15 +1290,9 @@ const IngredientOrderService = {
 
           const suppliersList = Array.from(supNames);
           const first = validDetails[0];
-          const reqNo = String(
-            first.requestNo || fallbackDelivery?.orderNo || "",
-          ).toUpperCase();
-          const isB2 =
-            reqNo.includes("B2") ||
-            reqNo.includes("-D2") ||
-            reqNo.includes("DOT 2") ||
-            reqNo.includes("ĐỢT 2");
-          const batchType = isB2 ? "BATCH_2" : "BATCH_1";
+          const batchType =
+            batchTypeOf(first) ?? batchTypeOf(fallbackDelivery);
+          const isB2 = batchType === BATCH_TYPE.BATCH_2;
           const deliveryTime = isB2 ? "07:45" : "05:30";
 
           const rawFirstStatus = String(first.status || "").toUpperCase();
@@ -1519,6 +1504,8 @@ const IngredientOrderService = {
       const payload = {
         supplierId: sId,
         requestNo: reqNo,
+        orderType: "DIRECT_USE",
+        batchNo: 1,
         requestedDeliveryDate: deliveryDate,
         note: noteText,
         items: Array.from(mergedItemsMap.entries()).map(
@@ -1705,6 +1692,8 @@ const IngredientOrderService = {
       const payload = {
         supplierId: sId,
         requestNo: reqNo,
+        orderType: "DIRECT_USE",
+        batchNo: 2,
         requestedDeliveryDate: deliveryDate,
         note: noteText,
         items: Array.from(mergedItemsMap.entries()).map(
