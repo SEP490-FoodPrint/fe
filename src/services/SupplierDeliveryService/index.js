@@ -123,6 +123,83 @@ export function normalizeDecimalQuantity(value) {
   return String(value ?? "").trim().replace(",", ".")
 }
 
+/** Số lượng (tối đa 3 chữ số thập phân) đổi sang số nguyên phần nghìn để cộng/so sánh không sai số. */
+export function quantityToThousandths(value) {
+  const raw = normalizeDecimalQuantity(value)
+  if (!/^\d+(?:\.\d{1,3})?$/.test(raw)) return null
+  const [intPart, fracPart = ""] = raw.split(".")
+  return Number(intPart) * 1000 + Number(fracPart.padEnd(3, "0"))
+}
+
+/** Tổng phần nghìn của danh sách số lượng; null nếu có giá trị không hợp lệ. */
+export function sumQuantityThousandths(values = []) {
+  let total = 0
+  for (const value of values) {
+    const parsed = quantityToThousandths(value)
+    if (parsed === null) return null
+    total += parsed
+  }
+  return total
+}
+
+/**
+ * Đối chiếu tổng khối lượng phân bổ cho 1 dòng yêu cầu với khối lượng trường cần.
+ * status: MATCH | UNDER | OVER | INVALID (có ô khối lượng trống/sai định dạng).
+ */
+export function getAllocationTotalStatus(requestedQuantity, allocations = []) {
+  const required = quantityToThousandths(requestedQuantity)
+  const values = (Array.isArray(allocations) ? allocations : []).map(
+    row => row?.actualQuantity,
+  )
+  const hasInvalid = values.some(value => !isValidPositiveDecimal(value))
+  const allocated = values.reduce((sum, value) => {
+    const parsed = quantityToThousandths(value)
+    return parsed === null ? sum : sum + parsed
+  }, 0)
+  let status = "MATCH"
+  if (hasInvalid || values.length === 0 || required === null) status = "INVALID"
+  else if (allocated < required) status = "UNDER"
+  else if (allocated > required) status = "OVER"
+  return {
+    status,
+    allocated,
+    required,
+    difference: required === null ? null : Math.abs(required - allocated),
+  }
+}
+
+export function thousandthsToQuantity(value) {
+  if (value === null || value === undefined) return ""
+  const intPart = Math.floor(value / 1000)
+  const fracPart = String(value % 1000).padStart(3, "0").replace(/0+$/, "")
+  return fracPart ? `${intPart}.${fracPart}` : String(intPart)
+}
+
+// Thời gian dự kiến đến: chỉ chọn giờ trong ngày hôm nay theo giờ Việt Nam (+07:00).
+const VN_OFFSET_MS = 7 * 3600 * 1000
+const TIME_ONLY_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
+
+/** Ngày hôm nay (YYYY-MM-DD) theo giờ Việt Nam. */
+export function getVnTodayDate(now = new Date()) {
+  return new Date(now.getTime() + VN_OFFSET_MS).toISOString().slice(0, 10)
+}
+
+/** Giờ nhỏ nhất được chọn (HH:mm, giờ Việt Nam): phút kế tiếp sau thời điểm hiện tại. */
+export function getMinArrivalTime(now = new Date()) {
+  const nextMinute = Math.floor(now.getTime() / 60000) * 60000 + 60000
+  const vn = new Date(nextMinute + VN_OFFSET_MS)
+  // Đã sang ngày mai thì không còn giờ hợp lệ trong hôm nay.
+  if (vn.toISOString().slice(0, 10) !== getVnTodayDate(now)) return "23:59"
+  return vn.toISOString().slice(11, 16)
+}
+
+/** Ghép giờ (HH:mm) với ngày hôm nay theo giờ Việt Nam thành ISO8601 có múi giờ. */
+export function buildTodayArrivalIso(timeValue, now = new Date()) {
+  const raw = String(timeValue ?? "").trim()
+  if (!TIME_ONLY_REGEX.test(raw)) return null
+  return `${getVnTodayDate(now)}T${raw}:00+07:00`
+}
+
 export function toIsoWithTimezoneOffset(localDateTimeValue) {
   const raw = String(localDateTimeValue ?? "").trim()
   if (!raw) return null
@@ -266,35 +343,77 @@ export function validateDeliveryIngredientsStep({
       errors.supplyRequestId = "Vui lòng chọn yêu cầu từ nhà trường."
     }
 
+    // Một dòng yêu cầu có thể chia cho nhiều cơ sở nguồn cung (mỗi phần là 1 lô riêng).
     const sourceList = Array.isArray(sources) ? sources : []
-    const sourceMap = new Map(
-      sourceList.map(src => [
-        String(src?.supplyRequestItemId || "").trim(),
-        String(src?.sourceFacilityId || "").trim(),
-      ]),
-    )
+    const allocationErrors = {}
+    const sourcesByItemId = new Map()
+    sourceList.forEach((src, index) => {
+      const reqItemId = String(src?.supplyRequestItemId || "").trim()
+      if (!reqItemId) return
+      const group = sourcesByItemId.get(reqItemId) || []
+      group.push({ src, errorKey: String(src?.key || `${reqItemId}#${index}`) })
+      sourcesByItemId.set(reqItemId, group)
+    })
+
+    const checkItemGroup = (reqItemId, requestedQuantity) => {
+      const group = sourcesByItemId.get(reqItemId) || []
+      if (group.length === 0) {
+        sourceErrors[reqItemId] = "Chọn cơ sở nguồn cung."
+        return
+      }
+      const seenFacilities = new Set()
+      group.forEach(({ src, errorKey }) => {
+        const rowErr = {}
+        const facId = normalizeOptionId(src?.sourceFacilityId)
+        if (!facId) {
+          rowErr.sourceFacilityId = "Chọn cơ sở nguồn cung."
+        } else if (seenFacilities.has(facId)) {
+          rowErr.sourceFacilityId = DUPLICATE_INGREDIENT_FACILITY_MSG
+        } else {
+          seenFacilities.add(facId)
+        }
+        if (
+          src?.actualQuantity !== undefined &&
+          !isValidPositiveDecimal(src.actualQuantity)
+        ) {
+          rowErr.actualQuantity = "Nhập số dương (tối đa 3 chữ số thập phân)."
+        }
+        if (Object.keys(rowErr).length > 0) allocationErrors[errorKey] = rowErr
+      })
+
+      if (requestedQuantity === undefined || requestedQuantity === null) return
+      const allocated = sumQuantityThousandths(group.map(({ src }) => src?.actualQuantity))
+      const required = quantityToThousandths(requestedQuantity)
+      if (allocated === null) {
+        sourceErrors[reqItemId] = "Nhập khối lượng giao cho từng cơ sở nguồn cung."
+      } else if (required !== null && allocated !== required) {
+        sourceErrors[reqItemId] = "Tổng khối lượng giao phải bằng khối lượng trường yêu cầu."
+      }
+    }
 
     if (Array.isArray(requestItems) && requestItems.length > 0) {
       requestItems.forEach(reqItem => {
         const reqItemId = String(reqItem?.id || "").trim()
         if (!reqItemId) return
-        if (!sourceMap.get(reqItemId)) {
-          sourceErrors[reqItemId] = "Chọn cơ sở nguồn cung."
-        }
+        checkItemGroup(reqItemId, reqItem?.requestedQuantity)
       })
     } else if (sourceList.length === 0) {
-      errors.sources = "Mỗi nguyên liệu trong đơn cần gắn 1 cơ sở nguồn cung."
+      errors.sources = "Mỗi nguyên liệu trong đơn cần gắn ít nhất 1 cơ sở nguồn cung."
     } else {
-      sourceList.forEach(src => {
-        const reqItemId = String(src?.supplyRequestItemId || "").trim()
-        if (!reqItemId || !String(src?.sourceFacilityId || "").trim()) {
-          if (reqItemId) sourceErrors[reqItemId] = "Chọn cơ sở nguồn cung."
-        }
-      })
+      sourcesByItemId.forEach((_group, reqItemId) => checkItemGroup(reqItemId))
     }
 
-    if (Object.keys(sourceErrors).length > 0 && !errors.sources) {
-      errors.sources = "Mỗi nguyên liệu trong đơn cần gắn 1 cơ sở nguồn cung."
+    if (Object.keys(allocationErrors).length > 0) {
+      errors.allocationErrors = allocationErrors
+    }
+
+    if (
+      (Object.keys(sourceErrors).length > 0 ||
+        Object.keys(allocationErrors).length > 0) &&
+      !errors.sources
+    ) {
+      errors.sources =
+        "Kiểm tra lại cơ sở nguồn cung và khối lượng giao của từng nguyên liệu."
     }
   } else {
     const schoolCheck = validateStandaloneSchool({ schoolId })
@@ -358,16 +477,19 @@ export function validateDeliveryLogisticsStep({
   expectedArrivalLocal = "",
   vehiclePlate = "",
   note = "",
+  now = new Date(),
 } = {}) {
   const errors = {}
 
   const rawArrival = String(expectedArrivalLocal || "").trim()
   if (!rawArrival) {
-    errors.expectedArrivalAt = "Vui lòng chọn thời gian dự kiến đến trường."
+    errors.expectedArrivalAt = "Vui lòng chọn giờ dự kiến đến trường."
   } else {
-    const parsedIso = toIsoWithTimezoneOffset(rawArrival)
+    const parsedIso = buildTodayArrivalIso(rawArrival, now)
     if (!parsedIso) {
-      errors.expectedArrivalAt = "Thời gian dự kiến đến không hợp lệ."
+      errors.expectedArrivalAt = "Giờ dự kiến đến không hợp lệ."
+    } else if (Date.parse(parsedIso) <= now.getTime()) {
+      errors.expectedArrivalAt = "Giờ dự kiến đến phải sau thời điểm hiện tại."
     }
   }
 
@@ -398,6 +520,7 @@ export function validateDeliveryDraft({
   expectedArrivalLocal = "",
   vehiclePlate = "",
   note = "",
+  now = new Date(),
 }) {
   const ingredientStep = validateDeliveryIngredientsStep({
     sourceType,
@@ -411,6 +534,7 @@ export function validateDeliveryDraft({
     expectedArrivalLocal,
     vehiclePlate,
     note,
+    now,
   })
 
   const errors = {
