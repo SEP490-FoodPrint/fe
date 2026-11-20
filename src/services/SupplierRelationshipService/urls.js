@@ -14,4 +14,6 @@ export const supplierUrls = {
   activate: id => `/supplier-contracts/${id}/activate`,
   close: id => `/supplier-contracts/${id}/close`,
   transition: (id, action) => `/supplier-partnerships/${id}/${action}`,
+  ingredientHandling: (supplierId) =>
+    `/supplier-partnerships/${supplierId}/ingredient-handling`,
 }

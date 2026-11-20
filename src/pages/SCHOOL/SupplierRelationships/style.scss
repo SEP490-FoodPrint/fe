@@ -403,6 +403,19 @@
   border-radius: 4px;
   flex-shrink: 0;
 }
+// Ô chọn Lưu kho / Dùng ngay của nguyên liệu đã chọn, xuống dòng dưới tên
+.supplier-ingredient-checkbox:has(.supplier-ingredient-handling) {
+  flex-wrap: wrap;
+}
+.supplier-ingredient-handling {
+  flex-basis: 100%;
+  background: var(--bg-surface);
+  .MuiSelect-select {
+    padding-top: var(--space-1);
+    padding-bottom: var(--space-1);
+    font-size: var(--text-sm);
+  }
+}
 .supplier-empty-scope {
   text-align: center;
   padding: 24px 12px;
