@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import IngredientOrderService from "src/services/IngredientOrderService";
+import notice from "src/components/Notice";
 import {
   Box,
   Typography,
@@ -18,6 +19,11 @@ import {
   TableContainer,
   Tooltip,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -36,6 +42,9 @@ import {
   Check,
   Layers,
   ChefHat,
+  Maximize2,
+  Copy,
+  X,
 } from "lucide-react";
 import styles from "./DeliveryDetailView.module.scss";
 
@@ -136,6 +145,40 @@ export default function DeliveryDetailView({
   const [updating, setUpdating] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
+  // State cho Popup Modal phóng to mã QR niêm phong xe
+  const [qrModalOpen, setQrModalOpen] = useState(false);
+  const [selectedQrData, setSelectedQrData] = useState(null);
+  const [qrCopied, setQrCopied] = useState(false);
+
+  const handleOpenQrModal = (transport, sName) => {
+    setSelectedQrData({
+      ...transport,
+      supplierName: sName,
+    });
+    setQrModalOpen(true);
+    setQrCopied(false);
+  };
+
+  const handleCloseQrModal = () => {
+    setQrModalOpen(false);
+    setSelectedQrData(null);
+    setQrCopied(false);
+  };
+
+  const handleCopyQrCode = async (text) => {
+    if (!text) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+      setQrCopied(true);
+      notice({ msg: `Đã sao chép mã QR: ${text}`, isSuccess: true });
+      setTimeout(() => setQrCopied(false), 2500);
+    } catch {
+      // fallback
+    }
+  };
+
   const toggleExpandItem = (idx) => {
     setExpandedItems((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
@@ -176,6 +219,68 @@ export default function DeliveryDetailView({
     }
     return map;
   }, [delivery]);
+
+  // Lấy chính xác tên NCC cho từng dòng nguyên liệu trong bảng chi tiết
+  const getItemSupplierName = (item) => {
+    // 1. Tên NCC trực tiếp trên dòng nếu là tên hợp lệ (không phải tên chung chung)
+    if (
+      item?.supplierName &&
+      item.supplierName !== "Nhà cung cấp đối tác" &&
+      !item.supplierName.includes("Nhiều NCC")
+    ) {
+      return item.supplierName;
+    }
+
+    // 2. Tra cứu trong nhóm nguyên liệu itemsBySupplier của từng NCC
+    if (itemsBySupplier) {
+      for (const [sName, sItems] of Object.entries(itemsBySupplier)) {
+        if (sName && sName !== "Nhà cung cấp đối tác" && !sName.includes("Nhiều NCC")) {
+          const matched = sItems.some((si) => {
+            if (si.id && item.id && si.id === item.id) return true;
+            if (si.ingredientId && item.ingredientId && si.ingredientId === item.ingredientId) return true;
+            const n1 = (si.name || si.ingredientName || "").trim().toLowerCase();
+            const n2 = (item.name || item.ingredientName || "").trim().toLowerCase();
+            return n1 && n2 && n1 === n2;
+          });
+          if (matched) return sName;
+        }
+      }
+    }
+
+    // 3. Khớp theo supplierId với danh sách xe transportsBySupplier
+    if (item?.supplierId && delivery?.transportsBySupplier) {
+      for (const [sName, tInfo] of Object.entries(delivery.transportsBySupplier)) {
+        if (String(tInfo?.supplierId) === String(item.supplierId) && sName && sName !== "Nhà cung cấp đối tác") {
+          return sName;
+        }
+      }
+    }
+
+    // 4. Nếu đơn hàng chỉ có 1 NCC duy nhất
+    if (
+      Array.isArray(delivery?.suppliers) &&
+      delivery.suppliers.length === 1 &&
+      delivery.suppliers[0] &&
+      delivery.suppliers[0] !== "Nhà cung cấp đối tác"
+    ) {
+      return delivery.suppliers[0];
+    }
+
+    // 5. Nếu tên NCC chính của phiếu là tên cụ thể
+    if (
+      delivery?.supplierName &&
+      !delivery.supplierName.includes("Nhiều NCC") &&
+      delivery.supplierName !== "Nhà cung cấp đối tác"
+    ) {
+      return delivery.supplierName;
+    }
+
+    if (item?.Supplier?.name) return item.Supplier.name;
+    if (item?.supplier?.name) return item.supplier.name;
+    if (delivery?.Supplier?.name) return delivery.Supplier.name;
+
+    return item?.supplierName || delivery?.supplierName || "Nhà cung cấp đối tác";
+  };
 
   // Lấy thông tin phương tiện & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
@@ -250,23 +355,31 @@ export default function DeliveryDetailView({
 
   // Render badge trạng thái riêng của từng Nhà cung cấp trong đợt giao đồ tươi
   const renderSupplierStatusBadge = (status) => {
+    const raw = String(status || "").toUpperCase();
+    if (
+      raw === "CREATED" ||
+      raw === "PENDING" ||
+      raw === "SENT" ||
+      raw === "DRAFT" ||
+      raw === "IN_PROGRESS"
+    ) {
+      return (
+        <Chip
+          icon={<Clock size={13} />}
+          label="Chờ NCC xác nhận"
+          size="small"
+          sx={{
+            bgcolor: "#f1f5f9",
+            color: "#475569",
+            fontWeight: 600,
+            fontSize: "0.75rem",
+            border: "1px solid #cbd5e1",
+          }}
+        />
+      );
+    }
+
     switch (status) {
-      case "CREATED":
-      case "PENDING":
-        return (
-          <Chip
-            icon={<Clock size={13} />}
-            label="Chờ NCC xác nhận"
-            size="small"
-            sx={{
-              bgcolor: "#f1f5f9",
-              color: "#475569",
-              fontWeight: 600,
-              fontSize: "0.75rem",
-              border: "1px solid #cbd5e1",
-            }}
-          />
-        );
       case "CONFIRMED":
       case "ACCEPTED":
         return (
@@ -334,7 +447,7 @@ export default function DeliveryDetailView({
         return (
           <Chip
             icon={<CheckCircle2 size={13} />}
-            label="4/4 Đã duyệt & Bàn giao bếp"
+            label="Đã duyệt & Bàn giao bếp"
             size="small"
             sx={{
               bgcolor: "#dcfce7",
@@ -403,10 +516,20 @@ export default function DeliveryDetailView({
             }}
           />
         );
-      default:
+      default: {
+        const norm = String(status || "").toUpperCase();
+        const displayLabel =
+          norm === "IN_PROGRESS" ||
+            norm === "SENT" ||
+            norm === "PENDING" ||
+            norm === "CREATED" ||
+            norm === "DRAFT" ||
+            !status
+            ? "Chờ NCC xác nhận"
+            : status;
         return (
           <Chip
-            label={status || "Chờ NCC xác nhận"}
+            label={displayLabel}
             size="small"
             sx={{
               bgcolor: "#f1f5f9",
@@ -416,6 +539,7 @@ export default function DeliveryDetailView({
             }}
           />
         );
+      }
     }
   };
 
@@ -457,46 +581,6 @@ export default function DeliveryDetailView({
     } finally {
       setUpdating(false);
     }
-  };
-
-  const getRolesForSupplier = (sName) => {
-    const sMap = delivery.supplierApprovals || {};
-    const norm = String(sName || "").trim().toLowerCase();
-    const matchedApp =
-      sMap[sName] ||
-      sMap[norm] ||
-      Object.entries(sMap).find(([k]) => {
-        const kNorm = String(k).trim().toLowerCase();
-        return kNorm === norm || norm.includes(kNorm) || kNorm.includes(norm);
-      })?.[1];
-
-    const sApp = matchedApp || delivery.approvals || {};
-    return [
-      {
-        key: "ingredientManagement",
-        title: "1. Ban QL Nguyên liệu",
-        icon: <ShieldCheck size={16} />,
-        data: sApp.ingredientManagement,
-      },
-      {
-        key: "healthOfficer",
-        title: "2. Y tế học đường",
-        icon: <Stethoscope size={16} />,
-        data: sApp.healthOfficer,
-      },
-      {
-        key: "parentsCommittee",
-        title: "3. Ban Phụ huynh",
-        icon: <HeartHandshake size={16} />,
-        data: sApp.parentsCommittee,
-      },
-      {
-        key: "kitchenStaff",
-        title: "4. Đại diện Nhà Bếp",
-        icon: <Utensils size={16} />,
-        data: sApp.kitchenStaff,
-      },
-    ];
   };
 
   return (
@@ -707,7 +791,7 @@ export default function DeliveryDetailView({
       <Box className={styles.sectionWrapper}>
         <Box className={styles.sectionTitleRow}>
           <Typography variant="h6" className={styles.sectionHeading}>
-            Thông Tin Vận Chuyển &amp; Nghiệm Thu (
+            Thông Tin Vận Chuyển (
             {Object.keys(itemsBySupplier).length} Nhà cung cấp)
           </Typography>
         </Box>
@@ -834,185 +918,64 @@ export default function DeliveryDetailView({
                     </Box>
                   </Box>
 
-                  {/* Cột 2: Mã QR Lô Hàng / Chuyến xe của NCC */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.75,
-                      p: 1.75,
-                      bgcolor: "#f0fdf4",
-                      borderRadius: 2.5,
-                      border: "1px solid #bbf7d0",
-                      minWidth: { xs: "auto", sm: 280, md: 300 },
-                      maxWidth: "100%",
-                      boxSizing: "border-box",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <QrCode size={40} color="#16a34a" style={{ flexShrink: 0 }} />
-                    <Box sx={{ minWidth: 0 }}>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontWeight: 700,
-                          color: "#166534",
-                          display: "block",
-                          fontSize: "0.825rem",
-                          letterSpacing: "0.01em",
-                        }}
-                      >
-                        {transport.qrCode}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: "#15803d", fontSize: "0.72rem", display: "block", mt: 0.25 }}
-                      >
-                        Mã QR niêm phong xe &amp; kiểm dịch NCC
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-
-                <Divider className={styles.cardDivider} />
-
-                {/* Hội đồng nghiệm thu 4 bên riêng cho chuyến xe này (4 cột dàn đều ngang hàng) */}
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1.25 }}>
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Typography
-                      variant="subtitle2"
+                  {/* Cột 2: Mã QR Lô Hàng / Chuyến xe của NCC (Bấm để xem nổi) */}
+                  <Tooltip title="Bấm để xem nổi mã QR niêm phong chuyến xe" arrow>
+                    <Box
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => handleOpenQrModal(transport, sName)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleOpenQrModal(transport, sName);
+                        }
+                      }}
                       sx={{
-                        fontWeight: 750,
-                        color: "#0f172a",
-                        fontSize: "0.875rem",
                         display: "flex",
                         alignItems: "center",
-                        gap: 0.75,
+                        gap: 1.75,
+                        p: 1.75,
+                        bgcolor: "#f0fdf4",
+                        borderRadius: 2.5,
+                        border: "1px solid #bbf7d0",
+                        minWidth: { xs: "auto", sm: 280, md: 300 },
+                        maxWidth: "100%",
+                        boxSizing: "border-box",
+                        flexShrink: 0,
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          bgcolor: "#ecfdf5",
+                          borderColor: "#16a34a",
+                          transform: "translateY(-1px)",
+                          boxShadow: "0 4px 12px rgba(22, 163, 74, 0.15)",
+                        },
                       }}
                     >
-                      <ShieldCheck size={17} color="#2563eb" />
-                      Hội đồng nghiệm thu
-                    </Typography>
-                    <Chip
-                      label="Cổng tiếp nhận"
-                      size="small"
-                      sx={{
-                        fontSize: "0.7rem",
-                        height: 22,
-                        bgcolor: "#f1f5f9",
-                        color: "#475569",
-                        fontWeight: 600,
-                      }}
-                    />
-                  </Box>
-
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: {
-                        xs: "1fr",
-                        sm: "repeat(2, 1fr)",
-                        md: "repeat(4, 1fr)",
-                      },
-                      gap: 1.25,
-                    }}
-                  >
-                    {getRolesForSupplier(sName).map((r) => {
-                      const data = r.data;
-                      const isApproved = data?.approved === true;
-                      const isRejected = data?.approved === false;
-                      const isPending =
-                        data?.approved === null || data?.approved === undefined;
-
-                      return (
-                        <Box
-                          key={r.key}
-                          className={`${styles.approvalCard} ${isApproved
-                            ? styles.approvedCard
-                            : isRejected
-                              ? styles.rejectedCard
-                              : styles.pendingCard
-                            }`}
-                          sx={{ p: 1.25, borderRadius: 2 }}
+                      <QrCode size={40} color="#16a34a" style={{ flexShrink: 0 }} />
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 700,
+                            color: "#166534",
+                            display: "block",
+                            fontSize: "0.825rem",
+                            letterSpacing: "0.01em",
+                          }}
                         >
-                          <Box className={styles.cardTop} sx={{ mb: 0.5 }}>
-                            <Box className={styles.roleTitleGroup} sx={{ gap: 0.6 }}>
-                              {r.icon}
-                              <Typography
-                                variant="caption"
-                                sx={{
-                                  fontWeight: 700,
-                                  fontSize: "0.78rem",
-                                  lineHeight: 1.2,
-                                }}
-                              >
-                                {r.title}
-                              </Typography>
-                            </Box>
-
-                            {isApproved && (
-                              <CheckCircle2 size={16} className={styles.checkIcon} />
-                            )}
-                            {isRejected && (
-                              <XCircle size={16} className={styles.rejectIcon} />
-                            )}
-                            {isPending && (
-                              <Clock size={16} className={styles.clockIcon} />
-                            )}
-                          </Box>
-
-                          <Divider sx={{ my: 0.5 }} />
-
-                          <Box className={styles.cardBottom}>
-                            {isApproved && (
-                              <>
-                                <Typography
-                                  variant="caption"
-                                  className={styles.signerName}
-                                  sx={{ fontSize: "0.74rem", fontWeight: 600, display: "block" }}
-                                >
-                                  {data?.name || "Đại diện đã ký"}
-                                </Typography>
-                                {data?.time && (
-                                  <Typography
-                                    variant="caption"
-                                    className={styles.signTime}
-                                    sx={{ fontSize: "0.68rem" }}
-                                  >
-                                    Ký lúc: {data.time}
-                                  </Typography>
-                                )}
-                              </>
-                            )}
-                            {isRejected && (
-                              <Typography
-                                variant="caption"
-                                className={styles.rejectSignText}
-                                sx={{ fontSize: "0.74rem", fontWeight: 700 }}
-                              >
-                                {data?.name || "TỪ CHỐI NHẬP HÀNG"}
-                              </Typography>
-                            )}
-                            {isPending && (
-                              <Typography
-                                variant="caption"
-                                className={styles.pendingSignText}
-                                sx={{ fontSize: "0.72rem" }}
-                              >
-                                Đang chờ đại diện kiểm tra...
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
-                      );
-                    })}
-                  </Box>
+                          {transport.qrCode}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: "#15803d", fontSize: "0.72rem", display: "block", mt: 0.25 }}
+                        >
+                          Mã QR niêm phong xe &amp; kiểm dịch NCC
+                        </Typography>
+                      </Box>
+                      <Maximize2 size={16} color="#16a34a" style={{ flexShrink: 0, opacity: 0.7 }} />
+                    </Box>
+                  </Tooltip>
                 </Box>
               </Paper>
             );
@@ -1148,9 +1111,7 @@ export default function DeliveryDetailView({
                             fontSize: "0.8125rem",
                           }}
                         >
-                          {item.supplierName ||
-                            delivery.supplierName ||
-                            "Nhà cung cấp đối tác"}
+                          {getItemSupplierName(item)}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
@@ -1312,6 +1273,188 @@ export default function DeliveryDetailView({
           Quay lại danh sách phiếu giao nhận
         </Button>
       </Box>
+
+      {/* 8. Modal phóng to mã QR niêm phong xe & kiểm dịch NCC */}
+      <Dialog
+        open={qrModalOpen}
+        onClose={handleCloseQrModal}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1,
+            boxShadow: "0 20px 40px rgba(0, 0, 0, 0.15)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            pb: 1,
+            pt: 1.5,
+            px: 2,
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <QrCode size={22} color="#16a34a" />
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f172a" }}>
+              Mã QR Niêm Phong Vận Chuyển
+            </Typography>
+          </Box>
+          <IconButton onClick={handleCloseQrModal} size="small" sx={{ color: "#64748b" }}>
+            <X size={18} />
+          </IconButton>
+        </DialogTitle>
+
+        <DialogContent sx={{ px: 2, py: 1.5, textAlign: "center" }}>
+          {selectedQrData && (
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <Typography variant="body2" sx={{ color: "#64748b", fontSize: "0.85rem" }}>
+                Đơn vị cung cấp: <strong style={{ color: "#0f172a" }}>{selectedQrData.supplierName || "Nhà cung cấp đối tác"}</strong>
+              </Typography>
+
+              {/* Khung hiển thị QR lớn */}
+              <Box
+                sx={{
+                  p: 2,
+                  bgcolor: "#ffffff",
+                  borderRadius: 3,
+                  border: "2px solid #e2e8f0",
+                  boxShadow: "0 4px 16px rgba(0, 0, 0, 0.06)",
+                  display: "inline-flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <img
+                  src={
+                    selectedQrData.qrImageDataUrl ||
+                    `https://api.qrserver.com/v1/create-qr-code/?size=240x240&margin=8&data=${encodeURIComponent(
+                      selectedQrData.qrCode || "FOODPRINT-DELIVERY",
+                    )}`
+                  }
+                  alt={`Mã QR ${selectedQrData.qrCode}`}
+                  style={{
+                    width: 220,
+                    height: 220,
+                    display: "block",
+                    borderRadius: 8,
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                    if (e.currentTarget.nextSibling) {
+                      e.currentTarget.nextSibling.style.display = "flex";
+                    }
+                  }}
+                />
+                <Box
+                  sx={{
+                    display: "none",
+                    width: 220,
+                    height: 220,
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "#f8fafc",
+                    borderRadius: 2,
+                    p: 2,
+                  }}
+                >
+                  <QrCode size={96} color="#16a34a" />
+                  <Typography variant="caption" sx={{ mt: 1, color: "#64748b", textAlign: "center" }}>
+                    {selectedQrData.qrCode}
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/* Khối sao chép mã */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 1,
+                  bgcolor: "#f1f5f9",
+                  px: 2,
+                  py: 1,
+                  borderRadius: 2,
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontFamily: "monospace",
+                    fontWeight: 700,
+                    fontSize: "0.95rem",
+                    color: "#0f172a",
+                    letterSpacing: "0.03em",
+                  }}
+                >
+                  {selectedQrData.qrCode}
+                </Typography>
+                <IconButton
+                  size="small"
+                  onClick={() => handleCopyQrCode(selectedQrData.qrCode)}
+                  sx={{ color: qrCopied ? "#16a34a" : "#475569" }}
+                  title="Sao chép mã QR"
+                >
+                  {qrCopied ? <Check size={16} /> : <Copy size={16} />}
+                </IconButton>
+              </Box>
+
+              {/* Thông tin chuyến xe đi kèm */}
+              <Box
+                sx={{
+                  width: "100%",
+                  bgcolor: "#f8fafc",
+                  borderRadius: 2,
+                  p: 1.5,
+                  border: "1px solid #e2e8f0",
+                  textAlign: "left",
+                  fontSize: "0.8rem",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 0.75,
+                }}
+              >
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="caption" sx={{ color: "#64748b" }}>Phương tiện:</Typography>
+                  <Typography variant="caption" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                    {formatVehicle(selectedQrData.vehicle)}
+                  </Typography>
+                </Box>
+                {selectedQrData.driver && (
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="caption" sx={{ color: "#64748b" }}>Tài xế:</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                      {selectedQrData.driver} {selectedQrData.phone ? `(${selectedQrData.phone})` : ""}
+                    </Typography>
+                  </Box>
+                )}
+                {selectedQrData.expectedTime && (
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="caption" sx={{ color: "#64748b" }}>Giờ giao dự kiến:</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 600, color: "#1e293b" }}>
+                      {selectedQrData.expectedTime}
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 2, pb: 1.5 }}>
+          <Button onClick={handleCloseQrModal} variant="contained" fullWidth sx={{ borderRadius: 2 }}>
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
