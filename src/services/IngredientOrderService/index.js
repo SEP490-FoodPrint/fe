@@ -1,3 +1,4 @@
+import { requireOrderQuantity } from "src/utils/measurementUnits";
 import http from "../01_axios";
 import {
   apiIngredients,
@@ -79,7 +80,9 @@ const sendDraftOrder = async (orderId, supplierId, partnershipsCache) => {
   try {
     let partnerships = partnershipsCache;
     if (!partnerships) {
-      partnerships = await fetchAllPages("/supplier-partnerships", { status: "ACTIVE" });
+      partnerships = await fetchAllPages("/supplier-partnerships", {
+        status: "ACTIVE",
+      });
     }
     const partnership = partnerships.find(
       (p) => (p.supplier?.id || p.supplierId) === supplierId,
@@ -94,18 +97,29 @@ const sendDraftOrder = async (orderId, supplierId, partnershipsCache) => {
         { contractId: activeContract.id },
         { notifyOnError: false },
       );
-      console.log(`[sendDraftOrder] Đã gửi đơn ${orderId} sang NCC ${supplierId} với HĐ ${activeContract.id}`);
+      console.log(
+        `[sendDraftOrder] Đã gửi đơn ${orderId} sang NCC ${supplierId} với HĐ ${activeContract.id}`,
+      );
     } else {
-      console.warn(`[sendDraftOrder] Không tìm thấy hợp đồng ACTIVE cho NCC ${supplierId}`);
+      console.warn(
+        `[sendDraftOrder] Không tìm thấy hợp đồng ACTIVE cho NCC ${supplierId}`,
+      );
     }
   } catch (err) {
-    console.warn("[sendDraftOrder] Gửi đơn thất bại:", err?.response?.data?.message || err?.message);
+    console.warn(
+      "[sendDraftOrder] Gửi đơn thất bại:",
+      err?.response?.data?.message || err?.message,
+    );
   }
 };
 
 // Chuẩn hóa tên để so khớp đúng tên (không phân biệt hoa thường, bỏ khoảng trắng thừa).
 const normalizeIngredientName = (value) =>
-  String(value || "").normalize("NFC").replace(/\s+/g, " ").trim().toLowerCase();
+  String(value || "")
+    .normalize("NFC")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 
 /**
  * Xác định đúng dòng danh mục nguyên liệu của trường cho một mặt hàng đặt.
@@ -122,7 +136,13 @@ const resolveSchoolEntry = (it, entries, unresolved) => {
     ...byId("ingredientId", it.ingredientId),
     ...byId("ingredientId", it.id),
   ];
-  const label = it.ingredientName || it.name || it.ingredientEntryId || it.ingredientId || it.id || "(không tên)";
+  const label =
+    it.ingredientName ||
+    it.name ||
+    it.ingredientEntryId ||
+    it.ingredientId ||
+    it.id ||
+    "(không tên)";
   if (idMatches.length) {
     const unique = [...new Map(idMatches.map((e) => [e.entryId, e])).values()];
     if (unique.length === 1) return unique[0];
@@ -134,8 +154,11 @@ const resolveSchoolEntry = (it, entries, unresolved) => {
     unresolved.missing.push(label);
     return null;
   }
-  let candidates = entries.filter((e) => normalizeIngredientName(e.name) === wanted);
-  if (it.supplierId) candidates = candidates.filter((e) => e.supplierId === it.supplierId);
+  let candidates = entries.filter(
+    (e) => normalizeIngredientName(e.name) === wanted,
+  );
+  if (it.supplierId)
+    candidates = candidates.filter((e) => e.supplierId === it.supplierId);
   if (candidates.length === 1) return candidates[0];
   (candidates.length ? unresolved.ambiguous : unresolved.missing).push(label);
   return null;
@@ -145,10 +168,15 @@ const resolveSchoolEntry = (it, entries, unresolved) => {
 const assertAllResolved = (unresolved) => {
   const messages = [];
   if (unresolved.missing.length)
-    messages.push(`Không tìm thấy trong danh mục nguyên liệu của trường: ${[...new Set(unresolved.missing)].join(", ")}`);
+    messages.push(
+      `Không tìm thấy trong danh mục nguyên liệu của trường: ${[...new Set(unresolved.missing)].join(", ")}`,
+    );
   if (unresolved.ambiguous.length)
-    messages.push(`Có nhiều nguyên liệu trùng tên, cần chọn đúng nhà cung cấp: ${[...new Set(unresolved.ambiguous)].join(", ")}`);
-  if (messages.length) throw new Error(`${messages.join(". ")}. Chưa tạo đơn nào.`);
+    messages.push(
+      `Có nhiều nguyên liệu trùng tên, cần chọn đúng nhà cung cấp: ${[...new Set(unresolved.ambiguous)].join(", ")}`,
+    );
+  if (messages.length)
+    throw new Error(`${messages.join(". ")}. Chưa tạo đơn nào.`);
 };
 
 const isValidUuid = (id) =>
@@ -183,9 +211,9 @@ const isDiscreteUnit = (unit = "") => {
 const calcQty = (qtyPerPortion, portions, unit = "") => {
   const raw = Number(qtyPerPortion) * Number(portions);
   if (isDiscreteUnit(unit)) {
-    return Math.ceil(raw);
+    return Number(raw.toFixed(3));
   }
-  return Number(raw.toFixed(2));
+  return Number(raw.toFixed(3));
 };
 
 const IngredientOrderService = {
@@ -531,19 +559,26 @@ const IngredientOrderService = {
                         ing.Supplier?.name ||
                         entry?.Ingredient?.Supplier?.name ||
                         "Nhà cung cấp đối tác";
-                      const targetUnit = ing.defaultUnit || ingItem.unit || "kg";
-                      const itemUnit = String(ingItem.unit || "").toLowerCase().trim();
-                      let qtyPerPortion = Number(ingItem.quantityPerPortion) || 0;
+                      const targetUnit =
+                        ing.defaultUnit || ingItem.unit || "kg";
+                      const itemUnit = String(ingItem.unit || "")
+                        .toLowerCase()
+                        .trim();
+                      let qtyPerPortion =
+                        Number(ingItem.quantityPerPortion) || 0;
 
                       // Quy đổi gam -> kg và ml -> lít để đồng bộ với đơn vị giao nhận
                       if (
                         (itemUnit === "g" || itemUnit === "gram") &&
-                        (targetUnit.toLowerCase() === "kg" || targetUnit.toLowerCase() === "kilogram")
+                        (targetUnit.toLowerCase() === "kg" ||
+                          targetUnit.toLowerCase() === "kilogram")
                       ) {
                         qtyPerPortion = qtyPerPortion / 1000;
                       } else if (
                         (itemUnit === "ml" || itemUnit === "mililit") &&
-                        (targetUnit.toLowerCase() === "lít" || targetUnit.toLowerCase() === "lit" || targetUnit.toLowerCase() === "l")
+                        (targetUnit.toLowerCase() === "lít" ||
+                          targetUnit.toLowerCase() === "lit" ||
+                          targetUnit.toLowerCase() === "l")
                       ) {
                         qtyPerPortion = qtyPerPortion / 1000;
                       } else if (qtyPerPortion <= 0) {
@@ -556,7 +591,7 @@ const IngredientOrderService = {
                       if (extractedIngredientsMap.has(ing.id)) {
                         const existing = extractedIngredientsMap.get(ing.id);
                         existing.qtyPerPortion = Number(
-                          (existing.qtyPerPortion + qtyPerPortion).toFixed(4),
+                          (existing.qtyPerPortion + qtyPerPortion).toFixed(12),
                         );
                       } else {
                         extractedIngredientsMap.set(ing.id, {
@@ -580,7 +615,9 @@ const IngredientOrderService = {
                         if (dayIngredientsMap.has(ing.id)) {
                           const existingDay = dayIngredientsMap.get(ing.id);
                           existingDay.qtyPerPortion = Number(
-                            (existingDay.qtyPerPortion + qtyPerPortion).toFixed(4),
+                            (existingDay.qtyPerPortion + qtyPerPortion).toFixed(
+                              12,
+                            ),
                           );
                         } else {
                           dayIngredientsMap.set(ing.id, {
@@ -767,7 +804,9 @@ const IngredientOrderService = {
             : so.id;
           const deliveryNo = `PN-${cleanNo}`;
           const sName =
-            (so.supplierName && so.supplierName !== "Nhà cung cấp đối tác" && !so.supplierName.includes("Nhiều NCC")
+            (so.supplierName &&
+            so.supplierName !== "Nhà cung cấp đối tác" &&
+            !so.supplierName.includes("Nhiều NCC")
               ? so.supplierName
               : null) ||
             globalSupplierIdMap.get(String(so.supplierId)) ||
@@ -779,8 +818,7 @@ const IngredientOrderService = {
           const deliveryItems = rawItems.map((it) => ({
             id: it.id,
             ingredientId: it.ingredientEntryId || it.id,
-            ingredientName:
-              it.ingredientName || it.name || "Nguyên liệu tươi",
+            ingredientName: it.ingredientName || it.name || "Nguyên liệu tươi",
             requestedQuantity: Number(it.requestedQuantity || it.quantity || 0),
             actualQuantity: Number(it.requestedQuantity || it.quantity || 0),
             orderedQty: Number(it.requestedQuantity || it.quantity || 0),
@@ -788,7 +826,9 @@ const IngredientOrderService = {
             unit: it.unit || "kg",
             supplierId: it.supplierId || so.supplierId,
             supplierName:
-              (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC")
+              (it.supplierName &&
+              it.supplierName !== "Nhà cung cấp đối tác" &&
+              !it.supplierName.includes("Nhiều NCC")
                 ? it.supplierName
                 : null) ||
               globalSupplierIdMap.get(String(it.supplierId || so.supplierId)) ||
@@ -808,7 +848,8 @@ const IngredientOrderService = {
           }
 
           const rawSoStatus = String(so.status || "").toUpperCase();
-          const isSoConfirmed = rawSoStatus === "ACCEPTED" || rawSoStatus === "CONFIRMED";
+          const isSoConfirmed =
+            rawSoStatus === "ACCEPTED" || rawSoStatus === "CONFIRMED";
           const isSoCreated =
             rawSoStatus === "SENT" ||
             rawSoStatus === "DRAFT" ||
@@ -829,7 +870,11 @@ const IngredientOrderService = {
             maxPortions: parsedMax || undefined,
             plannedPortions: parsedPlanned || undefined,
             batch1Portions: parsedPlanned || undefined,
-            status: isSoConfirmed ? "CONFIRMED" : isSoCreated ? "CREATED" : so.status,
+            status: isSoConfirmed
+              ? "CONFIRMED"
+              : isSoCreated
+                ? "CREATED"
+                : so.status,
             statusLabel: isSoConfirmed ? "NCC đã xác nhận" : "Chờ NCC xác nhận",
             driverName: "Chưa phân công (Chờ NCC điều xe)",
             vehiclePlate: "",
@@ -882,7 +927,8 @@ const IngredientOrderService = {
 
     const addToGroup = (item, isDeliveryRecord) => {
       if (!item) return;
-      if (item.batchType === "DRY_STOCK" || item.orderType === "DRY_STOCK") return;
+      if (item.batchType === "DRY_STOCK" || item.orderType === "DRY_STOCK")
+        return;
 
       const baseNo = getBaseOrderNo(item);
       const date = item.deliveryDate || "";
@@ -917,14 +963,18 @@ const IngredientOrderService = {
         const rep = deliveries[0] || supplyRequests[0] || {};
         const finalDeliveryNo =
           baseNo ||
-          `PN-${String(rep.deliveryNo || rep.orderNo || date).replace(/-\d+$/, "").replace(/^PO-|^DEL-|^FP-DE-/, "")}`;
+          `PN-${String(rep.deliveryNo || rep.orderNo || date)
+            .replace(/-\d+$/, "")
+            .replace(/^PO-|^DEL-|^FP-DE-/, "")}`;
 
         // Tập hợp tất cả các NCC tham gia trong đợt này
         const groupSupplierMap = new Map();
 
         supplyRequests.forEach((so) => {
           const sName =
-            (so.supplierName && so.supplierName !== "Nhà cung cấp đối tác" && !so.supplierName.includes("Nhiều NCC")
+            (so.supplierName &&
+            so.supplierName !== "Nhà cung cấp đối tác" &&
+            !so.supplierName.includes("Nhiều NCC")
               ? so.supplierName
               : null) ||
             globalSupplierIdMap.get(String(so.supplierId)) ||
@@ -948,7 +998,9 @@ const IngredientOrderService = {
 
         deliveries.forEach((deliv) => {
           const sName =
-            (deliv.supplierName && deliv.supplierName !== "Nhà cung cấp đối tác" && !deliv.supplierName.includes("Nhiều NCC")
+            (deliv.supplierName &&
+            deliv.supplierName !== "Nhà cung cấp đối tác" &&
+            !deliv.supplierName.includes("Nhiều NCC")
               ? deliv.supplierName
               : null) ||
             globalSupplierIdMap.get(String(deliv.supplierId)) ||
@@ -1026,7 +1078,9 @@ const IngredientOrderService = {
 
           srcItems.forEach((it) => {
             const resolvedItemSup =
-              (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC")
+              (it.supplierName &&
+              it.supplierName !== "Nhà cung cấp đối tác" &&
+              !it.supplierName.includes("Nhiều NCC")
                 ? it.supplierName
                 : null) ||
               globalSupplierIdMap.get(String(it.supplierId || entry.id)) ||
@@ -1044,7 +1098,8 @@ const IngredientOrderService = {
             const d = entry.deliveryItem;
             anyConfirmed = true;
             if (d.status === "IN_TRANSIT") anyInTransit = true;
-            if (d.status === "ARRIVED" || d.status === "INSPECTING") anyArrived = true;
+            if (d.status === "ARRIVED" || d.status === "INSPECTING")
+              anyArrived = true;
             if (
               d.status !== "APPROVED" &&
               d.status !== "RECEIVED" &&
@@ -1063,9 +1118,12 @@ const IngredientOrderService = {
               supplierId: entry.id,
               supplierName: sName,
               driver:
-                d.driverName && d.driverName !== "Chưa phân công (Chờ NCC điều xe)"
+                d.driverName &&
+                d.driverName !== "Chưa phân công (Chờ NCC điều xe)"
                   ? `${d.driverName}${d.driverPhone && d.driverPhone !== "--" && !d.driverName.includes("(") ? ` (${d.driverPhone})` : ""}`
-                  : d.vehiclePlate ? "Tài xế NCC" : "Chưa phân công (Chờ NCC điều xe)",
+                  : d.vehiclePlate
+                    ? "Tài xế NCC"
+                    : "Chưa phân công (Chờ NCC điều xe)",
               phone: d.driverPhone || d.phone || "--",
               vehicle: d.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
               expectedTime: expectedTimeStr,
@@ -1087,9 +1145,13 @@ const IngredientOrderService = {
             supplierApprovals[sName] = d.approvals || {};
           } else {
             allApproved = false;
-            const rawSupStatus = String(entry.supplyItem?.status || "").toUpperCase();
+            const rawSupStatus = String(
+              entry.supplyItem?.status || "",
+            ).toUpperCase();
             const normalizedSupStatus =
-              rawSupStatus === "ACCEPTED" || rawSupStatus === "CONFIRMED" ? "CONFIRMED" : "CREATED";
+              rawSupStatus === "ACCEPTED" || rawSupStatus === "CONFIRMED"
+                ? "CONFIRMED"
+                : "CREATED";
 
             transportsBySupplier[sName] = {
               supplierId: entry.id,
@@ -1129,7 +1191,8 @@ const IngredientOrderService = {
           deliveryNo: finalDeliveryNo,
           orderNo: finalDeliveryNo,
           deliveryDate: date || rep.deliveryDate || getTodayStr(),
-          deliveryTime: rep.deliveryTime || (batch === "BATCH_2" ? "07:45" : "05:30"),
+          deliveryTime:
+            rep.deliveryTime || (batch === "BATCH_2" ? "07:45" : "05:30"),
           batchType: batch,
           batchLabel:
             batch === "BATCH_1"
@@ -1244,7 +1307,9 @@ const IngredientOrderService = {
 
           validDetails.forEach((d) => {
             const sName =
-              (d.supplierName && d.supplierName !== "Nhà cung cấp đối tác" && !d.supplierName.includes("Nhiều NCC")
+              (d.supplierName &&
+              d.supplierName !== "Nhà cung cấp đối tác" &&
+              !d.supplierName.includes("Nhiều NCC")
                 ? d.supplierName
                 : null) ||
               supplierMap.get(String(d.supplierId)) ||
@@ -1258,7 +1323,9 @@ const IngredientOrderService = {
             if (Array.isArray(d.items)) {
               d.items.forEach((it) => {
                 const resolvedItemSup =
-                  (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC")
+                  (it.supplierName &&
+                  it.supplierName !== "Nhà cung cấp đối tác" &&
+                  !it.supplierName.includes("Nhiều NCC")
                     ? it.supplierName
                     : null) ||
                   supplierMap.get(String(it.supplierId || d.supplierId)) ||
@@ -1276,7 +1343,9 @@ const IngredientOrderService = {
                     it.requestedQuantity || it.quantity || 0,
                   ),
                   orderedQty: Number(it.requestedQuantity || it.quantity || 0),
-                  deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
+                  deliveredQty: Number(
+                    it.requestedQuantity || it.quantity || 0,
+                  ),
                   unit: it.unit || "kg",
                   supplierId: it.supplierId || d.supplierId,
                   supplierName: resolvedItemSup,
@@ -1289,13 +1358,13 @@ const IngredientOrderService = {
 
           const suppliersList = Array.from(supNames);
           const first = validDetails[0];
-          const batchType =
-            batchTypeOf(first) ?? batchTypeOf(fallbackDelivery);
+          const batchType = batchTypeOf(first) ?? batchTypeOf(fallbackDelivery);
           const isB2 = batchType === BATCH_TYPE.BATCH_2;
           const deliveryTime = isB2 ? "07:45" : "05:30";
 
           const rawFirstStatus = String(first.status || "").toUpperCase();
-          const isFirstConfirmed = rawFirstStatus === "ACCEPTED" || rawFirstStatus === "CONFIRMED";
+          const isFirstConfirmed =
+            rawFirstStatus === "ACCEPTED" || rawFirstStatus === "CONFIRMED";
           const isFirstCreated =
             rawFirstStatus === "SENT" ||
             rawFirstStatus === "DRAFT" ||
@@ -1324,8 +1393,14 @@ const IngredientOrderService = {
               latestDate || fallbackDelivery?.deliveryDate || getTodayStr(),
             deliveryTime,
             batchType,
-            status: isFirstConfirmed ? "CONFIRMED" : isFirstCreated ? "CREATED" : first.status,
-            statusLabel: isFirstConfirmed ? "NCC đã xác nhận" : "Chờ NCC xác nhận",
+            status: isFirstConfirmed
+              ? "CONFIRMED"
+              : isFirstCreated
+                ? "CREATED"
+                : first.status,
+            statusLabel: isFirstConfirmed
+              ? "NCC đã xác nhận"
+              : "Chờ NCC xác nhận",
             note: first.note || fallbackDelivery?.note,
             deliveryItems: allItems,
             items: allItems,
@@ -1423,7 +1498,9 @@ const IngredientOrderService = {
           supplierId: ing?.supplierId || ing?.Supplier?.id || "",
           supplierName: ing?.Supplier?.name || "Nhà cung cấp đối tác",
           name: ing?.name || "",
-          normName: String(ing?.name || "").trim().toLowerCase(),
+          normName: String(ing?.name || "")
+            .trim()
+            .toLowerCase(),
           unit: ing?.defaultUnit || "kg",
           handlingType: e.handlingType || "DIRECT_USE",
         };
@@ -1434,7 +1511,11 @@ const IngredientOrderService = {
     const unresolved = { missing: [], ambiguous: [] };
     const freshItemsBatch1 = (Array.isArray(items) ? items : []).map((it) => {
       // Chỉ ghép theo mã hoặc đúng tên trong danh mục trường; không đoán, không lấy nguyên liệu thay thế.
-      const targetEntry = resolveSchoolEntry(it, schoolActiveEntries, unresolved);
+      const targetEntry = resolveSchoolEntry(
+        it,
+        schoolActiveEntries,
+        unresolved,
+      );
       const sId = targetEntry?.supplierId || "";
       const sName = targetEntry?.supplierName || "";
       const entryId = targetEntry?.entryId || "";
@@ -1444,7 +1525,7 @@ const IngredientOrderService = {
         ingredientEntryId: entryId,
         supplierId: sId,
         supplierName: sName,
-        orderedQty: Number(it.orderedQty || it.quantity || 1),
+        orderedQty: Number(requireOrderQuantity(it.orderedQty ?? it.quantity)),
       };
     });
 
@@ -1479,10 +1560,7 @@ const IngredientOrderService = {
       const mergedItemsMap = new Map();
       sItems.forEach((it) => {
         const eId = it.ingredientEntryId;
-        const q = Math.max(
-          0.001,
-          Number(Number(it.orderedQty || 1).toFixed(3)),
-        );
+        const q = Number(requireOrderQuantity(it.orderedQty));
         if (mergedItemsMap.has(eId)) {
           mergedItemsMap.set(
             eId,
@@ -1582,9 +1660,7 @@ const IngredientOrderService = {
       batch1Delivery.deliveryNo || batch1Delivery.orderNo || "",
     ).replace(/-D1(-\d+)?$/, "");
     const deliveryDate =
-      orderDate ||
-      batch1Delivery.deliveryDate ||
-      getTodayStr();
+      orderDate || batch1Delivery.deliveryDate || getTodayStr();
     const actualCount = Number(actualAttendance) || 0;
     const maxPortions = Number(batch1Delivery.maxPortions) || 0;
     const batch1Portions =
@@ -1609,7 +1685,9 @@ const IngredientOrderService = {
           supplierId: ing?.supplierId || ing?.Supplier?.id || "",
           supplierName: ing?.Supplier?.name || "Nhà cung cấp đối tác",
           name: ing?.name || "",
-          normName: String(ing?.name || "").trim().toLowerCase(),
+          normName: String(ing?.name || "")
+            .trim()
+            .toLowerCase(),
           unit: ing?.defaultUnit || "kg",
           handlingType: e.handlingType || "DIRECT_USE",
         };
@@ -1624,7 +1702,11 @@ const IngredientOrderService = {
     const unresolvedBatch2 = { missing: [], ambiguous: [] };
     const freshItemsBatch2 = sourceItems.map((it) => {
       // Chỉ ghép theo mã hoặc đúng tên trong danh mục trường; không đoán, không lấy nguyên liệu thay thế.
-      const targetEntry = resolveSchoolEntry(it, schoolActiveEntries, unresolvedBatch2);
+      const targetEntry = resolveSchoolEntry(
+        it,
+        schoolActiveEntries,
+        unresolvedBatch2,
+      );
       const sId = targetEntry?.supplierId || "";
       const sName = targetEntry?.supplierName || "";
       const entryId = targetEntry?.entryId || "";
@@ -1641,7 +1723,7 @@ const IngredientOrderService = {
         ingredientEntryId: entryId,
         supplierId: sId,
         supplierName: sName,
-        orderedQty: Math.max(0.001, Number(Number(ordQty).toFixed(3))),
+        orderedQty: Number(requireOrderQuantity(ordQty)),
       };
     });
 
@@ -1670,10 +1752,7 @@ const IngredientOrderService = {
       const mergedItemsMap = new Map();
       sItems.forEach((it) => {
         const eId = it.ingredientEntryId;
-        const q = Math.max(
-          0.001,
-          Number(Number(it.orderedQty || 1).toFixed(3)),
-        );
+        const q = Number(requireOrderQuantity(it.orderedQty));
         if (mergedItemsMap.has(eId)) {
           mergedItemsMap.set(
             eId,

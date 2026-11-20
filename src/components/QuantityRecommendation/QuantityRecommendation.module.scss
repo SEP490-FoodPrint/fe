@@ -1,0 +1,16 @@
+.warning {
+  color: var(--color-warning) !important;
+  background: var(--color-warning-bg);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  margin-inline: 0 !important;
+  overflow-wrap: anywhere;
+}
+
+.warning,
+.error {
+  display: block;
+}
+.error {
+  color: var(--color-error);
+}
