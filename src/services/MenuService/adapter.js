@@ -710,8 +710,17 @@ export function adaptBackendMenuDetailToView(
   // Dùng chung logic với danh sách: duyệt mọi nhóm suất riêng của bữa,
   // gắn (các) món thay thế vào ngay dưới món gốc bị thay.
   const finalDishes = groupMenuCardDishes(currentDay, targetMealType, dishes);
+  // Bữa không có nhóm mặc định (chỉ có nhóm suất riêng): dùng món được gán rõ trong nhóm riêng đó.
+  // selectedGroupDish trả null với nhóm chỉ bớt món (kiêng), nên không tự bịa món thay thế.
   const subDish =
-    finalDishes.find((dish) => dish.substituteDish)?.substituteDish || null;
+    finalDishes.find((dish) => dish.substituteDish)?.substituteDish ||
+    selectedGroupDish(
+      currentDay,
+      portionGroups.find(
+        (group) => !group.isDefault && group.mealType === targetMealType,
+      ),
+    ) ||
+    null;
 
   // Định dạng tiêu đề theo quy tắc thực đơn tuần và khối lớp (hiển thị số tuần, không để ngày)
   const targetScope = menuScopeLabel(weeklyMenu);

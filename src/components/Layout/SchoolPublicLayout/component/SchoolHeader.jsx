@@ -1,13 +1,7 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Link, useLocation } from "react-router-dom";
-import {
-  ArrowLeft,
-  ChevronDown,
-  LogIn,
-  School,
-  Sun,
-} from "lucide-react";
+import {  ChevronDown, House, LogIn, School, Sun } from "lucide-react";
 import { StoreContext } from "src/contexts";
 import PublicAccountMenu from "src/components/Common/PublicAccountMenu";
 import { NO_DATA_TEXT } from "src/constants/ui";
@@ -43,7 +37,9 @@ function SchoolHeader({ school }) {
         if (isMounted) {
           const schoolList = Array.isArray(res?.data)
             ? res.data
-            : (Array.isArray(res?.data?.items) ? res.data.items : []);
+            : Array.isArray(res?.data?.items)
+              ? res.data.items
+              : [];
           setSchools(schoolList);
         }
       } catch (err) {
@@ -68,7 +64,8 @@ function SchoolHeader({ school }) {
     };
   }, []);
 
-  const homeHref = isDailyMenuPage || isTracePage ? `/school/${schoolCode}` : "#";
+  const homeHref =
+    isDailyMenuPage || isTracePage ? `/school/${schoolCode}` : "#";
   const traceHref = `/school/${schoolCode}/traceability`;
   const dailyHref = `/school/${schoolCode}/daily-menu`;
 
@@ -78,8 +75,7 @@ function SchoolHeader({ school }) {
         {/* Left: Về trang chủ & Brand trường */}
         <div className={styles.leftGroup}>
           <Link to={ROUTER.DEFAULT} className={styles.backHubLink}>
-            <ArrowLeft size={16} />
-            <span>FoodPrint</span>
+           <House />
           </Link>
 
           <div className={styles.separator} />
@@ -122,12 +118,6 @@ function SchoolHeader({ school }) {
           >
             Thực đơn
           </Link>
-          <Link
-            to={traceHref}
-            className={`${styles.navItem} ${isTracePage ? styles.isActive : ""}`}
-          >
-            Truy xuất nguồn gốc
-          </Link>
         </nav>
 
         {/* Right: School Switcher & Auth */}
@@ -164,7 +154,10 @@ function SchoolHeader({ school }) {
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <span className={styles.optionCode}>
-                          {item.shortName || item.short_name || item.code?.slice(0, 2) || "TH"}
+                          {item.shortName ||
+                            item.short_name ||
+                            item.code?.slice(0, 2) ||
+                            "TH"}
                         </span>
                         <div className={styles.optionDetails}>
                           <span className={styles.optionName}>{item.name}</span>

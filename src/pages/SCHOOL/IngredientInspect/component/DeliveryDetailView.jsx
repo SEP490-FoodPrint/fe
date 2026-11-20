@@ -143,6 +143,14 @@ export default function DeliveryDetailView({
   const isCancelled =
     delivery.status === "CANCELLED" || delivery.status === "CANCELLED_MEAL" || Boolean(delivery.cancellationNotice)
 
+  const primaryRole = (delivery.requiredRoles || []).find((r) => r.tier === "PRIMARY")
+  const primaryRoleName = primaryRole?.name || "Bếp trưởng"
+
+  const tierOrder = { PRIMARY: 1, REQUIRED: 2, OPTIONAL: 3 }
+  const sortedRoles = [...(delivery.requiredRoles || [])].sort((a, b) => {
+    return (tierOrder[a.tier] || 2) - (tierOrder[b.tier] || 2)
+  })
+
   return (
     <div className={styles.detailWrapper}>
       {/* 1. Header Bar: Tiêu đề + Nút thao tác nằm ngang hàng 2 bên */}
@@ -196,15 +204,27 @@ export default function DeliveryDetailView({
               <span>Đợt giao đã hủy</span>
             </button>
           ) : delivery.status === "IN_TRANSIT" && onConfirmArrival && permissions.includes("delivery.inspect") ? (
-            <button
-              type="button"
-              className={styles.approvalPrimaryBtn}
-              onClick={() => onConfirmArrival(delivery)}
-              title="Xác nhận xe giao đã đến trường để 4 bộ phận bắt đầu kiểm tra"
-            >
-              <Truck size={16} />
-              <span>Xác nhận xe đến</span>
-            </button>
+            delivery.canConfirmArrival ? (
+              <button
+                type="button"
+                className={styles.approvalPrimaryBtn}
+                onClick={() => onConfirmArrival(delivery)}
+                title="Xác nhận xe giao đã đến trường để các bộ phận bắt đầu kiểm tra"
+              >
+                <Truck size={16} />
+                <span>Xác nhận xe đến</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.approvalDisabledBtn}
+                disabled
+                title={`Chờ người duyệt chính (${primaryRoleName}) xác nhận xe đến`}
+              >
+                <Truck size={16} />
+                <span>Chờ {primaryRoleName} xác nhận</span>
+              </button>
+            )
           ) : isBeforeArrival ? (
             <button
               type="button"
@@ -242,13 +262,19 @@ export default function DeliveryDetailView({
 
       {delivery.receiptIssue && <InlineError messages={`Đợt giao chưa thể tiếp nhận vào kho: ${delivery.receiptIssue}. Các bộ phận chỉ có thể đánh giá "Không đạt".`} />}
       {delivery.cancellationNotice && <div className={styles.rejectedBanner} role="alert"><AlertTriangle size={18} /><p>{delivery.cancellationNotice}</p></div>}
-      <section className={styles.contentSection} aria-label="Kết quả kiểm tra của bốn bộ phận">
-        <div className={styles.sectionHeading}><h2 className={styles.sectionTitle}>Kết quả kiểm tra từng bộ phận</h2><span className={styles.countText}>Số lần phải giao lại của đơn: {delivery.redeliveryRequiredCount}/{delivery.redeliveryLimit}</span></div>
+      <section className={styles.contentSection} aria-label="Kết quả kiểm tra của các bộ phận">
+        <div className={styles.sectionHeading}>
+          <h2 className={styles.sectionTitle}>Kết quả kiểm tra từng bộ phận</h2>
+          <span className={styles.countText}>
+            Số lần phải giao lại của đơn: {delivery.redeliveryRequiredCount}/{delivery.redeliveryLimit}
+          </span>
+        </div>
         <div className={styles.tableResponsive}>
           <table className={`${styles.flatTable} ${styles.inspectionTable}`}>
             <thead>
               <tr>
                 <th className={styles.thRole}>Bộ phận</th>
+                <th className={styles.thTier}>Nhóm</th>
                 <th className={styles.thInspector}>Người kiểm tra</th>
                 <th className={styles.thResult}>Kết quả</th>
                 <th className={styles.thPhoto}>Ảnh thực tế</th>
@@ -256,13 +282,32 @@ export default function DeliveryDetailView({
               </tr>
             </thead>
             <tbody>
-              {(delivery.requiredRoles || []).map(role => {
-                const decision = delivery.deliveryApprovals?.find(item => item.roleCode === role.code)
+              {sortedRoles.map((role) => {
+                const decision = delivery.deliveryApprovals?.find(
+                  (item) => item.roleCode === role.code
+                )
                 const approved = decision?.decision === "APPROVE"
+                const isOptional = role.tier === "OPTIONAL"
+                const tierClass =
+                  role.tier === "PRIMARY"
+                    ? styles.tierBadgePrimary
+                    : role.tier === "REQUIRED"
+                      ? styles.tierBadgeRequired
+                      : styles.tierBadgeOptional
+                const tierLabel =
+                  role.tierLabel ||
+                  (role.tier === "PRIMARY"
+                    ? "Duyệt chính"
+                    : role.tier === "REQUIRED"
+                      ? "Bắt buộc"
+                      : "Tùy chọn")
                 const photoAlt = `Ảnh kiểm tra thực tế của ${role.name}`
                 return (
                   <tr key={role.code}>
                     <td className={styles.tdRole}>{role.name}</td>
+                    <td>
+                      <span className={tierClass}>{tierLabel}</span>
+                    </td>
                     <td>{decision?.userName || <span className={styles.emptyText}>—</span>}</td>
                     <td>
                       {decision ? (
@@ -272,10 +317,15 @@ export default function DeliveryDetailView({
                         </span>
                       ) : (
                         <span className={`${styles.resultPill} ${styles.resultPending}`}>
-                          <Clock size={13} /> Chưa kiểm tra
+                          <Clock size={13} /> {isOptional ? "Không bắt buộc" : "Chưa kiểm tra"}
                         </span>
                       )}
                       {decision?.reason && <p className={styles.resultReason}>{decision.reason}</p>}
+                      {decision?.decision === "REJECT" && isOptional && (
+                        <span className={styles.optionalRefNote}>
+                          (Ý kiến tham khảo, không làm từ chối đợt giao)
+                        </span>
+                      )}
                     </td>
                     <td>
                       {decision?.photoUrl ? (
@@ -372,7 +422,7 @@ export default function DeliveryDetailView({
         <div className={styles.transitNotice}>
           <Clock size={15} className={styles.transitNoticeIcon} />
           <span>
-            Xe hàng đang trên đường vận chuyển đến trường. Bốn bộ phận sẽ kiểm tra nguyên liệu khi xe đến nơi.
+            Xe hàng đang trên đường vận chuyển đến trường. Các bộ phận sẽ kiểm tra nguyên liệu khi xe đến nơi.
           </span>
         </div>
       )}

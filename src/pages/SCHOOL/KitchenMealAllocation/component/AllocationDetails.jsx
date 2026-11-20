@@ -1,3 +1,4 @@
+import { formatAllocationDecimal as fmt, sumAllocationPortions as sumPortions, compareAllocationPortions as compare } from "src/utils/allocationDecimal";
 import React, { useState } from "react";
 import {
   Accordion, AccordionDetails, AccordionSummary, Alert, Button,
@@ -7,7 +8,7 @@ import { BarChart3, CheckCircle2, ChevronDown, GraduationCap, Info } from "lucid
 import ClassAllocationDetailModal from "./ClassAllocationDetailModal";
 import styles from "./AllocationDetails.module.scss";
 
-const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa chiều" };
+const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" };
 const mealTypes = Object.keys(mealLabels);
 
 function AllocationRow({ title, summary, icon, badge, expanded, onChange, children }) {
@@ -67,7 +68,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
   const incomplete = (distribution?.demands || []).filter(
     (demand) =>
       demand.requiredPortions > 0 &&
-      (!demand.demandFinalized || (demand.allocatedPortions || 0) < demand.requiredPortions),
+      (!demand.demandFinalized || compare(demand.allocatedPortions || 0, demand.requiredPortions)<0),
   );
   const delivered = distribution?.status === "DISTRIBUTED";
   const allVisibleBatchKeys = grades && Array.isArray(grades) && grades.length > 0
@@ -129,7 +130,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
         );
         if (entry && (entry.allocatedPortions || entry.portions) > 0) {
           const count = entry.allocatedPortions || entry.portions;
-          totalDishAllocated += count;
+          totalDishAllocated = sumPortions([totalDishAllocated,count]);
           matchingBatches.push({
             batchCode:
               batchSlot.batchNumber != null
@@ -226,11 +227,8 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
 
                       {(dish.batches || []).map((batchSlot) => {
                         const entries = batchSlot.entries || [];
-                        const allocated = entries.reduce(
-                          (sum, e) => sum + (e.allocatedPortions || e.portions || 0),
-                          0,
-                        );
-                        const isFull = batchSlot.plannedPortions > 0 && allocated >= batchSlot.plannedPortions;
+                        const allocated = sumPortions(entries.map(e=>e.allocatedPortions || e.portions || 0));
+                        const isFull = batchSlot.plannedPortions > 0 && compare(allocated,batchSlot.plannedPortions)>=0;
 
                         const batchRowKey = `${dish.dishId}_${batchSlot.cookingBatchId}`;
                         return (
@@ -250,7 +248,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
                                 return next;
                               });
                             }}
-                            summary={`${allocated}/${batchSlot.plannedPortions} suất`}
+                            summary={`${fmt(allocated)}/${fmt(batchSlot.plannedPortions)} suất`}
                             badge={
                               <span className={styles.badge} data-complete={isFull}>
                                 {isFull ? "Đã phân hết" : "Chưa phân hết"}
@@ -265,7 +263,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
                                     <li key={entry.dailyMealPortionId || entry.id}>
                                       <strong>{entry.className || entry.name}</strong>
                                       <span className={styles.tileCount}>
-                                        {entry.allocatedPortions || entry.portions} suất
+                                        {fmt(entry.allocatedPortions || entry.portions)} suất
                                       </span>
                                     </li>
                                   ))}
@@ -301,8 +299,8 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
                     </span>
                   </div>
                   {batches.map((batch) => {
-                    const allocated = batch.recipients.reduce((sum, entry) => sum + entry.allocatedPortions, 0);
-                    const fullyAllocated = batch.plannedPortions > 0 && allocated === batch.plannedPortions;
+                    const allocated = sumPortions(batch.recipients.map(entry=>entry.allocatedPortions));
+                    const fullyAllocated = batch.plannedPortions > 0 && compare(allocated,batch.plannedPortions)===0;
 
                     return (
                       <AllocationRow
@@ -324,7 +322,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
                               {batch.recipients.map(({ demand, allocatedPortions }) => (
                                 <li key={demand.id}>
                                   <strong>{demand.className}</strong>
-                                  <span className={styles.tileCount}>{allocatedPortions} suất</span>
+                                  <span className={styles.tileCount}>{fmt(allocatedPortions)} suất</span>
                                 </li>
                               ))}
                             </ul>
@@ -453,7 +451,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
           disabled={!distribution?.canConfirmDistribution || saving || dirty}
           onClick={() => setConfirmOpen(true)}
         >
-          {delivered ? "Đã giao suất ăn" : "Xác nhận giao suất ăn"}
+          {delivered ? "Đã giao suất ăn" : "Xác nhận giao cả ngày"}
         </Button>
       </div>
 

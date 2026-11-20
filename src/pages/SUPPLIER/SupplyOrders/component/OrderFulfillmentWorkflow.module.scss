@@ -136,6 +136,28 @@
   color: #6b7772;
 }
 
+.recapAllocation {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recapAllocationQty {
+  font-size: 12px;
+  line-height: 16px;
+  color: #52635c;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.footerHint {
+  margin-right: auto;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-warning, #a15c07);
+}
+
 .logisticsGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

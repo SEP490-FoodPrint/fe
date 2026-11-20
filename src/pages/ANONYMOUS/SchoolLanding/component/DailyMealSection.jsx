@@ -13,7 +13,7 @@ import { NO_DATA_TEXT } from "src/constants/ui";
 import { getSnackItems, hasDailyMealDishes } from "src/utils/publicMeal";
 import styles from "./DailyMealSection.module.scss";
 
-function DailyMealSection({ dailyMeal }) {
+function DailyMealSection({ dailyMeal, selectedGradeName }) {
   const hasData = hasDailyMealDishes(dailyMeal);
 
   const lunch = dailyMeal?.lunch;
@@ -22,7 +22,7 @@ function DailyMealSection({ dailyMeal }) {
   const dateLabel = dailyMeal?.dateLabel || NO_DATA_TEXT;
   const updatedAt = dailyMeal?.updatedAt || NO_DATA_TEXT;
 
-  // API có thể trả bữa phụ dưới dạng items hoặc dishes. Helper đưa cả hai về cùng dạng hiển thị.
+  // API có thể trả bữa xế dưới dạng items hoặc dishes. Helper đưa cả hai về cùng dạng hiển thị.
   const snackItems = getSnackItems(snack);
 
   return (
@@ -34,6 +34,9 @@ function DailyMealSection({ dailyMeal }) {
             <div className={styles.datePill}>
               <span className={styles.pulseDot} />
               <span>{dateLabel}</span>
+              {selectedGradeName && (
+                <span className={styles.gradeTag}>• {selectedGradeName}</span>
+              )}
             </div>
             <h2 className={styles.sectionTitle}>Chi tiết bữa ăn hôm nay</h2>
             <p className={styles.sectionSubtitle}>
@@ -56,11 +59,17 @@ function DailyMealSection({ dailyMeal }) {
             </div>
             <h3 className={styles.emptyTitle}>
               Chưa có thực đơn cho ngày hôm nay
+              {selectedGradeName
+                ? ` (${selectedGradeName})`
+                : ""}
             </h3>
             <p className={styles.emptyDescription}>
               Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục vụ bán trú
-              vào ngày này. Phụ huynh vui lòng kiểm tra lại sau hoặc xem thực đơn
-              tuần bên dưới.
+              vào ngày này
+              {selectedGradeName
+                ? ` cho ${selectedGradeName}`
+                : ""}
+              . Phụ huynh vui lòng kiểm tra lại sau hoặc xem thực đơn tuần bên dưới.
             </p>
           </div>
         ) : (
@@ -180,7 +189,7 @@ function DailyMealSection({ dailyMeal }) {
                       snack?.imageUrl ||
                       "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&auto=format&fit=crop&q=80"
                     }
-                    alt={snack?.title || "Bữa phụ chiều"}
+                    alt={snack?.title || "Bữa xế"}
                     className={styles.snackImg}
                     loading="lazy"
                   />

@@ -11,7 +11,7 @@ import "./style.scss"
 
 const typeLabels = { MEAL_QUALITY: "Chất lượng bữa ăn", FOOD_HYGIENE: "Vệ sinh thực phẩm", HEALTH_ISSUE: "Vấn đề sức khỏe", OTHER: "Khác" }
 const statusMeta = { SUBMITTED: ["Mới gửi", "warning"], IN_REVIEW: ["Đang xử lý", "info"], RESOLVED: ["Đã giải quyết", "success"], CLOSED: ["Đã đóng", "default"] }
-const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa phụ" }
+const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" }
 const errorText = (error, fallback) => error?.response?.data?.message || error?.message || fallback
 function StatusChip({ value }) { const [label, color] = statusMeta[value] || [value, "default"]; return <Chip size="small" color={color} label={label} /> }
 

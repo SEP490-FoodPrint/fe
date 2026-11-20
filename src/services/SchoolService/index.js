@@ -4,12 +4,18 @@ import {
   apiGetPublicLocations,
   apiGetSchoolDetail,
   apiGetSchoolDetailByCode,
+  apiGetSchoolGrades,
   apiGetDailyMealMenu,
   apiGetWeeklyMenu,
   apiCookingMode,
   apiMealTimes,
+  apiDeliveryInspectionRoles,
 } from "./urls";
-import { getMockDailyMealMenu, getMockWeeklyMenu } from "./mockData";
+import {
+  getMockDailyMealMenu,
+  getMockWeeklyMenu,
+  getMockSchoolGrades,
+} from "./mockData";
 
 const isMockEnabled = () => {
   return (
@@ -76,18 +82,19 @@ const getSchoolDetailByIdApi = async (id) => {
  * 3. Thực đơn ngày của trường học
  * Hỗ trợ mock data khi USE_MOCKDATA=true
  */
-const getDailyMealMenuApi = async (schoolCode, date) => {
+const getDailyMealMenuApi = async (schoolCode, date, grade) => {
   if (isMockEnabled()) {
-    return getMockDailyMealMenu(schoolCode, date);
+    return getMockDailyMealMenu(schoolCode, date, grade);
   }
   try {
-    const res = await http.get(apiGetDailyMealMenu(schoolCode, date), {
+    const res = await http.get(apiGetDailyMealMenu(schoolCode, date, grade), {
       skipAuthRedirect: true,
       notifyOnError: false,
     });
     return res;
   } catch (err) {
-    return { data: null };
+    // error: true giúp trang phân biệt "lỗi tải" với "không có thực đơn"
+    return { data: null, error: true };
   }
 };
 
@@ -106,7 +113,26 @@ const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
     });
     return res;
   } catch (err) {
-    return { data: null };
+    // error: true giúp trang phân biệt "lỗi tải" với "không có thực đơn"
+    return { data: null, error: true };
+  }
+};
+
+/**
+ * Danh sách khối của trường học
+ */
+const getSchoolGradesApi = async (schoolCode, week) => {
+  if (isMockEnabled()) {
+    return getMockSchoolGrades(schoolCode);
+  }
+  try {
+    const res = await http.get(apiGetSchoolGrades(schoolCode, week), {
+      skipAuthRedirect: true,
+      notifyOnError: false,
+    });
+    return res;
+  } catch (err) {
+    return { data: [] };
   }
 };
 
@@ -123,17 +149,36 @@ const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMod
 const getMealTimes = () => http.get(apiMealTimes, { notifyOnError: false });
 const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnError: false });
 
+/**
+ * Lấy cấu hình nhóm duyệt kiểm nhận nguyên liệu của trường
+ */
+export const getDeliveryInspectionRoles = async () => {
+  const res = await http.get(apiDeliveryInspectionRoles);
+  return res;
+};
+
+/**
+ * Cập nhật cấu hình nhóm duyệt kiểm nhận nguyên liệu của trường
+ */
+export const updateDeliveryInspectionRoles = async (roles) => {
+  const res = await http.put(apiDeliveryInspectionRoles, { roles });
+  return res;
+};
+
 const SchoolService = {
   getPublicSchools: getPublicSchoolsApi,
   getPublicLocations: getPublicLocationsApi,
   getSchoolDetailByCode: getSchoolDetailByCodeApi,
   getSchoolDetailById: getSchoolDetailByIdApi,
+  getSchoolGrades: getSchoolGradesApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
   getCookingMode,
   updateCookingMode,
   getMealTimes,
   updateMealTimes,
+  getDeliveryInspectionRoles,
+  updateDeliveryInspectionRoles,
 };
 
 export default SchoolService;

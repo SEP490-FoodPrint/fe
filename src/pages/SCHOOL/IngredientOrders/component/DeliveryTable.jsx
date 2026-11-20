@@ -28,6 +28,17 @@ import {
 } from "lucide-react"
 import styles from "./DeliveryTable.module.scss"
 
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
 export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatch2 }) {
   // Render badge trạng thái 4 bên
   const renderApprovalMatrix = approvals => {
@@ -114,7 +125,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         return (
           <Chip
             icon={<CheckCircle2 size={14} />}
-            label="4/4 Đã duyệt & Bàn giao bếp"
+            label="Đã duyệt & Bàn giao bếp"
             size="small"
             className={styles.statusSuccess}
           />
@@ -147,6 +158,19 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusConfirmed}
           />
         )
+      case "IN_PROGRESS":
+      case "in_progress":
+      case "PENDING":
+      case "SENT":
+      case "DRAFT":
+        return (
+          <Chip
+            icon={<Clock size={14} />}
+            label="Chờ NCC xác nhận"
+            size="small"
+            className={styles.statusConfirmed}
+          />
+        )
       case "CONFIRMED":
       case "CREATED":
         return (
@@ -157,8 +181,26 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusConfirmed}
           />
         )
-      default:
+      default: {
+        const raw = String(item.statusLabel || item.status || "").toUpperCase()
+        if (
+          raw === "IN_PROGRESS" ||
+          raw === "SENT" ||
+          raw === "PENDING" ||
+          raw === "CREATED" ||
+          raw === "DRAFT"
+        ) {
+          return (
+            <Chip
+              icon={<Clock size={14} />}
+              label="Chờ NCC xác nhận"
+              size="small"
+              className={styles.statusConfirmed}
+            />
+          )
+        }
         return <Chip label={item.statusLabel || item.status} size="small" />
+      }
     }
   }
 
@@ -168,8 +210,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         <TableHead>
           <TableRow className={styles.headerRow}>
             <TableCell>Mã nhập hàng</TableCell>
-            <TableCell>Đợt giao &amp; Thời gian</TableCell>
-            <TableCell align="center">Kiểm tra 4 bên</TableCell>
+            <TableCell>Đợt giao &amp; Ngày giao</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="center">Thao tác</TableCell>
           </TableRow>
@@ -178,7 +219,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         <TableBody>
           {deliveries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} align="center" className={styles.emptyCell}>
+              <TableCell colSpan={4} align="center" className={styles.emptyCell}>
                 <Typography variant="body2" color="text.secondary">
                   Không tìm thấy phiếu giao nhận nào phù hợp với bộ lọc.
                 </Typography>
@@ -208,14 +249,16 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                   className={styles.tableRow}
                   onClick={() => onViewDetail && onViewDetail(item)}
                 >
-                  {/* Số phiếu & Đơn hàng */}
+                  {/* Mã nhập hàng */}
                   <TableCell>
                     <Typography variant="subtitle2" className={styles.deliveryNo}>
                       {item.deliveryNo}
                     </Typography>
-                    <Typography variant="caption" className={styles.orderNo}>
-                      {item.orderNo}
-                    </Typography>
+                    {Array.isArray(item.suppliers) && item.suppliers.length > 1 && (
+                      <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.725rem", mt: 0.25 }}>
+                        Gồm {item.suppliers.length} NCC
+                      </Typography>
+                    )}
                   </TableCell>
 
                   {/* Đợt giao & Thời gian */}
@@ -227,18 +270,15 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                         className={isBatch1 ? styles.batch1Chip : styles.batch2Chip}
                       />
                       <Typography variant="caption" className={styles.timeText}>
-                        {item.deliveryTime} • {item.deliveryDate}
+                        {formatDateVN(item.deliveryDate)}
                       </Typography>
                     </Box>
                   </TableCell>
 
-                  {/* Kiểm tra 4 bên */}
-                  <TableCell align="center">
-                    {renderApprovalMatrix(item.approvals)}
-                  </TableCell>
-
                   {/* Trạng thái */}
-                  <TableCell>{getStatusBadge(item)}</TableCell>
+                  <TableCell>
+                    {getStatusBadge(item)}
+                  </TableCell>
 
                   {/* Thao tác */}
                   <TableCell align="center" onClick={e => e.stopPropagation()}>

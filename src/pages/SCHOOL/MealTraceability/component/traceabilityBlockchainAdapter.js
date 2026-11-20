@@ -1,17 +1,18 @@
 /**
- * Adapter chuẩn hóa dữ liệu từ traceData và API blockchain proof chain
- * thành cấu trúc 5 chặng cho component TraceabilityBlockchainCard
+ * Chuẩn hóa `traceData` (GET /meal-traceability) thành 5 chặng cho
+ * TraceabilityBlockchainCard. Chỉ dùng dữ liệu thật: chặng chưa có bằng chứng
+ * thì hiện "Chưa ghi nhận", không bao giờ điền hash / số khối giả.
  */
 
 export function formatStepTime(isoString) {
   if (!isoString) return "";
   const d = new Date(isoString);
-  if (isNaN(d.getTime())) return String(isoString);
+  if (Number.isNaN(d.getTime())) return "";
   const hours = String(d.getHours()).padStart(2, "0");
   const mins = String(d.getMinutes()).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   const month = String(d.getMonth() + 1).padStart(2, "0");
-  return `${hours}:${mins} ${day}-${month}`;
+  return `${hours}:${mins} ${day}/${month}/${d.getFullYear()}`;
 }
 
 export function formatShortHash(hash) {
@@ -20,263 +21,194 @@ export function formatShortHash(hash) {
   return `${hash.slice(0, 8)}...${hash.slice(-6)}`;
 }
 
-export function buildBlockchainSteps(traceData, activeDish, proofChain) {
+export const MEAL_TYPE_LABELS = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" };
+
+const TX_STATUS_LABELS = {
+  CONFIRMED: "Đã ghi lên blockchain",
+  SUBMITTED: "Đang ghi lên blockchain",
+  PREPARED: "Chờ ghi lên blockchain",
+  FAILED: "Ghi lên blockchain thất bại",
+};
+
+const VERIFY_LABELS = {
+  VERIFIED: "Đã kiểm tra (Hợp lệ)",
+  MISMATCH: "Dữ liệu không khớp",
+  FAILED: "Kiểm tra thất bại",
+  NOT_VERIFIED: "Chưa kiểm tra",
+};
+
+/**
+ * Kết luận toàn vẹn của cả chuỗi.
+ * - UNCHECKED: chưa bấm kiểm tra (verify=false), trừ khi có liên kết hash sai.
+ * - VERIFIED: có bằng chứng, tất cả đã CONFIRMED và VERIFIED, mọi liên kết khớp.
+ * - MISMATCH: có bằng chứng hoặc liên kết hash không khớp.
+ * - INCOMPLETE: kiểm tra xong nhưng còn bằng chứng chưa ghi / lỗi kết nối.
+ */
+export function chainVerdict(chain, checked) {
+  const nodes = Array.isArray(chain?.nodes) ? chain.nodes : [];
+  const brokenLink = nodes.some((n) =>
+    (n.links || []).some((l) => l.status === "MISMATCH"),
+  );
+  if (brokenLink || nodes.some((n) => n.verificationStatus === "MISMATCH"))
+    return "MISMATCH";
+  if (!checked) return "UNCHECKED";
+  if (
+    chain?.intact &&
+    nodes.length > 0 &&
+    nodes.every(
+      (n) =>
+        n.transactionStatus === "CONFIRMED" &&
+        n.verificationStatus === "VERIFIED",
+    )
+  )
+    return "VERIFIED";
+  return "INCOMPLETE";
+}
+
+function toRecord(node, label) {
+  return {
+    id: node.id,
+    label,
+    verifyStatus: node.verificationStatus,
+    verifyLabel: VERIFY_LABELS[node.verificationStatus] || "Chưa kiểm tra",
+    verificationResult: node.verificationResult,
+    blockchainStatus:
+      TX_STATUS_LABELS[node.transactionStatus] || node.transactionStatus,
+    recordedTime: formatStepTime(node.recordedAt || node.createdAt),
+    dataHash: node.dataHash,
+    shortHash: formatShortHash(node.dataHash),
+    blockNumber: node.blockNumber,
+    explorerUrl: node.explorerUrl,
+    brokenLinks: (node.links || [])
+      .filter((l) => l.status === "MISMATCH")
+      .map((l) => l.field),
+  };
+}
+
+const unique = (values) => [...new Set(values.filter(Boolean))];
+
+export function buildBlockchainSteps(traceData, activeDish) {
   if (!traceData) return [];
 
-  const effectiveChain = proofChain || traceData?.blockchainProof;
-  const nodes = Array.isArray(effectiveChain?.nodes)
-    ? effectiveChain.nodes
-    : [];
-
-  // Tìm node proof tương ứng với từng eventType
-  const declaredProof = nodes.find((n) => n.eventType === "DELIVERY_DECLARED");
-  const inspectedProof = nodes.find(
-    (n) => n.eventType === "DELIVERY_INSPECTED",
-  );
-  const cookingProof = nodes.find((n) => n.eventType === "COOKING_COMPLETED");
-  const sampleProof = nodes.find((n) => n.eventType === "SAMPLE_STORED");
-  const distributionProof = nodes.find(
-    (n) => n.eventType === "MEAL_DISTRIBUTED",
+  const chain = traceData.blockchainProof;
+  const nodes = Array.isArray(chain?.nodes) ? chain.nodes : [];
+  const batches = Array.isArray(activeDish?.batches) ? activeDish.batches : [];
+  const ingredients = batches.flatMap((b) =>
+    Array.isArray(b?.ingredients) ? b.ingredients : [],
   );
 
-  // Dữ liệu nghiệp vụ đi kèm từ traceData
-  const batch = activeDish?.batches?.[0];
-  const ingredient = batch?.ingredients?.[0];
-  const delivery = ingredient?.delivery;
-  const sample = batch?.retainedSample;
-  const allocation = traceData.allocation;
-  const classInfo = traceData.classInfo;
+  const deliveries = new Map();
+  ingredients.forEach((ing) => {
+    if (ing?.delivery?.id) deliveries.set(ing.delivery.id, ing.delivery);
+  });
+  const deliveryIds = [...deliveries.keys()];
+  const batchIds = unique(batches.map((b) => b?.cookingBatchId));
+  const samples = batches.map((b) => b?.retainedSample).filter(Boolean);
+  const sampleIds = unique(samples.map((s) => s.id));
 
-  const supplierName = delivery?.supplierName || "Công ty Thực phẩm Sạch Demo";
-  const dishName = activeDish?.dishName || "Món ăn chính";
-  const mealDate = allocation?.mealDate || "17-11";
-  const mealTypeStr =
-    allocation?.mealType === "LUNCH"
-      ? "Bữa trưa"
-      : allocation?.mealType === "BREAKFAST"
-        ? "Bữa sáng"
-        : "Bữa xế";
+  const pick = (kind, ids, eventTypes) =>
+    nodes.filter(
+      (n) =>
+        n.kind === kind &&
+        (!ids || ids.includes(n.recordId)) &&
+        (!eventTypes || eventTypes.includes(n.eventType)),
+    );
 
-  const totalBatchPortions = batch?.allocatedPortions || 120;
-  const classPortions = allocation?.totalPortions || 20;
-  const className = classInfo?.name || "1A";
-
-  const formatNodeStatus = (node) => {
-    if (!node) return "Đã ghi lên blockchain";
-    return node.transactionStatus === "CONFIRMED"
-      ? "Đã ghi lên blockchain"
-      : node.transactionStatus === "SUBMITTED"
-        ? "Đang ghi lên blockchain"
-        : "Chờ ghi lên blockchain";
+  const deliveryLabel = (id) => {
+    const d = deliveries.get(id);
+    return d ? `${d.supplierName}${d.deliveryNo ? ` · ${d.deliveryNo}` : ""}` : "";
   };
+  const batchLabel = (id) =>
+    batches.find((b) => b?.cookingBatchId === id)?.batchCode || "";
 
-  const formatNodeVerifyLabel = (node, isChainVerified) => {
-    if (isChainVerified || node?.verificationStatus === "VERIFIED") {
-      return "Đã kiểm tra (Hợp lệ)";
-    }
-    if (node?.verificationStatus === "MISMATCH") {
-      return "Dữ liệu không khớp";
-    }
-    if (node?.verificationStatus === "FAILED") {
-      return "Kiểm tra thất bại";
-    }
-    return "Chưa kiểm tra";
-  };
+  const supplierNames = unique([...deliveries.values()].map((d) => d.supplierName));
+  const dishName = activeDish?.dishName || "";
+  const allocation = traceData.allocation || {};
+  const classInfo = traceData.classInfo || {};
+  const earliest = (values) =>
+    values.filter(Boolean).sort((a, b) => new Date(a) - new Date(b))[0] || null;
+  const plates = unique([...deliveries.values()].map((d) => d.vehiclePlate));
+  const allocatedPortions = sumAllocationPortions(batches.map(batch=>batch?.allocatedPortions || 0));
+
+  const declared = pick("delivery-declarations", deliveryIds);
+  const inspected = pick("deliveries", deliveryIds);
+  const cooked = pick("cooking-batches", batchIds);
+  const sampled = pick("retained-samples", sampleIds, [
+    "SAMPLE_STORED",
+    "SAMPLE_DISPOSED",
+  ]);
+  const distributed = pick("meal-distributions", null);
 
   return [
-    // Chặng 1: NCC xuất hàng
     {
       id: "step-1",
-      stepNumber: 1,
-      timeStr: formatStepTime(
-        declaredProof?.recordedAt ||
-          delivery?.receivedAt ||
-          "2026-11-17T22:16:00.000Z",
-      ),
-      stepKey: "supplier_dispatch",
+      shortLabel: "NCC xuất hàng",
       title: "Nhà cung cấp xuất hàng",
-      subtitle: supplierName,
-      badgeLabel: "Đã niêm phong",
+      subtitle: supplierNames.join(", ") || "Chưa có đơn giao hàng",
+      badges: plates.length ? [`Xe: ${plates.join(", ")}`] : [],
+      timeStr: formatStepTime(
+        earliest(declared.map((n) => n.createdAt)) ||
+          earliest([...deliveries.values()].map((d) => d.expectedArrivalAt)),
+      ),
       iconType: "truck",
-      detail: {
-        innerTitle: "Nhà cung cấp khai báo giao hàng",
-        verifyStatus: declaredProof?.verificationStatus || "UNCHECKED",
-        verifyStatusLabel: formatNodeVerifyLabel(
-          declaredProof,
-          proofChain?.intact,
-        ),
-        blockchainStatus: formatNodeStatus(declaredProof),
-        recordedTime: formatStepTime(
-          declaredProof?.recordedAt ||
-            delivery?.receivedAt ||
-            "2026-11-17T22:16:00.000Z",
-        ),
-        dataHash:
-          declaredProof?.dataHash ||
-          "0xabedcd83921045aefc891234bc5678901234567890abcdef12345678df7b29",
-        shortHash: formatShortHash(
-          declaredProof?.dataHash ||
-            "0xabedcd83921045aefc891234bc5678901234567890abcdef12345678df7b29",
-        ),
-        blockNumber: declaredProof?.blockNumber || "12155228",
-      },
+      innerTitle: "Nhà cung cấp khai báo giao hàng",
+      records: declared.map((n) => toRecord(n, deliveryLabel(n.recordId))),
     },
-
-    // Chặng 2: Kiểm nhận nguyên liệu
     {
       id: "step-2",
-      stepNumber: 2,
-      timeStr: formatStepTime(
-        inspectedProof?.recordedAt ||
-          delivery?.receivedAt ||
-          "2026-11-16T13:18:00.000Z",
-      ),
-      stepKey: "delivery_inspection",
+      shortLabel: "Kiểm nhận",
       title: "Trường kiểm nhận nguyên liệu",
-      subtitle: supplierName,
-      badgeLabel: "Đã niêm phong",
+      subtitle: supplierNames.join(", ") || "Chưa có đơn giao hàng",
+      badges: [],
+      timeStr: formatStepTime(
+        earliest([...deliveries.values()].map((d) => d.receivedAt)),
+      ),
       iconType: "check",
-      detail: {
-        innerTitle: "Trường kiểm nhận nguyên liệu tại cổng trường",
-        verifyStatus: inspectedProof?.verificationStatus || "UNCHECKED",
-        verifyStatusLabel: formatNodeVerifyLabel(
-          inspectedProof,
-          proofChain?.intact,
-        ),
-        blockchainStatus: formatNodeStatus(inspectedProof),
-        recordedTime: formatStepTime(
-          inspectedProof?.recordedAt ||
-            delivery?.receivedAt ||
-            "2026-11-16T13:18:00.000Z",
-        ),
-        dataHash:
-          inspectedProof?.dataHash ||
-          "0x7f1a4e23941567bcde89012345678901234567890abcdef1234567882bc41",
-        shortHash: formatShortHash(
-          inspectedProof?.dataHash ||
-            "0x7f1a4e23941567bcde89012345678901234567890abcdef1234567882bc41",
-        ),
-        blockNumber: inspectedProof?.blockNumber || "12154910",
-      },
+      innerTitle: "Kiểm nhận nguyên liệu tại cổng trường",
+      records: inspected.map((n) => toRecord(n, deliveryLabel(n.recordId))),
     },
-
-    // Chặng 3: Bếp hoàn thành mẻ nấu
     {
       id: "step-3",
-      stepNumber: 3,
-      timeStr: formatStepTime(
-        cookingProof?.recordedAt ||
-          batch?.completedAt ||
-          "2026-11-16T13:18:00.000Z",
-      ),
-      stepKey: "cooking_batch",
+      shortLabel: "Nấu",
       title: "Bếp hoàn thành mẻ nấu",
       subtitle: dishName,
       badges: [
-        `${totalBatchPortions} suất cả mẻ`,
-        `${classPortions} suất cho khối này`,
+        `${batches.length} mẻ`,
+        `${formatAllocationDecimal(allocatedPortions)} suất cho ${classInfo.name || "lớp"}`,
       ],
-      badgeLabel: "Đã niêm phong",
+      timeStr: formatStepTime(earliest(batches.map((b) => b?.completedAt))),
       iconType: "cooking",
-      detail: {
-        innerTitle: "Bếp chế biến hoàn thành mẻ nấu",
-        verifyStatus: cookingProof?.verificationStatus || "UNCHECKED",
-        verifyStatusLabel: formatNodeVerifyLabel(
-          cookingProof,
-          proofChain?.intact,
-        ),
-        blockchainStatus: formatNodeStatus(cookingProof),
-        recordedTime: formatStepTime(
-          cookingProof?.recordedAt ||
-            batch?.completedAt ||
-            "2026-11-16T13:18:00.000Z",
-        ),
-        dataHash:
-          cookingProof?.dataHash ||
-          "0x3a9bc81029384756abcdef12345678901234567890abcdef1234567876ef10",
-        shortHash: formatShortHash(
-          cookingProof?.dataHash ||
-            "0x3a9bc81029384756abcdef12345678901234567890abcdef1234567876ef10",
-        ),
-        blockNumber: cookingProof?.blockNumber || "12154950",
-      },
+      innerTitle: "Bếp chế biến hoàn thành mẻ nấu",
+      records: cooked.map((n) => toRecord(n, batchLabel(n.recordId))),
     },
-
-    // Chặng 4: Lưu mẫu thức ăn
     {
       id: "step-4",
-      stepNumber: 4,
-      timeStr: formatStepTime(
-        sampleProof?.recordedAt ||
-          sample?.sampledAt ||
-          "2026-11-16T13:18:00.000Z",
-      ),
-      stepKey: "retained_sample",
+      shortLabel: "Lưu mẫu",
       title: "Lưu mẫu thức ăn",
       subtitle: dishName,
-      badgeLabel: "Đã niêm phong",
+      badges: [`${samples.length} mẫu`],
+      timeStr: formatStepTime(earliest(samples.map((s) => s.sampledAt))),
       iconType: "sample",
-      detail: {
-        innerTitle: "Niêm phong lưu mẫu thức ăn 200g",
-        verifyStatus: sampleProof?.verificationStatus || "UNCHECKED",
-        verifyStatusLabel: formatNodeVerifyLabel(
-          sampleProof,
-          proofChain?.intact,
-        ),
-        blockchainStatus: formatNodeStatus(sampleProof),
-        recordedTime: formatStepTime(
-          sampleProof?.recordedAt ||
-            sample?.sampledAt ||
-            "2026-11-16T13:18:00.000Z",
-        ),
-        dataHash:
-          sampleProof?.dataHash ||
-          "0x51c4a29876543210abcdef12345678901234567890abcdef1234567899ee34",
-        shortHash: formatShortHash(
-          sampleProof?.dataHash ||
-            "0x51c4a29876543210abcdef12345678901234567890abcdef1234567899ee34",
-        ),
-        blockNumber: sampleProof?.blockNumber || "12154955",
-      },
+      innerTitle: "Niêm phong lưu mẫu thức ăn",
+      records: sampled.map((n) =>
+        toRecord(n, n.eventType === "SAMPLE_DISPOSED" ? "Tiêu huỷ mẫu" : "Lưu mẫu"),
+      ),
     },
-
-    // Chặng 5: Phát suất ăn cho khối / lớp
     {
       id: "step-5",
-      stepNumber: 5,
-      timeStr: formatStepTime(
-        distributionProof?.recordedAt ||
-          allocation?.distributedAt ||
-          "2026-11-17T22:16:00.000Z",
-      ),
-      stepKey: "meal_distribution",
-      title: `Phát suất ăn cho khối ${className.replace(/[^0-9]/g, "") || "1"}`,
-      subtitle: `${mealTypeStr} · ${classPortions} suất`,
-      badges: ["Đã phát", `1 lớp: ${className}`],
-      badgeLabel: "Đã niêm phong",
+      shortLabel: "Phát suất",
+      title: "Phát suất ăn",
+      subtitle: `${MEAL_TYPE_LABELS[allocation.mealType] || ""} · ${
+        classInfo.name || ""
+      } · ${allocation.totalPortions ?? 0} suất`,
+      badges: [allocation.status === "DISTRIBUTED" ? "Đã phát" : "Chưa phát"],
+      timeStr: formatStepTime(allocation.distributedAt),
       iconType: "distribution",
-      detail: {
-        innerTitle: "Bàn giao và phân phối suất ăn",
-        verifyStatus: distributionProof?.verificationStatus || "UNCHECKED",
-        verifyStatusLabel: formatNodeVerifyLabel(
-          distributionProof,
-          proofChain?.intact,
-        ),
-        blockchainStatus: formatNodeStatus(distributionProof),
-        recordedTime: formatStepTime(
-          distributionProof?.recordedAt ||
-            allocation?.distributedAt ||
-            "2026-11-17T22:16:00.000Z",
-        ),
-        dataHash:
-          distributionProof?.dataHash ||
-          "0x91da778239401823abcdef12345678901234567890abcdef1234567831af88",
-        shortHash: formatShortHash(
-          distributionProof?.dataHash ||
-            "0x91da778239401823abcdef12345678901234567890abcdef1234567831af88",
-        ),
-        blockNumber: distributionProof?.blockNumber || "12155230",
-      },
+      innerTitle: `Bằng chứng phát suất toàn trường ngày ${
+        allocation.mealDate || ""
+      } (bao gồm lớp này)`,
+      records: distributed.map((n) => toRecord(n, "Toàn trường")),
     },
   ];
 }
+import { sumAllocationPortions, formatAllocationDecimal } from "../../../../utils/allocationDecimal.js";

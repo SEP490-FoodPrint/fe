@@ -18,13 +18,13 @@ import "./style.scss"
 
 const meals = [
   { type: "LUNCH", label: "Bữa trưa" },
-  { type: "AFTERNOON", label: "Bữa phụ" },
+  { type: "AFTERNOON", label: "Bữa xế" },
 ]
 
 const statusMeta = submission => {
-  if (!submission) return { label: "Cần khai báo", tone: "neutral", action: "Khai báo" }
-  if (submission.status === "FINALIZED") return { label: "Đã chốt", tone: "success", action: "Xem lại" }
-  return { label: "Cần chốt", tone: "warning", action: "Tiếp tục" }
+  if (!submission) return { label: "Chưa khai báo", tone: "neutral" }
+  if (submission.status === "FINALIZED") return { label: "Đã chốt", tone: "success" }
+  return { label: "Bản nháp", tone: "warning" }
 }
 
 function HomeroomOverview() {
@@ -89,34 +89,32 @@ function HomeroomOverview() {
                 : "Đã hoàn tất khai báo cho cả hai bữa."}</p>
             </div>
           </div>
-          <div className="homeroom-overview__meal-list">
-            {meals.map(meal => {
-              const submission = data.submissions[meal.type]
-              const status = statusMeta(submission)
-              return (
-                <Link className="homeroom-overview__meal-card" key={meal.type}
-                  aria-label={`${meal.label}: ${status.label}`}
-                  to={`${ROUTER.SCHOOL_DAILY_CONFIRM}?date=${today}&mealType=${meal.type}`}>
-                  <div className="homeroom-overview__meal-info">
+          <Link className="homeroom-overview__meal-card"
+            aria-label={`Khai báo suất ăn hôm nay: ${pendingMeals ? `${pendingMeals} bữa chưa chốt` : "đã chốt cả hai bữa"}`}
+            to={`${ROUTER.SCHOOL_DAILY_CONFIRM}?date=${today}`}>
+            <ul className="homeroom-overview__meal-rows">
+              {meals.map(meal => {
+                const submission = data.submissions[meal.type]
+                const status = statusMeta(submission)
+                return (
+                  <li key={meal.type}>
                     <strong>{meal.label}</strong>
                     <span>{submission
                       ? `${submission.totalPortions}/${data.class.registeredMealPortions} suất`
                       : `${data.class.registeredMealPortions} suất đăng ký`}</span>
-                  </div>
-                  <div className="homeroom-overview__meal-action">
                     <Chip
                       size="small"
                       label={status.label}
                       className={`homeroom-overview__status homeroom-overview__status--${status.tone}`}
                     />
-                    <span className="homeroom-overview__meal-link">
-                      {status.action}<ArrowRight size={18} aria-hidden="true" />
-                    </span>
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
+                  </li>
+                )
+              })}
+            </ul>
+            <span className="homeroom-overview__meal-link">
+              {pendingMeals ? "Khai báo" : "Xem lại"}<ArrowRight size={18} aria-hidden="true" />
+            </span>
+          </Link>
         </section>
 
         <section

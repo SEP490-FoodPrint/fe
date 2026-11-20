@@ -91,7 +91,7 @@ export default function BasicInfoSection({
               aria-label="Chọn ca ăn"
             >
               <option value="lunch">Bữa trưa học đường (11:00)</option>
-              <option value="afternoon">Bữa phụ chiều (14:30)</option>
+              <option value="afternoon">Bữa xế (14:30)</option>
             </select>
             <ChevronDown size={14} className={styles.selectArrow} aria-hidden="true" />
           </div>
@@ -170,7 +170,7 @@ export default function BasicInfoSection({
         <div className={styles.mealColumn}>
           <div className={styles.columnHeader}>
             <div className={styles.columnTitleWrap}>
-              <span className={styles.columnTitle}>Bữa phụ chiều</span>
+              <span className={styles.columnTitle}>Bữa xế</span>
               <span className={styles.timeTag}>14:30</span>
             </div>
             <span className={styles.progressTag}>

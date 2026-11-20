@@ -13,7 +13,7 @@ export default function MenuDetailBasicInfo({ menu }) {
           <span className="material-symbols-outlined text-[18px] text-[#0a8066]">calendar_today</span>
           <strong className={styles.val}>{menu.date}</strong>
           <span className={styles.mealChip}>
-            {menu.mealType === "AFTERNOON" ? "Bữa chiều" : "Bữa trưa"}
+            {menu.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"}
           </span>
         </div>
       </div>

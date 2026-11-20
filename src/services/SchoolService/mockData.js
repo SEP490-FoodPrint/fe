@@ -376,14 +376,6 @@ export const MOCK_WEEKLY_MENUS = {
     weekRange: "16/11/2026 – 20/11/2026",
     isCurrentWeek: true,
     status: "APPROVED",
-    portionGroups: [
-      { id: "GRADE_1_3", name: "Khối lớp 1–3", isDefault: true },
-      { id: "GRADE_4_5", name: "Khối lớp 4–5", isDefault: false },
-    ],
-    gradeGroups: [
-      { key: "GRADE_1_3", label: "Khối lớp 1–3" },
-      { key: "GRADE_4_5", label: "Khối lớp 4–5" },
-    ],
     days: [
       {
         id: "day-fp-1",
@@ -503,9 +495,23 @@ MOCK_WEEKLY_MENUS.FP_DEMO_SCHOOL_01 = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
 MOCK_WEEKLY_MENUS.SCH_ANH_DUONG = MOCK_WEEKLY_MENUS["FP-DEMO-SCHOOL-01"];
 
 /**
+ * Hàm trả về Mock Danh sách Khối cho Trường học
+ */
+export function getMockSchoolGrades(schoolCode) {
+  return {
+    success: true,
+    data: [
+      { id: "GRADE_1_3", name: "Khối lớp 1–3", hasMenu: true },
+      { id: "GRADE_4_5", name: "Khối lớp 4–5", hasMenu: true },
+    ],
+    message: "Lấy danh sách khối thành công (Mock Data)",
+  };
+}
+
+/**
  * Hàm trả về Mock Thực đơn Ngày cho Trường Tiểu học FoodPrint
  */
-export function getMockDailyMealMenu(schoolCode, date) {
+export function getMockDailyMealMenu(schoolCode, date, grade) {
   const code = (schoolCode || "FP-SCHOOL-01").toUpperCase();
   const base = MOCK_DAILY_MEAL_MENUS[code] || MOCK_FOODPRINT_DAILY_MENU;
   const menu = JSON.parse(JSON.stringify(base));

@@ -45,6 +45,8 @@ const SupplierRelationshipService = {
     http.post(supplierUrls.close(id), { reason }),
   changeRelationship: (id, action, reason) =>
     http.post(supplierUrls.transition(id, action), { reason }),
+  updateIngredientHandling: (supplierId, items) =>
+    http.put(supplierUrls.ingredientHandling(supplierId), { items }),
 }
 
 export default SupplierRelationshipService

@@ -172,7 +172,7 @@ test("send failures and pending sends are not reported as intact", () => {
 test("grade meal rows get readable labels and keys", () => {
   const row = gradeMeal({ key: "g1:AFTERNOON", gradeId: "g1", gradeName: "Khối 1", schoolName: "TH A", mealType: "AFTERNOON", classCount: 3, portions: 90, status: "PARTIAL" })
   assert.equal(row.gradeLabel, "Khối 1")
-  assert.equal(row.mealLabel, "Bữa chiều")
+  assert.equal(row.mealLabel, "Bữa xế")
   assert.equal(row.statusLabel, "Đang phát")
   assert.equal(gradeLabel(null), "Chưa xếp khối")
   assert.equal(gradeLabel("2"), "Khối 2")

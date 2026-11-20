@@ -7,8 +7,15 @@ export const apiMealTimes = "/schools/me/meal-times"
 export const apiGetPublicLocations = "/schools/public/locations"
 export const apiGetSchoolDetail = id => `/schools/public/${id}`
 export const apiGetSchoolDetailByCode = code => `/schools/public/code/${code}`
-export const apiGetDailyMealMenu = (schoolCode, date) =>
-  `/schools/public/${schoolCode}/daily-menu${date ? `?date=${encodeURIComponent(date)}` : ""}`
+export const apiGetSchoolGrades = (code, week) =>
+  `/schools/public/${code}/grades${week ? `?week=${encodeURIComponent(week)}` : ""}`
+export const apiGetDailyMealMenu = (schoolCode, date, grade) => {
+  const params = new URLSearchParams()
+  if (date) params.append("date", date)
+  if (grade && grade !== "all") params.append("grade", grade)
+  const qs = params.toString()
+  return `/schools/public/${schoolCode}/daily-menu${qs ? `?${qs}` : ""}`
+}
 export const apiGetWeeklyMenu = (schoolCode, weekStart, grade) => {
   const params = new URLSearchParams()
   if (weekStart) params.append("week", weekStart)
@@ -16,3 +23,5 @@ export const apiGetWeeklyMenu = (schoolCode, weekStart, grade) => {
   const qs = params.toString()
   return `/schools/public/${schoolCode}/weekly-menu${qs ? `?${qs}` : ""}`
 }
+export const apiDeliveryInspectionRoles = "/schools/me/delivery-inspection-roles"
+

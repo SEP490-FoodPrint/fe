@@ -225,7 +225,8 @@ const WarehouseService = {
         const supplierEntries = Object.entries(itemsBySupplier)
         for (let i = 0; i < supplierEntries.length; i++) {
           const [sId, sItems] = supplierEntries[i]
-          const baseOrderNo = order.orderNo || `PO-DRY-${todayStr.replace(/-/g, "")}`
+          const rawBaseNo = order.orderNo ? String(order.orderNo).replace(/^PO-/, "PN-") : ""
+          const baseOrderNo = rawBaseNo || `PN-DRY-${todayStr.replace(/-/g, "")}`
           const uniqueSuffix = `${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`
           const reqNo =
             supplierEntries.length > 1
@@ -256,6 +257,8 @@ const WarehouseService = {
           const payload = {
             supplierId: sId,
             requestNo: reqNo,
+            orderType: "DRY_STOCK",
+            batchNo: null,
             requestedDeliveryDate,
             note: noteText,
             items: Array.from(mergedItemsMap.entries()).map(([ingredientEntryId, quantity]) => ({

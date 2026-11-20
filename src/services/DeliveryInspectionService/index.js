@@ -42,7 +42,7 @@ export const DELIVERY_STATUS_CONFIG = {
   CREATED: { ...neutral, label: "Đã tạo" },
   IN_TRANSIT: { bg: "#e0f2fe", color: "#0369a1", border: "#bae6fd", dot: "#0284c7", label: "Đang vận chuyển", pulse: true },
   ARRIVED: { ...warning, label: "Đã đến trường" },
-  PENDING_APPROVAL: { ...warning, label: "Chờ đủ 4 bên kiểm tra" },
+  PENDING_APPROVAL: { ...warning, label: "Chờ bộ phận bắt buộc kiểm tra" },
   APPROVED: { ...green, label: "Đã phê duyệt" },
   REJECTED: { ...danger, label: "Bị từ chối" },
   RECEIVED: { ...green, label: "Đã tiếp nhận" },

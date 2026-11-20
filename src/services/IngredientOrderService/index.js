@@ -6,6 +6,7 @@ import {
   apiSupplyOrders,
 } from "./urls";
 import { adaptCatalogItem, adaptDeliveryItem } from "./adapter";
+import { batchTypeOf, BATCH_TYPE } from "../../utils/supplyBatch";
 
 /**
  * Tải toàn bộ các trang dữ liệu từ API có phân trang (tuân thủ giới hạn limit <= 100 của Backend)
@@ -43,6 +44,31 @@ const getTodayStr = () =>
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
+
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
+const formatTimeStr = (isoString) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (!isNaN(d.getTime())) {
+      const hours = String(d.getHours()).padStart(2, "0");
+      const minutes = String(d.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    }
+  } catch {
+    // ignore
+  }
+  return "";
+};
 
 /**
  * Tìm contractId ACTIVE cho 1 supplierId từ danh sách supplier-partnerships,
@@ -241,8 +267,8 @@ const IngredientOrderService = {
         if (pItems.length > 0) {
           const list = pItems
             .map((p) => ({
-              id: p.supplier?.id || p.supplierId,
-              name: p.supplier?.name || p.supplierName,
+              id: p.Supplier?.id || p.supplier?.id || p.supplierId,
+              name: p.Supplier?.name || p.supplier?.name || p.supplierName,
               status: p.status,
             }))
             .filter((s) => s.id && s.name);
@@ -281,8 +307,9 @@ const IngredientOrderService = {
       console.log(
         "[IngredientOrderService] Đang tải danh sách thực đơn đã duyệt từ /v1/menus ...",
       );
+      const queryParams = { status: "APPROVED", page: 1, limit: 50, ...params };
       let response = await http.get("/v1/menus", {
-        params: { status: "APPROVED", page: 1, limit: 50 },
+        params: queryParams,
         notifyOnError: false,
         skipAuthRedirect: true,
       });
@@ -298,7 +325,7 @@ const IngredientOrderService = {
       if (apiItems.length === 0) {
         try {
           const fallbackRes = await http.get("/menus", {
-            params: { status: "APPROVED", page: 1, limit: 50 },
+            params: queryParams,
             notifyOnError: false,
             skipAuthRedirect: true,
           });
@@ -366,12 +393,13 @@ const IngredientOrderService = {
         );
 
         const enrichedApi = apiItems.map((m) => {
-          const cleanDate =
-            (m.menuDays?.[0]?.menuDate
-              ? String(m.menuDays[0].menuDate).slice(0, 10)
-              : "") ||
-            String(m.weekStartDate || "").slice(0, 10) ||
-            "2026-11-16";
+          const rawWeekStart = m.weekStartDate
+            ? String(m.weekStartDate).slice(0, 10)
+            : "";
+          const firstDayDate = m.menuDays?.[0]?.menuDate
+            ? String(m.menuDays[0].menuDate).slice(0, 10)
+            : "";
+          const cleanDate = rawWeekStart || firstDayDate || "2026-11-16";
 
           // 1. Trích xuất tên khối từ grades hoặc gradeNames
           let gradeNames = Array.isArray(m.grades)
@@ -452,17 +480,23 @@ const IngredientOrderService = {
             }
           }
 
-          // 2. Trích xuất món ăn và nguyên liệu từ menuDays trong DB
+          // 2. Trích xuất món ăn và nguyên liệu từ menuDays trong DB (tính cả toàn tuần lẫn từng ngày)
           const dishesFromDb = [];
           const extractedIngredientsMap = new Map();
+          const menuDaysMap = {};
 
           if (Array.isArray(m.menuDays)) {
             for (const day of m.menuDays) {
+              const dayDate = String(day.menuDate || "").slice(0, 10);
+              const dayDishes = [];
+              const dayIngredientsMap = new Map();
+
               if (Array.isArray(day.menuDayDishes)) {
                 for (const mdd of day.menuDayDishes) {
                   const dName = mdd.Dish?.name || mdd.dishName;
-                  if (dName && !dishesFromDb.includes(dName)) {
-                    dishesFromDb.push(dName);
+                  if (dName) {
+                    if (!dishesFromDb.includes(dName)) dishesFromDb.push(dName);
+                    if (!dayDishes.includes(dName)) dayDishes.push(dName);
                   }
 
                   // Quét danh sách nguyên liệu của từng món ăn
@@ -518,6 +552,7 @@ const IngredientOrderService = {
 
                       const unit = targetUnit;
 
+                      // Gom chung cho toàn menu (fallback)
                       if (extractedIngredientsMap.has(ing.id)) {
                         const existing = extractedIngredientsMap.get(ing.id);
                         existing.qtyPerPortion = Number(
@@ -539,9 +574,42 @@ const IngredientOrderService = {
                           supplierName,
                         });
                       }
+
+                      // Gom riêng cho ngày cụ thể này
+                      if (dayDate) {
+                        if (dayIngredientsMap.has(ing.id)) {
+                          const existingDay = dayIngredientsMap.get(ing.id);
+                          existingDay.qtyPerPortion = Number(
+                            (existingDay.qtyPerPortion + qtyPerPortion).toFixed(4),
+                          );
+                        } else {
+                          dayIngredientsMap.set(ing.id, {
+                            id: ing.id,
+                            ingredientId: ing.id,
+                            ingredientEntryId,
+                            name: ing.name,
+                            category:
+                              ing.ingredientCategory?.categoryName ||
+                              "Thực phẩm tươi sống",
+                            handlingType: "DIRECT_USE",
+                            unit,
+                            qtyPerPortion,
+                            supplierId,
+                            supplierName,
+                          });
+                        }
+                      }
                     }
                   }
                 }
+              }
+
+              if (dayDate) {
+                menuDaysMap[dayDate] = {
+                  date: dayDate,
+                  dishes: dayDishes,
+                  ingredients: Array.from(dayIngredientsMap.values()),
+                };
               }
             }
           }
@@ -555,7 +623,10 @@ const IngredientOrderService = {
             title: m.title || `Thực đơn ${cleanDate}`,
             mealDate: cleanDate,
             date: cleanDate,
-            weekStartDate: cleanDate,
+            weekStartDate: rawWeekStart || cleanDate,
+            menuDaysMap,
+            menuDays: m.menuDays,
+            status: m.status || "APPROVED",
             days:
               Array.isArray(m.menuDays) && m.menuDays.length > 0
                 ? m.menuDays.map((d) => ({
@@ -570,6 +641,13 @@ const IngredientOrderService = {
             mealTypeLabel: "Bữa trưa",
             targetScope,
             gradeNames,
+            isSchoolWide: Boolean(m.isSchoolWide),
+            gradeIds: Array.isArray(m.gradeIds)
+              ? m.gradeIds
+              : Array.isArray(m.grades)
+                ? m.grades.map((g) => g.gradeId || g.id).filter(Boolean)
+                : [],
+            grades: m.grades || [],
             maxPortions: calculatedMaxPortions,
             dishes:
               dishesFromDb.length > 0 ? dishesFromDb : ["Món ăn dinh dưỡng"],
@@ -635,19 +713,16 @@ const IngredientOrderService = {
 
       // Lấy danh sách NCC để map tên nhà cung cấp
       const supRes = await this.getSuppliers().catch(() => ({ items: [] }));
-      const supplierMap = new Map(
-        (supRes?.items || []).map((s) => [s.id, s.name]),
-      );
+      const globalSupplierIdMap = new Map();
+      (supRes?.items || []).forEach((s) => {
+        if (s.id && s.name) {
+          globalSupplierIdMap.set(String(s.id), s.name);
+        }
+      });
 
       // Lọc các đơn từ /supply-requests: CHỈ LẤY THỰC PHẨM TƯƠI SỐNG 2 ĐỢT (BATCH_1, BATCH_2), LOẠI BỎ ĐỒ KHÔ
       const freshSupplyItems = supplyItems.filter((so) => {
-        const reqNo = String(so.requestNo || "").toUpperCase();
-        const isDry =
-          reqNo.includes("DRY") ||
-          reqNo.includes("PNK") ||
-          so.orderType === "DRY_STOCK" ||
-          so.batchType === "DRY_STOCK";
-        return !isDry;
+        return so.orderType !== "DRY_STOCK";
       });
 
       // Lấy chi tiết song song cho các đơn hàng tươi sống vừa lấy để có đầy đủ items, ngày giao, ghi chú
@@ -679,27 +754,25 @@ const IngredientOrderService = {
 
       supplyList = detailedFreshSupply
         .map((so) => {
-          const reqNo = String(so.requestNo || "").toUpperCase();
-          const isB2 =
-            reqNo.includes("B2") ||
-            reqNo.includes("-D2") ||
-            reqNo.includes("DOT 2") ||
-            reqNo.includes("ĐỢT 2");
-          const batchType = isB2 ? "BATCH_2" : "BATCH_1";
+          const batchType = batchTypeOf(so);
+          const isB2 = batchType === BATCH_TYPE.BATCH_2;
           const deliveryTime = isB2 ? "07:45" : "05:30";
           const dateStr = so.requestedDeliveryDate
             ? String(so.requestedDeliveryDate).slice(0, 10)
             : getTodayStr();
 
-          // DeliveryNo hiển thị
+          // DeliveryNo hiển thị chuẩn PN-...
           const cleanNo = so.requestNo
-            ? so.requestNo.replace(/^PO-/, "")
+            ? so.requestNo.replace(/^PN-|^PO-|^DEL-/, "")
             : so.id;
           const deliveryNo = `PN-${cleanNo}`;
           const sName =
-            so.supplierName ||
-            supplierMap.get(so.supplierId) ||
+            (so.supplierName && so.supplierName !== "Nhà cung cấp đối tác" && !so.supplierName.includes("Nhiều NCC")
+              ? so.supplierName
+              : null) ||
+            globalSupplierIdMap.get(String(so.supplierId)) ||
             so.Supplier?.name ||
+            so.supplier?.name ||
             "Nhà cung cấp đối tác";
 
           const rawItems = Array.isArray(so.items) ? so.items : [];
@@ -713,11 +786,35 @@ const IngredientOrderService = {
             orderedQty: Number(it.requestedQuantity || it.quantity || 0),
             deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
             unit: it.unit || "kg",
-            supplierId: so.supplierId,
-            supplierName: it.supplierName || sName,
+            supplierId: it.supplierId || so.supplierId,
+            supplierName:
+              (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC")
+                ? it.supplierName
+                : null) ||
+              globalSupplierIdMap.get(String(it.supplierId || so.supplierId)) ||
+              sName,
             handlingType: "DIRECT_USE",
             status: "ACCEPTED",
           }));
+
+          let parsedMax = 0;
+          let parsedPlanned = 0;
+          const portionMatch = String(so.note || "").match(
+            /Sĩ số:\s*(\d+)\s*HS\s*\|\s*Đợt 1:\s*(\d+)\s*suất/i,
+          );
+          if (portionMatch) {
+            parsedMax = Number(portionMatch[1]) || 0;
+            parsedPlanned = Number(portionMatch[2]) || 0;
+          }
+
+          const rawSoStatus = String(so.status || "").toUpperCase();
+          const isSoConfirmed = rawSoStatus === "ACCEPTED" || rawSoStatus === "CONFIRMED";
+          const isSoCreated =
+            rawSoStatus === "SENT" ||
+            rawSoStatus === "DRAFT" ||
+            rawSoStatus === "CREATED" ||
+            rawSoStatus === "IN_PROGRESS" ||
+            rawSoStatus === "PENDING";
 
           return adaptDeliveryItem({
             id: so.id,
@@ -729,14 +826,11 @@ const IngredientOrderService = {
             deliveryDate: dateStr,
             deliveryTime,
             batchType,
-            status:
-              so.status === "ACCEPTED"
-                ? "CONFIRMED"
-                : so.status === "SENT" || so.status === "DRAFT"
-                  ? "CREATED"
-                  : so.status,
-            statusLabel:
-              so.status === "ACCEPTED" ? "NCC đã xác nhận" : "Chờ NCC xác nhận",
+            maxPortions: parsedMax || undefined,
+            plannedPortions: parsedPlanned || undefined,
+            batch1Portions: parsedPlanned || undefined,
+            status: isSoConfirmed ? "CONFIRMED" : isSoCreated ? "CREATED" : so.status,
+            statusLabel: isSoConfirmed ? "NCC đã xác nhận" : "Chờ NCC xác nhận",
             driverName: "Chưa phân công (Chờ NCC điều xe)",
             vehiclePlate: "",
             refrigerationTemp: "Chưa đo (Chờ xe tới)",
@@ -755,71 +849,313 @@ const IngredientOrderService = {
       console.warn("Lỗi tải danh sách phiếu giao nhận từ Backend:", err);
     }
 
-    // Gộp supply requests và deliveries, ưu tiên deliveries nếu cùng deliveryNo hoặc orderNo
-    const existingNos = new Set(
-      deliveriesList.map((d) => d.deliveryNo).filter(Boolean),
-    );
-    const existingOrderNos = new Set(
-      deliveriesList.map((d) => d.orderNo).filter(Boolean),
-    );
+    // -------------------------------------------------------------
+    // GOM NHÓM ĐỒNG BỘ: HỢP NHẤT SUPPLY REQUESTS & DELIVERIES THÀNH 1 PHIẾU NHẬP HÀNG TỔNG
+    // Mỗi đợt (Batch 1 / Batch 2) cho 1 ngày ăn chỉ có DUY NHẤT 1 phiếu mang mã chuẩn PN-...
+    // Dù các NCC có xác nhận lệch giờ nhau, tất cả các xe đều được gộp chung vào phiếu này.
+    // -------------------------------------------------------------
+    const getBaseOrderNo = (item) => {
+      const candidates = [
+        item.orderNo,
+        item.requestNo,
+        item.deliveryNo,
+        item.SupplyRequest?.requestNo,
+      ];
+      for (const c of candidates) {
+        if (!c) continue;
+        const s = String(c).trim();
+        if (/^PN-/i.test(s) || /^PO-/i.test(s)) {
+          return s.replace(/^PO-/i, "PN-").replace(/-\d+$/, "");
+        }
+      }
+      for (const c of candidates) {
+        if (!c) continue;
+        const s = String(c).trim();
+        if (!/^FP-/i.test(s)) {
+          return s.replace(/^DEL-/, "PN-").replace(/-\d+$/, "");
+        }
+      }
+      return "";
+    };
 
-    const uniqueSupply = supplyList.filter(
-      (s) => !existingNos.has(s.deliveryNo) && !existingOrderNos.has(s.orderNo),
-    );
+    const masterGroups = new Map();
 
-    // Hợp nhất sub-orders nếu 1 đơn bị tách theo nhiều NCC (ví dụ: PO-...-D1-1, PO-...-D1-2)
-    const groupedSupply = new Map();
-    uniqueSupply.forEach((order) => {
-      const rawOrderNo = String(order.orderNo || "");
-      const baseOrderNo = rawOrderNo.replace(/-\d+$/, "");
-      const key = `${baseOrderNo}_${order.deliveryDate || ""}_${order.batchType || ""}`;
-      if (!groupedSupply.has(key)) groupedSupply.set(key, []);
-      groupedSupply.get(key).push(order);
-    });
+    const addToGroup = (item, isDeliveryRecord) => {
+      if (!item) return;
+      if (item.batchType === "DRY_STOCK" || item.orderType === "DRY_STOCK") return;
 
-    const consolidatedSupply = Array.from(groupedSupply.values()).map(
+      const baseNo = getBaseOrderNo(item);
+      const date = item.deliveryDate || "";
+      // Cùng ngày + cùng đợt = 1 phiếu tổng (nhiều NCC gộp trong đó); baseNo chỉ để hiển thị mã.
+      const batch = item.batchType || "UNKNOWN";
+      const key = `${date}_${batch}`;
+
+      if (!masterGroups.has(key)) {
+        masterGroups.set(key, {
+          baseNo,
+          date,
+          batch,
+          deliveries: [],
+          supplyRequests: [],
+        });
+      }
+
+      const g = masterGroups.get(key);
+      if (isDeliveryRecord) {
+        g.deliveries.push(item);
+      } else {
+        g.supplyRequests.push(item);
+      }
+    };
+
+    deliveriesList.forEach((d) => addToGroup(d, true));
+    supplyList.forEach((s) => addToGroup(s, false));
+
+    const consolidatedDeliveries = Array.from(masterGroups.values()).map(
       (group) => {
-        if (group.length === 1) return group[0];
-        const first = group[0];
-        const rawOrderNo = String(first.orderNo || "");
-        const baseOrderNo = rawOrderNo.replace(/-\d+$/, "");
-        const baseDeliveryNo = String(first.deliveryNo || "").replace(
-          /-\d+$/,
-          "",
-        );
-        const allItems = [];
-        const supNames = new Set();
-        group.forEach((g) => {
-          if (g.supplierName && g.supplierName !== "Nhà cung cấp đối tác")
-            supNames.add(g.supplierName);
-          if (Array.isArray(g.items)) {
-            g.items.forEach((it) =>
-              allItems.push({
-                ...it,
-                supplierName: it.supplierName || g.supplierName,
-              }),
-            );
+        const { baseNo, date, batch, deliveries, supplyRequests } = group;
+        const rep = deliveries[0] || supplyRequests[0] || {};
+        const finalDeliveryNo =
+          baseNo ||
+          `PN-${String(rep.deliveryNo || rep.orderNo || date).replace(/-\d+$/, "").replace(/^PO-|^DEL-|^FP-DE-/, "")}`;
+
+        // Tập hợp tất cả các NCC tham gia trong đợt này
+        const groupSupplierMap = new Map();
+
+        supplyRequests.forEach((so) => {
+          const sName =
+            (so.supplierName && so.supplierName !== "Nhà cung cấp đối tác" && !so.supplierName.includes("Nhiều NCC")
+              ? so.supplierName
+              : null) ||
+            globalSupplierIdMap.get(String(so.supplierId)) ||
+            so.Supplier?.name ||
+            so.supplier?.name ||
+            "Nhà cung cấp đối tác";
+          const norm = sName.toLowerCase().trim();
+          if (!groupSupplierMap.has(norm)) {
+            groupSupplierMap.set(norm, {
+              name: sName,
+              id: so.supplierId,
+              supplyItem: so,
+              deliveryItem: null,
+            });
+          } else {
+            const entry = groupSupplierMap.get(norm);
+            if (!entry.supplyItem) entry.supplyItem = so;
+            if (!entry.id && so.supplierId) entry.id = so.supplierId;
           }
         });
-        const suppliersList = Array.from(supNames);
+
+        deliveries.forEach((deliv) => {
+          const sName =
+            (deliv.supplierName && deliv.supplierName !== "Nhà cung cấp đối tác" && !deliv.supplierName.includes("Nhiều NCC")
+              ? deliv.supplierName
+              : null) ||
+            globalSupplierIdMap.get(String(deliv.supplierId)) ||
+            deliv.Supplier?.name ||
+            deliv.supplier?.name ||
+            "";
+          let matchedKey = null;
+
+          if (sName) {
+            const norm = sName.toLowerCase().trim();
+            if (groupSupplierMap.has(norm)) {
+              matchedKey = norm;
+            } else {
+              for (const [k, v] of groupSupplierMap.entries()) {
+                if (
+                  (deliv.supplierId && v.id === deliv.supplierId) ||
+                  norm.includes(k) ||
+                  k.includes(norm)
+                ) {
+                  matchedKey = k;
+                  break;
+                }
+              }
+            }
+          }
+
+          if (matchedKey) {
+            const entry = groupSupplierMap.get(matchedKey);
+            entry.deliveryItem = deliv;
+          } else {
+            const resolvedName =
+              sName ||
+              globalSupplierIdMap.get(String(deliv.supplierId)) ||
+              `NCC-${deliv.supplierId || deliveries.indexOf(deliv) + 1}`;
+            const norm = resolvedName.toLowerCase().trim();
+            groupSupplierMap.set(norm, {
+              name: resolvedName,
+              id: deliv.supplierId,
+              supplyItem: null,
+              deliveryItem: deliv,
+            });
+          }
+        });
+
+        const allItems = [];
+        const supNames = [];
+        const transportsBySupplier = {};
+        const supplierApprovals = {};
+        const subOrderIds = [];
+        const deliveryIds = [];
+
+        let vehicleIdx = 0;
+        let anyInTransit = false;
+        let anyArrived = false;
+        let allApproved = true;
+        let anyConfirmed = false;
+
+        const entries = Array.from(groupSupplierMap.values());
+        if (entries.length === 0) {
+          allApproved = false;
+        }
+
+        entries.forEach((entry) => {
+          vehicleIdx++;
+          const sName = entry.name;
+          supNames.push(sName);
+
+          if (entry.supplyItem?.id) subOrderIds.push(entry.supplyItem.id);
+          if (entry.deliveryItem?.id) deliveryIds.push(entry.deliveryItem.id);
+
+          const srcItems =
+            entry.deliveryItem?.items && entry.deliveryItem.items.length > 0
+              ? entry.deliveryItem.items
+              : entry.supplyItem?.items || [];
+
+          srcItems.forEach((it) => {
+            const resolvedItemSup =
+              (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC")
+                ? it.supplierName
+                : null) ||
+              globalSupplierIdMap.get(String(it.supplierId || entry.id)) ||
+              (sName !== "Nhà cung cấp đối tác" ? sName : "") ||
+              "Nhà cung cấp đối tác";
+
+            allItems.push({
+              ...it,
+              supplierName: resolvedItemSup,
+              supplierId: it.supplierId || entry.id,
+            });
+          });
+
+          if (entry.deliveryItem) {
+            const d = entry.deliveryItem;
+            anyConfirmed = true;
+            if (d.status === "IN_TRANSIT") anyInTransit = true;
+            if (d.status === "ARRIVED" || d.status === "INSPECTING") anyArrived = true;
+            if (
+              d.status !== "APPROVED" &&
+              d.status !== "RECEIVED" &&
+              d.status !== "COMPLETED"
+            ) {
+              allApproved = false;
+            }
+
+            const expectedTimeStr = d.expectedArrivalAt
+              ? `${formatTimeStr(d.expectedArrivalAt)} — Ngày ${formatDateVN(d.expectedArrivalAt)}`
+              : d.deliveryTime
+                ? `${d.deliveryTime} — Ngày ${formatDateVN(d.deliveryDate || date)}`
+                : "Chờ NCC cập nhật";
+
+            transportsBySupplier[sName] = {
+              supplierId: entry.id,
+              supplierName: sName,
+              driver:
+                d.driverName && d.driverName !== "Chưa phân công (Chờ NCC điều xe)"
+                  ? `${d.driverName}${d.driverPhone && d.driverPhone !== "--" && !d.driverName.includes("(") ? ` (${d.driverPhone})` : ""}`
+                  : d.vehiclePlate ? "Tài xế NCC" : "Chưa phân công (Chờ NCC điều xe)",
+              phone: d.driverPhone || d.phone || "--",
+              vehicle: d.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
+              expectedTime: expectedTimeStr,
+              qrCode:
+                d.supplierDeliveryNo ||
+                d.deliveryQr ||
+                d.deliveryNo ||
+                `QR-LOT-${finalDeliveryNo}-${String(vehicleIdx).padStart(2, "0")}`,
+              status: d.status,
+              hasDispatched: Boolean(
+                d.vehiclePlate ||
+                d.status === "IN_TRANSIT" ||
+                d.status === "ARRIVED" ||
+                d.status === "APPROVED",
+              ),
+              note: d.note || "",
+            };
+
+            supplierApprovals[sName] = d.approvals || {};
+          } else {
+            allApproved = false;
+            const rawSupStatus = String(entry.supplyItem?.status || "").toUpperCase();
+            const normalizedSupStatus =
+              rawSupStatus === "ACCEPTED" || rawSupStatus === "CONFIRMED" ? "CONFIRMED" : "CREATED";
+
+            transportsBySupplier[sName] = {
+              supplierId: entry.id,
+              supplierName: sName,
+              driver: "Chưa phân công (Chờ NCC điều xe)",
+              phone: "--",
+              vehicle: "Chưa phân công (Chờ NCC điều xe)",
+              expectedTime: "Chờ NCC cập nhật",
+              qrCode: `QR-PENDING-${finalDeliveryNo}-${String(vehicleIdx).padStart(2, "0")}`,
+              status: normalizedSupStatus,
+              hasDispatched: false,
+            };
+            supplierApprovals[sName] = {};
+          }
+        });
+
+        let masterStatus = "CREATED";
+        let masterStatusLabel = "Chờ NCC xác nhận";
+
+        if (allApproved && entries.length > 0) {
+          masterStatus = "APPROVED";
+          masterStatusLabel = "4/4 Đã duyệt & Bàn giao bếp";
+        } else if (anyArrived) {
+          masterStatus = "INSPECTING";
+          masterStatusLabel = "Đang kiểm tra 4 bên";
+        } else if (anyInTransit) {
+          masterStatus = "IN_TRANSIT";
+          masterStatusLabel = "NCC đang vận chuyển";
+        } else if (anyConfirmed) {
+          masterStatus = "CONFIRMED";
+          masterStatusLabel = "NCC đã xác nhận";
+        }
+
         return {
-          ...first,
-          id: first.id,
-          orderNo: baseOrderNo,
-          deliveryNo: baseDeliveryNo,
+          ...rep,
+          id: deliveries[0]?.id || supplyRequests[0]?.id || finalDeliveryNo,
+          deliveryNo: finalDeliveryNo,
+          orderNo: finalDeliveryNo,
+          deliveryDate: date || rep.deliveryDate || getTodayStr(),
+          deliveryTime: rep.deliveryTime || (batch === "BATCH_2" ? "07:45" : "05:30"),
+          batchType: batch,
+          batchLabel:
+            batch === "BATCH_1"
+              ? "Đợt 1 (50% Suất tối đa)"
+              : "Đợt 2 (Cân đối sĩ số)",
+          maxPortions: rep.maxPortions || 0,
+          plannedPortions: rep.plannedPortions || 0,
+          batch1Portions: rep.batch1Portions || rep.plannedPortions || 0,
           supplierName:
-            suppliersList.length > 1
-              ? `Nhiều NCC (${suppliersList.length} đối tác: ${suppliersList.join(", ")})`
-              : suppliersList[0] || first.supplierName,
-          suppliers: suppliersList,
+            supNames.length > 1
+              ? `Nhiều NCC (${supNames.length} đối tác: ${supNames.join(", ")})`
+              : supNames[0] || rep.supplierName || "Nhà cung cấp đối tác",
+          suppliers: supNames,
           items: allItems,
           deliveryItems: allItems,
-          subOrderIds: group.map((g) => g.id),
+          transportsBySupplier,
+          supplierApprovals,
+          status: masterStatus,
+          statusLabel: masterStatusLabel,
+          subOrderIds,
+          deliveryIds,
         };
       },
     );
 
-    let items = [...consolidatedSupply, ...deliveriesList].filter(
+    let items = consolidatedDeliveries.filter(
       (d) => d.batchType !== "DRY_STOCK" && d.orderType !== "DRY_STOCK",
     );
 
@@ -851,18 +1187,38 @@ const IngredientOrderService = {
   async getDeliveryDetail(id, fallbackDelivery = null) {
     if (!id && !fallbackDelivery) return null;
     try {
-      // 1. Nếu fallbackDelivery đã có items đầy đủ thì ưu tiên dùng
+      // 1. Nếu fallbackDelivery đã có items đầy đủ và có map transportsBySupplier thì ưu tiên dùng
       if (
         Array.isArray(fallbackDelivery?.items) &&
-        fallbackDelivery.items.length > 0
+        fallbackDelivery.items.length > 0 &&
+        fallbackDelivery.transportsBySupplier
       ) {
         return fallbackDelivery;
+      }
+
+      // 2. Tra cứu từ danh sách phiếu nhập hàng tổng đã được gộp chuẩn
+      const delivRes = await this.getDeliveries();
+      const allMaster = delivRes?.items || [];
+      const matched = allMaster.find(
+        (m) =>
+          m.id === id ||
+          m.deliveryNo === id ||
+          m.orderNo === id ||
+          m.subOrderIds?.includes(id) ||
+          m.deliveryIds?.includes(id) ||
+          (fallbackDelivery &&
+            (m.deliveryNo === fallbackDelivery.deliveryNo ||
+              m.orderNo === fallbackDelivery.orderNo)),
+      );
+
+      if (matched) {
+        return matched;
       }
 
       // 2. Lấy danh sách suppliers để map tên
       const supRes = await this.getSuppliers().catch(() => ({ items: [] }));
       const supplierMap = new Map(
-        (supRes?.items || []).map((s) => [s.id, s.name]),
+        (supRes?.items || []).map((s) => [String(s.id), s.name]),
       );
 
       // 3. Nếu fallbackDelivery có subOrderIds (đơn gộp nhiều NCC)
@@ -888,15 +1244,26 @@ const IngredientOrderService = {
 
           validDetails.forEach((d) => {
             const sName =
-              d.supplierName ||
-              supplierMap.get(d.supplierId) ||
+              (d.supplierName && d.supplierName !== "Nhà cung cấp đối tác" && !d.supplierName.includes("Nhiều NCC")
+                ? d.supplierName
+                : null) ||
+              supplierMap.get(String(d.supplierId)) ||
+              d.Supplier?.name ||
+              d.supplier?.name ||
               "Nhà cung cấp đối tác";
-            if (sName) supNames.add(sName);
+            if (sName && sName !== "Nhà cung cấp đối tác") supNames.add(sName);
             if (d.requestedDeliveryDate) {
               latestDate = String(d.requestedDeliveryDate).slice(0, 10);
             }
             if (Array.isArray(d.items)) {
               d.items.forEach((it) => {
+                const resolvedItemSup =
+                  (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC")
+                    ? it.supplierName
+                    : null) ||
+                  supplierMap.get(String(it.supplierId || d.supplierId)) ||
+                  sName;
+
                 allItems.push({
                   id: it.id,
                   ingredientId: it.ingredientEntryId || it.id,
@@ -911,8 +1278,8 @@ const IngredientOrderService = {
                   orderedQty: Number(it.requestedQuantity || it.quantity || 0),
                   deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
                   unit: it.unit || "kg",
-                  supplierId: d.supplierId,
-                  supplierName: sName,
+                  supplierId: it.supplierId || d.supplierId,
+                  supplierName: resolvedItemSup,
                   handlingType: "DIRECT_USE",
                   status: "ACCEPTED",
                 });
@@ -922,24 +1289,29 @@ const IngredientOrderService = {
 
           const suppliersList = Array.from(supNames);
           const first = validDetails[0];
-          const reqNo = String(
-            first.requestNo || fallbackDelivery?.orderNo || "",
-          ).toUpperCase();
-          const isB2 =
-            reqNo.includes("B2") ||
-            reqNo.includes("-D2") ||
-            reqNo.includes("DOT 2") ||
-            reqNo.includes("ĐỢT 2");
-          const batchType = isB2 ? "BATCH_2" : "BATCH_1";
+          const batchType =
+            batchTypeOf(first) ?? batchTypeOf(fallbackDelivery);
+          const isB2 = batchType === BATCH_TYPE.BATCH_2;
           const deliveryTime = isB2 ? "07:45" : "05:30";
+
+          const rawFirstStatus = String(first.status || "").toUpperCase();
+          const isFirstConfirmed = rawFirstStatus === "ACCEPTED" || rawFirstStatus === "CONFIRMED";
+          const isFirstCreated =
+            rawFirstStatus === "SENT" ||
+            rawFirstStatus === "DRAFT" ||
+            rawFirstStatus === "CREATED" ||
+            rawFirstStatus === "IN_PROGRESS" ||
+            rawFirstStatus === "PENDING";
 
           return adaptDeliveryItem({
             ...(fallbackDelivery || {}),
             id: fallbackDelivery?.id || first.id,
             deliveryNo:
               fallbackDelivery?.deliveryNo ||
-              `PN-${first.requestNo?.replace(/^PO-/, "")}`,
-            orderNo: fallbackDelivery?.orderNo || first.requestNo,
+              `PN-${first.requestNo?.replace(/^PN-|^PO-|^DEL-/, "")}`,
+            orderNo:
+              fallbackDelivery?.deliveryNo ||
+              `PN-${first.requestNo?.replace(/^PN-|^PO-|^DEL-/, "")}`,
             supplierId: first.supplierId,
             supplierName:
               suppliersList.length > 1
@@ -952,16 +1324,8 @@ const IngredientOrderService = {
               latestDate || fallbackDelivery?.deliveryDate || getTodayStr(),
             deliveryTime,
             batchType,
-            status:
-              first.status === "ACCEPTED"
-                ? "CONFIRMED"
-                : first.status === "SENT" || first.status === "DRAFT"
-                  ? "CREATED"
-                  : first.status,
-            statusLabel:
-              first.status === "ACCEPTED"
-                ? "NCC đã xác nhận"
-                : "Chờ NCC xác nhận",
+            status: isFirstConfirmed ? "CONFIRMED" : isFirstCreated ? "CREATED" : first.status,
+            statusLabel: isFirstConfirmed ? "NCC đã xác nhận" : "Chờ NCC xác nhận",
             note: first.note || fallbackDelivery?.note,
             deliveryItems: allItems,
             items: allItems,
@@ -1026,6 +1390,9 @@ const IngredientOrderService = {
     menuId,
     menuIds,
     menus,
+    menusSummary,
+    plannedPortions,
+    maxPortions,
     note,
     orderDate,
     items,
@@ -1036,7 +1403,7 @@ const IngredientOrderService = {
       ? String(orderDate).slice(0, 10)
       : getTodayStr();
     const deliveryDate = dateFormatted;
-    const orderNo = `PO-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
+    const orderNo = `PN-${dateFormatted.replace(/-/g, "")}-${Date.now().toString().slice(-4)}${Math.floor(10 + Math.random() * 90)}`;
 
     // Tải danh mục ingredient-entries, active partnerships và danh mục ingredients từ DB (đầy đủ các trang)
     const [entries, partnerships, allIngredients] = await Promise.all([
@@ -1126,13 +1493,18 @@ const IngredientOrderService = {
         }
       });
 
-      const noteText = note
-        ? `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. ${note}`.trim()
-        : `Lịch hẹn giao: 05:30 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 1 thực phẩm tươi sống`;
+      const portionsTag = plannedPortions
+        ? ` [Sĩ số: ${maxPortions || 0} HS | Đợt 1: ${plannedPortions} suất]`
+        : "";
+      const noteText =
+        (note?.trim() || "Phiếu giao nhận Đợt 1 thực phẩm tươi sống") +
+        portionsTag;
 
       const payload = {
         supplierId: sId,
         requestNo: reqNo,
+        orderType: "DIRECT_USE",
+        batchNo: 1,
         requestedDeliveryDate: deliveryDate,
         note: noteText,
         items: Array.from(mergedItemsMap.entries()).map(
@@ -1161,6 +1533,7 @@ const IngredientOrderService = {
     return {
       success: true,
       orderNo,
+      deliveryNo: orderNo,
       attachedDryCount: 0,
     };
   },
@@ -1205,10 +1578,9 @@ const IngredientOrderService = {
       );
     }
 
-    const baseOrderNo = String(batch1Delivery.orderNo || "").replace(
-      /-D1(-\d+)?$/,
-      "",
-    );
+    const baseOrderNo = String(
+      batch1Delivery.deliveryNo || batch1Delivery.orderNo || "",
+    ).replace(/-D1(-\d+)?$/, "");
     const deliveryDate =
       orderDate ||
       batch1Delivery.deliveryDate ||
@@ -1312,13 +1684,15 @@ const IngredientOrderService = {
         }
       });
 
-      const noteText = note
-        ? `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. ${note}`.trim()
-        : `Lịch hẹn giao: 07:45 - Ngày ${deliveryDate}. Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)`;
+      const noteText =
+        note?.trim() ||
+        "Phiếu giao nhận Đợt 2 thực phẩm tươi sống (Cân đối sĩ số)";
 
       const payload = {
         supplierId: sId,
         requestNo: reqNo,
+        orderType: "DIRECT_USE",
+        batchNo: 2,
         requestedDeliveryDate: deliveryDate,
         note: noteText,
         items: Array.from(mergedItemsMap.entries()).map(

@@ -9,14 +9,38 @@ import SupplierDeliveryService, {
   extractApiError,
   formatQuantityVi,
   formatSourceFacilityLabel,
+  generateIdempotencyKey,
+  getAllocationTotalStatus,
+  getMinArrivalTime,
   normalizeDecimalQuantity,
   ORDER_CREATION_STAGE,
+  thousandthsToQuantity,
   validateDeliveryIngredientsStep,
   validateDeliveryLogisticsStep,
 } from "src/services/SupplierDeliveryService"
 import { SUPPLY_ORDER_STATUS } from "src/services/SupplierOrderService"
 import OrderStatusBadge from "./OrderStatusBadge"
 import styles from "./OrderFulfillmentWorkflow.module.scss"
+
+/** Một phần giao của nguyên liệu: 1 cơ sở nguồn cung + khối lượng (+ NSX/HSD nếu đồ khô) = 1 lô. */
+function createAllocation(actualQuantity = "") {
+  return {
+    key: generateIdempotencyKey(),
+    sourceFacilityId: "",
+    actualQuantity,
+    manufactureDate: "",
+    expiryDate: "",
+  }
+}
+
+function buildInitialAllocations(items = []) {
+  const next = {}
+  items.forEach(item => {
+    if (!item?.id) return
+    next[item.id] = [createAllocation(normalizeDecimalQuantity(item.requestedQuantity))]
+  })
+  return next
+}
 
 function OrderFulfillmentWorkflow({
   order,
@@ -32,9 +56,10 @@ function OrderFulfillmentWorkflow({
   const [loadingFacilities, setLoadingFacilities] = useState(false)
   const [facilitiesError, setFacilitiesError] = useState("")
 
-  const [sourceByItemId, setSourceByItemId] = useState({})
-  // Ngày sản xuất / hạn sử dụng của lô theo từng mặt hàng (chỉ đồ khô).
-  const [lotDatesByItemId, setLotDatesByItemId] = useState({})
+  // Phân bổ nguồn cung theo từng mặt hàng: nhiều cơ sở, mỗi cơ sở 1 khối lượng (1 lô).
+  // NSX/HSD chỉ áp dụng cho đồ khô.
+  const [allocationsByItemId, setAllocationsByItemId] = useState({})
+  // Giờ dự kiến đến (HH:mm) trong ngày hôm nay.
   const [expectedArrivalLocal, setExpectedArrivalLocal] = useState("")
   const [vehiclePlate, setVehiclePlate] = useState("")
   const [note, setNote] = useState("")
@@ -67,11 +92,9 @@ function OrderFulfillmentWorkflow({
 
   useEffect(() => {
     if (!order?.id) return
-    setSourceByItemId({})
-    
-    // NSX/HSD của đồ khô do NCC tự nhập tay theo lô thực tế, không điền sẵn.
-    setLotDatesByItemId({})
-
+    setAllocationsByItemId(
+      buildInitialAllocations(Array.isArray(order.items) ? order.items : []),
+    )
     setExpectedArrivalLocal("")
     setVehiclePlate("")
     setNote("")
@@ -81,74 +104,140 @@ function OrderFulfillmentWorkflow({
     }
   }, [order?.id, order?.status, items, loadFacilities])
 
-  const buildSourcesPayload = () =>
+  // Danh sách phân bổ phẳng (giữ key để gắn lỗi theo từng dòng con).
+  const buildAllocationList = () =>
     items
       .filter(item => item.id)
-      .map(item => ({
-        supplyRequestItemId: item.id,
-        sourceFacilityId: String(sourceByItemId[item.id] || "").trim(),
-        actualQuantity: normalizeDecimalQuantity(item.requestedQuantity),
-        ...(item.handlingType === "DRY_STOCK" ? lotDatesByItemId[item.id] || {} : {}),
-      }))
+      .flatMap(item =>
+        (allocationsByItemId[item.id] || []).map(row => ({
+          key: row.key,
+          supplyRequestItemId: item.id,
+          sourceFacilityId: String(row.sourceFacilityId || "").trim(),
+          actualQuantity: normalizeDecimalQuantity(row.actualQuantity),
+          ...(item.handlingType === "DRY_STOCK"
+            ? { manufactureDate: row.manufactureDate, expiryDate: row.expiryDate }
+            : {}),
+        })),
+      )
 
-  const handleLotDateChange = (itemId, field, value) => {
-    setLotDatesByItemId(prev => ({ ...prev, [itemId]: { ...(prev[itemId] || {}), [field]: value } }))
+  // Payload gửi BE: mỗi phần giao là 1 dòng sources (BE tạo 1 delivery_item + 1 ingredient_lot).
+  const buildSourcesPayload = () =>
+    buildAllocationList().map(({ key: _key, ...source }) => source)
+
+  const clearAllocationErrors = (itemId, key) => {
     setFieldErrors(prev => {
-      if (!prev.lotDateErrors?.[itemId]) return prev
-      const next = { ...prev.lotDateErrors }
-      delete next[itemId]
-      return { ...prev, lotDateErrors: next }
-    })
-    onDraftChange?.()
-  }
-
-  // Đồ khô: bắt buộc NSX (không sau hôm nay) và HSD (không trước NSX, không trước hôm nay, còn ít nhất 7 ngày).
-  const validateLotDates = () => {
-    const errors = {}
-    items.forEach(item => {
-      if (item.handlingType !== "DRY_STOCK" || !item.id) return
-      const message = lotDateError({ ...lotDatesByItemId[item.id], isDryStock: true, required: true })
-      if (message) errors[item.id] = message
-    })
-    return errors
-  }
-
-  const handleSourceChange = (itemId, facilityId) => {
-    setSourceByItemId(prev => ({ ...prev, [itemId]: facilityId }))
-    setFieldErrors(prev => {
-      if (!prev.sources && !prev.sourceErrors?.[itemId]) return prev
       const nextSourceErrors = { ...(prev.sourceErrors || {}) }
+      const nextAllocationErrors = { ...(prev.allocationErrors || {}) }
+      const nextLotDateErrors = { ...(prev.lotDateErrors || {}) }
       delete nextSourceErrors[itemId]
+      if (key) {
+        delete nextAllocationErrors[key]
+        delete nextLotDateErrors[key]
+      }
       return {
         ...prev,
         sources: undefined,
         sourceErrors: nextSourceErrors,
+        allocationErrors: nextAllocationErrors,
+        lotDateErrors: nextLotDateErrors,
       }
     })
     onDraftChange?.()
   }
 
+  const handleAllocationChange = (itemId, key, field, value) => {
+    setAllocationsByItemId(prev => ({
+      ...prev,
+      [itemId]: (prev[itemId] || []).map(row =>
+        row.key === key ? { ...row, [field]: value } : row,
+      ),
+    }))
+    clearAllocationErrors(itemId, key)
+  }
+
+  const handleAddAllocation = itemId => {
+    setAllocationsByItemId(prev => {
+      const current = prev[itemId] || []
+      const item = items.find(it => it.id === itemId)
+      // Gợi ý sẵn phần khối lượng còn thiếu để người dùng chỉ việc chỉnh.
+      const summary = getAllocationTotalStatus(item?.requestedQuantity, current)
+      const remaining =
+        summary.status === "UNDER" && summary.difference > 0
+          ? thousandthsToQuantity(summary.difference)
+          : ""
+      return { ...prev, [itemId]: [...current, createAllocation(remaining)] }
+    })
+    clearAllocationErrors(itemId)
+  }
+
+  const handleRemoveAllocation = (itemId, key) => {
+    setAllocationsByItemId(prev => {
+      const current = prev[itemId] || []
+      if (current.length <= 1) return prev
+      return { ...prev, [itemId]: current.filter(row => row.key !== key) }
+    })
+    clearAllocationErrors(itemId, key)
+  }
+
+  // Áp dụng nhanh: chỉ gán cho nguyên liệu đang lấy từ 1 nguồn, không động vào nguyên liệu đã tách nhiều nguồn.
   const handleApplyAllFacilities = facilityId => {
     if (!facilityId) return
-    const next = {}
-    items.forEach(item => {
-      if (item.id) next[item.id] = facilityId
+    setAllocationsByItemId(prev => {
+      const next = { ...prev }
+      Object.keys(next).forEach(itemId => {
+        const current = next[itemId] || []
+        if (current.length === 1) {
+          next[itemId] = [{ ...current[0], sourceFacilityId: facilityId }]
+        }
+      })
+      return next
     })
-    setSourceByItemId(next)
     setFieldErrors(prev => ({
       ...prev,
       sources: undefined,
       sourceErrors: {},
+      allocationErrors: {},
     }))
     onDraftChange?.()
   }
 
+  // Đồ khô: mỗi lô bắt buộc ngày sản xuất (không sau hôm nay) và hạn sử dụng (không trước ngày sản xuất).
+  // NSX không sau hôm nay; HSD không trước NSX, không trước hôm nay, đồ khô còn hạn ít nhất 7 ngày.
+  const validateLotDates = () => {
+    const errors = {}
+    items.forEach(item => {
+      if (item.handlingType !== "DRY_STOCK" || !item.id) return
+      ;(allocationsByItemId[item.id] || []).forEach(row => {
+        const message = lotDateError({
+          manufactureDate: row.manufactureDate || "",
+          expiryDate: row.expiryDate || "",
+          isDryStock: true,
+          required: true,
+        })
+        if (message) errors[row.key] = message
+      })
+    })
+    return errors
+  }
+
+  // Nút "Hoàn tất nguyên liệu" chỉ bật khi tổng khối lượng của mọi nguyên liệu khớp đúng số trường cần.
+  const allTotalsMatch = useMemo(
+    () =>
+      items.length > 0 &&
+      items.every(
+        item =>
+          !item.id ||
+          getAllocationTotalStatus(item.requestedQuantity, allocationsByItemId[item.id])
+            .status === "MATCH",
+      ),
+    [items, allocationsByItemId],
+  )
+
   const handleProceedToLogistics = () => {
-    const sources = buildSourcesPayload()
     const check = validateDeliveryIngredientsStep({
       sourceType: DELIVERY_SOURCE_TYPE.REQUEST,
       supplyRequestId: order?.id,
-      sources,
+      sources: buildAllocationList(),
       requestItems: items,
     })
 
@@ -194,6 +283,10 @@ function OrderFulfillmentWorkflow({
 
   const isIngredientsStep =
     fulfillmentStage !== ORDER_CREATION_STAGE.LOGISTICS
+  const allocationCount = items.reduce(
+    (count, item) => count + (allocationsByItemId[item.id]?.length || 0),
+    0,
+  )
 
   if (isIngredientsStep) {
     return (
@@ -211,28 +304,34 @@ function OrderFulfillmentWorkflow({
         <div className={styles.cardBody}>
           <RequestSourcesAssigner
             items={items}
-            sourceByItemId={sourceByItemId}
+            allocationsByItemId={allocationsByItemId}
             sourceFacilityOptions={facilityOptions}
             loadingFacilities={loadingFacilities}
             facilitiesError={facilitiesError}
             fieldError={fieldErrors.sources}
             sourceErrors={fieldErrors.sourceErrors || {}}
-            disabled={submitting}
-            onChangeSource={handleSourceChange}
-            onApplyAll={handleApplyAllFacilities}
-            lotDatesByItemId={lotDatesByItemId}
+            allocationErrors={fieldErrors.allocationErrors || {}}
             lotDateErrors={fieldErrors.lotDateErrors || {}}
-            onChangeLotDate={handleLotDateChange}
+            disabled={submitting}
+            onChangeAllocation={handleAllocationChange}
+            onAddAllocation={handleAddAllocation}
+            onRemoveAllocation={handleRemoveAllocation}
+            onApplyAll={handleApplyAllFacilities}
           />
         </div>
 
         <div className={styles.cardFooter}>
+          {!allTotalsMatch && (
+            <span className={styles.footerHint} role="status">
+              Tổng khối lượng giao của mỗi nguyên liệu phải bằng khối lượng trường yêu cầu.
+            </span>
+          )}
           <Button
             type="button"
             variant="contained"
             color="primary"
             className={styles.footerPrimaryBtn}
-            disabled={submitting || loadingFacilities}
+            disabled={submitting || loadingFacilities || !allTotalsMatch}
             endIcon={<ArrowForward fontSize="small" />}
             onClick={handleProceedToLogistics}
           >
@@ -267,7 +366,7 @@ function OrderFulfillmentWorkflow({
           </div>
           <ul className={styles.recapList}>
             {items.map((item, idx) => {
-              const fac = facilityMap.get(sourceByItemId[item.id])
+              const allocations = allocationsByItemId[item.id] || []
               return (
                 <li key={item.id || idx} className={styles.recapItem}>
                   <div className={styles.recapItemTop}>
@@ -276,9 +375,21 @@ function OrderFulfillmentWorkflow({
                       {`${formatQuantityVi(item.requestedQuantity)} ${item.unit || ""}`.trim()}
                     </span>
                   </div>
-                  <span className={styles.recapFacility}>
-                    {fac ? formatSourceFacilityLabel(fac) : "Đã gắn cơ sở nguồn cung"}
-                  </span>
+                  {allocations.map(row => {
+                    const fac = facilityMap.get(row.sourceFacilityId)
+                    return (
+                      <div key={row.key} className={styles.recapAllocation}>
+                        <span className={styles.recapFacility}>
+                          {fac ? formatSourceFacilityLabel(fac) : "Đã gắn cơ sở nguồn cung"}
+                        </span>
+                        {allocations.length > 1 && (
+                          <span className={styles.recapAllocationQty}>
+                            {`${formatQuantityVi(row.actualQuantity)} ${item.unit || ""}`.trim()}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  })}
                 </li>
               )
             })}
@@ -291,13 +402,14 @@ function OrderFulfillmentWorkflow({
               className={styles.fieldLabel}
               htmlFor="order-expected-arrival"
             >
-              <span>{"Thời gian dự kiến đến trường "}</span>
+              <span>{"Giờ dự kiến đến trường (hôm nay) "}</span>
               <span className={styles.requiredMark}>*</span>
             </label>
             <input
               id="order-expected-arrival"
-              type="datetime-local"
+              type="time"
               className={styles.textInput}
+              min={getMinArrivalTime()}
               value={expectedArrivalLocal}
               disabled={submitting}
               onChange={e => {
@@ -386,8 +498,8 @@ function OrderFulfillmentWorkflow({
           <QrCode2Outlined className={styles.qrNoteIcon} aria-hidden="true" />
           <span>
             Khi hoàn tất, đơn giao sẽ tự động cấp mã{" "}
-            <strong>FP-DE-xxxxx</strong>, tạo <strong>{items.length}</strong>{" "}
-            nhãn QR dán bao bì và chuyển sang trạng thái{" "}
+            <strong>FP-DE-xxxxx</strong>, tạo <strong>{allocationCount}</strong>{" "}
+            nhãn QR dán bao bì (mỗi lô 1 nhãn) và chuyển sang trạng thái{" "}
             <strong>Đang giao hàng</strong>.
           </span>
         </div>

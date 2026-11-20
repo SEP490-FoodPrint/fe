@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import IngredientOrderService from "src/services/IngredientOrderService";
+import notice from "src/components/Notice";
 import {
   Box,
   Typography,
@@ -17,6 +18,12 @@ import {
   TextField,
   TableContainer,
   Tooltip,
+  CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from "@mui/material";
 import {
   ArrowLeft,
@@ -28,7 +35,6 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
-  Thermometer,
   Truck,
   Printer,
   Calendar,
@@ -36,8 +42,52 @@ import {
   Check,
   Layers,
   ChefHat,
+  Maximize2,
+  Copy,
+  X,
 } from "lucide-react";
 import styles from "./DeliveryDetailView.module.scss";
+
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return "";
+  const str = String(dateInput).trim();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    return `${match[3]}/${match[2]}/${match[1]}`;
+  }
+  return str;
+};
+
+// Helper format thông tin Phương tiện vận chuyển
+const formatVehicle = (vehicle) => {
+  if (
+    !vehicle ||
+    vehicle === "Chưa phân công (Chờ NCC điều xe)" ||
+    vehicle === "Chưa có biển số xe" ||
+    vehicle === "--" ||
+    vehicle.includes("Chờ")
+  ) {
+    return "Chưa phân công (Chờ NCC điều xe)";
+  }
+  return vehicle;
+};
+
+// Helper format giờ HH:mm
+const formatTimeStr = (isoString) => {
+  if (!isoString) return "";
+  try {
+    const d = new Date(isoString);
+    if (!isNaN(d.getTime())) {
+      const h = String(d.getHours()).padStart(2, "0");
+      const m = String(d.getMinutes()).padStart(2, "0");
+      return `${h}:${m}`;
+    }
+  } catch {
+    // fallback
+  }
+  return "";
+};
 
 // Helper định dạng định lượng/suất: nếu đơn vị là kg thì quy đổi sang gam (g), tổng vẫn giữ kg
 const formatPortionRate = (rate, unit) => {
@@ -95,6 +145,40 @@ export default function DeliveryDetailView({
   const [updating, setUpdating] = useState(false);
   const [expandedItems, setExpandedItems] = useState({});
 
+  // State cho Popup Modal hiển thị nhãn QR dán bao bì nguyên liệu (giống NCC)
+  const [itemQrModalOpen, setItemQrModalOpen] = useState(false);
+  const [focusedItemId, setFocusedItemId] = useState(null);
+  const [showAllLabels, setShowAllLabels] = useState(true);
+  const [copiedLabelId, setCopiedLabelId] = useState("");
+
+  const handleOpenItemQrModal = (item) => {
+    const targetId = item?.id || item?.ingredientId || item?.name || null;
+    setFocusedItemId(targetId);
+    setShowAllLabels(false);
+    setItemQrModalOpen(true);
+    setCopiedLabelId("");
+  };
+
+  const handleCloseItemQrModal = () => {
+    setItemQrModalOpen(false);
+    setFocusedItemId(null);
+    setCopiedLabelId("");
+  };
+
+  const handleCopyTraceUrl = async (labelId, url) => {
+    if (!url) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      }
+      setCopiedLabelId(labelId);
+      notice({ msg: "Đã sao chép liên kết truy xuất nguồn gốc!", isSuccess: true });
+      setTimeout(() => setCopiedLabelId(""), 2000);
+    } catch {
+      // fallback
+    }
+  };
+
   const toggleExpandItem = (idx) => {
     setExpandedItems((prev) => ({ ...prev, [idx]: !prev[idx] }));
   };
@@ -136,8 +220,106 @@ export default function DeliveryDetailView({
     return map;
   }, [delivery]);
 
-  // Lấy thông tin xe, tài xế & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
+  // Lấy chính xác tên NCC cho từng dòng nguyên liệu trong bảng chi tiết
+  const getItemSupplierName = (item) => {
+    // 1. Tên NCC trực tiếp trên dòng nếu là tên hợp lệ (không phải tên chung chung)
+    if (
+      item?.supplierName &&
+      item.supplierName !== "Nhà cung cấp đối tác" &&
+      !item.supplierName.includes("Nhiều NCC")
+    ) {
+      return item.supplierName;
+    }
+
+    // 2. Tra cứu trong nhóm nguyên liệu itemsBySupplier của từng NCC
+    if (itemsBySupplier) {
+      for (const [sName, sItems] of Object.entries(itemsBySupplier)) {
+        if (sName && sName !== "Nhà cung cấp đối tác" && !sName.includes("Nhiều NCC")) {
+          const matched = sItems.some((si) => {
+            if (si.id && item.id && si.id === item.id) return true;
+            if (si.ingredientId && item.ingredientId && si.ingredientId === item.ingredientId) return true;
+            const n1 = (si.name || si.ingredientName || "").trim().toLowerCase();
+            const n2 = (item.name || item.ingredientName || "").trim().toLowerCase();
+            return n1 && n2 && n1 === n2;
+          });
+          if (matched) return sName;
+        }
+      }
+    }
+
+    // 3. Khớp theo supplierId với danh sách xe transportsBySupplier
+    if (item?.supplierId && delivery?.transportsBySupplier) {
+      for (const [sName, tInfo] of Object.entries(delivery.transportsBySupplier)) {
+        if (String(tInfo?.supplierId) === String(item.supplierId) && sName && sName !== "Nhà cung cấp đối tác") {
+          return sName;
+        }
+      }
+    }
+
+    // 4. Nếu đơn hàng chỉ có 1 NCC duy nhất
+    if (
+      Array.isArray(delivery?.suppliers) &&
+      delivery.suppliers.length === 1 &&
+      delivery.suppliers[0] &&
+      delivery.suppliers[0] !== "Nhà cung cấp đối tác"
+    ) {
+      return delivery.suppliers[0];
+    }
+
+    // 5. Nếu tên NCC chính của phiếu là tên cụ thể
+    if (
+      delivery?.supplierName &&
+      !delivery.supplierName.includes("Nhiều NCC") &&
+      delivery.supplierName !== "Nhà cung cấp đối tác"
+    ) {
+      return delivery.supplierName;
+    }
+
+    if (item?.Supplier?.name) return item.Supplier.name;
+    if (item?.supplier?.name) return item.supplier.name;
+    if (delivery?.Supplier?.name) return delivery.Supplier.name;
+
+    return item?.supplierName || delivery?.supplierName || "Nhà cung cấp đối tác";
+  };
+
+  // Lấy thông tin phương tiện & QR riêng cho từng Nhà cung cấp (Mỗi NCC 1 ô xe)
   const getSupplierTransportInfo = (sName, idx) => {
+    // 1. Kiểm tra nếu có dữ liệu vận chuyển chi tiết của từng NCC trong đơn gộp
+    const tMap = delivery.transportsBySupplier || {};
+    const norm = String(sName || "").trim().toLowerCase();
+    const supInfo =
+      tMap[sName] ||
+      tMap[norm] ||
+      Object.entries(tMap).find(([k]) => {
+        const kNorm = String(k).trim().toLowerCase();
+        return kNorm === norm || norm.includes(kNorm) || kNorm.includes(norm);
+      })?.[1] ||
+      (Array.isArray(delivery.transportsList) ? delivery.transportsList[idx] : null);
+
+    if (supInfo) {
+      const hasSpecificDispatched =
+        supInfo.hasDispatched ||
+        Boolean(supInfo.vehicle && !supInfo.vehicle.includes("Chưa phân công")) ||
+        supInfo.status === "IN_TRANSIT" ||
+        supInfo.status === "ARRIVED" ||
+        supInfo.status === "INSPECTING" ||
+        supInfo.status === "RECEIVED" ||
+        supInfo.status === "APPROVED" ||
+        supInfo.status === "COMPLETED";
+
+      return {
+        vehicle:
+          supInfo.vehicle ||
+          (hasSpecificDispatched ? "Xe giao hàng NCC" : "Chưa phân công (Chờ NCC điều xe)"),
+        expectedTime: supInfo.expectedTime || "Chờ NCC cập nhật",
+        qrCode:
+          supInfo.qrCode ||
+          `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+        note: supInfo.note || "",
+        status: supInfo.status || delivery.status || "CREATED",
+      };
+    }
+
     const hasDispatched =
       delivery.status === "IN_TRANSIT" ||
       delivery.status === "ARRIVED" ||
@@ -146,26 +328,362 @@ export default function DeliveryDetailView({
       delivery.status === "APPROVED" ||
       delivery.status === "COMPLETED";
 
-    if (!hasDispatched && !delivery.vehiclePlate) {
+    const hasSpecificPlate = Boolean(
+      delivery.vehiclePlate &&
+      !delivery.vehiclePlate.includes("Chưa") &&
+      !delivery.vehiclePlate.includes("Chờ")
+    );
+
+    if (!hasDispatched && !hasSpecificPlate) {
       return {
-        driver: "Chưa phân công (Chờ NCC điều xe)",
-        phone: "--",
-        vehicle: "Chưa điều xe",
-        temp: "Chưa đo (Chờ xe tới)",
+        vehicle: "Chưa phân công (Chờ NCC điều xe)",
+        expectedTime: delivery.expectedArrivalAt
+          ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
+          : "Chờ NCC cập nhật",
         qrCode: `QR-PENDING-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+        status: delivery.status || "CREATED",
       };
     }
 
     return {
-      driver: delivery.driverName || "Tài xế NCC",
-      phone: delivery.driverPhone || delivery.phone || "--",
-      vehicle: delivery.vehiclePlate || "Xe giao hàng",
-      temp: delivery.refrigerationTemp || "--",
+      vehicle: delivery.vehiclePlate || "Chưa phân công (Chờ NCC điều xe)",
+      expectedTime: delivery.expectedArrivalAt
+        ? `${formatTimeStr(delivery.expectedArrivalAt)} — Ngày ${formatDateVN(delivery.expectedArrivalAt)}`
+        : delivery.deliveryTime
+          ? `${delivery.deliveryTime} — Ngày ${formatDateVN(delivery.deliveryDate)}`
+          : "Chờ NCC cập nhật",
       qrCode:
         delivery.deliveryQr ||
         `QR-LOT-${delivery.deliveryNo || "DEL"}-0${idx + 1}`,
+      status: delivery.status || "IN_TRANSIT",
     };
   };
+
+  // Render badge trạng thái riêng của từng Nhà cung cấp trong đợt giao đồ tươi
+  const renderSupplierStatusBadge = (status) => {
+    const raw = String(status || "").toUpperCase();
+    if (
+      raw === "CREATED" ||
+      raw === "PENDING" ||
+      raw === "SENT" ||
+      raw === "DRAFT" ||
+      raw === "IN_PROGRESS"
+    ) {
+      return (
+        <Chip
+          icon={<Clock size={13} />}
+          label="Chờ NCC xác nhận"
+          size="small"
+          sx={{
+            bgcolor: "#f1f5f9",
+            color: "#475569",
+            fontWeight: 600,
+            fontSize: "0.75rem",
+            border: "1px solid #cbd5e1",
+          }}
+        />
+      );
+    }
+
+    switch (status) {
+      case "CONFIRMED":
+      case "ACCEPTED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={13} />}
+            label="NCC đã xác nhận"
+            size="small"
+            sx={{
+              bgcolor: "#e0f2fe",
+              color: "#0369a1",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #bae6fd",
+            }}
+          />
+        );
+      case "IN_TRANSIT":
+        return (
+          <Chip
+            icon={<Truck size={13} />}
+            label="NCC đang vận chuyển"
+            size="small"
+            sx={{
+              bgcolor: "#e0f2fe",
+              color: "#0284c7",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #b9e6fe",
+            }}
+          />
+        );
+      case "ARRIVED":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Đã đến cổng - Chờ kiểm tra"
+            size="small"
+            sx={{
+              bgcolor: "#fef3c7",
+              color: "#b45309",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fde68a",
+            }}
+          />
+        );
+      case "PENDING_APPROVAL":
+      case "INSPECTING":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Đang kiểm tra 4 bên"
+            size="small"
+            sx={{
+              bgcolor: "#fef3c7",
+              color: "#b45309",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fde68a",
+            }}
+          />
+        );
+      case "APPROVED":
+      case "COMPLETED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={13} />}
+            label="Đã duyệt & Bàn giao bếp"
+            size="small"
+            sx={{
+              bgcolor: "#dcfce7",
+              color: "#15803d",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #bbf7d0",
+            }}
+          />
+        );
+      case "RECEIVED":
+        return (
+          <Chip
+            icon={<CheckCircle2 size={13} />}
+            label="Đã nhận hàng & Vào bếp"
+            size="small"
+            sx={{
+              bgcolor: "#dcfce7",
+              color: "#15803d",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #bbf7d0",
+            }}
+          />
+        );
+      case "RE_DELIVER":
+        return (
+          <Chip
+            icon={<Clock size={13} />}
+            label="Yêu cầu giao lại"
+            size="small"
+            sx={{
+              bgcolor: "#fff7ed",
+              color: "#c2410c",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fed7aa",
+            }}
+          />
+        );
+      case "REJECTED":
+        return (
+          <Chip
+            icon={<XCircle size={13} />}
+            label="Bị từ chối"
+            size="small"
+            sx={{
+              bgcolor: "#fee2e2",
+              color: "#b91c1c",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+              border: "1px solid #fca5a5",
+            }}
+          />
+        );
+      case "CANCELLED":
+        return (
+          <Chip
+            label="Đã hủy"
+            size="small"
+            sx={{
+              bgcolor: "#f1f5f9",
+              color: "#64748b",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+            }}
+          />
+        );
+      default: {
+        const norm = String(status || "").toUpperCase();
+        const displayLabel =
+          norm === "IN_PROGRESS" ||
+            norm === "SENT" ||
+            norm === "PENDING" ||
+            norm === "CREATED" ||
+            norm === "DRAFT" ||
+            !status
+            ? "Chờ NCC xác nhận"
+            : status;
+        return (
+          <Chip
+            label={displayLabel}
+            size="small"
+            sx={{
+              bgcolor: "#f1f5f9",
+              color: "#475569",
+              fontWeight: 600,
+              fontSize: "0.75rem",
+            }}
+          />
+        );
+      }
+    }
+  };
+
+  const displayNote = useMemo(() => {
+    const raw = String(delivery?.note || delivery?.menuName || "").trim();
+    const cleaned = raw
+      .replace(/^Lịch hẹn giao:[^.\n]*?(\.|\n|$)\s*/i, "")
+      .trim();
+    return cleaned || "Không có ghi chú thêm";
+  }, [delivery?.note, delivery?.menuName]);
+
+  // Kiểm tra NCC đã bàn giao xe vận chuyển xong hay chưa
+  const isItemVehicleDispatched = (item, idx) => {
+    // 1. Nếu phiếu nhập ở trạng thái sơ khai (chờ chốt sĩ số, chờ xác nhận, nháp), tuyệt đối KHÔNG hiện QR
+    const dStatus = String(delivery?.status || delivery?.rawStatus || "").toUpperCase();
+    if (
+      dStatus === "WAITING_ATTENDANCE" ||
+      dStatus === "CREATED" ||
+      dStatus === "PENDING" ||
+      dStatus === "DRAFT" ||
+      dStatus === "IN_PROGRESS" ||
+      dStatus === "SENT"
+    ) {
+      return false;
+    }
+
+    const sName = getItemSupplierName(item);
+    const transport = getSupplierTransportInfo(sName, idx);
+    const sStatus = String(transport?.status || "").toUpperCase();
+
+    if (
+      sStatus === "CREATED" ||
+      sStatus === "PENDING" ||
+      sStatus === "DRAFT" ||
+      sStatus === "IN_PROGRESS" ||
+      sStatus === "SENT"
+    ) {
+      return false;
+    }
+
+    // 2. Chỉ hiện khi trạng thái thực sự là đang giao hoặc đã đến / đã kiểm tra / hoàn thành
+    const validDispatchedStatuses = [
+      "IN_TRANSIT",
+      "ARRIVED",
+      "INSPECTING",
+      "PENDING_APPROVAL",
+      "RECEIVED",
+      "APPROVED",
+      "COMPLETED",
+    ];
+
+    if (validDispatchedStatuses.includes(sStatus) || validDispatchedStatuses.includes(dStatus)) {
+      return true;
+    }
+
+    // 3. Hoặc khi phương tiện đã được phân công biển số xe thực tế
+    const transportVehicle = String(transport?.vehicle || "");
+    const hasValidTransportVehicle =
+      Boolean(transportVehicle) &&
+      !transportVehicle.includes("Chưa") &&
+      !transportVehicle.includes("Chờ");
+
+    const deliveryVehicle = String(delivery?.vehiclePlate || "");
+    const hasValidDeliveryVehicle =
+      Boolean(deliveryVehicle) &&
+      !deliveryVehicle.includes("Chưa") &&
+      !deliveryVehicle.includes("Chờ");
+
+    return hasValidTransportVehicle || hasValidDeliveryVehicle;
+  };
+
+  // Cấu trúc dữ liệu Nhãn QR dán bao bì cho từng dòng nguyên liệu (chuẩn hóa giống NCC)
+  const getLabelDataForItem = (item, idx) => {
+    const sName = getItemSupplierName(item);
+    const idKey = item?.id || item?.ingredientId || `item-${idx + 1}`;
+    const token =
+      item?.qrToken ||
+      item?.qrCode ||
+      `TOKEN-${delivery?.deliveryNo || "DEL"}-${String(idKey).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8)}`;
+
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const traceUrl =
+      item?.qrUrl ||
+      item?.traceUrl ||
+      `${origin}/api/public/delivery-items/${token}`;
+
+    const facilityName =
+      item?.sourceFacility?.name ||
+      item?.sourceFacilityName ||
+      item?.sourceFacilityNameSnapshot ||
+      item?.facilityName ||
+      "Cơ sở nguồn cung đạt chuẩn VietGAP";
+
+    const facilityCode =
+      item?.sourceFacility?.facilityCode ||
+      item?.sourceFacilityCode ||
+      item?.sourceFacilityCodeSnapshot ||
+      "";
+
+    const actualQty =
+      item?.deliveredQty ??
+      item?.actualQuantity ??
+      item?.orderedQty ??
+      item?.quantity ??
+      0;
+
+    return {
+      deliveryItemId: idKey,
+      deliveryNo: delivery?.deliveryNo || "DEL",
+      supplierName: sName,
+      ingredientName: item?.ingredientName || item?.name || "Nguyên liệu",
+      actualQuantity: actualQty,
+      unit: item?.unit || "kg",
+      sourceFacility: {
+        name: facilityName,
+        facilityCode: facilityCode,
+      },
+      traceUrl,
+      qrToken: token,
+      qrImageDataUrl: item?.qrImageDataUrl || null,
+    };
+  };
+
+  const allLabels = useMemo(() => {
+    if (!Array.isArray(delivery?.items)) return [];
+    return delivery.items.map((it, idx) => getLabelDataForItem(it, idx));
+  }, [delivery?.items]);
+
+  const visibleLabels = useMemo(() => {
+    if (showAllLabels || !focusedItemId) return allLabels;
+    const matched = allLabels.filter(
+      (lb) =>
+        lb.deliveryItemId === focusedItemId ||
+        lb.ingredientName === focusedItemId ||
+        String(lb.deliveryItemId) === String(focusedItemId),
+    );
+    return matched.length > 0 ? matched : allLabels;
+  }, [allLabels, showAllLabels, focusedItemId]);
 
   if (!delivery) return null;
 
@@ -198,33 +716,6 @@ export default function DeliveryDetailView({
       setUpdating(false);
     }
   };
-
-  const roles = [
-    {
-      key: "ingredientManagement",
-      title: "1. Ban QL Nguyên liệu",
-      icon: <ShieldCheck size={20} />,
-      data: approvals.ingredientManagement,
-    },
-    {
-      key: "healthOfficer",
-      title: "2. Y tế học đường",
-      icon: <Stethoscope size={20} />,
-      data: approvals.healthOfficer,
-    },
-    {
-      key: "parentsCommittee",
-      title: "3. Đại diện Ban Phụ huynh",
-      icon: <HeartHandshake size={20} />,
-      data: approvals.parentsCommittee,
-    },
-    {
-      key: "kitchenStaff",
-      title: "4. Đại diện Nhà Bếp",
-      icon: <Utensils size={20} />,
-      data: approvals.kitchenStaff,
-    },
-  ];
 
   return (
     <Box className={styles.container}>
@@ -268,9 +759,6 @@ export default function DeliveryDetailView({
                 />
               )}
             </Box>
-            <Typography variant="body2" className={styles.subTitle}>
-              Mã đặt hàng theo đợt: <strong>{delivery.orderNo}</strong>
-            </Typography>
             {Array.isArray(delivery.menusSummary) &&
               delivery.menusSummary.length > 1 && (
                 <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
@@ -398,6 +886,11 @@ export default function DeliveryDetailView({
                 onClick={handleConfirm}
                 disabled={updating}
                 className={styles.confirmAttendanceBtn}
+                startIcon={
+                  updating ? (
+                    <CircularProgress size={16} color="inherit" />
+                  ) : null
+                }
               >
                 {updating
                   ? "Đang cập nhật..."
@@ -408,39 +901,40 @@ export default function DeliveryDetailView({
         </Paper>
       )}
 
-      {isBatch2 && !isWaitingAttendance && delivery.actualAttendance && (
-        <Alert
-          severity="success"
-          icon={<CheckCircle2 size={18} />}
-          className={styles.confirmedAlert}
-        >
-          GVCN đã chốt sĩ số sáng:{" "}
-          <strong>
-            {delivery.actualAttendance} / {delivery.maxPortions} học sinh
-          </strong>
-          . Đợt 2 đã giao bù <strong>{delivery.plannedPortions} suất</strong>{" "}
-          (Tiết kiệm {delivery.maxPortions - delivery.actualAttendance} suất ăn
-          so với định mức tối đa).
-        </Alert>
-      )}
+      {Boolean(
+        isBatch2 &&
+        !isWaitingAttendance &&
+        Number(delivery.actualAttendance) > 0,
+      ) && (
+          <Alert
+            severity="success"
+            icon={<CheckCircle2 size={18} />}
+            className={styles.confirmedAlert}
+          >
+            GVCN đã chốt sĩ số sáng:{" "}
+            <strong>
+              {delivery.actualAttendance} / {delivery.maxPortions} học sinh
+            </strong>
+            . Đợt 2 đã giao bù <strong>{delivery.plannedPortions} suất</strong>{" "}
+            (Tiết kiệm {delivery.maxPortions - delivery.actualAttendance} suất ăn
+            so với định mức tối đa).
+          </Alert>
+        )}
 
-      {/* 4. Khối Thông tin Chuyến giao & Xe của từng Nhà cung cấp (Mỗi NCC hiện 1 ô) */}
+      {/* 4. Khối Thông tin Chuyến giao & Xe của từng Nhà cung cấp (Mỗi NCC là 1 hàng độc lập) */}
       <Box className={styles.sectionWrapper}>
         <Box className={styles.sectionTitleRow}>
           <Typography variant="h6" className={styles.sectionHeading}>
-            Thông Tin Vận Chuyển &amp; Xe Giao Hàng (
+            Thông Tin Vận Chuyển (
             {Object.keys(itemsBySupplier).length} Nhà cung cấp)
           </Typography>
         </Box>
 
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns:
-              Object.keys(itemsBySupplier).length === 1
-                ? "1fr"
-                : "repeat(auto-fit, minmax(320px, 1fr))",
-            gap: 2,
+            display: "flex",
+            flexDirection: "column",
+            gap: 2.5,
           }}
         >
           {Object.entries(itemsBySupplier).map(([sName, sItems], idx) => {
@@ -453,219 +947,102 @@ export default function DeliveryDetailView({
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: 1.5,
-                  p: 2.2,
+                  gap: 2,
+                  p: 2.5,
                   borderRadius: 3,
                   border: "1px solid #e2e8f0",
                 }}
               >
+                {/* Header NCC & Badge Xe */}
                 <Box
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
+                    flexWrap: "wrap",
+                    gap: 1.25,
                   }}
                 >
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <Truck size={18} color="#2563eb" />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+                    <Truck size={20} color="#2563eb" />
                     <Typography
-                      variant="subtitle2"
+                      variant="subtitle1"
                       sx={{
                         fontWeight: 750,
                         color: "#0f172a",
-                        fontSize: "0.95rem",
+                        fontSize: "1rem",
                       }}
                     >
                       {idx + 1}. {sName}
                     </Typography>
                   </Box>
-                  <Chip
-                    label={`Xe ${idx + 1} • ${sItems.length} món`}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ fontWeight: 600, fontSize: "0.72rem" }}
-                  />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    {renderSupplierStatusBadge(transport.status)}
+                    <Chip
+                      label={`${sItems.length} mặt hàng`}
+                      size="small"
+                      color="primary"
+                      variant="outlined"
+                      sx={{ fontWeight: 600, fontSize: "0.75rem" }}
+                    />
+                  </Box>
                 </Box>
                 <Divider className={styles.cardDivider} />
 
-                <Box className={styles.infoItem}>
-                  <Users size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Tài xế &amp; Phương tiện:
-                  </Typography>
-                  <Typography variant="body2" className={styles.infoValue}>
-                    {transport.driver}
-                  </Typography>
-
-
-                </Box>
-
-                <Box className={styles.infoItem}>
-                  <Thermometer size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Nhiệt độ thùng xe:
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    className={
-                      delivery.status === "REJECTED"
-                        ? styles.tempDanger
-                        : styles.infoValue
-                    }
-                  >
-                    {transport.temp}
-                  </Typography>
-                </Box>
-
-                <Box className={styles.infoItem}>
-                  <Calendar size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Thời gian giao:
-                  </Typography>
-                  <Typography variant="body2" className={styles.infoValue}>
-                    {delivery.deliveryTime} — Ngày {delivery.deliveryDate}
-                  </Typography>
-                </Box>
-                <Box className={styles.infoItem}>
-                  <Clock size={16} className={styles.infoIcon} />
-                  <Typography variant="body2" className={styles.infoLabel}>
-                    Ghi chú:
-                  </Typography>
-                  <Typography variant="body2" className={styles.infoValue}>
-                    {delivery.menuName}
-                  </Typography>
-                </Box>
-
-                {/* Mã QR Lô Hàng / Chuyến xe của NCC */}
+                {/* Thông tin vận chuyển của chuyến xe */}
                 <Box
                   sx={{
-                    mt: "auto",
-                    pt: 1,
                     display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    p: 1.2,
-                    bgcolor: "#f0fdf4",
-                    borderRadius: 2,
-                    border: "1px solid #bbf7d0",
+                    flexDirection: "column",
+                    gap: 1.25,
+                    minWidth: 0,
                   }}
                 >
-                  <QrCode size={34} color="#16a34a" />
-                  <Box>
+                  <Box className={styles.infoItem}>
+                    <Truck size={16} className={styles.infoIcon} />
                     <Typography
-                      variant="caption"
-                      sx={{
-                        fontWeight: 700,
-                        color: "#166534",
-                        display: "block",
-                        fontSize: "0.8rem",
-                      }}
+                      variant="body2"
+                      className={styles.infoLabel}
+                      sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
                     >
-                      {transport.qrCode}
+                      Phương tiện vận chuyển:
                     </Typography>
+                    <Typography variant="body2" className={styles.infoValue}>
+                      {formatVehicle(transport.vehicle)}
+                    </Typography>
+                  </Box>
+
+                  <Box className={styles.infoItem}>
+                    <Calendar size={16} className={styles.infoIcon} />
                     <Typography
-                      variant="caption"
-                      sx={{ color: "#15803d", fontSize: "0.7rem" }}
+                      variant="body2"
+                      className={styles.infoLabel}
+                      sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
                     >
-                      Mã QR niêm phong xe &amp; kiểm dịch NCC
+                      Thời gian dự kiến:
+                    </Typography>
+                    <Typography variant="body2" className={styles.infoValue}>
+                      {transport.expectedTime}
+                    </Typography>
+                  </Box>
+
+                  <Box className={styles.infoItem}>
+                    <Clock size={16} className={styles.infoIcon} />
+                    <Typography
+                      variant="body2"
+                      className={styles.infoLabel}
+                      sx={{ minWidth: { sm: 165 }, flexShrink: 0 }}
+                    >
+                      Ghi chú:
+                    </Typography>
+                    <Typography variant="body2" className={styles.infoValue}>
+                      {formatVehicle(transport.vehicle) === "Chưa phân công (Chờ NCC điều xe)"
+                        ? "Chưa có ghi chú"
+                        : (transport.note || displayNote || "Chưa có ghi chú")}
                     </Typography>
                   </Box>
                 </Box>
               </Paper>
-            );
-          })}
-        </Box>
-      </Box>
-
-      {/* 5. HỘI ĐỒNG KIỂM TRA 4 BÊN TẠI CỔNG TRƯỜNG */}
-      <Box className={styles.sectionWrapper}>
-        <Box className={styles.sectionTitleRow}>
-          <Typography variant="h6" className={styles.sectionHeading}>
-            Hội Đồng Nghiệm Thu 4 Bên Tại Cổng Trường
-          </Typography>
-        </Box>
-
-        <Box className={styles.approvalsGrid}>
-          {roles.map((r) => {
-            const data = r.data;
-            const isApproved = data?.approved === true;
-            const isRejected = data?.approved === false;
-            const isPending =
-              data?.approved === null || data?.approved === undefined;
-
-            return (
-              <Box
-                key={r.key}
-                className={`${styles.approvalCard} ${isApproved
-                  ? styles.approvedCard
-                  : isRejected
-                    ? styles.rejectedCard
-                    : styles.pendingCard
-                  }`}
-              >
-                <Box className={styles.cardTop}>
-                  <Box className={styles.roleTitleGroup}>
-                    {r.icon}
-                    <Typography
-                      variant="subtitle2"
-                      className={styles.roleTitle}
-                    >
-                      {r.title}
-                    </Typography>
-                  </Box>
-
-                  {isApproved && (
-                    <CheckCircle2 size={20} className={styles.checkIcon} />
-                  )}
-                  {isRejected && (
-                    <XCircle size={20} className={styles.rejectIcon} />
-                  )}
-                  {isPending && (
-                    <Clock size={20} className={styles.clockIcon} />
-                  )}
-                </Box>
-
-                <Typography variant="caption" className={styles.roleDuty}>
-                  {r.roleDuty}
-                </Typography>
-
-                <Divider className={styles.roleDivider} />
-
-                <Box className={styles.cardBottom}>
-                  {isApproved && (
-                    <>
-                      <Typography variant="body2" className={styles.signerName}>
-                        {data?.name || "Đại diện đã ký"}
-                      </Typography>
-                      {data?.time && (
-                        <Typography
-                          variant="caption"
-                          className={styles.signTime}
-                        >
-                          Ký lúc: {data.time}
-                        </Typography>
-                      )}
-                    </>
-                  )}
-                  {isRejected && (
-                    <Typography
-                      variant="body2"
-                      className={styles.rejectSignText}
-                    >
-                      {data?.name || "TỪ CHỐI NHẬP HÀNG"}
-                    </Typography>
-                  )}
-                  {isPending && (
-                    <Typography
-                      variant="caption"
-                      className={styles.pendingSignText}
-                    >
-                      Đang chờ đại diện kiểm tra...
-                    </Typography>
-                  )}
-                </Box>
-              </Box>
             );
           })}
         </Box>
@@ -689,10 +1066,13 @@ export default function DeliveryDetailView({
                 <TableCell style={{ minWidth: 200 }}>
                   Nhà cung cấp (NCC)
                 </TableCell>
-                <TableCell align="center">Đơn vị</TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
+                <TableCell align="left">Đơn vị</TableCell>
                 <TableCell align="center">
                   Đánh giá cảm quan &amp; ATTP
+                </TableCell>
+                <TableCell align="center" style={{ minWidth: 120 }}>
+                  QR bao bì
                 </TableCell>
               </TableRow>
             </TableHead>
@@ -801,20 +1181,15 @@ export default function DeliveryDetailView({
                             fontSize: "0.8125rem",
                           }}
                         >
-                          {item.supplierName ||
-                            delivery.supplierName ||
-                            "Nhà cung cấp đối tác"}
+                          {getItemSupplierName(item)}
                         </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
                       <TableCell align="right">
                         <Typography
                           variant="body2"
                           className={styles.orderedQty}
                         >
-                          {displayedOrderedQty} {item.unit}
+                          {displayedOrderedQty}
                         </Typography>
                         {isMulti && (
                           <Button
@@ -834,6 +1209,9 @@ export default function DeliveryDetailView({
                             {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
                           </Button>
                         )}
+                      </TableCell>
+                      <TableCell align="left">
+                        <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
                       <TableCell align="center">
                         {item.status === "ACCEPTED" ? (
@@ -856,13 +1234,51 @@ export default function DeliveryDetailView({
                           />
                         )}
                       </TableCell>
+
+                      {/* Cột QR bao bì: chỉ hiển thị nút Xem QR khi NCC đã bàn giao xe vận chuyển */}
+                      <TableCell align="center">
+                        {isItemVehicleDispatched(item, idx) ? (
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleOpenItemQrModal(item)}
+                            startIcon={<QrCode size={15} color="#059669" />}
+                            sx={{
+                              borderColor: "#cbd5e1",
+                              bgcolor: "#ffffff",
+                              color: "#059669",
+                              textTransform: "none",
+                              fontSize: "0.8rem",
+                              fontWeight: 600,
+                              borderRadius: 1.5,
+                              py: 0.5,
+                              px: 1.25,
+                              boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                              "&:hover": {
+                                borderColor: "#059669",
+                                bgcolor: "#f0fdf4",
+                                color: "#047857",
+                              },
+                            }}
+                          >
+                            Xem QR
+                          </Button>
+                        ) : (
+                          <Typography
+                            variant="body2"
+                            sx={{ color: "#94a3b8", fontSize: "0.85rem" }}
+                          >
+                            —
+                          </Typography>
+                        )}
+                      </TableCell>
                     </TableRow>
 
                     {/* Dòng mở rộng chi tiết phân rã cho nguyên liệu đa thực đơn */}
                     {isExpanded && isMulti && (
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         <TableCell
-                          colSpan={5}
+                          colSpan={6}
                           sx={{
                             py: 1.25,
                             px: 3,
@@ -965,6 +1381,307 @@ export default function DeliveryDetailView({
           Quay lại danh sách phiếu giao nhận
         </Button>
       </Box>
+
+      {/* 8. Modal hiển thị Nhãn QR dán bao bì nguyên liệu (Giống NCC) */}
+      <Dialog
+        open={itemQrModalOpen}
+        onClose={handleCloseItemQrModal}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 3,
+            py: 2,
+            borderBottom: "1px solid #e2e8f0",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1.25 }}>
+            <QrCode size={22} color="#0a8066" />
+            <Typography variant="h6" sx={{ fontWeight: 700, fontSize: "1.05rem", color: "#1e293b" }}>
+              Nhãn QR dán bao bì · {delivery.deliveryNo || ""}
+            </Typography>
+          </Box>
+          <IconButton onClick={handleCloseItemQrModal} size="small" sx={{ color: "#64748b" }}>
+            <X size={20} />
+          </IconButton>
+        </DialogTitle>
+
+        {/* Thanh chuyển phạm vi xem: Đơn lẻ vs Toàn bộ */}
+        {focusedItemId && allLabels.length > 1 && (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+              px: 3,
+              py: 1.25,
+              bgcolor: "#ecfdf5",
+              borderBottom: "1px solid #a7f3d0",
+              flexShrink: 0,
+            }}
+          >
+            <Typography variant="body2" sx={{ color: "#065f46", fontWeight: 600, fontSize: "0.85rem" }}>
+              {showAllLabels
+                ? `Đang xem toàn bộ ${allLabels.length} nhãn nguyên liệu trong đơn giao.`
+                : "Đang xem nhãn QR của nguyên liệu đã chọn."}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => setShowAllLabels((prev) => !prev)}
+              sx={{
+                bgcolor: "#ffffff",
+                borderColor: "#6ee7b7",
+                color: "#047857",
+                textTransform: "none",
+                fontWeight: 600,
+                fontSize: "0.78rem",
+                borderRadius: 1.5,
+                "&:hover": { bgcolor: "#f0fdf4", borderColor: "#059669" },
+              }}
+            >
+              {showAllLabels ? "Chỉ xem dòng đã chọn" : `Hiển thị tất cả (${allLabels.length} nhãn)`}
+            </Button>
+          </Box>
+        )}
+
+        <DialogContent sx={{ p: 3, bgcolor: "#f8fafc", flex: 1, overflowY: "auto" }}>
+          {visibleLabels.length === 0 ? (
+            <Box sx={{ textAlign: "center", py: 5, color: "#64748b" }}>
+              <Typography variant="body2">Chưa có nhãn QR bao bì nào cho đợt giao này.</Typography>
+            </Box>
+          ) : (
+            <Box
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", sm: visibleLabels.length > 1 ? "repeat(2, 1fr)" : "1fr" },
+                gap: 2,
+              }}
+            >
+              {visibleLabels.map((label, idx) => (
+                <Paper
+                  key={label.deliveryItemId || idx}
+                  elevation={0}
+                  sx={{
+                    p: 2,
+                    borderRadius: 2.5,
+                    border: "1px solid #e2e8f0",
+                    bgcolor: "#ffffff",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1.5,
+                  }}
+                >
+                  {/* Top card: Mã đơn + NCC */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      pb: 1,
+                      borderBottom: "1px solid #f1f5f9",
+                    }}
+                  >
+                    <Chip
+                      label={label.deliveryNo || delivery.deliveryNo}
+                      size="small"
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: "0.75rem",
+                        bgcolor: "#f1f5f9",
+                        color: "#1e293b",
+                        borderRadius: 1,
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontWeight: 600,
+                        color: "#64748b",
+                        maxWidth: 200,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {label.supplierName}
+                    </Typography>
+                  </Box>
+
+                  {/* Mid card: 2 cột - Trái: QR Frame, Phải: Info */}
+                  <Box sx={{ display: "grid", gridTemplateColumns: "116px 1fr", gap: 1.75, alignItems: "start" }}>
+                    <Box
+                      sx={{
+                        width: 116,
+                        height: 116,
+                        p: 0.75,
+                        borderRadius: 2,
+                        border: "1px solid #e2e8f0",
+                        bgcolor: "#ffffff",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxSizing: "border-box",
+                      }}
+                    >
+                      <img
+                        src={
+                          label.qrImageDataUrl ||
+                          `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=4&data=${encodeURIComponent(
+                            label.traceUrl || label.qrToken || label.ingredientName,
+                          )}`
+                        }
+                        alt={`Mã QR ${label.ingredientName}`}
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "contain",
+                          display: "block",
+                          borderRadius: 4,
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          if (e.currentTarget.nextSibling) {
+                            e.currentTarget.nextSibling.style.display = "flex";
+                          }
+                        }}
+                      />
+                      <Box
+                        sx={{
+                          display: "none",
+                          width: "100%",
+                          height: "100%",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <QrCode size={48} color="#0a8066" />
+                      </Box>
+                    </Box>
+
+                    <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75, minWidth: 0 }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: "0.95rem",
+                          color: "#1e293b",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {label.ingredientName}
+                      </Typography>
+
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 700,
+                          fontSize: "0.875rem",
+                          color: "#059669",
+                        }}
+                      >
+                        Định lượng: {label.actualQuantity} {label.unit}
+                      </Typography>
+
+                      <Box
+                        sx={{
+                          p: 1,
+                          bgcolor: "#f8fafc",
+                          borderRadius: 1.5,
+                          border: "1px solid #f1f5f9",
+                        }}
+                      >
+                        <Typography variant="caption" sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}>
+                          Cơ sở nguồn cung:
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontWeight: 600,
+                            color: "#1e293b",
+                            display: "block",
+                            fontSize: "0.75rem",
+                            lineHeight: 1.2,
+                          }}
+                        >
+                          {label.sourceFacility?.name || "Cơ sở nguồn cung đối tác"}
+                          {label.sourceFacility?.facilityCode ? ` (${label.sourceFacility.facilityCode})` : ""}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+
+                  {/* Bottom card: Trace URL & Action copy */}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 1,
+                      pt: 1,
+                      borderTop: "1px dashed #e2e8f0",
+                    }}
+                  >
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: "#64748b",
+                        fontSize: "0.72rem",
+                        fontFamily: "monospace",
+                        maxWidth: "calc(100% - 110px)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={label.traceUrl}
+                    >
+                      {label.traceUrl}
+                    </Typography>
+
+                    <Button
+                      size="small"
+                      variant="text"
+                      onClick={() => handleCopyTraceUrl(label.deliveryItemId, label.traceUrl)}
+                      startIcon={copiedLabelId === label.deliveryItemId ? <Check size={13} /> : <Copy size={13} />}
+                      sx={{
+                        fontSize: "0.72rem",
+                        color: copiedLabelId === label.deliveryItemId ? "#16a34a" : "#2563eb",
+                        textTransform: "none",
+                        p: "2px 6px",
+                        minWidth: 0,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {copiedLabelId === label.deliveryItemId ? "Đã sao chép" : "Sao chép URL"}
+                    </Button>
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+
+        <DialogActions sx={{ px: 3, py: 1.5, borderTop: "1px solid #e2e8f0" }}>
+          <Button onClick={handleCloseItemQrModal} variant="contained" sx={{ borderRadius: 2, bgcolor: "#0a8066", "&:hover": { bgcolor: "#086a55" } }}>
+            Đóng
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

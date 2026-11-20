@@ -2,6 +2,7 @@
  * TrackingService Adapter
  * Chuyển đổi dữ liệu từ API /api/deliveries sang cấu trúc chuẩn cho giao diện Theo Dõi Đơn Hàng (OrderTracking)
  */
+import { batchTypeOf, BATCH_TYPE } from "../../utils/supplyBatch"
 
 const WEEKDAY_NAMES = [
   "Chủ Nhật",
@@ -160,110 +161,16 @@ export function formatTimeShort(dateInput) {
  * Xác định loại đơn hàng (Đồ tươi đợt 1 / đợt 2 / Đồ khô)
  */
 export function determineOrderType(delivery) {
-  if (delivery?.orderType === "DRY_STOCK" || delivery?.batchType === "DRY_STOCK") {
-    return {
-      type: "DRY_STOCK",
-      label: "Đồ khô & Gia vị",
-    }
-  }
-  if (delivery?.orderType === "FRESH_BATCH_2" || delivery?.batchType === "BATCH_2") {
-    return {
-      type: "FRESH_BATCH_2",
-      label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
-    }
-  }
-  if (delivery?.orderType === "FRESH_BATCH_1" || delivery?.batchType === "BATCH_1") {
-    return {
-      type: "FRESH_BATCH_1",
-      label: "Đồ tươi (Đợt 1 - 05:30)",
-    }
-  }
-
-  // 1. Kiểm tra mã đơn hoặc mã phiếu (DRY, PNK, D2, D1...)
-  const codeStr = `${delivery?.orderNo || ""} ${delivery?.requestNo || ""} ${delivery?.deliveryNo || ""} ${delivery?.id || ""}`.toUpperCase()
-  if (codeStr.includes("DRY") || codeStr.includes("PNK")) {
-    return {
-      type: "DRY_STOCK",
-      label: "Đồ khô & Gia vị",
-    }
-  }
-  if (codeStr.includes("-D2") || codeStr.includes("-B2") || codeStr.includes("BATCH_2") || codeStr.includes("DOT_2")) {
-    return {
-      type: "FRESH_BATCH_2",
-      label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
-    }
-  }
-  if (codeStr.includes("-D1") || codeStr.includes("-B1") || codeStr.includes("BATCH_1") || codeStr.includes("DOT_1")) {
-    return {
-      type: "FRESH_BATCH_1",
-      label: "Đồ tươi (Đợt 1 - 05:30)",
-    }
-  }
-
-  const note = (delivery?.note || "").toLowerCase()
-  const items = delivery?.deliveryItems || delivery?.items || []
-
-  // 2. Ghi chú có nhắc đến đồ khô hoặc kho thực phẩm khô
-  if (
-    note.includes("đồ khô") ||
-    note.includes("kho khô") ||
-    note.includes("kho thực phẩm khô") ||
-    note.includes("gia vị") ||
-    note.includes("dry") ||
-    note.includes("nhập kho")
-  ) {
-    return {
-      type: "DRY_STOCK",
-      label: "Đồ khô & Gia vị",
-    }
-  }
-
-  // 3. Ghi chú có nhắc đến Đợt 2 hoặc bù sĩ số
-  if (
-    note.includes("đợt 2") ||
-    note.includes("bù") ||
-    note.includes("batch 2") ||
-    note.includes("bù sĩ số")
-  ) {
-    return {
-      type: "FRESH_BATCH_2",
-      label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
-    }
-  }
-
-  // 4. Kiểm tra phân loại handlingType của mặt hàng
-  const hasWarehouse = items.some(
-    it =>
-      it.handlingType === "DRY_STOCK" ||
-      it.handlingType === "CENTRAL_WAREHOUSE" ||
-      it.handlingType === "PRE_PORTIONED"
-  )
-  const hasDirectUse = items.some(
-    it => it.handlingType === "DIRECT_USE"
-  )
-
-  if (hasWarehouse && !hasDirectUse) {
-    return {
-      type: "DRY_STOCK",
-      label: "Đồ khô & Gia vị",
-    }
-  }
-
-  // Kiểm tra giờ hẹn (Đợt 2 thường từ 07:00 đến 09:00 sáng)
-  if (delivery?.expectedArrivalAt) {
-    const d = new Date(delivery.expectedArrivalAt)
-    const h = d.getHours()
-    if (h >= 7 && h <= 9) {
-      return {
-        type: "FRESH_BATCH_2",
-        label: "Đồ tươi (Đợt 2 - Bù sĩ số)",
-      }
-    }
-  }
-
-  return {
-    type: "FRESH_BATCH_1",
-    label: "Đồ tươi (Đợt 1 - 05:30)",
+  // Nguồn sự thật: orderType + batchNo từ API; không đoán theo mã/ghi chú/giờ.
+  switch (batchTypeOf(delivery)) {
+    case BATCH_TYPE.DRY_STOCK:
+      return { type: "DRY_STOCK", label: "Đồ khô & Gia vị" }
+    case BATCH_TYPE.BATCH_2:
+      return { type: "FRESH_BATCH_2", label: "Đồ tươi (Đợt 2 - Bù sĩ số)" }
+    case BATCH_TYPE.BATCH_1:
+      return { type: "FRESH_BATCH_1", label: "Đồ tươi (Đợt 1 - 05:30)" }
+    default:
+      return { type: "UNKNOWN", label: "Chưa xác định đợt" }
   }
 }
 
@@ -582,10 +489,42 @@ export function adaptTrackingOrder(delivery) {
 
   const deliverySchedule = formatDeliverySchedule(delivery, orderType)
 
+  // Chuẩn hóa mã phiếu: Ưu tiên tuyệt đối mã chuẩn PN-... của trường học, không để mã FP- của NCC đè lên
+  const findPnCode = (...codes) => {
+    for (const c of codes) {
+      if (!c) continue
+      const s = String(c).trim()
+      if (/^PN-/i.test(s) || /^PNK-/i.test(s)) return s
+      if (/^PO-/i.test(s)) return s.replace(/^PO-/i, "PN-")
+    }
+    for (const c of codes) {
+      if (!c) continue
+      const s = String(c).trim()
+      if (!/^FP-/i.test(s)) return s.replace(/^PO-|^DEL-/, "PN-")
+    }
+    return ""
+  }
+
+  const rawPn = findPnCode(
+    delivery.orderNo,
+    delivery.requestNo,
+    delivery.SupplyRequest?.requestNo,
+    delivery.deliveryNo
+  )
+
+  const cleanDeliveryNo =
+    rawPn ||
+    (delivery.deliveryNo
+      ? `PN-${String(delivery.deliveryNo).replace(/^FP-DE-|^FP-|^DEL-/, "")}`
+      : "PN-UNKNOWN")
+  const baseOrderNo = cleanDeliveryNo.replace(/-\d+$/, "")
+
   return {
     id: delivery.id,
-    orderNo: delivery.orderNo || delivery.requestNo || "—",
-    deliveryNo: delivery.deliveryNo || "Chưa có chuyến giao",
+    orderNo: baseOrderNo,
+    deliveryNo: cleanDeliveryNo,
+    supplierDeliveryNo: delivery.deliveryNo,
+    deliveryQr: delivery.deliveryQr || delivery.deliveryNo || `QR-${cleanDeliveryNo}`,
     orderType: orderType.type,
     batchType: orderType.type,
     orderTypeLabel: orderType.label,

@@ -22,21 +22,27 @@ function WeeklyDayCard({ day, schoolCode, activeGroupId }) {
     const rows = allDishes.filter((dish) => dish.mealType === mealType);
     return rows
       .filter((dish) => !dish.substituteForDishId)
-      .map((dish) => ({
-        ...dish,
-        substitutes: rows.filter((sub) => sub.substituteForDishId === dish.id),
-      }));
+      .map((dish) => {
+        const substitutes = rows.filter((sub) => sub.substituteForDishId === dish.id);
+        // Backend (main) còn trả món thay thế dạng alternativeDish ngay trên món gốc
+        if (dish.alternativeDish && !substitutes.some((sub) => sub.id === dish.alternativeDish.id))
+          substitutes.push(dish.alternativeDish);
+        return { ...dish, substitutes };
+      });
   };
   const lunchDishes = allDishes.length
     ? mealDishes("LUNCH")
-    : (day.lunchDishes || []).map((name) => ({ name: typeof name === "string" ? name : name?.name, substitutes: [] }));
+    : (day.lunchDishes || []).map((dish) => ({
+        name: typeof dish === "string" ? dish : dish?.name,
+        substitutes: typeof dish === "object" && dish?.alternativeDish ? [dish.alternativeDish] : [],
+      }));
   const afternoonDishes = allDishes.length ? mealDishes("AFTERNOON") : [];
   const snackSummary = !allDishes.length && day.snackSummary ? day.snackSummary : "";
 
   // Truyền ngày và slug khối qua URL để MealDetail mở đúng thực đơn từ thẻ tuần.
   const queryParams = new URLSearchParams();
   if (day.dateIso) queryParams.set("date", day.dateIso);
-  if (activeGroupId && activeGroupId !== "all") queryParams.set("block", activeGroupId);
+  if (activeGroupId) queryParams.set("block", activeGroupId);
   const queryString = queryParams.toString();
 
   const detailTarget = schoolCode

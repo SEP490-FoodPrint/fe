@@ -1,6 +1,7 @@
 /**
  * Adapter chuẩn hóa dữ liệu Danh mục nguyên liệu và Phân hệ Đơn hàng
  */
+import { batchTypeOf } from "../../utils/supplyBatch";
 
 export const HANDLING_TYPES = {
   DRY_STOCK: {
@@ -143,44 +144,17 @@ export function adaptDeliveryItem(item) {
     }
   }
 
-  // 2. Nhận diện Đợt 1 / Đợt 2 / Đồ khô
-  const noteText =
-    `${item.note || ""} ${item.deliveryNo || ""} ${item.orderNo || ""} ${item.requestNo || ""}`.toLowerCase();
-  let batchType = item.batchType;
-  if (!batchType) {
-    if (
-      noteText.includes("khô") ||
-      noteText.includes("dry") ||
-      noteText.includes("pnk")
-    ) {
-      batchType = "DRY_STOCK";
-    } else if (
-      noteText.includes("đợt 2") ||
-      noteText.includes("d2") ||
-      noteText.includes("batch_2") ||
-      noteText.includes("sĩ số")
-    ) {
-      batchType = "BATCH_2";
-    } else if (
-      noteText.includes("đợt 1") ||
-      noteText.includes("d1") ||
-      noteText.includes("batch_1") ||
-      noteText.includes("sáng")
-    ) {
-      batchType = "BATCH_1";
-    } else {
-      // Nếu giờ giao trước 7h sáng -> Đợt 1, sau 7h -> Đợt 2
-      const hourNum = parseInt(deliveryTime.split(":")[0], 10) || 5;
-      batchType = hourNum < 7 ? "BATCH_1" : "BATCH_2";
-    }
-  }
+  // 2. Đợt / loại đơn: chỉ đọc orderType + batchNo từ API (null = chưa xác định, không đoán)
+  const batchType = item.batchType ?? batchTypeOf(item);
 
   const batchLabel =
     batchType === "BATCH_1"
       ? "Đợt 1 (50% Suất tối đa)"
       : batchType === "BATCH_2"
         ? "Đợt 2 (Cân đối sĩ số)"
-        : "Kho đồ khô";
+        : batchType === "DRY_STOCK"
+          ? "Kho đồ khô"
+          : "Chưa xác định đợt";
 
   // 3. Chuẩn hóa Hội đồng nghiệm thu 4 bên
   const approvals = {
@@ -269,8 +243,14 @@ export function adaptDeliveryItem(item) {
     PENDING_APPROVAL: "Đang kiểm tra 4 bên",
     INSPECTING: "Đang kiểm tra 4 bên",
     IN_TRANSIT: "NCC đang vận chuyển",
-    CREATED: "NCC chuẩn bị giao",
+    CREATED: "Chờ NCC xác nhận",
+    SENT: "Chờ NCC xác nhận",
+    PENDING: "Chờ NCC xác nhận",
+    DRAFT: "Chờ NCC xác nhận",
+    IN_PROGRESS: "Chờ NCC xác nhận",
+    in_progress: "Chờ NCC xác nhận",
     CONFIRMED: "NCC đã xác nhận",
+    ACCEPTED: "NCC đã xác nhận",
     REJECTED: "Không đạt yêu cầu",
     CANCELLED: "Đã hủy",
   };
@@ -290,22 +270,30 @@ export function adaptDeliveryItem(item) {
             di.supplierId ||
             di.Ingredient?.supplierId ||
             di.Supplier?.id ||
+            di.supplier?.id ||
             item.supplierId ||
             "",
           supplierName:
-            di.supplierName ||
+            (di.supplierName && di.supplierName !== "Nhà cung cấp đối tác" ? di.supplierName : "") ||
             di.Ingredient?.Supplier?.name ||
             di.Supplier?.name ||
-            item.supplierName ||
-            "Nhà cung cấp đối tác",
+            di.supplier?.name ||
+            (item.Supplier?.name && item.Supplier.name !== "Nhà cung cấp đối tác" ? item.Supplier.name : "") ||
+            (item.supplier?.name && item.supplier.name !== "Nhà cung cấp đối tác" ? item.supplier.name : "") ||
+            (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC") ? item.supplierName : "") ||
+            "",
           status: "ACCEPTED",
         }))
       : Array.isArray(item.items)
         ? item.items.map((it) => {
             const sName =
-              it.supplierName && it.supplierName !== "Nhà cung cấp đối tác"
-                ? it.supplierName
-                : item.supplierName || "Nhà cung cấp đối tác";
+              (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC") ? it.supplierName : "") ||
+              it.Supplier?.name ||
+              it.supplier?.name ||
+              (item.Supplier?.name && item.Supplier.name !== "Nhà cung cấp đối tác" ? item.Supplier.name : "") ||
+              (item.supplier?.name && item.supplier.name !== "Nhà cung cấp đối tác" ? item.supplier.name : "") ||
+              (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC") ? item.supplierName : "") ||
+              "";
             return {
               ...it,
               supplierId: it.supplierId || item.supplierId || "",
@@ -322,19 +310,70 @@ export function adaptDeliveryItem(item) {
         : [];
 
   const itemSuppliersList = Array.from(
-    new Set(items.map((i) => i.supplierName).filter(Boolean)),
+    new Set(
+      items
+        .map((i) => i.supplierName)
+        .filter((name) => Boolean(name) && name !== "Nhà cung cấp đối tác" && !name.includes("Nhiều NCC")),
+    ),
   );
+
+  const resolvedSingleSupplier =
+    (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC") ? item.supplierName : null) ||
+    item.Supplier?.name ||
+    item.supplier?.name ||
+    (itemSuppliersList.length === 1 ? itemSuppliersList[0] : "");
+
+  items.forEach((it) => {
+    if (!it.supplierName && resolvedSingleSupplier) {
+      it.supplierName = resolvedSingleSupplier;
+    }
+    if (!it.supplierName) {
+      it.supplierName = "Nhà cung cấp đối tác";
+    }
+  });
+
+  // Chuẩn hóa mã phiếu: Ưu tiên tuyệt đối mã chuẩn PN-... của trường học, không để mã FP- của NCC đè lên
+  const findPnCode = (...codes) => {
+    for (const c of codes) {
+      if (!c) continue;
+      const s = String(c).trim();
+      if (/^PN-/i.test(s)) return s;
+      if (/^PO-/i.test(s)) return s.replace(/^PO-/i, "PN-");
+    }
+    for (const c of codes) {
+      if (!c) continue;
+      const s = String(c).trim();
+      if (!/^FP-/i.test(s)) return s.replace(/^PO-|^DEL-/, "PN-");
+    }
+    return "";
+  };
+
+  const rawPn = findPnCode(
+    item.orderNo,
+    item.requestNo,
+    item.SupplyRequest?.requestNo,
+    item.deliveryNo,
+  );
+
+  const cleanDeliveryNo =
+    rawPn ||
+    (item.deliveryNo
+      ? `PN-${String(item.deliveryNo).replace(/^FP-DE-|^FP-|^DEL-/, "")}`
+      : "PN-UNKNOWN");
+  const baseOrderNo = cleanDeliveryNo.replace(/-\d+$/, "");
 
   return {
     id: item.id,
-    deliveryNo: item.deliveryNo || "PN-UNKNOWN",
-    orderNo:
-      item.orderNo ||
-      item.requestNo ||
-      item.SupplyRequest?.requestNo ||
-      (item.deliveryNo
-        ? `PO-${item.deliveryNo.replace(/^DEL-|^PN-/, "")}`
-        : "PO-UNKNOWN"),
+    deliveryNo: cleanDeliveryNo,
+    orderNo: baseOrderNo,
+    supplierDeliveryNo: item.deliveryNo,
+    deliveryQr: item.deliveryQr || item.deliveryNo || `QR-${cleanDeliveryNo}`,
+    driverName: item.driverName || "Chưa phân công (Chờ NCC điều xe)",
+    driverPhone: item.driverPhone || item.phone || "--",
+    vehiclePlate: item.vehiclePlate || "",
+    expectedArrivalAt: item.expectedArrivalAt || null,
+    arrivedAt: item.arrivedAt || null,
+    receivedAt: item.receivedAt || null,
     menuId: item.menuId || "menu-live",
     menuIds: item.menuIds || (item.menuId ? [item.menuId] : []),
     menuName:
@@ -343,6 +382,7 @@ export function adaptDeliveryItem(item) {
       (batchType === "BATCH_1"
         ? "Thực đơn dinh dưỡng học đường (Đợt 1)"
         : "Thực đơn bổ sung (Đợt 2)"),
+    note: item.note || "",
     menusSummary: item.menusSummary || null,
     targetScope: item.targetScope || "",
     actualAttendanceByGrade: item.actualAttendanceByGrade || null,
@@ -365,13 +405,17 @@ export function adaptDeliveryItem(item) {
       Number(item.actualAttendance) || Number(item.plannedPortions) || 0,
     supplierId: item.supplierId || item.Supplier?.id || "",
     supplierName:
-      item.supplierName ||
+      (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC")
+        ? item.supplierName
+        : null) ||
+      item.Supplier?.name ||
+      item.supplier?.name ||
       (itemSuppliersList.length > 1
-        ? `Nhiều NCC (${itemSuppliersList.length} đối tác)`
+        ? `Nhiều NCC (${itemSuppliersList.length} đối tác: ${itemSuppliersList.join(", ")})`
         : itemSuppliersList[0] ||
-          item.Supplier?.name ||
+          item.supplierName ||
           "Nhà cung cấp đối tác"),
-    suppliers: item.suppliers || itemSuppliersList,
+    suppliers: item.suppliers || (itemSuppliersList.length > 0 ? itemSuppliersList : item.Supplier?.name ? [item.Supplier.name] : []),
     driverName:
       item.status === "CREATED" ||
       item.status === "PENDING" ||

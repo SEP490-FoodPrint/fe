@@ -9,7 +9,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined"
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom"
 import { PublicHeader } from "../Header"
 import { StoreContext } from "src/contexts"
-import { getRegistrationDestination } from "src/lib/utils"
+import { canAccessRegistration, getRegistrationDestination } from "src/lib/utils"
 import ROUTER from "src/router/ROUTER"
 import styles from "./AccountLayout.module.scss"
 
@@ -33,7 +33,7 @@ export default function AccountLayout() {
     <nav id="account-navigation" aria-label="Quản lý tài khoản" className={styles.navigation}>
       <p>Tài khoản của bạn</p>
       <Link to={ROUTER.PROFILE} onClick={() => setOpen(false)} aria-current={location.pathname === ROUTER.PROFILE ? "page" : undefined}><PersonOutlineOutlinedIcon />Profile</Link>
-      <Link to={getRegistrationDestination(user)} onClick={() => setOpen(false)} aria-current={registrationActive ? "page" : undefined}><DescriptionOutlinedIcon />Hồ sơ đăng ký</Link>
+      {canAccessRegistration(user) && <Link to={getRegistrationDestination(user)} onClick={() => setOpen(false)} aria-current={registrationActive ? "page" : undefined}><DescriptionOutlinedIcon />Hồ sơ đăng ký</Link>}
       <Link to={ROUTER.CHANGE_PASSWORD} onClick={() => setOpen(false)} aria-current={location.pathname === ROUTER.CHANGE_PASSWORD ? "page" : undefined}><LockOutlinedIcon />Đổi mật khẩu</Link>
     </nav>
   </>
