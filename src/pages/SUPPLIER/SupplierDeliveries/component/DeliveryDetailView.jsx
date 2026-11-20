@@ -18,7 +18,8 @@ import SupplierDeliveryService, {
   formatDateTimeVi,
   formatQuantityVi,
   formatSourceFacilityLabel,
-  toIsoWithTimezoneOffset,
+  buildTodayArrivalIso,
+  getMinArrivalTime,
   validateDeliveryLogisticsStep,
 } from "src/services/SupplierDeliveryService"
 import DeliveryQrLabelsModal from "./DeliveryQrLabelsModal"
@@ -174,7 +175,7 @@ function DeliveryDetailView({
 
     setDispatching(true)
     try {
-      const expectedArrivalAt = toIsoWithTimezoneOffset(expectedArrivalLocal)
+      const expectedArrivalAt = buildTodayArrivalIso(expectedArrivalLocal)
       const updated = await SupplierDeliveryService.dispatch(delivery.id, {
         expectedArrivalAt,
         vehiclePlate,
@@ -413,12 +414,13 @@ function DeliveryDetailView({
                   htmlFor="detail-expected-arrival-input"
                   className={styles.metaLabel}
                 >
-                  <span>{"Thời gian dự kiến đến trường "}</span>
+                  <span>{"Giờ dự kiến đến trường (hôm nay) "}</span>
                   <span className={styles.requiredMark}>*</span>
                 </label>
                 <input
                   id="detail-expected-arrival-input"
-                  type="datetime-local"
+                  type="time"
+                  min={getMinArrivalTime()}
                   required
                   disabled={dispatching}
                   value={expectedArrivalLocal}
