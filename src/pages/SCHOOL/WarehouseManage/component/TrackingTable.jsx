@@ -22,16 +22,24 @@ import styles from "./TrackingTable.module.scss"
 
 export default function TrackingTable({ orders = [], onViewDetail, loading = false }) {
   const getStatusBadge = status => {
+    const raw = String(status || "").toUpperCase()
+    if (
+      raw === "CREATED" ||
+      raw === "PENDING" ||
+      raw === "SENT" ||
+      raw === "DRAFT" ||
+      raw === "IN_PROGRESS"
+    ) {
+      return (
+        <Chip
+          label="Chờ NCC xác nhận"
+          size="small"
+          className={styles.statusPending}
+        />
+      )
+    }
+
     switch (status) {
-      case "CREATED":
-      case "PENDING":
-        return (
-          <Chip
-            label="Chờ NCC xác nhận"
-            size="small"
-            className={styles.statusPending}
-          />
-        )
       case "ACCEPTED":
       case "CONFIRMED":
         return (

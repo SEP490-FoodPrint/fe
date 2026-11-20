@@ -125,7 +125,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         return (
           <Chip
             icon={<CheckCircle2 size={14} />}
-            label="4/4 Đã duyệt & Bàn giao bếp"
+            label="Đã duyệt & Bàn giao bếp"
             size="small"
             className={styles.statusSuccess}
           />
@@ -158,6 +158,19 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusConfirmed}
           />
         )
+      case "IN_PROGRESS":
+      case "in_progress":
+      case "PENDING":
+      case "SENT":
+      case "DRAFT":
+        return (
+          <Chip
+            icon={<Clock size={14} />}
+            label="Chờ NCC xác nhận"
+            size="small"
+            className={styles.statusConfirmed}
+          />
+        )
       case "CONFIRMED":
       case "CREATED":
         return (
@@ -168,8 +181,26 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
             className={styles.statusConfirmed}
           />
         )
-      default:
+      default: {
+        const raw = String(item.statusLabel || item.status || "").toUpperCase()
+        if (
+          raw === "IN_PROGRESS" ||
+          raw === "SENT" ||
+          raw === "PENDING" ||
+          raw === "CREATED" ||
+          raw === "DRAFT"
+        ) {
+          return (
+            <Chip
+              icon={<Clock size={14} />}
+              label="Chờ NCC xác nhận"
+              size="small"
+              className={styles.statusConfirmed}
+            />
+          )
+        }
         return <Chip label={item.statusLabel || item.status} size="small" />
+      }
     }
   }
 
@@ -179,7 +210,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
         <TableHead>
           <TableRow className={styles.headerRow}>
             <TableCell>Mã nhập hàng</TableCell>
-            <TableCell>Đợt giao &amp; Thời gian</TableCell>
+            <TableCell>Đợt giao &amp; Ngày giao</TableCell>
             <TableCell>Trạng thái</TableCell>
             <TableCell align="center">Thao tác</TableCell>
           </TableRow>
@@ -239,7 +270,7 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                         className={isBatch1 ? styles.batch1Chip : styles.batch2Chip}
                       />
                       <Typography variant="caption" className={styles.timeText}>
-                        {item.deliveryTime} • {formatDateVN(item.deliveryDate)}
+                        {formatDateVN(item.deliveryDate)}
                       </Typography>
                     </Box>
                   </TableCell>

@@ -269,8 +269,14 @@ export function adaptDeliveryItem(item) {
     PENDING_APPROVAL: "Đang kiểm tra 4 bên",
     INSPECTING: "Đang kiểm tra 4 bên",
     IN_TRANSIT: "NCC đang vận chuyển",
-    CREATED: "NCC chuẩn bị giao",
+    CREATED: "Chờ NCC xác nhận",
+    SENT: "Chờ NCC xác nhận",
+    PENDING: "Chờ NCC xác nhận",
+    DRAFT: "Chờ NCC xác nhận",
+    IN_PROGRESS: "Chờ NCC xác nhận",
+    in_progress: "Chờ NCC xác nhận",
     CONFIRMED: "NCC đã xác nhận",
+    ACCEPTED: "NCC đã xác nhận",
     REJECTED: "Không đạt yêu cầu",
     CANCELLED: "Đã hủy",
   };
@@ -290,22 +296,30 @@ export function adaptDeliveryItem(item) {
             di.supplierId ||
             di.Ingredient?.supplierId ||
             di.Supplier?.id ||
+            di.supplier?.id ||
             item.supplierId ||
             "",
           supplierName:
-            di.supplierName ||
+            (di.supplierName && di.supplierName !== "Nhà cung cấp đối tác" ? di.supplierName : "") ||
             di.Ingredient?.Supplier?.name ||
             di.Supplier?.name ||
-            item.supplierName ||
-            "Nhà cung cấp đối tác",
+            di.supplier?.name ||
+            (item.Supplier?.name && item.Supplier.name !== "Nhà cung cấp đối tác" ? item.Supplier.name : "") ||
+            (item.supplier?.name && item.supplier.name !== "Nhà cung cấp đối tác" ? item.supplier.name : "") ||
+            (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC") ? item.supplierName : "") ||
+            "",
           status: "ACCEPTED",
         }))
       : Array.isArray(item.items)
         ? item.items.map((it) => {
             const sName =
-              it.supplierName && it.supplierName !== "Nhà cung cấp đối tác"
-                ? it.supplierName
-                : item.supplierName || "Nhà cung cấp đối tác";
+              (it.supplierName && it.supplierName !== "Nhà cung cấp đối tác" && !it.supplierName.includes("Nhiều NCC") ? it.supplierName : "") ||
+              it.Supplier?.name ||
+              it.supplier?.name ||
+              (item.Supplier?.name && item.Supplier.name !== "Nhà cung cấp đối tác" ? item.Supplier.name : "") ||
+              (item.supplier?.name && item.supplier.name !== "Nhà cung cấp đối tác" ? item.supplier.name : "") ||
+              (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC") ? item.supplierName : "") ||
+              "";
             return {
               ...it,
               supplierId: it.supplierId || item.supplierId || "",
@@ -322,8 +336,27 @@ export function adaptDeliveryItem(item) {
         : [];
 
   const itemSuppliersList = Array.from(
-    new Set(items.map((i) => i.supplierName).filter(Boolean)),
+    new Set(
+      items
+        .map((i) => i.supplierName)
+        .filter((name) => Boolean(name) && name !== "Nhà cung cấp đối tác" && !name.includes("Nhiều NCC")),
+    ),
   );
+
+  const resolvedSingleSupplier =
+    (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC") ? item.supplierName : null) ||
+    item.Supplier?.name ||
+    item.supplier?.name ||
+    (itemSuppliersList.length === 1 ? itemSuppliersList[0] : "");
+
+  items.forEach((it) => {
+    if (!it.supplierName && resolvedSingleSupplier) {
+      it.supplierName = resolvedSingleSupplier;
+    }
+    if (!it.supplierName) {
+      it.supplierName = "Nhà cung cấp đối tác";
+    }
+  });
 
   // Chuẩn hóa mã phiếu: Ưu tiên tuyệt đối mã chuẩn PN-... của trường học, không để mã FP- của NCC đè lên
   const findPnCode = (...codes) => {
@@ -398,13 +431,17 @@ export function adaptDeliveryItem(item) {
       Number(item.actualAttendance) || Number(item.plannedPortions) || 0,
     supplierId: item.supplierId || item.Supplier?.id || "",
     supplierName:
-      item.supplierName ||
+      (item.supplierName && item.supplierName !== "Nhà cung cấp đối tác" && !item.supplierName.includes("Nhiều NCC")
+        ? item.supplierName
+        : null) ||
+      item.Supplier?.name ||
+      item.supplier?.name ||
       (itemSuppliersList.length > 1
-        ? `Nhiều NCC (${itemSuppliersList.length} đối tác)`
+        ? `Nhiều NCC (${itemSuppliersList.length} đối tác: ${itemSuppliersList.join(", ")})`
         : itemSuppliersList[0] ||
-          item.Supplier?.name ||
+          item.supplierName ||
           "Nhà cung cấp đối tác"),
-    suppliers: item.suppliers || itemSuppliersList,
+    suppliers: item.suppliers || (itemSuppliersList.length > 0 ? itemSuppliersList : item.Supplier?.name ? [item.Supplier.name] : []),
     driverName:
       item.status === "CREATED" ||
       item.status === "PENDING" ||
