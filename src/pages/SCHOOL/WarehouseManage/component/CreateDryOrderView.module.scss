@@ -197,17 +197,18 @@
 
 .qtyInputWrap {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   gap: 6px;
 }
 
 .qtyField {
-  width: 80px;
+  width: calc(var(--space-6) * 10);
+  flex-shrink: 0;
 
   :global(.MuiOutlinedInput-root) {
     border-radius: 6px;
-    height: 32px;
+    min-height: 44px;
   }
 }
 
@@ -237,6 +238,8 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .countBadge {
@@ -251,6 +254,19 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  button {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 600px) {
+  .summaryBadges {
+    width: 100%;
+    gap: var(--space-2);
+  }
+  .totalText {
+    flex-basis: 100%;
+  }
 }
 
 .submitBtn {

@@ -1,6 +1,10 @@
-import React, { useState, useMemo, useEffect } from "react"
-import PropTypes from "prop-types"
+import useMeasurementUnits from "src/hooks/useMeasurementUnits";
+import QuantityRecommendation from "src/components/QuantityRecommendation";
+import { quantityError } from "src/utils/measurementUnits";
+import React, { useState, useMemo, useEffect } from "react";
+import PropTypes from "prop-types";
 import {
+  Alert,
   Box,
   Typography,
   Chip,
@@ -15,13 +19,9 @@ import {
   Paper,
   Checkbox,
   CircularProgress,
-} from "@mui/material"
-import {
-  ArrowLeft,
-  Send,
-  Package,
-} from "lucide-react"
-import styles from "./CreateDryOrderView.module.scss"
+} from "@mui/material";
+import { ArrowLeft, Send, Package } from "lucide-react";
+import styles from "./CreateDryOrderView.module.scss";
 
 export default function CreateDryOrderView({
   inventoryItems = [],
@@ -30,195 +30,222 @@ export default function CreateDryOrderView({
   onBack,
   onSubmit,
 }) {
+  const unitCatalog = useMeasurementUnits();
   const [deliveryDate, setDeliveryDate] = useState(() => {
-    const d = new Date()
-    d.setDate(d.getDate() + 1)
-    return d.toISOString().slice(0, 10)
-  })
-  const [deliveryTime, setDeliveryTime] = useState("14:30")
-  const [note, setNote] = useState("Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.")
-  const [orderQtys, setOrderQtys] = useState({})
-  const [itemSuppliers, setItemSuppliers] = useState({})
-  const [submitting, setSubmitting] = useState(false)
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().slice(0, 10);
+  });
+  const [deliveryTime, setDeliveryTime] = useState("14:30");
+  const [note, setNote] = useState(
+    "Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.",
+  );
+  const [orderQtys, setOrderQtys] = useState({});
+  const [itemSuppliers, setItemSuppliers] = useState({});
+  const [submitting, setSubmitting] = useState(false);
 
   // 1. Tổng hợp danh sách tất cả NCC liên kết trong hệ thống
   const allSuppliers = useMemo(() => {
-    const list = [...suppliers]
-    const existingIds = new Set(list.map(s => s.id))
-    const existingNames = new Set(list.map(s => s.name?.toLowerCase().trim()))
+    const list = [...suppliers];
+    const existingIds = new Set(list.map((s) => s.id));
+    const existingNames = new Set(
+      list.map((s) => s.name?.toLowerCase().trim()),
+    );
 
-    inventoryItems.forEach(it => {
+    inventoryItems.forEach((it) => {
       if (it.supplierId && !existingIds.has(it.supplierId)) {
-        existingIds.add(it.supplierId)
+        existingIds.add(it.supplierId);
         list.push({
           id: it.supplierId,
           name: it.supplierName || "Nhà cung cấp đối tác",
           phone: it.supplierPhone || "",
-        })
-      } else if (it.supplierName && !existingNames.has(it.supplierName.toLowerCase().trim())) {
-        existingNames.add(it.supplierName.toLowerCase().trim())
-        const genId = it.supplierId || `sup-${it.supplierName.replace(/\s+/g, "-").toLowerCase()}`
+        });
+      } else if (
+        it.supplierName &&
+        !existingNames.has(it.supplierName.toLowerCase().trim())
+      ) {
+        existingNames.add(it.supplierName.toLowerCase().trim());
+        const genId =
+          it.supplierId ||
+          `sup-${it.supplierName.replace(/\s+/g, "-").toLowerCase()}`;
         list.push({
           id: genId,
           name: it.supplierName,
           phone: it.supplierPhone || "",
-        })
+        });
       }
-    })
-    return list
-  }, [suppliers, inventoryItems])
+    });
+    return list;
+  }, [suppliers, inventoryItems]);
 
   // 2. Kiểm tra xem một NCC có cung cấp mặt hàng này không
   const isSupplierAvailableForItem = (supplier, item) => {
-    if (!supplier || !item) return false
+    if (!supplier || !item) return false;
 
     // 2.1 Kiểm tra qua mảng availableSupplierIds do adapter trích xuất từ database
-    if (Array.isArray(item.availableSupplierIds) && item.availableSupplierIds.length > 0) {
-      if (item.availableSupplierIds.includes(supplier.id)) return true
+    if (
+      Array.isArray(item.availableSupplierIds) &&
+      item.availableSupplierIds.length > 0
+    ) {
+      if (item.availableSupplierIds.includes(supplier.id)) return true;
     }
 
     // 2.2 Trực tiếp khớp ID nhà cung cấp chính của mặt hàng
-    if (item.supplierId && item.supplierId === supplier.id) return true
+    if (item.supplierId && item.supplierId === supplier.id) return true;
 
     // 2.3 Khớp tên NCC của mặt hàng với tên của supplier
     if (item.supplierName && supplier.name) {
-      const a = item.supplierName.trim().toLowerCase()
-      const b = supplier.name.trim().toLowerCase()
-      if (a === b || a.includes(b) || b.includes(a)) return true
+      const a = item.supplierName.trim().toLowerCase();
+      const b = supplier.name.trim().toLowerCase();
+      if (a === b || a.includes(b) || b.includes(a)) return true;
     }
 
     // 2.4 Kiểm tra trong toàn bộ inventoryItems xem có mặt hàng cùng tên nào do NCC này cấp không
-    const normName = (item.name || "").trim().toLowerCase()
-    const matchSameName = inventoryItems.some(it => {
-      const itNorm = (it.name || "").trim().toLowerCase()
+    const normName = (item.name || "").trim().toLowerCase();
+    const matchSameName = inventoryItems.some((it) => {
+      const itNorm = (it.name || "").trim().toLowerCase();
       const isSameName =
         itNorm === normName ||
-        (itNorm && normName && (itNorm.includes(normName) || normName.includes(itNorm)))
-      if (!isSameName) return false
-      if (it.supplierId === supplier.id) return true
-      if (Array.isArray(it.availableSupplierIds) && it.availableSupplierIds.includes(supplier.id)) return true
+        (itNorm &&
+          normName &&
+          (itNorm.includes(normName) || normName.includes(itNorm)));
+      if (!isSameName) return false;
+      if (it.supplierId === supplier.id) return true;
+      if (
+        Array.isArray(it.availableSupplierIds) &&
+        it.availableSupplierIds.includes(supplier.id)
+      )
+        return true;
       if (it.supplierName && supplier.name) {
-        const sA = it.supplierName.trim().toLowerCase()
-        const sB = supplier.name.trim().toLowerCase()
-        if (sA === sB || sA.includes(sB) || sB.includes(sA)) return true
+        const sA = it.supplierName.trim().toLowerCase();
+        const sB = supplier.name.trim().toLowerCase();
+        if (sA === sB || sA.includes(sB) || sB.includes(sA)) return true;
       }
-      return false
-    })
-    if (matchSameName) return true
+      return false;
+    });
+    if (matchSameName) return true;
 
     // 2.5 Kiểm tra trong các lô hàng (lots) đã từng nhập của món đó
     if (Array.isArray(item.lots) && item.lots.length > 0) {
-      const matchLot = item.lots.some(l => {
-        if (l.supplierId === supplier.id) return true
+      const matchLot = item.lots.some((l) => {
+        if (l.supplierId === supplier.id) return true;
         if (l.supplierName && supplier.name) {
-          const lA = l.supplierName.trim().toLowerCase()
-          const lB = supplier.name.trim().toLowerCase()
-          return lA === lB || lA.includes(lB) || lB.includes(lA)
+          const lA = l.supplierName.trim().toLowerCase();
+          const lB = supplier.name.trim().toLowerCase();
+          return lA === lB || lA.includes(lB) || lB.includes(lA);
         }
-        return false
-      })
-      if (matchLot) return true
+        return false;
+      });
+      if (matchLot) return true;
     }
 
-    return false
-  }
+    return false;
+  };
 
   // 3. Khởi tạo NCC mặc định cho từng mặt hàng (chọn NCC đang có hàng)
   useEffect(() => {
-    const defaultSupMap = {}
-    inventoryItems.forEach(it => {
+    const defaultSupMap = {};
+    inventoryItems.forEach((it) => {
       // Tìm NCC khả dụng đầu tiên có mặt hàng này
-      const matched = allSuppliers.find(s => isSupplierAvailableForItem(s, it))
-      defaultSupMap[it.id] = matched?.id || it.supplierId || (allSuppliers[0]?.id || "")
-    })
-    setItemSuppliers(defaultSupMap)
-  }, [inventoryItems, allSuppliers])
+      const matched = allSuppliers.find((s) =>
+        isSupplierAvailableForItem(s, it),
+      );
+      defaultSupMap[it.id] =
+        matched?.id || it.supplierId || allSuppliers[0]?.id || "";
+    });
+    setItemSuppliers(defaultSupMap);
+  }, [inventoryItems, allSuppliers]);
 
   // 4. Khởi tạo số lượng mặt hàng (ưu tiên món được chỉ định hoặc các món dưới mức an toàn)
   useEffect(() => {
     if (initialSelectedItem) {
       setOrderQtys({
-        [initialSelectedItem.id]: Math.max(1, Number(initialSelectedItem.safetyStock) || 1),
-      })
+        [initialSelectedItem.id]: Math.max(
+          0.001,
+          Number(initialSelectedItem.safetyStock) || 1,
+        ),
+      });
     } else {
-      const initial = {}
+      const initial = {};
       inventoryItems
-        .filter(it => it.currentStock < it.safetyStock)
-        .forEach(it => {
-          initial[it.id] = Math.max(1, Number(it.safetyStock) || 1)
-        })
-      setOrderQtys(initial)
+        .filter((it) => it.currentStock < it.safetyStock)
+        .forEach((it) => {
+          initial[it.id] = Math.max(0.001, Number(it.safetyStock) || 1);
+        });
+      setOrderQtys(initial);
     }
-  }, [initialSelectedItem, inventoryItems])
+  }, [initialSelectedItem, inventoryItems]);
 
-  const handleToggleItem = item => {
-    setOrderQtys(prev => {
-      const next = { ...prev }
-      if (next[item.id]) {
-        delete next[item.id]
+  const handleToggleItem = (item) => {
+    setOrderQtys((prev) => {
+      const next = { ...prev };
+      if (Object.hasOwn(next, item.id)) {
+        delete next[item.id];
       } else {
-        next[item.id] = Math.max(1, Number(item.safetyStock) || 1)
+        next[item.id] = Math.max(0.001, Number(item.safetyStock) || 1);
       }
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
   const handleQtyChange = (itemId, val) => {
-    const num = Math.max(1, Number(val) || 1)
-    setOrderQtys(prev => ({ ...prev, [itemId]: num }))
-  }
+    const num = val;
+    setOrderQtys((prev) => ({ ...prev, [itemId]: num }));
+  };
 
   // Đổi NCC cho riêng từng mặt hàng
   const handleItemSupplierChange = (itemId, newSupId) => {
-    setItemSuppliers(prev => ({
+    setItemSuppliers((prev) => ({
       ...prev,
       [itemId]: newSupId,
-    }))
-  }
+    }));
+  };
 
   const selectedCount = useMemo(() => {
-    return Object.keys(orderQtys).filter(id => orderQtys[id] > 0).length
-  }, [orderQtys])
+    return Object.keys(orderQtys).length;
+  }, [orderQtys]);
 
   const totalEstimatedAmount = useMemo(() => {
     return Object.entries(orderQtys).reduce((sum, [id, qty]) => {
-      const it = inventoryItems.find(item => item.id === id)
-      return sum + (it?.unitPrice || 0) * qty
-    }, 0)
-  }, [orderQtys, inventoryItems])
+      const it = inventoryItems.find((item) => item.id === id);
+      return sum + (it?.unitPrice || 0) * qty;
+    }, 0);
+  }, [orderQtys, inventoryItems]);
 
   // Đếm số lượng NCC khác nhau trong các mặt hàng đã chọn
   const selectedSuppliersCount = useMemo(() => {
-    const supNames = new Set()
-    Object.keys(orderQtys).forEach(id => {
+    const supNames = new Set();
+    Object.keys(orderQtys).forEach((id) => {
       if (orderQtys[id] > 0) {
-        const it = inventoryItems.find(item => item.id === id)
-        const name = it?.supplierName || "Nhà cung cấp đối tác"
-        supNames.add(name)
+        const it = inventoryItems.find((item) => item.id === id);
+        const name = it?.supplierName || "Nhà cung cấp đối tác";
+        supNames.add(name);
       }
-    })
-    return supNames.size
-  }, [orderQtys, inventoryItems])
+    });
+    return supNames.size;
+  }, [orderQtys, inventoryItems]);
 
   const handleSubmit = async () => {
+    if (Object.values(orderQtys).some((value) => quantityError(value))) return;
     // 1. Tổng hợp tất cả các mặt hàng được chọn kèm NCC tương ứng
-    const allSelectedItems = []
+    const allSelectedItems = [];
 
     Object.entries(orderQtys).forEach(([id, qty]) => {
-      if (qty <= 0) return
-      const it = inventoryItems.find(item => item.id === id)
-      if (!it) return
+      if (qty <= 0) return;
+      const it = inventoryItems.find((item) => item.id === id);
+      if (!it) return;
 
       // Ưu tiên NCC gốc của mặt hàng trong kho
       const matchedSup =
-        allSuppliers.find(s => s.id === it.supplierId) ||
-        allSuppliers.find(s => isSupplierAvailableForItem(s, it))
+        allSuppliers.find((s) => s.id === it.supplierId) ||
+        allSuppliers.find((s) => isSupplierAvailableForItem(s, it));
       const supId =
         it.supplierId ||
         matchedSup?.id ||
-        `sup-${(it.supplierName || "default").replace(/\s+/g, "-").toLowerCase()}`
-      const supName = it.supplierName || matchedSup?.name || "Nhà cung cấp đối tác"
-      const supPhone = it.supplierPhone || matchedSup?.phone || ""
+        `sup-${(it.supplierName || "default").replace(/\s+/g, "-").toLowerCase()}`;
+      const supName =
+        it.supplierName || matchedSup?.name || "Nhà cung cấp đối tác";
+      const supPhone = it.supplierPhone || matchedSup?.phone || "";
 
       allSelectedItems.push({
         id: it.id,
@@ -230,38 +257,38 @@ export default function CreateDryOrderView({
         supplierId: supId,
         supplierName: supName,
         supplierPhone: supPhone,
-      })
-    })
+      });
+    });
 
-    if (allSelectedItems.length === 0) return
+    if (allSelectedItems.length === 0) return;
 
     // 2. Xác định nhãn hiển thị thời gian giao
-    const hour = parseInt(deliveryTime.split(":")[0], 10) || 0
-    let deliveryType = "OFFICE_HOURS"
-    let deliveryTypeLabel = `Hẹn lúc ${deliveryTime}`
+    const hour = parseInt(deliveryTime.split(":")[0], 10) || 0;
+    let deliveryType = "OFFICE_HOURS";
+    let deliveryTypeLabel = `Hẹn lúc ${deliveryTime}`;
 
     if (hour >= 18) {
-      deliveryType = "EVENING"
-      deliveryTypeLabel = `Buổi tối (${deliveryTime})`
+      deliveryType = "EVENING";
+      deliveryTypeLabel = `Buổi tối (${deliveryTime})`;
     } else if (hour >= 12) {
-      deliveryType = "AFTERNOON"
-      deliveryTypeLabel = `Buổi chiều (${deliveryTime})`
+      deliveryType = "AFTERNOON";
+      deliveryTypeLabel = `Buổi chiều (${deliveryTime})`;
     } else if (hour >= 6) {
-      deliveryType = "MORNING"
-      deliveryTypeLabel = `Buổi sáng (${deliveryTime})`
+      deliveryType = "MORNING";
+      deliveryTypeLabel = `Buổi sáng (${deliveryTime})`;
     }
 
     const uniqueSuppliers = Array.from(
-      new Set(allSelectedItems.map(it => it.supplierName).filter(Boolean))
-    )
+      new Set(allSelectedItems.map((it) => it.supplierName).filter(Boolean)),
+    );
     const primarySupplierName =
       uniqueSuppliers.length === 1
         ? uniqueSuppliers[0]
-        : uniqueSuppliers.join(", ")
+        : uniqueSuppliers.join(", ");
     const totalAmount = allSelectedItems.reduce(
       (sum, it) => sum + it.price * it.qty,
-      0
-    )
+      0,
+    );
 
     // 3. Tạo 1 Phiếu nhập hàng duy nhất của trường, bên trong chứa đầy đủ các NCC giao gì
     const orderToCreate = {
@@ -284,18 +311,33 @@ export default function CreateDryOrderView({
       statusLabel: "Chờ NCC xác nhận",
       note,
       items: allSelectedItems,
-    }
+    };
 
     try {
-      setSubmitting(true)
-      await onSubmit(orderToCreate)
+      if (
+        Object.values(orderQtys).some(
+          (value) =>
+            value !== "" && Number(value) !== 0 && quantityError(value),
+        )
+      )
+        return;
+      setSubmitting(true);
+      await onSubmit(orderToCreate);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <Box className={styles.container}>
+      {unitCatalog.error && (
+        <Alert
+          severity="warning"
+          action={<Button onClick={unitCatalog.retry}>Thử lại</Button>}
+        >
+          {unitCatalog.error}
+        </Alert>
+      )}
       {/* 1. Header & Nút Quay lại */}
       <Box className={styles.header}>
         <Button
@@ -328,7 +370,7 @@ export default function CreateDryOrderView({
               label="Ngày giao dự kiến"
               type="date"
               value={deliveryDate}
-              onChange={e => setDeliveryDate(e.target.value)}
+              onChange={(e) => setDeliveryDate(e.target.value)}
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               sx={{ minWidth: 200 }}
@@ -337,7 +379,7 @@ export default function CreateDryOrderView({
               label="Giờ hẹn giao"
               type="time"
               value={deliveryTime}
-              onChange={e => setDeliveryTime(e.target.value)}
+              onChange={(e) => setDeliveryTime(e.target.value)}
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               sx={{ minWidth: 200 }}
@@ -347,7 +389,7 @@ export default function CreateDryOrderView({
           <TextField
             label="Ghi chú giao nhận cho thủ kho / bảo vệ"
             value={note}
-            onChange={e => setNote(e.target.value)}
+            onChange={(e) => setNote(e.target.value)}
             multiline
             rows={2}
             size="small"
@@ -370,12 +412,24 @@ export default function CreateDryOrderView({
             <TableHead className={styles.tableHead}>
               <TableRow>
                 <TableCell padding="checkbox">Chọn</TableCell>
-                <TableCell style={{ minWidth: 200 }}>Tên &amp; Loại nguyên liệu</TableCell>
-                <TableCell align="center" style={{ minWidth: 150 }}>Tồn kho / Mức an toàn</TableCell>
-                <TableCell align="center" style={{ width: 140 }}>Số lượng nhập</TableCell>
-                <TableCell style={{ minWidth: 240 }}>Nhà cung cấp (NCC)</TableCell>
-                <TableCell align="right" style={{ minWidth: 100 }}>Đơn giá</TableCell>
-                <TableCell align="right" style={{ minWidth: 120 }}>Thành tiền</TableCell>
+                <TableCell style={{ minWidth: 200 }}>
+                  Tên &amp; Loại nguyên liệu
+                </TableCell>
+                <TableCell align="center" style={{ minWidth: 150 }}>
+                  Tồn kho / Mức an toàn
+                </TableCell>
+                <TableCell align="center" style={{ width: 140 }}>
+                  Số lượng nhập
+                </TableCell>
+                <TableCell style={{ minWidth: 240 }}>
+                  Nhà cung cấp (NCC)
+                </TableCell>
+                <TableCell align="right" style={{ minWidth: 100 }}>
+                  Đơn giá
+                </TableCell>
+                <TableCell align="right" style={{ minWidth: 120 }}>
+                  Thành tiền
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -388,14 +442,22 @@ export default function CreateDryOrderView({
                   </TableCell>
                 </TableRow>
               ) : (
-                inventoryItems.map(item => {
-                  const isSelected = Boolean(orderQtys[item.id])
-                  const qty = orderQtys[item.id] || 0
-                  const stockPct = Math.round((item.currentStock / item.safetyStock) * 100)
-                  const lineTotal = (item.unitPrice || 0) * qty
-                  const matchedSup = allSuppliers.find(s => isSupplierAvailableForItem(s, item)) || allSuppliers.find(s => s.id === item.supplierId)
-                  const supplierDisplayName = item.supplierName || matchedSup?.name || "Nhà cung cấp đối tác"
-                  const supplierPhone = item.supplierPhone || matchedSup?.phone
+                inventoryItems.map((item) => {
+                  const isSelected = Object.hasOwn(orderQtys, item.id);
+                  const qty = orderQtys[item.id] ?? 0;
+                  const stockPct = Math.round(
+                    (item.currentStock / item.safetyStock) * 100,
+                  );
+                  const lineTotal = (item.unitPrice || 0) * qty;
+                  const matchedSup =
+                    allSuppliers.find((s) =>
+                      isSupplierAvailableForItem(s, item),
+                    ) || allSuppliers.find((s) => s.id === item.supplierId);
+                  const supplierDisplayName =
+                    item.supplierName ||
+                    matchedSup?.name ||
+                    "Nhà cung cấp đối tác";
+                  const supplierPhone = item.supplierPhone || matchedSup?.phone;
 
                   return (
                     <TableRow
@@ -414,12 +476,19 @@ export default function CreateDryOrderView({
                       </TableCell>
 
                       <TableCell>
-                        <Typography variant="subtitle2" className={styles.tableItemName}>
+                        <Typography
+                          variant="subtitle2"
+                          className={styles.tableItemName}
+                        >
                           {item.name}
                         </Typography>
                         {item.category && (
                           <Box className={styles.tableItemMeta}>
-                            <Chip label={item.category} size="small" className={styles.catChip} />
+                            <Chip
+                              label={item.category}
+                              size="small"
+                              className={styles.catChip}
+                            />
                           </Box>
                         )}
                       </TableCell>
@@ -464,10 +533,28 @@ export default function CreateDryOrderView({
                             type="number"
                             size="small"
                             value={qty}
-                            onChange={e => handleQtyChange(item.id, e.target.value)}
+                            error={isSelected && Boolean(quantityError(qty))}
+                            helperText={
+                              <QuantityRecommendation
+                                value={qty}
+                                unit={item.unit}
+                                units={unitCatalog.units}
+                                validate={isSelected}
+                              />
+                            }
+                            onChange={(e) =>
+                              handleQtyChange(item.id, e.target.value)
+                            }
                             disabled={!isSelected}
                             slotProps={{
-                              htmlInput: { min: 1, style: { textAlign: "center", padding: "4px 8px" } },
+                              htmlInput: {
+                                min: 0.001,
+                                step: "any",
+                                style: {
+                                  textAlign: "center",
+                                  padding: "4px 8px",
+                                },
+                              },
                             }}
                             className={styles.qtyField}
                           />
@@ -490,7 +577,11 @@ export default function CreateDryOrderView({
                         {supplierPhone && (
                           <Typography
                             variant="caption"
-                            sx={{ color: "#64748b", display: "block", fontSize: "0.7rem" }}
+                            sx={{
+                              color: "#64748b",
+                              display: "block",
+                              fontSize: "0.7rem",
+                            }}
                           >
                             Hotline: {supplierPhone}
                           </Typography>
@@ -504,12 +595,17 @@ export default function CreateDryOrderView({
                       </TableCell>
 
                       <TableCell align="right">
-                        <Typography variant="subtitle2" className={styles.lineTotal}>
-                          {isSelected ? `${lineTotal.toLocaleString("vi-VN")} đ` : "—"}
+                        <Typography
+                          variant="subtitle2"
+                          className={styles.lineTotal}
+                        >
+                          {isSelected
+                            ? `${lineTotal.toLocaleString("vi-VN")} đ`
+                            : "—"}
                         </Typography>
                       </TableCell>
                     </TableRow>
-                  )
+                  );
                 })
               )}
             </TableBody>
@@ -537,12 +633,18 @@ export default function CreateDryOrderView({
             />
           )}
           <Typography variant="subtitle1" className={styles.totalText}>
-            Tổng tiền ước tính: <strong>{totalEstimatedAmount.toLocaleString("vi-VN")} đ</strong>
+            Tổng tiền ước tính:{" "}
+            <strong>{totalEstimatedAmount.toLocaleString("vi-VN")} đ</strong>
           </Typography>
         </Box>
 
         <Box className={styles.footerActions}>
-          <Button onClick={onBack} variant="outlined" color="inherit" disabled={submitting}>
+          <Button
+            onClick={onBack}
+            variant="outlined"
+            color="inherit"
+            disabled={submitting}
+          >
             Hủy bỏ
           </Button>
 
@@ -557,7 +659,11 @@ export default function CreateDryOrderView({
                 <Send size={18} />
               )
             }
-            disabled={selectedCount === 0 || submitting}
+            disabled={
+              selectedCount === 0 ||
+              submitting ||
+              Object.values(orderQtys).some((value) => quantityError(value))
+            }
             className={styles.submitBtn}
           >
             {submitting ? "Đang gửi..." : "Tạo"}
@@ -565,7 +671,7 @@ export default function CreateDryOrderView({
         </Box>
       </Box>
     </Box>
-  )
+  );
 }
 
 CreateDryOrderView.propTypes = {
@@ -574,4 +680,4 @@ CreateDryOrderView.propTypes = {
   initialSelectedItem: PropTypes.object,
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
-}
+};

@@ -1,76 +1,77 @@
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { Link, useParams } from "react-router-dom"
+import useMeasurementUnits from "src/hooks/useMeasurementUnits";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   Add,
   ImageOutlined,
   KeyboardArrowDown,
   Search,
-} from "@mui/icons-material"
-import notice from "src/components/Notice"
-import ROUTER from "src/router/ROUTER"
+} from "@mui/icons-material";
+import notice from "src/components/Notice";
+import ROUTER from "src/router/ROUTER";
 import SupplierIngredientService, {
-  DEFAULT_UNITS,
   INGREDIENT_STATUS,
-} from "src/services/SupplierIngredientService"
-import IngredientDetailView from "./component/IngredientDetailView"
-import IngredientFormModal from "./component/IngredientFormModal"
-import styles from "./IngredientCatalog.module.scss"
+} from "src/services/SupplierIngredientService";
+import IngredientDetailView from "./component/IngredientDetailView";
+import IngredientFormModal from "./component/IngredientFormModal";
+import styles from "./IngredientCatalog.module.scss";
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 20;
 
 const IngredientCatalog = () => {
-  const { id: detailId } = useParams()
+  const unitCatalog = useMeasurementUnits();
+  const { id: detailId } = useParams();
 
-  const [items, setItems] = useState([])
+  const [items, setItems] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
     limit: PAGE_SIZE,
     hasNext: false,
     total: null,
-  })
-  const [categories, setCategories] = useState([])
-  const [listLoading, setListLoading] = useState(true)
-  const [listError, setListError] = useState(null)
+  });
+  const [categories, setCategories] = useState([]);
+  const [listLoading, setListLoading] = useState(true);
+  const [listError, setListError] = useState(null);
 
-  const [detailItem, setDetailItem] = useState(null)
-  const [detailLoading, setDetailLoading] = useState(false)
-  const [detailError, setDetailError] = useState(null)
+  const [detailItem, setDetailItem] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(null);
 
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("ALL")
-  const [statusFilter, setStatusFilter] = useState("ALL")
-  const [currentPage, setCurrentPage] = useState(1)
-  const [failedThumbs, setFailedThumbs] = useState({})
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [failedThumbs, setFailedThumbs] = useState({});
 
-  const [modalOpen, setModalOpen] = useState(false)
-  const [modalMode, setModalMode] = useState("create")
-  const [editingItem, setEditingItem] = useState(null)
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [editingItem, setEditingItem] = useState(null);
 
-  const loadCategories = useCallback(async signal => {
+  const loadCategories = useCallback(async (signal) => {
     try {
       const result = await SupplierIngredientService.listCategories(
         { page: 1, limit: 100 },
         signal,
-      )
+      );
       if (!signal?.aborted) {
-        setCategories(result.items || [])
+        setCategories(result.items || []);
       }
     } catch {
       // Categories are optional if endpoint returns empty or fails
     }
-  }, [])
+  }, []);
 
   const loadList = useCallback(
     async (pageToLoad = currentPage, signal) => {
-      setListLoading(true)
-      setListError(null)
+      setListLoading(true);
+      setListError(null);
       try {
         const result = await SupplierIngredientService.list(
           { page: pageToLoad, limit: PAGE_SIZE },
           signal,
-        )
+        );
         if (!signal?.aborted) {
-          setItems(result.items || [])
+          setItems(result.items || []);
           setPagination(
             result.pagination || {
               page: pageToLoad,
@@ -78,174 +79,180 @@ const IngredientCatalog = () => {
               hasNext: false,
               total: null,
             },
-          )
-          setListLoading(false)
+          );
+          setListLoading(false);
         }
       } catch (error) {
         if (!signal?.aborted) {
-          setListError(error)
-          setListLoading(false)
+          setListError(error);
+          setListLoading(false);
         }
       }
     },
     [currentPage],
-  )
+  );
 
   const loadDetail = useCallback(async (ingredientId, signal) => {
-    if (!ingredientId) return
-    setDetailLoading(true)
-    setDetailError(null)
+    if (!ingredientId) return;
+    setDetailLoading(true);
+    setDetailError(null);
     try {
-      const data = await SupplierIngredientService.getById(ingredientId, signal)
+      const data = await SupplierIngredientService.getById(
+        ingredientId,
+        signal,
+      );
       if (!signal?.aborted) {
-        setDetailItem(data)
-        setDetailLoading(false)
+        setDetailItem(data);
+        setDetailLoading(false);
       }
     } catch (error) {
       if (!signal?.aborted) {
-        setDetailError(error)
-        setDetailLoading(false)
+        setDetailError(error);
+        setDetailLoading(false);
       }
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
-    const controller = new AbortController()
-    loadCategories(controller.signal)
-    return () => controller.abort()
-  }, [loadCategories])
+    const controller = new AbortController();
+    loadCategories(controller.signal);
+    return () => controller.abort();
+  }, [loadCategories]);
 
   useEffect(() => {
-    const controller = new AbortController()
-    loadList(currentPage, controller.signal)
-    return () => controller.abort()
-  }, [currentPage, loadList])
+    const controller = new AbortController();
+    loadList(currentPage, controller.signal);
+    return () => controller.abort();
+  }, [currentPage, loadList]);
 
   useEffect(() => {
     if (!detailId) {
-      setDetailItem(null)
-      setDetailError(null)
-      setDetailLoading(false)
-      return undefined
+      setDetailItem(null);
+      setDetailError(null);
+      setDetailLoading(false);
+      return undefined;
     }
-    const controller = new AbortController()
-    loadDetail(detailId, controller.signal)
-    return () => controller.abort()
-  }, [detailId, loadDetail])
+    const controller = new AbortController();
+    loadDetail(detailId, controller.signal);
+    return () => controller.abort();
+  }, [detailId, loadDetail]);
 
   const categoryOptions = useMemo(() => {
-    const map = new Map()
-    categories.forEach(cat => {
+    const map = new Map();
+    categories.forEach((cat) => {
       if (cat?.id && cat?.categoryName) {
-        map.set(cat.id, cat)
+        map.set(cat.id, cat);
       }
-    })
-    items.forEach(item => {
+    });
+    items.forEach((item) => {
       if (item?.category?.id && item?.category?.categoryName) {
-        map.set(item.category.id, item.category)
+        map.set(item.category.id, item.category);
       }
-    })
-    return Array.from(map.values())
-  }, [categories, items])
+    });
+    return Array.from(map.values());
+  }, [categories, items]);
 
-  const units = useMemo(() => {
-    const fromItems = items.map(item => item.defaultUnit).filter(Boolean)
-    return Array.from(new Set([...DEFAULT_UNITS, ...fromItems]))
-  }, [items])
+  const units = useMemo(
+    () =>
+      unitCatalog.units
+        .filter((unit) => unit.status === "ACTIVE")
+        .map((unit) => unit.symbol),
+    [unitCatalog.units],
+  );
 
   const filteredItems = useMemo(() => {
-    const normalizedQuery = searchQuery.trim().toLowerCase()
+    const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return items.filter(item => {
+    return items.filter((item) => {
       if (normalizedQuery) {
-        const matchesName = item.name?.toLowerCase().includes(normalizedQuery)
+        const matchesName = item.name?.toLowerCase().includes(normalizedQuery);
         const matchesCategory = item.categoryName
           ?.toLowerCase()
-          .includes(normalizedQuery)
-        if (!matchesName && !matchesCategory) return false
+          .includes(normalizedQuery);
+        if (!matchesName && !matchesCategory) return false;
       }
 
       if (categoryFilter !== "ALL") {
         if (categoryFilter === "UNCATEGORIZED") {
-          if (item.categoryId) return false
+          if (item.categoryId) return false;
         } else if (
           String(item.categoryId) !== String(categoryFilter) &&
           item.categoryName !== categoryFilter
         ) {
-          return false
+          return false;
         }
       }
 
       if (statusFilter !== "ALL" && item.status !== statusFilter) {
-        return false
+        return false;
       }
 
-      return true
-    })
-  }, [items, searchQuery, categoryFilter, statusFilter])
+      return true;
+    });
+  }, [items, searchQuery, categoryFilter, statusFilter]);
 
-  const startIndex = (currentPage - 1) * PAGE_SIZE
-  const displayedCount = filteredItems.length
-  const rangeStart = displayedCount === 0 ? 0 : startIndex + 1
-  const rangeEnd = displayedCount === 0 ? 0 : startIndex + displayedCount
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const displayedCount = filteredItems.length;
+  const rangeStart = displayedCount === 0 ? 0 : startIndex + 1;
+  const rangeEnd = displayedCount === 0 ? 0 : startIndex + displayedCount;
   const totalLabel = Number.isInteger(pagination.total)
     ? pagination.total
     : pagination.hasNext
       ? `${rangeEnd}+`
-      : rangeEnd
+      : rangeEnd;
 
-  const maxKnownPage = pagination.hasNext ? currentPage + 1 : currentPage
+  const maxKnownPage = pagination.hasNext ? currentPage + 1 : currentPage;
   const pageNumbers = useMemo(
     () => Array.from({ length: maxKnownPage }, (_, index) => index + 1),
     [maxKnownPage],
-  )
+  );
 
   const handleOpenCreateModal = () => {
-    setModalMode("create")
-    setEditingItem(null)
-    setModalOpen(true)
-  }
+    setModalMode("create");
+    setEditingItem(null);
+    setModalOpen(true);
+  };
 
-  const handleOpenEditModal = item => {
-    setModalMode("edit")
-    setEditingItem(item)
-    setModalOpen(true)
-  }
+  const handleOpenEditModal = (item) => {
+    setModalMode("edit");
+    setEditingItem(item);
+    setModalOpen(true);
+  };
 
   const handleCloseModal = () => {
-    setModalOpen(false)
-  }
+    setModalOpen(false);
+  };
 
-  const handleSubmitIngredient = async formPayload => {
+  const handleSubmitIngredient = async (formPayload) => {
     if (modalMode === "edit" && editingItem) {
       const updated = await SupplierIngredientService.update(
         editingItem.id,
         formPayload,
-      )
-      setModalOpen(false)
+      );
+      setModalOpen(false);
       if (updated) {
-        setEditingItem(updated)
+        setEditingItem(updated);
         if (detailId && String(detailId) === String(updated.id)) {
-          setDetailItem(updated)
+          setDetailItem(updated);
         }
       }
-      await loadList(currentPage)
+      await loadList(currentPage);
       notice({
         msg: "Sửa nguyên liệu thành công",
         isSuccess: true,
-      })
-      return
+      });
+      return;
     }
 
-    await SupplierIngredientService.create(formPayload)
-    setModalOpen(false)
-    setCurrentPage(1)
-    await loadList(1)
+    await SupplierIngredientService.create(formPayload);
+    setModalOpen(false);
+    setCurrentPage(1);
+    await loadList(1);
     notice({
       msg: "Thêm nguyên liệu thành công",
       isSuccess: true,
-    })
-  }
+    });
+  };
 
   const handleConfirmStatusChange = async (
     ingredientId,
@@ -254,38 +261,37 @@ const IngredientCatalog = () => {
     const updated = await SupplierIngredientService.changeStatus(
       ingredientId,
       targetStatus,
-    )
+    );
     if (updated) {
-      setEditingItem(updated)
+      setEditingItem(updated);
       if (detailId && String(detailId) === String(updated.id)) {
-        setDetailItem(updated)
+        setDetailItem(updated);
       }
     }
-    await loadList(currentPage)
+    await loadList(currentPage);
     notice({
       msg:
         targetStatus === INGREDIENT_STATUS.ACTIVE
           ? "Mở lại nguyên liệu thành công"
           : "Ẩn nguyên liệu thành công",
       isSuccess: true,
-    })
-  }
+    });
+  };
 
   const handleResetFilters = () => {
-    setSearchQuery("")
-    setCategoryFilter("ALL")
-    setStatusFilter("ALL")
-  }
+    setSearchQuery("");
+    setCategoryFilter("ALL");
+    setStatusFilter("ALL");
+  };
 
   const hasActiveFilters =
     Boolean(searchQuery.trim()) ||
     categoryFilter !== "ALL" ||
-    statusFilter !== "ALL"
+    statusFilter !== "ALL";
 
   const renderThumb = (item, isCard = false) => {
-    const thumbKey = `${item.id}:${item.coverImage || ""}`
-    const hasValidCover =
-      Boolean(item.coverImage) && !failedThumbs[thumbKey]
+    const thumbKey = `${item.id}:${item.coverImage || ""}`;
+    const hasValidCover = Boolean(item.coverImage) && !failedThumbs[thumbKey];
     if (hasValidCover) {
       return (
         <img
@@ -293,10 +299,10 @@ const IngredientCatalog = () => {
           alt={item.name}
           className={isCard ? styles.cardThumb : styles.thumbImg}
           onError={() =>
-            setFailedThumbs(prev => ({ ...prev, [thumbKey]: true }))
+            setFailedThumbs((prev) => ({ ...prev, [thumbKey]: true }))
           }
         />
-      )
+      );
     }
     return (
       <span
@@ -307,16 +313,16 @@ const IngredientCatalog = () => {
       >
         <ImageOutlined className={styles.placeholderIconSmall} />
       </span>
-    )
-  }
+    );
+  };
 
-  const listErrorStatus = listError?.response?.status
+  const listErrorStatus = listError?.response?.status;
   const listErrorMsg =
     listErrorStatus === 403
       ? "Bạn không có quyền truy cập chức năng quản lý nguyên liệu nhà cung cấp."
       : listError?.response?.data?.message ||
         listError?.message ||
-        "Không thể tải danh sách nguyên liệu."
+        "Không thể tải danh sách nguyên liệu.";
 
   return (
     <>
@@ -328,7 +334,7 @@ const IngredientCatalog = () => {
           onRetry={() => loadDetail(detailId)}
           onEdit={() => {
             if (detailItem) {
-              handleOpenEditModal(detailItem)
+              handleOpenEditModal(detailItem);
             }
           }}
         />
@@ -339,7 +345,8 @@ const IngredientCatalog = () => {
             <div className={styles.headingGroup}>
               <h1 className={styles.pageTitle}>Danh sách nguyên liệu</h1>
               <p className={styles.pageSubtitle}>
-                Quản lý danh mục chuẩn để dùng cho nhập lô và đối chiếu thực đơn.
+                Quản lý danh mục chuẩn để dùng cho nhập lô và đối chiếu thực
+                đơn.
               </p>
             </div>
 
@@ -377,7 +384,7 @@ const IngredientCatalog = () => {
                     id="supplier-ingredient-search"
                     type="text"
                     value={searchQuery}
-                    onChange={event => setSearchQuery(event.target.value)}
+                    onChange={(event) => setSearchQuery(event.target.value)}
                     placeholder="Tìm theo tên nguyên liệu..."
                     className={styles.searchInput}
                   />
@@ -395,13 +402,13 @@ const IngredientCatalog = () => {
                   <select
                     id="supplier-ingredient-category"
                     value={categoryFilter}
-                    onChange={event => setCategoryFilter(event.target.value)}
+                    onChange={(event) => setCategoryFilter(event.target.value)}
                     className={`${styles.selectControl} ${
                       categoryFilter === "ALL" ? styles.isPlaceholder : ""
                     }`}
                   >
                     <option value="ALL">Tất cả nhóm</option>
-                    {categoryOptions.map(category => (
+                    {categoryOptions.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.categoryName}
                       </option>
@@ -422,7 +429,7 @@ const IngredientCatalog = () => {
                   <select
                     id="supplier-ingredient-status"
                     value={statusFilter}
-                    onChange={event => setStatusFilter(event.target.value)}
+                    onChange={(event) => setStatusFilter(event.target.value)}
                     className={`${styles.selectControl} ${
                       statusFilter === "ALL" ? styles.isPlaceholder : ""
                     }`}
@@ -472,7 +479,7 @@ const IngredientCatalog = () => {
                 <p className={styles.emptyDesc}>
                   {hasActiveFilters
                     ? "Thử thay đổi từ khóa tìm kiếm hoặc bộ lọc nhóm nguyên liệu, trạng thái để xem đầy đủ danh mục."
-                    : "Nhấn \"Thêm nguyên liệu mới\" để đăng ký nguyên liệu cung ứng của đơn vị."}
+                    : 'Nhấn "Thêm nguyên liệu mới" để đăng ký nguyên liệu cung ứng của đơn vị.'}
                 </p>
                 {hasActiveFilters && (
                   <button
@@ -517,13 +524,15 @@ const IngredientCatalog = () => {
                     </thead>
                     <tbody>
                       {filteredItems.map((item, idx) => {
-                        const stt = startIndex + idx + 1
-                        const isActive = item.status !== "INACTIVE"
-                        const detailUrl = `${ROUTER.SUPPLIER_INGREDIENTS}/${encodeURIComponent(item.id)}`
+                        const stt = startIndex + idx + 1;
+                        const isActive = item.status !== "INACTIVE";
+                        const detailUrl = `${ROUTER.SUPPLIER_INGREDIENTS}/${encodeURIComponent(item.id)}`;
 
                         return (
                           <tr key={item.id} className={styles.tableRow}>
-                            <td className={`${styles.colStt} ${styles.cellStt}`}>
+                            <td
+                              className={`${styles.colStt} ${styles.cellStt}`}
+                            >
                               {stt}
                             </td>
                             <td className={styles.colName}>
@@ -570,7 +579,7 @@ const IngredientCatalog = () => {
                               {item.updatedAt}
                             </td>
                           </tr>
-                        )
+                        );
                       })}
                     </tbody>
                   </table>
@@ -578,9 +587,9 @@ const IngredientCatalog = () => {
 
                 {/* Tablet & Mobile Card List (Nodes 294:10295 & 294:10601) */}
                 <div className={styles.cardList}>
-                  {filteredItems.map(item => {
-                    const isActive = item.status !== "INACTIVE"
-                    const detailUrl = `${ROUTER.SUPPLIER_INGREDIENTS}/${encodeURIComponent(item.id)}`
+                  {filteredItems.map((item) => {
+                    const isActive = item.status !== "INACTIVE";
+                    const detailUrl = `${ROUTER.SUPPLIER_INGREDIENTS}/${encodeURIComponent(item.id)}`;
 
                     return (
                       <article key={item.id} className={styles.ingredientCard}>
@@ -608,7 +617,7 @@ const IngredientCatalog = () => {
                           {`Cập nhật: ${item.updatedAt}`}
                         </p>
                       </article>
-                    )
+                    );
                   })}
                 </div>
               </>
@@ -625,13 +634,13 @@ const IngredientCatalog = () => {
                   type="button"
                   className={`${styles.pageNavBtn} ${styles.pageNavBtnPrev}`}
                   onClick={() =>
-                    setCurrentPage(prev => Math.max(1, prev - 1))
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
                   }
                   disabled={listLoading || currentPage <= 1}
                 >
                   Trang trước
                 </button>
-                {pageNumbers.map(pageNum => (
+                {pageNumbers.map((pageNum) => (
                   <button
                     key={pageNum}
                     type="button"
@@ -648,7 +657,7 @@ const IngredientCatalog = () => {
                 <button
                   type="button"
                   className={styles.pageNavBtn}
-                  onClick={() => setCurrentPage(prev => prev + 1)}
+                  onClick={() => setCurrentPage((prev) => prev + 1)}
                   disabled={listLoading || !pagination.hasNext}
                 >
                   Trang sau
@@ -661,12 +670,12 @@ const IngredientCatalog = () => {
               <button
                 type="button"
                 className={`${styles.pageNavBtn} ${styles.pageNavBtnPrev}`}
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={listLoading || currentPage <= 1}
               >
                 Trang trước
               </button>
-              {pageNumbers.map(pageNum => (
+              {pageNumbers.map((pageNum) => (
                 <button
                   key={pageNum}
                   type="button"
@@ -683,7 +692,7 @@ const IngredientCatalog = () => {
               <button
                 type="button"
                 className={styles.pageNavBtn}
-                onClick={() => setCurrentPage(prev => prev + 1)}
+                onClick={() => setCurrentPage((prev) => prev + 1)}
                 disabled={listLoading || !pagination.hasNext}
               >
                 Trang sau
@@ -705,7 +714,7 @@ const IngredientCatalog = () => {
         onConfirmStatusChange={handleConfirmStatusChange}
       />
     </>
-  )
-}
+  );
+};
 
-export default IngredientCatalog
+export default IngredientCatalog;
