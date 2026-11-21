@@ -1164,12 +1164,23 @@
   display: block;
 }
 
+/* Form chiếm phần còn lại của hộp thoại để thân form cuộn được; tiêu đề và nút Lưu luôn hiện */
+.modalForm {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .modalBody {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
   padding: 16px 24px 24px;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .avatarAndStatusRow {

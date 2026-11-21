@@ -1,7 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { Button } from "@mui/material"
-import { Printer } from "lucide-react"
+import { FileDown } from "lucide-react"
 import { formatDate } from "src/utils/approvalWeek"
 import styles from "./MenuApprovalHeader.module.scss"
 
@@ -12,7 +12,7 @@ const pageTitle = ({ weekNumber, weekStartDate, weekEndDate }) => {
   return weekNumber ? `Duyệt thực đơn tuần ${weekNumber} ${range}` : `Duyệt thực đơn tuần ${range}`
 }
 
-function MenuApprovalHeader({ week, pendingCount, totalCount, onPrint }) {
+function MenuApprovalHeader({ week, pendingCount, totalCount, onPrint, exporting = false }) {
   return (
     <header className={styles.header}>
       <div>
@@ -31,8 +31,15 @@ function MenuApprovalHeader({ week, pendingCount, totalCount, onPrint }) {
 
       {totalCount > 0 && (
         <div className={styles.actions}>
-          <Button variant="text" color="inherit" startIcon={<Printer size={17} />} onClick={onPrint}>
-            In / Xuất PDF
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<FileDown size={17} />}
+            onClick={onPrint}
+            disabled={exporting}
+            title="Xuất các thực đơn đang hiển thị ra PDF (chọn “Lưu dưới dạng PDF” trong hộp thoại in)"
+          >
+            {exporting ? "Đang chuẩn bị PDF…" : "Xuất PDF"}
           </Button>
         </div>
       )}
@@ -49,6 +56,7 @@ MenuApprovalHeader.propTypes = {
   pendingCount: PropTypes.number.isRequired,
   totalCount: PropTypes.number.isRequired,
   onPrint: PropTypes.func.isRequired,
+  exporting: PropTypes.bool,
 }
 
 export default MenuApprovalHeader

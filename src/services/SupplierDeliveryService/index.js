@@ -106,10 +106,10 @@ export function getDeliveryStatusMeta(status, statusLabel = "") {
   }
 }
 
+// Tên cơ sở nguồn cung hiển thị cho người dùng: chỉ tên, không kèm mã cơ sở (FP-SF-...)
 export function formatSourceFacilityLabel(facility) {
   if (!facility) return "Chưa gắn cơ sở"
-  const name = facility.name || "Cơ sở nguồn cung"
-  return facility.facilityCode ? `${name} (${facility.facilityCode})` : name
+  return facility.name || "Cơ sở nguồn cung"
 }
 
 const DECIMAL_QUANTITY_REGEX = /^(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/

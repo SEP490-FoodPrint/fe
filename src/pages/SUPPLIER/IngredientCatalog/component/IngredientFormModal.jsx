@@ -499,7 +499,7 @@ const IngredientFormModal = ({
             </button>
           </div>
 
-          <form onSubmit={handleFormSubmit} noValidate>
+          <form className={styles.modalForm} onSubmit={handleFormSubmit} noValidate>
             <div className={styles.modalBody}>
               {submitError && (
                 <p className={styles.fieldError} role="alert">

@@ -869,6 +869,79 @@ test("weekend locks same-day kitchen actions on the cooking board", async () => 
   assert.doesNotMatch(open, /disabled=""[^>]*aria-label="Nấu Canh"/)
 })
 
+test("manual delivery ingredient picker groups ingredients by category (2 levels) in one field", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Picker, groupIngredientsByCategory, ingredientCategoryKey } = await server.ssrLoadModule("/src/pages/SUPPLIER/SupplierDeliveries/component/IngredientCascadeSelect.jsx")
+  const options = [
+    { id: "rice", name: "Gạo tẻ", defaultUnit: "kg", categoryId: "c2", categoryName: "Lương thực" },
+    { id: "salt", name: "Muối", defaultUnit: "kg", categoryId: null, categoryName: null },
+    { id: "pork", name: "Thịt heo", defaultUnit: "kg", categoryId: "c1", categoryName: "Thịt" },
+    { id: "noodle", name: "Bún", defaultUnit: "kg", categoryId: "c2", categoryName: "Lương thực" },
+  ]
+  const groups = groupIngredientsByCategory(options)
+  assert.deepEqual(groups.map(group => [group.name, group.items.map(item => item.id)]), [
+    ["Lương thực", ["rice", "noodle"]],
+    ["Thịt", ["pork"]],
+    ["Khác", ["salt"]],
+  ])
+  assert.equal(ingredientCategoryKey(options[1]), "__uncategorized")
+  const empty = renderToStaticMarkup(React.createElement(Picker, { value: "", options, ariaLabel: "Nguyên liệu dòng 1" }))
+  assert.match(empty, /-- Chọn nguyên liệu \* --/)
+  assert.match(empty, /aria-expanded="false"/)
+  const picked = renderToStaticMarkup(React.createElement(Picker, { value: "pork", options, invalid: true }))
+  assert.match(picked, /Thịt heo \(kg\)/)
+  assert.match(picked, /aria-invalid="true"/)
+})
+
+test("menu PDF has school logo, title, week info, one page per menu and escapes text", async () => {
+  const { buildMenuPdfHtml, menuPdfTitle, pdfDayLabel } = await server.ssrLoadModule("/src/utils/menuPdf.js")
+  assert.deepEqual(pdfDayLabel("2026-11-23"), { weekday: "Thứ Hai", date: "23/11" })
+  // Dạng ngày thật của API phê duyệt: "dd/mm/yyyy" và "HH:mm dd/mm/yy"
+  assert.deepEqual(pdfDayLabel("23/11/2026"), { weekday: "Thứ Hai", date: "23/11" })
+  const { formatPdfDate } = await server.ssrLoadModule("/src/utils/menuPdf.js")
+  assert.equal(formatPdfDate("14:30 20/11/26"), "20/11/2026")
+  const week = { weekNumber: 12, weekStartDate: "2026-11-23", weekEndDate: "2026-11-27" }
+  assert.equal(menuPdfTitle(week), "Thuc-don-tuan-12_23-11-2026")
+  const menu = (id, grades, status) => ({
+    id, title: null, isSchoolWide: !grades.length, grades, status,
+    summary: { servingPeriod: "23/11 – 27/11/2026", proposer: "Y tế <A>" },
+    days: [{ id: "d1", shortLabel: "Thứ Hai", date: "23/11/2026", portions: 30, lunch: [{ name: "Cơm & canh", description: null, supplier: "NCC 1" }], snack: [] }],
+    approval: { approver: "Hiệu trưởng", reviewedAt: "09:00 20/11/26", note: "" },
+    medicalReview: { note: "" },
+  })
+  const html = buildMenuPdfHtml({
+    school: { name: "Trường Tiểu học FoodPrint", logoUrl: "https://cdn.example/logo.png", address: "Cầu Giấy" },
+    week,
+    menus: [menu("a", [{ id: "g1", name: "Khối 1–3" }], "APPROVED"), menu("b", [], "PENDING_APPROVAL")],
+  })
+  assert.equal((html.match(/<section class="page">/g) || []).length, 2)
+  assert.match(html, /<img class="logo" src="https:\/\/cdn\.example\/logo\.png"/)
+  assert.match(html, /TRƯỜNG|Trường Tiểu học FoodPrint/)
+  assert.match(html, /Thực đơn dinh dưỡng tuần 12/)
+  assert.match(html, /Tuần 12 · 23\/11\/2026 – 27\/11\/2026/)
+  assert.match(html, /Khối 1–3/)
+  assert.match(html, /Toàn trường/)
+  assert.match(html, /Đã phê duyệt/)
+  assert.match(html, /Chờ phê duyệt/)
+  assert.match(html, /Cơm &amp; canh/)
+  assert.match(html, /Y tế &lt;A&gt;/)
+  assert.doesNotMatch(html, /Bữa xế/)
+  assert.match(html, /size: A4 landscape; margin: 0/)
+  // CSS chỉ áp trong khung .fp-menu-pdf (in ngay trên trang app, không đè giao diện app)
+  assert.match(html, /\.fp-menu-pdf \.page \{/)
+  assert.doesNotMatch(html.replace(/@page \{[^}]*\}/, ""), /(^|\})\s*(body|\.page|h1)\s*\{/)
+  assert.match(html, /Tổng số suất/)
+  // Cả người lập và BGH đều có "(Ký, ghi rõ họ tên)"; BGH kèm ngày duyệt
+  assert.equal((html.match(/\(Ký, ghi rõ họ tên\)/g) || []).length, 4)
+  assert.match(html, /Ngày 20\/11\/2026<\/div>\s*<div class="sign-role">Ban Giám hiệu phê duyệt/)
+  assert.match(html, /<article class="day">[\s\S]*Thứ Hai[\s\S]*23\/11[\s\S]*Bữa trưa<\/div>/)
+  assert.doesNotMatch(html, /day-portions|class="desc"/)
+  assert.doesNotMatch(html, /Nhà cung cấp|Ý kiến|Xuất từ FoodPrint|Tổng suất dự kiến/)
+  const noLogo = buildMenuPdfHtml({ school: { name: "Trường Tiểu học Cầu Giấy" }, week, menus: [menu("c", [], "APPROVED")] })
+  assert.match(noLogo, /logo-fallback">CG</)
+})
+
 test("stock alerts show needed dry stock; fresh screen only urgent; order button passes shortage", async () => {
   const React = await import("react")
   const { renderToStaticMarkup } = await import("react-dom/server")

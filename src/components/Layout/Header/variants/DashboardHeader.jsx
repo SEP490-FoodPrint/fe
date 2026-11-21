@@ -3,7 +3,6 @@ import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
 import { ButtonBase, Divider, IconButton, ListItemIcon, ListItemText, Menu, MenuItem } from "@mui/material"
 import UserAvatar from "src/components/Common/UserAvatar"
-import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNoneOutlined"
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import LogoutOutlinedIcon from "@mui/icons-material/LogoutOutlined"
 import MenuOutlinedIcon from "@mui/icons-material/MenuOutlined"
@@ -17,7 +16,6 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
   const { userStore } = useContext(StoreContext)
   const user = userStore?.user
   const [accountAnchor, setAccountAnchor] = useState(null)
-  const [notificationAnchor, setNotificationAnchor] = useState(null)
   const roleLabel = user?.role === ROLES.SYSTEM_ADMIN ? "Quản trị viên" : ROLE_LABELS[user?.role]?.split("(")[0]?.trim() || user?.role
   const closeAccount = () => setAccountAnchor(null)
 
@@ -37,16 +35,6 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
         </Link>
       )}
       <div className={styles.actions}>
-        <IconButton
-          aria-label="Thông báo"
-          aria-haspopup="menu"
-          aria-expanded={Boolean(notificationAnchor)}
-          aria-controls={notificationAnchor ? "dashboard-notifications" : undefined}
-          className={styles.iconButton}
-          onClick={event => setNotificationAnchor(event.currentTarget)}
-        >
-          <NotificationsNoneOutlinedIcon />
-        </IconButton>
         {mobile ? (
           <IconButton
             ref={navigationButtonRef}
@@ -95,18 +83,6 @@ function DashboardHeader({ mobile = false, navigationOpen = false, onOpenNavigat
           <ListItemIcon><LogoutOutlinedIcon fontSize="small" /></ListItemIcon>
           <ListItemText>Đăng xuất</ListItemText>
         </MenuItem>
-      </Menu>
-      <Menu
-        id="dashboard-notifications"
-        anchorEl={notificationAnchor}
-        open={Boolean(notificationAnchor)}
-        onClose={() => setNotificationAnchor(null)}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        slotProps={{ paper: { className: styles.menuPaper }, list: { "aria-label": "Thông báo" } }}
-      >
-        <MenuItem disabled className={styles.notificationTitle}>Thông báo</MenuItem>
-        <MenuItem disabled className={styles.emptyNotification}>Chưa có thông báo</MenuItem>
       </Menu>
     </header>
   )

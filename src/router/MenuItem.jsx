@@ -71,16 +71,7 @@ export const MenuItemSystem = () => [
  * Menu dành cho phân hệ Nhà cung cấp (SUPPLIER)
  */
 export const MenuItemSupplier = () => [
-  {
-    key: ROUTER.SUPPLIER_OVERVIEW,
-    label: "Tổng quan Nhà cung cấp",
-    icon: <DashboardOutlinedIcon />,
-    roles: [
-      ROLES.INGREDIENT_SUPPLIER_ADMIN,
-      ROLES.INGREDIENT_SUPPLIER_STAFF,
-      ROLES.INGREDIENT_SUPPLIER,
-    ],
-  },
+  // Mục đầu tiên cũng là trang mặc định sau khi đăng nhập của cả quản trị và nhân viên NCC
   {
     key: ROUTER.SUPPLIER_INGREDIENTS,
     label: "Danh mục Nguyên liệu",
