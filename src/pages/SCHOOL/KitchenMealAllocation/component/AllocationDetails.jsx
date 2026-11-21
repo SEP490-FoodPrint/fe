@@ -146,6 +146,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
         dishId: dish.dishId,
         dishName: dish.dishName,
         allocatedPortions: totalDishAllocated,
+        requiredPortions: dish.classRequirements?.find((row) => row.demandId === demand.id)?.requiredPortions ?? demand.requiredPortions,
         batches: matchingBatches,
       });
     }
@@ -364,7 +365,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
 
                 // Suất ăn hoàn chỉnh của lớp là số suất nhận được tối thiểu qua tất cả các món trong bữa
                 const classAllocatedPortions = dishesDetail.length > 0
-                  ? Math.min(...dishesDetail.map((d) => d.allocatedPortions))
+                  ? Math.min(...dishesDetail.map((d) => Math.min(demand.requiredPortions, Number(d.allocatedPortions) + Math.max(0, demand.requiredPortions - d.requiredPortions))))
                   : (demand.allocatedPortions ?? 0);
                 const isFullPortions = classAllocatedPortions >= demand.requiredPortions;
 

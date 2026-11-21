@@ -45,7 +45,7 @@ export default function ClassAllocationDetailModal({ open, onClose, classData })
               <div className={styles.dishHeader}>
                 <strong>{dish.dishName}</strong>
                 <span style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)" }}>
-                  Tổng nhận: <b>{fmt(dish.allocatedPortions)}</b> / {fmt(totalPortions)} suất
+                  Tổng nhận: <b>{fmt(dish.allocatedPortions)}</b> / {fmt(dish.requiredPortions ?? totalPortions)} suất
                 </span>
               </div>
 

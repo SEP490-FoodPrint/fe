@@ -1,10 +1,14 @@
 import React from "react";
 import { Chip } from "@mui/material";
-import { Sparkles, Utensils } from "lucide-react";
+import { Check, Utensils } from "lucide-react";
+import { formatAllocationDecimal } from "src/utils/allocationDecimal";
 import styles from "./DishGroup.module.scss";
 
 export default function DishGroup({ dish, children }) {
   const isAuto = Boolean(dish.autoAssigned);
+  const portions = Number.isInteger(Number(dish.totalRequiredPortions))
+    ? Number(dish.totalRequiredPortions)
+    : formatAllocationDecimal(dish.totalRequiredPortions);
 
   return (
     <div className={styles.dishGroup} aria-label={`Món ${dish.dishName}`}>
@@ -17,23 +21,24 @@ export default function DishGroup({ dish, children }) {
           <Chip
             size="small"
             variant="outlined"
-            label={`${dish.totalRequiredPortions} suất`}
+            label={`${portions} suất`}
             sx={{ fontWeight: 600 }}
           />
         </div>
 
-        {isAuto ? (
+        {dish.materialPreview ? (
+          <Chip className={styles.previewChip} size="small" variant="outlined" label="Dự kiến phân bổ" />
+        ) : isAuto ? (
           <Chip
             size="small"
             color="success"
-            icon={<Sparkles size={14} />}
+            icon={<Check size={14} aria-hidden="true" />}
             label="Đã phân bổ"
             sx={{ fontWeight: 500 }}
           />
         ) : (
           <Chip
             size="small"
-            color="warning"
             variant="outlined"
             label={`${dish.batches?.length || 0} lô chế biến`}
             sx={{ fontWeight: 500 }}
