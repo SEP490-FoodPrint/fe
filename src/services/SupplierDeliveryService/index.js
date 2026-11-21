@@ -797,7 +797,7 @@ const SupplierDeliveryService = {
   },
 
   async create(input, idempotencyKey) {
-    // Ngày của lô (YYYY-MM-DD): chỉ gửi khi có; đồ khô bắt buộc, đồ tươi bỏ trống.
+    // Ngày của lô (YYYY-MM-DD): chỉ gửi khi có; đồ lưu kho bắt buộc, đồ tươi bỏ trống.
     const lotDatesPayload = line => ({
       ...(String(line?.manufactureDate || "").trim() ? { manufactureDate: String(line.manufactureDate).trim() } : {}),
       ...(String(line?.expiryDate || "").trim() ? { expiryDate: String(line.expiryDate).trim() } : {}),

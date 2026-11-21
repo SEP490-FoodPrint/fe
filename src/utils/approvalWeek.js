@@ -12,6 +12,10 @@ export const formatWeekRange = ({ weekStartDate, weekEndDate }) => {
   return `${startDay}/${startMonth} – ${formatDate(weekEndDate)}`
 }
 
+// Nhãn tuần ở bộ lọc: "Tuần 12 (23/11 – 27/11/2026)"; thiếu số tuần thì chỉ hiện khoảng ngày
+export const weekLabel = week =>
+  week.weekNumber ? `Tuần ${week.weekNumber} (${formatWeekRange(week)})` : `Tuần ${formatWeekRange(week)}`
+
 // Tên phạm vi áp dụng của một thực đơn: các khối hoặc toàn trường
 export const menuScopeLabel = menu =>
   menu.isSchoolWide || !menu.grades?.length

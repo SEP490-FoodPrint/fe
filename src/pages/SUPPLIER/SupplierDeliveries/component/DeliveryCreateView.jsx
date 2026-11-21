@@ -55,7 +55,7 @@ function createEmptyItemRow(defaultFacilityId = "") {
     sourceFacilityId: defaultFacilityId,
     actualQuantity: "",
     unit: "",
-    // Ngày của lô: bắt buộc nếu trường xếp nguyên liệu là đồ khô (BE kiểm tra theo danh mục của trường).
+    // Ngày của lô: bắt buộc nếu trường xếp nguyên liệu là đồ lưu kho (BE kiểm tra theo danh mục của trường).
     manufactureDate: "",
     expiryDate: "",
   }
@@ -792,7 +792,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                               {row.unit || "Đơn vị"}
                             </div>
 
-                            <div className={styles.rowCell} title="Bắt buộc với đồ khô">
+                            <div className={styles.rowCell} title="Bắt buộc với đồ lưu kho">
                               <input
                                 type="date"
                                 value={row.manufactureDate || ""}
@@ -800,11 +800,11 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                                 max={vietnamToday()}
                                 className={`${styles.textInput} ${rowErr.lotDates ? styles.hasError : ""}`}
                                 aria-invalid={Boolean(rowErr.lotDates)}
-                                aria-label={`Ngày sản xuất dòng ${idx + 1} (bắt buộc với đồ khô)`}
+                                aria-label={`Ngày sản xuất dòng ${idx + 1} (bắt buộc với đồ lưu kho)`}
                               />
                             </div>
 
-                            <div className={styles.rowCell} title="Bắt buộc với đồ khô">
+                            <div className={styles.rowCell} title="Bắt buộc với đồ lưu kho">
                               <input
                                 type="date"
                                 value={row.expiryDate || ""}
@@ -812,7 +812,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                                 min={vietnamToday()}
                                 className={`${styles.textInput} ${rowErr.lotDates ? styles.hasError : ""}`}
                                 aria-invalid={Boolean(rowErr.lotDates)}
-                                aria-label={`Hạn sử dụng dòng ${idx + 1} (bắt buộc với đồ khô)`}
+                                aria-label={`Hạn sử dụng dòng ${idx + 1} (bắt buộc với đồ lưu kho)`}
                               />
                               {rowErr.lotDates && (
                                 <p className={styles.fieldError} role="alert">

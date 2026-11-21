@@ -544,7 +544,7 @@ const MenuService = {
   },
 
   /**
-   * Lấy danh mục nguyên liệu từ NCC liên kết (main) hoặc kho khô (seasoning)
+   * Lấy danh mục nguyên liệu từ NCC liên kết (main) hoặc đồ lưu kho (seasoning)
    */
   getIngredientOptions: async (kind = "main") => {
     const items = [];

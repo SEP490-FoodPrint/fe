@@ -109,7 +109,7 @@ export default function TrackingTable({ orders = [], onViewDetail, loading = fal
       >
         <FoodPrintLoading size="large" />
         <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
-          Đang tải dữ liệu theo dõi đơn hàng đồ khô...
+          Đang tải dữ liệu theo dõi đơn hàng đồ lưu kho...
         </Typography>
       </Paper>
     )

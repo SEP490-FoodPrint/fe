@@ -176,7 +176,7 @@ function RequestSourcesAssigner({
                       {`Cần: ${formatQuantityVi(item.requestedQuantity)} ${unit}`.trim()}
                     </span>
                     {isDryStock && (
-                      <span className={styles.dryChip}>Đồ khô</span>
+                      <span className={styles.dryChip}>Đồ lưu kho</span>
                     )}
                     {item.note && (
                       <p className={styles.itemNote}>{`Ghi chú: ${item.note}`}</p>

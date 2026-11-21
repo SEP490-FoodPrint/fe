@@ -115,7 +115,7 @@ export default function MenuSeasoningCard({
         </Alert>
       ) : catalog.length === 0 ? (
         <Alert severity="info" className={styles.catalogNotice}>
-          Kho trường chưa có nguyên liệu kho khô đang hoạt động để chọn làm gia vị.
+          Kho trường chưa có nguyên liệu lưu kho đang hoạt động để chọn làm gia vị.
         </Alert>
       ) : null}
 

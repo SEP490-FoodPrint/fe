@@ -19,7 +19,7 @@ export const HANDLING_TYPES = {
 };
 
 /**
- * Tự động nhận diện phân loại kho khô (DRY_STOCK) vs tươi sống (DIRECT_USE)
+ * Tự động nhận diện phân loại đồ lưu kho (DRY_STOCK) vs tươi sống (DIRECT_USE)
  * dựa theo handlingType hoặc từ khóa tên / nhóm mặt hàng khi dữ liệu DB chưa gắn tag
  */
 export function inferHandlingType(item) {
@@ -35,7 +35,7 @@ export function inferHandlingType(item) {
 
   const dryKeywords = [
     "khô",
-    "kho khô",
+    "kho khô", "đồ lưu kho",
     "gạo",
     "gia vị",
     "muối",
@@ -153,7 +153,7 @@ export function adaptDeliveryItem(item) {
       : batchType === "BATCH_2"
         ? "Đợt 2 (Cân đối sĩ số)"
         : batchType === "DRY_STOCK"
-          ? "Kho đồ khô"
+          ? "Đồ lưu kho"
           : "Chưa xác định đợt";
 
   // 3. Chuẩn hóa Hội đồng nghiệm thu 4 bên

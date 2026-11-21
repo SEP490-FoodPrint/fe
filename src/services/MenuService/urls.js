@@ -15,7 +15,7 @@ export const apiMenuReviews = id => `/v1/menus/${id}/reviews`
 // Kiểm tra cảnh báo dị nguyên học đường theo danh sách nguyên liệu
 export const apiAllergyCheck = "/v1/menus/allergy-check"
 
-// Danh mục nguyên liệu chính (từ NCC liên kết) và gia vị kho khô
+// Danh mục nguyên liệu chính (từ NCC liên kết) và gia vị lưu kho
 export const apiIngredientOptions = kind => `/v1/menus/ingredient-options/${kind}`
 
 // Nhóm suất ăn (suất thường, suất dị ứng, món thay thế do Y tế chọn)

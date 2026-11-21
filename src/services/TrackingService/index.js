@@ -53,7 +53,7 @@ async function fetchAllPages(url, params = {}) {
 const TrackingService = {
   /**
    * Lấy danh sách đợt giao hàng 100% từ Database (qua Backend API) để theo dõi tiến trình
-   * Kết hợp cả các đợt giao nhận vừa được lập (Đợt 1, Đợt 2, Đồ khô)
+   * Kết hợp cả các đợt giao nhận vừa được lập (Đợt 1, Đợt 2, Đồ lưu kho)
    * API: GET /deliveries & GET /supply-requests
    */
   async getTrackingOrders() {
@@ -75,7 +75,7 @@ const TrackingService = {
         const isDry = orderType === "DRY_STOCK"
         const isB2 = orderType === "FRESH_BATCH_2"
 
-        // Giờ hẹn giao: lấy từ ghi chú của đơn, không có thì dùng giờ mặc định theo loại đơn (đồ khô 14:30, đợt 2 07:45, đợt 1 05:30).
+        // Giờ hẹn giao: lấy từ ghi chú của đơn, không có thì dùng giờ mặc định theo loại đơn (đồ lưu kho 14:30, đợt 2 07:45, đợt 1 05:30).
         const timeMatch = String(so.note || "").match(/\b(\d{1,2}:\d{2})\b/)
         const deliveryTime = timeMatch ? timeMatch[1] : isDry ? "14:30" : isB2 ? "07:45" : "05:30"
         const dateStr = so.requestedDeliveryDate ? String(so.requestedDeliveryDate).slice(0, 10) : null
@@ -131,7 +131,7 @@ const TrackingService = {
 
     // -------------------------------------------------------------
     // GOM NHÓM ĐỒNG BỘ: HỢP NHẤT SUPPLY REQUESTS & DELIVERIES THÀNH 1 PHIẾU NHẬP HÀNG TỔNG
-    // Mỗi đợt nhập đồ khô cho 1 ngày chỉ có DUY NHẤT 1 phiếu mang mã chuẩn PN-...
+    // Mỗi đợt nhập đồ lưu kho cho 1 ngày chỉ có DUY NHẤT 1 phiếu mang mã chuẩn PN-...
     // Dù các NCC có xác nhận lệch giờ nhau, tất cả các xe đều được gộp chung vào phiếu này.
     // -------------------------------------------------------------
     const getBaseOrderNo = (item) => {
@@ -508,7 +508,7 @@ const TrackingService = {
             orderType,
             status: so.status === "ACCEPTED" ? "CONFIRMED" : (so.status === "DRAFT" || so.status === "SENT") ? "CREATED" : so.status,
             rawStatus: so.status,
-            note: so.note || (isDry ? "Đồ khô kho trường" : "Thực phẩm tươi sống dùng trong ngày"),
+            note: so.note || (isDry ? "Đồ lưu kho của trường" : "Thực phẩm tươi sống dùng trong ngày"),
             deliveryItems,
             items: deliveryItems,
           })

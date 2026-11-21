@@ -1,3 +1,4 @@
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 import { formatAllocationDecimal as fmt, sumAllocationPortions as sumPortions, compareAllocationPortions as compare } from "src/utils/allocationDecimal";
 import React, { useState } from "react";
 import {
@@ -29,7 +30,7 @@ function AllocationRow({ title, summary, icon, badge, expanded, onChange, childr
   );
 }
 
-export default function AllocationDetails({ data, dirty, saving, onDiscard, onConfirm }) {
+export default function AllocationDetails({ data, dirty, saving, onDiscard, onConfirm, locked = isVietnamWeekend() }) {
   const [meal, setMeal] = useState("ALL");
   const [groupBy, setGroupBy] = useState("batch");
   const [expandedBatches, setExpandedBatches] = useState(() => new Set());
@@ -449,7 +450,8 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
 
         <Button
           variant="contained"
-          disabled={!distribution?.canConfirmDistribution || saving || dirty}
+          disabled={!distribution?.canConfirmDistribution || saving || dirty || locked}
+          title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
           onClick={() => setConfirmOpen(true)}
         >
           {delivered ? "Đã giao suất ăn" : "Xác nhận giao cả ngày"}
