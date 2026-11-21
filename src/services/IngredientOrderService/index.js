@@ -547,7 +547,7 @@ const IngredientOrderService = {
                           ? "DRY_STOCK"
                           : "DIRECT_USE");
 
-                      // Bỏ qua đồ khô / gia vị kho: Phiếu nhập hàng tươi sống 2 đợt CHỈ nhận DIRECT_USE
+                      // Bỏ qua đồ lưu kho / gia vị kho: Phiếu nhập hàng tươi sống 2 đợt CHỈ nhận DIRECT_USE
                       if (handlingType === "DRY_STOCK") continue;
 
                       const supplierId =
@@ -709,7 +709,7 @@ const IngredientOrderService = {
   /**
    * Lấy danh sách Phiếu giao nhận & Nhập hàng tươi sống 2 đợt (Deliveries)
    * 100% từ Backend Database: Kết hợp cả /deliveries và /supply-requests (các đơn vừa tạo chưa dispatch)
-   * LOẠI BỎ TOÀN BỘ ĐỒ KHÔ (DRY_STOCK) KHỎI PHIẾU NHẬP HÀNG TƯƠI SỐNG
+   * LOẠI BỎ TOÀN BỘ ĐỒ LƯU KHO (DRY_STOCK) KHỎI PHIẾU NHẬP HÀNG TƯƠI SỐNG
    */
   async getDeliveries(params = {}) {
     let deliveriesList = [];
@@ -757,7 +757,7 @@ const IngredientOrderService = {
         }
       });
 
-      // Lọc các đơn từ /supply-requests: CHỈ LẤY THỰC PHẨM TƯƠI SỐNG 2 ĐỢT (BATCH_1, BATCH_2), LOẠI BỎ ĐỒ KHÔ
+      // Lọc các đơn từ /supply-requests: CHỈ LẤY THỰC PHẨM TƯƠI SỐNG 2 ĐỢT (BATCH_1, BATCH_2), LOẠI BỎ ĐỒ LƯU KHO
       const freshSupplyItems = supplyItems.filter((so) => {
         return so.orderType !== "DRY_STOCK";
       });

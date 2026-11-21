@@ -27,6 +27,7 @@ export default function CreateDryOrderView({
   inventoryItems = [],
   suppliers = [],
   initialSelectedItem = null,
+  initialQuantities = null,
   onBack,
   onSubmit,
 }) {
@@ -38,7 +39,7 @@ export default function CreateDryOrderView({
   });
   const [deliveryTime, setDeliveryTime] = useState("14:30");
   const [note, setNote] = useState(
-    "Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.",
+    "Giao tại kho của trường, kiểm tra kỹ tem niêm phong và bao bì đóng gói.",
   );
   const [orderQtys, setOrderQtys] = useState({});
   const [itemSuppliers, setItemSuppliers] = useState({});
@@ -158,6 +159,16 @@ export default function CreateDryOrderView({
 
   // 4. Khởi tạo số lượng mặt hàng (ưu tiên món được chỉ định hoặc các món dưới mức an toàn)
   useEffect(() => {
+    // Lập từ cảnh báo đồ lưu kho: chọn sẵn đúng các mặt hàng thiếu với số cần nhập thêm
+    if (initialQuantities && Object.keys(initialQuantities).length) {
+      const initial = {}
+      inventoryItems.forEach(it => {
+        const quantity = Number(initialQuantities[it.id])
+        if (quantity > 0) initial[it.id] = Math.max(1, quantity)
+      })
+      setOrderQtys(initial)
+      return
+    }
     if (initialSelectedItem) {
       setOrderQtys({
         [initialSelectedItem.id]: Math.max(
@@ -174,7 +185,7 @@ export default function CreateDryOrderView({
         });
       setOrderQtys(initial);
     }
-  }, [initialSelectedItem, inventoryItems]);
+  }, [initialSelectedItem, initialQuantities, inventoryItems]);
 
   const handleToggleItem = (item) => {
     setOrderQtys((prev) => {
@@ -353,7 +364,7 @@ export default function CreateDryOrderView({
 
         <Box className={styles.headerText}>
           <Typography variant="h5" className={styles.title}>
-            Tạo Yêu Cầu Nhập Đồ Khô
+            Tạo Yêu Cầu Nhập Đồ Lưu Kho
           </Typography>
         </Box>
       </Box>
@@ -437,7 +448,7 @@ export default function CreateDryOrderView({
                 <TableRow>
                   <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                     <Typography variant="body2" color="text.secondary">
-                      Không có mặt hàng đồ khô nào trong kho.
+                      Không có mặt hàng đồ lưu kho nào trong kho.
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -678,6 +689,7 @@ CreateDryOrderView.propTypes = {
   inventoryItems: PropTypes.array.isRequired,
   suppliers: PropTypes.array,
   initialSelectedItem: PropTypes.object,
+  initialQuantities: PropTypes.object,
   onBack: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
 };

@@ -220,6 +220,16 @@ const KitchenService = {
     );
   },
 
+  /** Tiến độ chế biến hôm nay của mọi khối, theo bữa (không cache: dùng để cảnh báo). */
+  async getDayProgress({ signal } = {}) {
+    const response = await http.get("/v1/kitchen/day-progress", {
+      signal,
+      notifyOnError: false,
+    });
+    const result = response?.data || response;
+    return Array.isArray(result?.menus) ? result : { date: null, menus: [] };
+  },
+
   async getSchool(schoolId, { signal, forceRefresh = false } = {}) {
     return KitchenService.getContext({ signal, forceRefresh });
   },

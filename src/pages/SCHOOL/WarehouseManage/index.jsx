@@ -36,6 +36,7 @@ import WarehouseDetailView from "./component/WarehouseDetailView"
 import TrackingTable from "./component/TrackingTable"
 import TrackingDetailView from "./component/TrackingDetailView"
 
+import StockAlertPanel, { roundUpQuantity } from "src/components/StockAlertPanel"
 import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
@@ -67,7 +68,7 @@ export default function WarehouseManage() {
   const [suppliers, setSuppliers] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Dữ liệu đơn hàng đồ khô
+  // Dữ liệu đơn hàng đồ lưu kho
   const [orders, setOrders] = useState([])
   const [ordersLoading, setOrdersLoading] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -76,6 +77,8 @@ export default function WarehouseManage() {
   const [subView, setSubView] = useState("list")
   const [selectedItem, setSelectedItem] = useState(null)
   const [selectedItemForOrder, setSelectedItemForOrder] = useState(null)
+  // Số lượng điền sẵn khi lập phiếu từ cảnh báo đồ lưu kho: { ingredientId: số cần nhập }
+  const [alertQuantities, setAlertQuantities] = useState(null)
 
   // Filter state cho Tab 1 (Kho nguyên liệu khô)
   const [filters, setFilters] = useState({
@@ -84,7 +87,7 @@ export default function WarehouseManage() {
     category: "all",
   })
 
-  // Filter state cho Tab 2 (Đơn hàng đồ khô) - Mặc định lọc từ hôm nay trở đi
+  // Filter state cho Tab 2 (Đơn hàng đồ lưu kho) - Mặc định lọc từ hôm nay trở đi
   const [orderFilters, setOrderFilters] = useState({
     timeScope: "today_forward",
     status: "all",
@@ -108,18 +111,18 @@ export default function WarehouseManage() {
     }
   }, [])
 
-  // Tải dữ liệu đơn hàng đồ khô
+  // Tải dữ liệu đơn hàng đồ lưu kho
   const loadOrders = useCallback(async () => {
     setOrdersLoading(true)
     try {
       const data = await TrackingService.getTrackingOrders()
-      // Chỉ lấy các đơn đồ khô & gia vị
+      // Chỉ lấy các đơn đồ lưu kho & gia vị
       const dryList = (data || []).filter(
         item => item.orderType === "DRY_STOCK" || item.batchType === "DRY_STOCK"
       )
       setOrders(dryList)
     } catch (err) {
-      console.warn("Lỗi tải danh sách đơn hàng đồ khô:", err)
+      console.warn("Lỗi tải danh sách đơn hàng đồ lưu kho:", err)
       setOrders([])
     } finally {
       setOrdersLoading(false)
@@ -206,7 +209,7 @@ export default function WarehouseManage() {
     })
   }, [inventory, filters])
 
-  // Lọc dữ liệu đơn hàng đồ khô (Tab 2)
+  // Lọc dữ liệu đơn hàng đồ lưu kho (Tab 2)
   const filteredDryOrders = useMemo(() => {
     const list = orders.filter(item => {
       // Lọc theo mốc thời gian: Mặc định là từ hôm nay đi tiếp đến tương lai
@@ -330,6 +333,14 @@ export default function WarehouseManage() {
   // Mở màn hình tạo đơn nhập hàng (Sub-view "create")
   const handleOpenCreate = (targetItem = null) => {
     setSelectedItemForOrder(targetItem)
+    setAlertQuantities(null)
+    setSubView("create")
+  }
+
+  // Lập phiếu nhập từ cảnh báo: chọn sẵn các nguyên liệu đang thiếu với số cần nhập thêm
+  const handleCreateFromAlerts = items => {
+    setSelectedItemForOrder(null)
+    setAlertQuantities(Object.fromEntries(items.map(item => [item.ingredientId, roundUpQuantity(item.shortage)])))
     setSubView("create")
   }
 
@@ -339,7 +350,7 @@ export default function WarehouseManage() {
     setSubView("detail")
   }
 
-  // Xem chi tiết đơn hàng đồ khô (Sub-view "orderDetail")
+  // Xem chi tiết đơn hàng đồ lưu kho (Sub-view "orderDetail")
   const handleViewOrderDetail = async orderItem => {
     setSelectedOrder(orderItem)
     setSubView("orderDetail")
@@ -383,9 +394,9 @@ export default function WarehouseManage() {
       setActiveTab("orders")
       setSearchParams({ tab: "orders" })
     } catch (err) {
-      console.error("Lỗi tạo phiếu đồ khô lên DB:", err)
+      console.error("Lỗi tạo phiếu đồ lưu kho lên DB:", err)
       notice({
-        msg: "Lỗi tạo phiếu nhập đồ khô lên hệ thống. Vui lòng thử lại!",
+        msg: "Lỗi tạo phiếu nhập đồ lưu kho lên hệ thống. Vui lòng thử lại!",
         isSuccess: false,
       })
     }
@@ -399,6 +410,7 @@ export default function WarehouseManage() {
           inventoryItems={inventory}
           suppliers={suppliers}
           initialSelectedItem={selectedItemForOrder}
+          initialQuantities={alertQuantities}
           onBack={handleBackToList}
           onSubmit={handleCreateOrder}
         />
@@ -413,7 +425,7 @@ export default function WarehouseManage() {
         />
       )}
 
-      {/* Sub-view 4: Xem chi tiết đơn hàng đồ khô (Giữ nguyên toàn màn hình) */}
+      {/* Sub-view 4: Xem chi tiết đơn hàng đồ lưu kho (Giữ nguyên toàn màn hình) */}
       {subView === "orderDetail" && selectedOrder && (
         <TrackingDetailView
           item={selectedOrder}
@@ -427,6 +439,9 @@ export default function WarehouseManage() {
         <>
           {/* Header */}
           <WarehouseHeader />
+
+          {/* Cảnh báo đồ lưu kho cần nhập thêm cho thực đơn đã duyệt */}
+          <StockAlertPanel onCreateOrder={handleCreateFromAlerts} reloadKey={subView} />
 
           {/* Thanh chuyển 2 Tab */}
           <Paper elevation={0} className={styles.tabsContainer}>
@@ -485,7 +500,7 @@ export default function WarehouseManage() {
                 onFilterChange={handleFilterStat}
               />
 
-              {/* Bộ lọc & Tìm kiếm + Nút Lập phiếu nhập đồ khô */}
+              {/* Bộ lọc & Tìm kiếm + Nút Lập phiếu nhập đồ lưu kho */}
               <WarehouseFilterStrip
                 filters={filters}
                 categories={categories}
@@ -511,7 +526,7 @@ export default function WarehouseManage() {
                 >
                   <FoodPrintLoading size="large" />
                   <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
-                    Đang tải danh sách tồn kho nguyên liệu đồ khô...
+                    Đang tải danh sách tồn kho nguyên liệu đồ lưu kho...
                   </Typography>
                 </Box>
               ) : (
@@ -534,10 +549,10 @@ export default function WarehouseManage() {
             </>
           )}
 
-          {/* Nội dung Tab 2: Đơn hàng đồ khô & theo dõi tiến trình */}
+          {/* Nội dung Tab 2: Đơn hàng đồ lưu kho & theo dõi tiến trình */}
           {activeTab === "orders" && (
             <>
-              {/* Bộ lọc đơn hàng đồ khô */}
+              {/* Bộ lọc đơn hàng đồ lưu kho */}
               <Box className={styles.orderFilterBar}>
                 <Box className={styles.orderFilterInputs}>
                   <TextField
@@ -596,11 +611,11 @@ export default function WarehouseManage() {
                   }}
                   className={styles.createOrderBtn}
                 >
-                  Yêu cầu nhập đồ khô
+                  Yêu cầu nhập đồ lưu kho
                 </Button>
               </Box>
 
-              {/* Bảng danh sách đơn hàng đồ khô */}
+              {/* Bảng danh sách đơn hàng đồ lưu kho */}
               <TrackingTable
                 orders={filteredDryOrders}
                 loading={ordersLoading}

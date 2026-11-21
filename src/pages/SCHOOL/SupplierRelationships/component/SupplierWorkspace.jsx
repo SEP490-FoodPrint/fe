@@ -807,7 +807,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
                               </div>
                               <p className="supplier-help">
                                 Bếp chỉ đặt được những nguyên liệu được chọn ở đây. Mỗi nguyên liệu
-                                cần chọn loại: &ldquo;Lưu kho&rdquo; (đồ khô dùng nhiều ngày) hoặc
+                                cần chọn loại: &ldquo;Lưu kho&rdquo; (đồ lưu kho dùng nhiều ngày) hoặc
                                 &ldquo;Dùng ngay&rdquo; (đồ tươi chế biến trong ngày).
                               </p>
                             </div>

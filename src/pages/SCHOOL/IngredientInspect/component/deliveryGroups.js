@@ -57,7 +57,7 @@ export function groupDeliveriesByRound(items = []) {
         label: round
           ? `Đợt ${round}`
           : key === "dry-stock"
-            ? "Đồ khô (Kho & Lương thực)"
+            ? "Đồ lưu kho (Lương thực & Gia vị)"
             : key === "other"
               ? "Đơn khác"
               : "Giao không theo đơn",

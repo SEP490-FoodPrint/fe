@@ -17,6 +17,8 @@ import {
 import styles from "./CreateBatchKanban.module.scss";
 import { batchDisplayName, withDishLotNumbers } from "../batchLabel";
 import useKanbanDrag from "./useKanbanDrag";
+import KitchenProgressStrip from "./KitchenProgressStrip";
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 
 const COLUMNS = [
   { key: "dishes", title: "Danh sách món ăn", empty: "Tất cả món đã được nấu", EmptyIcon: CheckCircle2 },
@@ -71,6 +73,9 @@ export default function CreateBatchKanban({
   onNotify,
   submittingId = null,
   actionLoadingId = null,
+  locked = isVietnamWeekend(),
+  dayProgress = null,
+  onPickProgress,
 }) {
   const today = new Date();
   const dayNames = [
@@ -158,6 +163,10 @@ export default function CreateBatchKanban({
       );
       return;
     }
+    if (locked) {
+      onNotify?.(WEEKEND_LOCK_MESSAGE);
+      return;
+    }
     if (from === "dishes") {
       if (submittingId) return;
       (onStartCooking || onOpenPlanModal)?.(item);
@@ -215,7 +224,7 @@ export default function CreateBatchKanban({
           {/* Số suất ăn dự kiến theo bữa (đồng bộ từ chốt suất của các lớp) */}
           <div className={styles.metaItem} title="Số suất đồng bộ từ chốt suất của các lớp">
             <Users size={15} className={styles.metaIcon} />
-            <span className={styles.metaLabelText}>Suất dự kiến</span>
+            <span className={styles.metaLabelText}>Số suất</span>
             <div className={styles.portionChips}>
               {portionMeals.map((meal) => (
                 <span key={meal.type} className={styles.portionChip}>
@@ -248,6 +257,20 @@ export default function CreateBatchKanban({
           <MenuScopeSelect menus={gradeMenus} grades={grades} gradeValue={gradeValue} value={gradeMenuId} onChange={onGradeChange} disabled={gradeDisabled} />
         </div>
       </div>
+
+      {locked ? (
+        <div className={styles.weekendNotice} role="status">
+          {WEEKEND_LOCK_MESSAGE}
+        </div>
+      ) : (
+        <KitchenProgressStrip
+          progress={dayProgress}
+          mealTimes={mealTimes}
+          selectedMeal={selectedMeal}
+          activeMenuId={gradeMenuId}
+          onPick={onPickProgress}
+        />
+      )}
 
       {emptyState ? emptyState : <>
       {/* Thông báo nếu đã hoàn thành và lưu mẫu toàn bộ */}
@@ -311,7 +334,7 @@ export default function CreateBatchKanban({
                           type="button"
                           className={styles.primaryBtn}
                           onClick={() => (onStartCooking || onOpenPlanModal)?.(dish)}
-                          disabled={Boolean(submittingId)}
+                          disabled={Boolean(submittingId) || locked}
                           aria-label={`Nấu ${dish.name}`}
                         >
                           <CookingPot size={14} aria-hidden="true" />
@@ -381,7 +404,7 @@ export default function CreateBatchKanban({
                                   event.stopPropagation();
                                   onCompleteCooking?.(batch);
                                 }}
-                                disabled={isActing || batch.status !== "CONFIRMED"}
+                                disabled={isActing || batch.status !== "CONFIRMED" || locked}
                                 aria-label={`Nấu xong ${name}`}
                               >
                                 <CheckCircle2 size={14} aria-hidden="true" />
@@ -396,6 +419,7 @@ export default function CreateBatchKanban({
                                   event.stopPropagation();
                                   onOpenSampleModal?.(batch);
                                 }}
+                                disabled={locked}
                                 aria-label={`Lưu mẫu ${name}`}
                               >
                                 <FlaskConical size={14} aria-hidden="true" />
@@ -461,4 +485,7 @@ CreateBatchKanban.propTypes = {
   onNotify: PropTypes.func,
   submittingId: PropTypes.string,
   actionLoadingId: PropTypes.string,
+  locked: PropTypes.bool,
+  dayProgress: PropTypes.object,
+  onPickProgress: PropTypes.func,
 };

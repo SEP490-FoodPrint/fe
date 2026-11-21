@@ -22,7 +22,7 @@ import { SUPPLY_ORDER_STATUS } from "src/services/SupplierOrderService"
 import OrderStatusBadge from "./OrderStatusBadge"
 import styles from "./OrderFulfillmentWorkflow.module.scss"
 
-/** Một phần giao của nguyên liệu: 1 cơ sở nguồn cung + khối lượng (+ NSX/HSD nếu đồ khô) = 1 lô. */
+/** Một phần giao của nguyên liệu: 1 cơ sở nguồn cung + khối lượng (+ NSX/HSD nếu đồ lưu kho) = 1 lô. */
 function createAllocation(actualQuantity = "") {
   return {
     key: generateIdempotencyKey(),
@@ -57,7 +57,7 @@ function OrderFulfillmentWorkflow({
   const [facilitiesError, setFacilitiesError] = useState("")
 
   // Phân bổ nguồn cung theo từng mặt hàng: nhiều cơ sở, mỗi cơ sở 1 khối lượng (1 lô).
-  // NSX/HSD chỉ áp dụng cho đồ khô.
+  // NSX/HSD chỉ áp dụng cho đồ lưu kho.
   const [allocationsByItemId, setAllocationsByItemId] = useState({})
   // Giờ dự kiến đến (HH:mm) trong ngày hôm nay.
   const [expectedArrivalLocal, setExpectedArrivalLocal] = useState("")
@@ -201,8 +201,8 @@ function OrderFulfillmentWorkflow({
     onDraftChange?.()
   }
 
-  // Đồ khô: mỗi lô bắt buộc ngày sản xuất (không sau hôm nay) và hạn sử dụng (không trước ngày sản xuất).
-  // NSX không sau hôm nay; HSD không trước NSX, không trước hôm nay, đồ khô còn hạn ít nhất 7 ngày.
+  // Đồ lưu kho: mỗi lô bắt buộc ngày sản xuất (không sau hôm nay) và hạn sử dụng (không trước ngày sản xuất).
+  // NSX không sau hôm nay; HSD không trước NSX, không trước hôm nay, đồ lưu kho còn hạn ít nhất 7 ngày.
   const validateLotDates = () => {
     const errors = {}
     items.forEach(item => {

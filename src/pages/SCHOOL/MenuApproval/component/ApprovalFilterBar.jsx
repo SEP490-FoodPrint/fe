@@ -2,7 +2,7 @@ import React from "react"
 import PropTypes from "prop-types"
 import { FormControl, IconButton, MenuItem, Select, Tooltip } from "@mui/material"
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react"
-import { formatWeekRange } from "src/utils/approvalWeek"
+import { weekLabel } from "src/utils/approvalWeek"
 import styles from "./ApprovalFilterBar.module.scss"
 
 // Nhãn số thực đơn còn chờ duyệt của một tuần
@@ -38,7 +38,7 @@ function ApprovalFilterBar({
     <section className={styles.bar} aria-label="Bộ lọc thực đơn">
       <div className={styles.filters}>
         <div className={styles.weekNavigator}>
-          <Tooltip title={prevWeek ? `Tuần trước (${formatWeekRange(prevWeek)})` : ""}>
+          <Tooltip title={prevWeek ? `Tuần trước: ${weekLabel(prevWeek)}` : ""}>
             <span>
               <IconButton
                 size="small"
@@ -64,7 +64,7 @@ function ApprovalFilterBar({
                   <span className={styles.option}>
                     <Calendar size={16} className={styles.calendarIcon} />
                     <span className={styles.optionText}>
-                      {week ? `Tuần ${formatWeekRange(week)}` : "Chọn tuần"}
+                      {week ? weekLabel(week) : "Chọn tuần"}
                     </span>
                     {week && <WeekBadge week={week} />}
                   </span>
@@ -74,7 +74,7 @@ function ApprovalFilterBar({
               {weeks.map(week => (
                 <MenuItem key={week.weekStartDate} value={week.weekStartDate}>
                   <span className={styles.option}>
-                    <span className={styles.optionText}>Tuần {formatWeekRange(week)}</span>
+                    <span className={styles.optionText}>{weekLabel(week)}</span>
                     <WeekBadge week={week} />
                   </span>
                 </MenuItem>
@@ -82,7 +82,7 @@ function ApprovalFilterBar({
             </Select>
           </FormControl>
 
-          <Tooltip title={nextWeek ? `Tuần kế tiếp (${formatWeekRange(nextWeek)})` : ""}>
+          <Tooltip title={nextWeek ? `Tuần kế tiếp: ${weekLabel(nextWeek)}` : ""}>
             <span>
               <IconButton
                 size="small"

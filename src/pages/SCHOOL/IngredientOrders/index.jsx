@@ -12,6 +12,7 @@ import DeliveryDetailView from "./component/DeliveryDetailView"
 import CreateDeliveryView from "./component/CreateDeliveryView"
 import OrderPagination from "./component/OrderPagination"
 
+import StockAlertPanel from "src/components/StockAlertPanel"
 import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
@@ -100,7 +101,7 @@ export default function IngredientOrders() {
   // Lọc dữ liệu Phiếu giao nhận tại Client
   const filteredDeliveries = useMemo(() => {
     const list = deliveries.filter(d => {
-      // Phiếu nhập hàng chỉ hiển thị đồ tươi 2 đợt, không hiển thị đồ khô
+      // Phiếu nhập hàng chỉ hiển thị đồ tươi 2 đợt, không hiển thị đồ lưu kho
       if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
 
       // Lọc theo mốc thời gian: Mặc định là từ hôm nay đi tiếp đến tương lai
@@ -271,6 +272,9 @@ export default function IngredientOrders() {
         <>
           {/* Header */}
           <DeliveryHeader />
+
+          {/* Đồ lưu kho thiếu từ hôm nay / ngày mai */}
+          <StockAlertPanel levels={["URGENT"]} />
 
           {/* Thẻ thống kê Phiếu giao nhận (Chia 2 đợt & Nghiệm thu 4 bên) */}
           <DeliveryStatsRail

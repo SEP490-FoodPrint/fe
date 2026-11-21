@@ -40,6 +40,8 @@ function CreateBatchPage() {
   const [gradeError, setGradeError] = useState("");
   useEffect(() => { let active = true; MenuService.getContext({ forceRefresh: true }).then(data => { if (active) setGrades(data.grades || []) }).catch(error => { if (active) setGradeError(error.message) }); return () => { active = false } }, []);
   const [menuOptions, setMenuOptions] = useState([]);
+  // Tiến độ hôm nay của mọi khối để cảnh báo khối/bữa chưa nấu xong
+  const [dayProgress, setDayProgress] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [submittingId, setSubmittingId] = useState(null);
@@ -108,6 +110,9 @@ function CreateBatchPage() {
 
       if (signal?.aborted) return;
       setMenuOptions(scheduleRes?.data?.availableMenus || []);
+      KitchenService.getDayProgress({ signal })
+        .then((progress) => { if (!signal?.aborted) setDayProgress(progress); })
+        .catch(() => { if (!signal?.aborted) setDayProgress(null); });
       const dayIds = new Set((scheduleRes?.data?.days || []).map((day) => day.menuDayId).filter(Boolean));
       const existingBatches = (batchesRes?.items || []).filter((batch) => dayIds.has(batch.menuDayId));
       const todayDay = scheduleRes?.data?.days?.find((d) => d.date === todayISO);
@@ -511,6 +516,12 @@ function CreateBatchPage() {
             onOpenDetail={handleOpenDetail}
             onStartCooking={askStartCooking}
             mealTimes={mealTimes}
+            dayProgress={dayProgress}
+            onPickProgress={(id, gradeKey, meal) => {
+              setGradeId(gradeKey);
+              setMenuId(id);
+              handleSelectMeal(meal);
+            }}
             onNotify={(msg) => notice({ msg, isSuccess: false })}
             onOpenSampleModal={handleOpenSampleModal}
             onQuickCreate={handleCreateBatchForDish}
