@@ -6,6 +6,7 @@ import {
   TextField,
   InputAdornment,
   CircularProgress,
+  Pagination,
 } from "@mui/material"
 import {
   TrendingDown,
@@ -38,6 +39,7 @@ import { exportIngredientReportExcel } from "./exportExcel"
 import styles from "./IngredientReports.module.scss"
 
 const PORTION_PRICE = 35000 // Định mức kinh phí nguyên liệu / suất ăn trung bình
+const PAGE_SIZE = 10
 
 function CustomBarTooltip({ active, payload, label }) {
   if (active && payload && payload.length) {
@@ -81,7 +83,12 @@ export default function IngredientReports() {
         IngredientOrderService.getDeliveries(),
         WarehouseService.getWarehouseInventory(),
       ])
-      setDeliveries(Array.isArray(delivRes) ? delivRes : [])
+      const deliveryList = Array.isArray(delivRes?.items)
+        ? delivRes.items
+        : Array.isArray(delivRes)
+          ? delivRes
+          : []
+      setDeliveries(deliveryList)
       setInventoryData(invRes || { items: [], stats: {} })
     } catch (err) {
       console.error("Lỗi khi tải dữ liệu báo cáo:", err)
@@ -241,62 +248,71 @@ export default function IngredientReports() {
   const consolidatedRows = useMemo(() => {
     const list = []
 
-    // Đồ khô từ Kho
-    ;(inventoryData.items || []).forEach((it) => {
-      let stockStatus = "SAFE"
-      let stockLabel = "Đủ an toàn"
-      if (it.currentStock <= (it.minThreshold || 0)) {
-        stockStatus = "DANGER"
-        stockLabel = "Báo động thiếu"
-      } else if (it.currentStock < (it.standardStock || it.minThreshold * 1.5)) {
-        stockStatus = "WARNING"
-        stockLabel = "Cần nhập thêm"
-      }
-
-      // Đánh giá hạn dùng
-      let expiryLabel = "HSD an toàn"
-      let expiryType = "SAFE"
-      if (it.daysUntilExpiry !== undefined && it.daysUntilExpiry !== null) {
-        if (it.daysUntilExpiry <= 0) {
-          expiryLabel = "Đã hết hạn"
-          expiryType = "DANGER"
-        } else if (it.daysUntilExpiry <= 30) {
-          expiryLabel = `Cận date (${it.daysUntilExpiry} ngày)`
-          expiryType = "WARNING"
-        } else {
-          expiryLabel = `HSD an toàn (> ${it.daysUntilExpiry} ngày)`
+      // Đồ khô từ Kho
+      ; (inventoryData.items || []).forEach((it) => {
+        let stockStatus = "SAFE"
+        let stockLabel = "Đủ dùng"
+        if (it.currentStock <= (it.minThreshold || 0)) {
+          stockStatus = "DANGER"
+          stockLabel = "Báo động thiếu"
+        } else if (it.currentStock < (it.standardStock || it.minThreshold * 1.5)) {
+          stockStatus = "WARNING"
+          stockLabel = "Cần nhập thêm"
         }
-      } else if (it.expiringSoon) {
-        expiryLabel = "Cận date (< 30 ngày)"
-        expiryType = "WARNING"
-      }
 
-      list.push({
-        id: `dry-${it.id || it.code}`,
-        name: it.name,
-        type: "DRY",
-        typeLabel: "Kho khô",
-        unit: it.unit || "kg",
-        deliveredQty: it.currentStock ? Math.round(it.currentStock * 1.8) : 50,
-        currentStock: `${it.currentStock ?? 0} ${it.unit || "kg"}`,
-        supplierName: it.supplierName || "Công ty Lương Thực An Gia",
-        stockStatus,
-        stockLabel,
-        expiryLabel,
-        expiryType,
+        // Đánh giá hạn dùng
+        let expiryLabel = "HSD an toàn"
+        let expiryType = "SAFE"
+        if (it.daysUntilExpiry !== undefined && it.daysUntilExpiry !== null) {
+          if (it.daysUntilExpiry <= 0) {
+            expiryLabel = "Đã hết hạn"
+            expiryType = "DANGER"
+          } else if (it.daysUntilExpiry <= 30) {
+            expiryLabel = `Cận date (${it.daysUntilExpiry} ngày)`
+            expiryType = "WARNING"
+          } else {
+            expiryLabel = `HSD an toàn (> ${it.daysUntilExpiry} ngày)`
+          }
+        } else if (it.expiringSoon) {
+          expiryLabel = "Cận date (< 30 ngày)"
+          expiryType = "WARNING"
+        }
+
+        list.push({
+          id: `dry-${it.id || it.code}`,
+          name: it.name,
+          type: "DRY",
+          typeLabel: "Kho khô",
+          unit: it.unit || "kg",
+          deliveredQty: it.currentStock ? Math.round(it.currentStock * 1.8) : 50,
+          currentStock: `${it.currentStock ?? 0} ${it.unit || "kg"}`,
+          supplierName: it.supplierName || "Công ty Lương Thực An Gia",
+          stockStatus,
+          stockLabel,
+          expiryLabel,
+          expiryType,
+        })
       })
-    })
 
     // Đồ tươi từ Phiếu nhập
     const freshMap = new Map()
     filteredDeliveries.forEach((d) => {
-      (d.items || []).forEach((it) => {
-        if (it.handlingType === "DIRECT_USE" || !it.handlingType) {
-          const key = it.ingredientName
+      const itemsList =
+        Array.isArray(d.items) && d.items.length > 0
+          ? d.items
+          : Array.isArray(d.deliveryItems)
+            ? d.deliveryItems
+            : []
+      itemsList.forEach((it) => {
+        const ingName = it.ingredientName || it.name
+        if (!ingName) return
+        const hType = it.handlingType || "DIRECT_USE"
+        if (hType === "DIRECT_USE" || hType === "FRESH") {
+          const key = ingName
           if (!freshMap.has(key)) {
             freshMap.set(key, {
-              id: `fresh-${it.ingredientId || it.ingredientName}`,
-              name: it.ingredientName,
+              id: `fresh-${it.ingredientId || it.id || ingName}`,
+              name: ingName,
               type: "FRESH",
               typeLabel: "Tươi sống",
               unit: it.unit || "kg",
@@ -310,7 +326,13 @@ export default function IngredientReports() {
             })
           }
           const itemRef = freshMap.get(key)
-          itemRef.deliveredQty += Number(it.deliveredQty || it.orderedQty) || 0
+          itemRef.deliveredQty +=
+            Number(
+              it.deliveredQty ||
+                it.actualQuantity ||
+                it.orderedQty ||
+                it.requestedQuantity
+            ) || 0
         }
       })
     })
@@ -336,6 +358,20 @@ export default function IngredientReports() {
     })
   }, [inventoryData, filteredDeliveries, searchKeyword, typeFilter])
 
+  // Phân trang 10 mục / trang
+  const [page, setPage] = useState(1)
+
+  useEffect(() => {
+    setPage(1)
+  }, [searchKeyword, typeFilter, timeFilter])
+
+  const totalItems = consolidatedRows.length
+  const totalPages = Math.ceil(totalItems / PAGE_SIZE) || 1
+  const paginatedRows = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE
+    return consolidatedRows.slice(start, start + PAGE_SIZE)
+  }, [consolidatedRows, page])
+
   // Xuất file Excel
   const handleExportExcel = async () => {
     try {
@@ -354,7 +390,19 @@ export default function IngredientReports() {
   }
 
   if (loading) {
-    return <FoodPrintLoading message="Đang tổng hợp báo cáo nguyên liệu..." />
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "65vh",
+          width: "100%",
+        }}
+      >
+        <FoodPrintLoading size="large" />
+      </Box>
+    )
   }
 
   return (
@@ -367,10 +415,7 @@ export default function IngredientReports() {
           </Box>
           <Box>
             <Typography variant="h6" className={styles.pageTitle}>
-              Báo Cáo Hiệu Quả & Quản Lý Nguyên Liệu
-            </Typography>
-            <Typography variant="body2" className={styles.pageSubtitle}>
-              Số liệu tối ưu kinh phí, tiến độ giao nhận và giám sát an toàn kho
+              Thống kê và Báo cáo Nguyên Liệu
             </Typography>
           </Box>
         </Box>
@@ -425,12 +470,8 @@ export default function IngredientReports() {
               +{kpiStats.savedMoney.toLocaleString("vi-VN")} đ
             </Typography>
             <Typography className={styles.kpiSubtext}>
-              <TrendingDown size={13} />
               +{kpiStats.savedPortions} suất tránh lãng phí (Đợt 2)
             </Typography>
-          </Box>
-          <Box className={styles.kpiIconWrap} style={{ background: "#ecfdf5", color: "#059669" }}>
-            <TrendingDown size={22} />
           </Box>
         </Box>
 
@@ -442,13 +483,9 @@ export default function IngredientReports() {
               {kpiStats.onTimeRate}%
             </Typography>
             <Typography className={`${styles.kpiSubtext} ${styles.kpiSubtextBlue}`}>
-              <Clock size={13} />
               {kpiStats.onTimeCount}/{kpiStats.totalDeliveries} đợt chuẩn giờ
               {kpiStats.lateCount > 0 && ` (${kpiStats.lateCount} trễ)`}
             </Typography>
-          </Box>
-          <Box className={styles.kpiIconWrap} style={{ background: "#eff6ff", color: "#2563eb" }}>
-            <Clock size={22} />
           </Box>
         </Box>
 
@@ -457,26 +494,23 @@ export default function IngredientReports() {
           <Box className={styles.kpiInfo}>
             <Typography className={styles.kpiLabel}>Kho & Hạn sử dụng</Typography>
             <Typography className={styles.kpiValue} style={{ color: "#d97706" }}>
-              {kpiStats.safeRate}% an toàn
+              {kpiStats.safeRate}% NL đủ dùng
             </Typography>
             <Typography
               className={`${styles.kpiSubtext} ${styles.kpiSubtextAmber}`}
             >
               {kpiStats.expiringCount > 0 ? (
                 <>
-                  <AlertTriangle size={13} /> {kpiStats.expiringCount} mặt hàng cận date (&lt; 30 ngày)
+                  {kpiStats.expiringCount} NL cận date (&lt; 30 ngày)
                 </>
               ) : kpiStats.needOrderCount > 0 ? (
                 <>
-                  <AlertTriangle size={13} /> {kpiStats.needOrderCount} mặt hàng cần nhập
+                  {kpiStats.needOrderCount} NL cần nhập
                 </>
               ) : (
                 "100% đạt chuẩn hạn dùng"
               )}
             </Typography>
-          </Box>
-          <Box className={styles.kpiIconWrap} style={{ background: "#fffbeb", color: "#d97706" }}>
-            <ShieldAlert size={22} />
           </Box>
         </Box>
 
@@ -487,13 +521,6 @@ export default function IngredientReports() {
             <Typography className={styles.kpiValue}>
               {kpiStats.passRate}%
             </Typography>
-            <Typography className={styles.kpiSubtext}>
-              <CheckCircle2 size={13} />
-              Hội đồng 4 bên duyệt đạt chuẩn
-            </Typography>
-          </Box>
-          <Box className={styles.kpiIconWrap} style={{ background: "#e8f5e9", color: "#1e7e34" }}>
-            <CheckCircle2 size={22} />
           </Box>
         </Box>
       </Box>
@@ -505,14 +532,6 @@ export default function IngredientReports() {
             <Typography className={styles.chartTitle}>
               Hiệu Quả Cân Đối Sĩ Số Điểm Danh Theo Từng Ngày
             </Typography>
-            <Typography className={styles.chartDesc}>
-              So sánh Suất tối đa dự kiến (Đợt 1) và Sĩ số thực tế chốt nhập (Đợt 2)
-            </Typography>
-          </Box>
-
-          <Box className={styles.chartHighlightBadge}>
-            <Sparkles size={15} />
-            Đã tối ưu: +{kpiStats.savedPortions} suất (~+{kpiStats.savedMoney.toLocaleString("vi-VN")} đ)
           </Box>
         </Box>
 
@@ -606,14 +625,14 @@ export default function IngredientReports() {
               </tr>
             </thead>
             <tbody>
-              {consolidatedRows.length === 0 ? (
+              {paginatedRows.length === 0 ? (
                 <tr>
                   <td colSpan={7} className={styles.emptyState}>
                     Không tìm thấy nguyên liệu phù hợp với điều kiện lọc.
                   </td>
                 </tr>
               ) : (
-                consolidatedRows.map((row) => (
+                paginatedRows.map((row) => (
                   <tr key={row.id}>
                     <td>
                       <strong style={{ color: "#1e293b" }}>{row.name}</strong>
@@ -683,6 +702,22 @@ export default function IngredientReports() {
             </tbody>
           </table>
         </Box>
+
+        {totalItems > PAGE_SIZE && (
+          <Box className={styles.paginationWrapper}>
+            <Typography variant="body2" className={styles.paginationInfo}>
+              Hiển thị {(page - 1) * PAGE_SIZE + 1} - {Math.min(page * PAGE_SIZE, totalItems)} trên {totalItems} mặt hàng
+            </Typography>
+            <Pagination
+              count={totalPages}
+              page={page}
+              onChange={(_, val) => setPage(val)}
+              color="primary"
+              shape="rounded"
+              size="small"
+            />
+          </Box>
+        )}
       </Box>
     </Box>
   )
