@@ -7,6 +7,7 @@ import {
   apiGetSchoolGrades,
   apiGetDailyMealMenu,
   apiGetWeeklyMenu,
+  apiGetSchoolSuppliers,
   apiCookingMode,
   apiMealTimes,
   apiDeliveryInspectionRoles,
@@ -137,6 +138,16 @@ const getSchoolGradesApi = async (schoolCode, week) => {
 };
 
 /**
+ * Danh sách nhà cung cấp đã liên kết của trường học (Lấy trực tiếp từ DB qua Backend API)
+ */
+const getSchoolSuppliersApi = async (schoolCode) => {
+  const res = await http.get(apiGetSchoolSuppliers(schoolCode), {
+    skipAuthRedirect: true,
+  });
+  return res;
+};
+
+/**
  * 5. Danh mục địa giới hành chính công khai (Tỉnh/TP -> Quận/Huyện/Phường)
  */
 const getPublicLocationsApi = async () => {
@@ -173,6 +184,7 @@ const SchoolService = {
   getSchoolGrades: getSchoolGradesApi,
   getDailyMealMenu: getDailyMealMenuApi,
   getWeeklyMenu: getWeeklyMenuApi,
+  getSchoolSuppliers: getSchoolSuppliersApi,
   getCookingMode,
   updateCookingMode,
   getMealTimes,

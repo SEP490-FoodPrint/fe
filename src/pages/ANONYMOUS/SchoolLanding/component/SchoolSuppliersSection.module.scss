@@ -1,0 +1,261 @@
+.section {
+  padding: 3rem 1.5rem 4rem 1.5rem;
+  background: var(--bg-page, #f8fafc);
+  border-top: 1px solid var(--border-default, #e2e8f0);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header căn lề trái đồng bộ 100% với Thực đơn tuần & Thực đơn ngày */
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  text-align: left;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  line-height: 1.25;
+  margin: 0;
+  letter-spacing: -0.025em;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #64748b);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 720px;
+}
+
+/* Danh sách dạng hàng ngang (List of Rows) */
+.supplierList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.supplierRow {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+
+  &:hover {
+    border-color: #cbd5e1;
+    background: #fafcff;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+    transform: translateY(-2px);
+
+    .viewDetailBtn {
+      background: #047857;
+      box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
+
+      .chevron {
+        transform: translateX(3px);
+      }
+    }
+  }
+
+  &:focus-visible {
+    border-color: #059669;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.2);
+  }
+}
+
+/* Cột 1: Logo + Tên NCC */
+.colInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex: 1.2;
+  min-width: 260px;
+}
+
+.iconBox {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.mainInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.linkedBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  color: #15803d;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.taxCode {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.supplierName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Cột 2: Địa chỉ & Chứng nhận */
+.colMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1.5;
+  min-width: 280px;
+}
+
+.contactDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.825rem;
+  color: #475569;
+}
+
+.metaIcon {
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.addressText {
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.certRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.certPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.725rem;
+  font-weight: 600;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+}
+
+.certMore {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 0.15rem 0.45rem;
+  border-radius: 6px;
+}
+
+/* Cột 3: Nút Xem chi tiết */
+.colAction {
+  flex-shrink: 0;
+}
+
+.viewDetailBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #059669;
+  color: #ffffff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+
+  .chevron {
+    transition: transform 0.2s ease;
+  }
+}
+
+/* Responsive cho màn hình nhỏ */
+@media (max-width: 900px) {
+  .supplierRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.25rem;
+  }
+
+  .colInfo,
+  .colMeta {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .colAction {
+    width: 100%;
+
+    .viewDetailBtn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+}
