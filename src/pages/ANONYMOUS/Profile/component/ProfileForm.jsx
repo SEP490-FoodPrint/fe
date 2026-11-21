@@ -9,7 +9,7 @@ import AuthService from "src/services/AuthService"
 import ROUTER from "src/router/ROUTER"
 import styles from "./ProfileForm.module.scss"
 
-export default function ProfileForm({ user, onUpdated }) {
+export default function ProfileForm({ user, onUpdated, children }) {
   const [values, setValues] = useState({ fullName: user.fullName || "", phone: user.phone || "" })
   const [errors, setErrors] = useState({})
   const [message, setMessage] = useState("")
@@ -74,5 +74,6 @@ export default function ProfileForm({ user, onUpdated }) {
       <div className={styles.actions}><Button type="button" variant="outlined" onClick={reset} disabled={loading || fetching || !dirty}>Hủy thay đổi</Button><Button type="submit" variant="contained" disabled={loading || fetching || Boolean(loadError) || !dirty}>{loading ? <CircularProgress color="inherit" size={22} aria-label="Đang lưu profile" /> : "Lưu thay đổi"}</Button></div>
       </div>
     </Card>
+    {children}
   </section>
 }

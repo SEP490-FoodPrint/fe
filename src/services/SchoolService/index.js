@@ -9,6 +9,8 @@ import {
   apiGetWeeklyMenu,
   apiCookingMode,
   apiMealTimes,
+  apiSchoolBrand,
+  apiSchoolLogo,
   apiDeliveryInspectionRoles,
 } from "./urls";
 import {
@@ -146,6 +148,23 @@ const getPublicLocationsApi = async () => {
 
 const getCookingMode = () => http.get(apiCookingMode);
 const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMode });
+const getSchoolBrand = async () => {
+  const res = await http.get(apiSchoolBrand, { notifyOnError: false });
+  return res?.data ?? null;
+};
+const uploadSchoolLogo = async file => {
+  const formData = new FormData();
+  formData.append("logo", file);
+  const res = await http.put(apiSchoolLogo, formData, {
+    timeout: 120000,
+    notifyOnError: false,
+  });
+  return res?.data ?? null;
+};
+const removeSchoolLogo = async () => {
+  const res = await http.delete(apiSchoolLogo, { notifyOnError: false });
+  return res?.data ?? null;
+};
 const getMealTimes = () => http.get(apiMealTimes, { notifyOnError: false });
 const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnError: false });
 
@@ -177,6 +196,9 @@ const SchoolService = {
   updateCookingMode,
   getMealTimes,
   updateMealTimes,
+  getSchoolBrand,
+  uploadSchoolLogo,
+  removeSchoolLogo,
   getDeliveryInspectionRoles,
   updateDeliveryInspectionRoles,
 };

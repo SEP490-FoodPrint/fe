@@ -9,6 +9,7 @@
     "test:blockchain-proof": "node --test tests/blockchain-proof.test.mjs",
     "test:kitchen-nutrition": "node --test tests/kitchen-nutrition-api.test.mjs tests/quantity-display.test.mjs",
     "test:supplier-ingredient-handling": "node --test tests/supplier-ingredient-handling.test.mjs",
+    "test:school-brand": "node --test tests/school-brand.test.mjs",
     "build": "vite build",
     "preview": "vite preview"
   },

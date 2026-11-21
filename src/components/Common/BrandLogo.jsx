@@ -7,6 +7,8 @@ import styles from "./BrandLogo.module.scss"
  * BrandLogo - Bộ nhận diện thương hiệu FoodPrint chuẩn hóa
  * @param {"dark" | "light"} theme - Màu thương hiệu theo nền đặt logo
  * @param {boolean} iconOnly - Chỉ hiển thị ảnh logo trong thanh icon tablet
+ * @param {string} logoSrc - Ảnh logo riêng (vd. logo trường); bỏ trống dùng logo FoodPrint
+ * @param {string} title - Tên hiển thị thay cho "FoodPrint" (vd. tên trường)
  */
 function BrandLogo({
   theme = "light",
@@ -15,11 +17,14 @@ function BrandLogo({
   compact = false,
   variant = "default",
   subtitle = "",
+  logoSrc = "",
+  title = "",
   className = "",
   onClick,
   style,
 }) {
   const isIconOnly = iconOnly || collapsed
+  const brandName = title || "FoodPrint"
   const themeClass = theme === "dark" ? styles.isDark : styles.isLight
   const Component = onClick ? "button" : "div"
 
@@ -32,6 +37,7 @@ function BrandLogo({
         variant === "dashboard" && styles.dashboard,
         variant === "auth" && styles.auth,
         compact && styles.compact,
+        title && styles.organization,
         isIconOnly && styles.iconOnly,
         className,
       ]
@@ -42,8 +48,8 @@ function BrandLogo({
     >
       <div className={styles.iconBox}>
         <img
-          src={logo}
-          alt={isIconOnly ? "FoodPrint" : ""}
+          src={logoSrc || logo}
+          alt={isIconOnly ? brandName : ""}
           className={styles.logoImage}
           width={42}
           height={42}
@@ -52,7 +58,7 @@ function BrandLogo({
 
       {!isIconOnly && (
         <div className={styles.textGroup}>
-          <span className={styles.brandTitle}>FoodPrint</span>
+          <span className={styles.brandTitle}>{brandName}</span>
           {!compact && subtitle ? (
             <span className={styles.brandSubtitle}>{subtitle}</span>
           ) : null}
@@ -69,6 +75,8 @@ BrandLogo.propTypes = {
   compact: PropTypes.bool,
   variant: PropTypes.oneOf(["default", "dashboard", "auth"]),
   subtitle: PropTypes.string,
+  logoSrc: PropTypes.string,
+  title: PropTypes.string,
   className: PropTypes.string,
   onClick: PropTypes.func,
   style: PropTypes.object,

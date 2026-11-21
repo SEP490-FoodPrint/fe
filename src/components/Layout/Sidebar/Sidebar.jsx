@@ -10,6 +10,7 @@ import { hasPermission, getDefaultRedirectByUser, getDefaultRedirectByOrg } from
 import { MenuItemSchool, MenuItemSupplier, MenuItemSystem } from "src/router/MenuItem"
 import ROUTER from "src/router/ROUTER"
 import BrandLogo from "src/components/Common/BrandLogo"
+import { useSchoolBrand } from "src/lib/schoolBrand"
 import styles from "./Sidebar.module.scss"
 
 function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose }) {
@@ -18,7 +19,14 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
   const location = useLocation()
   const orgType = type || user?.orgType
   const portalLabel = ORG_LABELS[orgType] || "FoodPrint"
-  const organizationLabel = orgType === "SCHOOL" && user?.orgName ? user.orgName : portalLabel
+  const isSchool = orgType === "SCHOOL"
+  const schoolBrand = useSchoolBrand(isSchool ? user?.schoolId : null)
+  const schoolName = schoolBrand?.name || user?.orgName
+  const organizationLabel = isSchool && schoolName ? schoolName : portalLabel
+  // Nhân sự trường thấy logo + tên trường; chưa có logo thì dùng logo FoodPrint
+  const brandProps = isSchool && schoolName
+    ? { title: schoolName, logoSrc: schoolBrand?.logoUrl || "", subtitle: "FoodPrint" }
+    : { subtitle: organizationLabel }
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)")
   const menuItems = useMemo(() => {
     const items = orgType === "SYSTEM" ? MenuItemSystem()
@@ -118,14 +126,16 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
       {mobile ? (
         <>
           <div className={styles.drawerHeading}>
-            <BrandLogo theme="light" />
+            {brandProps.title
+              ? <BrandLogo theme="light" variant="dashboard" {...brandProps} />
+              : <BrandLogo theme="light" />}
             <IconButton onClick={onClose} aria-label="Đóng điều hướng" autoFocus><CloseIcon /></IconButton>
           </div>
-          <p className={styles.portalLabel}>{organizationLabel}</p>
+          {!brandProps.title && <p className={styles.portalLabel}>{organizationLabel}</p>}
         </>
       ) : (
-        <Link to={user ? getDefaultRedirectByUser(user) : getDefaultRedirectByOrg(orgType)} className={styles.brandLink} aria-label={"FoodPrint — " + organizationLabel}>
-          <BrandLogo theme="light" variant="dashboard" iconOnly={iconOnly} subtitle={organizationLabel} />
+        <Link to={user ? getDefaultRedirectByUser(user) : getDefaultRedirectByOrg(orgType)} className={styles.brandLink} aria-label={"Trang chủ — " + organizationLabel}>
+          <BrandLogo theme="light" variant="dashboard" iconOnly={iconOnly} {...brandProps} />
         </Link>
       )}
       <nav className={styles.navList} aria-label="Menu chức năng">
