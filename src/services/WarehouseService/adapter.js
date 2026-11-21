@@ -43,10 +43,11 @@ export function isDryIngredient(item = {}, entries = []) {
 
   // 4. Các từ khóa đặc trưng xác định đồ khô / lương thực / gia vị lưu kho
   const dryKeywords = [
-    "gạo", "lương thực", "gia vị", "muối", "đường", "dầu ăn", "dầu thực vật",
-    "nước mắm", "nước tương", "hạt nêm", "bột ngọt", "tiêu", "bột canh", "bột nêm",
-    "đồ khô", "hàng khô", "ngũ cốc", "bột mì", "bột năng", "bột bắp",
-    "miến", "bún khô", "mì sợi", "mộc nhĩ", "nấm hương khô", "đậu xanh", "đậu đỏ", "đậu đen", "lạc", "vừng", "mè"
+    "gạo", "lương thực", "gia vị", "muối", "đường", "dầu ăn", "dầu thực vật", "dầu",
+    "nước mắm", "nước tương", "hạt nêm", "bột ngọt", "tiêu", "bột canh", "bột nêm", "mắm",
+    "đồ khô", "hàng khô", "khô", "kho khô", "ngũ cốc", "bột mì", "bột năng", "bột bắp",
+    "miến", "bún khô", "mì sợi", "mộc nhĩ", "nấm hương khô", "đậu xanh", "đậu đỏ", "đậu đen",
+    "đậu tương", "đậu nành", "lạc", "đậu phộng", "vừng", "mè", "seasoning", "dry"
   ]
 
   if (dryKeywords.some(kw => name.includes(kw) || cat.includes(kw))) {

@@ -22,7 +22,22 @@ export const HANDLING_TYPES = {
  * Tự động nhận diện phân loại kho khô (DRY_STOCK) vs tươi sống (DIRECT_USE)
  * dựa theo handlingType hoặc từ khóa tên / nhóm mặt hàng khi dữ liệu DB chưa gắn tag
  */
-export function inferHandlingType(item) {
+export function inferHandlingType(item = {}, entries = []) {
+  // 1. Kiểm tra đối chiếu với danh mục ingredient_entries cấu hình của trường
+  if (entries && entries.length > 0) {
+    const entry = entries.find(
+      (e) =>
+        e.ingredientId === item.id ||
+        e.id === item.id ||
+        e.id === item.ingredientEntryId
+    );
+    if (entry) {
+      if (entry.handlingType === "DRY_STOCK") return "DRY_STOCK";
+      if (entry.handlingType === "DIRECT_USE") return "DIRECT_USE";
+    }
+  }
+
+  // 2. Kiểm tra thuộc tính handlingType nếu đã có sẵn
   if (
     item?.handlingType === "DRY_STOCK" ||
     item?.handlingType === "DIRECT_USE"
@@ -30,42 +45,45 @@ export function inferHandlingType(item) {
     return item.handlingType;
   }
 
-  const category = (item?.category || "").toLowerCase();
-  const name = (item?.name || "").toLowerCase();
+  const category = String(item?.category || item?.categoryName || "").toLowerCase();
+  const name = String(item?.name || "").toLowerCase();
 
+  // 3. Loại trừ dứt khoát các mặt hàng tươi sống (dùng ngay trong ngày)
+  const freshKeywords = [
+    "thịt", "heo", "lợn", "bò", "gà", "vịt", "chim",
+    "cá", "tôm", "cua", "mực", "nghêu", "sò", "ốc", "hải sản",
+    "rau", "cải", "muống", "ngót", "mồng tơi", "bắp cải", "xà lách", "súp lơ",
+    "củ", "cà rốt", "khoai tây", "khoai lang", "su hào", "củ cải", "cà chua", "dưa chuột",
+    "bí đỏ", "bí xanh", "mướp", "đậu phụ", "tàu hũ",
+    "trứng", "trứng gà", "trứng vịt", "trứng cút",
+    "trái cây", "chuối", "dưa hấu", "táo", "lê", "xoài", "thanh long", "quít", "cam",
+    "sữa tươi", "sữa chua",
+  ];
+
+  if (freshKeywords.some((kw) => category.includes(kw) || name.includes(kw))) {
+    return "DIRECT_USE";
+  }
+
+  // 4. Các từ khóa đặc trưng xác định đồ khô / lương thực / gia vị lưu kho
   const dryKeywords = [
-    "khô",
-    "kho khô",
-    "gạo",
-    "gia vị",
-    "muối",
-    "đường",
-    "dầu",
-    "mắm",
-    "hạt nêm",
-    "tiêu",
-    "bột ngọt",
-    "bột canh",
-    "bột nêm",
-    "nước tương",
-    "ngũ cốc",
-    "lương thực",
-    "seasoning",
-    "dry",
-    "nước mắm",
-    "dầu ăn",
+    "gạo", "lương thực", "gia vị", "muối", "đường", "dầu ăn", "dầu thực vật", "dầu",
+    "nước mắm", "nước tương", "hạt nêm", "bột ngọt", "tiêu", "bột canh", "bột nêm", "mắm",
+    "đồ khô", "hàng khô", "khô", "kho khô", "ngũ cốc", "bột mì", "bột năng", "bột bắp",
+    "miến", "bún khô", "mì sợi", "mộc nhĩ", "nấm hương khô", "đậu xanh", "đậu đỏ", "đậu đen",
+    "đậu tương", "đậu nành", "lạc", "đậu phộng", "vừng", "mè", "seasoning", "dry"
   ];
 
   if (dryKeywords.some((kw) => category.includes(kw) || name.includes(kw))) {
     return "DRY_STOCK";
   }
+
   return "DIRECT_USE";
 }
 
-export function adaptCatalogItem(item) {
+export function adaptCatalogItem(item, entries = []) {
   if (!item) return null;
 
-  const handlingType = inferHandlingType(item);
+  const handlingType = inferHandlingType(item, entries);
   const handling = HANDLING_TYPES[handlingType] || HANDLING_TYPES.DIRECT_USE;
 
   return {
@@ -367,10 +385,7 @@ export function adaptDeliveryItem(item) {
     deliveryNo: cleanDeliveryNo,
     orderNo: baseOrderNo,
     supplierDeliveryNo: item.deliveryNo,
-    deliveryQr: item.deliveryQr || item.deliveryNo || `QR-${cleanDeliveryNo}`,
-    driverName: item.driverName || "Chưa phân công (Chờ NCC điều xe)",
     driverPhone: item.driverPhone || item.phone || "--",
-    vehiclePlate: item.vehiclePlate || "",
     expectedArrivalAt: item.expectedArrivalAt || null,
     arrivedAt: item.arrivedAt || null,
     receivedAt: item.receivedAt || null,
