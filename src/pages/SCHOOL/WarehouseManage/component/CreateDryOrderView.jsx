@@ -19,9 +19,55 @@ import {
   Paper,
   Checkbox,
   CircularProgress,
-} from "@mui/material";
-import { ArrowLeft, Send, Package } from "lucide-react";
-import styles from "./CreateDryOrderView.module.scss";
+} from "@mui/material"
+import {
+  ArrowLeft,
+  Send,
+  Package,
+} from "lucide-react"
+import notice from "src/components/Notice"
+import styles from "./CreateDryOrderView.module.scss"
+
+// Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
+const formatDateVN = (dateInput) => {
+  if (!dateInput) return ""
+  const str = String(dateInput).trim()
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (match) return `${match[3]}/${match[2]}/${match[1]}`
+  return str
+}
+
+// Lấy ngày hiện tại theo giờ Việt Nam định dạng YYYY-MM-DD
+const getTodayStr = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date())
+
+// Kiểm tra tính hợp lệ của ngày giao hàng kho khô:
+// 1. Không để trống
+// 2. Không ở trong quá khứ (< hôm nay)
+// Lưu ý: Đồ khô cho phép giao cả Thứ Bảy và Chủ Nhật (chỉ cần Ban QLNL trực tiếp kiểm tra và nghiệm thu)
+const validateDeliveryDate = (dateStr) => {
+  if (!dateStr || !String(dateStr).trim()) {
+    return "Vui lòng chọn ngày giao dự kiến."
+  }
+  const todayStr = getTodayStr()
+  const selected = String(dateStr).slice(0, 10)
+  if (selected < todayStr) {
+    return "Không thể chọn ngày trong quá khứ. Vui lòng chọn từ hôm nay trở đi."
+  }
+  return null
+}
+
+// Mặc định chọn ngày mai (+1 ngày, cho phép cả Thứ Bảy và Chủ Nhật)
+const getTomorrowStr = () => {
+  const d = new Date()
+  d.setDate(d.getDate() + 1)
+  return d.toISOString().slice(0, 10)
+}
 
 export default function CreateDryOrderView({
   inventoryItems = [],
@@ -31,19 +77,17 @@ export default function CreateDryOrderView({
   onBack,
   onSubmit,
 }) {
-  const unitCatalog = useMeasurementUnits();
-  const [deliveryDate, setDeliveryDate] = useState(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().slice(0, 10);
-  });
-  const [deliveryTime, setDeliveryTime] = useState("14:30");
-  const [note, setNote] = useState(
-    "Giao tại kho của trường, kiểm tra kỹ tem niêm phong và bao bì đóng gói.",
-  );
-  const [orderQtys, setOrderQtys] = useState({});
-  const [itemSuppliers, setItemSuppliers] = useState({});
-  const [submitting, setSubmitting] = useState(false);
+  // Mặc định chọn ngày mai (cho phép cả Thứ 7, Chủ Nhật)
+  const [deliveryDate, setDeliveryDate] = useState(() => getTomorrowStr())
+  // Cố định giờ giao tiêu chuẩn đầu giờ làm việc, không yêu cầu người dùng chọn giờ
+  const deliveryTime = "08:00"
+  const [note, setNote] = useState("Giao tại kho khô, kiểm tra kỹ tem niêm phong và bao bì đóng gói.")
+  const [orderQtys, setOrderQtys] = useState({})
+  const [itemSuppliers, setItemSuppliers] = useState({})
+  const [submitting, setSubmitting] = useState(false)
+
+  // Kiểm tra lỗi ngày giao
+  const dateError = useMemo(() => validateDeliveryDate(deliveryDate), [deliveryDate])
 
   // 1. Tổng hợp danh sách tất cả NCC liên kết trong hệ thống
   const allSuppliers = useMemo(() => {
@@ -271,24 +315,18 @@ export default function CreateDryOrderView({
       });
     });
 
-    if (allSelectedItems.length === 0) return;
-
-    // 2. Xác định nhãn hiển thị thời gian giao
-    const hour = parseInt(deliveryTime.split(":")[0], 10) || 0;
-    let deliveryType = "OFFICE_HOURS";
-    let deliveryTypeLabel = `Hẹn lúc ${deliveryTime}`;
-
-    if (hour >= 18) {
-      deliveryType = "EVENING";
-      deliveryTypeLabel = `Buổi tối (${deliveryTime})`;
-    } else if (hour >= 12) {
-      deliveryType = "AFTERNOON";
-      deliveryTypeLabel = `Buổi chiều (${deliveryTime})`;
-    } else if (hour >= 6) {
-      deliveryType = "MORNING";
-      deliveryTypeLabel = `Buổi sáng (${deliveryTime})`;
+    // 2. Validate dữ liệu trước khi gửi
+    if (dateError) {
+      notice({ msg: dateError, type: "error" })
+      return
     }
 
+    if (allSelectedItems.length === 0) {
+      notice({ msg: "Vui lòng chọn ít nhất 1 mặt hàng cần nhập kho!", type: "warning" })
+      return
+    }
+
+    // 3. Chuẩn hóa thông tin hiển thị và gom nhà cung cấp
     const uniqueSuppliers = Array.from(
       new Set(allSelectedItems.map((it) => it.supplierName).filter(Boolean)),
     );
@@ -301,7 +339,7 @@ export default function CreateDryOrderView({
       0,
     );
 
-    // 3. Tạo 1 Phiếu nhập hàng duy nhất của trường, bên trong chứa đầy đủ các NCC giao gì
+    // 4. Tạo 1 Phiếu nhập hàng duy nhất của trường, chứa đầy đủ danh sách mặt hàng và NCC
     const orderToCreate = {
       id: `po-dry-${Date.now()}`,
       orderNo: `PO-DRY-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}-0${Math.floor(Math.random() * 90 + 10)}`,
@@ -313,9 +351,9 @@ export default function CreateDryOrderView({
       orderDate: `${new Date().toLocaleDateString("vi-VN")} ${new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}`,
       deliveryDate,
       deliveryTime,
-      deliverySchedule: `${deliveryTime} - Ngày ${deliveryDate}`,
-      deliveryType,
-      deliveryTypeLabel,
+      deliverySchedule: `Ngày ${formatDateVN(deliveryDate)}`,
+      deliveryType: "OFFICE_HOURS",
+      deliveryTypeLabel: "Giao trong ngày",
       totalItems: allSelectedItems.length,
       totalAmount,
       status: "CREATED",
@@ -369,10 +407,10 @@ export default function CreateDryOrderView({
         </Box>
       </Box>
 
-      {/* 2. Card Thông tin Thời gian giao hàng & Ghi chú (Mục 1) */}
+      {/* 2. Card Thông tin Ngày giao hàng dự kiến & Ghi chú (Mục 1) */}
       <Paper className={styles.formCard} elevation={0}>
         <Typography variant="subtitle1" className={styles.sectionTitle}>
-          1. Thời gian giao hàng hẹn trước &amp; Ghi chú
+          1. Ngày giao hàng dự kiến &amp; Ghi chú
         </Typography>
 
         <Box className={styles.formGrid}>
@@ -383,17 +421,13 @@ export default function CreateDryOrderView({
               value={deliveryDate}
               onChange={(e) => setDeliveryDate(e.target.value)}
               size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ minWidth: 200 }}
-            />
-            <TextField
-              label="Giờ hẹn giao"
-              type="time"
-              value={deliveryTime}
-              onChange={(e) => setDeliveryTime(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ minWidth: 200 }}
+              error={Boolean(dateError)}
+              helperText={dateError}
+              slotProps={{
+                inputLabel: { shrink: true },
+                htmlInput: { min: getTodayStr() },
+              }}
+              sx={{ minWidth: 260 }}
             />
           </Box>
 
@@ -670,11 +704,7 @@ export default function CreateDryOrderView({
                 <Send size={18} />
               )
             }
-            disabled={
-              selectedCount === 0 ||
-              submitting ||
-              Object.values(orderQtys).some((value) => quantityError(value))
-            }
+            disabled={selectedCount === 0 || submitting || Boolean(dateError) || !deliveryDate}
             className={styles.submitBtn}
           >
             {submitting ? "Đang gửi..." : "Tạo"}

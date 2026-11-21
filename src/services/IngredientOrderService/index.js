@@ -223,8 +223,14 @@ const IngredientOrderService = {
    */
   async getMasterIngredientCatalog() {
     try {
-      // 1. Lấy danh sách NCC đang liên kết ACTIVE với trường
-      const supRes = await this.getSuppliers();
+      // 1. Tải đồng thời: danh sách NCC liên kết, toàn bộ nguyên liệu, entries phân loại của trường và lô kho
+      const [supRes, apiItems, entries, lots] = await Promise.all([
+        this.getSuppliers(),
+        fetchAllPages(apiIngredients),
+        fetchAllPages("/ingredient-entries"),
+        fetchAllPages("/ingredient-lots"),
+      ]);
+
       const linkedSuppliers = supRes.items || [];
       const linkedSupplierIds = new Set(
         linkedSuppliers.map((s) => s.id).filter(Boolean),
@@ -235,21 +241,35 @@ const IngredientOrderService = {
           .filter(Boolean),
       );
 
-      // 2. Tải danh mục nguyên liệu từ Backend
-      const response = await http.get(apiIngredients, {
-        params: { page: 1, limit: 100 },
-        notifyOnError: false,
-        skipAuthRedirect: true,
+      // Bổ sung các mặt hàng có lô lưu kho nhưng chưa nằm trong danh mục (nếu có)
+      const existingIds = new Set((apiItems || []).map((it) => it.id));
+      const extraItems = [];
+      (lots || []).forEach((l) => {
+        const entry = l.DeliveryItem?.SupplyRequestItem?.IngredientEntry;
+        const ing = entry?.Ingredient || l.Ingredient;
+        const ingId = ing?.id || entry?.ingredientId || l.ingredientId;
+        const ingName = ing?.name || l.ingredientName;
+        const sup = ing?.Supplier || l.Supplier;
+        if (ingId && !existingIds.has(ingId)) {
+          existingIds.add(ingId);
+          extraItems.push({
+            id: ingId,
+            name: ingName,
+            supplierId: sup?.id || l.supplierId || "",
+            supplierName: sup?.name || l.supplierName || "Nhà cung cấp đối tác",
+            defaultUnit: l.unit || ing?.defaultUnit || "kg",
+            category: l.category || ing?.category || "Lương thực & Gia vị",
+            handlingType: entry?.handlingType || l.handlingType || "DRY_STOCK",
+          });
+        }
       });
-      const data = response?.data || response;
-      const apiItems = Array.isArray(data?.items)
-        ? data.items
-        : Array.isArray(data)
-          ? data
-          : [];
 
-      if (apiItems.length > 0) {
-        let adaptedApi = apiItems.map(adaptCatalogItem).filter(Boolean);
+      const allRawItems = (apiItems || []).concat(extraItems);
+
+      if (allRawItems.length > 0) {
+        let adaptedApi = allRawItems
+          .map((item) => adaptCatalogItem(item, entries))
+          .filter(Boolean);
 
         // Lọc nghiêm ngặt: Chỉ giữ lại nguyên liệu từ NCC đã liên kết với trường
         if (linkedSupplierIds.size > 0) {

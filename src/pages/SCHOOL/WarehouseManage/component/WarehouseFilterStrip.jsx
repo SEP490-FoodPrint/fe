@@ -7,6 +7,7 @@ import styles from "./WarehouseFilterStrip.module.scss"
 export default function WarehouseFilterStrip({
   filters,
   categories = [],
+  suppliers = [],
   onFilterChange,
   onOpenCreate,
 }) {
@@ -60,6 +61,22 @@ export default function WarehouseFilterStrip({
             </MenuItem>
           ))}
         </TextField>
+
+        <TextField
+          select
+          size="small"
+          label="Nhà cung cấp"
+          value={filters.supplierId || "all"}
+          onChange={e => onFilterChange("supplierId", e.target.value)}
+          className={styles.selectInput}
+        >
+          <MenuItem value="all">Tất cả nhà cung cấp</MenuItem>
+          {suppliers.map(sup => (
+            <MenuItem key={sup.id} value={sup.id}>
+              {sup.name}
+            </MenuItem>
+          ))}
+        </TextField>
       </Box>
 
       {onOpenCreate && (
@@ -83,8 +100,10 @@ WarehouseFilterStrip.propTypes = {
     search: PropTypes.string,
     status: PropTypes.string,
     category: PropTypes.string,
+    supplierId: PropTypes.string,
   }).isRequired,
   categories: PropTypes.array,
+  suppliers: PropTypes.array,
   onFilterChange: PropTypes.func.isRequired,
   onOpenCreate: PropTypes.func,
 }

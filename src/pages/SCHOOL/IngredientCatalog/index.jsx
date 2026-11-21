@@ -94,6 +94,7 @@ export default function IngredientCatalog() {
 
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }))
+    setPage(1)
   }
 
   return (

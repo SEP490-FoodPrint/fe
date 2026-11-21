@@ -61,6 +61,38 @@ import FoodPrintLoading from "src/components/FoodPrintLoading";
 import notice from "src/components/Notice";
 import styles from "./CreateDeliveryView.module.scss";
 
+/**
+ * =========================================================================================
+ * TÀI LIỆU HƯỚNG DẪN KIẾN TRÚC & LUỒNG NGHIỆP VỤ (DÀNH CHO NGƯỜI MỚI HỌC / DEVELOPER)
+ * -----------------------------------------------------------------------------------------
+ * Component: CreateDeliveryView
+ * Phân hệ: Ban Quản Lý Nguyên Liệu Trường Học (INGREDIENT_MANAGEMENT_DEPARTMENT)
+ *
+ * MỤC ĐÍCH:
+ * Màn hình tạo yêu cầu mua và giao nhận thực phẩm tươi sống chuyên biệt phục vụ bếp ăn bán trú.
+ * Áp dụng mô hình giao 2 Đợt chuẩn nhằm hạn chế lãng phí và đảm bảo độ tươi ngon an toàn:
+ *
+ * 1. ĐỢT 1 (Giao sớm 05:30 sáng):
+ *    - Nhập trước 50% số suất ăn kế hoạch theo Thực đơn tuần đã được Ban Dinh Dưỡng duyệt.
+ *    - Bếp sơ chế, chuẩn bị nước dùng và các món chính nấu sớm.
+ *
+ * 2. ĐỢT 2 (Giao bổ sung 07:45 sáng):
+ *    - Tự động lấy sĩ số thực tế do Giáo viên chủ nhiệm (GVCN) điểm danh báo về buổi sáng.
+ *    - Số suất giao bù = (Sĩ số thực tế GVCN chốt) - (Số suất Đợt 1 đã nhận lúc 5h30).
+ *    - Giúp trường tiết kiệm chi phí nếu học sinh nghỉ ốm, đồng thời đủ suất ăn cho học sinh.
+ *
+ * CÁC QUY TẮC NGHIỆP VỤ QUAN TRỌNG (BUSINESS RULES):
+ * - Ngày áp dụng (orderDate): Bắt buộc chọn từ hôm nay trở đi, KHÔNG chọn ngày quá khứ,
+ *   KHÔNG chọn Thứ Bảy / Chủ Nhật (trường tiểu học không tổ chức ăn bán trú cuối tuần).
+ * - Kiểm tra thực đơn tuần: Cần có đủ thực đơn cho các khối lớp của trường. Nếu thiếu khối nào,
+ *   hệ thống cảnh báo và có nút gửi nhắc nhở sang Ban Dinh Dưỡng.
+ * - Quy đổi đơn vị:
+ *   + Đơn vị kg: Hiển thị gam/suất để dễ định lượng, tổng số lượng quy đổi ra kg (2 chữ số thập phân).
+ *   + Đơn vị đếm được (trứng, quả, gói...): Tự động làm tròn lên (Math.ceil) để không giao lẻ nửa quả.
+ * - Tự động gom hàng theo từng Nhà cung cấp (NCC) đối tác được phân công.
+ * =========================================================================================
+ */
+
 // Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
 export const formatDateVN = (dateInput) => {
   if (!dateInput) return "";
@@ -97,6 +129,67 @@ export const getTodayStr = () =>
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
+
+/**
+ * Kiểm tra hợp lệ ngày áp dụng / ngày giao hàng:
+ * 1. Không để trống
+ * 2. Không được chọn ngày trong quá khứ (< hôm nay)
+ * 3. Không chọn Thứ Bảy (6) hoặc Chủ Nhật (0) vì trường học không ăn bán trú cuối tuần
+ */
+export const validateOrderDate = (dateStr) => {
+  if (!dateStr || !String(dateStr).trim()) {
+    return "Vui lòng chọn ngày giao hàng.";
+  }
+  const todayStr = getTodayStr();
+  const selected = String(dateStr).slice(0, 10);
+  if (selected < todayStr) {
+    return "Không thể chọn ngày trong quá khứ. Vui lòng chọn từ ngày hôm nay trở đi.";
+  }
+  const [y, m, d] = selected.split("-").map(Number);
+  const dayOfWeek = new Date(y, m - 1, d).getDay();
+  if (dayOfWeek === 0 || dayOfWeek === 6) {
+    return "Trường học không tổ chức ăn bán trú vào Thứ Bảy và Chủ Nhật. Vui lòng chọn ngày trong tuần (Thứ Hai - Thứ Sáu).";
+  }
+  return null;
+};
+
+/**
+ * Tính ngày đi học kế tiếp (bỏ qua Thứ Bảy và Chủ Nhật)
+ * Phục vụ gợi ý chọn ngày tiếp theo khi ngày hiện tại đã hoàn tất cả 2 đợt giao
+ */
+export const getNextSchoolDay = (baseDateStr) => {
+  const [y, m, d] = (baseDateStr || getTodayStr()).split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + 1);
+  if (date.getDay() === 6) {
+    date.setDate(date.getDate() + 2);
+  } else if (date.getDay() === 0) {
+    date.setDate(date.getDate() + 1);
+  }
+  const nextY = date.getFullYear();
+  const nextM = String(date.getMonth() + 1).padStart(2, "0");
+  const nextD = String(date.getDate()).padStart(2, "0");
+  return `${nextY}-${nextM}-${nextD}`;
+};
+
+/**
+ * Lấy ngày mặc định khi mở form:
+ * Nếu hôm nay rơi vào Thứ 7 hoặc Chủ Nhật thì tự động chuyển sang Thứ 2 tới
+ */
+export const getDefaultOrderDate = () => {
+  const today = getTodayStr();
+  const [y, m, d] = today.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  if (date.getDay() === 6) {
+    date.setDate(date.getDate() + 2);
+  } else if (date.getDay() === 0) {
+    date.setDate(date.getDate() + 1);
+  }
+  const nextY = date.getFullYear();
+  const nextM = String(date.getMonth() + 1).padStart(2, "0");
+  const nextD = String(date.getDate()).padStart(2, "0");
+  return `${nextY}-${nextM}-${nextD}`;
+};
 
 /**
  * Kiểm tra đơn vị đếm được (nguyên quả, nguyên con, gói, chai...)
@@ -179,10 +272,14 @@ export default function CreateDeliveryView({
     return Array.isArray(menus) ? menus : [];
   }, [menus]);
 
+  // 1. Ngày áp dụng / giao hàng: kiểm tra hợp lệ (không quá khứ, không cuối tuần)
   const [orderDate, setOrderDate] = useState(() => {
     if (initialDate) return String(initialDate).slice(0, 10);
-    return getTodayStr();
+    return getDefaultOrderDate();
   });
+
+  // Lỗi ngày giao (nếu có: rỗng, quá khứ, Thứ 7/CN)
+  const dateError = useMemo(() => validateOrderDate(orderDate), [orderDate]);
   const [selectedMenuId, setSelectedMenuId] = useState(
     () => effectiveMenus[0]?.id || "",
   );
@@ -945,8 +1042,8 @@ export default function CreateDeliveryView({
 
         const displayRate = isMulti
           ? entry.contributions
-              .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
-              .join(" | ")
+            .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
+            .join(" | ")
           : entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
 
         const isKg = isKgUnit(entry.unit);
@@ -1282,6 +1379,13 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 1 (Chuyên biệt thực phẩm tươi sống trong ngày)
   const handleSubmitBatch1 = async () => {
+    if (dateError) {
+      notice({
+        msg: dateError,
+        isSuccess: false,
+      });
+      return;
+    }
     if (!hasMenusInWeek || !activeMenus || activeMenus.length === 0) {
       notice({
         msg: "Tuần này chưa có thực đơn được duyệt từ bên Dinh dưỡng. Không thể tạo yêu cầu nhập hàng!",
@@ -1375,13 +1479,14 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 2
   const handleSubmitBatch2 = async () => {
-    if (
-      !hasMenusInWeek ||
-      !batch1ForDate ||
-      parsedAttendance <= 0 ||
-      !attendanceReady
-    )
+    if (dateError) {
+      notice({
+        msg: dateError,
+        isSuccess: false,
+      });
       return;
+    }
+    if (!hasMenusInWeek || !batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
     if (!isOrderAllowed) {
       notice({
         msg: `Chưa đủ thực đơn cho cả trường trong tuần này! Còn thiếu: ${menuCompleteness.missingGrades.join(", ")}. Không thể tạo yêu cầu nhập hàng Đợt 2.`,
@@ -1500,8 +1605,13 @@ export default function CreateDeliveryView({
                 setActualAttendance(""); // Reset sĩ số khi đổi ngày
               }}
               size="small"
+              error={Boolean(dateError)}
+              helperText={dateError}
               className={styles.dateInput}
-              slotProps={{ inputLabel: { shrink: true } }}
+              slotProps={{
+                inputLabel: { shrink: true },
+                htmlInput: { min: getTodayStr() },
+              }}
             />
             {targetMonday && targetFriday && (
               <Chip
@@ -1714,9 +1824,9 @@ export default function CreateDeliveryView({
             </Button>
             <Button
               variant="contained"
-              onClick={() => setOrderDate("2026-10-28")}
+              onClick={() => setOrderDate(getNextSchoolDay(orderDate))}
             >
-              Chọn ngày tiếp theo (28/10/2026)
+              Chọn ngày tiếp theo ({formatDateVN(getNextSchoolDay(orderDate))})
             </Button>
           </Box>
         </Paper>
@@ -2199,22 +2309,21 @@ export default function CreateDeliveryView({
               </Button>
               <Tooltip
                 title={
-                  !hasMenusInWeek
-                    ? "Tuần này chưa có thực đơn được duyệt"
-                    : !isOrderAllowed
-                      ? `Nút bị khóa: Chưa đủ thực đơn toàn trường (Còn thiếu: ${menuCompleteness.missingGrades.join(", ")})`
-                      : itemsState.length === 0
-                        ? "Không có nguyên liệu tươi sống nào để tạo đơn"
-                        : ""
+                  dateError
+                    ? dateError
+                    : !hasMenusInWeek
+                      ? "Tuần này chưa có thực đơn được duyệt"
+                      : !isOrderAllowed
+                        ? `Nút bị khóa: Chưa đủ thực đơn toàn trường (Còn thiếu: ${menuCompleteness.missingGrades.join(", ")})`
+                        : itemsState.length === 0
+                          ? "Không có nguyên liệu tươi sống nào để tạo đơn"
+                          : ""
                 }
               >
                 <span
                   style={{
                     cursor:
-                      !hasMenusInWeek ||
-                      !isOrderAllowed ||
-                      itemsState.length === 0 ||
-                      isTableLoading
+                      Boolean(dateError) || !hasMenusInWeek || !isOrderAllowed || itemsState.length === 0 || isTableLoading
                         ? "not-allowed"
                         : "default",
                     display: "inline-block",
@@ -2232,6 +2341,7 @@ export default function CreateDeliveryView({
                     }
                     disabled={
                       submitting ||
+                      Boolean(dateError) ||
                       !hasMenusInWeek ||
                       !isOrderAllowed ||
                       activeMenus.length === 0 ||
@@ -2962,8 +3072,8 @@ export default function CreateDeliveryView({
                                     <QuantityRecommendation
                                       value={
                                         ing.extraQtyInput &&
-                                        Number(ing.extraQtyInput) !== 0 &&
-                                        quantityError(ing.extraQtyInput)
+                                          Number(ing.extraQtyInput) !== 0 &&
+                                          quantityError(ing.extraQtyInput)
                                           ? ing.extraQtyInput
                                           : ing.batchQty
                                       }
@@ -3188,30 +3298,33 @@ export default function CreateDeliveryView({
                 Hủy bỏ
               </Button>
 
-              {/* NÚT CHỐT ĐƠN ĐỢT 2: CHỈ BẤM ĐƯỢC KHI ĐÃ CÓ SĨ SỐ GVCN */}
+              {/* NÚT CHỐT ĐƠN ĐỢT 2: CHỈ BẤM ĐƯỢC KHI ĐÃ CÓ SĨ SỐ GVCN & NGÀY HỢP LỆ */}
               <Tooltip
                 title={
-                  !isOrderAllowed
-                    ? `Nút bị khóa: Chưa đủ thực đơn toàn trường (Còn thiếu: ${menuCompleteness.missingGrades.join(", ")})`
-                    : !attendanceReady
-                      ? `Nút bị khóa: còn ${unfinalizedClasses.length || "các"} lớp chưa chốt điểm danh${unfinalizedClasses.length ? ` (${unfinalizedClasses.map((cls) => cls.className).join(", ")})` : ""}`
-                      : parsedAttendance <= 0
-                        ? "Nút bị khóa: Vui lòng nhập sĩ số GVCN báo để chốt đơn Đợt 2"
-                        : itemsState.length === 0
-                          ? "Không có nguyên liệu nào để tạo đơn"
-                          : ""
+                  dateError
+                    ? dateError
+                    : !isOrderAllowed
+                      ? `Nút bị khóa: Chưa đủ thực đơn toàn trường (Còn thiếu: ${menuCompleteness.missingGrades.join(", ")})`
+                      : !attendanceReady
+                        ? `Nút bị khóa: còn ${unfinalizedClasses.length || "các"} lớp chưa chốt điểm danh${unfinalizedClasses.length ? ` (${unfinalizedClasses.map((cls) => cls.className).join(", ")})` : ""}`
+                        : parsedAttendance <= 0
+                          ? "Nút bị khóa: Vui lòng nhập sĩ số GVCN báo để chốt đơn Đợt 2"
+                          : itemsState.length === 0
+                            ? "Không có nguyên liệu nào để tạo đơn"
+                            : ""
                 }
               >
                 <span
                   style={{
                     cursor:
-                      submitting ||
-                      parsedAttendance <= 0 ||
-                      !attendanceReady ||
-                      !hasMenusInWeek ||
-                      !isOrderAllowed ||
-                      itemsState.length === 0 ||
-                      isTableLoading
+                      Boolean(dateError) ||
+                        submitting ||
+                        parsedAttendance <= 0 ||
+                        !attendanceReady ||
+                        !hasMenusInWeek ||
+                        !isOrderAllowed ||
+                        itemsState.length === 0 ||
+                        isTableLoading
                         ? "not-allowed"
                         : "default",
                     display: "inline-block",
@@ -3230,6 +3343,7 @@ export default function CreateDeliveryView({
                     }
                     disabled={
                       submitting ||
+                      Boolean(dateError) ||
                       parsedAttendance <= 0 ||
                       !attendanceReady ||
                       !hasMenusInWeek ||

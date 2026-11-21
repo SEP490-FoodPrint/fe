@@ -85,6 +85,7 @@ export default function WarehouseManage() {
     search: "",
     status: "all",
     category: "all",
+    supplierId: "all",
   })
 
   // Filter state cho Tab 2 (Đơn hàng đồ lưu kho) - Mặc định lọc từ hôm nay trở đi
@@ -173,6 +174,24 @@ export default function WarehouseManage() {
     return Array.from(new Set(inventory.map(it => it.category).filter(Boolean)))
   }, [inventory])
 
+  // Danh sách nhà cung cấp tổng hợp từ hệ thống và tồn kho thực tế
+  const allInventorySuppliers = useMemo(() => {
+    const map = new Map()
+    // 1. Lấy từ danh sách nhà cung cấp hệ thống
+    suppliers.forEach(s => {
+      if (s?.id) {
+        map.set(s.id, { id: s.id, name: s.name || "Nhà cung cấp" })
+      }
+    })
+    // 2. Bổ sung từ các mặt hàng thực tế trong kho (nếu có NCC chưa trong list)
+    inventory.forEach(it => {
+      if (it.supplierId && !map.has(it.supplierId)) {
+        map.set(it.supplierId, { id: it.supplierId, name: it.supplierName || "Nhà cung cấp" })
+      }
+    })
+    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "vi"))
+  }, [suppliers, inventory])
+
   // Xác định active rail filter
   const activeRailFilter = useMemo(() => {
     if (filters.status === "CRITICAL_LOW") return "CRITICAL_LOW"
@@ -194,6 +213,14 @@ export default function WarehouseManage() {
       const matchCategory =
         filters.category === "all" || it.category === filters.category
 
+      // Lọc theo Nhà cung cấp
+      const matchSupplier =
+        !filters.supplierId ||
+        filters.supplierId === "all" ||
+        it.supplierId === filters.supplierId ||
+        (Array.isArray(it.availableSupplierIds) &&
+          it.availableSupplierIds.includes(filters.supplierId))
+
       const ratio = it.safetyStock > 0 ? it.currentStock / it.safetyStock : 1
 
       let matchStatus = true
@@ -205,7 +232,7 @@ export default function WarehouseManage() {
         matchStatus = ratio >= 0.5
       }
 
-      return matchSearch && matchCategory && matchStatus
+      return matchSearch && matchCategory && matchStatus && matchSupplier
     })
   }, [inventory, filters])
 
@@ -311,6 +338,7 @@ export default function WarehouseManage() {
   // Handlers Tab 1
   const handleFilterChange = (field, value) => {
     setFilters(prev => ({ ...prev, [field]: value }))
+    setPage(1)
   }
 
   const handleFilterStat = statId => {
@@ -318,6 +346,7 @@ export default function WarehouseManage() {
       ...prev,
       status: statId, // "all" | "CRITICAL_LOW" | "WARNING" | "SAFE"
     }))
+    setPage(1)
   }
 
   // Chuyển Tab
@@ -504,6 +533,7 @@ export default function WarehouseManage() {
               <WarehouseFilterStrip
                 filters={filters}
                 categories={categories}
+                suppliers={allInventorySuppliers}
                 onFilterChange={handleFilterChange}
                 onOpenCreate={() => handleOpenCreate(null)}
               />
