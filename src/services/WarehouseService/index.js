@@ -41,6 +41,16 @@ const getTodayStr = () =>
 
 const WarehouseService = {
   /**
+   * Cảnh báo đồ lưu kho cần nhập thêm cho các thực đơn đã duyệt
+   * API: GET /api/ingredient-lots/stock-alerts
+   */
+  async getStockAlerts({ signal } = {}) {
+    const response = await http.get("/ingredient-lots/stock-alerts", { signal, notifyOnError: false })
+    const data = response?.data || response
+    return { ...data, items: Array.isArray(data?.items) ? data.items : [] }
+  },
+
+  /**
    * Lấy danh sách các lô hàng lưu kho từ Database
    * API: GET /api/ingredient-lots
    */
@@ -215,7 +225,7 @@ const WarehouseService = {
             }
           }
 
-          // Fallback an toàn: chọn 1 entry đồ khô ACTIVE thật của trường
+          // Fallback an toàn: chọn 1 entry đồ lưu kho ACTIVE thật của trường
           if (!targetEntry) {
             targetEntry =
               schoolActiveEntries.find(
@@ -279,7 +289,7 @@ const WarehouseService = {
 
           const noteText = order.deliverySchedule
             ? `Lịch hẹn giao: ${order.deliverySchedule}. ${order.note || ""}`.trim()
-            : order.note || "Phiếu nhập đồ khô kho trường";
+            : order.note || "Phiếu nhập đồ lưu kho của trường";
 
           // Loại bỏ các entryId trùng nhau trong cùng 1 request (cộng dồn số lượng)
           const mergedItemsMap = new Map();

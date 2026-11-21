@@ -2828,7 +2828,7 @@ export default function CreateDeliveryView({
             </DialogActions>
           </Dialog>
 
-          {/* BẢNG NGUYÊN LIỆU TƯƠI SỐNG ĐỢT 2 (BÊ NGUYÊN TỪ ĐỢT 1, KHÔNG CÓ ĐỒ KHÔ) */}
+          {/* BẢNG NGUYÊN LIỆU TƯƠI SỐNG ĐỢT 2 (BÊ NGUYÊN TỪ ĐỢT 1, KHÔNG CÓ ĐỒ LƯU KHO) */}
           <Paper className={styles.tableCard} elevation={0}>
             <Box className={styles.tableCardHeader}>
               <Box className={styles.tableTitleGroup}>

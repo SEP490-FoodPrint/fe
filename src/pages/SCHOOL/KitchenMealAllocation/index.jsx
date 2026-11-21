@@ -18,6 +18,7 @@ import GradeContainer from "./component/GradeContainer";
 import DishGroup from "./component/DishGroup";
 import detailsStyles from "./component/AllocationDetails.module.scss";
 import "./style.scss";
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 
 function projectMaterialPreview(data, plan, editing) {
   const entriesBySlot = new Map();
@@ -644,7 +645,8 @@ export default function KitchenMealAllocation() {
             <Button
               className="kitchen-meal-allocation__action"
               variant="contained"
-              disabled={(!plan && !dirty) || saving || conflict || (data.materialDraftStale && !dirty)}
+              disabled={(!plan && !dirty) || saving || conflict || (data.materialDraftStale && !dirty) || isVietnamWeekend()}
+              title={isVietnamWeekend() ? WEEKEND_LOCK_MESSAGE : undefined}
               onClick={() => save()}
             >
               Áp dụng phân bổ

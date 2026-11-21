@@ -1,3 +1,4 @@
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 import { formatLargeQuantity, formatLargeQuantityText } from "src/utils/quantity"
 import { formatSmallQuantity, formatSmallQuantityText } from "src/utils/quantity"
 import { batchSampleProgress } from "src/services/KitchenService/adapter";
@@ -61,6 +62,7 @@ export default function CreateBatchDetailModal({
   onOpenSampleModal,
   submitting = false,
   onViewBatchDetail,
+  locked = isVietnamWeekend(),
 }) {
   const current = item || batch || dish;
   const isAfternoon = String(current?.mealType || "").toUpperCase() === "AFTERNOON";
@@ -323,12 +325,12 @@ export default function CreateBatchDetailModal({
           Đóng
         </button>
         {!isCreated && onConfirmCreate ? (
-          <button type="button" className={styles.primaryBtn} onClick={() => onConfirmCreate(current)} disabled={submitting}>
+          <button type="button" className={styles.primaryBtn} onClick={() => onConfirmCreate(current)} disabled={submitting || locked} title={locked ? WEEKEND_LOCK_MESSAGE : undefined}>
             <CookingPot size={16} />
             <span>{submitting ? "Đang xử lý..." : "Nấu"}</span>
           </button>
         ) : status === "CONFIRMED" && onCompleteCooking ? (
-          <button type="button" className={styles.primaryBtn} onClick={() => onCompleteCooking(current)} disabled={submitting}>
+          <button type="button" className={styles.primaryBtn} onClick={() => onCompleteCooking(current)} disabled={submitting || locked} title={locked ? WEEKEND_LOCK_MESSAGE : undefined}>
             <CheckCircle2 size={16} />
             <span>{submitting ? "Đang xử lý..." : "Nấu xong"}</span>
           </button>
@@ -340,6 +342,8 @@ export default function CreateBatchDetailModal({
               onClose?.();
               onOpenSampleModal(current);
             }}
+            disabled={locked}
+            title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
           >
             <FlaskConical size={16} />
             <span>Lưu mẫu</span>

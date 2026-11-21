@@ -87,7 +87,7 @@ export default function WarehouseFilterStrip({
             onClick={onOpenCreate}
             className={styles.createBtn}
           >
-            Yêu cầu nhập đồ khô
+            Yêu cầu nhập đồ lưu kho
           </Button>
         </Box>
       )}

@@ -3,7 +3,7 @@
  */
 
 /**
- * Kiểm tra xem một mặt hàng có phải là Đồ khô lưu kho (DRY_STOCK) hay không.
+ * Kiểm tra xem một mặt hàng có phải là Đồ lưu kho (DRY_STOCK) hay không.
  * Loại trừ tuyệt đối các mặt hàng tươi sống (thịt, cá, tôm, rau, củ, quả, trứng...).
  */
 export function isDryIngredient(item = {}, entries = []) {
@@ -41,7 +41,7 @@ export function isDryIngredient(item = {}, entries = []) {
     return false
   }
 
-  // 4. Các từ khóa đặc trưng xác định đồ khô / lương thực / gia vị lưu kho
+  // 4. Các từ khóa đặc trưng xác định đồ lưu kho / lương thực / gia vị lưu kho
   const dryKeywords = [
     "gạo", "lương thực", "gia vị", "muối", "đường", "dầu ăn", "dầu thực vật", "dầu",
     "nước mắm", "nước tương", "hạt nêm", "bột ngọt", "tiêu", "bột canh", "bột nêm", "mắm",
@@ -91,7 +91,7 @@ export const adaptIngredientLot = (raw = {}) => {
 }
 
 /**
- * Ngưỡng định mức an toàn tối thiểu phù hợp cho từng loại mặt hàng đồ khô
+ * Ngưỡng định mức an toàn tối thiểu phù hợp cho từng loại mặt hàng đồ lưu kho
  */
 const getDefaultSafetyStock = (unit = "kg", name = "") => {
   const u = String(unit).toLowerCase().trim()
@@ -115,7 +115,7 @@ export const buildWarehouseInventory = (
   suppliers = [],
   entries = []
 ) => {
-  // 1. Lọc chỉ lấy các lô hàng thuộc đồ khô
+  // 1. Lọc chỉ lấy các lô hàng thuộc đồ lưu kho
   const dryLots = lots.filter(lot =>
     isDryIngredient(
       { name: lot.ingredientName, category: lot.category, handlingType: lot.handlingType },
@@ -140,7 +140,7 @@ export const buildWarehouseInventory = (
     }
   })
 
-  // 2. Lọc danh mục nguyên liệu: CHỈ GIỮ LẠI ĐỒ KHÔ
+  // 2. Lọc danh mục nguyên liệu: CHỈ GIỮ LẠI ĐỒ LƯU KHO
   const dryCatalog = catalogIngredients.filter(ing => isDryIngredient(ing, entries))
 
   const processedIngredientIds = new Set()

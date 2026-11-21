@@ -24,6 +24,14 @@ test("grade menu filter lists individual grades and preserves shared menu mappin
   const unselectedHtml = renderToStaticMarkup(React.createElement(Filter, { menus: [], grades: allGrades, gradeValue: "", onChange: () => {} }))
   assert.match(unselectedHtml, /value="" selected/)
   assert.doesNotMatch(html, /Th\u1ef1c \u0111\u01a1n \/ kh\u1ed1i/)
+  const { sharedMenuScope } = await server.ssrLoadModule("/src/components/MenuScopeSelect.jsx")
+  const oneMenu = [{ id: "shared", gradeIds: ["g1", "g2"], gradeNames: ["Grade 1", "Grade 2"] }]
+  assert.deepEqual(sharedMenuScope(oneMenu, allGrades), { menuId: "shared", label: "To\u00e0n tr\u01b0\u1eddng" })
+  assert.equal(sharedMenuScope(menus, allGrades), null)
+  const sharedHtml = renderToStaticMarkup(React.createElement(Filter, { menus: oneMenu, grades: allGrades, value: "shared", onChange: () => {} }))
+  assert.match(sharedHtml, /To\u00e0n tr\u01b0\u1eddng/)
+  assert.match(sharedHtml, /disabled/)
+  assert.doesNotMatch(sharedHtml, /Grade 1/)
 })
 
 test("dish catalogue groups categories by newest entry without sorting names", async () => {
@@ -838,6 +846,87 @@ test("cooking board keeps meal and grade filters available for empty grades", as
   assert.match(html, /aria-label="Lọc theo khối lớp"/)
   assert.match(html, /value="g2" selected=""/)
   assert.match(html, /No menu for grade/)
+})
+
+test("weekend locks same-day kitchen actions on the cooking board", async () => {
+  const { isVietnamWeekend } = await server.ssrLoadModule("/src/utils/weekend.js")
+  assert.equal(isVietnamWeekend(Date.parse("2026-11-20T23:30:00+07:00")), false)
+  assert.equal(isVietnamWeekend(Date.parse("2026-11-21T00:30:00+07:00")), true)
+  assert.equal(isVietnamWeekend(Date.parse("2026-11-22T23:59:00+07:00")), true)
+  assert.equal(isVietnamWeekend(Date.parse("2026-11-23T00:01:00+07:00")), false)
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Board } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/CreateBatch/component/CreateBatchKanban.jsx")
+  const props = {
+    pendingDishes: [{ id: "d1", dishId: "d1", name: "Canh", mealType: "lunch", portionStandard: 10 }],
+    batches: [], onStartCooking: () => {}, onOpenPlanModal: () => {},
+  }
+  const locked = renderToStaticMarkup(React.createElement(Board, { ...props, locked: true }))
+  assert.match(locked, /cuối tuần/)
+  assert.match(locked, /disabled=""[^>]*aria-label="Nấu Canh"/)
+  const open = renderToStaticMarkup(React.createElement(Board, { ...props, locked: false }))
+  assert.doesNotMatch(open, /cuối tuần/)
+  assert.doesNotMatch(open, /disabled=""[^>]*aria-label="Nấu Canh"/)
+})
+
+test("stock alerts show needed dry stock; fresh screen only urgent; order button passes shortage", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { StockAlertList, formatAlertDate, roundUpQuantity } = await server.ssrLoadModule("/src/components/StockAlertPanel.jsx")
+  assert.equal(formatAlertDate("2026-11-24"), "Thứ Ba 24/11")
+  assert.equal(roundUpQuantity("56.01"), 56.1)
+  assert.equal(roundUpQuantity("56"), 56)
+  const items = [
+    { ingredientId: "rice", name: "Gạo tẻ", unit: "kg", required: "120", onHand: "64", pending: "0", shortage: "56", firstShortDate: "2026-11-24", level: "URGENT" },
+    { ingredientId: "oil", name: "Dầu ăn", unit: "lít", required: "10", onHand: "4", pending: "2", shortage: "4", firstShortDate: "2026-11-26", level: "UPCOMING" },
+  ]
+  const all = renderToStaticMarkup(React.createElement(StockAlertList, { items, onCreateOrder: () => {} }))
+  assert.match(all, /Gạo tẻ<\/span>: cần nhập thêm <strong>56 kg<\/strong> trước Thứ Ba 24\/11/)
+  assert.match(all, /Dầu ăn/)
+  assert.match(all, /Lập phiếu nhập/)
+  const urgentOnly = renderToStaticMarkup(React.createElement(StockAlertList, { items, levels: ["URGENT"] }))
+  assert.match(urgentOnly, /Gạo tẻ/)
+  assert.doesNotMatch(urgentOnly, /Dầu ăn|Lập phiếu nhập/)
+  assert.equal(renderToStaticMarkup(React.createElement(StockAlertList, { items: [items[1]], levels: ["URGENT"] })), "")
+})
+
+test("kitchen progress warns per grade by meal time: 90 min yellow, 30 min red, overdue red, samples always", async () => {
+  const { kitchenProgressAlerts } = await server.ssrLoadModule("/src/utils/kitchenProgress.js")
+  const meal = (mealType, status, counts, pendingDishes = []) => ({ mealType, status, dishCount: 3, notStarted: 0, cooking: 0, cookedNoSample: 0, done: 0, ...counts, pendingDishes })
+  const progress = {
+    menus: [
+      { menuId: "m1", isSchoolWide: false, grades: [{ id: "g1", name: "Khối 1–3" }], meals: [
+        meal("LUNCH", "DONE", { done: 3 }),
+        meal("AFTERNOON", "COOKED_NO_SAMPLE", { done: 2, cookedNoSample: 1 }, [{ name: "Sữa chua", status: "COOKED_NO_SAMPLE" }]),
+      ] },
+      { menuId: "m2", isSchoolWide: false, grades: [{ id: "g2", name: "Khối 4–5" }], meals: [
+        meal("LUNCH", "NOT_STARTED", { notStarted: 3 }, [{ name: "Cơm", status: "NOT_STARTED" }]),
+      ] },
+    ],
+  }
+  const mealTimes = { lunch: "11:00", afternoon: "14:30" }
+  const at = (clock) => Date.parse(`2026-11-23T${clock}:00+07:00`)
+  const levels = (clock) => kitchenProgressAlerts(progress, mealTimes, at(clock)).map((alert) => [alert.menuId, alert.mealType, alert.level])
+  // Sớm hơn 90 phút: chỉ nhắc lưu mẫu
+  assert.deepEqual(levels("09:00"), [["m1", "AFTERNOON", "sample"]])
+  assert.deepEqual(levels("09:45"), [["m2", "LUNCH", "warning"], ["m1", "AFTERNOON", "sample"]])
+  assert.deepEqual(levels("10:30"), [["m2", "LUNCH", "danger"], ["m1", "AFTERNOON", "sample"]])
+  const overdue = kitchenProgressAlerts(progress, mealTimes, at("11:05"))
+  assert.equal(overdue[0].level, "danger")
+  assert.match(overdue[0].text, /Quá giờ ăn bữa trưa \(11:00\): Khối 4–5 chưa bắt đầu nấu \(Cơm\)/)
+  assert.match(overdue[1].text, /Khối 1–3 · bữa xế: 1 món đã nấu xong nhưng chưa lưu đủ mẫu 24h \(Sữa chua\)/)
+  // Chưa cấu hình giờ ăn: không cảnh báo theo giờ
+  assert.deepEqual(kitchenProgressAlerts(progress, {}, at("11:05")).map((alert) => alert.level), ["sample"])
+
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Strip } = await server.ssrLoadModule("/src/pages/SCHOOL/KitchenCooking/CreateBatch/component/KitchenProgressStrip.jsx")
+  const html = renderToStaticMarkup(React.createElement(Strip, { progress, mealTimes, selectedMeal: "lunch", activeMenuId: "m2", now: at("10:30") }))
+  assert.match(html, /Bữa trưa · 11:00/)
+  assert.match(html, /Khối 4–5<\/span><span[^>]*>Chưa nấu/)
+  assert.match(html, /aria-pressed="true"[^>]*><span[^>]*>Khối 4–5/)
+  assert.match(html, /role="alert"/)
+  assert.equal(renderToStaticMarkup(React.createElement(Strip, { progress: { menus: [] }, mealTimes })), "")
 })
 
 test("inspection and sample photos are sent with their own record while photo-free requests stay JSON", async () => {

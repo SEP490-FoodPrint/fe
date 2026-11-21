@@ -45,6 +45,11 @@ export default function CreateStorageModal({ isOpen, onClose, onSuccess }) {
       setError("Sức chứa tối đa của tủ phải từ 1 mẫu trở lên.");
       return;
     }
+    // Mỗi mẫu lưu một ngăn: số ngăn không vượt sức chứa
+    if (Number(formData.compartmentCount) > Number(formData.capacity)) {
+      setError("Số ngăn tủ phải nhỏ hơn hoặc bằng sức chứa tối đa (mỗi mẫu một ngăn).");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -182,7 +187,7 @@ export default function CreateStorageModal({ isOpen, onClose, onSuccess }) {
                 <input
                   type="number"
                   min="1"
-                  max="20"
+                  max={Math.max(1, Number(formData.capacity) || 500)}
                   name="compartmentCount"
                   className={styles.input}
                   placeholder="Ví dụ: 3"

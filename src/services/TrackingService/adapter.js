@@ -83,7 +83,7 @@ export function formatDeliverySchedule(delivery, orderType) {
     }
   }
 
-  // Giờ hẹn mặc định theo loại đơn khi không có dữ liệu: đồ khô 14:30, đợt 2 07:45, đợt 1 05:30.
+  // Giờ hẹn mặc định theo loại đơn khi không có dữ liệu: đồ lưu kho 14:30, đợt 2 07:45, đợt 1 05:30.
   if (!targetTime) {
     const type = orderType?.type || delivery.orderType || delivery.batchType
     targetTime = type === "DRY_STOCK" ? "14:30" : type === "FRESH_BATCH_2" ? "07:45" : "05:30"
@@ -158,13 +158,13 @@ export function formatTimeShort(dateInput) {
 }
 
 /**
- * Xác định loại đơn hàng (Đồ tươi đợt 1 / đợt 2 / Đồ khô)
+ * Xác định loại đơn hàng (Đồ tươi đợt 1 / đợt 2 / Đồ lưu kho)
  */
 export function determineOrderType(delivery) {
   // Nguồn sự thật: orderType + batchNo từ API; không đoán theo mã/ghi chú/giờ.
   switch (batchTypeOf(delivery)) {
     case BATCH_TYPE.DRY_STOCK:
-      return { type: "DRY_STOCK", label: "Đồ khô & Gia vị" }
+      return { type: "DRY_STOCK", label: "Đồ lưu kho & Gia vị" }
     case BATCH_TYPE.BATCH_2:
       return { type: "FRESH_BATCH_2", label: "Đồ tươi (Đợt 2 - Bù sĩ số)" }
     case BATCH_TYPE.BATCH_1:

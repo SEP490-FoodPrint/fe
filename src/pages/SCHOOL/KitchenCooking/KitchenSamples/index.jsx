@@ -20,6 +20,7 @@ import UpdateSampleModal from "./component/UpdateSampleModal";
 import DisposeSampleModal from "./component/DisposeSampleModal";
 import BatchDisposeConfirmModal from "./component/BatchDisposeConfirmModal";
 import styles from "./index.module.scss";
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 
 export default function KitchenSamples() {
   const navigate = useNavigate();
@@ -789,6 +790,8 @@ export default function KitchenSamples() {
                 type="button"
                 className={styles.primaryActionBtn}
                 onClick={() => setIsCreateOpen(true)}
+                disabled={isVietnamWeekend()}
+                title={isVietnamWeekend() ? WEEKEND_LOCK_MESSAGE : undefined}
               >
                 <Plus size={15} />
                 <span>Ghi nhận mẫu lưu</span>

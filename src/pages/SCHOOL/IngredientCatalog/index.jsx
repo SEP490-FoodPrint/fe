@@ -9,6 +9,7 @@ import CatalogFilterStrip from "./component/CatalogFilterStrip"
 import CatalogTable from "./component/CatalogTable"
 import CatalogPagination from "./component/CatalogPagination"
 
+import StockAlertPanel from "src/components/StockAlertPanel"
 import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
@@ -100,6 +101,9 @@ export default function IngredientCatalog() {
     <Box className={styles.pageContainer}>
       {/* 1. Header */}
       <CatalogHeader />
+
+      {/* Cảnh báo đồ lưu kho cần nhập thêm */}
+      <StockAlertPanel />
 
       {/* 2. Thẻ thống kê 4 nhóm */}
       <CatalogStatsRail

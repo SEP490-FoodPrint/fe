@@ -12,6 +12,7 @@ import {
 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./BatchDetailHeader.module.scss"
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend"
 
 export default function BatchDetailHeader({
   batchData,
@@ -24,6 +25,7 @@ export default function BatchDetailHeader({
   allSamplesDone = false,
   sampledCount = 0,
   totalDishes = 1,
+  locked = isVietnamWeekend(),
 }) {
   const navigate = useNavigate()
 
@@ -105,7 +107,8 @@ export default function BatchDetailHeader({
                   type="button"
                   className={styles.primaryBtn}
                   onClick={onOpenConfirmModal}
-                  disabled={actionLoading}
+                  disabled={actionLoading || locked}
+                  title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
                 >
                   <CheckCircle2 size={16} />
                   <span>Xác nhận nấu</span>
@@ -118,7 +121,8 @@ export default function BatchDetailHeader({
                 type="button"
                 className={styles.primaryBtn}
                 onClick={onCompleteBatch}
-                disabled={actionLoading}
+                disabled={actionLoading || locked}
+                title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
               >
                 <CookingPot size={16} />
                 <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
@@ -130,7 +134,8 @@ export default function BatchDetailHeader({
                 type="button"
                 className={styles.sampleActionBtn}
                 onClick={onOpenSampleModal}
-                disabled={actionLoading}
+                disabled={actionLoading || locked}
+                title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
               >
                 <FlaskConical size={16} />
                 <span>

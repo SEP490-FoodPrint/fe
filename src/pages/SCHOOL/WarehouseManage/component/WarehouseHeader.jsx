@@ -12,7 +12,7 @@ export default function WarehouseHeader() {
         </Box>
         <Box>
           <Typography variant="h5" className={styles.pageTitle}>
-            Quản Lý Kho Đồ Khô
+            Quản Lý Đồ Lưu Kho
           </Typography>
         </Box>
       </Box>

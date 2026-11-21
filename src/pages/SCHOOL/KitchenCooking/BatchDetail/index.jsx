@@ -23,8 +23,10 @@ import ConfirmBatchModal from "./component/ConfirmBatchModal";
 import DeleteBatchModal from "./component/DeleteBatchModal";
 import RetainedSampleModal from "./component/RetainedSampleModal";
 import styles from "./index.module.scss";
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 
 export default function KitchenBatchDetail() {
+  const weekendLocked = isVietnamWeekend();
   const { id } = useParams();
   const navigate = useNavigate();
   const { userStore } = useContext(StoreContext) || {};
@@ -296,7 +298,8 @@ export default function KitchenBatchDetail() {
                 type="button"
                 className={styles.mobilePrimaryBtn}
                 onClick={() => setIsConfirmOpen(true)}
-                disabled={actionLoading}
+                disabled={actionLoading || weekendLocked}
+                title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
               >
                 <CheckCircle2 size={18} />
                 <span>Xác nhận nấu</span>
@@ -319,7 +322,8 @@ export default function KitchenBatchDetail() {
               type="button"
               className={styles.mobilePrimaryBtn}
               onClick={handleCompleteBatch}
-              disabled={actionLoading}
+              disabled={actionLoading || weekendLocked}
+              title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
             >
               <CookingPot size={18} />
               <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
@@ -338,7 +342,8 @@ export default function KitchenBatchDetail() {
                   type="button"
                   className={styles.mobilePrimaryBtn}
                   onClick={() => setIsSampleOpen(true)}
-                  disabled={actionLoading}
+                  disabled={actionLoading || weekendLocked}
+                  title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
                 >
                   <FlaskConical size={18} />
                   <span>

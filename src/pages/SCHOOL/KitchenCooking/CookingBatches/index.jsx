@@ -22,6 +22,7 @@ import CookingBatchesKPI from "./component/CookingBatchesKPI";
 import CookingBatchesFilter from "./component/CookingBatchesFilter";
 import CookingBatchesTable from "./component/CookingBatchesTable";
 import styles from "./index.module.scss";
+import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 
 export default function CookingBatches() {
   const navigate = useNavigate();
@@ -390,8 +391,8 @@ export default function CookingBatches() {
             variant="contained"
             className={styles.createBtn}
             onClick={navigateCreate}
-            disabled={!canCreate}
-            title={createButton.title}
+            disabled={!canCreate || isVietnamWeekend()}
+            title={isVietnamWeekend() ? WEEKEND_LOCK_MESSAGE : createButton.title}
             startIcon={<CreateIcon size={18} />}
           >
             {createButton.label}
@@ -472,7 +473,7 @@ export default function CookingBatches() {
           variant="contained"
           className={styles.mobileCreateBtn}
           onClick={navigateCreate}
-          disabled={!canCreate}
+          disabled={!canCreate || isVietnamWeekend()}
           startIcon={<CreateIcon size={19} />}
         >
           {createButton.label}
