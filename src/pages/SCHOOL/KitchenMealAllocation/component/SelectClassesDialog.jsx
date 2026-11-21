@@ -1,11 +1,57 @@
 import React, { useState } from "react"
 import { formatAllocationDecimal as fmt, sumAllocationPortions } from "src/utils/allocationDecimal"
-import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, LinearProgress } from "@mui/material"
+import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, LinearProgress, TextField } from "@mui/material"
 import { ArrowDown, ArrowUp, Check, LockKeyhole, X } from "lucide-react"
 import { formatRemainingPortions, previewBatchAllocation } from "src/utils/mealAllocation"
 import styles from "./SelectClassesDialog.module.scss"
 
-export default function SelectClassesDialog({ batch, classes, dishName, onClose, onApply }) {
+function QuantityDialog({ batch, classes, dishName, onClose, onApply }) {
+  const [values, setValues] = useState(() => Object.fromEntries(
+    batch.entries.map((entry) => [entry.id, String(entry.portions ?? entry.allocatedPortions)]),
+  ));
+  const valid = classes.every((item) => {
+    const value = values[item.id] ?? "";
+    return !value || (/^\d+(?:[.,]\d{1,2})?$/.test(value) && Number(value.replace(",", ".")) <= item.remaining);
+  });
+  const change = (item, value) => setValues((current) => ({ ...current, [item.id]: value }));
+  return (
+    <Dialog open fullWidth maxWidth="sm" onClose={onClose} aria-labelledby="edit-batch-quantities">
+      <DialogTitle id="edit-batch-quantities">{batch.name} · {dishName}</DialogTitle>
+      <DialogContent dividers>
+        <div className={styles.queue}>
+          {classes.map((item) => (
+            <div className={styles.orderCard} key={item.id}>
+              <strong>{item.name}</strong>
+              <TextField label={`Số suất lớp ${item.name}`} size="small"
+                value={values[item.id] ?? ""}
+                helperText={`Tối đa ${fmt(item.remaining)} suất`}
+                slotProps={{ htmlInput: { inputMode: "decimal" } }}
+                onChange={(event) => change(item, event.target.value)}
+              />
+              {values[item.id] && <IconButton aria-label={`Bỏ lớp ${item.name}`} onClick={() => change(item, "")}><X size={16} /></IconButton>}
+            </div>
+          ))}
+        </div>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Hủy</Button>
+        <Button variant="contained" disabled={!valid} onClick={() => onApply([], classes.flatMap((item) => {
+          const value = values[item.id];
+          if (!value) return [];
+          const portions = Number(value.replace(",", "."));
+          if (portions === 0 && !batch.entries.some((entry) => entry.id === item.id && Number(entry.portions) === 0)) return [];
+          return [{ id: item.id, name: item.name, portions }];
+        }))}>Xong</Button>
+      </DialogActions>
+    </Dialog>
+  );
+}
+
+export default function SelectClassesDialog(props) {
+  return props.editQuantities ? <QuantityDialog {...props} /> : <ClassOrderDialog {...props} />;
+}
+
+function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
   const [orderedIds, setOrderedIds] = useState(() => batch.entries.map(entry => entry.id))
   const preview = previewBatchAllocation(batch.total, classes, orderedIds)
   const used = sumAllocationPortions(preview.entries.map(entry => entry.portions))

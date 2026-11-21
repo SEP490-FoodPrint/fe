@@ -1,4 +1,4 @@
-import MaterialAllocationPlan from "./component/MaterialAllocationPlan";
+import { sumAllocationPortions } from "src/utils/allocationDecimal";
 import { gradeBatchProjection, mergeGradeBatchEntries, classRemainingAcrossOtherBatches } from "src/utils/gradeAllocation";
 import React, { useEffect, useState, useRef } from "react";
 import { Alert, Button, LinearProgress, Tab, Tabs, TextField, MenuItem } from "@mui/material";
@@ -18,6 +18,72 @@ import GradeContainer from "./component/GradeContainer";
 import DishGroup from "./component/DishGroup";
 import detailsStyles from "./component/AllocationDetails.module.scss";
 import "./style.scss";
+
+function projectMaterialPreview(data, plan, editing) {
+  const entriesBySlot = new Map();
+  for (const entry of plan.entries) {
+    const key = `${entry.gradeId}:${entry.dishId}:${entry.batchId}`;
+    if (!entriesBySlot.has(key)) entriesBySlot.set(key, []);
+    entriesBySlot.get(key).push({
+      ...entry,
+      dailyMealPortionId: entry.demandId,
+      locked: !editing,
+    });
+  }
+  const summaries = new Map(plan.groups.map((group) => [
+    `${group.gradeId}:${group.dishId}`, group,
+  ]));
+
+  return {
+    ...data,
+    grades: (data.grades || []).map((grade) => ({
+      ...grade,
+      dishes: grade.dishes.map((dish) => {
+        const key = `${grade.gradeId}:${dish.dishId}`;
+        const summary = summaries.get(key);
+        const availability = new Map(summary?.availability.map((slot) => [slot.batchId, slot]));
+        return {
+          ...dish,
+          materialPreview: Boolean(summary),
+          totalRequiredPortions: summary?.requiredPortions ?? dish.totalRequiredPortions,
+          batches: dish.batches.flatMap((batch) => {
+            const entries = entriesBySlot.get(`${key}:${batch.cookingBatchId}`) ?? [];
+            const plannedPortions = sumAllocationPortions(entries.map((entry) => entry.allocatedPortions));
+            if (!editing && plannedPortions === "0.00") return [];
+            return [{
+              ...batch,
+              materialPreview: true,
+              allocationVersion: 2,
+              entries,
+              plannedPortions: editing ? batch.plannedPortions : plannedPortions,
+              editMaterial: editing,
+              materialAvailablePortions: availability.get(batch.cookingBatchId)?.availablePortions,
+            }];
+          }),
+        };
+      }),
+    })),
+  };
+}
+
+function allocationRows(data, draft = {}) {
+  const rows = new Map();
+  for (const grade of data?.grades ?? []) {
+    for (const dish of grade.dishes) {
+      for (const batch of dish.batches) {
+        const slot = `${batch.cookingBatchId}_${dish.dishId}`;
+        for (const entry of draft[slot] ?? batch.entries ?? []) {
+          const demandId = entry.dailyMealPortionId ?? entry.id;
+          rows.set(slot + ":" + demandId, {
+            demandId, dishId: dish.dishId, batchId: batch.cookingBatchId,
+            allocatedPortions: sumAllocationPortions([entry.allocatedPortions ?? entry.portions]),
+          });
+        }
+      }
+    }
+  }
+  return [...rows.keys()].sort().map((key) => rows.get(key));
+}
 
 function getView(data, draft = {}) {
   if (!data) return { batches: [], demands: [], grades: [] };
@@ -41,16 +107,18 @@ function getView(data, draft = {}) {
               id: demId,
               dailyMealPortionId: demId,
               name: entry.className || demand?.className || demand?.name || `Lớp ${idx + 1}`,
-              total: demand?.totalPortions || demand?.total || portions,
+              total: dish.classRequirements?.find((row) => row.demandId === demId)?.requiredPortions ?? demand?.totalPortions ?? demand?.total ?? portions,
               portions,
               locked: entry.locked || false,
+              materials: entry.materials,
+              massKg: entry.massKg,
             };
           });
 
           const total = batchSlot.plannedPortions || 0;
           const allocated = Number(scope.allocatedForGrade);
           const remaining = Number(scope.remainingForGrade);
-          const isAuto = batchSlot.allocationVersion === 2 || Boolean(dish.autoAssigned && dish.batches?.length === 1);
+          const isAuto = !batchSlot.editMaterial && (batchSlot.allocationVersion === 2 || Boolean(dish.autoAssigned && dish.batches?.length === 1));
 
           return {
             ...batchSlot,
@@ -154,7 +222,7 @@ export default function KitchenMealAllocation() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [materialBusy, setMaterialBusy] = useState(false);
+  const [editingMaterial, setEditingMaterial] = useState(false);
   const [conflict, setConflict] = useState(false);
 
   const dirtyDraft = Object.keys(draft).length > 0;
@@ -167,12 +235,12 @@ export default function KitchenMealAllocation() {
   }, []);
   useEffect(() => {
     const apply = () => {
-      if (!manualMeal.current && !dirtyDraft && !saving && !materialBusy) setMeal(mealByTime(mealTimes).toUpperCase());
+      if (!manualMeal.current && !dirtyDraft && !saving) setMeal(mealByTime(mealTimes).toUpperCase());
     };
     apply();
     const timer = setInterval(apply, 60000);
     return () => clearInterval(timer);
-  }, [mealTimes, dirtyDraft, saving, materialBusy]);
+  }, [mealTimes, dirtyDraft, saving]);
   function selectMeal(value) {
     if (value === meal) return;
     const change = () => { manualMeal.current = true; setDraft({}); setMeal(value); };
@@ -189,6 +257,7 @@ export default function KitchenMealAllocation() {
         if (controller.signal.aborted) return;
         setData(snapshot);
         setDraft({});
+        setEditingMaterial(false);
         setSelectedDialogContext(null);
         setConflict(false);
       } catch (error) {
@@ -201,12 +270,31 @@ export default function KitchenMealAllocation() {
     return () => controller.abort();
   }, [loadVersion, meal, activeTab]);
 
-  const view = getView(data, draft);
-  const hasMaterialAllocation = view.grades.some(grade =>
-    grade.dishes.some(dish => dish.batches.some(batch => batch.allocationVersion === 2)),
-  );
+  const plan = data?.mealType === meal ? data.materialPlan : undefined;
+  const materialMode = data?.materialEditing === true;
+  const editorData = materialMode && data.editorGrades
+    ? { ...data, grades: data.editorGrades.map((grade) => ({
+        ...grade, demands: grade.demands.map((demand) => ({ ...demand, locked: false })),
+        dishes: grade.dishes.map((dish) => ({ ...dish, autoAssigned: false, batches: dish.batches.map((batch) => ({
+          ...batch, editMaterial: true, entries: batch.entries.map((entry) => ({ ...entry, locked: false })),
+        })) })),
+      })) }
+    : data;
+  const baseView = plan ? projectMaterialPreview(editorData, plan, true) : editorData;
+  const displayData = editingMaterial ? baseView : plan ? projectMaterialPreview(data, plan, false) : data;
+  const view = getView(displayData, draft);
+  const canEditBatches = materialMode ? editingMaterial
+    : !plan && !data?.supportsMaterialAllocation && data?.materialEditing !== false;
   const ready = data?.status === "READY" && data?.mealType === meal && !loading && !loadError;
-  const dirty = Object.keys(draft).length > 0;
+  const rows = materialMode ? allocationRows(baseView, draft) : [];
+  const dirty = materialMode
+    ? JSON.stringify(rows) !== JSON.stringify(allocationRows(baseView))
+    : Object.keys(draft).length > 0;
+  useEffect(() => {
+    if (!data?.materialPlanPending || activeTab !== "allocation" || data.mealType !== meal || loading) return;
+    const timeout = setTimeout(() => setLoadVersion((version) => version + 1), 2500);
+    return () => clearTimeout(timeout);
+  }, [data, activeTab, meal, loading]);
 
   function updateDraft(key, entries) {
     setDraft((current) => ({ ...current, [key]: entries }));
@@ -223,13 +311,14 @@ export default function KitchenMealAllocation() {
     // Chỉ lấy các lớp thuộc khối hiện tại
     const classDemands = (grade.demands || []).filter((d) => !d.locked);
     const availableClasses = classDemands.map((d) => {
+      const total = dish.classRequirements?.find((row) => row.demandId === d.id)?.requiredPortions ?? d.totalPortions ?? d.total;
       return {
         id: d.id,
         name: d.className || d.name,
-        total: d.totalPortions || d.total,
-        remaining: Number(classRemainingAcrossOtherBatches(dish, batchSlot.cookingBatchId, d.id, d.totalPortions || d.total)),
+        total,
+        remaining: Number(classRemainingAcrossOtherBatches(dish, batchSlot.cookingBatchId, d.id, total)),
       };
-    });
+    }).filter((d) => d.total > 0);
 
     setSelectedDialogContext({
       grade,
@@ -239,12 +328,12 @@ export default function KitchenMealAllocation() {
     });
   }
 
-  function applySelection(orderedIds) {
+  function applySelection(orderedIds, materialEntries) {
     if (!selectedDialogContext) return;
     const { grade, dish, batchSlot, availableClasses } = selectedDialogContext;
     const key = batchSlot.key || `${batchSlot.cookingBatchId}_${dish.dishId}`;
 
-    const { entries } = previewBatchAllocation(
+    const { entries } = materialEntries ? { entries: materialEntries } : previewBatchAllocation(
       Number(batchSlot.editableCapacityForGrade),
       availableClasses,
       orderedIds,
@@ -261,7 +350,7 @@ export default function KitchenMealAllocation() {
       })),
     ];
 
-    setDraft(current => ({ ...current, [key]: mergeGradeBatchEntries(data, current, key, grade.gradeId, newEntries) }));
+    setDraft(current => ({ ...current, [key]: mergeGradeBatchEntries(baseView, current, key, grade.gradeId, newEntries) }));
     setSelectedDialogContext(null);
   }
 
@@ -269,14 +358,25 @@ export default function KitchenMealAllocation() {
     const updated = currentEntries.filter(
       (e) => e.locked || (e.dailyMealPortionId || e.id) !== demId,
     );
-    if (gradeId) setDraft(current => ({ ...current, [key]: mergeGradeBatchEntries(data, current, key, gradeId, updated) }));
+    if (gradeId) setDraft(current => ({ ...current, [key]: mergeGradeBatchEntries(baseView, current, key, gradeId, updated) }));
     else updateDraft(key, updated);
   }
 
-  async function save() {
-    if (!ready || !dirty || saving || conflict) return;
+  async function save(keepDraft = false) {
+    if (!ready || saving || conflict || (data.materialDraftStale && !dirty) ||
+      (keepDraft && !dirty) || (!materialMode && (!canEditBatches || !dirty))) return;
     setSaving(true);
     try {
+      if (materialMode) {
+        const payload = { mealType: meal, revision: data.draftRevision, ...(dirty && { rows }) };
+        if (keepDraft) await MealAllocationService.saveDraft(payload);
+        else await MealAllocationService.apply(payload);
+        setLoading(true);
+        setLoadVersion((version) => version + 1);
+        notice({ msg: keepDraft ? "Đã lưu bản nháp." : "Đã áp dụng phân bổ suất ăn.", isSuccess: true });
+        return;
+      }
+
       let payloadBatches = [];
 
       if (view.isGradesMode) {
@@ -316,7 +416,19 @@ export default function KitchenMealAllocation() {
       setDraft({});
       notice({ msg: "Đã áp dụng phân bổ suất ăn.", isSuccess: true });
     } catch (error) {
-      if (error.response?.status === 409) setConflict(true);
+      if (error.response?.data?.errors?.code === "ALLOCATION_STALE") setConflict(true);
+      notice({ msg: error.response?.data?.message ?? error.message, isSuccess: false });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function retryProposal() {
+    setSaving(true);
+    try {
+      await MealAllocationService.retryDraft(meal);
+      setLoadVersion((version) => version + 1);
+    } catch (error) {
       notice({ msg: error.message, isSuccess: false });
     } finally {
       setSaving(false);
@@ -325,6 +437,7 @@ export default function KitchenMealAllocation() {
 
   async function confirmDistribution() {
     if (saving || dirty || !data?.distribution?.canConfirmDistribution) return;
+    if (data.hasUnappliedDrafts && !window.confirm("Xác nhận giao theo bản phân bổ đã áp dụng? Các bản nháp chưa áp dụng sẽ không được dùng.")) return;
     setSaving(true);
     try {
       setData(await MealAllocationService.confirmDistribution(data.revision));
@@ -345,7 +458,7 @@ export default function KitchenMealAllocation() {
             <Archive size={17} aria-hidden="true" />
           </span>
           <h1 id="meal-allocation-heading">
-            Phân bổ suất ăn{data?.date ? ` ngày ${data.date.split("-").reverse().join("/")}` : ""}
+            Phân bổ suất ăn{data?.date && <> <time dateTime={data.date}>Ngày {data.date.split("-").reverse().join("/")}</time></>}
           </h1>
         </div>
         {activeTab === "details" && data?.distribution && (
@@ -369,7 +482,7 @@ export default function KitchenMealAllocation() {
 
       {confirmElement}
       {activeTab === "allocation" && (
-        <TextField select label="Bữa ăn" value={meal} onChange={event => selectMeal(event.target.value)} disabled={saving || materialBusy}>
+        <TextField className="kitchen-meal-allocation__meal" select label="Bữa ăn" value={meal} onChange={event => selectMeal(event.target.value)} disabled={saving}>
           <MenuItem value="LUNCH">Bữa trưa</MenuItem>
           <MenuItem value="AFTERNOON">Bữa xế</MenuItem>
         </TextField>
@@ -381,11 +494,12 @@ export default function KitchenMealAllocation() {
         variant="scrollable"
         allowScrollButtonsMobile
         onChange={(_, value) => {
-          if (materialBusy || saving) return;
+          if (saving) return;
           const next = new URLSearchParams(params);
           if (value === "details") next.set("tab", value);
           else next.delete("tab");
-          setParams(next);
+          if (dirty) confirm({ title: "Đổi tab?", message: "Bỏ các thay đổi phân bổ chưa lưu?", confirmText: "Đổi tab", onConfirm: () => setParams(next) });
+          else setParams(next);
         }}
       >
         <Tab id="meal-allocation-tab" aria-controls="meal-allocation-panel" value="allocation" label="Phân bổ suất ăn" />
@@ -418,7 +532,14 @@ export default function KitchenMealAllocation() {
         aria-labelledby="meal-allocation-tab"
         hidden={activeTab !== "allocation"}
       >
-        {activeTab === "allocation" && !loading && !loadError && <MaterialAllocationPlan key={meal} mealType={meal} plan={data?.materialPlan} error={data?.materialPlanError} onBusy={setMaterialBusy} onApplied={() => setLoadVersion(version => version + 1)} />}
+        {ready && data.materialPlanError && (
+          <Alert severity="warning" action={<Button disabled={saving} onClick={retryProposal}>Thử lại</Button>}>
+            {data.materialPlanError}
+          </Alert>
+        )}
+        {ready && plan && plan.origin !== "MANUAL" && !plan.optimal && (
+          <Alert severity="info">Phương án đủ suất. Chưa xác nhận được đây là phương án tối ưu.</Alert>
+        )}
         {conflict && (
           <Alert
             severity="warning"
@@ -442,7 +563,9 @@ export default function KitchenMealAllocation() {
           <AllocationGate data={data} onRetry={() => setLoadVersion((v) => v + 1)} />
         )}
 
-        {(!data?.supportsMaterialAllocation || hasMaterialAllocation) && <div
+        {ready && data.materialPlanPending && <Alert severity="info">Đang chuẩn bị phương án</Alert>}
+        {ready && data.materialDraftStale && <Alert severity="warning">Dữ liệu bữa đã thay đổi. Kiểm tra lại bản nháp trước khi áp dụng.</Alert>}
+        {!data?.materialPlanError && !data?.materialPlanPending && <div
           className={`kitchen-meal-allocation__batches ${!ready ? "kitchen-meal-allocation__locked" : ""}`}
           inert={!ready || saving}
         >
@@ -458,10 +581,11 @@ export default function KitchenMealAllocation() {
                         <BatchAllocationPanel
                           key={key}
                           batch={batchSlot}
+                          readOnly={!canEditBatches}
                           expanded={openBatchKeys.includes(batchSlot.scopeKey)}
                           canAddClasses={
-                            !batchSlot.autoAssigned &&
-                            ((batchSlot.entries || []).some((e) => !e.locked) || batchSlot.remaining > 0)
+                            canEditBatches && !batchSlot.autoAssigned &&
+                            (materialMode || (batchSlot.entries || []).some((e) => !e.locked) || batchSlot.remaining > 0)
                           }
                           onToggle={() => toggleBatchKey(batchSlot.scopeKey)}
                           onAddClasses={() => openSelectClasses(grade, dish, batchSlot)}
@@ -479,9 +603,10 @@ export default function KitchenMealAllocation() {
               <BatchAllocationPanel
                 key={batch.id}
                 batch={batch}
+                readOnly={!canEditBatches}
                 expanded={openBatchKeys.includes(batch.id)}
                 canAddClasses={
-                  (batch.entries || []).some((entry) => !entry.locked) ||
+                  canEditBatches && ((batch.entries || []).some((entry) => !entry.locked) ||
                   (batch.remaining > 0 &&
                     view.demands.some(
                       (demand) =>
@@ -489,7 +614,7 @@ export default function KitchenMealAllocation() {
                         demand.mealType === batch.mealType &&
                         (!batch.eligibleDemandIds || batch.eligibleDemandIds.includes(demand.id)) &&
                         demand.remaining > 0,
-                    ))
+                    )))
                 }
                 onToggle={() => toggleBatchKey(batch.id)}
                 onAddClasses={() => updateDraft(batch.id, batch.entries)}
@@ -504,13 +629,23 @@ export default function KitchenMealAllocation() {
           )}
         </div>}
 
-        {ready && !data?.supportsMaterialAllocation && (
+        {ready && (materialMode || canEditBatches) && (
           <div className={`${detailsStyles.footer} ${detailsStyles.applyFooter}`}>
+            {materialMode && !editingMaterial && (
+              <Button variant="outlined" disabled={saving} onClick={() => setEditingMaterial(true)}>
+                Chỉnh sửa phân bổ
+              </Button>
+            )}
+            {materialMode && editingMaterial && (
+              <Button variant="outlined" disabled={!dirty || saving || conflict} onClick={() => save(true)}>
+                Lưu bản nháp
+              </Button>
+            )}
             <Button
               className="kitchen-meal-allocation__action"
               variant="contained"
-              disabled={!dirty || saving || conflict}
-              onClick={save}
+              disabled={(!plan && !dirty) || saving || conflict || (data.materialDraftStale && !dirty)}
+              onClick={() => save()}
             >
               Áp dụng phân bổ
             </Button>
@@ -518,13 +653,14 @@ export default function KitchenMealAllocation() {
         )}
 
         {/* Modal chọn lớp cho lô của món ăn */}
-        {ready && selectedDialogContext && (
+        {ready && canEditBatches && selectedDialogContext && (
           <SelectClassesDialog
             batch={{
               ...selectedDialogContext.batchSlot,
               total: selectedDialogContext.batchSlot.plannedPortions,
               entries: selectedDialogContext.batchSlot.entries.filter((e) => !e.locked),
             }}
+            editQuantities={materialMode}
             classes={selectedDialogContext.availableClasses}
             dishName={selectedDialogContext.dish.dishName}
             onClose={() => setSelectedDialogContext(null)}
