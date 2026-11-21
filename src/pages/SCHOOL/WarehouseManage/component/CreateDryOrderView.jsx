@@ -85,6 +85,8 @@ export default function CreateDryOrderView({
   const [orderQtys, setOrderQtys] = useState({})
   const [itemSuppliers, setItemSuppliers] = useState({})
   const [submitting, setSubmitting] = useState(false)
+  // Danh mục đơn vị đo để gợi ý bước nhập số lượng
+  const unitCatalog = useMeasurementUnits()
 
   // Kiểm tra lỗi ngày giao
   const dateError = useMemo(() => validateDeliveryDate(deliveryDate), [deliveryDate])
@@ -255,6 +257,16 @@ export default function CreateDryOrderView({
       [itemId]: newSupId,
     }));
   };
+
+  // Mặt hàng đã chọn lên đầu bảng, giữ nguyên thứ tự gốc trong từng nhóm
+  const sortedItems = useMemo(() => {
+    const selected = [];
+    const rest = [];
+    inventoryItems.forEach((item) =>
+      (Object.hasOwn(orderQtys, item.id) ? selected : rest).push(item),
+    );
+    return [...selected, ...rest];
+  }, [inventoryItems, orderQtys]);
 
   const selectedCount = useMemo(() => {
     return Object.keys(orderQtys).length;
@@ -487,7 +499,7 @@ export default function CreateDryOrderView({
                   </TableCell>
                 </TableRow>
               ) : (
-                inventoryItems.map((item) => {
+                sortedItems.map((item) => {
                   const isSelected = Object.hasOwn(orderQtys, item.id);
                   const qty = orderQtys[item.id] ?? 0;
                   const stockPct = Math.round(

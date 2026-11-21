@@ -8,7 +8,7 @@ import SupplierDeliveryService, {
   extractApiError as extractDeliveryApiError,
   generateIdempotencyKey,
   ORDER_CREATION_STAGE,
-  buildTodayArrivalIso,
+  buildArrivalIso,
 } from "src/services/SupplierDeliveryService"
 import SupplierOrderService, {
   extractApiError,
@@ -209,6 +209,7 @@ function SupplyOrders() {
   const handleSubmitDelivery = async ({
     sources = [],
     expectedArrivalLocal = "",
+    allowFutureDate = false,
     vehiclePlate = "",
     note = "",
   } = {}) => {
@@ -237,7 +238,7 @@ function SupplyOrders() {
         setPendingDispatchDelivery(activeDraft)
       }
 
-      const expectedArrivalAt = buildTodayArrivalIso(expectedArrivalLocal)
+      const expectedArrivalAt = buildArrivalIso(expectedArrivalLocal, { allowFutureDate })
       const delivery = await SupplierDeliveryService.dispatch(activeDraft.id, {
         expectedArrivalAt,
         vehiclePlate,

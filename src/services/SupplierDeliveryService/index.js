@@ -176,9 +176,11 @@ export function thousandthsToQuantity(value) {
   return fracPart ? `${intPart}.${fracPart}` : String(intPart)
 }
 
-// Thời gian dự kiến đến: chỉ chọn giờ trong ngày hôm nay theo giờ Việt Nam (+07:00).
+// Thời gian dự kiến đến theo giờ Việt Nam (+07:00):
+// đồ tươi chỉ chọn giờ trong hôm nay; đồ lưu kho chọn ngày + giờ, không trước thời điểm hiện tại.
 const VN_OFFSET_MS = 7 * 3600 * 1000
 const TIME_ONLY_REGEX = /^([01]\d|2[0-3]):([0-5]\d)$/
+const DATE_TIME_REGEX = /^\d{4}-\d{2}-\d{2}T([01]\d|2[0-3]):([0-5]\d)$/
 
 /** Ngày hôm nay (YYYY-MM-DD) theo giờ Việt Nam. */
 export function getVnTodayDate(now = new Date()) {
@@ -192,6 +194,25 @@ export function getMinArrivalTime(now = new Date()) {
   // Đã sang ngày mai thì không còn giờ hợp lệ trong hôm nay.
   if (vn.toISOString().slice(0, 10) !== getVnTodayDate(now)) return "23:59"
   return vn.toISOString().slice(11, 16)
+}
+
+/** Ngày giờ nhỏ nhất được chọn (YYYY-MM-DDTHH:mm, giờ Việt Nam): phút kế tiếp sau hiện tại. */
+export function getMinArrivalDateTime(now = new Date()) {
+  const nextMinute = Math.floor(now.getTime() / 60000) * 60000 + 60000
+  return new Date(nextMinute + VN_OFFSET_MS).toISOString().slice(0, 16)
+}
+
+/**
+ * Chuyển giá trị ô "dự kiến đến" thành ISO8601 có múi giờ +07:00.
+ * - "HH:mm" (đồ tươi): ghép với ngày hôm nay.
+ * - "YYYY-MM-DDTHH:mm" (đồ lưu kho, khi allowFutureDate): giữ đúng ngày đã chọn.
+ */
+export function buildArrivalIso(value, { allowFutureDate = false, now = new Date() } = {}) {
+  const raw = String(value ?? "").trim()
+  if (!allowFutureDate) return buildTodayArrivalIso(raw, now)
+  if (!DATE_TIME_REGEX.test(raw)) return null
+  const iso = `${raw}:00+07:00`
+  return Number.isNaN(Date.parse(iso)) ? null : iso
 }
 
 /** Ghép giờ (HH:mm) với ngày hôm nay theo giờ Việt Nam thành ISO8601 có múi giờ. */
@@ -484,19 +505,23 @@ export function validateDeliveryLogisticsStep({
   expectedArrivalLocal = "",
   vehiclePlate = "",
   note = "",
+  allowFutureDate = false,
   now = new Date(),
 } = {}) {
   const errors = {}
+  const subject = allowFutureDate ? "Ngày giờ dự kiến đến" : "Giờ dự kiến đến"
 
   const rawArrival = String(expectedArrivalLocal || "").trim()
   if (!rawArrival) {
-    errors.expectedArrivalAt = "Vui lòng chọn giờ dự kiến đến trường."
+    errors.expectedArrivalAt = allowFutureDate
+      ? "Vui lòng chọn ngày và giờ dự kiến đến trường."
+      : "Vui lòng chọn giờ dự kiến đến trường."
   } else {
-    const parsedIso = buildTodayArrivalIso(rawArrival, now)
+    const parsedIso = buildArrivalIso(rawArrival, { allowFutureDate, now })
     if (!parsedIso) {
-      errors.expectedArrivalAt = "Giờ dự kiến đến không hợp lệ."
+      errors.expectedArrivalAt = `${subject} không hợp lệ.`
     } else if (Date.parse(parsedIso) <= now.getTime()) {
-      errors.expectedArrivalAt = "Giờ dự kiến đến phải sau thời điểm hiện tại."
+      errors.expectedArrivalAt = `${subject} phải sau thời điểm hiện tại.`
     }
   }
 

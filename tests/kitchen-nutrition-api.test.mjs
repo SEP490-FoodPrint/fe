@@ -257,6 +257,20 @@ test("school allergy catalogue uses every API page and preserves per-ingredient 
   assert.equal(requests.length,2)
 })
 
+test("class allergy groups: A: 1, B: 1, (A, B): 1 count 3 pupils, each group once", async () => {
+  const {groupAllergiesByClass,affectedCountsLabel,classAllergyGroups} = await server.ssrLoadModule("/src/services/AllergyService/index.js")
+  const common={classId:id(50),className:"Class A",academicYear:"2026-2027",updatedAt:"2026-11-13T00:00:00Z",affectedCount:1}
+  const rows=groupAllergiesByClass([
+    {...common,groupNo:1,ingredientEntryId:id(51),ingredientName:"Sữa"},
+    {...common,groupNo:2,ingredientEntryId:id(52),ingredientName:"Lạc"},
+    {...common,groupNo:3,ingredientEntryId:id(51),ingredientName:"Sữa"},
+    {...common,groupNo:3,ingredientEntryId:id(52),ingredientName:"Lạc"},
+  ])
+  assert.equal(affectedCountsLabel(rows[0].allergies),"3")
+  assert.deepEqual(classAllergyGroups(rows[0].allergies).map(g=>[g.groupNo,g.count,g.items.map(i=>i.name).join(" + ")]),
+    [[1,1,"Sữa"],[2,1,"Lạc"],[3,1,"Sữa + Lạc"]])
+})
+
 test("school allergy API errors remain errors rather than mock or zero-case data", async () => {
   const {getSchoolClassAllergies}=await server.ssrLoadModule("/src/services/AllergyService/index.js")
   respond=config=>{throw new AxiosError("Unavailable","ERR_BAD_RESPONSE",config,null,{status:503,data:{message:"Allergy data unavailable"},headers:{},config})}

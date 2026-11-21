@@ -775,3 +775,34 @@ test("Expected arrival is a time today (Vietnam time) and must be after now", ()
   assert.ok(check("").errors.expectedArrivalAt)
   assert.ok(check("2026-11-21T10:00").errors.expectedArrivalAt)
 })
+
+test("Dry-stock expected arrival takes a date and time (Vietnam time) not before now", () => {
+  const { buildArrivalIso, getMinArrivalDateTime, validateDeliveryLogisticsStep } =
+    DeliveryServiceModule
+
+  // 21/11/2026 09:15:30 giờ Việt Nam
+  const now = new Date("2026-11-21T02:15:30.000Z")
+  assert.equal(getMinArrivalDateTime(now), "2026-11-21T09:16")
+  assert.equal(
+    buildArrivalIso("2026-11-23T08:30", { allowFutureDate: true, now }),
+    "2026-11-23T08:30:00+07:00",
+  )
+  assert.equal(buildArrivalIso("08:30", { allowFutureDate: true, now }), null)
+  // Đồ tươi vẫn chỉ nhận giờ trong hôm nay
+  assert.equal(buildArrivalIso("14:05", { now }), "2026-11-21T14:05:00+07:00")
+  assert.equal(buildArrivalIso("2026-11-23T08:30", { now }), null)
+
+  const check = value =>
+    validateDeliveryLogisticsStep({
+      expectedArrivalLocal: value,
+      vehiclePlate: "29C-12345",
+      allowFutureDate: true,
+      now,
+    })
+  assert.equal(check("2026-11-23T08:30").valid, true)
+  assert.equal(check("2026-11-21T09:30").valid, true)
+  assert.ok(check("2026-11-21T09:15").errors.expectedArrivalAt)
+  assert.ok(check("2026-11-20T23:00").errors.expectedArrivalAt)
+  assert.ok(check("09:30").errors.expectedArrivalAt)
+  assert.match(check("").errors.expectedArrivalAt, /ngày và giờ/)
+})
