@@ -23,5 +23,7 @@ export const apiGetWeeklyMenu = (schoolCode, weekStart, grade) => {
   const qs = params.toString()
   return `/schools/public/${schoolCode}/weekly-menu${qs ? `?${qs}` : ""}`
 }
+export const apiGetSchoolSuppliers = (schoolCode) =>
+  `/schools/public/${schoolCode}/suppliers`
 export const apiDeliveryInspectionRoles = "/schools/me/delivery-inspection-roles"
 

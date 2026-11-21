@@ -11,6 +11,7 @@ import SchoolHero from "./component/SchoolHero";
 import QuickStatsStrip from "./component/QuickStatsStrip";
 import DailyMealSection from "./component/DailyMealSection";
 import WeeklyMenuSection from "./component/WeeklyMenuSection";
+import SchoolSuppliersSection from "./component/SchoolSuppliersSection";
 import AllergyNoticeModal from "./component/AllergyNoticeModal";
 import "./style.scss";
 
@@ -25,6 +26,7 @@ function SchoolLanding() {
   const [weeklyMenuError, setWeeklyMenuError] = useState(false);
   const [schoolGrades, setSchoolGrades] = useState([]);
   const [selectedGradeId, setSelectedGradeId] = useState("");
+  const [suppliers, setSuppliers] = useState([]);
   const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false);
   const [, setLoading] = useState(true);
 
@@ -64,9 +66,10 @@ function SchoolLanding() {
         setSelectedGradeId(firstGradeId);
         const gradeQuery = firstGradeId || undefined;
 
-        const [dailyResult, weeklyResult] = await Promise.allSettled([
+        const [dailyResult, weeklyResult, suppliersResult] = await Promise.allSettled([
           SchoolService.getDailyMealMenu(activeCode, undefined, gradeQuery),
           SchoolService.getWeeklyMenu(activeCode, undefined, gradeQuery),
+          SchoolService.getSchoolSuppliers(activeCode),
         ]);
 
         if (isMounted) {
@@ -83,6 +86,18 @@ function SchoolLanding() {
           } else {
             setWeeklyMenu(null);
             setWeeklyMenuError(true);
+          }
+
+          // Xử lý danh sách nhà cung cấp liên kết
+          if (suppliersResult.status === "fulfilled" && suppliersResult.value) {
+            const raw = suppliersResult.value;
+            const supData =
+              raw?.data?.data ||
+              raw?.data ||
+              (Array.isArray(raw) ? raw : []);
+            setSuppliers(Array.isArray(supData) ? supData : []);
+          } else {
+            setSuppliers([]);
           }
         }
       } catch (err) {
@@ -162,6 +177,12 @@ function SchoolLanding() {
           menuError={weeklyMenuError}
           onWeekChange={handleWeekChange}
           onGroupChange={handleGradeChange}
+        />
+
+        {/* Nhà cung cấp nguyên liệu liên kết */}
+        <SchoolSuppliersSection
+          suppliers={suppliers}
+          schoolName={school?.name}
         />
       </main>
 
