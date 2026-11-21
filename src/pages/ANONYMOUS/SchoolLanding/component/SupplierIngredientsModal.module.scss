@@ -22,8 +22,8 @@
 
 .modal {
   width: 100%;
-  max-width: 860px;
-  max-height: 90vh;
+  max-width: 1060px;
+  max-height: 88vh;
   background-color: #ffffff;
   border-radius: 18px;
   border: 1px solid #e2e8f0;
@@ -191,112 +191,6 @@
   }
 }
 
-/* THỐNG KÊ SỐ LIỆU ĐƯA VÀO BÊN TRONG CHI TIẾT */
-.statsStrip {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.85rem;
-  padding: 1rem 1.75rem;
-  background: #ffffff;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.statCardPrimary {
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-
-  .statIconWrap {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: #dcfce7;
-    color: #16a34a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .statVal {
-    color: #15803d;
-  }
-}
-
-.statCardSecondary {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-
-  .statIconWrap {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: #f1f5f9;
-    color: #475569;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .statVal {
-    color: #0f172a;
-  }
-}
-
-.statCardNeutral {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 12px;
-  padding: 0.85rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-
-  .statIconWrap {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    background: #dbeafe;
-    color: #2563eb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .statVal {
-    color: #1d4ed8;
-  }
-}
-
-.statDetails {
-  display: flex;
-  flex-direction: column;
-}
-
-.statVal {
-  font-size: 1.35rem;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.statName {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-top: 0.2rem;
-  font-weight: 500;
-}
-
 /* Thanh điều hướng và nút lọc */
 .filterSection {
   padding: 0.85rem 1.75rem;
@@ -443,6 +337,9 @@
   justify-content: center;
   padding: 3rem 1.5rem;
   text-align: center;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
 }
 
 .emptyIcon {
@@ -456,114 +353,182 @@
   margin: 0;
 }
 
-/* Lưới thẻ nguyên liệu */
-.ingredientGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 1rem;
+/* Bảng danh sách nguyên liệu */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.ingredientCard {
-  background: #ffffff;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  transition: all 0.2s ease;
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
 
-  &:hover {
-    border-color: #cbd5e1;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
-    transform: translateY(-2px);
+  thead {
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+
+    th {
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #475569;
+      white-space: nowrap;
+    }
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:hover {
+        background-color: #f8fafc;
+      }
+    }
+
+    td {
+      padding: 0.85rem 1rem;
+      vertical-align: middle;
+    }
   }
 }
 
-.cardHeader {
+.thIndex,
+.tdIndex {
+  width: 48px;
+  text-align: center;
+  color: #94a3b8;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.thName,
+.tdName {
+  min-width: 220px;
+}
+
+.nameWrap {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nameText {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.descText {
+  font-size: 0.775rem;
+  color: #64748b;
+  line-height: 1.35;
+}
+
+.thCategory,
+.tdCategory {
+  min-width: 130px;
 }
 
 .categoryBadge {
-  font-size: 0.7rem;
+  display: inline-block;
+  font-size: 0.75rem;
   font-weight: 600;
-  text-transform: uppercase;
-  color: #64748b;
+  color: #0369a1;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.thUnit,
+.tdUnit {
+  width: 100px;
+  text-align: center;
+}
+
+.unitBadge {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
   background: #f1f5f9;
-  padding: 0.2rem 0.5rem;
-  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+}
+
+.thHandling,
+.tdHandling {
+  min-width: 160px;
+}
+
+.handlingDirect {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #92400e;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.handlingStorage {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #4338ca;
+  background: #e0e7ff;
+  border: 1px solid #c7d2fe;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+}
+
+.thStatus,
+.tdStatus {
+  min-width: 160px;
 }
 
 .inUseBadge {
   display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.7rem;
+  gap: 0.3rem;
+  font-size: 0.75rem;
   font-weight: 600;
   background: #dcfce7;
-  color: #166534;
-  padding: 0.15rem 0.5rem;
+  color: #15803d;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   border: 1px solid #bbf7d0;
 }
 
 .catalogBadge {
-  font-size: 0.7rem;
+  display: inline-block;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #64748b;
-  background: #f8fafc;
-  padding: 0.15rem 0.45rem;
+  background: #f1f5f9;
+  padding: 0.2rem 0.6rem;
   border-radius: 9999px;
   border: 1px solid #e2e8f0;
 }
 
-.ingredientName {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: #0f172a;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.cardMeta {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  font-size: 0.775rem;
-  color: #64748b;
-}
-
-.unitBadge {
-  background: #f8fafc;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  border: 1px solid #e2e8f0;
-}
-
-.handlingBadge {
-  background: #fef3c7;
-  color: #92400e;
-  padding: 0.15rem 0.45rem;
-  border-radius: 4px;
-  font-size: 0.725rem;
-  font-weight: 600;
-}
-
-.description {
-  font-size: 0.775rem;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.textMuted {
+  color: #94a3b8;
+  font-size: 0.85rem;
 }
 
 /* Footer */
@@ -595,11 +560,5 @@
   &:hover {
     background: #e2e8f0;
     color: #0f172a;
-  }
-}
-
-@media (max-width: 640px) {
-  .statsStrip {
-    grid-template-columns: 1fr;
   }
 }

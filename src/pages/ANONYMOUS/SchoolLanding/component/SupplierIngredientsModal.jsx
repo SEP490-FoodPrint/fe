@@ -12,7 +12,6 @@ import {
   Package,
   Layers,
   Sparkles,
-  FileCheck,
 } from "lucide-react";
 import styles from "./SupplierIngredientsModal.module.scss";
 
@@ -139,40 +138,7 @@ export default function SupplierIngredientsModal({ isOpen, onClose, supplier }) 
           </button>
         </div>
 
-        {/* THỐNG KÊ SỐ LIỆU ĐƯA VÀO BÊN TRONG CHI TIẾT */}
-        <div className={styles.statsStrip}>
-          <div className={styles.statCardPrimary}>
-            <div className={styles.statIconWrap}>
-              <CheckCircle2 size={20} />
-            </div>
-            <div className={styles.statDetails}>
-              <span className={styles.statVal}>{contracted.length}</span>
-              <span className={styles.statName}>Nguyên liệu trường chọn dùng</span>
-            </div>
-          </div>
-
-          <div className={styles.statCardSecondary}>
-            <div className={styles.statIconWrap}>
-              <Layers size={20} />
-            </div>
-            <div className={styles.statDetails}>
-              <span className={styles.statVal}>{available.length}</span>
-              <span className={styles.statName}>Tổng mặt hàng NCC cung cấp</span>
-            </div>
-          </div>
-
-          <div className={styles.statCardNeutral}>
-            <div className={styles.statIconWrap}>
-              <FileCheck size={20} />
-            </div>
-            <div className={styles.statDetails}>
-              <span className={styles.statVal}>{certifications.length}</span>
-              <span className={styles.statName}>Chứng nhận ATTP kiểm định</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 2 Nút lọc: NL NCC có vs NL trường dùng từ NCC */}
+        {/* 2 Nút lọc: NL NCC có vs NL trường dùng từ NCC (đã có số lượng đính kèm) */}
         <div className={styles.filterSection}>
           <div className={styles.filterTabs}>
             <button
@@ -218,21 +184,8 @@ export default function SupplierIngredientsModal({ isOpen, onClose, supplier }) 
           </div>
         </div>
 
-        {/* Thân danh sách nguyên liệu */}
+        {/* Thân danh sách nguyên liệu dạng Table */}
         <div className={styles.contentBody}>
-          <div className={styles.guideNote}>
-            {activeTab === "school" ? (
-              <p>
-                <Sparkles size={14} className={styles.guideIcon} />
-                Danh sách các mặt hàng nguyên liệu nhà trường <strong>đã chọn và ký hợp đồng cung ứng</strong> phục vụ bữa ăn bán trú cho học sinh.
-              </p>
-            ) : (
-              <p>
-                <Package size={14} className={styles.guideIcon} />
-                Toàn bộ danh mục nguyên liệu đạt chuẩn mà nhà cung cấp đang phân phối trên hệ thống.
-              </p>
-            )}
-          </div>
 
           {displayList.length === 0 ? (
             <div className={styles.emptyBox}>
@@ -241,56 +194,90 @@ export default function SupplierIngredientsModal({ isOpen, onClose, supplier }) 
                 {searchTerm
                   ? `Không tìm thấy nguyên liệu nào khớp với từ khóa "${searchTerm}"`
                   : activeTab === "school"
-                  ? "Chưa có danh sách nguyên liệu được ký kết hợp đồng."
-                  : "Nhà cung cấp chưa cập nhật danh mục nguyên liệu."}
+                    ? "Chưa có danh sách nguyên liệu được ký kết hợp đồng."
+                    : "Nhà cung cấp chưa cập nhật danh mục nguyên liệu."}
               </p>
             </div>
           ) : (
-            <div className={styles.ingredientGrid}>
-              {displayList.map((item, idx) => {
-                const isUsedBySchool = item?.id && contractedIdSet.has(item.id);
-                return (
-                  <div key={item?.id || idx} className={styles.ingredientCard}>
-                    <div className={styles.cardHeader}>
-                      <span className={styles.categoryBadge}>
-                        {item?.category || "Thực phẩm"}
-                      </span>
-                      {activeTab === "school" ? (
-                        <span className={styles.inUseBadge}>
-                          <CheckCircle2 size={12} />
-                          Đang dùng cho trường
-                        </span>
-                      ) : isUsedBySchool ? (
-                        <span className={styles.inUseBadge}>
-                          <CheckCircle2 size={12} />
-                          Trường đang dùng
-                        </span>
-                      ) : (
-                        <span className={styles.catalogBadge}>Mặt hàng NCC có</span>
-                      )}
-                    </div>
-
-                    <h4 className={styles.ingredientName}>{item?.name || "Nguyên liệu"}</h4>
-
-                    <div className={styles.cardMeta}>
-                      <span className={styles.unitBadge}>
-                        Đơn vị tính: <strong>{item?.unit || "kg"}</strong>
-                      </span>
-                      {item?.handlingType && (
-                        <span className={styles.handlingBadge}>
-                          {item.handlingType === "DIRECT_USE"
-                            ? "Dùng ngay trong ngày"
-                            : "Bảo quản kho"}
-                        </span>
-                      )}
-                    </div>
-
-                    {item?.description && (
-                      <p className={styles.description}>{item.description}</p>
-                    )}
-                  </div>
-                );
-              })}
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.thIndex}>#</th>
+                    <th className={styles.thName}>Tên nguyên liệu</th>
+                    <th className={styles.thCategory}>Nhóm thực phẩm</th>
+                    <th className={styles.thUnit}>Đơn vị tính</th>
+                    <th className={styles.thHandling}>Phương thức xử lý</th>
+                    <th className={styles.thStatus}>Tình trạng liên kết</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayList.map((item, idx) => {
+                    const isUsedBySchool = item?.id && contractedIdSet.has(item.id);
+                    return (
+                      <tr key={item?.id || idx}>
+                        <td className={styles.tdIndex}>{idx + 1}</td>
+                        <td className={styles.tdName}>
+                          <div className={styles.nameWrap}>
+                            <span className={styles.nameText}>
+                              {item?.name || "Nguyên liệu"}
+                            </span>
+                            {item?.description && (
+                              <span className={styles.descText}>
+                                {item.description}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className={styles.tdCategory}>
+                          <span className={styles.categoryBadge}>
+                            {item?.category || "Thực phẩm"}
+                          </span>
+                        </td>
+                        <td className={styles.tdUnit}>
+                          <span className={styles.unitBadge}>
+                            {item?.unit || "kg"}
+                          </span>
+                        </td>
+                        <td className={styles.tdHandling}>
+                          {item?.handlingType ? (
+                            <span
+                              className={
+                                item.handlingType === "DIRECT_USE"
+                                  ? styles.handlingDirect
+                                  : styles.handlingStorage
+                              }
+                            >
+                              {item.handlingType === "DIRECT_USE"
+                                ? "Dùng ngay trong ngày"
+                                : "Bảo quản kho"}
+                            </span>
+                          ) : (
+                            <span className={styles.textMuted}>-</span>
+                          )}
+                        </td>
+                        <td className={styles.tdStatus}>
+                          {activeTab === "school" ? (
+                            <span className={styles.inUseBadge}>
+                              <CheckCircle2 size={13} />
+                              Đang phục vụ trường
+                            </span>
+                          ) : isUsedBySchool ? (
+                            <span className={styles.inUseBadge}>
+                              <CheckCircle2 size={13} />
+                              Trường đang dùng
+                            </span>
+                          ) : (
+                            <span className={styles.catalogBadge}>
+                              NCC có sẵn
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
