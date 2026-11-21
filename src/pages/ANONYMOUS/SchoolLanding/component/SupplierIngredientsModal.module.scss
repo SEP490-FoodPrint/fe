@@ -470,67 +470,6 @@
   border-radius: 6px;
 }
 
-.thHandling,
-.tdHandling {
-  min-width: 160px;
-}
-
-.handlingDirect {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #92400e;
-  background: #fef3c7;
-  border: 1px solid #fde68a;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-}
-
-.handlingStorage {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #4338ca;
-  background: #e0e7ff;
-  border: 1px solid #c7d2fe;
-  padding: 0.2rem 0.6rem;
-  border-radius: 6px;
-}
-
-.thStatus,
-.tdStatus {
-  min-width: 160px;
-}
-
-.inUseBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: #dcfce7;
-  color: #15803d;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  border: 1px solid #bbf7d0;
-}
-
-.catalogBadge {
-  display: inline-block;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 0.2rem 0.6rem;
-  border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-}
-
-.textMuted {
-  color: #94a3b8;
-  font-size: 0.85rem;
-}
-
 /* Footer */
 .footer {
   padding: 1rem 1.75rem;

@@ -11,7 +11,6 @@ import {
   CheckCircle2,
   Package,
   Layers,
-  Sparkles,
 } from "lucide-react";
 import styles from "./SupplierIngredientsModal.module.scss";
 
@@ -44,15 +43,6 @@ export default function SupplierIngredientsModal({ isOpen, onClose, supplier }) 
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [isOpen, onClose]);
-
-  // Tạo Set id các nguyên liệu mà trường có dùng (chạy hook vô điều kiện)
-  const contractedIdSet = useMemo(() => {
-    return new Set(
-      contracted
-        .map((item) => item?.id)
-        .filter(Boolean)
-    );
-  }, [contracted]);
 
   // Danh sách hiển thị theo tab
   const rawList = activeTab === "school" ? contracted : available;
@@ -207,75 +197,36 @@ export default function SupplierIngredientsModal({ isOpen, onClose, supplier }) 
                     <th className={styles.thName}>Tên nguyên liệu</th>
                     <th className={styles.thCategory}>Nhóm thực phẩm</th>
                     <th className={styles.thUnit}>Đơn vị tính</th>
-                    <th className={styles.thHandling}>Phương thức xử lý</th>
-                    <th className={styles.thStatus}>Tình trạng liên kết</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {displayList.map((item, idx) => {
-                    const isUsedBySchool = item?.id && contractedIdSet.has(item.id);
-                    return (
-                      <tr key={item?.id || idx}>
-                        <td className={styles.tdIndex}>{idx + 1}</td>
-                        <td className={styles.tdName}>
-                          <div className={styles.nameWrap}>
-                            <span className={styles.nameText}>
-                              {item?.name || "Nguyên liệu"}
-                            </span>
-                            {item?.description && (
-                              <span className={styles.descText}>
-                                {item.description}
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className={styles.tdCategory}>
-                          <span className={styles.categoryBadge}>
-                            {item?.category || "Thực phẩm"}
+                  {displayList.map((item, idx) => (
+                    <tr key={item?.id || idx}>
+                      <td className={styles.tdIndex}>{idx + 1}</td>
+                      <td className={styles.tdName}>
+                        <div className={styles.nameWrap}>
+                          <span className={styles.nameText}>
+                            {item?.name || "Nguyên liệu"}
                           </span>
-                        </td>
-                        <td className={styles.tdUnit}>
-                          <span className={styles.unitBadge}>
-                            {item?.unit || "kg"}
-                          </span>
-                        </td>
-                        <td className={styles.tdHandling}>
-                          {item?.handlingType ? (
-                            <span
-                              className={
-                                item.handlingType === "DIRECT_USE"
-                                  ? styles.handlingDirect
-                                  : styles.handlingStorage
-                              }
-                            >
-                              {item.handlingType === "DIRECT_USE"
-                                ? "Dùng ngay trong ngày"
-                                : "Bảo quản kho"}
-                            </span>
-                          ) : (
-                            <span className={styles.textMuted}>-</span>
-                          )}
-                        </td>
-                        <td className={styles.tdStatus}>
-                          {activeTab === "school" ? (
-                            <span className={styles.inUseBadge}>
-                              <CheckCircle2 size={13} />
-                              Đang phục vụ trường
-                            </span>
-                          ) : isUsedBySchool ? (
-                            <span className={styles.inUseBadge}>
-                              <CheckCircle2 size={13} />
-                              Trường đang dùng
-                            </span>
-                          ) : (
-                            <span className={styles.catalogBadge}>
-                              NCC có sẵn
+                          {item?.description && (
+                            <span className={styles.descText}>
+                              {item.description}
                             </span>
                           )}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                        </div>
+                      </td>
+                      <td className={styles.tdCategory}>
+                        <span className={styles.categoryBadge}>
+                          {item?.category || "Thực phẩm"}
+                        </span>
+                      </td>
+                      <td className={styles.tdUnit}>
+                        <span className={styles.unitBadge}>
+                          {item?.unit || "kg"}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
