@@ -27,6 +27,7 @@ const ROUTER = {
   SYSTEM_SUPPLIER_LIST: "/system/supplier-list",
   SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
   SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
+  SYSTEM_MEASUREMENT_UNITS: "/system/measurement-units",
   SYSTEM_CONFIG: "/system/config",
   SYSTEM_CONFIG_DETAIL: "/system/config/:id",
 

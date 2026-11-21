@@ -34,6 +34,7 @@ import ROUTER from "./ROUTER"
  * Menu dành cho phân hệ Quản trị Hệ thống (SYSTEM)
  */
 export const MenuItemSystem = () => [
+  { key: ROUTER.SYSTEM_MEASUREMENT_UNITS, label: "Đơn vị tính", icon: <TuneOutlinedIcon />, roles: [ROLES.SYSTEM_ADMIN] },
   {
     key: ROUTER.SYSTEM_ORG_APPROVAL,
     label: "Hồ sơ đăng ký",

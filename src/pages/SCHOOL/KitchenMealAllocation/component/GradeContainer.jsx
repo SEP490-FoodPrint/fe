@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { Chip, Collapse } from "@mui/material";
 import { ChevronDown, GraduationCap } from "lucide-react";
 import styles from "./GradeContainer.module.scss";
 
 export default function GradeContainer({ grade, children, defaultExpanded = true }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const contentId = useId();
 
   const totalClasses = grade.demands?.length || 0;
   const totalPortions = (grade.demands || []).reduce(
@@ -20,6 +21,7 @@ export default function GradeContainer({ grade, children, defaultExpanded = true
         role="button"
         tabIndex={0}
         aria-expanded={expanded}
+        aria-controls={contentId}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
@@ -41,7 +43,7 @@ export default function GradeContainer({ grade, children, defaultExpanded = true
             />
             <Chip
               size="small"
-              color="primary"
+              className={styles.portionChip}
               label={`${totalPortions} suất`}
               sx={{ fontWeight: 600 }}
             />
@@ -53,7 +55,7 @@ export default function GradeContainer({ grade, children, defaultExpanded = true
         </span>
       </header>
 
-      <Collapse in={expanded} unmountOnExit>
+      <Collapse id={contentId} in={expanded}>
         <div className={styles.dishList}>{children}</div>
       </Collapse>
     </section>

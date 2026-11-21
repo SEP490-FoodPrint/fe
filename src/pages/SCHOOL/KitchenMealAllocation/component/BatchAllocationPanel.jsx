@@ -7,6 +7,7 @@ import styles from "./BatchAllocationPanel.module.scss";
 export default function BatchAllocationPanel({
   batch,
   expanded,
+  readOnly = false,
   canAddClasses,
   onToggle,
   onAddClasses,
@@ -18,7 +19,9 @@ export default function BatchAllocationPanel({
   const isAuto = Boolean(batch.autoAssigned);
   const isMaterial = batch.allocationVersion === 2;
 
-  const status = isAuto
+  const status = batch.materialPreview
+    ? { label: hasEntries ? "Dự kiến phân bổ" : "Chưa phân lô", color: "default" }
+    : isAuto
     ? { label: "Đã phân bổ", color: "success" }
     : !hasEntries
     ? { label: "Chưa phân lô", color: "default" }
@@ -27,7 +30,9 @@ export default function BatchAllocationPanel({
     : { label: "Đang phân bổ", color: "warning" };
 
   const availability = isMaterial
-    ? `Đã cấp ${fmt(batch.allocated)} suất quy đổi cho khối này`
+    ? batch.materialPreview && batch.materialAvailablePortions != null
+      ? `Sau phương án còn ${fmt(batch.materialAvailablePortions)} suất quy đổi cho khối này`
+      : `${batch.materialPreview ? "Dự kiến cấp" : "Đã cấp"} ${fmt(batch.allocated)} suất quy đổi cho khối này`
     : batch.gradeScoped
     ? `Đã cấp ${fmt(batch.allocatedForGrade)} suất cho khối · Lô còn ${fmt(batch.sharedRemaining)} suất dùng chung`
     : isAuto || batch.remaining === 0
@@ -37,10 +42,10 @@ export default function BatchAllocationPanel({
     : `Lô còn nguyên ${batch.total} suất`;
 
   return (
-    <section className={styles.panel} data-expanded={expanded}>
+    <section className={styles.panel} data-expanded={expanded} data-preview={batch.materialPreview || undefined}>
       <ButtonBase
         className={styles.batch}
-        aria-label={batch.gradeScoped ? `${batch.name}, đã cấp ${fmt(batch.allocatedForGrade)} trên ${fmt(batch.gradeRequiredPortions)} suất khối cần` : `${batch.name}, ${batch.remaining} trên ${batch.total} suất khả dụng`}
+        aria-label={batch.gradeScoped ? `${batch.name}, ${batch.materialPreview ? "dự kiến cấp" : "đã cấp"} ${fmt(batch.allocatedForGrade)} trên ${fmt(batch.gradeRequiredPortions)} suất khối cần` : `${batch.name}, ${batch.remaining} trên ${batch.total} suất khả dụng`}
         aria-expanded={expanded}
         aria-controls={contentId}
         onClick={onToggle}
@@ -55,7 +60,7 @@ export default function BatchAllocationPanel({
           </span>
         </span>
         <span className={styles.counter}>
-          <span>{isMaterial ? "Suất cấp cho khối" : batch.gradeScoped ? "Đã cấp / Cần" : hasEntries ? "Suất khả dụng / Tổng" : "Khả dụng"}</span>
+          <span>{isMaterial ? (batch.materialPreview ? "Suất dự kiến cấp" : "Suất cấp cho khối") : batch.gradeScoped ? "Đã cấp / Cần" : hasEntries ? "Suất khả dụng / Tổng" : "Khả dụng"}</span>
           <strong>
             {isMaterial ? fmt(batch.allocatedForGrade ?? batch.allocated) : batch.gradeScoped ? <><b>{fmt(batch.allocatedForGrade)}</b> / {fmt(batch.gradeRequiredPortions)}</> : hasEntries ? (
               <>
@@ -76,7 +81,7 @@ export default function BatchAllocationPanel({
       <Collapse in={expanded} id={contentId}>
         <div className={styles.content}>
           <div className={styles.caption}>
-            <strong>{hasEntries ? `Danh sách lớp đã nhận suất từ ${batch.name}:` : "Danh sách lớp:"}</strong>
+            <strong>{hasEntries ? `Danh sách lớp ${batch.materialPreview ? "dự kiến nhận" : "đã nhận"} suất từ ${batch.name}:` : "Danh sách lớp:"}</strong>
             <span>{availability}</span>
           </div>
           <div className={styles.seats}>
@@ -86,11 +91,11 @@ export default function BatchAllocationPanel({
                   <li key={entry.id || entry.dailyMealPortionId} className={styles.seat} data-partial={entry.remaining > 0}>
                     <strong>{entry.name || entry.className}</strong>
                     <span>·</span>
-                    <b>{fmt(entry.portions || entry.allocatedPortions)}</b>
-                    {entry.total && (entry.portions || entry.allocatedPortions) < entry.total && (
+                    <b>{fmt(entry.portions ?? entry.allocatedPortions)}</b>
+                    {entry.total > 0 && Number(entry.portions ?? entry.allocatedPortions) < Number(entry.total) && (
                       <span> / {entry.total}</span>
                     )}
-                    {entry.locked || isAuto ? null : (
+                    {entry.locked || isAuto || readOnly ? null : (
                       <IconButton
                         className={styles.removeButton}
                         size="small"
@@ -107,7 +112,27 @@ export default function BatchAllocationPanel({
               <p className={styles.empty}>Chưa có lớp nào được phân từ lô này.</p>
             )}
 
-            {!isAuto && (
+            {batch.materialPreview && entries.some((entry) => entry.materials?.length) && (
+              <details className={styles.ingredients}>
+                <summary>Nguyên liệu cấp</summary>
+                <ul>
+                  {entries.filter((entry) => entry.materials?.length).map((entry) => (
+                    <li key={entry.id}>
+                      <strong>{entry.name}</strong>
+                      {Number(entry.massKg) > 0 && <> · {fmt(entry.massKg, 3)} kg</>}
+                      <ul>
+                        {entry.materials.map((material) => (
+                          <li key={material.ingredientLotId}>
+                            {material.ingredientName} · {fmt(material.quantity, 3)} {material.unit}
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {!isAuto && !readOnly && (
               <Button
                 className={styles.addButton}
                 variant="outlined"

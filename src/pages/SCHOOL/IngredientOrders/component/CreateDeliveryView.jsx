@@ -1,3 +1,6 @@
+import useMeasurementUnits from "src/hooks/useMeasurementUnits";
+import QuantityRecommendation from "src/components/QuantityRecommendation";
+import { quantityError } from "src/utils/measurementUnits";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 import {
@@ -190,7 +193,7 @@ export const getDefaultOrderDate = () => {
 
 /**
  * Kiểm tra đơn vị đếm được (nguyên quả, nguyên con, gói, chai...)
- * Không thể giao lẻ nửa đơn vị (ví dụ không giao 212.5 quả hay 215.5 quả)
+ * Nhóm đếm dùng để hiển thị đơn vị; lượng lẻ vẫn được giữ nguyên.
  */
 export const isDiscreteUnit = (unit = "") => {
   if (!unit) return false;
@@ -218,10 +221,11 @@ export const isDiscreteUnit = (unit = "") => {
 };
 
 export const isKgUnit = (unit) => {
-  if (!unit) return true;
-  const u = String(unit).toLowerCase().trim();
-  if (isDiscreteUnit(u)) return false;
-  return true;
+  return ["kg", "kilogram", "kilogam"].includes(
+    String(unit || "kg")
+      .toLowerCase()
+      .trim(),
+  );
 };
 
 export const getPortionUnit = (unit) => {
@@ -238,20 +242,20 @@ export const formatPortionRate = (rate, unit) => {
 };
 
 /**
- * Tính số lượng đợt: nếu đơn vị đếm được (trứng gà, quả...) thì tự động đẩy tròn lên (Math.ceil)
- * Ví dụ: 431 * 0.5 = 215.5 quả -> 216 quả; 425 * 0.5 = 212.5 quả -> 213 quả
+ * Tính số lượng đợt: giữ số lẻ theo độ chính xác lưu trữ, không làm tròn theo đơn vị đếm
+ * Ví dụ: 431 * 0.5 = 215.5 quả, giữ nguyên 215.5.
  */
 export const calcBatchQty = (qtyPerPortion, portions, unit = "") => {
   const raw = Number(qtyPerPortion) * Number(portions);
   if (isDiscreteUnit(unit)) {
-    return Math.ceil(raw);
+    return Number(raw.toFixed(3));
   }
-  return Number(raw.toFixed(2));
+  return Number(raw.toFixed(3));
 };
 
 export const calcQtyPerPortion = (batchQty, portions) => {
   if (!portions || portions <= 0) return 0;
-  return Number((Number(batchQty) / portions).toFixed(4));
+  return Number((Number(batchQty) / portions).toFixed(12));
 };
 
 export default function CreateDeliveryView({
@@ -263,6 +267,7 @@ export default function CreateDeliveryView({
   onSubmitBatch1,
   onSubmitBatch2,
 }) {
+  const unitCatalog = useMeasurementUnits();
   const effectiveMenus = useMemo(() => {
     return Array.isArray(menus) ? menus : [];
   }, [menus]);
@@ -438,7 +443,10 @@ export default function CreateDeliveryView({
         }
       })
       .catch((err) => {
-        console.warn("[CreateDeliveryView] Không thể tải danh sách khối trường:", err);
+        console.warn(
+          "[CreateDeliveryView] Không thể tải danh sách khối trường:",
+          err,
+        );
       });
     return () => {
       active = false;
@@ -482,7 +490,9 @@ export default function CreateDeliveryView({
       (m) =>
         m.isSchoolWide === true ||
         m.targetScope === "Toàn trường" ||
-        String(m.name || m.title || "").toLowerCase().includes("toàn trường"),
+        String(m.name || m.title || "")
+          .toLowerCase()
+          .includes("toàn trường"),
     );
 
     if (schoolWideMenu) {
@@ -547,9 +557,7 @@ export default function CreateDeliveryView({
             const normC = String(cName).toLowerCase();
             const normG = String(g.name).toLowerCase();
             return (
-              normC === normG ||
-              normC.includes(normG) ||
-              normG.includes(normC)
+              normC === normG || normC.includes(normG) || normG.includes(normC)
             );
           });
           return !idMatched && !nameMatched;
@@ -624,9 +632,7 @@ export default function CreateDeliveryView({
         );
       }
       if (Array.isArray(m.days) && m.days.length > 0) {
-        return m.days.some(
-          (d) => String(d.date || "").slice(0, 10) === target,
-        );
+        return m.days.some((d) => String(d.date || "").slice(0, 10) === target);
       }
       return true;
     });
@@ -780,7 +786,8 @@ export default function CreateDeliveryView({
   const unfinalizedClasses = (attendanceSummary?.classes || []).filter(
     (cls) => Number(cls.registeredPortions) > 0 && cls.status !== "FINALIZED",
   );
-  const attendanceReady = Boolean(attendanceSummary) && unfinalizedClasses.length === 0;
+  const attendanceReady =
+    Boolean(attendanceSummary) && unfinalizedClasses.length === 0;
 
   const remainingByMenu = useMemo(() => {
     const res = {};
@@ -808,7 +815,8 @@ export default function CreateDeliveryView({
       // 2. Đối chiếu theo tên khối hoặc tên lớp
       const cGrade = String(cls.gradeName || "").toLowerCase();
       const cName = String(cls.className || "").trim();
-      const mText = `${m.targetScope || ""} ${m.name || ""} ${m.title || ""}`.toLowerCase();
+      const mText =
+        `${m.targetScope || ""} ${m.name || ""} ${m.title || ""}`.toLowerCase();
 
       // Khối 1-3
       if (
@@ -828,8 +836,7 @@ export default function CreateDeliveryView({
       // Khối 4-5
       if (
         mText.includes("4-5") ||
-        (!mText.includes("1-3") &&
-          (mText.includes("4") || mText.includes("5")))
+        (!mText.includes("1-3") && (mText.includes("4") || mText.includes("5")))
       ) {
         if (cGrade.includes("4") || cGrade.includes("5")) return true;
         if (/^[45]/i.test(cName)) return true;
@@ -948,11 +955,8 @@ export default function CreateDeliveryView({
 
         fresh.forEach((ing) => {
           const key = (ing.name || "").trim().toLowerCase();
-          const itemUnit = isDiscreteUnit(ing.unit) ? ing.unit : "kg";
+          const itemUnit = ing.unit || "kg";
           let rawRate = Number(ing.qtyPerPortion) || 0.05;
-          if (itemUnit === "kg" && rawRate >= 1) {
-            rawRate = Number((rawRate / 1000).toFixed(4));
-          }
 
           if (!groupedMap.has(key)) {
             groupedMap.set(key, {
@@ -1006,12 +1010,15 @@ export default function CreateDeliveryView({
               mScope = "Khối 1-3";
             else if (menu.name?.includes("4-5") || menu.title?.includes("4-5"))
               mScope = "Khối 4-5";
-            else if (Array.isArray(menu.gradeNames) && menu.gradeNames.length > 0)
+            else if (
+              Array.isArray(menu.gradeNames) &&
+              menu.gradeNames.length > 0
+            )
               mScope = menu.gradeNames.join(" - ");
             else mScope = menu.name || "Khối lớp";
           }
 
-          const calcContribution = Number((rate * mPortions).toFixed(2));
+          const calcContribution = Number((rate * mPortions).toFixed(3));
           entry.contributions.push({
             menuId: menu.id,
             menuName: menu.name,
@@ -1030,7 +1037,7 @@ export default function CreateDeliveryView({
           (acc, c) => acc + c.calculatedQty,
           0,
         );
-        const stdQty = isDiscrete ? Math.ceil(rawSum) : Number(rawSum.toFixed(2));
+        const stdQty = Number(rawSum.toFixed(3));
         const isMulti = entry.contributions.length > 1;
 
         const displayRate = isMulti
@@ -1092,7 +1099,7 @@ export default function CreateDeliveryView({
         if (Array.isArray(item.breakdown) && item.breakdown.length > 0) {
           newBreakdown = item.breakdown.map((bd) => {
             const mRem = remainingByMenu[bd.menuId]?.remaining ?? 0;
-            const cQty = Number(((bd.qtyPerPortion || 0) * mRem).toFixed(2));
+            const cQty = Number(((bd.qtyPerPortion || 0) * mRem).toFixed(3));
             return {
               ...bd,
               portions: mRem,
@@ -1103,9 +1110,7 @@ export default function CreateDeliveryView({
             (acc, b) => acc + b.calculatedQty,
             0,
           );
-          newStdQty = isDiscrete
-            ? Math.ceil(rawSum)
-            : Number(rawSum.toFixed(2));
+          newStdQty = Number(rawSum.toFixed(3));
         } else {
           newStdQty = calcBatchQty(
             item.qtyPerPortion,
@@ -1115,9 +1120,7 @@ export default function CreateDeliveryView({
         }
 
         const extra = Number(item.extraQty) || 0;
-        const total = isDiscrete
-          ? Math.ceil(newStdQty + extra)
-          : Number((newStdQty + extra).toFixed(2));
+        const total = Number((newStdQty + extra).toFixed(3));
 
         return {
           ...item,
@@ -1134,13 +1137,13 @@ export default function CreateDeliveryView({
   const handleAddExtraIngredient = () => {
     if (!selectedIngredient) return;
     const num = parseFloat(extraQtyInput);
-    if (isNaN(num) || num <= 0) return;
+    if (quantityError(extraQtyInput)) return;
 
     const rawUnit =
       selectedIngredient.defaultUnit || selectedIngredient.unit || "kg";
-    const unit = isDiscreteUnit(rawUnit) ? rawUnit : "kg";
+    const unit = rawUnit;
     const isDiscrete = isDiscreteUnit(unit);
-    const addQty = isDiscrete ? Math.ceil(num) : Number(num.toFixed(2));
+    const addQty = Number(num.toFixed(3));
 
     setItemsState((prev) => {
       // 1. Nếu nguyên liệu đã có sẵn trong bảng thực phẩm -> Điền vào cột "Giao thêm" riêng biệt
@@ -1153,13 +1156,9 @@ export default function CreateDeliveryView({
       if (existingIdx !== -1) {
         const updated = [...prev];
         const currentExtra = Number(updated[existingIdx].extraQty) || 0;
-        const newExtra = isDiscrete
-          ? Math.ceil(currentExtra + addQty)
-          : Number((currentExtra + addQty).toFixed(2));
+        const newExtra = Number((currentExtra + addQty).toFixed(3));
         const std = Number(updated[existingIdx].standardQty) || 0;
-        const total = isDiscrete
-          ? Math.ceil(std + newExtra)
-          : Number((std + newExtra).toFixed(2));
+        const total = Number((std + newExtra).toFixed(3));
 
         updated[existingIdx] = {
           ...updated[existingIdx],
@@ -1215,11 +1214,13 @@ export default function CreateDeliveryView({
           const isDiscrete = isDiscreteUnit(item.unit);
           const isKg = isKgUnit(item.unit);
           const rateInItemUnit = isKg ? num / 1000 : num;
-          const newStdQty = calcBatchQty(rateInItemUnit, batch1Portions, item.unit);
+          const newStdQty = calcBatchQty(
+            rateInItemUnit,
+            batch1Portions,
+            item.unit,
+          );
           const extra = Number(item.extraQty) || 0;
-          const total = isDiscrete
-            ? Math.ceil(newStdQty + extra)
-            : Number((newStdQty + extra).toFixed(2));
+          const total = Number((newStdQty + extra).toFixed(3));
 
           return {
             ...item,
@@ -1252,15 +1253,13 @@ export default function CreateDeliveryView({
         if (!isNaN(num) && num > 0 && batch1Portions > 0) {
           const isDiscrete = isDiscreteUnit(item.unit);
           const isKg = isKgUnit(item.unit);
-          const finalStdQty = isDiscrete ? Math.round(num) : num;
+          const finalStdQty = num;
           const newPortion = calcQtyPerPortion(finalStdQty, batch1Portions);
           const displayPortion = isKg
             ? Number((newPortion * 1000).toFixed(2))
             : newPortion;
           const extra = Number(item.extraQty) || 0;
-          const total = isDiscrete
-            ? Math.ceil(finalStdQty + extra)
-            : Number((finalStdQty + extra).toFixed(2));
+          const total = Number((finalStdQty + extra).toFixed(3));
 
           return {
             ...item,
@@ -1290,11 +1289,9 @@ export default function CreateDeliveryView({
         const isDiscrete = isDiscreteUnit(item.unit);
 
         if (!isNaN(num) && num >= 0) {
-          const finalExtra = isDiscrete ? Math.round(num) : num;
+          const finalExtra = num;
           const std = Number(item.standardQty) || 0;
-          const total = isDiscrete
-            ? Math.ceil(std + finalExtra)
-            : Number((std + finalExtra).toFixed(2));
+          const total = Number((std + finalExtra).toFixed(3));
 
           return {
             ...item,
@@ -1335,6 +1332,8 @@ export default function CreateDeliveryView({
   };
 
   const handleStandardQtyBlur = (id) => {
+    const candidate = itemsState.find((item) => item.id === id);
+    if (candidate && quantityError(candidate.standardQtyInput)) return;
     setItemsState((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
@@ -1345,7 +1344,7 @@ export default function CreateDeliveryView({
             standardQtyInput: String(item.standardQty),
           };
         }
-        const finalVal = isDiscreteUnit(item.unit) ? Math.round(num) : num;
+        const finalVal = num;
         return {
           ...item,
           standardQty: finalVal,
@@ -1356,6 +1355,14 @@ export default function CreateDeliveryView({
   };
 
   const handleExtraQtyBlur = (id) => {
+    const candidate = itemsState.find((item) => item.id === id);
+    if (
+      candidate &&
+      candidate.extraQtyInput &&
+      quantityError(candidate.extraQtyInput) &&
+      Number(candidate.extraQtyInput) !== 0
+    )
+      return;
     setItemsState((prev) =>
       prev.map((item) => {
         if (item.id !== id) return item;
@@ -1396,6 +1403,23 @@ export default function CreateDeliveryView({
     if (itemsState.length === 0) {
       notice({
         msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
+        isSuccess: false,
+      });
+      return;
+    }
+    const invalidItem = itemsState.find(
+      (item) =>
+        quantityError(item.batchQty) ||
+        (!item.isExtraItem &&
+          mode === "BATCH_1" &&
+          quantityError(item.standardQtyInput)) ||
+        (item.extraQtyInput &&
+          Number(item.extraQtyInput) !== 0 &&
+          quantityError(item.extraQtyInput)),
+    );
+    if (invalidItem) {
+      notice({
+        msg: `${invalidItem.name}: số lượng phải dương và tối đa 3 chữ số thập phân`,
         isSuccess: false,
       });
       return;
@@ -1442,7 +1466,10 @@ export default function CreateDeliveryView({
     } catch (error) {
       // Ví dụ: nguyên liệu không có trong danh mục trường hoặc trùng tên nhiều NCC; không đơn nào được tạo.
       notice({
-        msg: error?.response?.data?.message || error?.message || "Không tạo được đơn đặt hàng.",
+        msg:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Không tạo được đơn đặt hàng.",
         isSuccess: false,
       });
     } finally {
@@ -1470,6 +1497,23 @@ export default function CreateDeliveryView({
     if (itemsState.length === 0) {
       notice({
         msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
+        isSuccess: false,
+      });
+      return;
+    }
+    const invalidItem = itemsState.find(
+      (item) =>
+        quantityError(item.batchQty) ||
+        (!item.isExtraItem &&
+          mode === "BATCH_1" &&
+          quantityError(item.standardQtyInput)) ||
+        (item.extraQtyInput &&
+          Number(item.extraQtyInput) !== 0 &&
+          quantityError(item.extraQtyInput)),
+    );
+    if (invalidItem) {
+      notice({
+        msg: `${invalidItem.name}: số lượng phải dương và tối đa 3 chữ số thập phân`,
         isSuccess: false,
       });
       return;
@@ -1503,7 +1547,10 @@ export default function CreateDeliveryView({
     } catch (error) {
       // Ví dụ: nguyên liệu không có trong danh mục trường hoặc trùng tên nhiều NCC; không đơn nào được tạo.
       notice({
-        msg: error?.response?.data?.message || error?.message || "Không tạo được đơn đặt hàng.",
+        msg:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Không tạo được đơn đặt hàng.",
         isSuccess: false,
       });
     } finally {
@@ -1513,6 +1560,14 @@ export default function CreateDeliveryView({
 
   return (
     <Box className={styles.container}>
+      {unitCatalog.error && (
+        <Alert
+          severity="warning"
+          action={<Button onClick={unitCatalog.retry}>Thử lại</Button>}
+        >
+          {unitCatalog.error}
+        </Alert>
+      )}
       {/* 1. Header Navigation */}
       <Box className={styles.navHeader}>
         <Box className={styles.navLeft}>
@@ -1582,24 +1637,21 @@ export default function CreateDeliveryView({
                 size="small"
                 sx={{
                   height: 24,
-                  bgcolor:
-                    !hasMenusInWeek
-                      ? "#fef2f2"
-                      : !menuCompleteness.isComplete
-                        ? "#fff7ed"
-                        : "#eff6ff",
-                  color:
-                    !hasMenusInWeek
-                      ? "#b91c1c"
-                      : !menuCompleteness.isComplete
-                        ? "#c2410c"
-                        : "#1e40af",
-                  borderColor:
-                    !hasMenusInWeek
-                      ? "#fecaca"
-                      : !menuCompleteness.isComplete
-                        ? "#fed7aa"
-                        : "#bfdbfe",
+                  bgcolor: !hasMenusInWeek
+                    ? "#fef2f2"
+                    : !menuCompleteness.isComplete
+                      ? "#fff7ed"
+                      : "#eff6ff",
+                  color: !hasMenusInWeek
+                    ? "#b91c1c"
+                    : !menuCompleteness.isComplete
+                      ? "#c2410c"
+                      : "#1e40af",
+                  borderColor: !hasMenusInWeek
+                    ? "#fecaca"
+                    : !menuCompleteness.isComplete
+                      ? "#fed7aa"
+                      : "#bfdbfe",
                   fontWeight: 600,
                   fontSize: "0.75rem",
                   border: "1px solid",
@@ -1754,7 +1806,8 @@ export default function CreateDeliveryView({
             <CalendarCheck size={36} className={styles.completedIcon} />
             <Box>
               <Typography variant="h6" className={styles.completedTitle}>
-                Ngày {formatDateVN(orderDate)} Đã Hoàn Thành Lập Cả 2 Đợt Giao Hàng!
+                Ngày {formatDateVN(orderDate)} Đã Hoàn Thành Lập Cả 2 Đợt Giao
+                Hàng!
               </Typography>
               <Typography variant="body2" className={styles.completedDesc}>
                 Đơn hàng đã được chia 2 đợt đầy đủ: Đợt 1 (
@@ -1861,7 +1914,11 @@ export default function CreateDeliveryView({
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip
-                  label={isTableLoading ? "Đang tải..." : `${itemsState.length} mặt hàng`}
+                  label={
+                    isTableLoading
+                      ? "Đang tải..."
+                      : `${itemsState.length} mặt hàng`
+                  }
                   size="small"
                   className={styles.freshItemCountBadge}
                 />
@@ -1883,8 +1940,7 @@ export default function CreateDeliveryView({
                       style={{ width: 160 }}
                     >
                       SL theo suất
-                      <br />
-                      ({batch1Portions} suất)
+                      <br />({batch1Portions} suất)
                     </TableCell>
                   </TableRow>
                 </TableHead>
@@ -1928,7 +1984,8 @@ export default function CreateDeliveryView({
                             variant="body2"
                             sx={{ color: "#64748b", fontWeight: 500 }}
                           >
-                            Không có nguyên liệu trực tiếp (tươi sống) nào cho ngày này.
+                            Không có nguyên liệu trực tiếp (tươi sống) nào cho
+                            ngày này.
                           </Typography>
                         </Box>
                       </TableCell>
@@ -2019,13 +2076,18 @@ export default function CreateDeliveryView({
                                     size="small"
                                     value={ing.portionInput}
                                     onChange={(e) =>
-                                      handlePortionChange(ing.id, e.target.value)
+                                      handlePortionChange(
+                                        ing.id,
+                                        e.target.value,
+                                      )
                                     }
                                     onBlur={() => handlePortionBlur(ing.id)}
                                     className={styles.cellInput}
                                     slotProps={{
                                       htmlInput: {
-                                        step: isKgUnit(ing.unit) ? "1" : "0.001",
+                                        step: isKgUnit(ing.unit)
+                                          ? "1"
+                                          : "0.001",
                                         min: isKgUnit(ing.unit) ? "1" : "0.001",
                                         style: {
                                           textAlign: "right",
@@ -2034,7 +2096,9 @@ export default function CreateDeliveryView({
                                       },
                                       input: {
                                         endAdornment: (
-                                          <span className={styles.inputAdornment}>
+                                          <span
+                                            className={styles.inputAdornment}
+                                          >
                                             {getPortionUnit(ing.unit)}/suất
                                           </span>
                                         ),
@@ -2063,6 +2127,17 @@ export default function CreateDeliveryView({
                                     type="number"
                                     size="small"
                                     value={ing.standardQtyInput}
+                                    error={Boolean(
+                                      quantityError(ing.standardQtyInput),
+                                    )}
+                                    helperText={
+                                      <QuantityRecommendation
+                                        value={ing.standardQtyInput}
+                                        unit={ing.unit}
+                                        units={unitCatalog.units}
+                                        validate
+                                      />
+                                    }
                                     onChange={(e) =>
                                       handleStandardQtyChange(
                                         ing.id,
@@ -2073,8 +2148,8 @@ export default function CreateDeliveryView({
                                     className={`${styles.cellInput} ${styles.batch1CellInput}`}
                                     slotProps={{
                                       htmlInput: {
-                                        step: isDiscrete ? "1" : "0.01",
-                                        min: isDiscrete ? "1" : "0.01",
+                                        step: "any",
+                                        min: "0.001",
                                         style: {
                                           textAlign: "right",
                                           padding: "6px 8px",
@@ -2083,8 +2158,10 @@ export default function CreateDeliveryView({
                                       },
                                       input: {
                                         endAdornment: (
-                                          <span className={styles.inputAdornment}>
-                                            {isDiscrete ? ing.unit : "kg"}
+                                          <span
+                                            className={styles.inputAdornment}
+                                          >
+                                            {ing.unit}
                                           </span>
                                         ),
                                       },
@@ -2125,9 +2202,9 @@ export default function CreateDeliveryView({
                                       mb: 1,
                                     }}
                                   >
-                                    <Layers size={14} color="#2563eb" /> Chi tiết
-                                    định lượng &amp; số lượng theo từng thực đơn /
-                                    khối lớp:
+                                    <Layers size={14} color="#2563eb" /> Chi
+                                    tiết định lượng &amp; số lượng theo từng
+                                    thực đơn / khối lớp:
                                   </Typography>
                                   <Box
                                     sx={{
@@ -2179,7 +2256,9 @@ export default function CreateDeliveryView({
                                           }}
                                         >
                                           = {b.calculatedQty}{" "}
-                                          {isDiscrete ? b.unit || ing.unit : "kg"}
+                                          {isDiscrete
+                                            ? b.unit || ing.unit
+                                            : "kg"}
                                         </Typography>
                                       </Box>
                                     ))}
@@ -2214,7 +2293,11 @@ export default function CreateDeliveryView({
           <Box className={styles.footerWrap}>
             <Box className={styles.summaryBadges}>
               <Chip
-                label={isTableLoading ? "Đang tải..." : `${itemsState.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`}
+                label={
+                  isTableLoading
+                    ? "Đang tải..."
+                    : `${itemsState.length} mặt hàng tươi sống (100% Đồ tươi Đợt 1)`
+                }
                 size="small"
                 className={styles.summaryFreshBadge}
               />
@@ -2267,9 +2350,7 @@ export default function CreateDeliveryView({
                     }
                     className={styles.submitBtn}
                   >
-                    {submitting
-                      ? "Đang gửi..."
-                      : "Tạo"}
+                    {submitting ? "Đang gửi..." : "Tạo"}
                   </Button>
                 </span>
               </Tooltip>
@@ -2312,7 +2393,6 @@ export default function CreateDeliveryView({
             </Box>
 
             <Box className={styles.attendanceBody}>
-
               <Box className={styles.attendanceStatsRow}>
                 <Box className={styles.attendanceStatBox}>
                   <Typography variant="caption" color="text.secondary">
@@ -2327,9 +2407,18 @@ export default function CreateDeliveryView({
                     }}
                   >
                     {attendanceLoading ? (
-                      <Box sx={{ display: "inline-flex", alignItems: "center", gap: 1 }}>
+                      <Box
+                        sx={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 1,
+                        }}
+                      >
                         <FoodPrintLoading size={18} />
-                        <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: "#64748b", fontWeight: 500 }}
+                        >
                           Đang tải sĩ số...
                         </Typography>
                       </Box>
@@ -2451,7 +2540,10 @@ export default function CreateDeliveryView({
                         color: "#2563eb",
                         p: 0,
                         minWidth: 0,
-                        "&:hover": { bgcolor: "transparent", textDecoration: "underline" },
+                        "&:hover": {
+                          bgcolor: "transparent",
+                          textDecoration: "underline",
+                        },
                       }}
                     >
                       {showGradeBalance ? "Thu gọn" : "Xem chi tiết"}
@@ -2752,7 +2844,11 @@ export default function CreateDeliveryView({
               </Box>
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Chip
-                  label={isTableLoading ? "Đang tải..." : `Đợt 2: ${itemsState.length} mặt hàng`}
+                  label={
+                    isTableLoading
+                      ? "Đang tải..."
+                      : `Đợt 2: ${itemsState.length} mặt hàng`
+                  }
                   size="small"
                   color={parsedAttendance > 0 ? "warning" : "default"}
                 />
@@ -2787,8 +2883,7 @@ export default function CreateDeliveryView({
                       style={{ width: 160 }}
                     >
                       SL theo suất
-                      <br />
-                      ({remainingPortions} suất)
+                      <br />({remainingPortions} suất)
                     </TableCell>
                     <TableCell
                       align="right"
@@ -2952,19 +3047,41 @@ export default function CreateDeliveryView({
                                   variant="subtitle2"
                                   className={styles.batch2QtyText}
                                 >
-                                  {ing.standardQty} {isDiscrete ? ing.unit : "kg"}
+                                  {ing.standardQty} {ing.unit}
                                 </Typography>
                               )}
                             </TableCell>
 
                             {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
-                            <TableCell align="right" className={styles.extraCell}>
+                            <TableCell
+                              align="right"
+                              className={styles.extraCell}
+                            >
                               <Box className={styles.editableCellWrapRight}>
                                 <TextField
                                   type="number"
                                   size="small"
                                   placeholder="0"
                                   value={ing.extraQtyInput}
+                                  error={Boolean(
+                                    ing.extraQtyInput &&
+                                    Number(ing.extraQtyInput) !== 0 &&
+                                    quantityError(ing.extraQtyInput),
+                                  )}
+                                  helperText={
+                                    <QuantityRecommendation
+                                      value={
+                                        ing.extraQtyInput &&
+                                          Number(ing.extraQtyInput) !== 0 &&
+                                          quantityError(ing.extraQtyInput)
+                                          ? ing.extraQtyInput
+                                          : ing.batchQty
+                                      }
+                                      unit={ing.unit}
+                                      units={unitCatalog.units}
+                                      validate
+                                    />
+                                  }
                                   onChange={(e) =>
                                     handleExtraQtyChange(ing.id, e.target.value)
                                   }
@@ -2972,7 +3089,7 @@ export default function CreateDeliveryView({
                                   className={`${styles.cellInput} ${styles.extraCellInput}`}
                                   slotProps={{
                                     htmlInput: {
-                                      step: isDiscrete ? "1" : "0.01",
+                                      step: "any",
                                       min: "0",
                                       style: {
                                         textAlign: "right",
@@ -2995,7 +3112,7 @@ export default function CreateDeliveryView({
                                                 : "#64748b",
                                           }}
                                         >
-                                          {isDiscrete ? ing.unit : "kg"}
+                                          {ing.unit}
                                         </span>
                                       ),
                                     },
@@ -3005,12 +3122,15 @@ export default function CreateDeliveryView({
                             </TableCell>
 
                             {/* Cột 4: Tổng SL Đợt 2 (= Theo suất + Giao thêm) */}
-                            <TableCell align="right" className={styles.totalCell}>
+                            <TableCell
+                              align="right"
+                              className={styles.totalCell}
+                            >
                               <Typography
                                 variant="subtitle2"
                                 className={styles.totalQtyText}
                               >
-                                {ing.batchQty} {isDiscrete ? ing.unit : "kg"}
+                                {ing.batchQty} {ing.unit}
                               </Typography>
                             </TableCell>
 
@@ -3072,9 +3192,9 @@ export default function CreateDeliveryView({
                                       mb: 1,
                                     }}
                                   >
-                                    <Layers size={14} color="#2563eb" /> Chi tiết
-                                    định lượng &amp; số lượng theo từng thực đơn /
-                                    khối lớp (Đợt 2):
+                                    <Layers size={14} color="#2563eb" /> Chi
+                                    tiết định lượng &amp; số lượng theo từng
+                                    thực đơn / khối lớp (Đợt 2):
                                   </Typography>
                                   <Box
                                     sx={{
@@ -3126,7 +3246,9 @@ export default function CreateDeliveryView({
                                           }}
                                         >
                                           = {b.calculatedQty}{" "}
-                                          {isDiscrete ? b.unit || ing.unit : "kg"}
+                                          {isDiscrete
+                                            ? b.unit || ing.unit
+                                            : "kg"}
                                         </Typography>
                                       </Box>
                                     ))}
@@ -3161,7 +3283,11 @@ export default function CreateDeliveryView({
           <Box className={styles.footerWrap}>
             <Box className={styles.summaryBadges}>
               <Chip
-                label={isTableLoading ? "Đang tải..." : `${itemsState.length} mặt hàng (Đợt 2: ${remainingPortions} suất)`}
+                label={
+                  isTableLoading
+                    ? "Đang tải..."
+                    : `${itemsState.length} mặt hàng (Đợt 2: ${remainingPortions} suất)`
+                }
                 size="small"
                 className={styles.summaryFreshBadge}
               />
@@ -3355,16 +3481,8 @@ export default function CreateDeliveryView({
             disabled={!selectedIngredient}
             slotProps={{
               htmlInput: {
-                step: isDiscreteUnit(
-                  selectedIngredient?.defaultUnit || selectedIngredient?.unit,
-                )
-                  ? "1"
-                  : "0.01",
-                min: isDiscreteUnit(
-                  selectedIngredient?.defaultUnit || selectedIngredient?.unit,
-                )
-                  ? "1"
-                  : "0.01",
+                step: "any",
+                min: "0.001",
                 style: { fontWeight: 700 },
               },
               input: {
@@ -3381,11 +3499,14 @@ export default function CreateDeliveryView({
               },
             }}
             helperText={
-              isDiscreteUnit(
-                selectedIngredient?.defaultUnit || selectedIngredient?.unit,
-              )
-                ? "Đơn vị đếm được (quả, hộp, gói...) sẽ tự động làm tròn thành số nguyên."
-                : ""
+              <QuantityRecommendation
+                value={extraQtyInput}
+                unit={
+                  selectedIngredient?.defaultUnit || selectedIngredient?.unit
+                }
+                units={unitCatalog.units}
+                validate={Boolean(extraQtyInput)}
+              />
             }
           />
         </DialogContent>

@@ -1,0 +1,8 @@
+.fields {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-3) !important;
+}
+.actions button {
+  min-height: 44px;
+}

@@ -1,52 +1,48 @@
-import { useEffect, useId, useRef, useState } from "react"
-import { CircularProgress } from "@mui/material"
+import { useEffect, useId, useRef, useState } from "react";
+import { CircularProgress } from "@mui/material";
 import {
   Add,
   Close,
   EditOutlined,
   ImageOutlined,
   KeyboardArrowDown,
-} from "@mui/icons-material"
+} from "@mui/icons-material";
 import SupplierIngredientService, {
-  DEFAULT_UNITS,
   INGREDIENT_STATUS,
-} from "src/services/SupplierIngredientService"
-import styles from "../IngredientCatalog.module.scss"
-import ConfirmHideDialog from "./ConfirmHideDialog"
+} from "src/services/SupplierIngredientService";
+import styles from "../IngredientCatalog.module.scss";
+import ConfirmHideDialog from "./ConfirmHideDialog";
 
-const MAX_DESC_IMAGES = 5
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024
+const MAX_DESC_IMAGES = 5;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 function extractUploadErrorMessage(error, fallback) {
-  const apiData = error?.response?.data
+  const apiData = error?.response?.data;
   return (
-    apiData?.error?.message ||
-    apiData?.message ||
-    error?.message ||
-    fallback
-  )
+    apiData?.error?.message || apiData?.message || error?.message || fallback
+  );
 }
 
 export function isValidBackendImageRef(value) {
-  if (typeof value !== "string") return false
-  const trimmed = value.trim()
-  if (!trimmed || trimmed.length > 2048) return false
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 2048) return false;
   for (let i = 0; i < trimmed.length; i += 1) {
-    const code = trimmed.charCodeAt(i)
-    if (code < 32 || code === 127 || trimmed[i] === "\\") return false
+    const code = trimmed.charCodeAt(i);
+    if (code < 32 || code === 127 || trimmed[i] === "\\") return false;
   }
   if (trimmed.startsWith("/")) {
-    return !trimmed.startsWith("//")
+    return !trimmed.startsWith("//");
   }
   try {
-    const parsed = new URL(trimmed)
+    const parsed = new URL(trimmed);
     return (
       ["http:", "https:"].includes(parsed.protocol) &&
       !parsed.username &&
       !parsed.password
-    )
+    );
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -56,297 +52,303 @@ const IngredientFormModal = ({
   initialData = null,
   existingItems = [],
   categories = [],
-  units = DEFAULT_UNITS,
+  units = [],
   onClose,
   onSubmit,
   onConfirmStatusChange,
   onConfirmHideStatus,
 }) => {
-  const isEdit = mode === "edit" && Boolean(initialData)
-  const formId = useId()
-  const nameInputRef = useRef(null)
-  const avatarInputRef = useRef(null)
-  const descImageInputRef = useRef(null)
-  const objectUrlsRef = useRef([])
-  const uploadSessionRef = useRef(0)
+  const isEdit = mode === "edit" && Boolean(initialData);
+  const formId = useId();
+  const nameInputRef = useRef(null);
+  const avatarInputRef = useRef(null);
+  const descImageInputRef = useRef(null);
+  const objectUrlsRef = useRef([]);
+  const uploadSessionRef = useRef(0);
 
-  const [name, setName] = useState("")
-  const [categoryId, setCategoryId] = useState("")
-  const [defaultUnit, setDefaultUnit] = useState("")
-  const [description, setDescription] = useState("")
-  const [status, setStatus] = useState("ACTIVE")
-  const [coverImage, setCoverImage] = useState("")
-  const [imageDescription, setImageDescription] = useState([])
-  const [previewMap, setPreviewMap] = useState({})
-  const [failedPreviews, setFailedPreviews] = useState({})
-  const [uploadingCover, setUploadingCover] = useState(false)
-  const [uploadingDesc, setUploadingDesc] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [submitError, setSubmitError] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [pendingTargetStatus, setPendingTargetStatus] = useState(null)
-  const [changingStatus, setChangingStatus] = useState(false)
-  const [statusError, setStatusError] = useState("")
-  const confirmDialogOpen = pendingTargetStatus !== null
+  const [name, setName] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [defaultUnit, setDefaultUnit] = useState("");
+  const [description, setDescription] = useState("");
+  const [status, setStatus] = useState("ACTIVE");
+  const [coverImage, setCoverImage] = useState("");
+  const [imageDescription, setImageDescription] = useState([]);
+  const [previewMap, setPreviewMap] = useState({});
+  const [failedPreviews, setFailedPreviews] = useState({});
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingDesc, setUploadingDesc] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [pendingTargetStatus, setPendingTargetStatus] = useState(null);
+  const [changingStatus, setChangingStatus] = useState(false);
+  const [statusError, setStatusError] = useState("");
+  const confirmDialogOpen = pendingTargetStatus !== null;
 
   useEffect(() => {
     return () => {
-      uploadSessionRef.current += 1
-      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
-      objectUrlsRef.current = []
-    }
-  }, [])
+      uploadSessionRef.current += 1;
+      objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      objectUrlsRef.current = [];
+    };
+  }, []);
 
   useEffect(() => {
-    uploadSessionRef.current += 1
-    setUploadingCover(false)
-    setUploadingDesc(false)
-    if (!open) return
+    uploadSessionRef.current += 1;
+    setUploadingCover(false);
+    setUploadingDesc(false);
+    if (!open) return;
 
-    objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
-    objectUrlsRef.current = []
-    setPreviewMap({})
-    setFailedPreviews({})
+    objectUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    objectUrlsRef.current = [];
+    setPreviewMap({});
+    setFailedPreviews({});
 
     if (isEdit && initialData) {
-      setName(initialData.name || "")
-      setCategoryId(initialData.categoryId || initialData.category?.id || "")
-      setDefaultUnit(initialData.defaultUnit || "")
-      setDescription(initialData.description || "")
+      setName(initialData.name || "");
+      setCategoryId(initialData.categoryId || initialData.category?.id || "");
+      setDefaultUnit(initialData.defaultUnit || "");
+      setDescription(initialData.description || "");
       setStatus(
         initialData.status === INGREDIENT_STATUS.INACTIVE
           ? INGREDIENT_STATUS.INACTIVE
           : INGREDIENT_STATUS.ACTIVE,
-      )
-      setCoverImage(initialData.coverImage || "")
+      );
+      setCoverImage(initialData.coverImage || "");
       setImageDescription(
         Array.isArray(initialData.imageDescription)
           ? initialData.imageDescription.slice(0, MAX_DESC_IMAGES)
           : [],
-      )
+      );
     } else {
-      setName("")
-      setCategoryId("")
-      setDefaultUnit("")
-      setDescription("")
-      setStatus(INGREDIENT_STATUS.ACTIVE)
-      setCoverImage("")
-      setImageDescription([])
+      setName("");
+      setCategoryId("");
+      setDefaultUnit("");
+      setDescription("");
+      setStatus(INGREDIENT_STATUS.ACTIVE);
+      setCoverImage("");
+      setImageDescription([]);
     }
-    setErrors({})
-    setSubmitError("")
-    setSubmitting(false)
-    setPendingTargetStatus(null)
-    setChangingStatus(false)
-    setStatusError("")
-  }, [open, isEdit, initialData?.id])
+    setErrors({});
+    setSubmitError("");
+    setSubmitting(false);
+    setPendingTargetStatus(null);
+    setChangingStatus(false);
+    setStatusError("");
+  }, [open, isEdit, initialData?.id]);
 
   useEffect(() => {
-    if (!open || !isEdit || !initialData) return
+    if (!open || !isEdit || !initialData) return;
     setStatus(
       initialData.status === INGREDIENT_STATUS.INACTIVE
         ? INGREDIENT_STATUS.INACTIVE
         : INGREDIENT_STATUS.ACTIVE,
-    )
-  }, [open, isEdit, initialData?.status])
+    );
+  }, [open, isEdit, initialData?.status]);
 
   useEffect(() => {
-    if (!open) return undefined
+    if (!open) return undefined;
     const timer = window.setTimeout(() => {
-      nameInputRef.current?.focus()
-    }, 30)
+      nameInputRef.current?.focus();
+    }, 30);
 
-    const handleKeyDown = event => {
+    const handleKeyDown = (event) => {
       if (event.key === "Escape" && !confirmDialogOpen && !submitting) {
-        onClose?.()
+        onClose?.();
       }
-    }
-    window.addEventListener("keydown", handleKeyDown)
+    };
+    window.addEventListener("keydown", handleKeyDown);
     return () => {
-      window.clearTimeout(timer)
-      window.removeEventListener("keydown", handleKeyDown)
-    }
-  }, [open, confirmDialogOpen, submitting, onClose])
+      window.clearTimeout(timer);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, confirmDialogOpen, submitting, onClose]);
 
-  if (!open) return null
+  if (!open) return null;
 
-  const resolvePreviewUrl = refPath => {
-    if (!refPath) return ""
-    return previewMap[refPath] || refPath
-  }
+  const resolvePreviewUrl = (refPath) => {
+    if (!refPath) return "";
+    return previewMap[refPath] || refPath;
+  };
 
-  const handleAvatarChange = async event => {
-    const file = event.target.files?.[0]
-    event.target.value = ""
-    if (!file || uploadingCover) return
+  const handleAvatarChange = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || uploadingCover) return;
 
     if (file.size > MAX_IMAGE_BYTES) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         coverImage: "Ảnh đại diện không được vượt quá 5 MB.",
-      }))
-      return
+      }));
+      return;
     }
 
-    const sessionId = uploadSessionRef.current
-    setUploadingCover(true)
-    setErrors(prev => ({ ...prev, coverImage: "" }))
+    const sessionId = uploadSessionRef.current;
+    setUploadingCover(true);
+    setErrors((prev) => ({ ...prev, coverImage: "" }));
 
     try {
-      const uploaded = await SupplierIngredientService.uploadImage(file)
-      if (uploadSessionRef.current !== sessionId) return
+      const uploaded = await SupplierIngredientService.uploadImage(file);
+      if (uploadSessionRef.current !== sessionId) return;
 
-      const remoteUrl = uploaded?.url || ""
+      const remoteUrl = uploaded?.url || "";
       if (!remoteUrl) {
-        throw new Error("Không nhận được URL ảnh sau khi tải lên.")
+        throw new Error("Không nhận được URL ảnh sau khi tải lên.");
       }
 
-      const blobUrl = URL.createObjectURL(file)
-      objectUrlsRef.current.push(blobUrl)
+      const blobUrl = URL.createObjectURL(file);
+      objectUrlsRef.current.push(blobUrl);
 
-      setPreviewMap(prev => ({ ...prev, [remoteUrl]: blobUrl }))
-      setFailedPreviews(prev => ({ ...prev, [remoteUrl]: false }))
-      setCoverImage(remoteUrl)
+      setPreviewMap((prev) => ({ ...prev, [remoteUrl]: blobUrl }));
+      setFailedPreviews((prev) => ({ ...prev, [remoteUrl]: false }));
+      setCoverImage(remoteUrl);
     } catch (error) {
-      if (uploadSessionRef.current !== sessionId) return
-      setErrors(prev => ({
+      if (uploadSessionRef.current !== sessionId) return;
+      setErrors((prev) => ({
         ...prev,
         coverImage: extractUploadErrorMessage(
           error,
           "Không thể tải lên ảnh đại diện. Vui lòng thử lại.",
         ),
-      }))
+      }));
     } finally {
       if (uploadSessionRef.current === sessionId) {
-        setUploadingCover(false)
+        setUploadingCover(false);
       }
     }
-  }
+  };
 
-  const handleClearAvatar = event => {
-    event.stopPropagation()
-    if (uploadingCover) return
-    setCoverImage("")
-    setErrors(prev => ({ ...prev, coverImage: "" }))
-  }
+  const handleClearAvatar = (event) => {
+    event.stopPropagation();
+    if (uploadingCover) return;
+    setCoverImage("");
+    setErrors((prev) => ({ ...prev, coverImage: "" }));
+  };
 
-  const handleAddDescImages = async event => {
-    const fileList = Array.from(event.target.files || [])
-    event.target.value = ""
-    if (!fileList.length || uploadingDesc) return
+  const handleAddDescImages = async (event) => {
+    const fileList = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (!fileList.length || uploadingDesc) return;
 
-    const remainingSlots = MAX_DESC_IMAGES - imageDescription.length
-    if (remainingSlots <= 0) return
+    const remainingSlots = MAX_DESC_IMAGES - imageDescription.length;
+    if (remainingSlots <= 0) return;
 
-    const selectedFiles = fileList.slice(0, remainingSlots)
-    const oversized = selectedFiles.filter(file => file.size > MAX_IMAGE_BYTES)
-    const validFiles = selectedFiles.filter(file => file.size <= MAX_IMAGE_BYTES)
+    const selectedFiles = fileList.slice(0, remainingSlots);
+    const oversized = selectedFiles.filter(
+      (file) => file.size > MAX_IMAGE_BYTES,
+    );
+    const validFiles = selectedFiles.filter(
+      (file) => file.size <= MAX_IMAGE_BYTES,
+    );
 
     if (validFiles.length === 0) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
         imageDescription: "Mỗi ảnh mô tả không được vượt quá 5 MB.",
-      }))
-      return
+      }));
+      return;
     }
 
-    const sessionId = uploadSessionRef.current
-    setUploadingDesc(true)
-    setErrors(prev => ({ ...prev, imageDescription: "" }))
+    const sessionId = uploadSessionRef.current;
+    setUploadingDesc(true);
+    setErrors((prev) => ({ ...prev, imageDescription: "" }));
 
     try {
-      const results = await SupplierIngredientService.uploadImages(validFiles)
-      if (uploadSessionRef.current !== sessionId) return
+      const results = await SupplierIngredientService.uploadImages(validFiles);
+      if (uploadSessionRef.current !== sessionId) return;
 
-      const nextRefs = []
-      const nextPreviewEntries = {}
-      const nextFailedEntries = {}
-      const failedMessages = []
+      const nextRefs = [];
+      const nextPreviewEntries = {};
+      const nextFailedEntries = {};
+      const failedMessages = [];
 
       if (oversized.length > 0) {
         failedMessages.push(
           `${oversized.length} ảnh vượt quá 5 MB chưa được tải lên.`,
-        )
+        );
       }
 
       results.forEach((result, idx) => {
         if (result?.status === "success" && result?.asset?.url) {
-          const remoteUrl = result.asset.url
-          const sourceFile = validFiles[result.index ?? idx]
+          const remoteUrl = result.asset.url;
+          const sourceFile = validFiles[result.index ?? idx];
           if (sourceFile) {
-            const blobUrl = URL.createObjectURL(sourceFile)
-            objectUrlsRef.current.push(blobUrl)
-            nextPreviewEntries[remoteUrl] = blobUrl
+            const blobUrl = URL.createObjectURL(sourceFile);
+            objectUrlsRef.current.push(blobUrl);
+            nextPreviewEntries[remoteUrl] = blobUrl;
           }
-          nextFailedEntries[remoteUrl] = false
-          nextRefs.push(remoteUrl)
+          nextFailedEntries[remoteUrl] = false;
+          nextRefs.push(remoteUrl);
         } else {
           failedMessages.push(
             result?.error?.message || "Một ảnh tải lên thất bại.",
-          )
+          );
         }
-      })
+      });
 
       if (nextRefs.length > 0) {
-        setPreviewMap(prev => ({ ...prev, ...nextPreviewEntries }))
-        setFailedPreviews(prev => ({ ...prev, ...nextFailedEntries }))
-        setImageDescription(prev =>
+        setPreviewMap((prev) => ({ ...prev, ...nextPreviewEntries }));
+        setFailedPreviews((prev) => ({ ...prev, ...nextFailedEntries }));
+        setImageDescription((prev) =>
           [...prev, ...nextRefs].slice(0, MAX_DESC_IMAGES),
-        )
+        );
       }
 
       if (failedMessages.length > 0) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
           imageDescription: failedMessages[0],
-        }))
+        }));
       }
     } catch (error) {
-      if (uploadSessionRef.current !== sessionId) return
-      setErrors(prev => ({
+      if (uploadSessionRef.current !== sessionId) return;
+      setErrors((prev) => ({
         ...prev,
         imageDescription: extractUploadErrorMessage(
           error,
           "Không thể tải lên ảnh mô tả. Vui lòng thử lại.",
         ),
-      }))
+      }));
     } finally {
       if (uploadSessionRef.current === sessionId) {
-        setUploadingDesc(false)
+        setUploadingDesc(false);
       }
     }
-  }
+  };
 
-  const handleRemoveDescImage = indexToRemove => {
-    setImageDescription(prev => prev.filter((_, idx) => idx !== indexToRemove))
-    setErrors(prev => ({ ...prev, imageDescription: "" }))
-  }
+  const handleRemoveDescImage = (indexToRemove) => {
+    setImageDescription((prev) =>
+      prev.filter((_, idx) => idx !== indexToRemove),
+    );
+    setErrors((prev) => ({ ...prev, imageDescription: "" }));
+  };
 
   const handleToggleStatusClick = () => {
-    if (submitting || uploadingCover || uploadingDesc || changingStatus) return
+    if (submitting || uploadingCover || uploadingDesc || changingStatus) return;
     const nextStatus =
       status === INGREDIENT_STATUS.ACTIVE
         ? INGREDIENT_STATUS.INACTIVE
-        : INGREDIENT_STATUS.ACTIVE
-    setStatusError("")
-    setPendingTargetStatus(nextStatus)
-  }
+        : INGREDIENT_STATUS.ACTIVE;
+    setStatusError("");
+    setPendingTargetStatus(nextStatus);
+  };
 
   const handleConfirmStatusChange = async () => {
     if (!isEdit || !initialData?.id || !pendingTargetStatus || changingStatus) {
-      return
+      return;
     }
-    const targetStatus = pendingTargetStatus
-    setChangingStatus(true)
-    setStatusError("")
+    const targetStatus = pendingTargetStatus;
+    setChangingStatus(true);
+    setStatusError("");
     try {
       if (onConfirmStatusChange) {
-        await onConfirmStatusChange(initialData.id, targetStatus)
+        await onConfirmStatusChange(initialData.id, targetStatus);
       } else if (targetStatus === INGREDIENT_STATUS.INACTIVE) {
-        await onConfirmHideStatus?.(initialData.id)
+        await onConfirmHideStatus?.(initialData.id);
       }
-      setStatus(targetStatus)
-      setPendingTargetStatus(null)
+      setStatus(targetStatus);
+      setPendingTargetStatus(null);
     } catch (error) {
       setStatusError(
         error?.response?.data?.message ||
@@ -354,65 +356,65 @@ const IngredientFormModal = ({
           (targetStatus === INGREDIENT_STATUS.ACTIVE
             ? "Không thể mở lại nguyên liệu. Vui lòng thử lại."
             : "Không thể ẩn nguyên liệu. Vui lòng thử lại."),
-      )
+      );
     } finally {
-      setChangingStatus(false)
+      setChangingStatus(false);
     }
-  }
+  };
 
   const validateForm = () => {
-    const nextErrors = {}
-    const trimmedName = name.trim()
-    const trimmedUnit = defaultUnit.trim()
-    const trimmedCover = coverImage.trim()
+    const nextErrors = {};
+    const trimmedName = name.trim();
+    const trimmedUnit = defaultUnit.trim();
+    const trimmedCover = coverImage.trim();
 
     if (!trimmedName) {
-      nextErrors.name = "Vui lòng nhập tên nguyên liệu."
+      nextErrors.name = "Vui lòng nhập tên nguyên liệu.";
     } else if (trimmedName.length > 255) {
-      nextErrors.name = "Tên nguyên liệu không vượt quá 255 ký tự."
+      nextErrors.name = "Tên nguyên liệu không vượt quá 255 ký tự.";
     } else {
-      const isDuplicate = existingItems.some(item => {
-        if (isEdit && String(item.id) === String(initialData?.id)) return false
-        return item.name?.trim() === trimmedName
-      })
+      const isDuplicate = existingItems.some((item) => {
+        if (isEdit && String(item.id) === String(initialData?.id)) return false;
+        return item.name?.trim() === trimmedName;
+      });
       if (isDuplicate) {
-        nextErrors.name = "Tên nguyên liệu đã tồn tại trong nhà cung cấp."
+        nextErrors.name = "Tên nguyên liệu đã tồn tại trong nhà cung cấp.";
       }
     }
 
     if (!trimmedUnit) {
-      nextErrors.defaultUnit = "Vui lòng nhập hoặc chọn đơn vị tính mặc định."
+      nextErrors.defaultUnit = "Vui lòng nhập hoặc chọn đơn vị tính mặc định.";
     } else if (trimmedUnit.length > 30) {
-      nextErrors.defaultUnit = "Đơn vị tính không vượt quá 30 ký tự."
+      nextErrors.defaultUnit = "Đơn vị tính không vượt quá 30 ký tự.";
     }
 
     if (trimmedCover && !isValidBackendImageRef(trimmedCover)) {
       nextErrors.coverImage =
-        "Ảnh phải là URL HTTP/HTTPS hoặc đường dẫn bắt đầu bằng /."
+        "Ảnh phải là URL HTTP/HTTPS hoặc đường dẫn bắt đầu bằng /.";
     }
 
     const invalidDescImg = imageDescription.find(
-      item => !isValidBackendImageRef(item),
-    )
+      (item) => !isValidBackendImageRef(item),
+    );
     if (invalidDescImg) {
       nextErrors.imageDescription =
-        "Ảnh mô tả phải là URL HTTP/HTTPS hoặc đường dẫn bắt đầu bằng /."
+        "Ảnh mô tả phải là URL HTTP/HTTPS hoặc đường dẫn bắt đầu bằng /.";
     }
 
-    setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
-  }
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
-  const handleFormSubmit = async event => {
-    event.preventDefault()
-    if (submitting || uploadingCover || uploadingDesc) return
-    setSubmitError("")
-    if (!validateForm()) return
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    if (submitting || uploadingCover || uploadingDesc) return;
+    setSubmitError("");
+    if (!validateForm()) return;
 
-    setSubmitting(true)
+    setSubmitting(true);
     try {
-      const trimmedDesc = description.trim()
-      const trimmedCover = coverImage.trim()
+      const trimmedDesc = description.trim();
+      const trimmedCover = coverImage.trim();
 
       await onSubmit?.({
         name: name.trim(),
@@ -421,58 +423,58 @@ const IngredientFormModal = ({
         categoryId: categoryId ? categoryId : null,
         coverImage: trimmedCover ? trimmedCover : null,
         imageDescription: imageDescription
-          .map(item => String(item || "").trim())
+          .map((item) => String(item || "").trim())
           .filter(Boolean)
           .slice(0, MAX_DESC_IMAGES),
-      })
+      });
     } catch (error) {
-      const apiData = error?.response?.data
-      const fieldIssues = apiData?.error?.fields
+      const apiData = error?.response?.data;
+      const fieldIssues = apiData?.error?.fields;
       if (Array.isArray(fieldIssues) && fieldIssues.length > 0) {
-        const mapped = {}
-        fieldIssues.forEach(issue => {
-          const path = String(issue.field || "")
+        const mapped = {};
+        fieldIssues.forEach((issue) => {
+          const path = String(issue.field || "");
           if (path.startsWith("imageDescription")) {
-            mapped.imageDescription = issue.message
+            mapped.imageDescription = issue.message;
           } else if (path) {
-            mapped[path] = issue.message
+            mapped[path] = issue.message;
           }
-        })
-        setErrors(prev => ({ ...prev, ...mapped }))
+        });
+        setErrors((prev) => ({ ...prev, ...mapped }));
       }
       if (error?.response?.status === 409) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
           name:
-            apiData?.message || "Tên nguyên liệu đã tồn tại trong nhà cung cấp.",
-        }))
+            apiData?.message ||
+            "Tên nguyên liệu đã tồn tại trong nhà cung cấp.",
+        }));
       } else {
         setSubmitError(
           apiData?.message ||
             error?.message ||
             "Không thể lưu nguyên liệu. Vui lòng kiểm tra lại dữ liệu.",
-        )
+        );
       }
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
-  const unitListId = `${formId}-unit-options`
-  const coverPreviewUrl = resolvePreviewUrl(coverImage)
+  const coverPreviewUrl = resolvePreviewUrl(coverImage);
 
   return (
     <>
       <div
         className={styles.modalBackdrop}
         role="presentation"
-        onMouseDown={event => {
+        onMouseDown={(event) => {
           if (
             event.target === event.currentTarget &&
             !submitting &&
             !confirmDialogOpen
           ) {
-            onClose?.()
+            onClose?.();
           }
         }}
       >
@@ -551,7 +553,7 @@ const IngredientFormModal = ({
                               alt={name || "Ảnh đại diện nguyên liệu"}
                               className={styles.avatarPreviewImg}
                               onError={() =>
-                                setFailedPreviews(prev => ({
+                                setFailedPreviews((prev) => ({
                                   ...prev,
                                   [coverImage]: true,
                                 }))
@@ -562,7 +564,9 @@ const IngredientFormModal = ({
                             </span>
                           </>
                         ) : (
-                          <ImageOutlined className={styles.placeholderIconSmall} />
+                          <ImageOutlined
+                            className={styles.placeholderIconSmall}
+                          />
                         )}
                       </button>
 
@@ -588,7 +592,10 @@ const IngredientFormModal = ({
 
                 {isEdit && (
                   <div className={styles.statusSwitchGroup}>
-                    <span id={`${formId}-status-label`} className={styles.fieldLabel}>
+                    <span
+                      id={`${formId}-status-label`}
+                      className={styles.fieldLabel}
+                    >
                       Trạng thái hoạt động
                     </span>
                     <div className={styles.statusControlRow}>
@@ -656,8 +663,8 @@ const IngredientFormModal = ({
 
                 <div className={styles.descImageStrip}>
                   {imageDescription.map((imgRef, index) => {
-                    const previewUrl = resolvePreviewUrl(imgRef)
-                    const isFailed = failedPreviews[imgRef]
+                    const previewUrl = resolvePreviewUrl(imgRef);
+                    const isFailed = failedPreviews[imgRef];
 
                     return (
                       <div
@@ -670,7 +677,7 @@ const IngredientFormModal = ({
                             alt={`Ảnh mô tả ${index + 1}`}
                             className={styles.descImagePreview}
                             onError={() =>
-                              setFailedPreviews(prev => ({
+                              setFailedPreviews((prev) => ({
                                 ...prev,
                                 [imgRef]: true,
                               }))
@@ -678,7 +685,9 @@ const IngredientFormModal = ({
                           />
                         ) : (
                           <div className={styles.imagePlaceholderBox}>
-                            <ImageOutlined className={styles.placeholderIconSmall} />
+                            <ImageOutlined
+                              className={styles.placeholderIconSmall}
+                            />
                           </div>
                         )}
                         <button
@@ -690,7 +699,7 @@ const IngredientFormModal = ({
                           <Close className={styles.removeImageIcon} />
                         </button>
                       </div>
-                    )
+                    );
                   })}
 
                   {imageDescription.length < MAX_DESC_IMAGES && (
@@ -735,7 +744,10 @@ const IngredientFormModal = ({
               {/* 3. Tên nguyên liệu */}
               <div className={styles.fieldGroup}>
                 <div className={styles.fieldHeaderRow}>
-                  <label htmlFor={`${formId}-name`} className={styles.fieldLabel}>
+                  <label
+                    htmlFor={`${formId}-name`}
+                    className={styles.fieldLabel}
+                  >
                     <span>{"Tên nguyên liệu "}</span>
                     <span className={styles.requiredMark}>*</span>
                   </label>
@@ -747,9 +759,10 @@ const IngredientFormModal = ({
                   type="text"
                   maxLength={255}
                   value={name}
-                  onChange={event => {
-                    setName(event.target.value)
-                    if (errors.name) setErrors(prev => ({ ...prev, name: "" }))
+                  onChange={(event) => {
+                    setName(event.target.value);
+                    if (errors.name)
+                      setErrors((prev) => ({ ...prev, name: "" }));
                   }}
                   placeholder="Nhập tên nguyên liệu (duy nhất)..."
                   className={`${styles.textInput} ${
@@ -778,16 +791,18 @@ const IngredientFormModal = ({
                       <span>{"Nhóm nguyên liệu "}</span>
                       <span className={styles.requiredMark}>*</span>
                     </label>
-                    <span className={styles.charLimitHint}>Tối đa 120 ký tự</span>
+                    <span className={styles.charLimitHint}>
+                      Tối đa 120 ký tự
+                    </span>
                   </div>
                   <div className={styles.selectWrap}>
                     <select
                       id={`${formId}-category`}
                       value={categoryId}
-                      onChange={event => {
-                        setCategoryId(event.target.value)
+                      onChange={(event) => {
+                        setCategoryId(event.target.value);
                         if (errors.categoryId) {
-                          setErrors(prev => ({ ...prev, categoryId: "" }))
+                          setErrors((prev) => ({ ...prev, categoryId: "" }));
                         }
                       }}
                       className={`${styles.selectControl} ${
@@ -795,7 +810,7 @@ const IngredientFormModal = ({
                       } ${errors.categoryId ? styles.inputError : ""}`}
                     >
                       <option value="">Nhập hoặc chọn nhóm</option>
-                      {categories.map(cat => (
+                      {categories.map((cat) => (
                         <option key={cat.id} value={cat.id}>
                           {cat.categoryName}
                         </option>
@@ -812,36 +827,45 @@ const IngredientFormModal = ({
 
                 <div className={styles.fieldGroup}>
                   <div className={styles.fieldHeaderRow}>
-                    <label htmlFor={`${formId}-unit`} className={styles.fieldLabel}>
+                    <label
+                      htmlFor={`${formId}-unit`}
+                      className={styles.fieldLabel}
+                    >
                       <span>{"Đơn vị tính mặc định "}</span>
                       <span className={styles.requiredMark}>*</span>
                     </label>
-                    <span className={styles.charLimitHint}>Tối đa 30 ký tự</span>
+                    <span className={styles.charLimitHint}>
+                      Tối đa 30 ký tự
+                    </span>
                   </div>
                   <div className={styles.comboInputWrap}>
-                    <input
+                    <select
                       id={`${formId}-unit`}
-                      type="text"
-                      list={unitListId}
-                      maxLength={30}
                       value={defaultUnit}
-                      onChange={event => {
-                        setDefaultUnit(event.target.value)
+                      onChange={(event) => {
+                        setDefaultUnit(event.target.value);
                         if (errors.defaultUnit) {
-                          setErrors(prev => ({ ...prev, defaultUnit: "" }))
+                          setErrors((prev) => ({ ...prev, defaultUnit: "" }));
                         }
                       }}
-                      placeholder="Nhập hoặc chọn đơn vị"
                       className={`${styles.textInput} ${styles.comboInput} ${
                         errors.defaultUnit ? styles.inputError : ""
                       }`}
-                    />
-                    <KeyboardArrowDown className={styles.selectChevron} />
-                    <datalist id={unitListId}>
-                      {units.map(unit => (
-                        <option key={unit} value={unit} />
+                    >
+                      <option value="">Chọn đơn vị tính</option>
+                      {initialData?.defaultUnit &&
+                        !units.includes(initialData.defaultUnit) && (
+                          <option value={initialData.defaultUnit}>
+                            {initialData.defaultUnit} (đã lưu)
+                          </option>
+                        )}
+                      {units.map((unit) => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
                       ))}
-                    </datalist>
+                    </select>
+                    <KeyboardArrowDown className={styles.selectChevron} />
                   </div>
                   {errors.defaultUnit && (
                     <p className={styles.fieldError} role="alert">
@@ -863,10 +887,10 @@ const IngredientFormModal = ({
                 <textarea
                   id={`${formId}-description`}
                   value={description}
-                  onChange={event => {
-                    setDescription(event.target.value)
+                  onChange={(event) => {
+                    setDescription(event.target.value);
                     if (errors.description) {
-                      setErrors(prev => ({ ...prev, description: "" }))
+                      setErrors((prev) => ({ ...prev, description: "" }));
                     }
                   }}
                   placeholder="Nhập quy cách đóng gói, xuất xứ hoặc ghi chú..."
@@ -907,14 +931,14 @@ const IngredientFormModal = ({
         errorMessage={statusError}
         onCancel={() => {
           if (!changingStatus) {
-            setPendingTargetStatus(null)
-            setStatusError("")
+            setPendingTargetStatus(null);
+            setStatusError("");
           }
         }}
         onConfirm={handleConfirmStatusChange}
       />
     </>
-  )
-}
+  );
+};
 
-export default IngredientFormModal
+export default IngredientFormModal;

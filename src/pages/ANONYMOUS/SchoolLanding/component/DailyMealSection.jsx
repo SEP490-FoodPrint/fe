@@ -1,12 +1,10 @@
 import React from "react";
 import PropTypes from "prop-types";
 import {
-  Cake,
-  CheckCircle,
+  CheckCircle2,
   Clock,
-  Coffee,
-  Info,
-  Sparkles,
+  ShieldAlert,
+  ShieldCheck,
   UtensilsCrossed,
 } from "lucide-react";
 import { NO_DATA_TEXT } from "src/constants/ui";
@@ -22,209 +20,190 @@ function DailyMealSection({ dailyMeal, selectedGradeName }) {
   const dateLabel = dailyMeal?.dateLabel || NO_DATA_TEXT;
   const updatedAt = dailyMeal?.updatedAt || NO_DATA_TEXT;
 
-  // API có thể trả bữa xế dưới dạng items hoặc dishes. Helper đưa cả hai về cùng dạng hiển thị.
+  // Chuẩn hóa danh sách món/thức uống bữa phụ
   const snackItems = getSnackItems(snack);
+  const lunchDishes = lunch?.dishes || [];
 
   return (
-    <section id="thuc-don-ngay" className={styles.section}>
+    <section id="thuc-don-ngay" className={styles.section} aria-label="Chi tiết thực đơn hôm nay">
       <div className={styles.container}>
-        {/* Header */}
-        <div className={styles.header}>
+        {/* Header Section: Trình bày thông tin trang trọng, mạch lạc */}
+        <header className={styles.header}>
           <div className={styles.titleArea}>
-            <div className={styles.datePill}>
-              <span className={styles.pulseDot} />
-              <span>{dateLabel}</span>
+            <div className={styles.dateMetaRow}>
+              <span className={styles.dateBadge}>
+                <span className={styles.statusIndicator} />
+                {dateLabel}
+              </span>
               {selectedGradeName && (
-                <span className={styles.gradeTag}>• {selectedGradeName}</span>
+                <span className={styles.gradeBadge}>{selectedGradeName}</span>
               )}
             </div>
             <h2 className={styles.sectionTitle}>Chi tiết bữa ăn hôm nay</h2>
             <p className={styles.sectionSubtitle}>
-              Hình ảnh và thành phần chi tiết của từng bữa ăn trong ngày của học
-              sinh tại trường.
+              Thực đơn khẩu phần bán trú đạt chuẩn dinh dưỡng học đường và kiểm thực minh bạch mỗi ngày.
             </p>
           </div>
 
-          <div className={styles.updateTime}>
-            <Clock size={16} className={styles.clockIcon} />
-            <span>Cập nhật lúc: {updatedAt}</span>
+          <div className={styles.updateStamp}>
+            <Clock size={15} className={styles.clockIcon} />
+            <span>Cập nhật: {updatedAt}</span>
           </div>
-        </div>
+        </header>
 
-        {/* Nội dung: Hiển thị Empty State Banner trong container hoặc Grid món ăn */}
+        {/* Nội dung thực đơn */}
         {!hasData ? (
-          <div className={styles.emptyContainer}>
+          <div className={styles.emptyContainer} role="status">
             <div className={styles.emptyIconBox}>
               <UtensilsCrossed size={32} />
             </div>
             <h3 className={styles.emptyTitle}>
               Chưa có thực đơn cho ngày hôm nay
-              {selectedGradeName
-                ? ` (${selectedGradeName})`
-                : ""}
+              {selectedGradeName ? ` (${selectedGradeName})` : ""}
             </h3>
             <p className={styles.emptyDescription}>
               Nhà trường chưa cập nhật thực đơn hoặc chưa có lịch phục vụ bán trú
-              vào ngày này
-              {selectedGradeName
-                ? ` cho ${selectedGradeName}`
-                : ""}
-              . Phụ huynh vui lòng kiểm tra lại sau hoặc xem thực đơn tuần bên dưới.
+              vào ngày này{selectedGradeName ? ` cho ${selectedGradeName}` : ""}.
+              Phụ huynh vui lòng xem lịch thực đơn tuần chi tiết bên dưới.
             </p>
           </div>
         ) : (
-          <div className={styles.grid}>
-            {/* Card A: Bữa trưa chính (8 cols) */}
-            <div className={styles.lunchCard}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitleGroup}>
-                  <div className={styles.lunchIconBox}>
-                    <UtensilsCrossed size={22} />
-                  </div>
-                  <div>
-                    <h3 className={styles.cardTitle}>
-                      {lunch?.title || NO_DATA_TEXT}
+          <div className={styles.mealCanvas}>
+            {/* KHỐI 1: BỮA TRƯA CHÍNH (CÁC MÓN ĂN ĐƯỢC HIGHLIGHT VỚI SỐ THỨ TỰ) */}
+            <article className={styles.lunchCard}>
+              <div className={styles.cardTopBar}>
+                <div className={styles.mealIdentity}>
+                  <div className={styles.headingWithTags}>
+                    <h3 className={styles.mealTitle}>
+                      {lunch?.title || "Bữa trưa chính"}
                     </h3>
-                    <span className={styles.servingTime}>
-                      Khung giờ phục vụ:{" "}
-                      {lunch?.servingWindow || NO_DATA_TEXT}
-                    </span>
+                    {lunch?.trayType && (
+                      <span className={styles.trayPill}>
+                        {lunch.trayType}
+                      </span>
+                    )}
                   </div>
+                  <div className={styles.servingWindow}>
+                    <span>Khung giờ phục vụ:</span>
+                    <strong>{lunch?.servingWindow || NO_DATA_TEXT}</strong>
+                  </div>
+                </div>
+
+                <div className={styles.dishCountBadge}>
+                  <span>{lunchDishes.length} món tiêu chuẩn</span>
                 </div>
               </div>
 
-              {/* Content: Image & Dishes */}
-              <div className={styles.lunchBody}>
-                <div className={styles.imageCol}>
-                  <div className={styles.lunchImageWrapper}>
-                    <img
-                      src={
-                        lunch?.trayImageUrl ||
-                        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&auto=format&fit=crop&q=80"
-                      }
-                      alt={lunch?.title || "Khay cơm trưa"}
-                      className={styles.lunchImg}
-                      loading="lazy"
-                    />
-                    <span className={styles.trayTag}>
-                      {lunch?.trayType || NO_DATA_TEXT}
-                    </span>
-                  </div>
-                </div>
+              {/* Danh sách món ăn bữa trưa dạng thẻ lớn, nổi bật và trực quan */}
+              <div className={styles.dishesPanel}>
+                <div className={styles.dishGrid}>
+                  {lunchDishes.map((dish, idx) => {
+                    const sub =
+                      dish.substituteDish ||
+                      dish.alternativeDish ||
+                      dish.substitute;
+                    return (
+                      <div key={dish.id || idx} className={styles.dishCard}>
+                        {/* Huy hiệu số thứ tự món nổi bật */}
+                        <div className={styles.dishIndexBadge}>
+                          <span className={styles.dishIndexNum}>
+                            {String(idx + 1).padStart(2, "0")}
+                          </span>
+                        </div>
 
-                <div className={styles.dishesCol}>
-                  <h4 className={styles.dishesTitle}>
-                    <Sparkles size={16} />
-                    <span>Món ăn trong bữa trưa:</span>
-                  </h4>
-
-                  <ul className={styles.dishList}>
-                    {lunch?.dishes?.map((dish, idx) => {
-                      const sub =
-                        dish.substituteDish ||
-                        dish.alternativeDish ||
-                        dish.substitute
-                      return (
-                        <li key={dish.id || idx} className={styles.dishItem}>
-                          <div className={styles.dishNameCol}>
-                            <span className={styles.dishName}>
-                              {idx + 1}. {dish.name}
-                            </span>
-                            {sub && (
-                              <span className={styles.substituteDishNote}>
-                                ({sub.name || sub})
+                        <div className={styles.dishDetails}>
+                          <div className={styles.dishHeadline}>
+                            <h4 className={styles.dishName}>{dish.name}</h4>
+                            {dish.portion && (
+                              <span className={styles.portionBadge}>
+                                <span className={styles.portionPrefix}>Khẩu phần:</span>
+                                <strong className={styles.portionValue}>{dish.portion}</strong>
                               </span>
                             )}
                           </div>
-                          <span className={styles.dishPortion}>
-                            {dish.portion || NO_DATA_TEXT}
-                          </span>
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              </div>
 
-              {/* Footer notes */}
-              <div className={styles.lunchFooter}>
-                <div className={styles.standardRow}>
-                  <CheckCircle size={18} className={styles.checkIcon} />
-                  <span>
-                    {lunch?.standardsNote || NO_DATA_TEXT}
-                  </span>
-                </div>
-                <div className={styles.allergyWarningRow}>
-                  <Info size={16} className={styles.infoIcon} />
-                  <span>
-                    {lunch?.allergyWarning || NO_DATA_TEXT}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Card B: Bữa xế chiều (4 cols) */}
-            <div className={styles.snackCard}>
-              <div className={styles.cardHeader}>
-                <div className={styles.cardTitleGroup}>
-                  <div className={styles.snackIconBox}>
-                    <Cake size={22} />
-                  </div>
-                  <div>
-                    <h3 className={styles.cardTitle}>
-                      {snack?.title || NO_DATA_TEXT}
-                    </h3>
-                    <span className={styles.servingTime}>
-                      Khung giờ phục vụ:{" "}
-                      {snack?.servingWindow || NO_DATA_TEXT}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.snackBody}>
-                <div className={styles.snackImageWrapper}>
-                  <img
-                    src={
-                      snack?.imageUrl ||
-                      "https://images.unsplash.com/photo-1550547660-d9450f859349?w=800&auto=format&fit=crop&q=80"
-                    }
-                    alt={snack?.title || "Bữa xế"}
-                    className={styles.snackImg}
-                    loading="lazy"
-                  />
-                </div>
-
-                <div className={styles.snackItemsList}>
-                  <h4 className={styles.snackItemsTitle}>Khẩu phần gồm có:</h4>
-                  <div className={styles.snackItemsGroup}>
-                    {snackItems.map((item, idx) => (
-                      <div key={item.id || idx} className={styles.snackItem}>
-                        <div className={styles.snackItemIcon}>
-                          {item.icon === "cake" ? (
-                            <Cake size={18} />
-                          ) : (
-                            <Coffee size={18} />
+                          {/* Hộp thông tin món thay thế dị ứng nổi bật */}
+                          {sub && (
+                            <div className={styles.allergySubstituteCard}>
+                              <div className={styles.allergyHeader}>
+                                <ShieldAlert size={14} className={styles.allergyIcon} />
+                                <span className={styles.allergyTitle}>Chế độ thay thế dị ứng:</span>
+                              </div>
+                              <p className={styles.allergyText}>
+                                Cấp riêng: <strong>{sub.name || sub}</strong>
+                              </p>
+                            </div>
                           )}
                         </div>
-                        <div className={styles.snackItemMeta}>
-                          <span className={styles.snackItemName}>
-                            {item.name}
-                          </span>
-                          <span className={styles.snackItemDesc}>
-                            {item.desc}
-                          </span>
-                        </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className={styles.snackFooter}>
-                {snack?.note || NO_DATA_TEXT}
+              {/* Footer kiểm thực và dinh dưỡng */}
+              <footer className={styles.lunchFooter}>
+                <div className={styles.assuranceItem}>
+                  <CheckCircle2 size={16} className={styles.checkIcon} />
+                  <span>{lunch?.standardsNote || "Đạt chuẩn 4 nhóm chất dinh dưỡng học đường"}</span>
+                </div>
+                <div className={styles.assuranceItemSec}>
+                  <ShieldCheck size={16} className={styles.shieldIcon} />
+                  <span>{lunch?.allergyWarning || "Đã lưu mẫu và kiểm thực 3 bước theo quy định BYT"}</span>
+                </div>
+              </footer>
+            </article>
+
+            {/* KHỐI 2: BỮA PHỤ CHIỀU (ĐỒNG BỘ SỐ THỨ TỰ TỪNG MÓN NHƯ MÓN CHÍNH) */}
+            <article className={styles.snackCard}>
+              <div className={styles.snackTopBar}>
+                <div className={styles.mealIdentity}>
+                  <h3 className={styles.snackTitle}>
+                    {snack?.title || "Bữa phụ chiều"}
+                  </h3>
+                  <div className={styles.servingWindow}>
+                    <span>Khung giờ phục vụ:</span>
+                    <strong>{snack?.servingWindow || NO_DATA_TEXT}</strong>
+                  </div>
+                </div>
+
+                <div className={styles.snackCountBadge}>
+                  <span>{snackItems.length} món phụ xế</span>
+                </div>
               </div>
-            </div>
+
+              <div className={styles.snackPanel}>
+                <div className={styles.snackGrid}>
+                  {snackItems.map((item, idx) => (
+                    <div key={item.id || idx} className={styles.snackItemCard}>
+                      {/* Huy hiệu số thứ tự món phụ đồng bộ như món chính */}
+                      <div className={styles.snackIndexBadge}>
+                        <span className={styles.snackIndexNum}>
+                          {String(idx + 1).padStart(2, "0")}
+                        </span>
+                      </div>
+
+                      <div className={styles.snackMeta}>
+                        <div className={styles.snackHeaderRow}>
+                          <h4 className={styles.snackName}>{item.name}</h4>
+                          <span className={styles.snackPill}>Món phụ</span>
+                        </div>
+                        {item.desc && (
+                          <p className={styles.snackDesc}>{item.desc}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {snack?.note && (
+                <div className={styles.snackNoteStrip}>
+                  <span className={styles.noteLabel}>Lưu ý:</span>
+                  <span className={styles.noteContent}>{snack.note}</span>
+                </div>
+              )}
+            </article>
           </div>
         )}
       </div>
@@ -234,6 +213,7 @@ function DailyMealSection({ dailyMeal, selectedGradeName }) {
 
 DailyMealSection.propTypes = {
   dailyMeal: PropTypes.object,
+  selectedGradeName: PropTypes.string,
 };
 
 export default DailyMealSection;

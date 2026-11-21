@@ -22,6 +22,14 @@ const MealAllocationService = {
     });
     return response.data;
   },
+  async saveDraft(payload) {
+    const response = await http.put(`${apiMealAllocations}/draft`, payload, { notifyOnError: false });
+    return response.data;
+  },
+  async retryDraft(mealType) {
+    const response = await http.post(`${apiMealAllocations}/draft/retry`, { mealType }, { notifyOnError: false });
+    return response.data;
+  },
   async apply(payload) {
     if (isMockEnabled()) {
       return mockMealAllocationService.apply(payload);
