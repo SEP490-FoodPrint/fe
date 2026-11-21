@@ -24,10 +24,8 @@
 .mobileBrand { display: flex; align-items: center; margin-right: auto; }
 .menuPaper:global(.MuiPaper-root) { min-width: 240px; max-width: calc(100vw - var(--space-8)); margin-top: var(--space-2); border: 1px solid var(--border-default); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
 .accountDetails:global(.MuiMenuItem-root) { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-1); white-space: normal; font-size: var(--text-sm); &.Mui-disabled { opacity: 1; } strong { font-weight: var(--font-semibold); } > span { color: var(--text-muted); font-size: var(--text-xs); } }
-.accountDetails:global(.Mui-disabled), .notificationTitle:global(.Mui-disabled), .emptyNotification:global(.Mui-disabled) { opacity: 1; }
+.accountDetails:global(.Mui-disabled) { opacity: 1; }
 .logout:global(.MuiMenuItem-root) { min-height: calc(var(--space-10) + var(--space-1)); color: var(--color-error); :global(.MuiListItemIcon-root) { color: inherit; } :global(.MuiListItemText-primary) { font-size: var(--text-sm); } }
-.notificationTitle:global(.MuiMenuItem-root) { font-size: var(--text-sm); font-weight: var(--font-semibold); color: var(--text-primary); }
-.emptyNotification:global(.MuiMenuItem-root) { font-size: var(--text-sm); color: var(--text-muted); }
 
 @media (max-width: 1199px) {
   .header { padding: 0 var(--space-6); }

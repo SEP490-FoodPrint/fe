@@ -28,7 +28,8 @@ export const getDefaultRedirectByOrg = orgType => {
     case "SYSTEM":
       return ROUTER.SYSTEM_ORG_APPROVAL
     case "SUPPLIER":
-      return "/supplier/overview"
+      // Mục đầu tiên của sidebar NCC (quản trị và nhân viên)
+      return ROUTER.SUPPLIER_INGREDIENTS
     case "SCHOOL":
     default:
       return "/school/overview"

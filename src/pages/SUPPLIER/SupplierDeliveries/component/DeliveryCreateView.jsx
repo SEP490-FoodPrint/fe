@@ -33,6 +33,7 @@ import SupplierDeliveryService, {
 } from "src/services/SupplierDeliveryService"
 import DeliveryStageStepper from "./DeliveryStageStepper"
 import WorkflowStageBadge from "./WorkflowStageBadge"
+import IngredientCascadeSelect from "./IngredientCascadeSelect"
 import styles from "./DeliveryCreateView.module.scss"
 
 const MANUAL_ORDER_STEPS = [
@@ -559,9 +560,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                         <option value="">-- Chọn trường học đang liên kết --</option>
                         {schoolOptions.map(school => (
                           <option key={school.id} value={school.id}>
-                            {school.code
-                              ? `${school.name} (${school.code})`
-                              : school.name}
+                            {school.name}
                           </option>
                         ))}
                       </select>
@@ -646,6 +645,16 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                     </div>
 
                     <div className={styles.itemsList}>
+                      <div className={styles.itemHeader} aria-hidden="true">
+                        <span>#</span>
+                        <span>Nguyên liệu</span>
+                        <span>Cơ sở nguồn cung</span>
+                        <span>Khối lượng</span>
+                        <span>ĐVT</span>
+                        <span title="Bắt buộc với đồ lưu kho">Ngày sản xuất</span>
+                        <span title="Bắt buộc với đồ lưu kho">Hạn sử dụng</span>
+                        <span />
+                      </div>
                       {items.map((row, idx) => {
                         const rowErr = errors.itemErrors?.[idx] || {}
                         const otherUsedFacilities = row.ingredientId
@@ -657,53 +666,21 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                             <span className={styles.rowIndex}>{idx + 1}</span>
 
                             <div className={styles.rowCell}>
-                              <div className={styles.selectWrap}>
-                                <select
-                                  value={row.ingredientId}
-                                  onChange={event =>
-                                    handleIngredientChange(
-                                      row.rowKey,
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={`${styles.selectControl} ${
-                                    rowErr.ingredientId ? styles.hasError : ""
-                                  }`}
-                                  aria-label={`Nguyên liệu dòng ${idx + 1}`}
-                                  aria-invalid={Boolean(rowErr.ingredientId)}
-                                >
-                                  <option value="">-- Chọn nguyên liệu * --</option>
-                                  {ingredientOptions.map(ing => {
-                                    const usedFacilitiesCount =
-                                      getOtherUsedFacilitySet(
-                                        row.rowKey,
-                                        ing.id,
-                                      ).size
-                                    const allFacilitiesUsed =
-                                      sourceFacilityOptions.length > 0 &&
-                                      usedFacilitiesCount >=
-                                        sourceFacilityOptions.length &&
-                                      normalizeOptionId(ing.id) !==
-                                        normalizeOptionId(row.ingredientId)
-
-                                    return (
-                                      <option
-                                        key={ing.id}
-                                        value={ing.id}
-                                        disabled={allFacilitiesUsed}
-                                      >
-                                        {allFacilitiesUsed
-                                          ? `${ing.name} (${ing.defaultUnit}) — Đã đủ cơ sở`
-                                          : `${ing.name} (${ing.defaultUnit})`}
-                                      </option>
-                                    )
-                                  })}
-                                </select>
-                                <KeyboardArrowDown
-                                  className={styles.selectChevron}
-                                  aria-hidden="true"
-                                />
-                              </div>
+                              {/* Nguyên liệu lọc 2 cấp ngay trong ô: nhóm nguyên liệu → nguyên liệu */}
+                              <IngredientCascadeSelect
+                                value={row.ingredientId}
+                                options={ingredientOptions}
+                                onChange={ingredientId => handleIngredientChange(row.rowKey, ingredientId)}
+                                getDisabledReason={ing =>
+                                  sourceFacilityOptions.length > 0 &&
+                                  getOtherUsedFacilitySet(row.rowKey, ing.id).size >= sourceFacilityOptions.length &&
+                                  normalizeOptionId(ing.id) !== normalizeOptionId(row.ingredientId)
+                                    ? "Đã đủ cơ sở"
+                                    : ""
+                                }
+                                invalid={Boolean(rowErr.ingredientId)}
+                                ariaLabel={`Nguyên liệu dòng ${idx + 1}`}
+                              />
                               {rowErr.ingredientId && (
                                 <p className={styles.fieldError} role="alert">
                                   {rowErr.ingredientId}
@@ -793,6 +770,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                             </div>
 
                             <div className={styles.rowCell} title="Bắt buộc với đồ lưu kho">
+                              <span className={styles.cellLabel}>Ngày sản xuất</span>
                               <input
                                 type="date"
                                 value={row.manufactureDate || ""}
@@ -805,6 +783,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
                             </div>
 
                             <div className={styles.rowCell} title="Bắt buộc với đồ lưu kho">
+                              <span className={styles.cellLabel}>Hạn sử dụng</span>
                               <input
                                 type="date"
                                 value={row.expiryDate || ""}

@@ -53,8 +53,7 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
             : (
                 item.key === ROUTER.SCHOOL_KITCHEN_COOKING ||
                 item.key === ROUTER.SCHOOL_HEALTH_OVERVIEW ||
-                item.key === ROUTER.SCHOOL_OVERVIEW ||
-                item.key === ROUTER.SUPPLIER_OVERVIEW
+                item.key === ROUTER.SCHOOL_OVERVIEW
               )
         }
         onClick={mobile ? onClose : undefined}
