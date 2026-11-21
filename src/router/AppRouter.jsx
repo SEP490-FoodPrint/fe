@@ -32,7 +32,6 @@ const MeasurementUnits = lazy(() => import("src/pages/SYSTEM/MeasurementUnits"))
 const SystemConfig = lazy(() => import("src/pages/SYSTEM/SystemConfig"))
 
 // SUPPLIER pages
-const SupplierOverview = lazy(() => import("src/pages/SUPPLIER/SupplierOverview"))
 const IngredientCatalog = lazy(() => import("src/pages/SUPPLIER/IngredientCatalog"))
 const SourceFacilities = lazy(() => import("src/pages/SUPPLIER/SourceFacilities"))
 const SupplyOrders = lazy(() => import("src/pages/SUPPLIER/SupplyOrders"))
@@ -236,7 +235,8 @@ const routes = [
       {
         element: <MainLayout type="SUPPLIER" />,
         children: [
-          { path: ROUTER.SUPPLIER_OVERVIEW, element: <LazyWrapper><SupplierOverview /></LazyWrapper> },
+          // Đã bỏ màn Tổng quan NCC: đường dẫn cũ chuyển về Danh mục nguyên liệu (mục đầu sidebar)
+          { path: ROUTER.SUPPLIER_OVERVIEW, element: <Navigate to={ROUTER.SUPPLIER_INGREDIENTS} replace /> },
           { path: ROUTER.SUPPLIER_INGREDIENTS, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
           { path: ROUTER.SUPPLIER_INGREDIENT_DETAIL, element: <LazyWrapper><IngredientCatalog /></LazyWrapper> },
           {

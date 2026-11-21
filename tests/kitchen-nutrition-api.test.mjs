@@ -869,6 +869,31 @@ test("weekend locks same-day kitchen actions on the cooking board", async () => 
   assert.doesNotMatch(open, /disabled=""[^>]*aria-label="Nấu Canh"/)
 })
 
+test("manual delivery ingredient picker groups ingredients by category (2 levels) in one field", async () => {
+  const React = await import("react")
+  const { renderToStaticMarkup } = await import("react-dom/server")
+  const { default: Picker, groupIngredientsByCategory, ingredientCategoryKey } = await server.ssrLoadModule("/src/pages/SUPPLIER/SupplierDeliveries/component/IngredientCascadeSelect.jsx")
+  const options = [
+    { id: "rice", name: "Gạo tẻ", defaultUnit: "kg", categoryId: "c2", categoryName: "Lương thực" },
+    { id: "salt", name: "Muối", defaultUnit: "kg", categoryId: null, categoryName: null },
+    { id: "pork", name: "Thịt heo", defaultUnit: "kg", categoryId: "c1", categoryName: "Thịt" },
+    { id: "noodle", name: "Bún", defaultUnit: "kg", categoryId: "c2", categoryName: "Lương thực" },
+  ]
+  const groups = groupIngredientsByCategory(options)
+  assert.deepEqual(groups.map(group => [group.name, group.items.map(item => item.id)]), [
+    ["Lương thực", ["rice", "noodle"]],
+    ["Thịt", ["pork"]],
+    ["Khác", ["salt"]],
+  ])
+  assert.equal(ingredientCategoryKey(options[1]), "__uncategorized")
+  const empty = renderToStaticMarkup(React.createElement(Picker, { value: "", options, ariaLabel: "Nguyên liệu dòng 1" }))
+  assert.match(empty, /-- Chọn nguyên liệu \* --/)
+  assert.match(empty, /aria-expanded="false"/)
+  const picked = renderToStaticMarkup(React.createElement(Picker, { value: "pork", options, invalid: true }))
+  assert.match(picked, /Thịt heo \(kg\)/)
+  assert.match(picked, /aria-invalid="true"/)
+})
+
 test("menu PDF has school logo, title, week info, one page per menu and escapes text", async () => {
   const { buildMenuPdfHtml, menuPdfTitle, pdfDayLabel } = await server.ssrLoadModule("/src/utils/menuPdf.js")
   assert.deepEqual(pdfDayLabel("2026-11-23"), { weekday: "Thứ Hai", date: "23/11" })
