@@ -953,3 +953,451 @@
   flex-wrap: wrap;
   justify-content: center;
 }
+
+/* ---------- Bảng thực phẩm tươi sống Đợt 1: tối giản ---------- */
+.freshCard {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.freshHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.freshTitle {
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  color: var(--text-primary);
+}
+
+.freshMeta {
+  color: var(--text-muted);
+  font-size: 13px !important;
+  font-variant-numeric: tabular-nums;
+}
+
+.freshTableWrap {
+  overflow-x: auto;
+}
+
+.freshTable {
+  min-width: 560px;
+
+  :global(.MuiTableCell-head) {
+    padding: 10px 20px;
+    background: var(--bg-page);
+    border-bottom: 1px solid var(--border-default);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  :global(.MuiTableCell-body) {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-default);
+    vertical-align: middle;
+  }
+
+  :global(.MuiTableBody-root .MuiTableRow-root:last-child .MuiTableCell-body) {
+    border-bottom: 0;
+  }
+
+  :global(.MuiTableBody-root .MuiTableRow-root:hover) {
+    background: var(--bg-page);
+  }
+}
+
+.freshColRate {
+  width: 170px;
+}
+
+.freshColQty {
+  width: 200px;
+}
+
+.freshName {
+  display: block;
+  font-weight: 600 !important;
+  color: var(--text-primary);
+}
+
+.freshSupplier {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.freshDash {
+  color: var(--text-muted);
+}
+
+.freshInput {
+  width: 150px;
+
+  :global(.MuiOutlinedInput-root) {
+    height: 36px;
+    font-size: 14px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+
+    &:hover :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: var(--border-strong);
+    }
+
+    &:global(.Mui-focused) :global(.MuiOutlinedInput-notchedOutline) {
+      border-color: var(--color-primary);
+      border-width: 1px;
+      box-shadow: 0 0 0 1px var(--color-primary);
+    }
+  }
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: var(--border-default);
+  }
+
+  :global(.MuiOutlinedInput-input) {
+    padding: 6px 8px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  :global(.MuiFormHelperText-root) {
+    margin: 4px 0 0;
+    text-align: right;
+  }
+}
+
+.freshQtyInput {
+  width: 170px;
+
+  :global(.MuiOutlinedInput-input) {
+    font-weight: 600;
+  }
+}
+
+.freshUnit {
+  margin-left: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.freshToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: var(--color-primary-soft);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
+  }
+}
+
+.freshRowOpen :global(.MuiTableCell-body) {
+  border-bottom: 0 !important;
+}
+
+.freshDetailRow :global(.MuiTableCell-body) {
+  padding-top: 0 !important;
+  background: var(--bg-surface);
+}
+
+.freshBreakdown {
+  list-style: none;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+
+  li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 120px;
+    align-items: baseline;
+    gap: 12px;
+    padding: 4px 0;
+    font-size: 13px;
+  }
+}
+
+.freshBreakdownName {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.freshBreakdownCalc {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.freshBreakdownQty {
+  text-align: right;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.freshState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.freshStateText {
+  color: var(--text-muted);
+}
+
+@media (max-width: 767px) {
+  .freshHeader {
+    padding: 14px 16px;
+  }
+
+  .freshTable {
+    :global(.MuiTableCell-head),
+    :global(.MuiTableCell-body) {
+      padding-left: 12px;
+      padding-right: 12px;
+    }
+  }
+
+  .freshBreakdown li {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .freshBreakdownCalc {
+      grid-column: 1;
+    }
+
+    .freshBreakdownQty {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      align-self: center;
+    }
+  }
+}
+
+/* Cảnh báo bước khuyến nghị gom ở đầu bảng Đợt 1 + viền vàng cho dòng vi phạm */
+.freshWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 20px 0;
+  padding: 10px 14px;
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+
+  > svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+.freshWarningTitle {
+  font-weight: 600 !important;
+  color: var(--color-warning);
+}
+
+.freshWarningList {
+  margin: 4px 0 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 20px;
+  color: var(--text-secondary);
+
+  strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+}
+
+.freshTable :global(.MuiTableBody-root) .freshRowWarning {
+  outline: 1px solid var(--color-warning-border);
+  outline-offset: -1px;
+  background: var(--color-warning-bg);
+
+  &:hover {
+    background: var(--color-warning-bg);
+  }
+
+  :global(.MuiTableCell-body):first-child {
+    box-shadow: inset 3px 0 0 var(--color-warning);
+  }
+}
+
+@media (max-width: 767px) {
+  .freshWarning {
+    margin: 12px 12px 0;
+  }
+}
+
+/* ---------- Thanh thiết lập: Ngày giao · Thực đơn · Số suất Đợt 1 ---------- */
+.setupCard {
+  padding: 16px 20px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+}
+
+.setupGrid {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: start;
+  gap: 16px 20px;
+}
+
+.setupGridWithStat {
+  grid-template-columns: 220px minmax(0, 1fr) auto;
+}
+
+.setupField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.weekStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+}
+
+.weekDot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+.weekStatusOk .weekDot {
+  background: var(--color-success);
+}
+
+.weekStatusWarn {
+  color: var(--color-warning);
+}
+
+.weekStatusError {
+  color: var(--color-error);
+}
+
+.menuReadonly {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-height: 40px;
+  padding: 4px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-page);
+}
+
+.menuReadonlyLabel {
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--text-muted);
+}
+
+.menuReadonlyValue {
+  font-size: 14px;
+  line-height: 20px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.setupStat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 180px;
+  padding: 10px 16px;
+  border: 1px solid rgba(var(--color-primary-rgb), 0.25);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-soft);
+  text-align: right;
+}
+
+.setupStatLabel {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.setupStatValue {
+  font-size: 24px;
+  line-height: 30px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.setupStatTotal {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.setupStatBreakdown {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 900px) {
+  .setupGrid,
+  .setupGridWithStat {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .setupStat {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 4px 12px;
+    text-align: left;
+  }
+}
+
+@media (max-width: 600px) {
+  .setupCard {
+    padding: 14px 16px;
+  }
+
+  .setupGrid,
+  .setupGridWithStat {
+    grid-template-columns: 1fr;
+  }
+}

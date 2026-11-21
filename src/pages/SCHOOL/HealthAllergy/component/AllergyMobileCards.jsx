@@ -2,7 +2,8 @@ import React from "react"
 import PropTypes from "prop-types"
 import { School, Calendar, Users, Eye } from "lucide-react"
 import styles from "./AllergyMobileCards.module.scss"
-import { affectedCountsLabel } from "src/services/AllergyService"
+import { affectedCountsLabel, classAllergyGroups } from "src/services/AllergyService"
+import { allergyGroupLabel } from "src/utils/allergyGroups"
 
 export default function AllergyMobileCards({ classList, onSelectClass }) {
   return (
@@ -10,7 +11,8 @@ export default function AllergyMobileCards({ classList, onSelectClass }) {
       {classList.map((cls) => {
         const allergies = cls.allergies || []
         const totalAffected = affectedCountsLabel(allergies)
-        const ingredientNames = allergies.map((a) => a.ingredientName).join(", ")
+        // Nhóm dị ứng: "Sữa · Lạc · Sữa + Lạc"
+            const ingredientNames = classAllergyGroups(allergies).map(allergyGroupLabel).join(" · ")
 
         return (
           <div key={cls.id} className={styles.classCard}>

@@ -11,6 +11,7 @@ import SupplierDeliveryService, {
   formatSourceFacilityLabel,
   generateIdempotencyKey,
   getAllocationTotalStatus,
+  getMinArrivalDateTime,
   getMinArrivalTime,
   normalizeDecimalQuantity,
   ORDER_CREATION_STAGE,
@@ -59,7 +60,7 @@ function OrderFulfillmentWorkflow({
   // Phân bổ nguồn cung theo từng mặt hàng: nhiều cơ sở, mỗi cơ sở 1 khối lượng (1 lô).
   // NSX/HSD chỉ áp dụng cho đồ lưu kho.
   const [allocationsByItemId, setAllocationsByItemId] = useState({})
-  // Giờ dự kiến đến (HH:mm) trong ngày hôm nay.
+  // Dự kiến đến: đồ tươi "HH:mm" trong hôm nay; đồ lưu kho "YYYY-MM-DDTHH:mm" từ hiện tại trở đi.
   const [expectedArrivalLocal, setExpectedArrivalLocal] = useState("")
   const [vehiclePlate, setVehiclePlate] = useState("")
   const [note, setNote] = useState("")
@@ -69,6 +70,10 @@ function OrderFulfillmentWorkflow({
     () => (Array.isArray(order?.items) ? order.items : []),
     [order],
   )
+  // Đơn đồ lưu kho được hẹn giao ngày khác; đơn đồ tươi phải giao trong hôm nay.
+  const isDryOrder =
+    order?.orderType === "DRY_STOCK" ||
+    (items.length > 0 && items.every(item => item.handlingType === "DRY_STOCK"))
 
   const loadFacilities = useCallback(async () => {
     setLoadingFacilities(true)
@@ -256,6 +261,7 @@ function OrderFulfillmentWorkflow({
       expectedArrivalLocal,
       vehiclePlate,
       note,
+      allowFutureDate: isDryOrder,
     })
 
     if (!logisticsCheck.valid) {
@@ -267,6 +273,7 @@ function OrderFulfillmentWorkflow({
     onSubmitDelivery?.({
       sources: buildSourcesPayload(),
       expectedArrivalLocal,
+      allowFutureDate: isDryOrder,
       vehiclePlate: String(vehiclePlate || "").trim(),
       note,
     })
@@ -402,14 +409,18 @@ function OrderFulfillmentWorkflow({
               className={styles.fieldLabel}
               htmlFor="order-expected-arrival"
             >
-              <span>{"Giờ dự kiến đến trường (hôm nay) "}</span>
+              <span>
+                {isDryOrder
+                  ? "Ngày giờ dự kiến đến trường "
+                  : "Giờ dự kiến đến trường (hôm nay) "}
+              </span>
               <span className={styles.requiredMark}>*</span>
             </label>
             <input
               id="order-expected-arrival"
-              type="time"
+              type={isDryOrder ? "datetime-local" : "time"}
               className={styles.textInput}
-              min={getMinArrivalTime()}
+              min={isDryOrder ? getMinArrivalDateTime() : getMinArrivalTime()}
               value={expectedArrivalLocal}
               disabled={submitting}
               onChange={e => {

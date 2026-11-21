@@ -31,7 +31,6 @@ import {
 } from "@mui/material";
 import {
   ArrowLeft,
-  ChefHat,
   Sunrise,
   Users,
   Send,
@@ -1558,6 +1557,14 @@ export default function CreateDeliveryView({
     }
   };
 
+  // Nguyên liệu Đợt 1 có số lượng chưa theo bước khuyến nghị của đơn vị: gom lên đầu bảng.
+  const batch1StepWarnings = itemsState.flatMap((ing) => {
+    if (ing.isExtraItem || quantityError(ing.standardQtyInput)) return [];
+    const message = unitCatalog.warning(ing.standardQtyInput, ing.unit);
+    return message ? [{ id: ing.id, name: ing.name, message }] : [];
+  });
+  const batch1WarningIds = new Set(batch1StepWarnings.map((w) => w.id));
+
   return (
     <Box className={styles.container}>
       {unitCatalog.error && (
@@ -1592,177 +1599,121 @@ export default function CreateDeliveryView({
         </Box>
       </Box>
 
-      {/* 2. Thanh chọn Ngày giao & Thực đơn */}
-      <Paper className={styles.formCard} elevation={0}>
-        <Box className={styles.formRow}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.75 }}>
+      {/* 2. Thanh thiết lập: Ngày giao · Thực đơn · Số suất Đợt 1 */}
+      <Paper className={styles.setupCard} elevation={0}>
+        <Box
+          className={`${styles.setupGrid} ${mode === "BATCH_1" ? styles.setupGridWithStat : ""}`}
+        >
+          <Box className={styles.setupField}>
             <TextField
               type="date"
-              label="Ngày áp dụng / Ngày giao hàng"
+              label="Ngày giao hàng"
               value={orderDate}
               onChange={(e) => {
                 setOrderDate(e.target.value);
                 setActualAttendance(""); // Reset sĩ số khi đổi ngày
               }}
               size="small"
+              fullWidth
               error={Boolean(dateError)}
               helperText={dateError}
-              className={styles.dateInput}
               slotProps={{
                 inputLabel: { shrink: true },
                 htmlInput: { min: getTodayStr() },
               }}
             />
-            {targetMonday && targetFriday && (
-              <Chip
-                icon={
-                  <CalendarCheck
-                    size={14}
-                    color={
-                      !hasMenusInWeek
-                        ? "#dc2626"
-                        : !menuCompleteness.isComplete
-                          ? "#ea580c"
-                          : "#1d4ed8"
-                    }
-                  />
-                }
-                label={
+            {/* Chỉ báo khi tuần thiếu / chưa có thực đơn; đủ thực đơn thì không cần hiện */}
+            {targetMonday && targetFriday && (!hasMenusInWeek || !menuCompleteness.isComplete) && (
+              <span
+                className={`${styles.weekStatus} ${
                   !hasMenusInWeek
-                    ? `Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} (Chưa có thực đơn)`
+                    ? styles.weekStatusError
                     : !menuCompleteness.isComplete
-                      ? `Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} (Thiếu: ${menuCompleteness.missingGrades.join(", ")})`
-                      : `Tuần: ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} (Đủ thực đơn toàn trường)`
+                      ? styles.weekStatusWarn
+                      : styles.weekStatusOk
+                }`}
+              >
+                <span className={styles.weekDot} aria-hidden="true" />
+                {`Tuần ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} · `}
+                {!hasMenusInWeek
+                  ? "Chưa có thực đơn"
+                  : !menuCompleteness.isComplete
+                    ? `Thiếu: ${menuCompleteness.missingGrades.join(", ")}`
+                    : "Đủ thực đơn toàn trường"}
+              </span>
+            )}
+          </Box>
+
+          <Box className={styles.setupField}>
+            {mode === "BATCH_1" ? (
+              !hasMenusInWeek ? (
+                <TextField
+                  label="Thực đơn áp dụng"
+                  value="Chưa có thực đơn được duyệt"
+                  size="small"
+                  fullWidth
+                  disabled
+                  error
+                />
+              ) : isMultiMenuDate ? (
+                <Box className={styles.menuReadonly}>
+                  <span className={styles.menuReadonlyLabel}>Thực đơn áp dụng</span>
+                  <span className={styles.menuReadonlyValue}>
+                    {matchingMenusForDate.map((menu) => menu.name).join(" · ")}
+                  </span>
+                </Box>
+              ) : (
+                <TextField
+                  select
+                  label="Thực đơn áp dụng"
+                  value={selectedMenuId}
+                  onChange={(e) => setSelectedMenuId(e.target.value)}
+                  size="small"
+                  fullWidth
+                >
+                  {menusInCurrentWeek.map((menu) => (
+                    <MenuItem key={menu.id} value={menu.id}>
+                      {menu.name} — {menu.targetScope} ({menu.maxPortions} suất)
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )
+            ) : isMultiMenu ? (
+              <Box className={styles.menuReadonly}>
+                <span className={styles.menuReadonlyLabel}>Thực đơn áp dụng</span>
+                <span className={styles.menuReadonlyValue}>
+                  {activeMenus.map((menu) => menu.name).join(" · ")}
+                </span>
+              </Box>
+            ) : (
+              <TextField
+                label="Thực đơn áp dụng"
+                value={
+                  currentMenu
+                    ? `${currentMenu.name} (${maxPortions} suất tối đa)`
+                    : "Không có thực đơn hợp lệ"
                 }
                 size="small"
-                sx={{
-                  height: 24,
-                  bgcolor: !hasMenusInWeek
-                    ? "#fef2f2"
-                    : !menuCompleteness.isComplete
-                      ? "#fff7ed"
-                      : "#eff6ff",
-                  color: !hasMenusInWeek
-                    ? "#b91c1c"
-                    : !menuCompleteness.isComplete
-                      ? "#c2410c"
-                      : "#1e40af",
-                  borderColor: !hasMenusInWeek
-                    ? "#fecaca"
-                    : !menuCompleteness.isComplete
-                      ? "#fed7aa"
-                      : "#bfdbfe",
-                  fontWeight: 600,
-                  fontSize: "0.75rem",
-                  border: "1px solid",
-                }}
+                fullWidth
+                disabled
+                error={!hasMenusInWeek}
               />
             )}
           </Box>
 
-          {mode === "BATCH_1" ? (
-            !hasMenusInWeek ? (
-              <TextField
-                label="Thực đơn áp dụng (Đã duyệt)"
-                value="Tuần này chưa có thực đơn được duyệt từ Dinh dưỡng"
-                className={styles.menuSelect}
-                size="small"
-                fullWidth
-                disabled
-                error
-              />
-            ) : isMultiMenuDate ? (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1.5,
-                  flexWrap: "wrap",
-                  flex: 1,
-                }}
-              >
-                {matchingMenusForDate.map((menu) => (
-                  <Chip
-                    key={menu.id}
-                    icon={<ChefHat size={16} color="#166534" />}
-                    label={menu.name}
-                    variant="outlined"
-                    sx={{
-                      py: 2.2,
-                      px: 1,
-                      borderRadius: 2,
-                      bgcolor: "#f0fdf4",
-                      borderColor: "#86efac",
-                      fontWeight: 700,
-                      color: "#166534",
-                      fontSize: "0.875rem",
-                    }}
-                  />
-                ))}
-              </Box>
-            ) : (
-              <TextField
-                select
-                label="Thực đơn áp dụng (Đã duyệt)"
-                value={selectedMenuId}
-                onChange={(e) => setSelectedMenuId(e.target.value)}
-                className={styles.menuSelect}
-                size="small"
-                fullWidth
-                disabled={!hasMenusInWeek}
-              >
-                {menusInCurrentWeek.map((menu) => (
-                  <MenuItem key={menu.id} value={menu.id}>
-                    {menu.name} — {menu.targetScope} ({menu.maxPortions} suất
-                    chuẩn)
-                  </MenuItem>
-                ))}
-              </TextField>
-            )
-          ) : (
-            <Box sx={{ flex: 1 }}>
-              {isMultiMenu ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1.5,
-                    flexWrap: "wrap",
-                  }}
-                >
-                  {activeMenus.map((menu) => (
-                    <Chip
-                      key={menu.id}
-                      icon={<ChefHat size={16} color="#b45309" />}
-                      label={menu.name}
-                      variant="outlined"
-                      sx={{
-                        py: 2.2,
-                        px: 1,
-                        borderRadius: 2,
-                        bgcolor: "#fffbeb",
-                        borderColor: "#fde68a",
-                        fontWeight: 700,
-                        color: "#b45309",
-                        fontSize: "0.875rem",
-                      }}
-                    />
-                  ))}
-                </Box>
-              ) : (
-                <TextField
-                  label="Thực đơn đã chọn"
-                  value={
-                    currentMenu
-                      ? `${currentMenu.name} (${maxPortions} suất tối đa)`
-                      : "Không có thực đơn hợp lệ"
-                  }
-                  size="small"
-                  disabled
-                  className={styles.menuSelect}
-                  fullWidth
-                  error={!hasMenusInWeek}
-                />
+          {mode === "BATCH_1" && (
+            <Box className={styles.setupStat}>
+              <span className={styles.setupStatLabel}>Đợt 1 · 50% suất tối đa</span>
+              <span className={styles.setupStatValue}>
+                {batch1Portions}
+                <span className={styles.setupStatTotal}>{` / ${maxPortions} suất`}</span>
+              </span>
+              {isMultiMenu && (
+                <span className={styles.setupStatBreakdown}>
+                  {menusPortionsMeta
+                    .map((m) => `${m.targetScope}: ${m.batch1Portions}/${m.maxPortions}`)
+                    .join(" · ")}
+                </span>
               )}
             </Box>
           )}
@@ -1867,102 +1818,58 @@ export default function CreateDeliveryView({
           ===================================================================== */}
       {mode === "BATCH_1" && (
         <>
-          {/* Card tóm tắt Đợt 1 */}
-          <Box className={styles.batch1SummaryCard}>
-            <Box className={styles.batchCardHeader}>
-              <Typography variant="subtitle1" className={styles.batchCardTitle}>
-                Quy Chuẩn Giao Hàng Đợt 1: Cố Định 50% Suất Tối Đa
+          {/* BẢNG 1: THỰC PHẨM TƯƠI SỐNG ĐỢT 1 (50% SUẤT) */}
+          <Paper className={styles.freshCard} elevation={0}>
+            <Box className={styles.freshHeader}>
+              <Typography variant="subtitle1" className={styles.freshTitle}>
+                A. Thực phẩm tươi sống Đợt 1
+              </Typography>
+              <Typography variant="body2" className={styles.freshMeta}>
+                {isTableLoading
+                  ? "Đang tải..."
+                  : `${itemsState.length} mặt hàng · ${batch1Portions} suất (50%)`}
               </Typography>
             </Box>
-            <Typography variant="h4" className={styles.batchPortionCount}>
-              {batch1Portions}{" "}
-              <span className={styles.portionTotal}>/ {maxPortions}</span>{" "}
-              <span className={styles.portionUnit}>suất ăn</span>
-            </Typography>
-            {isMultiMenu && (
-              <Box sx={{ display: "flex", gap: 1.5, mt: 1, flexWrap: "wrap" }}>
-                {menusPortionsMeta.map((m) => (
-                  <Chip
-                    key={m.id}
-                    label={`${m.targetScope}: ${m.batch1Portions} / ${m.maxPortions} suất (50%)`}
-                    size="small"
-                    sx={{
-                      bgcolor: "#e0f2fe",
-                      color: "#0369a1",
-                      fontWeight: 600,
-                      fontSize: "0.75rem",
-                    }}
-                  />
-                ))}
-              </Box>
-            )}
-          </Box>
 
-          {/* BẢNG 1: THỰC PHẨM TƯƠI SỐNG (ĐỢT 1: 50% SUẤT) */}
-          <Paper className={styles.tableCard} elevation={0}>
-            <Box className={styles.tableCardHeader}>
-              <Box className={styles.tableTitleGroup}>
+            {!isTableLoading && batch1StepWarnings.length > 0 && (
+              <Box className={styles.freshWarning} role="status">
+                <AlertTriangle size={16} aria-hidden="true" />
                 <Box>
-                  <Typography
-                    variant="subtitle1"
-                    className={styles.tableHeading}
-                  >
-                    A. Thực Phẩm Tươi Sống Đợt 1 (50% Suất - Giao Sớm 05:30
-                    Sáng)
+                  <Typography variant="body2" className={styles.freshWarningTitle}>
+                    {`${batch1StepWarnings.length} nguyên liệu chưa theo bước khuyến nghị. Bạn vẫn có thể giữ nguyên để gửi.`}
                   </Typography>
+                  <ul className={styles.freshWarningList}>
+                    {batch1StepWarnings.map((w) => (
+                      <li key={w.id}>
+                        <strong>{w.name}:</strong>{" "}
+                        {w.message.replace(/\s*Bạn vẫn có thể giữ nguyên để gửi\.?$/, "")}
+                      </li>
+                    ))}
+                  </ul>
                 </Box>
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Chip
-                  label={
-                    isTableLoading
-                      ? "Đang tải..."
-                      : `${itemsState.length} mặt hàng`
-                  }
-                  size="small"
-                  className={styles.freshItemCountBadge}
-                />
-              </Box>
-            </Box>
+            )}
 
-            <Box className={styles.tableWrapper}>
-              <Table size="small" className={styles.ingTable}>
+            <Box className={styles.freshTableWrap}>
+              <Table size="small" className={styles.freshTable}>
                 <TableHead>
-                  <TableRow className={styles.tableHeaderRow}>
-                    <TableCell>Tên thực phẩm</TableCell>
-                    <TableCell>Nhà cung cấp đối tác</TableCell>
-                    <TableCell align="center" style={{ width: 145 }}>
-                      Định lượng / 1 Suất
+                  <TableRow>
+                    <TableCell>Thực phẩm</TableCell>
+                    <TableCell align="right" className={styles.freshColRate}>
+                      Định lượng / suất
                     </TableCell>
-                    <TableCell
-                      align="right"
-                      className={styles.batch1Col}
-                      style={{ width: 160 }}
-                    >
-                      SL theo suất
-                      <br />({batch1Portions} suất)
+                    <TableCell align="right" className={styles.freshColQty}>
+                      Số lượng Đợt 1
                     </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {isTableLoading ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            gap: 2,
-                            py: 2,
-                          }}
-                        >
+                      <TableCell colSpan={3} align="center" sx={{ py: 6 }}>
+                        <Box className={styles.freshState}>
                           <FoodPrintLoading size="large" />
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "#64748b", fontWeight: 500 }}
-                          >
+                          <Typography variant="body2" className={styles.freshStateText}>
                             Đang tải danh mục nguyên liệu theo thực đơn...
                           </Typography>
                         </Box>
@@ -1970,22 +1877,11 @@ export default function CreateDeliveryView({
                     </TableRow>
                   ) : itemsState.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} align="center" sx={{ py: 6 }}>
-                        <Box
-                          sx={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            gap: 1,
-                          }}
-                        >
-                          <Package size={36} color="#94a3b8" />
-                          <Typography
-                            variant="body2"
-                            sx={{ color: "#64748b", fontWeight: 500 }}
-                          >
-                            Không có nguyên liệu trực tiếp (tươi sống) nào cho
-                            ngày này.
+                      <TableCell colSpan={3} align="center" sx={{ py: 6 }}>
+                        <Box className={styles.freshState}>
+                          <Package size={32} color="var(--text-muted)" />
+                          <Typography variant="body2" className={styles.freshStateText}>
+                            Không có nguyên liệu tươi sống nào cho ngày này.
                           </Typography>
                         </Box>
                       </TableCell>
@@ -2000,270 +1896,130 @@ export default function CreateDeliveryView({
 
                       return (
                         <React.Fragment key={ing.id}>
-                          <TableRow hover className={styles.tableRow}>
+                          <TableRow
+                            className={[
+                              isExpanded ? styles.freshRowOpen : "",
+                              batch1WarningIds.has(ing.id) ? styles.freshRowWarning : "",
+                            ]
+                              .filter(Boolean)
+                              .join(" ") || undefined}
+                          >
                             <TableCell>
-                              <Typography
-                                variant="subtitle2"
-                                className={styles.ingName}
-                              >
+                              <Typography variant="body2" className={styles.freshName}>
                                 {ing.name}
                               </Typography>
-                            </TableCell>
-
-                            <TableCell>
-                              <Typography
-                                variant="body2"
-                                className={styles.supplierText}
-                              >
+                              <Typography variant="caption" className={styles.freshSupplier}>
                                 {ing.supplierName}
                               </Typography>
                             </TableCell>
 
-                            {/* Cột 1: Định lượng / 1 Suất (Chuyển badge '2 thực đơn' qua đây, đổi nút thành 'Xem thêm') */}
-                            <TableCell align="center">
+                            <TableCell align="right">
                               {ing.isExtraItem ? (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: "#94a3b8", fontWeight: 500 }}
-                                >
-                                  —
-                                </Typography>
+                                <span className={styles.freshDash}>—</span>
                               ) : isMulti ? (
-                                <Box
-                                  sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    gap: 0.5,
-                                  }}
+                                <button
+                                  type="button"
+                                  className={styles.freshToggle}
+                                  aria-expanded={isExpanded}
+                                  onClick={() => toggleExpandRow(ing.id)}
                                 >
-                                  <Chip
-                                    icon={<Layers size={12} />}
-                                    label={`${ing.breakdown.length} thực đơn`}
-                                    size="small"
-                                    onClick={() => toggleExpandRow(ing.id)}
-                                    sx={{
-                                      cursor: "pointer",
-                                      bgcolor: "#eff6ff",
-                                      color: "#1d4ed8",
-                                      fontWeight: 700,
-                                      fontSize: "0.75rem",
-                                      height: 22,
-                                      border: "1px solid #bfdbfe",
-                                      "&:hover": { bgcolor: "#dbeafe" },
-                                    }}
-                                  />
-                                  <Button
-                                    size="small"
-                                    variant="text"
-                                    onClick={() => toggleExpandRow(ing.id)}
-                                    sx={{
-                                      fontSize: "0.6875rem",
-                                      p: 0,
-                                      minWidth: 0,
-                                      textTransform: "none",
-                                      color: "#2563eb",
-                                      fontWeight: 600,
-                                    }}
-                                  >
-                                    {isExpanded ? "Thu gọn ▲" : "Xem thêm ▼"}
-                                  </Button>
-                                </Box>
+                                  <Layers size={14} aria-hidden="true" />
+                                  {`${ing.breakdown.length} thực đơn`}
+                                  {isExpanded ? (
+                                    <ChevronUp size={14} aria-hidden="true" />
+                                  ) : (
+                                    <ChevronDown size={14} aria-hidden="true" />
+                                  )}
+                                </button>
                               ) : (
-                                <Box className={styles.editableCellWrap}>
-                                  <TextField
-                                    type="number"
-                                    size="small"
-                                    value={ing.portionInput}
-                                    onChange={(e) =>
-                                      handlePortionChange(
-                                        ing.id,
-                                        e.target.value,
-                                      )
-                                    }
-                                    onBlur={() => handlePortionBlur(ing.id)}
-                                    className={styles.cellInput}
-                                    slotProps={{
-                                      htmlInput: {
-                                        step: isKgUnit(ing.unit)
-                                          ? "1"
-                                          : "0.001",
-                                        min: isKgUnit(ing.unit) ? "1" : "0.001",
-                                        style: {
-                                          textAlign: "right",
-                                          padding: "6px 8px",
-                                        },
-                                      },
-                                      input: {
-                                        endAdornment: (
-                                          <span
-                                            className={styles.inputAdornment}
-                                          >
-                                            {getPortionUnit(ing.unit)}/suất
-                                          </span>
-                                        ),
-                                      },
-                                    }}
-                                  />
-                                </Box>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={ing.portionInput}
+                                  onChange={(e) =>
+                                    handlePortionChange(ing.id, e.target.value)
+                                  }
+                                  onBlur={() => handlePortionBlur(ing.id)}
+                                  className={styles.freshInput}
+                                  slotProps={{
+                                    htmlInput: {
+                                      step: isKgUnit(ing.unit) ? "1" : "0.001",
+                                      min: isKgUnit(ing.unit) ? "1" : "0.001",
+                                      "aria-label": `Định lượng mỗi suất của ${ing.name}`,
+                                    },
+                                    input: {
+                                      endAdornment: (
+                                        <span className={styles.freshUnit}>
+                                          {getPortionUnit(ing.unit)}/suất
+                                        </span>
+                                      ),
+                                    },
+                                  }}
+                                />
                               )}
                             </TableCell>
 
-                            {/* Cột 2: Số lượng Đợt 1 (theo 50% suất) */}
-                            <TableCell
-                              align="right"
-                              className={styles.batch1Cell}
-                            >
+                            <TableCell align="right">
                               {ing.isExtraItem ? (
-                                <Typography
-                                  variant="body2"
-                                  sx={{ color: "#94a3b8", fontWeight: 500 }}
-                                >
-                                  —
-                                </Typography>
+                                <span className={styles.freshDash}>—</span>
                               ) : (
-                                <Box className={styles.editableCellWrapRight}>
-                                  <TextField
-                                    type="number"
-                                    size="small"
-                                    value={ing.standardQtyInput}
-                                    error={Boolean(
-                                      quantityError(ing.standardQtyInput),
-                                    )}
-                                    helperText={
-                                      <QuantityRecommendation
-                                        value={ing.standardQtyInput}
-                                        unit={ing.unit}
-                                        units={unitCatalog.units}
-                                        validate
-                                      />
-                                    }
-                                    onChange={(e) =>
-                                      handleStandardQtyChange(
-                                        ing.id,
-                                        e.target.value,
-                                      )
-                                    }
-                                    onBlur={() => handleStandardQtyBlur(ing.id)}
-                                    className={`${styles.cellInput} ${styles.batch1CellInput}`}
-                                    slotProps={{
-                                      htmlInput: {
-                                        step: "any",
-                                        min: "0.001",
-                                        style: {
-                                          textAlign: "right",
-                                          padding: "6px 8px",
-                                          fontWeight: 700,
-                                        },
-                                      },
-                                      input: {
-                                        endAdornment: (
-                                          <span
-                                            className={styles.inputAdornment}
-                                          >
-                                            {ing.unit}
-                                          </span>
-                                        ),
-                                      },
-                                    }}
-                                  />
-                                </Box>
+                                <TextField
+                                  type="number"
+                                  size="small"
+                                  value={ing.standardQtyInput}
+                                  error={Boolean(quantityError(ing.standardQtyInput))}
+                                  // Lỗi nhập vẫn hiện tại ô; cảnh báo bước khuyến nghị đã gom lên đầu bảng.
+                                  helperText={
+                                    quantityError(ing.standardQtyInput) ? (
+                                      <span role="alert">
+                                        {quantityError(ing.standardQtyInput)}
+                                      </span>
+                                    ) : undefined
+                                  }
+                                  onChange={(e) =>
+                                    handleStandardQtyChange(ing.id, e.target.value)
+                                  }
+                                  onBlur={() => handleStandardQtyBlur(ing.id)}
+                                  className={`${styles.freshInput} ${styles.freshQtyInput}`}
+                                  slotProps={{
+                                    htmlInput: {
+                                      step: "any",
+                                      min: "0.001",
+                                      "aria-label": `Số lượng Đợt 1 của ${ing.name}`,
+                                    },
+                                    input: {
+                                      endAdornment: (
+                                        <span className={styles.freshUnit}>{ing.unit}</span>
+                                      ),
+                                    },
+                                  }}
+                                />
                               )}
                             </TableCell>
                           </TableRow>
 
-                          {/* Dòng mở rộng xem thêm chi tiết cho nguyên liệu đa thực đơn */}
+                          {/* Chi tiết theo từng thực đơn / khối lớp của nguyên liệu dùng ở nhiều thực đơn */}
                           {isExpanded && isMulti && (
-                            <TableRow sx={{ bgcolor: "#f8fafc" }}>
-                              <TableCell
-                                colSpan={4}
-                                sx={{
-                                  py: 1.25,
-                                  px: 3,
-                                  borderBottom: "1px solid #e2e8f0",
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    p: 1.5,
-                                    bgcolor: "#ffffff",
-                                    borderRadius: 1.5,
-                                    border: "1px solid #e2e8f0",
-                                  }}
-                                >
-                                  <Typography
-                                    variant="caption"
-                                    sx={{
-                                      fontWeight: 700,
-                                      color: "#1e293b",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 0.75,
-                                      mb: 1,
-                                    }}
-                                  >
-                                    <Layers size={14} color="#2563eb" /> Chi
-                                    tiết định lượng &amp; số lượng theo từng
-                                    thực đơn / khối lớp:
-                                  </Typography>
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      gap: 2,
-                                      flexWrap: "wrap",
-                                    }}
-                                  >
-                                    {ing.breakdown.map((b, bIdx) => (
-                                      <Box
-                                        key={bIdx}
-                                        sx={{
-                                          bgcolor: "#f8fafc",
-                                          p: 1,
-                                          px: 1.5,
-                                          borderRadius: 1.25,
-                                          border: "1px solid #e2e8f0",
-                                          minWidth: 200,
-                                        }}
-                                      >
-                                        <Typography
-                                          variant="body2"
-                                          sx={{
-                                            fontWeight: 700,
-                                            color: "#0f172a",
-                                            fontSize: "0.8rem",
-                                          }}
-                                        >
-                                          {b.targetScope || b.menuName}
-                                        </Typography>
-                                        <Typography
-                                          variant="caption"
-                                          color="text.secondary"
-                                          sx={{ display: "block", mt: 0.25 }}
-                                        >
-                                          {b.portions} suất ×{" "}
-                                          {formatPortionRate(
-                                            b.qtyPerPortion,
-                                            b.unit || ing.unit,
-                                          )}
-                                          /suất
-                                        </Typography>
-                                        <Typography
-                                          variant="body2"
-                                          sx={{
-                                            fontWeight: 700,
-                                            color: "#2563eb",
-                                            mt: 0.5,
-                                          }}
-                                        >
-                                          = {b.calculatedQty}{" "}
-                                          {isDiscrete
-                                            ? b.unit || ing.unit
-                                            : "kg"}
-                                        </Typography>
-                                      </Box>
-                                    ))}
-                                  </Box>
-                                </Box>
+                            <TableRow className={styles.freshDetailRow}>
+                              <TableCell colSpan={3}>
+                                <ul className={styles.freshBreakdown}>
+                                  {ing.breakdown.map((b, bIdx) => (
+                                    <li key={bIdx}>
+                                      <span className={styles.freshBreakdownName}>
+                                        {b.targetScope || b.menuName}
+                                      </span>
+                                      <span className={styles.freshBreakdownCalc}>
+                                        {b.portions} suất ×{" "}
+                                        {formatPortionRate(b.qtyPerPortion, b.unit || ing.unit)}
+                                        /suất
+                                      </span>
+                                      <span className={styles.freshBreakdownQty}>
+                                        {b.calculatedQty}{" "}
+                                        {isDiscrete ? b.unit || ing.unit : "kg"}
+                                      </span>
+                                    </li>
+                                  ))}
+                                </ul>
                               </TableCell>
                             </TableRow>
                           )}

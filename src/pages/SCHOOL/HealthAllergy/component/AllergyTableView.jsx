@@ -2,7 +2,8 @@ import React from "react"
 import PropTypes from "prop-types"
 import { Eye, School, Calendar, Users } from "lucide-react"
 import styles from "./AllergyTableView.module.scss"
-import { affectedCountsLabel } from "src/services/AllergyService"
+import { affectedCountsLabel, classAllergyGroups } from "src/services/AllergyService"
+import { allergyGroupLabel } from "src/utils/allergyGroups"
 
 export default function AllergyTableView({ classList, onSelectClass }) {
   return (
@@ -38,7 +39,8 @@ export default function AllergyTableView({ classList, onSelectClass }) {
           {classList.map((cls) => {
             const allergies = cls.allergies || []
             const totalAffected = affectedCountsLabel(allergies)
-            const ingredientNames = allergies.map((a) => a.ingredientName).join(", ")
+            // Nhóm dị ứng: "Sữa · Lạc · Sữa + Lạc"
+            const ingredientNames = classAllergyGroups(allergies).map(allergyGroupLabel).join(" · ")
 
             return (
               <tr key={cls.id} className={styles.tableRow}>

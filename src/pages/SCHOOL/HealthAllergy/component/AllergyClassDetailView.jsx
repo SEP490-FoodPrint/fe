@@ -1,5 +1,5 @@
 import React from "react"
-import { classAffectedStudents } from "src/services/AllergyService"
+import { classAffectedStudents, classAllergyGroups } from "src/services/AllergyService"
 import PropTypes from "prop-types"
 import {
   ArrowLeft,
@@ -16,6 +16,8 @@ export default function AllergyClassDetailView({ classData, onBack }) {
   if (!classData) return null
 
   const allergies = classData.allergies || []
+  // Nhóm dị ứng: mỗi nhóm là các nguyên liệu một nhóm học sinh cùng tránh + số học sinh của nhóm
+  const groups = classAllergyGroups(allergies)
 
   return (
     <div className={styles.detailWrapper}>
@@ -104,7 +106,7 @@ export default function AllergyClassDetailView({ classData, onBack }) {
       {/* 3. Bảng Danh sách nguyên liệu dị ứng (Thuần chữ, Học sinh ảnh hưởng căn giữa) */}
       <div className={styles.tableCard}>
         <div className={styles.cardHeader}>
-          <h2 className={styles.cardTitle}>Danh sách nguyên liệu dị ứng</h2>
+          <h2 className={styles.cardTitle}>Nhóm dị ứng của lớp</h2>
           <span className={styles.readonlyBadge}>
             <ShieldCheck size={14} />
             <span>Dữ liệu tổng hợp theo lớp</span>
@@ -123,27 +125,36 @@ export default function AllergyClassDetailView({ classData, onBack }) {
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th style={{ width: "55%" }}>
-                      <span>Tên nguyên liệu</span>
+                    <th style={{ width: "12%" }}>
+                      <span>Nhóm</span>
                     </th>
-                    <th style={{ width: "45%" }}>
-                      <span>Nhà cung cấp</span>
+                    <th style={{ width: "68%" }}>
+                      <span>Nguyên liệu cùng tránh</span>
+                    </th>
+                    <th style={{ width: "20%", textAlign: "center" }}>
+                      <span>Số học sinh</span>
                     </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {allergies.map((alg) => (
-                    <tr key={alg.id}>
-                      {/* Tên nguyên liệu */}
+                  {groups.map((group) => (
+                    <tr key={group.groupNo}>
                       <td>
-                        <span className={styles.ingredientName}>{alg.ingredientName}</span>
+                        <span className={styles.categoryText}>Nhóm {group.groupNo}</span>
                       </td>
-
-                      {/* Nhà cung cấp */}
                       <td>
-                        <span className={styles.categoryText}>{alg.supplierName || "—"}</span>
+                        {group.items.map((item) => (
+                          <div key={item.ingredientEntryId}>
+                            <span className={styles.ingredientName}>{item.name}</span>
+                            {item.supplierName && (
+                              <span className={styles.categoryText}>{` · ${item.supplierName}`}</span>
+                            )}
+                          </div>
+                        ))}
                       </td>
-
+                      <td style={{ textAlign: "center" }}>
+                        <span className={styles.ingredientName}>{group.count}</span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -152,14 +163,16 @@ export default function AllergyClassDetailView({ classData, onBack }) {
 
             {/* Mobile View */}
             <div className={styles.mobileList}>
-              {allergies.map((alg) => (
-                <div key={alg.id} className={styles.mobileItem}>
+              {groups.map((group) => (
+                <div key={group.groupNo} className={styles.mobileItem}>
                   <div className={styles.mobileItemHeader}>
-                    <span className={styles.mobileIngName}>{alg.ingredientName}</span>
+                    <span className={styles.mobileIngName}>
+                      {group.items.map((item) => item.name).join(" + ")}
+                    </span>
                   </div>
                   <div className={styles.mobileMetaRow}>
-                    <span className={styles.metaLabel}>Nhà cung cấp:</span>
-                    <span className={styles.categoryText}>{alg.supplierName || "—"}</span>
+                    <span className={styles.metaLabel}>Nhóm {group.groupNo} · Số học sinh:</span>
+                    <span className={styles.categoryText}>{group.count}</span>
                   </div>
                 </div>
               ))}
@@ -180,6 +193,7 @@ AllergyClassDetailView.propTypes = {
     allergies: PropTypes.arrayOf(
       PropTypes.shape({
         id: PropTypes.string.isRequired,
+        groupNo: PropTypes.number,
         ingredientName: PropTypes.string.isRequired,
         category: PropTypes.string,
         supplierName: PropTypes.string,

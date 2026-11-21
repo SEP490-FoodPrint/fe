@@ -2,7 +2,7 @@ import React from "react"
 import { DRY_MIN_SHELF_DAYS, vietnamDateAfterDays, vietnamToday } from "src/utils/lotDates"
 import PropTypes from "prop-types"
 import { Link } from "react-router-dom"
-import { CircularProgress } from "@mui/material"
+import { CircularProgress, Tooltip } from "@mui/material"
 import { Add, DeleteOutlined, KeyboardArrowDown } from "@mui/icons-material"
 import ROUTER from "src/router/ROUTER"
 import {
@@ -15,16 +15,17 @@ import {
 import styles from "./RequestSourcesAssigner.module.scss"
 
 const TOTAL_STATUS_META = {
-  MATCH: { className: "totalMatch", hint: "Đủ khối lượng" },
+  MATCH: { className: "totalMatch", hint: "Đủ" },
   UNDER: { className: "totalUnder", hint: "Thiếu" },
   OVER: { className: "totalOver", hint: "Thừa" },
-  INVALID: { className: "totalInvalid", hint: "Chưa nhập đủ khối lượng" },
+  INVALID: { className: "totalInvalid", hint: "Chưa nhập" },
 }
 
 /**
  * Gắn cơ sở nguồn cung cho từng nguyên liệu của đơn theo yêu cầu.
- * Mỗi nguyên liệu là 1 dòng; phần nguồn cung có thể tách nhiều dòng con
- * (mỗi cơ sở + khối lượng giao là 1 lô riêng). Cột "Tổng" đối chiếu với khối lượng trường cần.
+ * Bảng nhóm: mỗi nguyên liệu là 1 dòng tiêu đề (tên, khối lượng đã gắn / cần, tình trạng),
+ * bên dưới là các dòng nguồn cung thẳng cột (mỗi cơ sở + khối lượng giao là 1 lô riêng).
+ * Cột NSX / HSD chỉ hiện khi đơn có đồ lưu kho.
  */
 function RequestSourcesAssigner({
   items = [],
@@ -52,29 +53,28 @@ function RequestSourcesAssigner({
     )
     return summary.status === "MATCH" && allAssigned ? count + 1 : count
   }, 0)
+  const hasDryStock = items.some(item => item.handlingType === "DRY_STOCK")
+  const gridClass = hasDryStock ? styles.gridWithDates : styles.gridNoDates
+  const allReady = items.length > 0 && matchedCount === items.length
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.headerRow}>
+      <div className={styles.toolbar}>
         <div className={styles.titleGroup}>
           <span className={styles.title}>
-            <span>{"Cơ sở nguồn cung theo nguyên liệu "}</span>
+            {"Cơ sở nguồn cung theo nguyên liệu "}
             <span className={styles.requiredMark}>*</span>
           </span>
           <span className={styles.helperText}>
-            Một nguyên liệu có thể lấy từ nhiều cơ sở. Tổng khối lượng giao phải
-            bằng khối lượng trường yêu cầu.
+            Một nguyên liệu có thể lấy từ nhiều cơ sở; tổng khối lượng giao phải bằng khối
+            lượng trường yêu cầu.
           </span>
         </div>
-
         <span
-          className={`${styles.counterChip} ${
-            items.length > 0 && matchedCount === items.length
-              ? styles.counterReady
-              : ""
-          }`}
+          className={`${styles.counter} ${allReady ? styles.counterReady : ""}`}
+          aria-live="polite"
         >
-          {`${matchedCount}/${items.length} đủ khối lượng`}
+          {`${matchedCount}/${items.length} nguyên liệu đã đủ`}
         </span>
       </div>
 
@@ -93,209 +93,159 @@ function RequestSourcesAssigner({
         <div className={styles.emptyNotice} role="alert">
           <span>
             Chưa có cơ sở nguồn cung đang hoạt động. Vui lòng thiết lập tại{" "}
-            <Link
-              to={ROUTER.SUPPLIER_SOURCE_FACILITIES}
-              className={styles.inlineLink}
-            >
+            <Link to={ROUTER.SUPPLIER_SOURCE_FACILITIES} className={styles.inlineLink}>
               Cơ sở nguồn cung
             </Link>{" "}
             trước khi tạo đơn giao.
           </span>
         </div>
       ) : (
-        <>
+        <div className={styles.table} role="table" aria-label="Phân bổ cơ sở nguồn cung">
           {items.length > 1 && onApplyAll && (
             <div className={styles.bulkBar}>
-              <label
-                htmlFor="bulk-source-facility-select"
-                className={styles.bulkLabel}
-              >
-                Áp dụng nhanh cho nguyên liệu 1 nguồn
+              <label htmlFor="bulk-source-facility-select" className={styles.bulkLabel}>
+                Gắn nhanh một cơ sở cho các nguyên liệu chưa tách nguồn
               </label>
-              <div className={styles.selectWrap}>
+              <div className={`${styles.selectWrap} ${styles.bulkSelect}`}>
                 <select
                   id="bulk-source-facility-select"
                   value=""
                   disabled={disabled}
                   onChange={event => {
-                    const value = event.target.value
-                    if (value) {
-                      onApplyAll(value)
-                    }
+                    if (event.target.value) onApplyAll(event.target.value)
                   }}
-                  className={styles.selectControl}
+                  className={`${styles.selectControl} ${styles.isPlaceholder}`}
                 >
-                  <option value="">-- Chọn cùng một cơ sở nguồn cung --</option>
+                  <option value="">Chọn cơ sở nguồn cung</option>
                   {sourceFacilityOptions.map(fac => (
                     <option key={fac.id} value={fac.id}>
                       {formatSourceFacilityLabel(fac)}
                     </option>
                   ))}
                 </select>
-                <KeyboardArrowDown
-                  className={styles.selectChevron}
-                  aria-hidden="true"
-                />
+                <KeyboardArrowDown className={styles.selectChevron} aria-hidden="true" />
               </div>
             </div>
           )}
 
-          <div className={styles.table} role="table" aria-label="Phân bổ cơ sở nguồn cung">
-            <div className={styles.tableHead} role="row">
-              <span role="columnheader">Nguyên liệu</span>
-              <span role="columnheader">Cơ sở nguồn cung &amp; khối lượng giao</span>
-              <span role="columnheader" className={styles.totalHead}>
-                Tổng
-              </span>
-            </div>
+          <div className={`${styles.tableHead} ${gridClass}`} role="row">
+            <span role="columnheader">Cơ sở nguồn cung</span>
+            {hasDryStock && <span role="columnheader">Ngày sản xuất</span>}
+            {hasDryStock && <span role="columnheader">Hạn sử dụng</span>}
+            <span role="columnheader" className={styles.alignRight}>
+              Khối lượng giao
+            </span>
+            <span aria-hidden="true" />
+          </div>
 
-            {items.map((item, idx) => {
-              const allocations = allocationsByItemId?.[item.id] || []
-              const itemError = sourceErrors?.[item.id] || ""
-              const isDryStock = item.handlingType === "DRY_STOCK"
-              const unit = item.unit || ""
-              const summary = getAllocationTotalStatus(
-                item.requestedQuantity,
-                allocations,
-              )
-              const statusMeta = TOTAL_STATUS_META[summary.status]
-              const canAddMore =
-                allocations.length < sourceFacilityOptions.length
+          {items.map((item, idx) => {
+            const allocations = allocationsByItemId?.[item.id] || []
+            const itemError = sourceErrors?.[item.id] || ""
+            const isDryStock = item.handlingType === "DRY_STOCK"
+            const unit = item.unit || ""
+            const summary = getAllocationTotalStatus(item.requestedQuantity, allocations)
+            const statusMeta = TOTAL_STATUS_META[summary.status]
+            const canAddMore = allocations.length < sourceFacilityOptions.length
+            const statusText =
+              summary.status === "UNDER" || summary.status === "OVER"
+                ? `${statusMeta.hint} ${formatQuantityVi(thousandthsToQuantity(summary.difference))} ${unit}`.trim()
+                : statusMeta.hint
 
-              return (
-                <div
-                  key={item.id || idx}
-                  className={styles.itemRow}
-                  role="row"
-                >
-                  <div className={styles.itemMeta} role="cell">
-                    <span className={styles.itemName}>
-                      {`${idx + 1}. ${item.ingredientName}`}
-                    </span>
-                    <span className={styles.qtyChip}>
-                      {`Cần: ${formatQuantityVi(item.requestedQuantity)} ${unit}`.trim()}
-                    </span>
-                    {isDryStock && (
-                      <span className={styles.dryChip}>Đồ lưu kho</span>
-                    )}
-                    {item.note && (
-                      <p className={styles.itemNote}>{`Ghi chú: ${item.note}`}</p>
-                    )}
+            return (
+              <div key={item.id || idx} className={styles.itemGroup} role="rowgroup">
+                <div className={styles.itemHead} role="row">
+                  <div className={styles.itemTitle} role="cell">
+                    <span className={styles.itemIndex}>{idx + 1}</span>
+                    <span className={styles.itemName}>{item.ingredientName}</span>
+                    {isDryStock && <span className={styles.dryTag}>Đồ lưu kho</span>}
                   </div>
+                  <div
+                    className={`${styles.itemTotal} ${styles[statusMeta.className]}`}
+                    role="cell"
+                    aria-live="polite"
+                  >
+                    <span className={styles.totalValue}>
+                      {`${formatQuantityVi(thousandthsToQuantity(summary.allocated))} / ${formatQuantityVi(item.requestedQuantity)} ${unit}`.trim()}
+                    </span>
+                    <span className={styles.totalStatus}>
+                      <span className={styles.statusDot} aria-hidden="true" />
+                      {statusText}
+                    </span>
+                  </div>
+                  {item.note && <p className={styles.itemNote}>{`Ghi chú: ${item.note}`}</p>}
+                </div>
 
-                  <div className={styles.allocationCol} role="cell">
-                    {allocations.map((row, rowIdx) => {
-                      const rowErrors = allocationErrors?.[row.key] || {}
-                      const lotDateError = lotDateErrors?.[row.key] || ""
-                      const usedByOthers = new Set(
-                        allocations
-                          .filter(other => other.key !== row.key)
-                          .map(other => normalizeOptionId(other.sourceFacilityId))
-                          .filter(Boolean),
-                      )
-                      const selectId = `request-source-${item.id || idx}-${rowIdx}`
-                      const qtyId = `request-qty-${item.id || idx}-${rowIdx}`
+                {allocations.map((row, rowIdx) => {
+                  const rowErrors = allocationErrors?.[row.key] || {}
+                  const lotDateError = lotDateErrors?.[row.key] || ""
+                  const usedByOthers = new Set(
+                    allocations
+                      .filter(other => other.key !== row.key)
+                      .map(other => normalizeOptionId(other.sourceFacilityId))
+                      .filter(Boolean),
+                  )
+                  const rowLabel = `nguồn ${rowIdx + 1} của ${item.ingredientName}`
+                  const rowMessages = [
+                    rowErrors.sourceFacilityId,
+                    rowErrors.actualQuantity,
+                    lotDateError,
+                  ].filter(Boolean)
 
-                      return (
-                        <div key={row.key} className={styles.allocationRow}>
-                          <div className={styles.allocationMain}>
-                            <div className={styles.selectCol}>
-                              <div className={styles.selectWrap}>
-                                <select
-                                  id={selectId}
-                                  value={String(row.sourceFacilityId || "")}
-                                  disabled={disabled}
-                                  aria-label={`Cơ sở nguồn cung ${rowIdx + 1} cho ${item.ingredientName}`}
-                                  aria-invalid={Boolean(rowErrors.sourceFacilityId)}
-                                  onChange={event =>
-                                    onChangeAllocation?.(
-                                      item.id,
-                                      row.key,
-                                      "sourceFacilityId",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={`${styles.selectControl} ${
-                                    rowErrors.sourceFacilityId ? styles.hasError : ""
-                                  }`}
-                                >
-                                  <option value="">-- Chọn cơ sở nguồn cung --</option>
-                                  {sourceFacilityOptions.map(fac => (
-                                    <option
-                                      key={fac.id}
-                                      value={fac.id}
-                                      disabled={usedByOthers.has(normalizeOptionId(fac.id))}
-                                    >
-                                      {formatSourceFacilityLabel(fac)}
-                                    </option>
-                                  ))}
-                                </select>
-                                <KeyboardArrowDown
-                                  className={styles.selectChevron}
-                                  aria-hidden="true"
-                                />
-                              </div>
-                              {rowErrors.sourceFacilityId && (
-                                <p className={styles.errorText} role="alert">
-                                  {rowErrors.sourceFacilityId}
-                                </p>
-                              )}
-                            </div>
+                  return (
+                    <div key={row.key} className={styles.allocationRow} role="row">
+                      <div className={`${styles.allocationGrid} ${gridClass}`}>
+                        <div
+                          className={`${styles.selectWrap} ${styles.cellFacility}`}
+                          role="cell"
+                        >
+                          <select
+                            value={String(row.sourceFacilityId || "")}
+                            disabled={disabled}
+                            aria-label={`Cơ sở nguồn cung ${rowLabel}`}
+                            aria-invalid={Boolean(rowErrors.sourceFacilityId)}
+                            onChange={event =>
+                              onChangeAllocation?.(
+                                item.id,
+                                row.key,
+                                "sourceFacilityId",
+                                event.target.value,
+                              )
+                            }
+                            className={`${styles.selectControl} ${
+                              rowErrors.sourceFacilityId ? styles.hasError : ""
+                            } ${row.sourceFacilityId ? "" : styles.isPlaceholder}`}
+                          >
+                            <option value="">Chọn cơ sở nguồn cung</option>
+                            {sourceFacilityOptions.map(fac => (
+                              <option
+                                key={fac.id}
+                                value={fac.id}
+                                disabled={usedByOthers.has(normalizeOptionId(fac.id))}
+                              >
+                                {formatSourceFacilityLabel(fac)}
+                              </option>
+                            ))}
+                          </select>
+                          <KeyboardArrowDown
+                            className={styles.selectChevron}
+                            aria-hidden="true"
+                          />
+                        </div>
 
-                            <div className={styles.qtyCol}>
-                              <div className={styles.qtyWrap}>
-                                <input
-                                  id={qtyId}
-                                  type="text"
-                                  inputMode="decimal"
-                                  value={row.actualQuantity ?? ""}
-                                  disabled={disabled}
-                                  placeholder="0"
-                                  aria-label={`Khối lượng giao từ nguồn ${rowIdx + 1} cho ${item.ingredientName}`}
-                                  aria-invalid={Boolean(rowErrors.actualQuantity)}
-                                  onChange={event =>
-                                    onChangeAllocation?.(
-                                      item.id,
-                                      row.key,
-                                      "actualQuantity",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={`${styles.qtyControl} ${
-                                    rowErrors.actualQuantity ? styles.hasError : ""
-                                  }`}
-                                />
-                                {unit && <span className={styles.qtyUnit}>{unit}</span>}
-                              </div>
-                              {rowErrors.actualQuantity && (
-                                <p className={styles.errorText} role="alert">
-                                  {rowErrors.actualQuantity}
-                                </p>
-                              )}
-                            </div>
-
-                            <button
-                              type="button"
-                              className={styles.removeBtn}
-                              disabled={disabled || allocations.length <= 1}
-                              aria-label={`Xoá nguồn ${rowIdx + 1} của ${item.ingredientName}`}
-                              onClick={() => onRemoveAllocation?.(item.id, row.key)}
-                            >
-                              <DeleteOutlined fontSize="small" />
-                            </button>
-                          </div>
-
-                          {isDryStock && (
-                            <div className={styles.lotDates}>
-                              <label className={styles.lotDateField}>
-                                <span>
-                                  Ngày sản xuất <span className={styles.requiredMark}>*</span>
-                                </span>
+                        {hasDryStock &&
+                          (isDryStock ? (
+                            <>
+                              <label
+                                className={`${styles.dateCell} ${styles.cellMfg}`}
+                                role="cell"
+                              >
+                                <span className={styles.mobileLabel}>Ngày sản xuất</span>
                                 <input
                                   type="date"
                                   value={row.manufactureDate || ""}
                                   max={vietnamToday()}
                                   disabled={disabled}
+                                  aria-label={`Ngày sản xuất ${rowLabel}`}
                                   onChange={event =>
                                     onChangeAllocation?.(
                                       item.id,
@@ -304,18 +254,22 @@ function RequestSourcesAssigner({
                                       event.target.value,
                                     )
                                   }
-                                  className={`${styles.dateControl} ${lotDateError ? styles.hasError : ""}`}
+                                  className={`${styles.inputControl} ${
+                                    lotDateError ? styles.hasError : ""
+                                  }`}
                                 />
                               </label>
-                              <label className={styles.lotDateField}>
-                                <span>
-                                  Hạn sử dụng <span className={styles.requiredMark}>*</span>
-                                </span>
+                              <label
+                                className={`${styles.dateCell} ${styles.cellExp}`}
+                                role="cell"
+                              >
+                                <span className={styles.mobileLabel}>Hạn sử dụng</span>
                                 <input
                                   type="date"
                                   value={row.expiryDate || ""}
                                   min={vietnamDateAfterDays(DRY_MIN_SHELF_DAYS)}
                                   disabled={disabled}
+                                  aria-label={`Hạn sử dụng ${rowLabel}`}
                                   onChange={event =>
                                     onChangeAllocation?.(
                                       item.id,
@@ -324,56 +278,93 @@ function RequestSourcesAssigner({
                                       event.target.value,
                                     )
                                   }
-                                  className={`${styles.dateControl} ${lotDateError ? styles.hasError : ""}`}
+                                  className={`${styles.inputControl} ${
+                                    lotDateError ? styles.hasError : ""
+                                  }`}
                                 />
                               </label>
-                              {lotDateError && (
-                                <p className={styles.errorText} role="alert">
-                                  {lotDateError}
-                                </p>
-                              )}
-                            </div>
+                            </>
+                          ) : (
+                            <span
+                              className={`${styles.notApplicable} ${styles.cellDates}`}
+                              role="cell"
+                            >
+                              Không cần NSX/HSD
+                            </span>
+                          ))}
+
+                        <div className={`${styles.qtyWrap} ${styles.cellQty}`} role="cell">
+                          <input
+                            type="text"
+                            inputMode="decimal"
+                            value={row.actualQuantity ?? ""}
+                            disabled={disabled}
+                            placeholder="0"
+                            aria-label={`Khối lượng giao ${rowLabel}`}
+                            aria-invalid={Boolean(rowErrors.actualQuantity)}
+                            onChange={event =>
+                              onChangeAllocation?.(
+                                item.id,
+                                row.key,
+                                "actualQuantity",
+                                event.target.value,
+                              )
+                            }
+                            className={`${styles.inputControl} ${styles.qtyControl} ${
+                              rowErrors.actualQuantity ? styles.hasError : ""
+                            }`}
+                          />
+                          {unit && <span className={styles.qtyUnit}>{unit}</span>}
+                        </div>
+
+                        <div className={styles.cellRemove} role="cell">
+                          {allocations.length > 1 && (
+                            <Tooltip title="Xoá nguồn này">
+                              <span>
+                                <button
+                                  type="button"
+                                  className={styles.removeBtn}
+                                  disabled={disabled}
+                                  aria-label={`Xoá ${rowLabel}`}
+                                  onClick={() => onRemoveAllocation?.(item.id, row.key)}
+                                >
+                                  <DeleteOutlined fontSize="small" />
+                                </button>
+                              </span>
+                            </Tooltip>
                           )}
                         </div>
-                      )
-                    })}
+                      </div>
 
-                    <button
-                      type="button"
-                      className={styles.addBtn}
-                      disabled={disabled || !canAddMore}
-                      onClick={() => onAddAllocation?.(item.id)}
-                    >
-                      <Add fontSize="small" />
-                      <span>Thêm nguồn cung</span>
-                    </button>
+                      {rowMessages.map(message => (
+                        <p key={message} className={styles.errorText} role="alert">
+                          {message}
+                        </p>
+                      ))}
+                    </div>
+                  )
+                })}
 
-                    {itemError && (
-                      <p className={styles.errorText} role="alert">
-                        {itemError}
-                      </p>
-                    )}
-                  </div>
-
-                  <div
-                    className={`${styles.totalCol} ${styles[statusMeta.className]}`}
-                    role="cell"
-                    aria-live="polite"
+                <div className={styles.itemFoot}>
+                  <button
+                    type="button"
+                    className={styles.addBtn}
+                    disabled={disabled || !canAddMore}
+                    onClick={() => onAddAllocation?.(item.id)}
                   >
-                    <span className={styles.totalValue}>
-                      {`${formatQuantityVi(thousandthsToQuantity(summary.allocated))} / ${formatQuantityVi(item.requestedQuantity)} ${unit}`.trim()}
-                    </span>
-                    <span className={styles.totalHint}>
-                      {summary.status === "UNDER" || summary.status === "OVER"
-                        ? `${statusMeta.hint} ${formatQuantityVi(thousandthsToQuantity(summary.difference))} ${unit}`.trim()
-                        : statusMeta.hint}
-                    </span>
-                  </div>
+                    <Add fontSize="small" />
+                    <span>Thêm cơ sở nguồn cung</span>
+                  </button>
+                  {itemError && (
+                    <p className={styles.errorText} role="alert">
+                      {itemError}
+                    </p>
+                  )}
                 </div>
-              )
-            })}
-          </div>
-        </>
+              </div>
+            )
+          })}
+        </div>
       )}
 
       {fieldError && (

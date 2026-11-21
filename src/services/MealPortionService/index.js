@@ -8,8 +8,9 @@ const finalize = id => http.post(apiFinalizeMealPortion(id), null, { notifyOnErr
 
 const getClassAllergyOptions = () => http.get(apiMyClassAllergyOptions, { notifyOnError: false })
 // Danh sách nguyên liệu dị ứng chung của lớp + một số học sinh dị ứng chung
-const saveClassAllergies = (ingredientEntryIds, affectedCount) =>
-  http.put(apiMyClassAllergies, { ingredientEntryIds, affectedCount }, { notifyOnError: false })
+/** groups: [{ ingredientEntryIds: string[], affectedCount: number }] — mỗi nhóm một tập nguyên liệu cùng tránh. */
+const saveClassAllergies = groups =>
+  http.put(apiMyClassAllergies, { groups }, { notifyOnError: false })
 
 const MealPortionService = { getMyClassMeal, getHistory, saveDraft, finalize, getClassAllergyOptions, saveClassAllergies }
 

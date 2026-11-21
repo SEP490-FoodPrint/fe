@@ -107,6 +107,8 @@ function adaptOrderSummary(row = {}) {
     supplierId: row.supplierId || "",
     schoolName: row.schoolName || "Trường học đối tác",
     status: row.status || SUPPLY_ORDER_STATUS.SENT,
+    // DRY_STOCK: đơn đồ lưu kho (được hẹn giao ngày khác); còn lại là đồ tươi giao trong ngày.
+    orderType: row.orderType || null,
     requestedDeliveryDate: row.requestedDeliveryDate || null,
     sentAt: row.sentAt || null,
     acceptedAt: row.acceptedAt || null,

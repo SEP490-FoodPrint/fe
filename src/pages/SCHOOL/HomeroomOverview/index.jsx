@@ -14,6 +14,7 @@ import { Link } from "react-router-dom"
 import MealPortionService from "src/services/MealPortionService"
 import ROUTER from "src/router/ROUTER"
 import ClassAllergyDialog from "./component/ClassAllergyDialog"
+import { allergyGroupLabel, groupAllergyRows, totalAllergyCount } from "src/utils/allergyGroups"
 import "./style.scss"
 
 const meals = [
@@ -132,11 +133,11 @@ function HomeroomOverview() {
               </Button>
             </div>
             <p>{allergies.length
-              ? `${Math.max(...allergies.map(item => Number(item.affectedCount) || 0))} học sinh dị ứng · ${allergies.length} nguyên liệu cần tránh.`
+              ? `${totalAllergyCount(allergies)} học sinh dị ứng · ${groupAllergyRows(allergies).length} nhóm.`
               : "Lớp chưa có nguyên liệu dị ứng được ghi nhận."}</p>
             {allergies.length > 0 && <div className="homeroom-overview__allergy-list">
-              {allergies.map(item => <span key={item.ingredientEntryId}>
-                {item.IngredientEntry?.Ingredient?.name}
+              {groupAllergyRows(allergies).map(group => <span key={group.groupNo}>
+                {allergyGroupLabel(group)}: <strong>{group.count}</strong>
               </span>)}
             </div>}
           </div>

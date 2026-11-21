@@ -1,14 +1,20 @@
+/* Bảng gắn cơ sở nguồn cung: dòng tiêu đề theo nguyên liệu, dòng con thẳng cột theo từng nguồn. */
+$cols-with-dates: minmax(0, 1fr) 156px 156px 148px 36px;
+$cols-no-dates: minmax(0, 1fr) 160px 36px;
+$row-x: 16px;
+
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   min-width: 0;
   font-family: var(--font-sans);
 }
 
-.headerRow {
+/* ---------- Thanh tiêu đề ---------- */
+.toolbar {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
 }
@@ -16,16 +22,15 @@
 .titleGroup {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   min-width: 0;
 }
 
 .title {
-  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
   line-height: 20px;
-  color: #24312d;
+  color: var(--text-primary);
 }
 
 .requiredMark {
@@ -33,160 +38,270 @@
 }
 
 .helperText {
-  font-family: var(--font-sans);
   font-size: 12px;
-  font-weight: 400;
   line-height: 16px;
-  color: #6b7772;
+  color: var(--text-muted);
 }
 
-.counterChip {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: #f1f5f3;
-  font-family: var(--font-sans);
+.counter {
+  flex-shrink: 0;
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
-  color: #52635c;
+  color: var(--text-muted);
   white-space: nowrap;
-  flex-shrink: 0;
   font-variant-numeric: tabular-nums;
 }
 
 .counterReady {
-  background: #e7f3ee;
-  color: #08735c;
+  color: var(--color-success);
 }
 
-.bulkBar {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 12px 16px;
-  padding: 0;
-  background: transparent;
-}
-
-.bulkLabel {
-  font-family: var(--font-sans);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
-  color: #6b7772;
-  white-space: nowrap;
-}
-
-/* Bảng phân bổ: mỗi nguyên liệu 1 dòng, cột nguồn cung tách dòng con */
-$cols: minmax(160px, 1fr) minmax(0, 2.2fr) minmax(120px, 150px);
-
+/* ---------- Khung bảng ---------- */
 .table {
   display: flex;
   flex-direction: column;
-  border: 1px solid #e1e6e2;
-  border-radius: 8px;
-  background: #ffffff;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
   overflow: hidden;
+}
+
+.bulkBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px $row-x;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.bulkLabel {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-secondary);
+}
+
+.bulkSelect {
+  width: 320px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.gridWithDates {
+  grid-template-columns: $cols-with-dates;
+}
+
+.gridNoDates {
+  grid-template-columns: $cols-no-dates;
 }
 
 .tableHead {
   display: grid;
-  grid-template-columns: $cols;
-  gap: 16px;
-  padding: 10px 16px;
-  background: #f6f8f7;
-  border-bottom: 1px solid #e1e6e2;
+  gap: 8px;
+  padding: 8px $row-x;
+  background: var(--bg-page);
+  border-bottom: 1px solid var(--border-default);
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
-  color: #6b7772;
+  color: var(--text-muted);
 }
 
-.totalHead {
+.alignRight {
   text-align: right;
 }
 
-.itemRow {
-  display: grid;
-  grid-template-columns: $cols;
-  align-items: start;
-  gap: 12px 16px;
-  padding: 12px 16px;
-  border-bottom: 1px solid #e1e6e2;
+/* ---------- Nhóm theo nguyên liệu ---------- */
+.itemGroup {
+  padding: 12px $row-x 8px;
+  border-bottom: 1px solid var(--border-default);
 
   &:last-child {
     border-bottom: 0;
   }
 }
 
-.itemMeta {
+.itemHead {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-  min-width: 0;
-  padding-top: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-bottom: 8px;
 }
 
-.allocationCol {
+.itemTitle {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: 8px;
   min-width: 0;
 }
 
+.itemIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-full);
+  background: var(--bg-muted);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.itemName {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+.dryTag {
+  flex-shrink: 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--beige-800, var(--text-muted));
+}
+
+.itemNote {
+  flex-basis: 100%;
+  margin: 0 0 0 30px;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.itemTotal {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.totalValue {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.totalStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: var(--radius-full);
+  background: currentColor;
+}
+
+.totalMatch .totalStatus {
+  color: var(--color-success);
+}
+
+.totalUnder .totalStatus,
+.totalInvalid .totalStatus {
+  color: var(--color-warning);
+}
+
+.totalOver .totalStatus {
+  color: var(--color-error);
+}
+
+/* ---------- Dòng nguồn cung ---------- */
 .allocationRow {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed #e1e6e2;
+  gap: 4px;
+  padding: 4px 0;
 }
 
-.allocationMain {
+.allocationGrid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 140px 36px;
-  align-items: start;
+  align-items: center;
   gap: 8px;
 }
 
-.qtyCol {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.cellFacility,
+.cellQty,
+.dateCell {
   min-width: 0;
 }
 
+.cellRemove {
+  display: flex;
+  justify-content: center;
+}
+
+.mobileLabel {
+  display: none;
+}
+
+.notApplicable {
+  grid-column: span 2;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.itemFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  padding-top: 2px;
+}
+
+/* ---------- Ô nhập ---------- */
+.selectWrap,
 .qtyWrap {
   position: relative;
   display: flex;
   align-items: center;
 }
 
-.qtyControl {
+.selectControl,
+.inputControl {
   width: 100%;
-  height: 40px;
-  padding: 0 44px 0 12px;
-  border: 1px solid #e1e6e2;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #24312d;
+  height: 38px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: 14px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+  line-height: 20px;
+  transition:
+    border-color 150ms cubic-bezier(0.2, 0, 0, 1),
+    box-shadow 150ms cubic-bezier(0.2, 0, 0, 1);
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
 
   &:focus-visible {
     outline: none;
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 1px var(--color-primary, #0a8066);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
   }
 
   &:disabled {
-    background: #f1f5f3;
-    color: #6b7772;
+    background: var(--bg-muted);
+    color: var(--text-muted);
+    cursor: not-allowed;
   }
 
   &.hasError {
@@ -194,11 +309,48 @@ $cols: minmax(160px, 1fr) minmax(0, 2.2fr) minmax(120px, 150px);
   }
 }
 
+.selectControl {
+  padding: 0 34px 0 12px;
+  appearance: none;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &.isPlaceholder {
+    color: var(--text-muted);
+  }
+
+  option {
+    color: var(--text-primary);
+  }
+}
+
+.inputControl {
+  padding: 0 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.qtyControl {
+  padding-right: 44px;
+  text-align: right;
+}
+
 .qtyUnit {
   position: absolute;
   right: 12px;
   font-size: 12px;
-  color: #6b7772;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.selectChevron {
+  position: absolute;
+  right: 10px;
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 18px !important;
+  color: var(--text-muted);
   pointer-events: none;
 }
 
@@ -206,17 +358,21 @@ $cols: minmax(160px, 1fr) minmax(0, 2.2fr) minmax(120px, 150px);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 40px;
-  border: 1px solid #e1e6e2;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #6b7772;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
   cursor: pointer;
 
   &:hover:not(:disabled) {
+    background: var(--color-error-bg);
     color: var(--color-error);
-    border-color: var(--color-error);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--border-focus);
   }
 
   &:disabled {
@@ -226,170 +382,49 @@ $cols: minmax(160px, 1fr) minmax(0, 2.2fr) minmax(120px, 150px);
 }
 
 .addBtn {
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  margin-left: -8px;
   padding: 4px 8px;
   border: 0;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: transparent;
-  color: var(--color-primary, #0a8066);
+  color: var(--color-primary);
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
 
   &:hover:not(:disabled) {
-    background: #e7f3ee;
-  }
-
-  &:disabled {
-    color: #adbbb3;
-    cursor: not-allowed;
-  }
-}
-
-.totalCol {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  padding-top: 8px;
-  text-align: right;
-}
-
-.totalValue {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  font-variant-numeric: tabular-nums;
-}
-
-.totalHint {
-  font-size: 12px;
-  line-height: 16px;
-}
-
-.totalMatch {
-  color: #08735c;
-}
-
-.totalUnder,
-.totalInvalid {
-  color: var(--color-warning, #a15c07);
-}
-
-.totalOver {
-  color: var(--color-error);
-}
-
-.itemName {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  color: #24312d;
-  overflow-wrap: anywhere;
-}
-
-.qtyChip {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 20px;
-  color: var(--color-primary, #0a8066);
-  white-space: nowrap;
-  flex-shrink: 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.itemNote {
-  margin: 0;
-  font-size: 12px;
-  line-height: 16px;
-  color: #6b7772;
-  overflow-wrap: anywhere;
-}
-
-.selectCol {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.selectWrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.selectControl {
-  width: 100%;
-  height: 40px;
-  padding: 0 34px 0 12px;
-  border: 1px solid #e1e6e2;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #24312d;
-  font-family: var(--font-sans);
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 20px;
-  appearance: none;
-  cursor: pointer;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  transition:
-    border-color 150ms cubic-bezier(0.2, 0, 0, 1),
-    box-shadow 150ms cubic-bezier(0.2, 0, 0, 1);
-
-  &:hover:not(:disabled) {
-    border-color: var(--border-strong, #adbbb3);
+    background: var(--color-primary-soft);
   }
 
   &:focus-visible {
-    outline: none;
-    border-color: var(--color-primary, #0a8066);
-    box-shadow: 0 0 0 1px var(--color-primary, #0a8066);
+    outline: 2px solid var(--border-focus);
   }
 
   &:disabled {
-    background: #f1f5f3;
-    color: #6b7772;
+    color: var(--border-strong);
     cursor: not-allowed;
   }
-
-  &.hasError {
-    border-color: var(--color-error);
-  }
 }
 
-.selectChevron {
-  position: absolute;
-  right: 10px;
-  width: 18px !important;
-  height: 18px !important;
-  font-size: 18px !important;
-  color: #6b7772;
-  pointer-events: none;
-}
-
+/* ---------- Trạng thái ---------- */
 .loadingState {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 14px;
-  border: 1px solid #e1e6e2;
-  border-radius: 8px;
-  background: #fafbfa;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
   font-size: 14px;
-  color: #6b7772;
+  color: var(--text-muted);
 }
 
 .emptyNotice {
   padding: 12px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   background: var(--color-warning-bg);
   border: 1px solid var(--color-warning-border);
   font-size: 14px;
@@ -398,56 +433,10 @@ $cols: minmax(160px, 1fr) minmax(0, 2.2fr) minmax(120px, 150px);
 }
 
 .inlineLink {
-  color: var(--color-primary, #0a8066);
+  color: var(--color-primary);
   font-weight: 600;
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-/* Ngày sản xuất / hạn sử dụng của lô (đồ lưu kho) */
-.lotDates {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 8px 12px;
-  margin-top: 8px;
-}
-
-.dryChip {
-  align-self: center;
-  padding: 2px 8px;
-  border-radius: var(--radius-full);
-  background: var(--beige-100);
-  color: var(--beige-800);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.lotDateField {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.dateControl {
-  min-height: 34px;
-  padding: 0 8px;
-  border: 1px solid var(--border-default);
-  border-radius: 6px;
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  font-family: var(--font-sans);
-  font-size: 13px;
-
-  &.hasError {
-    border-color: var(--color-error);
-  }
-}
-
-.lotDates .errorText {
-  flex-basis: 100%;
 }
 
 .errorText {
@@ -457,55 +446,105 @@ $cols: minmax(160px, 1fr) minmax(0, 2.2fr) minmax(120px, 150px);
   color: var(--color-error);
 }
 
+/* ---------- Tablet: ô ngày hẹp lại ---------- */
+@media (max-width: 1100px) {
+  .gridWithDates {
+    grid-template-columns: minmax(0, 1fr) 140px 140px 128px 36px;
+  }
+}
+
+/* ---------- Mobile: mỗi nguồn thành khối xếp dọc ---------- */
 @media (max-width: 767px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .bulkBar {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
     gap: 6px;
+  }
+
+  .bulkSelect {
+    width: 100%;
   }
 
   .tableHead {
     display: none;
   }
 
-  .itemRow {
-    grid-template-columns: 1fr;
-    gap: 8px;
+  .itemGroup {
     padding: 14px;
   }
 
-  .itemMeta,
-  .totalCol {
-    padding-top: 0;
+  .itemHead {
+    align-items: flex-start;
   }
 
-  .totalCol {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: baseline;
+  .allocationRow {
+    padding: 8px 0;
+    border-top: 1px dashed var(--border-default);
   }
 
-  .allocationMain {
-    grid-template-columns: minmax(0, 1fr) 36px;
+  .allocationGrid.gridWithDates,
+  .allocationGrid.gridNoDates {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 36px;
     grid-template-areas:
-      "select remove"
-      "qty qty";
+      "facility facility remove"
+      "mfg exp exp"
+      "qty qty qty";
+  }
 
-    > .selectCol {
-      grid-area: select;
-    }
+  .allocationGrid.gridNoDates {
+    grid-template-areas:
+      "facility facility remove"
+      "qty qty qty";
+  }
 
-    > .qtyCol {
-      grid-area: qty;
-    }
+  .cellFacility {
+    grid-area: facility;
+  }
 
-    > .removeBtn {
-      grid-area: remove;
-      height: 44px;
-    }
+  .cellMfg {
+    grid-area: mfg;
+  }
+
+  .cellExp {
+    grid-area: exp;
+  }
+
+  .cellDates {
+    display: none;
+  }
+
+  .cellQty {
+    grid-area: qty;
+  }
+
+  .cellRemove {
+    grid-area: remove;
+  }
+
+  .dateCell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .mobileLabel {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
   }
 
   .selectControl,
-  .qtyControl {
+  .inputControl {
+    height: 44px;
+  }
+
+  .removeBtn {
+    width: 44px;
     height: 44px;
   }
 }
