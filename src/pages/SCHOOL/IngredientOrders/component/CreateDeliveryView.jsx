@@ -930,157 +930,89 @@ export default function CreateDeliveryView({
   const [selectedIngredient, setSelectedIngredient] = useState(null);
   const [extraQtyInput, setExtraQtyInput] = useState("");
 
-  // Khởi tạo itemsState khi đổi menu, đổi ngày (hoặc đổi mode Đợt 1 / Đợt 2)
-  // Tự động gộp nguyên liệu chung của các thực đơn và lưu cấu trúc breakdown
+  // TASK-08: Lượng nguyên liệu tươi theo khối do Backend tính (công thức theo khối × suất của đợt,
+  // cộng cả bữa chính và bữa xế, không làm tròn). Thiếu dữ liệu thì hiển thị lỗi và chặn tạo đơn.
+  const [demandError, setDemandError] = useState(null);
+  const [demandGrades, setDemandGrades] = useState([]);
+  const [demandSchoolWide, setDemandSchoolWide] = useState(false);
+  // Số suất hiển thị lấy từ kết quả chia theo khối của Backend (fallback về cách tính cũ khi chưa có).
+  const demandTotals = useMemo(() => {
+    if (!demandGrades.length) return null;
+    const sum = (k) =>
+      demandGrades.reduce((a, g) => a + (Number(g[k]) || 0), 0);
+    return {
+      planned: sum("plannedPortions"),
+      batch1: sum("batch1Portions"),
+      actual: sum("actualPortions"),
+      batch: sum("batchPortions"),
+      byGrade: demandGrades
+        .map((g) =>
+          mode === "BATCH_2"
+            ? `${g.gradeName}: ${g.actualPortions} − ${g.batch1Portions} = ${g.batchPortions}`
+            : `${g.gradeName}: ⌊${g.plannedPortions}/2⌋ = ${g.batch1Portions}`,
+        )
+        .join(" · "),
+    };
+  }, [demandGrades, mode]);
   useEffect(() => {
+    let cancelled = false;
     setItemsLoading(true);
-    const timer = setTimeout(() => {
-      if (!activeMenus || activeMenus.length === 0) {
-        setItemsState([]);
-        setItemsLoading(false);
-        return;
-      }
-
-      const groupedMap = new Map();
-
-      activeMenus.forEach((menu) => {
-        const fresh = (menu.ingredients || []).filter(
-          (it) => it.handlingType === "DIRECT_USE",
-        );
-        const mPortions =
-          mode === "BATCH_1"
-            ? Math.floor((Number(menu.maxPortions) || 0) / 2)
-            : remainingByMenu[menu.id]?.remaining || 0;
-
-        fresh.forEach((ing) => {
-          const key = (ing.name || "").trim().toLowerCase();
-          const itemUnit = ing.unit || "kg";
-          let rawRate = Number(ing.qtyPerPortion) || 0.05;
-
-          if (!groupedMap.has(key)) {
-            groupedMap.set(key, {
-              id: ing.id,
-              ingredientId: ing.ingredientId || ing.id,
-              ingredientEntryId: ing.ingredientEntryId || ing.id,
-              name: ing.name,
-              category: ing.category,
-              unit: itemUnit,
-              supplierId: ing.supplierId,
-              supplierName: ing.supplierName,
-              handlingType: ing.handlingType || "DIRECT_USE",
-              isExtraItem: false,
-              defaultQtyPerPortion: rawRate,
-              qtyPerPortion: rawRate,
-              contributions: [],
-            });
-          }
-
-          const entry = groupedMap.get(key);
-          let rate = rawRate;
-
-          // Kế thừa định lượng Đợt 1 nếu là Đợt 2
-          if (mode === "BATCH_2" && batch1ForDate) {
-            const b1Item = batch1ForDate.items?.find(
-              (b) =>
-                (b.ingredientId && b.ingredientId === ing.id) ||
-                b.ingredientName?.trim().toLowerCase() === key,
-            );
-            if (b1Item) {
-              if (
-                Array.isArray(b1Item.breakdown) &&
-                b1Item.breakdown.length > 0
-              ) {
-                const bContr = b1Item.breakdown.find(
-                  (bd) => bd.menuId === menu.id,
-                );
-                if (bContr?.qtyPerPortion) rate = bContr.qtyPerPortion;
-              } else if (
-                typeof b1Item.qtyPerPortion === "number" &&
-                b1Item.qtyPerPortion > 0
-              ) {
-                rate = b1Item.qtyPerPortion;
-              }
-            }
-          }
-
-          let mScope = menu.targetScope;
-          if (!mScope || mScope === "Khối lớp") {
-            if (menu.name?.includes("1-3") || menu.title?.includes("1-3"))
-              mScope = "Khối 1-3";
-            else if (menu.name?.includes("4-5") || menu.title?.includes("4-5"))
-              mScope = "Khối 4-5";
-            else if (
-              Array.isArray(menu.gradeNames) &&
-              menu.gradeNames.length > 0
-            )
-              mScope = menu.gradeNames.join(" - ");
-            else mScope = menu.name || "Khối lớp";
-          }
-
-          const calcContribution = Number((rate * mPortions).toFixed(3));
-          entry.contributions.push({
-            menuId: menu.id,
-            menuName: menu.name,
-            targetScope: mScope,
-            qtyPerPortion: rate,
-            portions: mPortions,
-            calculatedQty: calcContribution,
-            unit: itemUnit,
-          });
+    setDemandError(null);
+    const batchNo = mode === "BATCH_2" ? 2 : 1;
+    IngredientOrderService.getFreshDemand({ date: orderDate, batchNo }).then(
+      ({ data, error }) => {
+        if (cancelled) return;
+        if (error || !data) {
+          setDemandError(error || "Không tính được nhu cầu nguyên liệu.");
+          setDemandGrades([]);
+          setItemsState([]);
+          setItemsLoading(false);
+          return;
+        }
+        setDemandGrades(Array.isArray(data.grades) ? data.grades : []);
+        setDemandSchoolWide(Boolean(data.schoolWide));
+        // Chỉ hiển thị tổng; chi tiết món × khối không đưa lên giao diện.
+        const q3 = (v) => Number((Number(v) || 0).toFixed(3));
+        const initialItems = (data.items || []).map((it) => {
+          const theoSuat = q3(it.quantity);
+          const std = batchNo === 1 ? q3(it.orderQuantity) : theoSuat;
+          const carryQty = batchNo === 2 ? q3(it.carryOverQuantity) : 0;
+          return {
+            id: it.ingredientId,
+            ingredientId: it.ingredientId,
+            ingredientEntryId: it.ingredientEntryId,
+            name: it.name,
+            category: "Thực phẩm tươi sống",
+            unit: it.unit,
+            supplierId: it.supplierId,
+            supplierName: it.supplierName,
+            handlingType: "DIRECT_USE",
+            isExtraItem: false,
+            isMultiMenu: false,
+            fromServerDemand: true,
+            breakdown: [],
+            computedQty: theoSuat,
+            carryToBatch2: batchNo === 1 ? q3(it.carryOverQuantity) : 0,
+            carryQty,
+            defaultQtyPerPortion: 0,
+            qtyPerPortion: 0,
+            portionInput: "",
+            displayRate: "",
+            standardQty: std,
+            standardQtyInput: String(std),
+            extraQty: 0,
+            extraQtyInput: "",
+            batchQty: q3(std + carryQty),
+          };
         });
-      });
-
-      const initialItems = Array.from(groupedMap.values()).map((entry) => {
-        const isDiscrete = isDiscreteUnit(entry.unit);
-        const rawSum = entry.contributions.reduce(
-          (acc, c) => acc + c.calculatedQty,
-          0,
-        );
-        const stdQty = Number(rawSum.toFixed(3));
-        const isMulti = entry.contributions.length > 1;
-
-        const displayRate = isMulti
-          ? entry.contributions
-            .map((c) => `${c.targetScope}: ${c.qtyPerPortion}`)
-            .join(" | ")
-          : entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
-
-        const isKg = isKgUnit(entry.unit);
-        const rawPortion =
-          entry.contributions[0]?.qtyPerPortion || entry.qtyPerPortion;
-        const displayPortion = isKg
-          ? Number((Number(rawPortion) * 1000).toFixed(2))
-          : rawPortion;
-
-        return {
-          id: entry.id,
-          name: entry.name,
-          category: entry.category,
-          unit: entry.unit,
-          supplierId: entry.supplierId,
-          supplierName: entry.supplierName,
-          handlingType: entry.handlingType,
-          isExtraItem: false,
-          isMultiMenu: isMulti,
-          breakdown: entry.contributions,
-          defaultQtyPerPortion: entry.defaultQtyPerPortion,
-          qtyPerPortion: rawPortion,
-          portionInput: String(displayPortion),
-          displayRate,
-          standardQty: stdQty,
-          standardQtyInput: String(stdQty),
-          extraQty: 0,
-          extraQtyInput: "",
-          batchQty: stdQty,
-        };
-      });
-
-      setItemsState(initialItems);
-      setItemsLoading(false);
-    }, 250);
-
-    return () => clearTimeout(timer);
-  }, [activeMenus, mode, batch1ForDate, orderDate]);
+        setItemsState(initialItems);
+        setItemsLoading(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, orderDate, batch1ForDate]);
 
   // Cập nhật lại số lượng Đợt 2 khi GVCN cập nhật Sĩ số (dựa trên định lượng đã kế thừa từ Đợt 1)
   useEffect(() => {
@@ -1089,7 +1021,7 @@ export default function CreateDeliveryView({
     setItemsState((prev) => {
       if (!prev || prev.length === 0) return prev;
       return prev.map((item) => {
-        if (item.isExtraItem) return item;
+        if (item.isExtraItem || item.fromServerDemand) return item;
 
         const isDiscrete = isDiscreteUnit(item.unit);
         let newStdQty = 0;
@@ -1156,7 +1088,9 @@ export default function CreateDeliveryView({
         const updated = [...prev];
         const currentExtra = Number(updated[existingIdx].extraQty) || 0;
         const newExtra = Number((currentExtra + addQty).toFixed(3));
-        const std = Number(updated[existingIdx].standardQty) || 0;
+        const std =
+          (Number(updated[existingIdx].standardQty) || 0) +
+          (Number(updated[existingIdx].carryQty) || 0);
         const total = Number((std + newExtra).toFixed(3));
 
         updated[existingIdx] = {
@@ -1289,7 +1223,8 @@ export default function CreateDeliveryView({
 
         if (!isNaN(num) && num >= 0) {
           const finalExtra = num;
-          const std = Number(item.standardQty) || 0;
+          const std =
+            (Number(item.standardQty) || 0) + (Number(item.carryQty) || 0);
           const total = Number((std + finalExtra).toFixed(3));
 
           return {
@@ -1304,7 +1239,11 @@ export default function CreateDeliveryView({
           ...item,
           extraQtyInput: val,
           extraQty: 0,
-          batchQty: Number(item.standardQty) || 0,
+          batchQty: Number(
+            (
+              (Number(item.standardQty) || 0) + (Number(item.carryQty) || 0)
+            ).toFixed(3),
+          ),
         };
       }),
     );
@@ -1378,6 +1317,10 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 1 (Chuyên biệt thực phẩm tươi sống trong ngày)
   const handleSubmitBatch1 = async () => {
+    if (demandError) {
+      notice({ msg: demandError, isSuccess: false });
+      return;
+    }
     if (dateError) {
       notice({
         msg: dateError,
@@ -1399,14 +1342,18 @@ export default function CreateDeliveryView({
       });
       return;
     }
-    if (itemsState.length === 0) {
+    // Nguyên liệu làm tròn xuống còn 0 không đặt ở Đợt 1; toàn bộ đã chuyển sang Đợt 2.
+    const batch1Items = itemsState.filter(
+      (it) => !(it.fromServerDemand && Number(it.batchQty) === 0),
+    );
+    if (batch1Items.length === 0) {
       notice({
         msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
         isSuccess: false,
       });
       return;
     }
-    const invalidItem = itemsState.find(
+    const invalidItem = batch1Items.find(
       (item) =>
         quantityError(item.batchQty) ||
         (!item.isExtraItem &&
@@ -1444,7 +1391,7 @@ export default function CreateDeliveryView({
           .join(" & "),
         orderDate,
         note,
-        items: itemsState.map((it) => ({
+        items: batch1Items.map((it) => ({
           ingredientEntryId: it.ingredientEntryId || it.id,
           ingredientId: it.ingredientId || it.id,
           ingredientName: it.name,
@@ -1478,6 +1425,10 @@ export default function CreateDeliveryView({
 
   // Submit Đợt 2
   const handleSubmitBatch2 = async () => {
+    if (demandError) {
+      notice({ msg: demandError, isSuccess: false });
+      return;
+    }
     if (dateError) {
       notice({
         msg: dateError,
@@ -1485,7 +1436,13 @@ export default function CreateDeliveryView({
       });
       return;
     }
-    if (!hasMenusInWeek || !batch1ForDate || parsedAttendance <= 0 || !attendanceReady) return;
+    if (
+      !hasMenusInWeek ||
+      !batch1ForDate ||
+      parsedAttendance <= 0 ||
+      !attendanceReady
+    )
+      return;
     if (!isOrderAllowed) {
       notice({
         msg: `Chưa đủ thực đơn cho cả trường trong tuần này! Còn thiếu: ${menuCompleteness.missingGrades.join(", ")}. Không thể tạo yêu cầu nhập hàng Đợt 2.`,
@@ -1567,6 +1524,11 @@ export default function CreateDeliveryView({
 
   return (
     <Box className={styles.container}>
+      {demandError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {demandError}
+        </Alert>
+      )}
       {unitCatalog.error && (
         <Alert
           severity="warning"
@@ -1623,25 +1585,27 @@ export default function CreateDeliveryView({
               }}
             />
             {/* Chỉ báo khi tuần thiếu / chưa có thực đơn; đủ thực đơn thì không cần hiện */}
-            {targetMonday && targetFriday && (!hasMenusInWeek || !menuCompleteness.isComplete) && (
-              <span
-                className={`${styles.weekStatus} ${
-                  !hasMenusInWeek
-                    ? styles.weekStatusError
+            {targetMonday &&
+              targetFriday &&
+              (!hasMenusInWeek || !menuCompleteness.isComplete) && (
+                <span
+                  className={`${styles.weekStatus} ${
+                    !hasMenusInWeek
+                      ? styles.weekStatusError
+                      : !menuCompleteness.isComplete
+                        ? styles.weekStatusWarn
+                        : styles.weekStatusOk
+                  }`}
+                >
+                  <span className={styles.weekDot} aria-hidden="true" />
+                  {`Tuần ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} · `}
+                  {!hasMenusInWeek
+                    ? "Chưa có thực đơn"
                     : !menuCompleteness.isComplete
-                      ? styles.weekStatusWarn
-                      : styles.weekStatusOk
-                }`}
-              >
-                <span className={styles.weekDot} aria-hidden="true" />
-                {`Tuần ${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)} · `}
-                {!hasMenusInWeek
-                  ? "Chưa có thực đơn"
-                  : !menuCompleteness.isComplete
-                    ? `Thiếu: ${menuCompleteness.missingGrades.join(", ")}`
-                    : "Đủ thực đơn toàn trường"}
-              </span>
-            )}
+                      ? `Thiếu: ${menuCompleteness.missingGrades.join(", ")}`
+                      : "Đủ thực đơn toàn trường"}
+                </span>
+              )}
           </Box>
 
           <Box className={styles.setupField}>
@@ -1657,7 +1621,9 @@ export default function CreateDeliveryView({
                 />
               ) : isMultiMenuDate ? (
                 <Box className={styles.menuReadonly}>
-                  <span className={styles.menuReadonlyLabel}>Thực đơn áp dụng</span>
+                  <span className={styles.menuReadonlyLabel}>
+                    Thực đơn áp dụng
+                  </span>
                   <span className={styles.menuReadonlyValue}>
                     {matchingMenusForDate.map((menu) => menu.name).join(" · ")}
                   </span>
@@ -1680,7 +1646,9 @@ export default function CreateDeliveryView({
               )
             ) : isMultiMenu ? (
               <Box className={styles.menuReadonly}>
-                <span className={styles.menuReadonlyLabel}>Thực đơn áp dụng</span>
+                <span className={styles.menuReadonlyLabel}>
+                  Thực đơn áp dụng
+                </span>
                 <span className={styles.menuReadonlyValue}>
                   {activeMenus.map((menu) => menu.name).join(" · ")}
                 </span>
@@ -1703,15 +1671,27 @@ export default function CreateDeliveryView({
 
           {mode === "BATCH_1" && (
             <Box className={styles.setupStat}>
-              <span className={styles.setupStatLabel}>Đợt 1 · 50% suất tối đa</span>
-              <span className={styles.setupStatValue}>
-                {batch1Portions}
-                <span className={styles.setupStatTotal}>{` / ${maxPortions} suất`}</span>
+              <span className={styles.setupStatLabel}>
+                Đợt 1 · 50% suất kế hoạch, chia theo khối
               </span>
-              {isMultiMenu && (
+              <span className={styles.setupStatValue}>
+                {demandTotals ? demandTotals.batch1 : batch1Portions}
+                <span className={styles.setupStatTotal}>{` / ${
+                  demandTotals ? demandTotals.planned : maxPortions
+                } suất`}</span>
+              </span>
+              {demandTotals && !demandSchoolWide && (
+                <span className={styles.setupStatBreakdown}>
+                  {demandTotals.byGrade}
+                </span>
+              )}
+              {!demandTotals && isMultiMenu && (
                 <span className={styles.setupStatBreakdown}>
                   {menusPortionsMeta
-                    .map((m) => `${m.targetScope}: ${m.batch1Portions}/${m.maxPortions}`)
+                    .map(
+                      (m) =>
+                        `${m.targetScope}: ${m.batch1Portions}/${m.maxPortions}`,
+                    )
                     .join(" · ")}
                 </span>
               )}
@@ -1827,7 +1807,7 @@ export default function CreateDeliveryView({
               <Typography variant="body2" className={styles.freshMeta}>
                 {isTableLoading
                   ? "Đang tải..."
-                  : `${itemsState.length} mặt hàng · ${batch1Portions} suất (50%)`}
+                  : `${itemsState.length} mặt hàng · ${demandTotals ? demandTotals.batch1 : batch1Portions} suất (50% theo khối)`}
               </Typography>
             </Box>
 
@@ -1835,14 +1815,20 @@ export default function CreateDeliveryView({
               <Box className={styles.freshWarning} role="status">
                 <AlertTriangle size={16} aria-hidden="true" />
                 <Box>
-                  <Typography variant="body2" className={styles.freshWarningTitle}>
+                  <Typography
+                    variant="body2"
+                    className={styles.freshWarningTitle}
+                  >
                     {`${batch1StepWarnings.length} nguyên liệu chưa theo bước khuyến nghị. Bạn vẫn có thể giữ nguyên để gửi.`}
                   </Typography>
                   <ul className={styles.freshWarningList}>
                     {batch1StepWarnings.map((w) => (
                       <li key={w.id}>
                         <strong>{w.name}:</strong>{" "}
-                        {w.message.replace(/\s*Bạn vẫn có thể giữ nguyên để gửi\.?$/, "")}
+                        {w.message.replace(
+                          /\s*Bạn vẫn có thể giữ nguyên để gửi\.?$/,
+                          "",
+                        )}
                       </li>
                     ))}
                   </ul>
@@ -1856,7 +1842,7 @@ export default function CreateDeliveryView({
                   <TableRow>
                     <TableCell>Thực phẩm</TableCell>
                     <TableCell align="right" className={styles.freshColRate}>
-                      Định lượng / suất
+                      Theo suất · Lẻ sang Đợt 2
                     </TableCell>
                     <TableCell align="right" className={styles.freshColQty}>
                       Số lượng Đợt 1
@@ -1869,7 +1855,10 @@ export default function CreateDeliveryView({
                       <TableCell colSpan={3} align="center" sx={{ py: 6 }}>
                         <Box className={styles.freshState}>
                           <FoodPrintLoading size="large" />
-                          <Typography variant="body2" className={styles.freshStateText}>
+                          <Typography
+                            variant="body2"
+                            className={styles.freshStateText}
+                          >
                             Đang tải danh mục nguyên liệu theo thực đơn...
                           </Typography>
                         </Box>
@@ -1880,7 +1869,10 @@ export default function CreateDeliveryView({
                       <TableCell colSpan={3} align="center" sx={{ py: 6 }}>
                         <Box className={styles.freshState}>
                           <Package size={32} color="var(--text-muted)" />
-                          <Typography variant="body2" className={styles.freshStateText}>
+                          <Typography
+                            variant="body2"
+                            className={styles.freshStateText}
+                          >
                             Không có nguyên liệu tươi sống nào cho ngày này.
                           </Typography>
                         </Box>
@@ -1897,18 +1889,28 @@ export default function CreateDeliveryView({
                       return (
                         <React.Fragment key={ing.id}>
                           <TableRow
-                            className={[
-                              isExpanded ? styles.freshRowOpen : "",
-                              batch1WarningIds.has(ing.id) ? styles.freshRowWarning : "",
-                            ]
-                              .filter(Boolean)
-                              .join(" ") || undefined}
+                            className={
+                              [
+                                isExpanded ? styles.freshRowOpen : "",
+                                batch1WarningIds.has(ing.id)
+                                  ? styles.freshRowWarning
+                                  : "",
+                              ]
+                                .filter(Boolean)
+                                .join(" ") || undefined
+                            }
                           >
                             <TableCell>
-                              <Typography variant="body2" className={styles.freshName}>
+                              <Typography
+                                variant="body2"
+                                className={styles.freshName}
+                              >
                                 {ing.name}
                               </Typography>
-                              <Typography variant="caption" className={styles.freshSupplier}>
+                              <Typography
+                                variant="caption"
+                                className={styles.freshSupplier}
+                              >
                                 {ing.supplierName}
                               </Typography>
                             </TableCell>
@@ -1916,84 +1918,42 @@ export default function CreateDeliveryView({
                             <TableCell align="right">
                               {ing.isExtraItem ? (
                                 <span className={styles.freshDash}>—</span>
-                              ) : isMulti ? (
-                                <button
-                                  type="button"
-                                  className={styles.freshToggle}
-                                  aria-expanded={isExpanded}
-                                  onClick={() => toggleExpandRow(ing.id)}
-                                >
-                                  <Layers size={14} aria-hidden="true" />
-                                  {`${ing.breakdown.length} thực đơn`}
-                                  {isExpanded ? (
-                                    <ChevronUp size={14} aria-hidden="true" />
-                                  ) : (
-                                    <ChevronDown size={14} aria-hidden="true" />
-                                  )}
-                                </button>
                               ) : (
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  value={ing.portionInput}
-                                  onChange={(e) =>
-                                    handlePortionChange(ing.id, e.target.value)
-                                  }
-                                  onBlur={() => handlePortionBlur(ing.id)}
-                                  className={styles.freshInput}
-                                  slotProps={{
-                                    htmlInput: {
-                                      step: isKgUnit(ing.unit) ? "1" : "0.001",
-                                      min: isKgUnit(ing.unit) ? "1" : "0.001",
-                                      "aria-label": `Định lượng mỗi suất của ${ing.name}`,
-                                    },
-                                    input: {
-                                      endAdornment: (
-                                        <span className={styles.freshUnit}>
-                                          {getPortionUnit(ing.unit)}/suất
-                                        </span>
-                                      ),
-                                    },
-                                  }}
-                                />
+                                <Box>
+                                  <Typography variant="body2">
+                                    {ing.computedQty ?? ing.standardQty}{" "}
+                                    {ing.unit}
+                                  </Typography>
+                                  {ing.carryToBatch2 > 0 && (
+                                    <Typography
+                                      variant="caption"
+                                      className={styles.carryText}
+                                    >
+                                      → Đợt 2: {ing.carryToBatch2} {ing.unit}
+                                    </Typography>
+                                  )}
+                                </Box>
                               )}
                             </TableCell>
 
+                            {/* Số lượng Đợt 1 đã làm tròn xuống: chỉ hiển thị, không cho sửa */}
                             <TableCell align="right">
                               {ing.isExtraItem ? (
                                 <span className={styles.freshDash}>—</span>
+                              ) : Number(ing.standardQty) === 0 ? (
+                                <Typography
+                                  variant="caption"
+                                  className={styles.mutedNote}
+                                >
+                                  0 {ing.unit} · chuyển hết sang Đợt 2
+                                </Typography>
                               ) : (
-                                <TextField
-                                  type="number"
-                                  size="small"
-                                  value={ing.standardQtyInput}
-                                  error={Boolean(quantityError(ing.standardQtyInput))}
-                                  // Lỗi nhập vẫn hiện tại ô; cảnh báo bước khuyến nghị đã gom lên đầu bảng.
-                                  helperText={
-                                    quantityError(ing.standardQtyInput) ? (
-                                      <span role="alert">
-                                        {quantityError(ing.standardQtyInput)}
-                                      </span>
-                                    ) : undefined
-                                  }
-                                  onChange={(e) =>
-                                    handleStandardQtyChange(ing.id, e.target.value)
-                                  }
-                                  onBlur={() => handleStandardQtyBlur(ing.id)}
-                                  className={`${styles.freshInput} ${styles.freshQtyInput}`}
-                                  slotProps={{
-                                    htmlInput: {
-                                      step: "any",
-                                      min: "0.001",
-                                      "aria-label": `Số lượng Đợt 1 của ${ing.name}`,
-                                    },
-                                    input: {
-                                      endAdornment: (
-                                        <span className={styles.freshUnit}>{ing.unit}</span>
-                                      ),
-                                    },
-                                  }}
-                                />
+                                <Typography
+                                  variant="subtitle2"
+                                  className={styles.readonlyQty}
+                                >
+                                  {ing.standardQty} {ing.unit}
+                                </Typography>
                               )}
                             </TableCell>
                           </TableRow>
@@ -2005,15 +1965,24 @@ export default function CreateDeliveryView({
                                 <ul className={styles.freshBreakdown}>
                                   {ing.breakdown.map((b, bIdx) => (
                                     <li key={bIdx}>
-                                      <span className={styles.freshBreakdownName}>
+                                      <span
+                                        className={styles.freshBreakdownName}
+                                      >
                                         {b.targetScope || b.menuName}
                                       </span>
-                                      <span className={styles.freshBreakdownCalc}>
+                                      <span
+                                        className={styles.freshBreakdownCalc}
+                                      >
                                         {b.portions} suất ×{" "}
-                                        {formatPortionRate(b.qtyPerPortion, b.unit || ing.unit)}
+                                        {formatPortionRate(
+                                          b.qtyPerPortion,
+                                          b.unit || ing.unit,
+                                        )}
                                         /suất
                                       </span>
-                                      <span className={styles.freshBreakdownQty}>
+                                      <span
+                                        className={styles.freshBreakdownQty}
+                                      >
                                         {b.calculatedQty}{" "}
                                         {isDiscrete ? b.unit || ing.unit : "kg"}
                                       </span>
@@ -2079,7 +2048,11 @@ export default function CreateDeliveryView({
                 <span
                   style={{
                     cursor:
-                      Boolean(dateError) || !hasMenusInWeek || !isOrderAllowed || itemsState.length === 0 || isTableLoading
+                      Boolean(dateError) ||
+                      !hasMenusInWeek ||
+                      !isOrderAllowed ||
+                      itemsState.length === 0 ||
+                      isTableLoading
                         ? "not-allowed"
                         : "default",
                     display: "inline-block",
@@ -2178,6 +2151,10 @@ export default function CreateDeliveryView({
                           Đang tải sĩ số...
                         </Typography>
                       </Box>
+                    ) : demandError ? (
+                      "—"
+                    ) : demandTotals ? (
+                      `${demandTotals.actual} học sinh`
                     ) : parsedAttendance > 0 ? (
                       `${parsedAttendance} học sinh`
                     ) : (
@@ -2196,13 +2173,15 @@ export default function CreateDeliveryView({
 
                 <Box className={styles.attendanceStatBox}>
                   <Typography variant="caption" color="text.secondary">
-                    Đợt 1 đã nhận (50%):
+                    Mốc Đợt 1 đã lưu:
                   </Typography>
                   <Typography
                     variant="h5"
                     sx={{ fontWeight: 700, color: "#1976d2", mt: 0.5 }}
                   >
-                    {batch1Portions} suất
+                    {demandError
+                      ? "—"
+                      : `${demandTotals ? demandTotals.batch1 : batch1Portions} suất`}
                   </Typography>
                 </Box>
 
@@ -2225,12 +2204,21 @@ export default function CreateDeliveryView({
                     className={styles.resultPortions}
                     sx={{ mt: 0.5 }}
                   >
-                    {parsedAttendance > 0
-                      ? `${remainingPortions} suất`
-                      : "0 suất"}
+                    {demandError
+                      ? "—"
+                      : demandTotals
+                        ? `${demandTotals.batch} suất`
+                        : parsedAttendance > 0
+                          ? `${remainingPortions} suất`
+                          : "0 suất"}
                   </Typography>
                 </Box>
               </Box>
+              {demandTotals && !demandSchoolWide && (
+                <Typography variant="caption" className={styles.gradeNote}>
+                  Tính riêng từng khối: {demandTotals.byGrade}
+                </Typography>
+              )}
 
               {/* Chi tiết phân bổ theo từng khối khi là đa thực đơn */}
               {isMultiMenu && (
@@ -2639,7 +2627,20 @@ export default function CreateDeliveryView({
                       style={{ width: 160 }}
                     >
                       SL theo suất
-                      <br />({remainingPortions} suất)
+                      <br />(
+                      {demandError
+                        ? "—"
+                        : demandTotals
+                          ? demandTotals.batch
+                          : remainingPortions}{" "}
+                      suất)
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      className={styles.batch2Col}
+                      style={{ width: 130 }}
+                    >
+                      Lẻ từ Đợt 1
                     </TableCell>
                     <TableCell
                       align="right"
@@ -2662,7 +2663,7 @@ export default function CreateDeliveryView({
                 <TableBody>
                   {isTableLoading ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                      <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                         <Box
                           sx={{
                             display: "flex",
@@ -2685,7 +2686,7 @@ export default function CreateDeliveryView({
                     </TableRow>
                   ) : itemsState.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                      <TableCell colSpan={7} align="center" sx={{ py: 6 }}>
                         <Box
                           sx={{
                             display: "flex",
@@ -2752,7 +2753,11 @@ export default function CreateDeliveryView({
                                   >
                                     <Chip
                                       icon={<Layers size={12} />}
-                                      label={`${ing.breakdown?.length || 2} thực đơn`}
+                                      label={
+                                        ing.fromServerDemand
+                                          ? `${ing.breakdown?.length || 0} món × khối`
+                                          : `${ing.breakdown?.length || 2} thực đơn`
+                                      }
                                       size="small"
                                       onClick={() => toggleExpandRow(ing.id)}
                                       sx={{
@@ -2808,6 +2813,25 @@ export default function CreateDeliveryView({
                               )}
                             </TableCell>
 
+                            {/* Phần lẻ Đợt 1 (đã làm tròn xuống) chuyển sang, cộng vào tổng Đợt 2 */}
+                            <TableCell
+                              align="right"
+                              className={styles.batch2Cell}
+                            >
+                              <Typography
+                                variant="subtitle2"
+                                className={
+                                  ing.carryQty > 0
+                                    ? styles.carryText
+                                    : styles.mutedNote
+                                }
+                              >
+                                {ing.carryQty > 0
+                                  ? `+${ing.carryQty} ${ing.unit}`
+                                  : "—"}
+                              </Typography>
+                            </TableCell>
+
                             {/* Cột 3: Giao thêm (Cột riêng để biết thêm bao nhiêu) */}
                             <TableCell
                               align="right"
@@ -2828,8 +2852,8 @@ export default function CreateDeliveryView({
                                     <QuantityRecommendation
                                       value={
                                         ing.extraQtyInput &&
-                                          Number(ing.extraQtyInput) !== 0 &&
-                                          quantityError(ing.extraQtyInput)
+                                        Number(ing.extraQtyInput) !== 0 &&
+                                        quantityError(ing.extraQtyInput)
                                           ? ing.extraQtyInput
                                           : ing.batchQty
                                       }
@@ -2922,7 +2946,7 @@ export default function CreateDeliveryView({
                           {isExpanded && isMulti && (
                             <TableRow sx={{ bgcolor: "#f8fafc" }}>
                               <TableCell
-                                colSpan={6}
+                                colSpan={7}
                                 sx={{
                                   py: 1.25,
                                   px: 3,
@@ -3042,7 +3066,7 @@ export default function CreateDeliveryView({
                 label={
                   isTableLoading
                     ? "Đang tải..."
-                    : `${itemsState.length} mặt hàng (Đợt 2: ${remainingPortions} suất)`
+                    : `${itemsState.length} mặt hàng (Đợt 2: ${demandError ? "—" : demandTotals ? demandTotals.batch : remainingPortions} suất)`
                 }
                 size="small"
                 className={styles.summaryFreshBadge}
@@ -3074,13 +3098,13 @@ export default function CreateDeliveryView({
                   style={{
                     cursor:
                       Boolean(dateError) ||
-                        submitting ||
-                        parsedAttendance <= 0 ||
-                        !attendanceReady ||
-                        !hasMenusInWeek ||
-                        !isOrderAllowed ||
-                        itemsState.length === 0 ||
-                        isTableLoading
+                      submitting ||
+                      parsedAttendance <= 0 ||
+                      !attendanceReady ||
+                      !hasMenusInWeek ||
+                      !isOrderAllowed ||
+                      itemsState.length === 0 ||
+                      isTableLoading
                         ? "not-allowed"
                         : "default",
                     display: "inline-block",
