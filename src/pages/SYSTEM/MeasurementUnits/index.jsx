@@ -148,7 +148,6 @@ export default function MeasurementUnits() {
                     "Tên đơn vị",
                     "Ký hiệu",
                     "Nhóm",
-                    "Bước khuyến nghị",
                     "Trạng thái",
                     "Thao tác",
                   ].map((label) => (
@@ -162,9 +161,6 @@ export default function MeasurementUnits() {
                     <TableCell>{unit.name}</TableCell>
                     <TableCell>{unit.symbol}</TableCell>
                     <TableCell>{groups[unit.group]}</TableCell>
-                    <TableCell>
-                      {unit.recommendedStep.replace(".", ",")}
-                    </TableCell>
                     <TableCell>
                       <Chip
                         size="small"
@@ -189,10 +185,7 @@ export default function MeasurementUnits() {
                 <strong>
                   {unit.name} ({unit.symbol})
                 </strong>
-                <p>
-                  {groups[unit.group]} · Bước{" "}
-                  {unit.recommendedStep.replace(".", ",")} {unit.symbol}
-                </p>
+                <p>{groups[unit.group]}</p>
                 <p>{unit.status === "ACTIVE" ? "Đang dùng" : "Ngừng dùng"}</p>
                 <Button onClick={() => setEditing(unit)}>Chỉnh sửa</Button>
               </article>

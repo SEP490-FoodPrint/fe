@@ -10,7 +10,6 @@ import {
   TextField,
 } from "@mui/material";
 import service from "src/services/MeasurementUnitService";
-import { quantityError } from "src/utils/measurementUnits";
 import styles from "./UnitForm.module.scss";
 const groups = {
   MASS: "Khối lượng",
@@ -24,7 +23,6 @@ export default function UnitForm({ unit, onClose, onSaved }) {
       name: unit.name ?? "",
       symbol: unit.symbol ?? "",
       group: unit.group ?? "COUNT",
-      recommendedStep: unit.recommendedStep ?? "1",
       status: unit.status ?? "ACTIVE",
       aliases: "",
     }),
@@ -35,19 +33,12 @@ export default function UnitForm({ unit, onClose, onSaved }) {
     setForm((f) => ({ ...f, [key]: e.target.value }));
   async function save(e) {
     e.preventDefault();
-    const invalid = quantityError(form.recommendedStep);
-    if (invalid) {
-      setError("Bước khuyến nghị: " + invalid);
-      return;
-    }
     setBusy(true);
     setError("");
     try {
-      const recommendedStep = form.recommendedStep.replace(",", ".");
       if (edit)
         await service.update(unit.id, {
           name: form.name,
-          recommendedStep,
           status: form.status,
         });
       else
@@ -56,7 +47,6 @@ export default function UnitForm({ unit, onClose, onSaved }) {
           name: form.name,
           symbol: form.symbol,
           group: form.group,
-          recommendedStep,
           aliases: form.aliases
             .split(",")
             .map((v) => v.trim())
@@ -111,15 +101,6 @@ export default function UnitForm({ unit, onClose, onSaved }) {
               </MenuItem>
             ))}
           </TextField>
-          <TextField
-            required
-            label="Bước số lượng khuyến nghị"
-            value={form.recommendedStep}
-            onChange={change("recommendedStep")}
-            disabled={busy}
-            slotProps={{ htmlInput: { inputMode: "decimal" } }}
-            helperText="Chỉ cảnh báo khi nhập hàng; không bắt buộc làm tròn."
-          />
           {!edit && (
             <TextField
               label="Tên gọi khác (alias)"
