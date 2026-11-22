@@ -45,7 +45,8 @@ function DailyMealConfirm() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [portions, setPortions] = useState("")
-  const [selected, setSelected] = useState({ LUNCH: true, AFTERNOON: true })
+  // Mặc định chưa tích bữa nào: GVCN tự tích một bữa hoặc cả hai bữa cần báo
+  const [selected, setSelected] = useState({ LUNCH: false, AFTERNOON: false })
   // Số suất hôm nay của từng nhóm dị ứng của lớp: { [groupNo]: "" | số } (0 khi các em trong nhóm nghỉ)
   const [allergyCounts, setAllergyCounts] = useState({})
   const [notes, setNotes] = useState("")
@@ -73,7 +74,7 @@ function DailyMealConfirm() {
       setHistory(historyResponse.data.items || [])
 
       const open = MEALS.map(meal => meal.type).filter(type => next[type].submission?.status !== "FINALIZED")
-      setSelected(Object.fromEntries(MEALS.map(meal => [meal.type, open.includes(meal.type)])))
+      setSelected({ LUNCH: false, AFTERNOON: false })
       // Điền sẵn: bản nháp đang dở, nếu không có thì sĩ số đăng ký (giả định đủ lớp).
       const draft = open.map(type => next[type].submission).find(Boolean)
       const registered = Number(next.LUNCH.class.registeredMealPortions || 0)
