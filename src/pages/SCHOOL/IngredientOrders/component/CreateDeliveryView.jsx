@@ -1,5 +1,4 @@
-import useMeasurementUnits from "src/hooks/useMeasurementUnits";
-import QuantityRecommendation from "src/components/QuantityRecommendation";
+import QuantityError from "src/components/QuantityError";
 import { quantityError } from "src/utils/measurementUnits";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
@@ -266,7 +265,6 @@ export default function CreateDeliveryView({
   onSubmitBatch1,
   onSubmitBatch2,
 }) {
-  const unitCatalog = useMeasurementUnits();
   const effectiveMenus = useMemo(() => {
     return Array.isArray(menus) ? menus : [];
   }, [menus]);
@@ -1557,24 +1555,9 @@ export default function CreateDeliveryView({
     }
   };
 
-  // Nguyên liệu Đợt 1 có số lượng chưa theo bước khuyến nghị của đơn vị: gom lên đầu bảng.
-  const batch1StepWarnings = itemsState.flatMap((ing) => {
-    if (ing.isExtraItem || quantityError(ing.standardQtyInput)) return [];
-    const message = unitCatalog.warning(ing.standardQtyInput, ing.unit);
-    return message ? [{ id: ing.id, name: ing.name, message }] : [];
-  });
-  const batch1WarningIds = new Set(batch1StepWarnings.map((w) => w.id));
 
   return (
     <Box className={styles.container}>
-      {unitCatalog.error && (
-        <Alert
-          severity="warning"
-          action={<Button onClick={unitCatalog.retry}>Thử lại</Button>}
-        >
-          {unitCatalog.error}
-        </Alert>
-      )}
       {/* 1. Header Navigation */}
       <Box className={styles.navHeader}>
         <Box className={styles.navLeft}>
@@ -1831,25 +1814,6 @@ export default function CreateDeliveryView({
               </Typography>
             </Box>
 
-            {!isTableLoading && batch1StepWarnings.length > 0 && (
-              <Box className={styles.freshWarning} role="status">
-                <AlertTriangle size={16} aria-hidden="true" />
-                <Box>
-                  <Typography variant="body2" className={styles.freshWarningTitle}>
-                    {`${batch1StepWarnings.length} nguyên liệu chưa theo bước khuyến nghị. Bạn vẫn có thể giữ nguyên để gửi.`}
-                  </Typography>
-                  <ul className={styles.freshWarningList}>
-                    {batch1StepWarnings.map((w) => (
-                      <li key={w.id}>
-                        <strong>{w.name}:</strong>{" "}
-                        {w.message.replace(/\s*Bạn vẫn có thể giữ nguyên để gửi\.?$/, "")}
-                      </li>
-                    ))}
-                  </ul>
-                </Box>
-              </Box>
-            )}
-
             <Box className={styles.freshTableWrap}>
               <Table size="small" className={styles.freshTable}>
                 <TableHead>
@@ -1897,12 +1861,7 @@ export default function CreateDeliveryView({
                       return (
                         <React.Fragment key={ing.id}>
                           <TableRow
-                            className={[
-                              isExpanded ? styles.freshRowOpen : "",
-                              batch1WarningIds.has(ing.id) ? styles.freshRowWarning : "",
-                            ]
-                              .filter(Boolean)
-                              .join(" ") || undefined}
+                            className={isExpanded ? styles.freshRowOpen : undefined}
                           >
                             <TableCell>
                               <Typography variant="body2" className={styles.freshName}>
@@ -1968,7 +1927,6 @@ export default function CreateDeliveryView({
                                   size="small"
                                   value={ing.standardQtyInput}
                                   error={Boolean(quantityError(ing.standardQtyInput))}
-                                  // Lỗi nhập vẫn hiện tại ô; cảnh báo bước khuyến nghị đã gom lên đầu bảng.
                                   helperText={
                                     quantityError(ing.standardQtyInput) ? (
                                       <span role="alert">
@@ -2825,17 +2783,12 @@ export default function CreateDeliveryView({
                                     quantityError(ing.extraQtyInput),
                                   )}
                                   helperText={
-                                    <QuantityRecommendation
-                                      value={
+                                    <QuantityError
+                                      value={ing.extraQtyInput}
+                                      validate={Boolean(
                                         ing.extraQtyInput &&
-                                          Number(ing.extraQtyInput) !== 0 &&
-                                          quantityError(ing.extraQtyInput)
-                                          ? ing.extraQtyInput
-                                          : ing.batchQty
-                                      }
-                                      unit={ing.unit}
-                                      units={unitCatalog.units}
-                                      validate
+                                          Number(ing.extraQtyInput) !== 0,
+                                      )}
                                     />
                                   }
                                   onChange={(e) =>
@@ -3255,12 +3208,8 @@ export default function CreateDeliveryView({
               },
             }}
             helperText={
-              <QuantityRecommendation
+              <QuantityError
                 value={extraQtyInput}
-                unit={
-                  selectedIngredient?.defaultUnit || selectedIngredient?.unit
-                }
-                units={unitCatalog.units}
                 validate={Boolean(extraQtyInput)}
               />
             }

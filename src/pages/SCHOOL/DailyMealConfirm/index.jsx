@@ -14,7 +14,7 @@ import {
   TextField,
 } from "@mui/material"
 import dayjs from "dayjs"
-import { CheckCircle2, Clock, MessageSquarePlus, Send, Users } from "lucide-react"
+import { CheckCircle2, MessageSquarePlus, Send, Users } from "lucide-react"
 import notice from "src/components/Notice"
 import MealPortionService from "src/services/MealPortionService"
 import PortionStepper from "./component/PortionStepper"
@@ -27,20 +27,10 @@ const MEALS = [
   { type: "AFTERNOON", label: "Bữa xế" },
 ]
 const WEEKDAYS = ["Chủ nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"]
-// Theo quyết định nghiệp vụ: số suất khoá lúc 8:30, sau đó điều chỉnh qua BGH.
-const DEADLINE = { hour: 8, minute: 30 }
 
 const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
 const labelOf = type => MEALS.find(meal => meal.type === type)?.label || type
 const joinMeals = types => types.map(type => labelOf(type).toLowerCase()).join(" và ")
-
-function deadlineState(now) {
-  const deadline = now.hour(DEADLINE.hour).minute(DEADLINE.minute).second(0)
-  const minutes = deadline.diff(now, "minute")
-  if (minutes < 0) return { tone: "late", text: "Đã quá giờ chốt 8:30" }
-  if (minutes <= 60) return { tone: "soon", text: `Hạn gửi 8:30 · còn ${minutes} phút` }
-  return { tone: "normal", text: "Hạn gửi bếp trước 8:30" }
-}
 
 /**
  * GVCN báo số suất ăn hôm nay cho bếp: điền sẵn sĩ số đăng ký, chỉnh số em vắng bằng −/+,
@@ -55,7 +45,8 @@ function DailyMealConfirm() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [portions, setPortions] = useState("")
-  const [selected, setSelected] = useState({ LUNCH: true, AFTERNOON: true })
+  // Mặc định chưa tích bữa nào: GVCN tự tích một bữa hoặc cả hai bữa cần báo
+  const [selected, setSelected] = useState({ LUNCH: false, AFTERNOON: false })
   // Số suất hôm nay của từng nhóm dị ứng của lớp: { [groupNo]: "" | số } (0 khi các em trong nhóm nghỉ)
   const [allergyCounts, setAllergyCounts] = useState({})
   const [notes, setNotes] = useState("")
@@ -63,12 +54,6 @@ function DailyMealConfirm() {
   const [sending, setSending] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [sendErrors, setSendErrors] = useState([])
-  const [now, setNow] = useState(() => dayjs())
-
-  useEffect(() => {
-    const timer = setInterval(() => setNow(dayjs()), 30000)
-    return () => clearInterval(timer)
-  }, [])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -89,7 +74,7 @@ function DailyMealConfirm() {
       setHistory(historyResponse.data.items || [])
 
       const open = MEALS.map(meal => meal.type).filter(type => next[type].submission?.status !== "FINALIZED")
-      setSelected(Object.fromEntries(MEALS.map(meal => [meal.type, open.includes(meal.type)])))
+      setSelected({ LUNCH: false, AFTERNOON: false })
       // Điền sẵn: bản nháp đang dở, nếu không có thì sĩ số đăng ký (giả định đủ lớp).
       const draft = open.map(type => next[type].submission).find(Boolean)
       const registered = Number(next.LUNCH.class.registeredMealPortions || 0)
@@ -144,7 +129,6 @@ function DailyMealConfirm() {
     return value !== "" && value !== undefined && Number(value) >= 0 && Number(value) <= group.count
   })
   const canSend = chosen.length > 0 && portionCount !== null && allergyValid && !sending
-  const deadline = deadlineState(now)
 
   // Suất thường không được vượt mức tối đa
   useEffect(() => {
@@ -190,11 +174,6 @@ function DailyMealConfirm() {
           {WEEKDAYS[dayjs(today).day()]}, {dayjs(today).format("DD/MM/YYYY")}
         </p>
       </div>
-      {contexts && openMeals.length > 0 && (
-        <span className={`meal-report__deadline meal-report__deadline--${deadline.tone}`}>
-          <Clock size={16} aria-hidden /> {deadline.text}
-        </span>
-      )}
     </header>
   )
 

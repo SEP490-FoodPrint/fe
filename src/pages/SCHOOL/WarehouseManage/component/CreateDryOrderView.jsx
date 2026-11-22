@@ -1,10 +1,8 @@
-import useMeasurementUnits from "src/hooks/useMeasurementUnits";
-import QuantityRecommendation from "src/components/QuantityRecommendation";
+import QuantityError from "src/components/QuantityError";
 import { quantityError } from "src/utils/measurementUnits";
 import React, { useState, useMemo, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
-  Alert,
   Box,
   Typography,
   Chip,
@@ -85,8 +83,6 @@ export default function CreateDryOrderView({
   const [orderQtys, setOrderQtys] = useState({})
   const [itemSuppliers, setItemSuppliers] = useState({})
   const [submitting, setSubmitting] = useState(false)
-  // Danh mục đơn vị đo để gợi ý bước nhập số lượng
-  const unitCatalog = useMeasurementUnits()
 
   // Kiểm tra lỗi ngày giao
   const dateError = useMemo(() => validateDeliveryDate(deliveryDate), [deliveryDate])
@@ -391,14 +387,6 @@ export default function CreateDryOrderView({
 
   return (
     <Box className={styles.container}>
-      {unitCatalog.error && (
-        <Alert
-          severity="warning"
-          action={<Button onClick={unitCatalog.retry}>Thử lại</Button>}
-        >
-          {unitCatalog.error}
-        </Alert>
-      )}
       {/* 1. Header & Nút Quay lại */}
       <Box className={styles.header}>
         <Button
@@ -591,14 +579,7 @@ export default function CreateDryOrderView({
                             size="small"
                             value={qty}
                             error={isSelected && Boolean(quantityError(qty))}
-                            helperText={
-                              <QuantityRecommendation
-                                value={qty}
-                                unit={item.unit}
-                                units={unitCatalog.units}
-                                validate={isSelected}
-                              />
-                            }
+                            helperText={<QuantityError value={qty} validate={isSelected} />}
                             onChange={(e) =>
                               handleQtyChange(item.id, e.target.value)
                             }
