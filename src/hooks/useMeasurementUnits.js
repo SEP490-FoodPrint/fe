@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import service from "src/services/MeasurementUnitService";
-import {
-  findMeasurementUnit,
-  unitStepWarning,
-} from "src/utils/measurementUnits";
 export default function useMeasurementUnits() {
   const [units, setUnits] = useState([]),
     [error, setError] = useState(""),
@@ -21,7 +17,7 @@ export default function useMeasurementUnits() {
       .catch(() => {
         if (!controller.signal.aborted)
           setError(
-            "Chưa tải được danh mục đơn vị; chưa thể kiểm tra bước khuyến nghị. Bạn vẫn có thể nhập và gửi yêu cầu.",
+            "Chưa tải được danh mục đơn vị. Vui lòng thử lại.",
           );
       })
       .finally(() => {
@@ -35,7 +31,5 @@ export default function useMeasurementUnits() {
     error,
     loading,
     retry,
-    warning: (value, unit) =>
-      unitStepWarning(value, findMeasurementUnit(units, unit)),
   };
 }
