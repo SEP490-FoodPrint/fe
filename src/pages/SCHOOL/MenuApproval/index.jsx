@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
 import { Alert, Skeleton } from "@mui/material"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
@@ -7,6 +7,9 @@ import DecisionDialog from "./component/DecisionDialog"
 import GradeMenuCard from "./component/GradeMenuCard"
 import MenuApprovalHeader from "./component/MenuApprovalHeader"
 import { menuScopeLabel } from "src/utils/approvalWeek"
+import { printMenuPdf } from "src/utils/menuPdf"
+import SchoolService from "src/services/SchoolService"
+import { StoreContext } from "src/contexts"
 import "./style.scss"
 
 const EMPTY_WEEK = { weekStartDate: null, weekEndDate: null, weekNumber: null, weeks: [], menus: [] }
@@ -38,6 +41,10 @@ function MenuApproval() {
   const [submittingId, setSubmittingId] = useState(null)
   const requestSeq = useRef(0)
   const submitLock = useRef(false)
+  const { userStore } = useContext(StoreContext) || {}
+  const currentUser = userStore?.user
+  const schoolInfo = useRef(null)
+  const [exporting, setExporting] = useState(false)
 
   // Chỉ nhận kết quả của lần tải mới nhất khi người dùng chuyển tuần liên tục
   const loadWeek = useCallback(async (date, { silent = false } = {}) => {
@@ -135,6 +142,27 @@ function MenuApproval() {
     )
   }
 
+  // Xuất PDF các thực đơn đang hiển thị (theo tuần và khối đã lọc), kèm logo và thông tin trường
+  const exportPdf = async () => {
+    if (exporting || !visibleMenus.length) return
+    setExporting(true)
+    try {
+      if (!schoolInfo.current && currentUser?.orgId) {
+        const res = await SchoolService.getSchoolDetailById(currentUser.orgId).catch(() => null)
+        schoolInfo.current = res?.data?.data || res?.data || null
+      }
+      const school = {
+        name: currentUser?.schoolName || "",
+        ...(schoolInfo.current || {}),
+      }
+      await printMenuPdf({ school, week, menus: visibleMenus })
+    } catch {
+      notice({ msg: "Không thể xuất PDF thực đơn. Vui lòng thử lại.", isSuccess: false })
+    } finally {
+      setExporting(false)
+    }
+  }
+
   const renderList = () => {
     if (loading) return <ListSkeleton />
     if (error) return <Alert severity="error">{error}</Alert>
@@ -165,7 +193,8 @@ function MenuApproval() {
         week={week}
         pendingCount={pendingCount}
         totalCount={week.menus.length}
-        onPrint={() => window.print()}
+        onPrint={exportPdf}
+        exporting={exporting}
       />
 
       {week.weeks.length > 0 && (
