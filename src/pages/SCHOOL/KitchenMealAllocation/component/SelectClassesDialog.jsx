@@ -1,11 +1,11 @@
-import React, { useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { formatAllocationDecimal as fmt, sumAllocationPortions } from "src/utils/allocationDecimal"
 import { Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, LinearProgress, TextField } from "@mui/material"
-import { ArrowDown, ArrowUp, Check, LockKeyhole, X } from "lucide-react"
+import { Check, GripVertical, LockKeyhole, X } from "lucide-react"
 import { formatRemainingPortions, previewBatchAllocation } from "src/utils/mealAllocation"
 import styles from "./SelectClassesDialog.module.scss"
 
-function QuantityDialog({ batch, classes, dishName, onClose, onApply }) {
+function QuantityDialog({ batch, classes, dishName, onClose, onApply, onBack }) {
   const [values, setValues] = useState(() => Object.fromEntries(
     batch.entries.map((entry) => [entry.id, String(entry.portions ?? entry.allocatedPortions)]),
   ));
@@ -34,6 +34,7 @@ function QuantityDialog({ batch, classes, dishName, onClose, onApply }) {
         </div>
       </DialogContent>
       <DialogActions>
+        {onBack && <Button onClick={onBack}>Chọn lớp theo thứ tự</Button>}
         <Button onClick={onClose}>Hủy</Button>
         <Button variant="contained" disabled={!valid} onClick={() => onApply([], classes.flatMap((item) => {
           const value = values[item.id];
@@ -47,15 +48,25 @@ function QuantityDialog({ batch, classes, dishName, onClose, onApply }) {
   );
 }
 
+// Mặc định chọn lớp và sắp thứ tự như nhánh cũ; chế độ nguyên liệu có thêm nhập tay số suất từng lớp.
 export default function SelectClassesDialog(props) {
-  return props.editQuantities ? <QuantityDialog {...props} /> : <ClassOrderDialog {...props} />;
+  const [manual, setManual] = useState(false);
+  if (props.editQuantities && manual) return <QuantityDialog {...props} onBack={() => setManual(false)} />;
+  return <ClassOrderDialog {...props} onManual={props.editQuantities ? () => setManual(true) : undefined} />;
 }
 
-function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
+function ClassOrderDialog({ batch, classes, dishName, onClose, onApply, onManual }) {
   const [orderedIds, setOrderedIds] = useState(() => batch.entries.map(entry => entry.id))
   const preview = previewBatchAllocation(batch.total, classes, orderedIds)
   const used = sumAllocationPortions(preview.entries.map(entry => entry.portions))
   const full = preview.remaining === 0
+  // Lớp đã nhận đủ suất từ các lô khác thì không chọn thêm được ở lô này.
+  const exhausted = item => Number(item.remaining) === 0
+  const last = preview.entries[preview.entries.length - 1]
+  // Lớp cuối chỉ nhận phần suất còn lại của lô nên có thể thiếu so với nhu cầu của lớp.
+  const lastShort = last && last.remaining > 0
+  // Đã chọn hết các lớp còn nhu cầu mà lô vẫn dư suất.
+  const surplus = !full && classes.every(item => Number(item.remaining) === 0 || orderedIds.includes(item.id))
 
   const toggleClass = id => {
     setOrderedIds(current => {
@@ -65,12 +76,48 @@ function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
     })
   }
 
-  const moveClass = (index, offset) => {
-    const reordered = [...orderedIds]
-    const [id] = reordered.splice(index, 1)
-    reordered.splice(index + offset, 0, id)
+  // Kéo-thả: giữ tay cầm rồi kéo lên/xuống; dòng đổi chỗ ngay khi con trỏ qua giữa dòng khác.
+  const listRef = useRef(null)
+  const [dragId, setDragId] = useState(null)
+  const moveTo = (id, target) => {
+    const reordered = preview.entries.map(entry => entry.id)
+    const from = reordered.indexOf(id)
+    if (from < 0 || from === target) return
+    reordered.splice(from, 1)
+    reordered.splice(target, 0, id)
     const { entries } = previewBatchAllocation(batch.total, classes, reordered)
     setOrderedIds(entries.map(entry => entry.id))
+  }
+  const moveRef = useRef(moveTo)
+  moveRef.current = moveTo
+
+  useEffect(() => {
+    if (!dragId) return undefined
+    const onMove = event => {
+      const rows = [...(listRef.current?.children ?? [])]
+      const target = rows.filter(row => {
+        if (row.dataset.id === dragId) return false
+        const box = row.getBoundingClientRect()
+        return event.clientY > box.top + box.height / 2
+      }).length
+      moveRef.current(dragId, target)
+    }
+    const stop = () => setDragId(null)
+    window.addEventListener("pointermove", onMove)
+    window.addEventListener("pointerup", stop)
+    window.addEventListener("pointercancel", stop)
+    return () => {
+      window.removeEventListener("pointermove", onMove)
+      window.removeEventListener("pointerup", stop)
+      window.removeEventListener("pointercancel", stop)
+    }
+  }, [dragId])
+
+  // Bàn phím: mũi tên lên/xuống trên tay cầm vẫn đổi được thứ tự.
+  const onGripKey = (event, index) => {
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return
+    event.preventDefault()
+    moveTo(preview.entries[index].id, Math.max(0, Math.min(preview.entries.length - 1, index + (event.key === "ArrowUp" ? -1 : 1))))
   }
 
   return (
@@ -117,18 +164,18 @@ function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
                   variant="outlined"
                   aria-label={`Lớp ${item.name}, ${quantity} suất`}
                   aria-pressed={selected}
-                  disabled={!selected && full}
+                  disabled={!selected && (full || exhausted(item))}
                   onClick={() => toggleClass(item.id)}
                 >
                   {selected && <Check size={14} />}
-                  {!selected && full && <LockKeyhole size={13} />}
+                  {!selected && (full || exhausted(item)) && <LockKeyhole size={13} />}
                   <strong>{item.name}</strong><span>·</span><span>{quantity} suất</span>
                 </Button>
               )
             })}
           </div>
           <div className={styles.legend}>
-            <span>Khả dụng</span><span>Đang chọn</span><span>Khóa (hết dung lượng lô)</span>
+            <span>Khả dụng</span><span>Đang chọn</span><span>Khóa (hết dung lượng lô hoặc lớp đã đủ suất)</span>
           </div>
         </section>
 
@@ -138,12 +185,22 @@ function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
               <h3 id="class-order-heading">2. Thứ tự phân bổ</h3>
               <p>Phân từ trên xuống. Lớp cuối nhận phần suất còn lại.</p>
             </div>
-            <strong>Dùng nút ↑ ↓ để đổi ưu tiên</strong>
+            <strong>Giữ và kéo từng dòng để đổi ưu tiên</strong>
           </div>
           {preview.entries.length > 0 ? (
-            <ol className={styles.queue} aria-label="Thứ tự lớp đã chọn">
+            <ol className={styles.queue} aria-label="Thứ tự lớp đã chọn" ref={listRef}>
               {preview.entries.map((entry, index) => (
-                <li key={entry.id} className={styles.orderCard}>
+                <li key={entry.id} data-id={entry.id} data-dragging={dragId === entry.id} className={styles.orderCard}>
+                  <span
+                    className={styles.grip}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Kéo để đổi thứ tự lớp ${entry.name}, hoặc dùng phím mũi tên`}
+                    onPointerDown={event => { event.preventDefault(); setDragId(entry.id) }}
+                    onKeyDown={event => onGripKey(event, index)}
+                  >
+                    <GripVertical size={18} />
+                  </span>
                   <span className={styles.position}>{index + 1}</span>
                   <strong>{entry.name}</strong>
                   <span className={styles.quantity} data-partial={entry.remaining > 0}>
@@ -151,12 +208,6 @@ function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
                     {entry.remaining > 0 && <small>Còn thiếu {fmt(entry.remaining)}</small>}
                   </span>
                   <div className={styles.orderActions}>
-                    <IconButton className={styles.action} aria-label={`Đưa lớp ${entry.name} lên`} disabled={index === 0} onClick={() => moveClass(index, -1)}>
-                      <ArrowUp size={16} />
-                    </IconButton>
-                    <IconButton className={styles.action} aria-label={`Đưa lớp ${entry.name} xuống`} disabled={index === preview.entries.length - 1} onClick={() => moveClass(index, 1)}>
-                      <ArrowDown size={16} />
-                    </IconButton>
                     <IconButton className={styles.action} aria-label={`Bỏ lớp ${entry.name}`} onClick={() => toggleClass(entry.id)}>
                       <X size={16} />
                     </IconButton>
@@ -169,6 +220,16 @@ function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
           )}
         </section>
 
+        {lastShort && (
+          <p role="alert" className={styles.empty}>
+            Lớp {last.name} chỉ nhận {fmt(last.portions)} suất do lô hết dung lượng, còn thiếu {fmt(last.remaining)} suất. Hãy nhận thêm từ lô khác.
+          </p>
+        )}
+        {surplus && (
+          <p role="alert" className={styles.empty}>
+            Đã chọn hết các lớp còn nhu cầu nhưng lô còn dư {fmt(preview.remaining)} suất chưa phân bổ cho lớp nào.
+          </p>
+        )}
         <div className={styles.capacity}>
           <div>
             <span><strong>Tổng dung lượng lô:</strong> {batch.total} suất</span>
@@ -185,6 +246,7 @@ function ClassOrderDialog({ batch, classes, dishName, onClose, onApply }) {
       <DialogActions className={styles.footer}>
         <span>Thao tác xem trước được cập nhật ngay lập tức.</span>
         <div>
+          {onManual && <Button variant="outlined" onClick={onManual}>Nhập số suất từng lớp</Button>}
           <Button variant="outlined" onClick={onClose}>Hủy</Button>
           <Button variant="contained" startIcon={<Check size={16} />} disabled={!preview.entries.length && !batch.entries.length} onClick={() => onApply(orderedIds)}>
             Xong

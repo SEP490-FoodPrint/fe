@@ -30,15 +30,15 @@ function AllocationRow({ title, summary, icon, badge, expanded, onChange, childr
   );
 }
 
-export default function AllocationDetails({ data, dirty, saving, onDiscard, onConfirm, locked = isVietnamWeekend() }) {
-  const [meal, setMeal] = useState("ALL");
+// `meal` cố định theo khung giờ bữa của trường (cùng quy tắc với Chế biến), không cho chọn tay.
+export default function AllocationDetails({ data, dirty, saving, onDiscard, onConfirm, meal, locked = isVietnamWeekend() }) {
   const [groupBy, setGroupBy] = useState("batch");
   const [expandedBatches, setExpandedBatches] = useState(() => new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [selectedClassDetail, setSelectedClassDetail] = useState(null);
 
   const { distribution, grades } = data || {};
-  const visibleMeals = meal === "ALL" ? mealTypes : [meal];
+  const visibleMeals = meal ? [meal] : mealTypes;
   const visibleDemands = (distribution?.demands || []).filter((demand) => visibleMeals.includes(demand.mealType));
 
   const batchesById = new Map(
@@ -66,10 +66,13 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
   }
 
   const visibleBatches = [...batchesById.values()].filter((batch) => visibleMeals.includes(batch.mealType));
-  const incomplete = (distribution?.demands || []).filter(
-    (demand) =>
-      demand.requiredPortions > 0 &&
-      (!demand.demandFinalized || compare(demand.allocatedPortions || 0, demand.requiredPortions)<0),
+  const isIncomplete = (demand) =>
+    demand.requiredPortions > 0 &&
+    (!demand.demandFinalized || compare(demand.allocatedPortions || 0, demand.requiredPortions) < 0);
+  // Cảnh báo chỉ tính các bữa đang xem, không cộng dồn lớp của bữa khác.
+  const incomplete = visibleDemands.filter(isIncomplete);
+  const incompleteOtherMeals = (distribution?.demands || []).filter(
+    (demand) => !visibleMeals.includes(demand.mealType) && isIncomplete(demand),
   );
   const delivered = distribution?.status === "DISTRIBUTED";
   const allVisibleBatchKeys = grades && Array.isArray(grades) && grades.length > 0
@@ -157,20 +160,7 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
   return (
     <div className={styles.details}>
       <div className={styles.toolbar}>
-        <ToggleButtonGroup
-          size="small"
-          exclusive
-          value={meal}
-          aria-label="Lọc theo bữa ăn"
-          onChange={(_, value) => value && setMeal(value)}
-        >
-          <ToggleButton value="ALL">Tất cả bữa</ToggleButton>
-          {mealTypes.map((type) => (
-            <ToggleButton key={type} value={type}>
-              {mealLabels[type]}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
+        {meal && <strong className={styles.mealLabel}>{mealLabels[meal]}</strong>}
 
         <div className={styles.viewSwitch}>
           <ToggleButtonGroup
@@ -419,7 +409,12 @@ export default function AllocationDetails({ data, dirty, saving, onDiscard, onCo
 
       {incomplete.length > 0 && (
         <Alert severity="warning">
-          Còn {incomplete.length} lớp chưa chốt hoặc chưa được phân bổ đủ suất ăn.
+          Còn {incomplete.length} lớp chưa chốt hoặc chưa được phân bổ đủ suất ăn{meal ? ` trong ${mealLabels[meal].toLowerCase()}` : ""}.
+        </Alert>
+      )}
+      {incomplete.length === 0 && incompleteOtherMeals.length > 0 && !delivered && (
+        <Alert severity="info">
+          Bữa đang xem đã đủ. Còn {incompleteOtherMeals.length} lớp ở bữa còn lại chưa chốt hoặc chưa đủ suất nên chưa xác nhận giao cả ngày được.
         </Alert>
       )}
 

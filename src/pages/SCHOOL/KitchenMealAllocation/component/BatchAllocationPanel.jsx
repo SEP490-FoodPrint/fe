@@ -19,14 +19,12 @@ export default function BatchAllocationPanel({
   const isAuto = Boolean(batch.autoAssigned);
   const isMaterial = batch.allocationVersion === 2;
 
-  const status = batch.materialPreview
-    ? { label: hasEntries ? "Dự kiến phân bổ" : "Chưa phân lô", color: "default" }
-    : isAuto
-    ? { label: "Đã phân bổ", color: "success" }
-    : !hasEntries
+  // Chỉ một bộ nhãn mức suất của lô; trạng thái bản (nháp / đã áp dụng) hiển thị ở đầu trang.
+  const filled = isAuto || (batch.gradeScoped ? Number(batch.gradeRemainingPortions) === 0 : batch.remaining === 0);
+  const status = !hasEntries
     ? { label: "Chưa phân lô", color: "default" }
-    : (batch.gradeScoped ? Number(batch.gradeRemainingPortions) === 0 : batch.remaining === 0)
-    ? { label: "Đã phân bổ", color: "success" }
+    : filled
+    ? { label: "Đủ suất", color: "success" }
     : { label: "Đang phân bổ", color: "warning" };
 
   const availability = isMaterial
@@ -112,26 +110,6 @@ export default function BatchAllocationPanel({
               <p className={styles.empty}>Chưa có lớp nào được phân từ lô này.</p>
             )}
 
-            {batch.materialPreview && entries.some((entry) => entry.materials?.length) && (
-              <details className={styles.ingredients}>
-                <summary>Nguyên liệu cấp</summary>
-                <ul>
-                  {entries.filter((entry) => entry.materials?.length).map((entry) => (
-                    <li key={entry.id}>
-                      <strong>{entry.name}</strong>
-                      {Number(entry.massKg) > 0 && <> · {fmt(entry.massKg, 3)} kg</>}
-                      <ul>
-                        {entry.materials.map((material) => (
-                          <li key={material.ingredientLotId}>
-                            {material.ingredientName} · {fmt(material.quantity, 3)} {material.unit}
-                          </li>
-                        ))}
-                      </ul>
-                    </li>
-                  ))}
-                </ul>
-              </details>
-            )}
             {!isAuto && !readOnly && (
               <Button
                 className={styles.addButton}
