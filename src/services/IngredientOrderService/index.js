@@ -1452,6 +1452,27 @@ const IngredientOrderService = {
    * Lấy tổng hợp sĩ số điểm danh thực tế từ Giáo viên chủ nhiệm (GVCN)
    * phục vụ tự động cân đối và lập đơn Đợt 2.
    */
+  /**
+   * TASK-08: Nhu cầu nguyên liệu tươi theo khối do Backend tính
+   * (thực đơn đã duyệt đúng ngày × công thức theo khối × suất của đợt, cộng cả bữa chính và bữa xế).
+   * Lỗi thiếu dữ liệu (422/409) được trả về dạng { error } để màn hình hiển thị và chặn tạo đơn.
+   */
+  async getFreshDemand({ date, batchNo }) {
+    try {
+      const response = await http.get("/supply-requests/fresh-demand", {
+        params: { date, batchNo: String(batchNo) },
+        notifyOnError: false,
+      });
+      return { data: response?.data || response, error: null };
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Không tính được nhu cầu nguyên liệu.";
+      return { data: null, error: message };
+    }
+  },
+
   async getDailyAttendanceSummary({ date, mealType = "LUNCH" }) {
     try {
       const response = await http.get("/v1/daily-meal-portions", {
