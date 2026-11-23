@@ -45,6 +45,10 @@ const toLines = (rows = []) =>
       : row.amount
         ? formatLargeQuantityText(row.amount)
         : "Theo định mức",
+    // Thành phẩm dự kiến = lượng sống × (1 − tỷ lệ hao hụt), backend tính sẵn; gia vị dùng chung giữ 1-1.
+    cookedAmount: row.cookedQuantity != null && row.cookedQuantity !== "" && Number.isFinite(Number(row.cookedQuantity))
+      ? formatLargeQuantity(row.cookedQuantity, row.unit)
+      : null,
   }));
 
 /**
@@ -149,7 +153,8 @@ export default function CreateBatchDetailModal({
             <tr>
               <th scope="col">Nguyên liệu</th>
               <th scope="col">Nhà cung cấp</th>
-              <th scope="col" className={styles.alignRight}>Lượng dùng</th>
+              <th scope="col" className={styles.alignRight}>Nguyên liệu sống</th>
+              <th scope="col" className={styles.alignRight}>Thành phẩm</th>
             </tr>
           </thead>
           <tbody>
@@ -161,6 +166,7 @@ export default function CreateBatchDetailModal({
                 </td>
                 <td className={styles.lineSupplier}>{row.supplierName || "—"}</td>
                 <td className={`${styles.lineAmount} ${styles.alignRight}`}>{row.amount}</td>
+                <td className={`${styles.lineAmount} ${styles.alignRight}`}>{row.cookedAmount || row.amount}</td>
               </tr>
             ))}
           </tbody>

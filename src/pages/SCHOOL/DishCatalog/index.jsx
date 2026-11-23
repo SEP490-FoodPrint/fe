@@ -28,7 +28,9 @@ import {
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal";
 import DishCategoryModal from "./component/DishCategoryModal";
 import GradeRecipeFields, {
-  sharedGradeRecipes,
+  gradePortionPayload,
+  standardQuantityIssue,
+  validQuantity,
   validRecipeLines,
 } from "./component/GradeRecipeFields";
 import MenuService from "src/services/MenuService";
@@ -79,6 +81,9 @@ const EMPTY_FORM = {
   name: "",
   category: "",
   mealType: "",
+  // Mốc chuẩn của món: định lượng nguyên liệu/gia vị được nhập cho đúng mốc này.
+  standardQuantity: "",
+  standardUnit: "g",
 };
 
 export function toSmallestUnit(quantity, unit) {
@@ -310,30 +315,32 @@ export default function DishCatalogPage() {
 
   const openEdit = useCallback((dish) => {
     setEditingDish(dish);
-    const firstProfile = (dish.gradeRecipes || [])[0];
+    // Hiển thị và cho sửa khẩu phần của mọi khối đã lưu.
     setGradeProfiles(
-      firstProfile ? [{ gradeId: firstProfile.gradeId, lines: [] }] : [],
+      (dish.gradeRecipes || []).map((profile) => ({
+        gradeId: profile.gradeId,
+        portionQuantity: profile.portionQuantity ?? "",
+      })),
     );
     setForm({
       name: dish.name || "",
       category: dish.category || "",
       mealType: dish.mealType || "",
+      standardQuantity: dish.standardQuantity ?? "",
+      standardUnit: dish.standardUnit || "g",
     });
 
-    // Mỗi lần sửa áp dụng cho khối được chọn; các khối khác được giữ nguyên.
-    const sourceLines = firstProfile?.lines || dish.lines || [];
+    // Công thức luôn là định lượng trong mốc chuẩn của món.
+    const sourceLines = dish.lines || [];
     const asIngredient = (l) => {
-      const converted = toSmallestUnit(
-        firstProfile ? l.requiredQuantity : l.portionQty,
-        l.unit || "g",
-      );
+      const converted = toSmallestUnit(l.requiredQuantity, l.unit || "g");
       return {
         ...l,
         id: l.ingredientId || l.ingredientEntryId,
         ingredientEntryId: l.ingredientEntryId || l.id,
         name: l.name,
         category: l.category || "-",
-        portionQty: firstProfile ? String(converted.quantity ?? "") : "",
+        portionQty: String(converted.quantity ?? ""),
         unit: converted.unit || "g",
         supplierName: l.supplierName || "",
       };
@@ -489,6 +496,21 @@ export default function DishCatalogPage() {
       );
       return;
     }
+    const standardIssue = standardQuantityIssue(
+      recipeLines,
+      form.standardQuantity,
+      form.standardUnit,
+    );
+    if (standardIssue) {
+      setCatalogError(standardIssue);
+      return;
+    }
+    if (gradeProfiles.some((profile) => !validQuantity(profile.portionQuantity))) {
+      setCatalogError(
+        "Khẩu phần của từng khối phải dương, tối đa 3 chữ số thập phân.",
+      );
+      return;
+    }
     setSaving(true);
     try {
       const response = await saveDishRecipe(editingDish?.id, {
@@ -496,7 +518,9 @@ export default function DishCatalogPage() {
         category: form.category,
         mealType: form.mealType,
         description: editingDish?.description || null,
-        gradeRecipes: sharedGradeRecipes(gradeProfiles, recipeLines),
+        standardQuantity: String(form.standardQuantity).trim(),
+        standardUnit: form.standardUnit,
+        gradeRecipes: gradePortionPayload(gradeProfiles),
         lines: recipeLines,
       });
       setEditingDish(response.data);
@@ -821,7 +845,7 @@ export default function DishCatalogPage() {
                 </h2>
                 <p className={styles.modalSubtitle}>
                   {editingDish
-                    ? "Cập nhật công thức và định lượng nguyên liệu trên một suất ăn"
+                    ? "Cập nhật công thức theo mốc chuẩn và khẩu phần từng khối"
                     : "Thiết lập món ăn chuẩn, nguyên liệu chính và định lượng gia vị"}
                 </p>
               </div>
@@ -838,18 +862,6 @@ export default function DishCatalogPage() {
             <div className={styles.modalBody}>
               <InlineError messages={[catalogError, gradeError]} />
               <div className={styles.formGrid}>
-                {gradeError ? null : (
-                  <GradeRecipeFields
-                    grades={grades}
-                    profiles={gradeProfiles}
-                    onChange={setGradeProfiles}
-                    savedGradeIds={(editingDish?.gradeRecipes || []).map(
-                      (profile) => profile.gradeId,
-                    )}
-                    disabled={saving}
-                  />
-                )}
-
                 {/* Tên món, nhóm món và bữa ăn dùng cùng một hàng trên desktop. */}
                 <div className={styles.formDishInfoRow}>
                   <div>
@@ -912,7 +924,7 @@ export default function DishCatalogPage() {
                   </div>
                 </div>
 
-                {/* KHU VỰC 1: BẢNG NGUYÊN LIỆU CẤU THÀNH (CÓ NHẬP ĐỊNH LƯỢNG / SUẤT CHO TỪNG NGUYÊN LIỆU) */}
+                {/* KHU VỰC 1: BẢNG NGUYÊN LIỆU CẤU THÀNH (ĐỊNH LƯỢNG TRONG MỐC CHUẨN CỦA MÓN) */}
                 <div className={styles.ingredientsSection}>
                   <div className={styles.sectionHeaderRow}>
                     <div className={styles.sectionTitleBlock}>
@@ -921,7 +933,7 @@ export default function DishCatalogPage() {
                         <span className={styles.required}>*</span>
                       </label>
                       <span className={styles.sectionHint}>
-                        Chọn nguyên liệu từ NCC và cài đặt định lượng / suất ăn
+                        Chọn nguyên liệu từ NCC và nhập định lượng thành phẩm trong mốc chuẩn của món
                       </span>
                     </div>
 
@@ -970,8 +982,11 @@ export default function DishCatalogPage() {
                             <th style={{ minWidth: 160 }}>Tên nguyên liệu</th>
                             <th style={{ width: 130 }}>Phân loại</th>
                             <th style={{ minWidth: 160 }}>Nhà cung cấp</th>
-                            <th style={{ width: 160, textAlign: "center" }}>
-                              Định lượng / suất{" "}
+                            <th
+                              style={{ width: 160, textAlign: "center" }}
+                              title="Lượng thành phẩm sau chế biến cho 1 suất. Lượng nguyên liệu sống cần đặt do bếp tính theo tỷ lệ hao hụt."
+                            >
+                              Định lượng trong mốc chuẩn{" "}
                               <span className={styles.required}>*</span>
                             </th>
                             <th style={{ width: 50, textAlign: "center" }}>
@@ -1100,7 +1115,7 @@ export default function DishCatalogPage() {
                   )}
                 </div>
 
-                {/* KHU VỰC 2: CHỌN GIA VỊ CHO MÓN & NHẬP ĐỊNH LƯỢNG / SUẤT */}
+                {/* KHU VỰC 2: CHỌN GIA VỊ CHO MÓN & NHẬP ĐỊNH LƯỢNG TRONG MỐC CHUẨN */}
                 <div className={styles.seasoningsSection}>
                   <div className={styles.sectionHeaderRow}>
                     <div className={styles.sectionTitleBlock}>
@@ -1160,7 +1175,7 @@ export default function DishCatalogPage() {
                             </th>
                             <th style={{ minWidth: 200 }}>Tên gia vị</th>
                             <th style={{ width: 160, textAlign: "center" }}>
-                              Định lượng / suất
+                              Định lượng trong mốc chuẩn
                             </th>
                             <th style={{ width: 50, textAlign: "center" }}>
                               Xóa
@@ -1263,6 +1278,29 @@ export default function DishCatalogPage() {
                     </div>
                   )}
                 </div>
+
+                {/* KHU VỰC 3: MỐC CHUẨN CỦA MÓN VÀ KHẨU PHẦN THEO KHỐI */}
+                {gradeError ? null : (
+                  <GradeRecipeFields
+                    grades={grades}
+                    profiles={gradeProfiles}
+                    onChange={(next) => {
+                      setGradeProfiles(next);
+                      setCatalogError("");
+                    }}
+                    standardQuantity={form.standardQuantity}
+                    standardUnit={form.standardUnit}
+                    onStandardChange={(patch) => {
+                      setForm((prev) => ({ ...prev, ...patch }));
+                      setCatalogError("");
+                    }}
+                    lines={recipeLines}
+                    savedGradeIds={(editingDish?.gradeRecipes || []).map(
+                      (profile) => profile.gradeId,
+                    )}
+                    disabled={saving}
+                  />
+                )}
               </div>
             </div>
 
@@ -1413,11 +1451,16 @@ export default function DishCatalogPage() {
                     </select>
                   </label>
                   <InlineError messages={gradeError} />
+                  <p role="status">
+                    {`Mốc chuẩn: ${viewingDish.standardQuantity} ${viewingDish.standardUnit}`}
+                    {profile?.portionQuantity
+                      ? ` • Khẩu phần khối: ${profile.portionQuantity} ${viewingDish.standardUnit}/suất`
+                      : ""}
+                  </p>
                   {selectedGradeId && !profile && (
                     <p role="status">
-                      {viewingDish.lines?.length
-                        ? "Khối này đang sử dụng định lượng chung của món ăn (chưa thiết lập định lượng riêng cho khối)."
-                        : "Khối này chưa có định lượng cho món ăn."}
+                      Món chưa áp dụng cho khối này; bảng dưới hiển thị định
+                      lượng trong mốc chuẩn của món.
                     </p>
                   )}
                   {/* Bảng Nguyên liệu chính */}
@@ -1444,7 +1487,7 @@ export default function DishCatalogPage() {
                               <th>Phân loại</th>
                               <th>Nhà cung cấp</th>
                               <th style={{ textAlign: "right" }}>
-                                Định lượng / 1 suất
+                                {profile?.lines?.length ? "Định lượng / 1 suất" : "Định lượng trong mốc chuẩn"}
                               </th>
                             </tr>
                           </thead>
@@ -1531,7 +1574,7 @@ export default function DishCatalogPage() {
                               </th>
                               <th>Tên gia vị từ kho trường</th>
                               <th style={{ textAlign: "right" }}>
-                                Định lượng / 1 suất
+                                {profile?.lines?.length ? "Định lượng / 1 suất" : "Định lượng trong mốc chuẩn"}
                               </th>
                             </tr>
                           </thead>
@@ -1578,7 +1621,8 @@ export default function DishCatalogPage() {
                 {/* Footer chi tiết */}
                 <div className={styles.detailModalFooter}>
                   <span className={styles.footerNote}>
-                    * Định lượng được tính cho 1 suất ăn học sinh bán trú chuẩn.
+                    * Định lượng 1 suất của khối = định lượng trong mốc chuẩn ×
+                    khẩu phần khối / mốc chuẩn (g, ml); đơn vị đếm như quả, hộp giữ nguyên.
                   </span>
                   <button
                     type="button"

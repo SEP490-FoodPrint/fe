@@ -208,6 +208,7 @@ function CreateBatchSeparatePage() {
                 supplierName: lot.supplierName || "",
                 amount: lot.quantityUsed ? formatLargeQuantity(lot.quantityUsed, lot.unit) : "",
                 quantity: lot.quantityUsed,
+                cookedQuantity: lot.cookedQuantity,
                 unit: lot.unit || "kg",
                 dishId: lot.dishId,
                 dishName: lot.dishName,

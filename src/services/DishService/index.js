@@ -17,7 +17,7 @@ export const dishIngredientIds = dish => [...new Set([
 export const dishForGrades = (dish, gradeIds = []) => {
   if (!gradeIds.length) return dish;
   const profiles = gradeIds.map((id) => dish.gradeRecipes?.find((profile) => profile.gradeId === id));
-  if (profiles.some((profile) => !profile?.lines?.length)) return { ...dish, gradeRecipeIssue: "Chưa có định lượng cho đủ các khối đã chọn." };
+  if (profiles.some((profile) => !profile?.lines?.length)) return { ...dish, gradeRecipeIssue: "Món chưa có khẩu phần cho đủ các khối đã chọn." };
   const lines = profiles[0].lines;
   const mains = lines.filter((line) => line.ingredientRole === "MAIN");
   return {

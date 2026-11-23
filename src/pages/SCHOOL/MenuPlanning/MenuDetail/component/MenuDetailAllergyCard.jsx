@@ -49,7 +49,7 @@ export default function MenuDetailAllergyCard({ menu }) {
 
         {subIngredients.length > 0 && (
           <div className={styles.subIngredientsWrap}>
-            <span className={styles.subLabel}>Định lượng nguyên liệu / suất:</span>
+            <span className={styles.subLabel}>Định lượng thành phẩm / suất:</span>
             <div className={styles.ingTags}>
               {subIngredients.map((ing, idx) => {
                 const hasQty = ing.quantityPerPortion != null && ing.quantityPerPortion !== ""

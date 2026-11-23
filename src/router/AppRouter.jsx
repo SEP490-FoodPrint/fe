@@ -78,6 +78,7 @@ const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelati
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
 const SchoolGrades = lazy(() => import("src/pages/SCHOOL/SchoolGrades"))
 const CookingMode = lazy(() => import("src/pages/SCHOOL/CookingMode"))
+const KitchenWasteRates = lazy(() => import("src/pages/SCHOOL/KitchenWasteRates"))
 const MealServingTimes = lazy(() => import("src/pages/SCHOOL/MealServingTimes"))
 const AcademicYearConfiguration = lazy(() => import("src/pages/SCHOOL/AcademicYearConfiguration"))
 const MealTraceability = lazy(() => import("src/pages/SCHOOL/MealTraceability"))
@@ -349,6 +350,8 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_KITCHEN_STAFF]} />,
             children: [
               { path: ROUTER.SCHOOL_KITCHEN_SAMPLE_STORAGE, element: <LazyWrapper><SampleStorage /></LazyWrapper> },
+              // Cấu hình tỷ lệ hao hụt (quyền ingredient_waste_rate.manage ở backend)
+              { path: ROUTER.SCHOOL_KITCHEN_WASTE_RATES, element: <LazyWrapper><KitchenWasteRates /></LazyWrapper> },
             ],
           },
 

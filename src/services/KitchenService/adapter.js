@@ -356,6 +356,8 @@ export function adaptBatchDetail(batch) {
       lotCode,
       supplierName,
       quantity: qty,
+      // Thành phẩm dự kiến từ lượng sống đã lấy (backend áp tỷ lệ hao hụt hiện tại)
+      cookedQuantity: lot.cookedQuantity != null ? String(lot.cookedQuantity) : null,
       unit,
       expiryDate,
     };

@@ -4,6 +4,17 @@ import { ChevronDown } from "lucide-react";
 import selectStyles from "src/pages/SCHOOL/MenuPlanning/CreateMenu/CreateMenu.module.scss";
 import dishStyles from "../index.module.scss";
 
+/** Đơn vị được phép cho mốc chuẩn của món. */
+export const DISH_STANDARD_UNITS = ["g", "ml"];
+
+const QUANTITY_PATTERN = /^(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/;
+
+/** Số dương, tối đa 3 chữ số thập phân (khớp validation BE). */
+export function validQuantity(value) {
+  const text = String(value ?? "").trim();
+  return QUANTITY_PATTERN.test(text) && Number(text) > 0;
+}
+
 export function validRecipeLines(lines) {
   return (
     lines.some((line) => line.ingredientRole === "MAIN") &&
@@ -12,19 +23,53 @@ export function validRecipeLines(lines) {
     lines.every(
       (line) =>
         line.ingredientEntryId &&
-        /^(?:0|[1-9]\d{0,10})(?:\.\d{1,3})?$/.test(
-          String(line.requiredQuantity),
-        ) &&
-        Number(line.requiredQuantity) > 0 &&
+        validQuantity(line.requiredQuantity) &&
         line.unit?.trim(),
     )
   );
 }
 
-export function sharedGradeRecipes(profiles, lines) {
-  return profiles.map(({ gradeId }) => ({
+const normalizeUnit = (unit) => String(unit || "").trim().toLowerCase();
+
+/** Làm tròn 3 chữ số để tránh sai số dấu phẩy động khi cộng. */
+const round3 = (value) => Math.round(value * 1000) / 1000;
+
+/**
+ * Ngưỡng mốc chuẩn (khớp FR-004 ở BE). S = tổng mọi dòng (nguyên liệu chính và gia vị)
+ * cùng đơn vị mốc chuẩn, không quy đổi đơn vị.
+ * Trả về { total, strict } hoặc null khi không có dòng cùng đơn vị (chỉ cần > 0).
+ */
+export function standardThreshold(lines, standardUnit) {
+  const unit = normalizeUnit(standardUnit);
+  const same = lines.filter((line) => normalizeUnit(line.unit) === unit);
+  if (!same.length) return null;
+  const total = round3(
+    same.reduce((sum, line) => sum + (Number(line.requiredQuantity) || 0), 0),
+  );
+  return { total, strict: same.length !== lines.length };
+}
+
+/** Thông báo lỗi của mốc chuẩn, hoặc "" nếu hợp lệ. */
+export function standardQuantityIssue(lines, standardQuantity, standardUnit) {
+  if (!DISH_STANDARD_UNITS.includes(normalizeUnit(standardUnit)))
+    return "Mốc chuẩn chỉ dùng g hoặc ml.";
+  if (!validQuantity(standardQuantity))
+    return "Mốc chuẩn phải dương, tối đa 3 chữ số thập phân.";
+  const threshold = standardThreshold(lines, standardUnit);
+  if (!threshold) return "";
+  const value = Number(standardQuantity);
+  if (threshold.strict ? value > threshold.total : value >= threshold.total)
+    return "";
+  return threshold.strict
+    ? `Mốc chuẩn phải lớn hơn ${threshold.total} ${standardUnit} (tổng nguyên liệu và gia vị cùng đơn vị, món còn nguyên liệu dùng đơn vị khác).`
+    : `Mốc chuẩn phải lớn hơn hoặc bằng ${threshold.total} ${standardUnit} (tổng nguyên liệu và gia vị cùng đơn vị).`;
+}
+
+/** Payload khẩu phần theo khối gửi lên BE. */
+export function gradePortionPayload(profiles) {
+  return profiles.map(({ gradeId, portionQuantity }) => ({
     gradeId,
-    lines: lines.map((line) => ({ ...line })),
+    portionQuantity: String(portionQuantity ?? "").trim(),
   }));
 }
 
@@ -32,6 +77,10 @@ export default function GradeRecipeFields({
   grades,
   profiles,
   onChange,
+  standardQuantity,
+  standardUnit,
+  onStandardChange,
+  lines = [],
   savedGradeIds = [],
   disabled,
 }) {
@@ -44,25 +93,101 @@ export default function GradeRecipeFields({
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, []);
+  const threshold = standardThreshold(lines, standardUnit);
+  const standardIssue =
+    String(standardQuantity ?? "").trim() === ""
+      ? ""
+      : standardQuantityIssue(lines, standardQuantity, standardUnit);
+  const gradeName = (gradeId) =>
+    grades.find((grade) => grade.id === gradeId)?.name || "Khối";
+  const setPortion = (gradeId, portionQuantity) =>
+    onChange(
+      profiles.map((item) =>
+        item.gradeId === gradeId ? { ...item, portionQuantity } : item,
+      ),
+    );
+  const removedSaved = savedGradeIds.filter(
+    (gradeId) => !profiles.some((item) => item.gradeId === gradeId),
+  );
+
   return (
     <section
       className={dishStyles.ingredientsSection}
-      aria-label="Định lượng theo khối"
+      aria-label="Mốc chuẩn và khẩu phần theo khối"
     >
       <div className={dishStyles.sectionHeaderRow}>
         <div className={dishStyles.sectionTitleBlock}>
           <label className={dishStyles.sectionTitle}>
-            Định lượng theo khối
+            Mốc chuẩn của món <span className={dishStyles.required}>*</span>
           </label>
           <span className={dishStyles.sectionHint}>
-            Các khối được chọn dùng chung định lượng nhập bên dưới
+            Định lượng nguyên liệu và gia vị ở trên tính cho đúng mốc chuẩn này
+            (ví dụ 100 g gà xào nấm)
+          </span>
+        </div>
+      </div>
+      <div className={dishStyles.formDishInfoRow}>
+        <div>
+          <label className={dishStyles.formLabel} htmlFor="dish-standard-qty">
+            Khối lượng mốc chuẩn
+          </label>
+          <input
+            id="dish-standard-qty"
+            type="number"
+            min="0"
+            step="0.01"
+            inputMode="decimal"
+            className={dishStyles.formInput}
+            placeholder="Ví dụ: 100"
+            value={standardQuantity}
+            disabled={disabled}
+            onChange={(event) =>
+              onStandardChange({ standardQuantity: event.target.value })
+            }
+          />
+        </div>
+        <div>
+          <label className={dishStyles.formLabel} htmlFor="dish-standard-unit">
+            Đơn vị
+          </label>
+          <select
+            id="dish-standard-unit"
+            className={dishStyles.formSelect}
+            value={standardUnit}
+            disabled={disabled}
+            onChange={(event) =>
+              onStandardChange({ standardUnit: event.target.value })
+            }
+          >
+            {DISH_STANDARD_UNITS.map((unit) => (
+              <option key={unit} value={unit}>
+                {unit}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <span className={dishStyles.sectionHint}>
+        {threshold
+          ? `Tổng nguyên liệu và gia vị dùng ${standardUnit}: ${threshold.total} ${standardUnit}. Mốc chuẩn phải ${threshold.strict ? "lớn hơn" : "lớn hơn hoặc bằng"} ${threshold.total} ${standardUnit}.`
+          : `Chưa có nguyên liệu nào dùng ${standardUnit}; mốc chuẩn chỉ cần lớn hơn 0.`}
+      </span>
+      {standardIssue && <Alert severity="warning">{standardIssue}</Alert>}
+
+      <div className={dishStyles.sectionHeaderRow}>
+        <div className={dishStyles.sectionTitleBlock}>
+          <label className={dishStyles.sectionTitle}>
+            Khẩu phần theo khối <span className={dishStyles.required}>*</span>
+          </label>
+          <span className={dishStyles.sectionHint}>
+            Mỗi khối chỉ nhập khối lượng 1 suất ({standardUnit}); định lượng
+            nguyên liệu g/ml được tính theo tỉ lệ với mốc chuẩn, đơn vị đếm (quả, hộp…) giữ nguyên
           </span>
         </div>
       </div>
       {!grades.length ? (
         <Alert severity="info">
-          Chưa có khối để nhập định lượng. Ban Giám hiệu cần cấu hình khối
-          trước.
+          Chưa có khối để nhập khẩu phần. Ban Giám hiệu cần cấu hình khối trước.
         </Alert>
       ) : (
         <div ref={dropdown} className={selectStyles.multiSelectContainer}>
@@ -112,7 +237,7 @@ export default function GradeRecipeFields({
                             )
                             .map((grade) => ({
                               gradeId: grade.id,
-                              lines: [],
+                              portionQuantity: "",
                             })),
                         ]
                       : [];
@@ -137,10 +262,7 @@ export default function GradeRecipeFields({
                       if (event.target.checked) {
                         onChange([
                           ...profiles,
-                          {
-                            gradeId: grade.id,
-                            lines: [],
-                          },
+                          { gradeId: grade.id, portionQuantity: "" },
                         ]);
                       } else
                         onChange(
@@ -157,6 +279,46 @@ export default function GradeRecipeFields({
             </div>
           )}
         </div>
+      )}
+      {profiles.length > 0 && (
+        <div className={dishStyles.gradePortionGrid}>
+          {[...profiles]
+            .sort(
+              (a, b) =>
+                grades.findIndex((grade) => grade.id === a.gradeId) -
+                grades.findIndex((grade) => grade.id === b.gradeId),
+            )
+            .map((profile) => (
+            <div key={profile.gradeId}>
+              <label
+                className={dishStyles.formLabel}
+                htmlFor={`grade-portion-${profile.gradeId}`}
+              >
+                {gradeName(profile.gradeId)} ({standardUnit}/suất)
+              </label>
+              <input
+                id={`grade-portion-${profile.gradeId}`}
+                type="number"
+                min="0"
+                step="0.01"
+                inputMode="decimal"
+                className={dishStyles.formInput}
+                placeholder={`Ví dụ: ${standardQuantity || 100}`}
+                value={profile.portionQuantity ?? ""}
+                disabled={disabled}
+                onChange={(event) =>
+                  setPortion(profile.gradeId, event.target.value)
+                }
+              />
+            </div>
+          ))}
+        </div>
+      )}
+      {removedSaved.length > 0 && (
+        <Alert severity="info">
+          Bỏ chọn khối chỉ không cập nhật khối đó; khẩu phần đã lưu của{" "}
+          {removedSaved.map(gradeName).join(", ")} vẫn được giữ nguyên.
+        </Alert>
       )}
     </section>
   );
