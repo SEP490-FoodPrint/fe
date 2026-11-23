@@ -2,14 +2,12 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useSearchParams, useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Share2, Check, AlertCircle } from "lucide-react";
 import styles from "./index.module.scss";
-import ROUTER from "src/router/ROUTER";
 import FoodPrintLoading from "src/components/FoodPrintLoading";
 import TraceabilityService from "src/services/TraceabilityService";
 
 import TraceabilityHero from "./component/TraceabilityHero";
 import TraceabilityMenuDishes from "./component/TraceabilityMenuDishes";
 import TraceabilityTimeline from "./component/TraceabilityTimeline";
-import TraceabilityCookingBatches from "./component/TraceabilityCookingBatches";
 import TraceabilityIngredientsFlow from "./component/TraceabilityIngredientsFlow";
 import TraceabilityFoodSafety from "./component/TraceabilityFoodSafety";
 import TraceabilityBlockchainCard from "./component/TraceabilityBlockchainCard";
@@ -18,19 +16,23 @@ import {
   chainVerdict,
 } from "./component/traceabilityBlockchainAdapter";
 
+/**
+ * Truy xuất chung một bữa của cả khối (mọi lớp trong khối). `dishId` trên URL
+ * chọn sẵn món được bấm từ Chi tiết thực đơn; đổi món sẽ cập nhật URL.
+ */
 export default function MealTraceability() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { schoolCode } = useParams();
   const navigate = useNavigate();
 
-  const classId = searchParams.get("classId");
+  const gradeId = searchParams.get("gradeId");
   const dateParam = searchParams.get("date");
   const mealTypeParam = searchParams.get("mealType");
+  const dishIdParam = searchParams.get("dishId");
 
   const [loading, setLoading] = useState(true);
   const [traceData, setTraceData] = useState(null);
   const [error, setError] = useState(null);
-  const [activeDishId, setActiveDishId] = useState(null);
   const [toastMsg, setToastMsg] = useState("");
   const [isVerifying, setIsVerifying] = useState(false);
   // true khi blockchainProof hiện tại là kết quả của lần gọi verify=true
@@ -43,76 +45,91 @@ export default function MealTraceability() {
 
   const queryParams = useMemo(
     () => ({
-      classId: classId || undefined,
+      gradeId: gradeId || undefined,
       date: dateParam || undefined,
       mealType: mealTypeParam || undefined,
       schoolCode: schoolCode || undefined,
     }),
-    [classId, dateParam, mealTypeParam, schoolCode],
+    [gradeId, dateParam, mealTypeParam, schoolCode],
   );
 
   useEffect(() => {
     let mounted = true;
+    const controller = new AbortController();
     const fetchTraceability = async () => {
       setLoading(true);
       setError(null);
       setIsChecked(false);
-      if (!queryParams.classId || !queryParams.date || !queryParams.mealType) {
+      if (!queryParams.gradeId || !queryParams.date || !queryParams.mealType) {
         setError({
           title: "Thiếu thông tin tra cứu",
           message:
-            "Cần chọn lớp học, ngày phục vụ và bữa ăn để truy xuất suất ăn.",
+            "Cần chọn khối, ngày phục vụ và bữa ăn để truy xuất. Hãy mở lại từ Chi tiết thực đơn.",
         });
         setTraceData(null);
         setLoading(false);
         return;
       }
       try {
-        const data = await TraceabilityService.getMealTraceability(queryParams);
+        const data = await TraceabilityService.getGradeMealTraceability(
+          queryParams,
+          controller.signal,
+        );
         if (!mounted) return;
         if (data && !data.isNotFound) {
           setTraceData(data);
-          setActiveDishId(data.dishes?.[0]?.dishId ?? null);
         } else {
           setError({
-            title: "Không có thông tin truy xuất nguồn gốc",
+            title: "Chưa có thông tin truy xuất",
             message:
               data?.message ||
-              "Chưa có dữ liệu phân bổ mẻ nấu và suất ăn cho lớp học này vào ngày đã chọn trên hệ thống. Vui lòng kiểm tra lại ngày phục vụ hoặc liên hệ nhà trường.",
+              "Khối chưa có bữa ăn được phân bổ vào ngày và bữa đã chọn. Vui lòng chọn ngày khác hoặc liên hệ nhà trường.",
           });
           setTraceData(null);
         }
       } catch (err) {
-        if (mounted) {
-          setError({
-            title: "Không thể tải dữ liệu truy xuất",
-            message:
-              err.response?.data?.message ||
-              err.message ||
-              "Không thể kết nối đến máy chủ truy xuất nguồn gốc. Vui lòng kiểm tra lại dịch vụ Backend.",
-          });
-          setTraceData(null);
-        }
+        if (!mounted || err?.name === "CanceledError") return;
+        setError({
+          title: "Không thể tải dữ liệu truy xuất",
+          message:
+            err.response?.data?.message ||
+            err.message ||
+            "Không kết nối được máy chủ truy xuất nguồn gốc. Vui lòng thử lại sau.",
+        });
+        setTraceData(null);
       } finally {
         if (mounted) setLoading(false);
       }
     };
 
     fetchTraceability();
-
     return () => {
       mounted = false;
+      controller.abort();
     };
   }, [queryParams]);
 
-  const activeDish = useMemo(() => {
-    if (!traceData?.dishes || !activeDishId) return null;
-    return (
-      traceData.dishes.find((d) => d.dishId === activeDishId) ||
-      traceData.dishes[0] ||
-      null
+  const dishes = useMemo(
+    () => (Array.isArray(traceData?.dishes) ? traceData.dishes : []),
+    [traceData],
+  );
+
+  // Món đang xem: món trên URL nếu có trong bữa, không thì món đầu tiên.
+  const activeDish = useMemo(
+    () => dishes.find((d) => d.dishId === dishIdParam) || dishes[0] || null,
+    [dishes, dishIdParam],
+  );
+
+  const handleSelectDish = (id) => {
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("dishId", id);
+        return next;
+      },
+      { replace: true },
     );
-  }, [traceData, activeDishId]);
+  };
 
   const blockchainSteps = useMemo(
     () => buildBlockchainSteps(traceData, activeDish),
@@ -136,9 +153,9 @@ export default function MealTraceability() {
     setIsVerifying(true);
     try {
       const data =
-        await TraceabilityService.verifyMealTraceability(queryParams);
+        await TraceabilityService.verifyGradeMealTraceability(queryParams);
       if (!data || data.isNotFound) {
-        showToast("Không tìm thấy dữ liệu suất ăn để đối soát.");
+        showToast("Không tìm thấy dữ liệu bữa ăn của khối để đối soát.");
         return;
       }
       setTraceData(data);
@@ -170,7 +187,7 @@ export default function MealTraceability() {
         <div className={styles.loadingBox}>
           <FoodPrintLoading />
           <p style={{ marginTop: "16px" }}>
-            Đang tải chuỗi cung ứng truy xuất nguồn gốc...
+            Đang tải thông tin truy xuất của khối...
           </p>
         </div>
       </div>
@@ -178,10 +195,6 @@ export default function MealTraceability() {
   }
 
   if (error || !traceData) {
-    const title = error?.title || "Không có thông tin truy xuất nguồn gốc";
-    const message =
-      error?.message ||
-      "Chưa có dữ liệu phân bổ mẻ nấu và suất ăn cho lớp học này vào ngày đã chọn trên hệ thống.";
     return (
       <div className={styles.pageContainer}>
         <div className={styles.contentWrapper}>
@@ -190,10 +203,10 @@ export default function MealTraceability() {
               size={44}
               style={{
                 margin: "0 auto 12px auto",
-                color: "var(--color-warning, #f59e0b)",
+                color: "var(--color-warning)",
               }}
             />
-            <h3>{title}</h3>
+            <h3>{error?.title || "Chưa có thông tin truy xuất"}</h3>
             <p
               style={{
                 maxWidth: "540px",
@@ -202,25 +215,16 @@ export default function MealTraceability() {
                 lineHeight: 1.6,
               }}
             >
-              {message}
+              {error?.message ||
+                "Khối chưa có bữa ăn được phân bổ vào ngày và bữa đã chọn."}
             </p>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "center",
-                flexWrap: "wrap",
-              }}
+            <button
+              type="button"
+              className={styles.btnBack}
+              onClick={() => navigate(-1)}
             >
-              <button
-                type="button"
-                className={styles.btnBack}
-                onClick={() => navigate(-1)}
-              >
-                <ArrowLeft size={16} /> Quay lại thực đơn
-              </button>
-            </div>
+              <ArrowLeft size={16} /> Quay lại thực đơn
+            </button>
           </div>
         </div>
       </div>
@@ -231,13 +235,12 @@ export default function MealTraceability() {
     <div className={styles.pageContainer}>
       {toastMsg && (
         <div className={styles.toastNotice}>
-          <Check size={18} color="#4ade80" />
+          <Check size={18} color="var(--green-300)" />
           <span>{toastMsg}</span>
         </div>
       )}
 
       <div className={styles.contentWrapper}>
-        {/* Top bar with back and share */}
         <div className={styles.topBarActions}>
           <button
             type="button"
@@ -256,44 +259,37 @@ export default function MealTraceability() {
           </button>
         </div>
 
-        {/* Section 1: Hero Info & QR Code */}
+        {/* 1. Giới thiệu chung: trường, khối, ngày, bữa */}
         <TraceabilityHero data={traceData} />
 
-        {/* Section 2: Menu Dishes & Tabs Switcher */}
-        {Array.isArray(traceData?.dishes) && traceData.dishes.length > 0 && (
+        {/* 2. Món trong bữa: chọn sẵn món được bấm, đổi món để truy xuất tiếp */}
+        {dishes.length > 0 && (
           <TraceabilityMenuDishes
-            dishes={traceData.dishes}
-            activeDishId={activeDishId}
-            onSelectDish={(id) => setActiveDishId(id)}
+            dishes={dishes}
+            activeDishId={activeDish?.dishId}
+            onSelectDish={handleSelectDish}
           />
         )}
 
-        {/* Section 3: Process Timeline */}
-        <TraceabilityTimeline
-          allocation={traceData?.allocation}
-          classInfo={traceData?.classInfo}
-          dish={activeDish}
-        />
+        {/* 3. Quy trình phục vụ: tiếp nhận → chuẩn bị → lưu mẫu → giao */}
+        <TraceabilityTimeline meal={traceData.meal} dish={activeDish} />
 
-        {/* Section 4: Cooking Batches of Selected Dish */}
+        {/* 4. Nguồn gốc nguyên liệu: nhà cung cấp, đơn giao, blockchain */}
         {activeDish && (
-          <TraceabilityCookingBatches
+          <TraceabilityIngredientsFlow
             dish={activeDish}
-            totalAllocationPortions={traceData.allocation?.totalPortions ?? 0}
+            proofNodes={traceData.blockchainProof?.nodes}
           />
         )}
 
-        {/* Section 5: Ingredients Supply Chain of Selected Dish */}
-        {activeDish && <TraceabilityIngredientsFlow dish={activeDish} />}
-
-        {/* Section 6: Food Safety & Retained Samples */}
+        {/* 5. An toàn thực phẩm: mẫu lưu */}
         {activeDish && <TraceabilityFoodSafety dish={activeDish} />}
 
-        {/* Section 7: Blockchain Card (Khối 7 - Xác thực Blockchain 5 chặng) */}
+        {/* 6. Xác thực blockchain 5 chặng */}
         <TraceabilityBlockchainCard
           steps={blockchainSteps}
           verdict={verdict}
-          errorMessage={traceData?.blockchainProofError || null}
+          errorMessage={traceData.blockchainProofError || null}
           isVerifying={isVerifying}
           onVerify={handleVerifyBlockchain}
         />

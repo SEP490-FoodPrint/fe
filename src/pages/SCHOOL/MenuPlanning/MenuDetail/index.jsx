@@ -3,10 +3,8 @@ import { useParams, useNavigate, useLocation } from "react-router-dom"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
-import http from "src/services/01_axios"
 import MenuService from "src/services/MenuService"
 import useMenuRevisionReview from "src/services/MenuService/useMenuRevisionReview"
-import { apiMenuDetail } from "src/services/MenuService/urls"
 import { parseDateVNToISO, menuWeekMeals, adaptBackendMenuDetailToView } from "src/services/MenuService/adapter"
 import { academicWeekSearch } from "src/services/MenuService/academicWeekView"
 
@@ -16,6 +14,7 @@ import MenuDetailSeasoningsCard from "./component/MenuDetailSeasoningsCard"
 import MenuGradeDetails from "./component/MenuGradeDetails"
 import ConfirmSubmitModal from "../component/ConfirmSubmitModal"
 import CreateMenuDayModal from "../CreateMenu/CreateMenuDayModal"
+import SelectGradeTraceModal from "./component/SelectGradeTraceModal"
 
 export default function MenuDetail() {
   const { id } = useParams()
@@ -40,6 +39,8 @@ export default function MenuDetail() {
   )
 
   const [isConfirmSubmitOpen, setIsConfirmSubmitOpen] = useState(false)
+  // Món đang mở truy xuất theo khối; { dishId: null } = cả bữa
+  const [traceTarget, setTraceTarget] = useState(null)
   const [toast, setToast] = useState(null)
 
   const showToast = (message, type = "success") => {
@@ -58,11 +59,11 @@ export default function MenuDetail() {
       weeklyId = id.split("_")[0]
     }
     try {
-      const response = await http.get(apiMenuDetail(weeklyId), { notifyOnError: false })
-      if (!response?.data?.id) throw new Error("Không tải được đầy đủ thực đơn tuần.")
+      const rawMenu = await MenuService.getRawWeeklyMenu(weeklyId)
+      if (!rawMenu?.id) throw new Error("Không tải được đầy đủ thực đơn tuần.")
       const parts = id.split("_")
-      setRawWeeklyMenu(response.data)
-      setMenu(adaptBackendMenuDetailToView(response.data, parts[1] || null, parts[2] || "LUNCH"))
+      setRawWeeklyMenu(rawMenu)
+      setMenu(adaptBackendMenuDetailToView(rawMenu, parts[1] || null, parts[2] || "LUNCH"))
     } catch (err) {
       setLoadError(err.message || "Không thể tải thông tin chi tiết thực đơn.")
       setMenu(null)
@@ -212,9 +213,8 @@ export default function MenuDetail() {
           menuId={id}
           onEdit={() => setIsEditModalOpen(true)}
           onSubmitApproval={() => setIsConfirmSubmitOpen(true)}
+          onOpenTrace={() => setTraceTarget({ dishId: null, dishName: "" })}
         />
-
-
         <MenuGradeDetails
           weeklyMenu={rawWeeklyMenu}
           menu={menu}
@@ -233,15 +233,12 @@ export default function MenuDetail() {
         />
 
         {!comparingGrades && (
-          <>
-            {/* Khối Bảng danh sách món ăn & Định lượng nguyên liệu chính / gia vị theo suất */}
-            <MenuDetailDishesTable
-              dishes={menu.dishes}
-              substituteDish={menu.substituteDish}
-              mealSeasonings={menu.seasonings}
-            />
-
-          </>
+          <MenuDetailDishesTable
+            dishes={menu.dishes}
+            substituteDish={menu.substituteDish}
+            mealSeasonings={menu.seasonings}
+            onTraceDish={dish => setTraceTarget({ dishId: dish.dishId || dish.id, dishName: dish.name })}
+          />
         )}
       </div>
 
@@ -263,6 +260,17 @@ export default function MenuDetail() {
           submitText={menu.status === "PENDING_APPROVAL" || rawWeeklyMenu.status === "PENDING_APPROVAL" ? "Lưu và gửi BGH duyệt lại" : "Lưu thay đổi"}
         />
       )}
+
+      {/* Modal chọn khối để truy xuất chung theo khối */}
+      <SelectGradeTraceModal
+        isOpen={Boolean(traceTarget)}
+        onClose={() => setTraceTarget(null)}
+        menuDate={menu.rawDate || parseDateVNToISO(menu.date)}
+        mealType={menu.mealType}
+        gradeIds={menu.gradeIds}
+        dishId={traceTarget?.dishId}
+        dishName={traceTarget?.dishName}
+      />
 
       {/* Modal xác nhận gửi BGH duyệt */}
       <ConfirmSubmitModal

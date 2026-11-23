@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from "react"
+import React, { useMemo } from "react"
 import { useNavigate } from "react-router-dom"
 import styles from "./MenuDetailHeader.module.scss"
 import ROUTER from "src/router/ROUTER"
-import SelectClassTraceModal from "./SelectClassTraceModal"
 import { getMenuISOWeek } from "src/services/MenuService/adapter"
 
 /**
@@ -45,9 +44,9 @@ export default function MenuDetailHeader({
   menuId,
   onSubmitApproval,
   onEdit,
+  onOpenTrace,
 }) {
   const navigate = useNavigate()
-  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false)
   const isApproved = String(menu?.status || "").toUpperCase() === "APPROVED" ||
                      String(menu?.weeklyStatus || "").toUpperCase() === "APPROVED"
   const canEdit = !isApproved && ["DRAFT", "PENDING_APPROVAL", "REVISION_REQUIRED", "REVISION_REQUESTED"].includes(menu?.status)
@@ -95,11 +94,11 @@ export default function MenuDetailHeader({
           <button
             type="button"
             className={styles.btnTrace}
-            onClick={() => setIsTraceModalOpen(true)}
-            title="Truy xuất nguồn gốc suất ăn theo lớp học"
+            onClick={onOpenTrace}
+            title="Truy xuất nguồn gốc bữa ăn theo khối"
           >
             <span className="material-symbols-outlined text-[18px]">qr_code_scanner</span>
-            <span>Truy xuất suất ăn</span>
+            <span>Truy xuất theo khối</span>
           </button>
 
           {canEdit && onEdit && (
@@ -137,14 +136,6 @@ export default function MenuDetailHeader({
           {menu?.mealType === "AFTERNOON" ? "Bữa xế" : "Bữa trưa"}
         </span>
       </div>
-
-      {/* Modal chọn Khối & Lớp để truy xuất */}
-      <SelectClassTraceModal
-        isOpen={isTraceModalOpen}
-        onClose={() => setIsTraceModalOpen(false)}
-        menuDate={menu?.date}
-        mealType={menu?.mealType}
-      />
     </div>
   )
 }

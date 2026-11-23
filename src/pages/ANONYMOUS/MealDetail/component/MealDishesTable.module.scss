@@ -113,7 +113,7 @@
       &:hover {
         .cellMainDish,
         .cellPortion {
-          background-color: rgba(10, 128, 102, 0.04);
+          background-color: rgba(var(--color-primary-rgb), 0.04);
         }
 
         .cellAltDish,
@@ -221,7 +221,7 @@
   display: inline-block;
   padding: 2px 8px;
   background-color: var(--color-primary-soft);
-  border: 1px solid rgba(10, 128, 102, 0.25);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.25);
   border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: var(--font-bold);
@@ -318,4 +318,10 @@
   color: var(--text-muted);
   font-weight: var(--font-medium);
   padding-left: var(--space-2);
+}
+
+.dishNameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

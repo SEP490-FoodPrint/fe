@@ -87,20 +87,23 @@ function toRecord(node, label) {
 
 const unique = (values) => [...new Set(values.filter(Boolean))];
 
+/** 5 chặng blockchain của món đang chọn, chung cho mọi lớp của khối. */
 export function buildBlockchainSteps(traceData, activeDish) {
   if (!traceData) return [];
 
   const chain = traceData.blockchainProof;
   const nodes = Array.isArray(chain?.nodes) ? chain.nodes : [];
+  const suppliers = Array.isArray(activeDish?.suppliers)
+    ? activeDish.suppliers
+    : [];
   const batches = Array.isArray(activeDish?.batches) ? activeDish.batches : [];
-  const ingredients = batches.flatMap((b) =>
-    Array.isArray(b?.ingredients) ? b.ingredients : [],
-  );
 
   const deliveries = new Map();
-  ingredients.forEach((ing) => {
-    if (ing?.delivery?.id) deliveries.set(ing.delivery.id, ing.delivery);
-  });
+  suppliers.forEach((s) =>
+    (s.deliveries || []).forEach((d) =>
+      deliveries.set(d.id, { ...d, supplierName: s.name }),
+    ),
+  );
   const deliveryIds = [...deliveries.keys()];
   const batchIds = unique(batches.map((b) => b?.cookingBatchId));
   const samples = batches.map((b) => b?.retainedSample).filter(Boolean);
@@ -116,19 +119,22 @@ export function buildBlockchainSteps(traceData, activeDish) {
 
   const deliveryLabel = (id) => {
     const d = deliveries.get(id);
-    return d ? `${d.supplierName}${d.deliveryNo ? ` · ${d.deliveryNo}` : ""}` : "";
+    return d
+      ? `${d.supplierName}${d.deliveryNo ? ` · ${d.deliveryNo}` : ""}`
+      : "";
   };
   const batchLabel = (id) =>
     batches.find((b) => b?.cookingBatchId === id)?.batchCode || "";
 
-  const supplierNames = unique([...deliveries.values()].map((d) => d.supplierName));
+  const supplierNames = unique(suppliers.map((s) => s.name));
   const dishName = activeDish?.dishName || "";
-  const allocation = traceData.allocation || {};
-  const classInfo = traceData.classInfo || {};
+  const meal = traceData.meal || {};
+  const gradeName = traceData.grade?.name || "khối";
+  const deliver = activeDish?.process?.deliver || {};
   const earliest = (values) =>
-    values.filter(Boolean).sort((a, b) => new Date(a) - new Date(b))[0] || null;
+    values.filter(Boolean).sort((a, b) => new Date(a) - new Date(b))[0] ||
+    null;
   const plates = unique([...deliveries.values()].map((d) => d.vehiclePlate));
-  const allocatedPortions = sumAllocationPortions(batches.map(batch=>batch?.allocatedPortions || 0));
 
   const declared = pick("delivery-declarations", deliveryIds);
   const inspected = pick("deliveries", deliveryIds);
@@ -172,10 +178,7 @@ export function buildBlockchainSteps(traceData, activeDish) {
       shortLabel: "Nấu",
       title: "Bếp hoàn thành mẻ nấu",
       subtitle: dishName,
-      badges: [
-        `${batches.length} mẻ`,
-        `${formatAllocationDecimal(allocatedPortions)} suất cho ${classInfo.name || "lớp"}`,
-      ],
+      badges: [`${batches.length} mẻ`],
       timeStr: formatStepTime(earliest(batches.map((b) => b?.completedAt))),
       iconType: "cooking",
       innerTitle: "Bếp chế biến hoàn thành mẻ nấu",
@@ -191,24 +194,30 @@ export function buildBlockchainSteps(traceData, activeDish) {
       iconType: "sample",
       innerTitle: "Niêm phong lưu mẫu thức ăn",
       records: sampled.map((n) =>
-        toRecord(n, n.eventType === "SAMPLE_DISPOSED" ? "Tiêu huỷ mẫu" : "Lưu mẫu"),
+        toRecord(
+          n,
+          n.eventType === "SAMPLE_DISPOSED" ? "Tiêu huỷ mẫu" : "Lưu mẫu",
+        ),
       ),
     },
     {
       id: "step-5",
       shortLabel: "Phát suất",
-      title: "Phát suất ăn",
-      subtitle: `${MEAL_TYPE_LABELS[allocation.mealType] || ""} · ${
-        classInfo.name || ""
-      } · ${allocation.totalPortions ?? 0} suất`,
-      badges: [allocation.status === "DISTRIBUTED" ? "Đã phát" : "Chưa phát"],
-      timeStr: formatStepTime(allocation.distributedAt),
+      title: "Giao suất đến các lớp",
+      subtitle: `${MEAL_TYPE_LABELS[meal.mealType] || ""} · ${gradeName}`,
+      badges: [
+        deliver.distributed
+          ? "Đã giao"
+          : deliver.firstDistributedAt
+            ? "Đang giao"
+            : "Chưa giao",
+      ],
+      timeStr: formatStepTime(deliver.firstDistributedAt),
       iconType: "distribution",
       innerTitle: `Bằng chứng phát suất toàn trường ngày ${
-        allocation.mealDate || ""
-      } (bao gồm lớp này)`,
+        String(meal.mealDate || "").split("-").reverse().join("/")
+      } (bao gồm ${gradeName})`,
       records: distributed.map((n) => toRecord(n, "Toàn trường")),
     },
   ];
 }
-import { sumAllocationPortions, formatAllocationDecimal } from "../../../../utils/allocationDecimal.js";

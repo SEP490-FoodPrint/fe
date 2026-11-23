@@ -1,8 +1,19 @@
 import React from "react";
-import { sumAllocationPortions, formatAllocationDecimal } from "src/utils/allocationDecimal";
 import { Utensils, Check, Search, Info } from "lucide-react";
 import styles from "./TraceabilityMenuDishes.module.scss";
 
+const supplyLine = (dish) => {
+  const suppliers = Array.isArray(dish.suppliers) ? dish.suppliers : [];
+  const deliveries = suppliers.reduce(
+    (n, s) => n + (Array.isArray(s.deliveries) ? s.deliveries.length : 0),
+    0,
+  );
+  return suppliers.length
+    ? `${suppliers.length} nhà cung cấp · ${deliveries} đơn giao`
+    : "Chưa ghi nhận nguyên liệu xuất kho";
+};
+
+/** Món trong bữa của khối; bấm để chuyển món đang truy xuất. */
 export default function TraceabilityMenuDishes({
   dishes = [],
   activeDishId,
@@ -19,18 +30,22 @@ export default function TraceabilityMenuDishes({
         </div>
       </div>
 
-      <div className={styles.dishesGrid}>
+      <div className={styles.dishesGrid} role="tablist" aria-label="Chọn món để truy xuất">
         {dishes.map((dish) => {
           const isActive = dish.dishId === activeDishId;
-          const totalBatches = dish.batches?.length ?? 0;
-          const totalPortions = sumAllocationPortions((dish.batches || []).map(batch=>batch.allocatedPortions || 0));
-
           return (
             <div
               key={dish.dishId}
               className={`${styles.dishCard} ${isActive ? styles.dishCardActive : ""}`}
               onClick={() => onSelectDish(dish.dishId)}
-              role="button"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onSelectDish(dish.dishId);
+                }
+              }}
+              role="tab"
+              aria-selected={isActive}
               tabIndex={0}
             >
               <div>
@@ -39,30 +54,19 @@ export default function TraceabilityMenuDishes({
                     {dish.dishCategory || "Món ăn"}
                   </span>
                   {isActive && (
-                    <div
-                      className={styles.activeCheckIcon}
-                      title="Đang xem truy xuất chi tiết"
-                    >
+                    <div className={styles.activeCheckIcon} title="Đang truy xuất món này">
                       <Check size={14} />
                     </div>
                   )}
                 </div>
 
                 <h3 className={styles.dishName}>{dish.dishName}</h3>
-                <p className={styles.dishDesc}>
-                  {totalPortions > 0
-                    ? `Phân bổ ${formatAllocationDecimal(totalPortions)} suất (từ ${totalBatches} lô chế biến)`
-                    : "Được chế biến đạt chuẩn tại bếp trường"}
-                </p>
+                <p className={styles.dishDesc}>{supplyLine(dish)}</p>
               </div>
 
               <div className={styles.dishFooter}>
                 <Search size={14} />
-                <span>
-                  {isActive
-                    ? "Đang chọn xem truy xuất"
-                    : "Bấm để xem truy xuất"}
-                </span>
+                <span>{isActive ? "Đang truy xuất" : "Truy xuất món này"}</span>
               </div>
             </div>
           );
@@ -72,8 +76,8 @@ export default function TraceabilityMenuDishes({
       <div className={styles.nutritionNote}>
         <Info size={14} />
         <span>
-          Ghi chú: Bấm vào từng món ăn phía trên để xem các lô chế biến, mẫu lưu
-          kiểm nghiệm và nguồn gốc nguyên liệu của món đó.
+          Bấm món khác để chuyển truy xuất: quy trình phục vụ, nhà cung cấp,
+          mẫu lưu và xác thực blockchain sẽ cập nhật theo món.
         </span>
       </div>
     </section>
