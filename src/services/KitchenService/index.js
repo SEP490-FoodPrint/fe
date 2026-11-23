@@ -344,15 +344,6 @@ const KitchenService = {
     return response?.data || response;
   },
 
-  async deleteBatch(id) {
-    if (!id) throw new Error("Thiếu mã định danh lô chế biến.");
-    const response = await http.delete(`${apiCookingBatches}/${id}`, {
-      notifyOnError: false,
-    });
-    invalidateKitchenBatchCache();
-    return response?.data || response;
-  },
-
   async getBatchSample(batchId, { signal } = {}) {
     if (!batchId) return null;
     const response = await http.get(

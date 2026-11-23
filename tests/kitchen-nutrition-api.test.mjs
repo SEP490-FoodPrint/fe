@@ -753,8 +753,8 @@ test("batch writes use actual endpoints and completion sends no manually entered
   assert.equal(requests[1].url, `/v1/kitchen/${id(44)}/confirm`)
   assert.equal(requests[2].url, `/v1/kitchen/${id(44)}/complete`)
   assert.deepEqual(JSON.parse(requests[2].data), {})
-  await kitchen.deleteBatch(id(44))
-  assert.equal(requests[3].method, "delete")
+  // Đã gỡ chức năng xóa lô chế biến
+  assert.equal("deleteBatch" in kitchen, false)
 })
 
 test("write failures propagate instead of reporting local success", async () => {
@@ -1255,7 +1255,6 @@ test("all supported kitchen mutations invalidate both list and stats reads", asy
   const mutations = [
     () => kitchen.createBatch({ dishId: id(3), menuDayId: id(2), mealType: "LUNCH" }),
     () => kitchen.confirmBatch(id(44)), () => kitchen.completeBatch(id(44)),
-    () => kitchen.deleteBatch(id(44)),
     () => kitchen.createBatchSample(id(44), { quantity: "150", unit: "g" }),
     () => kitchen.disposeRetainedSample(id(45), { disposalNote: "Recorded" }),
   ]
