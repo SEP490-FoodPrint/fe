@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Utensils, Info, AlertCircle } from "lucide-react";
 import { Typography } from "@mui/material";
+import DishTraceButton from "src/components/Traceability/DishTraceButton";
 import styles from "./MealDishesTable.module.scss";
 
 function MealDishesTable({
@@ -10,6 +11,7 @@ function MealDishesTable({
   currentMealType,
   onSelectMealType,
   onOpenDishModal,
+  onTraceDish,
 }) {
   // Hai tab dùng chung một bảng và chọn danh sách từ dữ liệu page đã tải.
   const currentDishes = currentMealType === "LUNCH" ? lunchDishes : snackDishes;
@@ -26,8 +28,8 @@ function MealDishesTable({
             </Typography>
           </div>
           <span className={styles.selectTip}>
-            Bấm vào tên món ăn để xem chi tiết thành phần nguyên liệu & nguồn
-            gốc kiểm thực
+            Bấm tên món để xem nguyên liệu · bấm logo FoodPrint để truy xuất
+            nguồn gốc món theo khối
           </span>
         </div>
       </div>
@@ -75,15 +77,24 @@ function MealDishesTable({
                   {/* Cột 1: Món ăn chính */}
                   <td className={styles.cellMainDish}>
                     <div className={styles.dishInfoWrapper}>
-                      <button
-                        type="button"
-                        className={styles.dishLink}
-                        onClick={() => onOpenDishModal && onOpenDishModal(dish)}
-                        title="Bấm để xem chi tiết nguyên liệu món ăn này"
-                      >
-                        <span className={styles.dishName}>{dish.name}</span>
-                        <Info size={13} className={styles.infoIcon} />
-                      </button>
+                      <div className={styles.dishNameRow}>
+                        <DishTraceButton
+                          dishName={dish.name}
+                          disabled={!onTraceDish}
+                          onClick={() => onTraceDish && onTraceDish(dish)}
+                        />
+                        <button
+                          type="button"
+                          className={styles.dishLink}
+                          onClick={() =>
+                            onOpenDishModal && onOpenDishModal(dish)
+                          }
+                          title="Bấm để xem chi tiết nguyên liệu món ăn này"
+                        >
+                          <span className={styles.dishName}>{dish.name}</span>
+                          <Info size={13} className={styles.infoIcon} />
+                        </button>
+                      </div>
                     </div>
                   </td>
 
@@ -100,17 +111,27 @@ function MealDishesTable({
                   <td className={styles.cellAltDish}>
                     {alt ? (
                       <div className={styles.altInfoWrapper}>
-                        <button
-                          type="button"
-                          className={styles.altDishLink}
-                          onClick={() =>
-                            onOpenDishModal && onOpenDishModal(alt)
-                          }
-                          title="Bấm để xem chi tiết nguyên liệu món thay thế"
-                        >
-                          <span className={styles.altDishName}>{alt.name}</span>
-                          <Info size={13} className={styles.infoIcon} />
-                        </button>
+                        <div className={styles.dishNameRow}>
+                          <DishTraceButton
+                            size="sm"
+                            dishName={alt.name}
+                            disabled={!onTraceDish}
+                            onClick={() => onTraceDish && onTraceDish(alt)}
+                          />
+                          <button
+                            type="button"
+                            className={styles.altDishLink}
+                            onClick={() =>
+                              onOpenDishModal && onOpenDishModal(alt)
+                            }
+                            title="Bấm để xem chi tiết nguyên liệu món thay thế"
+                          >
+                            <span className={styles.altDishName}>
+                              {alt.name}
+                            </span>
+                            <Info size={13} className={styles.infoIcon} />
+                          </button>
+                        </div>
                         {alt.allergyGroup && (
                           <div className={styles.allergyTag}>
                             <AlertCircle
@@ -175,11 +196,13 @@ MealDishesTable.propTypes = {
   currentMealType: PropTypes.oneOf(["LUNCH", "AFTERNOON"]).isRequired,
   onSelectMealType: PropTypes.func.isRequired,
   onOpenDishModal: PropTypes.func.isRequired,
+  onTraceDish: PropTypes.func,
 };
 
 MealDishesTable.defaultProps = {
   lunchDishes: [],
   snackDishes: [],
+  onTraceDish: null,
 };
 
 export default MealDishesTable;

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Link,
+  useNavigate,
   useOutletContext,
   useParams,
   useSearchParams,
@@ -22,7 +23,7 @@ import MealDetailHeader from "./component/MealDetailHeader";
 import MealDetailFilterBar from "./component/MealDetailFilterBar";
 import MealDishesTable from "./component/MealDishesTable";
 import DishIngredientsModal from "./component/DishIngredientsModal";
-import SelectClassTraceModal from "src/pages/SCHOOL/MenuPlanning/MenuDetail/component/SelectClassTraceModal";
+import { gradeTracePath } from "src/services/TraceabilityService";
 import { getWeekLabel } from "src/utils/weeklyMenu";
 
 import "./style.scss";
@@ -38,6 +39,7 @@ function MealDetail() {
     "SCH_ANH_DUONG"
   ).toUpperCase();
 
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const dateParam = searchParams.get("date") || "";
   const blockParam = searchParams.get("block") || searchParams.get("grade") || "";
@@ -100,7 +102,6 @@ function MealDetail() {
   // Quản lý Popup Modal xem chi tiết nguyên liệu món ăn
   const [modalDish, setModalDish] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [isTraceModalOpen, setIsTraceModalOpen] = useState(false);
 
   // Danh mục khối gốc của trường: tải riêng, không phụ thuộc thực đơn
   useEffect(() => {
@@ -327,6 +328,21 @@ function MealDetail() {
     setModalDish(null);
   };
 
+  // Truy xuất chung theo khối đang xem; dishId chọn sẵn món được bấm.
+  const canTrace = Boolean(selectedBlockId && activeCode);
+  const handleTraceDish = (dish) => {
+    if (!canTrace) return;
+    navigate(
+      gradeTracePath({
+        schoolCode: activeCode,
+        gradeId: selectedBlockId,
+        date: activeDateIso,
+        mealType: currentMealType,
+        dishId: dish?.id,
+      }),
+    );
+  };
+
   const handleSelectMealType = (type) => {
     setCurrentMealType(type);
   };
@@ -354,7 +370,9 @@ function MealDetail() {
               dayOfWeek={dayOfWeekName}
               formattedDate={formattedActiveDate}
               gradeName={selectedBlockName}
-              onOpenTraceModal={() => setIsTraceModalOpen(true)}
+              onOpenTraceModal={
+                canTrace && hasMenuContent ? () => handleTraceDish(null) : null
+              }
             />
 
             {/* 2. Thanh bộ lọc 3 Dropdowns: Tuần học, Ngày trong tuần, Khối */}
@@ -427,6 +445,7 @@ function MealDetail() {
                       currentMealType={currentMealType}
                       onSelectMealType={handleSelectMealType}
                       onOpenDishModal={handleOpenDishModal}
+                      onTraceDish={canTrace ? handleTraceDish : null}
                     />
                   </div>
                 )}
@@ -441,17 +460,6 @@ function MealDetail() {
         open={modalOpen}
         onClose={handleCloseDishModal}
         dish={modalDish}
-      />
-
-      {/* Modal chọn Lớp để truy xuất suất ăn */}
-      <SelectClassTraceModal
-        isOpen={isTraceModalOpen}
-        onClose={() => setIsTraceModalOpen(false)}
-        menuDate={activeDateIso}
-        mealType={currentMealType}
-        schoolCode={activeCode}
-        gradeId={selectedBlockId}
-        gradeName={selectedBlockName}
       />
     </div>
   );

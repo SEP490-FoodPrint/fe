@@ -1,6 +1,7 @@
 import { formatSmallQuantity } from "src/utils/quantity"
 import React from "react"
 import styles from "./MenuDetailDishesTable.module.scss"
+import DishTraceButton from "src/components/Traceability/DishTraceButton"
 
 /**
  * Kiểm tra xem một nguyên liệu có thuộc nhóm gia vị / phụ gia nêm nếm hay không.
@@ -55,6 +56,7 @@ export default function MenuDetailDishesTable({
   dishes = [],
   substituteDish = null,
   mealSeasonings = [],
+  onTraceDish,
 }) {
 
   if (!dishes || dishes.length === 0) {
@@ -117,7 +119,12 @@ export default function MenuDetailDishesTable({
                         <div className={styles.subDishHeader}>
                           <span className={styles.subDishTag}>Món thay thế dị ứng</span>
                         </div>
-                        <span className={styles.subDishName}>{sub.name}</span>
+                        <span className={styles.dishNameRow}>
+                          {onTraceDish && (
+                            <DishTraceButton size="sm" dishName={sub.name} onClick={() => onTraceDish(sub)} />
+                          )}
+                          <span className={styles.subDishName}>{sub.name}</span>
+                        </span>
                       </div>
                     </td>
                     <td className={styles.tdMainIngredients}>
@@ -181,7 +188,12 @@ export default function MenuDetailDishesTable({
 
                     {/* Tên món */}
                     <td className={styles.tdDish}>
-                      <span className={styles.dishName}>{dish.name}</span>
+                      <span className={styles.dishNameRow}>
+                        {onTraceDish && (
+                          <DishTraceButton dishName={dish.name} onClick={() => onTraceDish(dish)} />
+                        )}
+                        <span className={styles.dishName}>{dish.name}</span>
+                      </span>
                     </td>
 
                     {/* Nguyên liệu chính: không nền, không viền, chữ có màu, dạng tên: định lượng */}

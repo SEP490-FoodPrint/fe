@@ -43,7 +43,7 @@ function MealDetailHeader({
               </h2>
             )}
             <p className={styles.subTitle}>
-              Theo dõi chi tiết khẩu phần, định lượng nguyên liệu & truy xuất an toàn thực phẩm theo từng lớp học
+              Theo dõi khẩu phần, định lượng nguyên liệu và truy xuất nguồn gốc từng món theo khối
             </p>
           </div>
 
@@ -52,10 +52,10 @@ function MealDetailHeader({
               type="button"
               className={styles.traceBtn}
               onClick={onOpenTraceModal}
-              title="Truy xuất nguồn gốc suất ăn theo lớp học"
+              title="Truy xuất nguồn gốc bữa ăn của khối"
             >
               <span className="material-symbols-outlined text-[20px]">qr_code_scanner</span>
-              <span>Truy xuất suất ăn</span>
+              <span>Truy xuất theo khối</span>
             </button>
           )}
         </div>

@@ -1,7 +1,7 @@
 import { formatSmallQuantity } from "src/utils/quantity"
 import React, { useState } from "react"
 import styles from "./MenuDetailModal.module.scss"
-import SelectClassTraceModal from "../MenuDetail/component/SelectClassTraceModal"
+import SelectGradeTraceModal from "../MenuDetail/component/SelectGradeTraceModal"
 
 export default function MenuDetailModal({
   isOpen,
@@ -237,11 +237,12 @@ export default function MenuDetailModal({
       </div>
 
       {/* Modal chọn Khối & Lớp để truy xuất */}
-      <SelectClassTraceModal
+      <SelectGradeTraceModal
         isOpen={isTraceModalOpen}
         onClose={() => setIsTraceModalOpen(false)}
-        menuDate={menu.date}
+        menuDate={menu.rawDate || menu.date}
         mealType={menu.mealType}
+        gradeIds={menu.gradeIds}
       />
     </div>
   )
