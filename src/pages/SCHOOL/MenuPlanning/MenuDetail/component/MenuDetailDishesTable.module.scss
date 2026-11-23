@@ -1,5 +1,5 @@
 .tableCard {
-  background-color: #ffffff;
+  background-color: var(--text-on-primary);
   border-radius: 12px;
   border: 1px solid #cbd5e1;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
@@ -9,7 +9,7 @@
 }
 
 .emptyCard {
-  background-color: #ffffff;
+  background-color: var(--text-on-primary);
   border-radius: 12px;
   border: 1px dashed #cbd5e1;
   padding: 36px 20px;
@@ -22,7 +22,7 @@
 
 .cardHeader {
   padding: 16px 22px;
-  background-color: #ffffff;
+  background-color: var(--text-on-primary);
   border-bottom: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
@@ -131,7 +131,7 @@
   transition: background-color 0.12s ease;
 
   &.rowEven {
-    background-color: #ffffff;
+    background-color: var(--text-on-primary);
   }
 
   &.rowOdd {
@@ -413,4 +413,10 @@
 
 .subAllergyChip {
   font-style: italic;
+}
+
+.dishNameRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }

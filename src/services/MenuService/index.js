@@ -285,6 +285,13 @@ const MenuService = {
     return requestPromise;
   },
 
+  getRawWeeklyMenu: async (weeklyId) => {
+    const response = await http.get(apiMenuDetail(weeklyId), {
+      notifyOnError: false,
+    });
+    return response?.data || response;
+  },
+
   /**
    * Lấy chi tiết 1 thực đơn theo ID (WeeklyMenuId hoặc compound id)
    */
@@ -302,10 +309,7 @@ const MenuService = {
       targetMealType = parts[2] || "LUNCH";
     }
 
-    const response = await http.get(apiMenuDetail(weeklyId), {
-      notifyOnError: false,
-    });
-    const rawMenu = response?.data || response;
+    const rawMenu = await MenuService.getRawWeeklyMenu(weeklyId);
 
     if (rawMenu && rawMenu.id) {
       const viewData = adaptBackendMenuDetailToView(

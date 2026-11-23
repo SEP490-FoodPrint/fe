@@ -1,13 +1,9 @@
 import React, { useState } from "react";
-import {
-  FlaskConical,
-  Camera,
-  ZoomIn,
-  FileCheck,
-  CheckCircle2,
-  X,
-} from "lucide-react";
+import { FlaskConical, FileCheck, CheckCircle2 } from "lucide-react";
 import styles from "./TraceabilityFoodSafety.module.scss";
+import TraceabilityEvidencePhoto, {
+  PhotoThumb,
+} from "./TraceabilityEvidencePhoto";
 import { formatStepTime } from "./traceabilityBlockchainAdapter";
 
 const SAMPLE_STATUS = { STORED: "Đang lưu", DISPOSED: "Đã tiêu huỷ" };
@@ -18,54 +14,6 @@ const formatDay = (value) => {
   const [y, m, d] = String(value).slice(0, 10).split("-");
   return d ? `${d}/${m}/${y}` : String(value);
 };
-
-function PhotoThumb({ photoUrl, label, onOpen }) {
-  return (
-    <div
-      className={styles.photoThumbnail}
-      onClick={photoUrl ? onOpen : undefined}
-      onKeyDown={(e) => {
-        if (photoUrl && (e.key === "Enter" || e.key === " ")) onOpen();
-      }}
-      role="button"
-      tabIndex={photoUrl ? 0 : -1}
-      style={
-        photoUrl
-          ? {
-              backgroundImage: `url("${photoUrl}")`,
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-            }
-          : undefined
-      }
-    >
-      {!photoUrl && (
-        <>
-          <Camera size={22} color="var(--text-muted)" />
-          <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-            Chưa có ảnh minh chứng
-          </span>
-        </>
-      )}
-      {photoUrl && (
-        <span
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-            fontSize: "11px",
-            color: "#fff",
-            background: "rgb(0 0 0 / 45%)",
-            padding: "2px 8px",
-            borderRadius: "9999px",
-          }}
-        >
-          <ZoomIn size={12} /> {label}
-        </span>
-      )}
-    </div>
-  );
-}
 
 export default function TraceabilityFoodSafety({ dish }) {
   const [activeTab, setActiveTab] = useState("samples");
@@ -79,20 +27,17 @@ export default function TraceabilityFoodSafety({ dish }) {
     .filter((item) => Boolean(item.sample));
 
   // Đơn giao hàng (duy nhất) của các lô nguyên liệu cấu thành món đang chọn
-  const deliveries = [];
-  const seen = new Set();
-  batches.forEach((b) =>
-    (b?.ingredients || []).forEach((ing) => {
-      const d = ing?.delivery;
-      if (d?.id && !seen.has(d.id)) {
-        seen.add(d.id);
-        deliveries.push({ ...d, ingredientNames: [ing.ingredientName] });
-      } else if (d?.id) {
-        const found = deliveries.find((x) => x.id === d.id);
-        if (found && !found.ingredientNames.includes(ing.ingredientName))
-          found.ingredientNames.push(ing.ingredientName);
-      }
-    }),
+  const deliveries = (
+    Array.isArray(dish?.suppliers) ? dish.suppliers : []
+  ).flatMap((s) =>
+    (s.deliveries || []).map((d) => ({
+      ...d,
+      supplierName: s.name,
+      certifications: s.certifications || [],
+      ingredientNames: [
+        ...new Set((d.lots || []).map((l) => l.ingredientName)),
+      ],
+    })),
   );
   const photoCount = deliveries.reduce(
     (sum, d) => sum + (d.approvals || []).filter((a) => a.photoUrl).length,
@@ -213,7 +158,7 @@ export default function TraceabilityFoodSafety({ dish }) {
         )}
 
         {activeTab === "inspection" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div className={styles.inspections}>
             {deliveries.length === 0 && (
               <p style={{ color: "var(--text-secondary)", margin: 0 }}>
                 Chưa có đơn giao hàng cho nguyên liệu của món ăn này.
@@ -241,13 +186,7 @@ export default function TraceabilityFoodSafety({ dish }) {
                         : d.status}
                   </span>
                 </div>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--text-secondary)",
-                    margin: 0,
-                  }}
-                >
+                <p className={styles.inspectionMeta}>
                   Nguyên liệu: {d.ingredientNames.filter(Boolean).join(", ")} ·
                   Xe: {d.vehiclePlate || "—"} · Nhận lúc:{" "}
                   {d.receivedAt ? formatStepTime(d.receivedAt) : "—"}
@@ -349,63 +288,10 @@ export default function TraceabilityFoodSafety({ dish }) {
         )}
       </div>
 
-      {zoomPhoto && (
-        <div className={styles.modalOverlay} onClick={() => setZoomPhoto(null)}>
-          <div className={styles.modalBox} onClick={(e) => e.stopPropagation()}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "15px",
-                  fontWeight: "bold",
-                  margin: 0,
-                  color: "var(--text-primary)",
-                }}
-              >
-                {zoomPhoto.title}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setZoomPhoto(null)}
-                aria-label="Đóng"
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "var(--text-muted)",
-                }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <img
-              src={zoomPhoto.photoUrl}
-              alt={zoomPhoto.title}
-              style={{
-                width: "100%",
-                maxHeight: "70vh",
-                objectFit: "contain",
-                borderRadius: "12px",
-                background: "var(--bg-muted)",
-              }}
-            />
-            {zoomPhoto.photoHash && (
-              <code
-                style={{ fontSize: "10px", color: "var(--color-primary)" }}
-                title={zoomPhoto.photoHash}
-              >
-                SHA-256 ảnh: {zoomPhoto.photoHash.slice(0, 24)}...
-              </code>
-            )}
-          </div>
-        </div>
-      )}
+      <TraceabilityEvidencePhoto
+        photo={zoomPhoto}
+        onClose={() => setZoomPhoto(null)}
+      />
     </section>
   );
 }

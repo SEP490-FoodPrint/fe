@@ -1,221 +1,432 @@
-.ingFlowSection {
-  background: var(--bg-surface, #ffffff);
-  border-radius: var(--radius-2xl, 16px);
-  border: 1px solid var(--border-default, #dce5e0);
+$ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+$mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+.section {
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl, 16px);
+  border: 1px solid var(--border-default);
   padding: var(--space-5, 20px) var(--space-6, 24px);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-sm);
+
+  @media (max-width: 599px) {
+    padding: 16px;
+  }
 }
 
-.flowHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: var(--space-4, 16px);
-  border-bottom: 1px solid var(--border-default, #dce5e0);
-}
-
-.titleArea {
+.header {
   display: flex;
   align-items: center;
   gap: var(--space-2, 8px);
+  padding-bottom: var(--space-4, 16px);
+  margin-bottom: var(--space-5, 20px);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .headerIcon {
   width: 28px;
   height: 28px;
   border-radius: 8px;
-  background: var(--color-success-bg, #e8f6ef);
-  color: var(--color-success, #168456);
+  background: var(--color-success-bg);
+  color: var(--color-success);
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.sectionHeading {
+.heading {
   font-size: var(--text-base, 16px);
   font-weight: var(--font-bold, 700);
-  color: var(--text-primary, #1d2b26);
+  color: var(--text-primary);
   margin: 0;
 }
 
-.subInfo {
+.subheading {
   font-size: var(--text-xs, 12px);
-  color: var(--text-secondary, #52635c);
-  margin: 2px 0 0 0;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
 }
 
-.flowBanner {
-  margin: var(--space-4, 16px) 0;
-  padding: var(--space-3, 12px);
-  border-radius: var(--radius-xl, 12px);
-  background: var(--bg-muted, #f8faf9);
-  border: 1px solid var(--border-default, #dce5e0);
-  font-size: var(--text-xs, 12px);
-  color: var(--text-secondary, #52635c);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  white-space: nowrap;
+.empty {
+  margin: 0;
+  padding: var(--space-6, 24px);
+  text-align: center;
+  color: var(--text-secondary);
+  background: var(--bg-muted);
+  border-radius: var(--radius-lg, 12px);
 }
 
-.flowBannerHighlight {
-  font-weight: var(--font-bold, 700);
-  color: var(--color-primary, #0a8066);
-}
-
-.ingCard {
-  border: 1px solid var(--border-default, #dce5e0);
-  border-radius: var(--radius-xl, 14px);
-  padding: var(--space-4, 16px);
-  background: #ffffff;
-  margin-bottom: var(--space-4, 16px);
+.suppliers {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3, 12px);
-  transition: box-shadow 0.2s ease;
+  gap: var(--space-5, 20px);
+}
+
+/* ---------- Nhà cung cấp ---------- */
+
+.supplier {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 14px);
+  overflow: hidden;
+  transition: box-shadow 0.25s $ease-out, border-color 0.25s ease;
 
   &:hover {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    border-color: rgba(var(--color-primary-rgb), 0.35);
+    box-shadow: var(--shadow-md);
   }
 }
 
-.ingCardHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.ingTitle {
-  font-size: var(--text-base, 16px);
-  font-weight: var(--font-bold, 700);
-  color: var(--text-primary, #1d2b26);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dotGreen {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--color-success, #168456);
-}
-
-.lotDetailsGrid {
+.supplierHead {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-2, 8px);
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 18px;
+  background: var(--color-primary-soft);
+  border-bottom: 1px solid rgba(var(--color-primary-rgb), 0.18);
 
-  @media (min-width: 600px) {
-    grid-template-columns: repeat(4, 1fr);
+  @media (max-width: 599px) {
+    grid-template-columns: auto 1fr;
   }
 }
 
-.detailItem {
-  padding: 8px 10px;
-  border-radius: var(--radius-md, 8px);
-  background: var(--bg-muted, #f8faf9);
-  border: 1px solid var(--border-default, #dce5e0);
-}
-
-.detailLabel {
-  font-size: 10px;
-  color: var(--text-muted, #6b7c74);
-  display: block;
-}
-
-.detailValue {
-  font-size: var(--text-xs, 12px);
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: var(--text-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
   font-weight: var(--font-bold, 700);
-  color: var(--text-primary, #1d2b26);
-  margin-top: 2px;
+  box-shadow: 0 2px 6px rgba(var(--color-primary-rgb), 0.3);
 }
 
-.detailValueHighlight {
-  color: var(--color-primary, #0a8066);
-}
-
-.sourceFacilityBox {
-  padding: 10px 12px;
-  border-radius: var(--radius-lg, 10px);
-  background: var(--color-primary-soft, #e8f5f1);
-  border: 1px solid rgba(10, 128, 102, 0.2);
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: var(--text-xs, 12px);
-}
-
-.supplierBox {
-  background: var(--bg-muted, #f8faf9);
-  border-radius: var(--radius-xl, 12px);
-  padding: var(--space-3, 12px) var(--space-4, 16px);
-  border: 1px solid var(--border-default, #dce5e0);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2, 8px);
-}
-
-.supplierTop {
+.supplierInfo {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
-
-  @media (min-width: 600px) {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
 }
 
 .supplierName {
-  font-size: var(--text-sm, 14px);
-  font-weight: var(--font-bold, 700);
-  color: var(--text-primary, #1d2b26);
   margin: 0;
+  font-size: var(--text-lg, 18px);
+  font-weight: var(--font-bold, 700);
+  line-height: 1.25;
+  color: var(--text-primary);
+  text-wrap: balance;
 }
 
 .supplierMeta {
-  font-size: 11px;
-  color: var(--text-secondary, #52635c);
-  margin: 2px 0 0 0;
-}
-
-.certBadges {
+  margin: 0;
   display: flex;
-  align-items: center;
-  gap: 6px;
   flex-wrap: wrap;
-}
-
-.certPill {
-  font-size: 11px;
-  font-weight: var(--font-semibold, 600);
-  color: var(--color-primary, #0a8066);
-  background: var(--color-primary-soft, #e8f5f1);
-  border: 1px solid rgba(10, 128, 102, 0.25);
-  padding: 2px 8px;
-  border-radius: 9999px;
-}
-
-.deliveryMetaGrid {
-  border-top: 1px dashed var(--border-default, #dce5e0);
-  padding-top: 8px;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
+  gap: 4px 14px;
   font-size: var(--text-xs, 12px);
+  color: var(--text-secondary);
 
-  @media (min-width: 600px) {
-    grid-template-columns: repeat(3, 1fr);
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  strong {
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
   }
 }
 
-.deliveryInfoCol {
+.certs {
   display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.cert {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  border: 1px solid var(--color-success-border);
+  color: var(--color-success);
+  font-size: 11px;
+  font-weight: var(--font-semibold, 600);
+  cursor: help;
+}
+
+.deliveryCount {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  border: 1px solid rgba(var(--color-primary-rgb), 0.25);
+  color: var(--color-primary);
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--font-bold, 700);
+  white-space: nowrap;
+
+  @media (max-width: 599px) {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+
+/* ---------- Phiếu giao ---------- */
+
+.slips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.slip {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  & + & {
+    border-top: 1px dashed var(--border-default);
+  }
+}
+
+.slipFacts {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+
+  @media (min-width: 640px) {
+    grid-template-columns: minmax(170px, auto) minmax(150px, auto) 1fr;
+    gap: 28px;
+    align-items: start;
+  }
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.factLabel {
+  font-size: 11px;
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-muted);
+}
+
+.factMissing {
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--color-warning);
+}
+
+.factHint {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Biển số xe dựng như biển thật: nền trắng, viền đậm, chữ in đậm. */
+.plate {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: 7px;
+  background: var(--bg-surface);
+  border: 2px solid var(--text-primary);
+  box-shadow:
+    inset 0 0 0 2px var(--bg-surface),
+    inset 0 0 0 3px color-mix(in srgb, var(--text-primary) 35%, transparent),
+    0 2px 4px color-mix(in srgb, var(--text-primary) 12%, transparent);
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.receivedAt {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+
+  strong {
+    font-size: 26px;
+    line-height: 1;
+    font-weight: var(--font-bold, 700);
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  span {
+    font-size: var(--text-xs, 12px);
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.slipNo {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: var(--text-secondary, #52635c);
+  font-size: var(--text-base, 16px);
+  font-weight: var(--font-bold, 700);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+
+  svg {
+    color: var(--text-muted);
+  }
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: var(--font-semibold, 600);
+}
+
+.tone_ok {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+
+.tone_wait {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+
+.tone_bad {
+  background: var(--color-error-bg);
+  color: var(--color-error);
+}
+
+/* ---------- Lô nguyên liệu trong đơn ---------- */
+
+.lots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+
+  @media (min-width: 720px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.lot {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--bg-muted);
+  border: 1px solid var(--border-default);
+  min-width: 0;
+}
+
+.lotName {
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-primary);
+}
+
+.lotMeta {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+
+  code {
+    font-family: $mono;
+    font-size: 11.5px;
+    color: var(--color-primary);
+  }
+}
+
+.lotOrigin {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--color-success);
+  }
+}
+
+/* ---------- Blockchain của đơn ---------- */
+
+.chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  font-size: 12px;
+  font-weight: var(--font-semibold, 600);
+}
+
+.chain_ok {
+  color: var(--color-success);
+}
+
+.chain_wait {
+  color: var(--color-warning);
+}
+
+.chain_bad {
+  color: var(--color-error);
+}
+
+.chain_none {
+  color: var(--text-muted);
+  font-weight: var(--font-medium, 500);
+}
+
+.chainHash {
+  font-family: $mono;
+  font-size: 11.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--bg-muted);
+  color: var(--text-secondary);
+}
+
+.chainLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(var(--color-primary-rgb), 0.4);
+  transition: text-decoration-color 0.2s ease;
+
+  &:hover {
+    text-decoration-color: currentColor;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
 }
