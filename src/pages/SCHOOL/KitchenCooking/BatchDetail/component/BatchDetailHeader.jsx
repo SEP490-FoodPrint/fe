@@ -8,7 +8,6 @@ import {
   FlaskConical,
   CheckCircle2,
   CookingPot,
-  Trash2,
 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
 import styles from "./BatchDetailHeader.module.scss"
@@ -17,7 +16,6 @@ import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend"
 export default function BatchDetailHeader({
   batchData,
   onOpenConfirmModal,
-  onOpenDeleteModal,
   onCompleteBatch,
   actionLoading = false,
   onOpenSampleModal,
@@ -92,17 +90,6 @@ export default function BatchDetailHeader({
           <div className={styles.actionsDesktop}>
             {isDraft && (
               <>
-                <button
-                  type="button"
-                  className={styles.deleteBtn}
-                  onClick={onOpenDeleteModal}
-                  disabled={actionLoading}
-                  title="Xóa lô chế biến"
-                >
-                  <Trash2 size={15} />
-                  <span>Xóa lô</span>
-                </button>
-
                 <button
                   type="button"
                   className={styles.primaryBtn}

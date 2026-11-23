@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   CookingPot,
   FlaskConical,
-  Trash2,
   Check,
 } from "lucide-react";
 import ROUTER from "src/router/ROUTER";
@@ -20,7 +19,6 @@ import BatchDetailHeader from "./component/BatchDetailHeader";
 import BatchDishesCard from "./component/BatchDishesCard";
 import BatchAdditionalInfo from "./component/BatchAdditionalInfo";
 import ConfirmBatchModal from "./component/ConfirmBatchModal";
-import DeleteBatchModal from "./component/DeleteBatchModal";
 import RetainedSampleModal from "./component/RetainedSampleModal";
 import styles from "./index.module.scss";
 import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
@@ -42,7 +40,6 @@ export default function KitchenBatchDetail() {
 
   // Modals
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isSampleOpen, setIsSampleOpen] = useState(false);
 
   const fetchBatch = useCallback(
@@ -124,27 +121,6 @@ export default function KitchenBatchDetail() {
     } catch (err) {
       notice({
         msg: err.message || "Không thể ghi nhận nấu xong.",
-        isSuccess: false,
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Xử lý xóa lô chế biến
-  const handleDeleteBatch = async () => {
-    setActionLoading(true);
-    try {
-      await KitchenService.deleteBatch(id);
-      notice({
-        msg: "Đã xóa lô chế biến thành công!",
-        isSuccess: true,
-      });
-      setIsDeleteOpen(false);
-      navigate(ROUTER.SCHOOL_KITCHEN_BATCHES);
-    } catch (err) {
-      notice({
-        msg: err.message || "Không thể xóa lô chế biến.",
         isSuccess: false,
       });
     } finally {
@@ -243,7 +219,6 @@ export default function KitchenBatchDetail() {
         <BatchDetailHeader
           batchData={batchData}
           onOpenConfirmModal={() => setIsConfirmOpen(true)}
-          onOpenDeleteModal={() => setIsDeleteOpen(true)}
           onCompleteBatch={handleCompleteBatch}
           actionLoading={actionLoading}
           onOpenSampleModal={() => setIsSampleOpen(true)}
@@ -293,28 +268,16 @@ export default function KitchenBatchDetail() {
       <div className={styles.mobileStickyBar}>
         <div className={styles.mobileBarInner}>
           {isDraft && (
-            <>
-              <button
-                type="button"
-                className={styles.mobilePrimaryBtn}
-                onClick={() => setIsConfirmOpen(true)}
-                disabled={actionLoading || weekendLocked}
-                title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
-              >
-                <CheckCircle2 size={18} />
-                <span>Xác nhận nấu</span>
-              </button>
-
-              <button
-                type="button"
-                className={styles.mobileDeleteBtn}
-                onClick={() => setIsDeleteOpen(true)}
-                disabled={actionLoading}
-                title="Xóa lô"
-              >
-                <Trash2 size={18} />
-              </button>
-            </>
+            <button
+              type="button"
+              className={styles.mobilePrimaryBtn}
+              onClick={() => setIsConfirmOpen(true)}
+              disabled={actionLoading || weekendLocked}
+              title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
+            >
+              <CheckCircle2 size={18} />
+              <span>Xác nhận nấu</span>
+            </button>
           )}
 
           {isConfirmed && (
@@ -363,14 +326,6 @@ export default function KitchenBatchDetail() {
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmBatch}
         batchData={batchData}
-        loading={actionLoading}
-      />
-
-      <DeleteBatchModal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleDeleteBatch}
-        batchCode={batchData.code}
         loading={actionLoading}
       />
 
