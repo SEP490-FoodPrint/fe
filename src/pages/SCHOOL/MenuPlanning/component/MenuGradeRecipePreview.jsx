@@ -91,7 +91,7 @@ export default function MenuGradeRecipePreview({
               <TableHead>
                 <TableRow>
                   <TableCell>Nguyên liệu</TableCell>
-                  <TableCell align="right">Định lượng/suất</TableCell>
+                  <TableCell align="right">Định lượng thành phẩm/suất</TableCell>
                   <TableCell>Đơn vị</TableCell>
                 </TableRow>
               </TableHead>

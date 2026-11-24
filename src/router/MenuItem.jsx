@@ -24,6 +24,7 @@ import AssignmentIndOutlinedIcon from "@mui/icons-material/AssignmentIndOutlined
 import ScheduleOutlinedIcon from "@mui/icons-material/ScheduleOutlined"
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined"
 import TuneOutlinedIcon from "@mui/icons-material/TuneOutlined"
+import ScaleOutlinedIcon from "@mui/icons-material/ScaleOutlined"
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined"
@@ -310,6 +311,19 @@ export const MenuItemSchool = () => [
     label: "Truy xuất nguồn gốc",
     icon: <AccountTreeOutlinedIcon />,
     roles: [ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_NUTRITION_OFFICER, ROLES.SCHOOL_MANAGEMENT_BOARD],
+  },
+  {
+    key: "SCHOOL_KITCHEN_CONFIGURATION",
+    label: "Cấu hình",
+    icon: <TuneOutlinedIcon />,
+    children: [
+      {
+        key: ROUTER.SCHOOL_KITCHEN_WASTE_RATES,
+        label: "Tỷ lệ hao hụt",
+        icon: <ScaleOutlinedIcon />,
+        roles: [ROLES.SCHOOL_KITCHEN_STAFF],
+      },
+    ],
   },
 
   {

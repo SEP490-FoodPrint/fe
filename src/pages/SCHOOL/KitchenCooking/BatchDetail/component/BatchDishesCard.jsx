@@ -1,4 +1,4 @@
-import { formatSmallQuantity } from "src/utils/quantity"
+import { formatLargeQuantity, formatSmallQuantity } from "src/utils/quantity"
 import React, { useState, useEffect } from "react"
 import { Utensils, ChevronDown, ChevronUp, Package, Sparkles } from "lucide-react"
 import { loadDishCatalog } from "src/services/DishService"
@@ -34,6 +34,23 @@ export default function BatchDishesCard({ batchData = {} }) {
       isMounted = false
     }
   }, [])
+
+  // Cộng các lô cùng nguyên liệu của một món (lượng lô là nguyên liệu sống)
+  const lotTotals = (dish, name) => {
+    const key = String(name || "").trim().toLowerCase()
+    const rows = (Array.isArray(batchData.ingredients) ? batchData.ingredients : []).filter(
+      (lot) =>
+        String(lot.name || "").trim().toLowerCase() === key &&
+        (dishes.length === 1 ||
+          (lot.dishId && lot.dishId === dish.dishId) ||
+          (lot.dishName && lot.dishName === dish.name)),
+    )
+    if (!rows.length || rows.some((lot) => lot.unit !== rows[0].unit)) return null
+    const raw = rows.reduce((sum, lot) => sum + Number(lot.quantity || 0), 0)
+    const cooked = rows.reduce((sum, lot) => sum + Number(lot.cookedQuantity ?? lot.quantity ?? 0), 0)
+    if (!Number.isFinite(raw) || raw <= 0) return null
+    return { raw, cooked, unit: rows[0].unit }
+  }
 
   const toggleExpand = (index) => {
     setExpandedIds((prev) => {
@@ -95,6 +112,8 @@ export default function BatchDishesCard({ batchData = {} }) {
                 .map((ing) => ({
                   name: ing.name,
                   requiredQuantity: ing.quantity,
+                  // Lượng lô là nguyên liệu sống; thành phẩm do backend tính theo tỷ lệ hao hụt
+                  cookedQuantity: ing.cookedQuantity,
                   unit: ing.unit || "kg",
                 }))
             }
@@ -175,11 +194,25 @@ export default function BatchDishesCard({ batchData = {} }) {
                             {mainIngredients.map((ing, iIdx) => (
                               <div key={iIdx} className={styles.mainChip}>
                                 <span className={styles.chipName}>{ing.name}</span>
-                                {ing.requiredQuantity && (
+                                {ing.requiredQuantity && ing.cookedQuantity == null && (
                                   <span className={styles.chipQty}>
-                                    {formatSmallQuantity(ing.requiredQuantity, ing.unit)}
+                                    {`${formatSmallQuantity(ing.requiredQuantity, ing.unit)}/suất`}
                                   </span>
                                 )}
+                                {(() => {
+                                  // Tổng lấy từ lô của món: lượng sống đã trừ kho và thành phẩm dự kiến
+                                  const totals = ing.cookedQuantity != null ? {
+                                    raw: Number(ing.requiredQuantity),
+                                    cooked: Number(ing.cookedQuantity),
+                                    unit: ing.unit,
+                                  } : lotTotals(dish, ing.name)
+                                  return totals ? (
+                                    <span className={styles.chipTotals}>
+                                      Sống {formatLargeQuantity(totals.raw, totals.unit)} · Thành phẩm{" "}
+                                      {formatLargeQuantity(totals.cooked, totals.unit)}
+                                    </span>
+                                  ) : null
+                                })()}
                               </div>
                             ))}
                           </div>

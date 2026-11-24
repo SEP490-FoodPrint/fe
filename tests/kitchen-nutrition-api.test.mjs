@@ -58,16 +58,30 @@ test("dish recipe form rejects missing, duplicate and invalid grade quantities",
   for (const quantity of ["", "0", "1e3", "1.0001"]) assert.equal(validRecipeLines([{ ...main, requiredQuantity: quantity }]), false)
 })
 
-test("dish form applies entered quantities only to selected grades", async () => {
-  const { sharedGradeRecipes } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
-  const lines = [{ ingredientEntryId: id(1), ingredientRole: "MAIN", requiredQuantity: "75", unit: "g" }]
-  const selected = [{ gradeId: id(50) }, { gradeId: id(51) }]
-  const result = sharedGradeRecipes(selected, lines)
-  assert.deepEqual(result.map(profile => profile.gradeId), [id(50), id(51)])
-  assert.deepEqual(result.map(profile => profile.lines[0].requiredQuantity), ["75", "75"])
-  result[0].lines[0].requiredQuantity = "90"
-  assert.equal(result[1].lines[0].requiredQuantity, "75")
-  assert.equal(lines[0].requiredQuantity, "75")
+test("dish form sends only a portion per selected grade", async () => {
+  const { gradePortionPayload } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
+  const selected = [{ gradeId: id(50), portionQuantity: " 80 " }, { gradeId: id(51), portionQuantity: "120" }]
+  assert.deepEqual(gradePortionPayload(selected), [
+    { gradeId: id(50), portionQuantity: "80" },
+    { gradeId: id(51), portionQuantity: "120" },
+  ])
+})
+
+test("dish standard covers same-unit ingredients and seasonings like the backend", async () => {
+  const { standardQuantityIssue, standardThreshold } = await server.ssrLoadModule("/src/pages/SCHOOL/DishCatalog/component/GradeRecipeFields.jsx")
+  const l = (requiredQuantity, unit) => ({ requiredQuantity, unit })
+  const grams = [l("50", "g"), l("20", "g"), l("2", "g")]
+  assert.deepEqual(standardThreshold(grams, "g"), { total: 72, strict: false })
+  assert.equal(standardQuantityIssue(grams, "72", "g"), "")
+  assert.match(standardQuantityIssue(grams, "71.9", "g"), /hoặc bằng 72 g/)
+  const mixed = [...grams, l("5", "ml"), l("1", "quả")]
+  assert.match(standardQuantityIssue(mixed, "72", "g"), /lớn hơn 72 g/)
+  assert.equal(standardQuantityIssue(mixed, "72.01", "g"), "")
+  assert.equal(standardQuantityIssue(mixed, "5.5", "ml"), "")
+  assert.equal(standardQuantityIssue([l("1", "quả")], "0.5", "g"), "")
+  assert.notEqual(standardQuantityIssue(grams, "100", "kg"), "")
+  assert.notEqual(standardQuantityIssue(grams, "0", "g"), "")
+  assert.notEqual(standardQuantityIssue(grams, "100.0001", "g"), "")
 })
 
 test("grade recipe selection uses the selected profile and keeps missing profiles explicit", async () => {
@@ -1047,7 +1061,8 @@ test("weekly editing preserves frozen quantities, seasonings, notes and explicit
   assert.deepEqual(copied.meals[0].dishes, [{ dishId: id(3) }, { dishId: id(4) }])
 })
 
-test("weekly grid hides the plus on approved days and weeks and while loading", async () => {
+test("weekly grid hides the plus on approved days and weeks and while loading", async (t) => {
+  t.mock.method(Date, "now", () => Date.parse("2026-11-02T02:00:00Z"))
   const React = await import("react")
   const { renderToStaticMarkup } = await import("react-dom/server")
   const { default: Grid } = await server.ssrLoadModule("/src/pages/SCHOOL/MenuPlanning/CreateMenu/CreateMenuWeeklyGrid.jsx")

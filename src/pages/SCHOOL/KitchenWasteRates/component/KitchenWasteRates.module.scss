@@ -1,0 +1,122 @@
+.waste-rates-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+
+  &__breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    color: var(--text-muted);
+    font-size: var(--text-xs);
+
+    strong {
+      color: var(--text-secondary);
+      font-weight: var(--font-medium);
+    }
+  }
+
+  &__title {
+    margin: 0 0 var(--space-2);
+    color: var(--text-primary);
+    font-size: var(--text-xl);
+    font-weight: var(--font-semibold);
+  }
+
+  &__intro {
+    max-width: 48rem;
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+  }
+
+  &__search {
+    width: 100%;
+    max-width: 22rem;
+  }
+
+  &__table {
+    overflow-x: auto;
+
+    :global(.MuiTableCell-head) {
+      color: var(--text-secondary);
+      font-weight: var(--font-semibold);
+      white-space: nowrap;
+    }
+
+    :global(.MuiTableCell-body) {
+      vertical-align: top;
+      padding-top: var(--space-3);
+    }
+
+    tr.dirty .waste-rates-page__name::after {
+      content: "•";
+      margin-left: var(--space-2);
+      color: var(--color-primary);
+    }
+  }
+
+  &__name {
+    color: var(--text-primary);
+    font-weight: var(--font-medium);
+  }
+
+  &__rate-cell {
+    width: 11rem;
+
+    :global(.MuiFormHelperText-root) {
+      margin-left: 0;
+    }
+  }
+
+  &__example {
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  &__empty {
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+  }
+
+  &__hint {
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-2);
+  }
+
+  @media (max-width: 600px) {
+    &__search {
+      max-width: none;
+    }
+
+    &__footer {
+      align-items: stretch;
+      flex-direction: column;
+    }
+
+    &__actions {
+      flex-direction: column-reverse;
+
+      :global(.MuiButton-root) {
+        min-height: var(--control-height-lg);
+      }
+    }
+  }
+}

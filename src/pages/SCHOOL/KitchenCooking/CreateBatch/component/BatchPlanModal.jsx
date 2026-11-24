@@ -43,8 +43,8 @@ export default function BatchPlanModal({ open, onClose, dish, onConfirm, submitt
         <h3>Lô {index + 1} · {batch.plannedPortions} suất</h3>
         {batch.dishes.map((row) => <div key={row.dishId}>
           <h4>{row.name} · {row.plannedPortions} suất</h4>
-          <table style={{ width: "100%", textAlign: "left", marginBottom: 16 }}><thead><tr><th>Nguyên liệu</th><th>Lô nguồn</th><th>Lượng dùng</th></tr></thead>
-            <tbody>{row.lots.map((lot) => <tr key={lot.ingredientLotId}><td>{lot.ingredientName || "Nguyên liệu"}</td><td>{lot.lotCode || lot.ingredientLotId}</td><td>{formatLargeQuantity(lot.quantityUsed, lot.unit)}</td></tr>)}</tbody></table>
+          <table style={{ width: "100%", textAlign: "left", marginBottom: 16 }}><thead><tr><th>Nguyên liệu</th><th>Lô nguồn</th><th>Nguyên liệu sống</th><th>Thành phẩm</th></tr></thead>
+            <tbody>{row.lots.map((lot) => <tr key={lot.ingredientLotId}><td>{lot.ingredientName || "Nguyên liệu"}</td><td>{lot.lotCode || lot.ingredientLotId}</td><td>{formatLargeQuantity(lot.quantityUsed, lot.unit)}</td><td>{formatLargeQuantity(lot.cookedQuantity ?? lot.quantityUsed, lot.unit)}</td></tr>)}</tbody></table>
         </div>)}
       </section>)}
       {plan?.seasonings?.length > 0 && <section><h3>Gia vị dùng chung cho cả bữa</h3><ul>{plan.seasonings.map((lot) => <li key={lot.ingredientLotId}>{lot.ingredientName || "Gia vị"} · {lot.lotCode || lot.ingredientLotId}: {formatLargeQuantity(lot.quantityUsed, lot.unit)}</li>)}</ul></section>}

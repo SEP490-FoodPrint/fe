@@ -124,7 +124,7 @@ export default function MenuDetailModal({
                     </div>
                     {ingredientsList.length > 0 && (
                       <div className={styles.dishIngredients}>
-                        <span className={styles.ingLabel}>Định lượng nguyên liệu / suất:</span>
+                        <span className={styles.ingLabel}>Định lượng thành phẩm / suất:</span>
                         <div className={styles.ingTags}>
                           {ingredientsList.map((ing, iIdx) => (
                             <span key={iIdx} className={styles.ingTag}>
@@ -158,7 +158,7 @@ export default function MenuDetailModal({
                   <span className={styles.subName}>{menu.substituteDish.name}</span>
                 </div>
                 <div className={styles.subDetails}>
-                  <span className={styles.ingLabel}>Định lượng nguyên liệu / suất:</span>
+                  <span className={styles.ingLabel}>Định lượng thành phẩm / suất:</span>
                   <div className={styles.ingTags}>
                     {(menu.substituteDish.ingredientDetails || (menu.substituteDish.ingredients || []).map(name => ({ name }))).map((ing, sIdx) => (
                       <span key={sIdx} className={styles.ingTagSafe}>
