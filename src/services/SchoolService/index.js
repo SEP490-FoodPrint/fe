@@ -10,6 +10,7 @@ import {
   apiGetSchoolSuppliers,
   apiCookingMode,
   apiMealTimes,
+  apiSamplePolicy,
   apiDeliveryInspectionRoles,
 } from "./urls";
 import {
@@ -159,6 +160,8 @@ const getCookingMode = () => http.get(apiCookingMode);
 const updateCookingMode = cookingMode => http.patch(apiCookingMode, { cookingMode });
 const getMealTimes = () => http.get(apiMealTimes, { notifyOnError: false });
 const updateMealTimes = payload => http.patch(apiMealTimes, payload, { notifyOnError: false });
+const getSamplePolicy = () => http.get(apiSamplePolicy, { notifyOnError: false });
+const updateSamplePolicy = payload => http.patch(apiSamplePolicy, payload, { notifyOnError: false });
 
 /**
  * Lấy cấu hình nhóm duyệt kiểm nhận nguyên liệu của trường
@@ -189,6 +192,8 @@ const SchoolService = {
   updateCookingMode,
   getMealTimes,
   updateMealTimes,
+  getSamplePolicy,
+  updateSamplePolicy,
   getDeliveryInspectionRoles,
   updateDeliveryInspectionRoles,
 };

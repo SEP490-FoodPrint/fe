@@ -1,0 +1,29 @@
+.sample-policy-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+
+  h1 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+  }
+
+  header p {
+    max-width: 70ch;
+    margin: var(--space-2) 0 0;
+    color: var(--text-secondary);
+    font-size: var(--text-sm);
+    line-height: var(--leading-normal);
+  }
+
+  &__updated {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--text-sm);
+  }
+}

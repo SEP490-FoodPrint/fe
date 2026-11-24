@@ -190,6 +190,12 @@ export const MenuItemSchool = () => [
         roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
       },
       {
+        key: ROUTER.SCHOOL_SAMPLE_POLICY,
+        label: "Lưu mẫu thực phẩm",
+        icon: <ScienceOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
         key: ROUTER.SCHOOL_ACADEMIC_YEARS,
         label: "Thiết lập niên khóa",
         icon: <CalendarMonthOutlinedIcon />,
