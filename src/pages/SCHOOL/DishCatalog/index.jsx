@@ -1295,9 +1295,7 @@ export default function DishCatalogPage() {
                       setCatalogError("");
                     }}
                     lines={recipeLines}
-                    savedGradeIds={(editingDish?.gradeRecipes || []).map(
-                      (profile) => profile.gradeId,
-                    )}
+                    savedProfiles={editingDish?.gradeRecipes ?? []}
                     disabled={saving}
                   />
                 )}
