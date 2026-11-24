@@ -1436,6 +1436,26 @@
   }
 }
 
+.detailPortionSummary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 10px 14px;
+  border: 1px solid #c9e8de;
+  border-radius: 8px;
+  background-color: #e8f5f1;
+  color: #08604d;
+  font-size: 14px;
+
+  strong {
+    font-size: 18px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}
+
 .detailSectionBox {
   border: 1px solid #e2e8f0;
   border-radius: 8px;
@@ -1530,6 +1550,35 @@
   tr:hover td {
     background-color: #f8fafc;
   }
+
+  .detailQuantityCell {
+    text-align: right;
+
+    @media (max-width: 480px) {
+      position: sticky;
+      right: 0;
+    }
+  }
+
+  @media (max-width: 480px) {
+    th,
+    td {
+      padding-inline: 8px;
+    }
+
+    th.detailQuantityCell {
+      z-index: 3;
+    }
+
+    td.detailQuantityCell {
+      background-color: #ffffff;
+      white-space: nowrap;
+    }
+
+    tr:hover td.detailQuantityCell {
+      background-color: #f8fafc;
+    }
+  }
 }
 
 .detailPortionBadge {
@@ -1569,20 +1618,13 @@
 .detailModalFooter {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   padding: 14px 22px;
   border-top: 1px solid #e2e8f0;
   background-color: #ffffff;
   gap: 12px;
   flex-wrap: wrap;
   flex-shrink: 0;
-}
-
-.footerNote {
-  font-size: 12px;
-  color: #64748b;
-  font-style: italic;
-  font-family: var(--font-sans, "Be Vietnam Pro", sans-serif);
 }
 
 .detailFooterEditBtn {
