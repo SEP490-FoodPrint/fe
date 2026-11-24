@@ -81,7 +81,7 @@ export default function GradeRecipeFields({
   standardUnit,
   onStandardChange,
   lines = [],
-  savedGradeIds = [],
+  savedProfiles = [],
   disabled,
 }) {
   const [open, setOpen] = useState(false);
@@ -106,8 +106,14 @@ export default function GradeRecipeFields({
         item.gradeId === gradeId ? { ...item, portionQuantity } : item,
       ),
     );
-  const removedSaved = savedGradeIds.filter(
-    (gradeId) => !profiles.some((item) => item.gradeId === gradeId),
+  const profileForGrade = (grade) => ({
+    gradeId: grade.id,
+    portionQuantity:
+      savedProfiles.find((profile) => profile.gradeId === grade.id)
+        ?.portionQuantity ?? "",
+  });
+  const removedSaved = savedProfiles.filter(
+    (saved) => !profiles.some((item) => item.gradeId === saved.gradeId),
   );
 
   return (
@@ -235,10 +241,7 @@ export default function GradeRecipeFields({
                                   (item) => item.gradeId === grade.id,
                                 ),
                             )
-                            .map((grade) => ({
-                              gradeId: grade.id,
-                              portionQuantity: "",
-                            })),
+                            .map(profileForGrade),
                         ]
                       : [];
                     onChange(next);
@@ -260,10 +263,7 @@ export default function GradeRecipeFields({
                     disabled={disabled}
                     onChange={(event) => {
                       if (event.target.checked) {
-                        onChange([
-                          ...profiles,
-                          { gradeId: grade.id, portionQuantity: "" },
-                        ]);
+                        onChange([...profiles, profileForGrade(grade)]);
                       } else
                         onChange(
                           profiles.filter((item) => item.gradeId !== grade.id),
@@ -272,7 +272,9 @@ export default function GradeRecipeFields({
                   />
                   <span className={selectStyles.dropdownOptionText}>
                     {grade.name}
-                    {savedGradeIds.includes(grade.id) ? " · đã lưu" : ""}
+                    {savedProfiles.some((profile) => profile.gradeId === grade.id)
+                      ? " · đã lưu"
+                      : ""}
                   </span>
                 </label>
               ))}
@@ -317,7 +319,7 @@ export default function GradeRecipeFields({
       {removedSaved.length > 0 && (
         <Alert severity="info">
           Bỏ chọn khối chỉ không cập nhật khối đó; khẩu phần đã lưu của{" "}
-          {removedSaved.map(gradeName).join(", ")} vẫn được giữ nguyên.
+          {removedSaved.map((profile) => gradeName(profile.gradeId)).join(", ")} vẫn được giữ nguyên.
         </Alert>
       )}
     </section>

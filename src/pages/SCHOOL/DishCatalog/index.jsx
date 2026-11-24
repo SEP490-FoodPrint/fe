@@ -1295,9 +1295,7 @@ export default function DishCatalogPage() {
                       setCatalogError("");
                     }}
                     lines={recipeLines}
-                    savedGradeIds={(editingDish?.gradeRecipes || []).map(
-                      (profile) => profile.gradeId,
-                    )}
+                    savedProfiles={editingDish?.gradeRecipes ?? []}
                     disabled={saving}
                   />
                 )}
@@ -1347,11 +1345,17 @@ export default function DishCatalogPage() {
       {/* Modal Xem chi tiết món ăn (Icon Mắt) */}
       {viewingDish &&
         (() => {
-          const selectedGradeId = detailGradeId || grades[0]?.id || "";
+          const selectedGrade = grades.find((grade) => grade.id === detailGradeId);
           const profile = viewingDish.gradeRecipes?.find(
-            (item) => item.gradeId === selectedGradeId,
+            (item) => item.gradeId === detailGradeId,
           );
-          const selectedLines = profile?.lines?.length
+          const isBaseView = !selectedGrade;
+          const hasGradeLines = Boolean(profile?.lines?.length);
+          const showQuantities = isBaseView || hasGradeLines;
+          const quantityHeading = isBaseView ? "Lượng theo mốc gốc" : "Lượng cho 1 suất";
+          const portionQuantity = isBaseView ? viewingDish.standardQuantity : profile?.portionQuantity;
+          const portionLabel = isBaseView ? "Định lượng mốc gốc" : `Khẩu phần 1 suất · ${selectedGrade.name}`;
+          const selectedLines = hasGradeLines
             ? profile.lines
             : viewingDish.lines || [];
           const resolvedIngs = selectedLines
@@ -1433,16 +1437,14 @@ export default function DishCatalogPage() {
                 {/* Body chi tiết */}
                 <div className={styles.detailModalBody}>
                   <label className={styles.formLabel}>
-                    Định lượng áp dụng{" "}
+                    Xem định lượng theo
                     <select
                       className={styles.formSelect}
-                      value={selectedGradeId}
+                      value={selectedGrade?.id ?? ""}
                       onChange={(event) => setDetailGradeId(event.target.value)}
                       disabled={!grades.length}
                     >
-                      <option value="" disabled>
-                        Chưa có khối lớp
-                      </option>
+                      <option value="">Mốc gốc của món ăn</option>
                       {grades.map((grade) => (
                         <option key={grade.id} value={grade.id}>
                           {grade.name}
@@ -1451,18 +1453,18 @@ export default function DishCatalogPage() {
                     </select>
                   </label>
                   <InlineError messages={gradeError} />
-                  <p role="status">
-                    {`Mốc chuẩn: ${viewingDish.standardQuantity} ${viewingDish.standardUnit}`}
-                    {profile?.portionQuantity
-                      ? ` • Khẩu phần khối: ${profile.portionQuantity} ${viewingDish.standardUnit}/suất`
-                      : ""}
-                  </p>
-                  {selectedGradeId && !profile && (
-                    <p role="status">
-                      Món chưa áp dụng cho khối này; bảng dưới hiển thị định
-                      lượng trong mốc chuẩn của món.
-                    </p>
-                  )}
+                  <div className={styles.detailPortionSummary} role="status">
+                    {isBaseView || portionQuantity ? (
+                      <>
+                        <span>{portionLabel}</span>
+                        <strong>
+                          {formatSmallQuantity(portionQuantity, viewingDish.standardUnit)}
+                        </strong>
+                      </>
+                    ) : (
+                      <span>Chưa thiết lập khẩu phần cho {selectedGrade.name}.</span>
+                    )}
+                  </div>
                   {/* Bảng Nguyên liệu chính */}
                   <div className={styles.detailSectionBox}>
                     <div className={styles.detailSectionHeader}>
@@ -1486,9 +1488,9 @@ export default function DishCatalogPage() {
                               <th>Tên nguyên liệu</th>
                               <th>Phân loại</th>
                               <th>Nhà cung cấp</th>
-                              <th style={{ textAlign: "right" }}>
-                                {profile?.lines?.length ? "Định lượng / 1 suất" : "Định lượng trong mốc chuẩn"}
-                              </th>
+                              {showQuantities && (
+                                <th className={styles.detailQuantityCell}>{quantityHeading}</th>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
@@ -1532,14 +1534,13 @@ export default function DishCatalogPage() {
                                     )}
                                   </div>
                                 </td>
-                                <td style={{ textAlign: "right" }}>
-                                  <span className={styles.detailPortionBadge}>
-                                    {formatSmallQuantity(
-                                      ing.portionQty,
-                                      ing.unit || "g",
-                                    )}
-                                  </span>
-                                </td>
+                                {showQuantities && (
+                                  <td className={styles.detailQuantityCell}>
+                                    <span className={styles.detailPortionBadge}>
+                                      {formatSmallQuantity(ing.portionQty, ing.unit || "g")}
+                                    </span>
+                                  </td>
+                                )}
                               </tr>
                             ))}
                           </tbody>
@@ -1573,9 +1574,9 @@ export default function DishCatalogPage() {
                                 #
                               </th>
                               <th>Tên gia vị từ kho trường</th>
-                              <th style={{ textAlign: "right" }}>
-                                {profile?.lines?.length ? "Định lượng / 1 suất" : "Định lượng trong mốc chuẩn"}
-                              </th>
+                              {showQuantities && (
+                                <th className={styles.detailQuantityCell}>{quantityHeading}</th>
+                              )}
                             </tr>
                           </thead>
                           <tbody>
@@ -1594,16 +1595,13 @@ export default function DishCatalogPage() {
                                     {s.name}
                                   </strong>
                                 </td>
-                                <td style={{ textAlign: "right" }}>
-                                  <span
-                                    className={styles.detailPortionBadgeBrown}
-                                  >
-                                    {formatSmallQuantity(
-                                      s.portionQty,
-                                      s.unit || "g",
-                                    )}
-                                  </span>
-                                </td>
+                                {showQuantities && (
+                                  <td className={styles.detailQuantityCell}>
+                                    <span className={styles.detailPortionBadgeBrown}>
+                                      {formatSmallQuantity(s.portionQty, s.unit || "g")}
+                                    </span>
+                                  </td>
+                                )}
                               </tr>
                             ))}
                           </tbody>
@@ -1620,10 +1618,6 @@ export default function DishCatalogPage() {
 
                 {/* Footer chi tiết */}
                 <div className={styles.detailModalFooter}>
-                  <span className={styles.footerNote}>
-                    * Định lượng 1 suất của khối = định lượng trong mốc chuẩn ×
-                    khẩu phần khối / mốc chuẩn (g, ml); đơn vị đếm như quả, hộp giữ nguyên.
-                  </span>
                   <button
                     type="button"
                     className={styles.detailFooterEditBtn}
