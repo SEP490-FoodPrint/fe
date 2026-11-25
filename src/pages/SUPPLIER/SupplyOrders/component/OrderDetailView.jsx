@@ -19,6 +19,7 @@ import {
 } from "src/services/SupplierOrderService"
 import OrderFulfillmentWorkflow from "./OrderFulfillmentWorkflow"
 import OrderStatusBadge from "./OrderStatusBadge"
+import { SampleDispatchStep, SampleTopUpStep } from "./SampleTopUpStep"
 import styles from "./OrderDetailView.module.scss"
 
 const SUPPLY_ORDER_STEPS = [
@@ -39,6 +40,30 @@ const SUPPLY_ORDER_STEPS = [
   },
 ]
 
+/** Đợt 2 của trường nấu riêng (TASK-10 v8): thêm bước NCC xác nhận đã bổ sung lưu mẫu. */
+const SAMPLE_ORDER_STEPS = [
+  {
+    key: "CONFIRM",
+    title: "1. Tiếp nhận đơn hàng",
+    statusText: "Đã xác nhận",
+  },
+  {
+    key: "INGREDIENTS",
+    title: "2. Khai báo lô & nguồn cung",
+    statusText: "Đã khai báo lô",
+  },
+  {
+    key: "SAMPLE",
+    title: "3. Xác nhận bổ sung lưu mẫu",
+    statusText: "Chuẩn bị phần lưu mẫu",
+  },
+  {
+    key: "LOGISTICS",
+    title: "4. Vận chuyển & biển số xe",
+    statusText: "Đang giao hàng",
+  },
+]
+
 function OrderDetailView({
   order,
   replacesDelivery = null,
@@ -54,6 +79,12 @@ function OrderDetailView({
   onChangeFulfillmentStage,
   onSubmitDelivery,
   onDraftChange,
+  sampleDelivery = null,
+  sampleBusy = false,
+  sampleError = "",
+  onReloadSample,
+  onConfirmTopUp,
+  onDispatchSample,
 }) {
   if (loading) {
     return (
@@ -138,18 +169,38 @@ function OrderDetailView({
       Boolean(replacesDelivery?.id))
   const isPreparingStage =
     isAcceptedStage && fulfillmentStage === ORDER_CREATION_STAGE.LOGISTICS
+  const sampleFlow = Boolean(order.requiresSampleStep)
+  const sampleStage =
+    sampleFlow && sampleDelivery?.status === "PREPARING"
+      ? sampleDelivery.preparationStage
+      : null
+  const inSampleStep =
+    !isAcceptedStage && Boolean(sampleStage) && sampleStage !== "READY_TO_DISPATCH"
+  const inSampleDispatch = !isAcceptedStage && sampleStage === "READY_TO_DISPATCH"
   const isFulfilled =
-    order.status === SUPPLY_ORDER_STATUS.IN_PROGRESS ||
-    order.status === SUPPLY_ORDER_STATUS.COMPLETED
+    !inSampleStep &&
+    !inSampleDispatch &&
+    (order.status === SUPPLY_ORDER_STATUS.IN_PROGRESS ||
+      order.status === SUPPLY_ORDER_STATUS.COMPLETED)
   const isCancelled = order.status === SUPPLY_ORDER_STATUS.CANCELLED
 
-  const activeStageIndex = isPendingAccept
-    ? 0
-    : isAcceptedStage
-      ? isPreparingStage
-        ? 2
-        : 1
-      : 3
+  const activeStageIndex = sampleFlow
+    ? isPendingAccept
+      ? 0
+      : isAcceptedStage
+        ? 1
+        : inSampleStep
+          ? 2
+          : inSampleDispatch
+            ? 3
+            : 4
+    : isPendingAccept
+      ? 0
+      : isAcceptedStage
+        ? isPreparingStage
+          ? 2
+          : 1
+        : 3
 
   const displayBadgeStatus = isPreparingStage ? "PREPARING" : order.status
 
@@ -214,7 +265,7 @@ function OrderDetailView({
       {!isCancelled && (
         <DeliveryStageStepper
           activeIndex={activeStageIndex}
-          steps={SUPPLY_ORDER_STEPS}
+          steps={sampleFlow ? SAMPLE_ORDER_STEPS : SUPPLY_ORDER_STEPS}
           onStepSelect={(_step, index) => {
             if (!isAcceptedStage || pendingDispatchDelivery) return
             if (index === 1) {
@@ -242,6 +293,25 @@ function OrderDetailView({
           onChangeStage={onChangeFulfillmentStage}
           onSubmitDelivery={onSubmitDelivery}
           onDraftChange={onDraftChange}
+        />
+      )}
+
+      {inSampleStep && (
+        <SampleTopUpStep
+          delivery={sampleDelivery}
+          busy={sampleBusy}
+          error={sampleError}
+          onReload={onReloadSample}
+          onConfirm={onConfirmTopUp}
+        />
+      )}
+
+      {inSampleDispatch && (
+        <SampleDispatchStep
+          delivery={sampleDelivery}
+          busy={sampleBusy}
+          error={sampleError}
+          onDispatch={onDispatchSample}
         />
       )}
 
@@ -461,6 +531,12 @@ OrderDetailView.propTypes = {
   onChangeFulfillmentStage: PropTypes.func,
   onSubmitDelivery: PropTypes.func,
   onDraftChange: PropTypes.func,
+  sampleDelivery: PropTypes.object,
+  sampleBusy: PropTypes.bool,
+  sampleError: PropTypes.string,
+  onReloadSample: PropTypes.func,
+  onConfirmTopUp: PropTypes.func,
+  onDispatchSample: PropTypes.func,
 }
 
 export default OrderDetailView

@@ -953,6 +953,9 @@ export default function CreateDeliveryView({
           const theoSuat = q3(it.quantity);
           const std = batchNo === 1 ? q3(it.orderQuantity) : theoSuat;
           const carryQty = batchNo === 2 ? q3(it.carryOverQuantity) : 0;
+          // TASK-10 v8 (V4, V5): phần bù lưu mẫu của Đợt 1 gom vào tổng Đợt 2.
+          const compensationQty =
+            batchNo === 2 ? q3(it.sampleCompensationQuantity) : 0;
           return {
             id: it.ingredientId,
             ingredientId: it.ingredientId,
@@ -969,13 +972,16 @@ export default function CreateDeliveryView({
             computedQty: theoSuat,
             carryToBatch2: batchNo === 1 ? q3(it.carryOverQuantity) : 0,
             carryQty,
+            compensationQty,
             defaultQtyPerPortion: 0,
             qtyPerPortion: 0,
             portionInput: "",
             displayRate: "",
             standardQty: std,
             standardQtyInput: String(std),
-            batchQty: q3(std + carryQty),
+            // V15: lượng đặt cố định theo máy chủ tính (không cho sửa).
+            batchQty:
+              batchNo === 2 ? q3(it.orderQuantity) : q3(std + carryQty),
           };
         });
         setItemsState(initialItems);
@@ -2591,6 +2597,24 @@ export default function CreateDeliveryView({
                               >
                                 {ing.batchQty} {ing.unit}
                               </Typography>
+                              {(ing.carryQty > 0 || ing.compensationQty > 0) && (
+                                <Typography
+                                  variant="caption"
+                                  className={styles.carryText}
+                                  sx={{ display: "block" }}
+                                >
+                                  {[
+                                    ing.carryQty > 0
+                                      ? `gồm bù làm tròn Đợt 1 ${ing.carryQty} ${ing.unit}`
+                                      : null,
+                                    ing.compensationQty > 0
+                                      ? `bù lưu mẫu Đợt 1 ${ing.compensationQty} ${ing.unit}`
+                                      : null,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(" · ")}
+                                </Typography>
+                              )}
                             </TableCell>
 
                             <TableCell>

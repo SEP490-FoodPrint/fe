@@ -25,6 +25,7 @@ import {
   Eye,
   PlusCircle,
   RotateCcw,
+  ClipboardCheck,
 } from "lucide-react"
 import styles from "./DeliveryTable.module.scss"
 
@@ -39,7 +40,13 @@ const formatDateVN = (dateInput) => {
   return str;
 };
 
-export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatch2 }) {
+export default function DeliveryTable({
+  deliveries = [],
+  onViewDetail,
+  onAddBatch2,
+  onConfirmSample,
+  cookingMode = null,
+}) {
   // Render badge trạng thái 4 bên
   const renderApprovalMatrix = approvals => {
     if (!approvals) return null
@@ -238,6 +245,11 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                 item.status === "REJECTED"
 
               const canAddBatch2 = isBatch1 && !hasBatch2ForDate && !isBatch1Failed
+              // TASK-10 v8 (V10): Đợt 2 của trường nấu riêng cần kho xác nhận lượng bổ sung lưu mẫu.
+              const canConfirmSample =
+                item.batchType === "BATCH_2" &&
+                cookingMode === "SEPARATE_BY_LOT" &&
+                !["RECEIVED", "COMPLETED", "CANCELLED"].includes(item.status)
 
               return (
                 <TableRow
@@ -302,6 +314,18 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                           Thêm Đợt 2
                         </Button>
                       )}
+
+                      {canConfirmSample && (
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          startIcon={<ClipboardCheck size={14} />}
+                          onClick={() => onConfirmSample && onConfirmSample(item)}
+                          className={styles.addBatch2Btn}
+                        >
+                          Xác nhận lưu mẫu
+                        </Button>
+                      )}
                     </Box>
                   </TableCell>
                 </TableRow>
@@ -318,4 +342,6 @@ DeliveryTable.propTypes = {
   deliveries: PropTypes.arrayOf(PropTypes.object).isRequired,
   onViewDetail: PropTypes.func,
   onAddBatch2: PropTypes.func,
+  onConfirmSample: PropTypes.func,
+  cookingMode: PropTypes.string,
 }

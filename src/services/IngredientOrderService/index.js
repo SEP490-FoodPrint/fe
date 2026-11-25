@@ -841,6 +841,9 @@ const IngredientOrderService = {
             ingredientName: it.ingredientName || it.name || "Nguyên liệu tươi",
             requestedQuantity: Number(it.requestedQuantity || it.quantity || 0),
             sampleTopUpQuantity: it.sampleTopUpQuantity ?? null,
+            // TASK-10 v8 (V4): phần tách của Đợt 2, chỉ kho xem.
+            carryOverQuantity: Number(it.carryOverQuantity || 0),
+            sampleCompensationQuantity: Number(it.sampleCompensationQuantity || 0),
             actualQuantity: Number(it.requestedQuantity || it.quantity || 0),
             orderedQty: Number(it.requestedQuantity || it.quantity || 0),
             deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
@@ -1365,6 +1368,9 @@ const IngredientOrderService = {
                   ),
                   orderedQty: Number(it.requestedQuantity || it.quantity || 0),
                   sampleTopUpQuantity: it.sampleTopUpQuantity ?? null,
+                  // TASK-10 v8 (V4): phần tách của Đợt 2, chỉ kho xem.
+                  carryOverQuantity: Number(it.carryOverQuantity || 0),
+                  sampleCompensationQuantity: Number(it.sampleCompensationQuantity || 0),
                   deliveredQty: Number(
                     it.requestedQuantity || it.quantity || 0,
                   ),

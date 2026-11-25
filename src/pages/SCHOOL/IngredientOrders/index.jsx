@@ -3,6 +3,9 @@ import { Box, Typography } from "@mui/material"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
+import SupplyRoundService from "src/services/SupplyRoundService"
+import { useNavigate } from "react-router-dom"
+import ROUTER from "src/router/ROUTER"
 
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryStatsRail from "./component/DeliveryStatsRail"
@@ -27,6 +30,41 @@ const getTodayStr = () =>
 
 export default function IngredientOrders() {
   const todayStr = useMemo(() => getTodayStr(), [])
+  const navigate = useNavigate()
+  // Chế độ nấu của trường: chỉ nấu riêng mới có bước kho xác nhận lưu mẫu ở Đợt 2.
+  const [cookingMode, setCookingMode] = useState(null)
+  useEffect(() => {
+    SupplyRoundService.get({ date: getTodayStr(), batchNo: "1" })
+      .then(result => setCookingMode(result?.data?.cookingMode ?? null))
+      .catch(() => setCookingMode(null))
+  }, [])
+
+  // V6: chỉ tạo đơn Đợt 2 sau khi mẻ Đợt 1 đã lập (Đợt 1 nhận đủ hàng).
+  const handleAddBatch2 = useCallback(async item => {
+    const date = String(item.deliveryDate || "").slice(0, 10)
+    try {
+      const result = await SupplyRoundService.get({ date, batchNo: "2" })
+      if (!result?.data?.round1Ready && !result?.data?.batch2NotNeeded) {
+        notice({
+          msg: "Đợt 1 chưa nhận đủ hàng và lập mẻ, chưa tạo được đơn Đợt 2.",
+          isSuccess: false,
+        })
+        return
+      }
+    } catch {
+      // Không đọc được trạng thái đợt: để màn tạo đơn báo lỗi từ máy chủ.
+    }
+    setCreateTargetDate(date)
+    setDeliverySubView("create")
+  }, [])
+
+  const handleConfirmSample = useCallback(
+    item => {
+      const date = String(item.deliveryDate || "").slice(0, 10)
+      navigate(`${ROUTER.SCHOOL_SUPPLY_ROUND_PLAN}?date=${date}&batchNo=2`)
+    },
+    [navigate],
+  )
 
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
   const [deliveries, setDeliveries] = useState([])
@@ -60,8 +98,7 @@ export default function IngredientOrders() {
         IngredientOrderService.getDeliveries(),
         IngredientOrderService.getApprovedMenus(),
       ])
-      if (Array.isArray(deliveriesRes?.items))
-        setDeliveries(deliveriesRes.items)
+      if (Array.isArray(deliveriesRes?.items)) setDeliveries(deliveriesRes.items)
       if (Array.isArray(menusRes?.items)) setApprovedMenus(menusRes.items)
     } catch (err) {
       console.warn("Lỗi tải dữ liệu phiếu giao nhận:", err)
@@ -77,8 +114,7 @@ export default function IngredientOrders() {
   // Thống kê cho Phiếu giao nhận (chỉ tính đồ tươi 2 đợt theo bộ lọc thời gian)
   const deliveryStats = useMemo(() => {
     const freshOnly = deliveries.filter(d => {
-      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK")
-        return false
+      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
       const delivDate = String(d.deliveryDate || "").slice(0, 10)
       if (deliveryFilters.timeScope === "today_forward") {
         if (delivDate && delivDate < todayStr) return false
@@ -95,7 +131,7 @@ export default function IngredientOrders() {
         d =>
           d.status === "COMPLETED" ||
           d.status === "RECEIVED" ||
-          d.status === "APPROVED",
+          d.status === "APPROVED"
       ).length,
     }
   }, [deliveries, deliveryFilters.timeScope, todayStr])
@@ -104,8 +140,7 @@ export default function IngredientOrders() {
   const filteredDeliveries = useMemo(() => {
     const list = deliveries.filter(d => {
       // Phiếu nhập hàng chỉ hiển thị đồ tươi 2 đợt, không hiển thị đồ lưu kho
-      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK")
-        return false
+      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
 
       // Lọc theo mốc thời gian: Mặc định là từ hôm nay đi tiếp đến tương lai
       const delivDate = String(d.deliveryDate || "").slice(0, 10)
@@ -149,19 +184,15 @@ export default function IngredientOrders() {
       if (deliveryFilters.timeScope === "today_forward") {
         const dDiff = dateA.localeCompare(dateB)
         if (dDiff !== 0) return dDiff
-        const timeA =
-          a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
-        const timeB =
-          b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
+        const timeA = a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
+        const timeB = b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
         return timeA.localeCompare(timeB)
       }
       // Ngược lại (tất cả hoặc quá khứ): ngày mới nhất lên đầu (desc)
       const dDiff = dateB.localeCompare(dateA)
       if (dDiff !== 0) return dDiff
-      const timeA =
-        a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
-      const timeB =
-        b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
+      const timeA = a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
+      const timeB = b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
       return timeB.localeCompare(timeA)
     })
   }, [deliveries, deliveryFilters, todayStr])
@@ -195,7 +226,7 @@ export default function IngredientOrders() {
   }
 
   // Xem chi tiết phiếu giao nhận
-  const handleViewDetail = async deliveryItem => {
+  const handleViewDetail = async (deliveryItem) => {
     setSelectedDelivery(deliveryItem)
     setDeliverySubView("detail")
 
@@ -277,9 +308,7 @@ export default function IngredientOrders() {
           <DeliveryStatsRail
             stats={deliveryStats}
             activeBatchFilter={deliveryFilters.batchType}
-            onFilterBatchType={val =>
-              handleDeliveryFilterChange("batchType", val)
-            }
+            onFilterBatchType={val => handleDeliveryFilterChange("batchType", val)}
           />
 
           {/* Bộ lọc & Tìm kiếm + Nút Tạo yêu cầu mua hàng */}
@@ -310,10 +339,7 @@ export default function IngredientOrders() {
               }}
             >
               <FoodPrintLoading size="large" />
-              <Typography
-                variant="body2"
-                sx={{ color: "#64748b", fontWeight: 500 }}
-              >
+              <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
                 Đang tải danh sách phiếu nhập thực phẩm tươi sống...
               </Typography>
             </Box>
@@ -322,12 +348,9 @@ export default function IngredientOrders() {
               <DeliveryTable
                 deliveries={paginatedDeliveries}
                 onViewDetail={handleViewDetail}
-                onAddBatch2={item => {
-                  setCreateTargetDate(
-                    String(item.deliveryDate || "").slice(0, 10),
-                  )
-                  setDeliverySubView("create")
-                }}
+                onAddBatch2={handleAddBatch2}
+                onConfirmSample={handleConfirmSample}
+                cookingMode={cookingMode}
               />
 
               {/* Phân trang */}
@@ -357,9 +380,8 @@ export default function IngredientOrders() {
       )}
 
       {/* Sub-view 3: Chi tiết Phiếu giao nhận & Nghiệm thu 4 bên */}
-      {deliverySubView === "detail" &&
-        selectedDelivery &&
-        (detailLoading ? (
+      {deliverySubView === "detail" && selectedDelivery && (
+        detailLoading ? (
           <Box
             sx={{
               display: "flex",
@@ -375,10 +397,7 @@ export default function IngredientOrders() {
             }}
           >
             <FoodPrintLoading size="large" />
-            <Typography
-              variant="body2"
-              sx={{ color: "#64748b", fontWeight: 500 }}
-            >
+            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
               Đang tải chi tiết phiếu nhập hàng và danh sách nguyên liệu...
             </Typography>
           </Box>
@@ -388,7 +407,8 @@ export default function IngredientOrders() {
             onBack={handleBackToList}
             onConfirmAttendance={handleConfirmAttendance}
           />
-        ))}
+        )
+      )}
     </Box>
   )
 }

@@ -110,6 +110,8 @@ function adaptOrderSummary(row = {}) {
     // DRY_STOCK: đơn đồ lưu kho (được hẹn giao ngày khác); còn lại là đồ tươi giao trong ngày.
     orderType: row.orderType || null,
     batchNo: row.batchNo ?? null,
+    // Tiến độ chuyến giao của đơn (deliveryId, stage) — dùng cho bước lưu mẫu Đợt 2.
+    orderProgress: row.orderProgress ?? null,
     requestedDeliveryDate: row.requestedDeliveryDate || null,
     sentAt: row.sentAt || null,
     acceptedAt: row.acceptedAt || null,
@@ -140,6 +142,8 @@ function adaptOrderDetail(row = {}) {
     ...adaptOrderSummary(row),
     note: row.note ?? null,
     acceptedByUserId: row.acceptedByUserId ?? null,
+    // TASK-10 v8: Đợt 2 của trường nấu riêng có bước NCC xác nhận bổ sung lưu mẫu (4 bước).
+    requiresSampleStep: Boolean(row.requiresSampleStep),
     items: Array.isArray(row.items) ? row.items.map(adaptOrderItem) : [],
   }
 }

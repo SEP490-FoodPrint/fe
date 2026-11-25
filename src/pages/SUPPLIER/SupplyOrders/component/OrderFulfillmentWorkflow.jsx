@@ -75,10 +75,9 @@ function OrderFulfillmentWorkflow({
   const isDryOrder =
     order?.orderType === "DRY_STOCK" ||
     (items.length > 0 && items.every(item => item.handlingType === "DRY_STOCK"))
-  const requiresWarehouseApproval =
-    order?.orderType === "DIRECT_USE" &&
-    (order.batchNo === 1 || order.batchNo === 2) &&
-    Boolean(order.requestedDeliveryDate)
+  // TASK-10 v8: chỉ Đợt 2 của trường nấu riêng tách "Khai báo lô" khỏi bước vận chuyển
+  // (giữa hai bước là bước xác nhận bổ sung lưu mẫu). Đợt 1 và nấu chung đi 3 bước.
+  const requiresWarehouseApproval = Boolean(order?.requiresSampleStep)
 
   const loadFacilities = useCallback(async () => {
     setLoadingFacilities(true)

@@ -53,6 +53,11 @@ function SupplyOrders() {
   const [createdDelivery, setCreatedDelivery] = useState(null)
   const [pendingDispatchDelivery, setPendingDispatchDelivery] = useState(null)
   const [reloadTick, setReloadTick] = useState(0)
+  // Đợt 2 nấu riêng (TASK-10 v8): chuyến đã khai báo lô, đang ở bước lưu mẫu / vận chuyển.
+  const [sampleDelivery, setSampleDelivery] = useState(null)
+  const [sampleBusy, setSampleBusy] = useState(false)
+  const [sampleError, setSampleError] = useState("")
+  const [sampleTick, setSampleTick] = useState(0)
   const deliveryIdempotencyKeyRef = useRef(generateIdempotencyKey())
 
   const rotateDeliveryKey = useCallback(() => {
@@ -152,6 +157,83 @@ function SupplyOrders() {
 
     return () => controller.abort()
   }, [isDetailView, id, reloadTick, replacesDeliveryId])
+
+  const sampleDeliveryId =
+    detailOrder?.id === id && detailOrder?.requiresSampleStep
+      ? detailOrder.orderProgress?.deliveryId || null
+      : null
+  useEffect(() => {
+    if (!sampleDeliveryId) {
+      setSampleDelivery(null)
+      return undefined
+    }
+    const controller = new AbortController()
+    SupplierDeliveryService.getById(sampleDeliveryId, {
+      signal: controller.signal,
+    })
+      .then(result => {
+        if (!controller.signal.aborted) setSampleDelivery(result)
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setSampleDelivery(null)
+      })
+    return () => controller.abort()
+  }, [sampleDeliveryId, sampleTick])
+
+  const handleReloadSample = () => {
+    setSampleError("")
+    setSampleTick(prev => prev + 1)
+  }
+
+  const handleConfirmTopUp = async lots => {
+    if (!sampleDelivery?.id || sampleBusy) return
+    setSampleBusy(true)
+    setSampleError("")
+    try {
+      await SupplierDeliveryService.confirmTopUp(sampleDelivery.id, lots)
+      notice({ msg: "Đã xác nhận chuẩn bị phần lưu mẫu.", isSuccess: true })
+      setSampleTick(prev => prev + 1)
+    } catch (error) {
+      setSampleError(
+        extractDeliveryApiError(error, "Không thể xác nhận phần lưu mẫu.").message,
+      )
+      setSampleTick(prev => prev + 1)
+    } finally {
+      setSampleBusy(false)
+    }
+  }
+
+  const handleDispatchSample = async ({ expectedArrivalLocal, vehiclePlate }) => {
+    if (!sampleDelivery?.id || sampleBusy) return
+    setSampleBusy(true)
+    setSampleError("")
+    try {
+      const delivery = await SupplierDeliveryService.dispatch(sampleDelivery.id, {
+        expectedArrivalAt: buildArrivalIso(expectedArrivalLocal),
+        vehiclePlate,
+      })
+      setCreatedDelivery({
+        id: delivery.id,
+        deliveryNo: delivery.deliveryNo,
+        supplyRequestId: detailOrder?.id,
+      })
+      notice({
+        msg: `Đơn giao ${delivery.deliveryNo || ""} đã chuyển sang Đang giao hàng.`,
+        isSuccess: true,
+      })
+      setSampleTick(prev => prev + 1)
+      setReloadTick(prev => prev + 1)
+    } catch (error) {
+      setSampleError(
+        extractDeliveryApiError(
+          error,
+          "Không thể cập nhật thông tin vận chuyển. Vui lòng thử lại.",
+        ).message,
+      )
+    } finally {
+      setSampleBusy(false)
+    }
+  }
 
   const filteredOrders = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase()
@@ -259,6 +341,17 @@ function SupplyOrders() {
       }
 
       if (activeDraft.preparationStage && (!expectedArrivalLocal || activeDraft.preparationStage !== "READY_TO_DISPATCH")) {
+        // Đợt 2 nấu riêng: ở lại trang đơn, sang bước 3 (xác nhận bổ sung lưu mẫu).
+        if (detailOrder.requiresSampleStep) {
+          setPendingDispatchDelivery(null)
+          rotateDeliveryKey()
+          notice({
+            msg: `Đã khai báo lô ${activeDraft.deliveryNo || ""}. Chờ lập mẻ để biết lượng cần bổ sung lưu mẫu.`,
+            isSuccess: true,
+          })
+          setReloadTick(prev => prev + 1)
+          return
+        }
         navigate(ROUTER.SUPPLIER_DELIVERY_DETAIL.replace(":id", encodeURIComponent(activeDraft.id)))
         return
       }
@@ -323,6 +416,12 @@ function SupplyOrders() {
         onChangeFulfillmentStage={handleChangeFulfillmentStage}
         onSubmitDelivery={handleSubmitDelivery}
         onDraftChange={rotateDeliveryKey}
+        sampleDelivery={sampleDelivery}
+        sampleBusy={sampleBusy}
+        sampleError={sampleError}
+        onReloadSample={handleReloadSample}
+        onConfirmTopUp={handleConfirmTopUp}
+        onDispatchSample={handleDispatchSample}
       />
     )
   }
