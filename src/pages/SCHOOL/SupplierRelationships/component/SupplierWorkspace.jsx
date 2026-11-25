@@ -215,7 +215,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
       setError(
         failure?.response?.data?.message ||
           failure.message ||
-          "Không thể thực hiện thao tác.",
+          "Chưa thực hiện được. Vui lòng thử lại.",
       )
     } finally {
       lock.current = false
@@ -374,7 +374,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
       notice({
         msg:
           currentRelationship?.status === "SUSPENDED"
-            ? "Đã kích hoạt hợp đồng. Hợp tác vẫn đang tạm dừng"
+            ? "Đã kích hoạt hợp đồng (đang tạm dừng hợp tác)"
             : "Đã kích hoạt hợp đồng",
         isSuccess: true,
       })
@@ -394,7 +394,7 @@ function SupplierWorkspace({ supplierId, intent, onClose, onChanged }) {
       await refresh(contract?.id)
       setDecision(null)
       setReason("")
-      notice({ msg: "Đã cập nhật và lưu lịch sử", isSuccess: true })
+      notice({ msg: "Đã cập nhật", isSuccess: true })
     })
 
   const saveHandling = async (items) => {

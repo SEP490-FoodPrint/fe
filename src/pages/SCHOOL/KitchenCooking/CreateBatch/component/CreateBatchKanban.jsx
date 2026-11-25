@@ -158,7 +158,7 @@ export default function CreateBatchKanban({
         from === "sampled"
           ? "Món đã lưu mẫu, không thể chuyển sang cột khác."
           : order.indexOf(to) < order.indexOf(from)
-            ? "Không thể chuyển ngược về bước trước."
+            ? "Không thể quay lại bước trước."
             : `Chỉ chuyển được sang bước kế tiếp: ${COLUMN_TITLE[NEXT_COLUMN[from]]}.`,
       );
       return;

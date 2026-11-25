@@ -207,9 +207,7 @@ function SourceFacilities() {
       )
       notice({
         msg: "Đã cập nhật cơ sở nguồn cung",
-        desc: updated.facilityCode
-          ? `${updated.facilityCode} — ${updated.name}`
-          : updated.name,
+        desc: updated.name,
         isSuccess: true,
       })
       if (detailFacility && detailFacility.id === updated.id) {
@@ -223,9 +221,7 @@ function SourceFacilities() {
     const created = await SourceFacilityService.create(formValues)
     notice({
       msg: "Đã thêm cơ sở nguồn cung",
-      desc: created.facilityCode
-        ? `${created.facilityCode} — ${created.name}`
-        : created.name,
+      desc: created.name,
       isSuccess: true,
     })
     handleCloseModal()
@@ -239,9 +235,7 @@ function SourceFacilities() {
       const updated = await SourceFacilityService.deactivate(deactivateTarget.id)
       notice({
         msg: "Đã dừng hoạt động cơ sở nguồn cung",
-        desc: updated.facilityCode
-          ? `${updated.facilityCode} — ${updated.name}`
-          : updated.name,
+        desc: updated.name,
         isSuccess: true,
       })
       if (detailFacility && detailFacility.id === updated.id) {

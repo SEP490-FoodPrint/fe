@@ -13,6 +13,7 @@ import {
   TextField,
 } from "@mui/material"
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
+import { shortList } from "src/utils/shortList"
 import notice from "src/components/Notice"
 import IngredientWasteRateService from "src/services/IngredientWasteRateService"
 import styles from "./component/KitchenWasteRates.module.scss"
@@ -128,8 +129,8 @@ function KitchenWasteRates() {
     })
     if (failed.length) {
       notice({
-        msg: "Một số tỷ lệ chưa lưu được",
-        desc: failed.join("; "),
+        msg: `Còn ${failed.length} nguyên liệu chưa lưu được`,
+        desc: shortList(failed),
         isSuccess: false,
       })
     } else {

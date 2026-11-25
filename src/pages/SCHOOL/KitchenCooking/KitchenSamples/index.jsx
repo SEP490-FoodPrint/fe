@@ -129,7 +129,7 @@ export default function KitchenSamples() {
     } catch (err) {
       if (!signal?.aborted) {
         setLoadError(
-          err.message || "Không thể tải danh sách mẫu lưu từ hệ thống.",
+          err.message || "Không tải được danh sách mẫu lưu.",
         );
         setSamples([]);
       }
@@ -608,7 +608,7 @@ export default function KitchenSamples() {
       await fetchSamples();
       setIsCreateOpen(false);
       notice({
-        msg: "Ghi nhận mẫu lưu thực phẩm 24h thành công!",
+        msg: "Đã lưu mẫu 24 giờ",
         isSuccess: true,
       });
     } catch (err) {
@@ -630,7 +630,7 @@ export default function KitchenSamples() {
       setDetailSample((prev) => ({ ...prev, ...updatedData }));
     }
     setUpdateSample(null);
-    notice({ msg: "Cập nhật thông tin mẫu lưu thành công!", isSuccess: true });
+    notice({ msg: "Đã cập nhật mẫu lưu", isSuccess: true });
   };
 
   // 9. Xử lý Tiêu hủy mẫu lưu (SCREEN 04B)
@@ -647,7 +647,7 @@ export default function KitchenSamples() {
         setDetailSample(null);
       }
       setDisposeSample(null);
-      notice({ msg: "Ghi nhận tiêu hủy mẫu lưu thành công!", isSuccess: true });
+      notice({ msg: "Đã tiêu hủy mẫu lưu", isSuccess: true });
     } catch (err) {
       notice({
         msg: err.message || "Không thể tiêu hủy mẫu.",
@@ -666,7 +666,7 @@ export default function KitchenSamples() {
     });
     if (readyForDay.length === 0) {
       notice({
-        msg: "Không có mẫu lưu nào đã đủ 24 giờ của ngày này để tiêu hủy.",
+        msg: "Chưa có mẫu nào đủ 24 giờ.",
         isSuccess: false,
       });
       return;
@@ -694,12 +694,12 @@ export default function KitchenSamples() {
       setIsBatchDisposeOpen(false);
       setBatchDisposeTargetSamples(null);
       notice({
-        msg: `Đã tiêu hủy thành công tất cả ${targets.length} mẫu lưu đủ 24 giờ!`,
+        msg: `Đã tiêu hủy ${targets.length} mẫu lưu`,
         isSuccess: true,
       });
     } catch (err) {
       notice({
-        msg: err.message || "Lỗi khi tiêu hủy hàng loạt mẫu lưu.",
+        msg: err.message || "Chưa tiêu hủy được mẫu. Vui lòng thử lại.",
         isSuccess: false,
       });
     } finally {
@@ -925,7 +925,7 @@ export default function KitchenSamples() {
             onDisposeAllReady={() => {
               if (readyToDisposeSamples.length === 0) {
                 notice({
-                  msg: "Hiện tại không có mẫu lưu nào đã đủ 24 giờ để tiêu hủy.",
+                  msg: "Chưa có mẫu nào đủ 24 giờ.",
                   isSuccess: false,
                 });
                 return;

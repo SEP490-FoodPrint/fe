@@ -1,3 +1,4 @@
+import { shortList } from "src/utils/shortList";
 import { mealByTime } from "src/utils/mealWindow";
 import { formatLargeQuantity } from "src/utils/quantity"
 import useConfirmAction from "../CreateBatch/component/useConfirmAction";
@@ -269,14 +270,14 @@ function CreateBatchSeparatePage() {
       await loadTodayData();
 
       notice({
-        msg: "Đã chuyển sang Đang nấu.",
+        msg: "Đã bắt đầu nấu",
         isSuccess: true,
       });
 
       setIsModalOpen(false);
     } catch (err) {
       notice({
-        msg: err.message || "Không thể tạo lô riêng. Vui lòng kiểm tra lại nguyên liệu.",
+        msg: err.message || "Chưa tạo được lô. Kiểm tra nguyên liệu.",
         isSuccess: false,
       });
       throw err;
@@ -318,7 +319,7 @@ function CreateBatchSeparatePage() {
   const handleStartCooking = async (dish) => {
     if (!dish || submittingId) return;
     if (dish.unfinalizedClasses?.length) {
-      notice({ msg: "Các lớp chưa chốt suất ăn, chưa thể nấu.", isSuccess: false });
+      notice({ msg: "Chưa thể nấu: còn lớp chưa chốt suất ăn.", isSuccess: false });
       return;
     }
     let planned = false;
@@ -331,7 +332,7 @@ function CreateBatchSeparatePage() {
       });
       if (!plan?.batches?.length) {
         await loadTodayData();
-        notice({ msg: "Món này đã được chuyển sang Đang nấu.", isSuccess: true });
+        notice({ msg: "Món này đang được nấu", isSuccess: true });
         return;
       }
       planned = true;
@@ -348,7 +349,7 @@ function CreateBatchSeparatePage() {
   // Mở Popup phương án phân bổ lô chế biến trước khi tạo
   const handleOpenPlanModal = (dish) => {
     if (dish.unfinalizedClasses?.length) {
-      notice({ msg: `Chưa chốt suất ăn: ${dish.unfinalizedClasses.map((row) => row.name).join(", ")}`, isSuccess: false });
+      notice({ msg: `Còn ${dish.unfinalizedClasses.length} lớp chưa chốt: ${shortList(dish.unfinalizedClasses.map((row) => row.name))}`, isSuccess: false });
       return;
     }
     setDishToPlan(dish);

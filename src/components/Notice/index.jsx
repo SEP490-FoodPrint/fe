@@ -4,7 +4,19 @@ import { Alert, AlertTitle, Box } from "@mui/material"
 import { getMsgClient } from "src/lib/stringsUtils"
 import "./styles.scss"
 
+const SEVERITIES = ["success", "error", "warning", "info"]
+
+// Nội dung dài chỉ hiện tối đa 3 dòng; xem đủ bằng cách rê chuột (title).
+const clampSx = {
+  display: "-webkit-box",
+  WebkitBoxOrient: "vertical",
+  WebkitLineClamp: 3,
+  overflow: "hidden",
+  overflowWrap: "anywhere",
+}
+
 let toastContainer = null
+const openToasts = new Map()
 
 function getOrCreateToastContainer() {
   if (!toastContainer) {
@@ -19,20 +31,49 @@ function getOrCreateToastContainer() {
       toastContainer.style.display = "flex"
       toastContainer.style.flexDirection = "column"
       toastContainer.style.gap = "8px"
+      toastContainer.style.width = "360px"
+      toastContainer.style.maxWidth = "calc(100vw - 48px)"
       document.body.appendChild(toastContainer)
     }
   }
   return toastContainer
 }
 
-function notice({ msg = "", desc, isSuccess = true, duration = 3000 }) {
+const toText = value =>
+  value === null || value === undefined ? "" : getMsgClient(String(value))
+
+/**
+ * Hiện thông báo góc màn hình.
+ * `type` (success | error | warning | info) được ưu tiên hơn `isSuccess`.
+ */
+function notice({ msg = "", desc, isSuccess = true, type, duration }) {
+  const severity = SEVERITIES.includes(type)
+    ? type
+    : isSuccess
+      ? "success"
+      : "error"
+  const title = toText(msg)
+  const detail = toText(desc)
+  const time = duration ?? (severity === "success" ? 3000 : 6000)
+
+  // Cùng một nội dung đang hiện thì chỉ gia hạn, không hiện thêm bản trùng.
+  const key = JSON.stringify([severity, title, detail])
+  const existing = openToasts.get(key)
+  if (existing) {
+    existing.restart(time)
+    return
+  }
+
   const container = getOrCreateToastContainer()
   const toastItem = document.createElement("div")
   container.appendChild(toastItem)
 
   const root = createRoot(toastItem)
+  let timer = null
 
   const handleClose = () => {
+    clearTimeout(timer)
+    openToasts.delete(key)
     try {
       root.unmount()
       if (toastItem.parentNode) {
@@ -43,30 +84,41 @@ function notice({ msg = "", desc, isSuccess = true, duration = 3000 }) {
     }
   }
 
+  const restart = ms => {
+    clearTimeout(timer)
+    timer = setTimeout(handleClose, ms)
+  }
+
   root.render(
     <Alert
-      severity={isSuccess ? "success" : "error"}
+      severity={severity}
       onClose={handleClose}
       sx={{
-        minWidth: "280px",
+        width: "100%",
+        boxSizing: "border-box",
         boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
         borderRadius: "8px",
+        "& .MuiAlert-message": { minWidth: 0, flex: 1 },
       }}
     >
-      {msg && (
-        <AlertTitle sx={{ fontWeight: 600 }}>
-          <span dangerouslySetInnerHTML={{ __html: getMsgClient(msg || "") }} />
+      {title && (
+        <AlertTitle
+          title={title}
+          sx={{ ...clampSx, fontWeight: 600, mb: detail ? undefined : 0 }}
+        >
+          {title}
         </AlertTitle>
       )}
-      {desc && (
-        <Box fontSize="0.875rem">
-          <span dangerouslySetInnerHTML={{ __html: getMsgClient(desc || "") }} />
+      {detail && (
+        <Box title={detail} fontSize="0.875rem" sx={clampSx}>
+          {detail}
         </Box>
       )}
     </Alert>
   )
 
-  setTimeout(handleClose, duration)
+  openToasts.set(key, { restart })
+  restart(time)
 }
 
 export default notice

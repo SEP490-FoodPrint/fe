@@ -157,7 +157,7 @@ function MenuApproval() {
       notice({
         msg:
           type === "approve"
-            ? "Đã phê duyệt thực đơn tuần"
+            ? "Đã duyệt thực đơn tuần"
             : "Đã yêu cầu Y tế chỉnh sửa thực đơn",
       })
       // Tải lại cả tuần để cập nhật trạng thái thực đơn vừa duyệt và số tuần còn chờ
@@ -165,13 +165,13 @@ function MenuApproval() {
         await loadWeek(week.weekStartDate, { silent: true })
       } catch {
         notice({
-          msg: "Đã lưu quyết định; vui lòng tải lại để xem trạng thái mới nhất.",
-          isSuccess: false,
+          msg: "Đã lưu. Tải lại trang để cập nhật.",
+          type: "warning",
         })
       }
     } catch (requestError) {
       notice({
-        msg: "Không thể xử lý thực đơn",
+        msg: "Chưa lưu được quyết định.",
         desc: requestError?.response?.data?.message,
         isSuccess: false,
       })

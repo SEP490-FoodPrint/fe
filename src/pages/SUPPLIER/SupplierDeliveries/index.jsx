@@ -176,7 +176,7 @@ function SupplierDeliveries({ mode = "auto" }) {
 
   const handleCreated = createdDelivery => {
     notice({
-      msg: `Đã tạo đơn giao hàng ${createdDelivery.deliveryNo || ""} (Đang giao) kèm nhãn QR bao bì.`,
+      msg: `Đã tạo đơn giao ${createdDelivery.deliveryNo || ""}`,
       isSuccess: true,
     })
     if (createdDelivery?.id) {
@@ -214,7 +214,7 @@ function SupplierDeliveries({ mode = "auto" }) {
   const handleDispatched = dispatchedDelivery => {
     setDetailDelivery(dispatchedDelivery)
     notice({
-      msg: `Đơn giao hàng ${dispatchedDelivery?.deliveryNo || ""} đã chuyển sang Đang giao hàng.`,
+      msg: `Đơn ${dispatchedDelivery?.deliveryNo || ""} đang được giao`,
       isSuccess: true,
     })
   }

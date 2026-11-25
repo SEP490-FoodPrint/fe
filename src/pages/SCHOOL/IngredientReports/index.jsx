@@ -407,10 +407,10 @@ export default function IngredientReports() {
         deliveries: filteredDeliveries,
         inventoryItems: inventoryData.items || [],
       })
-      notice({ msg: "Xuất báo cáo Excel thành công!", type: "success" })
+      notice({ msg: "Đã xuất báo cáo Excel", type: "success" })
     } catch (err) {
       console.error("Lỗi xuất Excel:", err)
-      notice({ msg: "Có lỗi khi xuất file Excel", type: "error" })
+      notice({ msg: "Không xuất được Excel. Vui lòng thử lại.", type: "error" })
     } finally {
       setExporting(false)
     }

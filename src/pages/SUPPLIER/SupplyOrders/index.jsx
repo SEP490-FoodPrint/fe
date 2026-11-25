@@ -206,7 +206,7 @@ function SupplyOrders() {
       setFulfillmentStage(ORDER_CREATION_STAGE.INGREDIENTS)
       rotateDeliveryKey()
       notice({
-        msg: `Đã tiếp nhận ${detailOrder.requestNo || "đơn hàng"} — Trạng thái: Đã xác nhận.`,
+        msg: `Đã nhận đơn ${detailOrder.requestNo || "hàng"}`,
         isSuccess: true,
       })
     } catch (error) {
@@ -284,7 +284,7 @@ function SupplyOrders() {
           : prev,
       )
       notice({
-        msg: `Đã tạo đơn giao ${delivery.deliveryNo || ""} — Trạng thái: Đang giao hàng kèm nhãn QR bao bì.`,
+        msg: `Đã tạo đơn giao ${delivery.deliveryNo || ""}`,
         isSuccess: true,
       })
       setReloadTick(prev => prev + 1)

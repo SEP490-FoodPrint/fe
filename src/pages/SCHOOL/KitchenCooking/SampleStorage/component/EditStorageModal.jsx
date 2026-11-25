@@ -66,7 +66,7 @@ export default function EditStorageModal({ unit, isOpen, onClose, onSuccess }) {
     }
     // Mỗi mẫu lưu một ngăn: số ngăn không vượt sức chứa
     if (Number(formData.compartmentCount) > Number(formData.capacity)) {
-      setError("Số ngăn tủ phải nhỏ hơn hoặc bằng sức chứa tối đa (mỗi mẫu một ngăn).");
+      setError("Số ngăn không được lớn hơn sức chứa.");
       return;
     }
 

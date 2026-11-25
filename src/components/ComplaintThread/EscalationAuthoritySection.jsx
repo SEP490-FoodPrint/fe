@@ -93,7 +93,7 @@ export default function EscalationAuthoritySection({
         setError(
           parseApiError(
             err,
-            "Không thể tải thông tin xử lý leo thang từ Cơ quan ATTP.",
+            "Không tải được phản hồi của Cơ quan ATTP.",
           ),
         )
       })
@@ -220,7 +220,7 @@ export default function EscalationAuthoritySection({
         await AuthorityComplaintService.satisfy(authorityComplaintId)
       setTicket(updated)
       notice({
-        msg: "Đã xác nhận hài lòng và đóng hồ sơ leo thang ATTP",
+        msg: "Đã đóng khiếu nại gửi Cơ quan ATTP",
         isSuccess: true,
       })
     })

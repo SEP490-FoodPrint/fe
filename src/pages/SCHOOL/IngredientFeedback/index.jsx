@@ -134,7 +134,7 @@ export default function IngredientFeedback() {
     setPagination(prev => ({ ...prev, page: 1 }))
     setListReloadTick(prev => prev + 1)
     notice({
-      msg: `Đã gửi phản ánh nguyên liệu (${formatTicketCode(created?.code)})`,
+      msg: "Đã gửi phản ánh nguyên liệu",
       isSuccess: true,
     })
   }

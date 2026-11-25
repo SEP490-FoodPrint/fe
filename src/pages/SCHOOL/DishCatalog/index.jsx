@@ -31,7 +31,7 @@ import GradeRecipeFields, {
   gradePortionPayload,
   standardQuantityIssue,
   validQuantity,
-  validRecipeLines,
+  recipeLinesIssue,
 } from "./component/GradeRecipeFields"
 import MenuService from "src/services/MenuService"
 import styles from "./index.module.scss"
@@ -483,10 +483,9 @@ export default function DishCatalogPage() {
       setCatalogError("Vui lòng chọn ít nhất một khối áp dụng.")
       return
     }
-    if (!validRecipeLines(recipeLines)) {
-      setCatalogError(
-        "Cần nguyên liệu chính không trùng, định lượng dương tối đa 3 chữ số thập phân và đơn vị hợp lệ.",
-      )
+    const recipeIssue = recipeLinesIssue(recipeLines)
+    if (recipeIssue) {
+      setCatalogError(recipeIssue)
       return
     }
     const standardIssue = standardQuantityIssue(
@@ -502,7 +501,7 @@ export default function DishCatalogPage() {
       gradeProfiles.some(profile => !validQuantity(profile.portionQuantity))
     ) {
       setCatalogError(
-        "Khẩu phần của từng khối phải dương, tối đa 3 chữ số thập phân.",
+        "Khẩu phần phải lớn hơn 0, tối đa 3 số lẻ.",
       )
       return
     }

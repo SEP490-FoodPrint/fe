@@ -13,7 +13,6 @@ function AllergyNoticeModal({ isOpen, onClose, schoolName }) {
     parentPhone: "",
     note: "",
   })
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   if (!isOpen) return null
 
@@ -25,22 +24,17 @@ function AllergyNoticeModal({ isOpen, onClose, schoolName }) {
     e.preventDefault()
     if (!formData.studentName || !formData.className || !formData.allergyIngredient) {
       notice({
-        msg: "Vui lòng điền đủ Tên học sinh, Lớp và Nguyên liệu dị ứng!",
+        msg: "Nhập đủ tên học sinh, lớp và nguyên liệu dị ứng.",
         isSuccess: false,
       })
       return
     }
 
-    // Mô phỏng gửi thành công bằng timer. Luồng này chưa gọi API báo dị ứng.
-    setIsSubmitting(true)
-    setTimeout(() => {
-      setIsSubmitting(false)
-      notice({
-        msg: `Đã gửi cảnh báo dị ứng cho học sinh ${formData.studentName} đến Phòng Y tế & Bếp ăn thành công!`,
-        isSuccess: true,
-      })
-      onClose()
-    }, 600)
+    // Chưa có API báo dị ứng: không được báo đã gửi khi chưa gửi thật.
+    notice({
+      msg: "Chức năng chưa hoạt động. Vui lòng liên hệ nhà trường.",
+      isSuccess: false,
+    })
   }
 
   return (
@@ -66,8 +60,7 @@ function AllergyNoticeModal({ isOpen, onClose, schoolName }) {
         <form onSubmit={handleSubmit} className={styles.form}>
           <div className={styles.alertNote}>
             <p>
-              Thông tin sẽ được chuyển trực tiếp đến <strong>Bếp ăn bán trú</strong> và{" "}
-              <strong>Phòng Y tế</strong> trước giờ phân chia suất ăn để chuẩn bị khẩu phần ăn thay thế.
+              Chức năng gửi trực tuyến chưa hoạt động. Vui lòng liên hệ <strong>nhà trường</strong> để báo dị ứng.
             </p>
           </div>
 
@@ -157,8 +150,8 @@ function AllergyNoticeModal({ isOpen, onClose, schoolName }) {
             <button type="button" className={styles.cancelBtn} onClick={onClose}>
               Hủy bỏ
             </button>
-            <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
-              {isSubmitting ? "Đang gửi..." : "Gửi thông tin cho Y tế & Bếp"}
+            <button type="submit" className={styles.submitBtn}>
+              Gửi thông tin cho Y tế & Bếp
             </button>
           </div>
         </form>

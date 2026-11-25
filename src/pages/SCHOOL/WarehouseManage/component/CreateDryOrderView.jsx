@@ -330,7 +330,7 @@ export default function CreateDryOrderView({
     }
 
     if (allSelectedItems.length === 0) {
-      notice({ msg: "Vui lòng chọn ít nhất 1 mặt hàng cần nhập kho!", type: "warning" })
+      notice({ msg: "Chọn ít nhất một mặt hàng.", type: "error" })
       return
     }
 

@@ -232,7 +232,7 @@ export default function IngredientOrders() {
       setDeliverySubView("list")
 
       notice({
-        msg: `Đã tạo Phiếu nhập hàng Đợt 1 ${res.deliveryNo || res.orderNo} (Thực phẩm tươi sống ca sáng)! Bạn có thể tiếp tục tạo Đợt 2 khi GVCN chốt sĩ số sáng.`,
+        msg: "Đã tạo đơn Đợt 1. Đợt 2 tạo sau khi chốt sĩ số.",
         isSuccess: true,
       })
     }
@@ -247,32 +247,19 @@ export default function IngredientOrders() {
       setDeliverySubView("list")
 
       notice({
-        msg: `Đã chốt và tạo Đơn giao hàng Đợt 2 theo sĩ số (${res.actualAttendance} HS) — Giao bù ${res.remainingPortions} suất!`,
+        msg: `Đã tạo đơn Đợt 2: giao bù ${res.remainingPortions} suất`,
         isSuccess: true,
       })
     }
   }
 
   // Cập nhật sĩ số GVCN cho Đợt 2 (trong màn xem chi tiết)
-  const handleConfirmAttendance = async (deliveryId, actualCount) => {
-    const res = await IngredientOrderService.updateBatch2Attendance(
-      deliveryId,
-      actualCount,
-    )
-    if (res?.success) {
-      const refreshed = await IngredientOrderService.getDeliveries()
-      if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
-      if (res.delivery) setSelectedDelivery(res.delivery)
-      notice({
-        msg: `Đã chốt sĩ số Đợt 2 (${actualCount} học sinh). Số lượng nguyên liệu đã được tính lại và gửi sang NCC!`,
-        isSuccess: true,
-      })
-    } else {
-      notice({
-        msg: "Không thể cập nhật sĩ số. Vui lòng thử lại.",
-        isSuccess: false,
-      })
-    }
+  // Chưa có API sửa sĩ số từ màn này: không được báo đã chốt khi chưa lưu.
+  const handleConfirmAttendance = () => {
+    notice({
+      msg: "Chưa hỗ trợ sửa sĩ số tại đây. GVCN chốt sĩ số của lớp.",
+      isSuccess: false,
+    })
   }
 
   return (

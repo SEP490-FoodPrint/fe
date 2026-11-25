@@ -255,7 +255,7 @@ export default function TicketDetailView({
         await onResolve(trimmed)
         setResolveOpen(false)
         setResolveText("")
-        notice({ msg: "Đã cập nhật trạng thái Đã xử lý", isSuccess: true })
+        notice({ msg: "Đã đánh dấu đã xử lý", isSuccess: true })
       },
       {
         onCloseDialog: () => setResolveOpen(false),
@@ -268,7 +268,7 @@ export default function TicketDetailView({
   const handleSatisfy = () => {
     runAction("SATISFY", async () => {
       await onSatisfy()
-      notice({ msg: "Đã xác nhận hài lòng và đóng yêu cầu", isSuccess: true })
+      notice({ msg: "Đã đóng yêu cầu", isSuccess: true })
     })
   }
 

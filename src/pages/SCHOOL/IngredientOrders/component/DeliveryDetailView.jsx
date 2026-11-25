@@ -172,7 +172,7 @@ export default function DeliveryDetailView({
         await navigator.clipboard.writeText(url);
       }
       setCopiedLabelId(labelId);
-      notice({ msg: "Đã sao chép liên kết truy xuất nguồn gốc!", isSuccess: true });
+      notice({ msg: "Đã sao chép liên kết", isSuccess: true });
       setTimeout(() => setCopiedLabelId(""), 2000);
     } catch {
       // fallback

@@ -468,13 +468,13 @@ export function AddAllocationsDialog({
       .filter(Boolean)
 
     if (rawTokens.length === 0) {
-      setManualError("Nhập ít nhất một mã UUID suất ăn đã phân bổ.")
+      setManualError("Nhập ít nhất một mã suất ăn.")
       return
     }
 
     const invalid = rawTokens.filter(token => !isUuid(token))
     if (invalid.length > 0) {
-      setManualError(`Mã UUID không hợp lệ: ${invalid[0]}`)
+      setManualError("Mã suất ăn không đúng. Kiểm tra lại.")
       return
     }
 
@@ -498,7 +498,7 @@ export function AddAllocationsDialog({
     setSelectedIds(next)
     setManualInput("")
     if (skippedExisting > 0 && next.length === selectedIds.length) {
-      setManualError("Các mã suất ăn vừa nhập đã được gắn vào hồ sơ này.")
+      setManualError("Các suất ăn này đã có trong hồ sơ.")
     }
   }
 
@@ -506,7 +506,7 @@ export function AddAllocationsDialog({
     event.preventDefault()
     if (submitting) return
     if (selectedIds.length === 0) {
-      setSubmitError("Vui lòng chọn hoặc thêm ít nhất 1 suất ăn đã phân bổ.")
+      setSubmitError("Chọn ít nhất một suất ăn.")
       return
     }
 

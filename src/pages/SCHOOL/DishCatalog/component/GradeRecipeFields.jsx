@@ -15,18 +15,22 @@ export function validQuantity(value) {
   return QUANTITY_PATTERN.test(text) && Number(text) > 0;
 }
 
+/** Lỗi đầu tiên của công thức, hoặc chuỗi rỗng khi hợp lệ. */
+export function recipeLinesIssue(lines) {
+  if (!lines.some((line) => line.ingredientRole === "MAIN"))
+    return "Chọn nguyên liệu chính.";
+  if (lines.some((line) => !line.ingredientEntryId))
+    return "Còn dòng chưa chọn nguyên liệu.";
+  if (new Set(lines.map((line) => line.ingredientEntryId)).size !== lines.length)
+    return "Nguyên liệu bị trùng.";
+  if (!lines.every((line) => validQuantity(line.requiredQuantity)))
+    return "Định lượng phải lớn hơn 0, tối đa 3 số lẻ.";
+  if (!lines.every((line) => line.unit?.trim())) return "Đơn vị chưa hợp lệ.";
+  return "";
+}
+
 export function validRecipeLines(lines) {
-  return (
-    lines.some((line) => line.ingredientRole === "MAIN") &&
-    new Set(lines.map((line) => line.ingredientEntryId)).size ===
-      lines.length &&
-    lines.every(
-      (line) =>
-        line.ingredientEntryId &&
-        validQuantity(line.requiredQuantity) &&
-        line.unit?.trim(),
-    )
-  );
+  return !recipeLinesIssue(lines);
 }
 
 const normalizeUnit = (unit) => String(unit || "").trim().toLowerCase();

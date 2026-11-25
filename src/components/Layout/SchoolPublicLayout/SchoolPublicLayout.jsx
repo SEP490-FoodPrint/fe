@@ -21,7 +21,7 @@ function SchoolPublicLayout() {
     const fetchSchool = async () => {
       if (!schoolCode) {
         setLoading(false);
-        setError("Không có mã trường học được cung cấp.");
+        setError("Liên kết thiếu thông tin trường.");
         return;
       }
 
@@ -34,13 +34,13 @@ function SchoolPublicLayout() {
           if (data && (data.id || data.code || data.name)) {
             setSchool(data);
           } else {
-            setError(`Không tìm thấy thông tin trường học với mã: ${schoolCode}`);
+            setError("Không tìm thấy trường này.");
           }
         }
       } catch (err) {
         if (isMounted) {
           console.error("Lỗi khi tải thông tin trường học tại SchoolPublicLayout:", err);
-          setError("Không thể kết nối đến máy chủ để lấy thông tin trường.");
+          setError("Chưa tải được thông tin trường. Vui lòng thử lại.");
         }
       } finally {
         if (isMounted) {

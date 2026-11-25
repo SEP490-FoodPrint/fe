@@ -567,7 +567,7 @@ export default function KitchenMealAllocation() {
       setDraft({})
       notice({ msg: "Đã áp dụng phân bổ suất ăn.", isSuccess: true })
     } catch (error) {
-      if (error.response?.data?.errors?.code === "ALLOCATION_STALE")
+      if (error.response?.data?.error?.code === "ALLOCATION_STALE")
         setConflict(true)
       notice({
         msg: error.response?.data?.message ?? error.message,
@@ -584,13 +584,13 @@ export default function KitchenMealAllocation() {
       try {
         await MealAllocationService.suggestDraft(meal)
         notice({
-          msg: "Đã tạo gợi ý phân bổ. Bạn có thể xem lại và chỉnh sửa trước khi áp dụng.",
+          msg: "Đã gợi ý phân bổ. Hãy kiểm tra trước khi áp dụng.",
           isSuccess: true,
         })
         setLoading(true)
         setLoadVersion(version => version + 1)
       } catch (error) {
-        if (error.response?.data?.errors?.code === "ALLOCATION_STALE")
+        if (error.response?.data?.error?.code === "ALLOCATION_STALE")
           setLoadVersion(version => version + 1)
         notice({
           msg: error.response?.data?.message ?? error.message,

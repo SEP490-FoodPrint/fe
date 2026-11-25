@@ -1641,7 +1641,7 @@ const IngredientOrderService = {
         payload,
       );
       const res = await http.post("/supply-requests", payload, {
-        notifyOnError: true,
+        notifyOnError: false,
       });
       const draft = res?.data || res;
 
@@ -1830,7 +1830,7 @@ const IngredientOrderService = {
         payload,
       );
       const res = await http.post("/supply-requests", payload, {
-        notifyOnError: true,
+        notifyOnError: false,
       });
       const draft = res?.data || res;
 

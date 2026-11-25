@@ -322,7 +322,7 @@ export default function CreateMenu() {
           substitutesByMeal,
         },
       }))
-      showToast("Đã cập nhật ngày trong bản soạn thảo. Bấm Lưu hoặc Gửi BGH để ghi nhận.", "success")
+      showToast("Đã cập nhật. Nhớ bấm Lưu hoặc Gửi duyệt.", "success")
     },
     [weeklyMeals, academicWeek, navigate, selectedGrades]
   )
@@ -436,7 +436,7 @@ export default function CreateMenu() {
       // Nếu không tìm thấy thực đơn nào trước đó trên hệ thống
       if (!sourceDays.length) {
         showToast(
-          "Không tìm thấy dữ liệu thực đơn của tuần trước để sao chép",
+          "Tuần trước chưa có thực đơn.",
           "warning"
         )
         return
@@ -499,13 +499,13 @@ export default function CreateMenu() {
       setPreCopyMealsSnapshot(currentSnapshot)
       setHasCopiedPreviousWeek(true)
       showToast(
-        `Đã sao chép thành công ${copiedCount} món ăn từ ${sourceLabel}!`,
+        `Đã sao chép ${copiedCount} món`,
         "success"
       )
     } catch (error) {
       console.error("Lỗi khi sao chép thực đơn tuần trước:", error)
       showToast(
-        "Không thể sao chép thực đơn: " + (error.message || "Lỗi xử lý"),
+        "Không sao chép được. Vui lòng thử lại.",
         "warning"
       )
     } finally {
@@ -520,7 +520,7 @@ export default function CreateMenu() {
     setWeeklyMeals(preCopyMealsSnapshot)
     setHasCopiedPreviousWeek(false)
     setPreCopyMealsSnapshot(null)
-    showToast("Đã bỏ sao chép và khôi phục thực đơn trước đó!", "info")
+    showToast("Đã hoàn tác sao chép", "info")
   }
 
   // Chuẩn hóa payload theo đúng schema MenuWrite của Backend
@@ -538,18 +538,18 @@ export default function CreateMenu() {
 
   const handleSaveDraft = async () => {
     if (!menuTitle.trim()) {
-      showToast("Chưa xác định được tuần học để đặt tên thực đơn. Vui lòng kiểm tra cấu hình năm học.", "warning")
+      showToast("Chưa có tuần học. Kiểm tra cấu hình năm học.", "warning")
       return
     }
 
     if (!targetScope.trim()) {
-      showToast("Vui lòng nhập đối tượng áp dụng cho thực đơn", "warning")
+      showToast("Chọn đối tượng áp dụng.", "warning")
       return
     }
 
     const payload = buildWeeklyMenuPayload()
     if (!payload.days.length) {
-      showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần trước khi lưu", "warning")
+      showToast("Thêm ít nhất một món.", "warning")
       return
     }
 
@@ -561,20 +561,20 @@ export default function CreateMenu() {
       setHasUnsavedChanges(false)
       MenuService.invalidateMenuCache()
       if (!Array.isArray(response?.data?.allergyChecks)) {
-        showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng từ máy chủ.", "warning")
+        showToast("Đã lưu nháp, chưa kiểm tra được dị ứng.", "warning")
         return
       }
       setAllergyReport(response.data)
       if (response.data.hasUnresolvedAllergies) {
-        showToast("Đã lưu nháp. Cần hoàn thiện nhóm suất riêng trước khi gửi duyệt.", "warning")
+        showToast("Đã lưu nháp. Bổ sung suất riêng trước khi gửi duyệt.", "warning")
         return
       }
-      showToast("Đã lưu bản nháp thực đơn tuần thành công trên hệ thống!", "success")
+      showToast("Đã lưu nháp thực đơn", "success")
       setTimeout(() => {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1000)
     } catch (err) {
-      showToast("Không thể lưu bản nháp: " + (err.message || "Lỗi máy chủ"), "warning")
+      showToast(err.message || "Không lưu được. Vui lòng thử lại.", "warning")
     } finally {
       saveLock.current = false
       setSaving(false)
@@ -584,15 +584,15 @@ export default function CreateMenu() {
   // Mở modal xác nhận gửi duyệt
   const handleOpenConfirmSubmit = () => {
     if (!menuTitle.trim()) {
-      showToast("Chưa xác định được tuần học để đặt tên thực đơn. Vui lòng kiểm tra cấu hình năm học.", "warning")
+      showToast("Chưa có tuần học. Kiểm tra cấu hình năm học.", "warning")
       return
     }
     if (!targetScope.trim()) {
-      showToast("Vui lòng nhập đối tượng áp dụng trước khi gửi duyệt", "warning")
+      showToast("Chọn đối tượng áp dụng.", "warning")
       return
     }
     if (totalWeeklyDishesCount === 0) {
-      showToast("Vui lòng thêm ít nhất một món ăn vào thực đơn tuần", "warning")
+      showToast("Thêm ít nhất một món.", "warning")
       return
     }
     if (missingDaysMessage) {
@@ -607,7 +607,7 @@ export default function CreateMenu() {
     setIsConfirmModalOpen(false)
     const payload = buildWeeklyMenuPayload()
     if (!payload.days.length) {
-      showToast("Vui lòng thêm ít nhất một món ăn trước khi gửi duyệt", "warning")
+      showToast("Thêm ít nhất một món.", "warning")
       return
     }
 
@@ -627,27 +627,25 @@ export default function CreateMenu() {
       setHasUnsavedChanges(false)
       MenuService.invalidateMenuCache()
       if (!Array.isArray(createRes?.data?.allergyChecks)) {
-        showToast("Đã lưu bản nháp nhưng chưa nhận được kết quả đối soát dị ứng; chưa gửi duyệt.", "warning")
+        showToast("Đã lưu nháp, chưa kiểm tra được dị ứng nên chưa gửi duyệt.", "warning")
         return
       }
       setAllergyReport(createRes.data)
       if (createRes.data.hasUnresolvedAllergies) {
-        showToast("Đã lưu nháp. Cần hoàn thiện nhóm suất riêng trước khi gửi duyệt.", "warning")
+        showToast("Đã lưu nháp. Bổ sung suất riêng trước khi gửi duyệt.", "warning")
         return
       }
       if (!createRes.data.submitted) throw new Error("Các khối chưa cùng được gửi duyệt. Vui lòng kiểm tra lại bản nháp.")
       MenuService.invalidateMenuCache()
       showToast(
-        "Đã gửi thực đơn tuần lên Ban Giám hiệu phê duyệt thành công!",
+        "Đã gửi Ban Giám hiệu duyệt",
         "success"
       )
       setTimeout(() => {
         navigate(ROUTER.SCHOOL_MENU_PLANNING)
       }, 1200)
     } catch (err) {
-      const message = /chưa đầy đủ các ngày\/bữa/.test(err.message || "")
-        ? "Chưa đủ thực đơn cả tuần, chưa thể gửi duyệt."
-        : err.message || "Không thể gửi thực đơn."
+      const message = err.message || "Không thể gửi thực đơn."
       showToast(draftSaved ? `Đã lưu bản nháp. ${message}` : message, "warning")
     } finally {
       saveLock.current = false

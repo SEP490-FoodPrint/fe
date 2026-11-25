@@ -59,7 +59,7 @@ export default function SampleStorage() {
       setError(
         err?.response?.data?.message ||
           err?.message ||
-          "Không thể tải danh sách tủ lưu mẫu từ hệ thống.",
+          "Không tải được danh sách tủ lưu mẫu.",
       );
     } finally {
       setLoading(false);

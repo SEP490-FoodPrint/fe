@@ -239,8 +239,8 @@ function Accounts() {
             saveStoredAccounts(updated)
             showToast(
                 type === "LOCK"
-                    ? `Đã tạm khóa tài khoản "${account.fullName}" (${account.code})!`
-                    : `Đã mở khóa tài khoản "${account.fullName}" thành công!`,
+                    ? `Đã khóa tài khoản ${account.fullName}`
+                    : `Đã mở khóa tài khoản ${account.fullName}`,
                 type === "LOCK" ? "warning" : "success"
             )
         } catch (err) {

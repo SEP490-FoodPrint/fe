@@ -146,7 +146,7 @@ function DeliveryInspectionRoles() {
       setInitialRoles(savedRoles)
       setConfigured(true)
       notice({
-        msg: "Cập nhật cấu hình phân quyền duyệt nguyên liệu thành công!",
+        msg: "Đã lưu người duyệt nguyên liệu",
       })
     } catch (err) {
       const msg =
