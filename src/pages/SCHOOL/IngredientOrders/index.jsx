@@ -3,6 +3,9 @@ import { Box, Typography } from "@mui/material"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import notice from "src/components/Notice"
 import IngredientOrderService from "src/services/IngredientOrderService"
+import SupplyRoundService from "src/services/SupplyRoundService"
+import { useNavigate } from "react-router-dom"
+import ROUTER from "src/router/ROUTER"
 
 import DeliveryHeader from "./component/DeliveryHeader"
 import DeliveryStatsRail from "./component/DeliveryStatsRail"
@@ -27,6 +30,41 @@ const getTodayStr = () =>
 
 export default function IngredientOrders() {
   const todayStr = useMemo(() => getTodayStr(), [])
+  const navigate = useNavigate()
+  // Chế độ nấu của trường: chỉ nấu riêng mới có bước kho xác nhận lưu mẫu ở Đợt 2.
+  const [cookingMode, setCookingMode] = useState(null)
+  useEffect(() => {
+    SupplyRoundService.get({ date: getTodayStr(), batchNo: "1" })
+      .then(result => setCookingMode(result?.data?.cookingMode ?? null))
+      .catch(() => setCookingMode(null))
+  }, [])
+
+  // V6: chỉ tạo đơn Đợt 2 sau khi mẻ Đợt 1 đã lập (Đợt 1 nhận đủ hàng).
+  const handleAddBatch2 = useCallback(async item => {
+    const date = String(item.deliveryDate || "").slice(0, 10)
+    try {
+      const result = await SupplyRoundService.get({ date, batchNo: "2" })
+      if (!result?.data?.round1Ready && !result?.data?.batch2NotNeeded) {
+        notice({
+          msg: "Đợt 1 chưa nhận đủ hàng và lập mẻ, chưa tạo được đơn Đợt 2.",
+          isSuccess: false,
+        })
+        return
+      }
+    } catch {
+      // Không đọc được trạng thái đợt: để màn tạo đơn báo lỗi từ máy chủ.
+    }
+    setCreateTargetDate(date)
+    setDeliverySubView("create")
+  }, [])
+
+  const handleConfirmSample = useCallback(
+    item => {
+      const date = String(item.deliveryDate || "").slice(0, 10)
+      navigate(`${ROUTER.SCHOOL_SUPPLY_ROUND_PLAN}?date=${date}&batchNo=2`)
+    },
+    [navigate],
+  )
 
   // Dữ liệu Phiếu giao nhận & Thực đơn duyệt
   const [deliveries, setDeliveries] = useState([])
@@ -320,10 +358,9 @@ export default function IngredientOrders() {
               <DeliveryTable
                 deliveries={paginatedDeliveries}
                 onViewDetail={handleViewDetail}
-                onAddBatch2={item => {
-                  setCreateTargetDate(String(item.deliveryDate || "").slice(0, 10))
-                  setDeliverySubView("create")
-                }}
+                onAddBatch2={handleAddBatch2}
+                onConfirmSample={handleConfirmSample}
+                cookingMode={cookingMode}
               />
 
               {/* Phân trang */}

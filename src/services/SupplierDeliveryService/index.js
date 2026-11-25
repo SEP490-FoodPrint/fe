@@ -674,6 +674,7 @@ function adaptDeliveryDetail(row = {}) {
     ...adaptDeliverySummary(row),
     items: Array.isArray(row.items) ? row.items.map(adaptDeliveryItem) : [],
     topUpLots: Array.isArray(row.topUpLots) ? row.topUpLots : [],
+    topUpReadiness: Array.isArray(row.topUpReadiness) ? row.topUpReadiness : [],
   }
 }
 

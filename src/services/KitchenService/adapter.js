@@ -226,7 +226,7 @@ export function adaptCookingBatch(batch) {
           ? "separate"
           : "unknown",
     plannedPortions: batch.plannedPortions,
-    portion: Number.isSafeInteger(batch.plannedPortions)
+    portion: Number.isFinite(batch.plannedPortions)
       ? `${batch.plannedPortions.toLocaleString("vi-VN")} suất`
       : "Chưa có số suất",
     sampleLabel,
@@ -395,7 +395,7 @@ export function adaptBatchDetail(batch) {
     menuDate,
     mealType,
     servingTime: batch.mealType === "LUNCH" ? "11:15" : "14:30",
-    portions: Number.isSafeInteger(batch.plannedPortions)
+    portions: Number.isFinite(batch.plannedPortions)
       ? batch.plannedPortions
       : 0,
     method,

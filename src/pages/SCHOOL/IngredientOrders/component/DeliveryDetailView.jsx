@@ -46,6 +46,8 @@ import {
   Copy,
   X,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import ROUTER from "src/router/ROUTER";
 import styles from "./DeliveryDetailView.module.scss";
 
 // Helper format ngày theo chuẩn Việt Nam DD/MM/YYYY
@@ -132,6 +134,7 @@ export default function DeliveryDetailView({
   }, [internalDelivery?.id, internalDelivery?.items?.length]);
 
   const delivery = internalDelivery || propDelivery;
+  const navigate = useNavigate();
 
   const [attendanceInput, setAttendanceInput] = useState(
     delivery?.actualAttendance || 820,
@@ -765,6 +768,20 @@ export default function DeliveryDetailView({
               )}
           </Box>
         </Box>
+        {/* TASK-10 v8: kế hoạch mẻ, phần cắt/bù lưu mẫu và bước kho xác nhận lượng bổ sung của đợt */}
+        {(isBatch1 || isBatch2) && delivery.deliveryDate && (
+          <Button
+            variant={isBatch2 ? "contained" : "outlined"}
+            startIcon={<Layers size={16} />}
+            onClick={() =>
+              navigate(
+                `${ROUTER.SCHOOL_SUPPLY_ROUND_PLAN}?date=${String(delivery.deliveryDate).slice(0, 10)}&batchNo=${isBatch2 ? 2 : 1}`,
+              )
+            }
+          >
+            {isBatch2 ? "Xác nhận lưu mẫu Đợt 2" : "Kế hoạch mẻ Đợt 1"}
+          </Button>
+        )}
       </Box>
 
       {/* 2. Cảnh báo Từ chối / Hủy đơn theo quy tắc nghiệm thu */}
@@ -1176,6 +1193,24 @@ export default function DeliveryDetailView({
                         >
                           {displayedOrderedQty}
                         </Typography>
+                        {(item.carryOverQuantity > 0 ||
+                          item.sampleCompensationQuantity > 0) && (
+                          <Typography
+                            variant="caption"
+                            sx={{ display: "block", color: "#64748b" }}
+                          >
+                            {[
+                              item.carryOverQuantity > 0
+                                ? `gồm bù làm tròn Đợt 1 ${item.carryOverQuantity} ${item.unit}`
+                                : null,
+                              item.sampleCompensationQuantity > 0
+                                ? `bù lưu mẫu Đợt 1 ${item.sampleCompensationQuantity} ${item.unit}`
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")}
+                          </Typography>
+                        )}
                         {isMulti && (
                           <Button
                             size="small"
