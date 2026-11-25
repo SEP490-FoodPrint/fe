@@ -10,6 +10,8 @@ export const apiOnboarding = "/auth/onboarding"
 
 export const apiSendActivationCode = "/auth/email-verification/request"
 export const apiVerifyActivationCode = "/auth/email-verification/verify"
+export const apiEmailSetupRequest = "/auth/email-setup/request"
+export const apiEmailSetupVerify = "/auth/email-setup/verify"
 export const apiUpdatePersonalProfile = "/auth/me"
 export const apiVerifyCurrentPassword = "/auth/change-password/verify"
 export const apiChangePassword = "/auth/change-password"

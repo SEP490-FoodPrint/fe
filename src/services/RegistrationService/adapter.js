@@ -4,13 +4,14 @@ const object = value => value && typeof value === "object" && !Array.isArray(val
 export function isRegistrationSearch(value) {
   const search = value.trim().toUpperCase()
   if (!search) return true
+  if (/^FP-RG-[0-9]{5}$/.test(search)) return true
   if (!/^FP-REG-(?:[0-9]{5}|[1-9][0-9]{5,18})$/.test(search)) return false
   const number = BigInt(search.slice(7))
   return number > 0n && number <= 9223372036854775807n
 }
 
 export function isInvalidRegistrationCodeSearch(value) {
-  return /^FP-REG-/i.test(value.trim()) && !isRegistrationSearch(value)
+  return /^FP-(?:REG|RG)-/i.test(value.trim()) && !isRegistrationSearch(value)
 }
 
 export function registrationQuery({ search = "", type, status, from, to, page = 1, pageSize = 5 } = {}) {
@@ -54,6 +55,9 @@ export function registrationRequest(value) {
     review_version: value.reviewVersion || null,
     applicant: { id: applicant.id, full_name: applicant.fullName, username: applicant.username, email: applicant.email, phone: applicant.phone, status: applicant.status, email_verified_at: applicant.emailVerifiedAt },
     reviewer: value.reviewedByUser ? { id: reviewer.id, full_name: reviewer.fullName } : null,
+    location: value.location || null,
+    schoolId: value.schoolId || value.school?.id || null,
+    supplierId: value.supplierId || value.supplier?.id || null,
     // JSON fields have no enforced business schema. Keep their existing keys.
     profile_data: object(value.profileData),
     supporting_documents: registrationDocuments(value),

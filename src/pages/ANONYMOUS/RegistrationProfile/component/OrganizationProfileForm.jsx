@@ -7,6 +7,7 @@ import ROUTER from "src/router/ROUTER"
 import AuthCard from "src/components/Auth/AuthCard"
 import AuthField from "src/components/Auth/AuthField"
 import FormErrors from "src/components/Auth/FormErrors"
+import LocationSelector from "src/components/LocationSelector"
 import { validEmail } from "src/lib/authValidation"
 import AuthService from "src/services/AuthService"
 import { usedCertification } from "src/services/AuthService/onboarding"
@@ -18,7 +19,7 @@ const certificate = id => ({ id, certificationType: "", certificateNo: "", issue
 
 export default function OrganizationProfileForm({ requestType, editing = false, onSubmitted }) {
   const supplier = requestType === "SUPPLIER"
-  const [values, setValues] = useState({ name: "", code: "", taxCode: "", email: "", phone: "", address: "" })
+  const [values, setValues] = useState({ name: "", code: "", taxCode: "", email: "", phone: "", address: "", locationId: "" })
   const [certifications, setCertifications] = useState(() => [certificate("cert-1"), certificate("cert-2")])
   const [documents, setDocuments] = useState([])
   const [existingDocuments, setExistingDocuments] = useState([])
@@ -45,7 +46,10 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
       setRequestStatus(request.status)
       setExpectedUpdatedAt(request.updatedAt)
       setExistingDocuments((request.documents || []).filter(document => document.field === "legalDocument"))
-      setValues(previous => Object.fromEntries(Object.keys(previous).map(key => [key, profile[key] || ""])))
+      setValues(previous => ({
+        ...Object.fromEntries(Object.keys(previous).map(key => [key, profile[key] || ""])),
+        locationId: request.location?.id || profile.locationId || "",
+      }))
       setCertifications((profile.certifications || []).map((row, index) => ({ ...certificate(`cert-${index + 1}`), ...row, issuedDate: row.issuedDate || "", expiryDate: row.expiryDate || "", existingDocuments: (request.documents || []).filter(document => document.field === `certificate_${index}`) })))
       nextId.current = (profile.certifications?.length || 0) + 1
     }).catch(error => { if (!controller.signal.aborted) setLoadError(error.message) })
@@ -69,6 +73,7 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
     if (submitting.current) return
     const next = {}
     if (!values.name.trim() || values.name.trim().length > 255) next.name = supplier ? "Nhập tên nhà cung cấp, tối đa 255 ký tự." : "Nhập tên trường, tối đa 255 ký tự."
+    if (!values.locationId) next.locationId = "Vui lòng chọn tỉnh/thành phố và phường/xã."
     if (values.email && (!validEmail(values.email.trim()) || values.email.trim().length > 254)) next.email = "Email liên hệ không hợp lệ."
     if (values.phone.trim().length > 30) next.phone = "Số điện thoại tối đa 30 ký tự."
     if (supplier) {
@@ -94,7 +99,22 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
     submitting.current = true
     setLoading(true)
     try { onSubmitted(await AuthService.submitOnboarding({ requestType, values, certifications, documents, existingDocuments, editing, expectedUpdatedAt })) }
-    catch (error) { setMessage(error.message || "Không thể gửi hồ sơ. Vui lòng thử lại.") }
+    catch (error) {
+      const apiFields = error?.response?.data?.error?.fields
+      if (error?.response?.status === 400 && Array.isArray(apiFields) && apiFields.length > 0) {
+        const serverErrors = {}
+        apiFields.forEach(item => {
+          const fieldKey = item?.field
+          if (fieldKey && item?.message && !serverErrors[fieldKey]) {
+            serverErrors[fieldKey] = item.message
+          }
+        })
+        if (Object.keys(serverErrors).length > 0) {
+          setErrors(serverErrors)
+        }
+      }
+      setMessage(error.message || "Không thể gửi hồ sơ. Vui lòng thử lại.")
+    }
     finally { submitting.current = false; setLoading(false) }
   }
 
@@ -113,6 +133,25 @@ export default function OrganizationProfileForm({ requestType, editing = false, 
       <AuthField id="email" label={supplier ? "Email doanh nghiệp" : "Email liên hệ"} required placeholder={supplier ? "Nhập email doanh nghiệp" : "Nhập email liên hệ"} type="email" value={values.email} onChange={change("email")} error={errors.email} inputProps={{ maxLength: 254 }} />
       <div className={!supplier ? form.full : undefined}><AuthField id="phone" label={supplier ? "Số điện thoại liên hệ" : "Số điện thoại"} required placeholder="Nhập số điện thoại" type="tel" value={values.phone} onChange={change("phone")} error={errors.phone} inputProps={{ maxLength: 30 }} /></div>
       <div className={!supplier ? form.full : undefined}><AuthField id="address" label={supplier ? "Địa chỉ kinh doanh" : "Địa chỉ trường"} required placeholder={supplier ? "Nhập địa chỉ kinh doanh" : "Nhập địa chỉ trường"} value={values.address} onChange={change("address")} autoComplete="street-address" inputProps={{ maxLength: 4000 }} /></div>
+      <div className={form.full}>
+        <LocationSelector
+          id="locationId"
+          required
+          value={values.locationId}
+          onChange={locationId => {
+            setValues(previous => ({ ...previous, locationId }))
+            if (errors.locationId) {
+              setErrors(previous => {
+                const copy = { ...previous }
+                delete copy.locationId
+                return copy
+              })
+            }
+          }}
+          error={errors.locationId}
+          disabled={loading}
+        />
+      </div>
     </div>
     {supplier ? <section className={styles.certifications} aria-labelledby="certifications-title">
       <div className={styles.sectionHeading}><span className={styles.headingRequired}><h2 id="certifications-title">Giấy phép & chứng nhận</h2><span className={styles.required}>*</span></span><p className={form.hint}>Bạn có thể thêm nhiều giấy chứng nhận. Mỗi giấy có thông tin và tệp đính kèm riêng.</p></div>

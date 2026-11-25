@@ -18,6 +18,7 @@ const RegisterPage = lazy(() => import("src/pages/ANONYMOUS/Register"))
 const RegistrationProfile = lazy(() => import("src/pages/ANONYMOUS/RegistrationProfile"))
 const RegistrationStatus = lazy(() => import("src/pages/ANONYMOUS/RegistrationStatus"))
 const AccountActivation = lazy(() => import("src/pages/ANONYMOUS/AccountActivation"))
+const EmailSetup = lazy(() => import("src/pages/ANONYMOUS/EmailSetup"))
 const ForgotPassword = lazy(() => import("src/pages/ANONYMOUS/ForgotPassword"))
 const Forbidden = lazy(() => import("src/pages/SUPPORTPAGES/Forbidden"))
 const NotFound = lazy(() => import("src/pages/SUPPORTPAGES/NotFound"))
@@ -30,6 +31,16 @@ const OrgApproval = lazy(() => import("src/pages/SYSTEM/OrgApproval"))
 const OrgApprovalDetail = lazy(() => import("src/pages/SYSTEM/OrgApprovalDetail"))
 const MeasurementUnits = lazy(() => import("src/pages/SYSTEM/MeasurementUnits"))
 const SystemConfig = lazy(() => import("src/pages/SYSTEM/SystemConfig"))
+const AuthorityOfficers = lazy(() => import("src/pages/SYSTEM/AuthorityOfficers"))
+
+// AUTHORITY pages
+const AuthoritySchools = lazy(() => import("src/pages/AUTHORITY/AuthoritySchools"))
+const AuthoritySchoolDetail = lazy(() => import("src/pages/AUTHORITY/AuthoritySchoolDetail"))
+
+// COMMON multi-portal pages
+const AuthorityComplaints = lazy(() => import("src/pages/COMMON/AuthorityComplaints"))
+const FoodSafetyIncidents = lazy(() => import("src/pages/COMMON/FoodSafetyIncidents"))
+const SupplierEnforcement = lazy(() => import("src/pages/COMMON/SupplierEnforcement"))
 
 // SUPPLIER pages
 const IngredientCatalog = lazy(() => import("src/pages/SUPPLIER/IngredientCatalog"))
@@ -74,6 +85,7 @@ const IngredientOrders = lazy(() => import("src/pages/SCHOOL/IngredientOrders"))
 const IngredientReports = lazy(() => import("src/pages/SCHOOL/IngredientReports"))
 const MealFeedback = lazy(() => import("src/pages/SCHOOL/MealFeedback"))
 const MealComplaints = lazy(() => import("src/pages/SCHOOL/MealComplaints"))
+const IngredientFeedback = lazy(() => import("src/pages/SCHOOL/IngredientFeedback"))
 const SupplierRelationships = lazy(() => import("src/pages/SCHOOL/SupplierRelationships"))
 const ClassAssignment = lazy(() => import("src/pages/SCHOOL/ClassAssignment"))
 const SchoolGrades = lazy(() => import("src/pages/SCHOOL/SchoolGrades"))
@@ -189,6 +201,7 @@ const routes = [
       },
       { path: ROUTER.REGISTER, element: <LazyWrapper><RegisterPage /></LazyWrapper> },
       { path: ROUTER.ACTIVATE_ACCOUNT, element: <LazyWrapper><AccountActivation /></LazyWrapper> },
+      { path: ROUTER.EMAIL_SETUP, element: <LazyWrapper><EmailSetup /></LazyWrapper> },
       { path: ROUTER.FORGOT_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
       { path: ROUTER.PASSWORD_RECOVERY_CODE, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
       { path: ROUTER.RESET_PASSWORD, element: <LazyWrapper><ForgotPassword /></LazyWrapper> },
@@ -212,9 +225,38 @@ const routes = [
           { path: ROUTER.SYSTEM_SCHOOL_DETAIL, element: <LazyWrapper><DirectoryDetail kind="school" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_LIST, element: <LazyWrapper><DirectoryList kind="supplier" /></LazyWrapper> },
           { path: ROUTER.SYSTEM_SUPPLIER_DETAIL, element: <LazyWrapper><DirectoryDetail kind="supplier" /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_AUTHORITY_OFFICERS, element: <LazyWrapper><AuthorityOfficers /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_AUTHORITY_OFFICER_DETAIL, element: <LazyWrapper><AuthorityOfficers /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_ENFORCEMENT_ACTIONS, element: <LazyWrapper><SupplierEnforcement /></LazyWrapper> },
+          { path: ROUTER.SYSTEM_ENFORCEMENT_ACTION_DETAIL, element: <LazyWrapper><SupplierEnforcement /></LazyWrapper> },
           { path: ROUTER.SYSTEM_MEASUREMENT_UNITS, element: <LazyWrapper><MeasurementUnits /></LazyWrapper> },
           { path: ROUTER.SYSTEM_CONFIG, element: <LazyWrapper><SystemConfig /></LazyWrapper> },
           { path: ROUTER.SYSTEM_CONFIG_DETAIL, element: <LazyWrapper><SystemConfig /></LazyWrapper> },
+        ],
+      },
+    ],
+  },
+
+  // 4b. Phân hệ AUTHORITY (Bảo vệ: Cán bộ An toàn thực phẩm cấp xã — không có Dashboard)
+  {
+    element: (
+      <LazyWrapper>
+        <RoleRoute allowedOrg={ORG_TYPES.AUTHORITY} allowedRoles={[ROLES.COMMUNE_FOOD_SAFETY_OFFICER]} />
+      </LazyWrapper>
+    ),
+    children: [
+      {
+        element: <MainLayout type="AUTHORITY" />,
+        children: [
+          { path: ROUTER.AUTHORITY, element: <Navigate to={ROUTER.AUTHORITY_SCHOOLS} replace /> },
+          { path: ROUTER.AUTHORITY_SCHOOLS, element: <LazyWrapper><AuthoritySchools /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_SCHOOL_DETAIL, element: <LazyWrapper><AuthoritySchoolDetail /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_INCIDENTS, element: <LazyWrapper><FoodSafetyIncidents /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_INCIDENT_DETAIL, element: <LazyWrapper><FoodSafetyIncidents /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_COMPLAINTS, element: <LazyWrapper><AuthorityComplaints basePath={ROUTER.AUTHORITY_COMPLAINTS} /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_COMPLAINT_DETAIL, element: <LazyWrapper><AuthorityComplaints basePath={ROUTER.AUTHORITY_COMPLAINTS} /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_ENFORCEMENT_ACTIONS, element: <LazyWrapper><SupplierEnforcement /></LazyWrapper> },
+          { path: ROUTER.AUTHORITY_ENFORCEMENT_ACTION_DETAIL, element: <LazyWrapper><SupplierEnforcement /></LazyWrapper> },
         ],
       },
     ],
@@ -406,12 +448,38 @@ const routes = [
             element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
             children: [
               { path: ROUTER.SCHOOL_MEAL_FEEDBACK, element: <LazyWrapper><MealFeedback /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MEAL_FEEDBACK_DETAIL, element: <LazyWrapper><MealFeedback /></LazyWrapper> },
             ],
           },
           {
             element: <RoleRoute allowedRoles={[ROLES.HOMEROOM_TEACHER, ROLES.PARENTS_COMMITTEE]} />,
             children: [
               { path: ROUTER.SCHOOL_MEAL_COMPLAINTS, element: <LazyWrapper><MealComplaints /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_MEAL_COMPLAINT_DETAIL, element: <LazyWrapper><MealComplaints /></LazyWrapper> },
+            ],
+          },
+          // Phản ánh chất lượng nguyên liệu (C02): BGH, Bếp, Dinh dưỡng
+          {
+            element: <RoleRoute allowedRoles={[ROLES.SCHOOL_MANAGEMENT_BOARD, ROLES.SCHOOL_KITCHEN_STAFF, ROLES.SCHOOL_NUTRITION_OFFICER]} />,
+            children: [
+              { path: ROUTER.SCHOOL_INGREDIENT_FEEDBACK, element: <LazyWrapper><IngredientFeedback /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_INGREDIENT_FEEDBACK_DETAIL, element: <LazyWrapper><IngredientFeedback /></LazyWrapper> },
+            ],
+          },
+          // Khiếu nại chuyển ATTP (C05): chỉ phụ huynh gửi/theo dõi; BGH không xem (specs/board-escalation-view)
+          {
+            element: <RoleRoute allowedRoles={[ROLES.PARENTS_COMMITTEE]} />,
+            children: [
+              { path: ROUTER.SCHOOL_AUTHORITY_COMPLAINTS, element: <LazyWrapper><AuthorityComplaints basePath={ROUTER.SCHOOL_AUTHORITY_COMPLAINTS} /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_AUTHORITY_COMPLAINT_DETAIL, element: <LazyWrapper><AuthorityComplaints basePath={ROUTER.SCHOOL_AUTHORITY_COMPLAINTS} /></LazyWrapper> },
+            ],
+          },
+          // Báo cáo ngộ độc: Phụ huynh, GVCN, BGH
+          {
+            element: <RoleRoute allowedRoles={[ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER, ROLES.SCHOOL_MANAGEMENT_BOARD]} />,
+            children: [
+              { path: ROUTER.SCHOOL_INCIDENTS, element: <LazyWrapper><FoodSafetyIncidents /></LazyWrapper> },
+              { path: ROUTER.SCHOOL_INCIDENT_DETAIL, element: <LazyWrapper><FoodSafetyIncidents /></LazyWrapper> },
             ],
           },
         ],

@@ -7,6 +7,7 @@ const ROUTER = {
   PROFILE: "/profile",
   CHANGE_PASSWORD: "/change-password",
   ACTIVATE_ACCOUNT: "/activate-account",
+  EMAIL_SETUP: "/email-setup",
   REGISTRATION_PROFILE: "/register/profile",
   REGISTRATION_STATUS: "/register/status",
   FORGOT_PASSWORD: "/forgot-password",
@@ -26,10 +27,24 @@ const ROUTER = {
   SYSTEM_SCHOOL_DETAIL: "/system/school-list/:id",
   SYSTEM_SUPPLIER_LIST: "/system/supplier-list",
   SYSTEM_SUPPLIER_DETAIL: "/system/supplier-list/:id",
-  SYSTEM_COMPLAINT_LIST: "/system/complaint-list",
+  SYSTEM_ENFORCEMENT_ACTIONS: "/system/supplier-enforcement",
+  SYSTEM_ENFORCEMENT_ACTION_DETAIL: "/system/supplier-enforcement/:actionId",
+  SYSTEM_AUTHORITY_OFFICERS: "/system/authority-officers",
+  SYSTEM_AUTHORITY_OFFICER_DETAIL: "/system/authority-officers/:userId",
   SYSTEM_MEASUREMENT_UNITS: "/system/measurement-units",
   SYSTEM_CONFIG: "/system/config",
   SYSTEM_CONFIG_DETAIL: "/system/config/:id",
+
+  // Phân hệ AUTHORITY (Cán bộ An toàn thực phẩm cấp xã — không có Dashboard)
+  AUTHORITY: "/authority",
+  AUTHORITY_SCHOOLS: "/authority/schools",
+  AUTHORITY_SCHOOL_DETAIL: "/authority/schools/:schoolId",
+  AUTHORITY_COMPLAINTS: "/authority/complaints",
+  AUTHORITY_COMPLAINT_DETAIL: "/authority/complaints/:id",
+  AUTHORITY_INCIDENTS: "/authority/incidents",
+  AUTHORITY_INCIDENT_DETAIL: "/authority/incidents/:id",
+  AUTHORITY_ENFORCEMENT_ACTIONS: "/authority/enforcement-actions",
+  AUTHORITY_ENFORCEMENT_ACTION_DETAIL: "/authority/enforcement-actions/:actionId",
 
   // Phân hệ SUPPLIER (Dành cho INGREDIENT_SUPPLIER)
   SUPPLIER: "/supplier",
@@ -92,8 +107,16 @@ const ROUTER = {
   SCHOOL_INGREDIENT_ORDERS: "/school/ingredient-orders",     // Phiếu nhập & Đơn hàng
   SCHOOL_ORDER_TRACKING: "/school/order-tracking",           // Theo dõi đơn hàng
   SCHOOL_INGREDIENT_REPORTS: "/school/ingredient-reports",   // Thống kê & Báo cáo
-  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Ban Giám hiệu
-  SCHOOL_MEAL_COMPLAINTS: "/school/meal-complaints",
+  SCHOOL_MEAL_FEEDBACK: "/school/meal-feedback",           // Ban Giám hiệu (C03)
+  SCHOOL_MEAL_FEEDBACK_DETAIL: "/school/meal-feedback/:id",
+  SCHOOL_MEAL_COMPLAINTS: "/school/meal-complaints",       // Phụ huynh, GVCN (C03)
+  SCHOOL_MEAL_COMPLAINT_DETAIL: "/school/meal-complaints/:id",
+  SCHOOL_INGREDIENT_FEEDBACK: "/school/ingredient-feedback", // BGH, Bếp, Dinh dưỡng (C02)
+  SCHOOL_INGREDIENT_FEEDBACK_DETAIL: "/school/ingredient-feedback/:id",
+  SCHOOL_AUTHORITY_COMPLAINTS: "/school/authority-complaints", // Phụ huynh, BGH (C05)
+  SCHOOL_AUTHORITY_COMPLAINT_DETAIL: "/school/authority-complaints/:id",
+  SCHOOL_INCIDENTS: "/school/incidents",                   // Sự cố ATTP (Phụ huynh, GVCN, BGH)
+  SCHOOL_INCIDENT_DETAIL: "/school/incidents/:id",
   SCHOOL_SUPPLIERS: "/school/suppliers",
   SCHOOL_CLASS_ASSIGNMENT: "/school/class-assignment",   // BGH phân công GVCN
   SCHOOL_GRADES: "/school/grades",

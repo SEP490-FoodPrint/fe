@@ -37,7 +37,7 @@ export default function LoginForm({
     event.preventDefault()
     if (submitting.current) return
     const next = {}
-    if (!identifier.trim()) next.identifier = "Vui lòng nhập email hoặc số điện thoại."
+    if (!identifier.trim()) next.identifier = "Vui lòng nhập email hoặc tên đăng nhập."
     if (!password) next.password = "Vui lòng nhập mật khẩu."
     setErrors(next)
     setMessage("")
@@ -134,7 +134,7 @@ export default function LoginForm({
               <div className={styles.fieldLabelRow}>
                 <User size={15} className={styles.labelIcon} />
                 <label htmlFor="login-identifier" className={styles.fieldLabel}>
-                  Email / Số điện thoại
+                  Email hoặc tên đăng nhập
                 </label>
               </div>
               <div
@@ -155,7 +155,7 @@ export default function LoginForm({
                     setIdentifier(e.target.value)
                     if (errors.identifier) setErrors((prev) => ({ ...prev, identifier: "" }))
                   }}
-                  placeholder="Nhập email hoặc số điện thoại"
+                  placeholder="Nhập email hoặc tên đăng nhập"
                   className={styles.textInput}
                   autoComplete="username"
                   disabled={loading}

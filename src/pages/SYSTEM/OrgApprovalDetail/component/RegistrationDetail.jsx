@@ -68,6 +68,7 @@ export default function RegistrationDetail() {
     field(`Tên ${organizationLabel}`, name),
     ...(isSupplier ? [field("Mã số thuế", profile.taxCode || profile.tax_code)] : []),
     field("Email liên hệ", profile.email), field("Số điện thoại liên hệ", profile.phone),
+    field("Phường / Xã", request.location?.name || "Chưa chọn"),
     field("Địa chỉ", profile.address),
   ]
   const organizationDetails = [
@@ -106,6 +107,11 @@ export default function RegistrationDetail() {
         <h2 id="review-title">Thông tin xét duyệt</h2>
         {request.status === "PENDING" ? <>
           <p className={styles.description}>Hồ sơ chưa được xét duyệt</p>
+          {!request.location ? (
+            <Alert severity="warning">
+              Hồ sơ chưa chọn phường/xã (hồ sơ nộp trước khi bắt buộc chọn). Vẫn duyệt được, nhưng sau khi duyệt cần gắn phường/xã cho đơn vị để các luồng chuyển ATTP hoạt động.
+            </Alert>
+          ) : null}
           <div className={styles.actions}><Button variant="contained" onClick={() => setDialog("APPROVED")}>Phê duyệt hồ sơ</Button><Button variant="outlined" className={styles.reject} onClick={() => setDialog("REJECTED")}>Từ chối hồ sơ</Button></div>
         </> : isReviewed ? <>
           <RequestFields columns={2} fields={[field("Người xét duyệt", request.reviewer?.full_name), field("Ngày xét duyệt", request.reviewed_at ? formatRequestDate(request.reviewed_at, true) : null)]} />
@@ -124,7 +130,7 @@ export default function RegistrationDetail() {
         <p>Cập nhật lần cuối: {formatRequestDate(request.updated_at, true)}</p>
         {isMock && <p>Dữ liệu và minh chứng minh họa cho giao diện.</p>}
       </footer>
-      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={(updated, reviewedMock) => { setRequest(updated); setIsMock(Boolean(reviewedMock)); setDialog("RESULT") }} onReload={() => { setDialog(null); setRetry(value => value + 1) }} />
+      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={(updated, reviewedMock) => { setRequest(prev => ({ ...updated, location: updated.location || prev?.location || null })); setIsMock(Boolean(reviewedMock)); setDialog("RESULT") }} onReload={() => { setDialog(null); setRetry(value => value + 1) }} onSwitchToReject={() => setDialog("REJECTED")} />
     </section>
   )
 }

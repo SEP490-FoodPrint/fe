@@ -7,14 +7,21 @@ import styles from "./index.module.scss"
 import ROUTER from "src/router/ROUTER"
 import MenuService from "src/services/MenuService"
 import { SCHOOL_DAY_LABELS } from "src/services/MenuService/adapter"
-import { filterMenuCardsByGrade, groupMenuCardsByWeek } from "src/services/MenuService/listGrades"
+import {
+  filterMenuCardsByGrade,
+  groupMenuCardsByWeek,
+} from "src/services/MenuService/listGrades"
 
 import MenuListFilterStrip from "./component/MenuListFilterStrip"
 import MenuDetailModal from "./component/MenuDetailModal"
 import MenuListWeeklyVerticalView from "./component/MenuListWeeklyVerticalView"
 import MenuYearWeeksTable from "./component/MenuYearWeeksTable"
 import MenuDeadlineBanner from "./component/MenuDeadlineBanner"
-import { academicWeekSearch, mondayOfIsoDate, resolveAcademicWeekView } from "src/services/MenuService/academicWeekView"
+import {
+  academicWeekSearch,
+  mondayOfIsoDate,
+  resolveAcademicWeekView,
+} from "src/services/MenuService/academicWeekView"
 
 export default function MenuPlanning() {
   const navigate = useNavigate()
@@ -46,28 +53,49 @@ export default function MenuPlanning() {
     gradeId: "",
   })
 
-  const menus = useMemo(() => filterMenuCardsByGrade(allMenus, filters.gradeId), [allMenus, filters.gradeId])
+  const menus = useMemo(
+    () => filterMenuCardsByGrade(allMenus, filters.gradeId),
+    [allMenus, filters.gradeId],
+  )
   // Mỗi thực đơn tuần (theo khối) là một thẻ riêng; "Gửi BGH duyệt" chỉ gửi đúng thực đơn đó.
-  const menuGroups = useMemo(() => groupMenuCardsByWeek(menus).map((group) => ({ ...group, members: [group] })), [menus])
+  const menuGroups = useMemo(
+    () =>
+      groupMenuCardsByWeek(menus).map(group => ({
+        ...group,
+        members: [group],
+      })),
+    [menus],
+  )
 
   useEffect(() => {
     let active = true
     setGradeLoading(true)
     setGradeError("")
-    MenuService.getContext({ forceRefresh: true }).then(context => {
-      if (!active) return
-      if (!Array.isArray(context.grades)) throw new Error("Không tải được danh sách khối của trường.")
-      setGradeOptions(context.grades)
-    }).catch(error => {
-      if (active) setGradeError(error.message || "Không tải được danh sách khối của trường.")
-    }).finally(() => { if (active) setGradeLoading(false) })
-    return () => { active = false }
+    MenuService.getContext({ forceRefresh: true })
+      .then(context => {
+        if (!active) return
+        if (!Array.isArray(context.grades))
+          throw new Error("Không tải được danh sách khối của trường.")
+        setGradeOptions(context.grades)
+      })
+      .catch(error => {
+        if (active)
+          setGradeError(
+            error.message || "Không tải được danh sách khối của trường.",
+          )
+      })
+      .finally(() => {
+        if (active) setGradeLoading(false)
+      })
+    return () => {
+      active = false
+    }
   }, [gradeRetry])
 
   // Cấu hình năm học hiện tại do BGH setup
   const currentAcademicYearConfig = useMemo(() => {
-    return (
-      availableAcademicYears.find((ay) => ay.academicYear === filters.academicYear)
+    return availableAcademicYears.find(
+      ay => ay.academicYear === filters.academicYear,
     )
   }, [availableAcademicYears, filters.academicYear])
 
@@ -78,13 +106,12 @@ export default function MenuPlanning() {
 
   // Tuần đang được chọn
   const selectedWeekObj = useMemo(() => {
-    return schoolWeeks.find((w) => w.weekStartDate === filters.week)
+    return schoolWeeks.find(w => w.weekStartDate === filters.week)
   }, [schoolWeeks, filters.week])
 
-  const defaultYear = (years) =>
-    years.find((year) => year.isCurrent) || years[0]
-  const defaultWeek = (year) =>
-    year?.weeks?.find((week) => week.isCurrentWeek) || year?.weeks?.[0]
+  const defaultYear = years => years.find(year => year.isCurrent) || years[0]
+  const defaultWeek = year =>
+    year?.weeks?.find(week => week.isCurrentWeek) || year?.weeks?.[0]
 
   useEffect(() => {
     let active = true
@@ -94,17 +121,30 @@ export default function MenuPlanning() {
       .then(({ academicYears }) => {
         if (!active) return
         setAvailableAcademicYears(academicYears)
-        const selection = resolveAcademicWeekView(academicYears, location.search)
-        setFilters((prev) => ({ ...prev, academicYear: selection.year?.academicYear || "", week: selection.week?.weekStartDate || "" }))
-        setCalendarError(selection.invalidSelection ? "Tuần đã chọn không thuộc năm học hiện tại. Đã mở tuần mặc định của năm học." : "")
+        const selection = resolveAcademicWeekView(
+          academicYears,
+          location.search,
+        )
+        setFilters(prev => ({
+          ...prev,
+          academicYear: selection.year?.academicYear || "",
+          week: selection.week?.weekStartDate || "",
+        }))
+        setCalendarError(
+          selection.invalidSelection
+            ? "Tuần đã chọn không thuộc năm học hiện tại. Đã mở tuần mặc định của năm học."
+            : "",
+        )
       })
-      .catch((error) => {
+      .catch(error => {
         if (active) setCalendarError(error.message || "Không tải được năm học.")
       })
       .finally(() => {
         if (active) setCalendarLoading(false)
       })
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [calendarRetry])
 
   const selectedWeekView = searchParams.has("week")
@@ -130,7 +170,9 @@ export default function MenuPlanning() {
         const res = await MenuService.getMenus({
           allPages: true,
           status: filters.status,
-          weekStartDate: selectedWeekView ? selectedWeekObj?.weekStartDate : undefined,
+          weekStartDate: selectedWeekView
+            ? selectedWeekObj?.weekStartDate
+            : undefined,
           includeAllergyDishes: selectedWeekView,
         })
         if (isMounted && Array.isArray(res?.data)) {
@@ -156,7 +198,7 @@ export default function MenuPlanning() {
 
   const weekMenusMap = useMemo(() => {
     const map = {}
-    allMenus.forEach((menu) => {
+    allMenus.forEach(menu => {
       const start = menu.weekStartDate || mondayOfIsoDate(menu.rawDate)
       if (!start) return
       if (!map[start]) map[start] = []
@@ -181,11 +223,12 @@ export default function MenuPlanning() {
 
   // Filter changes
   const handleChangeFilter = (field, value) => {
-    setFilters((prev) => {
+    setFilters(prev => {
       const next = { ...prev, [field]: value }
       if (field === "academicYear") {
-        const targetConfig =
-          availableAcademicYears.find((ay) => ay.academicYear === value)
+        const targetConfig = availableAcademicYears.find(
+          ay => ay.academicYear === value,
+        )
         next.week = defaultWeek(targetConfig)?.weekStartDate || ""
       }
       return next
@@ -208,9 +251,13 @@ export default function MenuPlanning() {
   const filteredMenus = useMemo(() => {
     const list = Array.isArray(menus) ? menus : []
     const search = filters.searchKeyword.trim().toLowerCase()
-    return list.filter((item) => {
-      if (!selectedWeekObj || item.rawDate < selectedWeekObj.weekStartDate ||
-        item.rawDate > selectedWeekObj.weekEndDate) return false
+    return list.filter(item => {
+      if (
+        !selectedWeekObj ||
+        item.rawDate < selectedWeekObj.weekStartDate ||
+        item.rawDate > selectedWeekObj.weekEndDate
+      )
+        return false
 
       if (filters.mealType !== "all") {
         if (item.mealType !== filters.mealType) {
@@ -226,9 +273,12 @@ export default function MenuPlanning() {
 
       if (search) {
         const nameMatch = item.name?.toLowerCase().includes(search)
-        const dishMatch = item.dishes?.some((d) =>
-          d.name?.toLowerCase().includes(search) ||
-          d.substituteDishes?.some(substitute => substitute.name?.toLowerCase().includes(search))
+        const dishMatch = item.dishes?.some(
+          d =>
+            d.name?.toLowerCase().includes(search) ||
+            d.substituteDishes?.some(substitute =>
+              substitute.name?.toLowerCase().includes(search),
+            ),
         )
         if (!nameMatch && !dishMatch) {
           return false
@@ -243,10 +293,10 @@ export default function MenuPlanning() {
   const weekSchoolDays = useMemo(() => {
     if (!selectedWeekObj?.weekStartDate) return []
     const monday = new Date(`${selectedWeekObj.weekStartDate}T00:00:00Z`)
-    const pad = (n) => String(n).padStart(2, "0")
+    const pad = n => String(n).padStart(2, "0")
     const now = new Date()
     const todayISO = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(
-      now.getDate()
+      now.getDate(),
     )}`
 
     const holidays = currentAcademicYearConfig?.holidays || []
@@ -256,13 +306,13 @@ export default function MenuPlanning() {
       const d = new Date(monday)
       d.setUTCDate(monday.getUTCDate() + i)
       const dateVN = `${pad(d.getUTCDate())}/${pad(
-        d.getUTCMonth() + 1
+        d.getUTCMonth() + 1,
       )}/${d.getUTCFullYear()}`
       const dateISO = `${d.getUTCFullYear()}-${pad(
-        d.getUTCMonth() + 1
+        d.getUTCMonth() + 1,
       )}-${pad(d.getUTCDate())}`
 
-      const holidayMatch = holidays.find((h) => h.date === dateISO)
+      const holidayMatch = holidays.find(h => h.date === dateISO)
 
       days.push({
         dayOfWeek: i + 1,
@@ -284,7 +334,9 @@ export default function MenuPlanning() {
 
   // Tiêu đề của thực đơn tuần được chọn
   const weeklyMenuTitle = useMemo(() => {
-    return selectedWeekObj ? `Thực đơn dinh dưỡng tuần ${selectedWeekObj.weekNumber}` : "Thực đơn"
+    return selectedWeekObj
+      ? `Thực đơn dinh dưỡng tuần ${selectedWeekObj.weekNumber}`
+      : "Thực đơn"
   }, [selectedWeekObj])
 
   const isCurrentWeek = useMemo(() => {
@@ -292,16 +344,16 @@ export default function MenuPlanning() {
   }, [selectedWeekObj])
 
   // Xử lý gửi BGH duyệt tuần (khi DRAFT)
-  const handleSubmitWeeklyMenu = async (weekMenus) => {
+  const handleSubmitWeeklyMenu = async weekMenus => {
     let missingDays = []
-    weekSchoolDays.forEach((sd) => {
+    weekSchoolDays.forEach(sd => {
       if (sd.isHoliday) return
 
       const dayMenus = weekMenus.filter(
-        (m) => m.rawDate === sd.dateISO || m.date === sd.dateVN
+        m => m.rawDate === sd.dateISO || m.date === sd.dateVN,
       )
-      const hasLunch = dayMenus.some((m) => m.mealType === "LUNCH")
-      const hasAfternoon = dayMenus.some((m) => m.mealType === "AFTERNOON")
+      const hasLunch = dayMenus.some(m => m.mealType === "LUNCH")
+      const hasAfternoon = dayMenus.some(m => m.mealType === "AFTERNOON")
       if (!hasLunch || !hasAfternoon) {
         missingDays.push(sd.dayLabel)
       }
@@ -310,7 +362,7 @@ export default function MenuPlanning() {
     if (missingDays.length > 0) {
       showToast(
         `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa đủ 2 ca (trưa & xế). Vui lòng hoàn tất trước khi gửi!`,
-        "warning"
+        "warning",
       )
       return
     }
@@ -323,13 +375,20 @@ export default function MenuPlanning() {
     }
 
     try {
-      await MenuService.submitMenuGroup([...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id))])
+      await MenuService.submitMenuGroup([
+        ...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id)),
+      ])
       showToast(
         `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
-        "success"
+        "success",
       )
       // Tải lại danh sách từ API
-      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week, includeAllergyDishes: true })
+      const res = await MenuService.getMenus({
+        allPages: true,
+        status: filters.status,
+        weekStartDate: filters.week,
+        includeAllergyDishes: true,
+      })
       if (Array.isArray(res?.data)) setMenus(res.data)
     } catch (err) {
       showToast(err.message || "Không thể gửi duyệt thực đơn.", "warning")
@@ -337,21 +396,31 @@ export default function MenuPlanning() {
   }
 
   // Xử lý gửi lại BGH duyệt (khi REVISION_REQUESTED)
-  const handleResubmitWeeklyMenu = async (weekMenus) => {
+  const handleResubmitWeeklyMenu = async weekMenus => {
     const weeklyId = weekMenus[0]?.weeklyMenuId || weekMenus[0]?.id
 
     if (!weeklyId) {
-      showToast("Chưa xác định được mã tuần thực đơn để gửi duyệt lại.", "warning")
+      showToast(
+        "Chưa xác định được mã tuần thực đơn để gửi duyệt lại.",
+        "warning",
+      )
       return
     }
 
     try {
-      await MenuService.submitMenuGroup([...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id))])
+      await MenuService.submitMenuGroup([
+        ...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id)),
+      ])
       showToast(
         `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
-        "success"
+        "success",
       )
-      const res = await MenuService.getMenus({ allPages: true, status: filters.status, weekStartDate: filters.week, includeAllergyDishes: true })
+      const res = await MenuService.getMenus({
+        allPages: true,
+        status: filters.status,
+        weekStartDate: filters.week,
+        includeAllergyDishes: true,
+      })
       if (Array.isArray(res?.data)) setMenus(res.data)
     } catch (err) {
       showToast(err.message || "Không thể gửi lại thực đơn.", "warning")
@@ -360,53 +429,102 @@ export default function MenuPlanning() {
 
   // Navigation handlers
   const handleNavigateCreate = () => {
-    navigate(ROUTER.SCHOOL_MENU_CREATE, { state: { returnTo: `${location.pathname}${academicWeekSearch(location.search, filters.academicYear).toString() ? `?${academicWeekSearch(location.search, filters.academicYear).toString()}` : ""}` } })
-  }
-
-  const handleNavigateCreateWithDate = (dateISO, mealType) => {
-    const query = academicWeekSearch(location.search, filters.academicYear, filters.week)
     navigate(ROUTER.SCHOOL_MENU_CREATE, {
-      state: { initialDate: dateISO, initialMealType: mealType, returnTo: `${location.pathname}?${query.toString()}` },
+      state: {
+        returnTo: `${location.pathname}${academicWeekSearch(location.search, filters.academicYear).toString() ? `?${academicWeekSearch(location.search, filters.academicYear).toString()}` : ""}`,
+      },
     })
   }
 
-  const handleEditMenu = (menu) => {
+  const handleNavigateCreateWithDate = (dateISO, mealType) => {
+    const query = academicWeekSearch(
+      location.search,
+      filters.academicYear,
+      filters.week,
+    )
+    navigate(ROUTER.SCHOOL_MENU_CREATE, {
+      state: {
+        initialDate: dateISO,
+        initialMealType: mealType,
+        returnTo: `${location.pathname}?${query.toString()}`,
+      },
+    })
+  }
+
+  const handleEditMenu = menu => {
     navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), {
       state: { menu, autoOpenEdit: true },
     })
   }
 
-  const handleViewDetail = (menu) => {
+  const handleViewDetail = menu => {
     navigate(ROUTER.SCHOOL_MENU_DETAIL.replace(":id", menu.id), {
       state: { menu },
     })
   }
 
-  if (!selectedWeekView) return (
-    <div className={styles.menuListPage}>
-      {/* Chỉ báo hạn chót khi đã tải xong thực đơn (tránh nhấp nháy "chưa được tạo" lúc danh sách còn rỗng)
+  if (!selectedWeekView)
+    return (
+      <div className={styles.menuListPage}>
+        {/* Chỉ báo hạn chót khi đã tải xong thực đơn (tránh nhấp nháy "chưa được tạo" lúc danh sách còn rỗng)
           và đang xem mọi trạng thái (lọc theo trạng thái sẽ làm thiếu thực đơn của tuần tới) */}
-      {!calendarLoading && !menusLoading && !loadError && filters.status === "all" && (
-        <MenuDeadlineBanner
+        {!calendarLoading &&
+          !menusLoading &&
+          !loadError &&
+          filters.status === "all" && (
+            <MenuDeadlineBanner
+              academicYears={availableAcademicYears}
+              weekMenus={weekMenusMap}
+              grades={gradeOptions}
+              onCreate={weekStartDate =>
+                handleNavigateCreateWithDate(weekStartDate, "LUNCH")
+              }
+            />
+          )}
+        <MenuYearWeeksTable
           academicYears={availableAcademicYears}
+          academicYear={filters.academicYear}
+          loading={calendarLoading || (!selectedWeekView && menusLoading)}
+          error={calendarError || (!selectedWeekView ? loadError : "")}
+          onRetry={() => {
+            setCalendarRetry(value => value + 1)
+          }}
+          onYearChange={value => {
+            const year = availableAcademicYears.find(
+              item => item.academicYear === value,
+            )
+            const week = defaultWeek(year)
+            const query = academicWeekSearch(location.search, value)
+            setSearchParams(query)
+            setFilters(previous => ({
+              ...previous,
+              academicYear: value,
+              week: week?.weekStartDate || "",
+            }))
+          }}
+          onSelectWeek={week => {
+            const query = academicWeekSearch(
+              location.search,
+              filters.academicYear,
+              week.weekStartDate,
+            )
+            setSearchParams(query)
+            setFilters(previous => ({ ...previous, week: week.weekStartDate }))
+          }}
+          action={
+            <button
+              type="button"
+              className={styles.createBtn}
+              onClick={handleNavigateCreate}
+            >
+              <Plus size={16} />
+              <span>Tạo thực đơn</span>
+            </button>
+          }
           weekMenus={weekMenusMap}
-          grades={gradeOptions}
-          onCreate={(weekStartDate) => handleNavigateCreateWithDate(weekStartDate, "LUNCH")}
         />
-      )}
-      <MenuYearWeeksTable
-        academicYears={availableAcademicYears}
-        academicYear={filters.academicYear}
-        loading={calendarLoading || (!selectedWeekView && menusLoading)}
-        error={calendarError || (!selectedWeekView ? loadError : "")}
-        onRetry={() => { setCalendarRetry(value => value + 1); }}
-        onYearChange={(value) => { const year = availableAcademicYears.find(item => item.academicYear === value); const week = defaultWeek(year); const query = academicWeekSearch(location.search, value); setSearchParams(query); setFilters(previous => ({ ...previous, academicYear: value, week: week?.weekStartDate || "" })) }}
-        onSelectWeek={(week) => { const query = academicWeekSearch(location.search, filters.academicYear, week.weekStartDate); setSearchParams(query); setFilters(previous => ({ ...previous, week: week.weekStartDate })) }}
-        action={<button type="button" className={styles.createBtn} onClick={handleNavigateCreate}><Plus size={16} /><span>Tạo thực đơn</span></button>}
-        weekMenus={weekMenusMap}
-      />
-    </div>
-  )
+      </div>
+    )
 
   return (
     <div className={styles.menuListPage}>
@@ -422,21 +540,48 @@ export default function MenuPlanning() {
 
       {/* 1. Tiêu đề màn hình chuẩn mực (Clean, tối giản) */}
       <div className={styles.pageHeader}>
-        <button type="button" className={styles.backToWeeks} onClick={() => { const query = academicWeekSearch(location.search, filters.academicYear); setSearchParams(query) }}>‹ Danh sách tuần</button>
+        <button
+          type="button"
+          className={styles.backToWeeks}
+          onClick={() => {
+            const query = academicWeekSearch(
+              location.search,
+              filters.academicYear,
+            )
+            setSearchParams(query)
+          }}
+        >
+          ‹ Danh sách tuần
+        </button>
         {/* Nút theo trạng thái thực đơn của tuần đang xem */}
         {(() => {
           const statuses = new Set(menuGroups.map(group => group.status))
-          const editAction =
-            statuses.has("REVISION_REQUESTED") ? { label: "Sửa theo yêu cầu BGH", title: "Sửa thực đơn tuần theo nhận xét của Ban Giám hiệu" }
-              : statuses.has("DRAFT") ? { label: "Tiếp tục soạn thực đơn", title: "Tiếp tục soạn bản nháp thực đơn tuần" }
-                : statuses.has("PENDING_APPROVAL") ? { label: "Sửa thực đơn", title: "Thực đơn đang chờ BGH duyệt, vẫn sửa được" }
-                  : null
+          const editAction = statuses.has("REVISION_REQUESTED")
+            ? {
+                label: "Sửa theo yêu cầu BGH",
+                title: "Sửa thực đơn tuần theo nhận xét của Ban Giám hiệu",
+              }
+            : statuses.has("DRAFT")
+              ? {
+                  label: "Tiếp tục soạn thực đơn",
+                  title: "Tiếp tục soạn bản nháp thực đơn tuần",
+                }
+              : statuses.has("PENDING_APPROVAL")
+                ? {
+                    label: "Sửa thực đơn",
+                    title: "Thực đơn đang chờ BGH duyệt, vẫn sửa được",
+                  }
+                : null
           const weekStart = selectedWeekObj?.weekStartDate
           return editAction ? (
             <button
               type="button"
               className={styles.createBtn}
-              onClick={() => (weekStart ? handleNavigateCreateWithDate(weekStart, "LUNCH") : handleNavigateCreate())}
+              onClick={() =>
+                weekStart
+                  ? handleNavigateCreateWithDate(weekStart, "LUNCH")
+                  : handleNavigateCreate()
+              }
               title={editAction.title}
             >
               <Pencil size={15} />
@@ -446,7 +591,11 @@ export default function MenuPlanning() {
             <button
               type="button"
               className={styles.createBtn}
-              onClick={() => (weekStart ? handleNavigateCreateWithDate(weekStart, "LUNCH") : handleNavigateCreate())}
+              onClick={() =>
+                weekStart
+                  ? handleNavigateCreateWithDate(weekStart, "LUNCH")
+                  : handleNavigateCreate()
+              }
               title="Tạo thực đơn mới"
             >
               <Plus size={16} />
@@ -471,37 +620,63 @@ export default function MenuPlanning() {
 
       {/* Section 4: HIỂN THỊ DUY NHẤT KIỂU TUẦN DỌC CHUẨN MỰC CHO Y TẾ */}
       {calendarLoading || menusLoading ? (
-        <div style={{ padding: "80px 0", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <div
+          style={{
+            padding: "80px 0",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <FoodPrintLoading />
         </div>
       ) : calendarError || loadError ? (
         <InlineError messages={[calendarError, loadError]} />
       ) : !selectedWeekObj ? (
         <div className={styles.statusNotice} role="status">
-          <p>Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để thiết lập ngày bắt đầu và kết thúc năm học.</p>
+          <p>
+            Trường chưa có cấu hình năm học. Vui lòng liên hệ Ban Giám Hiệu để
+            thiết lập ngày bắt đầu và kết thúc năm học.
+          </p>
         </div>
       ) : !menuGroups.length ? (
         <div className={styles.statusNotice} role="status">
-          <p>{filters.gradeId ? "Khối đã chọn chưa có thực đơn phù hợp trong tuần này." : "Chưa có thực đơn phù hợp trong tuần này."}</p>
+          <p>
+            {filters.gradeId
+              ? "Khối đã chọn chưa có thực đơn phù hợp trong tuần này."
+              : "Chưa có thực đơn phù hợp trong tuần này."}
+          </p>
         </div>
       ) : (
-        menuGroups.map(group => <MenuListWeeklyVerticalView
-          key={group.id}
-          schoolDays={weekSchoolDays}
-          allMenus={group.menus}
-          menus={group.menus.filter(menu => filteredMenus.some(row => row.id === menu.id))}
-          mealTypeFilter={filters.mealType}
-          onViewDetail={handleViewDetail}
-          onEditMenu={handleEditMenu}
-          onNavigateCreate={handleNavigateCreateWithDate}
-          selectedWeekLabel={selectedWeekLabel}
-          weeklyMenuTitle={weeklyMenuTitle}
-          targetScope={group.targetScope}
-          isCurrentWeek={isCurrentWeek}
-          weekStatus={group.status}
-          onSubmitWeeklyMenu={() => handleSubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
-          onResubmitWeeklyMenu={() => handleResubmitWeeklyMenu(group.members.flatMap(member => member.menus))}
-        />)
+        menuGroups.map(group => (
+          <MenuListWeeklyVerticalView
+            key={group.id}
+            schoolDays={weekSchoolDays}
+            allMenus={group.menus}
+            menus={group.menus.filter(menu =>
+              filteredMenus.some(row => row.id === menu.id),
+            )}
+            mealTypeFilter={filters.mealType}
+            onViewDetail={handleViewDetail}
+            onEditMenu={handleEditMenu}
+            onNavigateCreate={handleNavigateCreateWithDate}
+            selectedWeekLabel={selectedWeekLabel}
+            weeklyMenuTitle={weeklyMenuTitle}
+            targetScope={group.targetScope}
+            isCurrentWeek={isCurrentWeek}
+            weekStatus={group.status}
+            onSubmitWeeklyMenu={() =>
+              handleSubmitWeeklyMenu(
+                group.members.flatMap(member => member.menus),
+              )
+            }
+            onResubmitWeeklyMenu={() =>
+              handleResubmitWeeklyMenu(
+                group.members.flatMap(member => member.menus),
+              )
+            }
+          />
+        ))
       )}
 
       {/* Detail Modal */}

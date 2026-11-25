@@ -27,6 +27,8 @@ export const getDefaultRedirectByOrg = orgType => {
   switch (orgType) {
     case "SYSTEM":
       return ROUTER.SYSTEM_ORG_APPROVAL
+    case "AUTHORITY":
+      return ROUTER.AUTHORITY_SCHOOLS
     case "SUPPLIER":
       // Mục đầu tiên của sidebar NCC (quản trị và nhân viên)
       return ROUTER.SUPPLIER_INGREDIENTS
@@ -43,6 +45,9 @@ export const getDefaultRedirectByOrg = orgType => {
  */
 export const getDefaultRedirectByUser = user => {
   if (!user) return ROUTER.LOGIN
+  if (user.role === "COMMUNE_FOOD_SAFETY_OFFICER" || user.role === ROLES?.COMMUNE_FOOD_SAFETY_OFFICER) {
+    return ROUTER.AUTHORITY_SCHOOLS
+  }
   if (user.role === "SCHOOL_KITCHEN_STAFF" || user.role === ROLES?.SCHOOL_KITCHEN_STAFF) {
     return ROUTER.SCHOOL_KITCHEN_COOKING
   }
@@ -65,6 +70,7 @@ export const getDefaultRedirectByUser = user => {
 }
 
 export const getAuthRedirect = user => {
+  if (user?.emailSetupRequired) return ROUTER.EMAIL_SETUP
   if (user?.role === "SYSTEM_ADMIN" || user?.role === ROLES?.SYSTEM_ADMIN) return ROUTER.SYSTEM_ORG_APPROVAL
   if (user?.onboardingRequired || user?.status === "UNVERIFIED") return ROUTER.DEFAULT
   return getDefaultRedirectByUser(user)

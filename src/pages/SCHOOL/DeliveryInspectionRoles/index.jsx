@@ -44,7 +44,9 @@ function DeliveryInspectionRoles() {
       setInitialRoles(loadedRoles)
       setConfigured(Boolean(data.configured))
     } catch (err) {
-      const msg = err?.response?.data?.message || "Không thể tải cấu hình nhóm duyệt. Vui lòng thử lại."
+      const msg =
+        err?.response?.data?.message ||
+        "Không thể tải cấu hình nhóm duyệt. Vui lòng thử lại."
       setError(msg)
       notice({ msg, isSuccess: false })
     } finally {
@@ -58,10 +60,10 @@ function DeliveryInspectionRoles() {
 
   // 2. Xử lý thay đổi nhóm duyệt cho một vai trò
   const handleChangeRoleTier = (roleCode, newTier) => {
-    setRoles((prevRoles) => {
+    setRoles(prevRoles => {
       if (newTier === TIER_KEYS.PRIMARY) {
         // Tự động chuyển role PRIMARY cũ về REQUIRED để luôn có đúng 1 PRIMARY
-        return prevRoles.map((role) => {
+        return prevRoles.map(role => {
           if (role.roleCode === roleCode) {
             return { ...role, tier: TIER_KEYS.PRIMARY }
           }
@@ -72,7 +74,7 @@ function DeliveryInspectionRoles() {
         })
       }
 
-      return prevRoles.map((role) => {
+      return prevRoles.map(role => {
         if (role.roleCode === roleCode) {
           return { ...role, tier: newTier }
         }
@@ -83,10 +85,10 @@ function DeliveryInspectionRoles() {
 
   // 3. Khôi phục mặc định
   const handleResetToDefault = () => {
-    setRoles((prevRoles) =>
-      prevRoles.map((role) => {
+    setRoles(prevRoles =>
+      prevRoles.map(role => {
         const defaultItem = DEFAULT_TIER_CONFIG.find(
-          (d) => d.roleCode === role.roleCode,
+          d => d.roleCode === role.roleCode,
         )
         return {
           ...role,
@@ -107,8 +109,10 @@ function DeliveryInspectionRoles() {
 
   // 5. Kiểm tra tính hợp lệ (đúng 1 PRIMARY)
   const validationError = useMemo(() => {
-    const editableRoles = roles.filter((r) => r.editable !== false)
-    const primaryCount = editableRoles.filter((r) => r.tier === TIER_KEYS.PRIMARY).length
+    const editableRoles = roles.filter(r => r.editable !== false)
+    const primaryCount = editableRoles.filter(
+      r => r.tier === TIER_KEYS.PRIMARY,
+    ).length
     if (primaryCount === 0) {
       return "Phải chọn đúng một người duyệt chính (Nhóm 1)"
     }
@@ -128,8 +132,8 @@ function DeliveryInspectionRoles() {
     try {
       // Chỉ gửi 3 role editable lên server (loại trừ PARENTS_COMMITTEE)
       const payload = roles
-        .filter((r) => r.editable !== false)
-        .map((r) => ({
+        .filter(r => r.editable !== false)
+        .map(r => ({
           roleCode: r.roleCode,
           tier: r.tier,
         }))
@@ -141,9 +145,13 @@ function DeliveryInspectionRoles() {
       setRoles(savedRoles)
       setInitialRoles(savedRoles)
       setConfigured(true)
-      notice({ msg: "Cập nhật cấu hình phân quyền duyệt nguyên liệu thành công!" })
+      notice({
+        msg: "Cập nhật cấu hình phân quyền duyệt nguyên liệu thành công!",
+      })
     } catch (err) {
-      const msg = err?.response?.data?.message || "Không thể lưu cấu hình. Vui lòng thử lại."
+      const msg =
+        err?.response?.data?.message ||
+        "Không thể lưu cấu hình. Vui lòng thử lại."
       notice({ msg, isSuccess: false })
     } finally {
       setSaving(false)
@@ -155,14 +163,16 @@ function DeliveryInspectionRoles() {
       <div className="pageHeader">
         <h1 className="pageTitle">Cấu hình Nhóm Duyệt Kiểm Nhận Nguyên Liệu</h1>
         <p className="pageSubtitle">
-          Thiết lập vai trò duyệt chính và các bộ phận bắt buộc khi tiếp nhận nguyên liệu tại trường học.
+          Thiết lập vai trò duyệt chính và các bộ phận bắt buộc khi tiếp nhận
+          nguyên liệu tại trường học.
         </p>
       </div>
 
       {!configured && !loading && !error && (
         <Alert severity="info" className="alertBanner">
-          Trường hiện đang áp dụng cấu hình mặc định (Bếp trưởng duyệt chính, Kho &amp; Dinh dưỡng bắt buộc).
-          Bấm <strong>Lưu cấu hình</strong> để xác nhận cấu hình riêng cho trường.
+          Trường hiện đang áp dụng cấu hình mặc định (Bếp trưởng duyệt chính,
+          Kho &amp; Dinh dưỡng bắt buộc). Bấm <strong>Lưu cấu hình</strong> để
+          xác nhận cấu hình riêng cho trường.
         </Alert>
       )}
 
@@ -213,15 +223,21 @@ function DeliveryInspectionRoles() {
         </DialogTitle>
         <DialogContent>
           <DialogContentText id="confirm-save-dialog-description">
-            Cấu hình mới chỉ áp dụng cho các xe xác nhận đến sau thời điểm lưu. Các đợt
-            đang kiểm tra sẽ giữ nguyên cấu hình snapshot cũ. Bạn có chắc chắn muốn lưu thay đổi này?
+            Cấu hình mới chỉ áp dụng cho các xe xác nhận đến sau thời điểm lưu.
+            Các đợt đang kiểm tra sẽ giữ nguyên cấu hình snapshot cũ. Bạn có
+            chắc chắn muốn lưu thay đổi này?
           </DialogContentText>
         </DialogContent>
         <DialogActions sx={{ padding: "var(--space-3) var(--space-4)" }}>
           <Button onClick={() => setConfirmOpen(false)} color="inherit">
             Hủy
           </Button>
-          <Button onClick={handleConfirmSave} variant="contained" color="primary" autoFocus>
+          <Button
+            onClick={handleConfirmSave}
+            variant="contained"
+            color="primary"
+            autoFocus
+          >
             Đồng ý lưu
           </Button>
         </DialogActions>

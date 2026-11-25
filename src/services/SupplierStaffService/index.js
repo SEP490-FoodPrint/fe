@@ -259,6 +259,8 @@ const SupplierStaffService = {
 
     return {
       items: rawItems.map(adaptStaffSummary),
+      // Trạng thái tiếp nhận của NCC (ACTIVE | PAUSED | PAUSED_FOR_FOOD_SAFETY_INSPECTION)
+      supplierIntakeState: payload.supplierIntakeState || null,
       pagination: {
         page: Number(rawPagination.page) || safePage,
         limit: Number(rawPagination.limit) || safeLimit,

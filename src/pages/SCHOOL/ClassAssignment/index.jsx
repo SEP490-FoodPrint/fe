@@ -22,19 +22,27 @@ const EXPORT_PAGE_SIZE = 100
 const fetchAllClasses = async (academicYear, gradeId) => {
   const items = []
   for (let page = 1; ; page += 1) {
-    const response = await ClassService.getClasses({ academicYear, page, limit: EXPORT_PAGE_SIZE, ...(gradeId && { gradeId }) })
+    const response = await ClassService.getClasses({
+      academicYear,
+      page,
+      limit: EXPORT_PAGE_SIZE,
+      ...(gradeId && { gradeId }),
+    })
     items.push(...response.data.items)
     if (!response.data.pagination?.hasNext) return items
   }
 }
 
-const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
+const errorMessage = (failure, fallback) =>
+  failure?.response?.data?.message || fallback
 const YEAR_PATTERN = /^(\d{4})-(\d{4})$/
 
 // Năm kết thúc của niên khóa "N-N+1"; null nếu nhãn không đúng định dạng.
 const yearEnd = label => {
   const match = YEAR_PATTERN.exec(label || "")
-  return match && Number(match[2]) === Number(match[1]) + 1 ? Number(match[2]) : null
+  return match && Number(match[2]) === Number(match[1]) + 1
+    ? Number(match[2])
+    : null
 }
 
 // Cùng quy tắc với backend: chỉ niên khóa hiện tại hoặc sắp tới mới được tạo/sửa lớp.
@@ -77,7 +85,8 @@ function ClassAssignment() {
         setGradesLoaded(true)
       })
       .catch(() => {
-        if (!controller.signal.aborted) setGradesError("Không thể tải danh sách khối học.")
+        if (!controller.signal.aborted)
+          setGradesError("Không thể tải danh sách khối học.")
       })
     return () => controller.abort()
   }, [refresh])
@@ -105,7 +114,10 @@ function ClassAssignment() {
     let active = true
     AcademicYearService.list()
       .then(response => {
-        if (active) setConfiguredYears((response.data || []).map(item => item.academicYear))
+        if (active)
+          setConfiguredYears(
+            (response.data || []).map(item => item.academicYear),
+          )
       })
       .catch(() => {
         if (active) setConfiguredYears([])
@@ -150,7 +162,9 @@ function ClassAssignment() {
 
   const years = useMemo(() => {
     const valid = configuredYears.filter(label => yearEnd(label) !== null)
-    return [...new Set([...classYears, ...valid])].sort((a, b) => b.localeCompare(a))
+    return [...new Set([...classYears, ...valid])].sort((a, b) =>
+      b.localeCompare(a),
+    )
   }, [classYears, configuredYears])
 
   const canManage = writableYears.includes(academicYear)
@@ -167,10 +181,14 @@ function ClassAssignment() {
     setCopyOpen(false)
     const created = result?.created?.length || 0
     const skipped = result?.skipped || []
-    const skippedText = skipped.length ? `; bỏ qua ${skipped.length} lớp trùng tên (${skipped.join(", ")})` : ""
+    const skippedText = skipped.length
+      ? `; bỏ qua ${skipped.length} lớp trùng tên (${skipped.join(", ")})`
+      : ""
     if (result?.toAcademicYear) setAcademicYear(result.toAcademicYear)
     setRefresh(value => value + 1)
-    notice({ msg: `Đã sao chép ${created} lớp sang niên khóa ${result?.toAcademicYear}${skippedText}` })
+    notice({
+      msg: `Đã sao chép ${created} lớp sang niên khóa ${result?.toAcademicYear}${skippedText}`,
+    })
   }
 
   const handleImported = result => {
@@ -179,7 +197,9 @@ function ClassAssignment() {
     const skippedText = skipped ? `; bỏ qua ${skipped} lớp đã có` : ""
     if (result?.academicYear) setAcademicYear(result.academicYear)
     setRefresh(value => value + 1)
-    notice({ msg: `Đã nhập ${result?.created?.length || 0} lớp vào niên khóa ${result?.academicYear}${skippedText}` })
+    notice({
+      msg: `Đã nhập ${result?.created?.length || 0} lớp vào niên khóa ${result?.academicYear}${skippedText}`,
+    })
   }
 
   const handleExport = async () => {
@@ -189,7 +209,10 @@ function ClassAssignment() {
       const items = await fetchAllClasses(academicYear)
       await downloadClassList({ academicYear, classes: items })
     } catch {
-      notice({ isSuccess: false, msg: "Không thể xuất danh sách lớp. Vui lòng thử lại." })
+      notice({
+        isSuccess: false,
+        msg: "Không thể xuất danh sách lớp. Vui lòng thử lại.",
+      })
     } finally {
       setExporting(false)
     }
@@ -211,34 +234,63 @@ function ClassAssignment() {
         onImport={() => setImportOpen(true)}
         onExport={handleExport}
       />
-      {gradesError && <Alert severity="warning" action={<Button onClick={() => setRefresh(value => value + 1)}>Thử lại</Button>}>{gradesError}</Alert>}
+      {gradesError && (
+        <Alert
+          severity="warning"
+          action={
+            <Button onClick={() => setRefresh(value => value + 1)}>
+              Thử lại
+            </Button>
+          }
+        >
+          {gradesError}
+        </Alert>
+      )}
       <TextField
-        select size="small" label="Khối học" value={gradeId}
+        select
+        size="small"
+        label="Khối học"
+        value={gradeId}
         disabled={!gradesLoaded}
-        onChange={event => setParams(current => {
-          const next = new URLSearchParams(current)
-          if (event.target.value) next.set("gradeId", event.target.value)
-          else next.delete("gradeId")
-          return next
-        })}
+        onChange={event =>
+          setParams(current => {
+            const next = new URLSearchParams(current)
+            if (event.target.value) next.set("gradeId", event.target.value)
+            else next.delete("gradeId")
+            return next
+          })
+        }
       >
         <MenuItem value="">Tất cả khối</MenuItem>
         <MenuItem value="unassigned">Chưa gán khối</MenuItem>
-        {grades.map(grade => <MenuItem key={grade.id} value={grade.id}>{grade.name}</MenuItem>)}
-        {gradeId && gradeId !== "unassigned" && !grades.some(grade => grade.id === gradeId) &&
-          <MenuItem value={gradeId} disabled>Khối đã chọn</MenuItem>}
+        {grades.map(grade => (
+          <MenuItem key={grade.id} value={grade.id}>
+            {grade.name}
+          </MenuItem>
+        ))}
+        {gradeId &&
+          gradeId !== "unassigned" &&
+          !grades.some(grade => grade.id === gradeId) && (
+            <MenuItem value={gradeId} disabled>
+              Khối đã chọn
+            </MenuItem>
+          )}
       </TextField>
       {configuredLoaded && !writableYears.length && (
         <Alert
           severity="info"
           action={
-            <Button color="inherit" size="small" onClick={() => navigate(ROUTER.SCHOOL_ACADEMIC_YEARS)}>
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => navigate(ROUTER.SCHOOL_ACADEMIC_YEARS)}
+            >
               Cấu hình năm học
             </Button>
           }
         >
-          Chưa có niên khóa hiện tại hoặc sắp tới được cấu hình (dạng 2026-2027). Cần cấu hình năm học trước khi
-          thêm lớp.
+          Chưa có niên khóa hiện tại hoặc sắp tới được cấu hình (dạng
+          2026-2027). Cần cấu hình năm học trước khi thêm lớp.
         </Alert>
       )}
       {error ? (

@@ -19,7 +19,7 @@ function checkResponse(response) {
 
 const getRequests = async ({ search = "", type = "", status = "", from = "", to = "", page = 1, pageSize = 5 } = {}, { signal } = {}) => {
   const searchCode = search.trim().toUpperCase()
-  if (isInvalidRegistrationCodeSearch(searchCode)) throw new Error("Nhập mã hồ sơ đầy đủ, ví dụ FP-REG-00001.")
+  if (isInvalidRegistrationCodeSearch(searchCode)) throw new Error("Nhập mã hồ sơ đầy đủ, ví dụ FP-RG-00001 hoặc FP-REG-00001.")
   const searchByCode = Boolean(searchCode) && isRegistrationSearch(searchCode)
   const query = normalizeRequestSearch(search)
   const matchesFilters = request => {

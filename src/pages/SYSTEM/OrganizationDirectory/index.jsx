@@ -1,7 +1,37 @@
 import React, { useEffect, useState } from "react"
 import { Link, useParams, useSearchParams } from "react-router-dom"
-import { Alert, Button, CircularProgress, Dialog, DialogTitle, DialogContent, IconButton, InputAdornment, MenuItem, Pagination, TextField, useMediaQuery } from "@mui/material"
-import { Search, SchoolOutlined, LocalShippingOutlined, VisibilityOutlined, EmailOutlined, PhoneOutlined, LocationOnOutlined, KeyboardArrowLeft, KeyboardArrowRight, KeyboardArrowDown, CheckCircleOutlined, Close } from "@mui/icons-material"
+import {
+  Alert,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Pagination,
+  TextField,
+  useMediaQuery,
+} from "@mui/material"
+import {
+  Search,
+  SchoolOutlined,
+  LocalShippingOutlined,
+  VisibilityOutlined,
+  EmailOutlined,
+  PhoneOutlined,
+  LocationOnOutlined,
+  MapOutlined,
+  KeyboardArrowLeft,
+  KeyboardArrowRight,
+  KeyboardArrowDown,
+  CheckCircleOutlined,
+  Close,
+} from "@mui/icons-material"
+import LocationSelector from "src/components/LocationSelector"
+import notice from "src/components/Notice"
 import SystemDirectoryService from "src/services/SystemDirectoryService"
 import ROUTER from "src/router/ROUTER"
 import styles from "./styles.module.scss"
@@ -11,7 +41,37 @@ const date = value => value && !Number.isNaN(new Date(value).getTime()) ? new Da
 const active = status => ["ACTIVE", "APPROVED", "HOAT_DONG"].includes(String(status || "").toUpperCase())
 const statusLabel = status => !status ? "Chưa có thông tin" : active(status) ? "Hoạt động" : ["INACTIVE", "SUSPENDED", "DISABLED"].includes(String(status).toUpperCase()) ? "Ngừng hoạt động" : status
 const Status = ({ value }) => <span className={`${styles.badge} ${active(value) ? styles.active : styles.inactive}`}>{statusLabel(value)}</span>
-const Field = ({ label, value, status }) => <div className={styles.field}><span>{label}</span>{status ? <Status value={value} /> : <strong>{display(value)}</strong>}</div>
+
+const INTAKE_STATE_META = {
+  ACTIVE: { label: "Đang tiếp nhận", className: styles.active },
+  PAUSED: { label: "Tạm dừng tiếp nhận", className: styles.warning },
+  PAUSED_FOR_FOOD_SAFETY_INSPECTION: {
+    label: "Tạm dừng kiểm tra ATTP",
+    className: styles.danger,
+  },
+}
+
+const IntakeStateBadge = ({ value }) => {
+  const meta = INTAKE_STATE_META[value] || {
+    label: value || "—",
+    className: styles.inactive,
+  }
+  return <span className={`${styles.badge} ${meta.className}`}>{meta.label}</span>
+}
+
+const WardCell = ({ location }) =>
+  location?.name ? (
+    <span>{location.name}</span>
+  ) : (
+    <span className={`${styles.badge} ${styles.warning}`}>Chưa gắn</span>
+  )
+
+const Field = ({ label, value, status, children }) => (
+  <div className={styles.field}>
+    <span>{label}</span>
+    {children || (status ? <Status value={value} /> : <strong>{display(value)}</strong>)}
+  </div>
+)
 
 function useRequest(loader, deps, delay = 0) {
   const [state, setState] = useState({ loading: true })
@@ -23,9 +83,11 @@ function useRequest(loader, deps, delay = 0) {
       if (!controller.signal.aborted) setState({ data: response.data, loading: false })
     }).catch(error => { if (!controller.signal.aborted) setState({ error, loading: false }) }), delay)
     return () => { clearTimeout(timer); controller.abort() }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, attempt])
   return { ...state, retry: () => setAttempt(n => n + 1) }
 }
+
 function RequestError({ error, retry }) {
   const code = error?.response?.status
   const message = code === 403 ? "Bạn không có quyền xem thông tin này." : code === 404 ? "Không tìm thấy dữ liệu yêu cầu." : code === 503 ? "Dịch vụ tạm thời không khả dụng." : error?.message || "Không thể tải dữ liệu."
@@ -42,7 +104,23 @@ export function DirectoryList({ kind }) {
   const isMobile = useMediaQuery("(max-width:600px)")
   const [search, setSearch] = useState("")
   const [status, setStatus] = useState("all")
-  const list = useRequest(signal => SystemDirectoryService.list(kind, { page, limit: 5, ...(search.trim() ? { search: search.trim() } : {}), ...(status !== "all" ? { status } : {}) }, signal), [kind, page, search, status], search.trim() ? 300 : 0)
+  const [hasLocation, setHasLocation] = useState("all")
+  const list = useRequest(
+    signal =>
+      SystemDirectoryService.list(
+        kind,
+        {
+          page,
+          limit: 5,
+          ...(search.trim() ? { search: search.trim() } : {}),
+          ...(status !== "all" ? { status } : {}),
+          ...(hasLocation !== "all" ? { hasLocation } : {}),
+        },
+        signal,
+      ),
+    [kind, page, search, status, hasLocation],
+    search.trim() ? 300 : 0,
+  )
   const summary = useRequest(signal => SystemDirectoryService.summary(kind, signal), [kind])
   const { loading, error, retry } = list
   const items = list.data?.items || []
@@ -69,10 +147,26 @@ export function DirectoryList({ kind }) {
           <label htmlFor={`${kind}-status`}>Trạng thái</label>
           <TextField select id={`${kind}-status`} value={status} onChange={e => { setStatus(e.target.value); setParams({}) }} size="small" fullWidth slotProps={{ select: { IconComponent: KeyboardArrowDown, SelectDisplayProps: { "aria-label": "Trạng thái" } } }}><MenuItem value="all">Tất cả</MenuItem><MenuItem value="ACTIVE">Hoạt động</MenuItem><MenuItem value="INACTIVE">Ngừng hoạt động</MenuItem></TextField>
         </div>
+        <div className={styles.schoolFilterField}>
+          <label htmlFor={`${kind}-has-location`}>Phường / Xã</label>
+          <TextField
+            select
+            id={`${kind}-has-location`}
+            value={hasLocation}
+            onChange={e => { setHasLocation(e.target.value); setParams({}) }}
+            size="small"
+            fullWidth
+            slotProps={{ select: { IconComponent: KeyboardArrowDown, SelectDisplayProps: { "aria-label": "Trạng thái gắn phường/xã" } } }}
+          >
+            <MenuItem value="all">Tất cả</MenuItem>
+            <MenuItem value="true">Đã gắn phường/xã</MenuItem>
+            <MenuItem value="false">Chưa gắn phường/xã</MenuItem>
+          </TextField>
+        </div>
       </div>
       {loading ? <div className={styles.message}><CircularProgress size={26} aria-label="Đang tải danh sách" /></div> : error ? <RequestError error={error} retry={retry} /> : !filtered.length ? <p className={styles.message}>Không có {entity} phù hợp.</p> : <>
-        <div className={styles.tableWrap}><table><thead><tr><th>STT</th><th>{school ? "Tên trường" : "Tên nhà cung cấp"}</th><th>{school ? "Mã trường" : "Mã số thuế"}</th><th>Email</th><th>Điện thoại</th><th>Địa chỉ</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody>{filtered.map(item => <tr key={item.id}><td>{String((page - 1) * 5 + items.indexOf(item) + 1).padStart(2, "0")}</td><td><Link to={detailLink(item)} state={{ item }}>{display(item.name)}</Link></td><td>{display(school ? item.code : item.taxCode)}</td><td>{display(item.email)}</td><td>{display(item.phone)}</td><td>{display(item.address)}</td><td><Status value={item.status} /></td><td>{date(item.createdAt)}</td><td><Link className={styles.iconLink} to={detailLink(item)} state={{ item }} aria-label={`Xem chi tiết ${item.name}`}><VisibilityOutlined fontSize="small" /></Link></td></tr>)}</tbody></table></div>
-        <div className={styles.cards}>{filtered.map(item => <article key={item.id} className={styles.mobileCard}><div className={styles.cardTop}><div><Link to={detailLink(item)} state={{ item }}>{display(item.name)}</Link><p>{display(school ? item.code : item.taxCode)}</p></div><Status value={item.status} /></div><p><EmailOutlined /> {display(item.email)}</p><p><PhoneOutlined /> {display(item.phone)}</p><p><LocationOnOutlined /> {display(item.address)}</p><div className={styles.cardBottom}><span>Ngày tạo: {date(item.createdAt)}</span><Button component={Link} to={detailLink(item)} state={{ item }} endIcon={<VisibilityOutlined />}>Xem chi tiết</Button></div></article>)}</div>
+        <div className={styles.tableWrap}><table><thead><tr><th>STT</th><th>{school ? "Tên trường" : "Tên nhà cung cấp"}</th><th>{school ? "Mã trường" : "Mã số thuế"}</th><th>Phường / Xã</th><th>Email</th><th>Điện thoại</th><th>Địa chỉ</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody>{filtered.map(item => <tr key={item.id}><td>{String((page - 1) * 5 + items.indexOf(item) + 1).padStart(2, "0")}</td><td><Link to={detailLink(item)} state={{ item }}>{display(item.name)}</Link></td><td>{display(school ? item.code : item.taxCode)}</td><td><WardCell location={item.location} /></td><td>{display(item.email)}</td><td>{display(item.phone)}</td><td>{display(item.address)}</td><td><Status value={item.status} /></td><td>{date(item.createdAt)}</td><td><Link className={styles.iconLink} to={detailLink(item)} state={{ item }} aria-label={`Xem chi tiết ${item.name}`}><VisibilityOutlined fontSize="small" /></Link></td></tr>)}</tbody></table></div>
+        <div className={styles.cards}>{filtered.map(item => <article key={item.id} className={styles.mobileCard}><div className={styles.cardTop}><div><Link to={detailLink(item)} state={{ item }}>{display(item.name)}</Link><p>{display(school ? item.code : item.taxCode)}</p></div><Status value={item.status} /></div><p><MapOutlined /> <WardCell location={item.location} /></p><p><EmailOutlined /> {display(item.email)}</p><p><PhoneOutlined /> {display(item.phone)}</p><p><LocationOnOutlined /> {display(item.address)}</p><div className={styles.cardBottom}><span>Ngày tạo: {date(item.createdAt)}</span><Button component={Link} to={detailLink(item)} state={{ item }} endIcon={<VisibilityOutlined />}>Xem chi tiết</Button></div></article>)}</div>
       </>}
       {!loading && !error && (items.length > 0 || page > 1) && <div className={styles.schoolPagination}>
         <p aria-live="polite">{`Hiển thị ${items.length ? (page - 1) * 5 + 1 : 0}–${items.length ? (page - 1) * 5 + items.length : 0}${Number.isInteger(pagination.total) ? ` trong ${pagination.total} ${entity}` : ""}`}</p>
@@ -108,6 +202,126 @@ function DocumentViewer({ document, onClose }) {
   try { if (!request.data?.url || typeof request.data.url !== "string") throw new Error("missing URL"); const parsed = new URL(request.data.url, window.location.origin); if (["https:", "http:"].includes(parsed.protocol) && !parsed.username && !parsed.password) url = parsed.href } catch { /* invalid URL */ }
   return <Dialog open onClose={onClose} fullWidth maxWidth="lg" aria-labelledby="cert-document-title"><DialogTitle id="cert-document-title">{document.fileName || "Tệp minh chứng"}<IconButton onClick={onClose} aria-label="Đóng" sx={{ float: "right" }}><Close /></IconButton></DialogTitle><DialogContent>{request.loading ? <CircularProgress aria-label="Đang tải tệp" /> : request.error ? <RequestError error={request.error} retry={request.retry} /> : !url ? <Alert severity="error">Đường dẫn tệp không hợp lệ.</Alert> : document.format === "pdf" ? <iframe src={url} title={document.fileName || "Tệp minh chứng"} referrerPolicy="no-referrer" className={styles.documentFrame} /> : <img src={url} alt={document.fileName || "Tệp minh chứng"} referrerPolicy="no-referrer" className={styles.documentImage} />}</DialogContent></Dialog>
 }
+
+function AssignLocationDialog({ open, kind, record, onClose, onSaved }) {
+  const school = kind === "school"
+  const [locationId, setLocationId] = useState(record?.location?.id || "")
+  const [fieldError, setFieldError] = useState("")
+  const [serverError, setServerError] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setLocationId(record?.location?.id || "")
+      setFieldError("")
+      setServerError("")
+    }
+  }, [open, record?.location?.id])
+
+  const handleSubmit = async event => {
+    event.preventDefault()
+    if (submitting) return
+    if (!locationId) {
+      setFieldError("Vui lòng chọn tỉnh/thành phố và phường/xã.")
+      return
+    }
+    setSubmitting(true)
+    setFieldError("")
+    setServerError("")
+    try {
+      await SystemDirectoryService.updateLocation(kind, record.id, locationId)
+      notice({
+        msg: record?.location ? "Đã cập nhật phường/xã" : "Đã gắn phường/xã",
+        desc: `Cập nhật địa giới hành chính thành công cho ${record?.name || (school ? "trường học" : "nhà cung cấp")}.`,
+        isSuccess: true,
+      })
+      onSaved()
+    } catch (err) {
+      const apiFields = err?.response?.data?.error?.fields
+      if (err?.response?.status === 400 && Array.isArray(apiFields)) {
+        const locErr = apiFields.find(item => item?.field === "locationId")
+        if (locErr?.message) {
+          // Lỗi đã hiện dưới ô phường/xã, không lặp lại ở Alert
+          setFieldError(locErr.message)
+          return
+        }
+      }
+      setServerError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Không thể cập nhật phường/xã. Vui lòng thử lại.",
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <Dialog
+      open={open}
+      onClose={submitting ? undefined : onClose}
+      fullWidth
+      maxWidth="sm"
+      aria-labelledby="assign-location-dialog-title"
+    >
+      <form onSubmit={handleSubmit} noValidate>
+        <DialogTitle
+          id="assign-location-dialog-title"
+          className={styles.locationDialogTitle}
+        >
+          <span>{record?.location ? "Đổi phường / xã" : "Gắn phường / xã"}</span>
+          <IconButton
+            onClick={onClose}
+            disabled={submitting}
+            aria-label="Đóng hộp thoại"
+            size="small"
+          >
+            <Close fontSize="small" />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent className={styles.locationDialogContent}>
+          <p className={styles.locationDialogDesc}>
+            Chọn tỉnh/thành phố và phường/xã cho{" "}
+            <strong>{record?.name || (school ? "trường học" : "nhà cung cấp")}</strong>.
+            {school
+              ? " Việc thay đổi phường/xã không ảnh hưởng đến các hồ sơ sự cố hoặc khiếu nại đã chuyển cơ quan ATTP trước đó."
+              : ""}
+          </p>
+          {serverError ? <Alert severity="error">{serverError}</Alert> : null}
+          <LocationSelector
+            id="directory-locationId"
+            required
+            value={locationId}
+            onChange={nextId => {
+              setLocationId(nextId)
+              if (fieldError) setFieldError("")
+            }}
+            error={fieldError}
+            disabled={submitting}
+          />
+        </DialogContent>
+        <DialogActions className={styles.locationDialogActions}>
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            Hủy
+          </Button>
+          <Button type="submit" variant="contained" disabled={submitting}>
+            {submitting ? (
+              <CircularProgress size={18} color="inherit" />
+            ) : (
+              "Lưu phường / xã"
+            )}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  )
+}
+
 export function DirectoryDetail({ kind }) {
   const school = kind === "school"
   const { id } = useParams()
@@ -115,6 +329,7 @@ export function DirectoryDetail({ kind }) {
   const page = Math.max(1, Number.parseInt(params.get("page"), 10) || 1)
   const request = useRequest(signal => SystemDirectoryService.detail(kind, id, signal), [kind, id])
   const [document, setDocument] = useState(null)
+  const [locationDialogOpen, setLocationDialogOpen] = useState(false)
   const record = request.data
   const listUrl = `${school ? ROUTER.SYSTEM_SCHOOL_LIST : ROUTER.SYSTEM_SUPPLIER_LIST}${page > 1 ? `?page=${page}` : ""}`
   const back = <div className={styles.detailHeading}><IconButton component={Link} to={listUrl} className={styles.back} aria-label="Quay lại danh sách"><KeyboardArrowLeft /></IconButton><span>Xem chi tiết</span></div>
@@ -123,8 +338,52 @@ export function DirectoryDetail({ kind }) {
   if (!record) return <main className={`${styles.page} ${styles.schoolPage}`}>{back}<Alert severity="warning">Không tìm thấy thông tin.</Alert></main>
   const name = school ? "trường học" : "nhà cung cấp"
   return <main className={`${styles.page} ${styles.schoolPage}`}>{back}<header className={styles.schoolDetailTitle}><div><h1>{display(record.name)}</h1><p>{school ? "Mã trường" : "Mã số thuế"}: {display(school ? record.code : record.taxCode)}</p></div><Status value={record.status} /></header>
-    <section className={`${styles.panel} ${styles.detailSection}`}><h2>Thông tin {name}</h2><div className={styles.fields}><Field label={school ? "Tên trường" : "Tên nhà cung cấp"} value={record.name} /><Field label={school ? "Mã trường" : "Mã số thuế"} value={school ? record.code : record.taxCode} /><Field label="Email" value={record.email} /><Field label="Điện thoại" value={record.phone} /><Field label="Địa chỉ" value={record.address} /><Field label="Trạng thái" value={record.status} status /><Field label="Ngày tạo" value={date(record.createdAt)} /></div></section>
+    <section className={`${styles.panel} ${styles.detailSection}`}>
+      <h2>Thông tin {name}</h2>
+      <div className={styles.fields}>
+        <Field label={school ? "Tên trường" : "Tên nhà cung cấp"} value={record.name} />
+        <Field label={school ? "Mã trường" : "Mã số thuế"} value={school ? record.code : record.taxCode} />
+        <Field label="Phường / Xã">
+          <div className={styles.locationFieldValue}>
+            {record.location?.name ? (
+              <strong>{record.location.name}</strong>
+            ) : (
+              <span className={`${styles.badge} ${styles.warning}`}>Chưa gắn</span>
+            )}
+            <Button
+              type="button"
+              variant="outlined"
+              size="small"
+              className={styles.locationActionBtn}
+              onClick={() => setLocationDialogOpen(true)}
+            >
+              {record.location ? "Đổi phường/xã" : "Gắn phường/xã"}
+            </Button>
+          </div>
+        </Field>
+        <Field label="Email" value={record.email} />
+        <Field label="Điện thoại" value={record.phone} />
+        <Field label="Địa chỉ" value={record.address} />
+        <Field label="Trạng thái" value={record.status} status />
+        {!school && record.intakeState ? (
+          <Field label="Trạng thái tiếp nhận">
+            <IntakeStateBadge value={record.intakeState} />
+          </Field>
+        ) : null}
+        <Field label="Ngày tạo" value={date(record.createdAt)} />
+      </div>
+    </section>
     {school ? <><DataGroup key={`${id}-classes`} kind={kind} id={id} group="classes" title="Lớp học" columns={columns.classes} /><DataGroup key={`${id}-suppliers`} kind={kind} id={id} group="suppliers" title="Nhà cung cấp liên kết" columns={columns.suppliers} /><DataGroup key={`${id}-accounts`} kind={kind} id={id} group="accounts" title="Tài khoản thuộc trường" columns={columns.accounts} /></> : <DataGroup key={`${id}-certifications`} kind={kind} id={id} group="certifications" title="Giấy phép và chứng nhận" columns={columns.certifications} onDocument={setDocument} />}
     {document && <DocumentViewer key={`${document.certificationId}-${document.id}`} document={document} onClose={() => setDocument(null)} />}
+    <AssignLocationDialog
+      open={locationDialogOpen}
+      kind={kind}
+      record={record}
+      onClose={() => setLocationDialogOpen(false)}
+      onSaved={() => {
+        setLocationDialogOpen(false)
+        request.retry()
+      }}
+    />
   </main>
 }

@@ -10,34 +10,53 @@ const LOT_ID = "00000000-0000-4000-8000-000000000704"
 const SUBMITTER_ID = "00000000-0000-4000-8000-000000000705"
 const RESPONDER_ID = "00000000-0000-4000-8000-000000000706"
 
+// Hợp đồng ticket C02 (specs/complaint-supertype): `code` thay `complaintCode`, `comments` thay `supplierResponse`
 const LIST_ITEM = {
   id: COMPLAINT_ID,
-  complaintCode: "FP-CP-00001",
+  code: "FP-CP-58213",
   title: "Rau cải dập nát khi bàn giao buổi sáng",
   school: { id: SCHOOL_ID, name: "Trường Tiểu học Bình Minh", code: "TH-BM-01" },
   delivery: { id: DELIVERY_ID, deliveryNo: "DLV-2026-0042" },
-  status: "SUBMITTED",
-  createdAt: "2026-11-17T01:30:00.000Z",
-  respondedAt: null,
+  status: "NEW",
+  displayStatus: "NEW",
+  hasNewMessage: false,
+  closeReason: null,
+  lastResolvedAt: null,
+  resolvedCount: 0,
+  feedbackDeadlineAt: null,
+  closedAt: null,
+  allowedActions: ["ACCEPT"],
+  submittedAt: "2026-11-17T01:30:00.000Z",
+  updatedAt: "2026-11-17T01:30:00.000Z",
 }
 
-const DETAIL_SUBMITTED = {
+const DETAIL_NEW = {
   ...LIST_ITEM,
   description: "Thùng rau giao lúc 06:15 bị dập khoảng 2kg.\nĐề nghị kiểm tra lại khâu bảo quản.",
-  updatedAt: "2026-11-17T01:30:00.000Z",
   submittedBy: { id: SUBMITTER_ID, fullName: "Nguyễn Thị Lan" },
   ingredientLot: { id: LOT_ID, lotCode: "LOT-RC-20261117" },
-  supplierResponse: null,
-  respondedBy: null,
+  comments: [],
 }
 
-const DETAIL_RESPONDED = {
-  ...DETAIL_SUBMITTED,
-  status: "RESPONDED",
-  supplierResponse: "Nhà cung cấp đã tiếp nhận phản ánh và giao bù đủ khối lượng trước 09:00.",
-  respondedBy: { id: RESPONDER_ID, fullName: "Trần Minh Tuấn" },
-  respondedAt: "2026-11-17T02:15:00.000Z",
+const DETAIL_RESOLVED = {
+  ...DETAIL_NEW,
+  status: "RESOLVED",
+  displayStatus: "RESOLVED",
+  lastResolvedAt: "2026-11-17T02:15:00.000Z",
+  resolvedCount: 1,
+  feedbackDeadlineAt: "2026-11-19T02:15:00.000Z",
+  allowedActions: [],
   updatedAt: "2026-11-17T02:15:00.000Z",
+  comments: [
+    {
+      id: "00000000-0000-4000-8000-000000000707",
+      authorSide: "HANDLER",
+      commentType: "RESOLUTION",
+      content: "Dòng một\nDòng hai",
+      createdAt: "2026-11-17T02:15:00.000Z",
+      author: { id: RESPONDER_ID, fullName: "Trần Minh Tuấn" },
+    },
+  ],
 }
 
 const success = (data, statusCode = 200) => ({
@@ -113,7 +132,7 @@ after(async () => {
   await server?.close()
 })
 
-test("Sidebar menu exposes Danh sách khiếu nại to both Supplier Admin and Supplier Staff", () => {
+test("Sidebar menu exposes Phản ánh nguyên liệu to both Supplier Admin and Supplier Staff", () => {
   const { ROLES } = RolesModule
   const { hasPermission } = UtilsModule
 
@@ -123,7 +142,7 @@ test("Sidebar menu exposes Danh sách khiếu nại to both Supplier Admin and S
   )
 
   assert.ok(complaintItem)
-  assert.equal(complaintItem.label, "Danh sách khiếu nại")
+  assert.equal(complaintItem.label, "Phản ánh nguyên liệu")
   assert.equal(
     hasPermission(complaintItem.roles, ROLES.INGREDIENT_SUPPLIER_ADMIN),
     true,
@@ -142,13 +161,13 @@ test("Sidebar menu exposes Danh sách khiếu nại to both Supplier Admin and S
   )
 })
 
-test("listComplaints sends strictly page and limit params and keeps null complaintCode/school.code without fabricating from UUID", async () => {
+test("listComplaints sends strictly page and limit params and keeps null code/school.code without fabricating from UUID", async () => {
   respond = () =>
     success({
       items: [
         {
           ...LIST_ITEM,
-          complaintCode: null,
+          code: null,
           school: { ...LIST_ITEM.school, code: null },
         },
       ],
@@ -158,7 +177,7 @@ test("listComplaints sends strictly page and limit params and keeps null complai
   const result = await SupplierComplaintService.listComplaints({
     page: 2,
     limit: 25,
-    status: "SUBMITTED",
+    status: "NEW",
     search: "ignored",
   })
 
@@ -166,25 +185,24 @@ test("listComplaints sends strictly page and limit params and keeps null complai
   assert.equal(requests[0].method, "get")
   assert.equal(requests[0].url, "/ingredient-quality-feedback")
   assert.deepEqual(requests[0].params, { page: 2, limit: 25 })
-  assert.equal(result.items[0].complaintCode, null)
+  assert.equal(result.items[0].code, null)
   assert.equal(
-    SupplierComplaintServiceModule.formatComplaintCode(
-      result.items[0].complaintCode,
-    ),
-    "Chưa có mã",
+    SupplierComplaintServiceModule.formatComplaintCode(result.items[0].code),
+    "—",
   )
   assert.equal(result.items[0].school.code, null)
   assert.equal(
     SupplierComplaintServiceModule.formatSchoolCode(result.items[0].school.code),
     "Chưa có mã",
   )
+  assert.deepEqual(result.items[0].allowedActions, ["ACCEPT"])
   assert.deepEqual(result.pagination, { page: 2, limit: 25, hasNext: true })
 })
 
-test("getComplaintById normalizes UUID lowercase and sends empty query params", async () => {
+test("getComplaintById normalizes UUID lowercase, sends no query params and keeps ticket fields", async () => {
   respond = () =>
     success({
-      ...DETAIL_SUBMITTED,
+      ...DETAIL_NEW,
       ingredientLot: null,
     })
 
@@ -199,25 +217,22 @@ test("getComplaintById normalizes UUID lowercase and sends empty query params", 
     `/ingredient-quality-feedback/${COMPLAINT_ID}`,
   )
   assert.equal(requests[0].params, undefined)
-  assert.equal(detail.complaintCode, "FP-CP-00001")
+  assert.equal(detail.code, "FP-CP-58213")
   assert.equal(detail.ingredientLot, null)
   assert.equal(detail.submittedBy?.fullName, "Nguyễn Thị Lan")
-  assert.equal(detail.supplierResponse, null)
-  assert.equal(detail.respondedBy, null)
+  assert.deepEqual(detail.comments, [])
+  assert.equal(detail.displayStatus, "NEW")
 })
 
-test("respondToComplaint trims ends, preserves inner newlines, sends strict payload, and returns FeedbackDetail", async () => {
+test("resolve trims ends, preserves inner newlines, sends strict { content } payload and returns the ticket", async () => {
   respond = config => {
     const parsedBody = JSON.parse(config.data)
-    assert.deepEqual(Object.keys(parsedBody), ["supplierResponse"])
-    assert.equal(
-      parsedBody.supplierResponse,
-      "Dòng một\nDòng hai",
-    )
-    return success(DETAIL_RESPONDED)
+    assert.deepEqual(Object.keys(parsedBody), ["content"])
+    assert.equal(parsedBody.content, "Dòng một\nDòng hai")
+    return success(DETAIL_RESOLVED)
   }
 
-  const updated = await SupplierComplaintService.respondToComplaint(
+  const updated = await SupplierComplaintService.resolve(
     COMPLAINT_ID.toUpperCase(),
     "   Dòng một\nDòng hai   ",
   )
@@ -226,27 +241,26 @@ test("respondToComplaint trims ends, preserves inner newlines, sends strict payl
   assert.equal(requests[0].method, "post")
   assert.equal(
     requests[0].url,
-    `/ingredient-quality-feedback/${COMPLAINT_ID}/response`,
+    `/ingredient-quality-feedback/${COMPLAINT_ID}/resolve`,
   )
   assert.equal(requests[0].params, undefined)
-  assert.equal(updated.status, "RESPONDED")
-  assert.equal(updated.complaintCode, "FP-CP-00001")
-  assert.equal(updated.respondedBy?.fullName, "Trần Minh Tuấn")
+  assert.equal(updated.status, "RESOLVED")
+  assert.equal(updated.code, "FP-CP-58213")
+  assert.equal(updated.comments[0].commentType, "RESOLUTION")
+  assert.equal(updated.comments[0].author.fullName, "Trần Minh Tuấn")
 })
 
-test("validateSupplierResponse measures trimmed Unicode code points cleanly up to 5000", () => {
-  const { validateSupplierResponse, countResponseCodePoints } =
-    SupplierComplaintServiceModule
+test("countCodePoints measures trimmed Unicode code points like the backend, up to 5000", async () => {
+  const { countCodePoints, MAX_COMMENT_LENGTH } = await server.ssrLoadModule(
+    "/src/components/ComplaintThread/ticketHelpers.js",
+  )
 
-  assert.equal(validateSupplierResponse("   \n\t  ").valid, false)
-
-  // Surrogate pair emoji should count as 1 code point each, matching Array.from
+  assert.equal(countCodePoints("   \n\t  "), 0)
+  // Emoji cặp surrogate tính là 1 code point, giống Array.from ở backend
   const emoji5000 = "🥬".repeat(5000)
-  assert.equal(countResponseCodePoints(`  ${emoji5000}  `), 5000)
-  assert.equal(validateSupplierResponse(`  ${emoji5000}  `).valid, true)
-
-  const emoji5001 = "🥬".repeat(5001)
-  assert.equal(validateSupplierResponse(emoji5001).valid, false)
+  assert.equal(countCodePoints(`  ${emoji5000}  `), 5000)
+  assert.equal(countCodePoints(emoji5000) <= MAX_COMMENT_LENGTH, true)
+  assert.equal(countCodePoints("🥬".repeat(5001)) > MAX_COMMENT_LENGTH, true)
 })
 
 test("Permission helpers enforce AND logic for view_details and respond when user permissions array exists", () => {
@@ -303,7 +317,7 @@ test("extractApiError maps 400 validation fields and 409 conflict messages", () 
       error: {
         fields: [
           {
-            field: "supplierResponse",
+            field: "content",
             message: "Nội dung phản hồi vượt quá 5.000 ký tự",
           },
         ],
@@ -314,7 +328,7 @@ test("extractApiError maps 400 validation fields and 409 conflict messages", () 
   const parsed = SupplierComplaintServiceModule.extractApiError(err400)
   assert.equal(parsed.status, 400)
   assert.equal(
-    parsed.fields.supplierResponse,
+    parsed.fields.content,
     "Nội dung phản hồi vượt quá 5.000 ký tự",
   )
 })

@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import {
   Alert,
   Button,
@@ -16,181 +10,181 @@ import {
   DialogTitle,
   Skeleton,
   TextField,
-} from "@mui/material";
-import notice from "src/components/Notice";
-import AcademicYearService from "src/services/AcademicYearService";
-import DateFieldVN from "src/components/Common/DateFieldVN";
-import AcademicYearList from "./component/AcademicYearList";
-import HolidayEditor from "./component/HolidayEditor";
-import "./style.scss";
+} from "@mui/material"
+import notice from "src/components/Notice"
+import AcademicYearService from "src/services/AcademicYearService"
+import DateFieldVN from "src/components/Common/DateFieldVN"
+import AcademicYearList from "./component/AcademicYearList"
+import HolidayEditor from "./component/HolidayEditor"
+import "./style.scss"
 
 const emptyForm = {
   academicYear: "",
   startDate: "",
   endDate: "",
   holidays: [],
-};
+}
 const errorMessage = (failure, fallback) =>
-  failure?.response?.data?.message || fallback;
-const normalize = (value) => ({
+  failure?.response?.data?.message || fallback
+const normalize = value => ({
   academicYear: value?.academicYear || "",
   startDate: value?.startDate || "",
   endDate: value?.endDate || "",
-  holidays: (value?.holidays || []).map((holiday) => ({
+  holidays: (value?.holidays || []).map(holiday => ({
     startDate: holiday.startDate || holiday.date || "",
     endDate: holiday.endDate || holiday.startDate || holiday.date || "",
     reason: holiday.reason || "",
   })),
-});
+})
 
 function AcademicYearConfiguration() {
-  const [years, setYears] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
-  const [saved, setSaved] = useState(emptyForm);
-  const [form, setForm] = useState(emptyForm);
-  const [creating, setCreating] = useState(false);
-  const [loadingList, setLoadingList] = useState(true);
-  const [loadingDetail, setLoadingDetail] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [pendingAction, setPendingAction] = useState(null);
-  const savingRef = useRef(false);
+  const [years, setYears] = useState([])
+  const [selectedId, setSelectedId] = useState(null)
+  const [saved, setSaved] = useState(emptyForm)
+  const [form, setForm] = useState(emptyForm)
+  const [creating, setCreating] = useState(false)
+  const [loadingList, setLoadingList] = useState(true)
+  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
+  const [pendingAction, setPendingAction] = useState(null)
+  const savingRef = useRef(false)
 
   const changed = useMemo(
     () => JSON.stringify(form) !== JSON.stringify(saved),
     [form, saved],
-  );
+  )
   const duplicateLabel =
     creating &&
     years.some(
-      (year) =>
+      year =>
         year.academicYear.trim().toLowerCase() ===
         form.academicYear.trim().toLowerCase(),
-    );
+    )
   const dateRangeInvalid = Boolean(
     form.startDate && form.endDate && form.startDate > form.endDate,
-  );
+  )
   const holidayRangeInvalid = form.holidays.some(
-    (holiday) =>
+    holiday =>
       holiday.startDate < form.startDate || holiday.endDate > form.endDate,
-  );
+  )
   const valid =
     form.academicYear.trim() &&
     form.startDate &&
     form.endDate &&
     !dateRangeInvalid &&
     !holidayRangeInvalid &&
-    !duplicateLabel;
+    !duplicateLabel
 
-  const loadDetail = useCallback(async (id) => {
-    setLoadingDetail(true);
-    setError("");
+  const loadDetail = useCallback(async id => {
+    setLoadingDetail(true)
+    setError("")
     try {
-      const response = await AcademicYearService.get(id);
-      const value = normalize(response.data);
-      setSelectedId(id);
-      setCreating(false);
-      setSaved(value);
-      setForm(value);
+      const response = await AcademicYearService.get(id)
+      const value = normalize(response.data)
+      setSelectedId(id)
+      setCreating(false)
+      setSaved(value)
+      setForm(value)
     } catch (failure) {
-      setError(errorMessage(failure, "Không thể tải cấu hình niên khóa."));
+      setError(errorMessage(failure, "Không thể tải cấu hình niên khóa."))
     } finally {
-      setLoadingDetail(false);
+      setLoadingDetail(false)
     }
-  }, []);
+  }, [])
 
   const loadList = useCallback(
-    async (preferredId) => {
-      setLoadingList(true);
-      setError("");
+    async preferredId => {
+      setLoadingList(true)
+      setError("")
       try {
-        const response = await AcademicYearService.list();
-        const items = response.data || [];
-        setYears(items);
-        const nextId = preferredId || items[0]?.id;
-        if (nextId) await loadDetail(nextId);
+        const response = await AcademicYearService.list()
+        const items = response.data || []
+        setYears(items)
+        const nextId = preferredId || items[0]?.id
+        if (nextId) await loadDetail(nextId)
         else {
-          setCreating(true);
-          setSelectedId(null);
-          setSaved(emptyForm);
-          setForm(emptyForm);
+          setCreating(true)
+          setSelectedId(null)
+          setSaved(emptyForm)
+          setForm(emptyForm)
         }
       } catch (failure) {
-        setError(errorMessage(failure, "Không thể tải danh sách niên khóa."));
+        setError(errorMessage(failure, "Không thể tải danh sách niên khóa."))
       } finally {
-        setLoadingList(false);
+        setLoadingList(false)
       }
     },
     [loadDetail],
-  );
+  )
 
   useEffect(() => {
-    void loadList();
-  }, [loadList]);
+    void loadList()
+  }, [loadList])
   useEffect(() => {
-    const warn = (event) => {
+    const warn = event => {
       if (changed) {
-        event.preventDefault();
-        event.returnValue = "";
+        event.preventDefault()
+        event.returnValue = ""
       }
-    };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [changed]);
+    }
+    window.addEventListener("beforeunload", warn)
+    return () => window.removeEventListener("beforeunload", warn)
+  }, [changed])
 
   const startCreate = () => {
-    setSelectedId(null);
-    setCreating(true);
-    setSaved(emptyForm);
-    setForm(emptyForm);
-    setError("");
-  };
-  const requestAction = (action) => {
-    if (changed) setPendingAction(() => action);
-    else action();
-  };
+    setSelectedId(null)
+    setCreating(true)
+    setSaved(emptyForm)
+    setForm(emptyForm)
+    setError("")
+  }
+  const requestAction = action => {
+    if (changed) setPendingAction(() => action)
+    else action()
+  }
   const cancelChanges = () => {
     if (creating) {
-      if (years[0]) void loadDetail(years[0].id);
-      else startCreate();
-    } else setForm(saved);
-  };
+      if (years[0]) void loadDetail(years[0].id)
+      else startCreate()
+    } else setForm(saved)
+  }
 
   const save = async () => {
-    if (!valid || !changed || savingRef.current) return;
-    savingRef.current = true;
-    setSaving(true);
+    if (!valid || !changed || savingRef.current) return
+    savingRef.current = true
+    setSaving(true)
     try {
       const payload = {
         startDate: form.startDate,
         endDate: form.endDate,
         holidays: form.holidays,
-      };
+      }
       const response = creating
         ? await AcademicYearService.create({
             academicYear: form.academicYear.trim(),
             ...payload,
           })
-        : await AcademicYearService.update(selectedId, payload);
+        : await AcademicYearService.update(selectedId, payload)
       notice({
         msg: creating ? "Đã thêm niên khóa" : "Đã lưu cấu hình niên khóa",
-      });
-      const value = normalize(response.data);
-      setSaved(value);
-      setForm(value);
-      setSelectedId(response.data.id);
-      setCreating(false);
-      await loadList(response.data.id);
+      })
+      const value = normalize(response.data)
+      setSaved(value)
+      setForm(value)
+      setSelectedId(response.data.id)
+      setCreating(false)
+      await loadList(response.data.id)
     } catch (failure) {
       notice({
         msg: errorMessage(failure, "Không thể lưu cấu hình niên khóa."),
         isSuccess: false,
-      });
+      })
     } finally {
-      savingRef.current = false;
-      setSaving(false);
+      savingRef.current = false
+      setSaving(false)
     }
-  };
+  }
 
   return (
     <div className="academic-year-page">
@@ -220,7 +214,7 @@ function AcademicYearConfiguration() {
           selectedId={selectedId}
           loading={loadingList}
           onCreate={() => requestAction(startCreate)}
-          onSelect={(id) => requestAction(() => loadDetail(id))}
+          onSelect={id => requestAction(() => loadDetail(id))}
         />
         <section
           className="academic-year-page__form"
@@ -265,8 +259,8 @@ function AcademicYearConfiguration() {
                         : undefined
                   }
                   inputProps={{ maxLength: 30 }}
-                  onChange={(event) =>
-                    setForm((current) => ({
+                  onChange={event =>
+                    setForm(current => ({
                       ...current,
                       academicYear: event.target.value,
                     }))
@@ -278,8 +272,8 @@ function AcademicYearConfiguration() {
                   label="Ngày bắt đầu"
                   value={form.startDate}
                   disabled={saving}
-                  onChange={(startDate) =>
-                    setForm((current) => ({
+                  onChange={startDate =>
+                    setForm(current => ({
                       ...current,
                       startDate,
                     }))
@@ -298,8 +292,8 @@ function AcademicYearConfiguration() {
                       ? "Ngày kết thúc phải bằng hoặc sau ngày bắt đầu."
                       : undefined
                   }
-                  onChange={(endDate) =>
-                    setForm((current) => ({
+                  onChange={endDate =>
+                    setForm(current => ({
                       ...current,
                       endDate,
                     }))
@@ -317,8 +311,8 @@ function AcademicYearConfiguration() {
                 startDate={form.startDate}
                 endDate={form.endDate}
                 disabled={saving}
-                onChange={(holidays) =>
-                  setForm((current) => ({ ...current, holidays }))
+                onChange={holidays =>
+                  setForm(current => ({ ...current, holidays }))
                 }
               />
               <div className="academic-year-page__actions">
@@ -372,9 +366,9 @@ function AcademicYearConfiguration() {
           <Button
             color="error"
             onClick={() => {
-              const action = pendingAction;
-              setPendingAction(null);
-              action?.();
+              const action = pendingAction
+              setPendingAction(null)
+              action?.()
             }}
           >
             Bỏ thay đổi
@@ -382,7 +376,7 @@ function AcademicYearConfiguration() {
         </DialogActions>
       </Dialog>
     </div>
-  );
+  )
 }
 
-export default AcademicYearConfiguration;
+export default AcademicYearConfiguration
