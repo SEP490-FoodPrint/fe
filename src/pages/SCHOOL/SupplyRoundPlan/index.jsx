@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import { Alert, Button, MenuItem, Skeleton, TextField } from "@mui/material"
 import SupplyRoundService from "src/services/SupplyRoundService"
 import notice from "src/components/Notice"
@@ -12,8 +13,21 @@ function todayInVietnam() {
 }
 
 export default function SupplyRoundPlan() {
-  const [date, setDate] = useState(todayInVietnam)
-  const [batchNo, setBatchNo] = useState("1")
+  // Mở đúng ngày/đợt từ danh sách phiếu nhập (?date=YYYY-MM-DD&batchNo=1|2).
+  const [searchParams, setSearchParams] = useSearchParams()
+  const initialDate = /^\d{4}-\d{2}-\d{2}$/.test(searchParams.get("date") || "")
+    ? searchParams.get("date")
+    : todayInVietnam()
+  const initialBatch = searchParams.get("batchNo") === "2" ? "2" : "1"
+  const [date, setDate] = useState(initialDate)
+  const [batchNo, setBatchNo] = useState(initialBatch)
+
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams)
+    next.set("date", date)
+    next.set("batchNo", batchNo)
+    if (next.toString() !== searchParams.toString()) setSearchParams(next, { replace: true })
+  }, [date, batchNo, searchParams, setSearchParams])
   const [round, setRound] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")

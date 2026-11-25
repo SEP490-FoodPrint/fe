@@ -35,7 +35,7 @@ function PendingTasksSection() {
               id: `unconf-${b.id}`,
               title: b.Dish?.name || b.batchCode || "Lô chế biến",
               timeTag: b.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế",
-              portion: Number.isSafeInteger(b.plannedPortions)
+              portion: Number.isFinite(b.plannedPortions)
                 ? `${b.plannedPortions.toLocaleString("vi-VN")} suất`
                 : "—",
               statusText: "Chờ xác nhận",
@@ -56,7 +56,7 @@ function PendingTasksSection() {
               id: `conf-${b.id}`,
               title: b.Dish?.name || b.batchCode || "Lô chế biến",
               timeTag: b.mealType === "LUNCH" ? "Bữa trưa" : "Bữa xế",
-              portion: Number.isSafeInteger(b.plannedPortions)
+              portion: Number.isFinite(b.plannedPortions)
                 ? `${b.plannedPortions.toLocaleString("vi-VN")} suất`
                 : "—",
               statusText: "Đang nấu",
@@ -77,7 +77,7 @@ function PendingTasksSection() {
               id: `sample-${b.id}`,
               title: b.Dish?.name || b.batchCode || "Lô chế biến",
               timeTag: "Chờ niêm phong mẫu",
-              portion: Number.isSafeInteger(b.plannedPortions)
+              portion: Number.isFinite(b.plannedPortions)
                 ? `${b.plannedPortions.toLocaleString("vi-VN")} suất`
                 : "—",
               statusText: "Chưa lưu mẫu",

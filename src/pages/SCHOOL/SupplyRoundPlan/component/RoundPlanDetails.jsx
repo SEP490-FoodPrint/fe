@@ -117,10 +117,86 @@ function SampleGroups({ title, groups }) {
   )
 }
 
+function CompensationPanel({ round }) {
+  const fresh = (round.compensations || []).filter((row) => row.kind === "FRESH")
+  const stock = (round.compensations || []).filter((row) => row.kind === "STOCK")
+  const leftovers = round.leftovers || []
+  if (!fresh.length && !stock.length && !leftovers.length) return null
+  const combine = round.cookingMode === "COMBINE_LOTS"
+  return (
+    <Paper component="section" variant="outlined" className={styles.panel}>
+      <h2>{combine ? "Phần lưu mẫu đặt ở Đợt 2" : "Phần lưu mẫu cần bù ở Đợt 2"}</h2>
+      {fresh.length > 0 && (
+        <ul className={styles.list}>
+          {fresh.map((row) => (
+            <li key={row.ingredientEntryId} className={styles.row}>
+              <span>{row.ingredientName}</span>
+              <strong>
+                + {quantityFormat.format(Number(row.quantity))} {row.unit}
+              </strong>
+            </li>
+          ))}
+        </ul>
+      )}
+      {stock.length > 0 && (
+        <>
+          <p className={styles.note}>Bù từ kho (đồ khô, gia vị) khi Đợt 2 về:</p>
+          <ul className={styles.list}>
+            {stock.map((row) => (
+              <li key={row.ingredientEntryId} className={styles.row}>
+                <span>{row.ingredientName}</span>
+                <strong>
+                  + {quantityFormat.format(Number(row.quantity))} {row.unit}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {leftovers.length > 0 && (
+        <>
+          <p className={styles.note}>
+            {leftovers.some((row) => row.surplus)
+              ? "Thừa từ Đợt 1 (Đợt 2 không cần, bếp có thể linh động cho thêm vào món):"
+              : "Phần dư Đợt 1 do lệch tỉ lệ, sẽ ghép vào mẻ Đợt 2:"}
+          </p>
+          <ul className={styles.list}>
+            {leftovers.map((row, index) => (
+              <li key={`${row.lotCode}:${row.dishName}:${index}`} className={styles.row}>
+                <span>
+                  {row.ingredientName} · {row.source || row.lotCode} · {row.dishName}
+                </span>
+                <strong>
+                  {quantityFormat.format(Number(row.quantity))} {row.unit}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Paper>
+  )
+}
+
 export default function RoundPlanDetails({ round, working, onAction }) {
   if (!round.id && round.batchNo === 2)
     return (
-      <Alert severity="info">Chưa có kế hoạch mẻ Đợt 2 cho ngày này.</Alert>
+      <>
+        <Alert severity={round.batch2NotNeeded ? "success" : "info"}>
+          {round.batch2NotNeeded
+            ? "Đợt 2 không cần đặt: Đợt 1 đã đủ."
+            : round.round1Ready
+              ? "Chưa có kế hoạch mẻ Đợt 2 cho ngày này."
+              : "Đợt 1 chưa nhận đủ hàng nên chưa lập mẻ; chưa tạo được đơn Đợt 2."}
+        </Alert>
+        <CompensationPanel round={round} />
+      </>
+    )
+  if (!round.id && round.batchNo === 1)
+    return (
+      <Alert severity="info">
+        Mẻ Đợt 1 được hệ thống tự lập sau khi mọi nguyên liệu Đợt 1 đã giao và kiểm nhận đạt.
+      </Alert>
     )
   if (!round.dishes.length)
     return (
@@ -195,7 +271,17 @@ export default function RoundPlanDetails({ round, working, onAction }) {
           </ul>
         </Paper>
       )}
-      <SampleGroups title="Lấy thêm từ nhà cung cấp" groups={round.topUps} />
+      <CompensationPanel round={round} />
+      <SampleGroups
+        title={
+          round.batchNo === 1
+            ? round.cookingMode === "COMBINE_LOTS"
+              ? "Phần lưu mẫu (nấu chung: đặt ở Đợt 2)"
+              : "Đã cắt lưu mẫu trong mẻ (bù ở Đợt 2)"
+            : "Lấy thêm từ nhà cung cấp"
+        }
+        groups={round.topUps}
+      />
       <SampleGroups title="Lấy từ kho" groups={round.fromStock} />
     </>
   )

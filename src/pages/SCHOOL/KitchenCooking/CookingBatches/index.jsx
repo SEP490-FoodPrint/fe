@@ -1,8 +1,6 @@
 import React, { useState, useContext, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import { Alert, Button } from "@mui/material";
-import { Plus, Clock, Eye, Pencil } from "lucide-react";
-import ROUTER from "src/router/ROUTER";
+import { Clock } from "lucide-react";
 import STORAGE, { getStorage } from "src/lib/storage";
 import { StoreContext } from "src/contexts";
 import KitchenService from "src/services/KitchenService";
@@ -22,10 +20,8 @@ import CookingBatchesKPI from "./component/CookingBatchesKPI";
 import CookingBatchesFilter from "./component/CookingBatchesFilter";
 import CookingBatchesTable from "./component/CookingBatchesTable";
 import styles from "./index.module.scss";
-import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
 
 export default function CookingBatches() {
-  const navigate = useNavigate();
   const { userStore } = useContext(StoreContext) || {};
   const user = userStore?.user || getStorage(STORAGE.USER_INFO) || {};
   const schoolId = user.schoolId || user.orgId || user.school_id || "";
@@ -271,7 +267,6 @@ export default function CookingBatches() {
       : { ...paging, totalItems: 0, totalPages: 1 };
   const listError = listState.key === queryKey ? listState.error : "";
   const canCreate = Boolean(COOKING_MODES[school?.cookingMode]);
-  const isSeparateMode = school?.cookingMode === "SEPARATE_BY_LOT";
   const mealTimes = [
     schoolClock(school?.lunchTime) && `Bữa trưa ${schoolClock(school.lunchTime)}`,
     schoolClock(school?.afternoonMealTime) &&
@@ -349,26 +344,15 @@ export default function CookingBatches() {
       : school?.cookingMode === "COMBINE_LOTS"
         ? "lô nấu chung"
         : "lô chế biến";
-  const createButton =
+  // TASK-10 v8 (V29, V32): mẻ do hệ thống tự lập theo đợt giao, bếp không lập mẻ thủ công nữa.
+  const todayStatus =
     todayBatch.state === "done"
-      ? { label: `Xem ${batchKind} hôm nay`, icon: Eye, title: `Chế độ ${COOKING_MODES[school?.cookingMode] || "chưa cấu hình"} · Hôm nay đã tạo lô cho tất cả món` }
+      ? `Hôm nay đã có ${batchKind} cho tất cả món`
       : todayBatch.state === "partial"
-        ? {
-            label: `Tiếp tục tạo ${batchKind}`,
-            icon: Pencil,
-            title: `Chế độ ${COOKING_MODES[school?.cookingMode] || "chưa cấu hình"} · Hôm nay đã tạo lô ${todayBatch.created}/${todayBatch.total} món`,
-          }
-        : { label: `Tạo ${batchKind}`, icon: Plus, title: COOKING_MODES[school?.cookingMode] || "Chưa có cấu hình chế biến" };
-  const CreateIcon = createButton.icon;
-
-  const navigateCreate = () => {
-    if (canCreate)
-      navigate(
-        isSeparateMode
-          ? ROUTER.SCHOOL_KITCHEN_BATCH_CREATE_SEPARATE
-          : ROUTER.SCHOOL_KITCHEN_BATCH_CREATE,
-      );
-  };
+        ? `Hôm nay đã có ${batchKind} cho ${todayBatch.created}/${todayBatch.total} món`
+        : todayBatch.state === "none"
+          ? "Hôm nay chưa có mẻ: hệ thống tự lập sau khi Đợt 1 nhận đủ hàng"
+          : "";
 
   return (
     <div className={styles.batchesContainer}>
@@ -387,16 +371,11 @@ export default function CookingBatches() {
           </div>
         </div>
         <div className={styles.actionBtns}>
-          <Button
-            variant="contained"
-            className={styles.createBtn}
-            onClick={navigateCreate}
-            disabled={!canCreate || isVietnamWeekend()}
-            title={isVietnamWeekend() ? WEEKEND_LOCK_MESSAGE : createButton.title}
-            startIcon={<CreateIcon size={18} />}
-          >
-            {createButton.label}
-          </Button>
+          {todayStatus && (
+            <span className={styles.shiftBadge} title="Mẻ được lập tự động theo đợt giao">
+              {todayStatus}
+            </span>
+          )}
         </div>
       </div>
       {schoolError && (
@@ -468,17 +447,6 @@ export default function CookingBatches() {
         onPageSizeChange={(limit) => setPaging({ page: 1, limit })}
       />
 
-      <div className={styles.mobileStickyBar}>
-        <Button
-          variant="contained"
-          className={styles.mobileCreateBtn}
-          onClick={navigateCreate}
-          disabled={!canCreate || isVietnamWeekend()}
-          startIcon={<CreateIcon size={19} />}
-        >
-          {createButton.label}
-        </Button>
-      </div>
     </div>
   );
 }
