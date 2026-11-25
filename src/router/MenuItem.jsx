@@ -190,6 +190,12 @@ export const MenuItemSchool = () => [
         roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
       },
       {
+        key: ROUTER.SCHOOL_SAMPLE_POLICY,
+        label: "Lưu mẫu thực phẩm",
+        icon: <ScienceOutlinedIcon />,
+        roles: [ROLES.SCHOOL_MANAGEMENT_BOARD],
+      },
+      {
         key: ROUTER.SCHOOL_ACADEMIC_YEARS,
         label: "Thiết lập niên khóa",
         icon: <CalendarMonthOutlinedIcon />,
@@ -338,6 +344,12 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_CATALOG,
     label: "Danh mục nguyên liệu",
     icon: <Inventory2OutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+  {
+    key: ROUTER.SCHOOL_SUPPLY_ROUND_PLAN,
+    label: "Kế hoạch mẻ theo đợt giao",
+    icon: <FactCheckOutlinedIcon />,
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {

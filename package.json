@@ -8,6 +8,7 @@
     "test:registration": "node --test tests/registration-api.test.mjs",
     "test:blockchain-proof": "node --test tests/blockchain-proof.test.mjs",
     "test:kitchen-nutrition": "node --test tests/kitchen-nutrition-api.test.mjs tests/quantity-display.test.mjs",
+    "test:sample-policy": "node --test tests/sample-policy.test.mjs",
     "test:supplier-ingredient-handling": "node --test tests/supplier-ingredient-handling.test.mjs",
     "build": "vite build",
     "preview": "vite preview"
@@ -24,6 +25,7 @@
     "exceljs": "4.4.0",
     "lodash": "^4.17.21",
     "lucide-react": "^0.511.0",
+    "moment": "^2.31.0",
     "prop-types": "^15.8.1",
     "qs": "^6.14.0",
     "react": "^19.0.0",

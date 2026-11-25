@@ -87,23 +87,23 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
     const rejectCount = getRejectCount(item.approvals)
 
     // Quy tắc nghiệm thu: >= 2 bên từ chối -> Hủy luôn
-    if (item.status === "CANCELLED" || rejectCount >= 2) {
+    if (item.status === "CANCELLED" || item.cancellationNotice) {
       return (
         <Chip
           icon={<AlertTriangle size={14} />}
-          label="Đã hủy (≥ 2 bên từ chối)"
+          label={item.cancellationNotice ? "Đã hủy đơn" : "Đã hủy"}
           size="small"
           className={styles.statusCancelled}
         />
       )
     }
 
-    // Quy tắc nghiệm thu: 1 bên từ chối -> Giao lại
-    if (item.status === "RE_DELIVER" || rejectCount === 1) {
+    if (item.status === "REJECTED") {
+      const count = item.redeliveryRequiredCount ?? 1
       return (
         <Chip
           icon={<RotateCcw size={14} />}
-          label="Yêu cầu giao lại (1 bên từ chối)"
+          label={`Bị từ chối (lần ${count})`}
           size="small"
           className={styles.statusRedeliver}
         />
@@ -233,12 +233,9 @@ export default function DeliveryTable({ deliveries = [], onViewDetail, onAddBatc
                 d => d.deliveryDate === item.deliveryDate && d.batchType === "BATCH_2"
               )
               // Đợt 1 "đi tong" (bị hủy do >= 2 bên từ chối hoặc đang bị yêu cầu giao lại)
-              const rejectCount = getRejectCount(item.approvals)
               const isBatch1Failed =
                 item.status === "CANCELLED" ||
-                item.status === "REJECTED" ||
-                item.status === "RE_DELIVER" ||
-                rejectCount > 0
+                item.status === "REJECTED"
 
               const canAddBatch2 = isBatch1 && !hasBatch2ForDate && !isBatch1Failed
 

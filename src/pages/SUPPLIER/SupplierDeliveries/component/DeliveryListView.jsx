@@ -180,6 +180,7 @@ function DeliveryListView({
                     <DeliveryStatusBadge
                       status={delivery.status}
                       statusLabel={delivery.statusLabel}
+                      preparationStage={delivery.preparationStage}
                     />
                   </td>
                 </tr>
@@ -209,6 +210,7 @@ function DeliveryListView({
                   <DeliveryStatusBadge
                     status={delivery.status}
                     statusLabel={delivery.statusLabel}
+                    preparationStage={delivery.preparationStage}
                   />
                 </div>
                 <span className={styles.mobileSchoolName}>{delivery.schoolName}</span>

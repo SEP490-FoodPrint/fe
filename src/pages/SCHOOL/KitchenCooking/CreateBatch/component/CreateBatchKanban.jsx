@@ -396,7 +396,7 @@ export default function CreateBatchKanban({
                             >
                               <Eye size={16} aria-hidden="true" />
                             </button>
-                            {column.key === "cooking" && (
+                            {column.key === "cooking" && batch.status === "CONFIRMED" && (
                               <button
                                 type="button"
                                 className={styles.primaryBtn}

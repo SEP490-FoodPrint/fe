@@ -4,6 +4,7 @@
 export const apiGetPublicSchools = "/schools/public"
 export const apiCookingMode = "/schools/me/cooking-mode"
 export const apiMealTimes = "/schools/me/meal-times"
+export const apiSamplePolicy = "/schools/me/sample-policy"
 export const apiGetPublicLocations = "/schools/public/locations"
 export const apiGetSchoolDetail = id => `/schools/public/${id}`
 export const apiGetSchoolDetailByCode = code => `/schools/public/code/${code}`

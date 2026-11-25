@@ -593,6 +593,13 @@ function adaptSourceFacility(facility) {
   }
 }
 
+export const PREPARATION_STAGE_LABEL = {
+  LOTS_DECLARED: "Đã khai báo lô",
+  PENDING_WAREHOUSE: "Chờ kho duyệt",
+  TOP_UP_PENDING: "Chờ xác nhận lấy thêm",
+  READY_TO_DISPATCH: "Sẵn sàng giao",
+}
+
 function adaptDeliveryItem(item = {}) {
   return {
     id: item.id || "",
@@ -602,6 +609,7 @@ function adaptDeliveryItem(item = {}) {
     supplyRequestItemId: item.supplyRequestItemId ?? null,
     sourceFacility: adaptSourceFacility(item.sourceFacility),
     traceUrl: item.traceUrl ?? null,
+    sampleTopUpQuantity: item.sampleTopUpQuantity ?? null,
     actualQuantity:
       item.actualQuantity !== undefined && item.actualQuantity !== null
         ? String(item.actualQuantity)
@@ -627,6 +635,7 @@ function adaptDeliverySummary(row = {}) {
     traceabilityVersion: row.traceabilityVersion ?? null,
     workflowVersion: row.workflowVersion ?? null,
     nextAction: row.nextAction ?? null,
+    preparationStage: row.preparationStage ?? null,
     expectedArrivalAt: row.expectedArrivalAt ?? null,
     arrivedAt: row.arrivedAt ?? null,
     receivedAt: row.receivedAt ?? null,
@@ -664,6 +673,7 @@ function adaptDeliveryDetail(row = {}) {
   return {
     ...adaptDeliverySummary(row),
     items: Array.isArray(row.items) ? row.items.map(adaptDeliveryItem) : [],
+    topUpLots: Array.isArray(row.topUpLots) ? row.topUpLots : [],
   }
 }
 
@@ -882,6 +892,15 @@ const SupplierDeliveryService = {
         expectedArrivalAt,
         vehiclePlate: String(vehiclePlate ?? "").trim(),
       },
+      { notifyOnError: false },
+    )
+    return adaptDeliveryDetail(response?.data || response)
+  },
+
+  async confirmTopUp(deliveryId, lots) {
+    const response = await http.post(
+      `${BASE_URL}/${encodeId(deliveryId)}/top-up`,
+      { lots: lots.map(({ ingredientLotId, sampleTopUpQuantity }) => ({ ingredientLotId, sampleTopUpQuantity })) },
       { notifyOnError: false },
     )
     return adaptDeliveryDetail(response?.data || response)

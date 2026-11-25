@@ -52,8 +52,8 @@ export default function DeliveryFilterStrip({
           <MenuItem value="CONFIRMED">NCC chuẩn bị giao</MenuItem>
           <MenuItem value="INSPECTING">Đang kiểm tra 4 bên</MenuItem>
           <MenuItem value="COMPLETED">Đã duyệt 4/4 & Vào bếp</MenuItem>
-          <MenuItem value="RE_DELIVER">Yêu cầu giao lại (1 bên từ chối)</MenuItem>
-          <MenuItem value="CANCELLED">Đã hủy (≥ 2 bên từ chối)</MenuItem>
+          <MenuItem value="REJECTED">Bị từ chối / Giao lại</MenuItem>
+          <MenuItem value="CANCELLED">Đã hủy</MenuItem>
         </TextField>
       </Box>
 

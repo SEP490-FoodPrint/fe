@@ -41,6 +41,7 @@ const SUPPLY_ORDER_STEPS = [
 
 function OrderDetailView({
   order,
+  replacesDelivery = null,
   createdDelivery = null,
   pendingDispatchDelivery = null,
   fulfillmentStage = ORDER_CREATION_STAGE.INGREDIENTS,
@@ -131,7 +132,10 @@ function OrderDetailView({
   }
 
   const isPendingAccept = order.status === SUPPLY_ORDER_STATUS.SENT
-  const isAcceptedStage = order.status === SUPPLY_ORDER_STATUS.ACCEPTED
+  const isAcceptedStage =
+    order.status === SUPPLY_ORDER_STATUS.ACCEPTED ||
+    (order.status === SUPPLY_ORDER_STATUS.IN_PROGRESS &&
+      Boolean(replacesDelivery?.id))
   const isPreparingStage =
     isAcceptedStage && fulfillmentStage === ORDER_CREATION_STAGE.LOGISTICS
   const isFulfilled =
@@ -230,6 +234,7 @@ function OrderDetailView({
       {isAcceptedStage && (
         <OrderFulfillmentWorkflow
           order={order}
+          replacesDelivery={replacesDelivery}
           fulfillmentStage={fulfillmentStage}
           pendingDispatchDelivery={pendingDispatchDelivery}
           submitting={accepting}
@@ -373,6 +378,7 @@ function OrderDetailView({
                       <th scope="col" className={styles.colQuantity}>
                         Số lượng yêu cầu
                       </th>
+                      <th scope="col">Lưu mẫu</th>
                       <th scope="col" className={styles.colUnit}>
                         Đơn vị
                       </th>
@@ -393,6 +399,7 @@ function OrderDetailView({
                         <td className={styles.colQuantity}>
                           {formatQuantityVi(item.requestedQuantity)}
                         </td>
+                        <td>{item.sampleTopUpQuantity ? formatQuantityVi(item.sampleTopUpQuantity) : "—"}</td>
                         <td className={styles.colUnit}>{item.unit || "—"}</td>
                         <td className={styles.colNote}>{item.note || "—"}</td>
                       </tr>
@@ -412,6 +419,9 @@ function OrderDetailView({
                         {`${formatQuantityVi(item.requestedQuantity)} ${item.unit || ""}`.trim()}
                       </span>
                     </div>
+                    {item.sampleTopUpQuantity && (
+                      <p className={styles.mobileItemNote}>Lưu mẫu {formatQuantityVi(item.sampleTopUpQuantity)} {item.unit}</p>
+                    )}
                     {item.note && (
                       <p className={styles.mobileItemNote}>{`Ghi chú: ${item.note}`}</p>
                     )}

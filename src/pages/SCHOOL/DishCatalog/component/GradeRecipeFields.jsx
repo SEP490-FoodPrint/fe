@@ -147,6 +147,7 @@ export default function GradeRecipeFields({
             placeholder="Ví dụ: 100"
             value={standardQuantity}
             disabled={disabled}
+            onWheel={(event) => event.currentTarget.blur()}
             onChange={(event) =>
               onStandardChange({ standardQuantity: event.target.value })
             }
@@ -308,6 +309,7 @@ export default function GradeRecipeFields({
                 placeholder={`Ví dụ: ${standardQuantity || 100}`}
                 value={profile.portionQuantity ?? ""}
                 disabled={disabled}
+                onWheel={(event) => event.currentTarget.blur()}
                 onChange={(event) =>
                   setPortion(profile.gradeId, event.target.value)
                 }

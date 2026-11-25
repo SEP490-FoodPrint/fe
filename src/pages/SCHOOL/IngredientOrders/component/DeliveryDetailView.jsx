@@ -479,21 +479,6 @@ export default function DeliveryDetailView({
             }}
           />
         );
-      case "RE_DELIVER":
-        return (
-          <Chip
-            icon={<Clock size={13} />}
-            label="Yêu cầu giao lại"
-            size="small"
-            sx={{
-              bgcolor: "#fff7ed",
-              color: "#c2410c",
-              fontWeight: 600,
-              fontSize: "0.75rem",
-              border: "1px solid #fed7aa",
-            }}
-          />
-        );
       case "REJECTED":
         return (
           <Chip
@@ -691,15 +676,14 @@ export default function DeliveryDetailView({
   const isBatch2 = delivery.batchType === "BATCH_2";
   const isWaitingAttendance = delivery.status === "WAITING_ATTENDANCE";
   const approvals = delivery.approvals || {};
-
-  // Đếm số bên từ chối theo nguyên tắc nghiệm thu
-  const rejectCount = Object.values(approvals).filter(
-    (a) => a?.approved === false,
-  ).length;
-  const isCancelled = delivery.status === "CANCELLED" || rejectCount >= 2;
+  const isCancelled =
+    delivery.status === "CANCELLED" || Boolean(delivery.cancellationNotice);
   const isRedeliver =
-    (delivery.status === "RE_DELIVER" || delivery.status === "REJECTED") &&
-    rejectCount === 1;
+    delivery.status === "REJECTED" &&
+    !isCancelled &&
+    (delivery.redeliveryRequiredCount === null ||
+      delivery.redeliveryRequiredCount === undefined ||
+      delivery.redeliveryRequiredCount <= 2);
 
   const maxPortions = Number(delivery.maxPortions) || 0;
   const batch1Portions =
@@ -1067,6 +1051,7 @@ export default function DeliveryDetailView({
                   Nhà cung cấp (NCC)
                 </TableCell>
                 <TableCell align="right">Số lượng đặt</TableCell>
+                <TableCell align="right">Lưu mẫu</TableCell>
                 <TableCell align="left">Đơn vị</TableCell>
                 <TableCell align="center">
                   Đánh giá cảm quan &amp; ATTP
@@ -1210,6 +1195,7 @@ export default function DeliveryDetailView({
                           </Button>
                         )}
                       </TableCell>
+                      <TableCell align="right">{item.sampleTopUpQuantity ?? "—"}</TableCell>
                       <TableCell align="left">
                         <Typography variant="body2">{item.unit}</Typography>
                       </TableCell>
@@ -1278,7 +1264,7 @@ export default function DeliveryDetailView({
                     {isExpanded && isMulti && (
                       <TableRow sx={{ bgcolor: "#f8fafc" }}>
                         <TableCell
-                          colSpan={6}
+                          colSpan={7}
                           sx={{
                             py: 1.25,
                             px: 3,

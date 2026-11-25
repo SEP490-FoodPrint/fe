@@ -1044,6 +1044,7 @@ export default function DishCatalogPage() {
                                           ing.unit || "g",
                                         ).quantity ?? ""
                                       }
+                                      onWheel={(e) => e.currentTarget.blur()}
                                       onChange={(e) =>
                                         handleUpdateIngredientPortion(
                                           ing.id,
@@ -1212,6 +1213,7 @@ export default function DishCatalogPage() {
                                         seas.unit || "g",
                                       ).quantity ?? ""
                                     }
+                                    onWheel={(e) => e.currentTarget.blur()}
                                     onChange={(e) =>
                                       handleUpdateSeasoning(
                                         seas.id,

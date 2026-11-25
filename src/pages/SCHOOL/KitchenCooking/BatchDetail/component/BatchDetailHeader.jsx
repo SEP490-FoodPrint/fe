@@ -10,6 +10,7 @@ import {
   CookingPot,
 } from "lucide-react"
 import ROUTER from "src/router/ROUTER"
+import { BATCH_STATUSES } from "src/services/KitchenService/adapter"
 import styles from "./BatchDetailHeader.module.scss"
 import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend"
 
@@ -46,14 +47,16 @@ export default function BatchDetailHeader({
       return (
         <span className={`${styles.statusBadge} ${styles.statusConfirmed}`}>
           <span className={styles.pulseDot} />
-          Đang chế biến
+          {batchData.statusLabel === BATCH_STATUSES.CONFIRMED
+            ? "Đang chế biến"
+            : batchData.statusLabel || "Đang chế biến"}
         </span>
       )
     }
     return (
       <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
         <span className={styles.pulseDot} />
-        Chưa xác nhận nấu
+        {isDraft ? BATCH_STATUSES.UNCONFIRMED : batchData.statusLabel}
       </span>
     )
   }

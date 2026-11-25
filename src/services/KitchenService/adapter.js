@@ -40,10 +40,20 @@ export const isUuid = (str) =>
   );
 
 export const BATCH_STATUSES = {
+  PENDING_APPROVAL: "Chờ duyệt",
+  ROUND1_APPROVED: "Đã duyệt Đợt 1",
+  ROUND2_APPROVED: "Đã duyệt Đợt 2",
+  CANCELLED: "Đã hủy",
   UNCONFIRMED: "Chưa xác nhận nấu",
   CONFIRMED: "Đang nấu",
   COMPLETED: "Đã hoàn thành",
 };
+
+function batchStatusLabel(batch) {
+  return batch.status === "CONFIRMED" && batch.BatchGroup?.supplyRoundId
+    ? "Chính thức – sẵn sàng nấu"
+    : BATCH_STATUSES[batch.status] || "Chưa xác định";
+}
 
 export const EMPTY_BATCH_FILTERS = {
   search: "",
@@ -147,6 +157,10 @@ export function adaptCookingBatch(batch) {
       dishId: d.dishId || d.id,
       name: d.name || dishObj.name || "Món ăn",
       plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+      sampleQuantity: d.sampleQuantity ?? null,
+      sampleUnit: d.sampleUnit ?? null,
+      sampleRatio: d.sampleRatio ?? null,
+      standardQuantitySnapshot: d.standardQuantitySnapshot ?? null,
       cookingBatchLots: d.cookingBatchLots || [],
       mainIngredients,
       seasonings,
@@ -222,7 +236,7 @@ export function adaptCookingBatch(batch) {
     sampledDishesCount,
     retainedFoodSamples: samples,
     status: batch.status,
-    statusLabel: BATCH_STATUSES[batch.status] || "Chưa xác định",
+    statusLabel: batchStatusLabel(batch),
     statusType:
       { UNCONFIRMED: "muted", CONFIRMED: "warning", COMPLETED: "success" }[
         batch.status
@@ -288,6 +302,10 @@ export function adaptBatchDetail(batch) {
       dishId: d.dishId || d.id,
       name: d.name || dishObj.name || "Món ăn",
       plannedPortions: d.plannedPortions ?? batch.plannedPortions,
+      sampleQuantity: d.sampleQuantity ?? null,
+      sampleUnit: d.sampleUnit ?? null,
+      sampleRatio: d.sampleRatio ?? null,
+      standardQuantitySnapshot: d.standardQuantitySnapshot ?? null,
       cookingBatchLots: d.cookingBatchLots || [],
       mainIngredients,
       seasonings,
@@ -370,7 +388,7 @@ export function adaptBatchDetail(batch) {
     batchGroupId: batch.batchGroupId || batch.BatchGroup?.id || null,
     batchGroupCode: batch.BatchGroup?.batchCode || "",
     status,
-    statusLabel: BATCH_STATUSES[status] || "Chưa xác định",
+    statusLabel: batchStatusLabel({ ...batch, status }),
     dishName,
     dishes,
     dishCategory: "Món ăn bán trú",

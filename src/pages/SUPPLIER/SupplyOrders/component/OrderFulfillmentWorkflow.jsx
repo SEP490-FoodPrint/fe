@@ -45,6 +45,7 @@ function buildInitialAllocations(items = []) {
 
 function OrderFulfillmentWorkflow({
   order,
+  replacesDelivery = null,
   fulfillmentStage = ORDER_CREATION_STAGE.INGREDIENTS,
   pendingDispatchDelivery = null,
   submitting = false,
@@ -74,6 +75,10 @@ function OrderFulfillmentWorkflow({
   const isDryOrder =
     order?.orderType === "DRY_STOCK" ||
     (items.length > 0 && items.every(item => item.handlingType === "DRY_STOCK"))
+  const requiresWarehouseApproval =
+    order?.orderType === "DIRECT_USE" &&
+    (order.batchNo === 1 || order.batchNo === 2) &&
+    Boolean(order.requestedDeliveryDate)
 
   const loadFacilities = useCallback(async () => {
     setLoadingFacilities(true)
@@ -97,17 +102,50 @@ function OrderFulfillmentWorkflow({
 
   useEffect(() => {
     if (!order?.id) return
-    setAllocationsByItemId(
-      buildInitialAllocations(Array.isArray(order.items) ? order.items : []),
-    )
+    const orderItems = Array.isArray(order.items) ? order.items : []
+    const repItems = Array.isArray(replacesDelivery?.items)
+      ? replacesDelivery.items
+      : []
+    if (repItems.length > 0) {
+      const grouped = {}
+      for (const item of orderItems) {
+        const matched = repItems.filter(
+          it => it.supplyRequestItemId === item.id,
+        )
+        grouped[item.id] = matched.length
+          ? matched.map(it => ({
+              key: `${item.id}_${it.sourceFacilityId || "src"}_${Math.random().toString(36).slice(2, 7)}`,
+              sourceFacilityId: it.sourceFacilityId || "",
+              actualQuantity:
+                it.actualQuantity !== undefined && it.actualQuantity !== null
+                  ? String(it.actualQuantity)
+                  : String(item.requestedQuantity ?? ""),
+              manufactureDate: it.manufactureDate
+                ? String(it.manufactureDate).slice(0, 10)
+                : "",
+              expiryDate: it.expiryDate
+                ? String(it.expiryDate).slice(0, 10)
+                : "",
+            }))
+          : buildInitialAllocations([item])[item.id]
+      }
+      setAllocationsByItemId(grouped)
+      setNote(replacesDelivery.note || "")
+    } else {
+      setAllocationsByItemId(buildInitialAllocations(orderItems))
+      setNote("")
+    }
     setExpectedArrivalLocal("")
     setVehiclePlate("")
-    setNote("")
     setFieldErrors({})
-    if (order.status === SUPPLY_ORDER_STATUS.ACCEPTED) {
+    if (
+      order.status === SUPPLY_ORDER_STATUS.ACCEPTED ||
+      (order.status === SUPPLY_ORDER_STATUS.IN_PROGRESS &&
+        Boolean(replacesDelivery?.id))
+    ) {
       loadFacilities()
     }
-  }, [order?.id, order?.status, items, loadFacilities])
+  }, [order?.id, order?.status, items, replacesDelivery, loadFacilities])
 
   // Danh sách phân bổ phẳng (giữ key để gắn lỗi theo từng dòng con).
   const buildAllocationList = () =>
@@ -119,8 +157,15 @@ function OrderFulfillmentWorkflow({
           supplyRequestItemId: item.id,
           sourceFacilityId: String(row.sourceFacilityId || "").trim(),
           actualQuantity: normalizeDecimalQuantity(row.actualQuantity),
-          ...(item.handlingType === "DRY_STOCK"
-            ? { manufactureDate: row.manufactureDate, expiryDate: row.expiryDate }
+          ...(item.handlingType === "DRY_STOCK" ||
+          row.manufactureDate ||
+          row.expiryDate
+            ? {
+                ...(row.manufactureDate
+                  ? { manufactureDate: row.manufactureDate }
+                  : {}),
+                ...(row.expiryDate ? { expiryDate: row.expiryDate } : {}),
+              }
             : {}),
         })),
       )
@@ -253,6 +298,10 @@ function OrderFulfillmentWorkflow({
     }
 
     setFieldErrors({})
+    if (requiresWarehouseApproval) {
+      onSubmitDelivery?.({ sources: buildAllocationList() })
+      return
+    }
     onChangeStage?.(ORDER_CREATION_STAGE.LOGISTICS)
   }
 
@@ -342,7 +391,7 @@ function OrderFulfillmentWorkflow({
             endIcon={<ArrowForward fontSize="small" />}
             onClick={handleProceedToLogistics}
           >
-            Hoàn tất nguyên liệu
+            {requiresWarehouseApproval ? "Khai báo lô" : "Hoàn tất nguyên liệu"}
           </Button>
         </div>
       </section>
