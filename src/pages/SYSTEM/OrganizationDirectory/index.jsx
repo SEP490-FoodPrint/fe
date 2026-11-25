@@ -232,7 +232,6 @@ function AssignLocationDialog({ open, kind, record, onClose, onSaved }) {
       await SystemDirectoryService.updateLocation(kind, record.id, locationId)
       notice({
         msg: record?.location ? "Đã cập nhật phường/xã" : "Đã gắn phường/xã",
-        desc: `Cập nhật địa giới hành chính thành công cho ${record?.name || (school ? "trường học" : "nhà cung cấp")}.`,
         isSuccess: true,
       })
       onSaved()

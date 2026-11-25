@@ -351,7 +351,6 @@ export const MenuItemSchool = () => [
     key: ROUTER.SCHOOL_INGREDIENT_INSPECT,
     label: "Kiểm tra nguyên liệu",
     icon: <FactCheckOutlinedIcon />,
-    badge: "1",
     roles: [ROLES.SCHOOL_KITCHEN_STAFF],
   },
 

@@ -125,7 +125,7 @@ export default function AuthorityOfficersPage() {
     setCreateOpen(false)
     notice({
       msg: "Đã tạo tài khoản cán bộ ATTP",
-      desc: `${created.fullName} (@${created.username}) đã được cấp quyền phụ trách ${created.location?.name || "địa bàn đã chọn"}.`,
+      desc: `Phụ trách: ${created.location?.name || "địa bàn đã chọn"}`,
       isSuccess: true,
     })
     setPagination(prev => ({ ...prev, page: 1 }))

@@ -1,51 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import {
-  Alert,
-  Button,
-  InputAdornment,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-} from "@mui/material"
-import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined"
+import { Alert, Button, Skeleton } from "@mui/material"
+import { shortList } from "src/utils/shortList"
+import { normalizeRequestSearch } from "src/lib/registration"
 import notice from "src/components/Notice"
 import IngredientWasteRateService from "src/services/IngredientWasteRateService"
+import WasteRateFilters, { EMPTY_FILTERS } from "./component/WasteRateFilters"
+import WasteRateTable from "./component/WasteRateTable"
+import { isDirty, parsePercent } from "./component/wasteRate"
 import styles from "./component/KitchenWasteRates.module.scss"
 
 const errorMessage = (failure, fallback) =>
   failure?.response?.data?.message || fallback
-
-const HANDLING_LABELS = { DIRECT_USE: "Đồ tươi", DRY_STOCK: "Đồ lưu kho" }
-
-/** "0.2000" → "20"; "0.1250" → "12.5" */
-const rateToPercent = rate => {
-  const value = Math.round(Number(rate || 0) * 10000) / 100
-  return Number.isFinite(value) ? String(value) : "0"
-}
-
-/** Kiểm tra % nhập vào: 0 <= p < 100, tối đa 2 chữ số thập phân. Trả về tỷ lệ thập phân hoặc lỗi. */
-const parsePercent = text => {
-  const normalized = String(text ?? "")
-    .trim()
-    .replace(",", ".")
-  if (normalized === "") return { error: "Nhập tỷ lệ, để 0 nếu không hao hụt" }
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized))
-    return { error: "Chỉ nhận số, tối đa 2 chữ số thập phân" }
-  const percent = Number(normalized)
-  if (percent >= 100) return { error: "Tỷ lệ phải nhỏ hơn 100%" }
-  return { rate: Math.round(percent * 100) / 10000 }
-}
-
-/** Lượng sống cần cho 1 đơn vị thành phẩm: 1 / (1 − r). */
-const rawPerCooked = rate => (rate > 0 ? 1 / (1 - rate) : 1)
-
-const formatNumber = value =>
-  new Intl.NumberFormat("vi-VN", { maximumFractionDigits: 3 }).format(value)
 
 function KitchenWasteRates() {
   const [rows, setRows] = useState([])
@@ -54,7 +19,9 @@ function KitchenWasteRates() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const [retry, setRetry] = useState(0)
-  const [search, setSearch] = useState("")
+  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const savingRef = useRef(false)
 
   useEffect(() => {
@@ -69,7 +36,7 @@ function KitchenWasteRates() {
       })
       .catch(failure => {
         if (active)
-          setError(errorMessage(failure, "Không thể tải tỷ lệ hao hụt."))
+          setError(errorMessage(failure, "Không tải được tỷ lệ hao hụt."))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -79,30 +46,46 @@ function KitchenWasteRates() {
     }
   }, [retry])
 
-  const visibleRows = useMemo(() => {
-    const keyword = search.trim().toLowerCase()
-    if (!keyword) return rows
-    return rows.filter(row =>
-      row.ingredientName.toLowerCase().includes(keyword),
-    )
-  }, [rows, search])
+  // Lọc theo tỷ lệ đã lưu để dòng không biến mất khi đang nhập.
+  const filteredRows = useMemo(() => {
+    const keyword = normalizeRequestSearch(filters.search)
+    return rows.filter(row => {
+      if (keyword && !normalizeRequestSearch(row.ingredientName).includes(keyword))
+        return false
+      if (filters.handlingType && row.handlingType !== filters.handlingType)
+        return false
+      if (filters.rate === "WITH") return Number(row.wasteRate) > 0
+      if (filters.rate === "ZERO") return Number(row.wasteRate) === 0
+      if (filters.rate === "UNSAVED") return row.id in drafts
+      return true
+    })
+  }, [rows, filters, drafts])
 
+  const pageCount = Math.max(1, Math.ceil(filteredRows.length / pageSize))
+  const currentPage = Math.min(page, pageCount)
+  const pageRows = filteredRows.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  )
+
+  // Tính trên mọi trang, không chỉ các dòng đang hiện.
   const changes = useMemo(
     () =>
-      rows.flatMap(row => {
-        if (!(row.id in drafts)) return []
-        const parsed = parsePercent(drafts[row.id])
-        if (parsed.error) return [{ row, error: parsed.error }]
-        if (Math.abs(parsed.rate - Number(row.wasteRate)) < 1e-9) return []
-        return [{ row, rate: parsed.rate }]
-      }),
+      rows
+        .filter(row => isDirty(row, drafts))
+        .map(row => ({ row, ...parsePercent(drafts[row.id]) })),
     [rows, drafts],
   )
-  const invalid = changes.some(change => change.error)
+  const invalidCount = changes.filter(change => change.error).length
   const pending = changes.filter(change => !change.error)
 
+  const changeFilters = next => {
+    setFilters(next)
+    setPage(1)
+  }
+
   const save = async () => {
-    if (savingRef.current || invalid || !pending.length) return
+    if (savingRef.current || invalidCount || !pending.length) return
     savingRef.current = true
     setSaving(true)
     const failed = []
@@ -128,12 +111,13 @@ function KitchenWasteRates() {
     })
     if (failed.length) {
       notice({
-        msg: "Một số tỷ lệ chưa lưu được",
-        desc: failed.join("; "),
+        msg: `Còn ${failed.length} nguyên liệu chưa lưu được`,
+        desc: shortList(failed),
         isSuccess: false,
       })
     } else {
       notice({ msg: `Đã lưu tỷ lệ hao hụt cho ${updated.size} nguyên liệu` })
+      if (filters.rate === "UNSAVED") changeFilters(EMPTY_FILTERS)
     }
     savingRef.current = false
     setSaving(false)
@@ -142,23 +126,12 @@ function KitchenWasteRates() {
   return (
     <div className={styles["waste-rates-page"]}>
       <header>
-        <nav
-          className={styles["waste-rates-page__breadcrumb"]}
-          aria-label="Đường dẫn trang"
-        >
-          <span>Nhà bếp</span>
-          <span>/</span>
-          <span>Cấu hình</span>
-          <span>/</span>
-          <strong>Tỷ lệ hao hụt</strong>
-        </nav>
         <h1 className={styles["waste-rates-page__title"]}>
           Tỷ lệ hao hụt nguyên liệu
         </h1>
         <p className={styles["waste-rates-page__intro"]}>
-          Định lượng trong thực đơn là lượng thành phẩm. Hệ thống dùng tỷ lệ hao
-          hụt để tính lượng nguyên liệu sống cần đặt hàng và lấy từ kho khi nấu.
-          Gia vị dùng chung của bữa không áp dụng tỷ lệ này.
+          Dùng để tính lượng nguyên liệu sống cần đặt và lấy từ kho. Không áp
+          dụng cho gia vị dùng chung của bữa.
         </p>
       </header>
 
@@ -178,151 +151,79 @@ function KitchenWasteRates() {
           {error}
         </Alert>
       )}
-      {!loading && !error && (
+      {!loading && !error && rows.length === 0 && (
+        <Alert severity="info">
+          Trường chưa có nguyên liệu nào trong danh mục.
+        </Alert>
+      )}
+      {!loading && !error && rows.length > 0 && (
         <>
-          <TextField
-            className={styles["waste-rates-page__search"]}
-            size="small"
-            placeholder="Tìm nguyên liệu"
-            value={search}
-            onChange={event => setSearch(event.target.value)}
-            slotProps={{
-              input: {
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchOutlinedIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              },
-              htmlInput: { "aria-label": "Tìm nguyên liệu" },
-            }}
-          />
+          <section className={styles["waste-rates-page__card"]}>
+            <WasteRateFilters
+              filters={filters}
+              onChange={changeFilters}
+              unsavedCount={changes.length}
+            />
+            <WasteRateTable
+              rows={pageRows}
+              drafts={drafts}
+              saving={saving}
+              onDraft={(id, value) =>
+                setDrafts(current => ({ ...current, [id]: value }))
+              }
+              page={currentPage}
+              pageSize={pageSize}
+              totalItems={filteredRows.length}
+              onPageChange={setPage}
+              onPageSizeChange={size => {
+                setPageSize(size)
+                setPage(1)
+              }}
+            />
+          </section>
 
-          {rows.length === 0 ? (
-            <Alert severity="info">
-              Trường chưa có nguyên liệu nào trong danh mục.
-            </Alert>
-          ) : (
-            <TableContainer className={styles["waste-rates-page__table"]}>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Nguyên liệu</TableCell>
-                    <TableCell>Loại</TableCell>
-                    <TableCell
-                      className={styles["waste-rates-page__rate-cell"]}
-                    >
-                      Hao hụt (%)
-                    </TableCell>
-                    <TableCell>Lượng sống cho 1 đơn vị thành phẩm</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {visibleRows.map(row => {
-                    const value =
-                      row.id in drafts
-                        ? drafts[row.id]
-                        : rateToPercent(row.wasteRate)
-                    const parsed = parsePercent(value)
-                    const rate = parsed.error
-                      ? Number(row.wasteRate)
-                      : parsed.rate
-                    const dirty =
-                      row.id in drafts &&
-                      !parsed.error &&
-                      Math.abs(parsed.rate - Number(row.wasteRate)) >= 1e-9
-                    return (
-                      <TableRow
-                        key={row.id}
-                        className={dirty ? styles.dirty : undefined}
-                      >
-                        <TableCell>
-                          <span className={styles["waste-rates-page__name"]}>
-                            {row.ingredientName}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {HANDLING_LABELS[row.handlingType] ||
-                            row.handlingType}
-                        </TableCell>
-                        <TableCell
-                          className={styles["waste-rates-page__rate-cell"]}
-                        >
-                          <TextField
-                            size="small"
-                            value={value}
-                            disabled={saving}
-                            error={Boolean(parsed.error)}
-                            helperText={parsed.error || " "}
-                            onChange={event =>
-                              setDrafts(current => ({
-                                ...current,
-                                [row.id]: event.target.value,
-                              }))
-                            }
-                            slotProps={{
-                              input: {
-                                endAdornment: (
-                                  <InputAdornment position="end">
-                                    %
-                                  </InputAdornment>
-                                ),
-                              },
-                              htmlInput: {
-                                inputMode: "decimal",
-                                "aria-label": `Tỷ lệ hao hụt của ${row.ingredientName}`,
-                              },
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell
-                          className={styles["waste-rates-page__example"]}
-                        >
-                          {formatNumber(rawPerCooked(rate))} {row.unit}
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })}
-                  {visibleRows.length === 0 && (
-                    <TableRow>
-                      <TableCell
-                        colSpan={4}
-                        className={styles["waste-rates-page__empty"]}
-                      >
-                        Không có nguyên liệu khớp từ khóa.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-
-          <div className={styles["waste-rates-page__footer"]}>
-            <span
-              className={styles["waste-rates-page__hint"]}
-              aria-live="polite"
-            >
-              {pending.length
-                ? `${pending.length} nguyên liệu có thay đổi chưa lưu.`
-                : "Tỷ lệ mới áp dụng cho các lần đặt hàng, lập mẻ và phân bổ tiếp theo."}
-            </span>
-            <div className={styles["waste-rates-page__actions"]}>
-              <Button
-                disabled={saving || !Object.keys(drafts).length}
-                onClick={() => setDrafts({})}
+          {changes.length > 0 && (
+            <div className={styles["waste-rates-page__footer"]}>
+              <span
+                className={`${styles["waste-rates-page__hint"]} ${
+                  invalidCount ? styles["waste-rates-page__hint--error"] : ""
+                }`}
+                aria-live="polite"
               >
-                Hủy thay đổi
-              </Button>
-              <Button
-                variant="contained"
-                disabled={saving || invalid || !pending.length}
-                onClick={save}
-              >
-                {saving ? "Đang lưu..." : "Lưu thay đổi"}
-              </Button>
+                {invalidCount
+                  ? `${invalidCount} dòng nhập chưa đúng.`
+                  : `${pending.length} nguyên liệu chưa lưu.`}
+              </span>
+              <div className={styles["waste-rates-page__actions"]}>
+                {filters.rate !== "UNSAVED" && (
+                  <Button
+                    disabled={saving}
+                    onClick={() =>
+                      changeFilters({ ...EMPTY_FILTERS, rate: "UNSAVED" })
+                    }
+                  >
+                    Xem lại
+                  </Button>
+                )}
+                <Button
+                  disabled={saving}
+                  onClick={() => {
+                    setDrafts({})
+                    if (filters.rate === "UNSAVED") changeFilters(EMPTY_FILTERS)
+                  }}
+                >
+                  Hủy
+                </Button>
+                <Button
+                  variant="contained"
+                  disabled={saving || invalidCount > 0}
+                  onClick={save}
+                >
+                  {saving ? "Đang lưu..." : "Lưu"}
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </div>

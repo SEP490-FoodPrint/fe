@@ -241,7 +241,7 @@ export default function IngredientInspect() {
       if (version === selectionRevision.current) setSelectedDelivery(refreshed)
     } catch (failure) {
       setError(
-        `Đã lưu quyết định; chưa tải lại được chi tiết: ${failure.message}`,
+        "Đã lưu. Tải lại trang để xem kết quả.",
       )
     }
   }

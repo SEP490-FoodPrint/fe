@@ -163,7 +163,7 @@ export default function MenuDetail() {
         statusLabel: "Chờ BGH duyệt",
       }))
       await fetchDetail()
-      showToast("Đã gửi hồ sơ thực đơn lên Ban Giám Hiệu phê duyệt thành công!", "success")
+      showToast("Đã gửi Ban Giám hiệu duyệt", "success")
     } catch (e) {
       showToast(e.message || "Không thể gửi duyệt thực đơn.", "warning")
     }

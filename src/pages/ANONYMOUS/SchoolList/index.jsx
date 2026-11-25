@@ -95,7 +95,7 @@ function SchoolList() {
         }
       } catch (err) {
         console.error("Lỗi khi tải danh sách trường học:", err);
-        setError("Không thể tải dữ liệu trường học từ hệ thống. Vui lòng thử lại sau.");
+        setError("Chưa tải được danh sách trường. Vui lòng thử lại.");
       } finally {
         setLoading(false);
       }

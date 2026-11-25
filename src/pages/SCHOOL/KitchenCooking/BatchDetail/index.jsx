@@ -92,7 +92,7 @@ export default function KitchenBatchDetail() {
     try {
       await KitchenService.confirmBatch(id);
       notice({
-        msg: "Xác nhận nấu thành công!",
+        msg: "Đã bắt đầu nấu",
         isSuccess: true,
       });
       setIsConfirmOpen(false);
@@ -113,7 +113,7 @@ export default function KitchenBatchDetail() {
     try {
       await KitchenService.completeBatch(id);
       notice({
-        msg: "Ghi nhận nấu xong thành công!",
+        msg: "Đã nấu xong",
         isSuccess: true,
       });
       const completed = await fetchBatch();
@@ -135,7 +135,7 @@ export default function KitchenBatchDetail() {
       const created = await KitchenService.createBatchSample(id, samplePayload);
       setSampleData(created);
       notice({
-        msg: "Niêm phong lưu mẫu thực phẩm 24h thành công!",
+        msg: "Đã lưu mẫu 24 giờ",
         isSuccess: true,
       });
       setIsSampleOpen(false);

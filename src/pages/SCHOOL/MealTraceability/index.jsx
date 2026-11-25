@@ -64,7 +64,7 @@ export default function MealTraceability() {
         setError({
           title: "Thiếu thông tin tra cứu",
           message:
-            "Cần chọn khối, ngày phục vụ và bữa ăn để truy xuất. Hãy mở lại từ Chi tiết thực đơn.",
+            "Thiếu khối, ngày hoặc bữa. Mở lại từ Chi tiết thực đơn.",
         })
         setTraceData(null)
         setLoading(false)
@@ -83,7 +83,7 @@ export default function MealTraceability() {
             title: "Chưa có thông tin truy xuất",
             message:
               data?.message ||
-              "Khối chưa có bữa ăn được phân bổ vào ngày và bữa đã chọn. Vui lòng chọn ngày khác hoặc liên hệ nhà trường.",
+              "Chưa có dữ liệu cho bữa này. Chọn ngày khác.",
           })
           setTraceData(null)
         }
@@ -155,18 +155,18 @@ export default function MealTraceability() {
       const data =
         await TraceabilityService.verifyGradeMealTraceability(queryParams)
       if (!data || data.isNotFound) {
-        showToast("Không tìm thấy dữ liệu bữa ăn của khối để đối soát.")
+        showToast("Chưa có dữ liệu bữa ăn để kiểm tra.")
         return
       }
       setTraceData(data)
       setIsChecked(true)
       showToast(
         data.blockchainProof
-          ? "Đã đối soát chuỗi bằng chứng với blockchain."
-          : "Không đối soát được với blockchain.",
+          ? "Đã kiểm tra xong dữ liệu truy xuất"
+          : "Chưa kiểm tra được dữ liệu. Vui lòng thử lại.",
       )
     } catch {
-      showToast("Không kết nối được máy chủ để đối soát.")
+      showToast("Chưa kiểm tra được dữ liệu. Vui lòng thử lại.")
     } finally {
       setIsVerifying(false)
     }
@@ -175,9 +175,9 @@ export default function MealTraceability() {
   const handleShare = () => {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(window.location.href)
-      showToast("Đã sao chép liên kết truy xuất nguồn gốc!")
+      showToast("Đã sao chép liên kết")
     } else {
-      showToast("Liên kết trang truy xuất: " + window.location.href)
+      showToast("Không sao chép được. Hãy chép từ thanh địa chỉ.")
     }
   }
 

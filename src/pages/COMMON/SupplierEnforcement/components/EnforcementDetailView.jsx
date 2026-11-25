@@ -88,7 +88,7 @@ function EnforcementDetailView({
 
   const handleConflict = msg => {
     notice({
-      msg: msg || "Trạng thái yêu cầu đã thay đổi, đang tải lại chi tiết.",
+      msg: msg || "Hồ sơ vừa được cập nhật. Đang tải lại.",
       isSuccess: false,
     })
     onReload()
@@ -111,7 +111,7 @@ function EnforcementDetailView({
         supplierIntakeState: result?.supplierIntakeState || null,
       })
       notice({
-        msg: "Đã phê duyệt và thực thi yêu cầu chế tài thành công",
+        msg: "Đã áp dụng chế tài",
         isSuccess: true,
       })
       onReload()
@@ -180,7 +180,7 @@ function EnforcementDetailView({
     try {
       await SupplierEnforcementService.retryAction(action.id)
       notice({
-        msg: "Đã thực thi lại việc thu hồi phiên đăng nhập thành công",
+        msg: "Đã đăng xuất tài khoản bị khóa",
         isSuccess: true,
       })
       onReload()

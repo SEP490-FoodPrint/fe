@@ -1,3 +1,4 @@
+import { shortList } from "src/utils/shortList";
 import QuantityError from "src/components/QuantityError";
 import { quantityError } from "src/utils/measurementUnits";
 import React, { useState, useMemo, useEffect, useCallback } from "react";
@@ -428,7 +429,6 @@ export default function CreateDeliveryView({
 
   const [schoolGrades, setSchoolGrades] = useState([]);
   const [bypassIncompleteMenu, setBypassIncompleteMenu] = useState(false);
-  const [remindStatus, setRemindStatus] = useState(null);
 
   // Tải danh sách khối chuẩn của trường từ MenuService context
   useEffect(() => {
@@ -453,7 +453,6 @@ export default function CreateDeliveryView({
   // Reset bypass và trạng thái nhắc nhở khi chuyển tuần
   useEffect(() => {
     setBypassIncompleteMenu(false);
-    setRemindStatus(null);
   }, [targetMonday]);
 
   // Kiểm tra độ hoàn thiện thực đơn của tuần (Toàn trường vs Từng khối)
@@ -591,31 +590,6 @@ export default function CreateDeliveryView({
 
   const isOrderAllowed =
     hasMenusInWeek && (menuCompleteness.isComplete || bypassIncompleteMenu);
-
-  const handleRemindNutrition = () => {
-    const missingStr =
-      menuCompleteness.missingGrades.length > 0
-        ? menuCompleteness.missingGrades.join(", ")
-        : "các khối còn lại";
-
-    const timeStr = new Intl.DateTimeFormat("vi-VN", {
-      timeZone: "Asia/Ho_Chi_Minh",
-      hour: "2-digit",
-      minute: "2-digit",
-    }).format(new Date());
-
-    setRemindStatus({
-      sent: true,
-      time: timeStr,
-      missingGrades: missingStr,
-    });
-
-    notice({
-      msg: "Đã gửi thông báo nhắc nhở đến bộ phận Dinh dưỡng!",
-      desc: `Yêu cầu hoàn tất thực đơn tuần (${formatDateVN(targetMonday)} – ${formatDateVN(targetFriday)}) cho ${missingStr} để Ban QLNL tiến hành nhập hàng.`,
-      isSuccess: true,
-    });
-  };
 
   // 2. Quét thực đơn áp dụng theo ngày chọn trong tuần đó
   const matchingMenusForDate = useMemo(() => {
@@ -1199,14 +1173,14 @@ export default function CreateDeliveryView({
     }
     if (!hasMenusInWeek || !activeMenus || activeMenus.length === 0) {
       notice({
-        msg: "Tuần này chưa có thực đơn được duyệt từ bên Dinh dưỡng. Không thể tạo yêu cầu nhập hàng!",
+        msg: "Tuần này chưa có thực đơn được duyệt.",
         isSuccess: false,
       });
       return;
     }
     if (!isOrderAllowed) {
       notice({
-        msg: `Chưa đủ thực đơn cho cả trường trong tuần này! Còn thiếu: ${menuCompleteness.missingGrades.join(", ")}. Vui lòng chờ Dinh dưỡng duyệt đủ hoặc xác nhận không ăn bán trú.`,
+        msg: `Còn ${menuCompleteness.missingGrades.length} khối chưa có thực đơn duyệt: ${shortList(menuCompleteness.missingGrades)}`,
         isSuccess: false,
       });
       return;
@@ -1217,7 +1191,7 @@ export default function CreateDeliveryView({
     );
     if (batch1Items.length === 0) {
       notice({
-        msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
+        msg: "Chưa có nguyên liệu để đặt.",
         isSuccess: false,
       });
       return;
@@ -1229,7 +1203,7 @@ export default function CreateDeliveryView({
     );
     if (invalidItem) {
       notice({
-        msg: `${invalidItem.name}: số lượng phải dương và tối đa 3 chữ số thập phân`,
+        msg: `${invalidItem.name}: số lượng phải lớn hơn 0, tối đa 3 số lẻ`,
         isSuccess: false,
       });
       return;
@@ -1311,14 +1285,14 @@ export default function CreateDeliveryView({
       return;
     if (!isOrderAllowed) {
       notice({
-        msg: `Chưa đủ thực đơn cho cả trường trong tuần này! Còn thiếu: ${menuCompleteness.missingGrades.join(", ")}. Không thể tạo yêu cầu nhập hàng Đợt 2.`,
+        msg: `Còn ${menuCompleteness.missingGrades.length} khối chưa có thực đơn duyệt: ${shortList(menuCompleteness.missingGrades)}`,
         isSuccess: false,
       });
       return;
     }
     if (itemsState.length === 0) {
       notice({
-        msg: "Không có nguyên liệu nào để tạo yêu cầu nhập hàng!",
+        msg: "Chưa có nguyên liệu để đặt.",
         isSuccess: false,
       });
       return;
@@ -1330,7 +1304,7 @@ export default function CreateDeliveryView({
     );
     if (invalidItem) {
       notice({
-        msg: `${invalidItem.name}: số lượng phải dương và tối đa 3 chữ số thập phân`,
+        msg: `${invalidItem.name}: số lượng phải lớn hơn 0, tối đa 3 số lẻ`,
         isSuccess: false,
       });
       return;

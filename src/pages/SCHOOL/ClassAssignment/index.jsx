@@ -182,23 +182,23 @@ function ClassAssignment() {
     const created = result?.created?.length || 0
     const skipped = result?.skipped || []
     const skippedText = skipped.length
-      ? `; bỏ qua ${skipped.length} lớp trùng tên (${skipped.join(", ")})`
+      ? `, bỏ qua ${skipped.length} lớp trùng tên`
       : ""
     if (result?.toAcademicYear) setAcademicYear(result.toAcademicYear)
     setRefresh(value => value + 1)
     notice({
-      msg: `Đã sao chép ${created} lớp sang niên khóa ${result?.toAcademicYear}${skippedText}`,
+      msg: `Đã sao chép ${created} lớp${skippedText}`,
     })
   }
 
   const handleImported = result => {
     setImportOpen(false)
     const skipped = result?.summary?.skip || 0
-    const skippedText = skipped ? `; bỏ qua ${skipped} lớp đã có` : ""
+    const skippedText = skipped ? `, bỏ qua ${skipped} lớp đã có` : ""
     if (result?.academicYear) setAcademicYear(result.academicYear)
     setRefresh(value => value + 1)
     notice({
-      msg: `Đã nhập ${result?.created?.length || 0} lớp vào niên khóa ${result?.academicYear}${skippedText}`,
+      msg: `Đã nhập ${result?.created?.length || 0} lớp${skippedText}`,
     })
   }
 
