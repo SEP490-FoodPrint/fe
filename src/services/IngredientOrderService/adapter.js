@@ -284,6 +284,7 @@ export function adaptDeliveryItem(item) {
         orderedQty:
           Number(di.requestedQuantity) || Number(di.actualQuantity) || 0,
         deliveredQty: Number(di.actualQuantity) || 0,
+        sampleTopUpQuantity: di.sampleTopUpQuantity ?? null,
         supplierId:
           di.supplierId ||
           di.Ingredient?.supplierId ||

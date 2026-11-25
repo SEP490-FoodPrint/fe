@@ -14,6 +14,7 @@ import ROUTER from "src/router/ROUTER"
 import SupplierDeliveryService, {
   DELIVERY_SOURCE_TYPE,
   DELIVERY_STATUS,
+  PREPARATION_STAGE_LABEL,
   extractApiError,
   formatDateTimeVi,
   formatQuantityVi,
@@ -26,7 +27,7 @@ import DeliveryQrLabelsModal from "./DeliveryQrLabelsModal"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
 import styles from "./DeliveryDetailView.module.scss"
 
-function getLifecycleBanner(status) {
+function getLifecycleBanner(status, isRequestSource = false) {
   switch (status) {
     case DELIVERY_STATUS.PREPARING:
       return {
@@ -53,7 +54,9 @@ function getLifecycleBanner(status) {
     case DELIVERY_STATUS.REJECTED:
       return {
         tone: "error",
-        text: "Kiểm nhận tại trường không đạt — trạng thái hiện tại là Yêu cầu giao hàng lại. Vui lòng tạo đơn giao thủ công mới để xử lý giao lại.",
+        text: isRequestSource
+          ? "Kiểm nhận tại trường không đạt — vui lòng tạo chuyến giao thay thế theo yêu cầu gốc để xử lý giao lại."
+          : "Kiểm nhận tại trường không đạt — trạng thái hiện tại là Yêu cầu giao hàng lại. Vui lòng tạo đơn giao thủ công mới để xử lý giao lại.",
       }
     default:
       return null
@@ -74,6 +77,8 @@ function DeliveryDetailView({
   const [dispatchErrors, setDispatchErrors] = useState({})
   const [dispatchSubmitError, setDispatchSubmitError] = useState("")
   const [dispatching, setDispatching] = useState(false)
+  const [confirmingTopUp, setConfirmingTopUp] = useState(false)
+  const [topUpError, setTopUpError] = useState("")
 
   if (loading) {
     return (
@@ -155,11 +160,32 @@ function DeliveryDetailView({
   const items = Array.isArray(delivery.items) ? delivery.items : []
   const isTraceable = delivery.traceabilityVersion === 1
   const isRejected = delivery.status === DELIVERY_STATUS.REJECTED
-  const canEnterShipping =
+  const canManageShipping =
     delivery.nextAction === "ENTER_SHIPPING" ||
     (delivery.status === DELIVERY_STATUS.PREPARING && !delivery.nextAction)
-  const recreateUrl = `${ROUTER.SUPPLIER_DELIVERY_CREATE}?prefillDeliveryId=${encodeURIComponent(delivery.id)}`
-  const lifecycleBanner = getLifecycleBanner(delivery.status)
+  const canEnterShipping = canManageShipping &&
+    (!delivery.preparationStage || delivery.preparationStage === "READY_TO_DISPATCH")
+  const topUpLots = delivery.topUpLots ?? []
+  const handleTopUp = async () => {
+    setConfirmingTopUp(true)
+    setTopUpError("")
+    try {
+      await SupplierDeliveryService.confirmTopUp(delivery.id, topUpLots)
+      await onRetry?.()
+    } catch (failure) {
+      setTopUpError(failure.response?.data?.message || "Không thể xác nhận lấy thêm.")
+    } finally {
+      setConfirmingTopUp(false)
+    }
+  }
+  const recreateUrl =
+    isRequestSource && delivery.supplyRequestId
+      ? `${ROUTER.SUPPLIER_DELIVERY_CREATE}?supplyRequestId=${encodeURIComponent(delivery.supplyRequestId)}&replacesDeliveryId=${encodeURIComponent(delivery.id)}`
+      : `${ROUTER.SUPPLIER_DELIVERY_CREATE}?prefillDeliveryId=${encodeURIComponent(delivery.id)}`
+  const lifecycleBanner = delivery.status === DELIVERY_STATUS.PREPARING &&
+    delivery.preparationStage && delivery.preparationStage !== "READY_TO_DISPATCH"
+    ? null
+    : getLifecycleBanner(delivery.status, isRequestSource)
 
   const handleDispatchSubmit = async event => {
     event.preventDefault()
@@ -255,7 +281,7 @@ function DeliveryDetailView({
               className={styles.createBtn}
               startIcon={<ReplayOutlined />}
             >
-              Tạo đơn thủ công giao lại
+              {isRequestSource ? "Giao lại" : "Tạo đơn thủ công giao lại"}
             </Button>
           ) : (
             <Button
@@ -310,7 +336,7 @@ function DeliveryDetailView({
                 size="small"
                 className={styles.bannerCtaBtn}
               >
-                Tạo đơn thủ công
+                {isRequestSource ? "Giao lại" : "Tạo đơn thủ công"}
               </Button>
             )}
           </div>
@@ -391,7 +417,30 @@ function DeliveryDetailView({
         </div>
       </section>
 
-      {/* Section 2: Pending Shipping / Dispatch (when status === PREPARING) */}
+      {delivery.status === DELIVERY_STATUS.PREPARING && delivery.preparationStage && (
+        <section className={styles.detailCard} aria-labelledby="preparation-heading">
+          <h2 id="preparation-heading" className={styles.sectionTitle}>Chuẩn bị giao hàng</h2>
+          <p>{PREPARATION_STAGE_LABEL[delivery.preparationStage]}</p>
+          {topUpLots.length > 0 && (
+            <ul>
+              {topUpLots.map(lot => (
+                <li key={lot.ingredientLotId}>
+                  {lot.lotCode} · {formatQuantityVi(lot.sampleTopUpQuantity)} {lot.unit}
+                </li>
+              ))}
+            </ul>
+          )}
+          {topUpError && <p role="alert">{topUpError}</p>}
+          {onRetry && delivery.status === DELIVERY_STATUS.PREPARING && delivery.preparationStage !== "READY_TO_DISPATCH" && (
+            <Button type="button" disabled={confirmingTopUp} onClick={onRetry}>Tải lại trạng thái</Button>
+          )}
+          {canManageShipping && delivery.preparationStage === "TOP_UP_PENDING" && topUpLots.length > 0 && (
+            <Button type="button" variant="contained" disabled={confirmingTopUp} onClick={handleTopUp}>
+              Xác nhận lấy thêm
+            </Button>
+          )}
+        </section>
+      )}
       {canEnterShipping && (
         <section
           className={styles.detailCard}
@@ -537,6 +586,7 @@ function DeliveryDetailView({
                     <th scope="col" className={styles.colQuantity}>
                       Số lượng giao
                     </th>
+                    <th scope="col">Lưu mẫu</th>
                     <th scope="col" className={styles.colUnit}>
                       Đơn vị
                     </th>
@@ -571,6 +621,7 @@ function DeliveryDetailView({
                       <td className={styles.colQuantity}>
                         {formatQuantityVi(item.actualQuantity)}
                       </td>
+                      <td>{item.sampleTopUpQuantity ? formatQuantityVi(item.sampleTopUpQuantity) : "—"}</td>
                       <td className={styles.colUnit}>{item.unit || "—"}</td>
                       <td className={styles.colNote}>{item.note || "—"}</td>
                       <td className={styles.colQr}>
@@ -611,6 +662,9 @@ function DeliveryDetailView({
                         : "Chưa gắn cơ sở"
                     }`}
                   </p>
+                  {item.sampleTopUpQuantity && (
+                    <p className={styles.mobileItemNote}>Lưu mẫu {formatQuantityVi(item.sampleTopUpQuantity)} {item.unit}</p>
+                  )}
                   {item.note && (
                     <p className={styles.mobileItemNote}>{`Ghi chú: ${item.note}`}</p>
                   )}

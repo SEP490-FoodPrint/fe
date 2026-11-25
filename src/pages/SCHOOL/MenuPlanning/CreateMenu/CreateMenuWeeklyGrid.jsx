@@ -121,7 +121,7 @@ export default function CreateMenuWeeklyGrid({
                     </div>
 
                     {/* Nút + duy nhất để mở menu cho mỗi thứ (không hiển thị nếu là ngày nghỉ) */}
-                    {/* Ngày đã có thực đơn ở trạng thái Bản nháp / Chờ duyệt / Cần chỉnh sửa: bút chì (sửa); ngày chưa có món: dấu + (thêm) */}
+                    {/* Ngày đã có món/gia vị (dù đủ bữa hay chưa): bút chì (sửa); ngày chưa có món: dấu + (thêm) */}
                     {canEdit && !sd.isHoliday && (() => {
                       const statusText = {
                         DRAFT: "bản nháp",
@@ -130,13 +130,18 @@ export default function CreateMenuWeeklyGrid({
                         REVISION_REQUESTED: "BGH yêu cầu chỉnh sửa",
                       }
                       const status = [dayMeals.approvalStatus, dayMeals.weeklyStatus].find(value => statusText[value])
-                      const editable = Boolean(status) && (hasLunch || hasAfternoon || hasSeasonings)
+                      const editable = hasLunch || hasAfternoon || hasSeasonings
+                      const title = editable
+                        ? status
+                          ? `Sửa thực đơn ${sd.dayLabel} (${statusText[status]})`
+                          : `Sửa thực đơn ${sd.dayLabel}`
+                        : `Thêm thực đơn ${sd.dayLabel}`
                       return (
                         <button
                           type="button"
                           className={styles.dayAddBtn}
                           onClick={() => openDay("LUNCH")}
-                          title={editable ? `Sửa thực đơn ${sd.dayLabel} (${statusText[status]})` : `Thêm thực đơn ${sd.dayLabel}`}
+                          title={title}
                           aria-label={editable ? "Sửa thực đơn ngày" : "Thêm thực đơn ngày"}
                         >
                           {editable ? <Pencil size={13} /> : <Plus size={14} />}

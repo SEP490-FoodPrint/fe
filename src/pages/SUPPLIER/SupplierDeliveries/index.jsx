@@ -32,6 +32,7 @@ function SupplierDeliveries({ mode = "auto" }) {
   const isCreateView = mode === "create" || id === "create"
   const isDetailView = !isCreateView && Boolean(id)
   const initialSupplyRequestId = searchParams.get("supplyRequestId") || ""
+  const replacesDeliveryId = searchParams.get("replacesDeliveryId") || ""
   const prefillDeliveryId = searchParams.get("prefillDeliveryId") || ""
   const initialSourceParam = searchParams.get("sourceType") || "ALL"
   const normalizedInitialSource =
@@ -186,11 +187,16 @@ function SupplierDeliveries({ mode = "auto" }) {
   }
 
   if (isCreateView && initialSupplyRequestId) {
+    const targetUrl = generatePath(ROUTER.SUPPLIER_ORDER_DETAIL, {
+      id: initialSupplyRequestId,
+    })
     return (
       <Navigate
-        to={generatePath(ROUTER.SUPPLIER_ORDER_DETAIL, {
-          id: initialSupplyRequestId,
-        })}
+        to={
+          replacesDeliveryId
+            ? `${targetUrl}?replacesDeliveryId=${encodeURIComponent(replacesDeliveryId)}`
+            : targetUrl
+        }
         replace
       />
     )

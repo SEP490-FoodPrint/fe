@@ -109,6 +109,7 @@ function adaptOrderSummary(row = {}) {
     status: row.status || SUPPLY_ORDER_STATUS.SENT,
     // DRY_STOCK: đơn đồ lưu kho (được hẹn giao ngày khác); còn lại là đồ tươi giao trong ngày.
     orderType: row.orderType || null,
+    batchNo: row.batchNo ?? null,
     requestedDeliveryDate: row.requestedDeliveryDate || null,
     sentAt: row.sentAt || null,
     acceptedAt: row.acceptedAt || null,
@@ -124,6 +125,7 @@ function adaptOrderItem(item = {}) {
     ingredientName: item.ingredientName || "Nguyên liệu",
     // DRY_STOCK: NCC phải nhập ngày sản xuất và hạn sử dụng của lô khi tạo chuyến giao.
     handlingType: item.handlingType || null,
+    sampleTopUpQuantity: item.sampleTopUpQuantity ?? null,
     requestedQuantity:
       item.requestedQuantity !== undefined && item.requestedQuantity !== null
         ? String(item.requestedQuantity)

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams, useSearchParams } from "react-router-dom"
+import ROUTER from "src/router/ROUTER"
 import { Button } from "@mui/material"
 import { RefreshOutlined } from "@mui/icons-material"
 import notice from "src/components/Notice"
@@ -23,6 +24,9 @@ const DEFAULT_PAGE_SIZE = 20
 
 function SupplyOrders() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const replacesDeliveryId = searchParams.get("replacesDeliveryId") || ""
+  const navigate = useNavigate()
   const isDetailView = Boolean(id)
 
   const [orders, setOrders] = useState([])
@@ -37,6 +41,7 @@ function SupplyOrders() {
   const [listError, setListError] = useState(null)
 
   const [detailOrder, setDetailOrder] = useState(null)
+  const [replacesDelivery, setReplacesDelivery] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [detailError, setDetailError] = useState(null)
 
@@ -131,8 +136,22 @@ function SupplyOrders() {
         }
       })
 
+    if (replacesDeliveryId) {
+      SupplierDeliveryService.getById(replacesDeliveryId, {
+        signal: controller.signal,
+      })
+        .then(result => {
+          if (!controller.signal.aborted) setReplacesDelivery(result)
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setReplacesDelivery(null)
+        })
+    } else {
+      setReplacesDelivery(null)
+    }
+
     return () => controller.abort()
-  }, [isDetailView, id, reloadTick])
+  }, [isDetailView, id, reloadTick, replacesDeliveryId])
 
   const filteredOrders = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase()
@@ -230,12 +249,18 @@ function SupplyOrders() {
           {
             sourceType: DELIVERY_SOURCE_TYPE.REQUEST,
             supplyRequestId: orderId,
+            ...(replacesDeliveryId ? { replacesDeliveryId } : {}),
             sources,
             note,
           },
           deliveryIdempotencyKeyRef.current,
         )
         setPendingDispatchDelivery(activeDraft)
+      }
+
+      if (activeDraft.preparationStage && (!expectedArrivalLocal || activeDraft.preparationStage !== "READY_TO_DISPATCH")) {
+        navigate(ROUTER.SUPPLIER_DELIVERY_DETAIL.replace(":id", encodeURIComponent(activeDraft.id)))
+        return
       }
 
       const expectedArrivalAt = buildArrivalIso(expectedArrivalLocal, { allowFutureDate })
@@ -285,6 +310,7 @@ function SupplyOrders() {
     return (
       <OrderDetailView
         order={detailOrder}
+        replacesDelivery={replacesDelivery}
         createdDelivery={createdDelivery}
         pendingDispatchDelivery={pendingDispatchDelivery}
         fulfillmentStage={fulfillmentStage}

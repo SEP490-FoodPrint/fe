@@ -75,6 +75,16 @@ export default function CreateSampleModal({
     );
   }, [activeBatch]);
 
+  const selectedDish = useMemo(() => {
+    const dishes = activeBatch?.dishes || [];
+    return dishes.find((d) => d.dishId === selectedDishId) || dishes[0] || null;
+  }, [activeBatch, selectedDishId]);
+
+  const hasPlannedSample =
+    selectedDish?.sampleQuantity != null && selectedDish?.sampleUnit != null;
+  const plannedQuantity = hasPlannedSample ? String(selectedDish.sampleQuantity) : quantity;
+  const plannedUnit = hasPlannedSample ? selectedDish.sampleUnit : unit;
+
   // Khi activeBatch thay đổi, tự động chọn món ăn hợp lệ
   useEffect(() => {
     if (activeBatch?.dishes && activeBatch.dishes.length > 0) {
@@ -133,10 +143,12 @@ export default function CreateSampleModal({
       return;
     }
 
-    const quantityError = sampleQuantityError(quantity, unit);
-    if (quantityError) {
-      setErrorMsg(quantityError);
-      return;
+    if (!hasPlannedSample) {
+      const quantityError = sampleQuantityError(quantity, unit);
+      if (quantityError) {
+        setErrorMsg(quantityError);
+        return;
+      }
     }
     const selectedStorageUnit = storageUnits.find((item) => item.id === storageUnitId);
     const storageError = storageUnitBlockReason(selectedStorageUnit) || storageCompartmentBlockReason(selectedStorageUnit, storagePosition);
@@ -151,8 +163,9 @@ export default function CreateSampleModal({
       batchData: activeBatch,
       dishId: selectedDishId || undefined,
       sampledAt: new Date(sampledAt).toISOString(),
-      quantity: String(Number(quantity)),
-      unit: unit || "g",
+      ...(hasPlannedSample
+        ? {}
+        : { quantity: String(Number(quantity)), unit: unit || "g" }),
       storageUnitId,
       storageLocation: storagePosition,
       photo,
@@ -333,24 +346,32 @@ export default function CreateSampleModal({
                   <input
                     id="sample-qty"
                     type="number"
-                    min={minimumSampleQuantity(unit)}
-                    step="10"
+                    min={hasPlannedSample ? undefined : minimumSampleQuantity(plannedUnit)}
+                    step="any"
                     placeholder="150"
                     className={styles.textInput}
-                    value={quantity}
+                    value={plannedQuantity}
                     onChange={(e) => setQuantity(e.target.value)}
-                    disabled={submitting}
+                    disabled={submitting || hasPlannedSample}
+                    readOnly={hasPlannedSample}
                   />
                   <select
                     className={styles.unitSelect}
-                    value={unit}
+                    value={plannedUnit}
                     onChange={(e) => setUnit(e.target.value)}
-                    disabled={submitting}
+                    disabled={submitting || hasPlannedSample}
                   >
                     <option value="g">gam (g)</option>
                     <option value="ml">mililit (ml)</option>
                   </select>
                 </div>
+                {hasPlannedSample && (
+                  <span className={styles.fieldHint} style={{ marginTop: 4, display: "block" }}>
+                    {selectedDish.sampleRatio && Number(selectedDish.sampleRatio) !== 1
+                      ? `Đã làm tròn theo đơn vị đếm, lượng mẫu ${selectedDish.sampleQuantity} ${selectedDish.sampleUnit}`
+                      : `Lượng mẫu ấn định theo kế hoạch: ${selectedDish.sampleQuantity} ${selectedDish.sampleUnit}`}
+                  </span>
+                )}
               </div>
               {/* 3. Tủ lưu mẫu (bắt buộc) và ngăn trong tủ */}
               <StorageUnitField

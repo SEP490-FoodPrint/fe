@@ -840,6 +840,7 @@ const IngredientOrderService = {
             ingredientId: it.ingredientEntryId || it.id,
             ingredientName: it.ingredientName || it.name || "Nguyên liệu tươi",
             requestedQuantity: Number(it.requestedQuantity || it.quantity || 0),
+            sampleTopUpQuantity: it.sampleTopUpQuantity ?? null,
             actualQuantity: Number(it.requestedQuantity || it.quantity || 0),
             orderedQty: Number(it.requestedQuantity || it.quantity || 0),
             deliveredQty: Number(it.requestedQuantity || it.quantity || 0),
@@ -1363,6 +1364,7 @@ const IngredientOrderService = {
                     it.requestedQuantity || it.quantity || 0,
                   ),
                   orderedQty: Number(it.requestedQuantity || it.quantity || 0),
+                  sampleTopUpQuantity: it.sampleTopUpQuantity ?? null,
                   deliveredQty: Number(
                     it.requestedQuantity || it.quantity || 0,
                   ),

@@ -347,6 +347,12 @@ export const MenuItemSchool = () => [
     roles: [ROLES.INGREDIENT_MANAGEMENT],
   },
   {
+    key: ROUTER.SCHOOL_SUPPLY_ROUND_PLAN,
+    label: "Kế hoạch mẻ theo đợt giao",
+    icon: <FactCheckOutlinedIcon />,
+    roles: [ROLES.INGREDIENT_MANAGEMENT],
+  },
+  {
     key: ROUTER.SCHOOL_WAREHOUSE,
     label: "Đồ lưu kho",
     icon: <WarehouseOutlinedIcon />,
