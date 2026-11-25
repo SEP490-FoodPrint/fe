@@ -1,82 +1,70 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Card, Typography } from "@mui/material";
+import React from "react"
+import { Link } from "react-router-dom"
+import { Card, Typography } from "@mui/material"
 import {
   UtensilsCrossed,
   ConciergeBell,
   FlaskConical,
   ClipboardCheck,
   ChevronRight,
-} from "lucide-react";
-import ROUTER from "src/router/ROUTER";
-import styles from "./QuickAccessCards.module.scss";
+} from "lucide-react"
+import ROUTER from "src/router/ROUTER"
+import styles from "./QuickAccessCards.module.scss"
 
-const CARDS_DATA = [
+// Xếp theo trình tự làm việc trong ngày của bếp.
+const LINKS = [
   {
-    id: "cooking-batch",
+    title: "Kiểm tra nguyên liệu",
+    desc: "Nhận hàng và ký duyệt",
+    icon: ClipboardCheck,
+    route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
+  },
+  {
     title: "Chế biến",
-    desc: "Lập lô chế biến, kiểm tra quy trình nấu",
-    icon: <UtensilsCrossed size={20} />,
+    desc: "Lập lô và theo dõi nấu",
+    icon: UtensilsCrossed,
     route: ROUTER.SCHOOL_KITCHEN_BATCHES,
   },
   {
-    id: "meal-allocation",
-    title: "Phân bổ suất ăn",
-    desc: "Chia khay theo lớp & bàn giao",
-    icon: <ConciergeBell size={20} />,
-    route: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
-  },
-  {
-    id: "food-sample",
     title: "Lưu mẫu thức ăn",
-    desc: "Ghi nhận niêm phong mẫu lưu",
-    icon: <FlaskConical size={20} />,
+    desc: "Ghi nhận và tiêu hủy mẫu",
+    icon: FlaskConical,
     route: ROUTER.SCHOOL_KITCHEN_SAMPLES,
   },
   {
-    id: "ingredient-inspect",
-    title: "Kiểm tra nguyên liệu",
-    desc: "Kiểm thực 3 bước nhập kho",
-    icon: <ClipboardCheck size={20} />,
-    route: ROUTER.SCHOOL_INGREDIENT_INSPECT,
+    title: "Phân bổ suất ăn",
+    desc: "Chia suất cho từng lớp",
+    icon: ConciergeBell,
+    route: ROUTER.SCHOOL_KITCHEN_MEAL_ALLOCATION,
   },
-];
+]
 
 function QuickAccessCards() {
-  const navigate = useNavigate();
-
   return (
-    <section className={styles.cardsGrid} aria-label="Truy cập nhanh nghiệp vụ Bếp">
-      {CARDS_DATA.map((card) => (
-        <Card
-          key={card.id}
-          className={styles.cardItem}
-          onClick={() => navigate(card.route)}
-          role="button"
-          tabIndex={0}
-          aria-label={card.title}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              navigate(card.route);
-            }
-          }}
-        >
-          <div className={styles.cardMain}>
-            <div className={styles.iconBox} aria-hidden="true">
-              {card.icon}
-            </div>
-            <div className={styles.cardText}>
-              <Typography className={styles.cardTitle}>{card.title}</Typography>
-              <Typography className={styles.cardDesc}>{card.desc}</Typography>
-            </div>
-          </div>
-          <div className={styles.arrowBox} aria-hidden="true">
-            <ChevronRight size={18} />
-          </div>
-        </Card>
-      ))}
-    </section>
-  );
+    <Card
+      component="nav"
+      className={styles.card}
+      aria-label="Truy cập nhanh nghiệp vụ Bếp"
+    >
+      <Typography component="h2" className={styles.heading}>
+        Truy cập nhanh
+      </Typography>
+      <div className={styles.links}>
+        {LINKS.map(({ title, desc, icon: Icon, route }) => (
+          <Link key={route} to={route} className={styles.link}>
+            <span className={styles.iconBox} aria-hidden="true">
+              <Icon size={20} />
+            </span>
+            <span className={styles.text}>
+              <span className={styles.title}>{title}</span>
+              <span className={styles.desc}>{desc}</span>
+            </span>
+            <ChevronRight className={styles.arrow} size={18} aria-hidden="true" />
+          </Link>
+        ))}
+      </div>
+    </Card>
+  )
 }
 
-export default QuickAccessCards;
+export default QuickAccessCards

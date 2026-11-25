@@ -6,25 +6,13 @@
   max-width: var(--content-max-width);
   margin: 0 auto;
 
-  &__breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-4);
-    color: var(--text-muted);
-    font-size: var(--text-xs);
-
-    strong {
-      color: var(--text-secondary);
-      font-weight: var(--font-medium);
-    }
-  }
-
   &__title {
-    margin: 0 0 var(--space-2);
+    margin: 0 0 var(--space-1);
     color: var(--text-primary);
-    font-size: var(--text-xl);
-    font-weight: var(--font-semibold);
+    font-size: var(--text-2xl);
+    font-weight: var(--font-bold);
+    line-height: var(--leading-tight);
+    letter-spacing: var(--tracking-tight);
   }
 
   &__intro {
@@ -34,54 +22,12 @@
     font-size: var(--text-sm);
   }
 
-  &__search {
-    width: 100%;
-    max-width: 22rem;
-  }
-
-  &__table {
-    overflow-x: auto;
-
-    :global(.MuiTableCell-head) {
-      color: var(--text-secondary);
-      font-weight: var(--font-semibold);
-      white-space: nowrap;
-    }
-
-    :global(.MuiTableCell-body) {
-      vertical-align: top;
-      padding-top: var(--space-3);
-    }
-
-    tr.dirty .waste-rates-page__name::after {
-      content: "•";
-      margin-left: var(--space-2);
-      color: var(--color-primary);
-    }
-  }
-
-  &__name {
-    color: var(--text-primary);
-    font-weight: var(--font-medium);
-  }
-
-  &__rate-cell {
-    width: 11rem;
-
-    :global(.MuiFormHelperText-root) {
-      margin-left: 0;
-    }
-  }
-
-  &__example {
-    color: var(--text-secondary);
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  &__empty {
-    color: var(--text-muted);
-    text-align: center;
+  &__card {
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-surface);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
   }
 
   &__footer {
@@ -89,11 +35,20 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    background-color: var(--bg-surface);
+    box-shadow: var(--shadow-lg);
   }
 
   &__hint {
-    color: var(--text-muted);
+    color: var(--text-primary);
     font-size: var(--text-sm);
+
+    &--error {
+      color: var(--color-error);
+    }
   }
 
   &__actions {
@@ -102,21 +57,40 @@
   }
 
   @media (max-width: 600px) {
-    &__search {
-      max-width: none;
+    gap: var(--space-3);
+
+    // Chừa chỗ cho thanh lưu ghim ở đáy.
+    &:has(&__footer) {
+      padding-bottom: 7.5rem;
     }
 
+    &__title {
+      font-size: var(--text-xl);
+    }
+
+    &__card {
+      border: none;
+      border-radius: 0;
+      background-color: transparent;
+      box-shadow: none;
+      overflow: visible;
+    }
+
+    // globals.css đặt overflow trên html và body nên sticky không hoạt động.
     &__footer {
+      position: fixed;
+      right: var(--space-4);
+      bottom: var(--space-3);
+      left: var(--space-4);
+      z-index: 2;
       align-items: stretch;
       flex-direction: column;
+      gap: var(--space-2);
     }
 
-    &__actions {
-      flex-direction: column-reverse;
-
-      :global(.MuiButton-root) {
-        min-height: var(--control-height-lg);
-      }
+    &__actions :global(.MuiButton-root) {
+      flex: 1;
+      min-height: 44px;
     }
   }
 }

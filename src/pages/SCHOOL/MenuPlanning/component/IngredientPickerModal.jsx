@@ -1,40 +1,8 @@
 import InlineError from "src/components/InlineError"
 import React, { useState, useMemo, useEffect } from "react"
+import FilterMultiSelect from "./FilterMultiSelect"
 import styles from "./IngredientPickerModal.module.scss"
 import MenuService from "src/services/MenuService"
-
-// Helper icon cho phân loại
-const getCategoryIcon = (cat) => {
-  switch (cat) {
-    case "Thịt tươi":
-    case "Thịt & Gia cầm":
-      return "lunch_dining"
-    case "Thủy sản":
-    case "Thủy hải sản":
-      return "set_meal"
-    case "Rau củ":
-    case "Rau củ quả":
-      return "eco"
-    case "Trái cây":
-      return "nutrition"
-    case "Gạo / ngũ cốc":
-    case "Ngũ cốc":
-    case "Các loại hạt":
-    case "Tinh bột & Ngũ cốc":
-      return "grain"
-    case "Lương thực khô":
-      return "inventory_2"
-    case "Thực phẩm chế biến":
-      return "fastfood"
-    case "Sản phẩm từ sữa":
-    case "Sữa & Tráng miệng":
-      return "icecream"
-    case "Gia vị / Phụ gia":
-      return "soup_kitchen"
-    default:
-      return "restaurant"
-  }
-}
 
 export default function IngredientPickerModal({
   isOpen,
@@ -45,8 +13,8 @@ export default function IngredientPickerModal({
   onlySafe = false,
   providedIngredients,
 }) {
-  const [selectedCategory, setSelectedCategory] = useState("ALL")
-  const [selectedSupplierId, setSelectedSupplierId] = useState("ALL")
+  const [selectedCategories, setSelectedCategories] = useState([])
+  const [selectedSupplierIds, setSelectedSupplierIds] = useState([])
   const [searchTerm, setSearchTerm] = useState("")
   const [ALL_INGREDIENTS, setIngredients] = useState([])
   const [catalogError, setCatalogError] = useState("")
@@ -82,9 +50,24 @@ export default function IngredientPickerModal({
 
   // Danh sách NCC theo phân loại đang chọn
   const availableSuppliers = useMemo(() => {
-    if (selectedCategory === "ALL") return LINKED_SUPPLIERS
-    return LINKED_SUPPLIERS.filter(sup => sup.categories.includes(selectedCategory))
-  }, [selectedCategory, LINKED_SUPPLIERS])
+    if (selectedCategories.length === 0) return LINKED_SUPPLIERS
+    return LINKED_SUPPLIERS.filter(sup => sup.categories.some(cat => selectedCategories.includes(cat)))
+  }, [selectedCategories, LINKED_SUPPLIERS])
+
+  // Lựa chọn của ô lọc kèm số nguyên liệu
+  const categoryOptions = INGREDIENT_CATEGORIES.map(cat => ({
+    id: cat,
+    name: cat,
+    count: ALL_INGREDIENTS.filter(ing => ing.category === cat).length,
+  }))
+  const supplierOptions = availableSuppliers.map(sup => ({
+    id: sup.id,
+    name: sup.name,
+    count: ALL_INGREDIENTS.filter(ing =>
+      ing.supplierId === sup.id &&
+      (selectedCategories.length === 0 || selectedCategories.includes(ing.category)),
+    ).length,
+  }))
 
   // Lọc nguyên liệu theo các tiêu chí (Phân loại -> NCC -> Search text)
   const filteredIngredients = useMemo(() => {
@@ -93,10 +76,10 @@ export default function IngredientPickerModal({
       if (onlySafe && ing.allergen) return false
 
       // Lọc theo phân loại
-      if (selectedCategory !== "ALL" && ing.category !== selectedCategory) return false
+      if (selectedCategories.length > 0 && !selectedCategories.includes(ing.category)) return false
 
       // Lọc theo NCC
-      if (selectedSupplierId !== "ALL" && ing.supplierId !== selectedSupplierId) return false
+      if (selectedSupplierIds.length > 0 && !selectedSupplierIds.includes(ing.supplierId)) return false
 
       // Tìm kiếm theo tên
       if (searchTerm.trim() !== "") {
@@ -108,12 +91,12 @@ export default function IngredientPickerModal({
 
       return true
     })
-  }, [selectedCategory, selectedSupplierId, searchTerm, onlySafe, ALL_INGREDIENTS])
+  }, [selectedCategories, selectedSupplierIds, searchTerm, onlySafe, ALL_INGREDIENTS])
 
   // Reset bộ lọc
   const handleResetFilters = () => {
-    setSelectedCategory("ALL")
-    setSelectedSupplierId("ALL")
+    setSelectedCategories([])
+    setSelectedSupplierIds([])
     setSearchTerm("")
   }
 
@@ -145,65 +128,34 @@ export default function IngredientPickerModal({
           </button>
         </div>
 
-        {/* Tiêu chí Lọc 1: Thanh Phân loại nguyên liệu (Category Pills) */}
-        <div className={styles.categoryTabsSection}>
-          <span className={styles.filterSectionLabel}>1. Phân loại nguyên liệu:</span>
-          <div className={styles.categoryPills}>
-            <button
-              type="button"
-              className={`${styles.catPill} ${selectedCategory === "ALL" ? styles.catPillActive : ""}`}
-              onClick={() => {
-                setSelectedCategory("ALL")
-                setSelectedSupplierId("ALL")
-              }}
-            >
-              <span className="material-symbols-outlined">grid_view</span>
-              <span>Tất cả phân loại</span>
-              <span className={styles.countBadge}>{ALL_INGREDIENTS.length}</span>
-            </button>
-            {INGREDIENT_CATEGORIES.map(cat => {
-              const count = ALL_INGREDIENTS.filter(i => i.category === cat).length
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`${styles.catPill} ${selectedCategory === cat ? styles.catPillActive : ""}`}
-                  onClick={() => {
-                    setSelectedCategory(cat)
-                    setSelectedSupplierId("ALL") // Reset NCC khi đổi phân loại
-                  }}
-                >
-                  <span className="material-symbols-outlined">{getCategoryIcon(cat)}</span>
-                  <span>{cat}</span>
-                  <span className={styles.countBadge}>{count}</span>
-                </button>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Tiêu chí Lọc 2: Chọn Nhà cung cấp & Ô Tìm kiếm text */}
+        {/* Bộ lọc: Phân loại, Nhà cung cấp, Tìm kiếm */}
         <div className={styles.secondaryFilterBar}>
+          <div className={styles.supplierFilterCol}>
+            <label className={styles.filterLabel} htmlFor="ingredient-picker-category">1. Phân loại nguyên liệu:</label>
+            <FilterMultiSelect
+              id="ingredient-picker-category"
+              options={categoryOptions}
+              value={selectedCategories}
+              onChange={(value) => {
+                setSelectedCategories(value)
+                setSelectedSupplierIds([]) // Reset NCC khi đổi phân loại
+              }}
+              allLabel={`Tất cả phân loại (${categoryOptions.length})`}
+              unit="loại"
+            />
+          </div>
+
           {/* Lọc theo NCC */}
           <div className={styles.supplierFilterCol}>
-            <label className={styles.filterLabel}>2. Nhà cung cấp liên kết:</label>
-            <div className={styles.selectWrap}>
-              <select
-                className={styles.supplierSelect}
-                value={selectedSupplierId}
-                onChange={(e) => setSelectedSupplierId(e.target.value)}
-              >
-                <option value="ALL">
-                  🏢 Tất cả NCC {selectedCategory !== "ALL" ? `cung cấp ${selectedCategory}` : "đang liên kết"} ({availableSuppliers.length})
-                </option>
-                {availableSuppliers.map(sup => (
-                  <option key={sup.id} value={sup.id}>
-                    {sup.name}
-                  </option>
-                ))}
-              </select>
-              <span className={`material-symbols-outlined ${styles.selectChevron}`}>expand_more</span>
-            </div>
+            <label className={styles.filterLabel} htmlFor="ingredient-picker-supplier">2. Nhà cung cấp liên kết:</label>
+            <FilterMultiSelect
+              id="ingredient-picker-supplier"
+              options={supplierOptions}
+              value={selectedSupplierIds}
+              onChange={setSelectedSupplierIds}
+              allLabel={`Tất cả NCC (${supplierOptions.length})`}
+              unit="NCC"
+            />
           </div>
 
           {/* Ô Tìm kiếm nhanh */}
@@ -214,7 +166,7 @@ export default function IngredientPickerModal({
               <input
                 type="text"
                 className={styles.searchInput}
-                placeholder="Ví dụ: thịt heo, cá điêu hồng, rau cải, trứng..."
+                placeholder="Ví dụ: thịt heo, rau cải..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -233,18 +185,45 @@ export default function IngredientPickerModal({
 
         {/* Kết quả danh sách nguyên liệu */}
         <div className={styles.listContainer}>
-          <div className={styles.resultInfoBar}>
-            <span className={styles.resultCount}>
-              Hiển thị <strong>{filteredIngredients.length}</strong> nguyên liệu đạt chuẩn • Đã chọn{" "}
-              <strong className={styles.selectedCountHighlight}>{selectedIngredientIds.length}</strong> nguyên liệu cho món này
-            </span>
-            {(selectedCategory !== "ALL" || selectedSupplierId !== "ALL" || searchTerm) && (
+          {(selectedCategories.length > 0 || selectedSupplierIds.length > 0 || searchTerm) && (
+            <div className={styles.resultInfoBar}>
+              <div className={styles.activeFilters}>
+                {[
+                  ...categoryOptions
+                    .filter(option => selectedCategories.includes(option.id))
+                    .map(option => ({
+                      ...option,
+                      remove: () => {
+                        setSelectedCategories(current => current.filter(id => id !== option.id))
+                        setSelectedSupplierIds([])
+                      },
+                    })),
+                  ...supplierOptions
+                    .filter(option => selectedSupplierIds.includes(option.id))
+                    .map(option => ({
+                      ...option,
+                      remove: () => setSelectedSupplierIds(current => current.filter(id => id !== option.id)),
+                    })),
+                ].map(option => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={styles.filterTag}
+                    title={option.name}
+                    aria-label={`Bỏ lọc ${option.name}`}
+                    onClick={option.remove}
+                  >
+                    <span className={styles.filterTagName}>{option.name}</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
+                ))}
+              </div>
               <button type="button" className={styles.resetBtn} onClick={handleResetFilters}>
                 <span className="material-symbols-outlined">restart_alt</span>
                 <span>Đặt lại bộ lọc</span>
               </button>
-            )}
-          </div>
+            </div>
+          )}
 
           {filteredIngredients.length === 0 ? (
             <div className={styles.emptyState}>
@@ -269,12 +248,6 @@ export default function IngredientPickerModal({
                     className={`${styles.ingredientCard} ${isSelected ? styles.cardSelected : ""}`}
                     onClick={() => onToggleIngredient(ing)}
                   >
-                    <div className={styles.cardIconBox}>
-                      <span className={`material-symbols-outlined ${styles.cardIcon}`}>
-                        {getCategoryIcon(ing.category)}
-                      </span>
-                    </div>
-
                     <div className={styles.cardContent}>
                       <div className={styles.cardHeaderRow}>
                         <h4 className={styles.ingredientName}>{ing.name}</h4>
@@ -291,7 +264,7 @@ export default function IngredientPickerModal({
                         {supplier && (
                           <span className={styles.supplierBadge}>
                             <span className="material-symbols-outlined">verified</span>
-                            {supplier.name} • {supplier.badge}
+                            {supplier.name}
                           </span>
                         )}
                       </div>
@@ -300,13 +273,15 @@ export default function IngredientPickerModal({
                     <div className={styles.actionCol}>
                       <button
                         type="button"
+                        aria-label={`${isSelected ? "Bỏ chọn" : "Thêm"} ${ing.name}`}
+                        title={isSelected ? "Bỏ chọn" : "Thêm"}
                         className={`${styles.pickBtn} ${isSelected ? styles.pickBtnActive : ""}`}
                         onClick={(e) => {
                           e.stopPropagation()
                           onToggleIngredient(ing)
                         }}
                       >
-                        {isSelected ? "Bỏ chọn" : "+ Thêm"}
+                        {isSelected ? "−" : "+"}
                       </button>
                     </div>
                   </div>
@@ -320,10 +295,9 @@ export default function IngredientPickerModal({
         <div className={styles.modalFooter}>
           <div className={styles.footerHelp}>
             <span className="material-symbols-outlined">info</span>
-            <span>Có thể chọn nhiều nguyên liệu cho 1 món. Đối soát dị ứng tự động cập nhật ngay trên bảng.</span>
+            <span>Có thể chọn nhiều nguyên liệu cho 1 món.</span>
           </div>
           <button type="button" className={styles.doneBtn} onClick={onClose}>
-            <span className="material-symbols-outlined">done</span>
             <span>Hoàn tất ({selectedIngredientIds.length})</span>
           </button>
         </div>

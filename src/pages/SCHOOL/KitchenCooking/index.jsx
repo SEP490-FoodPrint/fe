@@ -6,32 +6,38 @@ import RecentMealAllocations from "./component/RecentMealAllocations"
 import styles from "./index.module.scss"
 
 /**
- * KitchenCooking - Giao diện Bảng điều khiển Nhân viên Bếp (FoodPrint)
- * Tối ưu theo phản hồi Mentor:
- * - Trực quan, ít chữ, tập trung vào thao tác chính
- * - Thân thiện với màn hình điện thoại di động
+ * Bảng điều khiển Nhân viên Bếp.
+ * Điện thoại: lối tắt → việc hôm nay → lô → phân bổ.
+ * Máy tính: việc hôm nay là cột chính, lối tắt và phân bổ ở cột phụ.
  */
 function KitchenCooking() {
+  const today = new Date().toLocaleDateString("vi-VN", {
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  })
+
   return (
     <div className={styles.dashboardContainer}>
-      {/* Section A: Tiêu đề & Tag ca làm việc */}
-      <div className={styles.titleSection}>
-        <div className={styles.titleRow}>
-          <h1 className={styles.title}>Vận hành Bếp ăn</h1>
-          <span className={styles.todayBadge}>Ca nấu hôm nay</span>
+      <header className={styles.titleSection}>
+        <h1 className={styles.title}>Vận hành Bếp ăn</h1>
+        <p className={styles.today}>{today}</p>
+      </header>
+
+      <div className={styles.layout}>
+        <div className={styles.quick}>
+          <QuickAccessCards />
         </div>
-      </div>
-
-      {/* Section B: Truy cập nhanh (4 Cards) */}
-      <QuickAccessCards />
-
-      {/* Section C: Công việc cần xử lý hôm nay */}
-      <PendingTasksSection />
-
-      {/* Section D: Hoạt động gần đây */}
-      <div className={styles.tablesGrid}>
-        <RecentCookingBatches />
-        <RecentMealAllocations />
+        <div className={styles.tasks}>
+          <PendingTasksSection />
+        </div>
+        <div className={styles.batches}>
+          <RecentCookingBatches />
+        </div>
+        <div className={styles.allocations}>
+          <RecentMealAllocations />
+        </div>
       </div>
     </div>
   )
