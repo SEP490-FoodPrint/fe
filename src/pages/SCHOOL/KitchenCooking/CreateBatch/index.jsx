@@ -16,7 +16,7 @@ import { adaptBatchDetail } from "src/services/KitchenService/adapter";
 import CreateBatchHeader from "./component/CreateBatchHeader";
 import CreateBatchKanban from "./component/CreateBatchKanban";
 import CreateBatchDetailModal from "./component/CreateBatchDetailModal";
-import BatchPlanModal from "./component/BatchPlanModal";
+import { splitRoundBatches } from "./roundBatches";
 import RetainedSampleModal from "../BatchDetail/component/RetainedSampleModal";
 import styles from "./index.module.scss";
 
@@ -84,10 +84,6 @@ function CreateBatchPage() {
       confirmText: "Nấu xong",
       onConfirm: () => handleCompleteCooking(batch),
     });
-
-  // State cho Popup Phương án phân bổ lô chế biến
-  const [dishToPlan, setDishToPlan] = useState(null);
-  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
 
   // State cho Popup Lưu mẫu thực phẩm 24h
   const [sampleBatch, setSampleBatch] = useState(null);
@@ -232,21 +228,12 @@ function CreateBatchPage() {
         };
       });
 
-      // Giữ món chờ khi các lô hiện có mới chỉ đáp ứng một phần nhu cầu của món.
-      const pending = allTodayDishes.filter((dish) => {
-        const planned = formattedBatches.reduce((total, batch) => {
-          if (batch.mealType !== dish.mealType) return total;
-          const dishPlan = batch.dishes?.find(
-            (item) => item.dishId === dish.dishId || item.dishId === dish.id,
-          );
-          return total + Number(dishPlan?.plannedPortions || 0);
-        }, 0);
-        return planned < Number(dish.portionStandard || 0);
-      });
-
+      // Lô theo đợt giao: chỉ lô chính thức vào kanban, món chưa có lô chính thức ở lại cột chờ.
+      const { pending, batches: kitchenBatches } = splitRoundBatches(formattedBatches, allTodayDishes);
       setPendingDishes(pending);
       setMealRequirements(demandByMeal);
-      setBatches(formattedBatches);
+      setBatches(kitchenBatches);
+      return { pending };
     } catch (err) {
       console.warn("Lỗi tải tiến độ chế biến hôm nay:", err);
       if (!signal?.aborted) {
@@ -266,41 +253,6 @@ function CreateBatchPage() {
     loadTodayData(controller.signal);
     return () => controller.abort();
   }, [loadTodayData]);
-
-  // Xử lý tạo lô cho một món ăn
-  const handleCreateBatchForDish = async (dishToCreate) => {
-    if (!dishToCreate) return;
-    setSubmittingId(dishToCreate.id);
-    try {
-      const mealType = String(dishToCreate.mealType || selectedMeal || "LUNCH").toUpperCase();
-      const res = await KitchenService.planBatch({
-        planVersion: dishToCreate.planVersion,
-        dishId: dishToCreate.dishId || dishToCreate.id,
-        menuDayId: dishToCreate.menuDayId,
-        mealType: mealType === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
-      });
-
-      if (!Array.isArray(res?.batches)) {
-        throw new Error("Không thể tạo phương án lô cho món ăn này từ nguyên liệu hiện có.");
-      }
-      await loadTodayData();
-
-      notice({
-        msg: "Đã chuyển sang Đang nấu.",
-        isSuccess: true,
-      });
-
-      setIsModalOpen(false);
-    } catch (err) {
-      notice({
-        msg: err.message || "Không thể tạo lô chế biến. Vui lòng kiểm tra lại nguyên liệu.",
-        isSuccess: false,
-      });
-      throw err;
-    } finally {
-      setSubmittingId(null);
-    }
-  };
 
   // Xử lý xác nhận bắt đầu nấu
 
@@ -331,45 +283,27 @@ function CreateBatchPage() {
     }
   };
 
-  // Nút "Nấu": hệ thống tự lấy phương án lô từ tồn kho rồi tạo lô, chuyển món sang "Đang nấu".
+  // Nút "Nấu" / kéo món sang Đang nấu: lô do hệ thống lập sẵn theo đợt giao (không lập lô thủ công).
+  // Tải lại tiến độ; món đã có lô chính thức sẽ nằm ở cột Đang nấu, chưa có thì báo lý do chờ.
   const handleStartCooking = async (dish) => {
     if (!dish || submittingId) return;
     if (dish.unfinalizedClasses?.length) {
       notice({ msg: "Các lớp chưa chốt suất ăn, chưa thể nấu.", isSuccess: false });
       return;
     }
-    let planned = false;
     setSubmittingId(dish.id);
     try {
-      const plan = await KitchenService.getBatchPlan({
-        menuDayId: dish.menuDayId,
-        dishId: dish.dishId || dish.id,
-        mealType: String(dish.mealType).toUpperCase() === "AFTERNOON" ? "AFTERNOON" : "LUNCH",
-      });
-      if (!plan?.batches?.length) {
-        await loadTodayData();
-        notice({ msg: "Món này đã được chuyển sang Đang nấu.", isSuccess: true });
-        return;
-      }
-      planned = true;
-      await handleCreateBatchForDish({ ...dish, planVersion: plan.planVersion });
-    } catch (err) {
-      if (!planned) {
-        notice({ msg: err.message || "Không thể bắt đầu nấu. Vui lòng kiểm tra nguyên liệu.", isSuccess: false });
-      }
+      const result = await loadTodayData();
+      if (!result) return;
+      const waiting = result.pending.find((item) => item.id === dish.id && item.mealType === dish.mealType);
+      notice(
+        waiting
+          ? { msg: `"${dish.name}": ${waiting.waitReason}.`, isSuccess: false }
+          : { msg: `Đã chuyển "${dish.name}" sang Đang nấu.`, isSuccess: true },
+      );
     } finally {
       setSubmittingId(null);
     }
-  };
-
-  // Mở Popup phương án phân bổ lô chế biến trước khi tạo
-  const handleOpenPlanModal = (dish) => {
-    if (dish.unfinalizedClasses?.length) {
-      notice({ msg: `Chưa chốt suất ăn: ${dish.unfinalizedClasses.map((row) => row.name).join(", ")}`, isSuccess: false });
-      return;
-    }
-    setDishToPlan(dish);
-    setIsPlanModalOpen(true);
   };
 
   // Mở Popup lưu mẫu thực phẩm 24h
@@ -461,7 +395,7 @@ function CreateBatchPage() {
         {/* Header Bar với tiêu đề Tiến độ chế biến */}
         <CreateBatchHeader
           title="Tiến độ chế biến"
-          subtitle="Khởi tạo lô và theo dõi quy trình chế biến món ăn trong ngày"
+          subtitle="Theo dõi lô do hệ thống lập theo đợt giao: nấu xong và lưu mẫu"
         />
         {loadError || gradeError ? (
           <InlineError messages={[loadError, gradeError]} />
@@ -525,7 +459,6 @@ function CreateBatchPage() {
             }}
             onNotify={(msg) => notice({ msg, isSuccess: false })}
             onOpenSampleModal={handleOpenSampleModal}
-            onQuickCreate={handleCreateBatchForDish}
             onCompleteCooking={askCompleteCooking}
             onViewBatchDetail={handleViewFullPage}
             submittingId={submittingId}
@@ -547,24 +480,6 @@ function CreateBatchPage() {
           onViewBatchDetail={handleViewFullPage}
         />
 
-        {/* Modal xem trước phương án phân bổ lô trước khi xác nhận tạo */}
-        <BatchPlanModal
-          open={isPlanModalOpen}
-          onClose={() => {
-            if (!submittingId) {
-              setIsPlanModalOpen(false);
-              setDishToPlan(null);
-            }
-          }}
-          dish={dishToPlan}
-          cookingMode="COMBINE_LOTS"
-          onConfirm={async (dish) => {
-            await handleCreateBatchForDish(dish);
-            setIsPlanModalOpen(false);
-            setDishToPlan(null);
-          }}
-          submitting={Boolean(submittingId)}
-        />
 
         {/* Modal nhập lưu mẫu thực phẩm 24h ngay tại chỗ */}
         <RetainedSampleModal

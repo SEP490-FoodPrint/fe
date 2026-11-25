@@ -28,6 +28,7 @@ import {
 import IngredientPickerModal from "src/pages/SCHOOL/MenuPlanning/component/IngredientPickerModal"
 import DishCategoryModal from "./component/DishCategoryModal"
 import GradeRecipeFields, {
+  DISH_STANDARD_UNITS,
   gradePortionPayload,
   standardQuantityIssue,
   validQuantity,
@@ -105,6 +106,22 @@ export function toSmallestUnit(quantity, unit) {
     }
   }
   return { quantity, unit: unit || "g" }
+}
+
+/**
+ * Đơn vị chung của mọi nguyên liệu và gia vị (đã quy về đơn vị nhỏ nhất: kg → g, l → ml).
+ * Chỉ trả về khi đơn vị chung đó dùng được cho mốc chuẩn (g/ml); ngược lại trả về null.
+ */
+export function uniformRecipeUnit(items) {
+  if (!items.length) return null
+  const units = items.map(item =>
+    toSmallestUnit(1, item.unit || "g").unit.trim().toLowerCase(),
+  )
+  const [first] = units
+  return units.every(unit => unit === first) &&
+    DISH_STANDARD_UNITS.includes(first)
+    ? first
+    : null
 }
 
 const PAGE_SIZE = 8
@@ -225,6 +242,24 @@ export default function DishCatalogPage() {
 
   // Danh sách gia vị kho dùng cho món này (kèm định lượng từng gia vị)
   const [selectedSeasonings, setSelectedSeasonings] = useState([])
+
+  // Mọi nguyên liệu và gia vị cùng 1 đơn vị (g hoặc ml) → mốc chuẩn của món cố định
+  // bằng tổng định lượng các dòng, đúng đơn vị đó, và không cho sửa tay.
+  const lockedStandard = useMemo(() => {
+    const items = [...selectedIngredients, ...selectedSeasonings]
+    const unit = uniformRecipeUnit(items)
+    if (!unit) return null
+    const total = items.reduce((sum, item) => {
+      const value = Number(toSmallestUnit(item.portionQty, item.unit || "g").quantity)
+      return sum + (Number.isFinite(value) ? value : 0)
+    }, 0)
+    const rounded = Math.round(total * 1000) / 1000
+    return { quantity: rounded > 0 ? String(rounded) : "", unit }
+  }, [selectedIngredients, selectedSeasonings])
+  const standardQuantity = lockedStandard
+    ? lockedStandard.quantity
+    : form.standardQuantity
+  const standardUnit = lockedStandard ? lockedStandard.unit : form.standardUnit
 
   // Danh sách ID nguyên liệu để đồng bộ với IngredientPickerModal
   const selectedIngredientIds = useMemo(
@@ -354,12 +389,11 @@ export default function DishCatalogPage() {
       ).values(),
     ]
 
+    const initialSeasonings = sourceLines
+      .filter(line => line.ingredientRole === "SEASONING")
+      .map(line => ({ ...asIngredient(line), id: line.ingredientEntryId }))
     setSelectedIngredients(uniqueIngredients)
-    setSelectedSeasonings(
-      sourceLines
-        .filter(line => line.ingredientRole === "SEASONING")
-        .map(line => ({ ...asIngredient(line), id: line.ingredientEntryId })),
-    )
+    setSelectedSeasonings(initialSeasonings)
     setUnclassifiedLines([])
     setCatalogError("")
     setModalOpen(true)
@@ -479,8 +513,12 @@ export default function DishCatalogPage() {
       setCatalogError("Vui lòng chọn bữa ăn áp dụng cho món.")
       return
     }
-    if (!gradeProfiles.length) {
+    if (!gradeProfiles.some(profile => profile.gradeId)) {
       setCatalogError("Vui lòng chọn ít nhất một khối áp dụng.")
+      return
+    }
+    if (gradeProfiles.some(profile => !profile.gradeId)) {
+      setCatalogError("Vui lòng chọn khối cho từng dòng khẩu phần hoặc xóa dòng trống.")
       return
     }
     if (!validRecipeLines(recipeLines)) {
@@ -491,8 +529,8 @@ export default function DishCatalogPage() {
     }
     const standardIssue = standardQuantityIssue(
       recipeLines,
-      form.standardQuantity,
-      form.standardUnit,
+      standardQuantity,
+      standardUnit,
     )
     if (standardIssue) {
       setCatalogError(standardIssue)
@@ -513,8 +551,8 @@ export default function DishCatalogPage() {
         category: form.category,
         mealType: form.mealType,
         description: editingDish?.description || null,
-        standardQuantity: String(form.standardQuantity).trim(),
-        standardUnit: form.standardUnit,
+        standardQuantity: String(standardQuantity).trim(),
+        standardUnit,
         gradeRecipes: gradePortionPayload(gradeProfiles),
         lines: recipeLines,
       })
@@ -1282,8 +1320,9 @@ export default function DishCatalogPage() {
                       setGradeProfiles(next)
                       setCatalogError("")
                     }}
-                    standardQuantity={form.standardQuantity}
-                    standardUnit={form.standardUnit}
+                    standardQuantity={standardQuantity}
+                    standardUnit={standardUnit}
+                    standardLocked={Boolean(lockedStandard)}
                     onStandardChange={patch => {
                       setForm(prev => ({ ...prev, ...patch }))
                       setCatalogError("")

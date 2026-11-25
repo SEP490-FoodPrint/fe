@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { Alert } from "@mui/material";
-import { ChevronDown } from "lucide-react";
-import selectStyles from "src/pages/SCHOOL/MenuPlanning/CreateMenu/CreateMenu.module.scss";
+import { Plus, Trash2 } from "lucide-react";
 import dishStyles from "../index.module.scss";
 
 /** Đơn vị được phép cho mốc chuẩn của món. */
@@ -73,26 +72,22 @@ export function gradePortionPayload(profiles) {
   }));
 }
 
+const EMPTY_ROW = { gradeId: "", portionQuantity: "" };
+
 export default function GradeRecipeFields({
   grades,
   profiles,
   onChange,
   standardQuantity,
   standardUnit,
+  standardLocked = false,
   onStandardChange,
   lines = [],
   savedProfiles = [],
   disabled,
 }) {
-  const [open, setOpen] = useState(false);
-  const dropdown = useRef(null);
-  useEffect(() => {
-    const close = (event) => {
-      if (!dropdown.current?.contains(event.target)) setOpen(false);
-    };
-    document.addEventListener("mousedown", close);
-    return () => document.removeEventListener("mousedown", close);
-  }, []);
+  const rowSeq = useRef(0);
+  const nextRowKey = () => `grade-row-${++rowSeq.current}`;
   const threshold = standardThreshold(lines, standardUnit);
   const standardIssue =
     String(standardQuantity ?? "").trim() === ""
@@ -100,18 +95,34 @@ export default function GradeRecipeFields({
       : standardQuantityIssue(lines, standardQuantity, standardUnit);
   const gradeName = (gradeId) =>
     grades.find((grade) => grade.id === gradeId)?.name || "Khối";
-  const setPortion = (gradeId, portionQuantity) =>
+  const savedPortion = (gradeId) =>
+    savedProfiles.find((profile) => profile.gradeId === gradeId)
+      ?.portionQuantity ?? "";
+  // Luôn hiển thị ít nhất 1 dòng để người dùng bắt đầu chọn khối.
+  const rows = profiles.length ? profiles : [EMPTY_ROW];
+  const canAdd = !disabled && rows.length < grades.length;
+  const updateRow = (index, patch) =>
     onChange(
-      profiles.map((item) =>
-        item.gradeId === gradeId ? { ...item, portionQuantity } : item,
-      ),
+      rows.map((row, i) => (i === index ? { ...row, ...patch } : row)),
     );
-  const profileForGrade = (grade) => ({
-    gradeId: grade.id,
-    portionQuantity:
-      savedProfiles.find((profile) => profile.gradeId === grade.id)
-        ?.portionQuantity ?? "",
-  });
+  const selectGrade = (index, gradeId) => {
+    const row = rows[index];
+    const keepTyped =
+      String(row.portionQuantity ?? "").trim() !== "" &&
+      row.portionQuantity !== savedPortion(row.gradeId);
+    updateRow(index, {
+      gradeId,
+      // Khối đã lưu: điền sẵn khẩu phần cũ nếu người dùng chưa tự nhập.
+      portionQuantity: keepTyped ? row.portionQuantity : savedPortion(gradeId),
+    });
+  };
+  const addRow = (index) => {
+    if (!canAdd) return;
+    const next = [...rows];
+    next.splice(index + 1, 0, { ...EMPTY_ROW, rowKey: nextRowKey() });
+    onChange(next);
+  };
+  const removeRow = (index) => onChange(rows.filter((_, i) => i !== index));
   const removedSaved = savedProfiles.filter(
     (saved) => !profiles.some((item) => item.gradeId === saved.gradeId),
   );
@@ -147,6 +158,7 @@ export default function GradeRecipeFields({
             placeholder="Ví dụ: 100"
             value={standardQuantity}
             disabled={disabled}
+            readOnly={standardLocked}
             onWheel={(event) => event.currentTarget.blur()}
             onChange={(event) =>
               onStandardChange({ standardQuantity: event.target.value })
@@ -161,7 +173,7 @@ export default function GradeRecipeFields({
             id="dish-standard-unit"
             className={dishStyles.formSelect}
             value={standardUnit}
-            disabled={disabled}
+            disabled={disabled || standardLocked}
             onChange={(event) =>
               onStandardChange({ standardUnit: event.target.value })
             }
@@ -175,7 +187,9 @@ export default function GradeRecipeFields({
         </div>
       </div>
       <span className={dishStyles.sectionHint}>
-        {threshold
+        {standardLocked
+          ? `Mọi nguyên liệu và gia vị cùng dùng ${standardUnit} nên mốc chuẩn tự lấy bằng tổng định lượng (${standardQuantity || 0} ${standardUnit}).`
+          : threshold
           ? `Tổng nguyên liệu và gia vị dùng ${standardUnit}: ${threshold.total} ${standardUnit}. Mốc chuẩn phải ${threshold.strict ? "lớn hơn" : "lớn hơn hoặc bằng"} ${threshold.total} ${standardUnit}.`
           : `Chưa có nguyên liệu nào dùng ${standardUnit}; mốc chuẩn chỉ cần lớn hơn 0.`}
       </span>
@@ -187,8 +201,9 @@ export default function GradeRecipeFields({
             Khẩu phần theo khối <span className={dishStyles.required}>*</span>
           </label>
           <span className={dishStyles.sectionHint}>
-            Mỗi khối chỉ nhập khối lượng 1 suất ({standardUnit}); định lượng
-            nguyên liệu g/ml được tính theo tỉ lệ với mốc chuẩn, đơn vị đếm (quả, hộp…) giữ nguyên
+            Mỗi dòng chọn 1 khối và nhập khối lượng 1 suất ({standardUnit});
+            định lượng nguyên liệu g/ml được tính theo tỉ lệ với mốc chuẩn, đơn
+            vị đếm (quả, hộp…) giữ nguyên
           </span>
         </div>
       </div>
@@ -197,130 +212,94 @@ export default function GradeRecipeFields({
           Chưa có khối để nhập khẩu phần. Ban Giám hiệu cần cấu hình khối trước.
         </Alert>
       ) : (
-        <div ref={dropdown} className={selectStyles.multiSelectContainer}>
-          <button
-            type="button"
-            className={`${selectStyles.selectTrigger} ${open ? selectStyles.selectTriggerOpen : ""}`}
-            aria-expanded={open}
-            aria-controls="dish-grade-options"
-            disabled={disabled}
-            onClick={() => setOpen((value) => !value)}
-          >
-            <span
-              className={`${selectStyles.selectValueText} ${profiles.length ? "" : selectStyles.selectPlaceholder}`}
-            >
-              {grades
-                .filter((grade) =>
-                  profiles.some((item) => item.gradeId === grade.id),
-                )
-                .map((grade) => grade.name)
-                .join(", ") || "Chọn khối lớp áp dụng..."}
-            </span>
-            <ChevronDown size={16} className={selectStyles.selectChevron} />
-          </button>
-          {open && (
-            <div
-              id="dish-grade-options"
-              className={selectStyles.selectDropdownMenu}
-            >
-              <label className={selectStyles.dropdownOptionAll}>
-                <input
-                  type="checkbox"
-                  className={selectStyles.dropdownCheckbox}
+        <div className={dishStyles.gradePortionList}>
+          <div className={dishStyles.gradePortionHead} aria-hidden="true">
+            <span>Khối</span>
+            <span>Khẩu phần ({standardUnit}/suất)</span>
+            <span />
+          </div>
+          {rows.map((row, index) => {
+            const takenByOthers = new Set(
+              rows
+                .filter((other, i) => i !== index && other.gradeId)
+                .map((other) => other.gradeId),
+            );
+            const rowId = row.rowKey ?? row.gradeId ?? `row-${index}`;
+            return (
+              <div key={rowId} className={dishStyles.gradePortionRow}>
+                <select
+                  className={dishStyles.formSelect}
+                  aria-label={`Khối dòng ${index + 1}`}
+                  value={row.gradeId || ""}
                   disabled={disabled}
-                  checked={grades.every((grade) =>
-                    profiles.some((item) => item.gradeId === grade.id),
-                  )}
-                  onChange={(event) => {
-                    const next = event.target.checked
-                      ? [
-                          ...profiles,
-                          ...grades
-                            .filter(
-                              (grade) =>
-                                !profiles.some(
-                                  (item) => item.gradeId === grade.id,
-                                ),
-                            )
-                            .map(profileForGrade),
-                        ]
-                      : [];
-                    onChange(next);
-                  }}
-                />
-                <span className={selectStyles.dropdownOptionTextBold}>
-                  Chọn tất cả khối
-                </span>
-              </label>
-              {grades.map((grade) => (
-                <label
-                  key={grade.id}
-                  className={selectStyles.dropdownOptionItem}
+                  onChange={(event) => selectGrade(index, event.target.value)}
                 >
-                  <input
-                    type="checkbox"
-                    className={selectStyles.dropdownCheckbox}
-                    checked={profiles.some((item) => item.gradeId === grade.id)}
-                    disabled={disabled}
-                    onChange={(event) => {
-                      if (event.target.checked) {
-                        onChange([...profiles, profileForGrade(grade)]);
-                      } else
-                        onChange(
-                          profiles.filter((item) => item.gradeId !== grade.id),
-                        );
-                    }}
-                  />
-                  <span className={selectStyles.dropdownOptionText}>
-                    {grade.name}
-                    {savedProfiles.some((profile) => profile.gradeId === grade.id)
-                      ? " · đã lưu"
-                      : ""}
-                  </span>
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-      {profiles.length > 0 && (
-        <div className={dishStyles.gradePortionGrid}>
-          {[...profiles]
-            .sort(
-              (a, b) =>
-                grades.findIndex((grade) => grade.id === a.gradeId) -
-                grades.findIndex((grade) => grade.id === b.gradeId),
-            )
-            .map((profile) => (
-            <div key={profile.gradeId}>
-              <label
-                className={dishStyles.formLabel}
-                htmlFor={`grade-portion-${profile.gradeId}`}
-              >
-                {gradeName(profile.gradeId)} ({standardUnit}/suất)
-              </label>
-              <input
-                id={`grade-portion-${profile.gradeId}`}
-                type="number"
-                min="0"
-                step="0.01"
-                inputMode="decimal"
-                className={dishStyles.formInput}
-                placeholder={`Ví dụ: ${standardQuantity || 100}`}
-                value={profile.portionQuantity ?? ""}
-                disabled={disabled}
-                onWheel={(event) => event.currentTarget.blur()}
-                onChange={(event) =>
-                  setPortion(profile.gradeId, event.target.value)
-                }
-              />
-            </div>
-          ))}
+                  <option value="" disabled>
+                    Chọn khối...
+                  </option>
+                  {grades
+                    .filter(
+                      (grade) =>
+                        grade.id === row.gradeId || !takenByOthers.has(grade.id),
+                    )
+                    .map((grade) => (
+                      <option key={grade.id} value={grade.id}>
+                        {grade.name}
+                        {savedProfiles.some(
+                          (profile) => profile.gradeId === grade.id,
+                        )
+                          ? " · đã lưu"
+                          : ""}
+                      </option>
+                    ))}
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  inputMode="decimal"
+                  aria-label={`Khẩu phần ${row.gradeId ? gradeName(row.gradeId) : `dòng ${index + 1}`}`}
+                  className={dishStyles.formInput}
+                  placeholder={`Ví dụ: ${standardQuantity || 100}`}
+                  value={row.portionQuantity ?? ""}
+                  disabled={disabled}
+                  onWheel={(event) => event.currentTarget.blur()}
+                  onChange={(event) =>
+                    updateRow(index, { portionQuantity: event.target.value })
+                  }
+                />
+                <div className={dishStyles.gradePortionActions}>
+                  <button
+                    type="button"
+                    className={dishStyles.gradeRowAddBtn}
+                    onClick={() => addRow(index)}
+                    disabled={!canAdd}
+                    title={
+                      canAdd ? "Thêm dòng khối" : "Đã đủ số khối có thể chọn"
+                    }
+                    aria-label="Thêm dòng khối"
+                  >
+                    <Plus size={15} />
+                  </button>
+                  <button
+                    type="button"
+                    className={dishStyles.gradeRowRemoveBtn}
+                    onClick={() => removeRow(index)}
+                    disabled={disabled || (rows.length === 1 && !row.gradeId && !row.portionQuantity)}
+                    title="Xóa dòng này"
+                    aria-label="Xóa dòng khối"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
       {removedSaved.length > 0 && (
         <Alert severity="info">
-          Bỏ chọn khối chỉ không cập nhật khối đó; khẩu phần đã lưu của{" "}
+          Xóa dòng khối chỉ không cập nhật khối đó; khẩu phần đã lưu của{" "}
           {removedSaved.map((profile) => gradeName(profile.gradeId)).join(", ")} vẫn được giữ nguyên.
         </Alert>
       )}

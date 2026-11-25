@@ -756,6 +756,19 @@
   &::placeholder {
     color: #94a3b8;
   }
+
+  // Ô tự tính (vd. mốc chuẩn khi mọi nguyên liệu cùng đơn vị): chỉ đọc.
+  &:read-only:not(select),
+  &:disabled {
+    background-color: #f1f5f9;
+    color: #475569;
+    cursor: not-allowed;
+  }
+
+  &:read-only:not(select):focus {
+    border-color: #cbd5e1;
+    box-shadow: none;
+  }
 }
 
 .formTextarea {
@@ -1661,14 +1674,67 @@
   margin: 12px 0;
 }
 
-/* Khẩu phần theo khối: mỗi khối một ô nhập, tự xuống dòng. */
-.gradePortionGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 12px;
+/* Khẩu phần theo khối: mỗi dòng = chọn khối + khẩu phần + nút thêm/xóa. */
+.gradePortionList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin-top: 12px;
+}
 
-  > div {
-    min-width: 0;
+.gradePortionHead,
+.gradePortionRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 72px;
+  gap: 10px;
+  align-items: center;
+}
+
+.gradePortionHead {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.gradePortionActions {
+  display: inline-flex;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+.gradeRowAddBtn,
+.gradeRowRemoveBtn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.gradeRowAddBtn {
+  color: #0a8066;
+
+  &:not(:disabled):hover {
+    background: rgba(10, 128, 102, 0.08);
+    border-color: #0a8066;
+  }
+}
+
+.gradeRowRemoveBtn {
+  color: #dc2626;
+
+  &:not(:disabled):hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
   }
 }
