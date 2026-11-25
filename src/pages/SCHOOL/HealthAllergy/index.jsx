@@ -16,20 +16,36 @@ import styles from "./index.module.scss"
 
 export default function HealthAllergyPage() {
   // Master data
-  const [classList,setClassList] = useState([])
-  const [loading,setLoading] = useState(true)
-  const [error,setError] = useState("")
-  const [revision,setRevision] = useState(0)
-  useEffect(()=>{
-    const controller=new AbortController()
+  const [classList, setClassList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
+  const [revision, setRevision] = useState(0)
+  useEffect(() => {
+    const controller = new AbortController()
     setLoading(true)
     setError("")
-    getSchoolClassAllergies({signal:controller.signal}).then(rows=>{if(!controller.signal.aborted)setClassList(rows)})
-      .catch(e=>{if(!controller.signal.aborted)setError(e.message)})
-      .finally(()=>{if(!controller.signal.aborted)setLoading(false)})
-    return ()=>controller.abort()
-  },[revision])
-  const academicYearOptions=useMemo(()=>[{value:"ALL",label:"Tất cả năm học"},...[...new Set(classList.map(row=>row.academicYear).filter(Boolean))].sort().reverse().map(year=>({value:year,label:`Năm học ${year}`}))],[classList])
+    getSchoolClassAllergies({ signal: controller.signal })
+      .then(rows => {
+        if (!controller.signal.aborted) setClassList(rows)
+      })
+      .catch(e => {
+        if (!controller.signal.aborted) setError(e.message)
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false)
+      })
+    return () => controller.abort()
+  }, [revision])
+  const academicYearOptions = useMemo(
+    () => [
+      { value: "ALL", label: "Tất cả năm học" },
+      ...[...new Set(classList.map(row => row.academicYear).filter(Boolean))]
+        .sort()
+        .reverse()
+        .map(year => ({ value: year, label: `Năm học ${year}` })),
+    ],
+    [classList],
+  )
 
   // Điều hướng 2 màn hình: null = SCREEN 01 (Danh sách), object = SCREEN 02 (Chi tiết lớp)
   const [selectedClass, setSelectedClass] = useState(null)
@@ -47,18 +63,18 @@ export default function HealthAllergyPage() {
 
     // 1. Lọc theo năm học
     if (academicYear !== "ALL") {
-      result = result.filter((cls) => cls.academicYear === academicYear)
+      result = result.filter(cls => cls.academicYear === academicYear)
     }
 
     // 2. Tìm kiếm theo tên lớp hoặc tên nguyên liệu dị ứng
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase()
-      result = result.filter((cls) => {
+      result = result.filter(cls => {
         const matchClass = cls.className.toLowerCase().includes(q)
         const matchIngredient = (cls.allergies || []).some(
-          (alg) =>
+          alg =>
             alg.ingredientName.toLowerCase().includes(q) ||
-            (alg.category && alg.category.toLowerCase().includes(q))
+            (alg.category && alg.category.toLowerCase().includes(q)),
         )
         return matchClass || matchIngredient
       })
@@ -113,7 +129,10 @@ export default function HealthAllergyPage() {
           <p>Đang tải dữ liệu dị ứng…</p>
         </div>
       ) : error ? (
-        <InlineError messages={error} onRetry={() => setRevision((value) => value + 1)} />
+        <InlineError
+          messages={error}
+          onRetry={() => setRevision(value => value + 1)}
+        />
       ) : filteredList.length === 0 ? (
         <AllergyEmptyState
           isSearching={isFiltered}
@@ -125,7 +144,7 @@ export default function HealthAllergyPage() {
           <div className={styles.desktopTableWrap}>
             <AllergyTableView
               classList={filteredList}
-              onSelectClass={(cls) => setSelectedClass(cls)}
+              onSelectClass={cls => setSelectedClass(cls)}
             />
           </div>
 
@@ -133,7 +152,7 @@ export default function HealthAllergyPage() {
           <div className={styles.mobileCardsWrap}>
             <AllergyMobileCards
               classList={filteredList}
-              onSelectClass={(cls) => setSelectedClass(cls)}
+              onSelectClass={cls => setSelectedClass(cls)}
             />
           </div>
         </div>

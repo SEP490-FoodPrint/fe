@@ -14,7 +14,11 @@ import { Link } from "react-router-dom"
 import MealPortionService from "src/services/MealPortionService"
 import ROUTER from "src/router/ROUTER"
 import ClassAllergyDialog from "./component/ClassAllergyDialog"
-import { allergyGroupLabel, groupAllergyRows, totalAllergyCount } from "src/utils/allergyGroups"
+import {
+  allergyGroupLabel,
+  groupAllergyRows,
+  totalAllergyCount,
+} from "src/utils/allergyGroups"
 import "./style.scss"
 
 const meals = [
@@ -24,7 +28,8 @@ const meals = [
 
 const statusMeta = submission => {
   if (!submission) return { label: "Chưa khai báo", tone: "neutral" }
-  if (submission.status === "FINALIZED") return { label: "Đã chốt", tone: "success" }
+  if (submission.status === "FINALIZED")
+    return { label: "Đã chốt", tone: "success" }
   return { label: "Bản nháp", tone: "warning" }
 }
 
@@ -39,125 +44,195 @@ function HomeroomOverview() {
     setLoading(true)
     setError("")
     try {
-      const responses = await Promise.all(meals.map(meal => (
-        MealPortionService.getMyClassMeal({ date: today, mealType: meal.type })
-      )))
+      const responses = await Promise.all(
+        meals.map(meal =>
+          MealPortionService.getMyClassMeal({
+            date: today,
+            mealType: meal.type,
+          }),
+        ),
+      )
       setData({
         class: responses[0].data.class,
-        submissions: Object.fromEntries(meals.map((meal, index) => [meal.type, responses[index].data.submission])),
+        submissions: Object.fromEntries(
+          meals.map((meal, index) => [
+            meal.type,
+            responses[index].data.submission,
+          ]),
+        ),
       })
     } catch (failure) {
       setData(null)
-      setError(failure?.response?.data?.message || "Không thể tải thông tin lớp được phân công.")
+      setError(
+        failure?.response?.data?.message ||
+          "Không thể tải thông tin lớp được phân công.",
+      )
     } finally {
       setLoading(false)
     }
   }, [today])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => {
+    load()
+  }, [load])
 
   const allergies = data?.class?.classAllergies || []
   const pendingMeals = data
-    ? meals.filter(meal => data.submissions[meal.type]?.status !== "FINALIZED").length
+    ? meals.filter(meal => data.submissions[meal.type]?.status !== "FINALIZED")
+        .length
     : 0
 
   return (
     <div className="homeroom-overview">
-      {loading && <div className="homeroom-overview__loading" role="status" aria-live="polite"><FoodPrintLoading size="medium" /></div>}
-      {!loading && error && <Alert severity="warning" action={<Button color="inherit" onClick={load}>Thử lại</Button>}>{error}</Alert>}
-
-      {!loading && data && <>
-        <header className="homeroom-overview__header">
-          <div className="homeroom-overview__class">
-            <span className="homeroom-overview__class-icon"><Users size={22} aria-hidden="true" /></span>
-            <div>
-              <h1>{data.class.name}</h1>
-              <p>Niên khóa {data.class.academicYear} · {data.class.registeredMealPortions} suất đăng ký</p>
-            </div>
-          </div>
-          <time className="homeroom-overview__date" dateTime={today}>
-            <CalendarDays size={18} aria-hidden="true" />
-            <span>{dayjs(today).format("DD/MM/YYYY")}</span>
-          </time>
-        </header>
-
-        <section className="homeroom-overview__section">
-          <div className="homeroom-overview__section-heading">
-            <div>
-              <h2>Suất ăn hôm nay</h2>
-              <p>{pendingMeals
-                ? `${pendingMeals} bữa cần hoàn tất khai báo.`
-                : "Đã hoàn tất khai báo cho cả hai bữa."}</p>
-            </div>
-          </div>
-          <Link className="homeroom-overview__meal-card"
-            aria-label={`Khai báo suất ăn hôm nay: ${pendingMeals ? `${pendingMeals} bữa chưa chốt` : "đã chốt cả hai bữa"}`}
-            to={`${ROUTER.SCHOOL_DAILY_CONFIRM}?date=${today}`}>
-            <ul className="homeroom-overview__meal-rows">
-              {meals.map(meal => {
-                const submission = data.submissions[meal.type]
-                const status = statusMeta(submission)
-                return (
-                  <li key={meal.type}>
-                    <strong>{meal.label}</strong>
-                    <span>{submission
-                      ? `${submission.totalPortions}/${data.class.registeredMealPortions} suất`
-                      : `${data.class.registeredMealPortions} suất đăng ký`}</span>
-                    <Chip
-                      size="small"
-                      label={status.label}
-                      className={`homeroom-overview__status homeroom-overview__status--${status.tone}`}
-                    />
-                  </li>
-                )
-              })}
-            </ul>
-            <span className="homeroom-overview__meal-link">
-              {pendingMeals ? "Khai báo" : "Xem lại"}<ArrowRight size={18} aria-hidden="true" />
-            </span>
-          </Link>
-        </section>
-
-        <section
-          className={`homeroom-overview__notice ${allergies.length ? "homeroom-overview__notice--warning" : "homeroom-overview__notice--clear"}`}
-          aria-label="Thông tin dị ứng của lớp"
+      {loading && (
+        <div
+          className="homeroom-overview__loading"
+          role="status"
+          aria-live="polite"
         >
-          {allergies.length
-            ? <AlertTriangle size={20} aria-hidden="true" />
-            : <ShieldCheck size={20} aria-hidden="true" />}
-          <div className="homeroom-overview__notice-body">
-            <div className="homeroom-overview__notice-heading">
-              <h2>Dị ứng của lớp</h2>
-              <Button size="small" variant="outlined" onClick={() => setAllergyDialogOpen(true)}>
-                Cập nhật
-              </Button>
+          <FoodPrintLoading size="medium" />
+        </div>
+      )}
+      {!loading && error && (
+        <Alert
+          severity="warning"
+          action={
+            <Button color="inherit" onClick={load}>
+              Thử lại
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
+
+      {!loading && data && (
+        <>
+          <header className="homeroom-overview__header">
+            <div className="homeroom-overview__class">
+              <span className="homeroom-overview__class-icon">
+                <Users size={22} aria-hidden="true" />
+              </span>
+              <div>
+                <h1>{data.class.name}</h1>
+                <p>
+                  Niên khóa {data.class.academicYear} ·{" "}
+                  {data.class.registeredMealPortions} suất đăng ký
+                </p>
+              </div>
             </div>
-            <p>{allergies.length
-              ? `${totalAllergyCount(allergies)} học sinh dị ứng · ${groupAllergyRows(allergies).length} nhóm.`
-              : "Lớp chưa có nguyên liệu dị ứng được ghi nhận."}</p>
-            {allergies.length > 0 && <div className="homeroom-overview__allergy-list">
-              {groupAllergyRows(allergies).map(group => <span key={group.groupNo}>
-                {allergyGroupLabel(group)}: <strong>{group.count}</strong>
-              </span>)}
-            </div>}
-          </div>
-        </section>
+            <time className="homeroom-overview__date" dateTime={today}>
+              <CalendarDays size={18} aria-hidden="true" />
+              <span>{dayjs(today).format("DD/MM/YYYY")}</span>
+            </time>
+          </header>
 
-        <ClassAllergyDialog
-          open={allergyDialogOpen}
-          onClose={() => setAllergyDialogOpen(false)}
-          onSaved={() => { setAllergyDialogOpen(false); load() }}
-          allergies={allergies}
-          maxStudents={data.class.registeredMealPortions}
-        />
+          <section className="homeroom-overview__section">
+            <div className="homeroom-overview__section-heading">
+              <div>
+                <h2>Suất ăn hôm nay</h2>
+                <p>
+                  {pendingMeals
+                    ? `${pendingMeals} bữa cần hoàn tất khai báo.`
+                    : "Đã hoàn tất khai báo cho cả hai bữa."}
+                </p>
+              </div>
+            </div>
+            <Link
+              className="homeroom-overview__meal-card"
+              aria-label={`Khai báo suất ăn hôm nay: ${pendingMeals ? `${pendingMeals} bữa chưa chốt` : "đã chốt cả hai bữa"}`}
+              to={`${ROUTER.SCHOOL_DAILY_CONFIRM}?date=${today}`}
+            >
+              <ul className="homeroom-overview__meal-rows">
+                {meals.map(meal => {
+                  const submission = data.submissions[meal.type]
+                  const status = statusMeta(submission)
+                  return (
+                    <li key={meal.type}>
+                      <strong>{meal.label}</strong>
+                      <span>
+                        {submission
+                          ? `${submission.totalPortions}/${data.class.registeredMealPortions} suất`
+                          : `${data.class.registeredMealPortions} suất đăng ký`}
+                      </span>
+                      <Chip
+                        size="small"
+                        label={status.label}
+                        className={`homeroom-overview__status homeroom-overview__status--${status.tone}`}
+                      />
+                    </li>
+                  )
+                })}
+              </ul>
+              <span className="homeroom-overview__meal-link">
+                {pendingMeals ? "Khai báo" : "Xem lại"}
+                <ArrowRight size={18} aria-hidden="true" />
+              </span>
+            </Link>
+          </section>
 
-        <Link className="homeroom-overview__feedback" to={ROUTER.SCHOOL_MEAL_COMPLAINTS}
-          aria-label="Mở trang phản ánh bữa ăn">
-          <MessageSquareText size={22} />
-          <span><strong>Phản ánh bữa ăn</strong><small>Gửi hoặc theo dõi phản ánh của lớp</small></span>
-          <ArrowRight size={20} aria-hidden="true" />
-        </Link>
-      </>}
+          <section
+            className={`homeroom-overview__notice ${allergies.length ? "homeroom-overview__notice--warning" : "homeroom-overview__notice--clear"}`}
+            aria-label="Thông tin dị ứng của lớp"
+          >
+            {allergies.length ? (
+              <AlertTriangle size={20} aria-hidden="true" />
+            ) : (
+              <ShieldCheck size={20} aria-hidden="true" />
+            )}
+            <div className="homeroom-overview__notice-body">
+              <div className="homeroom-overview__notice-heading">
+                <h2>Dị ứng của lớp</h2>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setAllergyDialogOpen(true)}
+                >
+                  Cập nhật
+                </Button>
+              </div>
+              <p>
+                {allergies.length
+                  ? `${totalAllergyCount(allergies)} học sinh dị ứng · ${groupAllergyRows(allergies).length} nhóm.`
+                  : "Lớp chưa có nguyên liệu dị ứng được ghi nhận."}
+              </p>
+              {allergies.length > 0 && (
+                <div className="homeroom-overview__allergy-list">
+                  {groupAllergyRows(allergies).map(group => (
+                    <span key={group.groupNo}>
+                      {allergyGroupLabel(group)}: <strong>{group.count}</strong>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <ClassAllergyDialog
+            open={allergyDialogOpen}
+            onClose={() => setAllergyDialogOpen(false)}
+            onSaved={() => {
+              setAllergyDialogOpen(false)
+              load()
+            }}
+            allergies={allergies}
+            maxStudents={data.class.registeredMealPortions}
+          />
+
+          <Link
+            className="homeroom-overview__feedback"
+            to={ROUTER.SCHOOL_MEAL_COMPLAINTS}
+            aria-label="Mở trang phản ánh bữa ăn"
+          >
+            <MessageSquareText size={22} />
+            <span>
+              <strong>Phản ánh bữa ăn</strong>
+              <small>Gửi hoặc theo dõi phản ánh của lớp</small>
+            </span>
+            <ArrowRight size={20} aria-hidden="true" />
+          </Link>
+        </>
+      )}
     </div>
   )
 }

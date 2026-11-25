@@ -7,7 +7,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
 import { StoreContext } from "src/contexts"
 import { ORG_LABELS } from "src/constants/roles"
 import { hasPermission, getDefaultRedirectByUser, getDefaultRedirectByOrg } from "src/lib/utils"
-import { MenuItemSchool, MenuItemSupplier, MenuItemSystem } from "src/router/MenuItem"
+import { MenuItemAuthority, MenuItemSchool, MenuItemSupplier, MenuItemSystem } from "src/router/MenuItem"
 import ROUTER from "src/router/ROUTER"
 import BrandLogo from "src/components/Common/BrandLogo"
 import styles from "./Sidebar.module.scss"
@@ -18,10 +18,11 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
   const location = useLocation()
   const orgType = type || user?.orgType
   const portalLabel = ORG_LABELS[orgType] || "FoodPrint"
-  const organizationLabel = orgType === "SCHOOL" && user?.orgName ? user.orgName : portalLabel
+  const organizationLabel = (orgType === "SCHOOL" || orgType === "AUTHORITY") && user?.orgName ? user.orgName : portalLabel
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)")
   const menuItems = useMemo(() => {
     const items = orgType === "SYSTEM" ? MenuItemSystem()
+      : orgType === "AUTHORITY" ? MenuItemAuthority()
       : orgType === "SUPPLIER" ? MenuItemSupplier() : MenuItemSchool()
     if (!user?.role) return []
     return items.flatMap(item => {
@@ -29,9 +30,12 @@ function Sidebar({ type, iconOnly = false, mobile = false, open = false, onClose
         const children = item.children.filter(child => hasPermission(child.roles, user.role))
         return children.length ? [{ ...item, children }] : []
       }
-      return hasPermission(item.roles, user.role) ? [item] : []
+      if (!hasPermission(item.roles, user.role)) return []
+      // Mục có `permission` chỉ hiện khi phiên có quyền đó (vd. menu ATTP)
+      if (item.permission && !user.permissions?.includes(item.permission)) return []
+      return [item]
     })
-  }, [orgType, user?.role])
+  }, [orgType, user?.role, user?.permissions])
   const activeGroupKey = menuItems.find(group => group.children?.some(item =>
     location.pathname === item.key || location.pathname.startsWith(`${item.key}/`),
   ))?.key

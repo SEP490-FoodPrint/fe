@@ -16,7 +16,8 @@ import CookingModeProcess from "./component/CookingModeProcess"
 import { cookingModeLabel } from "./component/cookingModeConfig"
 import "./style.scss"
 
-const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
+const errorMessage = (failure, fallback) =>
+  failure?.response?.data?.message || fallback
 
 function CookingMode() {
   const [saved, setSaved] = useState(null)
@@ -84,7 +85,10 @@ function CookingMode() {
   return (
     <div className="cooking-mode-page">
       <header>
-        <nav className="cooking-mode-page__breadcrumb" aria-label="Đường dẫn trang">
+        <nav
+          className="cooking-mode-page__breadcrumb"
+          aria-label="Đường dẫn trang"
+        >
           <span>Ban Giám hiệu</span>
           <span>/</span>
           <strong>Chế độ nấu</strong>
@@ -95,11 +99,14 @@ function CookingMode() {
       {!loading && error && (
         <Alert
           severity="error"
-          action={(
-            <Button color="inherit" onClick={() => setRetry(value => value + 1)}>
+          action={
+            <Button
+              color="inherit"
+              onClick={() => setRetry(value => value + 1)}
+            >
               Thử lại
             </Button>
-          )}
+          }
         >
           {error}
         </Alert>
@@ -109,19 +116,27 @@ function CookingMode() {
           <p className="cooking-mode-page__status" aria-live="polite">
             <span aria-hidden="true" />
             {saved ? (
-              <>Đang áp dụng khi lập phương án mới: <strong>{cookingModeLabel(saved)}</strong></>
+              <>
+                Đang áp dụng khi lập phương án mới:{" "}
+                <strong>{cookingModeLabel(saved)}</strong>
+              </>
             ) : (
               "Nhà trường chưa thiết lập chế độ nấu."
             )}
           </p>
 
-          <CookingModeOptions value={selected} disabled={saving} onChange={setSelected} />
+          <CookingModeOptions
+            value={selected}
+            disabled={saving}
+            onChange={setSelected}
+          />
 
           <CookingModeProcess mode={selected} />
 
           <div className="cooking-mode-page__footer">
             <span className="cooking-mode-page__hint">
-              Sau khi lưu, hệ thống tự dùng chế độ này khi nhà bếp lập phương án mới.
+              Sau khi lưu, hệ thống tự dùng chế độ này khi nhà bếp lập phương án
+              mới.
             </span>
             <Button
               variant="contained"
@@ -141,12 +156,15 @@ function CookingMode() {
             <DialogTitle>Xác nhận thay đổi chế độ nấu</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                Đổi từ {cookingModeLabel(saved)} sang {cookingModeLabel(selected)}. Sau khi lưu, hệ thống dùng chế độ mới
-                khi nhà bếp lập phương án mới; các mẻ đã lập không thay đổi.
+                Đổi từ {cookingModeLabel(saved)} sang{" "}
+                {cookingModeLabel(selected)}. Sau khi lưu, hệ thống dùng chế độ
+                mới khi nhà bếp lập phương án mới; các mẻ đã lập không thay đổi.
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button disabled={saving} onClick={() => setConfirmOpen(false)}>Hủy</Button>
+              <Button disabled={saving} onClick={() => setConfirmOpen(false)}>
+                Hủy
+              </Button>
               <Button variant="contained" disabled={saving} onClick={save}>
                 {saving ? "Đang lưu..." : "Xác nhận thay đổi"}
               </Button>

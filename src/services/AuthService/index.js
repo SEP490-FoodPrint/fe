@@ -1,5 +1,7 @@
 import http from "../01_axios";
 import {
+  apiEmailSetupRequest,
+  apiEmailSetupVerify,
   apiGetProfile,
   apiLogin,
   apiLogout,
@@ -23,7 +25,8 @@ import STORAGE, {
   setStorage,
 } from "src/lib/storage";
 import { MOCK_ACCOUNTS, ROLES } from "src/constants/roles";
-import { USE_MOCK_API } from "src/lib/config";
+import { USE_MOCK_API, USE_NEW_FEATURES_MOCK } from "src/lib/config";
+import { mockEmailSetup } from "src/services/mockNewFeatures";
 
 const normalizeUser = (user) => {
   if (!user?.id || !user.role || !user.orgType)
@@ -50,6 +53,9 @@ const normalizeUser = (user) => {
 
   return {
     ...user,
+    email: user.email ?? null,
+    emailSetupRequired: Boolean(user.emailSetupRequired),
+    permissions: Array.isArray(user.permissions) ? user.permissions : [],
     cookingMode,
     schoolName,
     orgName: schoolName || null,
@@ -132,6 +138,39 @@ const AuthService = {
         response?.message || "Mã xác nhận không hợp lệ hoặc đã hết hạn.",
       );
     return response.data;
+  },
+  requestEmailSetup: async (email) => {
+    if (USE_NEW_FEATURES_MOCK) return mockEmailSetup.request(email);
+    const response = await http.post(
+      apiEmailSetupRequest,
+      { email: email.trim().toLowerCase() },
+      { notifyOnError: false },
+    );
+    if (!response?.success)
+      throw new Error(
+        response?.message || "Chưa gửi được mã xác nhận. Vui lòng thử lại.",
+      );
+    return response.data;
+  },
+  verifyEmailSetup: async ({ email, code }) => {
+    if (USE_NEW_FEATURES_MOCK) {
+      const result = await mockEmailSetup.verify({ email, code });
+      const user = normalizeUser(result.user);
+      setStorage(STORAGE.USER_INFO, user);
+      return { user, expiresIn: result.expiresIn };
+    }
+    const response = await http.post(
+      apiEmailSetupVerify,
+      { email: email.trim().toLowerCase(), code: code.trim() },
+      { notifyOnError: false },
+    );
+    if (!response?.success || !response.data?.user)
+      throw new Error(
+        response?.message || "Mã xác nhận không hợp lệ hoặc đã hết hạn.",
+      );
+    const user = normalizeUser(response.data.user);
+    setStorage(STORAGE.USER_INFO, user);
+    return { user, expiresIn: response.data.expiresIn };
   },
   updatePersonalProfile: async ({ fullName, phone }) => {
     const response = await http.patch(

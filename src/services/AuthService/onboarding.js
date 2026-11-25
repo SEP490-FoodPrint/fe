@@ -18,6 +18,7 @@ export function onboardingBody({ requestType, values, certifications = [], docum
   const profile = {
     name: values.name.trim(), email: optional(values.email)?.toLowerCase() || null,
     phone: optional(values.phone), address: optional(values.address),
+    ...("locationId" in values ? { locationId: optional(values.locationId) } : {}),
     ...(requestType === "SCHOOL" ? { code: optional(values.code) } : {
       taxCode: optional(values.taxCode),
       certifications: rows.map(row => ({ certificationType: row.certificationType.trim(), certificateNo: row.certificateNo.trim(), issuedDate: row.issuedDate || null, expiryDate: row.expiryDate || null })),

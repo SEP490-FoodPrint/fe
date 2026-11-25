@@ -29,7 +29,7 @@ function SupplierRelationships() {
   const [error, setError] = useState("")
   const [categories, setCategories] = useState([])
   const displayCategories = useMemo(() => {
-    const list = categories.map((c) => (c === "Thịt" ? "Thịt tươi" : c))
+    const list = categories.map(c => (c === "Thịt" ? "Thịt tươi" : c))
     return Array.from(new Set(list)).sort((a, b) => a.localeCompare(b, "vi"))
   }, [categories])
   const [workspace, setWorkspace] = useState(null)
@@ -45,8 +45,8 @@ function SupplierRelationships() {
     userStore?.user?.permissions?.includes("supplier_relationship.manage") &&
     ["SCHOOL_MANAGEMENT_BOARD", "SCHOOL_ADMIN"].includes(userStore?.user?.role)
 
-  const update = (updates) =>
-    setParams((previous) => {
+  const update = updates =>
+    setParams(previous => {
       const next = new URLSearchParams(previous)
       Object.entries({ page: null, ...updates }).forEach(([key, value]) =>
         value ? next.set(key, String(value)) : next.delete(key),
@@ -66,10 +66,10 @@ function SupplierRelationships() {
   useEffect(() => {
     let active = true
     SupplierRelationshipService.getFilters()
-      .then((filters) => {
+      .then(filters => {
         if (active) setCategories(filters.data.categories)
       })
-      .catch((failure) => {
+      .catch(failure => {
         if (active)
           setError(
             failure?.response?.data?.message ||
@@ -98,18 +98,18 @@ function SupplierRelationships() {
         ? SupplierRelationshipService.listSuppliers
         : SupplierRelationshipService.listPartners
     request(query, controller.signal)
-      .then((response) => {
+      .then(response => {
         if (!controller.signal.aborted) {
           const items =
             activeView === "suppliers"
-              ? response.data.items.filter((item) => item.status === "ACTIVE")
+              ? response.data.items.filter(item => item.status === "ACTIVE")
               : response.data.items
           setRows(items)
           setRowsView(activeView)
           setPagination(response.data.pagination)
         }
       })
-      .catch((failure) => {
+      .catch(failure => {
         if (!controller.signal.aborted) {
           setRows([])
           setRowsView(activeView)
@@ -123,14 +123,7 @@ function SupplierRelationships() {
         if (!controller.signal.aborted) setLoading(false)
       })
     return () => controller.abort()
-  }, [
-    activeView,
-    page,
-    q,
-    status,
-    category,
-    refresh,
-  ])
+  }, [activeView, page, q, status, category, refresh])
 
   // Vừa đổi tab thì `rows` còn là dữ liệu tab cũ cho tới khi request mới trả về
   const listLoading = loading || rowsView !== activeView
@@ -139,7 +132,7 @@ function SupplierRelationships() {
     <div className="supplier-relationships-page">
       <WorkspaceHeader
         activeView={activeView}
-        onChangeView={(view) =>
+        onChangeView={view =>
           update({ view: view === "relationships" ? view : null, status: null })
         }
       />
@@ -148,7 +141,7 @@ function SupplierRelationships() {
         <TextField
           size="small"
           value={search}
-          onChange={(event) => setSearch(event.target.value)}
+          onChange={event => setSearch(event.target.value)}
           placeholder="Tìm theo tên hoặc mã số thuế"
           label="Tìm nhà cung cấp"
           slotProps={{
@@ -167,10 +160,10 @@ function SupplierRelationships() {
             size="small"
             label="Nhóm nguyên liệu"
             value={category}
-            onChange={(event) => update({ category: event.target.value })}
+            onChange={event => update({ category: event.target.value })}
           >
             <MenuItem value="">Tất cả nhóm hàng</MenuItem>
-            {displayCategories.map((item) => (
+            {displayCategories.map(item => (
               <MenuItem key={item} value={item}>
                 {item}
               </MenuItem>
@@ -183,7 +176,7 @@ function SupplierRelationships() {
             size="small"
             label="Trạng thái liên kết"
             value={status}
-            onChange={(event) => update({ status: event.target.value })}
+            onChange={event => update({ status: event.target.value })}
           >
             <MenuItem value="">Tất cả trạng thái</MenuItem>
             <MenuItem value="ACTIVE">Đang liên kết</MenuItem>
@@ -208,7 +201,7 @@ function SupplierRelationships() {
           suppliers={rows}
           loading={listLoading}
           pagination={pagination}
-          onPageChange={(value) => update({ page: value })}
+          onPageChange={value => update({ page: value })}
           onOpen={onOpen}
           canManage={canManage}
         />
@@ -217,7 +210,7 @@ function SupplierRelationships() {
           relationships={rows}
           loading={listLoading}
           pagination={pagination}
-          onPageChange={(value) => update({ page: value })}
+          onPageChange={value => update({ page: value })}
           onOpen={onOpen}
         />
       )}
@@ -226,7 +219,7 @@ function SupplierRelationships() {
           supplierId={workspace.id}
           intent={workspace.intent}
           onClose={() => setWorkspace(null)}
-          onChanged={() => setRefresh((value) => value + 1)}
+          onChanged={() => setRefresh(value => value + 1)}
         />
       )}
     </div>

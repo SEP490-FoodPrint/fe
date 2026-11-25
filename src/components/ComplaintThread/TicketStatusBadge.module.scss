@@ -1,0 +1,86 @@
+// Trạng thái dạng chấm màu + chữ, không đóng khung (FOODPRINT_FIGMA_LAYOUT_RULES_v2 §6).
+.wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  color: var(--text-primary, #1d2b26);
+  white-space: nowrap;
+
+  &::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+}
+
+.sm {
+  font-size: 13px;
+}
+
+.toneInfo::before {
+  background: var(--color-info, #286bbd);
+}
+
+.toneSuccess::before {
+  background: var(--color-success, #168456);
+}
+
+.toneWarning::before {
+  background: #d99a1e;
+}
+
+.toneMuted {
+  color: var(--text-secondary, #52635c);
+
+  &::before {
+    background: var(--neutral-400, #adbbb3);
+  }
+}
+
+.toneEscalated {
+  gap: 4px;
+  color: #9a3412;
+
+  &::before {
+    display: none;
+  }
+}
+
+.escalatedIcon {
+  font-size: 16px !important;
+  flex-shrink: 0;
+}
+
+.newMsgTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  color: var(--color-error, #d64545);
+  white-space: nowrap;
+}
+
+.newMsgDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-error, #d64545);
+  flex-shrink: 0;
+}

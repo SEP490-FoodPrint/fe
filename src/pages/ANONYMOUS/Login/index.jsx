@@ -16,7 +16,7 @@ export default function LoginPage() {
     loginStore.setIsLoginContext(true)
     userStore.setUser(user)
     signupStore.setSignupCredentials(null)
-    const target = user.role === ROLES.SYSTEM_ADMIN || user.onboardingRequired
+    const target = user.emailSetupRequired || user.role === ROLES.SYSTEM_ADMIN || user.onboardingRequired
       ? getAuthRedirect(user)
       : routerBeforeStore.routerBeforeLogin || getAuthRedirect(user)
     routerBeforeStore.setRouterBeforeLogin("")

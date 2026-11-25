@@ -1,6 +1,7 @@
 import React from "react"
 import PropTypes from "prop-types"
-import { Close, Search } from "@mui/icons-material"
+import { InputAdornment, MenuItem, TextField } from "@mui/material"
+import { Search } from "@mui/icons-material"
 import { COMPLAINT_STATUS_OPTIONS } from "src/services/SupplierComplaintService"
 import styles from "./ComplaintFilterBar.module.scss"
 
@@ -18,53 +19,49 @@ function ComplaintFilterBar({
       role="search"
       aria-label="Bộ lọc khiếu nại chất lượng nguyên liệu"
     >
-      <div className={styles.searchControl}>
-        <Search className={styles.searchIcon} aria-hidden="true" />
-        <input
-          id="supplier-complaint-search"
-          type="search"
-          className={styles.searchInput}
-          placeholder="Tìm mã khiếu nại, tiêu đề, trường"
-          value={searchQuery}
-          onChange={event => onSearchChange(event.target.value)}
-          aria-label="Tìm kiếm khiếu nại chất lượng nguyên liệu"
-        />
-        {searchQuery ? (
-          <button
-            type="button"
-            className={styles.clearBtn}
-            onClick={() => onSearchChange("")}
-            aria-label="Xóa từ khóa tìm kiếm"
-          >
-            <Close className={styles.clearIcon} />
-          </button>
-        ) : null}
-      </div>
+      <TextField
+        id="supplier-complaint-search"
+        type="search"
+        size="small"
+        className={styles.searchField}
+        placeholder="Tìm trong trang này: mã FP-CP, tiêu đề, trường, chuyến giao"
+        value={searchQuery}
+        onChange={event => onSearchChange(event.target.value)}
+        slotProps={{
+          htmlInput: {
+            "aria-label": "Tìm phản ánh nguyên liệu trong trang hiện tại",
+          },
+          input: {
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search fontSize="small" />
+              </InputAdornment>
+            ),
+          },
+        }}
+      />
 
       <div className={styles.filterRight}>
-        <label
-          className={styles.selectGroup}
-          htmlFor="supplier-complaint-status-filter"
+        <TextField
+          id="supplier-complaint-status-filter"
+          select
+          size="small"
+          label="Trạng thái"
+          className={styles.selectField}
+          value={statusFilter}
+          onChange={event => onStatusChange(event.target.value)}
         >
-          <span className={styles.selectLabel}>Trạng thái</span>
-          <select
-            id="supplier-complaint-status-filter"
-            className={styles.statusSelect}
-            value={statusFilter}
-            onChange={event => onStatusChange(event.target.value)}
-          >
-            {COMPLAINT_STATUS_OPTIONS.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
+          {COMPLAINT_STATUS_OPTIONS.map(option => (
+            <MenuItem key={option.value} value={option.value}>
+              {option.label}
+            </MenuItem>
+          ))}
+        </TextField>
 
         <span className={styles.countSummary}>
           {visibleCount === totalCount
             ? `${totalCount} khiếu nại`
-            : `Hiển thị ${visibleCount}/${totalCount} khiếu nại`}
+            : `${visibleCount}/${totalCount} khiếu nại`}
         </span>
       </div>
     </div>

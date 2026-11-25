@@ -60,7 +60,8 @@ export default function IngredientOrders() {
         IngredientOrderService.getDeliveries(),
         IngredientOrderService.getApprovedMenus(),
       ])
-      if (Array.isArray(deliveriesRes?.items)) setDeliveries(deliveriesRes.items)
+      if (Array.isArray(deliveriesRes?.items))
+        setDeliveries(deliveriesRes.items)
       if (Array.isArray(menusRes?.items)) setApprovedMenus(menusRes.items)
     } catch (err) {
       console.warn("Lỗi tải dữ liệu phiếu giao nhận:", err)
@@ -76,7 +77,8 @@ export default function IngredientOrders() {
   // Thống kê cho Phiếu giao nhận (chỉ tính đồ tươi 2 đợt theo bộ lọc thời gian)
   const deliveryStats = useMemo(() => {
     const freshOnly = deliveries.filter(d => {
-      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
+      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK")
+        return false
       const delivDate = String(d.deliveryDate || "").slice(0, 10)
       if (deliveryFilters.timeScope === "today_forward") {
         if (delivDate && delivDate < todayStr) return false
@@ -93,7 +95,7 @@ export default function IngredientOrders() {
         d =>
           d.status === "COMPLETED" ||
           d.status === "RECEIVED" ||
-          d.status === "APPROVED"
+          d.status === "APPROVED",
       ).length,
     }
   }, [deliveries, deliveryFilters.timeScope, todayStr])
@@ -102,7 +104,8 @@ export default function IngredientOrders() {
   const filteredDeliveries = useMemo(() => {
     const list = deliveries.filter(d => {
       // Phiếu nhập hàng chỉ hiển thị đồ tươi 2 đợt, không hiển thị đồ lưu kho
-      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK") return false
+      if (d.batchType === "DRY_STOCK" || d.orderType === "DRY_STOCK")
+        return false
 
       // Lọc theo mốc thời gian: Mặc định là từ hôm nay đi tiếp đến tương lai
       const delivDate = String(d.deliveryDate || "").slice(0, 10)
@@ -146,15 +149,19 @@ export default function IngredientOrders() {
       if (deliveryFilters.timeScope === "today_forward") {
         const dDiff = dateA.localeCompare(dateB)
         if (dDiff !== 0) return dDiff
-        const timeA = a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
-        const timeB = b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
+        const timeA =
+          a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
+        const timeB =
+          b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
         return timeA.localeCompare(timeB)
       }
       // Ngược lại (tất cả hoặc quá khứ): ngày mới nhất lên đầu (desc)
       const dDiff = dateB.localeCompare(dateA)
       if (dDiff !== 0) return dDiff
-      const timeA = a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
-      const timeB = b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
+      const timeA =
+        a.deliveryTime || (a.batchType === "BATCH_1" ? "05:30" : "07:45")
+      const timeB =
+        b.deliveryTime || (b.batchType === "BATCH_1" ? "05:30" : "07:45")
       return timeB.localeCompare(timeA)
     })
   }, [deliveries, deliveryFilters, todayStr])
@@ -188,7 +195,7 @@ export default function IngredientOrders() {
   }
 
   // Xem chi tiết phiếu giao nhận
-  const handleViewDetail = async (deliveryItem) => {
+  const handleViewDetail = async deliveryItem => {
     setSelectedDelivery(deliveryItem)
     setDeliverySubView("detail")
 
@@ -248,7 +255,10 @@ export default function IngredientOrders() {
 
   // Cập nhật sĩ số GVCN cho Đợt 2 (trong màn xem chi tiết)
   const handleConfirmAttendance = async (deliveryId, actualCount) => {
-    const res = await IngredientOrderService.updateBatch2Attendance(deliveryId, actualCount)
+    const res = await IngredientOrderService.updateBatch2Attendance(
+      deliveryId,
+      actualCount,
+    )
     if (res?.success) {
       const refreshed = await IngredientOrderService.getDeliveries()
       if (Array.isArray(refreshed?.items)) setDeliveries(refreshed.items)
@@ -280,7 +290,9 @@ export default function IngredientOrders() {
           <DeliveryStatsRail
             stats={deliveryStats}
             activeBatchFilter={deliveryFilters.batchType}
-            onFilterBatchType={val => handleDeliveryFilterChange("batchType", val)}
+            onFilterBatchType={val =>
+              handleDeliveryFilterChange("batchType", val)
+            }
           />
 
           {/* Bộ lọc & Tìm kiếm + Nút Tạo yêu cầu mua hàng */}
@@ -311,7 +323,10 @@ export default function IngredientOrders() {
               }}
             >
               <FoodPrintLoading size="large" />
-              <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+              <Typography
+                variant="body2"
+                sx={{ color: "#64748b", fontWeight: 500 }}
+              >
                 Đang tải danh sách phiếu nhập thực phẩm tươi sống...
               </Typography>
             </Box>
@@ -321,7 +336,9 @@ export default function IngredientOrders() {
                 deliveries={paginatedDeliveries}
                 onViewDetail={handleViewDetail}
                 onAddBatch2={item => {
-                  setCreateTargetDate(String(item.deliveryDate || "").slice(0, 10))
+                  setCreateTargetDate(
+                    String(item.deliveryDate || "").slice(0, 10),
+                  )
                   setDeliverySubView("create")
                 }}
               />
@@ -353,8 +370,9 @@ export default function IngredientOrders() {
       )}
 
       {/* Sub-view 3: Chi tiết Phiếu giao nhận & Nghiệm thu 4 bên */}
-      {deliverySubView === "detail" && selectedDelivery && (
-        detailLoading ? (
+      {deliverySubView === "detail" &&
+        selectedDelivery &&
+        (detailLoading ? (
           <Box
             sx={{
               display: "flex",
@@ -370,7 +388,10 @@ export default function IngredientOrders() {
             }}
           >
             <FoodPrintLoading size="large" />
-            <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+            <Typography
+              variant="body2"
+              sx={{ color: "#64748b", fontWeight: 500 }}
+            >
               Đang tải chi tiết phiếu nhập hàng và danh sách nguyên liệu...
             </Typography>
           </Box>
@@ -380,8 +401,7 @@ export default function IngredientOrders() {
             onBack={handleBackToList}
             onConfirmAttendance={handleConfirmAttendance}
           />
-        )
-      )}
+        ))}
     </Box>
   )
 }

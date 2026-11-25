@@ -1,0 +1,166 @@
+@use "/src/components/ComplaintThread/ticketList";
+
+
+.originChip {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-secondary, #52635c);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Read-only C03 Original Complaint Card inside C05 Detail */
+.originBox {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-default, #dce5e0);
+  background: var(--white, #ffffff);
+}
+
+.originHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.originHeading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #1d2b26);
+}
+
+.readOnlyTag {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--neutral-100, #f1f5f3);
+  color: var(--text-secondary, #52635c);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.originMetaGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--neutral-50, #f8faf9);
+  border: 1px solid var(--neutral-200, #e8eeeb);
+}
+
+.originMetaCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+
+  span {
+    font-size: 12px;
+    color: var(--text-muted, #6b7c74);
+  }
+
+  strong {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary, #1d2b26);
+    word-break: break-word;
+  }
+}
+
+.originDescLabel {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #6b7c74);
+}
+
+.originDescText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-primary, #1d2b26);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.originCommentsWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--neutral-200, #e8eeeb);
+}
+
+.originCommentItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--neutral-50, #f8faf9);
+  border: 1px solid var(--neutral-200, #e8eeeb);
+}
+
+.originCommentAvatar {
+  width: 28px !important;
+  height: 28px !important;
+  flex-shrink: 0;
+  font-size: 12px !important;
+}
+
+.originCommentBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.originCommentHead {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 13px;
+
+  strong {
+    color: var(--text-primary, #1d2b26);
+  }
+
+  time {
+    font-size: 12px;
+    color: var(--text-muted, #6b7c74);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.originCommentTag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--green-50, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+}
+
+.originCommentText {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-primary, #1d2b26);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 1023px) {
+
+  .originMetaGrid {
+    grid-template-columns: 1fr;
+  }
+}

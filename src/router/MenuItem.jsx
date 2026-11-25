@@ -28,6 +28,9 @@ import ScaleOutlinedIcon from "@mui/icons-material/ScaleOutlined"
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined"
 import GroupOutlinedIcon from "@mui/icons-material/GroupOutlined"
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined"
+import GavelOutlinedIcon from "@mui/icons-material/GavelOutlined"
+import PolicyOutlinedIcon from "@mui/icons-material/PolicyOutlined"
+import FeedbackOutlinedIcon from "@mui/icons-material/FeedbackOutlined"
 import { ROLES } from "src/constants/roles"
 import ROUTER from "./ROUTER"
 
@@ -55,9 +58,15 @@ export const MenuItemSystem = () => [
     roles: [ROLES.SYSTEM_ADMIN],
   },
   {
-    key: ROUTER.SYSTEM_COMPLAINT_LIST,
-    label: "Danh sách khiếu nại",
-    icon: <ChatBubbleOutlineOutlinedIcon />,
+    key: ROUTER.SYSTEM_AUTHORITY_OFFICERS,
+    label: "Tài khoản cán bộ ATTP",
+    icon: <AdminPanelSettingsOutlinedIcon />,
+    roles: [ROLES.SYSTEM_ADMIN],
+  },
+  {
+    key: ROUTER.SYSTEM_ENFORCEMENT_ACTIONS,
+    label: "Chế tài nhà cung cấp",
+    icon: <GavelOutlinedIcon />,
     roles: [ROLES.SYSTEM_ADMIN],
   },
   {
@@ -65,6 +74,40 @@ export const MenuItemSystem = () => [
     label: "Cấu hình hệ thống",
     icon: <SettingsOutlinedIcon />,
     roles: [ROLES.SYSTEM_ADMIN],
+  },
+];
+
+/**
+ * Menu dành cho phân hệ Cơ quan Quản lý ATTP cấp xã (AUTHORITY) — không có Dashboard
+ */
+export const MenuItemAuthority = () => [
+  {
+    key: ROUTER.AUTHORITY_SCHOOLS,
+    label: "Trường trên địa bàn",
+    icon: <SchoolOutlinedIcon />,
+    roles: [ROLES.COMMUNE_FOOD_SAFETY_OFFICER],
+    permission: "authority_school.view",
+  },
+  {
+    key: ROUTER.AUTHORITY_INCIDENTS,
+    label: "Báo cáo ngộ độc",
+    icon: <ReportProblemOutlinedIcon />,
+    roles: [ROLES.COMMUNE_FOOD_SAFETY_OFFICER],
+    permission: "food_safety_incident.view",
+  },
+  {
+    key: ROUTER.AUTHORITY_COMPLAINTS,
+    label: "Khiếu nại chuyển ATTP",
+    icon: <PolicyOutlinedIcon />,
+    roles: [ROLES.COMMUNE_FOOD_SAFETY_OFFICER],
+    permission: "authority_complaint.view",
+  },
+  {
+    key: ROUTER.AUTHORITY_ENFORCEMENT_ACTIONS,
+    label: "Đề nghị chế tài NCC",
+    icon: <GavelOutlinedIcon />,
+    roles: [ROLES.COMMUNE_FOOD_SAFETY_OFFICER],
+    permission: "supplier_enforcement.request",
   },
 ];
 
@@ -123,7 +166,7 @@ export const MenuItemSupplier = () => [
   },
   {
     key: ROUTER.SUPPLIER_COMPLAINTS,
-    label: "Danh sách khiếu nại",
+    label: "Phản ánh nguyên liệu",
     icon: <ChatBubbleOutlineOutlinedIcon />,
     roles: [
       ROLES.INGREDIENT_SUPPLIER_ADMIN,
@@ -388,5 +431,31 @@ export const MenuItemSchool = () => [
     label: "Khiếu nại bữa ăn",
     icon: <ChatBubbleOutlineOutlinedIcon />,
     roles: [ROLES.PARENTS_COMMITTEE, ROLES.HOMEROOM_TEACHER],
+  },
+  {
+    key: ROUTER.SCHOOL_AUTHORITY_COMPLAINTS,
+    label: "Khiếu nại chuyển ATTP",
+    icon: <PolicyOutlinedIcon />,
+    roles: [ROLES.PARENTS_COMMITTEE],
+  },
+  {
+    key: ROUTER.SCHOOL_INGREDIENT_FEEDBACK,
+    label: "Phản ánh nguyên liệu",
+    icon: <FeedbackOutlinedIcon />,
+    roles: [
+      ROLES.SCHOOL_MANAGEMENT_BOARD,
+      ROLES.SCHOOL_KITCHEN_STAFF,
+      ROLES.SCHOOL_NUTRITION_OFFICER,
+    ],
+  },
+  {
+    key: ROUTER.SCHOOL_INCIDENTS,
+    label: "Báo cáo ngộ độc",
+    icon: <ReportProblemOutlinedIcon />,
+    roles: [
+      ROLES.PARENTS_COMMITTEE,
+      ROLES.HOMEROOM_TEACHER,
+      ROLES.SCHOOL_MANAGEMENT_BOARD,
+    ],
   },
 ];

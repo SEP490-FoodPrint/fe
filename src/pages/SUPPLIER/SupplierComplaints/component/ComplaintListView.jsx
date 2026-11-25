@@ -1,15 +1,15 @@
 import React from "react"
 import PropTypes from "prop-types"
 import { generatePath, Link, useNavigate } from "react-router-dom"
-import { Button } from "@mui/material"
-import { ChatBubbleOutlineOutlined, ChevronRight } from "@mui/icons-material"
-import ROUTER from "src/router/ROUTER"
+import { Button, Tooltip } from "@mui/material"
+import { ChevronRight } from "@mui/icons-material"
 import {
-  formatComplaintCode,
   formatDateTimeVi,
-  formatSchoolCode,
-} from "src/services/SupplierComplaintService"
-import ComplaintStatusBadge from "./ComplaintStatusBadge"
+  formatTicketCode,
+  TicketStatusBadge,
+} from "src/components/ComplaintThread"
+import ROUTER from "src/router/ROUTER"
+import { formatSchoolCode } from "src/services/SupplierComplaintService"
 import styles from "./ComplaintListView.module.scss"
 
 const SKELETON_ROWS = [0, 1, 2, 3, 4]
@@ -69,25 +69,17 @@ function ComplaintListView({
   if (complaints.length === 0) {
     return (
       <div className={styles.emptyState}>
-        <div className={styles.emptyIconWrap} aria-hidden="true">
-          <ChatBubbleOutlineOutlined />
-        </div>
         <p className={styles.emptyTitle}>
           {hasActiveFilters
             ? "Không tìm thấy khiếu nại phù hợp"
             : "Chưa có khiếu nại nào"}
-        </p>
-        <p className={styles.emptyDesc}>
-          {hasActiveFilters
-            ? "Thử xóa từ khóa tìm kiếm hoặc chọn lại trạng thái để xem toàn bộ khiếu nại trong trang."
-            : "Khi nhà trường gửi khiếu nại chất lượng nguyên liệu cho chuyến giao hàng của đơn vị, danh sách sẽ hiển thị tại đây."}
         </p>
         {hasActiveFilters ? (
           <Button
             type="button"
             variant="outlined"
             color="primary"
-            className={styles.emptyActionBtn}
+
             onClick={onResetFilters}
           >
             Xóa bộ lọc
@@ -109,12 +101,13 @@ function ComplaintListView({
               <th scope="col" className={styles.indexCol}>
                 STT
               </th>
-              <th scope="col">Mã khiếu nại</th>
+              <th scope="col">Mã phiếu</th>
               <th scope="col">Tiêu đề &amp; Trường gửi</th>
               <th scope="col">Chuyến giao</th>
               <th scope="col">Trạng thái</th>
-              <th scope="col" className={styles.actionCol}>
-                Thao tác
+              <th scope="col">Thời gian gửi</th>
+              <th scope="col" className={styles.actionCell}>
+                <span className={styles.srOnly}>Thao tác</span>
               </th>
             </tr>
           </thead>
@@ -122,12 +115,13 @@ function ComplaintListView({
             {complaints.map((complaint, index) => {
               const rowNumber = (currentPage - 1) * pageLimit + index + 1
               const detailUrl = getComplaintDetailPath(complaint.id)
+              const rawCode = complaint.code ?? complaint.complaintCode
               const hasCode = Boolean(
-                typeof complaint.complaintCode === "string" &&
-                  complaint.complaintCode.trim(),
+                typeof rawCode === "string" && rawCode.trim(),
               )
-              const codeLabel = formatComplaintCode(complaint.complaintCode)
+              const codeLabel = formatTicketCode(rawCode, "—")
               const schoolSubline = formatSchoolSubline(complaint.school)
+              const statusVal = complaint.displayStatus || complaint.status
 
               return (
                 <tr
@@ -144,13 +138,10 @@ function ComplaintListView({
                     </span>
                   </td>
                   <td>
-                    <Link
-                      to={detailUrl}
-                      className={styles.complaintPrimaryLink}
-                    >
+                    <Link to={detailUrl} className={styles.primaryLink}>
                       {complaint.title}
                     </Link>
-                    <div className={styles.schoolSub} title={schoolSubline}>
+                    <div className={styles.subLine} title={schoolSubline}>
                       {schoolSubline}
                     </div>
                   </td>
@@ -161,29 +152,27 @@ function ComplaintListView({
                   </td>
                   <td>
                     <div className={styles.statusCell}>
-                      <ComplaintStatusBadge status={complaint.status} />
-                      <div className={styles.timeSub}>
-                        Gửi {formatDateTimeVi(complaint.createdAt)}
-                      </div>
-                      {complaint.respondedAt ? (
-                        <div className={styles.timeSub}>
-                          Phản hồi {formatDateTimeVi(complaint.respondedAt)}
-                        </div>
-                      ) : null}
+                      <TicketStatusBadge
+                        status={statusVal}
+                        hasNewMessage={complaint.hasNewMessage}
+                        showNewMessageText
+                        size="sm"
+                      />
                     </div>
                   </td>
+                  <td className={styles.timeCell}>
+                    {formatDateTimeVi(complaint.submittedAt, "—")}
+                  </td>
                   <td className={styles.actionCell}>
-                    <Link
-                      to={detailUrl}
-                      className={styles.detailLink}
-                      aria-label={`Xem chi tiết khiếu nại ${codeLabel}: ${complaint.title}`}
-                    >
-                      <span>Chi tiết</span>
-                      <ChevronRight
-                        className={styles.chevronIcon}
-                        aria-hidden="true"
-                      />
-                    </Link>
+                    <Tooltip title="Xem chi tiết">
+                      <Link
+                        to={detailUrl}
+                        className={styles.detailLink}
+                        aria-label={`Xem chi tiết phiếu ${codeLabel}`}
+                      >
+                        <ChevronRight fontSize="small" aria-hidden="true" />
+                      </Link>
+                    </Tooltip>
                   </td>
                 </tr>
               )
@@ -195,11 +184,10 @@ function ComplaintListView({
       <div className={styles.mobileList}>
         {complaints.map(complaint => {
           const detailUrl = getComplaintDetailPath(complaint.id)
-          const hasCode = Boolean(
-            typeof complaint.complaintCode === "string" &&
-              complaint.complaintCode.trim(),
-          )
-          const codeLabel = formatComplaintCode(complaint.complaintCode)
+          const rawCode = complaint.code ?? complaint.complaintCode
+          const hasCode = Boolean(typeof rawCode === "string" && rawCode.trim())
+          const codeLabel = formatTicketCode(rawCode, "—")
+          const statusVal = complaint.displayStatus || complaint.status
 
           return (
             <Link
@@ -207,11 +195,16 @@ function ComplaintListView({
               to={detailUrl}
               className={styles.mobileCard}
             >
-              <div className={styles.mobileCardTop}>
+              <div className={styles.mobileTop}>
                 <span className={hasCode ? styles.codeChip : styles.mutedValue}>
                   {codeLabel}
                 </span>
-                <ComplaintStatusBadge status={complaint.status} />
+                <TicketStatusBadge
+                  status={statusVal}
+                  hasNewMessage={complaint.hasNewMessage}
+                  showNewMessageText
+                  size="sm"
+                />
               </div>
 
               <div className={styles.mobileTitle}>{complaint.title}</div>
@@ -238,17 +231,9 @@ function ComplaintListView({
                 <div className={styles.mobileMetaRow}>
                   <span>Thời điểm gửi</span>
                   <span className={styles.mobileMetaValue}>
-                    {formatDateTimeVi(complaint.createdAt)}
+                    {formatDateTimeVi(complaint.submittedAt, "—")}
                   </span>
                 </div>
-                {complaint.respondedAt ? (
-                  <div className={styles.mobileMetaRow}>
-                    <span>Phản hồi lúc</span>
-                    <span className={styles.mobileMetaValue}>
-                      {formatDateTimeVi(complaint.respondedAt)}
-                    </span>
-                  </div>
-                ) : null}
               </div>
             </Link>
           )
@@ -263,7 +248,7 @@ function ComplaintListView({
           <Button
             type="button"
             variant="outlined"
-            className={styles.pageBtn}
+
             disabled={currentPage <= 1 || loading}
             onClick={() => onPageChange(currentPage - 1)}
           >
@@ -272,7 +257,7 @@ function ComplaintListView({
           <Button
             type="button"
             variant="outlined"
-            className={styles.pageBtn}
+
             disabled={!pagination?.hasNext || loading}
             onClick={() => onPageChange(currentPage + 1)}
           >
@@ -288,6 +273,7 @@ ComplaintListView.propTypes = {
   complaints: PropTypes.arrayOf(
     PropTypes.shape({
       id: PropTypes.string.isRequired,
+      code: PropTypes.string,
       complaintCode: PropTypes.string,
       title: PropTypes.string,
       school: PropTypes.shape({
@@ -300,8 +286,10 @@ ComplaintListView.propTypes = {
         deliveryNo: PropTypes.string,
       }),
       status: PropTypes.string,
-      createdAt: PropTypes.string,
-      respondedAt: PropTypes.string,
+      displayStatus: PropTypes.string,
+      hasNewMessage: PropTypes.bool,
+      submittedAt: PropTypes.string,
+      closedAt: PropTypes.string,
     }),
   ).isRequired,
   pageTotalCount: PropTypes.number.isRequired,

@@ -173,6 +173,16 @@ export const MOCK_ACCOUNTS = [
     orgId: "commune_authority_01",
     orgName: "UBND Xã - Trạm Y tế Cấp Xã",
     role: ROLES.COMMUNE_FOOD_SAFETY_OFFICER,
+    permissions: [
+      "authority_school.view",
+      "food_safety_incident.view",
+      "food_safety_report.view",
+      "food_safety_report.receive",
+      "food_safety_inspection.manage",
+      "authority_complaint.view",
+      "authority_complaint.respond",
+      "supplier_enforcement.request",
+    ],
     avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Officer",
   },
 ];
