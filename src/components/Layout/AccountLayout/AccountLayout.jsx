@@ -22,6 +22,7 @@ export default function AccountLayout() {
   useEffect(() => { setOpen(false) }, [location.pathname, mobile])
   useEffect(() => { document.getElementById("root")?.scrollTo(0, 0) }, [location.pathname])
   if (!loginStore.isLoginContext || !user) return <Navigate to={ROUTER.LOGIN} replace />
+  if (user?.emailSetupRequired) return <Navigate to={ROUTER.EMAIL_SETUP} replace />
   const name = user.fullName || user.username || "Tài khoản"
   const registrationActive = [ROUTER.REGISTRATION_PROFILE, ROUTER.REGISTRATION_STATUS].includes(location.pathname)
   const pageTitle = location.pathname === ROUTER.CHANGE_PASSWORD ? "Đổi mật khẩu" : registrationActive ? "Hồ sơ đăng ký" : "Profile"

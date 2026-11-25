@@ -92,12 +92,12 @@ export default function AnalyticsGrid({ data, complaintRoute }) {
         </BarChart>
       </ResponsiveContainer></div>
     </ChartCard>
-    <ChartCard title="Xu hướng sự cố an toàn thực phẩm" subtitle="Số sự cố trong 6 tháng gần nhất; theo ngày xảy ra, dùng ngày ghi nhận nếu chưa có" rows={data.incidents} to={ROUTER.SCHOOL_FOOD_SAFETY}>
+    <ChartCard title="Xu hướng báo cáo ngộ độc" subtitle="Số báo cáo trong 6 tháng gần nhất; theo ngày xảy ra, dùng ngày ghi nhận nếu chưa có" rows={data.incidents} to={ROUTER.SCHOOL_INCIDENTS}>
       <div className={styles.areaChart}><ResponsiveContainer width="100%" height="100%">
         <AreaChart data={months} margin={{ top: 16, right: 8, left: -24, bottom: 0 }}>
           <CartesianGrid vertical={false} stroke="var(--border-default)" strokeDasharray="4 4" />
           <XAxis dataKey="name" axisLine={false} tickLine={false} /><YAxis allowDecimals={false} axisLine={false} tickLine={false} />
-          <Tooltip /><Area type="linear" dataKey="value" name="Sự cố" stroke="var(--color-primary)" fill="var(--color-primary-soft)" strokeWidth={3} />
+          <Tooltip /><Area type="linear" dataKey="value" name="Báo cáo ngộ độc" stroke="var(--color-primary)" fill="var(--color-primary-soft)" strokeWidth={3} />
         </AreaChart>
       </ResponsiveContainer></div>
     </ChartCard>

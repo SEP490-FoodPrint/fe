@@ -1,54 +1,537 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
-import { Alert, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Pagination, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField } from "@mui/material"
-import dayjs from "dayjs"
-import { ChevronRight, MessageSquareText, Search } from "lucide-react"
-import FoodPrintLoading from "src/components/FoodPrintLoading"
-import notice from "src/components/Notice"
-import { StoreContext } from "src/contexts"
-import { ROLES } from "src/constants/roles"
+import React, { useEffect, useState } from "react"
+import { generatePath, Link, useNavigate, useParams } from "react-router-dom"
+import {
+  Alert,
+  Button,
+  InputAdornment,
+  MenuItem,
+  TextField,
+  Tooltip,
+} from "@mui/material"
+import ChevronRightIcon from "@mui/icons-material/ChevronRight"
+import SearchIcon from "@mui/icons-material/Search"
+import DateField from "src/components/DateField"
+import {
+  formatDateTimeVi,
+  formatTicketCode,
+  HANDLER_STATUS_OPTIONS,
+  normalizeTicketFields,
+  parseApiError,
+  TicketDetailView,
+  TicketStatusBadge,
+} from "src/components/ComplaintThread"
+import ROUTER from "src/router/ROUTER"
 import ComplaintService from "src/services/ComplaintService"
-import "./style.scss"
+import {
+  complaintTypes,
+  formatMealDate,
+  mealLabels,
+} from "src/pages/SCHOOL/MealComplaints/labels"
+import styles from "./MealFeedback.module.scss"
 
-const typeLabels = { MEAL_QUALITY: "Chất lượng bữa ăn", FOOD_HYGIENE: "Vệ sinh thực phẩm", HEALTH_ISSUE: "Vấn đề sức khỏe", OTHER: "Khác" }
-const statusMeta = { SUBMITTED: ["Mới gửi", "warning"], IN_REVIEW: ["Đang xử lý", "info"], RESOLVED: ["Đã giải quyết", "success"], CLOSED: ["Đã đóng", "default"] }
-const mealLabels = { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" }
-const errorText = (error, fallback) => error?.response?.data?.message || error?.message || fallback
-function StatusChip({ value }) { const [label, color] = statusMeta[value] || [value, "default"]; return <Chip size="small" color={color} label={label} /> }
+const SKELETON_ROWS = [0, 1, 2, 3, 4]
+const PAGE_LIMIT = 15
 
 function MealFeedback() {
-  const { userStore } = useContext(StoreContext)
-  const role = userStore?.user?.role
-  const isBoard = role === ROLES.SCHOOL_MANAGEMENT_BOARD
-  const [rows, setRows] = useState([]); const [pagination, setPagination] = useState({ page: 1, hasNext: false })
-  const [filters, setFilters] = useState({ status: "", complaintType: "", search: "" })
-  const [loading, setLoading] = useState(true); const [error, setError] = useState("")
-  const [selected, setSelected] = useState(null); const [detailLoading, setDetailLoading] = useState(false)
-  const [resolution, setResolution] = useState(""); const [saving, setSaving] = useState(false)
-  const load = useCallback(async (page = pagination.page) => { setLoading(true); setError(""); try { const activeFilters = Object.fromEntries(Object.entries(filters).filter(([, value]) => value !== "")); const response = await ComplaintService.list({ page, limit: 10, ...activeFilters }); setRows(response.data.items || []); setPagination(response.data.pagination) } catch (failure) { setRows([]); setError(errorText(failure, "Không thể tải danh sách khiếu nại.")) } finally { setLoading(false) } }, [filters, pagination.page])
-  useEffect(() => { load(1) }, []) // eslint-disable-line react-hooks/exhaustive-deps
-  const openDetail = async id => { setSelected({ id }); setDetailLoading(true); try { setSelected((await ComplaintService.detail(id)).data) } catch (failure) { setSelected(null); notice({ msg: errorText(failure, "Không thể tải chi tiết."), isSuccess: false }) } finally { setDetailLoading(false) } }
-  const act = async (action, text) => { if (!selected || saving) return; setSaving(true); try { const response = await ComplaintService.respond(selected.id, { action, ...(action === "RESOLVE" ? { resolution: text } : {}) }); setSelected(response.data); setResolution(""); notice({ msg: action === "RESOLVE" ? "Đã gửi kết quả xử lý" : "Đã tiếp nhận khiếu nại" }); await load() } catch (failure) { notice({ msg: errorText(failure, "Không thể cập nhật khiếu nại."), isSuccess: false }) } finally { setSaving(false) } }
-  return <main className="complaints-page">
-    <header className="complaints-page__header"><div><h1>Quản lý khiếu nại bữa ăn</h1><p>Tiếp nhận và phản hồi khiếu nại từ giáo viên chủ nhiệm và đại diện phụ huynh.</p></div></header>
-    <Paper variant="outlined" className="complaints-page__filters">
-      <TextField size="small" placeholder="Tìm nội dung, người gửi hoặc lớp" value={filters.search} onChange={event => setFilters(current => ({ ...current, search: event.target.value }))} onKeyDown={event => event.key === "Enter" && load(1)} InputProps={{ startAdornment: <Search size={18} /> }} />
-      <TextField select size="small" label="Trạng thái" value={filters.status} onChange={event => setFilters(current => ({ ...current, status: event.target.value }))}><MenuItem value="">Tất cả</MenuItem>{Object.entries(statusMeta).map(([value, meta]) => <MenuItem key={value} value={value}>{meta[0]}</MenuItem>)}</TextField>
-      <TextField select size="small" label="Loại khiếu nại" value={filters.complaintType} onChange={event => setFilters(current => ({ ...current, complaintType: event.target.value }))}><MenuItem value="">Tất cả</MenuItem>{Object.entries(typeLabels).map(([value, label]) => <MenuItem key={value} value={value}>{label}</MenuItem>)}</TextField>
-      <Button variant="outlined" onClick={() => load(1)}>Tìm kiếm</Button>
-    </Paper>
-    {loading && <div className="complaints-page__loading" role="status" aria-live="polite"><FoodPrintLoading size="medium" /></div>}
-    {!loading && error && <Alert severity="error" action={<Button color="inherit" onClick={() => load()}>Thử lại</Button>}>{error}</Alert>}
-    {!loading && !error && !rows.length && <Paper variant="outlined" className="complaints-page__empty"><MessageSquareText size={36} /><h2>Chưa có khiếu nại</h2><p>Hiện chưa có phản ánh cần theo dõi.</p></Paper>}
-    {!loading && !error && rows.length > 0 && <><TableContainer component={Paper} variant="outlined" className="complaints-page__table"><Table><TableHead><TableRow><TableCell>Suất ăn</TableCell><TableCell>Loại</TableCell>{isBoard && <TableCell>Người gửi</TableCell>}<TableCell>Ngày gửi</TableCell><TableCell>Trạng thái</TableCell><TableCell /></TableRow></TableHead><TableBody>{rows.map(row => <TableRow key={row.id} hover><TableCell><strong>{row.meal.className}</strong><small>{dayjs(row.meal.mealDate).format("DD/MM/YYYY")} · {mealLabels[row.meal.mealType]}</small></TableCell><TableCell>{typeLabels[row.complaintType]}</TableCell>{isBoard && <TableCell>{row.submitter.fullName}</TableCell>}<TableCell>{dayjs(row.submittedAt).format("DD/MM/YYYY HH:mm")}</TableCell><TableCell><StatusChip value={row.status} /></TableCell><TableCell align="right"><Button onClick={() => openDetail(row.id)} endIcon={<ChevronRight size={16} />}>Xem</Button></TableCell></TableRow>)}</TableBody></Table></TableContainer>
-      <div className="complaints-page__cards">{rows.map(row => <button key={row.id} onClick={() => openDetail(row.id)}><span><strong>{row.meal.className}</strong><small>{dayjs(row.meal.mealDate).format("DD/MM/YYYY")} · {mealLabels[row.meal.mealType]}</small></span><span><StatusChip value={row.status} /><ChevronRight size={18} /></span><em>{typeLabels[row.complaintType]}</em></button>)}</div>
-      <Pagination page={pagination.page} count={pagination.hasNext ? pagination.page + 1 : pagination.page} onChange={(_, page) => load(page)} /></>}
-    <ComplaintDetail open={Boolean(selected)} loading={detailLoading} item={selected} isBoard={isBoard} saving={saving} resolution={resolution} setResolution={setResolution} onClose={() => { setSelected(null); setResolution("") }} onAct={act} />
-  </main>
-}
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const isDetailView = Boolean(id)
 
-function ComplaintDetail({ open, loading, item, isBoard, saving, resolution, setResolution, onClose, onAct }) {
-  const actions = item?.allowedActions || []
-  return <Dialog open={open} onClose={saving ? undefined : onClose} fullWidth maxWidth="md"><DialogTitle>Chi tiết khiếu nại</DialogTitle><DialogContent dividers>{loading || !item?.meal ? <div className="complaints-page__dialog-loading"><FoodPrintLoading size="small" /></div> : <div className="complaint-detail"><div className="complaint-detail__top"><div><h2>{typeLabels[item.complaintType]}</h2><p>Mã {item.id}</p></div><StatusChip value={item.status} /></div><dl><div><dt>Lớp</dt><dd>{item.meal.className}</dd></div><div><dt>Suất ăn</dt><dd>{dayjs(item.meal.mealDate).format("DD/MM/YYYY")} · {mealLabels[item.meal.mealType]}</dd></div><div><dt>Người gửi</dt><dd>{item.submitter.fullName}</dd></div><div><dt>Thời gian gửi</dt><dd>{dayjs(item.submittedAt).format("DD/MM/YYYY HH:mm")}</dd></div></dl><section><h3>Nội dung phản ánh</h3><p>{item.description}</p></section>{item.resolution && <section className="complaint-detail__resolution"><h3>Kết quả xử lý</h3><p>{item.resolution}</p><small>{item.handler?.fullName}{item.resolvedAt ? ` · ${dayjs(item.resolvedAt).format("DD/MM/YYYY HH:mm")}` : ""}</small></section>}{isBoard && actions.includes("RESOLVE") && <TextField fullWidth multiline minRows={4} label="Kết quả xử lý" value={resolution} onChange={event => setResolution(event.target.value)} inputProps={{ maxLength: 2000 }} helperText={`${resolution.length}/2000 ký tự`} />}</div>}</DialogContent><DialogActions><Button onClick={onClose} disabled={saving}>Đóng</Button>{actions.includes("START_REVIEW") && <Button variant="outlined" disabled={saving} onClick={() => onAct("START_REVIEW")}>Tiếp nhận</Button>}{actions.includes("RESOLVE") && <Button variant="contained" disabled={saving || resolution.trim().length < 10} onClick={() => onAct("RESOLVE", resolution.trim())}>Gửi kết quả</Button>}</DialogActions></Dialog>
+  // List state
+  const [page, setPage] = useState(1)
+  const [filters, setFilters] = useState({
+    search: "",
+    status: "",
+    complaintType: "",
+    from: "",
+    to: "",
+  })
+  const [appliedSearch, setAppliedSearch] = useState("")
+  const [result, setResult] = useState(null)
+  const [loadingList, setLoadingList] = useState(false)
+  const [listError, setListError] = useState("")
+  const [listReloadTick, setListReloadTick] = useState(0)
+
+  // Detail state
+  const [detailTicket, setDetailTicket] = useState(null)
+  const [loadingDetail, setLoadingDetail] = useState(false)
+  const [detailError, setDetailError] = useState(null)
+  const [detailReloadTick, setDetailReloadTick] = useState(0)
+
+  useEffect(() => {
+    if (isDetailView) return undefined
+    const controller = new AbortController()
+    setLoadingList(true)
+    setListError("")
+
+    const params = {
+      page,
+      limit: PAGE_LIMIT,
+      status: filters.status || undefined,
+      complaintType: filters.complaintType || undefined,
+      from: filters.from || undefined,
+      to: filters.to || undefined,
+      search: appliedSearch.trim() || undefined,
+    }
+
+    ComplaintService.list(params, controller.signal)
+      .then(({ data }) => {
+        if (controller.signal.aborted) return
+        const items = Array.isArray(data?.items)
+          ? data.items.map(normalizeTicketFields)
+          : []
+        setResult({
+          items,
+          pagination: {
+            page: Number(data?.pagination?.page) || page,
+            limit: Number(data?.pagination?.limit) || PAGE_LIMIT,
+            hasNext: Boolean(data?.pagination?.hasNext),
+          },
+        })
+      })
+      .catch(failure => {
+        if (failure?.name === "CanceledError" || controller.signal.aborted) {
+          return
+        }
+        setListError(
+          parseApiError(failure, "Không thể tải danh sách khiếu nại bữa ăn.")
+            .message,
+        )
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingList(false)
+      })
+
+    return () => controller.abort()
+  }, [
+    isDetailView,
+    page,
+    filters.status,
+    filters.complaintType,
+    filters.from,
+    filters.to,
+    appliedSearch,
+    listReloadTick,
+  ])
+
+  useEffect(() => {
+    if (!isDetailView || !id) {
+      setDetailTicket(null)
+      setDetailError(null)
+      return undefined
+    }
+    const controller = new AbortController()
+    setLoadingDetail(true)
+    setDetailError(null)
+
+    ComplaintService.detail(id, controller.signal)
+      .then(({ data }) => {
+        if (!controller.signal.aborted) {
+          setDetailTicket(normalizeTicketFields(data))
+        }
+      })
+      .catch(failure => {
+        if (failure?.name === "CanceledError" || controller.signal.aborted) {
+          return
+        }
+        setDetailTicket(null)
+        setDetailError(
+          parseApiError(failure, "Không thể tải chi tiết khiếu nại."),
+        )
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoadingDetail(false)
+      })
+
+    return () => controller.abort()
+  }, [isDetailView, id, detailReloadTick])
+
+  const handleResetFilters = () => {
+    setFilters({ search: "", status: "", complaintType: "", from: "", to: "" })
+    setAppliedSearch("")
+    setPage(1)
+  }
+
+  const hasActiveFilters = Boolean(
+    appliedSearch.trim() ||
+    filters.status ||
+    filters.complaintType ||
+    filters.from ||
+    filters.to,
+  )
+
+  if (isDetailView) {
+    const mealSummary = detailTicket?.meal
+      ? `${detailTicket.meal.className || ""} · ${mealLabels[detailTicket.meal.mealType] || ""} · ${formatMealDate(detailTicket.meal.mealDate)}`
+      : "—"
+
+    const metaItems = detailTicket
+      ? [
+          {
+            label: "Người gửi",
+            value: detailTicket.submitter?.fullName || "—",
+          },
+          {
+            label: "Suất ăn",
+            value: mealSummary,
+          },
+          {
+            label: "Loại khiếu nại",
+            value:
+              complaintTypes[detailTicket.complaintType] ||
+              detailTicket.complaintType ||
+              "—",
+            chip: true,
+          },
+        ]
+      : []
+
+    return (
+      <TicketDetailView
+        ticket={detailTicket}
+        loading={loadingDetail}
+        error={detailError}
+        backLabel="Quay lại danh sách khiếu nại bữa ăn"
+        onBack={() => navigate(ROUTER.SCHOOL_MEAL_FEEDBACK)}
+        onReload={() => setDetailReloadTick(prev => prev + 1)}
+        metaItems={metaItems}
+        onAccept={async () => {
+          const { data } = await ComplaintService.accept(id)
+          setDetailTicket(normalizeTicketFields(data))
+        }}
+        onComment={async content => {
+          const { data } = await ComplaintService.comment(id, content)
+          setDetailTicket(normalizeTicketFields(data))
+        }}
+        onResolve={async content => {
+          const { data } = await ComplaintService.resolve(id, content)
+          setDetailTicket(normalizeTicketFields(data))
+        }}
+      />
+    )
+  }
+
+  const items = result?.items || []
+  const pagination = result?.pagination || {
+    page,
+    limit: PAGE_LIMIT,
+    hasNext: false,
+  }
+
+  return (
+    <main className={styles.page}>
+      <header className={styles.header}>
+        <h1>Quản lý khiếu nại bữa ăn</h1>
+      </header>
+
+      <section
+        className={styles.surface}
+        aria-label="Danh sách khiếu nại bữa ăn cần xử lý"
+      >
+        <div className={styles.filterBar} role="search">
+          <TextField
+            size="small"
+            className={styles.searchField}
+            placeholder="Tìm mã FP-MC, người gửi, lớp hoặc nội dung..."
+            value={filters.search}
+            slotProps={{
+              htmlInput: { maxLength: 120 },
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              },
+            }}
+            onChange={event =>
+              setFilters(prev => ({ ...prev, search: event.target.value }))
+            }
+            onKeyDown={event => {
+              if (event.key === "Enter") {
+                setPage(1)
+                setAppliedSearch(filters.search)
+              }
+            }}
+          />
+
+          <TextField
+            select
+            size="small"
+            label="Trạng thái"
+            className={styles.selectField}
+            value={filters.status}
+            onChange={event => {
+              setFilters(prev => ({ ...prev, status: event.target.value }))
+              setPage(1)
+            }}
+          >
+            {HANDLER_STATUS_OPTIONS.map(opt => (
+              <MenuItem key={opt.value || "all"} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            size="small"
+            label="Loại khiếu nại"
+            className={styles.selectField}
+            value={filters.complaintType}
+            onChange={event => {
+              setFilters(prev => ({
+                ...prev,
+                complaintType: event.target.value,
+              }))
+              setPage(1)
+            }}
+          >
+            <MenuItem value="">Tất cả loại</MenuItem>
+            {Object.entries(complaintTypes).map(([key, label]) => (
+              <MenuItem key={key} value={key}>
+                {label}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <DateField
+            label="Từ ngày"
+            className={styles.dateField}
+            value={filters.from}
+            maxDate={filters.to || undefined}
+            onChange={value => {
+              setFilters(prev => ({ ...prev, from: value }))
+              setPage(1)
+            }}
+          />
+
+          <DateField
+            label="Đến ngày"
+            className={styles.dateField}
+            value={filters.to}
+            minDate={filters.from || undefined}
+            onChange={value => {
+              setFilters(prev => ({ ...prev, to: value }))
+              setPage(1)
+            }}
+          />
+
+          <Button
+            variant="outlined"
+            size="medium"
+            sx={{ textTransform: "none", fontWeight: 600, height: 40 }}
+            onClick={() => {
+              setPage(1)
+              setAppliedSearch(filters.search)
+            }}
+          >
+            Tìm
+          </Button>
+          {hasActiveFilters ? (
+            <Button
+              variant="text"
+              size="medium"
+              sx={{ textTransform: "none", fontWeight: 600, height: 40 }}
+              onClick={handleResetFilters}
+            >
+              Xóa lọc
+            </Button>
+          ) : null}
+        </div>
+
+        {loadingList && !result ? (
+          <div
+            className={styles.skeletonStack}
+            role="status"
+            aria-label="Đang tải danh sách khiếu nại"
+          >
+            {SKELETON_ROWS.map(key => (
+              <div key={key} className={styles.skeletonRow}>
+                <div className={styles.skeletonBar} />
+                <div className={styles.skeletonBar} />
+                <div className={styles.skeletonBar} />
+                <div className={styles.skeletonBar} />
+                <div className={styles.skeletonBar} />
+                <div className={styles.skeletonBar} />
+              </div>
+            ))}
+          </div>
+        ) : listError ? (
+          <div className={styles.listError}>
+            <Alert
+              severity="error"
+              action={
+                <Button
+                  color="inherit"
+                  onClick={() => setListReloadTick(prev => prev + 1)}
+                >
+                  Thử lại
+                </Button>
+              }
+            >
+              {listError}
+            </Alert>
+          </div>
+        ) : items.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p className={styles.emptyTitle}>
+              {hasActiveFilters
+                ? "Không có khiếu nại phù hợp"
+                : "Chưa có khiếu nại bữa ăn nào"}
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <table
+                className={styles.table}
+                aria-label="Danh sách khiếu nại bữa ăn"
+              >
+                <thead>
+                  <tr>
+                    <th scope="col">Mã phiếu</th>
+                    <th scope="col">Tiêu đề &amp; Suất ăn</th>
+                    <th scope="col">Người gửi</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col">Thời gian gửi</th>
+                    <th scope="col" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map(row => {
+                    const detailUrl = generatePath(
+                      ROUTER.SCHOOL_MEAL_FEEDBACK_DETAIL,
+                      { id: row.id },
+                    )
+                    return (
+                      <tr
+                        key={row.id}
+                        className={styles.tableRow}
+                        onClick={event => {
+                          if (event.target.closest("a, button")) return
+                          navigate(detailUrl)
+                        }}
+                      >
+                        <td>
+                          <span className={styles.codeChip}>
+                            {formatTicketCode(row.code)}
+                          </span>
+                        </td>
+                        <td>
+                          <Link to={detailUrl} className={styles.primaryLink}>
+                            {row.title || complaintTypes[row.complaintType]}
+                          </Link>
+                          <span className={styles.subLine}>
+                            {row.meal?.className || "—"} ·{" "}
+                            {formatMealDate(row.meal?.mealDate)} ·{" "}
+                            {mealLabels[row.meal?.mealType] || "—"} ·{" "}
+                            {complaintTypes[row.complaintType] ||
+                              row.complaintType}
+                          </span>
+                        </td>
+                        <td>{row.submitter?.fullName || "—"}</td>
+                        <td>
+                          <div className={styles.statusCell}>
+                            <TicketStatusBadge
+                              status={row.displayStatus}
+                              hasNewMessage={row.hasNewMessage}
+                              showNewMessageText
+                              size="sm"
+                            />
+                          </div>
+                        </td>
+                        <td className={styles.timeCell}>
+                          {formatDateTimeVi(row.submittedAt, "—")}
+                        </td>
+                        <td className={styles.actionCell}>
+                          <Tooltip title="Xem chi tiết">
+                            <Link
+                              to={detailUrl}
+                              className={styles.detailLink}
+                              aria-label="Xem chi tiết"
+                            >
+                              <ChevronRightIcon fontSize="small" />
+                            </Link>
+                          </Tooltip>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className={styles.mobileList}>
+              {items.map(row => {
+                const detailUrl = generatePath(
+                  ROUTER.SCHOOL_MEAL_FEEDBACK_DETAIL,
+                  { id: row.id },
+                )
+                return (
+                  <Link
+                    key={row.id}
+                    to={detailUrl}
+                    className={styles.mobileCard}
+                  >
+                    <div className={styles.mobileTop}>
+                      <span className={styles.codeChip}>
+                        {formatTicketCode(row.code)}
+                      </span>
+                      <TicketStatusBadge
+                        status={row.displayStatus}
+                        hasNewMessage={row.hasNewMessage}
+                        showNewMessageText
+                        size="sm"
+                      />
+                    </div>
+                    <div className={styles.mobileTitle}>
+                      {row.title || complaintTypes[row.complaintType]}
+                    </div>
+                    <div className={styles.mobileMeta}>
+                      {row.meal?.className} ·{" "}
+                      {formatMealDate(row.meal?.mealDate)} ·{" "}
+                      {mealLabels[row.meal?.mealType]}
+                    </div>
+                    <div className={styles.mobileMeta}>
+                      Người gửi: {row.submitter?.fullName || "—"} ·{" "}
+                      {formatDateTimeVi(row.submittedAt, "—")}
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+
+            <div className={styles.paginationFooter}>
+              <span className={styles.paginationInfo}>
+                Trang {pagination.page} · Hiển thị {items.length} khiếu nại
+              </span>
+              <div className={styles.paginationActions}>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: "none", fontWeight: 600 }}
+                  disabled={pagination.page <= 1 || loadingList}
+                  onClick={() => setPage(prev => Math.max(1, prev - 1))}
+                >
+                  Trước
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  sx={{ textTransform: "none", fontWeight: 600 }}
+                  disabled={!pagination.hasNext || loadingList}
+                  onClick={() => setPage(prev => prev + 1)}
+                >
+                  Tiếp theo
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
+      </section>
+    </main>
+  )
 }
 
 export default MealFeedback

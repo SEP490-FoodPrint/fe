@@ -20,6 +20,7 @@ function RoleRoute({ allowedRoles = [], allowedOrg }) {
     return <Navigate to={ROUTER.LOGIN} replace />
   }
 
+  if (user?.emailSetupRequired) return <Navigate to={ROUTER.EMAIL_SETUP} replace />
   if (user?.onboardingRequired || user?.status === "UNVERIFIED") return <Navigate to={getAuthRedirect(user)} replace />
 
   // 2. Kiểm tra Cổng tổ chức (Portal Isolation)

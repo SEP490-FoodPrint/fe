@@ -1,0 +1,453 @@
+// Bố cục danh sách khiếu nại dùng chung (C02, C03, C05) theo FOODPRINT_FIGMA_LAYOUT_RULES_v2:
+// nội dung tối đa 1120px, tiêu đề 20/28, bảng tiêu đề 48px, dòng 56px, chỉ kẻ ngang,
+// mã phiếu và trạng thái không đóng khung, thao tác dạng icon.
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6, 24px);
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  min-width: 0;
+  color: var(--text-primary, #1d2b26);
+  font-family: var(--font-sans);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3, 12px);
+  min-height: 40px;
+
+  h1 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 28px;
+    letter-spacing: -0.4px;
+    color: var(--text-primary, #1d2b26);
+  }
+}
+
+.createBtn:global(.MuiButton-root) {
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.surface {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--bg-surface, #ffffff);
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.filterBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  border-bottom: 1px solid var(--border-default, #dce5e0);
+
+  :global(.MuiInputBase-root) {
+    min-height: 40px;
+    border-radius: 8px;
+    font-size: 14px;
+    background: var(--bg-surface, #ffffff);
+  }
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: var(--border-default, #dce5e0);
+  }
+
+  :global(.MuiInputLabel-root:not(.MuiInputLabel-shrink)) {
+    font-size: 14px;
+  }
+
+  :global(.MuiButton-root) {
+    height: 40px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+}
+
+.filterRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3, 12px);
+  margin-left: auto;
+}
+
+.searchField {
+  flex: 1 1 260px;
+  min-width: 220px;
+  max-width: 440px;
+}
+
+.selectField {
+  min-width: 168px;
+}
+
+.dateField {
+  width: 176px;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.table thead th {
+  height: 48px;
+  padding: 0 var(--space-4, 16px);
+  border-bottom: 1px solid var(--border-default, #dce5e0);
+  background: var(--bg-muted, #f1f5f3);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text-secondary, #52635c);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tableRow {
+  border-bottom: 1px solid var(--neutral-200, #e8eeeb);
+  cursor: pointer;
+  transition: background-color 140ms ease-out;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &:hover {
+    background: var(--neutral-50, #f8faf9);
+  }
+}
+
+.tableRow td {
+  height: 56px;
+  padding: var(--space-3, 12px) var(--space-4, 16px);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-primary, #1d2b26);
+  vertical-align: middle;
+}
+
+// Mã phiếu là dữ liệu tra cứu: chữ đậm vừa, không đóng khung.
+.codeChip {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary, #1d2b26);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.primaryLink {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 420px;
+  min-width: 200px;
+  font-weight: 500;
+  color: var(--text-primary, #1d2b26);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #0a8066);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.preview,
+.subLine {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  margin-top: 2px;
+  max-width: 420px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted, #6b7c74);
+  font-variant-numeric: tabular-nums;
+}
+
+.statusCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.timeCell {
+  white-space: nowrap;
+  color: var(--text-secondary, #52635c);
+  font-variant-numeric: tabular-nums;
+}
+
+.actionCell {
+  width: 56px;
+  text-align: right;
+}
+
+// Thao tác trong bảng chỉ dùng icon, có tooltip và nhãn truy cập (vùng bấm 40px).
+.detailLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  color: var(--text-secondary, #52635c);
+  text-decoration: none;
+  transition:
+    background-color 140ms ease-out,
+    color 140ms ease-out;
+
+  &:hover {
+    background: var(--color-primary-soft, #e8f5f1);
+    color: var(--color-primary, #0a8066);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #0a8066);
+    outline-offset: 2px;
+  }
+}
+
+.mobileList {
+  display: none;
+  flex-direction: column;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px);
+}
+
+.mobileCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2, 8px);
+  padding: var(--space-4, 16px);
+  border: 1px solid var(--border-default, #dce5e0);
+  border-radius: 12px;
+  background: var(--bg-surface, #ffffff);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 140ms ease-out;
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--color-primary, #0a8066);
+    outline-offset: 2px;
+  }
+}
+
+.mobileTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  flex-wrap: wrap;
+}
+
+.mobileTitle {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+  color: var(--text-primary, #1d2b26);
+  overflow-wrap: anywhere;
+}
+
+.mobileMeta {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--text-muted, #6b7c74);
+  font-variant-numeric: tabular-nums;
+}
+
+.skeletonStack {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-2, 8px) var(--space-5, 20px) var(--space-4, 16px);
+}
+
+.skeletonRow {
+  display: grid;
+  grid-template-columns: 110px 1.6fr 1fr 1fr 90px;
+  gap: var(--space-4, 16px);
+  padding: 21px 0;
+  border-bottom: 1px solid var(--neutral-200, #e8eeeb);
+}
+
+.skeletonBar {
+  height: 14px;
+  border-radius: 4px;
+  background: var(--neutral-100, #f1f5f3);
+  animation: ticketListPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes ticketListPulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar {
+    animation: none;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2, 8px);
+  padding: var(--space-12, 48px) var(--space-6, 24px);
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 24px;
+  color: var(--text-primary, #1d2b26);
+}
+
+.emptyDesc {
+  margin: 0;
+  max-width: 440px;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--text-muted, #6b7c74);
+}
+
+.listError {
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+}
+
+.paginationFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding: var(--space-4, 16px) var(--space-5, 20px);
+  border-top: 1px solid var(--border-default, #dce5e0);
+}
+
+.paginationInfo {
+  font-size: 13px;
+  color: var(--text-muted, #6b7c74);
+  font-variant-numeric: tabular-nums;
+}
+
+.paginationActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+
+  :global(.MuiButton-root) {
+    height: 40px;
+    min-width: 88px;
+    border-radius: 8px;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 1023px) {
+  .page {
+    gap: var(--space-5, 20px);
+  }
+
+  .filterBar {
+    padding: var(--space-4, 16px);
+  }
+
+  .tableWrap {
+    display: none;
+  }
+
+  .mobileList {
+    display: flex;
+  }
+
+  .paginationFooter {
+    padding: var(--space-4, 16px);
+  }
+}
+
+@media (max-width: 600px) {
+  .page {
+    gap: var(--space-4, 16px);
+  }
+
+  .header h1 {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+  }
+
+  .header :global(.MuiButton-root) {
+    width: 100%;
+  }
+
+  .searchField,
+  .selectField,
+  .dateField {
+    flex: 1 1 100%;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .filterRight {
+    width: 100%;
+    margin-left: 0;
+
+    > * {
+      flex: 1 1 auto;
+    }
+  }
+
+  .filterBar :global(.MuiButton-root) {
+    flex: 1 1 auto;
+  }
+
+  .paginationFooter {
+    flex-wrap: wrap;
+  }
+
+  .paginationActions {
+    width: 100%;
+
+    :global(.MuiButton-root) {
+      flex: 1;
+      min-height: 44px;
+    }
+  }
+}

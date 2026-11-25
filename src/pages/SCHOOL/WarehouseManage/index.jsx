@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useEffect, useCallback, useContext } from "react"
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useContext,
+} from "react"
 import { useSearchParams } from "react-router-dom"
 import { StoreContext } from "src/contexts"
 import STORAGE, { getStorage } from "src/lib/storage"
@@ -13,12 +19,7 @@ import {
   Button,
   Typography,
 } from "@mui/material"
-import {
-  Package,
-  ClipboardList,
-  RotateCcw,
-  Plus,
-} from "lucide-react"
+import { Package, ClipboardList, RotateCcw, Plus } from "lucide-react"
 import notice from "src/components/Notice"
 import FoodPrintLoading from "src/components/FoodPrintLoading"
 import WarehouseService from "src/services/WarehouseService"
@@ -36,7 +37,9 @@ import WarehouseDetailView from "./component/WarehouseDetailView"
 import TrackingTable from "./component/TrackingTable"
 import TrackingDetailView from "./component/TrackingDetailView"
 
-import StockAlertPanel, { roundUpQuantity } from "src/components/StockAlertPanel"
+import StockAlertPanel, {
+  roundUpQuantity,
+} from "src/components/StockAlertPanel"
 import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
@@ -54,11 +57,14 @@ export default function WarehouseManage() {
 
   const { userStore } = useContext(StoreContext)
   const currentUser = userStore?.user || getStorage(STORAGE.USER_INFO)
-  const currentSchoolId = currentUser?.schoolId || currentUser?.school_id || currentUser?.orgId || ""
-  const currentSchoolName = currentUser?.schoolName || currentUser?.orgName || ""
+  const currentSchoolId =
+    currentUser?.schoolId || currentUser?.school_id || currentUser?.orgId || ""
+  const currentSchoolName =
+    currentUser?.schoolName || currentUser?.orgName || ""
 
   const [searchParams, setSearchParams] = useSearchParams()
-  const initialTab = searchParams.get("tab") === "orders" ? "orders" : "inventory"
+  const initialTab =
+    searchParams.get("tab") === "orders" ? "orders" : "inventory"
 
   // Tab chính: "inventory" (Danh sách nguyên liệu khô) | "orders" (Đơn hàng)
   const [activeTab, setActiveTab] = useState(initialTab)
@@ -119,7 +125,8 @@ export default function WarehouseManage() {
       const data = await TrackingService.getTrackingOrders()
       // Chỉ lấy các đơn đồ lưu kho & gia vị
       const dryList = (data || []).filter(
-        item => item.orderType === "DRY_STOCK" || item.batchType === "DRY_STOCK"
+        item =>
+          item.orderType === "DRY_STOCK" || item.batchType === "DRY_STOCK",
       )
       setOrders(dryList)
     } catch (err) {
@@ -140,7 +147,11 @@ export default function WarehouseManage() {
     const tabFromUrl = searchParams.get("tab")
     if (tabFromUrl === "orders" && activeTab !== "orders") {
       setActiveTab("orders")
-    } else if (tabFromUrl !== "orders" && activeTab === "orders" && !tabFromUrl) {
+    } else if (
+      tabFromUrl !== "orders" &&
+      activeTab === "orders" &&
+      !tabFromUrl
+    ) {
       // noop
     }
   }, [searchParams, activeTab])
@@ -149,16 +160,16 @@ export default function WarehouseManage() {
   const stats = useMemo(() => {
     const total = inventory.length
     const criticalLowCount = inventory.filter(
-      it => it.safetyStock > 0 && it.currentStock / it.safetyStock < 0.3
+      it => it.safetyStock > 0 && it.currentStock / it.safetyStock < 0.3,
     ).length
     const warningCount = inventory.filter(
       it =>
         it.safetyStock > 0 &&
         it.currentStock / it.safetyStock >= 0.3 &&
-        it.currentStock / it.safetyStock < 0.5
+        it.currentStock / it.safetyStock < 0.5,
     ).length
     const safeStockCount = inventory.filter(
-      it => it.safetyStock > 0 && it.currentStock / it.safetyStock >= 0.5
+      it => it.safetyStock > 0 && it.currentStock / it.safetyStock >= 0.5,
     ).length
 
     return {
@@ -186,10 +197,15 @@ export default function WarehouseManage() {
     // 2. Bổ sung từ các mặt hàng thực tế trong kho (nếu có NCC chưa trong list)
     inventory.forEach(it => {
       if (it.supplierId && !map.has(it.supplierId)) {
-        map.set(it.supplierId, { id: it.supplierId, name: it.supplierName || "Nhà cung cấp" })
+        map.set(it.supplierId, {
+          id: it.supplierId,
+          name: it.supplierName || "Nhà cung cấp",
+        })
       }
     })
-    return Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name, "vi"))
+    return Array.from(map.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, "vi"),
+    )
   }, [suppliers, inventory])
 
   // Xác định active rail filter
@@ -369,7 +385,11 @@ export default function WarehouseManage() {
   // Lập phiếu nhập từ cảnh báo: chọn sẵn các nguyên liệu đang thiếu với số cần nhập thêm
   const handleCreateFromAlerts = items => {
     setSelectedItemForOrder(null)
-    setAlertQuantities(Object.fromEntries(items.map(item => [item.ingredientId, roundUpQuantity(item.shortage)])))
+    setAlertQuantities(
+      Object.fromEntries(
+        items.map(item => [item.ingredientId, roundUpQuantity(item.shortage)]),
+      ),
+    )
     setSubView("create")
   }
 
@@ -391,7 +411,8 @@ export default function WarehouseManage() {
           setSelectedOrder(prev => ({
             ...prev,
             ...fullDetail,
-            items: fullDetail.items?.length > 0 ? fullDetail.items : prev?.items,
+            items:
+              fullDetail.items?.length > 0 ? fullDetail.items : prev?.items,
           }))
         }
       } catch (err) {
@@ -412,7 +433,9 @@ export default function WarehouseManage() {
   const handleCreateOrder = async orderPayload => {
     try {
       await WarehouseService.createDryOrder(orderPayload)
-      const ordersToSave = Array.isArray(orderPayload) ? orderPayload : [orderPayload]
+      const ordersToSave = Array.isArray(orderPayload)
+        ? orderPayload
+        : [orderPayload]
       const orderNos = ordersToSave.map(o => o.orderNo).join(", ")
       notice({
         msg: `Đã tạo Phiếu nhập hàng (${orderNos}) thành công trên hệ thống Database!`,
@@ -470,7 +493,10 @@ export default function WarehouseManage() {
           <WarehouseHeader />
 
           {/* Cảnh báo đồ lưu kho cần nhập thêm cho thực đơn đã duyệt */}
-          <StockAlertPanel onCreateOrder={handleCreateFromAlerts} reloadKey={subView} />
+          <StockAlertPanel
+            onCreateOrder={handleCreateFromAlerts}
+            reloadKey={subView}
+          />
 
           {/* Thanh chuyển 2 Tab */}
           <Paper elevation={0} className={styles.tabsContainer}>
@@ -490,7 +516,11 @@ export default function WarehouseManage() {
                       <Chip
                         label={inventory.length}
                         size="small"
-                        className={activeTab === "inventory" ? styles.activeBadge : styles.inactiveBadge}
+                        className={
+                          activeTab === "inventory"
+                            ? styles.activeBadge
+                            : styles.inactiveBadge
+                        }
                       />
                     )}
                   </Box>
@@ -509,7 +539,11 @@ export default function WarehouseManage() {
                       <Chip
                         label={orders.length}
                         size="small"
-                        className={activeTab === "orders" ? styles.activeBadge : styles.inactiveBadge}
+                        className={
+                          activeTab === "orders"
+                            ? styles.activeBadge
+                            : styles.inactiveBadge
+                        }
                       />
                     )}
                   </Box>
@@ -555,7 +589,10 @@ export default function WarehouseManage() {
                   }}
                 >
                   <FoodPrintLoading size="large" />
-                  <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{ color: "#64748b", fontWeight: 500 }}
+                  >
                     Đang tải danh sách tồn kho nguyên liệu đồ lưu kho...
                   </Typography>
                 </Box>
@@ -591,7 +628,10 @@ export default function WarehouseManage() {
                     label="Thời gian giao"
                     value={orderFilters.timeScope || "today_forward"}
                     onChange={e =>
-                      setOrderFilters(prev => ({ ...prev, timeScope: e.target.value }))
+                      setOrderFilters(prev => ({
+                        ...prev,
+                        timeScope: e.target.value,
+                      }))
                     }
                     className={styles.orderSelectInput}
                   >
@@ -606,7 +646,10 @@ export default function WarehouseManage() {
                     label="Trạng thái tiến trình"
                     value={orderFilters.status}
                     onChange={e =>
-                      setOrderFilters(prev => ({ ...prev, status: e.target.value }))
+                      setOrderFilters(prev => ({
+                        ...prev,
+                        status: e.target.value,
+                      }))
                     }
                     className={styles.orderSelectInput}
                   >
@@ -614,17 +657,27 @@ export default function WarehouseManage() {
                     <MenuItem value="CREATED">Chờ NCC xác nhận</MenuItem>
                     <MenuItem value="ACCEPTED">NCC đã xác nhận</MenuItem>
                     <MenuItem value="IN_TRANSIT">Đang giao</MenuItem>
-                    <MenuItem value="ARRIVED">Đã tới trường (Chờ kiểm duyệt)</MenuItem>
-                    <MenuItem value="COMPLETED">Đã hoàn tất (Đã nhập kho)</MenuItem>
+                    <MenuItem value="ARRIVED">
+                      Đã tới trường (Chờ kiểm duyệt)
+                    </MenuItem>
+                    <MenuItem value="COMPLETED">
+                      Đã hoàn tất (Đã nhập kho)
+                    </MenuItem>
                     <MenuItem value="REJECTED">Bị từ chối tiếp nhận</MenuItem>
                   </TextField>
 
-                  {(orderFilters.timeScope !== "today_forward" || orderFilters.status !== "all") && (
+                  {(orderFilters.timeScope !== "today_forward" ||
+                    orderFilters.status !== "all") && (
                     <Button
                       variant="outlined"
                       size="small"
                       startIcon={<RotateCcw size={16} />}
-                      onClick={() => setOrderFilters({ timeScope: "today_forward", status: "all" })}
+                      onClick={() =>
+                        setOrderFilters({
+                          timeScope: "today_forward",
+                          status: "all",
+                        })
+                      }
                       className={styles.resetBtn}
                     >
                       Đặt lại

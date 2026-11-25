@@ -1,4 +1,11 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react"
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { Alert, Skeleton } from "@mui/material"
 import notice from "src/components/Notice"
 import MenuService from "src/services/MenuService"
@@ -12,13 +19,23 @@ import SchoolService from "src/services/SchoolService"
 import { StoreContext } from "src/contexts"
 import "./style.scss"
 
-const EMPTY_WEEK = { weekStartDate: null, weekEndDate: null, weekNumber: null, weeks: [], menus: [] }
+const EMPTY_WEEK = {
+  weekStartDate: null,
+  weekEndDate: null,
+  weekNumber: null,
+  weeks: [],
+  menus: [],
+}
 
 // Thực đơn toàn trường áp dụng cho mọi khối nên luôn khớp bộ lọc khối
 const matchesGrade = (menu, gradeId) =>
-  !gradeId || menu.isSchoolWide || !menu.grades?.length || menu.grades.some(grade => grade.id === gradeId)
+  !gradeId ||
+  menu.isSchoolWide ||
+  !menu.grades?.length ||
+  menu.grades.some(grade => grade.id === gradeId)
 
-const errorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback
+const errorMessage = (error, fallback) =>
+  error?.response?.data?.message || error?.message || fallback
 
 function ListSkeleton() {
   return (
@@ -58,7 +75,12 @@ function MenuApproval() {
     } catch (requestError) {
       if (seq !== requestSeq.current) return
       if (silent) throw requestError
-      setError(errorMessage(requestError, "Không thể tải thực đơn của tuần. Vui lòng thử lại."))
+      setError(
+        errorMessage(
+          requestError,
+          "Không thể tải thực đơn của tuần. Vui lòng thử lại.",
+        ),
+      )
     } finally {
       if (seq === requestSeq.current) {
         setLoading(false)
@@ -75,15 +97,22 @@ function MenuApproval() {
   useEffect(() => {
     let active = true
     MenuService.getContext({ forceRefresh: true })
-      .then(data => { if (active) setSchoolGrades(data?.grades || []) })
+      .then(data => {
+        if (active) setSchoolGrades(data?.grades || [])
+      })
       .catch(() => {})
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
   const gradeOptions = useMemo(() => {
-    if (schoolGrades.length) return schoolGrades.map(grade => ({ id: grade.id, name: grade.name }))
+    if (schoolGrades.length)
+      return schoolGrades.map(grade => ({ id: grade.id, name: grade.name }))
     const fromMenus = new Map()
-    week.menus.forEach(menu => menu.grades?.forEach(grade => fromMenus.set(grade.id, grade)))
+    week.menus.forEach(menu =>
+      menu.grades?.forEach(grade => fromMenus.set(grade.id, grade)),
+    )
     return [...fromMenus.values()]
   }, [schoolGrades, week.menus])
 
@@ -91,9 +120,13 @@ function MenuApproval() {
     () => week.menus.filter(menu => matchesGrade(menu, gradeFilter)),
     [week.menus, gradeFilter],
   )
-  const pendingCount = week.menus.filter(menu => menu.status === "PENDING_APPROVAL").length
+  const pendingCount = week.menus.filter(
+    menu => menu.status === "PENDING_APPROVAL",
+  ).length
   const busy = loading || Boolean(submittingId) || Boolean(dialog)
-  const dialogMenu = dialog ? week.menus.find(menu => menu.id === dialog.menuId) : null
+  const dialogMenu = dialog
+    ? week.menus.find(menu => menu.id === dialog.menuId)
+    : null
 
   const changeWeek = weekStartDate => {
     if (busy || weekStartDate === week.weekStartDate) return
@@ -102,7 +135,11 @@ function MenuApproval() {
 
   const openDecision = (menu, type) => {
     if (!menu.canDecide || busy) return
-    setDialog({ type, menuId: menu.id, submissionVersion: menu.submissionVersion })
+    setDialog({
+      type,
+      menuId: menu.id,
+      submissionVersion: menu.submissionVersion,
+    })
   }
 
   const applyDecision = async (type, feedback) => {
@@ -117,15 +154,27 @@ function MenuApproval() {
         ...(submissionVersion ? { submissionVersion } : {}),
       })
       setDialog(null)
-      notice({ msg: type === "approve" ? "Đã phê duyệt thực đơn tuần" : "Đã yêu cầu Y tế chỉnh sửa thực đơn" })
+      notice({
+        msg:
+          type === "approve"
+            ? "Đã phê duyệt thực đơn tuần"
+            : "Đã yêu cầu Y tế chỉnh sửa thực đơn",
+      })
       // Tải lại cả tuần để cập nhật trạng thái thực đơn vừa duyệt và số tuần còn chờ
       try {
         await loadWeek(week.weekStartDate, { silent: true })
       } catch {
-        notice({ msg: "Đã lưu quyết định; vui lòng tải lại để xem trạng thái mới nhất.", isSuccess: false })
+        notice({
+          msg: "Đã lưu quyết định; vui lòng tải lại để xem trạng thái mới nhất.",
+          isSuccess: false,
+        })
       }
     } catch (requestError) {
-      notice({ msg: "Không thể xử lý thực đơn", desc: requestError?.response?.data?.message, isSuccess: false })
+      notice({
+        msg: "Không thể xử lý thực đơn",
+        desc: requestError?.response?.data?.message,
+        isSuccess: false,
+      })
     } finally {
       submitLock.current = false
       setSubmittingId(null)
@@ -148,7 +197,9 @@ function MenuApproval() {
     setExporting(true)
     try {
       if (!schoolInfo.current && currentUser?.orgId) {
-        const res = await SchoolService.getSchoolDetailById(currentUser.orgId).catch(() => null)
+        const res = await SchoolService.getSchoolDetailById(
+          currentUser.orgId,
+        ).catch(() => null)
         schoolInfo.current = res?.data?.data || res?.data || null
       }
       const school = {
@@ -157,7 +208,10 @@ function MenuApproval() {
       }
       await printMenuPdf({ school, week, menus: visibleMenus })
     } catch {
-      notice({ msg: "Không thể xuất PDF thực đơn. Vui lòng thử lại.", isSuccess: false })
+      notice({
+        msg: "Không thể xuất PDF thực đơn. Vui lòng thử lại.",
+        isSuccess: false,
+      })
     } finally {
       setExporting(false)
     }
@@ -166,9 +220,24 @@ function MenuApproval() {
   const renderList = () => {
     if (loading) return <ListSkeleton />
     if (error) return <Alert severity="error">{error}</Alert>
-    if (!week.weeks.length) return <Alert severity="info">Chưa có thực đơn tuần nào được Y tế gửi duyệt.</Alert>
-    if (!week.menus.length) return <Alert severity="info">Tuần này chưa có thực đơn nào được gửi duyệt.</Alert>
-    if (!visibleMenus.length) return <Alert severity="info">Tuần này không có thực đơn cho khối đã chọn.</Alert>
+    if (!week.weeks.length)
+      return (
+        <Alert severity="info">
+          Chưa có thực đơn tuần nào được Y tế gửi duyệt.
+        </Alert>
+      )
+    if (!week.menus.length)
+      return (
+        <Alert severity="info">
+          Tuần này chưa có thực đơn nào được gửi duyệt.
+        </Alert>
+      )
+    if (!visibleMenus.length)
+      return (
+        <Alert severity="info">
+          Tuần này không có thực đơn cho khối đã chọn.
+        </Alert>
+      )
     return (
       <div className="menu-approval-page__list">
         {visibleMenus.map((menu, index) => (
@@ -216,7 +285,10 @@ function MenuApproval() {
       {dialogMenu && (
         <DecisionDialog
           type={dialog.type}
-          menu={{ ...dialogMenu, title: dialogMenu.title || menuScopeLabel(dialogMenu) }}
+          menu={{
+            ...dialogMenu,
+            title: dialogMenu.title || menuScopeLabel(dialogMenu),
+          }}
           open
           submitting={submittingId === dialogMenu.id}
           onClose={() => setDialog(null)}

@@ -38,7 +38,7 @@ export default function HealthOverview() {
     setError("")
 
     getNutritionOverviewData({ signal: controller.signal })
-      .then((res) => {
+      .then(res => {
         if (!controller.signal.aborted) {
           setData({
             kpis: res.kpis,
@@ -50,10 +50,10 @@ export default function HealthOverview() {
           }
         }
       })
-      .catch((err) => {
+      .catch(err => {
         if (!controller.signal.aborted) {
           setError(
-            err.message || "Không thể tải dữ liệu tổng quan y tế học đường."
+            err.message || "Không thể tải dữ liệu tổng quan y tế học đường.",
           )
         }
       })
@@ -71,7 +71,7 @@ export default function HealthOverview() {
   }, [loadData, revision])
 
   const handleRetry = () => {
-    setRevision((prev) => prev + 1)
+    setRevision(prev => prev + 1)
   }
 
   return (

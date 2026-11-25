@@ -1,43 +1,35 @@
 import http from "src/services/01_axios"
+import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
+import { mockIngredientFeedback } from "src/services/mockNewFeatures"
+import {
+  formatDateTimeVi as formatTicketDateTimeVi,
+  formatTicketCode,
+  getTicketStatusMeta,
+  HANDLER_STATUS_OPTIONS,
+  MAX_COMMENT_LENGTH,
+  normalizeTicketFields,
+  parseApiError,
+  TICKET_STATUS,
+} from "src/components/ComplaintThread/ticketHelpers"
 
 const BASE_URL = "/ingredient-quality-feedback"
 
-export const COMPLAINT_STATUS = {
-  SUBMITTED: "SUBMITTED",
-  RESPONDED: "RESPONDED",
-}
+export const COMPLAINT_STATUS = TICKET_STATUS
 
 export const COMPLAINT_PERMISSIONS = {
   VIEW_DETAILS: "ingredient_quality_feedback.view_details",
   RESPOND: "ingredient_quality_feedback.respond",
 }
 
-export const MAX_RESPONSE_LENGTH = 5000
+export const MAX_RESPONSE_LENGTH = MAX_COMMENT_LENGTH
 
 export const COMPLAINT_STATUS_OPTIONS = [
   { value: "ALL", label: "Tất cả" },
-  { value: COMPLAINT_STATUS.SUBMITTED, label: "Chờ phản hồi" },
-  { value: COMPLAINT_STATUS.RESPONDED, label: "Đã phản hồi" },
+  ...HANDLER_STATUS_OPTIONS.filter(opt => opt.value !== ""),
 ]
 
-const COMPLAINT_STATUS_META = {
-  [COMPLAINT_STATUS.SUBMITTED]: {
-    label: "Chờ phản hồi",
-    tone: "warning",
-  },
-  [COMPLAINT_STATUS.RESPONDED]: {
-    label: "Đã phản hồi",
-    tone: "success",
-  },
-}
-
 export function getComplaintStatusMeta(status) {
-  return (
-    COMPLAINT_STATUS_META[status] || {
-      label: status || "Không xác định",
-      tone: "muted",
-    }
-  )
+  return getTicketStatusMeta(status)
 }
 
 export function canViewSupplierComplaints(user) {
@@ -56,9 +48,8 @@ export function canRespondSupplierComplaints(user) {
   return true
 }
 
-export function formatComplaintCode(code, fallback = "Chưa có mã") {
-  const trimmed = typeof code === "string" ? code.trim() : ""
-  return trimmed || fallback
+export function formatComplaintCode(code, fallback = "—") {
+  return formatTicketCode(code, fallback)
 }
 
 export function formatSchoolCode(code, fallback = "Chưa có mã") {
@@ -67,15 +58,7 @@ export function formatSchoolCode(code, fallback = "Chưa có mã") {
 }
 
 export function formatDateTimeVi(value, fallback = "Chưa cập nhật") {
-  if (!value) return fallback
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return fallback
-  const day = String(date.getDate()).padStart(2, "0")
-  const month = String(date.getMonth() + 1).padStart(2, "0")
-  const year = date.getFullYear()
-  const hours = String(date.getHours()).padStart(2, "0")
-  const minutes = String(date.getMinutes()).padStart(2, "0")
-  return `${day}/${month}/${year} ${hours}:${minutes}`
+  return formatTicketDateTimeVi(value, fallback)
 }
 
 export function normalizeUuidParam(value) {
@@ -100,68 +83,11 @@ function clampPagination(page, limit) {
   return { page: safePage, limit: safeLimit }
 }
 
-export function countResponseCodePoints(value) {
-  return Array.from(String(value ?? "").trim()).length
-}
-
-export function validateSupplierResponse(value) {
-  const trimmed = String(value ?? "").trim()
-  const length = Array.from(trimmed).length
-
-  if (length === 0) {
-    return {
-      valid: false,
-      trimmed,
-      length,
-      error: "Vui lòng nhập nội dung phản hồi cho nhà trường.",
-    }
-  }
-
-  if (length > MAX_RESPONSE_LENGTH) {
-    return {
-      valid: false,
-      trimmed,
-      length,
-      error: `Nội dung phản hồi không được vượt quá ${MAX_RESPONSE_LENGTH.toLocaleString("vi-VN")} ký tự.`,
-    }
-  }
-
-  return {
-    valid: true,
-    trimmed,
-    length,
-    error: "",
-  }
-}
-
 export function extractApiError(
   error,
   fallbackMessage = "Đã xảy ra lỗi. Vui lòng thử lại.",
 ) {
-  const status = error?.response?.status
-  const apiData = error?.response?.data
-  const message =
-    (apiData && typeof apiData === "object"
-      ? apiData.message
-      : null) ||
-    error?.message ||
-    fallbackMessage
-
-  const fields = {}
-  const structuredFields = apiData?.error?.fields
-  if (Array.isArray(structuredFields)) {
-    structuredFields.forEach(item => {
-      const key =
-        item?.field ||
-        (Array.isArray(item?.path) ? item.path[0] : item?.path) ||
-        ""
-      if (key && item?.message && !fields[key]) {
-        fields[key] = item.message
-      }
-    })
-  }
-
-  return { status, message, fields }
+  return parseApiError(error, fallbackMessage)
 }
 
 function adaptSchoolRef(raw = {}) {
@@ -175,7 +101,7 @@ function adaptSchoolRef(raw = {}) {
 function adaptDeliveryRef(raw = {}) {
   return {
     id: raw?.id || "",
-    deliveryNo: raw?.deliveryNo || "Chưa có mã chuyến",
+    deliveryNo: raw?.deliveryNo || raw?.code || "Chưa có mã chuyến",
   }
 }
 
@@ -195,34 +121,58 @@ function adaptIngredientLotRef(raw) {
   }
 }
 
-function adaptComplaintListItem(raw = {}) {
+function adaptTicketListItem(raw = {}) {
+  const base = normalizeTicketFields(raw)
   return {
+    ...base,
     id: raw?.id || "",
-    complaintCode: raw?.complaintCode ?? null,
-    title: raw?.title || "Khiếu nại chất lượng nguyên liệu",
+    code: base.code,
+    complaintCode: base.code,
+    title: raw?.title || "Phản ánh chất lượng nguyên liệu",
     school: adaptSchoolRef(raw?.school),
     delivery: adaptDeliveryRef(raw?.delivery),
-    status: raw?.status || COMPLAINT_STATUS.SUBMITTED,
-    createdAt: raw?.createdAt ?? null,
-    respondedAt: raw?.respondedAt ?? null,
+    createdAt: base.submittedAt,
   }
 }
 
-function adaptComplaintDetail(raw = {}) {
+function adaptTicketDetail(raw = {}) {
+  const item = adaptTicketListItem(raw)
   return {
-    ...adaptComplaintListItem(raw),
+    ...item,
     description: typeof raw?.description === "string" ? raw.description : "",
-    updatedAt: raw?.updatedAt ?? null,
     submittedBy: adaptUserRef(raw?.submittedBy),
     ingredientLot: adaptIngredientLotRef(raw?.ingredientLot),
-    supplierResponse:
-      typeof raw?.supplierResponse === "string" ? raw.supplierResponse : null,
-    respondedBy: adaptUserRef(raw?.respondedBy),
+  }
+}
+
+const ELIGIBLE_DELIVERY_STATUSES = new Set(["RECEIVED", "REJECTED"])
+
+function extractDeliveriesArray(response) {
+  const payload = response?.data ?? response
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.items)) return payload.items
+  if (Array.isArray(payload?.data)) return payload.data
+  return []
+}
+
+function normalizeDeliveryOption(raw = {}) {
+  return {
+    id: raw.id || "",
+    code: raw.code ?? null,
+    deliveryNo: raw.deliveryNo || raw.code || raw.id || "Chưa có mã",
+    status: raw.status || "",
+    supplierName:
+      raw.supplierName || raw.supplier?.name || raw.Supplier?.name || "",
+    receivedAt: raw.receivedAt || raw.actualArrivalAt || raw.createdAt || null,
   }
 }
 
 const SupplierComplaintService = {
-  async listComplaints({ page = 1, limit = 20, signal } = {}) {
+  async list({ page = 1, limit = 20, signal } = {}) {
+    if (USE_NEW_FEATURES_MOCK) {
+      const res = await mockIngredientFeedback.list({ page, limit })
+      return { ...res, items: res.items.map(adaptTicketListItem) }
+    }
     const query = clampPagination(page, limit)
     const response = await http.get(BASE_URL, {
       params: query,
@@ -234,7 +184,7 @@ const SupplierComplaintService = {
     const rawPagination = payload.pagination || {}
 
     return {
-      items: rawItems.map(adaptComplaintListItem),
+      items: rawItems.map(adaptTicketListItem),
       pagination: {
         page: Number(rawPagination.page) || query.page,
         limit: Number(rawPagination.limit) || query.limit,
@@ -243,25 +193,191 @@ const SupplierComplaintService = {
     }
   },
 
-  async getComplaintById(feedbackId, { signal } = {}) {
+  async listComplaints(options) {
+    return this.list(options)
+  },
+
+  async detail(feedbackId, { signal } = {}) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(await mockIngredientFeedback.detail(feedbackId))
+    }
     const response = await http.get(`${BASE_URL}/${encodeUuid(feedbackId)}`, {
       signal,
       notifyOnError: false,
     })
-    return adaptComplaintDetail(response?.data ?? response)
+    return adaptTicketDetail(response?.data ?? response)
   },
 
-  async respondToComplaint(feedbackId, supplierResponse, { signal } = {}) {
-    const trimmed = String(supplierResponse ?? "").trim()
+  async getComplaintById(feedbackId, options) {
+    return this.detail(feedbackId, options)
+  },
+
+  async create({ deliveryId, ingredientLotId, description }) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(
+        await mockIngredientFeedback.create({
+          deliveryId,
+          ingredientLotId,
+          description,
+        }),
+      )
+    }
+    const payload = {
+      deliveryId,
+      description: String(description ?? "").trim(),
+    }
+    if (ingredientLotId) {
+      payload.ingredientLotId = ingredientLotId
+    }
+    const response = await http.post(BASE_URL, payload, {
+      notifyOnError: false,
+    })
+    return adaptTicketDetail(response?.data ?? response)
+  },
+
+  async accept(feedbackId) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(await mockIngredientFeedback.accept(feedbackId))
+    }
     const response = await http.post(
-      `${BASE_URL}/${encodeUuid(feedbackId)}/response`,
-      { supplierResponse: trimmed },
-      {
-        signal,
-        notifyOnError: false,
-      },
+      `${BASE_URL}/${encodeUuid(feedbackId)}/accept`,
+      {},
+      { notifyOnError: false },
     )
-    return adaptComplaintDetail(response?.data ?? response)
+    return adaptTicketDetail(response?.data ?? response)
+  },
+
+  async comment(feedbackId, content) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(
+        await mockIngredientFeedback.comment(feedbackId, content),
+      )
+    }
+    const response = await http.post(
+      `${BASE_URL}/${encodeUuid(feedbackId)}/comments`,
+      { content: String(content ?? "").trim() },
+      { notifyOnError: false },
+    )
+    return adaptTicketDetail(response?.data ?? response)
+  },
+
+  async resolve(feedbackId, content) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(
+        await mockIngredientFeedback.resolve(feedbackId, content),
+      )
+    }
+    const response = await http.post(
+      `${BASE_URL}/${encodeUuid(feedbackId)}/resolve`,
+      { content: String(content ?? "").trim() },
+      { notifyOnError: false },
+    )
+    return adaptTicketDetail(response?.data ?? response)
+  },
+
+  async satisfy(feedbackId) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(await mockIngredientFeedback.satisfy(feedbackId))
+    }
+    const response = await http.post(
+      `${BASE_URL}/${encodeUuid(feedbackId)}/satisfy`,
+      {},
+      { notifyOnError: false },
+    )
+    return adaptTicketDetail(response?.data ?? response)
+  },
+
+  async reopen(feedbackId, reason) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return adaptTicketDetail(
+        await mockIngredientFeedback.reopen(feedbackId, reason),
+      )
+    }
+    const trimmed = String(reason ?? "").trim()
+    const payload = trimmed ? { reason: trimmed } : {}
+    const response = await http.post(
+      `${BASE_URL}/${encodeUuid(feedbackId)}/reopen`,
+      payload,
+      { notifyOnError: false },
+    )
+    return adaptTicketDetail(response?.data ?? response)
+  },
+
+  async listEligibleDeliveries({ signal } = {}) {
+    if (USE_NEW_FEATURES_MOCK) {
+      return mockIngredientFeedback.listEligibleDeliveries()
+    }
+    // Backend lọc theo trường của người gọi và theo trạng thái; gọi riêng từng trạng thái hợp lệ
+    const responses = await Promise.all(
+      [...ELIGIBLE_DELIVERY_STATUSES].map(status =>
+        http.get("/deliveries/inspections", {
+          params: { page: 1, limit: 100, status },
+          signal,
+          notifyOnError: false,
+        }),
+      ),
+    )
+    const seenIds = new Set()
+    return responses
+      .flatMap(extractDeliveriesArray)
+      .filter(item => {
+        if (!ELIGIBLE_DELIVERY_STATUSES.has(item?.status) || seenIds.has(item?.id)) return false
+        seenIds.add(item.id)
+        return true
+      })
+      .map(normalizeDeliveryOption)
+      .filter(item => Boolean(item.id))
+  },
+
+  async getDeliveryLots(deliveryId, { signal } = {}) {
+    if (!deliveryId) return []
+    if (USE_NEW_FEATURES_MOCK) {
+      return mockIngredientFeedback.getDeliveryLots(deliveryId)
+    }
+    const response = await http.get(
+      `/deliveries/${encodeUuid(deliveryId)}/inspection`,
+      { signal, notifyOnError: false },
+    )
+    const detailData = response?.data ?? response
+
+    const lots = []
+    const seen = new Set()
+
+    const pushLot = (lot, ingredientName) => {
+      if (!lot?.id || seen.has(lot.id)) return
+      seen.add(lot.id)
+      lots.push({
+        id: lot.id,
+        lotCode: lot.lotCode || lot.code || lot.id,
+        ingredientName:
+          ingredientName ||
+          lot.ingredientName ||
+          lot.ingredient?.name ||
+          "",
+        status: lot.status || "",
+      })
+    }
+
+    const deliveryItems =
+      detailData?.deliveryItems || detailData?.items || []
+    if (Array.isArray(deliveryItems)) {
+      deliveryItems.forEach(item => {
+        const ingredientName =
+          item.ingredientName || item.ingredient?.name || item.name || ""
+        if (Array.isArray(item.ingredientLots)) {
+          item.ingredientLots.forEach(lot => pushLot(lot, ingredientName))
+        }
+        if (item.ingredientLot) {
+          pushLot(item.ingredientLot, ingredientName)
+        }
+      })
+    }
+
+    if (Array.isArray(detailData?.ingredientLots)) {
+      detailData.ingredientLots.forEach(lot => pushLot(lot, ""))
+    }
+
+    return lots
   },
 }
 

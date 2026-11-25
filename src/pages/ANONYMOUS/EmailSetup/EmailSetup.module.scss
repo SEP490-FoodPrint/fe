@@ -1,0 +1,121 @@
+.container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: var(--space-4, 16px) 0;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--neutral-100, #f1f5f3);
+  border: 1px solid var(--border-default, #dce5e0);
+  font-size: var(--text-sm, 14px);
+}
+
+.accountInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.accountName {
+  font-weight: var(--font-semibold, 600);
+  color: var(--text-primary, #1d2b26);
+  overflow-wrap: anywhere;
+}
+
+.accountUsername {
+  font-size: var(--text-xs, 12px);
+  color: var(--text-muted, #6b7c74);
+  font-variant-numeric: tabular-nums;
+}
+
+.emailChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--color-primary-soft, #e8f5f1);
+  border: 1px solid var(--green-100, #c9e8de);
+  font-size: var(--text-sm, 14px);
+}
+
+.emailValue {
+  font-weight: var(--font-semibold, 600);
+  color: var(--green-800, #084c3e);
+  overflow-wrap: anywhere;
+}
+
+.changeEmailBtn:global(.MuiButton-root) {
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 2px 10px;
+  font-size: var(--text-xs, 12px);
+  font-weight: var(--font-semibold, 600);
+  text-transform: none;
+  color: var(--color-primary, #0a8066);
+  border-radius: var(--radius-md, 8px);
+
+  &:hover {
+    background: rgba(10, 128, 102, 0.08);
+  }
+}
+
+.expiryBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2, 8px);
+  font-size: var(--text-xs, 12px);
+  color: var(--text-secondary, #52635c);
+  font-variant-numeric: tabular-nums;
+}
+
+.expiryExpired {
+  color: var(--color-warning, #9b650a);
+  font-weight: var(--font-medium, 500);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-xs, 12px);
+  line-height: 1.5;
+  color: var(--text-muted, #6b7c74);
+  text-align: center;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3, 12px);
+  padding-top: var(--space-3, 12px);
+  border-top: 1px solid var(--neutral-200, #e8eeeb);
+}
+
+.footerCenter {
+  justify-content: center;
+}
+
+.logoutBtn:global(.MuiButton-root) {
+  min-height: 36px;
+  padding: 4px 12px;
+  font-size: var(--text-sm, 14px);
+  font-weight: var(--font-medium, 500);
+  text-transform: none;
+  color: var(--text-secondary, #52635c);
+  border-radius: var(--radius-md, 8px);
+
+  &:hover {
+    background: var(--neutral-100, #f1f5f3);
+    color: var(--text-primary, #1d2b26);
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { useParams } from "react-router-dom"
-import { Button } from "@mui/material"
+import { Alert, Button } from "@mui/material"
 import { Add, ErrorOutlineOutlined, ReplayOutlined } from "@mui/icons-material"
 import notice from "src/components/Notice"
 import SupplierStaffService, {
@@ -19,6 +19,10 @@ const DEFAULT_PAGE_SIZE = 20
 function SupplierStaff() {
   const { id } = useParams()
   const isDetailView = Boolean(id)
+  // Backend trả trạng thái tiếp nhận của NCC kèm danh sách nhân viên (GET /supplier-staff)
+  const [supplierIntakeState, setSupplierIntakeState] = useState(null)
+  const isInspectionPaused =
+    supplierIntakeState === "PAUSED_FOR_FOOD_SAFETY_INSPECTION"
 
   const [staffList, setStaffList] = useState([])
   const [pagination, setPagination] = useState({
@@ -50,6 +54,11 @@ function SupplierStaff() {
 
   const [statusConfirmTarget, setStatusConfirmTarget] = useState(null)
   const [changingStatus, setChangingStatus] = useState(false)
+  const [conflictAlert, setConflictAlert] = useState("")
+
+  useEffect(() => {
+    setConflictAlert("")
+  }, [id, isDetailView])
 
   useEffect(() => {
     if (isDetailView) return undefined
@@ -66,6 +75,7 @@ function SupplierStaff() {
       .then(result => {
         if (controller.signal.aborted) return
         setStaffList(result.items)
+        setSupplierIntakeState(result.supplierIntakeState)
         setPagination(result.pagination)
       })
       .catch(error => {
@@ -199,6 +209,7 @@ function SupplierStaff() {
     setCreating(true)
     setCreateError("")
     setCreateFieldErrors({})
+    setConflictAlert("")
 
     try {
       const created = await SupplierStaffService.create(values)
@@ -217,6 +228,15 @@ function SupplierStaff() {
       )
       setCreateFieldErrors(parsed.fields || {})
       setCreateError(parsed.message)
+      if (parsed.status === 409) {
+        setConflictAlert(parsed.message)
+        notice({
+          msg: "Không thể tạo tài khoản nhân viên",
+          desc: parsed.message,
+          isSuccess: false,
+        })
+        setListReloadTick(prev => prev + 1)
+      }
     } finally {
       setCreating(false)
     }
@@ -226,6 +246,7 @@ function SupplierStaff() {
     if (!detailStaff?.id || !statusConfirmTarget) return
 
     setChangingStatus(true)
+    setConflictAlert("")
     try {
       const updated = await SupplierStaffService.changeStatus(
         detailStaff.id,
@@ -245,6 +266,11 @@ function SupplierStaff() {
         error,
         "Không thể cập nhật trạng thái tài khoản.",
       )
+      if (parsed.status === 409) {
+        setStatusConfirmTarget(null)
+        setConflictAlert(parsed.message)
+        setDetailReloadTick(prev => prev + 1)
+      }
       notice({
         msg: "Cập nhật trạng thái thất bại",
         desc: parsed.message,
@@ -296,7 +322,25 @@ function SupplierStaff() {
 
   if (isDetailView) {
     return (
-      <>
+      <div className={styles.staffPage}>
+        {isInspectionPaused ? (
+          <Alert severity="warning" role="status">
+            Đơn vị đang tạm dừng tiếp nhận để kiểm tra ATTP — không thể tạo mới
+            hoặc mở khóa tài khoản nhân viên cho đến khi cơ quan chức năng khôi
+            phục.
+          </Alert>
+        ) : null}
+
+        {conflictAlert ? (
+          <Alert
+            severity="error"
+            role="alert"
+            onClose={() => setConflictAlert("")}
+          >
+            {conflictAlert}
+          </Alert>
+        ) : null}
+
         <StaffDetailView
           staff={detailStaff}
           loading={loadingDetail}
@@ -325,7 +369,7 @@ function SupplierStaff() {
           }}
           onConfirm={handleConfirmStatusChange}
         />
-      </>
+      </div>
     )
   }
 
@@ -346,6 +390,24 @@ function SupplierStaff() {
           Tạo nhân viên
         </Button>
       </div>
+
+      {isInspectionPaused ? (
+        <Alert severity="warning" role="status">
+          Đơn vị đang tạm dừng tiếp nhận để kiểm tra ATTP — không thể tạo mới
+          hoặc mở khóa tài khoản nhân viên cho đến khi cơ quan chức năng khôi
+          phục.
+        </Alert>
+      ) : null}
+
+      {conflictAlert ? (
+        <Alert
+          severity="error"
+          role="alert"
+          onClose={() => setConflictAlert("")}
+        >
+          {conflictAlert}
+        </Alert>
+      ) : null}
 
       <section className={styles.surface} aria-label="Danh sách nhân viên">
         <StaffFilterBar

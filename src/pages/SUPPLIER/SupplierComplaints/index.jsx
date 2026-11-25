@@ -1,17 +1,14 @@
 import React, { useContext, useEffect, useMemo, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
 import { Button } from "@mui/material"
 import { ErrorOutlineOutlined, ReplayOutlined } from "@mui/icons-material"
-import notice from "src/components/Notice"
+import { TicketDetailView } from "src/components/ComplaintThread"
 import { StoreContext } from "src/contexts"
+import ROUTER from "src/router/ROUTER"
 import SupplierComplaintService, {
-  canRespondSupplierComplaints,
   canViewSupplierComplaints,
-  COMPLAINT_STATUS,
   extractApiError,
-  validateSupplierResponse,
 } from "src/services/SupplierComplaintService"
-import ComplaintDetailView from "./component/ComplaintDetailView"
 import ComplaintFilterBar from "./component/ComplaintFilterBar"
 import ComplaintListView from "./component/ComplaintListView"
 import styles from "./SupplierComplaints.module.scss"
@@ -20,12 +17,12 @@ const DEFAULT_PAGE_SIZE = 20
 
 function SupplierComplaints() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const isDetailView = Boolean(id)
-  const { userStore } = useContext(StoreContext)
+  const { userStore } = useContext(StoreContext) || {}
   const currentUser = userStore?.user
 
   const canView = canViewSupplierComplaints(currentUser)
-  const canRespond = canRespondSupplierComplaints(currentUser)
 
   const [complaints, setComplaints] = useState([])
   const [pagination, setPagination] = useState({
@@ -39,17 +36,10 @@ function SupplierComplaints() {
   const [listError, setListError] = useState(null)
   const [listReloadTick, setListReloadTick] = useState(0)
 
-  const [detailComplaint, setDetailComplaint] = useState(null)
+  const [detailTicket, setDetailTicket] = useState(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
   const [detailError, setDetailError] = useState(null)
   const [detailReloadTick, setDetailReloadTick] = useState(0)
-
-  const [responseText, setResponseText] = useState("")
-  const [fieldError, setFieldError] = useState("")
-  const [submitError, setSubmitError] = useState("")
-  const [submitting, setSubmitting] = useState(false)
-  const [attemptedSubmit, setAttemptedSubmit] = useState(false)
-  const [conflictReloaded, setConflictReloaded] = useState(false)
 
   useEffect(() => {
     if (isDetailView || !canView) return undefined
@@ -58,7 +48,7 @@ function SupplierComplaints() {
     setLoadingList(true)
     setListError(null)
 
-    SupplierComplaintService.listComplaints({
+    SupplierComplaintService.list({
       page: pagination.page,
       limit: pagination.limit,
       signal: controller.signal,
@@ -89,16 +79,8 @@ function SupplierComplaints() {
   }, [isDetailView, canView, pagination.page, pagination.limit, listReloadTick])
 
   useEffect(() => {
-    setResponseText("")
-    setFieldError("")
-    setSubmitError("")
-    setAttemptedSubmit(false)
-    setConflictReloaded(false)
-  }, [id])
-
-  useEffect(() => {
     if (!isDetailView || !id || !canView) {
-      setDetailComplaint(null)
+      setDetailTicket(null)
       setDetailError(null)
       return undefined
     }
@@ -107,16 +89,16 @@ function SupplierComplaints() {
     setLoadingDetail(true)
     setDetailError(null)
 
-    SupplierComplaintService.getComplaintById(id, { signal: controller.signal })
+    SupplierComplaintService.detail(id, { signal: controller.signal })
       .then(result => {
         if (controller.signal.aborted) return
-        setDetailComplaint(result)
+        setDetailTicket(result)
       })
       .catch(error => {
         if (error?.name === "CanceledError" || controller.signal.aborted) {
           return
         }
-        setDetailComplaint(null)
+        setDetailTicket(null)
         setDetailError(
           extractApiError(error, "Không thể tải chi tiết khiếu nại."),
         )
@@ -133,12 +115,13 @@ function SupplierComplaints() {
   const filteredComplaints = useMemo(() => {
     const keyword = searchQuery.trim().toLowerCase()
     return complaints.filter(item => {
-      if (statusFilter !== "ALL" && item.status !== statusFilter) {
+      const statusVal = item.displayStatus || item.status
+      if (statusFilter !== "ALL" && statusVal !== statusFilter) {
         return false
       }
       if (!keyword) return true
       const haystack = [
-        item.complaintCode,
+        item.code,
         item.title,
         item.school?.name,
         item.school?.code,
@@ -160,88 +143,21 @@ function SupplierComplaints() {
     setStatusFilter("ALL")
   }
 
-  const handleResponseChange = nextValue => {
-    setResponseText(nextValue)
-    if (submitError) {
-      setSubmitError("")
-    }
-    if (attemptedSubmit) {
-      const check = validateSupplierResponse(nextValue)
-      setFieldError(check.valid ? "" : check.error)
-    } else if (fieldError) {
-      setFieldError("")
-    }
-  }
-
-  const handleSubmitResponse = async event => {
-    event.preventDefault()
-    if (!detailComplaint?.id || submitting) return
-    if (detailComplaint.status !== COMPLAINT_STATUS.SUBMITTED) return
-
-    setAttemptedSubmit(true)
-    setSubmitError("")
-
-    const check = validateSupplierResponse(responseText)
-    if (!check.valid) {
-      setFieldError(check.error)
-      return
-    }
-    setFieldError("")
-    setSubmitting(true)
-
-    try {
-      const updated = await SupplierComplaintService.respondToComplaint(
-        detailComplaint.id,
-        responseText,
-      )
-      setDetailComplaint(updated)
-      setResponseText("")
-      setFieldError("")
-      setSubmitError("")
-      setAttemptedSubmit(false)
-      setConflictReloaded(false)
-      setComplaints(prev =>
-        prev.map(item =>
-          item.id === updated.id
-            ? {
-                ...item,
-                status: updated.status,
-                respondedAt: updated.respondedAt,
-              }
-            : item,
-        ),
-      )
-      notice({
-        msg: "Đã gửi phản hồi khiếu nại thành công",
-        isSuccess: true,
-      })
-    } catch (error) {
-      const parsed = extractApiError(
-        error,
-        "Không thể gửi phản hồi lúc này. Vui lòng kiểm tra lại trạng thái trước khi thử lại.",
-      )
-
-      if (parsed.status === 409) {
-        setConflictReloaded(true)
-        setSubmitError("")
-        setFieldError("")
-        notice({
-          msg: parsed.message || "Khiếu nại đã được phản hồi",
-          isSuccess: false,
-        })
-        setDetailReloadTick(prev => prev + 1)
-        return
-      }
-
-      if (parsed.status === 400 && parsed.fields?.supplierResponse) {
-        setFieldError(parsed.fields.supplierResponse)
-        return
-      }
-
-      setSubmitError(parsed.message)
-    } finally {
-      setSubmitting(false)
-    }
+  const syncUpdatedTicket = updated => {
+    setDetailTicket(updated)
+    setComplaints(prev =>
+      prev.map(item =>
+        item.id === updated.id
+          ? {
+              ...item,
+              status: updated.status,
+              displayStatus: updated.displayStatus,
+              hasNewMessage: updated.hasNewMessage,
+              closedAt: updated.closedAt,
+            }
+          : item,
+      ),
+    )
   }
 
   if (!canView) {
@@ -271,20 +187,58 @@ function SupplierComplaints() {
   }
 
   if (isDetailView) {
+    const schoolLabel = detailTicket?.school
+      ? `${detailTicket.school.name}${detailTicket.school.code ? ` (${detailTicket.school.code})` : ""}`
+      : "—"
+
+    const metaItems = detailTicket
+      ? [
+          {
+            label: "Trường gửi",
+            value: schoolLabel,
+          },
+          {
+            label: "Chuyến giao",
+            value: detailTicket.delivery?.deliveryNo || "—",
+          },
+          {
+            label: "Lô nguyên liệu",
+            value:
+              detailTicket.ingredientLot?.lotCode || "Toàn bộ chuyến giao",
+            chip: true,
+          },
+        ]
+      : []
+
+    const detailExtra = detailTicket?.submittedBy ? (
+      <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+        <strong style={{ color: "var(--text-primary)" }}>Người gửi:</strong>{" "}
+        {detailTicket.submittedBy.fullName}
+      </div>
+    ) : null
+
     return (
-      <ComplaintDetailView
-        complaint={detailComplaint}
+      <TicketDetailView
+        ticket={detailTicket}
         loading={loadingDetail}
         error={detailError}
-        canRespond={canRespond}
-        responseText={responseText}
-        fieldError={fieldError}
-        submitError={submitError}
-        submitting={submitting}
-        conflictReloaded={conflictReloaded}
-        onRetryDetail={() => setDetailReloadTick(prev => prev + 1)}
-        onResponseChange={handleResponseChange}
-        onSubmitResponse={handleSubmitResponse}
+        backLabel="Quay lại danh sách khiếu nại"
+        onBack={() => navigate(ROUTER.SUPPLIER_COMPLAINTS)}
+        onReload={() => setDetailReloadTick(prev => prev + 1)}
+        metaItems={metaItems}
+        detailExtra={detailExtra}
+        onAccept={async () => {
+          const updated = await SupplierComplaintService.accept(id)
+          syncUpdatedTicket(updated)
+        }}
+        onComment={async content => {
+          const updated = await SupplierComplaintService.comment(id, content)
+          syncUpdatedTicket(updated)
+        }}
+        onResolve={async content => {
+          const updated = await SupplierComplaintService.resolve(id, content)
+          syncUpdatedTicket(updated)
+        }}
       />
     )
   }
@@ -293,7 +247,9 @@ function SupplierComplaints() {
     <div className={styles.complaintsPage}>
       <div className={styles.pageHeader}>
         <div className={styles.headingGroup}>
-          <h1 className={styles.pageTitle}>Danh sách khiếu nại</h1>
+          <h1 className={styles.pageTitle}>
+            Phản ánh chất lượng nguyên liệu
+          </h1>
         </div>
       </div>
 

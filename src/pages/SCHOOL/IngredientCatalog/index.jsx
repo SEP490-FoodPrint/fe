@@ -70,7 +70,8 @@ export default function IngredientCatalog() {
         it.supplierName.toLowerCase().includes(filters.search.toLowerCase())
 
       const matchHandling =
-        filters.handlingType === "all" || it.handlingType === filters.handlingType
+        filters.handlingType === "all" ||
+        it.handlingType === filters.handlingType
 
       const matchSupplier =
         filters.supplierId === "all" || it.supplierId === filters.supplierId
@@ -136,7 +137,10 @@ export default function IngredientCatalog() {
           }}
         >
           <FoodPrintLoading size="large" />
-          <Typography variant="body2" sx={{ color: "#64748b", fontWeight: 500 }}>
+          <Typography
+            variant="body2"
+            sx={{ color: "#64748b", fontWeight: 500 }}
+          >
             Đang tải danh mục nguyên liệu thực phẩm...
           </Typography>
         </Box>

@@ -1,12 +1,26 @@
 import React, { useEffect, useState } from "react"
-import { Alert, Button, Divider, Paper, Skeleton, TextField } from "@mui/material"
-import { AlertCircle, CheckCircle2, RotateCcw, Truck, Utensils } from "lucide-react"
+import {
+  Alert,
+  Button,
+  Divider,
+  Paper,
+  Skeleton,
+  TextField,
+} from "@mui/material"
+import {
+  AlertCircle,
+  CheckCircle2,
+  RotateCcw,
+  Truck,
+  Utensils,
+} from "lucide-react"
 import notice from "src/components/Notice"
 import SchoolService from "src/services/SchoolService"
 import "./style.scss"
 
 const STORAGE_KEY = "foodprint_receiving_times"
-const errorMessage = (failure, fallback) => failure?.response?.data?.message || fallback
+const errorMessage = (failure, fallback) =>
+  failure?.response?.data?.message || fallback
 
 function MealServingTimes() {
   const [saved, setSaved] = useState({
@@ -55,23 +69,39 @@ function MealServingTimes() {
           deliverySlot2: initialSaved.deliverySlot2 || "",
         })
       })
-      .catch(failure => active && setError(errorMessage(failure, "Không thể tải khung giờ vận hành.")))
+      .catch(
+        failure =>
+          active &&
+          setError(errorMessage(failure, "Không thể tải khung giờ vận hành.")),
+      )
       .finally(() => active && setLoading(false))
-    return () => { active = false }
+    return () => {
+      active = false
+    }
   }, [])
 
-  const hasConfiguredDelivery = Boolean(saved.deliverySlot1 || saved.deliverySlot2)
+  const hasConfiguredDelivery = Boolean(
+    saved.deliverySlot1 || saved.deliverySlot2,
+  )
   const hasConfiguredMeals = Boolean(saved.lunchTime || saved.afternoonMealTime)
   const hasConfigured = hasConfiguredDelivery || hasConfiguredMeals
 
-  const changedDelivery = (saved.deliverySlot1 || "") !== form.deliverySlot1
-    || (saved.deliverySlot2 || "") !== form.deliverySlot2
-  const changedMeals = (saved.lunchTime || "") !== form.lunchTime
-    || (saved.afternoonMealTime || "") !== form.afternoonMealTime
+  const changedDelivery =
+    (saved.deliverySlot1 || "") !== form.deliverySlot1 ||
+    (saved.deliverySlot2 || "") !== form.deliverySlot2
+  const changedMeals =
+    (saved.lunchTime || "") !== form.lunchTime ||
+    (saved.afternoonMealTime || "") !== form.afternoonMealTime
   const changed = changedDelivery || changedMeals
 
-  const orderedMeals = !form.lunchTime || !form.afternoonMealTime || form.lunchTime < form.afternoonMealTime
-  const orderedDelivery = !form.deliverySlot1 || !form.deliverySlot2 || form.deliverySlot1 < form.deliverySlot2
+  const orderedMeals =
+    !form.lunchTime ||
+    !form.afternoonMealTime ||
+    form.lunchTime < form.afternoonMealTime
+  const orderedDelivery =
+    !form.deliverySlot1 ||
+    !form.deliverySlot2 ||
+    form.deliverySlot1 < form.deliverySlot2
   const canSave = !saving && changed && orderedMeals && orderedDelivery
 
   const reset = () => {
@@ -109,7 +139,10 @@ function MealServingTimes() {
       setSaved(nextSaved)
       notice({ msg: "Đã lưu khung giờ vận hành" })
     } catch (failure) {
-      notice({ msg: errorMessage(failure, "Không thể lưu khung giờ vận hành."), isSuccess: false })
+      notice({
+        msg: errorMessage(failure, "Không thể lưu khung giờ vận hành."),
+        isSuccess: false,
+      })
     } finally {
       setSaving(false)
     }
@@ -118,8 +151,13 @@ function MealServingTimes() {
   return (
     <div className="meal-times-page">
       <header>
-        <nav className="meal-times-page__breadcrumb" aria-label="Đường dẫn trang">
-          <span>Ban Giám hiệu</span><span>/</span><strong>Khung giờ vận hành</strong>
+        <nav
+          className="meal-times-page__breadcrumb"
+          aria-label="Đường dẫn trang"
+        >
+          <span>Ban Giám hiệu</span>
+          <span>/</span>
+          <strong>Khung giờ vận hành</strong>
         </nav>
         <h1>Khung giờ vận hành</h1>
       </header>
@@ -161,7 +199,12 @@ function MealServingTimes() {
                 label="Đợt 1"
                 value={form.deliverySlot1}
                 disabled={saving}
-                onChange={event => setForm(current => ({ ...current, deliverySlot1: event.target.value }))}
+                onChange={event =>
+                  setForm(current => ({
+                    ...current,
+                    deliverySlot1: event.target.value,
+                  }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
               <TextField
@@ -170,8 +213,15 @@ function MealServingTimes() {
                 value={form.deliverySlot2}
                 disabled={saving}
                 error={!orderedDelivery}
-                helperText={!orderedDelivery ? "Đợt 2 phải sau đợt 1" : undefined}
-                onChange={event => setForm(current => ({ ...current, deliverySlot2: event.target.value }))}
+                helperText={
+                  !orderedDelivery ? "Đợt 2 phải sau đợt 1" : undefined
+                }
+                onChange={event =>
+                  setForm(current => ({
+                    ...current,
+                    deliverySlot2: event.target.value,
+                  }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </div>
@@ -210,7 +260,12 @@ function MealServingTimes() {
                 label="Bữa trưa"
                 value={form.lunchTime}
                 disabled={saving}
-                onChange={event => setForm(current => ({ ...current, lunchTime: event.target.value }))}
+                onChange={event =>
+                  setForm(current => ({
+                    ...current,
+                    lunchTime: event.target.value,
+                  }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
               <TextField
@@ -219,8 +274,15 @@ function MealServingTimes() {
                 value={form.afternoonMealTime}
                 disabled={saving}
                 error={!orderedMeals}
-                helperText={!orderedMeals ? "Bữa xế phải sau bữa trưa" : undefined}
-                onChange={event => setForm(current => ({ ...current, afternoonMealTime: event.target.value }))}
+                helperText={
+                  !orderedMeals ? "Bữa xế phải sau bữa trưa" : undefined
+                }
+                onChange={event =>
+                  setForm(current => ({
+                    ...current,
+                    afternoonMealTime: event.target.value,
+                  }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </div>
@@ -231,16 +293,21 @@ function MealServingTimes() {
             <div className="meal-times-page__status-info">
               {!changed && hasConfigured && (
                 <span className="meal-times-page__status-text success">
-                  <CheckCircle2 size={16} /> Toàn bộ khung giờ vận hành hiện tại đã được cấu hình và đang áp dụng.
+                  <CheckCircle2 size={16} /> Toàn bộ khung giờ vận hành hiện tại
+                  đã được cấu hình và đang áp dụng.
                 </span>
               )}
               {changed && (
                 <span className="meal-times-page__status-text warning">
-                  <AlertCircle size={16} /> Có thay đổi chưa lưu. Nhấn "Lưu cấu hình" để áp dụng cho vận hành toàn trường.
+                  <AlertCircle size={16} /> Có thay đổi chưa lưu. Nhấn "Lưu cấu
+                  hình" để áp dụng cho vận hành toàn trường.
                 </span>
               )}
               {!hasConfigured && !changed && (
-                <span>Để trống ca mà trường không tổ chức. Thay đổi áp dụng cho các kế hoạch sau khi lưu.</span>
+                <span>
+                  Để trống ca mà trường không tổ chức. Thay đổi áp dụng cho các
+                  kế hoạch sau khi lưu.
+                </span>
               )}
             </div>
             <div className="meal-times-page__actions">
@@ -257,11 +324,21 @@ function MealServingTimes() {
               )}
               <Button
                 variant="contained"
-                disabled={saving || !changed || !orderedMeals || !orderedDelivery}
+                disabled={
+                  saving || !changed || !orderedMeals || !orderedDelivery
+                }
                 onClick={save}
-                startIcon={!changed && hasConfigured ? <CheckCircle2 size={16} /> : undefined}
+                startIcon={
+                  !changed && hasConfigured ? (
+                    <CheckCircle2 size={16} />
+                  ) : undefined
+                }
               >
-                {saving ? "Đang lưu..." : !changed && hasConfigured ? "Đã lưu cấu hình" : "Lưu cấu hình"}
+                {saving
+                  ? "Đang lưu..."
+                  : !changed && hasConfigured
+                    ? "Đã lưu cấu hình"
+                    : "Lưu cấu hình"}
               </Button>
             </div>
           </div>
