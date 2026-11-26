@@ -12,11 +12,13 @@ import {
   InfoOutlined,
   WarningAmberOutlined,
 } from "@mui/icons-material"
+import { EvidenceFilePicker } from "src/components/EvidenceFiles"
 import FoodSafetyIncidentService, {
   CANCELLATION_REASON,
   CANCELLATION_REASON_OPTIONS,
   extractApiError,
   formatDateVi,
+  getFilesError,
   isUuid,
   MEAL_TYPE_LABELS,
   PRELIMINARY_ASSESSMENT,
@@ -35,6 +37,7 @@ export function ForwardIncidentDialog({
     PRELIMINARY_ASSESSMENT.SCHOOL_MEAL_SUSPECTED,
   )
   const [preliminaryNote, setPreliminaryNote] = useState("")
+  const [files, setFiles] = useState([])
   const [fieldErrors, setFieldErrors] = useState({})
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
@@ -43,6 +46,7 @@ export function ForwardIncidentDialog({
     if (open) {
       setPreliminaryAssessment(PRELIMINARY_ASSESSMENT.SCHOOL_MEAL_SUSPECTED)
       setPreliminaryNote("")
+      setFiles([])
       setFieldErrors({})
       setSubmitError("")
     }
@@ -62,6 +66,7 @@ export function ForwardIncidentDialog({
     if (preliminaryNote.trim()) {
       payload.preliminaryNote = preliminaryNote.trim()
     }
+    if (files.length > 0) payload.files = files
 
     setSubmitting(true)
     setSubmitError("")
@@ -80,6 +85,8 @@ export function ForwardIncidentDialog({
       if (parsed.status === 400 && Object.keys(parsed.fields).length > 0) {
         setFieldErrors(parsed.fields)
       }
+      const filesError = getFilesError(parsed)
+      if (filesError) setFieldErrors(prev => ({ ...prev, files: filesError }))
       if (parsed.status === 409) {
         setSubmitError(parsed.message)
         onConflict?.(parsed.message)
@@ -178,6 +185,17 @@ export function ForwardIncidentDialog({
                 </span>
               ) : null}
             </div>
+
+            <EvidenceFilePicker
+              value={files}
+              onChange={next => {
+                setFiles(next)
+                setFieldErrors(prev => ({ ...prev, files: "" }))
+              }}
+              disabled={submitting}
+              label="Biên bản/ảnh xác minh (không bắt buộc)"
+              error={fieldErrors.files || ""}
+            />
           </div>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>

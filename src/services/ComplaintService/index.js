@@ -1,6 +1,8 @@
 import http from "../01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockMealComplaints } from "src/services/mockNewFeatures"
+import {
+  buildEvidenceBody,
+  evidenceRequestConfig,
+} from "src/components/EvidenceFiles/evidenceFiles"
 import {
   apiComplaint,
   apiComplaintAccept,
@@ -13,56 +15,48 @@ import {
 } from "./urls"
 
 const list = (params, signal) =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.list(params)
-    : http.get(apiComplaints, { params, signal, notifyOnError: false })
+  http.get(apiComplaints, { params, signal, notifyOnError: false })
 
 const detail = (id, signal) =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.detail(id)
-    : http.get(apiComplaint(id), { signal, notifyOnError: false })
+  http.get(apiComplaint(id), { signal, notifyOnError: false })
 
-const create = payload =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.create(payload)
-    : http.post(apiComplaints, payload, { notifyOnError: false })
+const postWithFiles = (url, fields, files) => {
+  const body = buildEvidenceBody(fields, files)
+  return http.post(
+    url,
+    body,
+    evidenceRequestConfig(body, { notifyOnError: false }),
+  )
+}
+
+const create = ({ files, ...payload }) =>
+  postWithFiles(apiComplaints, payload, files)
 
 const mealOptions = signal =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.mealOptions()
-    : http.get(apiMealOptions, { signal, notifyOnError: false })
+  http.get(apiMealOptions, { signal, notifyOnError: false })
 
 const accept = id =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.accept(id)
-    : http.post(apiComplaintAccept(id), {}, { notifyOnError: false })
+  http.post(apiComplaintAccept(id), {}, { notifyOnError: false })
 
-const comment = (id, content) =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.comment(id, content)
-    : http.post(
-        apiComplaintComments(id),
-        { content: String(content ?? "").trim() },
-        { notifyOnError: false },
-      )
+const comment = (id, content, files) =>
+  postWithFiles(
+    apiComplaintComments(id),
+    { content: String(content ?? "").trim() },
+    files,
+  )
 
-const resolve = (id, content) =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.resolve(id, content)
-    : http.post(
-        apiComplaintResolve(id),
-        { content: String(content ?? "").trim() },
-        { notifyOnError: false },
-      )
+const resolve = (id, content, files) =>
+  postWithFiles(
+    apiComplaintResolve(id),
+    { content: String(content ?? "").trim() },
+    files,
+  )
 
 const satisfy = id =>
-  USE_NEW_FEATURES_MOCK
-    ? mockMealComplaints.satisfy(id)
-    : http.post(apiComplaintSatisfy(id), {}, { notifyOnError: false })
+  http.post(apiComplaintSatisfy(id), {}, { notifyOnError: false })
 
 const reopen = (id, reason) => {
   const trimmed = String(reason ?? "").trim()
-  if (USE_NEW_FEATURES_MOCK) return mockMealComplaints.reopen(id, trimmed)
   const payload = trimmed ? { reason: trimmed } : {}
   return http.post(apiComplaintReopen(id), payload, { notifyOnError: false })
 }

@@ -12,7 +12,7 @@ import {
 import {
   DEPARTMENT_CONFIGS,
   DEFAULT_INITIAL_PASSWORD,
-} from "../../Accounts/mockAccountsData"
+} from "../../Accounts/accountsData"
 import styles from "./CreateAccountForm.module.scss"
 
 function CreateAccountForm({

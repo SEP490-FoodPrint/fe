@@ -17,7 +17,6 @@
 .feedback { margin: var(--space-4); }
 .pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-5); p { margin: 0; font-size: var(--text-xs); color: var(--text-muted); } :global(.MuiPaginationItem-root) { min-height: var(--space-10); min-width: var(--space-10); font-size: var(--text-sm); } }
 .mobilePagination { display: flex; align-items: center; gap: var(--space-3); font-size: var(--text-sm); > span { white-space: nowrap; } }
-.note { color: var(--text-muted); font-size: var(--text-xs); margin: 0; }
 @media (max-width: 850px) { .pagination { flex-wrap: wrap; } }
 @media (max-width: 600px) {
   .page { gap: var(--space-4); }

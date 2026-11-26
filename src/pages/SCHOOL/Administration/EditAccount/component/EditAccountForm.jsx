@@ -12,7 +12,7 @@ import {
 import {
   DEPARTMENT_CONFIGS,
   ACCOUNT_STATUSES,
-} from "../../Accounts/mockAccountsData"
+} from "../../Accounts/accountsData"
 import styles from "./EditAccountForm.module.scss"
 
 function EditAccountForm({

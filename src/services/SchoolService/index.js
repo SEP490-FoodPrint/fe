@@ -13,19 +13,6 @@ import {
   apiSamplePolicy,
   apiDeliveryInspectionRoles,
 } from "./urls";
-import {
-  getMockDailyMealMenu,
-  getMockWeeklyMenu,
-  getMockSchoolGrades,
-} from "./mockData";
-
-const isMockEnabled = () => {
-  return (
-    import.meta.env.VITE_USE_MOCKDATA === "true" ||
-    import.meta.env.USE_MOCKDATA === "true" ||
-    import.meta.env.VITE_USE_MOCK === "true"
-  );
-};
 
 /**
  * 1. Hàm gọi API danh sách trường học công khai
@@ -82,12 +69,8 @@ const getSchoolDetailByIdApi = async (id) => {
 
 /**
  * 3. Thực đơn ngày của trường học
- * Hỗ trợ mock data khi USE_MOCKDATA=true
  */
 const getDailyMealMenuApi = async (schoolCode, date, grade) => {
-  if (isMockEnabled()) {
-    return getMockDailyMealMenu(schoolCode, date, grade);
-  }
   try {
     const res = await http.get(apiGetDailyMealMenu(schoolCode, date, grade), {
       skipAuthRedirect: true,
@@ -102,12 +85,8 @@ const getDailyMealMenuApi = async (schoolCode, date, grade) => {
 
 /**
  * 4. Thực đơn tuần của trường học
- * Hỗ trợ mock data khi USE_MOCKDATA=true
  */
 const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
-  if (isMockEnabled()) {
-    return getMockWeeklyMenu(schoolCode, weekStart, grade);
-  }
   try {
     const res = await http.get(apiGetWeeklyMenu(schoolCode, weekStart, grade), {
       skipAuthRedirect: true,
@@ -124,9 +103,6 @@ const getWeeklyMenuApi = async (schoolCode, weekStart, grade) => {
  * Danh sách khối của trường học
  */
 const getSchoolGradesApi = async (schoolCode, week) => {
-  if (isMockEnabled()) {
-    return getMockSchoolGrades(schoolCode);
-  }
   try {
     const res = await http.get(apiGetSchoolGrades(schoolCode, week), {
       skipAuthRedirect: true,

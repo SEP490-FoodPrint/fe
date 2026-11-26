@@ -14,7 +14,7 @@ import {
     getStoredAccounts,
     saveStoredAccounts,
     getDepartmentKPIStats,
-} from "./mockAccountsData"
+} from "./accountsData"
 import styles from "./index.module.scss"
 
 const PAGE_SIZE = 10
@@ -63,7 +63,7 @@ function Accounts() {
     const navigate = useNavigate()
     const location = useLocation()
 
-    // 1. Quản lý danh sách tài khoản (Khởi tạo rỗng, hoàn toàn không nạp Mock Data)
+    // 1. Quản lý danh sách tài khoản
     const [accounts, setAccounts] = useState(() => getStoredAccounts())
     const [isLoading, setIsLoading] = useState(false)
 

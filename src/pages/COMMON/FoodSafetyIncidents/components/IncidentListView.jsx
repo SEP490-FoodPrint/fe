@@ -14,12 +14,14 @@ import {
 import {
   formatCode,
   formatDateTimeVi,
+  formatDateVi,
   getForwardingStatusMeta,
   getIncidentStatusMeta,
   INCIDENT_SOURCE_LABELS,
   INCIDENT_STATUS_OPTIONS,
 } from "src/services/FoodSafetyIncidentService"
 import IncidentStatusBadge from "./IncidentStatusBadge"
+import TruncatedText from "src/components/TruncatedText"
 import styles from "../FoodSafetyIncidents.module.scss"
 
 const SKELETON_ROWS = [0, 1, 2, 3, 4]
@@ -190,7 +192,7 @@ function IncidentListView({
                 <tr>
                   <th scope="col">Mã hồ sơ</th>
                   <th scope="col">Tiêu đề báo cáo</th>
-                  <th scope="col">HS có triệu chứng</th>
+                  <th scope="col">Số HS</th>
                   <th scope="col">Nguồn báo cáo</th>
                   <th scope="col">Thời điểm xảy ra</th>
                   <th scope="col">Trạng thái</th>
@@ -221,15 +223,23 @@ function IncidentListView({
                           <span className={styles.mutedText}>—</span>
                         )}
                       </td>
-                      <td>
-                        <Link to={detailUrl} className={styles.primaryLink}>
+                      <td style={{ width: "100%", maxWidth: 0, minWidth: 160 }}>
+                        <TruncatedText
+                          component={Link}
+                          to={detailUrl}
+                          className={styles.primaryLink}
+                        >
                           {item.title || "Báo cáo ngộ độc"}
-                        </Link>
+                        </TruncatedText>
                       </td>
                       <td className={styles.tabularNum}>
                         {item.reportedSymptomaticCount ?? "—"}
                       </td>
-                      <td>{sourceText}</td>
+                      <td>
+                        <TruncatedText style={{ maxWidth: 130 }}>
+                          {sourceText}
+                        </TruncatedText>
+                      </td>
                       <td className={styles.tabularNum}>
                         {formatDateTimeVi(item.occurredAt)}
                       </td>
@@ -239,8 +249,11 @@ function IncidentListView({
                           tone={statusMeta.tone}
                         />
                       </td>
-                      <td className={styles.tabularNum}>
-                        {formatDateTimeVi(item.createdAt)}
+                      <td
+                        className={styles.tabularNum}
+                        title={formatDateTimeVi(item.createdAt)}
+                      >
+                        {formatDateVi(item.createdAt)}
                       </td>
                       <td className={styles.actionCell}>
                         <Link to={detailUrl} className={styles.detailLink}>
@@ -413,7 +426,9 @@ function IncidentListView({
                         </span>
                       </td>
                       <td>
-                        <div>{report.recipientOrganization || "Đơn vị ATTP"}</div>
+                        <TruncatedText style={{ maxWidth: 280 }}>
+                          {report.recipientOrganization || "Đơn vị ATTP"}
+                        </TruncatedText>
                         {detailUrl ? (
                           <div className={styles.subline}>
                             <Link to={detailUrl} className={styles.detailLink}>

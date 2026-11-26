@@ -16,7 +16,7 @@ import {
 import {
   getDepartmentConfig,
   ACCOUNT_STATUSES,
-} from "../mockAccountsData"
+} from "../accountsData"
 import styles from "./AccountTable.module.scss"
 
 const DEPT_ICONS = {

@@ -1,6 +1,4 @@
 import http from "src/services/01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockGetPublicLocations } from "src/services/mockNewFeatures"
 
 const PUBLIC_LOCATIONS_URL = "/schools/public/locations"
 
@@ -78,13 +76,11 @@ export async function getPublicLocations(signal, { force = false } = {}) {
   }
 
   if (!inflightPromise) {
-    inflightPromise = (USE_NEW_FEATURES_MOCK
-      ? mockGetPublicLocations().then(raw => ({ data: raw }))
-      : http.get(PUBLIC_LOCATIONS_URL, {
-          skipAuthRedirect: true,
-          notifyOnError: false,
-        })
-    )
+    inflightPromise = http
+      .get(PUBLIC_LOCATIONS_URL, {
+        skipAuthRedirect: true,
+        notifyOnError: false,
+      })
       .then(response => {
         const raw = Array.isArray(response?.data)
           ? response.data

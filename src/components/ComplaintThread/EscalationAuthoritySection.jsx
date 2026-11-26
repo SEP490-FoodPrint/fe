@@ -19,6 +19,10 @@ import {
   VisibilityOutlined,
 } from "@mui/icons-material"
 import UserAvatar from "src/components/Common/UserAvatar"
+import {
+  EvidenceAttachmentList,
+  EvidenceFilePicker,
+} from "src/components/EvidenceFiles"
 import notice from "src/components/Notice"
 import { StoreContext } from "src/contexts"
 import AuthorityComplaintService from "src/services/AuthorityComplaintService"
@@ -67,6 +71,7 @@ export default function EscalationAuthoritySection({
 
   const [commentText, setCommentText] = useState("")
   const [commentError, setCommentError] = useState("")
+  const [commentFiles, setCommentFiles] = useState([])
   const [busyAction, setBusyAction] = useState("")
 
   const [reopenOpen, setReopenOpen] = useState(false)
@@ -202,14 +207,18 @@ export default function EscalationAuthoritySection({
         const updated = await AuthorityComplaintService.comment(
           authorityComplaintId,
           trimmed,
+          commentFiles,
         )
         setTicket(updated)
         setCommentText("")
+        setCommentFiles([])
         notice({ msg: "Đã gửi phản hồi tới Cơ quan ATTP", isSuccess: true })
       },
       {
         onInlineError: parsed =>
-          setCommentError(parsed.fields?.content || parsed.message),
+          setCommentError(
+            parsed.fields?.content || parsed.fields?.files || parsed.message,
+          ),
       },
     )
   }
@@ -376,6 +385,12 @@ export default function EscalationAuthoritySection({
                 </div>
               </div>
 
+              <EvidenceAttachmentList
+                attachments={ticket.attachments}
+                title="Tệp gửi kèm khi chuyển ATTP"
+                className={styles.escalationAttachments}
+              />
+
               {readOnly ? (
                 <div className={styles.readOnlyNote} role="note">
                   <VisibilityOutlined
@@ -454,6 +469,10 @@ export default function EscalationAuthoritySection({
                               >
                                 {comment.content}
                               </p>
+                              <EvidenceAttachmentList
+                                attachments={comment.attachments}
+                                className={styles.commentAttachments}
+                              />
                             </div>
                           </article>
                         )
@@ -507,10 +526,21 @@ export default function EscalationAuthoritySection({
                       </p>
                     ) : null}
                     <div className={styles.composerToolbar}>
-                      <span className={styles.charCount}>
-                        {commentLength.toLocaleString("vi-VN")}/
-                        {MAX_COMMENT_LENGTH.toLocaleString("vi-VN")} ký tự
-                      </span>
+                      <div className={styles.composerMeta}>
+                        <EvidenceFilePicker
+                          compact
+                          value={commentFiles}
+                          onChange={files => {
+                            setCommentFiles(files)
+                            if (commentError) setCommentError("")
+                          }}
+                          disabled={Boolean(busyAction)}
+                        />
+                        <span className={styles.charCount}>
+                          {commentLength.toLocaleString("vi-VN")}/
+                          {MAX_COMMENT_LENGTH.toLocaleString("vi-VN")} ký tự
+                        </span>
+                      </div>
                       <Button
                         type="submit"
                         variant="contained"

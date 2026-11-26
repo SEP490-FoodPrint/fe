@@ -199,12 +199,12 @@ function MealFeedback() {
           const { data } = await ComplaintService.accept(id)
           setDetailTicket(normalizeTicketFields(data))
         }}
-        onComment={async content => {
-          const { data } = await ComplaintService.comment(id, content)
+        onComment={async (content, files) => {
+          const { data } = await ComplaintService.comment(id, content, files)
           setDetailTicket(normalizeTicketFields(data))
         }}
-        onResolve={async content => {
-          const { data } = await ComplaintService.resolve(id, content)
+        onResolve={async (content, files) => {
+          const { data } = await ComplaintService.resolve(id, content, files)
           setDetailTicket(normalizeTicketFields(data))
         }}
       />

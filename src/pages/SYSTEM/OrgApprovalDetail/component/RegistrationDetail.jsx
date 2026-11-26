@@ -24,7 +24,6 @@ export default function RegistrationDetail() {
   const location = useLocation()
   const { userStore } = useContext(StoreContext)
   const [request, setRequest] = useState(null)
-  const [isMock, setIsMock] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [retry, setRetry] = useState(0)
@@ -39,7 +38,7 @@ export default function RegistrationDetail() {
     setDialog(null)
     window.scrollTo(0, 0)
     RegistrationService.getRequest(requestId, { signal: controller.signal }).then(response => {
-      if (active) { setRequest(response.data); setIsMock(Boolean(response.isMock)) }
+      if (active) setRequest(response.data)
     }).catch(err => {
       if (active) setError(err.message || "Không thể tải hồ sơ đăng ký.")
     }).finally(() => { if (active) setLoading(false) })
@@ -118,19 +117,18 @@ export default function RegistrationDetail() {
           {request.rejection_reason && <RequestFields columns={1} fields={[field("Lý do từ chối", request.rejection_reason)]} />}
         </> : <p className={styles.description}>Chưa có thông tin xét duyệt.</p>}
       </Card>
-      {!isMock && <BlockchainProofCard
+      <BlockchainProofCard
         kind="registrations"
         recordId={request.id}
         title="Niêm phong hồ sơ trên blockchain"
         canVerify={permissions.includes("registration.view")}
         canAnchor={permissions.includes("registration.approve")}
         refreshKey={request.updated_at}
-      />}
+      />
       <footer className={styles.footer}>
         <p>Cập nhật lần cuối: {formatRequestDate(request.updated_at, true)}</p>
-        {isMock && <p>Dữ liệu và minh chứng minh họa cho giao diện.</p>}
       </footer>
-      <ReviewDialog mode={dialog} request={request} reviewer={userStore?.user} onClose={() => setDialog(null)} onReviewed={(updated, reviewedMock) => { setRequest(prev => ({ ...updated, location: updated.location || prev?.location || null })); setIsMock(Boolean(reviewedMock)); setDialog("RESULT") }} onReload={() => { setDialog(null); setRetry(value => value + 1) }} onSwitchToReject={() => setDialog("REJECTED")} />
+      <ReviewDialog mode={dialog} request={request} onClose={() => setDialog(null)} onReviewed={updated => { setRequest(prev => ({ ...updated, location: updated.location || prev?.location || null })); setDialog("RESULT") }} onReload={() => { setDialog(null); setRetry(value => value + 1) }} onSwitchToReject={() => setDialog("REJECTED")} />
     </section>
   )
 }

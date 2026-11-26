@@ -21,12 +21,9 @@ import {
 } from "./urls";
 import STORAGE, {
   deleteStorage,
-  getStorage,
   setStorage,
 } from "src/lib/storage";
-import { MOCK_ACCOUNTS, ROLES } from "src/constants/roles";
-import { USE_MOCK_API, USE_NEW_FEATURES_MOCK } from "src/lib/config";
-import { mockEmailSetup } from "src/services/mockNewFeatures";
+import { ROLES } from "src/constants/roles";
 
 const normalizeUser = (user) => {
   if (!user?.id || !user.role || !user.orgType)
@@ -66,11 +63,6 @@ const normalizeUser = (user) => {
       user.schoolId || user.supplierId || user.communeFoodSafetyUnitId || null,
   };
 };
-const saveSession = (token, user) => {
-  setStorage(STORAGE.TOKEN, token);
-  setStorage(STORAGE.USER_INFO, user);
-  return { token, user };
-};
 const clearSavedSession = () => {
   deleteStorage(STORAGE.TOKEN);
   deleteStorage(STORAGE.USER_INFO);
@@ -81,13 +73,6 @@ const AuthService = {
    * Gọi API đăng nhập thật
    */
   login: async ({ identifier, password }) => {
-    if (USE_MOCK_API) {
-      const account = MOCK_ACCOUNTS.find(
-        (acc) => acc.username.toLowerCase() === identifier.trim().toLowerCase(),
-      );
-      if (!account) throw new Error("Không tìm thấy tài khoản minh họa.");
-      return AuthService.mockLoginByRole(account.role);
-    }
     const response = await http.post(
       apiLogin,
       { identifier: identifier.trim(), password },
@@ -140,7 +125,6 @@ const AuthService = {
     return response.data;
   },
   requestEmailSetup: async (email) => {
-    if (USE_NEW_FEATURES_MOCK) return mockEmailSetup.request(email);
     const response = await http.post(
       apiEmailSetupRequest,
       { email: email.trim().toLowerCase() },
@@ -153,12 +137,6 @@ const AuthService = {
     return response.data;
   },
   verifyEmailSetup: async ({ email, code }) => {
-    if (USE_NEW_FEATURES_MOCK) {
-      const result = await mockEmailSetup.verify({ email, code });
-      const user = normalizeUser(result.user);
-      setStorage(STORAGE.USER_INFO, user);
-      return { user, expiresIn: result.expiresIn };
-    }
     const response = await http.post(
       apiEmailSetupVerify,
       { email: email.trim().toLowerCase(), code: code.trim() },
@@ -279,26 +257,7 @@ const AuthService = {
     return response.data;
   },
 
-  /**
-   * Đăng nhập nhanh bằng mock account (phục vụ test các role)
-   */
-  mockLoginByRole: (roleCode) => {
-    if (!USE_MOCK_API) throw new Error("Chế độ dữ liệu minh họa đang tắt.");
-    const account =
-      MOCK_ACCOUNTS.find((acc) => acc.role === roleCode) || MOCK_ACCOUNTS[0];
-    const token = `mock_token_${account.role}`;
-
-    return saveSession(token, account);
-  },
-
   restoreSession: async ({ signal } = {}) => {
-    const token = getStorage(STORAGE.TOKEN);
-    if (/^mock_/.test(token)) {
-      const user = getStorage(STORAGE.USER_INFO);
-      if (USE_MOCK_API && user) return user;
-      clearSavedSession();
-    }
-    if (USE_MOCK_API) return null;
     clearSavedSession();
     const response = await http.get(apiGetProfile, {
       signal,
@@ -319,12 +278,11 @@ const AuthService = {
    */
   logout: async () => {
     try {
-      if (!USE_MOCK_API)
-        await http.post(apiLogout, null, {
-          skipRefresh: true,
-          skipAuthRedirect: true,
-          notifyOnError: false,
-        });
+      await http.post(apiLogout, null, {
+        skipRefresh: true,
+        skipAuthRedirect: true,
+        notifyOnError: false,
+      });
     } finally {
       clearSavedSession();
     }

@@ -8,6 +8,7 @@ import ROUTER from "src/router/ROUTER"
 import SupplierComplaintService, {
   canViewSupplierComplaints,
   extractApiError,
+  formatIngredientIssueType,
 } from "src/services/SupplierComplaintService"
 import ComplaintFilterBar from "./component/ComplaintFilterBar"
 import ComplaintListView from "./component/ComplaintListView"
@@ -210,10 +211,25 @@ function SupplierComplaints() {
         ]
       : []
 
-    const detailExtra = detailTicket?.submittedBy ? (
-      <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-        <strong style={{ color: "var(--text-primary)" }}>Người gửi:</strong>{" "}
-        {detailTicket.submittedBy.fullName}
+    const detailExtra = detailTicket ? (
+      <div
+        style={{
+          display: "grid",
+          gap: 4,
+          fontSize: 13,
+          color: "var(--text-secondary)",
+        }}
+      >
+        <div>
+          <strong style={{ color: "var(--text-primary)" }}>Loại vấn đề:</strong>{" "}
+          {formatIngredientIssueType(detailTicket.issueType)}
+        </div>
+        {detailTicket.submittedBy ? (
+          <div>
+            <strong style={{ color: "var(--text-primary)" }}>Người gửi:</strong>{" "}
+            {detailTicket.submittedBy.fullName}
+          </div>
+        ) : null}
       </div>
     ) : null
 
@@ -231,12 +247,20 @@ function SupplierComplaints() {
           const updated = await SupplierComplaintService.accept(id)
           syncUpdatedTicket(updated)
         }}
-        onComment={async content => {
-          const updated = await SupplierComplaintService.comment(id, content)
+        onComment={async (content, files) => {
+          const updated = await SupplierComplaintService.comment(
+            id,
+            content,
+            files,
+          )
           syncUpdatedTicket(updated)
         }}
-        onResolve={async content => {
-          const updated = await SupplierComplaintService.resolve(id, content)
+        onResolve={async (content, files) => {
+          const updated = await SupplierComplaintService.resolve(
+            id,
+            content,
+            files,
+          )
           syncUpdatedTicket(updated)
         }}
       />

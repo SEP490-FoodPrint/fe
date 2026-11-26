@@ -30,6 +30,7 @@ import {
   formatMealDate,
   mealLabels,
 } from "src/pages/SCHOOL/MealComplaints/labels"
+import { EvidenceAttachmentList } from "src/components/EvidenceFiles"
 import styles from "./AuthorityComplaints.module.scss"
 
 const SKELETON_ROWS = [0, 1, 2, 3, 4]
@@ -98,6 +99,11 @@ function OriginalMealComplaintCard({ origin }) {
         <p className={styles.originDescText}>
           {origin.description || "Không có nội dung mô tả."}
         </p>
+        <EvidenceAttachmentList
+          attachments={origin.attachments}
+          title="Tệp đính kèm"
+          className={styles.originAttachments}
+        />
       </div>
 
       {originComments.length > 0 ? (
@@ -124,6 +130,10 @@ function OriginalMealComplaintCard({ origin }) {
                     <time>{formatDateTimeVi(comment.createdAt, "")}</time>
                   </div>
                   <p className={styles.originCommentText}>{comment.content}</p>
+                  <EvidenceAttachmentList
+                    attachments={comment.attachments}
+                    className={styles.originAttachments}
+                  />
                 </div>
               </div>
             )
@@ -282,12 +292,20 @@ export default function AuthorityComplaints({ basePath: basePathProp }) {
           const updated = await AuthorityComplaintService.accept(id)
           setDetailTicket(updated)
         }}
-        onComment={async content => {
-          const updated = await AuthorityComplaintService.comment(id, content)
+        onComment={async (content, files) => {
+          const updated = await AuthorityComplaintService.comment(
+            id,
+            content,
+            files,
+          )
           setDetailTicket(updated)
         }}
-        onResolve={async content => {
-          const updated = await AuthorityComplaintService.resolve(id, content)
+        onResolve={async (content, files) => {
+          const updated = await AuthorityComplaintService.resolve(
+            id,
+            content,
+            files,
+          )
           setDetailTicket(updated)
         }}
         onSatisfy={async () => {

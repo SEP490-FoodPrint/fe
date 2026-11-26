@@ -21,7 +21,9 @@ import {
 } from "src/components/ComplaintThread"
 import notice from "src/components/Notice"
 import ROUTER from "src/router/ROUTER"
-import SupplierComplaintService from "src/services/SupplierComplaintService"
+import SupplierComplaintService, {
+  formatIngredientIssueType,
+} from "src/services/SupplierComplaintService"
 import CreateIngredientFeedbackDialog from "./component/CreateIngredientFeedbackDialog"
 import styles from "./IngredientFeedback.module.scss"
 
@@ -167,8 +169,22 @@ export default function IngredientFeedback() {
         onBack={() => navigate(ROUTER.SCHOOL_INGREDIENT_FEEDBACK)}
         onReload={() => setDetailReloadTick(prev => prev + 1)}
         metaItems={metaItems}
-        onComment={async content => {
-          const updated = await SupplierComplaintService.comment(id, content)
+        detailExtra={
+          detailTicket ? (
+            <div style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+              <strong style={{ color: "var(--text-primary)" }}>
+                Loại vấn đề:
+              </strong>{" "}
+              {formatIngredientIssueType(detailTicket.issueType)}
+            </div>
+          ) : null
+        }
+        onComment={async (content, files) => {
+          const updated = await SupplierComplaintService.comment(
+            id,
+            content,
+            files,
+          )
           setDetailTicket(updated)
         }}
         onSatisfy={async () => {

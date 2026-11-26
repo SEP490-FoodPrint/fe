@@ -233,8 +233,8 @@ export default function MealComplaints() {
             />
           ) : null
         }
-        onComment={async content => {
-          const { data } = await ComplaintService.comment(id, content)
+        onComment={async (content, files) => {
+          const { data } = await ComplaintService.comment(id, content, files)
           setDetailTicket(normalizeTicketFields(data))
         }}
         onSatisfy={async () => {
@@ -245,10 +245,11 @@ export default function MealComplaints() {
           const { data } = await ComplaintService.reopen(id, reason)
           setDetailTicket(normalizeTicketFields(data))
         }}
-        onEscalate={async reason => {
+        onEscalate={async (reason, files) => {
           const created = await AuthorityComplaintService.escalate({
             mealComplaintId: id,
             reason,
+            files,
           })
           notice({
             msg: "Đã chuyển khiếu nại đến Cơ quan ATTP",

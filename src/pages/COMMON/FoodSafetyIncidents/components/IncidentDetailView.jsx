@@ -4,6 +4,7 @@ import { Link } from "react-router-dom"
 import { Button } from "@mui/material"
 import {
   AddOutlined,
+  AssignmentTurnedInOutlined,
   ArrowBackOutlined,
   CancelOutlined,
   CheckOutlined,
@@ -20,6 +21,7 @@ import notice from "src/components/Notice"
 import ROUTER from "src/router/ROUTER"
 import {
   CANCELLATION_REASON_LABELS,
+  extractApiError,
   formatCode,
   formatDateTimeVi,
   formatDateVi,
@@ -29,6 +31,7 @@ import {
   INCIDENT_STATUS,
   MEAL_TYPE_LABELS,
   PRELIMINARY_ASSESSMENT_LABELS,
+  receiveReport,
 } from "src/services/FoodSafetyIncidentService"
 import SupplierEnforcementService, {
   getActionTypeMeta,
@@ -48,14 +51,16 @@ import InspectionsSection, {
   RecordInspectionResultDialog,
 } from "./InspectionsSection"
 import RequestEnforcementDialog from "./RequestEnforcementDialog"
+import TruncatedText from "src/components/TruncatedText"
+import { EvidenceAttachmentList } from "src/components/EvidenceFiles"
 import styles from "../FoodSafetyIncidents.module.scss"
 
 const LIFECYCLE_STEPS = [
-  { key: INCIDENT_STATUS.PENDING_SCHOOL_REVIEW, label: "Chờ trường xác minh" },
+  { key: INCIDENT_STATUS.PENDING_SCHOOL_REVIEW, label: "Chờ xác minh" },
   { key: INCIDENT_STATUS.SUBMITTED_TO_AUTHORITY, label: "Đã chuyển ATTP" },
-  { key: INCIDENT_STATUS.AUTHORITY_ACKNOWLEDGED, label: "ATTP tiếp nhận" },
+  { key: INCIDENT_STATUS.AUTHORITY_ACKNOWLEDGED, label: "Đã tiếp nhận" },
   { key: INCIDENT_STATUS.UNDER_INSPECTION, label: "Đang kiểm tra" },
-  { key: INCIDENT_STATUS.INSPECTION_COMPLETED, label: "Hoàn tất kiểm tra" },
+  { key: INCIDENT_STATUS.INSPECTION_COMPLETED, label: "Đã kiểm tra" },
   { key: INCIDENT_STATUS.CLOSED, label: "Đã đóng" },
 ]
 
@@ -81,6 +86,7 @@ function IncidentDetailView({
   const [recordingInspection, setRecordingInspection] = useState(null)
   const [closeOpen, setCloseOpen] = useState(false)
   const [enforceOpen, setEnforceOpen] = useState(false)
+  const [receiving, setReceiving] = useState(false)
 
   const [enforcementActions, setEnforcementActions] = useState([])
   const [loadingEnforcements, setLoadingEnforcements] = useState(false)
@@ -116,6 +122,22 @@ function IncidentDetailView({
 
     return () => controller.abort()
   }, [isAuthority, incidentId, enforcementTick])
+
+  const handleReceive = async forwardingId => {
+    if (!forwardingId || receiving) return
+    setReceiving(true)
+    try {
+      await receiveReport(forwardingId)
+      notice({ msg: "Đã tiếp nhận hồ sơ", isSuccess: true })
+      onReload()
+    } catch (err) {
+      const parsed = extractApiError(err, "Không thể tiếp nhận hồ sơ lúc này.")
+      notice({ msg: parsed.message, isSuccess: false })
+      if (parsed.status === 409) onReload()
+    } finally {
+      setReceiving(false)
+    }
+  }
 
   const handleConflict = message => {
     notice({
@@ -209,6 +231,13 @@ function IncidentDetailView({
   const canAddAllocations = allowedActions.includes("ADD_ALLOCATIONS")
   const canPlanInspection = allowedActions.includes("PLAN_INSPECTION")
   const canClose = allowedActions.includes("CLOSE")
+  // Hồ sơ vừa chuyển: cán bộ ATTP tiếp nhận bản chuyển của đơn vị mình (ưu tiên bản chưa nhận)
+  const pendingForwarding =
+    isAuthority && incident.status === INCIDENT_STATUS.SUBMITTED_TO_AUTHORITY
+      ? (Array.isArray(incident.forwardings) ? incident.forwardings : [])
+          .filter(item => item?.id && item.status === "SENT")
+          .sort((a, b) => Number(Boolean(a.receivedAt)) - Number(Boolean(b.receivedAt)))[0]
+      : null
   const canRequestEnforcement =
     isAuthority && ENFORCEMENT_BUTTON_STATUSES.has(incident.status)
 
@@ -221,6 +250,13 @@ function IncidentDetailView({
   const allocations = Array.isArray(incident.allocations)
     ? incident.allocations
     : []
+  const attachments = Array.isArray(incident.attachments)
+    ? incident.attachments
+    : []
+  const reportFiles = attachments.filter(item => item?.stage !== "SCHOOL_REVIEW")
+  const schoolReviewFiles = attachments.filter(
+    item => item?.stage === "SCHOOL_REVIEW",
+  )
   const forwardings = Array.isArray(incident.forwardings)
     ? incident.forwardings
     : []
@@ -248,13 +284,25 @@ function IncidentDetailView({
                 tone={statusMeta.tone}
               />
             </div>
-            <h1 className={styles.pageTitle}>
+            <TruncatedText component="h1" className={styles.pageTitle}>
               {incident.title || "Báo cáo ngộ độc"}
-            </h1>
+            </TruncatedText>
           </div>
         </div>
 
         <div className={styles.headerActions}>
+          {pendingForwarding ? (
+            <Button
+              type="button"
+              variant="contained"
+              color="primary"
+              startIcon={<AssignmentTurnedInOutlined />}
+              disabled={receiving}
+              onClick={() => handleReceive(pendingForwarding.id)}
+            >
+              {receiving ? "Đang tiếp nhận…" : "Tiếp nhận"}
+            </Button>
+          ) : null}
           {canForward ? (
             <Button
               type="button"
@@ -384,76 +432,76 @@ function IncidentDetailView({
           <dl className={styles.metaGrid}>
             <div className={styles.metaRow}>
               <dt className={styles.metaLabel}>Nguồn báo cáo</dt>
-              <dd className={styles.metaValue}>
+              <TruncatedText component="dd" className={styles.metaValue}>
                 {INCIDENT_SOURCE_LABELS[incident.source] || incident.source || "—"}
-              </dd>
+              </TruncatedText>
             </div>
             <div className={styles.metaRow}>
               <dt className={styles.metaLabel}>HS có triệu chứng</dt>
-              <dd className={styles.metaValue}>
+              <TruncatedText component="dd" className={styles.metaValue}>
                 {incident.reportedSymptomaticCount != null
                   ? `${Number(incident.reportedSymptomaticCount).toLocaleString("vi-VN")} học sinh`
                   : "—"}
-              </dd>
+              </TruncatedText>
             </div>
             <div className={styles.metaRow}>
               <dt className={styles.metaLabel}>Thời điểm phát sinh</dt>
-              <dd className={styles.metaValue}>
+              <TruncatedText component="dd" className={styles.metaValue}>
                 {formatDateTimeVi(incident.occurredAt)}
-              </dd>
+              </TruncatedText>
             </div>
             <div className={styles.metaRow}>
               <dt className={styles.metaLabel}>Lớp liên quan</dt>
-              <dd className={styles.metaValue}>{reportedClassName}</dd>
+              <TruncatedText component="dd" className={styles.metaValue}>{reportedClassName}</TruncatedText>
             </div>
 
             {isFullView ? (
               <>
                 <div className={styles.metaRow}>
                   <dt className={styles.metaLabel}>Trường học</dt>
-                  <dd className={styles.metaValue}>
+                  <TruncatedText component="dd" className={styles.metaValue}>
                     {incident.school?.name || "—"}
-                  </dd>
+                  </TruncatedText>
                 </div>
                 <div className={styles.metaRow}>
                   <dt className={styles.metaLabel}>Người báo cáo</dt>
-                  <dd className={styles.metaValue}>
+                  <TruncatedText component="dd" className={styles.metaValue}>
                     {incident.reportedBy?.fullName || "—"}
-                  </dd>
+                  </TruncatedText>
                 </div>
                 <div className={styles.metaRow}>
                   <dt className={styles.metaLabel}>Nhận định sơ bộ</dt>
-                  <dd className={styles.metaValue}>
+                  <TruncatedText component="dd" className={styles.metaValue}>
                     {incident.preliminaryAssessment
                       ? PRELIMINARY_ASSESSMENT_LABELS[
                           incident.preliminaryAssessment
                         ] || incident.preliminaryAssessment
                       : "Chưa có"}
-                  </dd>
+                  </TruncatedText>
                 </div>
                 <div className={styles.metaRow}>
                   <dt className={styles.metaLabel}>Đơn vị ATTP tiếp nhận</dt>
-                  <dd className={styles.metaValue}>
+                  <TruncatedText component="dd" className={styles.metaValue}>
                     {incident.recipientUnit?.name || "Chưa chuyển"}
-                  </dd>
+                  </TruncatedText>
                 </div>
                 {incident.reviewedBy ? (
                   <div className={styles.metaRow}>
                     <dt className={styles.metaLabel}>Người xác minh</dt>
-                    <dd className={styles.metaValue}>
+                    <TruncatedText component="dd" className={styles.metaValue}>
                       {incident.reviewedBy.fullName}
                       {incident.reviewedAt
                         ? ` · ${formatDateTimeVi(incident.reviewedAt)}`
                         : ""}
-                    </dd>
+                    </TruncatedText>
                   </div>
                 ) : null}
                 {incident.resolvedAt ? (
                   <div className={styles.metaRow}>
                     <dt className={styles.metaLabel}>Thời điểm đóng hồ sơ</dt>
-                    <dd className={styles.metaValue}>
+                    <TruncatedText component="dd" className={styles.metaValue}>
                       {formatDateTimeVi(incident.resolvedAt)}
-                    </dd>
+                    </TruncatedText>
                   </div>
                 ) : null}
               </>
@@ -474,12 +522,26 @@ function IncidentDetailView({
             </div>
           ) : null}
 
+          {reportFiles.length > 0 ? (
+            <div className={styles.dividerBlock}>
+              <h2 className={styles.blockHeading}>Tệp người báo</h2>
+              <EvidenceAttachmentList attachments={reportFiles} />
+            </div>
+          ) : null}
+
           {isFullView && incident.preliminaryNote ? (
             <div className={styles.dividerBlock}>
               <h2 className={styles.blockHeading}>
                 Ghi chú nhận định sơ bộ của nhà trường
               </h2>
               <p className={styles.proseText}>{incident.preliminaryNote}</p>
+            </div>
+          ) : null}
+
+          {schoolReviewFiles.length > 0 ? (
+            <div className={styles.dividerBlock}>
+              <h2 className={styles.blockHeading}>Tệp xác minh của trường</h2>
+              <EvidenceAttachmentList attachments={schoolReviewFiles} />
             </div>
           ) : null}
         </div>
@@ -570,7 +632,9 @@ function IncidentDetailView({
                       return (
                         <tr key={fw.id || idx}>
                           <td>
-                            {fw.recipientOrganization || "—"}
+                            <TruncatedText style={{ maxWidth: 280 }}>
+                              {fw.recipientOrganization || "—"}
+                            </TruncatedText>
                           </td>
                           <td>
                             <IncidentStatusBadge
@@ -675,7 +739,9 @@ function IncidentDetailView({
                     return (
                       <tr key={act.id}>
                         <td style={{ fontWeight: 600 }}>
-                          {act.supplier?.name || "—"}
+                          <TruncatedText style={{ maxWidth: 240 }}>
+                            {act.supplier?.name || "—"}
+                          </TruncatedText>
                         </td>
                         <td>
                           <IncidentStatusBadge

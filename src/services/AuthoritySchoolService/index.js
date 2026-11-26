@@ -1,6 +1,4 @@
 import http from "src/services/01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockAuthoritySchools } from "src/services/mockNewFeatures"
 
 const BASE_URL = "/commune-food-safety-units/me/schools"
 
@@ -95,10 +93,6 @@ function adaptLinkedSupplier(row = {}) {
 
 const AuthoritySchoolService = {
   async listSchools(params = {}, signal) {
-    if (USE_NEW_FEATURES_MOCK) {
-      const res = await mockAuthoritySchools.listSchools(params)
-      return { ...res, items: res.items.map(adaptSchoolItem) }
-    }
     const query = {
       page:
         Number.isInteger(Number(params.page)) && Number(params.page) > 0
@@ -142,15 +136,6 @@ const AuthoritySchoolService = {
   },
 
   async getSchoolDetail(schoolId, signal) {
-    if (USE_NEW_FEATURES_MOCK) {
-      const data = await mockAuthoritySchools.getSchoolDetail(schoolId)
-      return {
-        ...adaptSchoolItem(data),
-        suppliers: Array.isArray(data.suppliers)
-          ? data.suppliers.map(adaptLinkedSupplier)
-          : [],
-      }
-    }
     const response = await http.get(
       `${BASE_URL}/${encodeURIComponent(String(schoolId || "").trim())}`,
       {

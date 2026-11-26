@@ -22,6 +22,10 @@ import {
   TaskAltOutlined,
 } from "@mui/icons-material"
 import UserAvatar from "src/components/Common/UserAvatar"
+import {
+  EvidenceAttachmentList,
+  EvidenceFilePicker,
+} from "src/components/EvidenceFiles"
 import notice from "src/components/Notice"
 import { StoreContext } from "src/contexts"
 import TicketStatusBadge from "./TicketStatusBadge"
@@ -82,6 +86,7 @@ export default function TicketDetailView({
   const [threadOpen, setThreadOpen] = useState(defaultThreadExpanded)
 
   const [commentText, setCommentText] = useState("")
+  const [commentFiles, setCommentFiles] = useState([])
   const [commentError, setCommentError] = useState("")
   const [busyAction, setBusyAction] = useState("")
 
@@ -89,6 +94,7 @@ export default function TicketDetailView({
   const [resolveOpen, setResolveOpen] = useState(false)
   const [resolveText, setResolveText] = useState("")
   const [resolveError, setResolveError] = useState("")
+  const [resolveFiles, setResolveFiles] = useState([])
 
   const [reopenOpen, setReopenOpen] = useState(false)
   const [reopenReason, setReopenReason] = useState("")
@@ -97,6 +103,7 @@ export default function TicketDetailView({
   const [escalateOpen, setEscalateOpen] = useState(false)
   const [escalateReason, setEscalateReason] = useState("")
   const [escalateError, setEscalateError] = useState("")
+  const [escalateFiles, setEscalateFiles] = useState([])
 
   // Live countdown ticker for 48h auto-close
   const [nowMs, setNowMs] = useState(() => Date.now())
@@ -111,15 +118,18 @@ export default function TicketDetailView({
   useEffect(() => {
     setCommentText("")
     setCommentError("")
+    setCommentFiles([])
     setResolveOpen(false)
     setResolveText("")
     setResolveError("")
+    setResolveFiles([])
     setReopenOpen(false)
     setReopenReason("")
     setReopenError("")
     setEscalateOpen(false)
     setEscalateReason("")
     setEscalateError("")
+    setEscalateFiles([])
   }, [ticket?.id])
 
   const allowedActions = useMemo(
@@ -223,13 +233,16 @@ export default function TicketDetailView({
     runAction(
       "COMMENT",
       async () => {
-        await onComment(trimmed)
+        await onComment(trimmed, commentFiles)
         setCommentText("")
+        setCommentFiles([])
         notice({ msg: "Đã gửi tin nhắn", isSuccess: true })
       },
       {
         onInlineError: parsed =>
-          setCommentError(parsed.fields?.content || parsed.message),
+          setCommentError(
+            parsed.fields?.content || parsed.fields?.files || parsed.message,
+          ),
       },
     )
   }
@@ -252,15 +265,18 @@ export default function TicketDetailView({
     runAction(
       "RESOLVE",
       async () => {
-        await onResolve(trimmed)
+        await onResolve(trimmed, resolveFiles)
         setResolveOpen(false)
         setResolveText("")
-        notice({ msg: "Đã đánh dấu đã xử lý", isSuccess: true })
+        setResolveFiles([])
+        notice({ msg: "Đã cập nhật trạng thái Đã xử lý", isSuccess: true })
       },
       {
         onCloseDialog: () => setResolveOpen(false),
         onInlineError: parsed =>
-          setResolveError(parsed.fields?.content || parsed.message),
+          setResolveError(
+            parsed.fields?.content || parsed.fields?.files || parsed.message,
+          ),
       },
     )
   }
@@ -313,14 +329,17 @@ export default function TicketDetailView({
     runAction(
       "ESCALATE",
       async () => {
-        await onEscalate(trimmed || undefined)
+        await onEscalate(trimmed || undefined, escalateFiles)
         setEscalateOpen(false)
         setEscalateReason("")
+        setEscalateFiles([])
       },
       {
         onCloseDialog: () => setEscalateOpen(false),
         onInlineError: parsed =>
-          setEscalateError(parsed.fields?.reason || parsed.message),
+          setEscalateError(
+            parsed.fields?.reason || parsed.fields?.files || parsed.message,
+          ),
       },
     )
   }
@@ -536,6 +555,11 @@ export default function TicketDetailView({
             <p className={styles.descriptionText}>
               {ticket.description || "Không có nội dung mô tả."}
             </p>
+            <EvidenceAttachmentList
+              attachments={ticket.attachments}
+              title="Tệp đính kèm"
+              className={styles.detailAttachments}
+            />
             {detailExtra ? (
               <div className={styles.detailExtraWrap}>{detailExtra}</div>
             ) : null}
@@ -627,6 +651,10 @@ export default function TicketDetailView({
                             >
                               {comment.content}
                             </p>
+                            <EvidenceAttachmentList
+                              attachments={comment.attachments}
+                              className={styles.commentAttachments}
+                            />
                           </div>
                         </article>
                       )
@@ -709,12 +737,23 @@ export default function TicketDetailView({
                     </p>
                   ) : null}
                   <div className={styles.composerFooter}>
-                    <span
-                      className={`${styles.charCounter} ${commentLength > MAX_COMMENT_LENGTH ? styles.charCounterError : ""}`.trim()}
-                    >
-                      {commentLength.toLocaleString("vi-VN")}/
-                      {MAX_COMMENT_LENGTH.toLocaleString("vi-VN")} ký tự
-                    </span>
+                    <div className={styles.composerMeta}>
+                      <EvidenceFilePicker
+                        compact
+                        value={commentFiles}
+                        onChange={files => {
+                          setCommentFiles(files)
+                          if (commentError) setCommentError("")
+                        }}
+                        disabled={Boolean(busyAction)}
+                      />
+                      <span
+                        className={`${styles.charCounter} ${commentLength > MAX_COMMENT_LENGTH ? styles.charCounterError : ""}`.trim()}
+                      >
+                        {commentLength.toLocaleString("vi-VN")}/
+                        {MAX_COMMENT_LENGTH.toLocaleString("vi-VN")} ký tự
+                      </span>
+                    </div>
                     <div className={styles.composerActions}>
                       {canResolve ? (
                         <Button
@@ -908,6 +947,13 @@ export default function TicketDetailView({
               slotProps={{ htmlInput: { maxLength: MAX_COMMENT_LENGTH } }}
               helperText={`${resolveLength.toLocaleString("vi-VN")}/${MAX_COMMENT_LENGTH.toLocaleString("vi-VN")} ký tự · Bắt buộc`}
             />
+            <div className={styles.dialogFiles}>
+              <EvidenceFilePicker
+                value={resolveFiles}
+                onChange={setResolveFiles}
+                disabled={busyAction === "RESOLVE"}
+              />
+            </div>
           </DialogContent>
           <DialogActions className={styles.dialogActions}>
             <Button
@@ -1028,6 +1074,13 @@ export default function TicketDetailView({
               slotProps={{ htmlInput: { maxLength: MAX_COMMENT_LENGTH } }}
               helperText={`${escalateLength.toLocaleString("vi-VN")}/${MAX_COMMENT_LENGTH.toLocaleString("vi-VN")} ký tự`}
             />
+            <div className={styles.dialogFiles}>
+              <EvidenceFilePicker
+                value={escalateFiles}
+                onChange={setEscalateFiles}
+                disabled={busyAction === "ESCALATE"}
+              />
+            </div>
           </DialogContent>
           <DialogActions className={styles.dialogActions}>
             <Button

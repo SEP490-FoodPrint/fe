@@ -1,6 +1,6 @@
 import React from "react"
 import { Search, X, RotateCcw, Filter, ChevronDown } from "lucide-react"
-import { DEPARTMENT_CONFIGS, ACCOUNT_STATUSES } from "../mockAccountsData"
+import { DEPARTMENT_CONFIGS, ACCOUNT_STATUSES } from "../accountsData"
 import styles from "./AccountFilters.module.scss"
 
 /**

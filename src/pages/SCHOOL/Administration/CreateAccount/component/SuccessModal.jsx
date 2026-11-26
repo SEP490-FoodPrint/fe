@@ -3,7 +3,7 @@ import { CheckCircle2, Copy, Check, Plus, ArrowRight } from "lucide-react"
 import {
   getDepartmentConfig,
   DEFAULT_INITIAL_PASSWORD,
-} from "../../Accounts/mockAccountsData"
+} from "../../Accounts/accountsData"
 import styles from "./SuccessModal.module.scss"
 
 function SuccessModal({ isOpen, createdAccount, onCreateAnother, onGoToList }) {

@@ -8,8 +8,10 @@ import {
   DialogTitle,
 } from "@mui/material"
 import { InfoOutlined, WarningAmberOutlined } from "@mui/icons-material"
+import { EvidenceFilePicker } from "src/components/EvidenceFiles"
 import FoodSafetyIncidentService, {
   extractApiError,
+  getFilesError,
   getDefaultDatetimeLocalValue,
   PRELIMINARY_ASSESSMENT,
   PRELIMINARY_ASSESSMENT_OPTIONS,
@@ -41,6 +43,7 @@ function ReportIncidentDialog({
   const [classes, setClasses] = useState([])
   const [loadingClasses, setLoadingClasses] = useState(false)
   const [fieldErrors, setFieldErrors] = useState({})
+  const [files, setFiles] = useState([])
   const [submitError, setSubmitError] = useState("")
   const [submitting, setSubmitting] = useState(false)
 
@@ -55,6 +58,7 @@ function ReportIncidentDialog({
     setClassId("")
     setPreliminaryAssessment(PRELIMINARY_ASSESSMENT.SCHOOL_MEAL_SUSPECTED)
     setPreliminaryNote("")
+    setFiles([])
     setFieldErrors({})
     setSubmitError("")
 
@@ -180,6 +184,8 @@ function ReportIncidentDialog({
       payload.classId = classId
     }
 
+    if (files.length > 0) payload.files = files
+
     if (isDirect) {
       payload.preliminaryAssessment = preliminaryAssessment
       if (preliminaryNote.trim()) {
@@ -206,6 +212,8 @@ function ReportIncidentDialog({
       if (parsed.status === 400 && Object.keys(parsed.fields).length > 0) {
         setFieldErrors(parsed.fields)
       }
+      const filesError = getFilesError(parsed)
+      if (filesError) setFieldErrors(prev => ({ ...prev, files: filesError }))
       setSubmitError(parsed.message)
     } finally {
       setSubmitting(false)
@@ -498,6 +506,17 @@ function ReportIncidentDialog({
                 </div>
               </>
             ) : null}
+
+            <EvidenceFilePicker
+              value={files}
+              onChange={next => {
+                setFiles(next)
+                clearFieldError("files")
+              }}
+              disabled={submitting}
+              label="Ảnh/tài liệu chứng cứ (không bắt buộc)"
+              error={fieldErrors.files || ""}
+            />
           </div>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>

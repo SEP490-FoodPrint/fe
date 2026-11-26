@@ -17,7 +17,7 @@ export default function RegistrationList() {
   const pageSize = isMobile ? 2 : 5
   const filters = Object.fromEntries(["search", "type", "status", "from", "to"].map(key => [key, params.get(key) || ""]))
   const page = Math.max(1, Number.parseInt(params.get("page"), 10) || 1)
-  const [result, setResult] = useState({ data: [], total: 0, isMock: false })
+  const [result, setResult] = useState({ data: [], total: 0 })
   const [summary, setSummary] = useState({})
   const [summaryError, setSummaryError] = useState("")
   const [loading, setLoading] = useState(true)
@@ -112,7 +112,6 @@ export default function RegistrationList() {
           </div>
         )}
       </div>
-      {result.isMock && <p className={styles.note}>Dữ liệu minh họa · Chọn hồ sơ để xem chi tiết</p>}
     </section>
   )
 }

@@ -8,7 +8,7 @@ import {
   Warehouse,
   Users,
 } from "lucide-react"
-import { DEPARTMENT_CONFIGS } from "../mockAccountsData"
+import { DEPARTMENT_CONFIGS } from "../accountsData"
 import styles from "./AccountDepartmentKPI.module.scss"
 
 /**
