@@ -1,6 +1,4 @@
 import http from "src/services/01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockAuthorityOfficers } from "src/services/mockNewFeatures"
 
 const BASE_URL = "/authority-officers"
 const utf8Encoder = new TextEncoder()
@@ -244,10 +242,6 @@ function adaptOfficer(row = {}) {
 
 const AuthorityOfficerService = {
   async list(params = {}, signal) {
-    if (USE_NEW_FEATURES_MOCK) {
-      const res = await mockAuthorityOfficers.list(params)
-      return { ...res, items: res.items.map(adaptOfficer) }
-    }
     const query = {
       page:
         Number.isInteger(Number(params.page)) && Number(params.page) > 0
@@ -293,9 +287,6 @@ const AuthorityOfficerService = {
   },
 
   async detail(userId, signal) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptOfficer(await mockAuthorityOfficers.detail(userId))
-    }
     const response = await http.get(
       `${BASE_URL}/${encodeURIComponent(String(userId || "").trim())}`,
       {
@@ -308,9 +299,6 @@ const AuthorityOfficerService = {
 
   async create(values) {
     const payload = buildCreateOfficerPayload(values)
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptOfficer(await mockAuthorityOfficers.create(payload))
-    }
     const response = await http.post(BASE_URL, payload, {
       notifyOnError: false,
     })

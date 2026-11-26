@@ -1,6 +1,4 @@
 import http from "src/services/01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockSupplierEnforcement } from "src/services/mockNewFeatures"
 import { extractApiError } from "src/services/FoodSafetyIncidentService"
 
 const ACTIONS_BASE = "/supplier-enforcement-actions"
@@ -134,15 +132,15 @@ export const INTAKE_STATE = {
 
 export const INTAKE_STATE_META = {
   [INTAKE_STATE.ACTIVE]: {
-    label: "Đang tiếp nhận đơn",
+    label: "Nhận đơn",
     tone: "success",
   },
   [INTAKE_STATE.PAUSED]: {
-    label: "Tạm dừng tiếp nhận",
+    label: "Tạm dừng",
     tone: "warning",
   },
   [INTAKE_STATE.PAUSED_FOR_FOOD_SAFETY_INSPECTION]: {
-    label: "Tạm dừng để kiểm tra ATTP",
+    label: "Tạm dừng kiểm tra",
     tone: "danger",
   },
 }
@@ -200,9 +198,6 @@ function clampPagination(page, limit) {
 }
 
 export async function requestEnforcement(incidentId, payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockSupplierEnforcement.requestEnforcement(incidentId, payload)
-  }
   const response = await http.post(
     `${INCIDENTS_BASE}/${encodeURIComponent(incidentId)}/enforcement-actions`,
     payload,
@@ -212,9 +207,6 @@ export async function requestEnforcement(incidentId, payload) {
 }
 
 export async function listActions(params = {}, signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockSupplierEnforcement.listActions(params)
-  }
   const { page = 1, limit = 20, ...rest } = params
   const query = clampPagination(page, limit)
   const filterKeys = [
@@ -252,9 +244,6 @@ export async function listActions(params = {}, signal) {
 }
 
 export async function getActionDetail(actionId, signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockSupplierEnforcement.getActionDetail(actionId)
-  }
   const response = await http.get(
     `${ACTIONS_BASE}/${encodeURIComponent(actionId)}`,
     {
@@ -266,9 +255,6 @@ export async function getActionDetail(actionId, signal) {
 }
 
 export async function approveAction(actionId, payload = {}) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockSupplierEnforcement.approveAction(actionId, payload)
-  }
   const body = {}
   if (payload?.note && String(payload.note).trim()) {
     body.note = String(payload.note).trim()
@@ -282,9 +268,6 @@ export async function approveAction(actionId, payload = {}) {
 }
 
 export async function rejectAction(actionId, payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockSupplierEnforcement.rejectAction(actionId, payload)
-  }
   const response = await http.post(
     `${ACTIONS_BASE}/${encodeURIComponent(actionId)}/reject`,
     { note: String(payload?.note ?? "").trim() },
@@ -294,9 +277,6 @@ export async function rejectAction(actionId, payload) {
 }
 
 export async function retryAction(actionId) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockSupplierEnforcement.retryAction(actionId)
-  }
   const response = await http.post(
     `${ACTIONS_BASE}/${encodeURIComponent(actionId)}/retry`,
     {},

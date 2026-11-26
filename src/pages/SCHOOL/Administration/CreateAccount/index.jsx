@@ -11,7 +11,7 @@ import {
   DEPARTMENT_CONFIGS,
   generateNextAccountCode,
   addNewAccount,
-} from "../Accounts/mockAccountsData"
+} from "../Accounts/accountsData"
 import styles from "./index.module.scss"
 
 const INITIAL_DEPARTMENT = "BGH"

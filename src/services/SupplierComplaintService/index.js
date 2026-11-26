@@ -1,6 +1,5 @@
 import http from "src/services/01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockIngredientFeedback } from "src/services/mockNewFeatures"
+import { buildEvidenceBody, evidenceRequestConfig } from "src/components/EvidenceFiles/evidenceFiles"
 import {
   formatDateTimeVi as formatTicketDateTimeVi,
   formatTicketCode,
@@ -13,6 +12,20 @@ import {
 } from "src/components/ComplaintThread/ticketHelpers"
 
 const BASE_URL = "/ingredient-quality-feedback"
+
+/** Loại vấn đề C02 (`issueType`); đơn cũ trả null. */
+export const INGREDIENT_ISSUE_TYPE_LABELS = {
+  SPOILED_OR_NOT_FRESH: "Hư hỏng/kém tươi",
+  QUANTITY_MISMATCH: "Sai số lượng/khối lượng",
+  WRONG_SPECIFICATION: "Sai quy cách/chủng loại",
+  EXPIRED_OR_MISSING_LABEL: "Hết hạn/thiếu nhãn mác",
+  LATE_DELIVERY: "Giao trễ/sai thời gian",
+  OTHER: "Khác",
+}
+
+export function formatIngredientIssueType(value, fallback = "—") {
+  return INGREDIENT_ISSUE_TYPE_LABELS[value] || fallback
+}
 
 export const COMPLAINT_STATUS = TICKET_STATUS
 
@@ -129,6 +142,7 @@ function adaptTicketListItem(raw = {}) {
     code: base.code,
     complaintCode: base.code,
     title: raw?.title || "Phản ánh chất lượng nguyên liệu",
+    issueType: raw?.issueType ?? null,
     school: adaptSchoolRef(raw?.school),
     delivery: adaptDeliveryRef(raw?.delivery),
     createdAt: base.submittedAt,
@@ -169,10 +183,6 @@ function normalizeDeliveryOption(raw = {}) {
 
 const SupplierComplaintService = {
   async list({ page = 1, limit = 20, signal } = {}) {
-    if (USE_NEW_FEATURES_MOCK) {
-      const res = await mockIngredientFeedback.list({ page, limit })
-      return { ...res, items: res.items.map(adaptTicketListItem) }
-    }
     const query = clampPagination(page, limit)
     const response = await http.get(BASE_URL, {
       params: query,
@@ -198,9 +208,6 @@ const SupplierComplaintService = {
   },
 
   async detail(feedbackId, { signal } = {}) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(await mockIngredientFeedback.detail(feedbackId))
-    }
     const response = await http.get(`${BASE_URL}/${encodeUuid(feedbackId)}`, {
       signal,
       notifyOnError: false,
@@ -212,33 +219,26 @@ const SupplierComplaintService = {
     return this.detail(feedbackId, options)
   },
 
-  async create({ deliveryId, ingredientLotId, description }) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(
-        await mockIngredientFeedback.create({
-          deliveryId,
-          ingredientLotId,
-          description,
-        }),
-      )
-    }
+  async create({ deliveryId, ingredientLotId, title, issueType, description, files }) {
     const payload = {
       deliveryId,
+      title: String(title ?? "").trim(),
+      issueType,
       description: String(description ?? "").trim(),
     }
     if (ingredientLotId) {
       payload.ingredientLotId = ingredientLotId
     }
-    const response = await http.post(BASE_URL, payload, {
-      notifyOnError: false,
-    })
+    const body = buildEvidenceBody(payload, files)
+    const response = await http.post(
+      BASE_URL,
+      body,
+      evidenceRequestConfig(body, { notifyOnError: false }),
+    )
     return adaptTicketDetail(response?.data ?? response)
   },
 
   async accept(feedbackId) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(await mockIngredientFeedback.accept(feedbackId))
-    }
     const response = await http.post(
       `${BASE_URL}/${encodeUuid(feedbackId)}/accept`,
       {},
@@ -247,38 +247,33 @@ const SupplierComplaintService = {
     return adaptTicketDetail(response?.data ?? response)
   },
 
-  async comment(feedbackId, content) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(
-        await mockIngredientFeedback.comment(feedbackId, content),
-      )
-    }
+  async comment(feedbackId, content, files) {
+    const body = buildEvidenceBody(
+      { content: String(content ?? "").trim() },
+      files,
+    )
     const response = await http.post(
       `${BASE_URL}/${encodeUuid(feedbackId)}/comments`,
-      { content: String(content ?? "").trim() },
-      { notifyOnError: false },
+      body,
+      evidenceRequestConfig(body, { notifyOnError: false }),
     )
     return adaptTicketDetail(response?.data ?? response)
   },
 
-  async resolve(feedbackId, content) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(
-        await mockIngredientFeedback.resolve(feedbackId, content),
-      )
-    }
+  async resolve(feedbackId, content, files) {
+    const body = buildEvidenceBody(
+      { content: String(content ?? "").trim() },
+      files,
+    )
     const response = await http.post(
       `${BASE_URL}/${encodeUuid(feedbackId)}/resolve`,
-      { content: String(content ?? "").trim() },
-      { notifyOnError: false },
+      body,
+      evidenceRequestConfig(body, { notifyOnError: false }),
     )
     return adaptTicketDetail(response?.data ?? response)
   },
 
   async satisfy(feedbackId) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(await mockIngredientFeedback.satisfy(feedbackId))
-    }
     const response = await http.post(
       `${BASE_URL}/${encodeUuid(feedbackId)}/satisfy`,
       {},
@@ -288,11 +283,6 @@ const SupplierComplaintService = {
   },
 
   async reopen(feedbackId, reason) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return adaptTicketDetail(
-        await mockIngredientFeedback.reopen(feedbackId, reason),
-      )
-    }
     const trimmed = String(reason ?? "").trim()
     const payload = trimmed ? { reason: trimmed } : {}
     const response = await http.post(
@@ -304,9 +294,6 @@ const SupplierComplaintService = {
   },
 
   async listEligibleDeliveries({ signal } = {}) {
-    if (USE_NEW_FEATURES_MOCK) {
-      return mockIngredientFeedback.listEligibleDeliveries()
-    }
     // Backend lọc theo trường của người gọi và theo trạng thái; gọi riêng từng trạng thái hợp lệ
     const responses = await Promise.all(
       [...ELIGIBLE_DELIVERY_STATUSES].map(status =>
@@ -331,9 +318,6 @@ const SupplierComplaintService = {
 
   async getDeliveryLots(deliveryId, { signal } = {}) {
     if (!deliveryId) return []
-    if (USE_NEW_FEATURES_MOCK) {
-      return mockIngredientFeedback.getDeliveryLots(deliveryId)
-    }
     const response = await http.get(
       `/deliveries/${encodeUuid(deliveryId)}/inspection`,
       { signal, notifyOnError: false },

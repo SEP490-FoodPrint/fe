@@ -247,5 +247,6 @@ export function normalizeTicketFields(raw = {}) {
     updatedAt: raw.updatedAt ?? null,
     allowedActions: Array.isArray(raw.allowedActions) ? raw.allowedActions : [],
     comments: Array.isArray(raw.comments) ? raw.comments : [],
+    attachments: Array.isArray(raw.attachments) ? raw.attachments : [],
   }
 }

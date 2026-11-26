@@ -14,16 +14,13 @@ Mặc định gọi backend thật với `.env`:
 
 ```dotenv
 VITE_API_ROOT=http://localhost:5000/api
-VITE_USE_MOCK=false
 ```
 
 Chạy frontend tại `http://localhost:3001` theo CORS hiện tại của backend. Nếu đổi origin, cần cấu hình `CLIENT_URL` ở backend tương ứng. Khởi động lại Vite sau khi đổi `.env`.
 
-Đăng nhập gửi `{ identifier, password }`; backend quản lý phiên bằng cookie HttpOnly, frontend không lưu token thật. Tải lại trang xác thực phiên qua `/auth/me` trước khi kiểm tra route; các request 401 dùng chung một lần refresh. Token demo cũ được xóa trong chế độ API thật. Không tự chuyển sang demo khi API lỗi hoặc sai mật khẩu. Đăng nhập nhanh và nút đổi role chỉ xuất hiện khi `VITE_USE_MOCK=true`. Xem [luồng đăng nhập/đăng ký](auth-screens.md).
+Đăng nhập gửi `{ identifier, password }`; backend quản lý phiên bằng cookie HttpOnly, frontend không lưu token thật. Tải lại trang xác thực phiên qua `/auth/me` trước khi kiểm tra route; các request 401 dùng chung một lần refresh. Xem [luồng đăng nhập/đăng ký](auth-screens.md).
 
 Tài khoản phải ACTIVE, thuộc SYSTEM và có quyền `registration.view`. Catalog backend mới đã bổ sung các quyền hồ sơ; database đang dùng có thể cần người vận hành cập nhật catalog theo chính sách backend. Frontend không tự sửa quyền.
-
-Chế độ `VITE_USE_MOCK=true` có 80 hồ sơ minh họa, ban đầu 12 hồ sơ chờ duyệt. Quyết định demo được lưu ở localStorage, khóa `foodprint_registration_reviews_v1`.
 
 ## Hành vi
 

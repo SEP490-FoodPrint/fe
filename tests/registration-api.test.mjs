@@ -23,7 +23,6 @@ before(async () => {
     cacheDir: "/tmp/foodprint-registration-tests-vite",
     server: { middlewareMode: true, hmr: false, ws: false },
     optimizeDeps: { noDiscovery: true, entries: [] },
-    define: { "import.meta.env.VITE_USE_MOCK": '"false"' },
     appType: "custom",
   })
   http = (await server.ssrLoadModule("/src/services/01_axios/index.js")).default
@@ -74,7 +73,6 @@ test("list reads the nested pagination envelope without fabricating omitted fiel
   assert.equal(result.data[0].applicant.full_name, "Nguyễn Văn A")
   assert.equal(result.data[0].applicant.email, undefined)
   assert.deepEqual(result.data[0].profile_data, {})
-  assert.equal(result.isMock, false)
   assert.throws(() => registrationList({ data: [row], total: 6 }), /không hợp lệ/)
 })
 
@@ -187,7 +185,6 @@ test("approve posts the latest review version and maps the decision", async () =
   assert.equal(requests[0].url, `/registration-requests/${id}/approve`)
   assert.equal(requests[0].method, "post")
   assert.deepEqual(JSON.parse(requests[0].data), { expectedReviewVersion: version })
-  assert.equal(result.isMock, false)
   assert.equal(result.data.status, "APPROVED")
   assert.equal(result.data.registrationID, row.registrationID)
   assert.equal(result.data.reviewer.full_name, "Người duyệt")
@@ -230,14 +227,14 @@ test("login uses cookie credentials/CSRF, stores no real token and restores via 
   assert.equal(restored.role, "SYSTEM_ADMIN")
 })
 
-test("bad credentials never log in as a matching mock account", async () => {
+test("bad credentials never create a session", async () => {
   respond = config => { throw new AxiosError("Unauthorized", "ERR_BAD_REQUEST", config, null, { status: 401, data: { success: false, message: "Sai mật khẩu" } }) }
   await assert.rejects(AuthService.login({ identifier: "system_admin", password: "incorrect" }), /Sai mật khẩu/)
   assert.equal(memory.has(storageKeys.TOKEN), false)
   assert.equal(memory.has(storageKeys.USER_INFO), false)
 })
 
-test("real mode discards old mock sessions and blocks quick role login", async () => {
+test("restoring a session discards stale stored tokens", async () => {
   memory.set(storageKeys.TOKEN, "mock_token_SYSTEM_ADMIN")
   memory.set(storageKeys.USER_INFO, JSON.stringify(principal))
   respond = () => success(principal)
@@ -245,7 +242,6 @@ test("real mode discards old mock sessions and blocks quick role login", async (
   assert.equal(memory.has(storageKeys.TOKEN), false)
   assert.equal(requests.length, 1)
   assert.equal(requests[0].url, "/auth/me")
-  assert.throws(() => AuthService.mockLoginByRole("SYSTEM_ADMIN"), /đang tắt/)
 })
 
 test("signup reads 201 and preserves the backend's UNVERIFIED onboarding receipt", async () => {

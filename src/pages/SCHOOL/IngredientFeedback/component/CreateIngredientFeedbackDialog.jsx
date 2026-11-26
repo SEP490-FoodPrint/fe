@@ -17,7 +17,10 @@ import {
   formatDateTimeVi,
   parseApiError,
 } from "src/components/ComplaintThread"
-import SupplierComplaintService from "src/services/SupplierComplaintService"
+import { EvidenceFilePicker } from "src/components/EvidenceFiles"
+import SupplierComplaintService, {
+  INGREDIENT_ISSUE_TYPE_LABELS,
+} from "src/services/SupplierComplaintService"
 import styles from "../IngredientFeedback.module.scss"
 
 const STATUS_LABEL = {
@@ -40,7 +43,10 @@ export default function CreateIngredientFeedbackDialog({
   const [loadingLots, setLoadingLots] = useState(false)
   const [lotsError, setLotsError] = useState("")
   const [ingredientLotId, setIngredientLotId] = useState("")
+  const [title, setTitle] = useState("")
+  const [issueType, setIssueType] = useState("")
   const [description, setDescription] = useState("")
+  const [files, setFiles] = useState([])
 
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState("")
@@ -113,9 +119,16 @@ export default function CreateIngredientFeedbackDialog({
     return () => controller.abort()
   }, [open, deliveryId])
 
-  const descLen = countCodePoints(description)
+  const descLen = countCodePoints(description.trim())
+  const titleLen = countCodePoints(title.trim())
   const canSubmit =
-    Boolean(deliveryId) && descLen >= 10 && descLen <= 2000 && !saving
+    Boolean(deliveryId) &&
+    Boolean(issueType) &&
+    titleLen >= 5 &&
+    titleLen <= 255 &&
+    descLen >= 10 &&
+    descLen <= 2000 &&
+    !saving
 
   const handleSubmit = async event => {
     event.preventDefault()
@@ -127,7 +140,10 @@ export default function CreateIngredientFeedbackDialog({
       const created = await SupplierComplaintService.create({
         deliveryId,
         ingredientLotId: ingredientLotId || undefined,
+        title: title.trim(),
+        issueType,
         description: description.trim(),
+        files,
       })
       onCreated(created)
     } catch (err) {
@@ -289,6 +305,60 @@ export default function CreateIngredientFeedbackDialog({
             ) : null}
 
             <div className={styles.field}>
+              <label htmlFor="cif-title">
+                Tiêu đề <span className={styles.required}>*</span>
+              </label>
+              <TextField
+                id="cif-title"
+                required
+                fullWidth
+                size="small"
+                value={title}
+                disabled={saving}
+                error={Boolean(fieldErrors.title)}
+                onChange={event => {
+                  setTitle(event.target.value)
+                  setFieldErrors(prev => ({ ...prev, title: "" }))
+                }}
+                slotProps={{ htmlInput: { maxLength: 255 } }}
+                helperText={
+                  fieldErrors.title ||
+                  `${titleLen.toLocaleString("vi-VN")}/255 ký tự · Tối thiểu 5 ký tự`
+                }
+              />
+            </div>
+
+            <div className={styles.field}>
+              <label id="cif-issue-label" htmlFor="cif-issue">
+                Loại vấn đề <span className={styles.required}>*</span>
+              </label>
+              <TextField
+                id="cif-issue"
+                select
+                required
+                fullWidth
+                size="small"
+                slotProps={{ select: { labelId: "cif-issue-label" } }}
+                value={issueType}
+                disabled={saving}
+                error={Boolean(fieldErrors.issueType)}
+                helperText={fieldErrors.issueType}
+                onChange={event => {
+                  setIssueType(event.target.value)
+                  setFieldErrors(prev => ({ ...prev, issueType: "" }))
+                }}
+              >
+                {Object.entries(INGREDIENT_ISSUE_TYPE_LABELS).map(
+                  ([value, label]) => (
+                    <MenuItem key={value} value={value}>
+                      {label}
+                    </MenuItem>
+                  ),
+                )}
+              </TextField>
+            </div>
+
+            <div className={styles.field}>
               <label htmlFor="cif-description">
                 Mô tả vấn đề chất lượng{" "}
                 <span className={styles.required}>*</span>
@@ -299,7 +369,6 @@ export default function CreateIngredientFeedbackDialog({
                 fullWidth
                 multiline
                 minRows={4}
-                placeholder="Hư hỏng, sai quy cách, thiếu số lượng, bao bì rách…"
                 value={description}
                 disabled={saving}
                 error={Boolean(fieldErrors.description)}
@@ -314,6 +383,16 @@ export default function CreateIngredientFeedbackDialog({
                 }
               />
             </div>
+
+            <EvidenceFilePicker
+              value={files}
+              onChange={next => {
+                setFiles(next)
+                setFieldErrors(prev => ({ ...prev, files: "" }))
+              }}
+              disabled={saving}
+              error={fieldErrors.files}
+            />
           </div>
         </DialogContent>
 

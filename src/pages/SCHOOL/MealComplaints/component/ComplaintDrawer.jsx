@@ -16,6 +16,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close"
 import IconButton from "@mui/material/IconButton"
 import { parseApiError } from "src/components/ComplaintThread"
+import { EvidenceFilePicker } from "src/components/EvidenceFiles"
 import ROUTER from "src/router/ROUTER"
 import ComplaintService from "src/services/ComplaintService"
 import {
@@ -40,6 +41,8 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
   const [classId, setClassId] = useState("")
   const [mealId, setMealId] = useState("")
   const [complaintType, setComplaintType] = useState("")
+  const [title, setTitle] = useState("")
+  const [files, setFiles] = useState([])
   const [description, setDescription] = useState("")
   const [saving, setSaving] = useState(false)
 
@@ -72,9 +75,12 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
       selectedClass[key].dailyMealPortionId === mealId,
   )
   const trimmedDescLength = Array.from(description.trim()).length
+  const trimmedTitleLength = Array.from(title.trim()).length
   const canSubmit =
     eligible &&
     complaintType &&
+    trimmedTitleLength >= 5 &&
+    trimmedTitleLength <= 255 &&
     trimmedDescLength >= 10 &&
     trimmedDescLength <= 2000 &&
     !saving
@@ -96,7 +102,9 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
       await ComplaintService.create({
         dailyMealPortionId: mealId,
         complaintType,
+        title: title.trim(),
         description: description.trim(),
+        files,
       })
       onCreated()
     } catch (error) {
@@ -224,6 +232,29 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
           ) : null}
 
           <div className={styles.field}>
+            <label htmlFor="cc-title">
+              Tiêu đề <span className={styles.required}>*</span>
+            </label>
+            <TextField
+              id="cc-title"
+              required
+              size="small"
+              value={title}
+              disabled={saving}
+              error={Boolean(fieldErrors.title)}
+              onChange={event => {
+                setTitle(event.target.value)
+                setFieldErrors(prev => ({ ...prev, title: "" }))
+              }}
+              slotProps={{ htmlInput: { maxLength: 255 } }}
+              helperText={
+                fieldErrors.title ||
+                `${trimmedTitleLength.toLocaleString("vi-VN")}/255 ký tự · Tối thiểu 5 ký tự`
+              }
+            />
+          </div>
+
+          <div className={styles.field}>
             <label id="cc-type-label" htmlFor="cc-type">
               Loại khiếu nại <span className={styles.required}>*</span>
             </label>
@@ -273,6 +304,16 @@ export default function ComplaintDrawer({ isTeacher, onClose, onCreated }) {
               }
             />
           </div>
+
+          <EvidenceFilePicker
+            value={files}
+            onChange={next => {
+              setFiles(next)
+              setFieldErrors(prev => ({ ...prev, files: "" }))
+            }}
+            disabled={saving}
+            error={fieldErrors.files}
+          />
         </div>
         <footer className={styles.footer}>
           <Button variant="contained" type="submit" disabled={!canSubmit}>

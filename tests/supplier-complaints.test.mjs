@@ -332,3 +332,58 @@ test("extractApiError maps 400 validation fields and 409 conflict messages", () 
     "Nội dung phản hồi vượt quá 5.000 ký tự",
   )
 })
+
+test("create sends title and issueType as JSON when no files are attached", async () => {
+  respond = config => {
+    const body = JSON.parse(config.data)
+    assert.deepEqual(body, {
+      deliveryId: "d-1",
+      title: "Rau dập nát",
+      issueType: "SPOILED_OR_NOT_FRESH",
+      description: "Rau cải dập nát khi bàn giao",
+    })
+    return success({ ...DETAIL_RESOLVED, issueType: "SPOILED_OR_NOT_FRESH" })
+  }
+  const created = await SupplierComplaintService.create({
+    deliveryId: "d-1",
+    title: "  Rau dập nát ",
+    issueType: "SPOILED_OR_NOT_FRESH",
+    description: " Rau cải dập nát khi bàn giao ",
+    files: [],
+  })
+  assert.equal(created.issueType, "SPOILED_OR_NOT_FRESH")
+  assert.equal(
+    SupplierComplaintServiceModule.formatIngredientIssueType(created.issueType),
+    "Hư hỏng/kém tươi",
+  )
+  assert.equal(SupplierComplaintServiceModule.formatIngredientIssueType(null), "—")
+})
+
+test("create and comment send multipart with the files field when files are attached", async () => {
+  const file = new File([new Uint8Array([0xff, 0xd8, 0xff])], "anh.jpg", {
+    type: "image/jpeg",
+  })
+  respond = config => {
+    assert.ok(config.data instanceof FormData)
+    return success(DETAIL_RESOLVED)
+  }
+  await SupplierComplaintService.create({
+    deliveryId: "d-1",
+    ingredientLotId: "",
+    title: "Rau dập nát",
+    issueType: "OTHER",
+    description: "Rau cải dập nát khi bàn giao",
+    files: [file],
+  })
+  const form = requests[0].data
+  assert.equal(form.get("title"), "Rau dập nát")
+  assert.equal(form.get("issueType"), "OTHER")
+  assert.equal(form.has("ingredientLotId"), false)
+  assert.equal(form.getAll("files").length, 1)
+  assert.equal(form.getAll("files")[0].name, "anh.jpg")
+  assert.ok(requests[0].timeout >= 120000)
+
+  await SupplierComplaintService.comment(COMPLAINT_ID, " Bổ sung ảnh ", [file])
+  assert.equal(requests[1].data.get("content"), "Bổ sung ảnh")
+  assert.equal(requests[1].data.getAll("files").length, 1)
+})

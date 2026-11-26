@@ -12,7 +12,7 @@ import {
   updateStoredAccount,
   DEPARTMENT_CONFIGS,
   DEFAULT_INITIAL_PASSWORD,
-} from "../Accounts/mockAccountsData"
+} from "../Accounts/accountsData"
 import styles from "./index.module.scss"
 
 const ROLE_TO_DEPT = {
@@ -105,7 +105,7 @@ function EditAccount() {
         }
       }
 
-      // 3. Fallback bộ nhớ mock
+      // 3. Fallback dữ liệu đã lưu trên trình duyệt
       const existing = getAccountById(id)
       if (existing) {
         setAccount(existing)

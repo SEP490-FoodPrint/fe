@@ -1,9 +1,14 @@
 import http from "src/services/01_axios"
-import { USE_NEW_FEATURES_MOCK } from "src/lib/config"
-import { mockFoodSafetyIncidents } from "src/services/mockNewFeatures"
+import { buildEvidenceBody, evidenceRequestConfig } from "src/components/EvidenceFiles/evidenceFiles"
 
 const INCIDENTS_BASE = "/food-safety-incidents"
 const REPORTS_BASE = "/food-safety-reports"
+
+// payload.files (tùy chọn): có file thì gửi multipart, không thì JSON như cũ.
+function postEvidence(url, { files, ...fields } = {}) {
+  const body = buildEvidenceBody(fields, files)
+  return http.post(url, body, evidenceRequestConfig(body, { notifyOnError: false }))
+}
 
 export const INCIDENT_STATUS = {
   PENDING_SCHOOL_REVIEW: "PENDING_SCHOOL_REVIEW",
@@ -17,7 +22,7 @@ export const INCIDENT_STATUS = {
 
 export const INCIDENT_STATUS_META = {
   [INCIDENT_STATUS.PENDING_SCHOOL_REVIEW]: {
-    label: "Chờ trường xác minh",
+    label: "Chờ xác minh",
     tone: "warning",
   },
   [INCIDENT_STATUS.SUBMITTED_TO_AUTHORITY]: {
@@ -25,7 +30,7 @@ export const INCIDENT_STATUS_META = {
     tone: "info",
   },
   [INCIDENT_STATUS.AUTHORITY_ACKNOWLEDGED]: {
-    label: "ATTP đã tiếp nhận",
+    label: "Đã tiếp nhận",
     tone: "info",
   },
   [INCIDENT_STATUS.UNDER_INSPECTION]: {
@@ -33,15 +38,15 @@ export const INCIDENT_STATUS_META = {
     tone: "warning",
   },
   [INCIDENT_STATUS.INSPECTION_COMPLETED]: {
-    label: "Hoàn tất kiểm tra",
+    label: "Đã kiểm tra",
     tone: "success",
   },
   [INCIDENT_STATUS.CLOSED]: {
-    label: "Đã đóng hồ sơ",
+    label: "Đã đóng",
     tone: "muted",
   },
   [INCIDENT_STATUS.CANCELLED_BY_SCHOOL]: {
-    label: "Trường đã hủy",
+    label: "Đã hủy",
     tone: "danger",
   },
 }
@@ -131,15 +136,15 @@ export const SNAPSHOT_COMPLETENESS = {
 
 export const SNAPSHOT_COMPLETENESS_META = {
   [SNAPSHOT_COMPLETENESS.COMPLETE]: {
-    label: "Đầy đủ chuỗi truy xuất",
+    label: "Đủ truy xuất",
     tone: "success",
   },
   [SNAPSHOT_COMPLETENESS.PARTIAL]: {
-    label: "Truy xuất một phần",
+    label: "Một phần",
     tone: "warning",
   },
   [SNAPSHOT_COMPLETENESS.MISSING]: {
-    label: "Thiếu dữ liệu truy xuất",
+    label: "Thiếu dữ liệu",
     tone: "danger",
   },
 }
@@ -182,11 +187,11 @@ export const SUPPLIER_FINDING = {
 
 export const SUPPLIER_FINDING_META = {
   [SUPPLIER_FINDING.AT_FAULT]: {
-    label: "Có vi phạm / lỗi",
+    label: "Có vi phạm",
     tone: "danger",
   },
   [SUPPLIER_FINDING.CLEARED]: {
-    label: "Không phát hiện lỗi",
+    label: "Không vi phạm",
     tone: "success",
   },
   [SUPPLIER_FINDING.INCONCLUSIVE]: {
@@ -200,14 +205,14 @@ export const SUPPLIER_FINDING_OPTIONS = Object.entries(
 ).map(([value, meta]) => ({ value, label: meta.label }))
 
 export const FORWARDING_STATUS_META = {
-  PENDING: { label: "Đang chờ gửi", tone: "warning" },
-  SENT: { label: "Đã chuyển đơn vị ATTP", tone: "info" },
-  FAILED: { label: "Chuyển thất bại", tone: "danger" },
+  PENDING: { label: "Chờ gửi", tone: "warning" },
+  SENT: { label: "Đã gửi", tone: "info" },
+  FAILED: { label: "Gửi lỗi", tone: "danger" },
 }
 
 export const INSPECTION_STATUS_META = {
-  PLANNED: { label: "Đã lập kế hoạch", tone: "info" },
-  COMPLETED: { label: "Đã có kết quả", tone: "success" },
+  PLANNED: { label: "Đã lên lịch", tone: "info" },
+  COMPLETED: { label: "Có kết quả", tone: "success" },
 }
 
 export const MEAL_TYPE_LABELS = {
@@ -354,6 +359,16 @@ export function extractApiError(
   return { status, code, message, fields }
 }
 
+/** Lỗi file từ BE (trường `files`, `files.0.mimeType`… hoặc 413 quá dung lượng). */
+export function getFilesError(parsed) {
+  if (!parsed) return ""
+  if (parsed.status === 413) return parsed.message
+  const key = Object.keys(parsed.fields || {}).find(
+    item => item === "files" || item.startsWith("files."),
+  )
+  return key ? parsed.fields[key] : ""
+}
+
 function clampPagination(page, limit) {
   const safePage =
     Number.isSafeInteger(Number(page)) && Number(page) > 0 ? Number(page) : 1
@@ -388,9 +403,6 @@ export async function listIncidents(
   { page = 1, limit = 20, status = "" } = {},
   signal,
 ) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.listIncidents({ page, limit, status })
-  }
   const query = clampPagination(page, limit)
   if (status) query.status = status
   const response = await http.get(INCIDENTS_BASE, {
@@ -402,9 +414,6 @@ export async function listIncidents(
 }
 
 export async function getIncidentDetail(id, signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.getIncidentDetail(id)
-  }
   const response = await http.get(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}`,
     {
@@ -416,41 +425,24 @@ export async function getIncidentDetail(id, signal) {
 }
 
 export async function reportIncident(payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.reportIncident(payload)
-  }
-  const response = await http.post(INCIDENTS_BASE, payload, {
-    notifyOnError: false,
-  })
+  const response = await postEvidence(INCIDENTS_BASE, payload)
   return response?.data ?? response
 }
 
 export async function reportDirectIncident(payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.reportDirectIncident(payload)
-  }
-  const response = await http.post(`${INCIDENTS_BASE}/direct`, payload, {
-    notifyOnError: false,
-  })
+  const response = await postEvidence(`${INCIDENTS_BASE}/direct`, payload)
   return response?.data ?? response
 }
 
 export async function forwardIncident(id, payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.forwardIncident(id, payload)
-  }
-  const response = await http.post(
+  const response = await postEvidence(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/forward`,
     payload,
-    { notifyOnError: false },
   )
   return response?.data ?? response
 }
 
 export async function cancelIncident(id, payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.cancelIncident(id, payload)
-  }
   const response = await http.post(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/cancel`,
     payload,
@@ -460,9 +452,6 @@ export async function cancelIncident(id, payload) {
 }
 
 export async function addAllocations(id, mealAllocationIds) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.addAllocations(id, mealAllocationIds)
-  }
   const response = await http.post(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/allocations`,
     { mealAllocationIds },
@@ -472,9 +461,6 @@ export async function addAllocations(id, mealAllocationIds) {
 }
 
 export async function getTraceSnapshot(id, version, signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.getTraceSnapshot(id, version)
-  }
   const response = await http.get(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/trace-snapshots/${encodeURIComponent(version)}`,
     { signal, notifyOnError: false },
@@ -483,9 +469,6 @@ export async function getTraceSnapshot(id, version, signal) {
 }
 
 export async function getInspectionSuppliers(id, signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.getInspectionSuppliers(id)
-  }
   const response = await http.get(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/inspection-suppliers`,
     { signal, notifyOnError: false },
@@ -498,9 +481,6 @@ export async function getInspectionSuppliers(id, signal) {
 }
 
 export async function createInspection(id, payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.createInspection(id, payload)
-  }
   const response = await http.post(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/inspections`,
     payload,
@@ -510,25 +490,14 @@ export async function createInspection(id, payload) {
 }
 
 export async function recordInspectionResult(id, inspectionId, payload) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.recordInspectionResult(
-      id,
-      inspectionId,
-      payload,
-    )
-  }
-  const response = await http.post(
+  const response = await postEvidence(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/inspections/${encodeURIComponent(inspectionId)}/result`,
     payload,
-    { notifyOnError: false },
   )
   return response?.data ?? response
 }
 
 export async function closeIncident(id, payload = {}) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.closeIncident(id, payload)
-  }
   const response = await http.post(
     `${INCIDENTS_BASE}/${encodeURIComponent(id)}/close`,
     payload,
@@ -538,9 +507,6 @@ export async function closeIncident(id, payload = {}) {
 }
 
 export async function listReports({ page = 1, limit = 20 } = {}, signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.listReports({ page, limit })
-  }
   const query = clampPagination(page, limit)
   const response = await http.get(REPORTS_BASE, {
     params: query,
@@ -551,9 +517,6 @@ export async function listReports({ page = 1, limit = 20 } = {}, signal) {
 }
 
 export async function receiveReport(reportId) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.receiveReport(reportId)
-  }
   const response = await http.post(
     `${REPORTS_BASE}/${encodeURIComponent(reportId)}/receive`,
     {},
@@ -594,9 +557,6 @@ export async function listSchoolClasses(
   signal,
   { preferMealOptions = false, homeroomOnly = false } = {},
 ) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.listSchoolClasses()
-  }
   const fetchFromMealOptions = async () => {
     const res = await http.get("/meal-complaints/meal-options", {
       signal,
@@ -639,9 +599,6 @@ export function isUuid(value) {
 }
 
 export async function listDistributedAllocations(signal) {
-  if (USE_NEW_FEATURES_MOCK) {
-    return mockFoodSafetyIncidents.listDistributedAllocations()
-  }
   try {
     const response = await http.get("/meal-allocations", {
       signal,

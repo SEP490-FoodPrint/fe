@@ -74,6 +74,6 @@ export function registrationList(response) {
   }
   return {
     data: items.map(registrationRequest), total: counted ? pagination.total : null, page: pagination.page,
-    pageSize: pagination.limit, hasNext: pagination.hasNext, isMock: false,
+    pageSize: pagination.limit, hasNext: pagination.hasNext,
   }
 }

@@ -341,8 +341,30 @@
   color: var(--color-error, #d64545);
 }
 
+.composerMeta {
+  display: flex;
+  flex: 1 1 260px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+
+  > :first-child {
+    width: 100%;
+  }
+}
+
+.commentAttachments {
+  margin-top: 8px;
+}
+
+.escalationAttachments {
+  margin-bottom: 4px;
+}
+
 .composerToolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 12px;

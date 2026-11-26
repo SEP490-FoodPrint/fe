@@ -21,6 +21,7 @@ import FoodSafetyIncidentService, {
   extractApiError,
   formatDateTimeVi,
   getDefaultDatetimeLocalValue,
+  getFilesError,
   getInspectionStatusMeta,
   getSupplierFindingMeta,
   OVERALL_CONCLUSION,
@@ -31,6 +32,11 @@ import FoodSafetyIncidentService, {
   toIsoWithTimezone,
 } from "src/services/FoodSafetyIncidentService"
 import IncidentStatusBadge from "./IncidentStatusBadge"
+import {
+  EvidenceAttachmentList,
+  EvidenceFilePicker,
+} from "src/components/EvidenceFiles"
+import TruncatedText from "src/components/TruncatedText"
 import styles from "../FoodSafetyIncidents.module.scss"
 
 export function PlanInspectionDialog({
@@ -224,6 +230,7 @@ export function RecordInspectionResultDialog({
   )
   const [resultSummary, setResultSummary] = useState("")
   const [findings, setFindings] = useState([])
+  const [files, setFiles] = useState([])
   const [suppliers, setSuppliers] = useState([])
   const [supplierSource, setSupplierSource] = useState("")
   const [loadingSuppliers, setLoadingSuppliers] = useState(false)
@@ -236,6 +243,7 @@ export function RecordInspectionResultDialog({
     setOverallConclusion(OVERALL_CONCLUSION.INCONCLUSIVE)
     setResultSummary("")
     setFindings([])
+    setFiles([])
     setFieldErrors({})
     setSubmitError("")
 
@@ -364,6 +372,7 @@ export function RecordInspectionResultDialog({
         return entry
       }),
     }
+    if (files.length > 0) payload.files = files
 
     setSubmitting(true)
     setSubmitError("")
@@ -384,10 +393,17 @@ export function RecordInspectionResultDialog({
         // Gộp lỗi lồng nhau (vd. findings.0.supplierId) về khối "findings" để hiện dưới bảng NCC
         const grouped = {}
         for (const [key, message] of Object.entries(parsed.fields)) {
-          const root = key.startsWith("findings") ? "findings" : key
+          const root = key.startsWith("findings")
+            ? "findings"
+            : key.startsWith("files")
+              ? "files"
+              : key
           grouped[root] = grouped[root] ? `${grouped[root]} ${message}` : message
         }
         setFieldErrors(grouped)
+      }
+      if (parsed.status === 413) {
+        setFieldErrors(prev => ({ ...prev, files: getFilesError(parsed) }))
       }
       if (parsed.status === 409) {
         onConflict?.(parsed.message)
@@ -649,6 +665,17 @@ export function RecordInspectionResultDialog({
                 <span className={styles.fieldError}>{fieldErrors.findings}</span>
               ) : null}
             </div>
+
+            <EvidenceFilePicker
+              value={files}
+              onChange={next => {
+                setFiles(next)
+                setFieldErrors(prev => ({ ...prev, files: "" }))
+              }}
+              disabled={submitting}
+              label="Biên bản/ảnh kiểm tra (không bắt buộc)"
+              error={fieldErrors.files || ""}
+            />
           </div>
         </DialogContent>
         <DialogActions sx={{ px: 3, py: 2 }}>
@@ -887,14 +914,14 @@ function InspectionsSection({
                   <div className={styles.metaGrid}>
                     <div className={styles.metaRow}>
                       <span className={styles.metaLabel}>Kết luận chung</span>
-                      <span className={styles.metaValue}>
+                      <TruncatedText className={styles.metaValue}>
                         {OVERALL_CONCLUSION_LABELS[insp.overallConclusion] ||
                           insp.overallConclusion}
-                      </span>
+                      </TruncatedText>
                     </div>
                     <div className={styles.metaRow}>
                       <span className={styles.metaLabel}>Người ghi kết quả</span>
-                      <span className={styles.metaValue}>
+                      <TruncatedText className={styles.metaValue}>
                         {insp.recordedBy?.fullName || "—"}
                         {insp.recordedBy?.roleCode
                           ? ` (${ROLE_LABELS[insp.recordedBy.roleCode] || insp.recordedBy.roleCode})`
@@ -902,7 +929,7 @@ function InspectionsSection({
                         {insp.recordedAt
                           ? ` · ${formatDateTimeVi(insp.recordedAt)}`
                           : ""}
-                      </span>
+                      </TruncatedText>
                     </div>
                   </div>
                 ) : null}
@@ -933,7 +960,9 @@ function InspectionsSection({
                           return (
                             <tr key={f.id || f.supplierId || fIdx}>
                               <td style={{ fontWeight: 600 }}>
-                                {f.supplier?.name || f.supplierName || f.supplierId}
+                                <TruncatedText style={{ maxWidth: 240 }}>
+                                  {f.supplier?.name || f.supplierName || f.supplierId}
+                                </TruncatedText>
                               </td>
                               <td>
                                 <IncidentStatusBadge
@@ -941,12 +970,24 @@ function InspectionsSection({
                                   tone={fMeta.tone}
                                 />
                               </td>
-                              <td>{f.evidenceNote || "—"}</td>
+                              <td>
+                                <TruncatedText style={{ maxWidth: 320 }}>
+                                  {f.evidenceNote || "—"}
+                                </TruncatedText>
+                              </td>
                             </tr>
                           )
                         })}
                       </tbody>
                     </table>
+                  </div>
+                ) : null}
+
+                {Array.isArray(insp.attachments) &&
+                insp.attachments.length > 0 ? (
+                  <div>
+                    <div className={styles.blockHeading}>Tệp kiểm tra</div>
+                    <EvidenceAttachmentList attachments={insp.attachments} />
                   </div>
                 ) : null}
               </div>

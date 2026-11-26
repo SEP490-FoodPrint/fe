@@ -9,7 +9,7 @@ import { formatRequestDate, organizationName, requestCode, REQUEST_TYPES } from 
 import CloseIcon from "@mui/icons-material/Close"
 import styles from "./ReviewDialog.module.scss"
 
-export default function ReviewDialog({ mode, request, reviewer, onClose, onReviewed, onReload, onSwitchToReject }) {
+export default function ReviewDialog({ mode, request, onClose, onReviewed, onReload, onSwitchToReject }) {
   const reducedMotion = useMediaQuery("(prefers-reduced-motion: reduce)")
   const [reason, setReason] = useState("")
   const [reasonError, setReasonError] = useState("")
@@ -38,8 +38,8 @@ export default function ReviewDialog({ mode, request, reviewer, onClose, onRevie
         status: mode,
         rejection_reason: isReject ? reason.trim() : null,
         expected_review_version: request.review_version,
-      }, reviewer)
-      onReviewed(response.data, response.isMock)
+      })
+      onReviewed(response.data)
     } catch (err) {
       const code = err?.response?.data?.error?.code
       const status = err?.response?.status
