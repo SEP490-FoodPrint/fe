@@ -1,4 +1,4 @@
-import { mealByTime } from "src/utils/mealWindow";
+import { hasMealWindow, mealByTime, mealWindowBlock } from "src/utils/mealWindow";
 import { formatLargeQuantity } from "src/utils/quantity"
 import useConfirmAction from "../CreateBatch/component/useConfirmAction";
 import { batchDisplayName } from "../CreateBatch/batchLabel";
@@ -55,22 +55,32 @@ function CreateBatchSeparatePage() {
       .catch(() => setMealTimes(null));
     return () => controller.abort();
   }, []);
-  // Tự chọn bữa theo khung giờ; kiểm tra lại mỗi phút cho tới khi người dùng tự chọn bữa.
+  // Tự chọn bữa theo khung giờ, kiểm tra lại mỗi phút. Trường đã cấu hình giờ bữa trưa thì
+  // chỉ hiện bữa đang trong khung giờ; chưa cấu hình thì người dùng được tự chọn bữa.
   useEffect(() => {
     const apply = () => {
-      if (!manualMealRef.current) setSelectedMeal(mealByTime(mealTimes));
+      if (hasMealWindow(mealTimes) || !manualMealRef.current) setSelectedMeal(mealByTime(mealTimes));
     };
     apply();
     const timer = setInterval(apply, 60000);
     return () => clearInterval(timer);
   }, [mealTimes]);
+  const mealLocked = hasMealWindow(mealTimes);
   const handleSelectMeal = (value) => {
+    if (mealLocked) return;
     manualMealRef.current = true;
     setSelectedMeal(value);
   };
   // Hỏi xác nhận ngắn trước khi Nấu / Nấu xong (bấm nút hoặc kéo thả)
   const { confirm: confirmAction, element: confirmElement } = useConfirmAction();
+  // Chặn theo khung giờ bữa (BE cũng chặn): báo ngay thay vì gửi yêu cầu.
+  const mealBlocked = (item) => {
+    const reason = mealWindowBlock(item?.mealType, mealTimes);
+    if (reason) notice({ msg: reason, isSuccess: false });
+    return Boolean(reason);
+  };
   const askStartCooking = (dish) =>
+    !mealBlocked(dish) &&
     confirmAction({
       title: "Bắt đầu nấu?",
       message: `Chuyển "${dish.name}" sang Đang nấu.`,
@@ -78,6 +88,7 @@ function CreateBatchSeparatePage() {
       onConfirm: () => handleStartCooking(dish),
     });
   const askCompleteCooking = (batch) =>
+    !mealBlocked(batch) &&
     confirmAction({
       title: "Xác nhận nấu xong?",
       message: `"${batchDisplayName(batch)}" sẽ chuyển sang Đã nấu xong.`,
@@ -433,6 +444,7 @@ function CreateBatchSeparatePage() {
             mealRequirements={mealRequirements}
             selectedMeal={selectedMeal}
             onSelectMeal={handleSelectMeal}
+            mealLocked={mealLocked}
             onOpenDetail={handleOpenDetail}
             onStartCooking={askStartCooking}
             mealTimes={mealTimes}
