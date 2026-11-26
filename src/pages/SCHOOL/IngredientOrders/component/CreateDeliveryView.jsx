@@ -71,13 +71,13 @@ import styles from "./CreateDeliveryView.module.scss";
  * Màn hình tạo yêu cầu mua và giao nhận thực phẩm tươi sống chuyên biệt phục vụ bếp ăn bán trú.
  * Áp dụng mô hình giao 2 Đợt chuẩn nhằm hạn chế lãng phí và đảm bảo độ tươi ngon an toàn:
  *
- * 1. ĐỢT 1 (Giao sớm 05:30 sáng):
+ * 1. ĐỢT 1 (giao sớm, trong khung giờ nhận nguyên liệu của trường):
  *    - Nhập trước 50% số suất ăn kế hoạch theo Thực đơn tuần đã được Ban Dinh Dưỡng duyệt.
  *    - Bếp sơ chế, chuẩn bị nước dùng và các món chính nấu sớm.
  *
- * 2. ĐỢT 2 (Giao bổ sung 07:45 sáng):
+ * 2. ĐỢT 2 (giao bổ sung sau khi GVCN chốt điểm danh):
  *    - Tự động lấy sĩ số thực tế do Giáo viên chủ nhiệm (GVCN) điểm danh báo về buổi sáng.
- *    - Số suất giao bù = (Sĩ số thực tế GVCN chốt) - (Số suất Đợt 1 đã nhận lúc 5h30).
+ *    - Số suất giao bù = (Sĩ số thực tế GVCN chốt của từng bữa) - (Số suất Đợt 1), tính riêng bữa trưa và bữa xế.
  *    - Giúp trường tiết kiệm chi phí nếu học sinh nghỉ ốm, đồng thời đủ suất ăn cho học sinh.
  *
  * CÁC QUY TẮC NGHIỆP VỤ QUAN TRỌNG (BUSINESS RULES):
@@ -346,14 +346,9 @@ export default function CreateDeliveryView({
     const b1 = forDate.find((d) => d.batchType === "BATCH_1");
     const b2 = forDate.find((d) => d.batchType === "BATCH_2");
 
-    const rejectCount = Object.values(b1?.approvals || {}).filter(
-      (a) => a?.approved === false,
-    ).length;
-    const b1Failed =
-      b1 &&
-      (b1.status === "CANCELLED" ||
-        b1.status === "REJECTED" ||
-        rejectCount >= 2);
+    // Đợt 1 hỏng khi BE đã hủy (bị từ chối quá 2 lần thì hủy phần chưa nhận).
+    // Đang "Bị từ chối / Giao lại" chưa phải hủy: máy chủ chặn Đợt 2 tới khi Đợt 1 nhận đủ và lập mẻ.
+    const b1Failed = b1 && b1.status === "CANCELLED";
 
     let m = "BATCH_1";
     if (b1 && b2) {
@@ -910,15 +905,55 @@ export default function CreateDeliveryView({
     if (!demandGrades.length) return null;
     const sum = (k) =>
       demandGrades.reduce((a, g) => a + (Number(g[k]) || 0), 0);
+    // Đợt 2 tính riêng từng bữa (trưa, xế) theo sĩ số GVCN chốt của bữa đó.
+    const mealLabel = { LUNCH: "Trưa", AFTERNOON: "Xế" };
+    const mealTotals = ["LUNCH", "AFTERNOON"]
+      .map((mealType) => {
+        const rows = demandGrades.flatMap((g) =>
+          (g.meals || [])
+            .filter((m) => m.mealType === mealType)
+            .map((m) => ({ ...m, batch1: Number(g.batch1Portions) || 0 })),
+        );
+        if (!rows.length) return null;
+        return {
+          mealType,
+          label: mealLabel[mealType],
+          actual: rows.reduce((a, r) => a + (Number(r.actualPortions) || 0), 0),
+          batch1: rows.reduce((a, r) => a + r.batch1, 0),
+          batch: rows.reduce((a, r) => a + (Number(r.batchPortions) || 0), 0),
+        };
+      })
+      .filter(Boolean);
+    const perMeal = mode === "BATCH_2" && mealTotals.length > 1;
+    const actual = sum("actualPortions");
+    const batch = sum("batchPortions");
     return {
       planned: sum("plannedPortions"),
       batch1: sum("batch1Portions"),
-      actual: sum("actualPortions"),
-      batch: sum("batchPortions"),
+      actual,
+      batch,
+      actualText: perMeal
+        ? mealTotals.map((m) => `${m.label} ${m.actual}`).join(" · ")
+        : `${actual}`,
+      batchText: perMeal
+        ? mealTotals.map((m) => `${m.label} ${m.batch}`).join(" · ")
+        : `${batch}`,
+      byMeal: perMeal
+        ? mealTotals
+            .map((m) => `${m.label}: ${m.actual} − ${m.batch1} = ${m.batch}`)
+            .join(" · ")
+        : "",
       byGrade: demandGrades
         .map((g) =>
           mode === "BATCH_2"
-            ? `${g.gradeName}: ${g.actualPortions} − ${g.batch1Portions} = ${g.batchPortions}`
+            ? g.meals?.length > 1
+              ? `${g.gradeName}: ${g.meals
+                  .map(
+                    (m) =>
+                      `${mealLabel[m.mealType]} ${m.actualPortions} − ${g.batch1Portions} = ${m.batchPortions}`,
+                  )
+                  .join(", ")}`
+              : `${g.gradeName}: ${g.actualPortions} − ${g.batch1Portions} = ${g.batchPortions}`
             : `${g.gradeName}: ⌊${g.plannedPortions}/2⌋ = ${g.batch1Portions}`,
         )
         .join(" · "),
@@ -1560,9 +1595,9 @@ export default function CreateDeliveryView({
               </Typography>
               <Typography variant="body2" className={styles.completedDesc}>
                 Đơn hàng đã được chia 2 đợt đầy đủ: Đợt 1 (
-                {batch1ForDate?.plannedPortions} suất lúc 05:30) và Đợt 2 (
-                {batch2ForDate?.plannedPortions} suất lúc 07:45 theo sĩ số
-                GVCN).
+                {batch1ForDate?.plannedPortions} suất theo một nửa sĩ số đăng
+                ký) và Đợt 2 ({batch2ForDate?.plannedPortions} suất theo sĩ số
+                GVCN chốt).
               </Typography>
             </Box>
           </Box>
@@ -1582,7 +1617,7 @@ export default function CreateDeliveryView({
       )}
 
       {/* =====================================================================
-          CASE 4: ĐỢT 1 ĐÃ BỊ HỦY (TỪ 2 BÊN TỪ CHỐI TRỞ LÊN)
+          CASE 4: ĐỢT 1 ĐÃ BỊ HỦY (BỊ TỪ CHỐI QUÁ 2 LẦN)
           ===================================================================== */}
       {mode === "BATCH_1_CANCELLED" && (
         <Paper className={styles.completedCard} elevation={0}>
@@ -1596,9 +1631,9 @@ export default function CreateDeliveryView({
                 Đợt 1 Ngày {formatDateVN(orderDate)} Đã Bị Hủy Nghiệm Thu!
               </Typography>
               <Typography variant="body2" sx={{ color: "#475569", mt: 0.5 }}>
-                Đợt 1 của ngày này đã bị từ chối từ 2 bên trở lên trong Hội đồng
-                4 bên nên đã hủy toàn bộ đơn. Không thể lập đơn giao hàng Đợt 2
-                khi Đợt 1 không được nghiệm thu đạt chuẩn.
+                Đợt 1 của ngày này đã bị hủy (nhà cung cấp bị từ chối giao quá 2
+                lần nên phần chưa nhận đã hủy). Không thể lập đơn giao hàng Đợt
+                2 khi Đợt 1 chưa nhận đủ hàng và lập mẻ.
               </Typography>
             </Box>
           </Box>
@@ -1932,7 +1967,7 @@ export default function CreateDeliveryView({
                     ) : demandError ? (
                       "—"
                     ) : demandTotals ? (
-                      `${demandTotals.actual} học sinh`
+                      `${demandTotals.actualText} học sinh`
                     ) : parsedAttendance > 0 ? (
                       `${parsedAttendance} học sinh`
                     ) : (
@@ -1985,13 +2020,18 @@ export default function CreateDeliveryView({
                     {demandError
                       ? "—"
                       : demandTotals
-                        ? `${demandTotals.batch} suất`
+                        ? `${demandTotals.batchText} suất`
                         : parsedAttendance > 0
                           ? `${remainingPortions} suất`
                           : "0 suất"}
                   </Typography>
                 </Box>
               </Box>
+              {demandTotals?.byMeal && (
+                <Typography variant="caption" className={styles.gradeNote}>
+                  Tính riêng từng bữa: {demandTotals.byMeal}
+                </Typography>
+              )}
               {demandTotals && !demandSchoolWide && (
                 <Typography variant="caption" className={styles.gradeNote}>
                   Tính riêng từng khối: {demandTotals.byGrade}
@@ -2414,7 +2454,7 @@ export default function CreateDeliveryView({
                       {demandError
                         ? "—"
                         : demandTotals
-                          ? demandTotals.batch
+                          ? demandTotals.batchText
                           : remainingPortions}{" "}
                       suất)
                     </TableCell>
@@ -2741,7 +2781,7 @@ export default function CreateDeliveryView({
               rows={2}
               fullWidth
               size="small"
-              placeholder="Yêu cầu giao bù đúng 07:45 sáng, kiểm tra niêm phong xe lạnh..."
+              placeholder="Yêu cầu giao bù đúng giờ hẹn, kiểm tra niêm phong xe lạnh..."
             />
           </Paper>
 
@@ -2751,7 +2791,7 @@ export default function CreateDeliveryView({
                 label={
                   isTableLoading
                     ? "Đang tải..."
-                    : `${itemsState.length} mặt hàng (Đợt 2: ${demandError ? "—" : demandTotals ? demandTotals.batch : remainingPortions} suất)`
+                    : `${itemsState.length} mặt hàng (Đợt 2: ${demandError ? "—" : demandTotals ? demandTotals.batchText : remainingPortions} suất)`
                 }
                 size="small"
                 className={styles.summaryFreshBadge}

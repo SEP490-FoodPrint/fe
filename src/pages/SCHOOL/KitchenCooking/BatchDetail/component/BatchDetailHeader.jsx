@@ -37,6 +37,13 @@ export default function BatchDetailHeader({
   const cookLocked = locked || Boolean(mealBlock)
   const cookTitle = locked ? WEEKEND_LOCK_MESSAGE : mealBlock || undefined
   const isAllSampled = allSamplesDone || (hasSample && totalDishes <= 1)
+  // UC 22-1: mẻ Đợt 1 đã cắt mẫu trong mẻ, phần bù về ở Đợt 2. Ẩn khi Đợt 2 không cần
+  // hoặc khi mẻ đã "Chính thức" (Đợt 2 đã nhận xong, phần bù đã vào mẻ).
+  const cutAwaitingRound2 =
+    batchData?.sampleStrategy === "CUT" &&
+    batchData?.supplyBatchNo === 1 &&
+    batchData?.round2Status !== "NOT_NEEDED" &&
+    ["ROUND1_APPROVED", "PENDING_APPROVAL"].includes(batchData?.rawStatus || status)
 
   const getStatusBadge = () => {
     if (isCompleted) {
@@ -90,6 +97,11 @@ export default function BatchDetailHeader({
             <span className={styles.batchCode}>#{batchData?.code || "—"}</span>
           </div>
           {getStatusBadge()}
+          {cutAwaitingRound2 && (
+            <span className={`${styles.statusBadge} ${styles.statusDraft}`}>
+              Đã cắt mẫu, sẽ bù ở Đợt 2
+            </span>
+          )}
         </div>
 
         <div className={styles.rightGroup}>

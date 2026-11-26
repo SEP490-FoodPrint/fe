@@ -104,6 +104,7 @@ const formatPortionRate = (rate, unit) => {
 
 export default function DeliveryDetailView({
   delivery: propDelivery,
+  cookingMode = null,
   onBack,
   onConfirmAttendance,
 }) {
@@ -677,6 +678,12 @@ export default function DeliveryDetailView({
 
   const isBatch1 = delivery.batchType === "BATCH_1";
   const isBatch2 = delivery.batchType === "BATCH_2";
+  // UC 23: chỉ mời "Xác nhận lưu mẫu" khi trường nấu riêng và còn chuyến chờ kho duyệt.
+  const canConfirmSample =
+    isBatch2 &&
+    cookingMode === "SEPARATE_BY_LOT" &&
+    Boolean(delivery.awaitingWarehouse) &&
+    !["RECEIVED", "COMPLETED", "CANCELLED"].includes(delivery.status);
   const isWaitingAttendance = delivery.status === "WAITING_ATTENDANCE";
   const approvals = delivery.approvals || {};
   const isCancelled =
@@ -771,7 +778,7 @@ export default function DeliveryDetailView({
         {/* TASK-10 v8: kế hoạch mẻ, phần cắt/bù lưu mẫu và bước kho xác nhận lượng bổ sung của đợt */}
         {(isBatch1 || isBatch2) && delivery.deliveryDate && (
           <Button
-            variant={isBatch2 ? "contained" : "outlined"}
+            variant={canConfirmSample ? "contained" : "outlined"}
             startIcon={<Layers size={16} />}
             onClick={() =>
               navigate(
@@ -779,7 +786,11 @@ export default function DeliveryDetailView({
               )
             }
           >
-            {isBatch2 ? "Xác nhận lưu mẫu Đợt 2" : "Kế hoạch mẻ Đợt 1"}
+            {isBatch2
+              ? canConfirmSample
+                ? "Xác nhận lưu mẫu Đợt 2"
+                : "Kế hoạch mẻ Đợt 2"
+              : "Kế hoạch mẻ Đợt 1"}
           </Button>
         )}
       </Box>
@@ -1709,6 +1720,7 @@ export default function DeliveryDetailView({
 
 DeliveryDetailView.propTypes = {
   delivery: PropTypes.object.isRequired,
+  cookingMode: PropTypes.string,
   onBack: PropTypes.func.isRequired,
   onConfirmAttendance: PropTypes.func,
 };

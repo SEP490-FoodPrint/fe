@@ -1,5 +1,5 @@
 /**
- * Chuẩn hóa `traceData` (GET /meal-traceability) thành 5 chặng cho
+ * Chuẩn hóa `traceData` (GET /meal-traceability/grade) thành 5 chặng cho
  * TraceabilityBlockchainCard. Chỉ dùng dữ liệu thật: chặng chưa có bằng chứng
  * thì hiện "Chưa ghi nhận", không bao giờ điền hash / số khối giả.
  */

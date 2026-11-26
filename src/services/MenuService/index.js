@@ -10,7 +10,6 @@ import {
   apiAllergyCheck,
   apiIngredientOptions,
   apiPortionGroups,
-  apiGetMenuApprovalDetail,
   apiGetMenuApprovalWeek,
 } from "./urls";
 import {
@@ -613,7 +612,6 @@ const MenuService = {
   /**
    * Hồ sơ duyệt thực đơn tuần cho Ban Giám Hiệu
    */
-  getApprovalDetail: (menuId) => http.get(apiGetMenuApprovalDetail(menuId)),
 
   /** Nhận xét BGH gần nhất cho yêu cầu sửa cả tuần. */
   /** Toàn bộ các lần BGH yêu cầu chỉnh sửa của một thực đơn tuần, mới nhất trước. */

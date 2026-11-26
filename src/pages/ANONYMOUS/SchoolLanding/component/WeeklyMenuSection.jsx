@@ -16,6 +16,7 @@ import {
   isDateInMenuWeek,
 } from "src/utils/weeklyMenu";
 import WeeklyDayCard from "./WeeklyDayCard";
+import { vietnamTodayISO } from "src/utils/menuDays";
 import styles from "./WeeklyMenuSection.module.scss";
 
 function WeeklyMenuSection({
@@ -106,7 +107,7 @@ function WeeklyMenuSection({
   const hasDays = days.length > 0;
 
   // Nhãn Tuần này dựa trên ngày hiện tại, độc lập với tuần đang xem.
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = vietnamTodayISO();
 
   return (
     <section id="thuc-don-tuan" className={styles.section}>

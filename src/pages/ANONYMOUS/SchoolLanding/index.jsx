@@ -12,14 +12,14 @@ import QuickStatsStrip from "./component/QuickStatsStrip";
 import DailyMealSection from "./component/DailyMealSection";
 import WeeklyMenuSection from "./component/WeeklyMenuSection";
 import SchoolSuppliersSection from "./component/SchoolSuppliersSection";
-import AllergyNoticeModal from "./component/AllergyNoticeModal";
 import "./style.scss";
 
 function SchoolLanding() {
   const { schoolCode } = useParams();
   const outletContext = useOutletContext() || {};
   const school = outletContext.school || null;
-  const activeCode = (outletContext.schoolCode || schoolCode || school?.code || "SCH_ANH_DUONG").toUpperCase();
+  // Không đoán mã trường mặc định: thiếu mã thì không tải dữ liệu.
+  const activeCode = (outletContext.schoolCode || schoolCode || school?.code || "").toUpperCase();
 
   const [dailyMeal, setDailyMeal] = useState(null);
   const [weeklyMenu, setWeeklyMenu] = useState(null);
@@ -27,7 +27,6 @@ function SchoolLanding() {
   const [schoolGrades, setSchoolGrades] = useState([]);
   const [selectedGradeId, setSelectedGradeId] = useState("");
   const [suppliers, setSuppliers] = useState([]);
-  const [isAllergyModalOpen, setIsAllergyModalOpen] = useState(false);
   const [, setLoading] = useState(true);
 
   // Tên khối đang chọn, lấy từ danh mục khối gốc của trường
@@ -47,6 +46,7 @@ function SchoolLanding() {
   // nhận thực đơn toàn trường (BE lọc theo khối hoặc isSchoolWide).
   useEffect(() => {
     let isMounted = true;
+    if (!activeCode) return undefined;
 
     const loadData = async () => {
       try {
@@ -164,7 +164,6 @@ function SchoolLanding() {
         <DailyMealSection
           dailyMeal={dailyMeal}
           selectedGradeName={selectedGradeName}
-          onOpenAllergyModal={() => setIsAllergyModalOpen(true)}
         />
 
         {/* Thực đơn bán trú theo tuần */}
@@ -185,13 +184,6 @@ function SchoolLanding() {
           schoolName={school?.name}
         />
       </main>
-
-      {/* Modal báo dị ứng món ăn */}
-      <AllergyNoticeModal
-        isOpen={isAllergyModalOpen}
-        onClose={() => setIsAllergyModalOpen(false)}
-        schoolName={school?.name}
-      />
     </div>
   );
 }
