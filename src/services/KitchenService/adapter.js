@@ -394,7 +394,9 @@ export function adaptBatchDetail(batch) {
     dishCategory: "Món ăn bán trú",
     menuDate,
     mealType,
-    servingTime: batch.mealType === "LUNCH" ? "11:15" : "14:30",
+    mealLabel: mealType,
+    // Giờ phục vụ lấy từ cấu hình trường (KitchenService.getContext) ở màn chi tiết.
+    servingTime: null,
     portions: Number.isFinite(batch.plannedPortions)
       ? batch.plannedPortions
       : 0,
@@ -409,6 +411,11 @@ export function adaptBatchDetail(batch) {
     retainedFoodSamples: samples,
     rawBatchLots: batch.cookingBatchLots || [],
     rawMealSeasonings: batch.mealSeasonings || [],
+    // UC 22-1: cách lấy mẫu của mẻ theo đợt giao và phần thừa Đợt 1 của cùng bữa – món.
+    sampleStrategy: batch.sampleStrategy || null,
+    supplyBatchNo: batch.supplyBatchNo ?? null,
+    round2Status: batch.round2Status || null,
+    leftovers: Array.isArray(batch.leftovers) ? batch.leftovers : [],
   };
 }
 

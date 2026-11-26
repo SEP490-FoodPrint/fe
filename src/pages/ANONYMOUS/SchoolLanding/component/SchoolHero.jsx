@@ -106,12 +106,10 @@ function SchoolHero({ school }) {
                 <div className={styles.imageGradientOverlay} />
 
                 <div className={styles.floatingBadges}>
+                  {/* Ảnh bìa của trường, không phải ảnh trong ngày. */}
                   <span className={styles.nutritionBadge}>
                     <Leaf size={14} />
-                    <span>Khẩu phần bán trú tiêu chuẩn dinh dưỡng</span>
-                  </span>
-                  <span className={styles.diaryBadge}>
-                    Ảnh nhật ký hôm nay
+                    <span>Bữa ăn bán trú của trường</span>
                   </span>
                 </div>
               </div>

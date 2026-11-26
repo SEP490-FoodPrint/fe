@@ -57,7 +57,10 @@ export default function SchoolGrades() {
   }
 
   const deleting = dialog?.mode === "delete"
-  const blocked = deleting && dialog.item.classCount > 0
+  // Khối còn lớp hoặc đã có thực đơn gán khối thì không xóa được (UC-53-1).
+  const blockedByClasses = deleting && dialog.item.classCount > 0
+  const blockedByMenus = deleting && !blockedByClasses && dialog.item.menuCount > 0
+  const blocked = blockedByClasses || blockedByMenus
 
   async function save(event) {
     event.preventDefault()
@@ -168,7 +171,11 @@ export default function SchoolGrades() {
             <DialogContent dividers className={styles.form}>
               {saveError && <Alert severity="error">{saveError}</Alert>}
               {deleting ? (
-                blocked ? (
+                blockedByMenus ? (
+                  <Alert severity="warning">
+                    Khối đã có thực đơn, không thể xóa.
+                  </Alert>
+                ) : blocked ? (
                   <Alert severity="warning">
                     Khối này còn {dialog.item.classCount} lớp liên kết. Hãy
                     chuyển hoặc bỏ gán khối trong{" "}

@@ -142,16 +142,23 @@ function DailyMealSection({ dailyMeal, selectedGradeName }) {
               </div>
 
               {/* Footer kiểm thực và dinh dưỡng */}
-              <footer className={styles.lunchFooter}>
-                <div className={styles.assuranceItem}>
-                  <CheckCircle2 size={16} className={styles.checkIcon} />
-                  <span>{lunch?.standardsNote || "Đạt chuẩn 4 nhóm chất dinh dưỡng học đường"}</span>
-                </div>
-                <div className={styles.assuranceItemSec}>
-                  <ShieldCheck size={16} className={styles.shieldIcon} />
-                  <span>{lunch?.allergyWarning || "Đã lưu mẫu và kiểm thực 3 bước theo quy định BYT"}</span>
-                </div>
-              </footer>
+              {/* Chỉ hiện ghi chú khi BE trả về, không tự điền cam kết mặc định. */}
+              {(lunch?.standardsNote || lunch?.allergyWarning) && (
+                <footer className={styles.lunchFooter}>
+                  {lunch?.standardsNote && (
+                    <div className={styles.assuranceItem}>
+                      <CheckCircle2 size={16} className={styles.checkIcon} />
+                      <span>{lunch.standardsNote}</span>
+                    </div>
+                  )}
+                  {lunch?.allergyWarning && (
+                    <div className={styles.assuranceItemSec}>
+                      <ShieldCheck size={16} className={styles.shieldIcon} />
+                      <span>{lunch.allergyWarning}</span>
+                    </div>
+                  )}
+                </footer>
+              )}
             </article>
 
             {/* KHỐI 2: BỮA PHỤ CHIỀU (ĐỒNG BỘ SỐ THỨ TỰ TỪNG MÓN NHƯ MÓN CHÍNH) */}

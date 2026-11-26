@@ -142,12 +142,15 @@ export default function RetainedSampleModal({
     });
   };
 
+  // adaptBatchDetail trả `mealType` là chữ ("Bữa xế"); mã bữa gốc nằm ở `mealTypeCode`.
   const mealName =
     batchData.mealName ||
     batchData.mealLabel ||
-    (String(batchData.mealType || "").toUpperCase() === "AFTERNOON"
-      ? "Bữa xế"
-      : "Bữa trưa");
+    { LUNCH: "Bữa trưa", AFTERNOON: "Bữa xế" }[
+      String(batchData.mealTypeCode || batchData.mealType || "").toUpperCase()
+    ] ||
+    batchData.mealType ||
+    "Bữa trưa";
 
   const portionsCount =
     batchData.portions ||

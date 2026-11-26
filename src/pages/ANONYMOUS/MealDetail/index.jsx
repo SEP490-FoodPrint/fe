@@ -24,7 +24,8 @@ import MealDetailFilterBar from "./component/MealDetailFilterBar";
 import MealDishesTable from "./component/MealDishesTable";
 import DishIngredientsModal from "./component/DishIngredientsModal";
 import { gradeTracePath } from "src/services/TraceabilityService";
-import { getWeekLabel } from "src/utils/weeklyMenu";
+import { formatWeekRange, getWeekLabel } from "src/utils/weeklyMenu";
+import { vietnamTodayISO } from "src/utils/menuDays";
 
 import "./style.scss";
 
@@ -36,7 +37,7 @@ function MealDetail() {
     outletContext.schoolCode ||
     schoolCode ||
     school?.code ||
-    "SCH_ANH_DUONG"
+    ""
   ).toUpperCase();
 
   const navigate = useNavigate();
@@ -107,6 +108,7 @@ function MealDetail() {
   useEffect(() => {
     let isMounted = true;
     setGradesLoaded(false);
+    if (!activeCode) return undefined;
     // hasMenu theo tuần của ngày đang xem khi mở trang, dùng để chọn khối mặc định
     SchoolService.getSchoolGrades(activeCode, dateParam || undefined)
       .then((res) => {
@@ -207,8 +209,8 @@ function MealDetail() {
   const activeDateIso = useMemo(() => {
     if (dailyMenu?.date) return dailyMenu.date;
     if (dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam)) return dateParam;
-    const now = new Date();
-    return now.toISOString().slice(0, 10);
+    // Ngày hôm nay theo giờ Việt Nam (toISOString là UTC, trước 7h sáng sẽ lùi một ngày).
+    return vietnamTodayISO();
   }, [dailyMenu?.date, dateParam]);
 
   const activeDateObj = useMemo(
@@ -252,13 +254,14 @@ function MealDetail() {
     }
 
     if (weekStartDateIso) {
+      // Không có số tuần thật: hiện khoảng ngày thay vì bịa "Tuần 1".
       return [
         {
           id: weekStartDateIso,
           weekStartDate: weekStartDateIso,
           weekRange: weeklyMenu?.weekRange || "",
-          title: "Tuần 1",
-          weekNumber: 1,
+          title: weekRangeLabel(weekStartDateIso, weeklyMenu?.weekRange),
+          weekNumber: null,
         },
       ];
     }
@@ -272,7 +275,7 @@ function MealDetail() {
     );
     if (found) return getWeekLabel(found);
     if (weeklyMenu?.weekNumber) return `Tuần ${weeklyMenu.weekNumber}`;
-    return "Tuần 1";
+    return weekRangeLabel(weekStartDateIso, weeklyMenu?.weekRange);
   }, [availableWeeks, weekStartDateIso, weeklyMenu]);
 
   // Danh sách các ngày trong tuần đang chọn (Thứ 2 - Thứ 6)
@@ -489,6 +492,18 @@ function getDayOfWeekName(date) {
     "Thứ Bảy",
   ];
   return names[day];
+}
+
+/** Nhãn tuần khi BE không có số tuần: "dd/mm - dd/mm" (thứ Hai – thứ Sáu). */
+function weekRangeLabel(mondayIso, weekRange) {
+  if (weekRange) return formatWeekRange(weekRange);
+  if (!mondayIso) return "";
+  const monday = parseIsoDate(mondayIso);
+  const friday = new Date(monday);
+  friday.setUTCDate(monday.getUTCDate() + 4);
+  const dm = (date) =>
+    `${String(date.getUTCDate()).padStart(2, "0")}/${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
+  return `${dm(monday)} - ${dm(friday)}`;
 }
 
 function formatDateDMY(date) {

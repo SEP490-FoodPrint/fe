@@ -1236,6 +1236,10 @@ const IngredientOrderService = {
           supplierApprovals,
           status: masterStatus,
           statusLabel: masterStatusLabel,
+          // UC 23: còn chuyến Đợt 2 chờ kho duyệt (đã khai báo lô / chờ kho duyệt).
+          awaitingWarehouse: deliveries.some((d) =>
+            ["LOTS_DECLARED", "PENDING_WAREHOUSE"].includes(d.preparationStage),
+          ),
           subOrderIds,
           deliveryIds,
         };

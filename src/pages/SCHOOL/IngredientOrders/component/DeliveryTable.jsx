@@ -246,9 +246,11 @@ export default function DeliveryTable({
 
               const canAddBatch2 = isBatch1 && !hasBatch2ForDate && !isBatch1Failed
               // TASK-10 v8 (V10): Đợt 2 của trường nấu riêng cần kho xác nhận lượng bổ sung lưu mẫu.
+              // UC 23: chỉ hiện khi còn chuyến chờ kho duyệt (đã khai báo lô / chờ kho duyệt).
               const canConfirmSample =
                 item.batchType === "BATCH_2" &&
                 cookingMode === "SEPARATE_BY_LOT" &&
+                Boolean(item.awaitingWarehouse) &&
                 !["RECEIVED", "COMPLETED", "CANCELLED"].includes(item.status)
 
               return (

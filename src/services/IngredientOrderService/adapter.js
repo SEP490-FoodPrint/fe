@@ -452,6 +452,8 @@ export function adaptDeliveryItem(item) {
     deliveryQr: item.deliveryQr || `QR-${item.deliveryNo || item.id}`,
     refrigerationTemp: item.refrigerationTemp || "3.5°C",
     status: item.status || "ARRIVED",
+    // TASK-10 v8: giai đoạn chuẩn bị của chuyến Đợt 2 (nấu riêng).
+    preparationStage: item.preparationStage ?? null,
     statusLabel: item.statusLabel || statusLabels[item.status] || item.status,
     approvals,
     items,

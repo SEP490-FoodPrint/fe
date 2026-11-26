@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import PropTypes from "prop-types"
-import { Link } from "react-router-dom"
+import { Link, generatePath } from "react-router-dom"
 import { Button, CircularProgress } from "@mui/material"
 import {
   Add,
@@ -77,8 +77,6 @@ function DeliveryDetailView({
   const [dispatchErrors, setDispatchErrors] = useState({})
   const [dispatchSubmitError, setDispatchSubmitError] = useState("")
   const [dispatching, setDispatching] = useState(false)
-  const [confirmingTopUp, setConfirmingTopUp] = useState(false)
-  const [topUpError, setTopUpError] = useState("")
 
   if (loading) {
     return (
@@ -166,18 +164,6 @@ function DeliveryDetailView({
   const canEnterShipping = canManageShipping &&
     (!delivery.preparationStage || delivery.preparationStage === "READY_TO_DISPATCH")
   const topUpLots = delivery.topUpLots ?? []
-  const handleTopUp = async () => {
-    setConfirmingTopUp(true)
-    setTopUpError("")
-    try {
-      await SupplierDeliveryService.confirmTopUp(delivery.id, topUpLots)
-      await onRetry?.()
-    } catch (failure) {
-      setTopUpError(failure.response?.data?.message || "Không thể xác nhận lấy thêm.")
-    } finally {
-      setConfirmingTopUp(false)
-    }
-  }
   const recreateUrl =
     isRequestSource && delivery.supplyRequestId
       ? `${ROUTER.SUPPLIER_DELIVERY_CREATE}?supplyRequestId=${encodeURIComponent(delivery.supplyRequestId)}&replacesDeliveryId=${encodeURIComponent(delivery.id)}`
@@ -430,13 +416,18 @@ function DeliveryDetailView({
               ))}
             </ul>
           )}
-          {topUpError && <p role="alert">{topUpError}</p>}
           {onRetry && delivery.status === DELIVERY_STATUS.PREPARING && delivery.preparationStage !== "READY_TO_DISPATCH" && (
-            <Button type="button" disabled={confirmingTopUp} onClick={onRetry}>Tải lại trạng thái</Button>
+            <Button type="button" onClick={onRetry}>Tải lại trạng thái</Button>
           )}
-          {canManageShipping && delivery.preparationStage === "TOP_UP_PENDING" && topUpLots.length > 0 && (
-            <Button type="button" variant="contained" disabled={confirmingTopUp} onClick={handleTopUp}>
-              Xác nhận lấy thêm
+          {/* Xác nhận lấy thêm làm ở bước 3 của màn "Đơn hàng" (đánh dấu từng lô); màn chuyến giao chỉ xem. */}
+          {canManageShipping && delivery.preparationStage === "TOP_UP_PENDING" && delivery.supplyRequestId && (
+            <Button
+              type="button"
+              variant="contained"
+              component={Link}
+              to={generatePath(ROUTER.SUPPLIER_ORDER_DETAIL, { id: delivery.supplyRequestId })}
+            >
+              Mở bước xác nhận lấy thêm
             </Button>
           )}
         </section>

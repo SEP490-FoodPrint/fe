@@ -237,7 +237,14 @@ export default function KitchenBatchDetail() {
       <div className={styles.container}>
         {/* 1. Header Trang & Thao tác chính */}
         <BatchDetailHeader
-          batchData={batchData}
+          batchData={{
+            ...batchData,
+            // Giờ phục vụ của bữa theo cấu hình trường (BGH), không để cứng.
+            servingTime:
+              (batchData.mealTypeCode === "LUNCH"
+                ? mealTimes?.lunch
+                : mealTimes?.afternoon) || null,
+          }}
           onOpenConfirmModal={() => setIsConfirmOpen(true)}
           onCompleteBatch={handleCompleteBatch}
           actionLoading={actionLoading}
@@ -252,6 +259,21 @@ export default function KitchenBatchDetail() {
         {mealBlock && !weekendLocked && (
           <Alert severity="info" className={styles.mealBlockAlert}>
             {mealBlock}
+          </Alert>
+        )}
+
+        {/* UC 22-1: phần thừa Đợt 1 của cùng bữa – món */}
+        {batchData.leftovers?.length > 0 && (
+          <Alert severity={batchData.round2Status === "NOT_NEEDED" ? "success" : "info"}>
+            {batchData.round2Status === "NOT_NEEDED"
+              ? "Thừa từ Đợt 1 (Đợt 2 không cần, có thể linh động cho thêm vào món): "
+              : "Phần dư Đợt 1 sẽ ghép vào mẻ Đợt 2: "}
+            {batchData.leftovers
+              .map(
+                (row) =>
+                  `${row.ingredientName} · ${row.source || row.lotCode} · ${Number(row.quantity).toLocaleString("vi-VN", { maximumFractionDigits: 3 })} ${row.unit}`,
+              )
+              .join("; ")}
           </Alert>
         )}
 

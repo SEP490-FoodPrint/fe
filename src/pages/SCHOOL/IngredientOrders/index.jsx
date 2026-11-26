@@ -404,6 +404,7 @@ export default function IngredientOrders() {
         ) : (
           <DeliveryDetailView
             delivery={selectedDelivery}
+            cookingMode={cookingMode}
             onBack={handleBackToList}
             onConfirmAttendance={handleConfirmAttendance}
           />
