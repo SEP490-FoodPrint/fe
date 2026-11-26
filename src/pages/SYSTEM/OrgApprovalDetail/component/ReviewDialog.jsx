@@ -46,7 +46,7 @@ export default function ReviewDialog({ mode, request, reviewer, onClose, onRevie
       setConflict(["REGISTRATION_STALE", "REGISTRATION_ALREADY_REVIEWED"].includes(code))
       if (status === 409 && code === "REGISTRATION_LOCATION_INACTIVE") {
         setLocationInactive(true)
-        setError("Phường/xã được chọn trong hồ sơ đã ngừng hoạt động. Vui lòng từ chối hồ sơ để đơn vị đăng ký chọn lại phường/xã đang hoạt động.")
+        setError("Phường/xã đã ngừng hoạt động. Hãy từ chối để họ chọn lại.")
       } else {
         setError(err.message || "Không thể lưu quyết định xét duyệt.")
       }

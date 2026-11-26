@@ -433,12 +433,8 @@ export default function WarehouseManage() {
   const handleCreateOrder = async orderPayload => {
     try {
       await WarehouseService.createDryOrder(orderPayload)
-      const ordersToSave = Array.isArray(orderPayload)
-        ? orderPayload
-        : [orderPayload]
-      const orderNos = ordersToSave.map(o => o.orderNo).join(", ")
       notice({
-        msg: `Đã tạo Phiếu nhập hàng (${orderNos}) thành công trên hệ thống Database!`,
+        msg: "Đã tạo phiếu nhập hàng",
         isSuccess: true,
       })
       setSubView("list")
@@ -448,7 +444,7 @@ export default function WarehouseManage() {
     } catch (err) {
       console.error("Lỗi tạo phiếu đồ lưu kho lên DB:", err)
       notice({
-        msg: "Lỗi tạo phiếu nhập đồ lưu kho lên hệ thống. Vui lòng thử lại!",
+        msg: "Chưa tạo được phiếu nhập. Vui lòng thử lại.",
         isSuccess: false,
       })
     }

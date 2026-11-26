@@ -51,7 +51,7 @@ instance.interceptors.response.use(
       ? "Không thể xử lý yêu cầu. Vui lòng thử lại."
       : "Không thể kết nối máy chủ. Vui lòng thử lại.")
     if (error.response?.status === 401 && !error.config?.skipAuthRedirect) {
-      notice({ msg: "Bạn chưa đăng nhập hoặc phiên làm việc đã hết hạn", isSuccess: false })
+      notice({ msg: "Phiên đã hết hạn. Vui lòng đăng nhập lại.", isSuccess: false })
       deleteStorage(STORAGE.TOKEN)
       deleteStorage(STORAGE.USER_INFO)
       window.location.replace(ROUTER.LOGIN)

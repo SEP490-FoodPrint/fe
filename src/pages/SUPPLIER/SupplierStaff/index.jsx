@@ -216,7 +216,7 @@ function SupplierStaff() {
       setCreateOpen(false)
       notice({
         msg: "Đã tạo tài khoản nhân viên",
-        desc: `${created.fullName} (@${created.username}) đã sẵn sàng hoạt động.`,
+        desc: `${created.fullName} đã có thể đăng nhập`,
         isSuccess: true,
       })
       setPagination(prev => ({ ...prev, page: 1 }))

@@ -198,7 +198,7 @@ export default function EmailSetupPage() {
       setResendAt(Date.now() + resendAfterSec * 1000)
       setStep("verify")
       setInfoNotice(
-        "Mã xác nhận gồm 6 chữ số đã được gửi tới email của bạn. Kiểm tra cả hộp thư rác nếu chưa thấy.",
+        "Đã gửi mã 6 số. Kiểm tra cả thư rác.",
       )
     } catch (error) {
       await handleRequestError(error, "email")
@@ -259,8 +259,8 @@ export default function EmailSetupPage() {
       userStore.setUser(user)
       loginStore.setIsLoginContext(true)
       notice({
-        msg: "Thiết lập email thành công",
-        desc: `Tài khoản đã được xác minh với email ${user.email || submittedEmail}. Các lần đăng nhập sau sẽ dùng email này.`,
+        msg: "Đã xác minh email",
+        desc: "Lần sau hãy đăng nhập bằng email này.",
         isSuccess: true,
       })
       navigate(getAuthRedirect(user), { replace: true })

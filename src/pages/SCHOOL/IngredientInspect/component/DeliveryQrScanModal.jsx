@@ -68,7 +68,7 @@ export default function DeliveryQrScanModal({ open, onClose, onSubmitCode, searc
       .catch((failure) => {
         setCameraError(
           failure?.name === "NotAllowedError"
-            ? "Chưa được cấp quyền camera. Hãy cho phép camera hoặc nhập mã bên dưới."
+            ? "Hãy cho phép dùng camera hoặc nhập mã."
             : "Không mở được camera. Hãy nhập hoặc dán mã bên dưới.",
         )
       })

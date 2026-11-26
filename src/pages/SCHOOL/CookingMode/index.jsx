@@ -59,7 +59,7 @@ function CookingMode() {
       setSaved(response.data.cookingMode)
       setSelected(response.data.cookingMode)
       setConfirmOpen(false)
-      notice({ msg: "Đã lưu chế độ dùng khi hệ thống lập mẻ mới" })
+      notice({ msg: "Đã lưu chế độ nấu" })
     } catch (failure) {
       notice({
         msg: "Không thể lưu chế độ nấu",

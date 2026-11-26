@@ -102,7 +102,7 @@ function TraceSnapshotSection({ incidentId, traceSnapshots, traceCompleteness })
       .catch(error => {
         if (error?.name === "CanceledError" || controller.signal.aborted) return
         setSnapshotError(
-          extractApiError(error, "Không thể tải dữ liệu snapshot truy xuất.")
+          extractApiError(error, "Không tải được dữ liệu truy xuất.")
             .message,
         )
       })
@@ -136,9 +136,9 @@ function TraceSnapshotSection({ incidentId, traceSnapshots, traceCompleteness })
     if (!hash) return
     try {
       await navigator.clipboard.writeText(hash)
-      notice({ msg: "Đã sao chép mã băm SHA-256", isSuccess: true })
+      notice({ msg: "Đã sao chép mã đối chiếu", isSuccess: true })
     } catch {
-      notice({ msg: "Không thể sao chép vào bộ nhớ tạm", isSuccess: false })
+      notice({ msg: "Không sao chép được.", isSuccess: false })
     }
   }
 

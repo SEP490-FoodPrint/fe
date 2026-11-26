@@ -132,7 +132,7 @@ export default function MenuPlanning() {
         }))
         setCalendarError(
           selection.invalidSelection
-            ? "Tuần đã chọn không thuộc năm học hiện tại. Đã mở tuần mặc định của năm học."
+            ? "Tuần này ngoài năm học. Đã mở tuần mặc định."
             : "",
         )
       })
@@ -361,7 +361,7 @@ export default function MenuPlanning() {
 
     if (missingDays.length > 0) {
       showToast(
-        `Chưa thể gửi duyệt: Còn ${missingDays.join(", ")} chưa đủ 2 ca (trưa & xế). Vui lòng hoàn tất trước khi gửi!`,
+        `Chưa gửi được: ${missingDays.length} ngày thiếu bữa trưa hoặc xế.`,
         "warning",
       )
       return
@@ -370,7 +370,7 @@ export default function MenuPlanning() {
     const weeklyId = weekMenus[0]?.weeklyMenuId || weekMenus[0]?.id
 
     if (!weeklyId) {
-      showToast("Chưa xác định được mã tuần thực đơn để gửi duyệt.", "warning")
+      showToast("Chưa có thực đơn để gửi. Tải lại trang.", "warning")
       return
     }
 
@@ -379,7 +379,7 @@ export default function MenuPlanning() {
         ...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id)),
       ])
       showToast(
-        `Đã gửi thực đơn ${selectedWeekLabel} cho Ban Giám Hiệu phê duyệt thành công!`,
+        "Đã gửi Ban Giám hiệu duyệt",
         "success",
       )
       // Tải lại danh sách từ API
@@ -401,7 +401,7 @@ export default function MenuPlanning() {
 
     if (!weeklyId) {
       showToast(
-        "Chưa xác định được mã tuần thực đơn để gửi duyệt lại.",
+        "Chưa có thực đơn để gửi. Tải lại trang.",
         "warning",
       )
       return
@@ -412,7 +412,7 @@ export default function MenuPlanning() {
         ...new Set(weekMenus.map(menu => menu.weeklyMenuId || menu.id)),
       ])
       showToast(
-        `Đã gửi lại thực đơn ${selectedWeekLabel} đã chỉnh sửa cho Ban Giám Hiệu!`,
+        "Đã gửi lại Ban Giám hiệu duyệt",
         "success",
       )
       const res = await MenuService.getMenus({

@@ -238,7 +238,7 @@ const IngredientCatalog = () => {
       }
       await loadList(currentPage);
       notice({
-        msg: "Sửa nguyên liệu thành công",
+        msg: "Đã sửa nguyên liệu",
         isSuccess: true,
       });
       return;
@@ -249,7 +249,7 @@ const IngredientCatalog = () => {
     setCurrentPage(1);
     await loadList(1);
     notice({
-      msg: "Thêm nguyên liệu thành công",
+      msg: "Đã thêm nguyên liệu",
       isSuccess: true,
     });
   };
@@ -272,8 +272,8 @@ const IngredientCatalog = () => {
     notice({
       msg:
         targetStatus === INGREDIENT_STATUS.ACTIVE
-          ? "Mở lại nguyên liệu thành công"
-          : "Ẩn nguyên liệu thành công",
+          ? "Đã mở lại nguyên liệu"
+          : "Đã ẩn nguyên liệu",
       isSuccess: true,
     });
   };

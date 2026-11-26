@@ -211,7 +211,7 @@ function DeliveryCreateView({ prefillDeliveryId = "", onCreated }) {
         setOptionsError(
           extractApiError(
             error,
-            "Không thể tải danh mục trường học, nguyên liệu và cơ sở nguồn cung.",
+            "Không tải được dữ liệu tạo đơn.",
           ).message,
         )
       })

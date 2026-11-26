@@ -94,7 +94,7 @@ function FacilityFormModal({
     const errors = validateFacilityForm(formState)
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors)
-      setSubmitError("Vui lòng kiểm tra lại các trường thông tin bên dưới.")
+      setSubmitError("Kiểm tra lại các ô báo đỏ.")
       if (errors.name) {
         nameInputRef.current?.focus()
       }

@@ -119,7 +119,7 @@ function IncidentDetailView({
 
   const handleConflict = message => {
     notice({
-      msg: message || "Trạng thái hồ sơ đã thay đổi, đang tải lại dữ liệu mới nhất.",
+      msg: message || "Hồ sơ vừa được cập nhật. Đang tải lại.",
       isSuccess: false,
     })
     onReload()
@@ -772,7 +772,7 @@ function IncidentDetailView({
         onSuccess={() => {
           setForwardOpen(false)
           notice({
-            msg: "Đã xác minh và chuyển hồ sơ tới đơn vị ATTP",
+            msg: "Đã chuyển hồ sơ đến đơn vị ATTP",
             isSuccess: true,
           })
           onReload()
@@ -856,7 +856,7 @@ function IncidentDetailView({
         onSuccess={() => {
           setEnforceOpen(false)
           notice({
-            msg: "Đã gửi đề nghị chế tài nhà cung cấp tới System Admin",
+            msg: "Đã gửi đề nghị chế tài đến Quản trị hệ thống",
             isSuccess: true,
           })
           setEnforcementTick(prev => prev + 1)

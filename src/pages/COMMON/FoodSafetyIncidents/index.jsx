@@ -193,7 +193,7 @@ function FoodSafetyIncidents() {
       await FoodSafetyIncidentService.receiveReport(report.id)
       setReceivedReportIds(prev => (prev.includes(report.id) ? prev : [...prev, report.id]))
       notice({
-        msg: "Đã tiếp nhận báo cáo ngộ độc thành công",
+        msg: "Đã tiếp nhận báo cáo ngộ độc",
         isSuccess: true,
       })
       setReportsReloadTick(prev => prev + 1)
@@ -222,7 +222,7 @@ function FoodSafetyIncidents() {
     setReportDialogOpen(false)
     notice({
       msg: isBgh
-        ? "Đã tạo hồ sơ và chuyển trực tiếp tới đơn vị ATTP"
+        ? "Đã gửi hồ sơ đến đơn vị ATTP"
         : "Đã gửi báo cáo ngộ độc tới nhà trường",
       isSuccess: true,
     })

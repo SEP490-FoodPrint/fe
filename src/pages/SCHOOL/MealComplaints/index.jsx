@@ -164,7 +164,7 @@ export default function MealComplaints() {
     setFilters({ search: "", status: "", complaintType: "", from: "", to: "" })
     setAppliedSearch("")
     setListReloadTick(prev => prev + 1)
-    notice({ msg: "Đã gửi khiếu nại bữa ăn thành công", isSuccess: true })
+    notice({ msg: "Đã gửi khiếu nại bữa ăn", isSuccess: true })
   }
 
   const handleResetFilters = () => {
@@ -251,7 +251,7 @@ export default function MealComplaints() {
             reason,
           })
           notice({
-            msg: `Đã chuyển khiếu nại lên Cơ quan ATTP (${formatTicketCode(created?.code)})`,
+            msg: "Đã chuyển khiếu nại đến Cơ quan ATTP",
             isSuccess: true,
           })
           setDetailReloadTick(prev => prev + 1)

@@ -183,7 +183,7 @@ export default function CookingBatches() {
         if (active) setSchool(value);
       })
       .catch((error) => {
-        if (active) setSchoolError(error.message || "Không thể tải cấu hình bếp từ máy chủ.");
+        if (active) setSchoolError(error.message || "Không tải được cấu hình bếp.");
       });
     return () => {
       active = false;

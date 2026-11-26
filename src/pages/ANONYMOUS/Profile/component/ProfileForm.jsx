@@ -27,7 +27,7 @@ export default function ProfileForm({ user, onUpdated }) {
       if (controller.signal.aborted) return
       setValues({ fullName: profile.fullName || "", phone: profile.phone || "" })
       onUpdated(profile)
-    }).catch(error => { if (!controller.signal.aborted) setLoadError(error.message || "Không thể tải profile.") })
+    }).catch(error => { if (!controller.signal.aborted) setLoadError(error.message || "Không tải được hồ sơ cá nhân.") })
       .finally(() => { if (!controller.signal.aborted) setFetching(false) })
     return () => controller.abort()
     // Loading is tied to the account ID; save operations update the same account in place.

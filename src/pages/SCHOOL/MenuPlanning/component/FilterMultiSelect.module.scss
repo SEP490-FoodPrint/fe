@@ -1,0 +1,56 @@
+.select {
+  :global(.MuiInputBase-root) {
+    flex-wrap: nowrap;
+    height: 38px;
+    background-color: #f8fafc;
+    border-radius: 7px;
+    font-size: 13px;
+  }
+
+  :global(.MuiOutlinedInput-notchedOutline) {
+    border-color: #cbd5e1;
+  }
+
+  :global(.MuiInputBase-input) {
+    flex: 1 1 0 !important;
+    min-width: 24px !important;
+  }
+
+  input::placeholder {
+    color: #1e293b;
+    opacity: 1;
+  }
+}
+
+.summary {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  padding-left: 6px;
+  color: #1e293b;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Popup nguyên liệu dùng z-index 9999 nên danh sách phải nằm trên. */
+.popper {
+  z-index: 10000 !important;
+}
+
+.option {
+  gap: 4px;
+  padding: 2px 12px 2px 4px !important;
+  font-size: 13px;
+}
+
+.optionName {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.optionCount {
+  color: #64748b;
+  font-size: 12px;
+}

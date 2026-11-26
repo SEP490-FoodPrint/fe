@@ -109,84 +109,6 @@
   }
 }
 
-/* Category Tabs Section */
-.categoryTabsSection {
-  padding: 12px 24px 10px 24px;
-  background-color: #f8fafc;
-  border-bottom: 1px solid #edf2f7;
-}
-
-.filterSectionLabel {
-  display: block;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #64748b;
-  margin-bottom: 8px;
-}
-
-.categoryPills {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  overflow-x: auto;
-  padding-bottom: 4px;
-
-  &::-webkit-scrollbar {
-    height: 4px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 4px;
-  }
-}
-
-.catPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background-color: #ffffff;
-  border: 1px solid #cbd5e1;
-  border-radius: 20px;
-  font-size: 12.5px;
-  font-weight: 500;
-  color: #334155;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.15s ease;
-
-  span:first-child {
-    font-size: 15px;
-  }
-
-  &:hover {
-    border-color: #94a3b8;
-    background-color: #f1f5f9;
-  }
-}
-
-.catPillActive {
-  background-color: var(--color-primary, #0a8066) !important;
-  border-color: var(--color-primary, #0a8066) !important;
-  color: #ffffff !important;
-
-  .countBadge {
-    background-color: rgba(255, 255, 255, 0.25);
-    color: #ffffff;
-  }
-}
-
-.countBadge {
-  font-size: 10.5px;
-  font-weight: 600;
-  padding: 1px 6px;
-  border-radius: 10px;
-  background-color: #e2e8f0;
-  color: #475569;
-}
-
 /* Secondary Filter Bar */
 .secondaryFilterBar {
   display: flex;
@@ -199,10 +121,12 @@
 
 .supplierFilterCol {
   flex: 1;
+  min-width: 0;
 }
 
 .searchCol {
   flex: 1.2;
+  min-width: 0;
 }
 
 .filterLabel {
@@ -211,41 +135,6 @@
   font-weight: 600;
   color: #475569;
   margin-bottom: 5px;
-}
-
-.selectWrap {
-  position: relative;
-  width: 100%;
-}
-
-.supplierSelect {
-  width: 100%;
-  height: 38px;
-  padding: 0 32px 0 12px;
-  background-color: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 7px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #1e293b;
-  appearance: none;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: var(--color-primary, #0a8066);
-    background-color: #ffffff;
-  }
-}
-
-.selectChevron {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #64748b;
-  font-size: 18px;
 }
 
 .searchInputWrap {
@@ -316,20 +205,45 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 12px;
 }
 
-.resultCount {
-  font-size: 12.5px;
-  color: #64748b;
+.activeFilters {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
 
-  strong {
-    color: var(--color-primary, #0a8066);
-    font-weight: 700;
+.filterTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 220px;
+  padding: 4px 10px;
+  border: 1px solid rgba(var(--color-primary-rgb), 0.3);
+  border-radius: 9999px;
+  background-color: var(--color-primary-soft, #e8f5f1);
+  color: var(--color-primary, #0a8066);
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--color-primary, #0a8066);
   }
 }
 
+.filterTagName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .resetBtn {
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -381,22 +295,6 @@
 .cardSelected {
   border-color: var(--color-primary, #0a8066);
   background-color: #f0fdf9;
-}
-
-.cardIconBox {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background-color: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-
-  .cardIcon {
-    font-size: 20px;
-    color: var(--color-primary, #0a8066);
-  }
 }
 
 .cardContent {
@@ -475,12 +373,18 @@
 }
 
 .pickBtn {
-  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border-radius: 6px;
   border: 1px solid var(--color-primary, #0a8066);
   background-color: #ffffff;
   color: var(--color-primary, #0a8066);
-  font-size: 12px;
+  font-size: 18px;
+  line-height: 1;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -556,28 +460,20 @@
   }
 }
 
-.selectedCountHighlight {
-  color: var(--color-primary, #0a8066);
-  font-weight: 700;
-}
-
 .doneBtn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 8px 20px;
-  border-radius: 8px;
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border-radius: 6px;
   background-color: var(--color-primary, #0a8066);
   color: #ffffff;
   border: none;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
-
-  span {
-    font-size: 18px;
-  }
 
   &:hover {
     background-color: #00513f;
@@ -596,7 +492,7 @@
     grid-template-columns: 1fr;
   }
 
-  .modalHeader, .secondaryFilterBar, .categoryTabsSection, .listContainer, .modalFooter {
+  .modalHeader, .secondaryFilterBar, .listContainer, .modalFooter {
     padding-left: 16px;
     padding-right: 16px;
   }
