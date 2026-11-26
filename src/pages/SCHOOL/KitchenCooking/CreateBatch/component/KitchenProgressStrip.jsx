@@ -24,7 +24,7 @@ const STATUS_CLASS = {
  * Dải tiến độ chế biến hôm nay của mọi khối, theo từng bữa, kèm cảnh báo theo giờ ăn.
  * Bấm chip để chuyển bảng sang đúng khối và bữa.
  */
-export default function KitchenProgressStrip({ progress, mealTimes, selectedMeal, activeMenuId, onPick, now: fixedNow }) {
+export default function KitchenProgressStrip({ progress, mealTimes, selectedMeal, onlyCurrent = false, activeMenuId, onPick, now: fixedNow }) {
   const [tick, setTick] = useState(() => Date.now());
   useEffect(() => {
     if (fixedNow !== undefined) return undefined;
@@ -55,6 +55,7 @@ export default function KitchenProgressStrip({ progress, mealTimes, selectedMeal
         });
         if (!entries.length) return null;
         const current = selectedMeal === meal.key;
+        if (onlyCurrent && !current) return null;
         return (
           <div key={meal.type} className={`${styles.row} ${current ? styles.rowCurrent : styles.rowCompact}`}>
             <span className={styles.rowTitle}>
@@ -95,6 +96,7 @@ KitchenProgressStrip.propTypes = {
   progress: PropTypes.object,
   mealTimes: PropTypes.object,
   selectedMeal: PropTypes.string,
+  onlyCurrent: PropTypes.bool,
   activeMenuId: PropTypes.string,
   onPick: PropTypes.func,
   now: PropTypes.number,

@@ -11,3 +11,21 @@ export function mealByTime(mealTimes, now = new Date()) {
   const current = `${pad(vn.getUTCHours())}:${pad(vn.getUTCMinutes())}`;
   return current <= lunch ? "lunch" : "afternoon";
 }
+
+/** Trường đã cấu hình giờ bữa trưa thì khóa theo khung giờ. */
+export function hasMealWindow(mealTimes) {
+  return /^\d{2}:\d{2}$/.test(String(mealTimes?.lunch || ""));
+}
+
+/**
+ * Lý do không được xử lý lô của bữa `mealType` ở thời điểm `now`;
+ * chuỗi rỗng nếu được phép (hoặc trường chưa cấu hình giờ bữa trưa).
+ */
+export function mealWindowBlock(mealType, mealTimes, now = new Date()) {
+  const meal = String(mealType || "").toLowerCase();
+  if (!hasMealWindow(mealTimes) || !["lunch", "afternoon"].includes(meal)) return "";
+  if (mealByTime(mealTimes, now) === meal) return "";
+  return meal === "lunch"
+    ? `Đã qua giờ bữa trưa (${mealTimes.lunch}). Chỉ xử lý lô bữa xế.`
+    : `Chưa tới khung giờ bữa xế (sau ${mealTimes.lunch}).`;
+}

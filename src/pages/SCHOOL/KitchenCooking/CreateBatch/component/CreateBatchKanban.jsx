@@ -58,6 +58,7 @@ export default function CreateBatchKanban({
   selectedMeal = "lunch",
   mealTimes = null,
   onSelectMeal,
+  mealLocked = false,
   gradeMenus = [],
   grades = [],
   gradeValue = "",
@@ -241,6 +242,16 @@ export default function CreateBatchKanban({
 
         {/* Bộ lọc Bữa ăn (Filter Control bên phải) */}
         <div className={styles.filterControl}>
+          {mealLocked ? (
+            <div className={styles.mealFixed} title="Theo khung giờ bữa ăn BGH cấu hình">
+              <Clock size={14} aria-hidden="true" />
+              <span>
+                {selectedMeal === "afternoon"
+                  ? `Bữa xế${mealTimes?.afternoon ? ` (${mealTimes.afternoon})` : ""}`
+                  : `Bữa trưa${mealTimes?.lunch ? ` (${mealTimes.lunch})` : ""}`}
+              </span>
+            </div>
+          ) : (
           <div className={styles.selectWrapper}>
             <Clock size={14} className={styles.selectIcon} />
             <select
@@ -254,6 +265,7 @@ export default function CreateBatchKanban({
             </select>
             <ChevronDown size={14} className={styles.selectArrow} aria-hidden="true" />
           </div>
+          )}
           <MenuScopeSelect menus={gradeMenus} grades={grades} gradeValue={gradeValue} value={gradeMenuId} onChange={onGradeChange} disabled={gradeDisabled} />
         </div>
       </div>
@@ -267,6 +279,7 @@ export default function CreateBatchKanban({
           progress={dayProgress}
           mealTimes={mealTimes}
           selectedMeal={selectedMeal}
+          onlyCurrent={mealLocked}
           activeMenuId={gradeMenuId}
           onPick={onPickProgress}
         />
@@ -473,6 +486,7 @@ CreateBatchKanban.propTypes = {
   selectedMeal: PropTypes.string,
   mealTimes: PropTypes.shape({ lunch: PropTypes.string, afternoon: PropTypes.string }),
   onSelectMeal: PropTypes.func,
+  mealLocked: PropTypes.bool,
   gradeMenus: PropTypes.arrayOf(PropTypes.object),
   grades: PropTypes.arrayOf(PropTypes.object),
   gradeValue: PropTypes.string,

@@ -22,6 +22,7 @@ import ConfirmBatchModal from "./component/ConfirmBatchModal";
 import RetainedSampleModal from "./component/RetainedSampleModal";
 import styles from "./index.module.scss";
 import { isVietnamWeekend, WEEKEND_LOCK_MESSAGE } from "src/utils/weekend";
+import { mealWindowBlock } from "src/utils/mealWindow";
 
 export default function KitchenBatchDetail() {
   const weekendLocked = isVietnamWeekend();
@@ -42,6 +43,21 @@ export default function KitchenBatchDetail() {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isSampleOpen, setIsSampleOpen] = useState(false);
 
+  // Giờ bữa ăn BGH cấu hình: ngoài khung giờ của bữa thì không xử lý lô bữa đó
+  const [mealTimes, setMealTimes] = useState(null);
+  const [clock, setClock] = useState(() => Date.now());
+  useEffect(() => {
+    const controller = new AbortController();
+    KitchenService.getContext({ signal: controller.signal })
+      .then((context) => setMealTimes({ lunch: context.lunchTime || "", afternoon: context.afternoonMealTime || "" }))
+      .catch(() => setMealTimes(null));
+    const timer = setInterval(() => setClock(Date.now()), 60000);
+    return () => {
+      controller.abort();
+      clearInterval(timer);
+    };
+  }, []);
+
   const fetchBatch = useCallback(
     async (signal) => {
       if (!id) return;
@@ -50,6 +66,7 @@ export default function KitchenBatchDetail() {
       try {
         const rawBatch = await KitchenService.getBatchDetail(id, { signal });
         const adapted = adaptBatchDetail(rawBatch);
+        adapted.mealTypeCode = rawBatch?.mealType || "";
         setBatchData(adapted);
 
         // Tải thông tin mẫu lưu nếu mẻ đã hoàn thành
@@ -206,6 +223,9 @@ export default function KitchenBatchDetail() {
   const isDraft = batchData.status === "DRAFT" || batchData.status === "UNCONFIRMED";
   const isConfirmed = batchData.status === "CONFIRMED";
   const isCompleted = batchData.status === "COMPLETED";
+  const mealBlock = isDraft || isConfirmed ? mealWindowBlock(batchData.mealTypeCode, mealTimes, new Date(clock)) : "";
+  const actionLocked = weekendLocked || Boolean(mealBlock);
+  const actionTitle = weekendLocked ? WEEKEND_LOCK_MESSAGE : mealBlock || undefined;
   const totalDishes = batchData.dishes?.length || 1;
   const sampledCount = batchData.retainedFoodSamples?.length || (sampleData ? 1 : 0);
   const allSamplesDone = batchData.dishes?.length > 1
@@ -226,7 +246,14 @@ export default function KitchenBatchDetail() {
           allSamplesDone={allSamplesDone}
           sampledCount={sampledCount}
           totalDishes={totalDishes}
+          mealBlock={mealBlock}
         />
+
+        {mealBlock && !weekendLocked && (
+          <Alert severity="info" className={styles.mealBlockAlert}>
+            {mealBlock}
+          </Alert>
+        )}
 
         {/* 2. Danh sách món ăn thuộc lô chế biến (sổ xuống xem nguyên liệu chính & gia vị) */}
         <BatchDishesCard batchData={batchData} />
@@ -272,8 +299,8 @@ export default function KitchenBatchDetail() {
               type="button"
               className={styles.mobilePrimaryBtn}
               onClick={() => setIsConfirmOpen(true)}
-              disabled={actionLoading || weekendLocked}
-              title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
+              disabled={actionLoading || actionLocked}
+              title={actionTitle}
             >
               <CheckCircle2 size={18} />
               <span>Xác nhận nấu</span>
@@ -285,8 +312,8 @@ export default function KitchenBatchDetail() {
               type="button"
               className={styles.mobilePrimaryBtn}
               onClick={handleCompleteBatch}
-              disabled={actionLoading || weekendLocked}
-              title={weekendLocked ? WEEKEND_LOCK_MESSAGE : undefined}
+              disabled={actionLoading || actionLocked}
+              title={actionTitle}
             >
               <CookingPot size={18} />
               <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>

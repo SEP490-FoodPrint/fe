@@ -25,6 +25,7 @@ export default function BatchDetailHeader({
   sampledCount = 0,
   totalDishes = 1,
   locked = isVietnamWeekend(),
+  mealBlock = "",
 }) {
   const navigate = useNavigate()
 
@@ -32,6 +33,9 @@ export default function BatchDetailHeader({
   const isDraft = status === "DRAFT" || status === "UNCONFIRMED"
   const isConfirmed = status === "CONFIRMED"
   const isCompleted = status === "COMPLETED"
+  // Cuối tuần hoặc ngoài khung giờ của bữa: khóa Xác nhận nấu / Ghi nhận nấu xong
+  const cookLocked = locked || Boolean(mealBlock)
+  const cookTitle = locked ? WEEKEND_LOCK_MESSAGE : mealBlock || undefined
   const isAllSampled = allSamplesDone || (hasSample && totalDishes <= 1)
 
   const getStatusBadge = () => {
@@ -97,8 +101,8 @@ export default function BatchDetailHeader({
                   type="button"
                   className={styles.primaryBtn}
                   onClick={onOpenConfirmModal}
-                  disabled={actionLoading || locked}
-                  title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
+                  disabled={actionLoading || cookLocked}
+                  title={cookTitle}
                 >
                   <CheckCircle2 size={16} />
                   <span>Xác nhận nấu</span>
@@ -111,8 +115,8 @@ export default function BatchDetailHeader({
                 type="button"
                 className={styles.primaryBtn}
                 onClick={onCompleteBatch}
-                disabled={actionLoading || locked}
-                title={locked ? WEEKEND_LOCK_MESSAGE : undefined}
+                disabled={actionLoading || cookLocked}
+                title={cookTitle}
               >
                 <CookingPot size={16} />
                 <span>{actionLoading ? "Đang ghi nhận…" : "Ghi nhận nấu xong"}</span>
