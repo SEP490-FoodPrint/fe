@@ -326,6 +326,9 @@ export default function CreateBatchKanban({
                         <h3 className={styles.dishCardTitle}>{dish.name}</h3>
                         <MealTag mealType={dish.mealType} />
                       </div>
+                      {dish.waitReason && (
+                        <span className={styles.cardMeta} role="status">{dish.waitReason}</span>
+                      )}
                       <div className={styles.cardFooter}>
                         <span className={styles.cardMeta}>
                           {Number(dish.portionStandard || 0).toLocaleString("vi-VN")} suất
