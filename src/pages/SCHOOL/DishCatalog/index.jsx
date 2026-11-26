@@ -505,6 +505,18 @@ export default function DishCatalogPage() {
   ]
   const handleSave = async () => {
     setCatalogError("")
+    const dishName = form.name.trim().toLocaleLowerCase("vi")
+    if (
+      dishName &&
+      catalog.some(
+        row =>
+          row.id !== editingDish?.id &&
+          String(row.name || "").trim().toLocaleLowerCase("vi") === dishName,
+      )
+    ) {
+      setCatalogError("Tên món đã có. Đặt tên khác.")
+      return
+    }
     if (!categoryOptions.some(option => option.key === form.category)) {
       setCatalogError("Vui lòng chọn nhóm món ăn.")
       return
