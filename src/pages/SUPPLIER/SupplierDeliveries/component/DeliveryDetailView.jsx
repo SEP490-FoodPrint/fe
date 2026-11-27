@@ -25,7 +25,34 @@ import SupplierDeliveryService, {
 } from "src/services/SupplierDeliveryService"
 import DeliveryQrLabelsModal from "./DeliveryQrLabelsModal"
 import DeliveryStatusBadge from "./DeliveryStatusBadge"
+import DeliveryStageStepper from "./DeliveryStageStepper"
 import styles from "./DeliveryDetailView.module.scss"
+
+const DELIVERY_PROGRESS_STEPS = [
+  { key: "PREPARE", title: "1. Chuẩn bị hàng", statusText: "Đang chuẩn bị hàng" },
+  { key: "TRANSIT", title: "2. Vận chuyển đến trường", statusText: "Đang giao hàng" },
+  { key: "INSPECT", title: "3. Trường kiểm nhận", statusText: "Chờ kiểm tra" },
+  { key: "RECEIVE", title: "4. Hoàn thành", statusText: "Trường đã nhận hàng" },
+]
+
+// Bước hiện tại của đơn; đơn bị từ chối/hủy không hiện tiến trình (banner đã giải thích).
+function getProgressStepIndex(status) {
+  switch (status) {
+    case DELIVERY_STATUS.CREATED:
+    case DELIVERY_STATUS.PREPARING:
+      return 0
+    case DELIVERY_STATUS.IN_TRANSIT:
+      return 1
+    case DELIVERY_STATUS.ARRIVED:
+    case DELIVERY_STATUS.PENDING_APPROVAL:
+      return 2
+    case DELIVERY_STATUS.APPROVED:
+    case DELIVERY_STATUS.RECEIVED:
+      return DELIVERY_PROGRESS_STEPS.length
+    default:
+      return null
+  }
+}
 
 function getLifecycleBanner(status, isRequestSource = false) {
   switch (status) {
@@ -168,6 +195,7 @@ function DeliveryDetailView({
     isRequestSource && delivery.supplyRequestId
       ? `${ROUTER.SUPPLIER_DELIVERY_CREATE}?supplyRequestId=${encodeURIComponent(delivery.supplyRequestId)}&replacesDeliveryId=${encodeURIComponent(delivery.id)}`
       : `${ROUTER.SUPPLIER_DELIVERY_CREATE}?prefillDeliveryId=${encodeURIComponent(delivery.id)}`
+  const progressStepIndex = getProgressStepIndex(delivery.status)
   const lifecycleBanner = delivery.status === DELIVERY_STATUS.PREPARING &&
     delivery.preparationStage && delivery.preparationStage !== "READY_TO_DISPATCH"
     ? null
@@ -283,6 +311,13 @@ function DeliveryDetailView({
           )}
         </div>
       </div>
+
+      {progressStepIndex !== null && (
+        <DeliveryStageStepper
+          activeIndex={progressStepIndex}
+          steps={DELIVERY_PROGRESS_STEPS}
+        />
+      )}
 
       {/* Section 1: Header info */}
       <section className={styles.detailCard} aria-labelledby="delivery-info-heading">
